@@ -1,0 +1,476 @@
+{
+    "调香师": {
+        "Name": "调香师",
+        "Type": "sur",
+        "SearchingName": "txs调香师",
+        "ImageFileName": "调香师.png"
+    },
+    "画家": {
+        "Name": "画家",
+        "Type": "sur",
+        "SearchingName": "hj画家",
+        "ImageFileName": "画家.png"
+    },
+    "记者": {
+        "Name": "记者",
+        "Type": "sur",
+        "SearchingName": "jz记者",
+        "ImageFileName": "记者.png"
+    },
+    "昆虫学者": {
+        "Name": "昆虫学者",
+        "Type": "sur",
+        "SearchingName": "kcxz昆虫学者",
+        "ImageFileName": "昆虫学者.png"
+    },
+    "魔术师": {
+        "Name": "魔术师",
+        "Type": "sur",
+        "SearchingName": "mss魔术师",
+        "ImageFileName": "魔术师.png"
+    },
+    "前锋": {
+        "Name": "前锋",
+        "Type": "sur",
+        "SearchingName": "qf前锋",
+        "ImageFileName": "前锋.png"
+    },
+    "舞女": {
+        "Name": "舞女",
+        "Type": "sur",
+        "SearchingName": "wn舞女",
+        "ImageFileName": "舞女.png"
+    },
+    "幸运儿": {
+        "Name": "幸运儿",
+        "Type": "sur",
+        "SearchingName": "xye幸运儿",
+        "ImageFileName": "幸运儿.png"
+    },
+    "园丁": {
+        "Name": "园丁",
+        "Type": "sur",
+        "SearchingName": "yd园丁",
+        "ImageFileName": "园丁.png"
+    },
+    "病患": {
+        "Name": "病患",
+        "Type": "sur",
+        "SearchingName": "bh病患",
+        "ImageFileName": "病患.png"
+    },
+    "法罗女士": {
+        "Name": "法罗女士",
+        "Type": "sur",
+        "SearchingName": "flns法罗女士",
+        "ImageFileName": "法罗女士.png"
+    },
+    "火灾调查员": {
+        "Name": "火灾调查员",
+        "Type": "sur",
+        "SearchingName": "hzdy火灾调查员",
+        "ImageFileName": "火灾调查员.png"
+    },
+    "教授": {
+        "Name": "教授",
+        "Type": "sur",
+        "SearchingName": "js教授",
+        "ImageFileName": "教授.png"
+    },
+    "拉拉队员": {
+        "Name": "拉拉队员",
+        "Type": "sur",
+        "SearchingName": "lldy拉拉队员",
+        "ImageFileName": "拉拉队员.png"
+    },
+    "木偶师": {
+        "Name": "木偶师",
+        "Type": "sur",
+        "SearchingName": "mos木偶师",
+        "ImageFileName": "木偶师.png"
+    },
+    "囚徒": {
+        "Name": "囚徒",
+        "Type": "sur",
+        "SearchingName": "qt囚徒",
+        "ImageFileName": "囚徒.png"
+    },
+    "先知": {
+        "Name": "先知",
+        "Type": "sur",
+        "SearchingName": "xz先知",
+        "ImageFileName": "先知.png"
+    },
+    "野人": {
+        "Name": "野人",
+        "Type": "sur",
+        "SearchingName": "yr野人",
+        "ImageFileName": "野人.png"
+    },
+    "杂技演员": {
+        "Name": "杂技演员",
+        "Type": "sur",
+        "SearchingName": "zjyy杂技演员",
+        "ImageFileName": "杂技演员.png"
+    },
+    "慈善家": {
+        "Name": "慈善家",
+        "Type": "sur",
+        "SearchingName": "csj慈善家",
+        "ImageFileName": "慈善家.png"
+    },
+    "飞行家": {
+        "Name": "飞行家",
+        "Type": "sur",
+        "SearchingName": "fxj飞行家",
+        "ImageFileName": "飞行家.png"
+    },
+    "击球手": {
+        "Name": "击球手",
+        "Type": "sur",
+        "SearchingName": "jqs击球手",
+        "ImageFileName": "击球手.png"
+    },
+    "勘探员": {
+        "Name": "勘探员",
+        "Type": "sur",
+        "SearchingName": "kty勘探员",
+        "ImageFileName": "勘探员.png"
+    },
+    "律师": {
+        "Name": "律师",
+        "Type": "sur",
+        "SearchingName": "ls律师",
+        "ImageFileName": "律师.png"
+    },
+    "牛仔": {
+        "Name": "牛仔",
+        "Type": "sur",
+        "SearchingName": "nz牛仔",
+        "ImageFileName": "牛仔.png"
+    },
+    "入殓师": {
+        "Name": "入殓师",
+        "Type": "sur",
+        "SearchingName": "rls入殓师",
+        "ImageFileName": "入殓师.png"
+    },
+    "小女孩": {
+        "Name": "小女孩",
+        "Type": "sur",
+        "SearchingName": "xnh小女孩",
+        "ImageFileName": "小女孩.png"
+    },
+    "医生": {
+        "Name": "医生",
+        "Type": "sur",
+        "SearchingName": "ys医生",
+        "ImageFileName": "医生.png"
+    },
+    "咒术师": {
+        "Name": "咒术师",
+        "Type": "sur",
+        "SearchingName": "zss咒术师",
+        "ImageFileName": "咒术师.png"
+    },
+    "大副": {
+        "Name": "大副",
+        "Type": "sur",
+        "SearchingName": "df大副",
+        "ImageFileName": "大副.png"
+    },
+    "弓箭手": {
+        "Name": "弓箭手",
+        "Type": "sur",
+        "SearchingName": "gjs弓箭手",
+        "ImageFileName": "弓箭手.png"
+    },
+    "机械师": {
+        "Name": "机械师",
+        "Type": "sur",
+        "SearchingName": "jxs机械师",
+        "ImageFileName": "机械师.png"
+    },
+    "空军": {
+        "Name": "空军",
+        "Type": "sur",
+        "SearchingName": "kj空军",
+        "ImageFileName": "空军.png"
+    },
+    "盲女": {
+        "Name": "盲女",
+        "Type": "sur",
+        "SearchingName": "mn盲女",
+        "ImageFileName": "盲女.png"
+    },
+    "骑士": {
+        "Name": "骑士",
+        "Type": "sur",
+        "SearchingName": "qs骑士",
+        "ImageFileName": "骑士.png"
+    },
+    "守墓人": {
+        "Name": "守墓人",
+        "Type": "sur",
+        "SearchingName": "smr守墓人",
+        "ImageFileName": "守墓人.png"
+    },
+    "小说家": {
+        "Name": "小说家",
+        "Type": "sur",
+        "SearchingName": "xsj小说家",
+        "ImageFileName": "小说家.png"
+    },
+    "佣兵": {
+        "Name": "佣兵",
+        "Type": "sur",
+        "SearchingName": "yb佣兵",
+        "ImageFileName": "佣兵.png"
+    },
+    "作曲家": {
+        "Name": "作曲家",
+        "Type": "sur",
+        "SearchingName": "zqj作曲家",
+        "ImageFileName": "作曲家.png"
+    },
+    "调酒师": {
+        "Name": "调酒师",
+        "Type": "sur",
+        "SearchingName": "tjs调酒师",
+        "ImageFileName": "调酒师.png"
+    },
+    "古董商": {
+        "Name": "古董商",
+        "Type": "sur",
+        "SearchingName": "gds古董商",
+        "ImageFileName": "古董商.png"
+    },
+    "祭司": {
+        "Name": "祭司",
+        "Type": "sur",
+        "SearchingName": "js祭司",
+        "ImageFileName": "祭司.png"
+    },
+    "哭泣小丑": {
+        "Name": "哭泣小丑",
+        "Type": "sur",
+        "SearchingName": "kqxc哭泣小丑",
+        "ImageFileName": "哭泣小丑.png"
+    },
+    "冒险家": {
+        "Name": "冒险家",
+        "Type": "sur",
+        "SearchingName": "mj冒险家",
+        "ImageFileName": "冒险家.png"
+    },
+    "气象学家": {
+        "Name": "气象学家",
+        "Type": "sur",
+        "SearchingName": "qxxj气象学家",
+        "ImageFileName": "气象学家.png"
+    },
+    "玩具商": {
+        "Name": "玩具商",
+        "Type": "sur",
+        "SearchingName": "wjs玩具商",
+        "ImageFileName": "玩具商.png"
+    },
+    "心理学家": {
+        "Name": "心理学家",
+        "Type": "sur",
+        "SearchingName": "xlxj心理学家",
+        "ImageFileName": "心理学家.png"
+    },
+    "邮差": {
+        "Name": "邮差",
+        "Type": "sur",
+        "SearchingName": "yc邮差",
+        "ImageFileName": "邮差.png"
+    },
+    "26号守卫": {
+        "Name": "26号守卫",
+        "Type": "hun",
+        "SearchingName": "bb26号守卫",
+        "ImageFileName": "26号守卫.png"
+    },
+    "爱哭鬼": {
+        "Name": "爱哭鬼",
+        "Type": "hun",
+        "SearchingName": "akg爱哭鬼",
+        "ImageFileName": "爱哭鬼.png"
+    },
+    "跛脚羊": {
+        "Name": "跛脚羊",
+        "Type": "hun",
+        "SearchingName": "bjy跛脚羊",
+        "ImageFileName": "跛脚羊.png"
+    },
+    "雕刻家": {
+        "Name": "雕刻家",
+        "Type": "hun",
+        "SearchingName": "dkj雕刻家",
+        "ImageFileName": "雕刻家.png"
+    },
+    "疯眼": {
+        "Name": "疯眼",
+        "Type": "hun",
+        "SearchingName": "fy疯眼",
+        "ImageFileName": "疯眼.png"
+    },
+    "红蝶": {
+        "Name": "红蝶",
+        "Type": "hun",
+        "SearchingName": "hd红蝶",
+        "ImageFileName": "红蝶.png"
+    },
+    "黄衣之主": {
+        "Name": "黄衣之主",
+        "Type": "hun",
+        "SearchingName": "hyzz黄衣之主",
+        "ImageFileName": "黄衣之主.png"
+    },
+    "杰克": {
+        "Name": "杰克",
+        "Type": "hun",
+        "SearchingName": "jk杰克",
+        "ImageFileName": "杰克.png"
+    },
+    "鹿头": {
+        "Name": "鹿头",
+        "Type": "hun",
+        "SearchingName": "lt鹿头",
+        "ImageFileName": "鹿头.png"
+    },
+    "孽蜥": {
+        "Name": "孽蜥",
+        "Type": "hun",
+        "SearchingName": "nx孽蜥",
+        "ImageFileName": "孽蜥.png"
+    },
+    "摄影师": {
+        "Name": "摄影师",
+        "Type": "hun",
+        "SearchingName": "sys摄影师",
+        "ImageFileName": "摄影师.png"
+    },
+    "使徒": {
+        "Name": "使徒",
+        "Type": "hun",
+        "SearchingName": "st使徒",
+        "ImageFileName": "使徒.png"
+    },
+    "宿伞之魂": {
+        "Name": "宿伞之魂",
+        "Type": "hun",
+        "SearchingName": "sszh宿伞之魂",
+        "ImageFileName": "宿伞之魂.png"
+    },
+    "小提琴家": {
+        "Name": "小提琴家",
+        "Type": "hun",
+        "SearchingName": "xtqj小提琴家",
+        "ImageFileName": "小提琴家.png"
+    },
+    "隐士": {
+        "Name": "隐士",
+        "Type": "hun",
+        "SearchingName": "ys隐士",
+        "ImageFileName": "隐士.png"
+    },
+    "渔女": {
+        "Name": "渔女",
+        "Type": "hun",
+        "SearchingName": "yn渔女",
+        "ImageFileName": "渔女.png"
+    },
+    "博士": {
+        "Name": "博士",
+        "Type": "hun",
+        "SearchingName": "bs博士",
+        "ImageFileName": "博士.png"
+    },
+    "厂长": {
+        "Name": "厂长",
+        "Type": "hun",
+        "SearchingName": "cz厂长",
+        "ImageFileName": "厂长.png"
+    },
+    "噩梦": {
+        "Name": "噩梦",
+        "Type": "hun",
+        "SearchingName": "em噩梦",
+        "ImageFileName": "噩梦.png"
+    },
+    "歌剧演员": {
+        "Name": "歌剧演员",
+        "Type": "hun",
+        "SearchingName": "gjyy歌剧演员",
+        "ImageFileName": "歌剧演员.png"
+    },
+    "红夫人": {
+        "Name": "红夫人",
+        "Type": "hun",
+        "SearchingName": "hfr红夫人",
+        "ImageFileName": "红夫人.png"
+    },
+    "记录员": {
+        "Name": "记录员",
+        "Type": "hun",
+        "SearchingName": "jly记录员",
+        "ImageFileName": "记录员.png"
+    },
+    "蜡像师": {
+        "Name": "蜡像师",
+        "Type": "hun",
+        "SearchingName": "lxs蜡像师",
+        "ImageFileName": "蜡像师.png"
+    },
+    "梦之女巫": {
+        "Name": "梦之女巫",
+        "Type": "hun",
+        "SearchingName": "mznw梦之女巫",
+        "ImageFileName": "梦之女巫.png"
+    },
+    "破轮": {
+        "Name": "破轮",
+        "Type": "hun",
+        "SearchingName": "pl破轮",
+        "ImageFileName": "破轮.png"
+    },
+    "时空之影": {
+        "Name": "时空之影",
+        "Type": "hun",
+        "SearchingName": "skzy时空之影",
+        "ImageFileName": "时空之影.png"
+    },
+    "守夜人": {
+        "Name": "守夜人",
+        "Type": "hun",
+        "SearchingName": "syr守夜人",
+        "ImageFileName": "守夜人.png"
+    },
+    "小丑": {
+        "Name": "小丑",
+        "Type": "hun",
+        "SearchingName": "xc小丑",
+        "ImageFileName": "小丑.png"
+    },
+    "喧嚣": {
+        "Name": "喧嚣",
+        "Type": "hun",
+        "SearchingName": "xx喧嚣",
+        "ImageFileName": "喧嚣.png"
+    },
+    "愚人金": {
+        "Name": "愚人金",
+        "Type": "hun",
+        "SearchingName": "yrj愚人金",
+        "ImageFileName": "愚人金.png"
+    },
+    "蜘蛛": {
+        "Name": "蜘蛛",
+        "Type": "hun",
+        "SearchingName": "zz蜘蛛",
+        "ImageFileName": "蜘蛛.png"
+    }
+}
