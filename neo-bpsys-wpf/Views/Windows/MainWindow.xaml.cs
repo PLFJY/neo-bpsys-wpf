@@ -8,6 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using neo_bpsys_wpf.ViewModels.Windows;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Views.Windows
@@ -19,6 +20,7 @@ namespace neo_bpsys_wpf.Views.Windows
     {
         public MainWindow()
         {
+            DataContext = new MainWindowViewModel(this);
             InitializeComponent();
         }
     }
