@@ -2,18 +2,84 @@
     x:Class="neo_bpsys_wpf.Views.Windows.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:neo_bpsys_wpf"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    Title="MainWindow"
-    Width="800"
-    Height="450"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
+    Title="后台控制"
+    Width="1440"
+    Height="675"
+    MinWidth="825"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Topmost="{Binding IsTopmost}"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
+    <ui:FluentWindow.Resources>
+        <ResourceDictionary>
+            <Style
+                x:Key="TitleBarToggleButton"
+                BasedOn="{StaticResource {x:Type ToggleButton}}"
+                TargetType="ToggleButton">
+                <Setter Property="Background" Value="{x:Null}" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Style.Triggers>
+                    <Trigger Property="IsChecked" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </ResourceDictionary>
+    </ui:FluentWindow.Resources>
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto " />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <!--  TitleBar  -->
+        <Grid
+            x:Name="TitleBar"
+            Grid.Row="0"
+            Height="35"
+            Background="{DynamicResource ApplicationBackgroundBrush}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="MouseDown">
+                    <i:InvokeCommandAction Command="{Binding TitleBarMouseDownCommand}" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+            <StackPanel
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Orientation="Horizontal">
+                <ui:Image
+                    Height="25"
+                    Margin="5,0,0,0"
+                    Source="/Assets/icon.png" />
+                <ui:TextBlock
+                    Margin="15,0,0,0"
+                    VerticalAlignment="Center"
+                    Text="{Binding Title, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}" />
+
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <ToggleButton
+                    Height="35"
+                    Command="{Binding TopmostCommand}"
+                    IsChecked="{Binding IsTopmost}"
+                    Style="{StaticResource TitleBarToggleButton}">
+                    <ui:SymbolIcon Symbol="ChevronDoubleUp16" />
+                </ToggleButton>
+                <cc:TitleBarButton Command="{Binding ThemeChangeCommand}" Icon="{ui:SymbolIcon DarkTheme24}" />
+                <cc:TitleBarButton Command="{Binding MiniMizeCommand}" Icon="{ui:SymbolIcon Subtract24}" />
+                <cc:TitleBarButton Command="{Binding MaximizeCommand}" Icon="{ui:SymbolIcon Maximize24}" />
+                <cc:TitleBarButton Command="{Binding CloseCommand}" Icon="{ui:SymbolIcon Dismiss24}" />
+            </StackPanel>
+        </Grid>
+        <!--  Body  -->
+
     </Grid>
 </ui:FluentWindow>
