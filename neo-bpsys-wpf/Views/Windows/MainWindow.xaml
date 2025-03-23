@@ -10,9 +10,10 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="后台控制"
-    Width="1440"
-    Height="675"
-    MinWidth="825"
+    Width="830"
+    Height="685"
+    MinWidth="830"
+    d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel}"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Topmost="{Binding IsTopmost}"
@@ -45,12 +46,8 @@
             x:Name="TitleBar"
             Grid.Row="0"
             Height="35"
-            Background="{DynamicResource ApplicationBackgroundBrush}">
-            <i:Interaction.Triggers>
-                <i:EventTrigger EventName="MouseDown">
-                    <i:InvokeCommandAction Command="{Binding TitleBarMouseDownCommand}" />
-                </i:EventTrigger>
-            </i:Interaction.Triggers>
+            Background="{DynamicResource ApplicationBackgroundBrush}"
+            MouseDown="TitleBar_MouseDown">
             <StackPanel
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
@@ -68,18 +65,131 @@
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                 <ToggleButton
                     Height="35"
-                    Command="{Binding TopmostCommand}"
                     IsChecked="{Binding IsTopmost}"
                     Style="{StaticResource TitleBarToggleButton}">
                     <ui:SymbolIcon Symbol="ChevronDoubleUp16" />
                 </ToggleButton>
-                <cc:TitleBarButton Command="{Binding ThemeChangeCommand}" Icon="{ui:SymbolIcon DarkTheme24}" />
-                <cc:TitleBarButton Command="{Binding MiniMizeCommand}" Icon="{ui:SymbolIcon Subtract24}" />
-                <cc:TitleBarButton Command="{Binding MaximizeCommand}" Icon="{ui:SymbolIcon Maximize24}" />
-                <cc:TitleBarButton Command="{Binding CloseCommand}" Icon="{ui:SymbolIcon Dismiss24}" />
+                <cc:TitleBarButton
+                    x:Name="ThemeSwitch"
+                    Click="ThemeSwitch_Click"
+                    Icon="{ui:SymbolIcon DarkTheme24}" />
+                <cc:TitleBarButton
+                    x:Name="Minimize"
+                    Click="Minimize_Click"
+                    Icon="{ui:SymbolIcon Subtract24}" />
+                <cc:TitleBarButton
+                    x:Name="Maximize"
+                    Click="Maximize_Click"
+                    Icon="{ui:SymbolIcon Maximize24}" />
+                <cc:TitleBarButton
+                    x:Name="Close"
+                    Click="Close_Click"
+                    Icon="{ui:SymbolIcon Dismiss24}" />
             </StackPanel>
         </Grid>
         <!--  Body  -->
 
+        <!--  Global menu  -->
+        <WrapPanel
+            Grid.Row="1"
+            Margin="10,10,0,0"
+            Orientation="Horizontal">
+            <!--  current team  -->
+            <Border
+                Width="370"
+                Margin="0,0,10,10"
+                Padding="5"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal">
+                        <TextBlock Text="当前求生者队伍:" />
+                        <TextBlock Margin="20,0,0,0" Text="当前求生者队伍" />
+                    </StackPanel>
+                    <ui:Button
+                        Grid.Row="1"
+                        Margin="0,10,0,10"
+                        HorizontalAlignment="Center"
+                        Content="换边"
+                        Icon="{ui:SymbolIcon Symbol=ArrowSort24}" />
+                    <StackPanel Grid.Row="2" Orientation="Horizontal">
+                        <TextBlock Text="当前监管者队伍:" />
+                        <TextBlock Margin="20,0,0,0" Text="当前监管者队伍" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <!--  timmer  -->
+            <Border
+                Margin="0,0,10,10"
+                Padding="5"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="正计时（单位：秒 ; 可自定义, 下拉框给出的是预设）" />
+                    <StackPanel
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal">
+                        <ComboBox
+                            Width="100"
+                            IsEditable="True"
+                            ItemsSource="{Binding RecommendTimmerList}"
+                            MaxDropDownHeight="150" />
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            Content="开始"
+                            Icon="{ui:SymbolIcon Symbol=Play24}" />
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            Content="停止 (隐藏)"
+                            Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                        <ui:TextBlock
+                            Width="100"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="预览：" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <!--  game control  -->
+            <ui:Button
+                Margin="0,0,10,10"
+                Content="保存当前对局到本地"
+                Icon="{ui:SymbolIcon Symbol=Save24}" />
+            <ui:Button
+                Margin="0,0,10,10"
+                Content="新对局 (重置)"
+                Icon="{ui:SymbolIcon Symbol=Add24}" />
+            <TextBlock
+                Margin="0,0,10,10"
+                VerticalAlignment="Center"
+                Text="新对局为：" />
+            <ComboBox
+                Width="230"
+                Margin="0,0,10,10"
+                VerticalAlignment="Center"
+                ItemsSource="{Binding GameList}"
+                MaxDropDownHeight="190" />
+        </WrapPanel>
+
+        <!--  navigation  -->
+        <ui:NavigationView
+            x:Name="RootNavigation"
+            Grid.Row="2"
+            FooterMenuItemsSource="{Binding FooterMenuItems}"
+            IsBackButtonVisible="Collapsed"
+            IsPaneToggleVisible="False"
+            MenuItemsSource="{Binding MenuItems}"
+            OpenPaneLength="130" />
     </Grid>
 </ui:FluentWindow>

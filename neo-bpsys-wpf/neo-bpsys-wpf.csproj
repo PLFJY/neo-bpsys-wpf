@@ -11,7 +11,36 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\Fonts\Essay-Text-W01-Italic.ttf" />
+    <None Remove="Assets\Fonts\selawk.ttf" />
+    <None Remove="Assets\Fonts\selawkb.ttf" />
+    <None Remove="Assets\Fonts\selawkl.ttf" />
+    <None Remove="Assets\Fonts\selawksb.ttf" />
+    <None Remove="Assets\Fonts\selawksl.ttf" />
+    <None Remove="Assets\Fonts\SourceHanSansHWSC-VF.ttf" />
+    <None Remove="Assets\Fonts\华康POP1体W5-简体.ttf" />
+    <None Remove="Assets\Fonts\汉仪第五人格体.ttf" />
+    <None Remove="Assets\HomePageHeader.png" />
     <None Remove="Assets\icon.png" />
+    <None Remove="Assets\map\不归林.png" />
+    <None Remove="Assets\map\军工厂.png" />
+    <None Remove="Assets\map\唐人街.png" />
+    <None Remove="Assets\map\圣心医院.png" />
+    <None Remove="Assets\map\月亮河公园.png" />
+    <None Remove="Assets\map\永眠镇.png" />
+    <None Remove="Assets\map\湖景村.png" />
+    <None Remove="Assets\map\红教堂.png" />
+    <None Remove="Assets\map\里奥的回忆.png" />
+    <None Remove="Assets\map_singleColor\不归林.png" />
+    <None Remove="Assets\map_singleColor\军工厂.png" />
+    <None Remove="Assets\map_singleColor\唐人街.png" />
+    <None Remove="Assets\map_singleColor\圣心医院.png" />
+    <None Remove="Assets\map_singleColor\无Ban.png" />
+    <None Remove="Assets\map_singleColor\月亮河公园.png" />
+    <None Remove="Assets\map_singleColor\永眠镇.png" />
+    <None Remove="Assets\map_singleColor\湖景村.png" />
+    <None Remove="Assets\map_singleColor\红教堂.png" />
+    <None Remove="Assets\map_singleColor\里奥的回忆.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,30 +48,63 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Assets\Fonts\Essay-Text-W01-Italic.ttf" />
+    <Resource Include="Assets\Fonts\selawk.ttf" />
+    <Resource Include="Assets\Fonts\selawkb.ttf" />
+    <Resource Include="Assets\Fonts\selawkl.ttf" />
+    <Resource Include="Assets\Fonts\selawksb.ttf" />
+    <Resource Include="Assets\Fonts\selawksl.ttf" />
+    <Resource Include="Assets\Fonts\SourceHanSansHWSC-VF.ttf" />
+    <Resource Include="Assets\Fonts\华康POP1体W5-简体.ttf" />
+    <Resource Include="Assets\Fonts\汉仪第五人格体.ttf" />
+    <Resource Include="Assets\HomePageHeader.png" />
     <Resource Include="Assets\icon.png" />
+    <Resource Include="Assets\map\不归林.png" />
+    <Resource Include="Assets\map\军工厂.png" />
+    <Resource Include="Assets\map\唐人街.png" />
+    <Resource Include="Assets\map\圣心医院.png" />
+    <Resource Include="Assets\map\月亮河公园.png" />
+    <Resource Include="Assets\map\永眠镇.png" />
+    <Resource Include="Assets\map\湖景村.png" />
+    <Resource Include="Assets\map\红教堂.png" />
+    <Resource Include="Assets\map\里奥的回忆.png" />
+    <Resource Include="Assets\map_singleColor\不归林.png" />
+    <Resource Include="Assets\map_singleColor\军工厂.png" />
+    <Resource Include="Assets\map_singleColor\唐人街.png" />
+    <Resource Include="Assets\map_singleColor\圣心医院.png" />
+    <Resource Include="Assets\map_singleColor\无Ban.png" />
+    <Resource Include="Assets\map_singleColor\月亮河公园.png" />
+    <Resource Include="Assets\map_singleColor\永眠镇.png" />
+    <Resource Include="Assets\map_singleColor\湖景村.png" />
+    <Resource Include="Assets\map_singleColor\红教堂.png" />
+    <Resource Include="Assets\map_singleColor\里奥的回忆.png" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.3" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
-    <PackageReference Include="WPF-UI" Version="4.0.0" />
-    <PackageReference Include="WPF-UI.Abstractions" Version="4.0.0" />
+    <PackageReference Include="WPF-UI" Version="4.0.2" />
+    <PackageReference Include="WPF-UI.Abstractions" Version="4.0.2" />
+    <PackageReference Include="WPF-UI.DependencyInjection" Version="4.0.2" />
+    <PackageReference Include="WPF-UI.Tray" Version="4.0.2" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Models\" />
-    <Folder Include="ViewModels\Pages\" />
   </ItemGroup>
 
 	<ItemGroup>
-		<None Include="resources\**">
+		<None Include="Resources\**">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="CharacterList.json">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
+	  <None Update="Resources\data\CharacterList.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 </Project>

@@ -14,10 +14,10 @@ public class Member
     public BitmapImage Image { get; set; }
 
     public bool IsPlaying { get; set; } = false;
-    
+
     public Member()
     {
-        
+
     }
 
     public Member(Types type, string name, bool isPlaying)
@@ -26,7 +26,7 @@ public class Member
         Name = name;
         IsPlaying = isPlaying;
     }
-    
+
     public Member(Types type, string name, string nameInGame, bool isPlaying)
     {
         Type = type;
@@ -34,7 +34,7 @@ public class Member
         NameInGame = nameInGame;
         IsPlaying = isPlaying;
     }
-    
+
     public Member(Types type, string name, string nameInGame, BitmapImage image, bool isPlaying)
     {
         Type = type;
