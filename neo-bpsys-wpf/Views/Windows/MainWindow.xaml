@@ -19,17 +19,23 @@
     Topmost="{Binding IsTopmost}"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Closing">
+            <i:InvokeCommandAction Command="{Binding WindowClosingCommand}" PassEventArgsToCommand="True" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
     <ui:FluentWindow.Resources>
         <ResourceDictionary>
             <Style
                 x:Key="TitleBarToggleButton"
                 BasedOn="{StaticResource {x:Type ToggleButton}}"
                 TargetType="ToggleButton">
-                <Setter Property="Background" Value="{x:Null}" />
                 <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Background" Value="{x:Null}" />
                 <Style.Triggers>
                     <Trigger Property="IsChecked" Value="True">
-                        <Setter Property="Background" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                        <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                        <Setter Property="Background" Value="{DynamicResource ControlStrokeColorOnAccentDefaultBrush}" />
                     </Trigger>
                 </Style.Triggers>
             </Style>
@@ -46,8 +52,12 @@
             x:Name="TitleBar"
             Grid.Row="0"
             Height="35"
-            Background="{DynamicResource ApplicationBackgroundBrush}"
-            MouseDown="TitleBar_MouseDown">
+            Background="{DynamicResource ApplicationBackgroundBrush}">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="MouseDown">
+                    <i:InvokeCommandAction Command="{Binding TitleBarMouseDownCommand}" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
             <StackPanel
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
@@ -67,24 +77,24 @@
                     Height="35"
                     IsChecked="{Binding IsTopmost}"
                     Style="{StaticResource TitleBarToggleButton}">
-                    <ui:SymbolIcon Symbol="ChevronDoubleUp16" />
+                    <ui:SymbolIcon Symbol="Pin24" />
                 </ToggleButton>
                 <cc:TitleBarButton
                     x:Name="ThemeSwitch"
-                    Click="ThemeSwitch_Click"
-                    Icon="{ui:SymbolIcon DarkTheme24}" />
+                    Command="{Binding ThemeSwitchCommand}"
+                    Icon="{ui:SymbolIcon Symbol=DarkTheme24}" />
                 <cc:TitleBarButton
                     x:Name="Minimize"
-                    Click="Minimize_Click"
-                    Icon="{ui:SymbolIcon Subtract24}" />
+                    Command="{Binding MinimizeCommand}"
+                    Icon="{ui:SymbolIcon Symbol=Subtract24}" />
                 <cc:TitleBarButton
                     x:Name="Maximize"
-                    Click="Maximize_Click"
-                    Icon="{ui:SymbolIcon Maximize24}" />
+                    Command="{Binding MaximizeCommand}"
+                    Icon="{ui:SymbolIcon Symbol=Maximize24}" />
                 <cc:TitleBarButton
                     x:Name="Close"
-                    Click="Close_Click"
-                    Icon="{ui:SymbolIcon Dismiss24}" />
+                    Command="{Binding CloseCommand}"
+                    Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
             </StackPanel>
         </Grid>
         <!--  Body  -->

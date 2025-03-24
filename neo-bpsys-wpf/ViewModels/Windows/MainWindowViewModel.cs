@@ -2,7 +2,10 @@
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Views.Pages;
+using neo_bpsys_wpf.Views.Windows;
 using System.Collections.ObjectModel;
+using System.Reflection.Metadata.Ecma335;
+using System.Windows;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
@@ -19,7 +22,58 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         [ObservableProperty] private bool _isTopmost = false;
 
-        public ObservableCollection<int> RecommendTimmerList { get; } =
+        [RelayCommand]
+        private void ThemeSwitch()
+        {
+            ApplicationThemeManager.Apply(
+                ApplicationThemeManager.GetAppTheme() == ApplicationTheme.Light ?
+                ApplicationTheme.Dark :
+                ApplicationTheme.Light);
+        }
+
+        [RelayCommand] private void Maximize()
+        {
+            App.Current.MainWindow.WindowState = App.Current.MainWindow.WindowState == 
+                WindowState.Normal ? WindowState.Maximized : WindowState.Normal;
+        }
+
+        [RelayCommand] private void Minimize()
+        {
+            App.Current.MainWindow.WindowState = WindowState.Minimized;
+        }
+
+        [RelayCommand] private void Close()
+        {
+            ExitConfirm();
+        }
+
+        [RelayCommand] private void WindowClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = true;
+            ExitConfirm();
+        }
+
+        [RelayCommand] private void TitleBarMouseDown()
+        {
+            App.Current.MainWindow.DragMove();
+        }
+
+        private static async void ExitConfirm()
+        {
+            var messageBox = new Wpf.Ui.Controls.MessageBox()
+            {
+                Title = "退出确认",
+                Content = "是否退出程序",
+                PrimaryButtonText = "退出",
+                PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.ArrowExit20 },
+                CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
+                CloseButtonText = "取消",
+            };
+            var result = await messageBox.ShowDialogAsync();
+
+            if (result == Wpf.Ui.Controls.MessageBoxResult.Primary) Application.Current.Shutdown();
+        }
+        public List<int> RecommendTimmerList { get; } =
         [
             30,
             45,
@@ -30,7 +84,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             180,
             ];
 
-        public ObservableCollection<string> GameList { get; } =
+        public List<string> GameList { get; } =
         [
             "Free",
             "Game 1 First Half",
@@ -49,7 +103,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             "Game 5 Extra Second Half"
             ];
 
-        public ObservableCollection<object> MenuItems { get; } =
+        public List<object> MenuItems { get; } =
         [
             new NavigationViewItem("启动页", SymbolRegular.Home24, typeof(HomePage)),
             new NavigationViewItem("队伍信息", SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
@@ -63,7 +117,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             ];
 
 
-        public ObservableCollection<object> FooterMenuItems { get; } =
+        public List<object> FooterMenuItems { get; } =
         [
             new NavigationViewItem("前台管理", SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
             new NavigationViewItem("扩展功能", SymbolRegular.AppsAddIn24, typeof(ExtensionPage)),
