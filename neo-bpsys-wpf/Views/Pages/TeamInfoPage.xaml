@@ -8,11 +8,310 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="TeamInfoPage"
-    d:DataContext="{d:DesignInstance Type=vm:MapBpPageViewModel}"
-    d:DesignHeight="750"
+    d:DataContext="{d:DesignInstance Type=vm:TeamInfoPageViewModel}"
+    d:DesignHeight="1000"
     d:DesignWidth="685"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
 
-    <Grid />
+    <WrapPanel Orientation="Horizontal">
+        <!--  main team  -->
+        <Border
+            Margin="0,0,10,10"
+            Padding="10"
+            HorizontalAlignment="Left"
+            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+            CornerRadius="8">
+            <!--  basic info  -->
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="主场队伍信息" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Content="从Json文件导入"
+                        Icon="{ui:SymbolIcon Symbol=ArrowImport24}"
+                        ToolTipService.InitialShowDelay="100"
+                        ToolTipService.Placement="MousePoint"
+                        ToolTipService.ToolTip="这是用于快速导入队伍信息使用的，示例文件是软件目录下的'Team_Info_Example.json'，有其它问题请查阅文档" />
+                </StackPanel>
+
+                <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                    <ui:TextBox Width="150" PlaceholderText="队伍名称" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Content="确认"
+                        Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal">
+                    <ui:Button Content="设置队伍LOGO" Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
+                    <Image
+                        Width="75"
+                        Height="75"
+                        Margin="20,0,0,0"
+                        Source="{Binding MainTeamLogo}"
+                        Stretch="UniformToFill" />
+                    <TextBlock
+                        Width="150"
+                        Margin="20,0,0,0"
+                        VerticalAlignment="Center"
+                        Text="{Binding MainTeamState}" />
+                </StackPanel>
+
+                <!--  player edit  -->
+
+                <!--  sur  -->
+                <StackPanel>
+                    <TextBlock Text="求生者选手" />
+                    <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding MainSurPlayerEditorItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                                    <ui:TextBox
+                                        MinWidth="250"
+                                        Margin="10,0,0,0"
+                                        PlaceholderText="选手名称"
+                                        Text="{Binding PlayerName}" />
+                                    <ui:Button
+                                        Margin="10,0,0,0"
+                                        Content="设置定妆照"
+                                        Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
+                                    <ui:Button
+                                        Margin="10,0,0,0"
+                                        Background="{Binding ButtonBackground}"
+                                        Content="{Binding ButtonText}"
+                                        Foreground="White"
+                                        Icon="{Binding ButtonIcon}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:Button
+                            Command="{Binding AddMainSurPlayerCommand}"
+                            Content="添加选手"
+                            Icon="{ui:SymbolIcon Symbol=Add24}" />
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            Command="{Binding RemoveMainSurPlayerCommand}"
+                            Content="移除选手"
+                            Icon="{ui:SymbolIcon Symbol=Subtract24}"
+                            IsEnabled="{Binding RemoveMainSurPlayerCommandCanExecute}" />
+                    </StackPanel>
+                </StackPanel>
+                <!--  hun  -->
+                <StackPanel Margin="0,10,0,0">
+                    <TextBlock Text="监管者选手" />
+                    <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding MainHunPlayerEditorItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                                    <ui:TextBox
+                                        MinWidth="250"
+                                        PlaceholderText="选手名称"
+                                        Text="{Binding PlayerName}" />
+                                    <ui:Button
+                                        Margin="10,0,0,0"
+                                        Content="设置定妆照"
+                                        Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
+                                    <ui:Button
+                                        Margin="10,0,0,0"
+                                        Background="{Binding ButtonBackground}"
+                                        Content="{Binding ButtonText}"
+                                        Foreground="White"
+                                        Icon="{Binding ButtonIcon}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:Button
+                            Command="{Binding AddMainHunPlayerCommand}"
+                            Content="添加选手"
+                            Icon="{ui:SymbolIcon Symbol=Add24}" />
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            Command="{Binding RemoveMainHunPlayerCommand}"
+                            Content="移除选手"
+                            Icon="{ui:SymbolIcon Symbol=Subtract24}"
+                            IsEnabled="{Binding RemoveMainHunPlayerCommandCanExecute}" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!--  away team  -->
+        <Border
+            Margin="0,0,10,10"
+            Padding="10"
+            HorizontalAlignment="Left"
+            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+            CornerRadius="8">
+            <!--  basic info  -->
+            <StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="客队伍信息" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Content="从Json文件导入"
+                        Icon="{ui:SymbolIcon Symbol=ArrowImport24}"
+                        ToolTipService.InitialShowDelay="100"
+                        ToolTipService.Placement="MousePoint"
+                        ToolTipService.ToolTip="这是用于快速导入队伍信息使用的，示例文件是软件目录下的'Team_Info_Example.json'，有其它问题请查阅文档" />
+                </StackPanel>
+
+                <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                    <ui:TextBox Width="150" PlaceholderText="队伍名称" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Content="确认"
+                        Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal">
+                    <ui:Button Content="设置队伍LOGO" Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
+                    <Image
+                        Width="75"
+                        Height="75"
+                        Margin="20,0,0,0"
+                        Source="{Binding AwayTeamLogo}"
+                        Stretch="UniformToFill" />
+                    <TextBlock
+                        Width="150"
+                        Margin="20,0,0,0"
+                        VerticalAlignment="Center"
+                        Text="{Binding AwayTeamState}" />
+                </StackPanel>
+
+                <!--  player edit  -->
+
+                <!--  sur  -->
+                <StackPanel>
+                    <TextBlock Text="求生者选手" />
+                    <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding AwaySurPlayerEditorItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                                    <ui:TextBox
+                                        MinWidth="250"
+                                        Margin="10,0,0,0"
+                                        PlaceholderText="选手名称"
+                                        Text="{Binding PlayerName}" />
+                                    <ui:Button
+                                        Margin="10,0,0,0"
+                                        Content="设置定妆照"
+                                        Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
+                                    <ui:Button
+                                        Margin="10,0,0,0"
+                                        Background="{Binding ButtonBackground}"
+                                        Content="{Binding ButtonText}"
+                                        Foreground="White"
+                                        Icon="{Binding ButtonIcon}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:Button
+                            Command="{Binding AddAwaySurPlayerCommand}"
+                            Content="添加选手"
+                            Icon="{ui:SymbolIcon Symbol=Add24}" />
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            Command="{Binding RemoveAwaySurPlayerCommand}"
+                            Content="移除选手"
+                            Icon="{ui:SymbolIcon Symbol=Subtract24}"
+                            IsEnabled="{Binding RemoveAwaySurPlayerCommandCanExecute}" />
+                    </StackPanel>
+                </StackPanel>
+                <!--  hun  -->
+                <StackPanel Margin="0,10,0,0">
+                    <TextBlock Text="监管者选手" />
+                    <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding AwayHunPlayerEditorItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                                    <ui:TextBox
+                                        MinWidth="250"
+                                        PlaceholderText="选手名称"
+                                        Text="{Binding PlayerName}" />
+                                    <ui:Button
+                                        Margin="10,0,0,0"
+                                        Content="设置定妆照"
+                                        Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
+                                    <ui:Button
+                                        Margin="10,0,0,0"
+                                        Background="{Binding ButtonBackground}"
+                                        Content="{Binding ButtonText}"
+                                        Foreground="White"
+                                        Icon="{Binding ButtonIcon}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:Button
+                            Command="{Binding AddAwayHunPlayerCommand}"
+                            Content="添加选手"
+                            Icon="{ui:SymbolIcon Symbol=Add24}" />
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            Command="{Binding RemoveAwayHunPlayerCommand}"
+                            Content="移除选手"
+                            Icon="{ui:SymbolIcon Symbol=Subtract24}"
+                            IsEnabled="{Binding RemoveAwayHunPlayerCommandCanExecute}" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!--  current  -->
+        <Border
+            Margin="0,0,10,10"
+            Padding="10,10,10,10"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+            CornerRadius="8">
+            <StackPanel>
+                <TextBlock Text="当前上场选手" />
+                <TextBlock Margin="0,10,0,0" Text="求生者" />
+                <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                    <ui:TextBox MinWidth="250" PlaceholderText="选手名称" />
+                    <Button Margin="10,0,0,0" Content="2" />
+                    <Button Margin="10,0,0,0" Content="3" />
+                    <Button Margin="10,0,0,0" Content="4" />
+                </StackPanel>
+
+                <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                    <ui:TextBox MinWidth="250" PlaceholderText="选手名称" />
+                    <Button Margin="10,0,0,0" Content="1" />
+                    <Button Margin="10,0,0,0" Content="3" />
+                    <Button Margin="10,0,0,0" Content="4" />
+                </StackPanel>
+
+                <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                    <ui:TextBox MinWidth="250" PlaceholderText="选手名称" />
+                    <Button Margin="10,0,0,0" Content="1" />
+                    <Button Margin="10,0,0,0" Content="2" />
+                    <Button Margin="10,0,0,0" Content="4" />
+                </StackPanel>
+
+                <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                    <ui:TextBox MinWidth="250" PlaceholderText="选手名称" />
+                    <Button Margin="10,0,0,0" Content="1" />
+                    <Button Margin="10,0,0,0" Content="2" />
+                    <Button Margin="10,0,0,0" Content="3" />
+                </StackPanel>
+
+                <TextBlock Margin="0,10,0,0" Text="监管者" />
+                <ui:TextBox
+                    MinWidth="250"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Left"
+                    PlaceholderText="选手名称" />
+            </StackPanel>
+        </Border>
+    </WrapPanel>
 </Page>

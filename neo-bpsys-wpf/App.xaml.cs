@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using neo_bpsys_wpf.Services;
+using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
@@ -42,25 +43,33 @@ namespace neo_bpsys_wpf
                     services.AddSingleton<ISharedDataService, SharedDataService>();
 
                     // Main window with navigation
-                    services.AddSingleton<INavigationWindow, MainWindow>();
+                    services.AddSingleton<INavigationWindow, MainWindow>(sp => new MainWindow(sp.GetRequiredService<INavigationService>())
+                    {
+                        DataContext = sp.GetRequiredService<MainWindowViewModel>(),
+                    });
                     services.AddSingleton<MainWindowViewModel>();
 
                     //Views and ViewModels
                     //Window
 
                     //Page
-                    services.AddSingleton<HomePage>();
                     services.AddSingleton<MapBpPage>();
                     services.AddSingleton<BanHunPage>();
                     services.AddSingleton<BanSurPage>();
                     services.AddSingleton<ExtensionPage>();
                     services.AddSingleton<GameDataPage>();
+                    services.AddSingleton<HomePage>();
                     services.AddSingleton<MapBpPage>();
+                    services.AddSingleton<MapBpPageViewModel>();
                     services.AddSingleton<PickPage>();
                     services.AddSingleton<ScorePage>();
                     services.AddSingleton<SettingPage>();
                     services.AddSingleton<TalentPage>();
-                    services.AddSingleton<TeamInfoPage>();
+                    services.AddSingleton<TeamInfoPage>(sp => new TeamInfoPage() 
+                    {
+                        DataContext=sp.GetRequiredService<TeamInfoPageViewModel>()
+                    });
+                    services.AddSingleton<TeamInfoPageViewModel>();
                     services.AddSingleton<FrontManagePage>();
 
                 }
