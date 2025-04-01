@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
+    xmlns:converter="clr-namespace:neo_bpsys_wpf.Converter"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:neo_bpsys_wpf"
@@ -44,6 +45,7 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
+            <converter:BooleanToApplicationThemeConverter x:Key="BooleanToApplicationThemeConverter" />
         </ResourceDictionary>
     </ui:FluentWindow.Resources>
     <Grid>
@@ -57,8 +59,7 @@
             <Grid
                 x:Name="TitleBar"
                 Grid.Row="0"
-                Height="35"
-                Background="{DynamicResource ApplicationBackgroundBrush}">
+                Height="35">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="MouseDown">
                         <i:InvokeCommandAction Command="{Binding TitleBarMouseDownCommand}" PassEventArgsToCommand="True" />
@@ -67,6 +68,7 @@
                 <Grid.InputBindings>
                     <MouseBinding Command="{Binding MaximizeCommand}" MouseAction="LeftDoubleClick" />
                 </Grid.InputBindings>
+                <Rectangle Fill="White" Opacity="0" />
                 <StackPanel
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
@@ -88,14 +90,8 @@
                         styles:ToggleButtonAttach.IsAutoFold="True"
                         Command="{Binding ThemeSwitchCommand}"
                         Focusable="False"
-                        Style="{StaticResource ToggleButtonGorgeousThemeSwitchStyle}">
-                        <!--  必须这么做，不然启动后按钮不会自动收起  -->
-                        <i:Interaction.Triggers>
-                            <i:EventTrigger EventName="Loaded">
-                                <i:ChangePropertyAction PropertyName="IsChecked" Value="True" />
-                            </i:EventTrigger>
-                        </i:Interaction.Triggers>
-                    </ToggleButton>
+                        IsChecked="{Binding ApplicationTheme, Converter={StaticResource BooleanToApplicationThemeConverter}, Mode=TwoWay}"
+                        Style="{StaticResource ToggleButtonGorgeousThemeSwitchStyle}" />
                     <ToggleButton
                         Height="35"
                         Focusable="False"
@@ -112,8 +108,8 @@
                         Command="{Binding MaximizeCommand}"
                         Icon="{ui:SymbolIcon Symbol=Maximize24}" />
                     <cc:TitleBarButton
-                        x:Name="Close"
-                        Command="{Binding CloseCommand}"
+                        x:Name="Exit"
+                        Command="{Binding ExitCommand}"
                         Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
                 </StackPanel>
             </Grid>
@@ -226,7 +222,7 @@
         <Ellipse
             Width="1"
             Height="1"
-            Margin="0,30,150,0"
+            Margin="0,20,150,0"
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
             Panel.ZIndex="-1"
@@ -275,7 +271,7 @@
                                     <Storyboard>
                                         <DoubleAnimation
                                             Storyboard.TargetProperty="RenderTransform.Children[0].ScaleX"
-                                            To="3500"
+                                            To="10000"
                                             Duration="0:0:0.6">
                                             <DoubleAnimation.EasingFunction>
                                                 <CubicEase EasingMode="EaseOut" />
@@ -283,7 +279,7 @@
                                         </DoubleAnimation>
                                         <DoubleAnimation
                                             Storyboard.TargetProperty="RenderTransform.Children[0].ScaleY"
-                                            To="3500"
+                                            To="10000"
                                             Duration="0:0:0.6">
                                             <DoubleAnimation.EasingFunction>
                                                 <CubicEase EasingMode="EaseOut" />
@@ -300,7 +296,7 @@
         <Ellipse
             Width="1"
             Height="1"
-            Margin="0,30,150,0"
+            Margin="0,20,150,0"
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
             Panel.ZIndex="-1"
@@ -349,7 +345,7 @@
                                     <Storyboard>
                                         <DoubleAnimation
                                             Storyboard.TargetProperty="RenderTransform.Children[0].ScaleX"
-                                            To="3500"
+                                            To="10000"
                                             Duration="0:0:0.6">
                                             <DoubleAnimation.EasingFunction>
                                                 <CubicEase EasingMode="EaseOut" />
@@ -357,7 +353,7 @@
                                         </DoubleAnimation>
                                         <DoubleAnimation
                                             Storyboard.TargetProperty="RenderTransform.Children[0].ScaleY"
-                                            To="3500"
+                                            To="10000"
                                             Duration="0:0:0.6">
                                             <DoubleAnimation.EasingFunction>
                                                 <CubicEase EasingMode="EaseOut" />
