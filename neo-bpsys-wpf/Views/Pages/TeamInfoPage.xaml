@@ -2,6 +2,7 @@
     x:Class="neo_bpsys_wpf.Views.Pages.TeamInfoPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -279,30 +280,34 @@
                 <TextBlock Margin="0,10,0,0" Text="求生者" />
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                     <ui:TextBox MinWidth="250" PlaceholderText="选手名称" />
-                    <Button Margin="10,0,0,0" Content="2" />
-                    <Button Margin="10,0,0,0" Content="3" />
-                    <Button Margin="10,0,0,0" Content="4" />
+                    <cc:CharacterChanger
+                        Margin="10,0,0,0"
+                        Index="0"
+                        Spacing="10" />
                 </StackPanel>
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                     <ui:TextBox MinWidth="250" PlaceholderText="选手名称" />
-                    <Button Margin="10,0,0,0" Content="1" />
-                    <Button Margin="10,0,0,0" Content="3" />
-                    <Button Margin="10,0,0,0" Content="4" />
+                    <cc:CharacterChanger
+                        Margin="10,0,0,0"
+                        Index="1"
+                        Spacing="10" />
                 </StackPanel>
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                     <ui:TextBox MinWidth="250" PlaceholderText="选手名称" />
-                    <Button Margin="10,0,0,0" Content="1" />
-                    <Button Margin="10,0,0,0" Content="2" />
-                    <Button Margin="10,0,0,0" Content="4" />
+                    <cc:CharacterChanger
+                        Margin="10,0,0,0"
+                        Index="2"
+                        Spacing="10" />
                 </StackPanel>
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                     <ui:TextBox MinWidth="250" PlaceholderText="选手名称" />
-                    <Button Margin="10,0,0,0" Content="1" />
-                    <Button Margin="10,0,0,0" Content="2" />
-                    <Button Margin="10,0,0,0" Content="3" />
+                    <cc:CharacterChanger
+                        Margin="10,0,0,0"
+                        Index="3"
+                        Spacing="10" />
                 </StackPanel>
 
                 <TextBlock Margin="0,10,0,0" Text="监管者" />

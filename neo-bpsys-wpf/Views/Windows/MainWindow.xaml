@@ -7,6 +7,7 @@
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:neo_bpsys_wpf"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:styles="clr-namespace:neo_bpsys_wpf.Styles"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="后台控制"
@@ -26,6 +27,10 @@
     </i:Interaction.Triggers>
     <ui:FluentWindow.Resources>
         <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Styles/ToggleButtonStyles.xaml" />
+                <ResourceDictionary Source="/CustomControls/TitleBarButtonStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
             <Style
                 x:Key="TitleBarToggleButton"
                 BasedOn="{StaticResource {x:Type ToggleButton}}"
@@ -42,164 +47,329 @@
         </ResourceDictionary>
     </ui:FluentWindow.Resources>
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto " />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <!--  TitleBar  -->
-        <Grid
-            x:Name="TitleBar"
-            Grid.Row="0"
-            Height="35"
-            Background="{DynamicResource ApplicationBackgroundBrush}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto " />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <!--  TitleBar  -->
+            <Grid
+                x:Name="TitleBar"
+                Grid.Row="0"
+                Height="35"
+                Background="{DynamicResource ApplicationBackgroundBrush}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="MouseDown">
+                        <i:InvokeCommandAction Command="{Binding TitleBarMouseDownCommand}" PassEventArgsToCommand="True" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+                <Grid.InputBindings>
+                    <MouseBinding Command="{Binding MaximizeCommand}" MouseAction="LeftDoubleClick" />
+                </Grid.InputBindings>
+                <StackPanel
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <ui:Image
+                        Height="25"
+                        Margin="5,0,0,0"
+                        Focusable="False"
+                        Source="/Assets/icon.png" />
+                    <ui:TextBlock
+                        Margin="15,0,0,0"
+                        VerticalAlignment="Center"
+                        Text="{Binding Title, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}" />
+
+                </StackPanel>
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                    <ToggleButton
+                        x:Name="ThemeSwitch"
+                        styles:ToggleButtonAttach.IsAutoFold="True"
+                        Command="{Binding ThemeSwitchCommand}"
+                        Focusable="False"
+                        Style="{StaticResource ToggleButtonGorgeousThemeSwitchStyle}">
+                        <!--  必须这么做，不然启动后按钮不会自动收起  -->
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="Loaded">
+                                <i:ChangePropertyAction PropertyName="IsChecked" Value="True" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </ToggleButton>
+                    <ToggleButton
+                        Height="35"
+                        Focusable="False"
+                        IsChecked="{Binding IsTopmost}"
+                        Style="{StaticResource TitleBarToggleButton}">
+                        <ui:SymbolIcon Symbol="Pin24" />
+                    </ToggleButton>
+                    <cc:TitleBarButton
+                        x:Name="Minimize"
+                        Command="{Binding MinimizeCommand}"
+                        Icon="{ui:SymbolIcon Symbol=Subtract24}" />
+                    <cc:TitleBarButton
+                        x:Name="Maximize"
+                        Command="{Binding MaximizeCommand}"
+                        Icon="{ui:SymbolIcon Symbol=Maximize24}" />
+                    <cc:TitleBarButton
+                        x:Name="Close"
+                        Command="{Binding CloseCommand}"
+                        Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
+                </StackPanel>
+            </Grid>
+            <!--  Body  -->
+
+            <!--  Global menu  -->
+            <WrapPanel
+                Grid.Row="1"
+                Margin="10,10,0,0"
+                Orientation="Horizontal">
+                <!--  current team  -->
+                <Border
+                    Width="370"
+                    Margin="0,0,10,10"
+                    Padding="5"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                            <TextBlock Text="当前求生者队伍:" />
+                            <TextBlock Margin="20,0,0,0" Text="当前求生者队伍" />
+                        </StackPanel>
+                        <ui:Button
+                            Grid.Row="1"
+                            Margin="0,10,0,10"
+                            HorizontalAlignment="Center"
+                            Content="换边"
+                            Icon="{ui:SymbolIcon Symbol=ArrowSort24}" />
+                        <StackPanel Grid.Row="2" Orientation="Horizontal">
+                            <TextBlock Text="当前监管者队伍:" />
+                            <TextBlock Margin="20,0,0,0" Text="当前监管者队伍" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <!--  timmer  -->
+                <Border
+                    Margin="0,0,10,10"
+                    Padding="5"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    CornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="正计时（单位：秒 ; 可自定义, 下拉框给出的是预设）" />
+                        <StackPanel
+                            Grid.Row="1"
+                            Margin="0,10,0,0"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                            <ComboBox
+                                Width="100"
+                                IsEditable="True"
+                                ItemsSource="{Binding RecommendTimmerList}"
+                                MaxDropDownHeight="150" />
+                            <ui:Button
+                                Margin="10,0,0,0"
+                                Content="开始"
+                                Icon="{ui:SymbolIcon Symbol=Play24}" />
+                            <ui:Button
+                                Margin="10,0,0,0"
+                                Content="停止 (隐藏)"
+                                Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                            <ui:TextBlock
+                                Width="100"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                Text="预览：" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <!--  game control  -->
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Content="保存当前对局到本地"
+                    Icon="{ui:SymbolIcon Symbol=Save24}" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Content="新对局 (重置)"
+                    Icon="{ui:SymbolIcon Symbol=Add24}" />
+                <TextBlock
+                    Margin="0,0,10,10"
+                    VerticalAlignment="Center"
+                    Text="新对局为：" />
+                <ComboBox
+                    Width="230"
+                    Margin="0,0,10,10"
+                    VerticalAlignment="Center"
+                    ItemsSource="{Binding GameList}"
+                    MaxDropDownHeight="190" />
+            </WrapPanel>
+
+            <!--  navigation  -->
+            <ui:NavigationView
+                x:Name="RootNavigation"
+                Grid.Row="2"
+                FooterMenuItemsSource="{Binding FooterMenuItems}"
+                IsBackButtonVisible="Collapsed"
+                IsPaneToggleVisible="False"
+                MenuItemsSource="{Binding MenuItems}"
+                OpenPaneLength="130" />
+        </Grid>
+        <!--  主题切换相关的东西  -->
+        <Ellipse
+            Width="1"
+            Height="1"
+            Margin="0,30,150,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Panel.ZIndex="-1"
+            Fill="#FFFFFF"
+            RenderTransformOrigin="0.5,0.5"
+            Visibility="Collapsed">
+            <Ellipse.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform x:Name="BackEllipseScale" />
+                </TransformGroup>
+            </Ellipse.RenderTransform>
             <i:Interaction.Triggers>
-                <i:EventTrigger EventName="MouseDown">
-                    <i:InvokeCommandAction Command="{Binding TitleBarMouseDownCommand}" />
+                <i:EventTrigger EventName="Loaded">
+                    <i:ChangePropertyAction PropertyName="Visibility" Value="Visible" />
                 </i:EventTrigger>
             </i:Interaction.Triggers>
-            <StackPanel
-                HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                Orientation="Horizontal">
-                <ui:Image
-                    Height="25"
-                    Margin="5,0,0,0"
-                    Source="/Assets/icon.png" />
-                <ui:TextBlock
-                    Margin="15,0,0,0"
-                    VerticalAlignment="Center"
-                    Text="{Binding Title, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}" />
-
-            </StackPanel>
-            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                <ToggleButton
-                    Height="35"
-                    IsChecked="{Binding IsTopmost}"
-                    Style="{StaticResource TitleBarToggleButton}">
-                    <ui:SymbolIcon Symbol="Pin24" />
-                </ToggleButton>
-                <cc:TitleBarButton
-                    x:Name="ThemeSwitch"
-                    Command="{Binding ThemeSwitchCommand}"
-                    Icon="{ui:SymbolIcon Symbol=DarkTheme24}" />
-                <cc:TitleBarButton
-                    x:Name="Minimize"
-                    Command="{Binding MinimizeCommand}"
-                    Icon="{ui:SymbolIcon Symbol=Subtract24}" />
-                <cc:TitleBarButton
-                    x:Name="Maximize"
-                    Command="{Binding MaximizeCommand}"
-                    Icon="{ui:SymbolIcon Symbol=Maximize24}" />
-                <cc:TitleBarButton
-                    x:Name="Close"
-                    Command="{Binding CloseCommand}"
-                    Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
-            </StackPanel>
-        </Grid>
-        <!--  Body  -->
-
-        <!--  Global menu  -->
-        <WrapPanel
-            Grid.Row="1"
-            Margin="10,10,0,0"
-            Orientation="Horizontal">
-            <!--  current team  -->
-            <Border
-                Width="370"
-                Margin="0,0,10,10"
-                Padding="5"
-                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                CornerRadius="8">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <StackPanel Grid.Row="0" Orientation="Horizontal">
-                        <TextBlock Text="当前求生者队伍:" />
-                        <TextBlock Margin="20,0,0,0" Text="当前求生者队伍" />
-                    </StackPanel>
-                    <ui:Button
-                        Grid.Row="1"
-                        Margin="0,10,0,10"
-                        HorizontalAlignment="Center"
-                        Content="换边"
-                        Icon="{ui:SymbolIcon Symbol=ArrowSort24}" />
-                    <StackPanel Grid.Row="2" Orientation="Horizontal">
-                        <TextBlock Text="当前监管者队伍:" />
-                        <TextBlock Margin="20,0,0,0" Text="当前监管者队伍" />
-                    </StackPanel>
-                </Grid>
-            </Border>
-            <!--  timmer  -->
-            <Border
-                Margin="0,0,10,10"
-                Padding="5"
-                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                CornerRadius="8">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="正计时（单位：秒 ; 可自定义, 下拉框给出的是预设）" />
-                    <StackPanel
-                        Grid.Row="1"
-                        Margin="0,10,0,0"
-                        VerticalAlignment="Center"
-                        Orientation="Horizontal">
-                        <ComboBox
-                            Width="100"
-                            IsEditable="True"
-                            ItemsSource="{Binding RecommendTimmerList}"
-                            MaxDropDownHeight="150" />
-                        <ui:Button
-                            Margin="10,0,0,0"
-                            Content="开始"
-                            Icon="{ui:SymbolIcon Symbol=Play24}" />
-                        <ui:Button
-                            Margin="10,0,0,0"
-                            Content="停止 (隐藏)"
-                            Icon="{ui:SymbolIcon Symbol=Stop24}" />
-                        <ui:TextBlock
-                            Width="100"
-                            Margin="10,0,0,0"
-                            VerticalAlignment="Center"
-                            Text="预览：" />
-                    </StackPanel>
-                </Grid>
-            </Border>
-            <!--  game control  -->
-            <ui:Button
-                Margin="0,0,10,10"
-                Content="保存当前对局到本地"
-                Icon="{ui:SymbolIcon Symbol=Save24}" />
-            <ui:Button
-                Margin="0,0,10,10"
-                Content="新对局 (重置)"
-                Icon="{ui:SymbolIcon Symbol=Add24}" />
-            <TextBlock
-                Margin="0,0,10,10"
-                VerticalAlignment="Center"
-                Text="新对局为：" />
-            <ComboBox
-                Width="230"
-                Margin="0,0,10,10"
-                VerticalAlignment="Center"
-                ItemsSource="{Binding GameList}"
-                MaxDropDownHeight="190" />
-        </WrapPanel>
-
-        <!--  navigation  -->
-        <ui:NavigationView
-            x:Name="RootNavigation"
-            Grid.Row="2"
-            FooterMenuItemsSource="{Binding FooterMenuItems}"
-            IsBackButtonVisible="Collapsed"
-            IsPaneToggleVisible="False"
-            MenuItemsSource="{Binding MenuItems}"
-            OpenPaneLength="130" />
+            <Ellipse.Style>
+                <Style TargetType="Ellipse">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ElementName=ThemeSwitch, Path=IsChecked}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetProperty="RenderTransform.Children[0].ScaleX"
+                                            To="0"
+                                            Duration="0:0:0.6">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation
+                                            Storyboard.TargetProperty="RenderTransform.Children[0].ScaleY"
+                                            To="0"
+                                            Duration="0:0:0.6">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetProperty="RenderTransform.Children[0].ScaleX"
+                                            To="3500"
+                                            Duration="0:0:0.6">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation
+                                            Storyboard.TargetProperty="RenderTransform.Children[0].ScaleY"
+                                            To="3500"
+                                            Duration="0:0:0.6">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Ellipse.Style>
+        </Ellipse>
+        <Ellipse
+            Width="1"
+            Height="1"
+            Margin="0,30,150,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Panel.ZIndex="-1"
+            Fill="#202020"
+            RenderTransformOrigin="0.5,0.5"
+            Visibility="Collapsed">
+            <Ellipse.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform x:Name="ForwardEllipseScale" />
+                </TransformGroup>
+            </Ellipse.RenderTransform>
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="Loaded">
+                    <i:ChangePropertyAction PropertyName="Visibility" Value="Visible" />
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+            <Ellipse.Style>
+                <Style TargetType="Ellipse">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ElementName=ThemeSwitch, Path=IsChecked}" Value="False">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetProperty="RenderTransform.Children[0].ScaleX"
+                                            To="0"
+                                            Duration="0:0:0.6">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation
+                                            Storyboard.TargetProperty="RenderTransform.Children[0].ScaleY"
+                                            To="0"
+                                            Duration="0:0:0.6">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation
+                                            Storyboard.TargetProperty="RenderTransform.Children[0].ScaleX"
+                                            To="3500"
+                                            Duration="0:0:0.6">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                        <DoubleAnimation
+                                            Storyboard.TargetProperty="RenderTransform.Children[0].ScaleY"
+                                            To="3500"
+                                            Duration="0:0:0.6">
+                                            <DoubleAnimation.EasingFunction>
+                                                <CubicEase EasingMode="EaseOut" />
+                                            </DoubleAnimation.EasingFunction>
+                                        </DoubleAnimation>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.ExitActions>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Ellipse.Style>
+        </Ellipse>
     </Grid>
 </ui:FluentWindow>

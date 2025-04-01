@@ -27,10 +27,13 @@ namespace neo_bpsys_wpf.Services
                 CharacterList.Add(i.Value);
 
                 if (i.Value.Type == Types.Sur)
-                    SurSearchingNameList.Add(i.Value.SearchingName);
+                    SurNameList.Add(i.Value.Name);
                 else
-                    HunSearchingNameList.Add(i.Value.SearchingName);
+                    HunNameList.Add(i.Value.Name);
             }
+
+            SurNameList.Sort();
+            HunNameList.Sort();
         }
 
         public Team MainTeam { get; set; } = new();
@@ -40,7 +43,7 @@ namespace neo_bpsys_wpf.Services
         public Game CurrentGame { get; set; } = new();
         public GameProgresses GameProgress { get; set; } = GameProgresses.Game1FirstHalf;
         public List<Character> CharacterList { get; set; } = new();
-        public List<string> SurSearchingNameList { get; set; } = new();
-        public List<string> HunSearchingNameList { get; set; } = new();
+        public List<string> SurNameList { get; set; } = new();
+        public List<string> HunNameList { get; set; } = new();
     }
 }
