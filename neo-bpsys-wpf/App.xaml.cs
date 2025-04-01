@@ -1,17 +1,13 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
-using System.ComponentModel;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Threading;
 using Wpf.Ui;
-using Wpf.Ui.Abstractions;
 using Wpf.Ui.DependencyInjection;
 
 namespace neo_bpsys_wpf
@@ -54,20 +50,35 @@ namespace neo_bpsys_wpf
 
                     //Page
                     services.AddSingleton<MapBpPage>();
-                    services.AddSingleton<BanHunPage>();
-                    services.AddSingleton<BanSurPage>();
+                    services.AddSingleton<BanHunPage>(sp => new BanHunPage()
+                    {
+                        DataContext = sp.GetRequiredService<BanHunPageViewModel>()
+                    });
+                    services.AddSingleton<BanHunPageViewModel>();
+                    services.AddSingleton<BanSurPage>(sp => new BanSurPage()
+                    {
+                        DataContext = sp.GetRequiredService<BanSurPageViewModel>()
+                    });
+                    services.AddSingleton<BanSurPageViewModel>();
                     services.AddSingleton<ExtensionPage>();
                     services.AddSingleton<GameDataPage>();
                     services.AddSingleton<HomePage>();
-                    services.AddSingleton<MapBpPage>();
+                    services.AddSingleton<MapBpPage>(sp => new MapBpPage()
+                    {
+                        DataContext = sp.GetRequiredService<MapBpPageViewModel>()
+                    });
                     services.AddSingleton<MapBpPageViewModel>();
-                    services.AddSingleton<PickPage>();
+                    services.AddSingleton<PickPage>(sp => new PickPage()
+                    {
+                        DataContext = sp.GetRequiredService<PickPageViewModel>()
+                    });
+                    services.AddSingleton<PickPageViewModel>();
                     services.AddSingleton<ScorePage>();
                     services.AddSingleton<SettingPage>();
                     services.AddSingleton<TalentPage>();
-                    services.AddSingleton<TeamInfoPage>(sp => new TeamInfoPage() 
+                    services.AddSingleton<TeamInfoPage>(sp => new TeamInfoPage()
                     {
-                        DataContext=sp.GetRequiredService<TeamInfoPageViewModel>()
+                        DataContext = sp.GetRequiredService<TeamInfoPageViewModel>()
                     });
                     services.AddSingleton<TeamInfoPageViewModel>();
                     services.AddSingleton<FrontManagePage>();

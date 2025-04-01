@@ -12,7 +12,9 @@
             <ResourceDictionary.MergedDictionaries>
                 <ui:ThemesDictionary Theme="Dark" />
                 <ui:ControlsDictionary />
-                <ResourceDictionary Source="/CustomControls/TitleBarButtonStyles.xaml" />
+                <ResourceDictionary Source="/CustomControls/MapSelector.xaml" />
+                <ResourceDictionary Source="/CustomControls/CharacterSelector.xaml" />
+                <ResourceDictionary Source="/CustomControls/CharacterChanger.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>

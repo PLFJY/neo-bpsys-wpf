@@ -2,10 +2,8 @@
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Views.Pages;
-using neo_bpsys_wpf.Views.Windows;
-using System.Collections.ObjectModel;
-using System.Reflection.Metadata.Ecma335;
 using System.Windows;
+using System.Windows.Input;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
@@ -23,7 +21,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [ObservableProperty] private bool _isTopmost = false;
 
         [RelayCommand]
-        private void ThemeSwitch()
+        private static void ThemeSwitch()
         {
             ApplicationThemeManager.Apply(
                 ApplicationThemeManager.GetAppTheme() == ApplicationTheme.Light ?
@@ -31,30 +29,37 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 ApplicationTheme.Light);
         }
 
-        [RelayCommand] private void Maximize()
+        [RelayCommand]
+        private void Maximize()
         {
-            App.Current.MainWindow.WindowState = App.Current.MainWindow.WindowState == 
+            App.Current.MainWindow.WindowState = App.Current.MainWindow.WindowState ==
                 WindowState.Normal ? WindowState.Maximized : WindowState.Normal;
         }
 
-        [RelayCommand] private void Minimize()
+        [RelayCommand]
+        private void Minimize()
         {
             App.Current.MainWindow.WindowState = WindowState.Minimized;
         }
 
-        [RelayCommand] private void Close()
+        [RelayCommand]
+        private void Close()
         {
             ExitConfirm();
         }
 
-        [RelayCommand] private void WindowClosing(System.ComponentModel.CancelEventArgs e)
+        [RelayCommand]
+        private void WindowClosing(System.ComponentModel.CancelEventArgs e)
         {
             e.Cancel = true;
             ExitConfirm();
         }
 
-        [RelayCommand] private void TitleBarMouseDown()
+        [RelayCommand]
+        private void TitleBarMouseDown(MouseButtonEventArgs e)
         {
+            if (e.ChangedButton != MouseButton.Left) return;
+
             App.Current.MainWindow.DragMove();
         }
 
@@ -107,10 +112,10 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [
             new NavigationViewItem("启动页", SymbolRegular.Home24, typeof(HomePage)),
             new NavigationViewItem("队伍信息", SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
-            new NavigationViewItem("地图BP", SymbolRegular.Map24, typeof(MapBpPage)),
-            new NavigationViewItem("Ban监管", SymbolRegular.PresenterOff24, typeof(BanHunPage)),
-            new NavigationViewItem("Ban求生者", SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
-            new NavigationViewItem("角色选择", SymbolRegular.PersonAdd24, typeof(PickPage)),
+            new NavigationViewItem("地图禁选", SymbolRegular.Map24, typeof(MapBpPage)),
+            new NavigationViewItem("禁用监管者", SymbolRegular.PresenterOff24, typeof(BanHunPage)),
+            new NavigationViewItem("禁用求生者", SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
+            new NavigationViewItem("选择角色", SymbolRegular.PersonAdd24, typeof(PickPage)),
             new NavigationViewItem("天赋特质", SymbolRegular.PersonWalking24, typeof(TalentPage)),
             new NavigationViewItem("比分控制", SymbolRegular.NumberRow24, typeof(ScorePage)),
             new NavigationViewItem("赛后数据", SymbolRegular.TextNumberListLtr24, typeof(GameDataPage))
