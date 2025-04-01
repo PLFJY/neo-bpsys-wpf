@@ -12,7 +12,7 @@ namespace neo_bpsys_wpf.Services
         Game CurrentGame { get; set; }
         GameProgresses GameProgress { get; set; }
         List<Character> CharacterList { get; set; }
-        List<string> SurSearchingNameList { get; set; }
-        List<string> HunSearchingNameList { get; set; }
+        List<string> SurNameList { get; set; }
+        List<string> HunNameList { get; set; }
     }
 }

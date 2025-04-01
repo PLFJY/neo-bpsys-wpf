@@ -30,15 +30,18 @@
                         Text="新一代的的第五人格BP展示软件" />
                     <ui:HyperlinkButton Margin="0,10,0,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock
-                                FontSize="12"
-                                Foreground="DarkGray"
-                                Text="查看文档" />
                             <ui:SymbolIcon
-                                Margin="5,0,0,5"
+                                Margin="0,0,0,0"
                                 FontSize="20"
                                 Foreground="DarkGray"
                                 Symbol="Link24" />
+                            <TextBlock
+                                Margin="5,0,0,0"
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Foreground="DarkGray"
+                                Text="查看文档" />
+
                         </StackPanel>
                     </ui:HyperlinkButton>
                 </StackPanel>

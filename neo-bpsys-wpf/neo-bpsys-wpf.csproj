@@ -11,39 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Assets\Fonts\Essay-Text-W01-Italic.ttf" />
-    <None Remove="Assets\Fonts\selawk.ttf" />
-    <None Remove="Assets\Fonts\selawkb.ttf" />
-    <None Remove="Assets\Fonts\selawkl.ttf" />
-    <None Remove="Assets\Fonts\selawksb.ttf" />
-    <None Remove="Assets\Fonts\selawksl.ttf" />
-    <None Remove="Assets\Fonts\SourceHanSansHWSC-VF.ttf" />
-    <None Remove="Assets\Fonts\华康POP1体W5-简体.ttf" />
-    <None Remove="Assets\Fonts\汉仪第五人格体.ttf" />
-    <None Remove="Assets\HomePageHeader.png" />
-    <None Remove="Assets\icon.png" />
-    <None Remove="Assets\map\不归林.png" />
-    <None Remove="Assets\map\军工厂.png" />
-    <None Remove="Assets\map\唐人街.png" />
-    <None Remove="Assets\map\圣心医院.png" />
-    <None Remove="Assets\map\月亮河公园.png" />
-    <None Remove="Assets\map\永眠镇.png" />
-    <None Remove="Assets\map\湖景村.png" />
-    <None Remove="Assets\map\红教堂.png" />
-    <None Remove="Assets\map\里奥的回忆.png" />
-    <None Remove="Assets\map_singleColor\不归林.png" />
-    <None Remove="Assets\map_singleColor\军工厂.png" />
-    <None Remove="Assets\map_singleColor\唐人街.png" />
-    <None Remove="Assets\map_singleColor\圣心医院.png" />
-    <None Remove="Assets\map_singleColor\无Ban.png" />
-    <None Remove="Assets\map_singleColor\月亮河公园.png" />
-    <None Remove="Assets\map_singleColor\永眠镇.png" />
-    <None Remove="Assets\map_singleColor\湖景村.png" />
-    <None Remove="Assets\map_singleColor\红教堂.png" />
-    <None Remove="Assets\map_singleColor\里奥的回忆.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="Assets\icon.ico" />
   </ItemGroup>
 
@@ -72,7 +39,7 @@
     <Resource Include="Assets\map_singleColor\军工厂.png" />
     <Resource Include="Assets\map_singleColor\唐人街.png" />
     <Resource Include="Assets\map_singleColor\圣心医院.png" />
-    <Resource Include="Assets\map_singleColor\无Ban.png" />
+    <Resource Include="Assets\map_singleColor\无禁用.png" />
     <Resource Include="Assets\map_singleColor\月亮河公园.png" />
     <Resource Include="Assets\map_singleColor\永眠镇.png" />
     <Resource Include="Assets\map_singleColor\湖景村.png" />
@@ -82,9 +49,10 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.3" />
+    <PackageReference Include="hyjiacan.pinyin4net" Version="4.1.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-preview.2.25163.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0-preview.2.25163.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0-preview.2.25163.2" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
     <PackageReference Include="WPF-UI" Version="4.0.2" />
     <PackageReference Include="WPF-UI.Abstractions" Version="4.0.2" />

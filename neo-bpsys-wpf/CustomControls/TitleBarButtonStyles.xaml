@@ -4,6 +4,7 @@
     xmlns:controls="clr-namespace:neo_bpsys_wpf.CustomControls"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
     <Style TargetType="{x:Type controls:TitleBarButton}">
+        <Setter Property="Focusable" Value="False" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:TitleBarButton}">
@@ -14,7 +15,9 @@
                         BorderThickness="0"
                         Command="{TemplateBinding Command}"
                         Content="{TemplateBinding Content}"
-                        Icon="{TemplateBinding Icon}" />
+                        Focusable="False"
+                        Icon="{TemplateBinding Icon}"
+                        IsTabStop="True" />
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
