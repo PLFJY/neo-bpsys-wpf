@@ -29,6 +29,21 @@ namespace neo_bpsys_wpf.CustomControls
         public static readonly DependencyProperty CommandProperty =
             DependencyProperty.Register("Command", typeof(ICommand), typeof(CharacterSelector), new PropertyMetadata(null));
 
+
+
+        public bool IsSimpleModeEnable
+        {
+            get { return (bool)GetValue(IsSimpleModeEnableProperty); }
+            set { SetValue(IsSimpleModeEnableProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for IsSimpleModeEnable.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IsSimpleModeEnableProperty =
+            DependencyProperty.Register("IsSimpleModeEnable", typeof(bool), typeof(CharacterSelector), new PropertyMetadata(false));
+
+
+
+
         static CharacterSelector()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(CharacterSelector), new FrameworkPropertyMetadata(typeof(CharacterSelector)));

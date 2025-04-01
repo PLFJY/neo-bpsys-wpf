@@ -13,6 +13,9 @@ namespace neo_bpsys_wpf.ViewModels.Windows
     {
         private readonly ISharedDataService _sharedDataService;
 
+        [ObservableProperty] 
+        private ApplicationTheme _applicationTheme = ApplicationTheme.Dark;
+
         public MainWindowViewModel(ISharedDataService sharedDataService)
         {
             _sharedDataService = sharedDataService;
@@ -21,29 +24,26 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [ObservableProperty] private bool _isTopmost = false;
 
         [RelayCommand]
-        private static void ThemeSwitch()
+        private void ThemeSwitch()
         {
-            ApplicationThemeManager.Apply(
-                ApplicationThemeManager.GetAppTheme() == ApplicationTheme.Light ?
-                ApplicationTheme.Dark :
-                ApplicationTheme.Light);
+            ApplicationThemeManager.Apply(ApplicationTheme, WindowBackdropType.Mica, true);
         }
 
         [RelayCommand]
-        private void Maximize()
+        private static void Maximize()
         {
             App.Current.MainWindow.WindowState = App.Current.MainWindow.WindowState ==
                 WindowState.Normal ? WindowState.Maximized : WindowState.Normal;
         }
 
         [RelayCommand]
-        private void Minimize()
+        private static void Minimize()
         {
             App.Current.MainWindow.WindowState = WindowState.Minimized;
         }
 
         [RelayCommand]
-        private void Close()
+        private static void Exit()
         {
             ExitConfirm();
         }
