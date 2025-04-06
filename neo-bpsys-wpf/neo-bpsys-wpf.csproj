@@ -1,68 +1,101 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net9.0-windows</TargetFramework>
+		<RootNamespace>neo_bpsys_wpf</RootNamespace>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>true</UseWPF>
+		<ApplicationIcon>favicon.ico</ApplicationIcon>
+		<Deterministic>False</Deterministic>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	  <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+	</PropertyGroup>
+	<ItemGroup>
+		<Resource Include="Assets\Fonts\Essay-Text-W01-Italic.ttf" />
+		<Resource Include="Assets\Fonts\selawk.ttf" />
+		<Resource Include="Assets\Fonts\selawkb.ttf" />
+		<Resource Include="Assets\Fonts\selawkl.ttf" />
+		<Resource Include="Assets\Fonts\selawksb.ttf" />
+		<Resource Include="Assets\Fonts\selawksl.ttf" />
+		<Resource Include="Assets\Fonts\SourceHanSansHWSC-VF.ttf" />
+		<Resource Include="Assets\Fonts\华康POP1体W5-简体.ttf" />
+		<Resource Include="Assets\Fonts\汉仪第五人格体.ttf" />
+		<Resource Include="Assets\HomePageHeader.png" />
+		<Resource Include="Assets\icon.png" />
+		<Resource Include="Assets\Icons\black\Abnormal.png" />
+		<Resource Include="Assets\Icons\black\Blink.png" />
+		<Resource Include="Assets\Icons\black\BorrowedTime.png" />
+		<Resource Include="Assets\Icons\black\ConfinedSpace.png" />
+		<Resource Include="Assets\Icons\black\Detention.png" />
+		<Resource Include="Assets\Icons\black\Excitement.png" />
+		<Resource Include="Assets\Icons\black\FlywheelEffect.png" />
+		<Resource Include="Assets\Icons\black\Insolence.png" />
+		<Resource Include="Assets\Icons\black\KneeJerkReflex.png" />
+		<Resource Include="Assets\Icons\black\Listen.png" />
+		<Resource Include="Assets\Icons\black\Patroller.png" />
+		<Resource Include="Assets\Icons\black\Peeper.png" />
+		<Resource Include="Assets\Icons\black\Teleport.png" />
+		<Resource Include="Assets\Icons\black\TideTurner.png" />
+		<Resource Include="Assets\Icons\black\TrumpCard.png" />
+		<Resource Include="Assets\Icons\black\Warp.png" />
+		<Resource Include="Assets\Icons\white\Abnormal.png" />
+		<Resource Include="Assets\Icons\white\Blink.png" />
+		<Resource Include="Assets\Icons\white\BorrowedTime.png" />
+		<Resource Include="Assets\Icons\white\ConfinedSpace.png" />
+		<Resource Include="Assets\Icons\white\Detention.png" />
+		<Resource Include="Assets\Icons\white\Excitement.png" />
+		<Resource Include="Assets\Icons\white\FlywheelEffect.png" />
+		<Resource Include="Assets\Icons\white\Insolence.png" />
+		<Resource Include="Assets\Icons\white\KneeJerkReflex.png" />
+		<Resource Include="Assets\Icons\white\Listen.png" />
+		<Resource Include="Assets\Icons\white\Patroller.png" />
+		<Resource Include="Assets\Icons\white\Peeper.png" />
+		<Resource Include="Assets\Icons\white\Teleport.png" />
+		<Resource Include="Assets\Icons\white\TideTurner.png" />
+		<Resource Include="Assets\Icons\white\TrumpCard.png" />
+		<Resource Include="Assets\Icons\white\Warp.png" />
+		<Resource Include="Assets\map\不归林.png" />
+		<Resource Include="Assets\map\军工厂.png" />
+		<Resource Include="Assets\map\唐人街.png" />
+		<Resource Include="Assets\map\圣心医院.png" />
+		<Resource Include="Assets\map\月亮河公园.png" />
+		<Resource Include="Assets\map\永眠镇.png" />
+		<Resource Include="Assets\map\湖景村.png" />
+		<Resource Include="Assets\map\红教堂.png" />
+		<Resource Include="Assets\map\里奥的回忆.png" />
+		<Resource Include="Assets\map_singleColor\不归林.png" />
+		<Resource Include="Assets\map_singleColor\军工厂.png" />
+		<Resource Include="Assets\map_singleColor\唐人街.png" />
+		<Resource Include="Assets\map_singleColor\圣心医院.png" />
+		<Resource Include="Assets\map_singleColor\无禁用.png" />
+		<Resource Include="Assets\map_singleColor\月亮河公园.png" />
+		<Resource Include="Assets\map_singleColor\永眠镇.png" />
+		<Resource Include="Assets\map_singleColor\湖景村.png" />
+		<Resource Include="Assets\map_singleColor\红教堂.png" />
+		<Resource Include="Assets\map_singleColor\里奥的回忆.png" />
+	</ItemGroup>
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows</TargetFramework>
-    <RootNamespace>neo_bpsys_wpf</RootNamespace>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
-    <ApplicationIcon>icon.ico</ApplicationIcon>
-  </PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageReference Include="hyjiacan.pinyin4net" Version="4.1.1" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-preview.2.25163.2" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0-preview.2.25163.2" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0-preview.2.25163.2" />
+		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+		<PackageReference Include="WPF-UI" Version="4.0.2" />
+		<PackageReference Include="WPF-UI.Abstractions" Version="4.0.2" />
+		<PackageReference Include="WPF-UI.DependencyInjection" Version="4.0.2" />
+		<PackageReference Include="XamlFlair.WPF" Version="1.2.13" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Content Include="icon.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Assets\Fonts\Essay-Text-W01-Italic.ttf" />
-    <Resource Include="Assets\Fonts\selawk.ttf" />
-    <Resource Include="Assets\Fonts\selawkb.ttf" />
-    <Resource Include="Assets\Fonts\selawkl.ttf" />
-    <Resource Include="Assets\Fonts\selawksb.ttf" />
-    <Resource Include="Assets\Fonts\selawksl.ttf" />
-    <Resource Include="Assets\Fonts\SourceHanSansHWSC-VF.ttf" />
-    <Resource Include="Assets\Fonts\华康POP1体W5-简体.ttf" />
-    <Resource Include="Assets\Fonts\汉仪第五人格体.ttf" />
-    <Resource Include="Assets\HomePageHeader.png" />
-    <Resource Include="Assets\icon.png" />
-    <Resource Include="Assets\map\不归林.png" />
-    <Resource Include="Assets\map\军工厂.png" />
-    <Resource Include="Assets\map\唐人街.png" />
-    <Resource Include="Assets\map\圣心医院.png" />
-    <Resource Include="Assets\map\月亮河公园.png" />
-    <Resource Include="Assets\map\永眠镇.png" />
-    <Resource Include="Assets\map\湖景村.png" />
-    <Resource Include="Assets\map\红教堂.png" />
-    <Resource Include="Assets\map\里奥的回忆.png" />
-    <Resource Include="Assets\map_singleColor\不归林.png" />
-    <Resource Include="Assets\map_singleColor\军工厂.png" />
-    <Resource Include="Assets\map_singleColor\唐人街.png" />
-    <Resource Include="Assets\map_singleColor\圣心医院.png" />
-    <Resource Include="Assets\map_singleColor\无禁用.png" />
-    <Resource Include="Assets\map_singleColor\月亮河公园.png" />
-    <Resource Include="Assets\map_singleColor\永眠镇.png" />
-    <Resource Include="Assets\map_singleColor\湖景村.png" />
-    <Resource Include="Assets\map_singleColor\红教堂.png" />
-    <Resource Include="Assets\map_singleColor\里奥的回忆.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="hyjiacan.pinyin4net" Version="4.1.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-preview.2.25163.2" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0-preview.2.25163.2" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0-preview.2.25163.2" />
-    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
-    <PackageReference Include="WPF-UI" Version="4.0.2" />
-    <PackageReference Include="WPF-UI.Abstractions" Version="4.0.2" />
-    <PackageReference Include="WPF-UI.DependencyInjection" Version="4.0.2" />
-    <PackageReference Include="XamlFlair.WPF" Version="1.2.13" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Models\" />
-  </ItemGroup>
+	<ItemGroup>
+		<Folder Include="Models\" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<None Include="Resources\**">
@@ -71,8 +104,60 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="Resources\data\CharacterList.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
+		<Compile Remove="Assets\Icons\hunTalent\**" />
+		<Compile Remove="Assets\Icons\surTalent\**" />
+		<Compile Remove="Assets\Icons\trait\**" />
+		<Compile Remove="Installer\**" />
+		<EmbeddedResource Remove="Assets\Icons\hunTalent\**" />
+		<EmbeddedResource Remove="Assets\Icons\surTalent\**" />
+		<EmbeddedResource Remove="Assets\Icons\trait\**" />
+		<EmbeddedResource Remove="Installer\**" />
+		<None Remove="Installer\**" />
+		<Page Remove="Installer\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Remove="Assets\Icons\black\Abnormal.png" />
+		<None Remove="Assets\Icons\black\Blink.png" />
+		<None Remove="Assets\Icons\black\BorrowedTime.png" />
+		<None Remove="Assets\Icons\black\ConfinedSpace.png" />
+		<None Remove="Assets\Icons\black\Detention.png" />
+		<None Remove="Assets\Icons\black\Excitement.png" />
+		<None Remove="Assets\Icons\black\FlywheelEffect.png" />
+		<None Remove="Assets\Icons\black\Insolence.png" />
+		<None Remove="Assets\Icons\black\KneeJerkReflex.png" />
+		<None Remove="Assets\Icons\black\Listen.png" />
+		<None Remove="Assets\Icons\black\Patroller.png" />
+		<None Remove="Assets\Icons\black\Peeper.png" />
+		<None Remove="Assets\Icons\black\Teleport.png" />
+		<None Remove="Assets\Icons\black\TideTurner.png" />
+		<None Remove="Assets\Icons\black\TrumpCard.png" />
+		<None Remove="Assets\Icons\black\Warp.png" />
+		<None Remove="Assets\Icons\white\Abnormal.png" />
+		<None Remove="Assets\Icons\white\Blink.png" />
+		<None Remove="Assets\Icons\white\BorrowedTime.png" />
+		<None Remove="Assets\Icons\white\ConfinedSpace.png" />
+		<None Remove="Assets\Icons\white\Detention.png" />
+		<None Remove="Assets\Icons\white\Excitement.png" />
+		<None Remove="Assets\Icons\white\FlywheelEffect.png" />
+		<None Remove="Assets\Icons\white\Insolence.png" />
+		<None Remove="Assets\Icons\white\KneeJerkReflex.png" />
+		<None Remove="Assets\Icons\white\Listen.png" />
+		<None Remove="Assets\Icons\white\Patroller.png" />
+		<None Remove="Assets\Icons\white\Peeper.png" />
+		<None Remove="Assets\Icons\white\Teleport.png" />
+		<None Remove="Assets\Icons\white\TideTurner.png" />
+		<None Remove="Assets\Icons\white\TrumpCard.png" />
+		<None Remove="Assets\Icons\white\Warp.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="favicon.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="Resources\data\CharacterList.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 </Project>
