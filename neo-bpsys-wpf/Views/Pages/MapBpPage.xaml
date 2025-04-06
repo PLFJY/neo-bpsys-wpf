@@ -15,7 +15,6 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
-
     <StackPanel>
         <Border
             Padding="10"
@@ -29,60 +28,60 @@
                 <TextBlock Grid.Row="0" Text="地图选择" />
                 <StackPanel Grid.Row="1" Margin="0,10,0,0">
                     <WrapPanel Orientation="Horizontal">
-                        <cc:MapSelector
+                        <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/军工厂.png"
-                            MapName="军工厂" />
-                        <cc:MapSelector
+                            TagName="军工厂" />
+                        <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/红教堂.png"
-                            MapName="红教堂" />
-                        <cc:MapSelector
+                            TagName="红教堂" />
+                        <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/圣心医院.png"
-                            MapName="圣心医院" />
-                        <cc:MapSelector
+                            TagName="圣心医院" />
+                        <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/里奥的回忆.png"
-                            MapName="里奥的回忆" />
-                        <cc:MapSelector
+                            TagName="里奥的回忆" />
+                        <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/月亮河公园.png"
-                            MapName="月亮河公园" />
-                        <cc:MapSelector
+                            TagName="月亮河公园" />
+                        <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/湖景村.png"
-                            MapName="湖景村" />
-                        <cc:MapSelector
+                            TagName="湖景村" />
+                        <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/永眠镇.png"
-                            MapName="永眠镇" />
-                        <cc:MapSelector
+                            TagName="永眠镇" />
+                        <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/唐人街.png"
-                            MapName="唐人街" />
-                        <cc:MapSelector
+                            TagName="唐人街" />
+                        <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/不归林.png"
-                            MapName="不归林" />
+                            TagName="不归林" />
                     </WrapPanel>
                 </StackPanel>
             </Grid>
@@ -102,66 +101,66 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <cc:MapSelector
+                    <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/无禁用.png"
-                        MapName="无禁用" />
-                    <cc:MapSelector
+                        TagName="无禁用" />
+                    <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/军工厂.png"
-                        MapName="军工厂" />
-                    <cc:MapSelector
+                        TagName="军工厂" />
+                    <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/红教堂.png"
-                        MapName="红教堂" />
-                    <cc:MapSelector
+                        TagName="红教堂" />
+                    <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/圣心医院.png"
-                        MapName="圣心医院" />
-                    <cc:MapSelector
+                        TagName="圣心医院" />
+                    <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/里奥的回忆.png"
-                        MapName="里奥的回忆" />
-                    <cc:MapSelector
+                        TagName="里奥的回忆" />
+                    <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/月亮河公园.png"
-                        MapName="月亮河公园" />
-                    <cc:MapSelector
+                        TagName="月亮河公园" />
+                    <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/湖景村.png"
-                        MapName="湖景村" />
-                    <cc:MapSelector
+                        TagName="湖景村" />
+                    <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/永眠镇.png"
-                        MapName="永眠镇" />
-                    <cc:MapSelector
+                        TagName="永眠镇" />
+                    <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/唐人街.png"
-                        MapName="唐人街" />
-                    <cc:MapSelector
+                        TagName="唐人街" />
+                    <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/不归林.png"
-                        MapName="不归林" />
+                        TagName="不归林" />
                 </WrapPanel>
             </Grid>
         </Border>

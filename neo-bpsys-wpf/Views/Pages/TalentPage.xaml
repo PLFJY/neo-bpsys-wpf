@@ -1,14 +1,97 @@
-﻿<Page x:Class="neo_bpsys_wpf.Views.Pages.TalentPage"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
-      mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="TalentPage">
-
-    <Grid>
-        
-    </Grid>
+﻿<Page
+    x:Class="neo_bpsys_wpf.Views.Pages.TalentPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converter"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    Title="TalentPage"
+    d:DataContext="{d:DesignInstance Type=vm:TalentPageViewModel}"
+    d:DesignHeight="1500"
+    d:DesignWidth="685"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/CustomControls/TalentPicker.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <cv:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        </ResourceDictionary>
+    </Page.Resources>
+    <WrapPanel Orientation="Horizontal">
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="求生者天赋" />
+                <WrapPanel Grid.Row="1" Orientation="Horizontal">
+                    <cc:TalentPicker Margin="0,0,10,10" />
+                    <cc:TalentPicker Margin="0,0,10,10" />
+                    <cc:TalentPicker Margin="0,0,10,10" />
+                    <cc:TalentPicker Margin="0,0,10,10" />
+                </WrapPanel>
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="监管者天赋" />
+                <cc:TalentPicker
+                    Grid.Row="1"
+                    Margin="0,0,20,10"
+                    HorizontalAlignment="Left"
+                    IsTypeHun="True" />
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.Resources>
+                    <Style BasedOn="{StaticResource {x:Type cc:ToggleStyledRadioButton}}" TargetType="cc:ToggleStyledRadioButton">
+                        <Setter Property="ImageHeight" Value="50" />
+                        <Setter Property="ImageWidth" Value="50" />
+                        <Setter Property="GroupName" Value="Trait" />
+                        <Setter Property="Margin" Value="0,0,0,10" />
+                    </Style>
+                </Grid.Resources>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                    <TextBlock Text="监管者辅助特质" />
+                    <ui:ToggleSwitch
+                        x:Name="IsTraitVisible"
+                        Margin="20,0,0,0"
+                        Content="是否显示"
+                        IsChecked="True" />
+                </StackPanel>
+                <WrapPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal"
+                    Visibility="{Binding ElementName=IsTraitVisible, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}, Mode=TwoWay}">
+                    <cc:ToggleStyledRadioButton ImageSource="{DynamicResource Listen}" TagName="聆听" />
+                    <cc:ToggleStyledRadioButton ImageSource="{DynamicResource Abnormal}" TagName="失常" />
+                    <cc:ToggleStyledRadioButton ImageSource="{DynamicResource Excitement}" TagName="兴奋" />
+                    <cc:ToggleStyledRadioButton ImageSource="{DynamicResource Patroller}" TagName="巡视者" />
+                    <cc:ToggleStyledRadioButton ImageSource="{DynamicResource Teleport}" TagName="传送" />
+                    <cc:ToggleStyledRadioButton ImageSource="{DynamicResource Peeper}" TagName="窥视者" />
+                    <cc:ToggleStyledRadioButton ImageSource="{DynamicResource Blink}" TagName="闪现" />
+                    <cc:ToggleStyledRadioButton ImageSource="{DynamicResource Warp}" TagName="移行" />
+                </WrapPanel>
+            </Grid>
+        </Border>
+    </WrapPanel>
 </Page>

@@ -1,0 +1,22 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--  Talent  -->
+    <!--  Sur  -->
+    <BitmapImage x:Key="BorrowedTime" UriSource="/Assets/Icons/white/BorrowedTime.png" />
+    <BitmapImage x:Key="FlywheelEffect" UriSource="/Assets/Icons/white/FlywheelEffect.png" />
+    <BitmapImage x:Key="KneeJerkReflex" UriSource="/Assets/Icons/white/KneeJerkReflex.png" />
+    <BitmapImage x:Key="TideTurner" UriSource="/Assets/Icons/white/TideTurner.png" />
+    <!--  Hun  -->
+    <BitmapImage x:Key="ConfinedSpace" UriSource="/Assets/Icons/white/ConfinedSpace.png" />
+    <BitmapImage x:Key="Detention" UriSource="/Assets/Icons/white/Detention.png" />
+    <BitmapImage x:Key="Insolence" UriSource="/Assets/Icons/white/Insolence.png" />
+    <BitmapImage x:Key="TrumpCard" UriSource="/Assets/Icons/white/TrumpCard.png" />
+    <!--  Hun Trait  -->
+    <BitmapImage x:Key="Abnormal" UriSource="/Assets/Icons/white/Abnormal.png" />
+    <BitmapImage x:Key="Blink" UriSource="/Assets/Icons/white/Blink.png" />
+    <BitmapImage x:Key="Excitement" UriSource="/Assets/Icons/white/Excitement.png" />
+    <BitmapImage x:Key="Listen" UriSource="/Assets/Icons/white/Listen.png" />
+    <BitmapImage x:Key="Patroller" UriSource="/Assets/Icons/white/Patroller.png" />
+    <BitmapImage x:Key="Peeper" UriSource="/Assets/Icons/white/Peeper.png" />
+    <BitmapImage x:Key="Teleport" UriSource="/Assets/Icons/white/Teleport.png" />
+    <BitmapImage x:Key="Warp" UriSource="/Assets/Icons/white/Warp.png" />
+</ResourceDictionary>
