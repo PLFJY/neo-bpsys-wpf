@@ -104,7 +104,7 @@ namespace neo_bpsys_wpf.CustomControls
             base.IsEnabled = false;
             base.Text = "正在初始化";
             ///get Pinyin data
-            var format = PinyinFormat.WITHOUT_TONE | PinyinFormat.LOWERCASE | PinyinFormat.WITH_U_AND_COLON;
+            var format = PinyinFormat.WITHOUT_TONE | PinyinFormat.LOWERCASE | PinyinFormat.WITH_U_AND_COLON | PinyinFormat.WITH_V;
             foreach (var item in newValue)
             {
                 if (item is not string hanzi) return;

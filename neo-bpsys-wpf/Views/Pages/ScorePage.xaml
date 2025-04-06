@@ -1,14 +1,172 @@
-﻿<Page x:Class="neo_bpsys_wpf.Views.Pages.ScorePage"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
-      mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="ScorePage">
+﻿<Page
+    x:Class="neo_bpsys_wpf.Views.Pages.ScorePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    Title="ScorePage"
+    d:DataContext="{d:DesignInstance Type=vm:ScorePageViewModel}"
+    d:DesignHeight="1500"
+    d:DesignWidth="685"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    mc:Ignorable="d">
+    <WrapPanel Orientation="Horizontal">
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="BP界面及游戏内比分" />
+                <Grid Grid.Row="1" Margin="0,20,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="350" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.Resources>
+                        <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
+                            <Setter Property="Width" Value="80" />
+                            <Setter Property="Height" Value="40" />
+                            <Setter Property="Margin" Value="10" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                        </Style>
+                    </Grid.Resources>
+                    <StackPanel Grid.Column="0">
+                        <Button Content="四跑" />
+                        <Button Content="三跑" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="0,30,0,0">
+                        <Button Content="平局" />
+                        <Button Width="100" Content="大比分结算" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <Button Content="四抓" />
+                        <Button Content="三抓" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="3">
+                        <Button Content="总清零" />
+                        <Button Content="手动控制" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="4" Margin="0,20,0,0">
+                        <TextBlock Margin="10" Text="W:0 D:0 小比分:0" />
+                        <TextBlock Margin="10" Text="W:0 D:0 小比分:0" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="分数统计" />
+                <Grid Grid.Row="1" Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="0" Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" Text="赛制: BO5" />
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            Content="切换"
+                            Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+                    </StackPanel>
+                    <StackPanel
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" Text="场次选择" />
+                        <ComboBox
+                            Width="250"
+                            Margin="10,0,0,0"
+                            ItemsSource="{Binding GameList}" />
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            Content="下一局"
+                            Icon="{ui:SymbolIcon Symbol=ArrowNext24}" />
+                    </StackPanel>
+                    <CheckBox
+                        x:Name="IsGameComplted"
+                        Grid.Row="2"
+                        Margin="0,10,0,0"
+                        Content="对局已完成" />
+                    <Grid Grid.Row="3" IsEnabled="{Binding ElementName=IsGameComplted, Path=IsChecked, Mode=TwoWay}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <GroupBox
+                                Grid.Column="0"
+                                Padding="5"
+                                Header="主场队伍阵营">
+                                <StackPanel>
+                                    <RadioButton Content="求生者" />
+                                    <RadioButton Margin="0,10,0,0" Content="监管者" />
+                                </StackPanel>
+                            </GroupBox>
+                            <GroupBox
+                                Grid.Column="1"
+                                Margin="10,0,0,0"
+                                Padding="5"
+                                Header="客场队伍阵营">
+                                <StackPanel>
+                                    <RadioButton Content="求生者" />
+                                    <RadioButton Margin="0,10,0,0" Content="监管者" />
+                                </StackPanel>
+                            </GroupBox>
+                        </Grid>
+                        <GroupBox
+                            Grid.Row="1"
+                            Margin="0,10,0,0"
+                            Padding="5"
+                            Header="对局结果">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <RadioButton Content="四跑" GroupName="GameResult" />
+                                    <RadioButton
+                                        Margin="0,30,0,0"
+                                        Content="三跑"
+                                        GroupName="GameResult" />
+                                </StackPanel>
+                                <RadioButton
+                                    Grid.Column="1"
+                                    Content="平局"
+                                    GroupName="GameResult" />
+                                <StackPanel Grid.Column="2">
+                                    <RadioButton Content="四抓" GroupName="GameResult" />
+                                    <RadioButton
+                                        Margin="0,30,0,0"
+                                        Content="三抓"
+                                        GroupName="GameResult" />
+                                </StackPanel>
+                            </Grid>
+                        </GroupBox>
+                    </Grid>
 
-    <Grid>
-        
-    </Grid>
+                </Grid>
+            </Grid>
+        </Border>
+    </WrapPanel>
 </Page>
