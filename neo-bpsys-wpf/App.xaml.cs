@@ -7,6 +7,7 @@ using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
 using System.Diagnostics;
+using System.Runtime.Serialization.DataContracts;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -49,14 +50,57 @@ namespace neo_bpsys_wpf
                     });
                     services.AddSingleton<MainWindowViewModel>();
 
+                    //FrontService
+                    services.AddSingleton<IFrontService, FrontService>();
+
                     //Views and ViewModels
                     //Window
                     services.AddSingleton<BpWindow>(sp => new BpWindow()
                     {
-                        DataContext = sp.GetRequiredService<BpWindowViewModel>()
+                        DataContext = sp.GetRequiredService<BpWindowViewModel>(),
+                        WindowStyle = WindowStyle.None,
+                        WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                        SizeToContent = SizeToContent.Manual,
+                        ResizeMode = ResizeMode.NoResize
                     });
                     services.AddSingleton<BpWindowViewModel>();
-
+                    services.AddSingleton<InterludeWindow>(sp => new InterludeWindow()
+                    {
+                        DataContext = sp.GetRequiredService<InterludeWindowViewModel>(),
+                        WindowStyle = WindowStyle.None,
+                        WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                        SizeToContent = SizeToContent.Manual,
+                        ResizeMode = ResizeMode.NoResize
+                    });
+                    services.AddSingleton<InterludeWindowViewModel>();
+                    services.AddSingleton<ScoreWindow>(sp => new ScoreWindow()
+                    {
+                        DataContext = sp.GetRequiredService<ScoreWindowViewModel>(),
+                        WindowStyle = WindowStyle.None,
+                        WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                        SizeToContent = SizeToContent.Manual,
+                        ResizeMode = ResizeMode.NoResize
+                    });
+                    services.AddSingleton<ScoreWindowViewModel>();
+                    services.AddSingleton<GameDataWindow>(sp => new GameDataWindow()
+                    {
+                        DataContext = sp.GetRequiredService<BpWindowViewModel>(),
+                        WindowStyle = WindowStyle.None,
+                        WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                        SizeToContent = SizeToContent.Manual,
+                        ResizeMode = ResizeMode.NoResize
+                    });
+                    services.AddSingleton<GameDataWindowViewModel>();
+                    services.AddSingleton<WidgetsWindow>(sp => new WidgetsWindow()
+                    {
+                        DataContext = sp.GetRequiredService<WidgetsWindowViewModel>(),
+                        WindowStyle = WindowStyle.None,
+                        WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                        SizeToContent = SizeToContent.Manual,
+                        ResizeMode = ResizeMode.NoResize
+                    });
+                    services.AddSingleton<WidgetsWindowViewModel>();
+                    
 
                     //Page
                     services.AddSingleton<HomePage>();

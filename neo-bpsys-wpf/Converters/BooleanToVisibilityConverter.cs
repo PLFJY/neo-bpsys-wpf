@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
-namespace neo_bpsys_wpf.Converter
+namespace neo_bpsys_wpf.Converters
 {
     /// <summary>
     /// 布尔值转换为可见性

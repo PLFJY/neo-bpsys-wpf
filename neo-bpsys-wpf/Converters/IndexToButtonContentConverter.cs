@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Windows.Data;
 
-namespace neo_bpsys_wpf.Converter
+namespace neo_bpsys_wpf.Converters
 {
     /// <summary>
     /// 将Index转换为CharacterChanger的Button Content，对应Button的Nmae的数字-1

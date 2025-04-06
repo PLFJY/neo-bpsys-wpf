@@ -4,22 +4,26 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
-using Wpf.Ui.Appearance;
 
-namespace neo_bpsys_wpf.Converter
+namespace neo_bpsys_wpf.Converters
 {
-    public class BooleanToApplicationThemeConverter : IValueConverter
+    /// <summary>
+    /// 布尔值转换为可见性
+    /// <para>true 对应 Collapsed</para>
+    /// <para>false 对应 Visible</para>
+    /// </summary>
+    public class BooleanToReverseVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is not ApplicationTheme applicationTheme) throw new ArgumentException();
-            return applicationTheme == ApplicationTheme.Dark;
+            return (bool)value ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return (bool)value ? ApplicationTheme.Dark : ApplicationTheme.Light;
+            throw new NotImplementedException();
         }
     }
 }

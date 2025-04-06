@@ -1,12 +1,26 @@
-﻿<Window x:Class="neo_bpsys_wpf.Views.Windows.BpWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
-        mc:Ignorable="d"
-        Title="BpWindow" Height="450" Width="800">
-    <Grid>
-        
-    </Grid>
+﻿<Window
+    x:Class="neo_bpsys_wpf.Views.Windows.BpWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cb="clr-namespace:neo_bpsys_wpf.Behaviors"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
+    Title="BpWindow"
+    Width="1440"
+    Height="810"
+    d:DataContext="{d:DesignInstance Type=vm:BpWindowViewModel}"
+    mc:Ignorable="d">
+    <Window.Background>
+        <ImageBrush ImageSource="/Views/Windows/bp.png" />
+    </Window.Background>
+    <Canvas x:Name="BaseCanvas">
+        <TextBlock
+            Name="DragTest"
+            cb:DragBehavior.IsDraggable="True"
+            FontSize="100"
+            Text="拖拽测试" />
+    </Canvas>
 </Window>
