@@ -15,14 +15,13 @@ using System.Windows.Shapes;
 namespace neo_bpsys_wpf.Views.Windows
 {
     /// <summary>
-    /// BpWindow.xaml 的交互逻辑
+    /// InterludeWindow.xaml 的交互逻辑
     /// </summary>
-    public partial class BpWindow : Window
+    public partial class InterludeWindow : Window
     {
-        public BpWindow()
+        public InterludeWindow()
         {
             InitializeComponent();
-            //Background = new ImageBrush(new BitmapImage(new Uri($"{Environment.CurrentDirectory}\\Resources\\bpui\\bp.png")));
         }
     }
 }

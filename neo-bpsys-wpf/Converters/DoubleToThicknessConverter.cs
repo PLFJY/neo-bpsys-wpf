@@ -1,24 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
-namespace neo_bpsys_wpf.Converter
+namespace neo_bpsys_wpf.Converters
 {
     /// <summary>
-    /// 布尔值转换为可见性
-    /// <para>true 对应 Collapsed</para>
-    /// <para>false 对应 Visible</para>
+    /// 将Double的Spacing值转换为Margin的Right值
     /// </summary>
-    public class BooleanToReverseVisibilityConverter : IValueConverter
+    public class DoubleToThicknessConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return (bool)value ? Visibility.Collapsed : Visibility.Visible;
+            if (value is double spacing)
+            {
+                return new Thickness(0, 0, spacing, 0);
+            }
+            return new Thickness();
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

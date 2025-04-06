@@ -8,8 +8,15 @@ using System.Threading.Tasks;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
-    public class BanSurPageViewModel(ISharedDataService sharedDataService) : ObservableObject
+    public class BanSurPageViewModel : ObservableObject
     {
-        public List<string> SurNameList { get; } = sharedDataService.SurNameList;
+        private readonly ISharedDataService _sharedDataService;
+        public List<string> SurNameList { get; }
+
+        public BanSurPageViewModel(ISharedDataService sharedDataService)
+        {
+            _sharedDataService = sharedDataService;
+            SurNameList = _sharedDataService.SurNameList;
+        }
     }
 }
