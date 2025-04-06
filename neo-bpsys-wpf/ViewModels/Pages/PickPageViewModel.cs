@@ -10,16 +10,20 @@ using System.Threading.Tasks;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
-    public partial class PickPageViewModel(ISharedDataService sharedDataService) : ObservableObject
+    public partial class PickPageViewModel : ObservableObject
     {
-        public List<string> SurNameList { get; } = sharedDataService.SurNameList;
+        private readonly ISharedDataService _sharedDataService;
 
-        public List<string> HunNameList { get; } = sharedDataService.HunNameList;
+        public List<string> SurNameList { get; }
 
-        [RelayCommand]
-        private void Test(string index)
+        public List<string> HunNameList { get; }
+
+        public PickPageViewModel(ISharedDataService sharedDataService)
         {
-            Debug.WriteLine(index);
+            _sharedDataService = sharedDataService;
+            SurNameList = _sharedDataService.SurNameList;
+            HunNameList = _sharedDataService.HunNameList;
         }
+
     }
 }

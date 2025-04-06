@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Windows.Data;
 
-namespace neo_bpsys_wpf.Converter
+namespace neo_bpsys_wpf.Converters
 {
     /// <summary>
     /// 使CharacterChanger的Index转换为Button的名称，

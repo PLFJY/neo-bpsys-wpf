@@ -2,6 +2,7 @@
     x:Class="neo_bpsys_wpf.Views.Pages.FrontManagePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -14,7 +15,6 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
-
     <WrapPanel Orientation="Horizontal">
         <Border Style="{StaticResource Card}">
             <Grid>
@@ -27,10 +27,14 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <ui:Button Height="50" Content="全部启动" />
+                    <ui:Button
+                        Height="50"
+                        Command="{Binding ShowAllWinowsCommand}"
+                        Content="全部启动" />
                     <ui:Button
                         Height="50"
                         Margin="10,0,0,0"
+                        Command="{Binding HideAllWinowsCommand}"
                         Content="全部关闭" />
                 </StackPanel>
             </Grid>
@@ -40,6 +44,8 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="BP画面" />
@@ -47,13 +53,26 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <ui:Button Content="启动" />
-                    <ui:Button Margin="10,0,0,0" Content="关闭" />
+                    <ui:Button Command="{Binding ShowBpWindowCommand}" Content="启动" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding HideBpWindowCommand}"
+                        Content="关闭" />
                 </StackPanel>
                 <StackPanel Grid.Row="2" Margin="0,10,0,0">
                     <TextBlock Text="窗口大小" />
                     <ComboBox Width="200" Margin="0,10,0,0" />
                 </StackPanel>
+                <ToggleButton
+                    x:Name="IsEditMode"
+                    Grid.Row="3"
+                    Margin="0,10,0,0"
+                    IsChecked="{Binding IsEditMode}">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Edit24" />
+                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                    </StackPanel>
+                </ToggleButton>
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">
@@ -68,8 +87,11 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <ui:Button Content="启动" />
-                    <ui:Button Margin="10,0,0,0" Content="关闭" />
+                    <ui:Button Command="{Binding ShowInterludeWindowCommand}" Content="启动" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding HideInterludeWindowCommand}"
+                        Content="关闭" />
                 </StackPanel>
                 <StackPanel Grid.Row="2" Margin="0,10,0,0">
                     <TextBlock Text="窗口大小" />
@@ -83,50 +105,16 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="地图BP组件" />
+                <TextBlock Grid.Row="0" Text="比分组件" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <ui:Button Content="启动" />
-                    <ui:Button Margin="10,0,0,0" Content="关闭" />
-                </StackPanel>
-            </Grid>
-        </Border>
-        <Border Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="游戏内比分组件" />
-                <StackPanel
-                    Grid.Row="1"
-                    Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <ui:Button Content="启动" />
-                    <ui:Button Margin="10,0,0,0" Content="关闭" />
-                </StackPanel>
-            </Grid>
-        </Border>
-        <Border Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="分数统计组件" />
-                <StackPanel
-                    Grid.Row="1"
-                    Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <ui:Button Content="启动" />
-                    <ui:Button Margin="10,0,0,0" Content="关闭" />
-                </StackPanel>
-                <StackPanel Grid.Row="2" Margin="0,10,0,0">
-                    <TextBlock Text="窗口大小" />
-                    <ComboBox Width="200" Margin="0,10,0,0" />
+                    <ui:Button Command="{Binding ShowScoreWindowCommand}" Content="启动" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding HideScoreWindowCommand}"
+                        Content="关闭" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -142,8 +130,11 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <ui:Button Content="启动" />
-                    <ui:Button Margin="10,0,0,0" Content="关闭" />
+                    <ui:Button Command="{Binding ShowGameDataWindowCommand}" Content="启动" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding HideGameDataWindowCommand}"
+                        Content="关闭" />
                 </StackPanel>
                 <StackPanel Grid.Row="2" Margin="0,10,0,0">
                     <TextBlock Text="窗口大小" />
@@ -157,13 +148,16 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="场间对局信息展示组件" />
+                <TextBlock Grid.Row="0" Text="其它小组件" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <ui:Button Content="启动" />
-                    <ui:Button Margin="10,0,0,0" Content="关闭" />
+                    <ui:Button Command="{Binding ShowWidgetsWindowCommand}" Content="启动" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding HideWidgetsWindowCommand}"
+                        Content="关闭" />
                 </StackPanel>
             </Grid>
         </Border>
