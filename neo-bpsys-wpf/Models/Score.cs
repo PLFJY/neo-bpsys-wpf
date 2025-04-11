@@ -8,5 +8,5 @@ public class Score
 
     public int Tie { get; set; } = 0;
 
-    public int Small { get; set; } = 0;
+    public int MinorPoints { get; set; } = 0;
 }

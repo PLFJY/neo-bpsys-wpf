@@ -14,8 +14,8 @@ if not exist %BUILD_PATH% (
 dotnet publish %PROJ_PATH% -c Release -o %BUILD_PATH%
 
 REM 安装包打包
-set ISCC_PATH="E:\Program Files (x86)\Inno Setup 6\ISCC.exe"
-set INSTALLER_PATH="E:\_PersonalStuff\ASG\bpsys\neo-bpsys-wpf\InstallerGenerate\build_Installer.iss"
+set ISCC_PATH="D:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+set INSTALLER_PATH="InstallerGenerate\build_Installer.iss"
 set INSTALLER_BUILD_PATH="InstallerGenerate\bin"
 
 %ISCC_PATH% %INSTALLER_PATH%
