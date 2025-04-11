@@ -2,7 +2,7 @@
     x:Class="neo_bpsys_wpf.Views.Windows.BpWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:cb="clr-namespace:neo_bpsys_wpf.Behaviors"
+    xmlns:cb="clr-namespace:neo_bpsys_wpf.CustomBehaviors"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
@@ -12,15 +12,42 @@
     Width="1440"
     Height="810"
     d:DataContext="{d:DesignInstance Type=vm:BpWindowViewModel}"
+    ResizeMode="NoResize"
+    WindowStartupLocation="CenterScreen"
+    WindowStyle="None"
     mc:Ignorable="d">
-    <Window.Background>
+    <!--<Window.Background>
         <ImageBrush ImageSource="/Views/Windows/bp.png" />
-    </Window.Background>
+    </Window.Background>-->
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+    </Window.Resources>
     <Canvas x:Name="BaseCanvas">
         <TextBlock
-            Name="DragTest"
-            cb:DragBehavior.IsDraggable="True"
-            FontSize="100"
-            Text="拖拽测试" />
+            Name="MinorPointsSur"
+            Canvas.Left="548.2"
+            Canvas.Top="30"
+            Width="52"
+            Height="62"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            FontSize="50"
+            Text="0"
+            TextAlignment="Center" />
+        <TextBlock
+            Name="MinorPointsHun"
+            Canvas.Left="845"
+            Canvas.Top="30"
+            Width="52"
+            Height="62"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            FontSize="50"
+            Text="0"
+            TextAlignment="Center" />
     </Canvas>
 </Window>
