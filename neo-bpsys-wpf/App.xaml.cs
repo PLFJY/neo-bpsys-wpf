@@ -57,50 +57,30 @@ namespace neo_bpsys_wpf
                     //Window
                     services.AddSingleton<BpWindow>(sp => new BpWindow()
                     {
-                        DataContext = sp.GetRequiredService<BpWindowViewModel>(),
-                        WindowStyle = WindowStyle.None,
-                        WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                        SizeToContent = SizeToContent.Manual,
-                        ResizeMode = ResizeMode.NoResize
+                        DataContext = sp.GetRequiredService<BpWindowViewModel>()
                     });
                     services.AddSingleton<BpWindowViewModel>();
                     services.AddSingleton<InterludeWindow>(sp => new InterludeWindow()
                     {
-                        DataContext = sp.GetRequiredService<InterludeWindowViewModel>(),
-                        WindowStyle = WindowStyle.None,
-                        WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                        SizeToContent = SizeToContent.Manual,
-                        ResizeMode = ResizeMode.NoResize
+                        DataContext = sp.GetRequiredService<InterludeWindowViewModel>()
                     });
                     services.AddSingleton<InterludeWindowViewModel>();
                     services.AddSingleton<ScoreWindow>(sp => new ScoreWindow()
                     {
-                        DataContext = sp.GetRequiredService<ScoreWindowViewModel>(),
-                        WindowStyle = WindowStyle.None,
-                        WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                        SizeToContent = SizeToContent.Manual,
-                        ResizeMode = ResizeMode.NoResize
+                        DataContext = sp.GetRequiredService<ScoreWindowViewModel>()
                     });
                     services.AddSingleton<ScoreWindowViewModel>();
                     services.AddSingleton<GameDataWindow>(sp => new GameDataWindow()
                     {
-                        DataContext = sp.GetRequiredService<BpWindowViewModel>(),
-                        WindowStyle = WindowStyle.None,
-                        WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                        SizeToContent = SizeToContent.Manual,
-                        ResizeMode = ResizeMode.NoResize
+                        DataContext = sp.GetRequiredService<BpWindowViewModel>()
                     });
                     services.AddSingleton<GameDataWindowViewModel>();
                     services.AddSingleton<WidgetsWindow>(sp => new WidgetsWindow()
                     {
-                        DataContext = sp.GetRequiredService<WidgetsWindowViewModel>(),
-                        WindowStyle = WindowStyle.None,
-                        WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                        SizeToContent = SizeToContent.Manual,
-                        ResizeMode = ResizeMode.NoResize
+                        DataContext = sp.GetRequiredService<WidgetsWindowViewModel>()
                     });
                     services.AddSingleton<WidgetsWindowViewModel>();
-                    
+
 
                     //Page
                     services.AddSingleton<HomePage>();
@@ -128,13 +108,13 @@ namespace neo_bpsys_wpf
                         DataContext = sp.GetRequiredService<BanSurPageViewModel>()
                     });
                     services.AddSingleton<BanSurPageViewModel>();
-                    
+
                     services.AddSingleton<PickPage>(sp => new PickPage()
                     {
                         DataContext = sp.GetRequiredService<PickPageViewModel>()
                     });
                     services.AddSingleton<PickPageViewModel>();
-                    
+
                     services.AddSingleton<TalentPage>(sp => new TalentPage()
                     {
                         DataContext = sp.GetRequiredService<TalentPageViewModel>()

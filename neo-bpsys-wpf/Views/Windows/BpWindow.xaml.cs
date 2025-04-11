@@ -24,5 +24,6 @@ namespace neo_bpsys_wpf.Views.Windows
             InitializeComponent();
             //Background = new ImageBrush(new BitmapImage(new Uri($"{Environment.CurrentDirectory}\\Resources\\bpui\\bp.png")));
         }
+
     }
 }
