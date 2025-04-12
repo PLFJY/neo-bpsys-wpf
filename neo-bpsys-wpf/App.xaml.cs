@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Runtime.Serialization.DataContracts;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
@@ -57,12 +58,12 @@ namespace neo_bpsys_wpf
                     //Window
                     services.AddSingleton<BpWindow>(sp => new BpWindow()
                     {
-                        DataContext = sp.GetRequiredService<BpWindowViewModel>()
+                        DataContext = sp.GetRequiredService<BpWindowViewModel>(),
                     });
                     services.AddSingleton<BpWindowViewModel>();
                     services.AddSingleton<InterludeWindow>(sp => new InterludeWindow()
                     {
-                        DataContext = sp.GetRequiredService<InterludeWindowViewModel>()
+                        DataContext = sp.GetRequiredService<InterludeWindowViewModel>(),
                     });
                     services.AddSingleton<InterludeWindowViewModel>();
                     services.AddSingleton<ScoreWindow>(sp => new ScoreWindow()
@@ -154,11 +155,9 @@ namespace neo_bpsys_wpf
             get { return _host.Services; }
         }
 
-        /// <summary>
-        /// Occurs when the application is loading.
-        /// </summary>
-        private async void OnStartup(object sender, StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
+            base.OnStartup(e);
             await _host.StartAsync();
             ApplicationThemeManager.Changed += (currentApplicationTheme, systemAccent) =>
             {
@@ -173,12 +172,9 @@ namespace neo_bpsys_wpf
             };
         }
 
-
-        /// <summary>
-        /// Occurs when the application is closing.
-        /// </summary>
-        private async void OnExit(object sender, ExitEventArgs e)
+        protected override async void OnExit(ExitEventArgs e)
         {
+            base.OnExit(e);
             await _host.StopAsync();
 
             _host.Dispose();

@@ -5,9 +5,7 @@
     xmlns:local="clr-namespace:neo_bpsys_wpf"
     xmlns:localTheme="clr-namespace:neo_bpsys_wpf.Theme"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    DispatcherUnhandledException="OnDispatcherUnhandledException"
-    Exit="OnExit"
-    Startup="OnStartup">
+    DispatcherUnhandledException="OnDispatcherUnhandledException">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -20,6 +18,12 @@
                 <ResourceDictionary Source="/Styles/Card.xaml" />
                 <ResourceDictionary Source="/Styles/TitleBarButtonStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <!--  Fonts  -->
+            <FontFamily x:Key="Hanyi">/neo-bpsys-wpf;Component/Assets/Fonts/#汉仪第五人格体简</FontFamily>
+            <FontFamily x:Key="POP1W5">/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5</FontFamily>
+            <FontFamily x:Key="EssayText">/neo-bpsys-wpf;Component/Assets/Fonts/#Essay Text</FontFamily>
+            <FontFamily x:Key="Selawik">/neo-bpsys-wpf;Component/Assets/Fonts/#Selawik</FontFamily>
+            <FontFamily x:Key="SourceHan">/neo-bpsys-wpf;Component/Assets/Fonts/#Source Han Sans HW SC VF</FontFamily>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

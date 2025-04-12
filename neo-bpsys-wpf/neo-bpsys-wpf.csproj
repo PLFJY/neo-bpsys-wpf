@@ -16,12 +16,9 @@
 	  <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
 	</PropertyGroup>
 	<ItemGroup>
+		<Resource Include="Assets\bp.png" />
 		<Resource Include="Assets\Fonts\Essay-Text-W01-Italic.ttf" />
 		<Resource Include="Assets\Fonts\selawk.ttf" />
-		<Resource Include="Assets\Fonts\selawkb.ttf" />
-		<Resource Include="Assets\Fonts\selawkl.ttf" />
-		<Resource Include="Assets\Fonts\selawksb.ttf" />
-		<Resource Include="Assets\Fonts\selawksl.ttf" />
 		<Resource Include="Assets\Fonts\SourceHanSansHWSC-VF.ttf" />
 		<Resource Include="Assets\Fonts\华康POP1体W5-简体.ttf" />
 		<Resource Include="Assets\Fonts\汉仪第五人格体.ttf" />
@@ -78,7 +75,13 @@
 		<Resource Include="Assets\map_singleColor\湖景村.png" />
 		<Resource Include="Assets\map_singleColor\红教堂.png" />
 		<Resource Include="Assets\map_singleColor\里奥的回忆.png" />
-		<Resource Include="Views\Windows\bp.png" />
+		<Resource Include="Assets\testLogo.jpg" />
+		<Resource Include="Assets\先知.png" />
+		<Resource Include="Assets\医生.png" />
+		<Resource Include="Assets\厂长.png" />
+		<Resource Include="Assets\小丑.png" />
+		<Resource Include="Assets\幸运儿.png" />
+		<Resource Include="Assets\梦之女巫.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -118,6 +121,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Remove="Assets\bp.png" />
 		<None Remove="Assets\Icons\black\Abnormal.png" />
 		<None Remove="Assets\Icons\black\Blink.png" />
 		<None Remove="Assets\Icons\black\BorrowedTime.png" />
@@ -150,6 +154,13 @@
 		<None Remove="Assets\Icons\white\TideTurner.png" />
 		<None Remove="Assets\Icons\white\TrumpCard.png" />
 		<None Remove="Assets\Icons\white\Warp.png" />
+		<None Remove="Assets\testLogo.JPG" />
+		<None Remove="Assets\先知.png" />
+		<None Remove="Assets\医生.png" />
+		<None Remove="Assets\厂长.png" />
+		<None Remove="Assets\小丑.png" />
+		<None Remove="Assets\幸运儿.png" />
+		<None Remove="Assets\梦之女巫.png" />
 		<None Remove="Views\Windows\bp.png" />
 	</ItemGroup>
 
