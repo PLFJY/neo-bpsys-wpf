@@ -9,7 +9,7 @@ using Wpf.Ui.Appearance;
 
 namespace neo_bpsys_wpf.Converters
 {
-    public class BooleanToApplicationThemeConverter : IValueConverter
+    public class ApplicationThemeToBooleanConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
