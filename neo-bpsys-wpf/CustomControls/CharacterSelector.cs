@@ -150,7 +150,8 @@ namespace neo_bpsys_wpf.CustomControls
                     return i;
                 }
             }
-            //if not foound
+
+            //Not found
             Text = string.Empty;
             return -1;
         }

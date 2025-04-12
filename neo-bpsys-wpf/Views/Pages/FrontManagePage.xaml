@@ -15,6 +15,11 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
+    <Page.Resources>
+        <ResourceDictionary>
+            <cv:WindowResolutionToStringConverter x:Key="WindowResolutionToStringConverter" />
+        </ResourceDictionary>
+    </Page.Resources>
     <WrapPanel Orientation="Horizontal">
         <Border Style="{StaticResource Card}">
             <Grid>
@@ -61,7 +66,11 @@
                 </StackPanel>
                 <StackPanel Grid.Row="2" Margin="0,10,0,0">
                     <TextBlock Text="窗口大小" />
-                    <ComboBox Width="200" Margin="0,10,0,0" />
+                    <ComboBox
+                        Width="200"
+                        Margin="0,10,0,0"
+                        ItemsSource="{Binding WindowResolutionsList, Converter={StaticResource WindowResolutionToStringConverter}}"
+                        SelectedIndex="0" />
                 </StackPanel>
                 <ToggleButton
                     x:Name="IsEditMode"
@@ -95,7 +104,11 @@
                 </StackPanel>
                 <StackPanel Grid.Row="2" Margin="0,10,0,0">
                     <TextBlock Text="窗口大小" />
-                    <ComboBox Width="200" Margin="0,10,0,0" />
+                    <ComboBox
+                        Width="200"
+                        Margin="0,10,0,0"
+                        ItemsSource="{Binding WindowResolutionsList, Converter={StaticResource WindowResolutionToStringConverter}}"
+                        SelectedIndex="0" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -138,7 +151,11 @@
                 </StackPanel>
                 <StackPanel Grid.Row="2" Margin="0,10,0,0">
                     <TextBlock Text="窗口大小" />
-                    <ComboBox Width="200" Margin="0,10,0,0" />
+                    <ComboBox
+                        Width="200"
+                        Margin="0,10,0,0"
+                        ItemsSource="{Binding WindowResolutionsList, Converter={StaticResource WindowResolutionToStringConverter}}"
+                        SelectedIndex="0" />
                 </StackPanel>
             </Grid>
         </Border>

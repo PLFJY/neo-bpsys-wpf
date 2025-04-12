@@ -41,7 +41,24 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
-            <cv:BooleanToApplicationThemeConverter x:Key="BooleanToApplicationThemeConverter" />
+            <cv:ApplicationThemeToBooleanConverter x:Key="ApplicationThemeToBooleanConverter" />
+            <!--  Them Change Animation  -->
+            <Storyboard x:Key="LightToDark">
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="rectangle" Storyboard.TargetProperty="(UIElement.Opacity)">
+                    <EasingDoubleKeyFrame KeyTime="00:00:00" Value="1" />
+                    <EasingDoubleKeyFrame KeyTime="00:00:00.6000000" Value="0" />
+                </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+            <Storyboard x:Key="DarkToLight">
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="rectangle" Storyboard.TargetProperty="(UIElement.Opacity)">
+                    <EasingDoubleKeyFrame KeyTime="00:00:00" Value="1" />
+                    <EasingDoubleKeyFrame KeyTime="00:00:00.6000000" Value="0" />
+                </DoubleAnimationUsingKeyFrames>
+                <ColorAnimationUsingKeyFrames Storyboard.TargetName="rectangle" Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)">
+                    <EasingColorKeyFrame KeyTime="00:00:00" Value="#202020" />
+                    <EasingColorKeyFrame KeyTime="00:00:00.6000000" Value="White" />
+                </ColorAnimationUsingKeyFrames>
+            </Storyboard>
         </ResourceDictionary>
     </ui:FluentWindow.Resources>
     <Grid>
@@ -73,7 +90,13 @@
                         Height="25"
                         Margin="5,0,0,0"
                         Focusable="False"
-                        Source="/Assets/icon.png" />
+                        Source="/Assets/icon.png">
+                        <i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseDown">
+                                <i:InvokeCommandAction Command="{Binding ShowSystemMenuCommand}" />
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>
+                    </ui:Image>
                     <ui:TextBlock
                         Margin="15,0,0,0"
                         VerticalAlignment="Center"
@@ -82,11 +105,21 @@
                 <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                     <ToggleButton
                         x:Name="ThemeSwitch"
+                        Margin="0,0,10,0"
                         styles:ToggleButtonAttach.IsAutoFold="True"
                         Command="{Binding ThemeSwitchCommand}"
                         Focusable="False"
-                        IsChecked="{Binding ApplicationTheme, Converter={StaticResource BooleanToApplicationThemeConverter}, Mode=TwoWay}"
-                        Style="{StaticResource ToggleButtonGorgeousThemeSwitchStyle}" />
+                        IsChecked="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}"
+                        Style="{StaticResource ToggleButtonGorgeousThemeSwitchStyle}">
+                        <i:Interaction.Triggers>
+                            <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="True">
+                                <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource LightToDark}" />
+                            </i:DataTrigger>
+                            <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="False">
+                                <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource DarkToLight}" />
+                            </i:DataTrigger>
+                        </i:Interaction.Triggers>
+                    </ToggleButton>
                     <ToggleButton
                         Height="35"
                         Focusable="False"
@@ -142,7 +175,7 @@
                         </StackPanel>
                     </Grid>
                 </Border>
-                <!--  timmer  -->
+                <!--  timer  -->
                 <Border Style="{StaticResource Card}">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -159,7 +192,8 @@
                                 Width="100"
                                 IsEditable="True"
                                 ItemsSource="{Binding RecommendTimmerList}"
-                                MaxDropDownHeight="150" />
+                                MaxDropDownHeight="150"
+                                SelectedIndex="0" />
                             <ui:Button
                                 Margin="10,0,0,0"
                                 Content="开始"
@@ -194,7 +228,8 @@
                     Margin="0,0,10,10"
                     VerticalAlignment="Center"
                     ItemsSource="{Binding GameList}"
-                    MaxDropDownHeight="190" />
+                    MaxDropDownHeight="190"
+                    SelectedIndex="0" />
             </WrapPanel>
 
             <!--  navigation  -->
@@ -208,153 +243,15 @@
                 OpenPaneLength="130" />
         </Grid>
         <!--  主题切换相关的东西  -->
-        <Ellipse
-            Width="1"
-            Height="1"
-            Margin="0,20,150,0"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
+        <Rectangle
+            x:Name="rectangle"
+            Width="7948"
+            Height="5124"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
             Panel.ZIndex="-1"
-            Fill="#FFFFFF"
-            RenderTransformOrigin="0.5,0.5"
-            Visibility="Collapsed">
-            <Ellipse.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform x:Name="BackEllipseScale" />
-                </TransformGroup>
-            </Ellipse.RenderTransform>
-            <i:Interaction.Triggers>
-                <i:EventTrigger EventName="Loaded">
-                    <i:ChangePropertyAction PropertyName="Visibility" Value="Visible" />
-                </i:EventTrigger>
-            </i:Interaction.Triggers>
-            <Ellipse.Style>
-                <Style TargetType="Ellipse">
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding ElementName=ThemeSwitch, Path=IsChecked}" Value="True">
-                            <Setter Property="Visibility" Value="Visible" />
-                            <DataTrigger.EnterActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation
-                                            Storyboard.TargetProperty="RenderTransform.Children[0].ScaleX"
-                                            To="0"
-                                            Duration="0:0:1">
-                                            <DoubleAnimation.EasingFunction>
-                                                <CubicEase EasingMode="EaseOut" />
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                        <DoubleAnimation
-                                            Storyboard.TargetProperty="RenderTransform.Children[0].ScaleY"
-                                            To="0"
-                                            Duration="0:0:1">
-                                            <DoubleAnimation.EasingFunction>
-                                                <CubicEase EasingMode="EaseOut" />
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </DataTrigger.EnterActions>
-                            <DataTrigger.ExitActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation
-                                            Storyboard.TargetProperty="RenderTransform.Children[0].ScaleX"
-                                            To="10000"
-                                            Duration="0:0:1">
-                                            <DoubleAnimation.EasingFunction>
-                                                <CubicEase EasingMode="EaseOut" />
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                        <DoubleAnimation
-                                            Storyboard.TargetProperty="RenderTransform.Children[0].ScaleY"
-                                            To="10000"
-                                            Duration="0:0:1">
-                                            <DoubleAnimation.EasingFunction>
-                                                <CubicEase EasingMode="EaseOut" />
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </DataTrigger.ExitActions>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Ellipse.Style>
-        </Ellipse>
-        <Ellipse
-            Width="1"
-            Height="1"
-            Margin="0,20,150,0"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
-            Panel.ZIndex="-1"
-            Fill="#202020"
-            RenderTransformOrigin="0.5,0.5"
-            Visibility="Collapsed">
-            <Ellipse.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform x:Name="ForwardEllipseScale" />
-                </TransformGroup>
-            </Ellipse.RenderTransform>
-            <i:Interaction.Triggers>
-                <i:EventTrigger EventName="Loaded">
-                    <i:ChangePropertyAction PropertyName="Visibility" Value="Visible" />
-                </i:EventTrigger>
-            </i:Interaction.Triggers>
-            <Ellipse.Style>
-                <Style TargetType="Ellipse">
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding ElementName=ThemeSwitch, Path=IsChecked}" Value="False">
-                            <Setter Property="Visibility" Value="Visible" />
-                            <DataTrigger.EnterActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation
-                                            Storyboard.TargetProperty="RenderTransform.Children[0].ScaleX"
-                                            To="0"
-                                            Duration="0:0:0.6">
-                                            <DoubleAnimation.EasingFunction>
-                                                <CubicEase EasingMode="EaseOut" />
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                        <DoubleAnimation
-                                            Storyboard.TargetProperty="RenderTransform.Children[0].ScaleY"
-                                            To="0"
-                                            Duration="0:0:0.6">
-                                            <DoubleAnimation.EasingFunction>
-                                                <CubicEase EasingMode="EaseOut" />
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </DataTrigger.EnterActions>
-                            <DataTrigger.ExitActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation
-                                            Storyboard.TargetProperty="RenderTransform.Children[0].ScaleX"
-                                            To="10000"
-                                            Duration="0:0:0.6">
-                                            <DoubleAnimation.EasingFunction>
-                                                <CubicEase EasingMode="EaseOut" />
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                        <DoubleAnimation
-                                            Storyboard.TargetProperty="RenderTransform.Children[0].ScaleY"
-                                            To="10000"
-                                            Duration="0:0:0.6">
-                                            <DoubleAnimation.EasingFunction>
-                                                <CubicEase EasingMode="EaseOut" />
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </DataTrigger.ExitActions>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Ellipse.Style>
-        </Ellipse>
+            Fill="White"
+            Opacity="0" />
+
     </Grid>
 </ui:FluentWindow>
