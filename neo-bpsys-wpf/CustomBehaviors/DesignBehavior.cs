@@ -32,8 +32,6 @@ namespace neo_bpsys_wpf.CustomBehaviors
 
                     // 显示控件名称
                     ShowControlName(element);
-                    // 添加边框
-                    AddBorder(element);
                 }
                 else
                 {
@@ -43,8 +41,6 @@ namespace neo_bpsys_wpf.CustomBehaviors
 
                     // 隐藏控件名称
                     HideControlName(element);
-                    // 移除边框
-                    RemoveBorder(element);
                 }
             }
         }
@@ -61,6 +57,8 @@ namespace neo_bpsys_wpf.CustomBehaviors
                         Text = fe.Name,
                         Foreground = Brushes.Black,
                         Background = Brushes.LightGray,
+                        Opacity = 0.5,
+                        IsHitTestVisible = false,
                         Padding = new Thickness(2)
                     };
                     Canvas.SetLeft(textBlock, Canvas.GetLeft(fe));
@@ -82,24 +80,6 @@ namespace neo_bpsys_wpf.CustomBehaviors
                     canvas.Children.Remove(textBlock);
                     element.ClearValue(TagProperty);
                 }
-            }
-        }
-
-        private static void AddBorder(UIElement element)
-        {
-            if (element is Control control)
-            {
-                control.BorderBrush = Brushes.Red;
-                control.BorderThickness = new Thickness(1);
-            }
-        }
-
-        private static void RemoveBorder(UIElement element)
-        {
-            if (element is Control control)
-            {
-                control.BorderBrush = null;
-                control.BorderThickness = new Thickness(0);
             }
         }
 
@@ -158,7 +138,6 @@ namespace neo_bpsys_wpf.CustomBehaviors
 
                 // 移动控件名称
                 MoveControlName(element);
-
                 _startPoint = currentPoint;
             }
         }

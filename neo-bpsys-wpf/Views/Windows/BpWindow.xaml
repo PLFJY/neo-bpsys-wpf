@@ -7,47 +7,385 @@
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="BpWindow"
     Width="1440"
     Height="810"
     d:DataContext="{d:DesignInstance Type=vm:BpWindowViewModel}"
     ResizeMode="NoResize"
+    SizeToContent="WidthAndHeight"
     WindowStartupLocation="CenterScreen"
     WindowStyle="None"
     mc:Ignorable="d">
-    <!--<Window.Background>
-        <ImageBrush ImageSource="/Views/Windows/bp.png" />
-    </Window.Background>-->
-    <Window.Resources>
-        <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="White" />
-        </Style>
-    </Window.Resources>
-    <Canvas x:Name="BaseCanvas">
+    <Canvas
+        x:Name="BaseCanvas"
+        Width="1440"
+        Height="810">
+        <Canvas.Background>
+            <ImageBrush ImageSource="/Assets/bp.png" />
+        </Canvas.Background>
+        <Canvas.Resources>
+            <Style BasedOn="{StaticResource {x:Type TextBlock}}" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="White" />
+            </Style>
+            <Style x:Key="CurrentBan" TargetType="Image">
+                <Setter Property="Width" Value="43" />
+                <Setter Property="Height" Value="43" />
+            </Style>
+            <Style x:Key="GlobalBan" TargetType="Image">
+                <Setter Property="Width" Value="30" />
+                <Setter Property="Height" Value="30" />
+
+            </Style>
+            <Style TargetType="Image">
+                <Setter Property="Stretch" Value="UniformToFill" />
+            </Style>
+        </Canvas.Resources>
+        <!--  Top bar  -->
+        <ui:Image
+            Name="SurTeamLogo"
+            Canvas.Left="42"
+            Canvas.Top="10"
+            Width="85"
+            Height="85"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            CornerRadius="8"
+            Source="/Assets/TestLogo.JPG"
+            Stretch="Fill" />
+        <TextBlock
+            Name="SurTeamMajorPoint"
+            Canvas.Left="176"
+            Canvas.Top="33"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            FontFamily="{StaticResource Selawik}"
+            FontSize="28"
+            Text="W0 D0"
+            TextAlignment="Center" />
+        <TextBlock
+            Name="SurTeamName"
+            Canvas.Left="297"
+            Canvas.Top="32"
+            Width="207"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            FontFamily="{StaticResource SourceHan}"
+            FontSize="28"
+            Text="求生者队伍名称"
+            TextAlignment="Center"
+            TextWrapping="WrapWithOverflow" />
         <TextBlock
             Name="MinorPointsSur"
-            Canvas.Left="548.2"
-            Canvas.Top="30"
+            Canvas.Left="541"
+            Canvas.Top="29"
             Width="52"
             Height="62"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            FontFamily="{StaticResource POP1W5}"
             FontSize="50"
+            FontWeight="Bold"
             Text="0"
             TextAlignment="Center" />
         <TextBlock
             Name="MinorPointsHun"
-            Canvas.Left="845"
-            Canvas.Top="30"
+            Canvas.Left="852"
+            Canvas.Top="29"
             Width="52"
             Height="62"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Center"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            FontFamily="{StaticResource POP1W5}"
             FontSize="50"
+            FontWeight="Bold"
             Text="0"
             TextAlignment="Center" />
+        <TextBlock
+            Name="HunTeamName"
+            Canvas.Left="936"
+            Canvas.Top="32"
+            Width="207"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            FontFamily="{StaticResource SourceHan}"
+            FontSize="28"
+            Text="监管者队伍名称"
+            TextAlignment="Center"
+            TextWrapping="WrapWithOverflow" />
+        <TextBlock
+            x:Name="HunTeamMajorPoint"
+            Canvas.Left="1172"
+            Canvas.Top="34"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            FontFamily="{StaticResource Selawik}"
+            FontSize="28"
+            Text="W0 D0"
+            TextAlignment="Center" />
+        <ui:Image
+            x:Name="HunTeamLogo"
+            Canvas.Left="1301"
+            Canvas.Top="10"
+            Width="85"
+            Height="85"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            CornerRadius="8"
+            Source="/Assets/TestLogo.JPG"
+            Stretch="Fill" />
+        <TextBlock
+            x:Name="Timer"
+            Canvas.Left="690"
+            Canvas.Top="24"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            FontFamily="{StaticResource POP1W5}"
+            FontSize="58"
+            FontWeight="Bold"
+            Text="VS"
+            TextAlignment="Center" />
+
+        <!--  Current Ban  -->
+        <!--  Hun Current Ban  -->
+        <Image
+            Name="HunBanCurrent0"
+            Canvas.Left="13"
+            Canvas.Top="566"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/厂长.png"
+            Style="{StaticResource CurrentBan}" />
+        <Image
+            x:Name="HunBanCurrent1"
+            Canvas.Left="63"
+            Canvas.Top="566"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/厂长.png"
+            Style="{StaticResource CurrentBan}" />
+        <!--  Sur Current Ban  -->
+        <Image
+            x:Name="SurBanCurrent3"
+            Canvas.Left="1231"
+            Canvas.Top="566"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/幸运儿.png"
+            Style="{StaticResource CurrentBan}" />
+        <Image
+            x:Name="SurBanCurrent2"
+            Canvas.Left="1281"
+            Canvas.Top="566"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/幸运儿.png"
+            Style="{StaticResource CurrentBan}" />
+        <Image
+            x:Name="SurBanCurrent1"
+            Canvas.Left="1329"
+            Canvas.Top="566"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/幸运儿.png"
+            Style="{StaticResource CurrentBan}" />
+        <Image
+            x:Name="SurBanCurrent0"
+            Canvas.Left="1379"
+            Canvas.Top="566"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/幸运儿.png"
+            Style="{StaticResource CurrentBan}" />
+        <!--  Bottom  -->
+        <!--  Sur Pick  -->
+        <Image
+            Name="SurPick0"
+            Canvas.Top="619"
+            Width="140"
+            Height="159"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/医生.png" />
+        <Image
+            x:Name="SurPick1"
+            Canvas.Left="141"
+            Canvas.Top="619"
+            Width="142"
+            Height="159"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/医生.png" />
+        <Image
+            x:Name="SurPick2"
+            Canvas.Left="284"
+            Canvas.Top="619"
+            Width="140"
+            Height="159"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/医生.png" />
+        <Image
+            x:Name="SurPick3"
+            Canvas.Left="424"
+            Canvas.Top="619"
+            Width="142"
+            Height="159"
+            HorizontalAlignment="Center"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/医生.png" />
+        <!--  Middle  -->
+        <Image
+            x:Name="Map"
+            Canvas.Left="567"
+            Canvas.Top="658"
+            Width="306"
+            Height="81"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/map/唐人街.png" />
+        <!--  Global Ban  -->
+        <!--  Hun  -->
+        <Image
+            x:Name="HunGlobalBan0"
+            Canvas.Left="672"
+            Canvas.Top="746"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/厂长.png"
+            Style="{StaticResource GlobalBan}" />
+        <Image
+            x:Name="HunGlobalBan1"
+            Canvas.Left="705"
+            Canvas.Top="746"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/厂长.png"
+            Style="{StaticResource GlobalBan}" />
+        <Image
+            x:Name="HunGlobalBan2"
+            Canvas.Left="738"
+            Canvas.Top="746"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/厂长.png"
+            Style="{StaticResource GlobalBan}" />
+        <!--  Sur  -->
+        <Image
+            x:Name="SurGlobalBan0"
+            Canvas.Left="571"
+            Canvas.Top="778.5"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/幸运儿.png"
+            Style="{StaticResource GlobalBan}" />
+        <Image
+            x:Name="SurGlobalBan1"
+            Canvas.Left="605"
+            Canvas.Top="778.5"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/幸运儿.png"
+            Style="{StaticResource GlobalBan}" />
+        <Image
+            x:Name="SurGlobalBan2"
+            Canvas.Left="638"
+            Canvas.Top="778.5"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/幸运儿.png"
+            Style="{StaticResource GlobalBan}" />
+        <Image
+            x:Name="SurGlobalBan3"
+            Canvas.Left="671"
+            Canvas.Top="778.5"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/幸运儿.png"
+            Style="{StaticResource GlobalBan}" />
+        <Image
+            x:Name="SurGlobalBan4"
+            Canvas.Left="705"
+            Canvas.Top="778.5"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/幸运儿.png"
+            Style="{StaticResource GlobalBan}" />
+        <Image
+            x:Name="SurGlobalBan5"
+            Canvas.Left="739"
+            Canvas.Top="778.5"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/幸运儿.png"
+            Style="{StaticResource GlobalBan}" />
+        <Image
+            x:Name="SurGlobalBan6"
+            Canvas.Left="772"
+            Canvas.Top="778.5"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/幸运儿.png"
+            Style="{StaticResource GlobalBan}" />
+        <Image
+            x:Name="SurGlobalBan7"
+            Canvas.Left="806"
+            Canvas.Top="778.5"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/幸运儿.png"
+            Style="{StaticResource GlobalBan}" />
+        <Image
+            x:Name="SurGlobalBan8"
+            Canvas.Left="840"
+            Canvas.Top="778.5"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/幸运儿.png"
+            Style="{StaticResource GlobalBan}" />
+        <!--  Hun Pick  -->
+        <Image
+            Name="HunPick"
+            Canvas.Left="875"
+            Canvas.Top="617"
+            Width="565"
+            Height="161"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Source="/Assets/小丑.png" />
+        <!--  Player Id  -->
+        <!--  Sur  -->
+        <Label
+            Name="SurId0"
+            Canvas.Left="2"
+            Canvas.Top="778"
+            Width="136"
+            Height="31"
+            HorizontalContentAlignment="Left"
+            VerticalContentAlignment="Center"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Content="求生者选手Id"
+            FontFamily="{StaticResource SourceHan}"
+            FontSize="16" />
+        <Label
+            x:Name="SurId1"
+            Canvas.Left="144"
+            Canvas.Top="778"
+            Width="136"
+            Height="31"
+            HorizontalContentAlignment="Left"
+            VerticalContentAlignment="Center"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Content="求生者选手Id"
+            FontFamily="{StaticResource SourceHan}"
+            FontSize="16" />
+        <Label
+            x:Name="SurId2"
+            Canvas.Left="286"
+            Canvas.Top="778"
+            Width="136"
+            Height="31"
+            HorizontalContentAlignment="Left"
+            VerticalContentAlignment="Center"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Content="求生者选手Id"
+            FontFamily="{StaticResource SourceHan}"
+            FontSize="16" />
+        <Label
+            x:Name="SurId3"
+            Canvas.Left="428"
+            Canvas.Top="778"
+            Width="136"
+            Height="31"
+            HorizontalContentAlignment="Left"
+            VerticalContentAlignment="Center"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Content="求生者选手Id"
+            FontFamily="{StaticResource SourceHan}"
+            FontSize="16" />
+        <!--  Hun  -->
+        <Label
+            x:Name="HunId"
+            Canvas.Left="875"
+            Canvas.Top="778"
+            Width="565"
+            Height="31"
+            HorizontalContentAlignment="Center"
+            VerticalContentAlignment="Center"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Content="监管者选手Id"
+            FontFamily="{StaticResource SourceHan}"
+            FontSize="20" />
     </Canvas>
 </Window>
