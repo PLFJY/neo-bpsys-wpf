@@ -12,16 +12,18 @@ namespace neo_bpsys_wpf.Services
         {
             CurrentSurTeam = MainTeam;
             CurrentHunTeam = AwayTeam;
+            var characterListFileDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources\\CharacterList.json");
 
             // 加载角色数据
-            if (!File.Exists("Resources\\data\\CharacterList.json")) return;
+            if (!File.Exists(characterListFileDirectory)) return;
 
-            var character = File.ReadAllText("Resources\\data\\CharacterList.json");
+            var character = File.ReadAllText(characterListFileDirectory);
             var options = new JsonSerializerOptions
             {
                 Converters = { new JsonStringEnumConverter() }
             };
             var characters = JsonSerializer.Deserialize<Dictionary<string, Character>>(character, options);
+            if (characters == null) return;
             foreach (var i in characters)
             {
                 CharacterList.Add(i.Value);

@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
 using System;
 using System.Collections.Generic;
@@ -89,14 +90,20 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             _frontService.WidgetsWindowHide();
         }
 
+        //前台窗口大小修改
+
+        public List<WindowResolution> WindowResolutionsList { get; } =
+        [
+            new (1440, 810),
+            new (1920, 1080),
+            new (960, 540)
+        ];
+
         //前台设计器模式
 
-        public static event EventHandler<DesignModeChangedEventArgs> DesignModeChanged;
+        public static event EventHandler<DesignModeChangedEventArgs>? DesignModeChanged;
 
-        public void ToggleDesignMode(bool isDesignMode)
-        {
-            DesignModeChanged?.Invoke(this, new DesignModeChangedEventArgs { IsDesignMode = isDesignMode });
-        }
+        public void ToggleDesignMode(bool isDesignMode) => DesignModeChanged?.Invoke(this, new DesignModeChangedEventArgs { IsDesignMode = isDesignMode });
 
         private bool _isEditMode = false;
 
@@ -109,9 +116,5 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 ToggleDesignMode(value);
             }
         }
-    }
-    public class DesignModeChangedEventArgs : EventArgs
-    {
-        public bool IsDesignMode { get; set; }
     }
 }
