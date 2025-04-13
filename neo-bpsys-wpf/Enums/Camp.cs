@@ -1,6 +1,6 @@
 namespace neo_bpsys_wpf.Enums;
 
-public enum Types
+public enum Camp
 {
     Sur,
     Hun

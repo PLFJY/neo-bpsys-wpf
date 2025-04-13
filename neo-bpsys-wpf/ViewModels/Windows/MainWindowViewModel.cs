@@ -24,7 +24,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [ObservableProperty] private bool _isTopmost = false;
 
         [RelayCommand] 
-        private void ShowSystemMenu()
+        private static void ShowSystemMenu()
         {
             var currentWindow = App.Current.MainWindow;
             SystemCommands.ShowSystemMenu(currentWindow, currentWindow.PointToScreen(Mouse.GetPosition(currentWindow)));
@@ -38,23 +38,14 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         }
 
         [RelayCommand]
-        private static void Maximize()
-        {
-            App.Current.MainWindow.WindowState = App.Current.MainWindow.WindowState ==
+        private static void Maximize() => App.Current.MainWindow.WindowState = App.Current.MainWindow.WindowState ==
                 WindowState.Normal ? WindowState.Maximized : WindowState.Normal;
-        }
 
         [RelayCommand]
-        private static void Minimize()
-        {
-            App.Current.MainWindow.WindowState = WindowState.Minimized;
-        }
+        private static void Minimize() => App.Current.MainWindow.WindowState = WindowState.Minimized;
 
         [RelayCommand]
-        private static void Exit()
-        {
-            ExitConfirm();
-        }
+        private static void Exit() => ExitConfirm();
 
         [RelayCommand]
         private static void WindowClosing(System.ComponentModel.CancelEventArgs e)
@@ -137,10 +128,10 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
 
         public List<NavigationViewItem> FooterMenuItems { get; } =
-            [
+        [
             new ("前台管理", SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
             new ("扩展功能", SymbolRegular.AppsAddIn24, typeof(ExtensionPage)),
             new ("设置", SymbolRegular.Settings24, typeof(SettingPage)),
-            ];
+        ];
     }
 }

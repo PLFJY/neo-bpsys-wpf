@@ -18,7 +18,7 @@ public static class StaticData
 
     public static Game CurrentGame { get; set; } = new();
 
-    public static GameProgresses GameProgress { get; set; } = GameProgresses.Game1FirstHalf;
+    public static GameProgress GameProgress { get; set; } = GameProgress.Game1FirstHalf;
 
     public static List<Character> CharacterList { get; set; } = new();
 
@@ -44,7 +44,7 @@ public static class StaticData
         {
             CharacterList.Add(i.Value);
 
-            if (i.Value.Type == Types.Sur)
+            if (i.Value.CharCamp == Camp.Sur)
                 SurSearchingNameList.Add(i.Value.SearchingName);
             else
                 HunSearchingNameList.Add(i.Value.SearchingName);

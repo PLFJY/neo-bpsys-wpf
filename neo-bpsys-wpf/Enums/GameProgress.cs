@@ -1,6 +1,6 @@
 namespace neo_bpsys_wpf.Enums;
 
-public enum GameProgresses
+public enum GameProgress
 {
     Free,
     Game1FirstHalf,
