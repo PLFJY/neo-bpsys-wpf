@@ -12,40 +12,43 @@ namespace neo_bpsys_wpf.Services
         {
             CurrentSurTeam = MainTeam;
             CurrentHunTeam = AwayTeam;
-            var characterListFileDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources\\CharacterList.json");
+
+            var characterListFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources\\CharacterList.json");
+
+            if (!File.Exists(characterListFilePath)) return;
 
             // 加载角色数据
-            if (!File.Exists(characterListFileDirectory)) return;
-
-            var character = File.ReadAllText(characterListFileDirectory);
+            var character = File.ReadAllText(characterListFilePath);
             var options = new JsonSerializerOptions
             {
                 Converters = { new JsonStringEnumConverter() }
             };
             var characters = JsonSerializer.Deserialize<Dictionary<string, Character>>(character, options);
+
             if (characters == null) return;
+
             foreach (var i in characters)
             {
-                CharacterList.Add(i.Value);
+                CharacterList?.Add(i.Key, i.Value);
 
-                if (i.Value.Type == Types.Sur)
-                    SurNameList.Add(i.Value.Name);
+                if (i.Value.Camp == Camp.Sur)
+                    SurCharList?.Add(i.Key, new Character(i.Value.Name, i.Value.Camp, i.Value.ImageFileName));
                 else
-                    HunNameList.Add(i.Value.Name);
+                    HunCharList?.Add(i.Key, new Character(i.Value.Name, i.Value.Camp, i.Value.ImageFileName));
             }
 
-            SurNameList.Sort();
-            HunNameList.Sort();
+            SurCharList?.OrderBy(pair => pair.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
+            HunCharList?.OrderBy(pair => pair.Key).ToDictionary(pair => pair.Key, pair => pair.Value);
         }
 
         public Team MainTeam { get; set; } = new();
         public Team AwayTeam { get; set; } = new();
         public Team CurrentSurTeam { get; set; }
         public Team CurrentHunTeam { get; set; }
-        public Game CurrentGame { get; set; } = new();
-        public GameProgresses GameProgress { get; set; } = GameProgresses.Game1FirstHalf;
-        public List<Character> CharacterList { get; set; } = new();
-        public List<string> SurNameList { get; set; } = new();
-        public List<string> HunNameList { get; set; } = new();
+        public Game CurrentGame { get; set; }
+        public GameProgress CurrentGameProgress { get; set; } = GameProgress.Game1FirstHalf;
+        public Dictionary<string, Character> CharacterList { get; set; } = new();
+        public Dictionary<string, Character> SurCharList { get; set; } = new();
+        public Dictionary<string, Character> HunCharList { get; set; } = new();
     }
 }

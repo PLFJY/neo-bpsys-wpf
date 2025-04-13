@@ -5,7 +5,7 @@ namespace neo_bpsys_wpf.Models;
 
 public class Member
 {
-    public Types Type { get; set; }
+    public Camp Type { get; set; }
 
     public string Name { get; set; }
 
@@ -20,14 +20,14 @@ public class Member
 
     }
 
-    public Member(Types type, string name, bool isPlaying)
+    public Member(Camp type, string name, bool isPlaying)
     {
         Type = type;
         Name = name;
         IsPlaying = isPlaying;
     }
 
-    public Member(Types type, string name, string nameInGame, bool isPlaying)
+    public Member(Camp type, string name, string nameInGame, bool isPlaying)
     {
         Type = type;
         Name = name;
@@ -35,7 +35,7 @@ public class Member
         IsPlaying = isPlaying;
     }
 
-    public Member(Types type, string name, string nameInGame, BitmapImage image, bool isPlaying)
+    public Member(Camp type, string name, string nameInGame, BitmapImage image, bool isPlaying)
     {
         Type = type;
         Name = name;

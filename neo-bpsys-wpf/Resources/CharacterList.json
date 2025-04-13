@@ -1,397 +1,298 @@
 {
     "调香师": {
-        "Name": "调香师",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "调香师.png"
     },
     "画家": {
-        "Name": "画家",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "画家.png"
     },
     "记者": {
-        "Name": "记者",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "记者.png"
     },
     "昆虫学者": {
-        "Name": "昆虫学者",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "昆虫学者.png"
     },
     "魔术师": {
-        "Name": "魔术师",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "魔术师.png"
     },
     "前锋": {
-        "Name": "前锋",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "前锋.png"
     },
     "舞女": {
-        "Name": "舞女",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "舞女.png"
     },
     "幸运儿": {
-        "Name": "幸运儿",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "幸运儿.png"
     },
     "园丁": {
-        "Name": "园丁",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "园丁.png"
     },
     "病患": {
-        "Name": "病患",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "病患.png"
     },
     "法罗女士": {
-        "Name": "法罗女士",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "法罗女士.png"
     },
     "火灾调查员": {
-        "Name": "火灾调查员",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "火灾调查员.png"
     },
     "教授": {
-        "Name": "教授",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "教授.png"
     },
     "拉拉队员": {
-        "Name": "拉拉队员",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "拉拉队员.png"
     },
     "木偶师": {
-        "Name": "木偶师",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "木偶师.png"
     },
     "囚徒": {
-        "Name": "囚徒",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "囚徒.png"
     },
     "先知": {
-        "Name": "先知",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "先知.png"
     },
     "野人": {
-        "Name": "野人",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "野人.png"
     },
     "杂技演员": {
-        "Name": "杂技演员",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "杂技演员.png"
     },
     "慈善家": {
-        "Name": "慈善家",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "慈善家.png"
     },
     "飞行家": {
-        "Name": "飞行家",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "飞行家.png"
     },
     "击球手": {
-        "Name": "击球手",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "击球手.png"
     },
     "勘探员": {
-        "Name": "勘探员",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "勘探员.png"
     },
     "律师": {
-        "Name": "律师",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "律师.png"
     },
     "牛仔": {
-        "Name": "牛仔",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "牛仔.png"
     },
     "入殓师": {
-        "Name": "入殓师",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "入殓师.png"
     },
     "小女孩": {
-        "Name": "小女孩",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "小女孩.png"
     },
     "医生": {
-        "Name": "医生",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "医生.png"
     },
     "咒术师": {
-        "Name": "咒术师",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "咒术师.png"
     },
     "大副": {
-        "Name": "大副",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "大副.png"
     },
     "弓箭手": {
-        "Name": "弓箭手",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "弓箭手.png"
     },
     "机械师": {
-        "Name": "机械师",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "机械师.png"
     },
     "空军": {
-        "Name": "空军",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "空军.png"
     },
     "盲女": {
-        "Name": "盲女",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "盲女.png"
     },
     "骑士": {
-        "Name": "骑士",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "骑士.png"
     },
     "守墓人": {
-        "Name": "守墓人",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "守墓人.png"
     },
     "小说家": {
-        "Name": "小说家",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "小说家.png"
     },
     "佣兵": {
-        "Name": "佣兵",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "佣兵.png"
     },
     "作曲家": {
-        "Name": "作曲家",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "作曲家.png"
     },
     "调酒师": {
-        "Name": "调酒师",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "调酒师.png"
     },
     "古董商": {
-        "Name": "古董商",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "古董商.png"
     },
     "祭司": {
-        "Name": "祭司",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "祭司.png"
     },
     "哭泣小丑": {
-        "Name": "哭泣小丑",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "哭泣小丑.png"
     },
     "冒险家": {
-        "Name": "冒险家",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "冒险家.png"
     },
     "气象学家": {
-        "Name": "气象学家",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "气象学家.png"
     },
     "玩具商": {
-        "Name": "玩具商",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "玩具商.png"
     },
     "心理学家": {
-        "Name": "心理学家",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "心理学家.png"
     },
     "邮差": {
-        "Name": "邮差",
-        "Type": "sur",
+        "Camp": "sur",
         "ImageFileName": "邮差.png"
     },
     "26号守卫": {
-        "Name": "26号守卫",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "26号守卫.png"
     },
     "爱哭鬼": {
-        "Name": "爱哭鬼",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "爱哭鬼.png"
     },
     "跛脚羊": {
-        "Name": "跛脚羊",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "跛脚羊.png"
     },
     "雕刻家": {
-        "Name": "雕刻家",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "雕刻家.png"
     },
     "疯眼": {
-        "Name": "疯眼",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "疯眼.png"
     },
     "红蝶": {
-        "Name": "红蝶",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "红蝶.png"
     },
     "黄衣之主": {
-        "Name": "黄衣之主",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "黄衣之主.png"
     },
     "杰克": {
-        "Name": "杰克",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "杰克.png"
     },
     "鹿头": {
-        "Name": "鹿头",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "鹿头.png"
     },
     "孽蜥": {
-        "Name": "孽蜥",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "孽蜥.png"
     },
     "摄影师": {
-        "Name": "摄影师",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "摄影师.png"
     },
     "使徒": {
-        "Name": "使徒",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "使徒.png"
     },
     "宿伞之魂": {
-        "Name": "宿伞之魂",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "宿伞之魂.png"
     },
     "小提琴家": {
-        "Name": "小提琴家",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "小提琴家.png"
     },
     "隐士": {
-        "Name": "隐士",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "隐士.png"
     },
     "渔女": {
-        "Name": "渔女",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "渔女.png"
     },
     "博士": {
-        "Name": "博士",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "博士.png"
     },
     "厂长": {
-        "Name": "厂长",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "厂长.png"
     },
     "噩梦": {
-        "Name": "噩梦",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "噩梦.png"
     },
     "歌剧演员": {
-        "Name": "歌剧演员",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "歌剧演员.png"
     },
     "红夫人": {
-        "Name": "红夫人",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "红夫人.png"
     },
     "记录员": {
-        "Name": "记录员",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "记录员.png"
     },
     "蜡像师": {
-        "Name": "蜡像师",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "蜡像师.png"
     },
     "梦之女巫": {
-        "Name": "梦之女巫",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "梦之女巫.png"
     },
     "破轮": {
-        "Name": "破轮",
-        "Type": "hun",
+        "Camp": "hun",
         "ImageFileName": "破轮.png"
     },
-    "时空之影": {
-        "Name": "时空之影",
-        "Type": "hun",
-        "ImageFileName": "时空之影.png"
-    },
-    "守夜人": {
-        "Name": "守夜人",
-        "Type": "hun",
-        "ImageFileName": "守夜人.png"
-    },
-    "小丑": {
-        "Name": "小丑",
-        "Type": "hun",
-        "ImageFileName": "小丑.png"
-    },
-    "喧嚣": {
-        "Name": "喧嚣",
-        "Type": "hun",
-        "ImageFileName": "喧嚣.png"
-    },
-    "愚人金": {
-        "Name": "愚人金",
-        "Type": "hun",
-        "ImageFileName": "愚人金.png"
-    },
-    "蜘蛛": {
-        "Name": "蜘蛛",
-        "Type": "hun",
-        "ImageFileName": "蜘蛛.png"
+    "杂货商": {
+        "Camp": "hun",
+        "ImageFileName": "杂货商.png"
     }
 }

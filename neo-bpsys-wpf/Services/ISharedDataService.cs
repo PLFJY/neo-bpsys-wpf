@@ -10,9 +10,9 @@ namespace neo_bpsys_wpf.Services
         Team CurrentSurTeam { get; set; }
         Team CurrentHunTeam { get; set; }
         Game CurrentGame { get; set; }
-        GameProgresses GameProgress { get; set; }
-        List<Character> CharacterList { get; set; }
-        List<string> SurNameList { get; set; }
-        List<string> HunNameList { get; set; }
+        GameProgress CurrentGameProgress { get; set; }
+        Dictionary<string ,Character> CharacterList { get; set; }
+        Dictionary<string, Character> SurCharList { get; set; }
+        Dictionary<string, Character> HunCharList { get; set; }
     }
 }
