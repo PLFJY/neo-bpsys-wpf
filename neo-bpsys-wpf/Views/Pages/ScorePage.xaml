@@ -8,7 +8,8 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="ScorePage"
-    d:DataContext="{d:DesignInstance Type=vm:ScorePageViewModel}"
+    d:DataContext="{d:DesignInstance Type=vm:ScorePageViewModel,
+                                     IsDesignTimeCreatable=True}"
     d:DesignHeight="1500"
     d:DesignWidth="685"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
@@ -89,10 +90,12 @@
                         Orientation="Horizontal">
                         <TextBlock VerticalAlignment="Center" Text="场次选择" />
                         <ComboBox
-                            Width="250"
+                            Width="150"
                             Margin="10,0,0,0"
+                            DisplayMemberPath="Value"
                             ItemsSource="{Binding GameList}"
-                            SelectedIndex="0" />
+                            SelectedIndex="0"
+                            SelectedValuePath="Key" />
                         <ui:Button
                             Margin="10,0,0,0"
                             Content="下一局"

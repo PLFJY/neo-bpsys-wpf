@@ -15,7 +15,8 @@
     Width="830"
     Height="695"
     MinWidth="830"
-    d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel}"
+    d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel,
+                                     IsDesignTimeCreatable=True}"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Topmost="{Binding IsTopmost}"
@@ -161,17 +162,18 @@
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Orientation="Horizontal">
                             <TextBlock Text="当前求生者队伍:" />
-                            <TextBlock Margin="20,0,0,0" Text="当前求生者队伍" />
+                            <TextBlock Margin="20,0,0,0" Text="{Binding SharedDataService.CurrentSurTeam.Name}" />
                         </StackPanel>
                         <ui:Button
                             Grid.Row="1"
                             Margin="0,10,0,10"
                             HorizontalAlignment="Center"
+                            Command="{Binding SwapCommand}"
                             Content="换边"
                             Icon="{ui:SymbolIcon Symbol=ArrowSort24}" />
                         <StackPanel Grid.Row="2" Orientation="Horizontal">
                             <TextBlock Text="当前监管者队伍:" />
-                            <TextBlock Margin="20,0,0,0" Text="当前监管者队伍" />
+                            <TextBlock Margin="20,0,0,0" Text="{Binding SharedDataService.CurrentHunTeam.Name}" />
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -213,10 +215,12 @@
                 <!--  game control  -->
                 <ui:Button
                     Margin="0,0,10,10"
-                    Content="保存当前对局到本地"
+                    Command="{Binding SaveGameInfoCommand}"
+                    Content="保存当前信息对局到本地"
                     Icon="{ui:SymbolIcon Symbol=Save24}" />
                 <ui:Button
                     Margin="0,0,10,10"
+                    Command="{Binding NewGameCommand}"
                     Content="新对局 (重置)"
                     Icon="{ui:SymbolIcon Symbol=Add24}" />
                 <TextBlock
@@ -224,12 +228,14 @@
                     VerticalAlignment="Center"
                     Text="新对局为：" />
                 <ComboBox
-                    Width="230"
+                    Width="150"
                     Margin="0,0,10,10"
-                    VerticalAlignment="Center"
+                    DisplayMemberPath="Value"
                     ItemsSource="{Binding GameList}"
                     MaxDropDownHeight="190"
-                    SelectedIndex="0" />
+                    SelectedIndex="0"
+                    SelectedItem=""
+                    SelectedValuePath="Key" />
             </WrapPanel>
 
             <!--  navigation  -->
