@@ -9,6 +9,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 {
     public partial class TeamInfoPageViewModel : ObservableObject
     {
+        public TeamInfoPageViewModel()
+        {
+            //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+        }
         [ObservableProperty]
         private string _mainTeamState = "当前状态：求生者";
 

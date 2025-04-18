@@ -24,7 +24,7 @@ namespace neo_bpsys_wpf.Views.Windows
         public BpWindow()
         {
             InitializeComponent();
-            BaseCanvas.Background = ImageHelper.GetUiImage("bp");
+            BaseCanvas.Background = ImageHelper.GetUiImageBrush("bp");
             FrontManagePageViewModel.DesignModeChanged += OnDesignModeChanged;
             MouseLeftButtonDown += OnMouseLeftButtonDown;
         }

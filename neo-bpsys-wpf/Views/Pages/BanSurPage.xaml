@@ -9,7 +9,7 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="BanSurPage"
-    d:DataContext="{d:DesignInstance Type=vm:BanSurPageViewModel}"
+    d:DataContext="{d:DesignInstance Type=vm:BanSurPageViewModel, IsDesignTimeCreatable=True}"
     d:DesignHeight="1500"
     d:DesignWidth="685"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
@@ -35,19 +35,19 @@
                     <cc:CharacterSelector
                         x:Name="BanSurCuurent0"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SurNameList}" />
+                        ItemsSource="{Binding SharedDataService.SurCharList}" />
                     <cc:CharacterSelector
                         x:Name="BanSurCurrent1"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SurNameList}" />
+                        ItemsSource="{Binding SharedDataService.SurCharList}" />
                     <cc:CharacterSelector
                         x:Name="BanSurCuurent2"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SurNameList}" />
+                        ItemsSource="{Binding SharedDataService.SurCharList}" />
                     <cc:CharacterSelector
                         x:Name="BanSurCurrent3"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SurNameList}" />
+                        ItemsSource="{Binding SharedDataService.SurCharList}" />
                 </WrapPanel>
             </Grid>
         </Border>
@@ -69,39 +69,39 @@
                     <cc:CharacterSelector
                         x:Name="BanSurGlobal0"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SurNameList}" />
+                        ItemsSource="{Binding SharedDataService.SurCharList}" />
                     <cc:CharacterSelector
                         x:Name="BanSurGlobal1"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SurNameList}" />
+                        ItemsSource="{Binding SharedDataService.SurCharList}" />
                     <cc:CharacterSelector
                         x:Name="BanSurGlobal2"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SurNameList}" />
+                        ItemsSource="{Binding SharedDataService.SurCharList}" />
                     <cc:CharacterSelector
                         x:Name="BanSurGlobal3"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SurNameList}" />
+                        ItemsSource="{Binding SharedDataService.SurCharList}" />
                     <cc:CharacterSelector
                         x:Name="BanSurGlobal4"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SurNameList}" />
+                        ItemsSource="{Binding SharedDataService.SurCharList}" />
                     <cc:CharacterSelector
                         x:Name="BanSurGlobal5"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SurNameList}" />
+                        ItemsSource="{Binding SharedDataService.SurCharList}" />
                     <cc:CharacterSelector
                         x:Name="BanSurGlobal6"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SurNameList}" />
+                        ItemsSource="{Binding SharedDataService.SurCharList}" />
                     <cc:CharacterSelector
                         x:Name="BanSurGlobal7"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SurNameList}" />
+                        ItemsSource="{Binding SharedDataService.SurCharList}" />
                     <cc:CharacterSelector
                         x:Name="BanSurGlobal8"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SurNameList}" />
+                        ItemsSource="{Binding SharedDataService.SurCharList}" />
                 </WrapPanel>
             </Grid>
         </Border>

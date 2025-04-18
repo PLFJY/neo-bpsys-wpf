@@ -12,6 +12,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 {
     public partial class FrontManagePageViewModel : ObservableObject
     {
+        public FrontManagePageViewModel()
+        {
+            //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+        }
         private readonly IFrontService _frontService;
         public FrontManagePageViewModel(IFrontService frontService)
         {

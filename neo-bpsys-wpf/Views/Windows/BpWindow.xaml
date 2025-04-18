@@ -12,7 +12,8 @@
     Title="BpWindow"
     Width="1440"
     Height="810"
-    d:DataContext="{d:DesignInstance Type=vm:BpWindowViewModel}"
+    d:DataContext="{d:DesignInstance Type=vm:BpWindowViewModel,
+                                     IsDesignTimeCreatable=True}"
     ResizeMode="NoResize"
     SizeToContent="WidthAndHeight"
     WindowStartupLocation="CenterScreen"

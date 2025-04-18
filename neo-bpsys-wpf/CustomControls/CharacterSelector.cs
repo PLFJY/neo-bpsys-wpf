@@ -1,4 +1,5 @@
 ﻿using hyjiacan.py4n;
+using neo_bpsys_wpf.Models;
 using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
@@ -51,7 +52,7 @@ namespace neo_bpsys_wpf.CustomControls
         /// <summary>
         /// A methos used to move focus
         /// </summary>
-        private void MoveFocus()
+        private static void MoveFocus()
         {
             var focusedElement = Keyboard.FocusedElement as UIElement;
             if (focusedElement != null)
@@ -66,6 +67,7 @@ namespace neo_bpsys_wpf.CustomControls
             base.OnKeyDown(e);
             //ensure foucuce on Combobox edit area
             var currentFocusedElement = Keyboard.FocusedElement as UIElement;
+
             if (currentFocusedElement == null || currentFocusedElement.GetType() != typeof(TextBox)) return;
 
             //press Enter to change focuse
@@ -78,6 +80,7 @@ namespace neo_bpsys_wpf.CustomControls
                 IsDropDownOpen = false;
                 //change Focus on Tab click
                 MoveFocus();
+                MoveFocus();
                 return;
             }
 
@@ -88,46 +91,14 @@ namespace neo_bpsys_wpf.CustomControls
             {
                 e.Handled = true;
                 var currentText = base.Text;
-                var findIndex = FindIndex(currentText);
-                base.SelectedIndex = FindIndex(currentText);
+                var findedIndex = FindIndex(currentText);
+                base.SelectedIndex = findedIndex;
+                if (findedIndex == -1) return;
+                if(ItemsSource is Dictionary<string, Character> itemSource)
+                    Text = itemSource.ElementAt(findedIndex).Key;
             }
         }
 
-        //logic of searching by Pinyin
-        private List<string> _fullNameList = new();
-        private List<string> _fullSpells = new();
-        private List<string> _abbrevs = new();
-
-        protected override void OnItemsSourceChanged(IEnumerable oldValue, IEnumerable newValue)
-        {
-            base.OnItemsSourceChanged(oldValue, newValue);
-            base.IsEnabled = false;
-            base.Text = "正在初始化";
-            ///get Pinyin data
-            var format = PinyinFormat.WITHOUT_TONE | PinyinFormat.LOWERCASE | PinyinFormat.WITH_U_AND_COLON | PinyinFormat.WITH_V;
-            foreach (var item in newValue)
-            {
-                if (item is not string hanzi) return;
-                _fullNameList.Add(hanzi);//original base
-
-                var pinyin = Pinyin4Net.GetPinyin(hanzi, format);//get pinyin with space
-
-                var parts = pinyin.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                //full pinyin without space
-                _fullSpells.Add(string.Concat(parts));
-
-                //special case
-                if (hanzi == "26号守卫")
-                {
-                    _abbrevs.Add("bb");
-                    continue;
-                }
-                //abbreviations
-                _abbrevs.Add(string.Concat(parts.Select(p => p[0])));
-            }
-            base.IsEnabled = true;
-            base.Text = string.Empty;
-        }
 
         /// <summary>
         /// Find the index of ths option waiting to be found
@@ -137,21 +108,23 @@ namespace neo_bpsys_wpf.CustomControls
         public int FindIndex(string inputText)
         {
             string inputLower = inputText.ToLowerInvariant();
+            if(base.ItemsSource is not Dictionary<string, Character> itemSource) return -1;
 
-            for (int i = 0; i < _fullNameList.Count; i++)
+            var index = 0;
+
+            foreach (var item in itemSource)
             {
-                string fullSpell = _fullSpells[i].ToLowerInvariant();
-                string abbrev = _abbrevs[i].ToLowerInvariant();
-                string fullName = _fullNameList[i];
-
+                var fullSpell = item.Value.FullSpell.ToLowerInvariant();
+                var abbrev = item.Value.Abbrev.ToLowerInvariant();
+                var fullName = item.Value.Name;
                 // Check whether the full prefix matches or the short prefix matches
                 if (fullSpell.StartsWith(inputLower) || abbrev.StartsWith(inputLower) || fullName.StartsWith(inputText))
                 {
-                    return i;
+                    return index;
                 }
+                index++;
             }
 
-            //Not found
             Text = string.Empty;
             return -1;
         }

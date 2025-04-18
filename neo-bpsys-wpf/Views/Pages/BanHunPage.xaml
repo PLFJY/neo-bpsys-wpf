@@ -9,7 +9,8 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="BanHunPage"
-    d:DataContext="{d:DesignInstance Type=vm:BanHunPageViewModel}"
+    d:DataContext="{d:DesignInstance Type=vm:BanHunPageViewModel,
+                                     IsDesignTimeCreatable=True}"
     d:DesignHeight="1000"
     d:DesignWidth="685"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
@@ -35,11 +36,11 @@
                     <cc:CharacterSelector
                         x:Name="BanHunCuurent0"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding HunNameList}" />
+                        ItemsSource="{Binding SharedDataService.HunCharList}" />
                     <cc:CharacterSelector
                         x:Name="BanHunCurrent1"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding HunNameList}" />
+                        ItemsSource="{Binding SharedDataService.HunCharList}" />
                 </WrapPanel>
             </Grid>
         </Border>
@@ -61,15 +62,15 @@
                     <cc:CharacterSelector
                         x:Name="BanHunGlobal0"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding HunNameList}" />
+                        ItemsSource="{Binding SharedDataService.HunCharList}" />
                     <cc:CharacterSelector
                         x:Name="BanHunGlobal1"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding HunNameList}" />
+                        ItemsSource="{Binding SharedDataService.HunCharList}" />
                     <cc:CharacterSelector
                         x:Name="BanHunGlobal2"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding HunNameList}" />
+                        ItemsSource="{Binding SharedDataService.HunCharList}" />
                 </WrapPanel>
             </Grid>
         </Border>

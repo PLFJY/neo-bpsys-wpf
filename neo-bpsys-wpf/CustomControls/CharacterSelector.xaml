@@ -15,6 +15,7 @@
                             <ComboBox
                                 Width="150"
                                 Height="35"
+                                DisplayMemberPath="Key"
                                 IsDropDownOpen="{Binding Path=IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
                                 IsEditable="True"
                                 IsEnabled="{TemplateBinding IsEnabled}"
@@ -23,6 +24,7 @@
                                 SelectedIndex="{TemplateBinding SelectedIndex}"
                                 SelectedItem="{TemplateBinding SelectedItem}"
                                 SelectedValue="{TemplateBinding SelectedValue}"
+                                SelectedValuePath="Value"
                                 Text="{Binding Path=Text, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
                             <Image
                                 Width="100"

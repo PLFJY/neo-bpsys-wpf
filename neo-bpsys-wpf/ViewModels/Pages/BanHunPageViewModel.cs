@@ -5,13 +5,14 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 {
     public partial class BanHunPageViewModel : ObservableObject
     {
-        private readonly ISharedDataService _sharedDataService;
-        public List<string> HunNameList { get; }
-
+        public BanHunPageViewModel()
+        {
+            //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+        }
+        public ISharedDataService SharedDataService { get; }
         public BanHunPageViewModel(ISharedDataService sharedDataService)
         {
-            _sharedDataService = sharedDataService;
-            HunNameList = _sharedDataService.HunNameList;
+            SharedDataService = sharedDataService;
         }
     }
 }
