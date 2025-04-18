@@ -8,7 +8,8 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="SettingPage"
-    d:DataContext="{d:DesignInstance Type=vm:TalentPageViewModel}"
+    d:DataContext="{d:DesignInstance Type=vm:SettingPageViewModel,
+                                     IsDesignTimeCreatable=True}"
     d:DesignHeight="1500"
     d:DesignWidth="685"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"

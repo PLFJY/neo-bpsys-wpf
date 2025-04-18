@@ -5,42 +5,12 @@ namespace neo_bpsys_wpf.Models;
 
 public class Member
 {
-    public Camp Type { get; set; }
+    public Camp Camp { get; set; }
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-    public string NameInGame { get; set; }
-
-    public BitmapImage Image { get; set; }
+    public BitmapImage? Image { get; set; }
 
     public bool IsPlaying { get; set; } = false;
 
-    public Member()
-    {
-
-    }
-
-    public Member(Camp type, string name, bool isPlaying)
-    {
-        Type = type;
-        Name = name;
-        IsPlaying = isPlaying;
-    }
-
-    public Member(Camp type, string name, string nameInGame, bool isPlaying)
-    {
-        Type = type;
-        Name = name;
-        NameInGame = nameInGame;
-        IsPlaying = isPlaying;
-    }
-
-    public Member(Camp type, string name, string nameInGame, BitmapImage image, bool isPlaying)
-    {
-        Type = type;
-        Name = name;
-        NameInGame = nameInGame;
-        Image = image;
-        IsPlaying = isPlaying;
-    }
 }

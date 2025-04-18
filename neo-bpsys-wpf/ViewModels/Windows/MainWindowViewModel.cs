@@ -1,7 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Views.Pages;
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Input;
 using Wpf.Ui.Appearance;
@@ -11,14 +15,19 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 {
     public partial class MainWindowViewModel : ObservableObject
     {
-        private readonly ISharedDataService _sharedDataService;
+        public MainWindowViewModel()
+        {
+            //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+        }
+        public ISharedDataService SharedDataService { get; }
 
         [ObservableProperty]
         private ApplicationTheme _applicationTheme = ApplicationTheme.Dark;
 
+
         public MainWindowViewModel(ISharedDataService sharedDataService)
         {
-            _sharedDataService = sharedDataService;
+            SharedDataService = sharedDataService;
         }
 
         [ObservableProperty] private bool _isTopmost = false;
@@ -83,6 +92,61 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
             if (result == Wpf.Ui.Controls.MessageBoxResult.Primary) Application.Current.Shutdown();
         }
+        [RelayCommand]
+        private void NewGame()
+        {
+            SharedDataService.CurrentGame = new(SharedDataService.CurrentSurTeam, SharedDataService.CurrentHunTeam, SharedDataService.CurrentGameProgress);
+            Wpf.Ui.Controls.MessageBox messageBox = new()
+            {
+                Title = "创建提示",
+                Content = $"已成功创建新对局\n{SharedDataService.CurrentGame.GUID}",
+            };
+            messageBox.ShowDialogAsync();
+        }
+
+        [RelayCommand]
+        private void Swap()
+        {
+            (SharedDataService.CurrentSurTeam, SharedDataService.CurrentHunTeam) = 
+                (SharedDataService.CurrentHunTeam, SharedDataService.CurrentSurTeam);
+        }
+
+        [RelayCommand]
+        private void SaveGameInfo()
+        {
+
+            var options = new JsonSerializerOptions()
+            {
+                WriteIndented = true,
+                Converters = { new JsonStringEnumConverter() }
+            };
+            var json = JsonSerializer.Serialize(SharedDataService.CurrentGame, options);
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"GameInfoOutput");
+            var fullPath = Path.Combine(path, $"{SharedDataService.CurrentGame.StartTime}.json");
+            if(!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            try
+            {
+                File.WriteAllText(fullPath, json);
+                Wpf.Ui.Controls.MessageBox messageBox = new()
+                {
+                    Title = "保存提示",
+                    Content = $"已成功保存到\n{fullPath}",
+                };
+                messageBox.ShowDialogAsync();
+            }
+            catch(Exception ex)
+            {
+                Wpf.Ui.Controls.MessageBox messageBox = new()
+                {
+                    Title = "保存提示",
+                    Content = $"保存失败\n{ex.Message}",
+                };
+                messageBox.ShowDialogAsync();
+            }
+        }
+
         public List<int> RecommendTimmerList { get; } =
         [
             30,
@@ -94,24 +158,24 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             180,
         ];
 
-        public List<string> GameList { get; } =
-        [
-            "Free",
-            "Game 1 First Half",
-            "Game 1 Second Half",
-            "Game 2 First Half",
-            "Game 2 Second Half",
-            "Game 3 First Half",
-            "Game 3 Second Half",
-            "Game 3 Extra First Half",
-            "Game 3 Extra Second Half",
-            "Game 4 First Half",
-            "Game 4 Second Half",
-            "Game 5 First Half",
-            "Game 5 Second Half",
-            "Game 5 Extra First Half",
-            "Game 5 Extra Second Half"
-        ];
+        public Dictionary<GameProgress, string> GameList { get; } = new Dictionary<GameProgress, string>()
+        {
+            {GameProgress.Free, "自由对局" },
+            {GameProgress.Game1FirstHalf, "BO1上半" },
+            {GameProgress.Game1SecondHalf, "BO1下半" },
+            {GameProgress.Game2FirstHalf, "BO2上半" },
+            {GameProgress.Game2SecondHalf, "BO2下半" },
+            {GameProgress.Game3FirstHalf, "BO3上半" },
+            {GameProgress.Game3SecondHalf, "BO3下半" },
+            {GameProgress.Game3ExtraFirstHalf, "BO3加赛上半" },
+            {GameProgress.Game3ExtraSecondHalf, "BO3加赛下半" },
+            {GameProgress.Game4FirstHalf, "BO4上半" },
+            {GameProgress.Game4SecondHalf, "BO4下半" },
+            {GameProgress.Game5FirstHalf, "BO5上半" },
+            {GameProgress.Game5SecondHalf, "BO5下半" },
+            {GameProgress.Game5ExtraFirstHalf, "BO5加赛上半" },
+            {GameProgress.Game5ExtraSecondHalf, "BO5加赛下半" }
+        };
 
         public List<NavigationViewItem> MenuItems { get; } =
         [

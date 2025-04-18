@@ -12,7 +12,7 @@ namespace neo_bpsys_wpf.Services
         Game CurrentGame { get; set; }
         GameProgress CurrentGameProgress { get; set; }
         Dictionary<string ,Character> CharacterList { get; set; }
-        Dictionary<string, Character> SurCharList { get; set; }
-        Dictionary<string, Character> HunCharList { get; set; }
+        Dictionary<string, Character> SurCharaList { get; set; }
+        Dictionary<string, Character> HunCharaList { get; set; }
     }
 }

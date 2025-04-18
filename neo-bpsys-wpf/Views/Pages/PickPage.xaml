@@ -10,7 +10,8 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="PickPage"
-    d:DataContext="{d:DesignInstance Type=vm:PickPageViewModel}"
+    d:DataContext="{d:DesignInstance Type=vm:PickPageViewModel,
+                                     IsDesignTimeCreatable=True}"
     d:DesignHeight="1500"
     d:DesignWidth="685"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
@@ -34,7 +35,7 @@
                     Orientation="Horizontal">
                     <StackPanel Margin="0,0,10,10">
                         <ui:TextBox IsReadOnly="True" PlaceholderText="选手名称" />
-                        <cc:CharacterSelector Margin="0,10,0,0" ItemsSource="{Binding SurNameList}" />
+                        <cc:CharacterSelector Margin="0,10,0,0" ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterChanger
                             Margin="5,10,0,0"
                             Command="{Binding TestCommand}"
@@ -43,7 +44,7 @@
                     </StackPanel>
                     <StackPanel Margin="0,0,10,10">
                         <ui:TextBox IsReadOnly="True" PlaceholderText="选手名称" />
-                        <cc:CharacterSelector Margin="0,10,0,0" ItemsSource="{Binding SurNameList}" />
+                        <cc:CharacterSelector Margin="0,10,0,0" ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterChanger
                             Margin="5,10,0,0"
                             Command="{Binding TestCommand}"
@@ -52,7 +53,7 @@
                     </StackPanel>
                     <StackPanel Margin="0,0,10,10">
                         <ui:TextBox IsReadOnly="True" PlaceholderText="选手名称" />
-                        <cc:CharacterSelector Margin="0,10,0,0" ItemsSource="{Binding SurNameList}" />
+                        <cc:CharacterSelector Margin="0,10,0,0" ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterChanger
                             Margin="5,10,0,0"
                             Command="{Binding TestCommand}"
@@ -61,7 +62,7 @@
                     </StackPanel>
                     <StackPanel Margin="0,0,10,10">
                         <ui:TextBox IsReadOnly="True" PlaceholderText="选手名称" />
-                        <cc:CharacterSelector Margin="0,10,0,0" ItemsSource="{Binding SurNameList}" />
+                        <cc:CharacterSelector Margin="0,10,0,0" ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterChanger
                             Margin="5,10,0,0"
                             Command="{Binding TestCommand}"
@@ -81,7 +82,7 @@
                 <cc:CharacterSelector
                     Grid.Row="1"
                     Margin="0,10,0,0"
-                    ItemsSource="{Binding HunNameList}" />
+                    ItemsSource="{Binding SharedDataService.HunCharList}" />
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">
@@ -162,39 +163,39 @@
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                     </WrapPanel>
                     <TextBlock
                         Grid.Row="4"
@@ -207,15 +208,15 @@
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding HunNameList}" />
+                            ItemsSource="{Binding SharedDataService.HunCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding HunNameList}" />
+                            ItemsSource="{Binding SharedDataService.HunCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding HunNameList}" />
+                            ItemsSource="{Binding SharedDataService.HunCharList}" />
                     </WrapPanel>
                 </Grid>
                 <Grid Grid.Row="2" Margin="0,20,0,0">
@@ -239,39 +240,39 @@
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding SurNameList}" />
+                            ItemsSource="{Binding SharedDataService.SurCharList}" />
                     </WrapPanel>
                     <TextBlock
                         Grid.Row="4"
@@ -284,15 +285,15 @@
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding HunNameList}" />
+                            ItemsSource="{Binding SharedDataService.HunCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding HunNameList}" />
+                            ItemsSource="{Binding SharedDataService.HunCharList}" />
                         <cc:CharacterSelector
                             Margin="0,0,10,10"
                             IsSimpleModeEnable="True"
-                            ItemsSource="{Binding HunNameList}" />
+                            ItemsSource="{Binding SharedDataService.HunCharList}" />
                     </WrapPanel>
                 </Grid>
             </Grid>
