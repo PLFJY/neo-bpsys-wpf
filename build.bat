@@ -14,6 +14,9 @@ if not exist %BUILD_PATH% (
 dotnet publish %PROJ_PATH% -c Release -o %BUILD_PATH%
 
 REM 安装包打包
+REM 设置打包程序路径
+set ISCC_PATH="InstallerGenerate\iscc\ISCC.exe"
+REM 设置脚本路径
 set INSTALLER_PATH="InstallerGenerate\build_Installer.iss"
 
-iscc %INSTALLER_PATH%
+%ISCC_PATH% %INSTALLER_PATH%
