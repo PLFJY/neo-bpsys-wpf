@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
+using Wpf.Ui.Controls;
 using Wpf.Ui.DependencyInjection;
 
 namespace neo_bpsys_wpf
@@ -170,6 +171,7 @@ namespace neo_bpsys_wpf
                     }
                 }
             };
+            ApplicationThemeManager.Apply(ApplicationTheme.Dark, WindowBackdropType.Mica, true);
         }
 
         protected override async void OnExit(ExitEventArgs e)

@@ -33,8 +33,8 @@ WizardSmallImageFile=顶图54x54.bmp
 ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
 ;下面两行注释是License文件和InfoShown
-LicenseFile=E:\Program Files (x86)\Inno Setup 6\license.txt
-InfoBeforeFile=E:\Program Files (x86)\Inno Setup 6\Examples\Readme.txt
+LicenseFile=License.txt
+;InfoBeforeFile=Readme.txt
 ;取消下行前面 ; 符号，在非管理安装模式下运行（仅为当前用户安装）.
 ;PrivilegesRequired=lowest
 OutputDir=bin\
@@ -52,6 +52,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "..\neo-bpsys-wpf\bin\Release\neo-bpsys-wpf\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\neo-bpsys-wpf\bin\Release\neo-bpsys-wpf\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [code]
 procedure InitializeWizard();
