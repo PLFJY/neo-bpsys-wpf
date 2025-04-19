@@ -32,54 +32,63 @@
                         <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
+                            CheckedCommand="{Binding MapPickCommand}"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/军工厂.png"
                             TagName="军工厂" />
                         <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
+                            CheckedCommand="{Binding MapPickCommand}"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/红教堂.png"
                             TagName="红教堂" />
                         <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
+                            CheckedCommand="{Binding MapPickCommand}"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/圣心医院.png"
                             TagName="圣心医院" />
                         <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
+                            CheckedCommand="{Binding MapPickCommand}"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/里奥的回忆.png"
                             TagName="里奥的回忆" />
                         <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
+                            CheckedCommand="{Binding MapPickCommand}"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/月亮河公园.png"
                             TagName="月亮河公园" />
                         <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
+                            CheckedCommand="{Binding MapPickCommand}"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/湖景村.png"
                             TagName="湖景村" />
                         <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
+                            CheckedCommand="{Binding MapPickCommand}"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/永眠镇.png"
                             TagName="永眠镇" />
                         <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
+                            CheckedCommand="{Binding MapPickCommand}"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/唐人街.png"
                             TagName="唐人街" />
                         <cc:ToggleStyledRadioButton
                             Width="300"
                             Margin="0,0,10,10"
+                            CheckedCommand="{Binding MapPickCommand}"
                             GroupName="MapPick"
                             ImageSource="/Assets/map/不归林.png"
                             TagName="不归林" />
@@ -105,60 +114,70 @@
                     <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
+                        CheckedCommand="{Binding MapBanCommand}"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/无禁用.png"
                         TagName="无禁用" />
                     <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
+                        CheckedCommand="{Binding MapBanCommand}"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/军工厂.png"
                         TagName="军工厂" />
                     <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
+                        CheckedCommand="{Binding MapBanCommand}"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/红教堂.png"
                         TagName="红教堂" />
                     <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
+                        CheckedCommand="{Binding MapBanCommand}"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/圣心医院.png"
                         TagName="圣心医院" />
                     <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
+                        CheckedCommand="{Binding MapBanCommand}"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/里奥的回忆.png"
                         TagName="里奥的回忆" />
                     <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
+                        CheckedCommand="{Binding MapBanCommand}"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/月亮河公园.png"
                         TagName="月亮河公园" />
                     <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
+                        CheckedCommand="{Binding MapBanCommand}"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/湖景村.png"
                         TagName="湖景村" />
                     <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
+                        CheckedCommand="{Binding MapBanCommand}"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/永眠镇.png"
                         TagName="永眠镇" />
                     <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
+                        CheckedCommand="{Binding MapBanCommand}"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/唐人街.png"
                         TagName="唐人街" />
                     <cc:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
+                        CheckedCommand="{Binding MapBanCommand}"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/不归林.png"
                         TagName="不归林" />

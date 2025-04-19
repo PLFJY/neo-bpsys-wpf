@@ -9,7 +9,8 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="FrontManagePage"
-    d:DataContext="{d:DesignInstance Type=vm:FrontManagePageViewModel, IsDesignTimeCreatable=True}"
+    d:DataContext="{d:DesignInstance Type=vm:FrontManagePageViewModel,
+                                     IsDesignTimeCreatable=True}"
     d:DesignHeight="1500"
     d:DesignWidth="685"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
@@ -26,6 +27,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="所有前台画面" />
                 <StackPanel
@@ -42,6 +44,16 @@
                         Command="{Binding HideAllWinowsCommand}"
                         Content="全部关闭" />
                 </StackPanel>
+                <ToggleButton
+                    x:Name="IsEditMode"
+                    Grid.Row="2"
+                    HorizontalAlignment="Center"
+                    IsChecked="{Binding IsEditMode}">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Edit24" />
+                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                    </StackPanel>
+                </ToggleButton>
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">
@@ -72,16 +84,12 @@
                         ItemsSource="{Binding WindowResolutionsList, Converter={StaticResource WindowResolutionToStringConverter}}"
                         SelectedIndex="0" />
                 </StackPanel>
-                <ToggleButton
-                    x:Name="IsEditMode"
+                <ui:Button
                     Grid.Row="3"
                     Margin="0,10,0,0"
-                    IsChecked="{Binding IsEditMode}">
-                    <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
-                    </StackPanel>
-                </ToggleButton>
+                    Command="{Binding ResetBpWindowElementsPositionCommand}"
+                    Content="重置布局"
+                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">
