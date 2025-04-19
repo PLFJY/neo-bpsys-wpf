@@ -32,6 +32,9 @@ WizardSmallImageFile=顶图54x54.bmp
 ;下行注释，强制安装程序在 64 位系统上，但不强制以 64 位模式运行.
 ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
+;下面两行注释是License文件和InfoShown
+LicenseFile=E:\Program Files (x86)\Inno Setup 6\license.txt
+InfoBeforeFile=E:\Program Files (x86)\Inno Setup 6\Examples\Readme.txt
 ;取消下行前面 ; 符号，在非管理安装模式下运行（仅为当前用户安装）.
 ;PrivilegesRequired=lowest
 OutputDir=bin\
