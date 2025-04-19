@@ -251,8 +251,8 @@
         <!--  主题切换相关的东西  -->
         <Rectangle
             x:Name="rectangle"
-            Width="7948"
-            Height="5124"
+            Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+            Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Panel.ZIndex="-1"
