@@ -36,11 +36,11 @@
                     <cc:CharacterSelector
                         x:Name="BanHunCuurent0"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SharedDataService.HunCharList}" />
+                        ItemsSource="{Binding SharedDataService.HunCharaList}" />
                     <cc:CharacterSelector
                         x:Name="BanHunCurrent1"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SharedDataService.HunCharList}" />
+                        ItemsSource="{Binding SharedDataService.HunCharaList}" />
                 </WrapPanel>
             </Grid>
         </Border>
@@ -62,15 +62,15 @@
                     <cc:CharacterSelector
                         x:Name="BanHunGlobal0"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SharedDataService.HunCharList}" />
+                        ItemsSource="{Binding SharedDataService.HunCharaList}" />
                     <cc:CharacterSelector
                         x:Name="BanHunGlobal1"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SharedDataService.HunCharList}" />
+                        ItemsSource="{Binding SharedDataService.HunCharaList}" />
                     <cc:CharacterSelector
                         x:Name="BanHunGlobal2"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SharedDataService.HunCharList}" />
+                        ItemsSource="{Binding SharedDataService.HunCharaList}" />
                 </WrapPanel>
             </Grid>
         </Border>
