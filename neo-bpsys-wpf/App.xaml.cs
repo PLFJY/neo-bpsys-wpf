@@ -93,11 +93,11 @@ namespace neo_bpsys_wpf
                     });
                     services.AddSingleton<TeamInfoPageViewModel>();
 
-                    services.AddSingleton<MapBpPageViewModel>();
                     services.AddSingleton<MapBpPage>(sp => new MapBpPage()
                     {
                         DataContext = sp.GetRequiredService<MapBpPageViewModel>()
                     });
+                    services.AddSingleton<MapBpPageViewModel>();
 
                     services.AddSingleton<BanHunPage>(sp => new BanHunPage()
                     {

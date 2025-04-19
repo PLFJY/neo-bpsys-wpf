@@ -20,7 +20,7 @@
     WindowStyle="None"
     mc:Ignorable="d">
     <Canvas
-        x:Name="BaseCanvas"
+        Name="BaseCanvas"
         Width="1440"
         Height="810">
         <Canvas.Background>
@@ -110,7 +110,7 @@
             TextAlignment="Center"
             TextWrapping="WrapWithOverflow" />
         <TextBlock
-            x:Name="HunTeamMajorPoint"
+            Name="HunTeamMajorPoint"
             Canvas.Left="1172"
             Canvas.Top="34"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
@@ -119,7 +119,7 @@
             Text="W0 D0"
             TextAlignment="Center" />
         <ui:Image
-            x:Name="HunTeamLogo"
+            Name="HunTeamLogo"
             Canvas.Left="1301"
             Canvas.Top="10"
             Width="85"
@@ -129,7 +129,7 @@
             Source="/Assets/TestLogo.JPG"
             Stretch="Fill" />
         <TextBlock
-            x:Name="Timer"
+            Name="Timer"
             Canvas.Left="690"
             Canvas.Top="24"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
@@ -149,7 +149,7 @@
             Source="/Assets/厂长.png"
             Style="{StaticResource CurrentBan}" />
         <Image
-            x:Name="HunBanCurrent1"
+            Name="HunBanCurrent1"
             Canvas.Left="63"
             Canvas.Top="566"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
@@ -157,28 +157,28 @@
             Style="{StaticResource CurrentBan}" />
         <!--  Sur Current Ban  -->
         <Image
-            x:Name="SurBanCurrent3"
+            Name="SurBanCurrent3"
             Canvas.Left="1231"
             Canvas.Top="566"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Source="/Assets/幸运儿.png"
             Style="{StaticResource CurrentBan}" />
         <Image
-            x:Name="SurBanCurrent2"
+            Name="SurBanCurrent2"
             Canvas.Left="1281"
             Canvas.Top="566"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Source="/Assets/幸运儿.png"
             Style="{StaticResource CurrentBan}" />
         <Image
-            x:Name="SurBanCurrent1"
+            Name="SurBanCurrent1"
             Canvas.Left="1329"
             Canvas.Top="566"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Source="/Assets/幸运儿.png"
             Style="{StaticResource CurrentBan}" />
         <Image
-            x:Name="SurBanCurrent0"
+            Name="SurBanCurrent0"
             Canvas.Left="1379"
             Canvas.Top="566"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
@@ -194,7 +194,7 @@
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Source="/Assets/医生.png" />
         <Image
-            x:Name="SurPick1"
+            Name="SurPick1"
             Canvas.Left="141"
             Canvas.Top="619"
             Width="142"
@@ -202,7 +202,7 @@
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Source="/Assets/医生.png" />
         <Image
-            x:Name="SurPick2"
+            Name="SurPick2"
             Canvas.Left="284"
             Canvas.Top="619"
             Width="140"
@@ -210,7 +210,7 @@
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Source="/Assets/医生.png" />
         <Image
-            x:Name="SurPick3"
+            Name="SurPick3"
             Canvas.Left="424"
             Canvas.Top="619"
             Width="142"
@@ -220,7 +220,7 @@
             Source="/Assets/医生.png" />
         <!--  Middle  -->
         <Image
-            x:Name="Map"
+            Name="Map"
             Canvas.Left="567"
             Canvas.Top="658"
             Width="306"
@@ -230,21 +230,21 @@
         <!--  Global Ban  -->
         <!--  Hun  -->
         <Image
-            x:Name="HunGlobalBan0"
+            Name="HunGlobalBan0"
             Canvas.Left="672"
             Canvas.Top="746"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Source="/Assets/厂长.png"
             Style="{StaticResource GlobalBan}" />
         <Image
-            x:Name="HunGlobalBan1"
+            Name="HunGlobalBan1"
             Canvas.Left="705"
             Canvas.Top="746"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Source="/Assets/厂长.png"
             Style="{StaticResource GlobalBan}" />
         <Image
-            x:Name="HunGlobalBan2"
+            Name="HunGlobalBan2"
             Canvas.Left="738"
             Canvas.Top="746"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
@@ -252,7 +252,7 @@
             Style="{StaticResource GlobalBan}" />
         <!--  Sur  -->
         <Image
-            x:Name="SurGlobalBan0"
+            Name="SurGlobalBan0"
             Canvas.Left="571"
             Canvas.Top="778.5"
             HorizontalAlignment="Center"
@@ -261,56 +261,56 @@
             Source="/Assets/幸运儿.png"
             Style="{StaticResource GlobalBan}" />
         <Image
-            x:Name="SurGlobalBan1"
+            Name="SurGlobalBan1"
             Canvas.Left="605"
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Source="/Assets/幸运儿.png"
             Style="{StaticResource GlobalBan}" />
         <Image
-            x:Name="SurGlobalBan2"
+            Name="SurGlobalBan2"
             Canvas.Left="638"
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Source="/Assets/幸运儿.png"
             Style="{StaticResource GlobalBan}" />
         <Image
-            x:Name="SurGlobalBan3"
+            Name="SurGlobalBan3"
             Canvas.Left="671"
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Source="/Assets/幸运儿.png"
             Style="{StaticResource GlobalBan}" />
         <Image
-            x:Name="SurGlobalBan4"
+            Name="SurGlobalBan4"
             Canvas.Left="705"
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Source="/Assets/幸运儿.png"
             Style="{StaticResource GlobalBan}" />
         <Image
-            x:Name="SurGlobalBan5"
+            Name="SurGlobalBan5"
             Canvas.Left="739"
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Source="/Assets/幸运儿.png"
             Style="{StaticResource GlobalBan}" />
         <Image
-            x:Name="SurGlobalBan6"
+            Name="SurGlobalBan6"
             Canvas.Left="772"
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Source="/Assets/幸运儿.png"
             Style="{StaticResource GlobalBan}" />
         <Image
-            x:Name="SurGlobalBan7"
+            Name="SurGlobalBan7"
             Canvas.Left="806"
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Source="/Assets/幸运儿.png"
             Style="{StaticResource GlobalBan}" />
         <Image
-            x:Name="SurGlobalBan8"
+            Name="SurGlobalBan8"
             Canvas.Left="840"
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
@@ -340,7 +340,7 @@
             FontFamily="{StaticResource SourceHan}"
             FontSize="16" />
         <Label
-            x:Name="SurId1"
+            Name="SurId1"
             Canvas.Left="144"
             Canvas.Top="778"
             Width="136"
@@ -352,7 +352,7 @@
             FontFamily="{StaticResource SourceHan}"
             FontSize="16" />
         <Label
-            x:Name="SurId2"
+            Name="SurId2"
             Canvas.Left="286"
             Canvas.Top="778"
             Width="136"
@@ -364,7 +364,7 @@
             FontFamily="{StaticResource SourceHan}"
             FontSize="16" />
         <Label
-            x:Name="SurId3"
+            Name="SurId3"
             Canvas.Left="428"
             Canvas.Top="778"
             Width="136"
@@ -377,7 +377,7 @@
             FontSize="16" />
         <!--  Hun  -->
         <Label
-            x:Name="HunId"
+            Name="HunId"
             Canvas.Left="875"
             Canvas.Top="778"
             Width="565"
