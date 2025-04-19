@@ -314,5 +314,9 @@
     "蜘蛛": {
         "Camp": "Hun",
         "ImageFileName": "蜘蛛.png"
+    },
+    "杂货商":{
+        "Camp": "Hun",
+        "ImageFileName": "杂货商.png"
     }
 }

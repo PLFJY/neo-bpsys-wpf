@@ -121,7 +121,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 Converters = { new JsonStringEnumConverter() }
             };
             var json = JsonSerializer.Serialize(SharedDataService.CurrentGame, options);
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"GameInfoOutput");
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),"neo-bpsys-wpf\\GameInfoOutput");
             var fullPath = Path.Combine(path, $"{SharedDataService.CurrentGame.StartTime}.json");
             if(!Directory.Exists(path))
                 Directory.CreateDirectory(path);
