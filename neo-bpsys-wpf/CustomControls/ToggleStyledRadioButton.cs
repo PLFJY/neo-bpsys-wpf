@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace neo_bpsys_wpf.CustomControls
@@ -16,8 +17,6 @@ namespace neo_bpsys_wpf.CustomControls
         public static readonly DependencyProperty ImageSourceProperty =
             DependencyProperty.Register("ImageSource", typeof(ImageSource), typeof(ToggleStyledRadioButton), new PropertyMetadata(null));
 
-
-
         public string TagName
         {
             get { return (string)GetValue(TagNameProperty); }
@@ -27,10 +26,6 @@ namespace neo_bpsys_wpf.CustomControls
         // Using a DependencyProperty as the backing store for TagName.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty TagNameProperty =
             DependencyProperty.Register("TagName", typeof(string), typeof(ToggleStyledRadioButton), new PropertyMetadata(null));
-
-
-
-
 
         public double ImageHeight
         {
@@ -42,8 +37,6 @@ namespace neo_bpsys_wpf.CustomControls
         public static readonly DependencyProperty ImageHeightProperty =
             DependencyProperty.Register("ImageHeight", typeof(double), typeof(ToggleStyledRadioButton), new PropertyMetadata(73.0));
 
-
-
         public double ImageWidth
         {
             get { return (double)GetValue(ImageWidthProperty); }
@@ -54,7 +47,15 @@ namespace neo_bpsys_wpf.CustomControls
         public static readonly DependencyProperty ImageWidthProperty =
             DependencyProperty.Register("ImageWidth", typeof(double), typeof(ToggleStyledRadioButton), new PropertyMetadata(276.0));
 
+        public ICommand CheckedCommand
+        {
+            get { return (ICommand)GetValue(CheckedCommandProperty); }
+            set { SetValue(CheckedCommandProperty, value); }
+        }
 
+        // Using a DependencyProperty as the backing store for CheckedCommand.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty CheckedCommandProperty =
+            DependencyProperty.Register("CheckedCommand", typeof(ICommand), typeof(ToggleStyledRadioButton), new PropertyMetadata(null));
 
     }
 }

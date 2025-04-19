@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -20,5 +21,9 @@ namespace neo_bpsys_wpf.Services
         public void ScoreWindowHide();
         public void WidgetsWindowShow();
         public void WidgetsWindowHide();
+        public void RecordInitialPositions(Window window);
+        public string GetWindowElementsPosition(Window window);
+        public void LoadWindowElementsPosition(Window window,string json);
+        public void RestoreInitialPositions(Window window);
     }
 }

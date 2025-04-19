@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
+using static neo_bpsys_wpf.Services.FrontService;
 
 namespace neo_bpsys_wpf.Converters
 {

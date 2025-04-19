@@ -118,7 +118,8 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             var options = new JsonSerializerOptions()
             {
                 WriteIndented = true,
-                Converters = { new JsonStringEnumConverter() }
+                Converters = { new JsonStringEnumConverter() },
+                //Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             };
             var json = JsonSerializer.Serialize(SharedDataService.CurrentGame, options);
             var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),"neo-bpsys-wpf\\GameInfoOutput");
