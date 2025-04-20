@@ -1,6 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
+using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Wpf.Ui.Controls;
@@ -13,21 +17,58 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
         }
+
+        public ISharedDataService SharedDataService { get; }
+
+        public TeamInfoPageViewModel(ISharedDataService sharedDataService)
+        {
+            SharedDataService = sharedDataService;
+        }
+
+
+        [RelayCommand]
+        private void ConfirmTeamName(string team)
+        {
+            if (team == "Main")
+                SharedDataService.MainTeam.Name = MainTeamName;
+            else if (team == "Away")
+                SharedDataService.AwayTeam.Name = AwayTeamName;
+        }
+
+        [RelayCommand]
+        private void SetTeamLogo(string team)
+        {
+            OpenFileDialog openFileDialog = new()
+            {
+                Filter = "图片文件 (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp"
+            };
+
+            if (openFileDialog.ShowDialog() != true) return;
+
+            var fileName = openFileDialog.FileName;
+
+            if (team == "Main")
+            {
+                SharedDataService.MainTeam.Logo = new BitmapImage(new Uri(fileName));
+                MainTeamLogo = SharedDataService.MainTeam.Logo;
+            }
+            else if (team == "Away")
+            {
+                SharedDataService.AwayTeam.Logo = new BitmapImage(new Uri(fileName));
+                AwayTeamLogo = SharedDataService.AwayTeam.Logo;
+            }
+        }
+
+
+        //主队信息
         [ObservableProperty]
-        private string _mainTeamState = "当前状态：求生者";
+        private string _mainTeamName = string.Empty;
 
         [ObservableProperty]
-        private string _awayTeamState = "当前状态：监管者";
+        private string _mainTeamCamp = $"当前状态：求生者";
 
         [ObservableProperty]
         private BitmapImage? _mainTeamLogo = null;
-
-        [ObservableProperty]
-        private BitmapImage? _awayTeamLogo = null;
-
-        /// <summary>
-        /// 主队信息编辑器
-        /// </summary>
 
         //求生者
         public ObservableCollection<PlayersEditorItemContent> MainSurPlayerEditorItems { get; set; } = new()
@@ -40,8 +81,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
         [ObservableProperty] private bool _removeMainSurPlayerCommandCanExecute = false;
 
+
         [RelayCommand]
-        public void AddMainSurPlayer()
+        private void AddMainSurPlayer()
         {
             MainSurPlayerEditorItems.Add(new PlayersEditorItemContent());
             RemoveMainSurPlayerCommandCanExecute = true;
@@ -49,7 +91,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
         [RelayCommand]
-        public void RemoveMainSurPlayer()
+        private void RemoveMainSurPlayer()
         {
             if (MainSurPlayerEditorItems.Count > 4)
             {
@@ -69,7 +111,6 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
         }
 
-
         //监管者
         public ObservableCollection<PlayersEditorItemContent> MainHunPlayerEditorItems { get; set; } = new()
         {
@@ -79,7 +120,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         [ObservableProperty] private bool _removeMainHunPlayerCommandCanExecute = false;
 
         [RelayCommand]
-        public void AddMainHunPlayer()
+        private void AddMainHunPlayer()
         {
             MainHunPlayerEditorItems.Add(new PlayersEditorItemContent());
             RemoveMainHunPlayerCommandCanExecute = true;
@@ -87,7 +128,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
         [RelayCommand]
-        public void RemoveMainHunPlayer()
+        private void RemoveMainHunPlayer()
         {
             if (MainSurPlayerEditorItems.Count > 1)
             {
@@ -107,9 +148,16 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
         }
 
-        /// <summary>
-        /// 客队信息编辑器
-        /// </summary>
+        // 客队信息编辑器
+
+        [ObservableProperty]
+        private string _awayTeamName = string.Empty;
+
+        [ObservableProperty]
+        private string _awayTeamCamp = "当前状态：监管者";
+
+        [ObservableProperty]
+        private BitmapImage? _awayTeamLogo = null;
 
         //求生者
         public ObservableCollection<PlayersEditorItemContent> AwaySurPlayerEditorItems { get; set; } = new()
@@ -123,7 +171,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         [ObservableProperty] private bool _removeAwaySurPlayerCommandCanExecute = false;
 
         [RelayCommand]
-        public void AddAwaySurPlayer()
+        private void AddAwaySurPlayer()
         {
             AwaySurPlayerEditorItems.Add(new PlayersEditorItemContent());
             RemoveAwaySurPlayerCommandCanExecute = true;
@@ -131,7 +179,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
         [RelayCommand]
-        public void RemoveAwaySurPlayer()
+        private void RemoveAwaySurPlayer()
         {
             if (AwaySurPlayerEditorItems.Count > 4)
             {
@@ -161,7 +209,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         [ObservableProperty] private bool _removeAwayHunPlayerCommandCanExecute = false;
 
         [RelayCommand]
-        public void AddAwayHunPlayer()
+        private void AddAwayHunPlayer()
         {
             AwayHunPlayerEditorItems.Add(new PlayersEditorItemContent());
             RemoveAwayHunPlayerCommandCanExecute = true;
@@ -169,7 +217,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
         [RelayCommand]
-        public void RemoveAwayHunPlayer()
+        private void RemoveAwayHunPlayer()
         {
             if (AwaySurPlayerEditorItems.Count > 1)
             {
@@ -188,31 +236,27 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 OnPropertyChanged(nameof(RemoveAwayHunPlayerCommandCanExecute));
             }
         }
-    }
-    public class PlayersEditorItemContent
-    {
-        public string PlayerName { get; set; }
-
-        public SymbolIcon ButtonIcon { get; set; }
-
-        public Brush ButtonBackground { get; set; }
-
-        public string ButtonText { get; set; }
-
-        public PlayersEditorItemContent()
+        public partial class PlayersEditorItemContent : ObservableObject
         {
-            PlayerName = String.Empty;
-            ButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.ArrowUpload24 };
-            ButtonBackground = new SolidColorBrush(Colors.DarkGreen);
-            ButtonText = "上场";
-        }
+            public string PlayerName { get; set; }
 
-        public PlayersEditorItemContent(string playerName)
-        {
-            PlayerName = playerName;
-            ButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.ArrowUpload24 };
-            ButtonBackground = new SolidColorBrush(Colors.DarkGreen);
-            ButtonText = "上场";
+            public BitmapImage? Image { get; set; }
+
+            public PlayersEditorItemContent()
+            {
+                PlayerName = String.Empty;
+            }
+
+            public PlayersEditorItemContent(string playerName)
+            {
+                PlayerName = playerName;
+            }
+
+            [RelayCommand]
+            private void SetPlayerImage()
+            {
+                Debug.WriteLine("Debug");
+            }
         }
     }
 }
