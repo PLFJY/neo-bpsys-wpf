@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -11,7 +12,7 @@
     Title="TeamInfoPage"
     d:DataContext="{d:DesignInstance Type=vm:TeamInfoPageViewModel,
                                      IsDesignTimeCreatable=True}"
-    d:DesignHeight="1000"
+    d:DesignHeight="2000"
     d:DesignWidth="685"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
@@ -39,15 +40,24 @@
                 </StackPanel>
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                    <ui:TextBox Width="150" PlaceholderText="队伍名称" />
+                    <ui:TextBox
+                        Width="150"
+                        PlaceholderText="队伍名称"
+                        Text="{Binding MainTeamName}" />
                     <ui:Button
                         Margin="10,0,0,0"
+                        Command="{Binding ConfirmTeamNameCommand}"
+                        CommandParameter="Main"
                         Content="确认"
                         Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal">
-                    <ui:Button Content="设置队伍LOGO" Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
+                    <ui:Button
+                        Command="{Binding SetTeamLogoCommand}"
+                        CommandParameter="Main"
+                        Content="设置队伍LOGO"
+                        Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
                     <Image
                         Width="75"
                         Height="75"
@@ -58,7 +68,7 @@
                         Width="150"
                         Margin="20,0,0,0"
                         VerticalAlignment="Center"
-                        Text="{Binding MainTeamState}" />
+                        Text="{Binding MainTeamCamp}" />
                 </StackPanel>
 
                 <!--  player edit  -->
@@ -69,6 +79,7 @@
                     <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding MainSurPlayerEditorItems}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
+                                <DataTemplate.Resources />
                                 <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
                                     <ui:TextBox
                                         MinWidth="250"
@@ -77,14 +88,35 @@
                                         Text="{Binding PlayerName}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
+                                        Command="{Binding SetPlayerImageCommand}"
                                         Content="设置定妆照"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
-                                    <ui:Button
-                                        Margin="10,0,0,0"
-                                        Background="{Binding ButtonBackground}"
-                                        Content="{Binding ButtonText}"
-                                        Foreground="White"
-                                        Icon="{Binding ButtonIcon}" />
+                                    <ToggleButton Margin="10,0,0,0" Foreground="White">
+                                        <i:Interaction.Triggers>
+                                            <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ToggleButton}, Path=IsChecked}" Value="False">
+                                                <i:ChangePropertyAction PropertyName="Content">
+                                                    <i:ChangePropertyAction.Value>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <ui:SymbolIcon Symbol="ArrowUpload24" />
+                                                            <TextBlock Margin="10,0,0,0" Text="上场" />
+                                                        </StackPanel>
+                                                    </i:ChangePropertyAction.Value>
+                                                </i:ChangePropertyAction>
+                                                <i:ChangePropertyAction PropertyName="Background" Value="DarkGreen" />
+                                            </i:DataTrigger>
+                                            <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ToggleButton}, Path=IsChecked}" Value="True">
+                                                <i:ChangePropertyAction PropertyName="Content">
+                                                    <i:ChangePropertyAction.Value>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <ui:SymbolIcon Symbol="ArrowDownload24" />
+                                                            <TextBlock Margin="10,0,0,0" Text="下场" />
+                                                        </StackPanel>
+                                                    </i:ChangePropertyAction.Value>
+                                                </i:ChangePropertyAction>
+                                                <i:ChangePropertyAction PropertyName="Background" Value="DarkRed" />
+                                            </i:DataTrigger>
+                                        </i:Interaction.Triggers>
+                                    </ToggleButton>
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -115,14 +147,35 @@
                                         Text="{Binding PlayerName}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
+                                        Command="{Binding SetPlayerImageCommand}"
                                         Content="设置定妆照"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
-                                    <ui:Button
-                                        Margin="10,0,0,0"
-                                        Background="{Binding ButtonBackground}"
-                                        Content="{Binding ButtonText}"
-                                        Foreground="White"
-                                        Icon="{Binding ButtonIcon}" />
+                                    <ToggleButton Margin="10,0,0,0" Foreground="White">
+                                        <i:Interaction.Triggers>
+                                            <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ToggleButton}, Path=IsChecked}" Value="False">
+                                                <i:ChangePropertyAction PropertyName="Content">
+                                                    <i:ChangePropertyAction.Value>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <ui:SymbolIcon Symbol="ArrowUpload24" />
+                                                            <TextBlock Margin="10,0,0,0" Text="上场" />
+                                                        </StackPanel>
+                                                    </i:ChangePropertyAction.Value>
+                                                </i:ChangePropertyAction>
+                                                <i:ChangePropertyAction PropertyName="Background" Value="DarkGreen" />
+                                            </i:DataTrigger>
+                                            <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ToggleButton}, Path=IsChecked}" Value="True">
+                                                <i:ChangePropertyAction PropertyName="Content">
+                                                    <i:ChangePropertyAction.Value>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <ui:SymbolIcon Symbol="ArrowDownload24" />
+                                                            <TextBlock Margin="10,0,0,0" Text="下场" />
+                                                        </StackPanel>
+                                                    </i:ChangePropertyAction.Value>
+                                                </i:ChangePropertyAction>
+                                                <i:ChangePropertyAction PropertyName="Background" Value="DarkRed" />
+                                            </i:DataTrigger>
+                                        </i:Interaction.Triggers>
+                                    </ToggleButton>
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -183,7 +236,7 @@
                         Width="150"
                         Margin="20,0,0,0"
                         VerticalAlignment="Center"
-                        Text="{Binding AwayTeamState}" />
+                        Text="{Binding AwayTeamCamp}" />
                 </StackPanel>
 
                 <!--  player edit  -->
@@ -202,14 +255,35 @@
                                         Text="{Binding PlayerName}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
+                                        Command="{Binding SetPlayerImageCommand}"
                                         Content="设置定妆照"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
-                                    <ui:Button
-                                        Margin="10,0,0,0"
-                                        Background="{Binding ButtonBackground}"
-                                        Content="{Binding ButtonText}"
-                                        Foreground="White"
-                                        Icon="{Binding ButtonIcon}" />
+                                    <ToggleButton Margin="10,0,0,0" Foreground="White">
+                                        <i:Interaction.Triggers>
+                                            <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ToggleButton}, Path=IsChecked}" Value="False">
+                                                <i:ChangePropertyAction PropertyName="Content">
+                                                    <i:ChangePropertyAction.Value>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <ui:SymbolIcon Symbol="ArrowUpload24" />
+                                                            <TextBlock Margin="10,0,0,0" Text="上场" />
+                                                        </StackPanel>
+                                                    </i:ChangePropertyAction.Value>
+                                                </i:ChangePropertyAction>
+                                                <i:ChangePropertyAction PropertyName="Background" Value="DarkGreen" />
+                                            </i:DataTrigger>
+                                            <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ToggleButton}, Path=IsChecked}" Value="True">
+                                                <i:ChangePropertyAction PropertyName="Content">
+                                                    <i:ChangePropertyAction.Value>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <ui:SymbolIcon Symbol="ArrowDownload24" />
+                                                            <TextBlock Margin="10,0,0,0" Text="下场" />
+                                                        </StackPanel>
+                                                    </i:ChangePropertyAction.Value>
+                                                </i:ChangePropertyAction>
+                                                <i:ChangePropertyAction PropertyName="Background" Value="DarkRed" />
+                                            </i:DataTrigger>
+                                        </i:Interaction.Triggers>
+                                    </ToggleButton>
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -240,14 +314,35 @@
                                         Text="{Binding PlayerName}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
+                                        Command="{Binding SetPlayerImageCommand}"
                                         Content="设置定妆照"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
-                                    <ui:Button
-                                        Margin="10,0,0,0"
-                                        Background="{Binding ButtonBackground}"
-                                        Content="{Binding ButtonText}"
-                                        Foreground="White"
-                                        Icon="{Binding ButtonIcon}" />
+                                    <ToggleButton Margin="10,0,0,0" Foreground="White">
+                                        <i:Interaction.Triggers>
+                                            <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ToggleButton}, Path=IsChecked}" Value="False">
+                                                <i:ChangePropertyAction PropertyName="Content">
+                                                    <i:ChangePropertyAction.Value>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <ui:SymbolIcon Symbol="ArrowUpload24" />
+                                                            <TextBlock Margin="10,0,0,0" Text="上场" />
+                                                        </StackPanel>
+                                                    </i:ChangePropertyAction.Value>
+                                                </i:ChangePropertyAction>
+                                                <i:ChangePropertyAction PropertyName="Background" Value="DarkGreen" />
+                                            </i:DataTrigger>
+                                            <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ToggleButton}, Path=IsChecked}" Value="True">
+                                                <i:ChangePropertyAction PropertyName="Content">
+                                                    <i:ChangePropertyAction.Value>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <ui:SymbolIcon Symbol="ArrowDownload24" />
+                                                            <TextBlock Margin="10,0,0,0" Text="下场" />
+                                                        </StackPanel>
+                                                    </i:ChangePropertyAction.Value>
+                                                </i:ChangePropertyAction>
+                                                <i:ChangePropertyAction PropertyName="Background" Value="DarkRed" />
+                                            </i:DataTrigger>
+                                        </i:Interaction.Triggers>
+                                    </ToggleButton>
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
