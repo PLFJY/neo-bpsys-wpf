@@ -1,15 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using System.Web;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -30,7 +22,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         [RelayCommand]
         private void MapPick(string tagName)
         {
-            if(Enum.TryParse(tagName, out Map map))
+            if (Enum.TryParse(tagName, out Map map))
             {
                 SharedDataService.CurrentGame.PickedMap = map;
             }

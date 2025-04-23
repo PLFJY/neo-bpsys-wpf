@@ -1,18 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualBasic;
-using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Views.Windows;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Wpf.Ui.Controls;
 using static neo_bpsys_wpf.Services.FrontService;
+using MessageBox = Wpf.Ui.Controls.MessageBox;
+using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -32,91 +27,91 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
         [RelayCommand]
-        public void ShowAllWinows()
+        private void ShowAllWinows()
         {
             _frontService.AllWindowShow();
         }
 
         [RelayCommand]
-        public void HideAllWinows()
+        private void HideAllWinows()
         {
             _frontService.AllWindowHide();
         }
 
         [RelayCommand]
-        public void ShowBpWindow()
+        private void ShowBpWindow()
         {
-            _frontService.BpWindowShow();
+            _frontService.ShowWindow<BpWindow>();
         }
 
         [RelayCommand]
-        public void HideBpWindow()
+        private void HideBpWindow()
         {
-            _frontService.BpWindowHide();
+            _frontService.HideWindow<BpWindow>();
         }
 
         [RelayCommand]
-        public void ShowInterludeWindow()
+        private void ShowInterludeWindow()
         {
-            _frontService.InterludeWindowShow();
+            _frontService.ShowWindow<InterludeWindow>();
         }
 
         [RelayCommand]
-        public void HideInterludeWindow()
+        private void HideInterludeWindow()
         {
-            _frontService.InterludeWindowHide();
+            _frontService.HideWindow<InterludeWindow>();
         }
 
         [RelayCommand]
-        public void ShowScoreWindow()
+        private void ShowScoreWindow()
         {
-            _frontService.ScoreWindowShow();
+            _frontService.ShowWindow<ScoreWindow>();
         }
 
         [RelayCommand]
-        public void HideScoreWindow()
+        private void HideScoreWindow()
         {
-            _frontService.ScoreWindowHide();
+            _frontService.HideWindow<ScoreWindow>();
         }
 
         [RelayCommand]
-        public void ShowGameDataWindow()
+        private void ShowGameDataWindow()
         {
-            _frontService.GameDataWindowShow();
+            _frontService.ShowWindow<GameDataWindow>();
         }
 
         [RelayCommand]
-        public void HideGameDataWindow()
+        private void HideGameDataWindow()
         {
-            _frontService.GameDataWindowHide();
+            _frontService.HideWindow<GameDataWindow>();
         }
 
         [RelayCommand]
-        public void ShowWidgetsWindow()
+        private void ShowWidgetsWindow()
         {
-            _frontService.WidgetsWindowShow();
+            _frontService.ShowWindow<WidgetsWindow>();
         }
 
         [RelayCommand]
-        public void HideWidgetsWindow()
+        private void HideWidgetsWindow()
         {
-            _frontService.WidgetsWindowHide();
+            _frontService.HideWindow<WidgetsWindow>();
         }
 
         //前台窗口大小修改
 
         public List<WindowResolution> WindowResolutionsList { get; } =
-        [
-            new (1440, 810),
-            new (1920, 1080),
-            new (960, 540)
-        ];
+            [new(1440, 810), new(1920, 1080), new(960, 540)];
 
         //前台设计器模式
 
         public static event EventHandler<DesignModeChangedEventArgs>? DesignModeChanged;
 
-        public void ToggleDesignMode(bool isDesignMode) => DesignModeChanged?.Invoke(this, new DesignModeChangedEventArgs { IsDesignMode = isDesignMode });
+        public void ToggleDesignMode(bool isDesignMode) =>
+            DesignModeChanged?.Invoke(
+                this,
+                new DesignModeChangedEventArgs { IsDesignMode = isDesignMode }
+            );
 
         private bool _isEditMode = false;
 
@@ -139,15 +134,24 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         /// </summary>
         private void SaveFrontConfig()
         {
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf");
+            var path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "neo-bpsys-wpf"
+            );
 
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
 
-            var bpWindowElementsPosition = _frontService.GetWindowElementsPosition(App.Services.GetRequiredService<BpWindow>());
+            var bpWindowElementsPosition = _frontService.GetWindowElementsPosition(
+                App.Services.GetRequiredService<BpWindow>()
+            );
 
             try
             {
-                File.WriteAllText(Path.Combine(path, $"{nameof(BpWindow)}Config.json"), bpWindowElementsPosition);
+                File.WriteAllText(
+                    Path.Combine(path, $"{nameof(BpWindow)}Config.json"),
+                    bpWindowElementsPosition
+                );
             }
             catch (Exception ex)
             {
@@ -165,16 +169,25 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         /// </summary>
         private async void LoadFrontConfig()
         {
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf");
+            var path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "neo-bpsys-wpf"
+            );
 
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
 
             if (File.Exists(Path.Combine(path, $"{nameof(BpWindow)}Config.json")))
             {
                 try
                 {
-                    string json = await File.ReadAllTextAsync(Path.Combine(path, $"{nameof(BpWindow)}Config.json"));
-                    _frontService.LoadWindowElementsPosition(App.Services.GetRequiredService<BpWindow>(), json);
+                    string json = await File.ReadAllTextAsync(
+                        Path.Combine(path, $"{nameof(BpWindow)}Config.json")
+                    );
+                    _frontService.LoadWindowElementsPosition(
+                        App.Services.GetRequiredService<BpWindow>(),
+                        json
+                    );
                 }
                 catch (Exception ex)
                 {
@@ -206,14 +219,17 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             };
             var result = await messageBox.ShowDialogAsync();
 
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{nameof(BpWindow)}Config.json");
+            var path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "neo-bpsys-wpf",
+                $"{nameof(BpWindow)}Config.json"
+            );
 
             if (result == MessageBoxResult.Primary)
             {
                 _frontService.RestoreInitialPositions(App.Services.GetRequiredService<BpWindow>());
                 SaveFrontConfig();
             }
-
         }
     }
 }

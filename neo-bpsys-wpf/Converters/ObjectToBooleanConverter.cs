@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 using System.Windows.Data;
 
 namespace neo_bpsys_wpf.Converters
@@ -15,7 +10,12 @@ namespace neo_bpsys_wpf.Converters
             return value.Equals(parameter); // 利用模型重写的 Equals 方法
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(
+            object value,
+            Type targetType,
+            object parameter,
+            CultureInfo culture
+        )
         {
             return (bool)value ? parameter : Binding.DoNothing;
         }

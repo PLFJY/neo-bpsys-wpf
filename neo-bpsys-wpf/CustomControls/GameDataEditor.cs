@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 
 namespace neo_bpsys_wpf.CustomControls
@@ -18,7 +13,12 @@ namespace neo_bpsys_wpf.CustomControls
 
         // Using a DependencyProperty as the backing store for GameDataValue.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty GameDataValueProperty =
-            DependencyProperty.Register("GameDataValue", typeof(string), typeof(GameDataEditor), new PropertyMetadata(null));
+            DependencyProperty.Register(
+                "GameDataValue",
+                typeof(string),
+                typeof(GameDataEditor),
+                new PropertyMetadata(null)
+            );
 
         public string GameDataType
         {
@@ -28,6 +28,11 @@ namespace neo_bpsys_wpf.CustomControls
 
         // Using a DependencyProperty as the backing store for GameDataType.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty GameDataTypeProperty =
-            DependencyProperty.Register("GameDataType", typeof(string), typeof(GameDataEditor), new PropertyMetadata(null));
+            DependencyProperty.Register(
+                "GameDataType",
+                typeof(string),
+                typeof(GameDataEditor),
+                new PropertyMetadata(null)
+            );
     }
 }

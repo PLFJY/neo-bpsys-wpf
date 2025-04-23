@@ -4,7 +4,7 @@
     xmlns:control="clr-namespace:neo_bpsys_wpf.CustomControls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
-    <cv:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
     <Style TargetType="{x:Type control:TalentPicker}">
         <Setter Property="Template">

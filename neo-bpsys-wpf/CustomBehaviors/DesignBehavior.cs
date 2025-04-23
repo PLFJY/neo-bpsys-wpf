@@ -8,7 +8,12 @@ namespace neo_bpsys_wpf.CustomBehaviors
     public static class DesignBehavior
     {
         public static readonly DependencyProperty IsDesignModeProperty =
-            DependencyProperty.RegisterAttached("IsDesignMode", typeof(bool), typeof(DesignBehavior), new PropertyMetadata(false, OnIsDesignModeChanged));
+            DependencyProperty.RegisterAttached(
+                "IsDesignMode",
+                typeof(bool),
+                typeof(DesignBehavior),
+                new PropertyMetadata(false, OnIsDesignModeChanged)
+            );
 
         public static bool GetIsDesignMode(UIElement element)
         {
@@ -20,7 +25,10 @@ namespace neo_bpsys_wpf.CustomBehaviors
             element.SetValue(IsDesignModeProperty, value);
         }
 
-        private static void OnIsDesignModeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnIsDesignModeChanged(
+            DependencyObject d,
+            DependencyPropertyChangedEventArgs e
+        )
         {
             if (d is UIElement element)
             {
@@ -59,7 +67,7 @@ namespace neo_bpsys_wpf.CustomBehaviors
                         Background = Brushes.LightGray,
                         Opacity = 0.5,
                         IsHitTestVisible = false,
-                        Padding = new Thickness(2)
+                        Padding = new Thickness(2),
                     };
                     Canvas.SetLeft(textBlock, Canvas.GetLeft(fe));
                     Canvas.SetTop(textBlock, Canvas.GetTop(fe) - textBlock.ActualHeight);
@@ -94,7 +102,12 @@ namespace neo_bpsys_wpf.CustomBehaviors
         }
 
         private static readonly DependencyProperty TagProperty =
-            DependencyProperty.RegisterAttached("Tag", typeof(object), typeof(DesignBehavior), new PropertyMetadata(null));
+            DependencyProperty.RegisterAttached(
+                "Tag",
+                typeof(object),
+                typeof(DesignBehavior),
+                new PropertyMetadata(null)
+            );
 
         private static Point _startPoint;
         private static bool _isDragging;

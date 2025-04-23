@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Markup;
 using Wpf.Ui.Appearance;
 
@@ -14,7 +9,8 @@ namespace neo_bpsys_wpf.Theme
     [UsableDuringInitialization(true)]
     public class IconThemesDictionary : ResourceDictionary
     {
-        private const string IconsDictionaryPath = "pack://application:,,,/neo-bpsys-wpf;component/Themes/";
+        private const string IconsDictionaryPath =
+            "pack://application:,,,/neo-bpsys-wpf;component/Themes/";
 
         /// <summary>
         /// Sets the default application theme.

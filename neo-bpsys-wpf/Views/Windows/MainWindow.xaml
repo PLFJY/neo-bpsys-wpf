@@ -19,14 +19,8 @@
                                      IsDesignTimeCreatable=True}"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-    Topmost="{Binding IsTopmost}"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
-    <i:Interaction.Triggers>
-        <i:EventTrigger EventName="Closing">
-            <i:InvokeCommandAction Command="{Binding WindowClosingCommand}" PassEventArgsToCommand="True" />
-        </i:EventTrigger>
-    </i:Interaction.Triggers>
     <ui:FluentWindow.Resources>
         <ResourceDictionary>
             <Style
@@ -71,33 +65,20 @@
             </Grid.RowDefinitions>
             <!--  TitleBar  -->
             <Grid
-                x:Name="TitleBar"
+                Name="TitleBar"
                 Grid.Row="0"
                 Height="35">
-                <i:Interaction.Triggers>
-                    <i:EventTrigger EventName="MouseDown">
-                        <i:InvokeCommandAction Command="{Binding TitleBarMouseDownCommand}" PassEventArgsToCommand="True" />
-                    </i:EventTrigger>
-                </i:Interaction.Triggers>
-                <Grid.InputBindings>
-                    <MouseBinding Command="{Binding MaximizeCommand}" MouseAction="LeftDoubleClick" />
-                </Grid.InputBindings>
                 <Border Background="White" Opacity="0" />
                 <StackPanel
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     Orientation="Horizontal">
                     <ui:Image
+                        Name="WindowIcon"
                         Height="25"
                         Margin="5,0,0,0"
                         Focusable="False"
-                        Source="/Assets/icon.png">
-                        <i:Interaction.Triggers>
-                            <i:EventTrigger EventName="MouseDown">
-                                <i:InvokeCommandAction Command="{Binding ShowSystemMenuCommand}" />
-                            </i:EventTrigger>
-                        </i:Interaction.Triggers>
-                    </ui:Image>
+                        Source="/Assets/icon.png" />
                     <ui:TextBlock
                         Margin="15,0,0,0"
                         VerticalAlignment="Center"
@@ -124,23 +105,20 @@
                     <ToggleButton
                         Height="35"
                         Focusable="False"
-                        IsChecked="{Binding IsTopmost}"
+                        IsChecked="{Binding RelativeSource={RelativeSource AncestorType=ui:FluentWindow}, Path=Topmost, Mode=TwoWay}"
                         Style="{StaticResource TitleBarToggleButton}">
                         <ui:SymbolIcon Symbol="Pin24" />
                     </ToggleButton>
                     <ui:Button
-                        x:Name="Minimize"
-                        Command="{Binding MinimizeCommand}"
+                        Name="MinimizeButton"
                         Icon="{ui:SymbolIcon Symbol=Subtract24}"
                         Style="{StaticResource TitleBarButton}" />
                     <ui:Button
-                        x:Name="Maximize"
-                        Command="{Binding MaximizeCommand}"
+                        Name="MaximizeButton"
                         Icon="{ui:SymbolIcon Symbol=Maximize24}"
                         Style="{StaticResource TitleBarButton}" />
                     <ui:Button
-                        x:Name="Exit"
-                        Command="{Binding ExitCommand}"
+                        Name="ExitButton"
                         Icon="{ui:SymbolIcon Symbol=Dismiss24}"
                         Style="{StaticResource TitleBarButton}" />
                 </StackPanel>

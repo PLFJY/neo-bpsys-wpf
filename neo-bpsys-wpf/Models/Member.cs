@@ -1,16 +1,30 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Enums;
-using System.Windows.Media.Imaging;
+using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Models;
 
-public class Member
+public partial class Member : ObservableObject
 {
-    public Camp Camp { get; set; }
+    public Member()
+    {
+        //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+    }
 
-    public string Name { get; set; } = string.Empty;
+    [ObservableProperty]
+    private string _name = string.Empty;
 
-    public BitmapImage? Image { get; set; }
+    [ObservableProperty]
+    private Camp _camp;
 
-    public bool IsPlaying { get; set; } = false;
+    [ObservableProperty]
+    private ImageSource? _image;
 
+    [ObservableProperty]
+    private bool _isOnField = false;
+
+    public Member(Camp camp)
+    {
+        Camp = camp;
+    }
 }
