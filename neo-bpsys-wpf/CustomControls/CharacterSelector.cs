@@ -1,6 +1,4 @@
-﻿using hyjiacan.py4n;
-using neo_bpsys_wpf.Models;
-using System.Collections;
+﻿using neo_bpsys_wpf.Models;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -17,8 +15,12 @@ namespace neo_bpsys_wpf.CustomControls
         }
 
         // Using a DependencyProperty as the backing store for ImageSource.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty ImageSourceProperty =
-            DependencyProperty.Register("ImageSource", typeof(ImageSource), typeof(CharacterSelector), new PropertyMetadata(null));
+        public static readonly DependencyProperty ImageSourceProperty = DependencyProperty.Register(
+            "ImageSource",
+            typeof(ImageSource),
+            typeof(CharacterSelector),
+            new PropertyMetadata(null)
+        );
 
         public ICommand Command
         {
@@ -27,10 +29,12 @@ namespace neo_bpsys_wpf.CustomControls
         }
 
         // Using a DependencyProperty as the backing store for Command.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty CommandProperty =
-            DependencyProperty.Register("Command", typeof(ICommand), typeof(CharacterSelector), new PropertyMetadata(null));
-
-
+        public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(
+            "Command",
+            typeof(ICommand),
+            typeof(CharacterSelector),
+            new PropertyMetadata(null)
+        );
 
         public bool IsSimpleModeEnable
         {
@@ -40,15 +44,21 @@ namespace neo_bpsys_wpf.CustomControls
 
         // Using a DependencyProperty as the backing store for IsSimpleModeEnable.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsSimpleModeEnableProperty =
-            DependencyProperty.Register("IsSimpleModeEnable", typeof(bool), typeof(CharacterSelector), new PropertyMetadata(false));
-
-
-
+            DependencyProperty.Register(
+                "IsSimpleModeEnable",
+                typeof(bool),
+                typeof(CharacterSelector),
+                new PropertyMetadata(false)
+            );
 
         static CharacterSelector()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(CharacterSelector), new FrameworkPropertyMetadata(typeof(CharacterSelector)));
+            DefaultStyleKeyProperty.OverrideMetadata(
+                typeof(CharacterSelector),
+                new FrameworkPropertyMetadata(typeof(CharacterSelector))
+            );
         }
+
         /// <summary>
         /// A methos used to move focus
         /// </summary>
@@ -68,7 +78,8 @@ namespace neo_bpsys_wpf.CustomControls
             //ensure foucuce on Combobox edit area
             var currentFocusedElement = Keyboard.FocusedElement as UIElement;
 
-            if (currentFocusedElement == null || currentFocusedElement.GetType() != typeof(TextBox)) return;
+            if (currentFocusedElement == null || currentFocusedElement.GetType() != typeof(TextBox))
+                return;
 
             //press Enter to change focuse
             if (e.Key == Key.Enter)
@@ -93,12 +104,12 @@ namespace neo_bpsys_wpf.CustomControls
                 var currentText = base.Text;
                 var findedIndex = FindIndex(currentText);
                 base.SelectedIndex = findedIndex;
-                if (findedIndex == -1) return;
-                if(ItemsSource is Dictionary<string, Character> itemSource)
+                if (findedIndex == -1)
+                    return;
+                if (ItemsSource is Dictionary<string, Character> itemSource)
                     Text = itemSource.ElementAt(findedIndex).Key;
             }
         }
-
 
         /// <summary>
         /// Find the index of ths option waiting to be found
@@ -108,7 +119,8 @@ namespace neo_bpsys_wpf.CustomControls
         public int FindIndex(string inputText)
         {
             string inputLower = inputText.ToLowerInvariant();
-            if(base.ItemsSource is not Dictionary<string, Character> itemSource) return -1;
+            if (base.ItemsSource is not Dictionary<string, Character> itemSource)
+                return -1;
 
             var index = 0;
 
@@ -118,7 +130,11 @@ namespace neo_bpsys_wpf.CustomControls
                 var abbrev = item.Value.Abbrev.ToLowerInvariant();
                 var fullName = item.Value.Name;
                 // Check whether the full prefix matches or the short prefix matches
-                if (fullSpell.StartsWith(inputLower) || abbrev.StartsWith(inputLower) || fullName.StartsWith(inputText))
+                if (
+                    fullSpell.StartsWith(inputLower)
+                    || abbrev.StartsWith(inputLower)
+                    || fullName.StartsWith(inputText)
+                )
                 {
                     return index;
                 }

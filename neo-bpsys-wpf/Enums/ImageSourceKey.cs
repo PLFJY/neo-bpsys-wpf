@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-
-namespace neo_bpsys_wpf.Enums
+﻿namespace neo_bpsys_wpf.Enums
 {
     public enum ImageSourceKey
     {
@@ -21,6 +14,6 @@ namespace neo_bpsys_wpf.Enums
         surHeader,
         surHeader_singleColor,
         talent,
-        trait
+        trait,
     }
 }

@@ -8,11 +8,18 @@ namespace neo_bpsys_wpf.CustomControls
     {
         static CharacterChanger()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(CharacterChanger), new FrameworkPropertyMetadata(typeof(CharacterChanger)));
+            DefaultStyleKeyProperty.OverrideMetadata(
+                typeof(CharacterChanger),
+                new FrameworkPropertyMetadata(typeof(CharacterChanger))
+            );
         }
 
-        public static readonly DependencyProperty IndexProperty =
-            DependencyProperty.Register("Index", typeof(int), typeof(CharacterChanger), new PropertyMetadata(0));
+        public static readonly DependencyProperty IndexProperty = DependencyProperty.Register(
+            "Index",
+            typeof(int),
+            typeof(CharacterChanger),
+            new PropertyMetadata(0)
+        );
 
         public int Index
         {
@@ -20,8 +27,12 @@ namespace neo_bpsys_wpf.CustomControls
             set { SetValue(IndexProperty, value); }
         }
 
-        public static readonly DependencyProperty CommandProperty =
-            DependencyProperty.Register("Command", typeof(ICommand), typeof(CharacterChanger), new PropertyMetadata(null));
+        public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(
+            "Command",
+            typeof(ICommand),
+            typeof(CharacterChanger),
+            new PropertyMetadata(null)
+        );
 
         public ICommand Command
         {
@@ -29,8 +40,12 @@ namespace neo_bpsys_wpf.CustomControls
             set { SetValue(CommandProperty, value); }
         }
 
-        public static readonly DependencyProperty SpacingProperty =
-            DependencyProperty.Register("Spacing", typeof(double), typeof(CharacterChanger), new PropertyMetadata(0.0));
+        public static readonly DependencyProperty SpacingProperty = DependencyProperty.Register(
+            "Spacing",
+            typeof(double),
+            typeof(CharacterChanger),
+            new PropertyMetadata(0.0)
+        );
         public double Spacing
         {
             get { return (double)GetValue(SpacingProperty); }

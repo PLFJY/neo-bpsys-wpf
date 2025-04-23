@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 using System.Windows.Data;
 using Wpf.Ui.Appearance;
 
@@ -13,11 +8,17 @@ namespace neo_bpsys_wpf.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is not ApplicationTheme applicationTheme) throw new ArgumentException();
+            if (value is not ApplicationTheme applicationTheme)
+                throw new ArgumentException();
             return applicationTheme == ApplicationTheme.Dark;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(
+            object value,
+            Type targetType,
+            object parameter,
+            CultureInfo culture
+        )
         {
             return (bool)value ? ApplicationTheme.Dark : ApplicationTheme.Light;
         }

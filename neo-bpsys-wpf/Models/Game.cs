@@ -25,7 +25,10 @@ public class Game
         StartTime = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
         SurTeam = surTeam.DeepClone() ?? throw new ArgumentNullException(nameof(surTeam));
         HunTeam = hunTeam.DeepClone() ?? throw new ArgumentNullException(nameof(surTeam));
-        SurPlayerList = Enumerable.Range(0, 4).Select(index => new Player(Camp.Sur, index)).ToArray();
+        SurPlayerList = Enumerable
+            .Range(0, 4)
+            .Select(index => new Player(Camp.Sur, index))
+            .ToArray();
         HunPlayer = new Player(Camp.Hun);
         GameProgress = gameProgress;
     }

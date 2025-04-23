@@ -1,26 +1,15 @@
 ﻿using neo_bpsys_wpf.Views.Windows;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Net.Http.Json;
-using Microsoft.Extensions.DependencyInjection;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace neo_bpsys_wpf.Services
 {
     public class FrontService : IFrontService
     {
-        private readonly BpWindow _bpWindow;
-        private readonly InterludeWindow _interludeWindow;
-        private readonly ScoreWindow _scoreWindow;
-        private readonly GameDataWindow _gameDataWindow;
-        private readonly WidgetsWindow _widgetsWindow;
+        private readonly Dictionary<Type, Window> _frontWindows = new();
+
+        private readonly Dictionary<Type, bool> _frontWindowStates = new();
 
         public bool IsBpWindowRunning { get; set; } = false;
         public bool IsInterludeWindowRunning { get; set; } = false;
@@ -29,91 +18,71 @@ namespace neo_bpsys_wpf.Services
         public bool IsWidgetsWindowRunning { get; set; } = false;
 
         // 存储XAML中定义的初始位置（控件名称 -> 初始坐标）
-        private readonly Dictionary<Window, Dictionary<string, (double left, double top)>> _elementsInitialPositions = new();
+        private readonly Dictionary<
+            Window,
+            Dictionary<string, (double left, double top)>
+        > _elementsInitialPositions = new();
 
-        public FrontService(BpWindow bpWindow, InterludeWindow interludeWindow, GameDataWindow gameDataWindow, ScoreWindow scoreWindow, WidgetsWindow widgetsWindow)
+        public bool this[Type windowType]
         {
-            _bpWindow = bpWindow;
-            _interludeWindow = interludeWindow;
-            _gameDataWindow = gameDataWindow;
-            _scoreWindow = scoreWindow;
-            _widgetsWindow = widgetsWindow;
-
-            RecordInitialPositions(_bpWindow);
+            get => _frontWindowStates.TryGetValue(windowType, out var state) ? state : false;
+            set => _frontWindowStates[windowType] = value;
         }
+
+        public FrontService(
+            BpWindow bpWindow,
+            InterludeWindow interludeWindow,
+            GameDataWindow gameDataWindow,
+            ScoreWindow scoreWindow,
+            WidgetsWindow widgetsWindow
+        )
+        {
+            _frontWindows[typeof(BpWindow)] = bpWindow;
+            _frontWindows[typeof(InterludeWindow)] = interludeWindow;
+            _frontWindows[typeof(GameDataWindow)] = gameDataWindow;
+            _frontWindows[typeof(ScoreWindow)] = scoreWindow;
+            _frontWindows[typeof(WidgetsWindow)] = widgetsWindow;
+
+            RecordInitialPositions(_frontWindows[typeof(BpWindow)]);
+        }
+
         //窗口显示/隐藏管理
         public void AllWindowShow()
         {
-            BpWindowShow();
-            InterludeWindowShow();
-            GameDataWindowShow();
-            ScoreWindowShow();
-            WidgetsWindowShow();
+            foreach (var window in _frontWindows.Values)
+            {
+                window.Show();
+                _frontWindowStates[window.GetType()] = true;
+            }
         }
+
         public void AllWindowHide()
         {
-            BpWindowHide();
-            InterludeWindowHide();
-            GameDataWindowHide();
-            ScoreWindowHide();
-            WidgetsWindowHide();
+            foreach (var window in _frontWindows.Values)
+            {
+                window.Hide();
+                _frontWindowStates[window.GetType()] = false;
+            }
         }
 
-        public void BpWindowShow()
+        public void ShowWindow<T>()
+            where T : Window
         {
-            _bpWindow.Show();
-            IsBpWindowRunning = true;
-        }
-        public void BpWindowHide()
-        {
-            _bpWindow.Hide();
-            IsBpWindowRunning = false;
+            if (!_frontWindows.TryGetValue(typeof(T), out var window))
+                throw new ArgumentException($"未注册的窗口类型：{typeof(T)}");
+
+            window.Show();
+            _frontWindowStates[typeof(T)] = true;
         }
 
-        public void InterludeWindowShow()
+        public void HideWindow<T>()
+            where T : Window
         {
-            _interludeWindow.Show();
-            IsInterludeWindowRunning = true;
-        }
-        public void InterludeWindowHide()
-        {
-            _interludeWindow.Hide();
-            IsInterludeWindowRunning = false;
-        }
-        public void GameDataWindowShow()
-        {
-            _gameDataWindow.Show();
-            IsGameDataWindowRunning = true;
-        }
+            if (!_frontWindows.TryGetValue(typeof(T), out var window))
+                throw new ArgumentException($"未注册的窗口类型：{typeof(T)}");
 
-        public void GameDataWindowHide()
-        {
-            _gameDataWindow.Hide();
-            IsGameDataWindowRunning = false;
-        }
-
-        public void ScoreWindowShow()
-        {
-            _scoreWindow.Show();
-            IsScoreWindowRunning = true;
-        }
-
-        public void ScoreWindowHide()
-        {
-            _scoreWindow.Hide();
-            IsScoreWindowRunning = false;
-        }
-
-        public void WidgetsWindowShow()
-        {
-            _widgetsWindow.Show();
-            IsWidgetsWindowRunning = true;
-        }
-
-        public void WidgetsWindowHide()
-        {
-            _widgetsWindow.Hide();
-            IsWidgetsWindowRunning = false;
+            window.Hide();
+            _frontWindowStates[typeof(T)] = false;
         }
 
         /// <summary>
@@ -123,7 +92,8 @@ namespace neo_bpsys_wpf.Services
         public void RecordInitialPositions(Window window)
         {
             var canvas = window.FindName("BaseCanvas") as Canvas;
-            if (canvas == null) return;
+            if (canvas == null)
+                return;
 
             _elementsInitialPositions[window] = new();
             _elementsInitialPositions[window].Clear();
@@ -134,7 +104,7 @@ namespace neo_bpsys_wpf.Services
                     _elementsInitialPositions[window][fe.Name] = (
                         Canvas.GetLeft(fe),
                         Canvas.GetTop(fe)
-                        );
+                    );
                 }
             }
         }
@@ -156,16 +126,14 @@ namespace neo_bpsys_wpf.Services
                     {
                         var name = element.Name;
                         var left = Canvas.GetLeft(element);
-                        if(double.IsNaN(left)) left = 0;
+                        if (double.IsNaN(left))
+                            left = 0;
                         var top = Canvas.GetTop(element);
                         position.Add(new PositionInfo(name, left, top));
                     }
                 }
             }
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-            };
+            var options = new JsonSerializerOptions { WriteIndented = true };
             return JsonSerializer.Serialize(position, options);
         }
 
@@ -179,7 +147,11 @@ namespace neo_bpsys_wpf.Services
             var positions = JsonSerializer.Deserialize<List<PositionInfo>>(json);
             if (window.FindName("BaseCanvas") is Canvas canvas && positions != null)
             {
-                var positionMap = positions.ToDictionary(p => p.Name, p => (p.Left, p.Top), StringComparer.OrdinalIgnoreCase);
+                var positionMap = positions.ToDictionary(
+                    p => p.Name,
+                    p => (p.Left, p.Top),
+                    StringComparer.OrdinalIgnoreCase
+                );
                 foreach (UIElement child in canvas.Children)
                 {
                     if (child is FrameworkElement fe && positionMap.ContainsKey(fe.Name))
@@ -199,11 +171,15 @@ namespace neo_bpsys_wpf.Services
         public void RestoreInitialPositions(Window window)
         {
             var canvas = window.FindName("BaseCanvas") as Canvas;
-            if (canvas == null || _elementsInitialPositions[window].Count == 0) return;
+            if (canvas == null || _elementsInitialPositions[window].Count == 0)
+                return;
 
             foreach (UIElement child in canvas.Children)
             {
-                if (child is FrameworkElement fe && _elementsInitialPositions[window].ContainsKey(fe.Name))
+                if (
+                    child is FrameworkElement fe
+                    && _elementsInitialPositions[window].ContainsKey(fe.Name)
+                )
                 {
                     var (left, top) = _elementsInitialPositions[window][fe.Name];
                     Canvas.SetLeft(fe, left);
@@ -211,6 +187,7 @@ namespace neo_bpsys_wpf.Services
                 }
             }
         }
+
         /// <summary>
         /// 窗口中元素的位置信息
         /// </summary>
@@ -222,7 +199,6 @@ namespace neo_bpsys_wpf.Services
             public string Name { get; set; } = name;
             public double Left { get; set; } = left;
             public double Top { get; set; } = top;
-
         }
 
         /// <summary>

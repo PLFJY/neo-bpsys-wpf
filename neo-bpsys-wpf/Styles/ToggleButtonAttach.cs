@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls.Primitives;
 
 namespace neo_bpsys_wpf.Styles
@@ -27,10 +21,17 @@ namespace neo_bpsys_wpf.Styles
         /// 为具有 ToggleButtonGorgeousThemeSwitchStyle 样式的 <see cref="ToggleButton"/> 设置是否启用自动折叠
         /// </summary>
         public static readonly DependencyProperty IsAutoFoldProperty =
-            DependencyProperty.RegisterAttached("IsAutoFold", typeof(bool), typeof(ToggleButtonAttach),
-                new PropertyMetadata(false, ToggleButtonChanged));
+            DependencyProperty.RegisterAttached(
+                "IsAutoFold",
+                typeof(bool),
+                typeof(ToggleButtonAttach),
+                new PropertyMetadata(false, ToggleButtonChanged)
+            );
 
-        private static void ToggleButtonChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
+        private static void ToggleButtonChanged(
+            DependencyObject o,
+            DependencyPropertyChangedEventArgs e
+        )
         {
             if (o is not ToggleButton control)
                 return;
@@ -40,7 +41,11 @@ namespace neo_bpsys_wpf.Styles
                 control.Checked += Control_Checked;
                 control.Unchecked += Control_Checked;
                 if (!control.IsMouseOver)
-                    VisualStateManager.GoToState(control, control.IsChecked == true ? "MouseLeaveChecked" : "MouseLeaveUnChecked", false);
+                    VisualStateManager.GoToState(
+                        control,
+                        control.IsChecked == true ? "MouseLeaveChecked" : "MouseLeaveUnChecked",
+                        false
+                    );
             }
             else
             {
@@ -54,18 +59,28 @@ namespace neo_bpsys_wpf.Styles
         private static void Control_Checked(object sender, RoutedEventArgs e)
         {
             var control = (ToggleButton)sender;
-            if(control.IsMouseOver)
+            if (control.IsMouseOver)
                 return;
-            VisualStateManager.GoToState(control, control.IsChecked == true ? "MouseLeaveChecked" : "MouseLeaveUnChecked", false);
+            VisualStateManager.GoToState(
+                control,
+                control.IsChecked == true ? "MouseLeaveChecked" : "MouseLeaveUnChecked",
+                false
+            );
         }
 
-        private static async void Control_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        private static async void Control_MouseLeave(
+            object sender,
+            System.Windows.Input.MouseEventArgs e
+        )
         {
             await Task.Delay(1000);
             var control = (ToggleButton)sender;
-            VisualStateManager.GoToState(control, control.IsChecked == true ? "MouseLeaveChecked" : "MouseLeaveUnChecked", false);
+            VisualStateManager.GoToState(
+                control,
+                control.IsChecked == true ? "MouseLeaveChecked" : "MouseLeaveUnChecked",
+                false
+            );
         }
         #endregion
-
     }
 }

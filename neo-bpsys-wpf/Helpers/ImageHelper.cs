@@ -1,9 +1,4 @@
 ﻿using neo_bpsys_wpf.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -18,17 +13,36 @@ namespace neo_bpsys_wpf.Helpers
         /// <returns></returns>
         public static ImageBrush GetUiImageBrush(string key)
         {
-            return new ImageBrush(new BitmapImage(new Uri($"{Environment.CurrentDirectory}\\Resources\\{ImageSourceKey.bpui}\\{key}.png")));
+            return new ImageBrush(
+                new BitmapImage(
+                    new Uri(
+                        $"{Environment.CurrentDirectory}\\Resources\\{ImageSourceKey.bpui}\\{key}.png"
+                    )
+                )
+            );
         }
+
         /// <summary>
         /// Get Character ImageBrush from correspinding Resources folder
         /// </summary>
         /// <param name="key">ImageSourceKey</param>
         /// <param name="character">character name</param>
         /// <returns></returns>
-        public static BitmapImage GetCharacterImageBrush(ImageSourceKey key, string character)
+        public static ImageSource GetCharacterImageBrush(ImageSourceKey key, string character)
         {
-            return new BitmapImage(new Uri($"{Environment.CurrentDirectory}\\Resources\\{key}\\{character}.png"));
+            return new BitmapImage(
+                new Uri($"{Environment.CurrentDirectory}\\Resources\\{key}\\{character}.png")
+            );
+        }
+
+        /// <summary>
+        /// Get ImageSource from file path
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        public static ImageSource GetImageFromPath(string fileName)
+        {
+            return new BitmapImage(new Uri(fileName));
         }
     }
 }

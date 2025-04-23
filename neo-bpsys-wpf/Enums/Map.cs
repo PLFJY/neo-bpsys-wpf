@@ -13,6 +13,6 @@ namespace neo_bpsys_wpf.Enums
         里奥的回忆,
         唐人街,
         永眠镇,
-        不归林
+        不归林,
     }
 }
