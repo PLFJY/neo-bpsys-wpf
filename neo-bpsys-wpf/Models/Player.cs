@@ -1,6 +1,4 @@
-using Microsoft.Extensions.Options;
 using neo_bpsys_wpf.Enums;
-using System.ComponentModel;
 using System.Windows.Media.Imaging;
 
 namespace neo_bpsys_wpf.Models;

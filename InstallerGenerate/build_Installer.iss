@@ -4,7 +4,7 @@
 #include "CodeDependencies.iss"
 #define MyAppName "neo-bpsys-wpf"
 ; Extract File Version from EXE
-#define MyAppVersion GetFileVersion("..\neo-bpsys-wpf\bin\Release\neo-bpsys-wpf\neo-bpsys-wpf.exe")
+#define MyAppVersion GetFileVersion("..\build\neo-bpsys-wpf\neo-bpsys-wpf.exe")
 #define MyAppPublisher "PLFJY"
 #define MyAppURL "https://plfjy.top/"
 #define MyAppExeName "neo-bpsys-wpf.exe"
@@ -37,7 +37,7 @@ LicenseFile=License.txt
 ;InfoBeforeFile=Readme.txt
 ;取消下行前面 ; 符号，在非管理安装模式下运行（仅为当前用户安装）.
 ;PrivilegesRequired=lowest
-OutputDir=bin\
+OutputDir=..\build\
 OutputBaseFilename=neo-bpsys-wpf_Installer
 SetupIconFile=..\neo-bpsys-wpf\favicon.ico
 SolidCompression=yes
@@ -50,8 +50,8 @@ Name: "chs"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkablealone
 
 [Files]
-Source: "..\neo-bpsys-wpf\bin\Release\neo-bpsys-wpf\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\neo-bpsys-wpf\bin\Release\neo-bpsys-wpf\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\build\neo-bpsys-wpf\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\build\neo-bpsys-wpf\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [code]

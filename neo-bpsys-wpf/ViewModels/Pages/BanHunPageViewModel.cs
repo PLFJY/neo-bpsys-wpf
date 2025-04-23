@@ -9,7 +9,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
         }
+
         public ISharedDataService SharedDataService { get; }
+
         public BanHunPageViewModel(ISharedDataService sharedDataService)
         {
             SharedDataService = sharedDataService;

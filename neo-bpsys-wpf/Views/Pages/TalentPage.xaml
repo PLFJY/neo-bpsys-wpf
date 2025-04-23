@@ -22,7 +22,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/CustomControls/TalentPicker.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <cv:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         </ResourceDictionary>
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
