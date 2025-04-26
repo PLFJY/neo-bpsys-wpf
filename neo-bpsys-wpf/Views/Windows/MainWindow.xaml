@@ -140,7 +140,7 @@
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Orientation="Horizontal">
                             <TextBlock Text="当前求生者队伍:" />
-                            <TextBlock Margin="20,0,0,0" Text="{Binding SharedDataService.CurrentSurTeam.Name}" />
+                            <TextBlock Margin="20,0,0,0" Text="{Binding SharedDataService.CurrentGame.SurTeam.Name}" />
                         </StackPanel>
                         <ui:Button
                             Grid.Row="1"
@@ -151,7 +151,7 @@
                             Icon="{ui:SymbolIcon Symbol=ArrowSort24}" />
                         <StackPanel Grid.Row="2" Orientation="Horizontal">
                             <TextBlock Text="当前监管者队伍:" />
-                            <TextBlock Margin="20,0,0,0" Text="{Binding SharedDataService.CurrentHunTeam.Name}" />
+                            <TextBlock Margin="20,0,0,0" Text="{Binding SharedDataService.CurrentGame.HunTeam.Name}" />
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -236,6 +236,5 @@
             Panel.ZIndex="-1"
             Fill="White"
             Opacity="0" />
-
     </Grid>
 </ui:FluentWindow>

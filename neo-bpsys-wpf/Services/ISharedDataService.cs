@@ -7,8 +7,6 @@ namespace neo_bpsys_wpf.Services
     {
         Team MainTeam { get; set; }
         Team AwayTeam { get; set; }
-        Team CurrentSurTeam { get; set; }
-        Team CurrentHunTeam { get; set; }
         Game CurrentGame { get; set; }
         GameProgress CurrentGameProgress { get; set; }
         Dictionary<string, Character> CharacterList { get; set; }

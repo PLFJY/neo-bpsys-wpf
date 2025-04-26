@@ -1,0 +1,1 @@
+该Inno Setup是由MonKeyDu汉化的版本，为了我自己方便和服务于Github Action而被导入进仓库

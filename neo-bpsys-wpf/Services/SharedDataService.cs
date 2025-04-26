@@ -13,12 +13,9 @@ namespace neo_bpsys_wpf.Services
             MainTeam = new Team(Camp.Sur);
             AwayTeam = new Team(Camp.Hun);
 
-            CurrentSurTeam = MainTeam;
-            CurrentHunTeam = AwayTeam;
-
             CurrentGameProgress = GameProgress.Free;
 
-            CurrentGame = new(CurrentSurTeam, CurrentHunTeam, CurrentGameProgress);
+            CurrentGame = new(MainTeam, AwayTeam, CurrentGameProgress);
 
             SurCharaList = new();
             HunCharaList = new();
@@ -68,8 +65,6 @@ namespace neo_bpsys_wpf.Services
 
         public Team MainTeam { get; set; }
         public Team AwayTeam { get; set; }
-        public Team CurrentSurTeam { get; set; }
-        public Team CurrentHunTeam { get; set; }
         public Game CurrentGame { get; set; }
         public GameProgress CurrentGameProgress { get; set; }
         public Dictionary<string, Character> CharacterList { get; set; } = new();
