@@ -1,4 +1,4 @@
-﻿namespace neo_bpsys_wpf.ViewModels.Pages
+﻿namespace neo_bpsys_wpf.Events
 {
     public class DesignModeChangedEventArgs : EventArgs
     {

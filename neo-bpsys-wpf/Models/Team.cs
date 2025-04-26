@@ -1,6 +1,8 @@
+using AutoMapper.QueryableExtensions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Enums;
 using System.Collections.ObjectModel;
+using System.Text.Json.Serialization;
 using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Models;
@@ -33,6 +35,14 @@ public partial class Team : ObservableObject
     [ObservableProperty]
     private ObservableCollection<Character> _hunGlobalBanList = new();
 
+    [ObservableProperty]
+    [JsonIgnore]
+    private Player[] _surPlayerOnFieldArray;
+
+    [ObservableProperty]
+    [JsonIgnore]
+    private Player _hunPlayerOnField;
+
     public Score Score { get; set; } = new Score();
 
     public Team(Camp camp)
@@ -45,5 +55,71 @@ public partial class Team : ObservableObject
         HunMemberList.Add(new Member(Camp.Hun));
 
         Camp = camp;
+
+        SurPlayerOnFieldArray = new Player[4];
+        for (int i = 0; i < 4; i++)
+        {
+            SurPlayerOnFieldArray[i] = new Player(Camp.Sur, i);
+        }
+        HunPlayerOnField = new Player(Camp.Hun);
+    }
+
+    public bool CanAddMemberInPlayer(Camp camp)
+    {
+        if (camp == Camp.Hun)
+        {
+            return !HunPlayerOnField.IsMemberValid;
+        }
+
+
+        foreach (var p in SurPlayerOnFieldArray)
+        {
+            if (!p.IsMemberValid) return true;
+        }
+        return false;
+    }
+
+    public bool AddMemberInPlayer(Member member)
+    {
+        if (!CanAddMemberInPlayer(member.Camp)) return false;
+
+        if (member.Camp == Camp.Hun)
+        {
+            HunPlayerOnField.Member = member;
+            HunPlayerOnField.IsMemberValid = true;
+            return true;
+        }
+
+        foreach (var p in SurPlayerOnFieldArray)
+        {
+            if (!p.IsMemberValid)
+            {
+                p.Member = member;
+                p.IsMemberValid = true;
+                break;
+            }
+        }
+
+        return true;
+    }
+
+    public void RemoveMemberInPlayer(Member member)
+    {
+        if (member.Camp == Camp.Hun)
+        {
+            HunPlayerOnField.Member = new(Camp.Hun);
+            HunPlayerOnField.IsMemberValid = false;
+            return;
+        }
+
+        foreach (var p in SurPlayerOnFieldArray)
+        {
+            if (p.Member == member)
+            {
+                p.Member = new(Camp.Sur);
+                p.IsMemberValid = false;
+                return;
+            }
+        }
     }
 }
