@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
+using neo_bpsys_wpf.Events;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Views.Windows;
 using System.IO;
@@ -213,7 +214,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 Title = "重置提示",
                 Content = $"是否重置{nameof(BpWindow)}的配置",
                 PrimaryButtonText = "确认",
-                PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Check24 },
+                PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Checkmark24 },
                 CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
                 CloseButtonText = "取消",
             };

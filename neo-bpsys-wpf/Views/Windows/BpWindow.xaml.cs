@@ -1,4 +1,5 @@
-﻿using neo_bpsys_wpf.Helpers;
+﻿using neo_bpsys_wpf.Events;
+using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ViewModels.Pages;
 using System.Windows;
 using System.Windows.Input;

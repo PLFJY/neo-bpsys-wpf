@@ -1,35 +1,41 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Enums;
+using System.Collections.ObjectModel;
 using System.Windows.Media.Imaging;
 
 namespace neo_bpsys_wpf.Models;
 
-public class Player
+public partial class Player : ObservableObject
 {
     public Player(Camp camp, int? position = null)
     {
-        Camp = camp;
         Character = new Character(camp);
         Position = position;
     }
 
-    public Player(Camp camp, string name, BitmapImage image, bool isPlaying)
+    public Player(Camp camp, string name, BitmapImage image)
     {
         Character = new Character(camp);
     }
 
-    public string Name { get; set; } = string.Empty;
+    [ObservableProperty]
+    private Member _member = new();
 
-    public Camp Camp { get; set; }
+    [ObservableProperty]
+    private bool _isMemberValid = false;
 
-    public Character Character { set; get; }
+    [ObservableProperty]
+    private Character _character;
 
-    public int? Position { get; set; }
+    [ObservableProperty]
+    private int? _position;
 
-    public BitmapImage? Image { get; set; }
+    [ObservableProperty]
+    private ObservableCollection<Talent>? _talent;
 
-    public List<Talent>? Talent { get; set; }
+    [ObservableProperty]
+    private Trait? _trait;
 
-    public Trait? Trait { get; set; }
-
-    public PlayerData? Data { get; set; }
+    [ObservableProperty]
+    private PlayerData? _data;
 }

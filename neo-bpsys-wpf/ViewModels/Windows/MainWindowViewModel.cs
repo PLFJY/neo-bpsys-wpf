@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Views.Pages;
 using System.IO;
@@ -38,12 +39,24 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [RelayCommand]
         private void NewGame()
         {
+            Team surTeam = new(Camp.Sur);
+            Team hunTeam = new(Camp.Hun);
+            if (SharedDataService.MainTeam.Camp == Camp.Sur)
+            {
+                surTeam = SharedDataService.MainTeam;
+                hunTeam = SharedDataService.AwayTeam;
+            }
+            else
+            {
+                surTeam = SharedDataService.AwayTeam;
+                hunTeam = SharedDataService.MainTeam;
+            }
             SharedDataService.CurrentGame = new(
-                SharedDataService.CurrentSurTeam,
-                SharedDataService.CurrentHunTeam,
+                surTeam,
+                hunTeam,
                 SharedDataService.CurrentGameProgress
             );
-            Wpf.Ui.Controls.MessageBox messageBox = new()
+            MessageBox messageBox = new()
             {
                 Title = "创建提示",
                 Content = $"已成功创建新对局\n{SharedDataService.CurrentGame.GUID}",
@@ -54,10 +67,8 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [RelayCommand]
         private void Swap()
         {
-            (SharedDataService.CurrentSurTeam, SharedDataService.CurrentHunTeam) = (
-                SharedDataService.CurrentHunTeam,
-                SharedDataService.CurrentSurTeam
-            );
+            (SharedDataService.MainTeam.Camp, SharedDataService.AwayTeam.Camp) = (SharedDataService.AwayTeam.Camp, SharedDataService.MainTeam.Camp);
+            (SharedDataService.CurrentGame.SurTeam, SharedDataService.CurrentGame.HunTeam) = (SharedDataService.CurrentGame.HunTeam, SharedDataService.CurrentGame.SurTeam);
         }
 
         [RelayCommand]

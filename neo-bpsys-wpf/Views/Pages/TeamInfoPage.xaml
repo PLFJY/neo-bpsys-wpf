@@ -20,6 +20,7 @@
     mc:Ignorable="d">
     <Page.Resources>
         <cv:CampToStringConverter x:Key="CampToStringConverter" />
+        <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
         <!--  main team  -->
@@ -89,7 +90,12 @@
                                         CommandParameter="{Binding}"
                                         Content="设置定妆照"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
-                                    <ToggleButton Margin="10,0,0,0" IsChecked="{Binding IsOnField}">
+                                    <ToggleButton
+                                        Margin="10,0,0,0"
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SwitchMemberStateCommand}"
+                                        CommandParameter="{Binding}"
+                                        IsChecked="{Binding IsOnField}"
+                                        IsEnabled="{Binding CanOnField}">
                                         <ToggleButton.Style>
                                             <Style BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="ToggleButton">
                                                 <Setter Property="Background" Value="DarkGreen" />
@@ -151,7 +157,12 @@
                                         CommandParameter="{Binding}"
                                         Content="设置定妆照"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
-                                    <ToggleButton Margin="10,0,0,0" IsChecked="{Binding IsOnField}">
+                                    <ToggleButton
+                                        Margin="10,0,0,0"
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SwitchMemberStateCommand}"
+                                        CommandParameter="{Binding}"
+                                        IsChecked="{Binding IsOnField}"
+                                        IsEnabled="{Binding CanOnField}">
                                         <ToggleButton.Style>
                                             <Style BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="ToggleButton">
                                                 <Setter Property="Background" Value="DarkGreen" />
@@ -265,7 +276,12 @@
                                         CommandParameter="{Binding}"
                                         Content="设置定妆照"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
-                                    <ToggleButton Margin="10,0,0,0" IsChecked="{Binding IsOnField}">
+                                    <ToggleButton
+                                        Margin="10,0,0,0"
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SwitchMemberStateCommand}"
+                                        CommandParameter="{Binding}"
+                                        IsChecked="{Binding IsOnField}"
+                                        IsEnabled="{Binding CanOnField}">
                                         <ToggleButton.Style>
                                             <Style BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="ToggleButton">
                                                 <Setter Property="Background" Value="DarkGreen" />
@@ -329,7 +345,12 @@
                                         CommandParameter="{Binding}"
                                         Content="设置定妆照"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
-                                    <ToggleButton Margin="10,0,0,0" IsChecked="{Binding IsOnField}">
+                                    <ToggleButton
+                                        Margin="10,0,0,0"
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SwitchMemberStateCommand}"
+                                        CommandParameter="{Binding}"
+                                        IsChecked="{Binding IsOnField}"
+                                        IsEnabled="{Binding CanOnField}">
                                         <ToggleButton.Style>
                                             <Style BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="ToggleButton">
                                                 <Setter Property="Background" Value="DarkGreen" />
@@ -385,47 +406,43 @@
             VerticalAlignment="Top"
             Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
             CornerRadius="8">
+            <Border.Resources>
+                <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="ui:TextBox">
+                    <Setter Property="PlaceholderText" Value="选手名称" />
+                    <Setter Property="MinWidth" Value="250" />
+                    <Setter Property="IsReadOnly" Value="True" />
+                    <Setter Property="HorizontalAlignment" Value="Left" />
+                </Style>
+                <Style BasedOn="{StaticResource {x:Type cc:CharacterChanger}}" TargetType="cc:CharacterChanger">
+                    <Setter Property="Spacing" Value="10" />
+                    <Setter Property="Margin" Value="10,0,0,0" />
+                </Style>
+            </Border.Resources>
             <StackPanel>
                 <TextBlock Text="当前上场选手" />
                 <TextBlock Margin="0,10,0,0" Text="求生者" />
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                    <ui:TextBox MinWidth="250" PlaceholderText="选手名称" />
-                    <cc:CharacterChanger
-                        Margin="10,0,0,0"
-                        Index="0"
-                        Spacing="10" />
+                    <ui:TextBox Text="{Binding SharedDataService.CurrentGame.SurPlayerArray[0].Member.Name}" />
+                    <cc:CharacterChanger Command="{Binding SwapMembersInPlayersCommand}" Index="0" />
                 </StackPanel>
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                    <ui:TextBox MinWidth="250" PlaceholderText="选手名称" />
-                    <cc:CharacterChanger
-                        Margin="10,0,0,0"
-                        Index="1"
-                        Spacing="10" />
+                    <ui:TextBox Text="{Binding SharedDataService.CurrentGame.SurPlayerArray[1].Member.Name}" />
+                    <cc:CharacterChanger Index="1" />
                 </StackPanel>
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                    <ui:TextBox MinWidth="250" PlaceholderText="选手名称" />
-                    <cc:CharacterChanger
-                        Margin="10,0,0,0"
-                        Index="2"
-                        Spacing="10" />
+                    <ui:TextBox PlaceholderText="选手名称" Text="{Binding SharedDataService.CurrentGame.SurPlayerArray[2].Member.Name}" />
+                    <cc:CharacterChanger Index="2" />
                 </StackPanel>
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                    <ui:TextBox MinWidth="250" PlaceholderText="选手名称" />
-                    <cc:CharacterChanger
-                        Margin="10,0,0,0"
-                        Index="3"
-                        Spacing="10" />
+                    <ui:TextBox Text="{Binding SharedDataService.CurrentGame.SurPlayerArray[3].Member.Name}" />
+                    <cc:CharacterChanger Index="3" />
                 </StackPanel>
 
                 <TextBlock Margin="0,10,0,0" Text="监管者" />
-                <ui:TextBox
-                    MinWidth="250"
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Left"
-                    PlaceholderText="选手名称" />
+                <ui:TextBox Text="{Binding SharedDataService.CurrentGame.HunPlayer.Member.Name}" />
             </StackPanel>
         </Border>
     </WrapPanel>
