@@ -1,6 +1,6 @@
-﻿using neo_bpsys_wpf.Services;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
+using neo_bpsys_wpf.Services;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
