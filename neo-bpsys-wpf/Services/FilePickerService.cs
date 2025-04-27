@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using System.IO;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -23,7 +24,7 @@ namespace neo_bpsys_wpf.Services
             OpenFileDialog openFileDialog = new()
             {
                 Filter = "Json文件 (*.json) | *.json",
-                DefaultDirectory = Environment.CurrentDirectory,
+                DefaultDirectory = Path.Combine(Environment.CurrentDirectory, "Resources"),
             };
 
             if (openFileDialog.ShowDialog() != true)
