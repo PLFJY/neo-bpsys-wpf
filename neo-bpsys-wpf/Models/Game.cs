@@ -1,9 +1,9 @@
-using AutoMapper.QueryableExtensions;
+using System;
+using System.Diagnostics;
+using System.Security.Policy;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Force.DeepCloner;
 using neo_bpsys_wpf.Enums;
-using System;
-using System.Diagnostics;
 
 namespace neo_bpsys_wpf.Models;
 
@@ -24,6 +24,7 @@ public partial class Game : ObservableObject
 
     [ObservableProperty]
     private Map? _pickedMap;
+
     [ObservableProperty]
     private Map? _bandedMap;
 
@@ -40,13 +41,15 @@ public partial class Game : ObservableObject
         SurTeam = surTeam;
         HunTeam = hunTeam;
         SurPlayerArray = new Player[4];
-        for (int i = 0; i < 4; i++)
-        {
-            SurPlayerArray[i] = new Player(Camp.Sur, i);
-        }
-        HunPlayer = new Player(Camp.Hun);
+        SurPlayerArray = SurTeam.SurPlayerOnFieldArray;
+        HunPlayer = HunTeam.HunPlayerOnField;
         GameProgress = gameProgress;
     }
 
-    
+    public void RefreshCurrentPlayer()
+    {
+        SurPlayerArray = SurTeam.SurPlayerOnFieldArray;
+        HunPlayer = HunTeam.HunPlayerOnField;
+        OnPropertyChanged();
+    }
 }

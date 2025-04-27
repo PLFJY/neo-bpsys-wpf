@@ -1,14 +1,13 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Windows;
+using System.Windows.Threading;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using neo_bpsys_wpf.Mapping;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Theme;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
-using System.Windows;
-using System.Windows.Threading;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
@@ -57,7 +56,6 @@ namespace neo_bpsys_wpf
                 //Tool Services
                 services.AddSingleton<IFilePickerService, FilePickerService>();
                 services.AddSingleton<IMessageBoxService, MessageBoxService>();
-                services.AddAutoMapper(typeof(TeamProfile).Assembly);
 
                 //Views and ViewModels
                 //Window

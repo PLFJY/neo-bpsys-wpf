@@ -10,15 +10,58 @@ namespace neo_bpsys_wpf.Converters
     {
         public int ButtonIndex { get; set; }
 
-        public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var buttonName = new IndexToButtonNameConverter { ButtonIndex = ButtonIndex }
-                .Convert(value, targetType, parameter, culture)
-                .ToString();
+            int controlIndex = (int)value;
+            var buttonName = GetButtonName(controlIndex);
             if (buttonName == null)
-                return null;
-            int number = int.Parse(buttonName.Substring(6));
-            return number + 1;
+                return Binding.DoNothing;
+            return buttonName;
+        }
+
+        private int? GetButtonName(int controlIndex)
+        {
+            switch (controlIndex)
+            {
+                case 0:
+                    if (ButtonIndex == 1)
+                        return 2;
+                    else if (ButtonIndex == 2)
+                        return 3;
+                    else if (ButtonIndex == 3)
+                        return 4;
+                    else
+                        return null;
+                case 1:
+                    if (ButtonIndex == 1)
+                        return 1;
+                    else if (ButtonIndex == 2)
+                        return 3;
+                    else if (ButtonIndex == 3)
+                        return 4;
+                    else
+                        return null;
+                case 2:
+                    if (ButtonIndex == 1)
+                        return 1;
+                    else if (ButtonIndex == 2)
+                        return 2;
+                    else if (ButtonIndex == 3)
+                        return 4;
+                    else
+                        return null;
+                case 3:
+                    if (ButtonIndex == 1)
+                        return 1;
+                    else if (ButtonIndex == 2)
+                        return 2;
+                    else if (ButtonIndex == 3)
+                        return 3;
+                    else
+                        return null;
+                default:
+                    return null;
+            }
         }
 
         public object ConvertBack(
