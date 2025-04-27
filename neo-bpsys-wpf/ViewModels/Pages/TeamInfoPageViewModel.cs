@@ -1,11 +1,10 @@
-﻿using AutoMapper;
+﻿using System.Diagnostics;
+using System.Security.Permissions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
-using System.Diagnostics;
-using System.Security.Permissions;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -19,31 +18,26 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         public ISharedDataService SharedDataService { get; }
         private readonly IFilePickerService _filePickerService;
         private readonly IMessageBoxService _messageBoxService;
-        private readonly IMapper _mapper;
 
         public TeamInfoPageViewModel(
             ISharedDataService sharedDataService,
             IFilePickerService filePickerService,
-            IMessageBoxService messageBoxService,
-            IMapper mapper
+            IMessageBoxService messageBoxService
         )
         {
             SharedDataService = sharedDataService;
             _filePickerService = filePickerService;
             _messageBoxService = messageBoxService;
-            _mapper = mapper;
             MainTeamInfoViewModel = new(
                 SharedDataService.MainTeam,
                 _filePickerService,
-                _messageBoxService,
-                _mapper
+                _messageBoxService
             );
 
             AwayTeamInfoViewModel = new(
                 SharedDataService.AwayTeam,
                 _filePickerService,
-                _messageBoxService,
-                _mapper
+                _messageBoxService
             );
         }
 
@@ -52,12 +46,19 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         public TeamInfoViewModel AwayTeamInfoViewModel { get; }
 
         [RelayCommand]
-        private void SwapMembersInPlayers(object sender)
+        private void SwapMembersInPlayers(CharacterChangerCommandParameter parameter)
         {
-            if(sender is string buttonName)
-                Debug.WriteLine(buttonName);
-        }
+            Debug.WriteLine(parameter.Index);
+            Debug.WriteLine(parameter.ButtonContent);
+            (
+                SharedDataService.CurrentGame.SurPlayerArray[parameter.Index].Member,
+                SharedDataService.CurrentGame.SurPlayerArray[parameter.ButtonContent].Member
+            ) = (
+                SharedDataService.CurrentGame.SurPlayerArray[parameter.ButtonContent].Member,
+                SharedDataService.CurrentGame.SurPlayerArray[parameter.Index].Member
+            );
 
-        public List<Player> NowPlayers { get; }
+            OnPropertyChanged();
+        }
     }
 }

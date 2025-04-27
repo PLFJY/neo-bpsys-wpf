@@ -2,14 +2,13 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:control="clr-namespace:neo_bpsys_wpf.CustomControls"
-    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters">
-    <cv:IndexToButtonNameConverter x:Key="IndexToButton1NameConverter" ButtonIndex="1" />
-    <cv:IndexToButtonNameConverter x:Key="IndexToButton2NameConverter" ButtonIndex="2" />
-    <cv:IndexToButtonNameConverter x:Key="IndexToButton3NameConverter" ButtonIndex="3" />
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:models="clr-namespace:neo_bpsys_wpf.Models">
     <cv:IndexToButtonContentConverter x:Key="IndexToButton1ContentConverter" ButtonIndex="1" />
     <cv:IndexToButtonContentConverter x:Key="IndexToButton2ContentConverter" ButtonIndex="2" />
     <cv:IndexToButtonContentConverter x:Key="IndexToButton3ContentConverter" ButtonIndex="3" />
     <cv:DoubleToThicknessConverter x:Key="DoubleToThicknessConverter" />
+    <cv:CharacterChangerCommandParameterConverter x:Key="CharacterChangerCommandParameterConverter" />
     <Style TargetType="{x:Type control:CharacterChanger}">
         <Setter Property="Template">
             <Setter.Value>
@@ -20,8 +19,7 @@
                             Margin="{TemplateBinding Spacing,
                                                      Converter={StaticResource DoubleToThicknessConverter}}"
                             Command="{TemplateBinding Command}"
-                            CommandParameter="{TemplateBinding Index,
-                                                               Converter={StaticResource IndexToButton1NameConverter}}"
+                            CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource CharacterChangerCommandParameterConverter}, ConverterParameter={StaticResource IndexToButton1ContentConverter}}"
                             Content="{TemplateBinding Index,
                                                       Converter={StaticResource IndexToButton1ContentConverter}}" />
                         <Button
@@ -29,15 +27,13 @@
                             Margin="{TemplateBinding Spacing,
                                                      Converter={StaticResource DoubleToThicknessConverter}}"
                             Command="{TemplateBinding Command}"
-                            CommandParameter="{TemplateBinding Index,
-                                                               Converter={StaticResource IndexToButton2NameConverter}}"
+                            CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource CharacterChangerCommandParameterConverter}, ConverterParameter={StaticResource IndexToButton2ContentConverter}}"
                             Content="{TemplateBinding Index,
                                                       Converter={StaticResource IndexToButton2ContentConverter}}" />
                         <Button
                             x:Name="PART_Button3"
                             Command="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Command}"
-                            CommandParameter="{TemplateBinding Index,
-                                                               Converter={StaticResource IndexToButton3NameConverter}}"
+                            CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource CharacterChangerCommandParameterConverter}, ConverterParameter={StaticResource IndexToButton3ContentConverter}}"
                             Content="{TemplateBinding Index,
                                                       Converter={StaticResource IndexToButton3ContentConverter}}" />
                     </StackPanel>

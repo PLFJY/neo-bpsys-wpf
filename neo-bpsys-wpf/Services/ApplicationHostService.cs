@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using System.Windows;
+using Microsoft.Extensions.Hosting;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
-using System.Windows;
 using Wpf.Ui;
 
 namespace neo_bpsys_wpf.Services

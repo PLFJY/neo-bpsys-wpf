@@ -1,45 +1,33 @@
 {
-  "Score": {
-    "Win": 0,
-    "Lose": 0,
-    "Tie": 0,
-    "MinorPoints": 0
-  },
   "Name": "队伍名称",
-  "Camp": "Sur",
   "Logo": null,
   "SurMemberList": [
     {
       "Name": "选手1",
       "Camp": "Sur",
-      "Image": null,
-      "IsOnField": false
+      "Image": null
     },
     {
       "Name": "选手2",
       "Camp": "Sur",
-      "Image": null,
-      "IsOnField": false
+      "Image": null
     },
     {
       "Name": "选手3",
       "Camp": "Sur",
-      "Image": null,
-      "IsOnField": false
+      "Image": null
     },
     {
       "Name": "选手4",
       "Camp": "Sur",
-      "Image": null,
-      "IsOnField": false
+      "Image": null
     }
   ],
   "HunMemberList": [
     {
       "Name": "选手5",
       "Camp": "Hun",
-      "Image": null,
-      "IsOnField": false
+      "Image": null
     }
   ],
   "SurGlobalBanList": [],

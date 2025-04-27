@@ -1,12 +1,12 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Views.Pages;
-using System.IO;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
@@ -67,8 +67,15 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [RelayCommand]
         private void Swap()
         {
-            (SharedDataService.MainTeam.Camp, SharedDataService.AwayTeam.Camp) = (SharedDataService.AwayTeam.Camp, SharedDataService.MainTeam.Camp);
-            (SharedDataService.CurrentGame.SurTeam, SharedDataService.CurrentGame.HunTeam) = (SharedDataService.CurrentGame.HunTeam, SharedDataService.CurrentGame.SurTeam);
+            (SharedDataService.MainTeam.Camp, SharedDataService.AwayTeam.Camp) = (
+                SharedDataService.AwayTeam.Camp,
+                SharedDataService.MainTeam.Camp
+            );
+            (SharedDataService.CurrentGame.SurTeam, SharedDataService.CurrentGame.HunTeam) = (
+                SharedDataService.CurrentGame.HunTeam,
+                SharedDataService.CurrentGame.SurTeam
+            );
+            SharedDataService.CurrentGame.RefreshCurrentPlayer();
         }
 
         [RelayCommand]
@@ -92,7 +99,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             try
             {
                 File.WriteAllText(fullPath, json);
-                Wpf.Ui.Controls.MessageBox messageBox = new()
+                MessageBox messageBox = new()
                 {
                     Title = "保存提示",
                     Content = $"已成功保存到\n{fullPath}",
@@ -101,7 +108,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             }
             catch (Exception ex)
             {
-                Wpf.Ui.Controls.MessageBox messageBox = new()
+                MessageBox messageBox = new()
                 {
                     Title = "保存提示",
                     Content = $"保存失败\n{ex.Message}",

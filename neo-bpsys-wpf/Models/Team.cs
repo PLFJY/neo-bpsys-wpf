@@ -1,9 +1,8 @@
-using AutoMapper.QueryableExtensions;
-using CommunityToolkit.Mvvm.ComponentModel;
-using neo_bpsys_wpf.Enums;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
+using neo_bpsys_wpf.Enums;
 
 namespace neo_bpsys_wpf.Models;
 
@@ -64,6 +63,30 @@ public partial class Team : ObservableObject
         HunPlayerOnField = new Player(Camp.Hun);
     }
 
+    public void ImportTeamInfo(Team newTeam)
+    {
+        Name = newTeam.Name;
+        Logo = null;
+        SurMemberList = newTeam.SurMemberList;
+        HunMemberList = newTeam.HunMemberList;
+        if (newTeam.SurGlobalBanList != null)
+            SurGlobalBanList = newTeam.SurGlobalBanList;
+        else
+            SurGlobalBanList = new();
+        if (newTeam.HunGlobalBanList != null)
+            HunGlobalBanList = newTeam.HunGlobalBanList;
+        else
+            HunGlobalBanList = new();
+        SurPlayerOnFieldArray = new Player[4];
+        for (int i = 0; i < 4; i++)
+        {
+            SurPlayerOnFieldArray[i] = new Player(Camp.Sur, i);
+        }
+        HunPlayerOnField = new Player(Camp.Hun);
+
+        OnPropertyChanged();
+    }
+
     public bool CanAddMemberInPlayer(Camp camp)
     {
         if (camp == Camp.Hun)
@@ -71,17 +94,18 @@ public partial class Team : ObservableObject
             return !HunPlayerOnField.IsMemberValid;
         }
 
-
         foreach (var p in SurPlayerOnFieldArray)
         {
-            if (!p.IsMemberValid) return true;
+            if (!p.IsMemberValid)
+                return true;
         }
         return false;
     }
 
     public bool AddMemberInPlayer(Member member)
     {
-        if (!CanAddMemberInPlayer(member.Camp)) return false;
+        if (!CanAddMemberInPlayer(member.Camp))
+            return false;
 
         if (member.Camp == Camp.Hun)
         {

@@ -1,4 +1,10 @@
-﻿using AutoMapper;
+﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -8,12 +14,6 @@ using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Text.Json;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -29,19 +29,16 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             public Team CurrentTeam { get; private set; }
             private readonly IFilePickerService _filePickerService;
             private readonly IMessageBoxService _messageBoxService;
-            private readonly IMapper _mapper;
 
             public TeamInfoViewModel(
                 Team team,
                 IFilePickerService filePickerService,
-                IMessageBoxService messageBoxService,
-                IMapper mapper
+                IMessageBoxService messageBoxService
             )
             {
                 CurrentTeam = team;
                 _filePickerService = filePickerService;
                 _messageBoxService = messageBoxService;
-                _mapper = mapper;
             }
 
             [ObservableProperty]
@@ -83,9 +80,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                     return;
 
                 teamInfo.Camp = CurrentTeam.Camp;
-                _mapper.Map(teamInfo, CurrentTeam);
+                CurrentTeam.ImportTeamInfo(teamInfo);
                 TeamName = CurrentTeam.Name;
-
+                App.Services.GetRequiredService<ISharedDataService>()
+                    .CurrentGame.RefreshCurrentPlayer();
                 OnPropertyChanged();
             }
 
@@ -94,6 +92,8 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             {
                 CurrentTeam.SurMemberList.Add(new Member(Camp.Sur));
                 RemoveSurMemberCommand.NotifyCanExecuteChanged();
+                var canOthersOnField = CurrentTeam.CanAddMemberInPlayer(Camp.Sur);
+                RefreshCanMemberOnFieldState(Camp.Sur);
             }
 
             private bool CanAddSurMember() => true;
@@ -111,6 +111,8 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             {
                 CurrentTeam.HunMemberList.Add(new Member(Camp.Hun));
                 RemoveHunMemberCommand.NotifyCanExecuteChanged();
+                var canOthersOnField = CurrentTeam.CanAddMemberInPlayer(Camp.Hun);
+                RefreshCanMemberOnFieldState(Camp.Hun);
             }
 
             private bool CanAddHunMember() => true;
@@ -137,6 +139,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                     CurrentTeam.RemoveMemberInPlayer(member);
                     CurrentTeam.SurMemberList.Remove(member);
                     RemoveSurMemberCommand.NotifyCanExecuteChanged();
+                    RefreshCanMemberOnFieldState(member.Camp);
                 }
             }
 
@@ -145,24 +148,41 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             [RelayCommand]
             private void SwitchMemberState(Member member)
             {
-                bool canOthersOnField;
-
                 if (member.IsOnField)
                 {
                     member.IsOnField = CurrentTeam.AddMemberInPlayer(member);
-                    canOthersOnField = CurrentTeam.CanAddMemberInPlayer(member.Camp);
                 }
                 else
                 {
                     CurrentTeam.RemoveMemberInPlayer(member);
-                    canOthersOnField = true;
                 }
-                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<Member.CanOnFieldChangedMessageType>
-                    (this, nameof(Member.CanOnFieldChange),
-                    new Member.CanOnFieldChangedMessageType(member.Camp),
-                    new Member.CanOnFieldChangedMessageType(member.Camp, canOthersOnField)));
+                RefreshCanMemberOnFieldState(member.Camp);
             }
 
+            private void RefreshCanMemberOnFieldState(Camp camp)
+            {
+                var canOthersOnField = CurrentTeam.CanAddMemberInPlayer(camp);
+                if (camp == Camp.Sur)
+                {
+                    foreach (var m in CurrentTeam.SurMemberList)
+                    {
+                        if (!m.IsOnField)
+                        {
+                            m.CanOnFieldChange = canOthersOnField;
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var m in CurrentTeam.HunMemberList)
+                    {
+                        if (!m.IsOnField)
+                        {
+                            m.CanOnFieldChange = canOthersOnField;
+                        }
+                    }
+                }
+            }
 
             [RelayCommand]
             private void SetMemberImage(Member member)
@@ -173,7 +193,6 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
                 member.Image = ImageHelper.GetImageFromPath(imagePath);
             }
-
         }
     }
 }
