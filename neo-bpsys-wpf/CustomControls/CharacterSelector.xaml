@@ -7,6 +7,8 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
     <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
     <Style BasedOn="{StaticResource {x:Type ComboBox}}" TargetType="{x:Type controls:CharacterSelector}">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="SelectedValuePath" Value="Value" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:CharacterSelector}">
@@ -23,8 +25,7 @@
                                 MaxDropDownHeight="200"
                                 SelectedIndex="{TemplateBinding SelectedIndex}"
                                 SelectedItem="{TemplateBinding SelectedItem}"
-                                SelectedValue="{TemplateBinding SelectedValue}"
-                                SelectedValuePath="Value"
+                                SelectedValue="{Binding Path=SelectedValue, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"
                                 Text="{Binding Path=Text, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
                             <Image
                                 Width="100"
@@ -38,7 +39,7 @@
                             Margin="10,0,0,0"
                             VerticalAlignment="Top"
                             Command="{TemplateBinding Command}"
-                            CommandParameter="{Binding Name, RelativeSource={RelativeSource AncestorType={x:Type controls:CharacterSelector}}}"
+                            CommandParameter="{Binding Index, RelativeSource={RelativeSource AncestorType={x:Type controls:CharacterSelector}}}"
                             Content="确认"
                             Icon="{ui:SymbolIcon Symbol=Checkmark24}"
                             IsEnabled="{TemplateBinding IsEnabled}"

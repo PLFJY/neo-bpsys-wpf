@@ -44,8 +44,8 @@ public class Character
         Camp = camp;
     }
 
-    public ImageSource GetImageSource(ImageSourceKey key)
+    public ImageSource? GetImageSource(ImageSourceKey key)
     {
-        return ImageHelper.GetCharacterImageBrush(key, Name);
+        return ImageHelper.GetCharacterImageSource(key, Name);
     }
 }

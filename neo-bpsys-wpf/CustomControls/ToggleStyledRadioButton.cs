@@ -62,20 +62,5 @@ namespace neo_bpsys_wpf.CustomControls
             typeof(ToggleStyledRadioButton),
             new PropertyMetadata(276.0)
         );
-
-        public ICommand CheckedCommand
-        {
-            get { return (ICommand)GetValue(CheckedCommandProperty); }
-            set { SetValue(CheckedCommandProperty, value); }
-        }
-
-        // Using a DependencyProperty as the backing store for CheckedCommand.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty CheckedCommandProperty =
-            DependencyProperty.Register(
-                "CheckedCommand",
-                typeof(ICommand),
-                typeof(ToggleStyledRadioButton),
-                new PropertyMetadata(null)
-            );
     }
 }

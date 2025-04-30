@@ -56,10 +56,11 @@
                         Command="{Binding SetTeamLogoCommand}"
                         Content="设置队伍LOGO"
                         Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
-                    <Image
-                        Width="75"
-                        Height="75"
-                        Margin="20,0,0,0"
+                    <ui:Image
+                        Width="70"
+                        Height="70"
+                        Margin="20,10,0,10"
+                        CornerRadius="8"
                         Source="{Binding CurrentTeam.Logo}"
                         Stretch="UniformToFill" />
                     <TextBlock
@@ -243,10 +244,11 @@
                         Command="{Binding SetTeamLogoCommand}"
                         Content="设置队伍LOGO"
                         Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
-                    <Image
-                        Width="75"
-                        Height="75"
-                        Margin="20,0,0,0"
+                    <ui:Image
+                        Width="70"
+                        Height="70"
+                        Margin="20,10,0,10"
+                        CornerRadius="8"
                         Source="{Binding CurrentTeam.Logo}"
                         Stretch="UniformToFill" />
                     <TextBlock

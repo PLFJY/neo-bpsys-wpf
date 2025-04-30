@@ -34,13 +34,19 @@
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
                     <cc:CharacterSelector
-                        x:Name="BanHunCuurent0"
+                        x:Name="BanHunCurrent0"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SharedDataService.HunCharaList}" />
+                        Command="{Binding ConfirmCurrentBanCommand}"
+                        Index="0"
+                        ItemsSource="{Binding SharedDataService.HunCharaList}"
+                        SelectedValue="{Binding CurrentBannedArray[0]}" />
                     <cc:CharacterSelector
                         x:Name="BanHunCurrent1"
                         Margin="0,0,10,10"
-                        ItemsSource="{Binding SharedDataService.HunCharaList}" />
+                        Command="{Binding ConfirmCurrentBanCommand}"
+                        Index="1"
+                        ItemsSource="{Binding SharedDataService.HunCharaList}"
+                        SelectedValue="{Binding CurrentBannedArray[1]}" />
                 </WrapPanel>
             </Grid>
         </Border>
