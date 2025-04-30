@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -191,7 +192,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 if (imagePath == null)
                     return;
 
-                member.Image = ImageHelper.GetImageFromPath(imagePath);
+                member.Image = new BitmapImage(new Uri(imagePath));
             }
         }
     }

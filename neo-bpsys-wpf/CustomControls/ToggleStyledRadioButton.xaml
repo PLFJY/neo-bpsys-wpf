@@ -22,11 +22,6 @@
                                 Focusable="False"
                                 Text="{TemplateBinding TagName}" />
                         </StackPanel>
-                        <i:Interaction.Triggers>
-                            <i:DataTrigger Binding="{Binding Path=IsChecked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" Value="True">
-                                <i:InvokeCommandAction Command="{Binding Path=CheckedCommand, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" CommandParameter="{Binding Path=TagName, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
-                            </i:DataTrigger>
-                        </i:Interaction.Triggers>
                     </ToggleButton>
                 </ControlTemplate>
             </Setter.Value>

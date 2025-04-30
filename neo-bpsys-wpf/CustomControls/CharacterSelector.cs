@@ -15,12 +15,8 @@ namespace neo_bpsys_wpf.CustomControls
         }
 
         // Using a DependencyProperty as the backing store for ImageSource.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty ImageSourceProperty = DependencyProperty.Register(
-            "ImageSource",
-            typeof(ImageSource),
-            typeof(CharacterSelector),
-            new PropertyMetadata(null)
-        );
+        public static readonly DependencyProperty ImageSourceProperty =
+            DependencyProperty.Register("ImageSource", typeof(ImageSource), typeof(CharacterSelector), new PropertyMetadata(null));
 
         public ICommand Command
         {
@@ -29,12 +25,8 @@ namespace neo_bpsys_wpf.CustomControls
         }
 
         // Using a DependencyProperty as the backing store for Command.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(
-            "Command",
-            typeof(ICommand),
-            typeof(CharacterSelector),
-            new PropertyMetadata(null)
-        );
+        public static readonly DependencyProperty CommandProperty =
+            DependencyProperty.Register("Command", typeof(ICommand), typeof(CharacterSelector), new PropertyMetadata(null));
 
         public bool IsSimpleModeEnable
         {
@@ -44,24 +36,26 @@ namespace neo_bpsys_wpf.CustomControls
 
         // Using a DependencyProperty as the backing store for IsSimpleModeEnable.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsSimpleModeEnableProperty =
-            DependencyProperty.Register(
-                "IsSimpleModeEnable",
-                typeof(bool),
-                typeof(CharacterSelector),
-                new PropertyMetadata(false)
-            );
+            DependencyProperty.Register("IsSimpleModeEnable", typeof(bool), typeof(CharacterSelector), new PropertyMetadata(false));
+
+
+        public int Index
+        {
+            get { return (int)GetValue(IndexProperty); }
+            set { SetValue(IndexProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for Index.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IndexProperty =
+            DependencyProperty.Register("Index", typeof(int), typeof(CharacterSelector), new PropertyMetadata(0));
 
         static CharacterSelector()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(
-                typeof(CharacterSelector),
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(CharacterSelector),
                 new FrameworkPropertyMetadata(typeof(CharacterSelector))
             );
         }
 
-        /// <summary>
-        /// A methos used to move focus
-        /// </summary>
         private static void MoveFocus()
         {
             var focusedElement = Keyboard.FocusedElement as UIElement;
@@ -85,8 +79,8 @@ namespace neo_bpsys_wpf.CustomControls
             if (e.Key == Key.Enter)
             {
                 e.Handled = true;
-                if (Command != null && Command.CanExecute(Name))
-                    Command.Execute(Name);
+                if (Command != null && Command.CanExecute(Index))
+                    Command.Execute(Index);
 
                 IsDropDownOpen = false;
                 //change Focus on Tab click
@@ -130,11 +124,7 @@ namespace neo_bpsys_wpf.CustomControls
                 var abbrev = item.Value.Abbrev.ToLowerInvariant();
                 var fullName = item.Value.Name;
                 // Check whether the full prefix matches or the short prefix matches
-                if (
-                    fullSpell.StartsWith(inputLower)
-                    || abbrev.StartsWith(inputLower)
-                    || fullName.StartsWith(inputText)
-                )
+                if (fullSpell.StartsWith(inputLower) || abbrev.StartsWith(inputLower) || fullName.StartsWith(inputText))
                 {
                     return index;
                 }

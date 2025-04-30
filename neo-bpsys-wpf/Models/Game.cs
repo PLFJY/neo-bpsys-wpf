@@ -1,9 +1,12 @@
 using System;
 using System.Diagnostics;
 using System.Security.Policy;
+using System.Text.Json.Serialization;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Force.DeepCloner;
 using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Helpers;
 
 namespace neo_bpsys_wpf.Models;
 
@@ -22,11 +25,41 @@ public partial class Game : ObservableObject
     [ObservableProperty]
     private GameProgress _gameProgress;
 
-    [ObservableProperty]
     private Map? _pickedMap;
 
+    public Map? PickedMap
+    {
+        get { return _pickedMap; }
+        set
+        {
+            _pickedMap = value;
+            PickedMapImage = ImageHelper.GetCharacterImageSource(ImageSourceKey.map, _pickedMap.ToString());
+            OnPropertyChanged();
+        }
+    }
+
+
+    private Map? _bannedMap;
+
+    public Map? BannedMap
+    {
+        get { return _bannedMap; }
+        set
+        {
+            _bannedMap = value;
+            BannedMapImage = ImageHelper.GetCharacterImageSource(ImageSourceKey.map_singleColor, _bannedMap.ToString());
+            OnPropertyChanged();
+        }
+    }
+
     [ObservableProperty]
-    private Map? _bandedMap;
+    [JsonIgnore]
+    private ImageSource? _pickedMapImage;
+    
+    [ObservableProperty]
+    [JsonIgnore]
+    private ImageSource? _bannedMapImage;
+
 
     [ObservableProperty]
     private Player[] _surPlayerArray;
