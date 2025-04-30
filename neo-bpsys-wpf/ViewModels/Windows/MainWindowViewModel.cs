@@ -67,14 +67,12 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [RelayCommand]
         private void Swap()
         {
-            (SharedDataService.MainTeam.Camp, SharedDataService.AwayTeam.Camp) = (
-                SharedDataService.AwayTeam.Camp,
-                SharedDataService.MainTeam.Camp
-            );
-            (SharedDataService.CurrentGame.SurTeam, SharedDataService.CurrentGame.HunTeam) = (
-                SharedDataService.CurrentGame.HunTeam,
-                SharedDataService.CurrentGame.SurTeam
-            );
+            (SharedDataService.MainTeam.Camp, SharedDataService.AwayTeam.Camp) = 
+                (SharedDataService.AwayTeam.Camp,
+                SharedDataService.MainTeam.Camp);
+            (SharedDataService.CurrentGame.SurTeam, SharedDataService.CurrentGame.HunTeam) =
+                (SharedDataService.CurrentGame.HunTeam,
+                SharedDataService.CurrentGame.SurTeam);
             SharedDataService.CurrentGame.RefreshCurrentPlayer();
         }
 

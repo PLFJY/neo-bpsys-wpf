@@ -14,5 +14,6 @@ namespace neo_bpsys_wpf.Enums
         唐人街,
         永眠镇,
         不归林,
+        无
     }
 }

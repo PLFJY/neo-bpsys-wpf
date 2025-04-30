@@ -48,15 +48,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         [RelayCommand]
         private void SwapMembersInPlayers(CharacterChangerCommandParameter parameter)
         {
-            Debug.WriteLine(parameter.Index);
-            Debug.WriteLine(parameter.ButtonContent);
-            (
-                SharedDataService.CurrentGame.SurPlayerArray[parameter.Index].Member,
-                SharedDataService.CurrentGame.SurPlayerArray[parameter.ButtonContent].Member
-            ) = (
-                SharedDataService.CurrentGame.SurPlayerArray[parameter.ButtonContent].Member,
-                SharedDataService.CurrentGame.SurPlayerArray[parameter.Index].Member
-            );
+            (SharedDataService.CurrentGame.SurPlayerArray[parameter.Index].Member,
+                SharedDataService.CurrentGame.SurPlayerArray[parameter.ButtonContent].Member) = 
+                (SharedDataService.CurrentGame.SurPlayerArray[parameter.ButtonContent].Member,
+                SharedDataService.CurrentGame.SurPlayerArray[parameter.Index].Member);
 
             OnPropertyChanged();
         }

@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Enums;
 
@@ -22,6 +23,8 @@ public partial class Team : ObservableObject
     [ObservableProperty]
     private ImageSource? _logo;
 
+    public string ImageUri { get; set; } = string.Empty;
+
     [ObservableProperty]
     private ObservableCollection<Member> _surMemberList = new();
 
@@ -29,10 +32,16 @@ public partial class Team : ObservableObject
     private ObservableCollection<Member> _hunMemberList = new();
 
     [ObservableProperty]
-    private ObservableCollection<Character> _surGlobalBanList = new();
+    private Character[] _currentBannedHunArray;
 
     [ObservableProperty]
-    private ObservableCollection<Character> _hunGlobalBanList = new();
+    private Character[] _currentBannedSurArray;
+
+    [ObservableProperty]
+    private Character[] _globalBannedSurArray;
+
+    [ObservableProperty]
+    private Character[] _globalBannedHunArray;
 
     [ObservableProperty]
     [JsonIgnore]
@@ -55,6 +64,30 @@ public partial class Team : ObservableObject
 
         Camp = camp;
 
+        CurrentBannedHunArray = new Character[2];
+        for(int i = 0; i < 2; i++)
+        {
+            CurrentBannedHunArray[i] = new(Camp.Hun);
+        }
+
+        CurrentBannedSurArray = new Character[4];
+        for(int i = 0; i < 4; i++)
+        {
+            CurrentBannedSurArray[i] = new(Camp.Sur);
+        }
+
+        GlobalBannedHunArray = new Character[3];
+        for(int i= 0; i < 3; i++)
+        {
+            GlobalBannedHunArray[i] = new(Camp.Hun);
+        }
+
+        GlobalBannedSurArray = new Character[9];
+        for (int i = 0; i < 9; i++)
+        {
+            GlobalBannedSurArray[i] = new(Camp.Sur);
+        }
+
         SurPlayerOnFieldArray = new Player[4];
         for (int i = 0; i < 4; i++)
         {
@@ -63,20 +96,21 @@ public partial class Team : ObservableObject
         HunPlayerOnField = new Player(Camp.Hun);
     }
 
+    /// <summary>
+    /// Import information to the current Team includes Name, LogoUri, MemberList
+    /// </summary>
+    /// <param name="newTeam"></param>
     public void ImportTeamInfo(Team newTeam)
     {
         Name = newTeam.Name;
         Logo = null;
+        if (!string.IsNullOrEmpty(newTeam.ImageUri))
+        {
+            ImageUri = newTeam.ImageUri;
+            Logo = new BitmapImage(new Uri(ImageUri));
+        }
         SurMemberList = newTeam.SurMemberList;
         HunMemberList = newTeam.HunMemberList;
-        if (newTeam.SurGlobalBanList != null)
-            SurGlobalBanList = newTeam.SurGlobalBanList;
-        else
-            SurGlobalBanList = new();
-        if (newTeam.HunGlobalBanList != null)
-            HunGlobalBanList = newTeam.HunGlobalBanList;
-        else
-            HunGlobalBanList = new();
         SurPlayerOnFieldArray = new Player[4];
         for (int i = 0; i < 4; i++)
         {
@@ -87,6 +121,11 @@ public partial class Team : ObservableObject
         OnPropertyChanged();
     }
 
+    /// <summary>
+    /// Check can let new member on field
+    /// </summary>
+    /// <param name="camp"></param>
+    /// <returns></returns>
     public bool CanAddMemberInPlayer(Camp camp)
     {
         if (camp == Camp.Hun)
@@ -102,6 +141,11 @@ public partial class Team : ObservableObject
         return false;
     }
 
+    /// <summary>
+    /// Add let a member on field
+    /// </summary>
+    /// <param name="member"></param>
+    /// <returns></returns>
     public bool AddMemberInPlayer(Member member)
     {
         if (!CanAddMemberInPlayer(member.Camp))
@@ -127,6 +171,10 @@ public partial class Team : ObservableObject
         return true;
     }
 
+    /// <summary>
+    /// let a member off field
+    /// </summary>
+    /// <param name="member"></param>
     public void RemoveMemberInPlayer(Member member)
     {
         if (member.Camp == Camp.Hun)

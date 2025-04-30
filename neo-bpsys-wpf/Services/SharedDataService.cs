@@ -29,17 +29,17 @@ namespace neo_bpsys_wpf.Services
                 return;
 
             // 加载角色数据
-            var character = File.ReadAllText(charaListFilePath);
+            var characterFileContent = File.ReadAllText(charaListFilePath);
             var options = new JsonSerializerOptions
             {
                 Converters = { new JsonStringEnumConverter() },
             };
             var characters = JsonSerializer.Deserialize<Dictionary<string, CharacterMini>>(
-                character,
+                characterFileContent,
                 options
             );
 
-            if (character == null)
+            if (characters == null)
                 return;
 
             foreach (var i in characters)

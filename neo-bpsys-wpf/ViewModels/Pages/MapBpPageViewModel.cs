@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Services;
+using System.Diagnostics;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -19,29 +20,29 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             SharedDataService = sharedDataService;
         }
 
-        [RelayCommand]
-        private void MapPick(string tagName)
+        private Map? _pickedMap;
+
+        public Map? PickedMap
         {
-            if (Enum.TryParse(tagName, out Map map))
+            get => _pickedMap;
+            set
             {
-                SharedDataService.CurrentGame.PickedMap = map;
-            }
-            else
-            {
-                SharedDataService.CurrentGame.PickedMap = null;
+                _pickedMap = value;
+                SharedDataService.CurrentGame.PickedMap = _pickedMap;
+                OnPropertyChanged();
             }
         }
 
-        [RelayCommand]
-        private void MapBan(string tagName)
+        private Map? _bannedMap;
+
+        public Map? BannedMap
         {
-            if (Enum.TryParse(tagName, out Map map))
+            get => _bannedMap;
+            set
             {
-                SharedDataService.CurrentGame.BandedMap = map;
-            }
-            else
-            {
-                SharedDataService.CurrentGame.BandedMap = null;
+                _bannedMap = value;
+                SharedDataService.CurrentGame.BannedMap = _bannedMap;
+                OnPropertyChanged();
             }
         }
     }
