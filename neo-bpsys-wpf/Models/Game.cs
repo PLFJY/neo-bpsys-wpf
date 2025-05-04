@@ -36,7 +36,7 @@ public partial class Game : ObservableObject
         set
         {
             _pickedMap = value;
-            PickedMapImage = ImageHelper.GetMapImageSource(ImageSourceKey.map, _pickedMap.ToString());
+            PickedMapImage = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, _pickedMap.ToString());
             OnPropertyChanged();
         }
     }
@@ -50,7 +50,7 @@ public partial class Game : ObservableObject
         set
         {
             _bannedMap = value;
-            BannedMapImage = ImageHelper.GetMapImageSource(ImageSourceKey.map_singleColor, _bannedMap.ToString());
+            BannedMapImage = ImageHelper.GetImageSourceFromName(ImageSourceKey.map_singleColor, _bannedMap.ToString());
             OnPropertyChanged();
         }
     }

@@ -1,4 +1,5 @@
-﻿using System.Windows.Media;
+﻿using System.IO;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using neo_bpsys_wpf.Enums;
 
@@ -23,32 +24,37 @@ namespace neo_bpsys_wpf.Helpers
         }
 
         /// <summary>
-        /// Get Character ImageSource from corresponding Resources folder
+        /// Get ImageSource from corresponding Resources folder
         /// </summary>
         /// <param name="key">ImageSourceKey</param>
-        /// <param name="characterFileName">characterFileName</param>
+        /// <param name="fileName">file name</param>
         /// <returns></returns>
-        public static ImageSource? GetCharacterImageSource(ImageSourceKey key, string? characterFileName)
+        public static ImageSource? GetImageSourceFromFileName(ImageSourceKey key, string? fileName)
         {
-            if (string.IsNullOrEmpty(characterFileName)) return null;
+            if (string.IsNullOrEmpty(fileName)) return null;
+
+            if (!File.Exists($"{Environment.CurrentDirectory}\\Resources\\{key}\\{fileName}")) return null;
 
             return new BitmapImage(
-                new Uri($"{Environment.CurrentDirectory}\\Resources\\{key}\\{characterFileName}")
+                new Uri($"{Environment.CurrentDirectory}\\Resources\\{key}\\{fileName}")
             );
         }
 
         /// <summary>
-        /// Get Map ImageSource from corresponding Resources folder <br/> ImageSourceKey usually like <see cref="ImageSourceKey.map"/> or <see cref="ImageSourceKey.map_singleColor"/>
+        /// Get ImageSource from corresponding Resources folder
         /// </summary>
         /// <param name="key"></param>
-        /// <param name="map"></param>
+        /// <param name="name">resource name with out filename extension</param>
         /// <returns></returns>
-        public static ImageSource? GetMapImageSource(ImageSourceKey key, string? map)
+        public static ImageSource? GetImageSourceFromName(ImageSourceKey key, string? name)
         {
-            if (string.IsNullOrEmpty(map)) return null;
+            if (string.IsNullOrEmpty(name)) return null;
+
+            if (!File.Exists($"{Environment.CurrentDirectory}\\Resources\\{key}\\{name}.png")) return null;
+
 
             return new BitmapImage(
-                new Uri($"{Environment.CurrentDirectory}\\Resources\\{key}\\{map}.png")
+                new Uri($"{Environment.CurrentDirectory}\\Resources\\{key}\\{name}.png")
             );
         }
     }
