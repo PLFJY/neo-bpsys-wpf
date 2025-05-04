@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using hyjiacan.py4n;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Helpers;
@@ -10,12 +11,21 @@ public class Character
     public string Name { get; set; } = string.Empty;
     public Camp Camp { get; }
     public string ImageFileName { get; set; } = string.Empty;
+    public ImageSource? BigImage { get; set; }
+    public ImageSource? HeaderImage { get; set; }
+    public ImageSource? HeaderImage_SingleColor { get; set; }
+    public ImageSource? HalfImage { get; set; }
     public string FullSpell { get; set; } = string.Empty;
     public string Abbrev { get; set; } = string.Empty;
     public Character(string name, Camp camp, string imageFileName)
     {
         Name = name;
         Camp = camp;
+        ImageFileName = imageFileName;
+        BigImage = GetImageSource(camp == Camp.Sur ? ImageSourceKey.surBig : ImageSourceKey.hunBig);
+        HeaderImage = GetImageSource(camp == Camp.Sur ? ImageSourceKey.surHeader : ImageSourceKey.hunHeader);
+        HeaderImage_SingleColor = GetImageSource(camp == Camp.Sur ? ImageSourceKey.surHeader_singleColor : ImageSourceKey.hunHeader_singleColor);
+        HalfImage = GetImageSource(camp == Camp.Sur ? ImageSourceKey.surHalf : ImageSourceKey.hunHalf);
         //∆¥“Ù¥¶¿Ì
         var format = PinyinFormat.WITHOUT_TONE | PinyinFormat.LOWERCASE | PinyinFormat.WITH_U_AND_COLON | PinyinFormat.WITH_V;
 
@@ -44,8 +54,8 @@ public class Character
         Camp = camp;
     }
 
-    public ImageSource? GetImageSource(ImageSourceKey key)
+    private ImageSource? GetImageSource(ImageSourceKey key)
     {
-        return ImageHelper.GetCharacterImageSource(key, Name);
+        return ImageHelper.GetCharacterImageSource(key, ImageFileName);
     }
 }

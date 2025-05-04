@@ -16,7 +16,11 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
-
+    <Page.Resources>
+        <Style TargetType="cc:CharaSelector">
+            <Setter Property="Margin" Value="0,0,10,10" />
+        </Style>
+    </Page.Resources>
     <WrapPanel Orientation="Horizontal">
         <Border
             Margin="0,0,10,10"
@@ -33,17 +37,17 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <cc:CharacterSelector
+                    <cc:CharaSelector
                         x:Name="BanHunCurrent0"
-                        Margin="0,0,10,10"
                         Command="{Binding ConfirmCurrentBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.CurrentHunBannedList[0].HeaderImage_SingleColor}"
                         Index="0"
                         ItemsSource="{Binding SharedDataService.HunCharaList}"
-                        SelectedValue="{Binding CurrentBannedArray[0]}" />
-                    <cc:CharacterSelector
+                        SelectedValue="{Binding CurrentBannedArray[0], Mode=TwoWay}" />
+                    <cc:CharaSelector
                         x:Name="BanHunCurrent1"
-                        Margin="0,0,10,10"
                         Command="{Binding ConfirmCurrentBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.CurrentHunBannedList[1].HeaderImage_SingleColor}"
                         Index="1"
                         ItemsSource="{Binding SharedDataService.HunCharaList}"
                         SelectedValue="{Binding CurrentBannedArray[1]}" />
@@ -65,18 +69,27 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <cc:CharacterSelector
+                    <cc:CharaSelector
                         x:Name="BanHunGlobal0"
-                        Margin="0,0,10,10"
-                        ItemsSource="{Binding SharedDataService.HunCharaList}" />
-                    <cc:CharacterSelector
+                        Command="{Binding ConfirmGlobalBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[0].HeaderImage_SingleColor}"
+                        Index="0"
+                        ItemsSource="{Binding SharedDataService.HunCharaList}"
+                        SelectedValue="{Binding GlobalBannedArray[0]}" />
+                    <cc:CharaSelector
                         x:Name="BanHunGlobal1"
-                        Margin="0,0,10,10"
-                        ItemsSource="{Binding SharedDataService.HunCharaList}" />
-                    <cc:CharacterSelector
+                        Command="{Binding ConfirmGlobalBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[1].HeaderImage_SingleColor}"
+                        Index="1"
+                        ItemsSource="{Binding SharedDataService.HunCharaList}"
+                        SelectedValue="{Binding GlobalBannedArray[1]}" />
+                    <cc:CharaSelector
                         x:Name="BanHunGlobal2"
-                        Margin="0,0,10,10"
-                        ItemsSource="{Binding SharedDataService.HunCharaList}" />
+                        Command="{Binding ConfirmGlobalBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[2].HeaderImage_SingleColor}"
+                        Index="2"
+                        ItemsSource="{Binding SharedDataService.HunCharaList}"
+                        SelectedValue="{Binding GlobalBannedArray[2]}" />
                 </WrapPanel>
             </Grid>
         </Border>
@@ -102,12 +115,12 @@
                     Grid.Row="2"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <ui:ToggleSwitch />
+                    <ui:ToggleSwitch IsChecked="{Binding SharedDataService.CanCurrentHunBanned[0]}" />
                     <TextBlock
                         Margin="10,0,0,0"
                         VerticalAlignment="Center"
                         Text="1号位" />
-                    <ui:ToggleSwitch Margin="20,0,0,0" />
+                    <ui:ToggleSwitch Margin="20,0,0,0" IsChecked="{Binding SharedDataService.CanCurrentHunBanned[1]}" />
                     <TextBlock
                         Margin="10,0,0,0"
                         VerticalAlignment="Center"
@@ -121,22 +134,21 @@
                     Grid.Row="4"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <ui:ToggleSwitch />
+                    <ui:ToggleSwitch IsChecked="{Binding SharedDataService.CanGlobalHunBanned[0]}" />
                     <TextBlock
                         Margin="10,0,0,0"
                         VerticalAlignment="Center"
                         Text="1号位" />
-                    <ui:ToggleSwitch Margin="20,0,0,0" />
+                    <ui:ToggleSwitch Margin="20,0,0,0" IsChecked="{Binding SharedDataService.CanGlobalHunBanned[1]}" />
                     <TextBlock
                         Margin="10,0,0,0"
                         VerticalAlignment="Center"
                         Text="2号位" />
-                    <ui:ToggleSwitch Margin="20,0,0,0" />
+                    <ui:ToggleSwitch Margin="20,0,0,0" IsChecked="{Binding SharedDataService.CanGlobalHunBanned[2]}" />
                     <TextBlock
                         Margin="10,0,0,0"
                         VerticalAlignment="Center"
                         Text="3号位" />
-
                 </StackPanel>
             </Grid>
         </Border>

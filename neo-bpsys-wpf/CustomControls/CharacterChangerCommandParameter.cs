@@ -4,17 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace neo_bpsys_wpf.Models
+namespace neo_bpsys_wpf.CustomControls
 {
     public class CharacterChangerCommandParameter
     {
-        public int Index { get; set; }
-        public int ButtonContent { get; set; }
+        public int Target { get; set; }
+        public int Source { get; set; }
 
         public CharacterChangerCommandParameter(int index, int buttonContent)
         {
-            Index = index;
-            ButtonContent = buttonContent;
+            Target = index;
+            Source = buttonContent;
         }
     }
 }

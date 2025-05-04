@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
+using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.Views.Pages;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
@@ -14,7 +15,9 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 {
     public partial class MainWindowViewModel : ObservableObject
     {
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public MainWindowViewModel()
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         {
             //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
         }
@@ -64,6 +67,8 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             messageBox.ShowDialogAsync();
         }
 
+        public static event EventHandler<EventArgs>? Swapped;
+
         [RelayCommand]
         private void Swap()
         {
@@ -74,6 +79,13 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 (SharedDataService.CurrentGame.HunTeam,
                 SharedDataService.CurrentGame.SurTeam);
             SharedDataService.CurrentGame.RefreshCurrentPlayer();
+
+            SharedDataService.MainTeam.SyncGlobalBanWithRecord();
+            SharedDataService.AwayTeam.SyncGlobalBanWithRecord();
+
+            Swapped?.Invoke(this, EventArgs.Empty);
+
+            OnPropertyChanged();
         }
 
         [RelayCommand]

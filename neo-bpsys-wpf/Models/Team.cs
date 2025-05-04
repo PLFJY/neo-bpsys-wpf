@@ -1,15 +1,20 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
+using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Extensions;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using CommunityToolkit.Mvvm.ComponentModel;
-using neo_bpsys_wpf.Enums;
 
 namespace neo_bpsys_wpf.Models;
 
 public partial class Team : ObservableObject
 {
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     public Team()
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -32,20 +37,18 @@ public partial class Team : ObservableObject
     private ObservableCollection<Member> _hunMemberList = new();
 
     [ObservableProperty]
-    private Character[] _currentBannedHunArray;
+    private ObservableCollection<Character?> _globalBannedSurList = new();
 
     [ObservableProperty]
-    private Character[] _currentBannedSurArray;
+    private ObservableCollection<Character?> _globalBannedHunList = new();
 
-    [ObservableProperty]
-    private Character[] _globalBannedSurArray;
+    public Character?[] GlobalBannedSurRecordArray { get; set; } = new Character[9];
 
-    [ObservableProperty]
-    private Character[] _globalBannedHunArray;
+    public Character?[] GlobalBannedHunRecordArray { get; set; } = new Character[3];
 
     [ObservableProperty]
     [JsonIgnore]
-    private Player[] _surPlayerOnFieldArray;
+    private ObservableCollection<Player> _surPlayerOnFieldList = new();
 
     [ObservableProperty]
     [JsonIgnore]
@@ -55,44 +58,17 @@ public partial class Team : ObservableObject
 
     public Team(Camp camp)
     {
-        for (int i = 0; i < 4; i++)
-        {
-            SurMemberList.Add(new Member(Camp.Sur));
-        }
-
+        SurMemberList.AddRange(Enumerable.Repeat(new Member(Camp.Sur), 4));
         HunMemberList.Add(new Member(Camp.Hun));
 
         Camp = camp;
 
-        CurrentBannedHunArray = new Character[2];
-        for(int i = 0; i < 2; i++)
-        {
-            CurrentBannedHunArray[i] = new(Camp.Hun);
-        }
+        GlobalBannedHunList.AddRange(Enumerable.Repeat(new Character(Camp.Hun), 3));
+        GlobalBannedSurList.AddRange(Enumerable.Repeat(new Character(Camp.Sur), 9));
 
-        CurrentBannedSurArray = new Character[4];
-        for(int i = 0; i < 4; i++)
-        {
-            CurrentBannedSurArray[i] = new(Camp.Sur);
-        }
-
-        GlobalBannedHunArray = new Character[3];
-        for(int i= 0; i < 3; i++)
-        {
-            GlobalBannedHunArray[i] = new(Camp.Hun);
-        }
-
-        GlobalBannedSurArray = new Character[9];
-        for (int i = 0; i < 9; i++)
-        {
-            GlobalBannedSurArray[i] = new(Camp.Sur);
-        }
-
-        SurPlayerOnFieldArray = new Player[4];
-        for (int i = 0; i < 4; i++)
-        {
-            SurPlayerOnFieldArray[i] = new Player(Camp.Sur, i);
-        }
+        SurPlayerOnFieldList.AddRange(Enumerable.Range(0, 4)
+            .Select(i => new Player(Camp.Sur, i))
+            );
         HunPlayerOnField = new Player(Camp.Hun);
     }
 
@@ -111,11 +87,9 @@ public partial class Team : ObservableObject
         }
         SurMemberList = newTeam.SurMemberList;
         HunMemberList = newTeam.HunMemberList;
-        SurPlayerOnFieldArray = new Player[4];
-        for (int i = 0; i < 4; i++)
-        {
-            SurPlayerOnFieldArray[i] = new Player(Camp.Sur, i);
-        }
+        SurPlayerOnFieldList.AddRange(Enumerable.Range(0, 4)
+            .Select(i => new Player(Camp.Sur, i))
+            );
         HunPlayerOnField = new Player(Camp.Hun);
 
         OnPropertyChanged();
@@ -133,7 +107,7 @@ public partial class Team : ObservableObject
             return !HunPlayerOnField.IsMemberValid;
         }
 
-        foreach (var p in SurPlayerOnFieldArray)
+        foreach (var p in SurPlayerOnFieldList)
         {
             if (!p.IsMemberValid)
                 return true;
@@ -158,7 +132,7 @@ public partial class Team : ObservableObject
             return true;
         }
 
-        foreach (var p in SurPlayerOnFieldArray)
+        foreach (var p in SurPlayerOnFieldList)
         {
             if (!p.IsMemberValid)
             {
@@ -184,7 +158,7 @@ public partial class Team : ObservableObject
             return;
         }
 
-        foreach (var p in SurPlayerOnFieldArray)
+        foreach (var p in SurPlayerOnFieldList)
         {
             if (p.Member == member)
             {
@@ -193,5 +167,11 @@ public partial class Team : ObservableObject
                 return;
             }
         }
+    }
+
+    public void SyncGlobalBanWithRecord()
+    {
+        GlobalBannedSurList = new(GlobalBannedSurRecordArray.ToList());
+        GlobalBannedHunList = new(GlobalBannedHunRecordArray.ToList());
     }
 }

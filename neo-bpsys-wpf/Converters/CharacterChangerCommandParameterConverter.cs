@@ -19,8 +19,7 @@ namespace neo_bpsys_wpf.Converters
             if (characterChanger != null && contentConverter != null)
             {
                 int index = characterChanger.Index;
-                int buttonContent = (int)
-                    contentConverter.Convert(index, typeof(int), null, culture);
+                int buttonContent = (int)contentConverter.Convert(index, typeof(int), parameter, culture);
                 return new CharacterChangerCommandParameter(index, buttonContent - 1);
             }
             return Binding.DoNothing;

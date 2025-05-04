@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.ComponentModel;
+using System.Windows;
 
 namespace neo_bpsys_wpf.Views.Windows
 {
@@ -10,6 +11,13 @@ namespace neo_bpsys_wpf.Views.Windows
         public ScoreWindow()
         {
             InitializeComponent();
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            e.Cancel = true;
+            this.Hide();
+            base.OnClosing(e);
         }
     }
 }

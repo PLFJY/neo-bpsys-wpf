@@ -424,22 +424,22 @@
                 <TextBlock Text="当前上场选手" />
                 <TextBlock Margin="0,10,0,0" Text="求生者" />
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                    <ui:TextBox Text="{Binding SharedDataService.CurrentGame.SurPlayerArray[0].Member.Name}" />
+                    <ui:TextBox Text="{Binding SharedDataService.CurrentGame.SurPlayerList[0].Member.Name}" />
                     <cc:CharacterChanger Command="{Binding SwapMembersInPlayersCommand}" Index="0" />
                 </StackPanel>
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                    <ui:TextBox Text="{Binding SharedDataService.CurrentGame.SurPlayerArray[1].Member.Name}" />
+                    <ui:TextBox Text="{Binding SharedDataService.CurrentGame.SurPlayerList[1].Member.Name}" />
                     <cc:CharacterChanger Command="{Binding SwapMembersInPlayersCommand}" Index="1" />
                 </StackPanel>
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                    <ui:TextBox PlaceholderText="选手名称" Text="{Binding SharedDataService.CurrentGame.SurPlayerArray[2].Member.Name}" />
+                    <ui:TextBox PlaceholderText="选手名称" Text="{Binding SharedDataService.CurrentGame.SurPlayerList[2].Member.Name}" />
                     <cc:CharacterChanger Command="{Binding SwapMembersInPlayersCommand}" Index="2" />
                 </StackPanel>
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                    <ui:TextBox Text="{Binding SharedDataService.CurrentGame.SurPlayerArray[3].Member.Name}" />
+                    <ui:TextBox Text="{Binding SharedDataService.CurrentGame.SurPlayerList[3].Member.Name}" />
                     <cc:CharacterChanger Command="{Binding SwapMembersInPlayersCommand}" Index="3" />
                 </StackPanel>
 

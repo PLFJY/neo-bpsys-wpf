@@ -57,7 +57,7 @@ namespace neo_bpsys_wpf.CustomBehaviors
         {
             if (element is FrameworkElement fe && !string.IsNullOrEmpty(fe.Name))
             {
-                Canvas canvas = GetParentCanvas(element);
+                Canvas? canvas = GetParentCanvas(element);
                 if (canvas != null)
                 {
                     TextBlock textBlock = new TextBlock
@@ -79,10 +79,10 @@ namespace neo_bpsys_wpf.CustomBehaviors
 
         private static void HideControlName(UIElement element)
         {
-            Canvas canvas = GetParentCanvas(element);
+            Canvas? canvas = GetParentCanvas(element);
             if (canvas != null)
             {
-                TextBlock textBlock = element.GetValue(TagProperty) as TextBlock;
+                TextBlock? textBlock = element.GetValue(TagProperty) as TextBlock;
                 if (textBlock != null)
                 {
                     canvas.Children.Remove(textBlock);
@@ -91,7 +91,7 @@ namespace neo_bpsys_wpf.CustomBehaviors
             }
         }
 
-        private static Canvas GetParentCanvas(UIElement element)
+        private static Canvas? GetParentCanvas(UIElement element)
         {
             DependencyObject parent = VisualTreeHelper.GetParent(element);
             while (parent != null && !(parent is Canvas))
@@ -157,10 +157,10 @@ namespace neo_bpsys_wpf.CustomBehaviors
 
         private static void MoveControlName(UIElement element)
         {
-            Canvas canvas = GetParentCanvas(element);
+            Canvas? canvas = GetParentCanvas(element);
             if (canvas != null)
             {
-                TextBlock textBlock = element.GetValue(TagProperty) as TextBlock;
+                TextBlock? textBlock = element.GetValue(TagProperty) as TextBlock;
                 if (textBlock != null)
                 {
                     Canvas.SetLeft(textBlock, Canvas.GetLeft(element));
