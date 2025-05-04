@@ -26,68 +26,49 @@
                             IsReadOnly="True"
                             PlaceholderText="角色名称"
                             Text="{TemplateBinding CharacterName}" />
-                        <Grid
-                            x:Name="Sur"
-                            Grid.Row="1"
-                            Visibility="{TemplateBinding IsTypeHun,
-                                                         Converter={StaticResource BooleanToReverseVisibilityConverter}}">
-                            <StackPanel Margin="10,10,10,10">
+                        <StackPanel Grid.Row="1" Margin="10,10,10,10">
+                            <ToggleButton
+                                Width="50"
+                                Height="50"
+                                HorizontalAlignment="Center"
+                                IsChecked="{TemplateBinding Is12Checked}">
+                                <Grid>
+                                    <Image Source="{DynamicResource FlywheelEffect}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                                    <Image Source="{DynamicResource ConfinedSpace}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                </Grid>
+                            </ToggleButton>
+                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                                 <ToggleButton
                                     Width="50"
                                     Height="50"
-                                    HorizontalAlignment="Center">
-                                    <Image Source="{DynamicResource FlywheelEffect}" />
+                                    IsChecked="{TemplateBinding Is9Checked}">
+                                    <Grid>
+                                        <Image Source="{DynamicResource KneeJerkReflex}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                                        <Image Source="{DynamicResource Insolence}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    </Grid>
                                 </ToggleButton>
-                                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                                    <ToggleButton Width="50" Height="50">
-                                        <Image Source="{DynamicResource KneeJerkReflex}" />
-                                    </ToggleButton>
-                                    <ToggleButton
-                                        Width="50"
-                                        Height="50"
-                                        Margin="60,0,0,0">
-                                        <Image Source="{DynamicResource BorrowedTime}" />
-                                    </ToggleButton>
-                                </StackPanel>
                                 <ToggleButton
                                     Width="50"
                                     Height="50"
-                                    HorizontalAlignment="Center">
-                                    <Image Source="{DynamicResource TideTurner}" />
-                                </ToggleButton>
-                            </StackPanel>
-                        </Grid>
-                        <Grid
-                            x:Name="Hun"
-                            Grid.Row="1"
-                            Visibility="{TemplateBinding IsTypeHun,
-                                                         Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <StackPanel Margin="10,10,10,10">
-                                <ToggleButton
-                                    Width="50"
-                                    Height="50"
-                                    HorizontalAlignment="Center">
-                                    <Image Source="{DynamicResource ConfinedSpace}" />
-                                </ToggleButton>
-                                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                                    <ToggleButton Width="50" Height="50">
-                                        <Image Source="{DynamicResource Insolence}" />
-                                    </ToggleButton>
-                                    <ToggleButton
-                                        Width="50"
-                                        Height="50"
-                                        Margin="60,0,0,0">
-                                        <Image Source="{DynamicResource TrumpCard}" />
-                                    </ToggleButton>
-                                </StackPanel>
-                                <ToggleButton
-                                    Width="50"
-                                    Height="50"
-                                    HorizontalAlignment="Center">
-                                    <Image Source="{DynamicResource Detention}" />
+                                    Margin="60,0,0,0"
+                                    IsChecked="{TemplateBinding Is3Checked}">
+                                    <Grid>
+                                        <Image Source="{DynamicResource BorrowedTime}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                                        <Image Source="{DynamicResource TrumpCard}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    </Grid>
                                 </ToggleButton>
                             </StackPanel>
-                        </Grid>
+                            <ToggleButton
+                                Width="50"
+                                Height="50"
+                                HorizontalAlignment="Center"
+                                IsChecked="{TemplateBinding Is6Checked}">
+                                <Grid>
+                                    <Image Source="{DynamicResource TideTurner}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                                    <Image Source="{DynamicResource Detention}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                </Grid>
+                            </ToggleButton>
+                        </StackPanel>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

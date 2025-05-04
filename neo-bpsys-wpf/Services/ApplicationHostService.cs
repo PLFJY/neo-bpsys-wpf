@@ -31,6 +31,7 @@ namespace neo_bpsys_wpf.Services
                 )!;
                 _navigationWindow!.ShowWindow();
 
+                //提前加载调用了CharaSelector的页面，避免使用卡顿
                 _ = _navigationWindow.Navigate(typeof(PickPage));
                 await Task.Delay(750);
                 _ = _navigationWindow.Navigate(typeof(BanSurPage));

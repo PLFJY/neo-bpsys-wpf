@@ -86,6 +86,8 @@ namespace neo_bpsys_wpf.Services
         private ObservableCollection<bool> _canGlobalSurBanned = new();
         [ObservableProperty]
         private ObservableCollection<bool> _canGlobalHunBanned = new();
+        [ObservableProperty]
+        private bool _isTraitShown = true;
 
         private class CharacterMini
         {

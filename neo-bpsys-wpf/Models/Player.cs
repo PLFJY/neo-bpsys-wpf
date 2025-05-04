@@ -27,7 +27,7 @@ public partial class Player : ObservableObject
     private Character? _character;
 
     [ObservableProperty]
-    private ObservableCollection<Talent>? _talent;
+    private Talent _talent = new();
 
     [ObservableProperty]
     private Trait? _trait;
