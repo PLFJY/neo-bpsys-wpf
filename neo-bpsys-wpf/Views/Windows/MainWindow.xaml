@@ -5,6 +5,7 @@
     xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:extensions="clr-namespace:neo_bpsys_wpf.Extensions"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:neo_bpsys_wpf"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -19,6 +20,8 @@
                                      IsDesignTimeCreatable=True}"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    RenderOptions.BitmapScalingMode="HighQuality"
+    RenderOptions.ClearTypeHint="Enabled"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
     <ui:FluentWindow.Resources>
@@ -39,24 +42,72 @@
             <cv:ApplicationThemeToBooleanConverter x:Key="ApplicationThemeToBooleanConverter" />
             <!--  Them Change Animation  -->
             <Storyboard x:Key="LightToDark">
-                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="rectangle" Storyboard.TargetProperty="(UIElement.Opacity)">
-                    <EasingDoubleKeyFrame KeyTime="00:00:00" Value="1" />
-                    <EasingDoubleKeyFrame KeyTime="00:00:00.6000000" Value="0" />
-                </DoubleAnimationUsingKeyFrames>
+                <DoubleAnimation
+                    Storyboard.TargetName="rectangle"
+                    Storyboard.TargetProperty="(UIElement.Opacity)"
+                    From="1"
+                    To="0"
+                    Duration="00:00:0.6" />
+
             </Storyboard>
             <Storyboard x:Key="DarkToLight">
-                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="rectangle" Storyboard.TargetProperty="(UIElement.Opacity)">
-                    <EasingDoubleKeyFrame KeyTime="00:00:00" Value="1" />
-                    <EasingDoubleKeyFrame KeyTime="00:00:00.6000000" Value="0" />
-                </DoubleAnimationUsingKeyFrames>
-                <ColorAnimationUsingKeyFrames Storyboard.TargetName="rectangle" Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)">
-                    <EasingColorKeyFrame KeyTime="00:00:00" Value="#202020" />
-                    <EasingColorKeyFrame KeyTime="00:00:00.6000000" Value="White" />
-                </ColorAnimationUsingKeyFrames>
+                <DoubleAnimation
+                    Storyboard.TargetName="rectangle"
+                    Storyboard.TargetProperty="(UIElement.Opacity)"
+                    From="1"
+                    To="0"
+                    Duration="600" />
+                <ColorAnimation
+                    Storyboard.TargetName="rectangle"
+                    Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)"
+                    From="#202020"
+                    To="White"
+                    Duration="00:00:0.6" />
+            </Storyboard>
+            <Storyboard x:Key="StartupLoading">
+                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="loading" Storyboard.TargetProperty="(UIElement.Visibility)">
+                    <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="{x:Static Visibility.Visible}" />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:03.5" Value="{x:Static Visibility.Collapsed}" />
+                </ObjectAnimationUsingKeyFrames>
+                <DoubleAnimation
+                    BeginTime="00:00:03.3"
+                    Storyboard.TargetName="loading"
+                    Storyboard.TargetProperty="(UIElement.Opacity)"
+                    From="1"
+                    To="0"
+                    Duration="00:00:00.2" />
+                <DoubleAnimation
+                    BeginTime="00:00:03.3"
+                    Storyboard.TargetName="loading"
+                    Storyboard.TargetProperty="RenderTransform.ScaleX"
+                    From="1"
+                    To="1.5"
+                    Duration="0:0:0.2" />
+                <DoubleAnimation
+                    BeginTime="00:00:03.3"
+                    Storyboard.TargetName="loading"
+                    Storyboard.TargetProperty="RenderTransform.ScaleY"
+                    From="1"
+                    To="1.5"
+                    Duration="0:0:0.2" />
+                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="loadingText" Storyboard.TargetProperty="(TextBlock.Text)">
+                    <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="Loading" />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:01" Value="Loading." />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:01.5" Value="Loading.." />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:02" Value="Loading..." />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:02.5" Value="Loading...." />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:03" Value="Loading....." />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:03.5" Value="Loading......" />
+                </ObjectAnimationUsingKeyFrames>
             </Storyboard>
         </ResourceDictionary>
     </ui:FluentWindow.Resources>
     <Grid>
+        <i:Interaction.Triggers>
+            <i:EventTrigger EventName="Loaded">
+                <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource StartupLoading}" />
+            </i:EventTrigger>
+        </i:Interaction.Triggers>
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -231,10 +282,52 @@
             x:Name="rectangle"
             Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
             Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
             Panel.ZIndex="-1"
             Fill="White"
             Opacity="0" />
+
+        <!--  Loading  -->
+        <Grid
+            Name="loading"
+            Panel.ZIndex="1"
+            Visibility="Collapsed">
+            <Grid.RenderTransform>
+                <ScaleTransform CenterX="415" CenterY="374.5" />
+            </Grid.RenderTransform>
+            <Rectangle
+                Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+                Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+                Fill="#202020" />
+            <StackPanel
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Panel.ZIndex="2">
+                <Image
+                    Width="75"
+                    Height="75"
+                    HorizontalAlignment="Center"
+                    Source="/Assets/icon.png" />
+                <TextBlock
+                    Name="loadingText"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    FontFamily="{StaticResource SourceHan}"
+                    FontSize="35"
+                    Text="Loading" />
+                <TextBlock
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    FontFamily="{StaticResource SourceHan}"
+                    FontSize="16"
+                    Text="动画持续 3.5s，提前加载页面，不然你会很卡" />
+            </StackPanel>
+            <TextBlock
+                Margin="0,0,0,10"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                FontFamily="{StaticResource SourceHan}"
+                FontSize="14"
+                Text="Made By 零风PLFJY" />
+        </Grid>
     </Grid>
 </ui:FluentWindow>

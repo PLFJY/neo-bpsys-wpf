@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.ComponentModel;
+using System.Windows;
 using System.Windows.Input;
 using neo_bpsys_wpf.Events;
 using neo_bpsys_wpf.Helpers;
@@ -34,6 +35,13 @@ namespace neo_bpsys_wpf.Views.Windows
         private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             this.DragMove();
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            e.Cancel = true;
+            this.Hide();
+            base.OnClosing(e);
         }
     }
 }
