@@ -56,6 +56,6 @@ public class Character
 
     private ImageSource? GetImageSource(ImageSourceKey key)
     {
-        return ImageHelper.GetCharacterImageSource(key, ImageFileName);
+        return ImageHelper.GetImageSourceFromFileName(key, ImageFileName);
     }
 }

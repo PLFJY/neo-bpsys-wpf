@@ -17,5 +17,6 @@ namespace neo_bpsys_wpf.Services
         ObservableCollection<bool> CanCurrentHunBanned { get; set; }
         ObservableCollection<bool> CanGlobalSurBanned { get; set; }
         ObservableCollection<bool> CanGlobalHunBanned { get; set; }
+        bool IsTraitShown { get; set; }
     }
 }
