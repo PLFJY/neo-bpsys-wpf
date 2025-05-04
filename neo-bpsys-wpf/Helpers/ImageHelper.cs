@@ -23,17 +23,32 @@ namespace neo_bpsys_wpf.Helpers
         }
 
         /// <summary>
-        /// Get Character ImageSource from correspinding Resources folder
+        /// Get Character ImageSource from corresponding Resources folder
         /// </summary>
         /// <param name="key">ImageSourceKey</param>
-        /// <param name="character">character name</param>
+        /// <param name="characterFileName">characterFileName</param>
         /// <returns></returns>
-        public static ImageSource? GetCharacterImageSource(ImageSourceKey key, string? character)
+        public static ImageSource? GetCharacterImageSource(ImageSourceKey key, string? characterFileName)
         {
-            if (string.IsNullOrEmpty(character)) return null;
+            if (string.IsNullOrEmpty(characterFileName)) return null;
 
             return new BitmapImage(
-                new Uri($"{Environment.CurrentDirectory}\\Resources\\{key}\\{character}.png")
+                new Uri($"{Environment.CurrentDirectory}\\Resources\\{key}\\{characterFileName}")
+            );
+        }
+
+        /// <summary>
+        /// Get Map ImageSource from corresponding Resources folder <br/> ImageSourceKey usually like <see cref="ImageSourceKey.map"/> or <see cref="ImageSourceKey.map_singleColor"/>
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="map"></param>
+        /// <returns></returns>
+        public static ImageSource? GetMapImageSource(ImageSourceKey key, string? map)
+        {
+            if (string.IsNullOrEmpty(map)) return null;
+
+            return new BitmapImage(
+                new Uri($"{Environment.CurrentDirectory}\\Resources\\{key}\\{map}.png")
             );
         }
     }

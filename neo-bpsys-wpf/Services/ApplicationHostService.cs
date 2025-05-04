@@ -31,6 +31,13 @@ namespace neo_bpsys_wpf.Services
                 )!;
                 _navigationWindow!.ShowWindow();
 
+                _ = _navigationWindow.Navigate(typeof(PickPage));
+                await Task.Delay(750);
+                _ = _navigationWindow.Navigate(typeof(BanSurPage));
+                await Task.Delay(550);
+                _ = _navigationWindow.Navigate(typeof(BanHunPage));
+                await Task.Delay(250);
+
                 _ = _navigationWindow.Navigate(typeof(HomePage));
             }
             await Task.CompletedTask;

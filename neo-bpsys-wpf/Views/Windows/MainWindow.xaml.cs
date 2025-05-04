@@ -74,7 +74,9 @@ namespace neo_bpsys_wpf.Views.Windows
                 MaximizeButton_Click(sender, e);
 
             if (e.LeftButton == MouseButtonState.Pressed)
+            {
                 this.DragMove();
+            }
 
             if (e.ChangedButton == MouseButton.Right)
             {

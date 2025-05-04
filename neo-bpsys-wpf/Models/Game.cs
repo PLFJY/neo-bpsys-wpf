@@ -1,11 +1,14 @@
 using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Reactive.Linq;
 using System.Security.Policy;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Force.DeepCloner;
 using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Extensions;
 using neo_bpsys_wpf.Helpers;
 
 namespace neo_bpsys_wpf.Models;
@@ -29,11 +32,11 @@ public partial class Game : ObservableObject
 
     public Map? PickedMap
     {
-        get { return _pickedMap; }
+        get => _pickedMap;
         set
         {
             _pickedMap = value;
-            PickedMapImage = ImageHelper.GetCharacterImageSource(ImageSourceKey.map, _pickedMap.ToString());
+            PickedMapImage = ImageHelper.GetMapImageSource(ImageSourceKey.map, _pickedMap.ToString());
             OnPropertyChanged();
         }
     }
@@ -43,11 +46,11 @@ public partial class Game : ObservableObject
 
     public Map? BannedMap
     {
-        get { return _bannedMap; }
+        get => _bannedMap;
         set
         {
             _bannedMap = value;
-            BannedMapImage = ImageHelper.GetCharacterImageSource(ImageSourceKey.map_singleColor, _bannedMap.ToString());
+            BannedMapImage = ImageHelper.GetMapImageSource(ImageSourceKey.map_singleColor, _bannedMap.ToString());
             OnPropertyChanged();
         }
     }
@@ -55,14 +58,19 @@ public partial class Game : ObservableObject
     [ObservableProperty]
     [JsonIgnore]
     private ImageSource? _pickedMapImage;
-    
+
     [ObservableProperty]
     [JsonIgnore]
     private ImageSource? _bannedMapImage;
 
+    [ObservableProperty]
+    private ObservableCollection<Character?> _currentHunBannedList = new();
 
     [ObservableProperty]
-    private Player[] _surPlayerArray;
+    private ObservableCollection<Character?> _currentSurBannedList = new();
+
+    [ObservableProperty]
+    private ObservableCollection<Player> _surPlayerList;
 
     [ObservableProperty]
     private Player _hunPlayer;
@@ -73,15 +81,16 @@ public partial class Game : ObservableObject
         StartTime = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
         SurTeam = surTeam;
         HunTeam = hunTeam;
-        SurPlayerArray = new Player[4];
-        SurPlayerArray = SurTeam.SurPlayerOnFieldArray;
+        SurPlayerList = SurTeam.SurPlayerOnFieldList;
         HunPlayer = HunTeam.HunPlayerOnField;
         GameProgress = gameProgress;
+        CurrentHunBannedList.AddRange(Enumerable.Repeat(new Character(Camp.Hun), 2));
+        CurrentSurBannedList.AddRange(Enumerable.Repeat(new Character(Camp.Sur), 4));
     }
 
     public void RefreshCurrentPlayer()
     {
-        SurPlayerArray = SurTeam.SurPlayerOnFieldArray;
+        SurPlayerList = SurTeam.SurPlayerOnFieldList;
         HunPlayer = HunTeam.HunPlayerOnField;
         OnPropertyChanged();
     }

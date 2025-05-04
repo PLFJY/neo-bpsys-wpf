@@ -10,7 +10,6 @@ public partial class Player : ObservableObject
     public Player(Camp camp, int? position = null)
     {
         this.Character = new Character(camp);
-        this.Position = position;
     }
 
     public Player(Camp camp, string name, BitmapImage image)
@@ -25,10 +24,7 @@ public partial class Player : ObservableObject
     private bool _isMemberValid = false;
 
     [ObservableProperty]
-    private Character _character;
-
-    [ObservableProperty]
-    private int? _position;
+    private Character? _character;
 
     [ObservableProperty]
     private ObservableCollection<Talent>? _talent;

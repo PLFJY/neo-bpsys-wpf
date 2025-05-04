@@ -1,12 +1,15 @@
-﻿using System.IO;
+﻿using System.Collections.ObjectModel;
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Extensions;
 using neo_bpsys_wpf.Models;
 
 namespace neo_bpsys_wpf.Services
 {
-    public class SharedDataService : ISharedDataService
+    public partial class SharedDataService : ObservableObject, ISharedDataService
     {
         public SharedDataService()
         {
@@ -61,6 +64,11 @@ namespace neo_bpsys_wpf.Services
             HunCharaList = HunCharaList
                 ?.OrderBy(pair => pair.Key)
                 .ToDictionary(pair => pair.Key, pair => pair.Value)!;
+
+            CanCurrentSurBanned.AddRange(Enumerable.Repeat(true, 4));
+            CanCurrentHunBanned.AddRange(Enumerable.Repeat(true, 2));
+            CanGlobalSurBanned.AddRange(Enumerable.Repeat(true, 9));
+            CanGlobalHunBanned.AddRange(Enumerable.Repeat(true, 3));
         }
 
         public Team MainTeam { get; set; }
@@ -70,8 +78,16 @@ namespace neo_bpsys_wpf.Services
         public Dictionary<string, Character> CharacterList { get; set; } = new();
         public Dictionary<string, Character> SurCharaList { get; set; }
         public Dictionary<string, Character> HunCharaList { get; set; }
+        [ObservableProperty]
+        private ObservableCollection<bool> _canCurrentSurBanned = new();
+        [ObservableProperty]
+        private ObservableCollection<bool> _canCurrentHunBanned = new();
+        [ObservableProperty]
+        private ObservableCollection<bool> _canGlobalSurBanned = new();
+        [ObservableProperty]
+        private ObservableCollection<bool> _canGlobalHunBanned = new();
 
-        public class CharacterMini
+        private class CharacterMini
         {
             public Camp Camp { get; set; }
             public string ImageFileName { get; set; } = string.Empty;
