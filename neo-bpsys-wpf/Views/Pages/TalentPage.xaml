@@ -23,7 +23,6 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/CustomControls/TalentPicker.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         </ResourceDictionary>
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
@@ -82,13 +81,14 @@
                     Is12Checked="{Binding SharedDataService.CurrentGame.HunPlayer.Talent.ConfinedSpace}"
                     Is3Checked="{Binding SharedDataService.CurrentGame.HunPlayer.Talent.TrumpCard}"
                     Is6Checked="{Binding SharedDataService.CurrentGame.HunPlayer.Talent.Detention}"
-                    Is9Checked="{Binding SharedDataService.CurrentGame.HunPlayer.Talent.ConfinedSpace}"
+                    Is9Checked="{Binding SharedDataService.CurrentGame.HunPlayer.Talent.Insolence}"
                     IsTypeHun="True" />
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">
             <Border.Resources>
-                <cv:BooleanToTraitConverter x:Key="BooleanToTraitConverter" />
+                <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+                <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
             </Border.Resources>
             <Grid>
                 <Grid.Resources>
@@ -108,8 +108,9 @@
                     <ui:ToggleSwitch
                         x:Name="IsTraitVisible"
                         Margin="20,0,0,0"
+                        d:IsChecked="True"
                         Content="是否显示"
-                        IsChecked="{Binding SharedDataService.IsTraitShown}" />
+                        IsChecked="{Binding SharedDataService.IsTraitVisible}" />
                 </StackPanel>
                 <WrapPanel
                     Grid.Row="1"
@@ -118,35 +119,35 @@
                     Visibility="{Binding ElementName=IsTraitVisible, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}, Mode=TwoWay}">
                     <cc:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Listen}"
-                        IsChecked="{Binding SharedDataService.CurrentGame.HunPlayer.Trait, Converter={StaticResource BooleanToTraitConverter}, ConverterParameter={x:Static enums:Trait.聆听}}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.聆听}}"
                         TagName="聆听" />
                     <cc:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Abnormal}"
-                        IsChecked="{Binding SharedDataService.CurrentGame.HunPlayer.Trait, Converter={StaticResource BooleanToTraitConverter}, ConverterParameter={x:Static enums:Trait.失常}}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.失常}}"
                         TagName="失常" />
                     <cc:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Excitement}"
-                        IsChecked="{Binding SharedDataService.CurrentGame.HunPlayer.Trait, Converter={StaticResource BooleanToTraitConverter}, ConverterParameter={x:Static enums:Trait.兴奋}}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.兴奋}}"
                         TagName="兴奋" />
                     <cc:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Patroller}"
-                        IsChecked="{Binding SharedDataService.CurrentGame.HunPlayer.Trait, Converter={StaticResource BooleanToTraitConverter}, ConverterParameter={x:Static enums:Trait.巡视者}}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.巡视者}}"
                         TagName="巡视者" />
                     <cc:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Teleport}"
-                        IsChecked="{Binding SharedDataService.CurrentGame.HunPlayer.Trait, Converter={StaticResource BooleanToTraitConverter}, ConverterParameter={x:Static enums:Trait.传送}}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.传送}}"
                         TagName="传送" />
                     <cc:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Peeper}"
-                        IsChecked="{Binding SharedDataService.CurrentGame.HunPlayer.Trait, Converter={StaticResource BooleanToTraitConverter}, ConverterParameter={x:Static enums:Trait.窥视者}}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.窥视者}}"
                         TagName="窥视者" />
                     <cc:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Blink}"
-                        IsChecked="{Binding SharedDataService.CurrentGame.HunPlayer.Trait, Converter={StaticResource BooleanToTraitConverter}, ConverterParameter={x:Static enums:Trait.闪现}}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.闪现}}"
                         TagName="闪现" />
                     <cc:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Warp}"
-                        IsChecked="{Binding SharedDataService.CurrentGame.HunPlayer.Trait, Converter={StaticResource BooleanToTraitConverter}, ConverterParameter={x:Static enums:Trait.移形}}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.移形}}"
                         TagName="移形" />
                 </WrapPanel>
             </Grid>

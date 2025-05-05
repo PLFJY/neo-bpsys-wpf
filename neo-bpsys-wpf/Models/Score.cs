@@ -5,14 +5,14 @@ namespace neo_bpsys_wpf.Models;
 public partial class Score : ObservableObject
 {
     [ObservableProperty]
-    public int _win = 0;
+    private int _win = 0;
 
     [ObservableProperty]
-    public int _lose = 0;
+    private int _lose = 0;
 
     [ObservableProperty]
-    public int _tie = 0;
+    private int _tie = 0;
 
     [ObservableProperty]
-    public int _minorPoints = 0;
+    private int _minorPoints = 0;
 }

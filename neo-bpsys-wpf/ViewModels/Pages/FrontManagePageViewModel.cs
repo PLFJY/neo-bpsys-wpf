@@ -1,4 +1,6 @@
 ﻿using System.IO;
+using System.Windows;
+using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
@@ -137,40 +139,14 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         /// </summary>
         private void SaveFrontConfig()
         {
-            var path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "neo-bpsys-wpf"
-            );
-
-            if (!Directory.Exists(path))
-                Directory.CreateDirectory(path);
-
-            var bpWindowElementsPosition = _frontService.GetWindowElementsPosition(
-                App.Services.GetRequiredService<BpWindow>()
-            );
-
-            try
-            {
-                File.WriteAllText(
-                    Path.Combine(path, $"{nameof(BpWindow)}Config.json"),
-                    bpWindowElementsPosition
-                );
-            }
-            catch (Exception ex)
-            {
-                MessageBox messageBox = new()
-                {
-                    Title = "保存提示",
-                    Content = $"保存前台配置文件失败\n{ex.Message}",
-                };
-                messageBox.ShowDialogAsync();
-            }
+            SaveWindowConfigAsync(App.Services.GetRequiredService<BpWindow>());
+            SaveWindowConfigAsync(App.Services.GetRequiredService<InterludeWindow>());
+            SaveWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreSurCanvas");
+            SaveWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreHunCanvas");
+            SaveWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreGlobalCanvas");
         }
 
-        /// <summary>
-        /// 加载前台窗口配置
-        /// </summary>
-        private async void LoadFrontConfig()
+        private async void SaveWindowConfigAsync(Window window, string canvasName = "BaseCanvas")
         {
             var path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -180,17 +156,54 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            if (File.Exists(Path.Combine(path, $"{nameof(BpWindow)}Config.json")))
+            var windowElementsPosition = _frontService.GetWindowElementsPosition(window, canvasName);
+
+            try
+            {
+                File.WriteAllText(
+                    Path.Combine(path, $"{window.GetType().Name}Config-{canvasName}.json"),
+                    windowElementsPosition
+                );
+            }
+            catch (Exception ex)
+            {
+                MessageBox messageBox = new()
+                {
+                    Title = "保存提示",
+                    Content = $"保存前台配置文件失败\n{ex.Message}",
+                };
+                await messageBox.ShowDialogAsync();
+            }
+        }
+
+        /// <summary>
+        /// 加载前台窗口配置
+        /// </summary>
+        private async void LoadFrontConfig()
+        {
+            await LoadWindowConfigAsync(App.Services.GetRequiredService<BpWindow>());
+            await LoadWindowConfigAsync(App.Services.GetRequiredService<InterludeWindow>());
+            await LoadWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreSurCanvas");
+            await LoadWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreHunCanvas");
+            await LoadWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreGlobalCanvas");
+        }
+
+        private async Task LoadWindowConfigAsync(Window window, string canvasName = "BaseCanvas")
+        {
+            var path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "neo-bpsys-wpf"
+            );
+
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            if (File.Exists(Path.Combine(path, $"{window.GetType().Name}Config-{canvasName}.json")))
             {
                 try
                 {
-                    string json = await File.ReadAllTextAsync(
-                        Path.Combine(path, $"{nameof(BpWindow)}Config.json")
-                    );
-                    _frontService.LoadWindowElementsPosition(
-                        App.Services.GetRequiredService<BpWindow>(),
-                        json
-                    );
+                    string json = await File.ReadAllTextAsync(Path.Combine(path, $"{window.GetType().Name}Config-{canvasName}.json"));
+                    _frontService.LoadWindowElementsPosition(window, json, canvasName);
                 }
                 catch (Exception ex)
                 {
@@ -205,16 +218,43 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
         /// <summary>
-        /// 重置{nameof(BpWindow)}的配置
+        /// 重置<see cref="BpWindow"/>的配置
         /// </summary>
         /// <returns></returns>
         [RelayCommand]
         private async Task ResetBpWindowElementsPosition()
         {
+            await ResetFrontWindowElementsPosision(App.Services.GetRequiredService<BpWindow>());
+        }
+
+        /// <summary>
+        /// 重置<see cref="InterludeWindow"/>的配置
+        /// </summary>
+        /// <returns></returns>
+        [RelayCommand]
+        private async Task ResetInterludeWindowElementsPosition()
+        {
+            await ResetFrontWindowElementsPosision(App.Services.GetRequiredService<InterludeWindow>());
+        }
+
+        [RelayCommand]
+        private async Task ResetScoreWindowElementsPosition(string canvasName)
+        {
+            await ResetFrontWindowElementsPosision(App.Services.GetRequiredService<ScoreWindow>(), canvasName);
+        }
+
+
+        /// <summary>
+        /// 重置指定窗口的界面配置
+        /// </summary>
+        /// <param name="window">从IOC里拿</param>
+        /// <returns></returns>
+        private async Task ResetFrontWindowElementsPosision(Window window, string canvasName = "BaseCanvas")
+        {
             var messageBox = new MessageBox()
             {
                 Title = "重置提示",
-                Content = $"是否重置{nameof(BpWindow)}的配置",
+                Content = $"是否重置{window.GetType().Name}-{canvasName}的配置",
                 PrimaryButtonText = "确认",
                 PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Checkmark24 },
                 CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
@@ -222,16 +262,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             };
             var result = await messageBox.ShowDialogAsync();
 
-            var path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "neo-bpsys-wpf",
-                $"{nameof(BpWindow)}Config.json"
-            );
-
             if (result == MessageBoxResult.Primary)
             {
-                _frontService.RestoreInitialPositions(App.Services.GetRequiredService<BpWindow>());
-                SaveFrontConfig();
+                _frontService.RestoreInitialPositions(window, canvasName);
+                SaveWindowConfigAsync(window, canvasName);
             }
         }
     }

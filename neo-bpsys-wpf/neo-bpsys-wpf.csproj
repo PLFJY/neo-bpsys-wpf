@@ -24,6 +24,8 @@
     <Resource Include="Assets\Fonts\SourceHanSansHWSC-VF.ttf" />
     <Resource Include="Assets\Fonts\华康POP1体W5-简体.ttf" />
     <Resource Include="Assets\Fonts\汉仪第五人格体.ttf" />
+    <Resource Include="Assets\gameData.png" />
+    <Resource Include="Assets\gameInfo.png" />
     <Resource Include="Assets\HomePageHeader.png" />
     <Resource Include="Assets\icon.png" />
     <Resource Include="Assets\Icons\black\Abnormal.png" />
@@ -58,6 +60,9 @@
     <Resource Include="Assets\Icons\white\TideTurner.png" />
     <Resource Include="Assets\Icons\white\TrumpCard.png" />
     <Resource Include="Assets\Icons\white\Warp.png" />
+    <Resource Include="Assets\interlude.png" />
+    <Resource Include="Assets\logo_net.jpg" />
+    <Resource Include="Assets\mapBp.png" />
     <Resource Include="Assets\map\不归林.png" />
     <Resource Include="Assets\map\军工厂.png" />
     <Resource Include="Assets\map\唐人街.png" />
@@ -77,22 +82,30 @@
     <Resource Include="Assets\map_singleColor\湖景村.png" />
     <Resource Include="Assets\map_singleColor\红教堂.png" />
     <Resource Include="Assets\map_singleColor\里奥的回忆.png" />
+    <Resource Include="Assets\scoreGlobal.png" />
+    <Resource Include="Assets\scoreGlobal_Bo3.png" />
+    <Resource Include="Assets\scoreHun.png" />
+    <Resource Include="Assets\scoreSur.png" />
     <Resource Include="Assets\testLogo.jpg" />
+    <Resource Include="Assets\wpfui.png" />
     <Resource Include="Assets\先知.png" />
     <Resource Include="Assets\医生.png" />
     <Resource Include="Assets\厂长.png" />
     <Resource Include="Assets\小丑.png" />
     <Resource Include="Assets\幸运儿.png" />
+    <Resource Include="Assets\新版头像.jpg" />
     <Resource Include="Assets\梦之女巫.png" />
+    <Resource Include="Assets\闪现.png" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="DeepCloner" Version="0.10.4" />
     <PackageReference Include="hyjiacan.pinyin4net" Version="4.1.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-preview.3.25171.5" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0-preview.3.25171.5" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0-preview.3.25171.5" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
     <PackageReference Include="WPF-UI" Version="4.0.2" />
     <PackageReference Include="WPF-UI.Abstractions" Version="4.0.2" />
     <PackageReference Include="WPF-UI.DependencyInjection" Version="4.0.2" />
@@ -117,6 +130,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="Assets\bp.png" />
+    <None Remove="Assets\gameData.png" />
+    <None Remove="Assets\gameInfo.png" />
     <None Remove="Assets\Icons\black\Abnormal.png" />
     <None Remove="Assets\Icons\black\Blink.png" />
     <None Remove="Assets\Icons\black\BorrowedTime.png" />
@@ -149,13 +164,24 @@
     <None Remove="Assets\Icons\white\TideTurner.png" />
     <None Remove="Assets\Icons\white\TrumpCard.png" />
     <None Remove="Assets\Icons\white\Warp.png" />
+    <None Remove="Assets\interlude.png" />
+    <None Remove="Assets\logo_net.jpg" />
+    <None Remove="Assets\logo_net.svg" />
+    <None Remove="Assets\mapBp.png" />
+    <None Remove="Assets\scoreGlobal.png" />
+    <None Remove="Assets\scoreGlobal_Bo3.png" />
+    <None Remove="Assets\scoreHun.png" />
+    <None Remove="Assets\scoreSur.png" />
     <None Remove="Assets\testLogo.JPG" />
+    <None Remove="Assets\wpfui.png" />
     <None Remove="Assets\先知.png" />
     <None Remove="Assets\医生.png" />
     <None Remove="Assets\厂长.png" />
     <None Remove="Assets\小丑.png" />
     <None Remove="Assets\幸运儿.png" />
+    <None Remove="Assets\新版头像.jpg" />
     <None Remove="Assets\梦之女巫.png" />
+    <None Remove="Assets\闪现.png" />
     <None Remove="Views\Windows\bp.png" />
   </ItemGroup>
   <ItemGroup>

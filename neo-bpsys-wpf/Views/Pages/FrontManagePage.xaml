@@ -97,6 +97,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="过场画面" />
@@ -118,11 +119,21 @@
                         ItemsSource="{Binding WindowResolutionsList, Converter={StaticResource WindowResolutionToStringConverter}}"
                         SelectedIndex="0" />
                 </StackPanel>
+                <ui:Button
+                    Grid.Row="3"
+                    Margin="0,10,0,0"
+                    Command="{Binding ResetInterludeWindowElementsPositionCommand}"
+                    Content="重置布局"
+                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
@@ -137,6 +148,27 @@
                         Command="{Binding HideScoreWindowCommand}"
                         Content="关闭" />
                 </StackPanel>
+                <ui:Button
+                    Grid.Row="3"
+                    Margin="0,10,0,0"
+                    Command="{Binding ResetScoreWindowElementsPositionCommand}"
+                    CommandParameter="ScoreSurCanvas"
+                    Content="重置求生者游戏内比分布局"
+                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                <ui:Button
+                    Grid.Row="4"
+                    Margin="0,10,0,0"
+                    Command="{Binding ResetScoreWindowElementsPositionCommand}"
+                    CommandParameter="ScoreHunCanvas"
+                    Content="重置监管者游戏内比分布局"
+                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                <ui:Button
+                    Grid.Row="5"
+                    Margin="0,10,0,0"
+                    Command="{Binding ResetScoreWindowElementsPositionCommand}"
+                    CommandParameter="ScoreGlobalCanvas"
+                    Content="重置分数统计布局"
+                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">

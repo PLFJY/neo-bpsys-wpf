@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf;
 using neo_bpsys_wpf.Helpers;
 using System.Windows.Media;
@@ -5,11 +6,12 @@ using System.Windows.Media.Imaging;
 
 namespace neo_bpsys_wpf.Models;
 
-public class Trait
+public partial class Trait : ObservableObject
 {
     public Enums.Trait? TraitName { get; set; }
 
-    public ImageSource? Image { get; set; }
+    [ObservableProperty]
+    public ImageSource? _image;
 
     public Trait(Enums.Trait? trait)
     {

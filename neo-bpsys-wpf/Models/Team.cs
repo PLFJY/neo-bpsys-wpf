@@ -20,7 +20,7 @@ public partial class Team : ObservableObject
     }
 
     [ObservableProperty]
-    private string _name = string.Empty;
+    private String _name = string.Empty;
 
     [ObservableProperty]
     private Camp _camp;
@@ -54,21 +54,20 @@ public partial class Team : ObservableObject
     [JsonIgnore]
     private Player _hunPlayerOnField;
 
-    public Score Score { get; set; } = new Score();
+    [ObservableProperty]
+    private Score _score = new();
 
     public Team(Camp camp)
     {
-        SurMemberList.AddRange(Enumerable.Repeat(new Member(Camp.Sur), 4));
+        SurMemberList.AddRange(Enumerable.Range(0, 4).Select(i => new Member(Camp.Sur)));
         HunMemberList.Add(new Member(Camp.Hun));
 
         Camp = camp;
 
-        GlobalBannedHunList.AddRange(Enumerable.Repeat(new Character(Camp.Hun), 3));
-        GlobalBannedSurList.AddRange(Enumerable.Repeat(new Character(Camp.Sur), 9));
+        GlobalBannedHunList.AddRange(Enumerable.Range(0, 3).Select(i => new Character(Camp.Hun)));
+        GlobalBannedSurList.AddRange(Enumerable.Range(0, 9).Select(i => new Character(Camp.Sur)));
 
-        SurPlayerOnFieldList.AddRange(Enumerable.Range(0, 4)
-            .Select(i => new Player(Camp.Sur, i))
-            );
+        SurPlayerOnFieldList.AddRange(Enumerable.Range(0, 4).Select(i => new Player(Camp.Sur, i)));
         HunPlayerOnField = new Player(Camp.Hun);
     }
 
@@ -87,9 +86,7 @@ public partial class Team : ObservableObject
         }
         SurMemberList = newTeam.SurMemberList;
         HunMemberList = newTeam.HunMemberList;
-        SurPlayerOnFieldList.AddRange(Enumerable.Range(0, 4)
-            .Select(i => new Player(Camp.Sur, i))
-            );
+        SurPlayerOnFieldList.AddRange(Enumerable.Range(0, 4).Select(i => new Player(Camp.Sur, i)));
         HunPlayerOnField = new Player(Camp.Hun);
 
         OnPropertyChanged();

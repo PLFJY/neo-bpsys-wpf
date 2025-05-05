@@ -18,5 +18,19 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             SharedDataService = sharedDataService;
         }
+
+        private Enums.Trait? _selectedTrait = null;
+
+        public Enums.Trait? SelectedTrait
+        {
+            get { return _selectedTrait; }
+            set
+            {
+                _selectedTrait = value;
+                SharedDataService.CurrentGame.HunPlayer.Trait = new(_selectedTrait);
+                OnPropertyChanged();
+            }
+        }
+
     }
 }
