@@ -19,7 +19,7 @@ namespace neo_bpsys_wpf.Services
 
         // 存储XAML中定义的初始位置（控件名称 -> 初始坐标）
         private readonly Dictionary<
-            Window,
+            string,
             Dictionary<string, (double left, double top)>
         > _elementsInitialPositions = new();
 
@@ -44,6 +44,10 @@ namespace neo_bpsys_wpf.Services
             _frontWindows[typeof(WidgetsWindow)] = widgetsWindow;
 
             RecordInitialPositions(_frontWindows[typeof(BpWindow)]);
+            RecordInitialPositions(_frontWindows[typeof(InterludeWindow)]);
+            RecordInitialPositions(_frontWindows[typeof(ScoreWindow)], "ScoreSurCanvas");
+            RecordInitialPositions(_frontWindows[typeof(ScoreWindow)], "ScoreHunCanvas");
+            RecordInitialPositions(_frontWindows[typeof(ScoreWindow)], "ScoreGlobalCanvas");
         }
 
         //窗口显示/隐藏管理
@@ -89,19 +93,19 @@ namespace neo_bpsys_wpf.Services
         /// 记录窗口中元素的初始位置
         /// </summary>
         /// <param name="window">该窗口的实例</param>
-        public void RecordInitialPositions(Window window)
+        private void RecordInitialPositions(Window window, string canvasName = "BaseCanvas")
         {
-            var canvas = window.FindName("BaseCanvas") as Canvas;
+            var canvas = window.FindName(canvasName) as Canvas;
             if (canvas == null)
                 return;
 
-            _elementsInitialPositions[window] = new();
-            _elementsInitialPositions[window].Clear();
+            _elementsInitialPositions[$"{window.GetType().Name}-{canvasName}"] = new();
+            _elementsInitialPositions[$"{window.GetType().Name}-{canvasName}"].Clear();
             foreach (UIElement child in canvas.Children)
             {
                 if (child is FrameworkElement fe && !string.IsNullOrEmpty(fe.Name))
                 {
-                    _elementsInitialPositions[window][fe.Name] = (
+                    _elementsInitialPositions[$"{window.GetType().Name}-{canvasName}"][fe.Name] = (
                         Canvas.GetLeft(fe),
                         Canvas.GetTop(fe)
                     );
@@ -114,10 +118,10 @@ namespace neo_bpsys_wpf.Services
         /// </summary>
         /// <param name="window">该窗口的实例</param>
         /// <returns></returns>
-        public string GetWindowElementsPosition(Window window)
+        public string GetWindowElementsPosition(Window window, string canvasName = "BaseCanvas")
         {
             var position = new List<PositionInfo>();
-            var canvas = window.FindName("BaseCanvas") as Canvas;
+            var canvas = window.FindName(canvasName) as Canvas;
             if (canvas != null)
             {
                 foreach (var child in canvas.Children)
@@ -129,6 +133,8 @@ namespace neo_bpsys_wpf.Services
                         if (double.IsNaN(left))
                             left = 0;
                         var top = Canvas.GetTop(element);
+                        if (double.IsNaN(top))
+                            top = 0;
                         position.Add(new PositionInfo(name, left, top));
                     }
                 }
@@ -142,10 +148,10 @@ namespace neo_bpsys_wpf.Services
         /// </summary>
         /// <param name="window">该窗口的实例</param>
         /// <param name="json">记录有位置信息的Json原文件内容</param>
-        public void LoadWindowElementsPosition(Window window, string json)
+        public void LoadWindowElementsPosition(Window window, string json, string canvasName = "BaseCanvas")
         {
             var positions = JsonSerializer.Deserialize<List<PositionInfo>>(json);
-            if (window.FindName("BaseCanvas") is Canvas canvas && positions != null)
+            if (window.FindName(canvasName) is Canvas canvas && positions != null)
             {
                 var positionMap = positions.ToDictionary(
                     p => p.Name,
@@ -168,20 +174,20 @@ namespace neo_bpsys_wpf.Services
         /// 还原窗口中的元素到初始位置
         /// </summary>
         /// <param name="window">该窗口的实例</param>
-        public void RestoreInitialPositions(Window window)
+        public void RestoreInitialPositions(Window window, string canvasName = "BaseCanvas")
         {
-            var canvas = window.FindName("BaseCanvas") as Canvas;
-            if (canvas == null || _elementsInitialPositions[window].Count == 0)
+            var canvas = window.FindName(canvasName) as Canvas;
+            if (canvas == null || _elementsInitialPositions[$"{window.GetType().Name}-{canvasName}"].Count == 0)
                 return;
 
             foreach (UIElement child in canvas.Children)
             {
                 if (
                     child is FrameworkElement fe
-                    && _elementsInitialPositions[window].ContainsKey(fe.Name)
+                    && _elementsInitialPositions[$"{window.GetType().Name}-{canvasName}"].ContainsKey(fe.Name)
                 )
                 {
-                    var (left, top) = _elementsInitialPositions[window][fe.Name];
+                    var (left, top) = _elementsInitialPositions[$"{window.GetType().Name}-{canvasName}"][fe.Name];
                     Canvas.SetLeft(fe, left);
                     Canvas.SetTop(fe, top);
                 }

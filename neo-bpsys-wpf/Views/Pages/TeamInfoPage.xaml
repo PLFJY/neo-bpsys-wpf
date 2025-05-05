@@ -69,6 +69,10 @@
                         VerticalAlignment="Center"
                         d:Text="当前状态：求生者"
                         Text="{Binding CurrentTeam.Camp, Converter={StaticResource CampToStringConverter}}" />
+                    <ui:Button
+                        Command="{Binding SetTeamLogoCommand}"
+                        Content="设置队伍LOGO"
+                        Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
                 </StackPanel>
 
                 <!--  player edit  -->

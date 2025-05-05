@@ -43,7 +43,7 @@ namespace neo_bpsys_wpf.CustomControls
 
         // Using a DependencyProperty as the backing store for Is12Checked.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty Is12CheckedProperty =
-            DependencyProperty.Register("Is12Checked", typeof(bool), typeof(TalentPicker), new PropertyMetadata(false));
+            DependencyProperty.Register("Is12Checked", typeof(bool), typeof(TalentPicker), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
         public bool Is3Checked
         {
@@ -53,7 +53,7 @@ namespace neo_bpsys_wpf.CustomControls
 
         // Using a DependencyProperty as the backing store for Is3Checked.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty Is3CheckedProperty =
-            DependencyProperty.Register("Is3Checked", typeof(bool), typeof(TalentPicker), new PropertyMetadata(false));
+            DependencyProperty.Register("Is3Checked", typeof(bool), typeof(TalentPicker), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
 
         public bool Is6Checked
@@ -64,7 +64,7 @@ namespace neo_bpsys_wpf.CustomControls
 
         // Using a DependencyProperty as the backing store for Is6Checked.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty Is6CheckedProperty =
-            DependencyProperty.Register("Is6Checked", typeof(bool), typeof(TalentPicker), new PropertyMetadata(false));
+            DependencyProperty.Register("Is6Checked", typeof(bool), typeof(TalentPicker), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
 
         public bool Is9Checked
@@ -75,7 +75,7 @@ namespace neo_bpsys_wpf.CustomControls
 
         // Using a DependencyProperty as the backing store for Is9Checked.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty Is9CheckedProperty =
-            DependencyProperty.Register("Is9Checked", typeof(bool), typeof(TalentPicker), new PropertyMetadata(false));
+            DependencyProperty.Register("Is9Checked", typeof(bool), typeof(TalentPicker), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
     }
 }

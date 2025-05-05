@@ -143,7 +143,12 @@ namespace neo_bpsys_wpf
                 services.AddSingleton<FrontManagePageViewModel>();
 
                 services.AddSingleton<ExtensionPage>();
-                services.AddSingleton<SettingPage>();
+
+                services.AddSingleton<SettingPage>(sp => new SettingPage()
+                {
+                    DataContext = sp.GetRequiredService<SettingPageViewModel>()
+                });
+                services.AddSingleton<SettingPageViewModel>();
             })
             .Build();
 

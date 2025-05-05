@@ -30,6 +30,7 @@
                 SelectedValue="{Binding Path=SelectedValue, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Mode=TwoWay}"
                 SelectedValuePath="Value"
                 Text="{Binding Path=Text, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Mode=TwoWay}"
+                TextBoxBase.TextChanged="combobox_TextChanged"
                 VirtualizingStackPanel.IsVirtualizing="True"
                 VirtualizingStackPanel.VirtualizationMode="Recycling" />
             <Image

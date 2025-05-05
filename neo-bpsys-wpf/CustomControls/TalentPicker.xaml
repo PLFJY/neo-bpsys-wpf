@@ -31,7 +31,7 @@
                                 Width="50"
                                 Height="50"
                                 HorizontalAlignment="Center"
-                                IsChecked="{TemplateBinding Is12Checked}">
+                                IsChecked="{Binding Is12Checked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
                                 <Grid>
                                     <Image Source="{DynamicResource FlywheelEffect}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                                     <Image Source="{DynamicResource ConfinedSpace}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToVisibilityConverter}}" />
@@ -41,7 +41,7 @@
                                 <ToggleButton
                                     Width="50"
                                     Height="50"
-                                    IsChecked="{TemplateBinding Is9Checked}">
+                                    IsChecked="{Binding Is9Checked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
                                     <Grid>
                                         <Image Source="{DynamicResource KneeJerkReflex}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                                         <Image Source="{DynamicResource Insolence}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToVisibilityConverter}}" />
@@ -51,7 +51,7 @@
                                     Width="50"
                                     Height="50"
                                     Margin="60,0,0,0"
-                                    IsChecked="{TemplateBinding Is3Checked}">
+                                    IsChecked="{Binding Is3Checked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
                                     <Grid>
                                         <Image Source="{DynamicResource BorrowedTime}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                                         <Image Source="{DynamicResource TrumpCard}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToVisibilityConverter}}" />
@@ -62,7 +62,7 @@
                                 Width="50"
                                 Height="50"
                                 HorizontalAlignment="Center"
-                                IsChecked="{TemplateBinding Is6Checked}">
+                                IsChecked="{Binding Is6Checked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
                                 <Grid>
                                     <Image Source="{DynamicResource TideTurner}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                                     <Image Source="{DynamicResource Detention}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToVisibilityConverter}}" />
