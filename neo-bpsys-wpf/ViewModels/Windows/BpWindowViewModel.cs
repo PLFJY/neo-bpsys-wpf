@@ -1,7 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Events;
+using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.ViewModels.Pages;
+using System.Windows.Media;
 
 namespace neo_bpsys_wpf.ViewModels.Windows
 {
@@ -16,17 +18,26 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         [ObservableProperty]
         private bool _isDesignMode = false;
+
         public ISharedDataService SharedDataService { get; }
 
         public BpWindowViewModel(ISharedDataService sharedDataService)
         {
             FrontManagePageViewModel.DesignModeChanged += OnDesignModeChanged;
             SharedDataService = sharedDataService;
+            CurrentBanLockImage = ImageHelper.GetUiImageSource("CurrentBanLock");
+            GlobalBanLockImage = ImageHelper.GetUiImageSource("GlobalBanLock");
         }
 
         private void OnDesignModeChanged(object? sender, DesignModeChangedEventArgs e)
         {
             IsDesignMode = e.IsDesignMode;
         }
+
+        [ObservableProperty]
+        private ImageSource? _currentBanLockImage;
+
+        [ObservableProperty]
+        private ImageSource? _globalBanLockImage;
     }
 }

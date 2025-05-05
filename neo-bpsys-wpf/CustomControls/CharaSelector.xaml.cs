@@ -147,8 +147,10 @@ namespace neo_bpsys_wpf.CustomControls
             if (currentFocusedElement == null || currentFocusedElement.GetType() != typeof(TextBox))
                 return;
 
-            //press Enter to change focuse
-            if (e.Key == Key.Enter)
+            IsDropDownOpen = true;
+
+            //press enter or tab to confirm
+            if (e.Key == Key.Tab || e.Key == Key.Enter)
             {
                 e.Handled = true;
                 if (Command != null && Command.CanExecute(Index))
@@ -160,21 +162,6 @@ namespace neo_bpsys_wpf.CustomControls
                 if (!IsSimpleModeEnabled)
                     MoveFocus();
                 return;
-            }
-
-            IsDropDownOpen = true;
-
-            //press Tab to search character
-            if (e.Key == Key.Tab)
-            {
-                e.Handled = true;
-                var currentText = combobox.Text;
-                var findedIndex = FindIndex(currentText);
-                SelectedIndex = findedIndex;
-                if (findedIndex == -1)
-                    return;
-                if (ItemsSource is Dictionary<string, Character> itemSource)
-                    Text = itemSource.ElementAt(findedIndex).Key;
             }
         }
 
@@ -206,6 +193,21 @@ namespace neo_bpsys_wpf.CustomControls
 
             Text = string.Empty;
             return -1;
+        }
+
+        private void combobox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            //press space to search
+            if (combobox.Text.Contains(' '))
+            {
+                var currentText = Text.Substring(0, Text.Length - 1);
+                var findedIndex = FindIndex(currentText);
+                SelectedIndex = findedIndex;
+                if (findedIndex == -1)
+                    return;
+                if (ItemsSource is Dictionary<string, Character> itemSource)
+                    Text = itemSource.ElementAt(findedIndex).Key;
+            }
         }
     }
 }

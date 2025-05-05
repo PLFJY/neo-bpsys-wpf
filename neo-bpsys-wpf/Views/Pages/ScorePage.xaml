@@ -2,6 +2,7 @@
     x:Class="neo_bpsys_wpf.Views.Pages.ScorePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -15,6 +16,9 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
+    <Page.Resources>
+        <cv:ScoreToStringConverterInBg x:Key="ScoreToStringConverterInBg" />
+    </Page.Resources>
     <WrapPanel Orientation="Horizontal">
         <Border Style="{StaticResource Card}">
             <Grid>
@@ -40,24 +44,35 @@
                         </Style>
                     </Grid.Resources>
                     <StackPanel Grid.Column="0">
-                        <Button Content="四跑" />
-                        <Button Content="三跑" />
+                        <Button Command="{Binding Escape4Command}" Content="四跑" />
+                        <Button Command="{Binding Escape3Command}" Content="三跑" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0,30,0,0">
-                        <Button Content="平局" />
-                        <Button Width="100" Content="大比分结算" />
+                        <Button Command="{Binding TieCommand}" Content="平局" />
+                        <Button
+                            Width="100"
+                            Command="{Binding CaculateMajorPointCommand}"
+                            Content="大比分结算" />
                     </StackPanel>
                     <StackPanel Grid.Column="2">
-                        <Button Content="四抓" />
-                        <Button Content="三抓" />
+                        <Button Command="{Binding Out4Command}" Content="四抓" />
+                        <Button Command="{Binding Out3Command}" Content="三抓" />
                     </StackPanel>
                     <StackPanel Grid.Column="3">
-                        <Button Content="总清零" />
+                        <Button Command="{Binding ResetCommand}" Content="总清零" />
                         <Button Content="手动控制" />
                     </StackPanel>
                     <StackPanel Grid.Column="4" Margin="0,20,0,0">
-                        <TextBlock Margin="10" Text="W:0 D:0 小比分:0" />
-                        <TextBlock Margin="10" Text="W:0 D:0 小比分:0" />
+                        <TextBlock
+                            Margin="10"
+                            HorizontalAlignment="Left"
+                            d:Text="W:0 D:0 小比分:0"
+                            Text="{Binding SharedDataService.MainTeam.Score, ConverterParameter=Main, Converter={StaticResource ScoreToStringConverterInBg}}" />
+                        <TextBlock
+                            Margin="10"
+                            HorizontalAlignment="Left"
+                            d:Text="W:0 D:0 小比分:0"
+                            Text="{Binding SharedDataService.AwayTeam.Score, ConverterParameter=Away, Converter={StaticResource ScoreToStringConverterInBg}}" />
                     </StackPanel>
                 </Grid>
             </Grid>

@@ -1,6 +1,7 @@
 ﻿using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Models;
 using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -17,6 +18,7 @@ namespace neo_bpsys_wpf.Services
         ObservableCollection<bool> CanCurrentHunBanned { get; set; }
         ObservableCollection<bool> CanGlobalSurBanned { get; set; }
         ObservableCollection<bool> CanGlobalHunBanned { get; set; }
-        bool IsTraitShown { get; set; }
+        bool IsTraitVisible { get; set; }
+        string Timer { get; set; }
     }
 }

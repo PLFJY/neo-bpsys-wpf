@@ -6,7 +6,6 @@ using System.Security.Policy;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Force.DeepCloner;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Extensions;
 using neo_bpsys_wpf.Helpers;
@@ -84,8 +83,8 @@ public partial class Game : ObservableObject
         SurPlayerList = SurTeam.SurPlayerOnFieldList;
         HunPlayer = HunTeam.HunPlayerOnField;
         GameProgress = gameProgress;
-        CurrentHunBannedList.AddRange(Enumerable.Repeat(new Character(Camp.Hun), 2));
-        CurrentSurBannedList.AddRange(Enumerable.Repeat(new Character(Camp.Sur), 4));
+        CurrentHunBannedList.AddRange(Enumerable.Range(0, 2).Select(i => new Character(Camp.Hun)));
+        CurrentSurBannedList.AddRange(Enumerable.Range(0, 4).Select(i => new Character(Camp.Sur)));
     }
 
     public void RefreshCurrentPlayer()

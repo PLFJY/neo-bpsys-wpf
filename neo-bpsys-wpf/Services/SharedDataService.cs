@@ -87,7 +87,21 @@ namespace neo_bpsys_wpf.Services
         [ObservableProperty]
         private ObservableCollection<bool> _canGlobalHunBanned = new();
         [ObservableProperty]
-        private bool _isTraitShown = true;
+        private bool _isTraitVisible = true;
+
+        private int _timer = 0;
+
+        public string Timer
+        {
+            get => _timer == 0 ? "VS" : _timer.ToString();
+            set
+            {
+                if (!int.TryParse(value, out _timer))
+                    _timer = 0;
+
+                OnPropertyChanged();
+            }
+        }
 
         private class CharacterMini
         {

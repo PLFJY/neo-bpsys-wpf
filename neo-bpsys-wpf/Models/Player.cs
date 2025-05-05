@@ -30,7 +30,7 @@ public partial class Player : ObservableObject
     private Talent _talent = new();
 
     [ObservableProperty]
-    private Trait? _trait;
+    private Trait _trait = new(null);
 
     [ObservableProperty]
     private PlayerData? _data;

@@ -18,6 +18,11 @@
                 <ResourceDictionary Source="/Styles/Card.xaml" />
                 <ResourceDictionary Source="/Styles/TitleBarButtonStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <Style x:Key="FrontWindow" TargetType="Window">
+                <Setter Property="ResizeMode" Value="NoResize" />
+                <Setter Property="SizeToContent" Value="WidthAndHeight" />
+                <Setter Property="WindowStyle" Value="None" />
+            </Style>
             <!--  Fonts  -->
             <FontFamily x:Key="Hanyi">/neo-bpsys-wpf;Component/Assets/Fonts/#汉仪第五人格体简</FontFamily>
             <FontFamily x:Key="POP1W5">/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5</FontFamily>

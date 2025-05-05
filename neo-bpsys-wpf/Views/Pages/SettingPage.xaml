@@ -16,5 +16,104 @@
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
 
-    <Grid />
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ui:TextBlock
+            Grid.Row="0"
+            Margin="0,0,0,8"
+            FontTypography="BodyStrong"
+            Text="关于" />
+        <ui:CardExpander
+            Grid.Row="1"
+            Margin="0,0,0,12"
+            Icon="{ui:ImageIcon 'pack://application:,,,/Assets/icon.png',
+                                Width=50,
+                                Height=50}"
+            IsExpanded="True">
+            <ui:CardExpander.Header>
+                <Grid>
+                    <Grid HorizontalAlignment="Left">
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <ui:TextBlock
+                            Grid.Row="0"
+                            FontTypography="Body"
+                            Text="neo-bpsys-wpf" />
+                        <ui:TextBlock
+                            Grid.Row="1"
+                            VerticalAlignment="Center"
+                            FontSize="10"
+                            Text="Made By 零风PLFJY 作者QQ : 3424127335 软件反馈群 : 175741665" />
+                    </Grid>
+                    <ui:TextBlock
+                        Grid.Row="1"
+                        Margin="0,0,10,0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{Binding AppVersion}" />
+                </Grid>
+            </ui:CardExpander.Header>
+            <StackPanel>
+                <Grid>
+                    <Grid.Resources>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="LightGray" />
+                            <Setter Property="FontSize" Value="10" />
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                        </Style>
+                    </Grid.Resources>
+                    <TextBlock
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Foreground="LightGray"
+                        Text="neo-bpsys-wpf is licenced under GPLv3 licence" />
+                    <StackPanel
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal">
+                        <TextBlock Text="Powered by" />
+                        <ui:ImageIcon
+                            Width="25"
+                            Height="25"
+                            Margin="5,0,5,0"
+                            Source="/Assets/logo_net.jpg " />
+                        <TextBlock Text="9.0.4 &amp; " />
+                        <ui:ImageIcon
+                            Width="25"
+                            Height="25"
+                            Margin="5,0,5,0"
+                            Source="/Assets/wpfui.png" />
+                        <TextBlock Text="WPF UI 4.0.2" />
+                    </StackPanel>
+                </Grid>
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="项目地址" />
+                    <ui:HyperlinkButton
+                        Grid.Column="1"
+                        Content="https://github.com/plfjy/neo-bpsys-wpf"
+                        Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"
+                        NavigateUri="https://github.com/plfjy/neo-bpsys-wpf" />
+                </Grid>
+                <ui:Button
+                    x:Name="CheckUpdate"
+                    Margin="30,0,0,0"
+                    Content="检查更新"
+                    Icon="{ui:SymbolIcon ArrowSync24}"
+                    IsEnabled="False" />
+
+            </StackPanel>
+        </ui:CardExpander>
+    </Grid>
 </Page>

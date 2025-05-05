@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using neo_bpsys_wpf.Enums;
@@ -20,6 +21,20 @@ namespace neo_bpsys_wpf.Helpers
                         $"{Environment.CurrentDirectory}\\Resources\\{ImageSourceKey.bpui}\\{key}.png"
                     )
                 )
+            );
+        }
+
+        /// <summary>
+        /// Get Ui ImageSource from Resources\bpui\
+        /// </summary>
+        /// <param name="key">ui image filename without filename extension</param>
+        /// <returns></returns>
+        public static ImageSource? GetUiImageSource(string key)
+        {
+            return new BitmapImage(
+                    new Uri(
+                        $"{Environment.CurrentDirectory}\\Resources\\{ImageSourceKey.bpui}\\{key}.png"
+                    )
             );
         }
 
@@ -56,6 +71,23 @@ namespace neo_bpsys_wpf.Helpers
             return new BitmapImage(
                 new Uri($"{Environment.CurrentDirectory}\\Resources\\{key}\\{name}.png")
             );
+        }
+
+        /// <summary>
+        /// Get Talent ImageSource corresponding Resources folder
+        /// </summary>
+        /// <param name="camp"></param>
+        /// <param name="name">Talent Name</param>
+        /// <returns></returns>
+        public static ImageSource? GetTalentImageSource(Camp camp, string? name)
+        {
+            if (string.IsNullOrEmpty(name)) return null;
+
+            if (!File.Exists($"{Environment.CurrentDirectory}\\Resources\\{ImageSourceKey.talent}\\{camp.ToString().ToLower()}\\{name}.png")) return null;
+
+            return new BitmapImage(
+                new Uri($"{Environment.CurrentDirectory}\\Resources\\{ImageSourceKey.talent}\\{camp.ToString().ToLower()}\\{name}.png")
+                );
         }
     }
 }
