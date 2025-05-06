@@ -47,15 +47,15 @@ namespace neo_bpsys_wpf.Services
 
             foreach (var i in characters)
             {
-                CharacterList?.Add(
+                CharacterList.Add(
                     i.Key,
                     new Character(i.Key, i.Value.Camp, i.Value.ImageFileName)
                 );
 
                 if (i.Value.Camp == Camp.Sur)
-                    SurCharaList?.Add(i.Key, new Character(i.Key, Camp.Sur, i.Value.ImageFileName));
+                    SurCharaList?.Add(i.Key, CharacterList[i.Key]);
                 else
-                    HunCharaList?.Add(i.Key, new Character(i.Key, Camp.Hun, i.Value.ImageFileName));
+                    HunCharaList?.Add(i.Key, CharacterList[i.Key]);
             }
 
             SurCharaList = SurCharaList
