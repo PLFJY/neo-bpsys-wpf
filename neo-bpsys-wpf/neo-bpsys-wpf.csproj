@@ -188,6 +188,9 @@
     <Content Include="favicon.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="GameRule.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\data\CharacterList.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
