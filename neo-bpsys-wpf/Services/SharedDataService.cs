@@ -2,7 +2,9 @@
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Extensions;
 using neo_bpsys_wpf.Models;
@@ -11,6 +13,8 @@ namespace neo_bpsys_wpf.Services
 {
     public partial class SharedDataService : ObservableObject, ISharedDataService
     {
+        private DispatcherTimer _timer = new();
+
         public SharedDataService()
         {
             MainTeam = new Team(Camp.Sur);
@@ -22,6 +26,7 @@ namespace neo_bpsys_wpf.Services
 
             SurCharaList = new();
             HunCharaList = new();
+
 
             var charaListFilePath = Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
@@ -69,6 +74,9 @@ namespace neo_bpsys_wpf.Services
             CanCurrentHunBanned.AddRange(Enumerable.Repeat(true, 2));
             CanGlobalSurBanned.AddRange(Enumerable.Repeat(true, 9));
             CanGlobalHunBanned.AddRange(Enumerable.Repeat(true, 3));
+
+            _timer.Interval = TimeSpan.FromSeconds(1);
+            _timer.Tick += Timer_Tick;
         }
 
         public Team MainTeam { get; set; }
@@ -89,18 +97,44 @@ namespace neo_bpsys_wpf.Services
         [ObservableProperty]
         private bool _isTraitVisible = true;
 
-        private int _timer = 0;
+        private int _remainingSeconds = 0;
 
-        public string Timer
+        public string RemainingSeconds
         {
-            get => _timer == 0 ? "VS" : _timer.ToString();
+            get => _remainingSeconds == 0 ? "VS" : _remainingSeconds.ToString();
             set
             {
-                if (!int.TryParse(value, out _timer))
-                    _timer = 0;
+                if (!int.TryParse(value, out _remainingSeconds))
+                    _remainingSeconds = 0;
 
                 OnPropertyChanged();
             }
+        }
+
+        private void Timer_Tick(object? sender, EventArgs e)
+        {
+            if (_remainingSeconds > 0)
+            {
+                _remainingSeconds--;
+                OnPropertyChanged(nameof(RemainingSeconds));
+            }
+            else
+            {
+                _timer.Stop();
+            }
+        }
+
+        public void TimerStart(int seconds)
+        {
+            _remainingSeconds = seconds;
+            _timer.Start();
+        }
+
+        public void TimerStop()
+        {
+            _remainingSeconds = 0;
+            _timer.Stop();
+            OnPropertyChanged(nameof(RemainingSeconds));
         }
 
         private class CharacterMini

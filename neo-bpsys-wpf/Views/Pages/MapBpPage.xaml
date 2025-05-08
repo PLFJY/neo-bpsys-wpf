@@ -121,7 +121,7 @@
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/无禁用.png"
-                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}}"
+                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.无禁用}}"
                         TagName="无禁用" />
                     <cc:ToggleStyledRadioButton
                         Width="300"

@@ -23,7 +23,7 @@
     <Window.Resources>
         <cv:ScoreToStringConverterInFront x:Key="ScoreToStringConverterInFront" />
     </Window.Resources>
-    <Grid Width="1440" Height="347">
+    <Grid Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}" Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
         <Grid.RowDefinitions>
             <RowDefinition Height="152" />
             <RowDefinition />
