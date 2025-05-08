@@ -1,0 +1,258 @@
+﻿<Page
+    x:Class="neo_bpsys_wpf.Views.Pages.PickPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    Title="PickPage"
+    d:DataContext="{d:DesignInstance Type=vm:PickPageViewModel,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="1500"
+    d:DesignWidth="685"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
+        <Style BasedOn="{StaticResource {x:Type cc:CharacterChanger}}" TargetType="cc:CharacterChanger">
+            <Setter Property="Spacing" Value="20" />
+            <Setter Property="Margin" Value="5,10,0,0" />
+        </Style>
+        <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="ui:TextBox">
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="PlaceholderText" Value="选手名称" />
+        </Style>
+    </Page.Resources>
+    <WrapPanel Orientation="Horizontal">
+        <Border Style="{StaticResource Card}">
+            <Border.Resources>
+                <Style TargetType="cc:CharaSelector">
+                    <Setter Property="Margin" Value="0,10,0,0" />
+                </Style>
+                <Style TargetType="StackPanel">
+                    <Setter Property="Margin" Value="0,0,10,10" />
+                </Style>
+            </Border.Resources>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="选择求生者" />
+                <WrapPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <StackPanel>
+                        <ui:TextBox Text="{Binding SharedDataService.CurrentGame.SurPlayerList[0].Member.Name}" />
+                        <cc:CharaSelector
+                            Command="{Binding ConfirmPickedSurCommand}"
+                            ImageSource="{Binding SharedDataService.CurrentGame.SurPlayerList[0].Character.HeaderImage}"
+                            Index="0"
+                            ItemsSource="{Binding SharedDataService.SurCharaList}"
+                            SelectedValue="{Binding PickedSurList[0]}" />
+                        <cc:CharacterChanger Command="{Binding SwapCharacterInPlayersCommand}" Index="0" />
+                    </StackPanel>
+                    <StackPanel>
+                        <ui:TextBox Text="{Binding SharedDataService.CurrentGame.SurPlayerList[1].Member.Name}" />
+                        <cc:CharaSelector
+                            Command="{Binding ConfirmPickedSurCommand}"
+                            ImageSource="{Binding SharedDataService.CurrentGame.SurPlayerList[1].Character.HeaderImage}"
+                            Index="1"
+                            ItemsSource="{Binding SharedDataService.SurCharaList}"
+                            SelectedValue="{Binding PickedSurList[1]}" />
+                        <cc:CharacterChanger Command="{Binding SwapCharacterInPlayersCommand}" Index="1" />
+                    </StackPanel>
+                    <StackPanel>
+                        <ui:TextBox Text="{Binding SharedDataService.CurrentGame.SurPlayerList[2].Member.Name}" />
+                        <cc:CharaSelector
+                            Command="{Binding ConfirmPickedSurCommand}"
+                            ImageSource="{Binding SharedDataService.CurrentGame.SurPlayerList[2].Character.HeaderImage}"
+                            Index="2"
+                            ItemsSource="{Binding SharedDataService.SurCharaList}"
+                            SelectedValue="{Binding PickedSurList[2]}" />
+                        <cc:CharacterChanger Command="{Binding SwapCharacterInPlayersCommand}" Index="2" />
+                    </StackPanel>
+                    <StackPanel>
+                        <ui:TextBox Text="{Binding SharedDataService.CurrentGame.SurPlayerList[3].Member.Name}" />
+                        <cc:CharaSelector
+                            Command="{Binding ConfirmPickedSurCommand}"
+                            ImageSource="{Binding SharedDataService.CurrentGame.SurPlayerList[3].Character.HeaderImage}"
+                            Index="3"
+                            ItemsSource="{Binding SharedDataService.SurCharaList}"
+                            SelectedValue="{Binding PickedSurList[3]}" />
+                        <cc:CharacterChanger Command="{Binding SwapCharacterInPlayersCommand}" Index="3" />
+                    </StackPanel>
+                </WrapPanel>
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="选择监管者" />
+                <cc:CharaSelector
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Command="{Binding ConfirmPickedHunCommand}"
+                    ImageSource="{Binding SharedDataService.CurrentGame.HunPlayer.Character.HeaderImage}"
+                    ItemsSource="{Binding SharedDataService.HunCharaList}"
+                    SelectedValue="{Binding PickedHun}" />
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                    <TextBlock Grid.Row="0" Text="待选择边框开关  | " />
+                    <ui:ToggleSwitch x:Name="IsSingleControlEnabled" Margin="10,0,0,0" />
+                    <TextBlock Margin="10,0,0,0" Text="1 &amp; 2 分别控制" />
+                </StackPanel>
+                <StackPanel Grid.Row="1">
+                    <StackPanel
+                        Margin="0,10,0,0"
+                        Orientation="Horizontal"
+                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ui:ToggleSwitch />
+                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 1" />
+                    </StackPanel>
+                    <StackPanel
+                        Margin="0,10,0,0"
+                        Orientation="Horizontal"
+                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <ui:ToggleSwitch />
+                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 2" />
+                    </StackPanel>
+                    <StackPanel
+                        Margin="0,10,0,0"
+                        Orientation="Horizontal"
+                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BooleanToReverseVisibilityConverter}}">
+                        <ui:ToggleSwitch />
+                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 1 &amp; 2" />
+                    </StackPanel>
+                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                        <ui:ToggleSwitch />
+                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 3" />
+                    </StackPanel>
+                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                        <ui:ToggleSwitch />
+                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 4" />
+                    </StackPanel>
+                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                        <ui:ToggleSwitch />
+                        <TextBlock Margin="10,0,0,0" Text="监管者选择框" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Border.Resources>
+                <Style TargetType="cc:CharaSelector">
+                    <Setter Property="IsSimpleModeEnabled" Value="True" />
+                    <Setter Property="Margin" Value="0,0,10,10" />
+                </Style>
+            </Border.Resources>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="全局禁选记录" />
+                <Grid Grid.Row="1" Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="主队" />
+                    <TextBlock
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        Text="全局禁用求生者" />
+                    <WrapPanel
+                        Grid.Row="2"
+                        Margin="0,10,0,0"
+                        Orientation="Horizontal">
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.MainTeam.GlobalBannedSurRecordArray[0]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.MainTeam.GlobalBannedSurRecordArray[1]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.MainTeam.GlobalBannedSurRecordArray[2]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.MainTeam.GlobalBannedSurRecordArray[3]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.MainTeam.GlobalBannedSurRecordArray[4]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.MainTeam.GlobalBannedSurRecordArray[5]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.MainTeam.GlobalBannedSurRecordArray[6]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.MainTeam.GlobalBannedSurRecordArray[7]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.MainTeam.GlobalBannedSurRecordArray[8]}" />
+                    </WrapPanel>
+                    <TextBlock
+                        Grid.Row="4"
+                        Margin="0,10,0,0"
+                        Text="全局禁用监管者" />
+                    <WrapPanel
+                        Grid.Row="5"
+                        Margin="0,10,0,0"
+                        Orientation="Horizontal">
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.HunCharaList}" SelectedValue="{Binding SharedDataService.MainTeam.GlobalBannedHunRecordArray[0]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.HunCharaList}" SelectedValue="{Binding SharedDataService.MainTeam.GlobalBannedHunRecordArray[1]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.HunCharaList}" SelectedValue="{Binding SharedDataService.MainTeam.GlobalBannedHunRecordArray[2]}" />
+                    </WrapPanel>
+                </Grid>
+                <Grid Grid.Row="2" Margin="0,20,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="客队" />
+                    <TextBlock
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        Text="全局禁用求生者" />
+                    <WrapPanel
+                        Grid.Row="2"
+                        Margin="0,10,0,0"
+                        Orientation="Horizontal">
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.AwayTeam.GlobalBannedSurRecordArray[0]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.AwayTeam.GlobalBannedSurRecordArray[1]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.AwayTeam.GlobalBannedSurRecordArray[2]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.AwayTeam.GlobalBannedSurRecordArray[3]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.AwayTeam.GlobalBannedSurRecordArray[4]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.AwayTeam.GlobalBannedSurRecordArray[5]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.AwayTeam.GlobalBannedSurRecordArray[6]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.AwayTeam.GlobalBannedSurRecordArray[7]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.SurCharaList}" SelectedValue="{Binding SharedDataService.AwayTeam.GlobalBannedSurRecordArray[8]}" />
+                    </WrapPanel>
+                    <TextBlock
+                        Grid.Row="4"
+                        Margin="0,10,0,0"
+                        Text="全局禁用监管者" />
+                    <WrapPanel
+                        Grid.Row="5"
+                        Margin="0,10,0,0"
+                        Orientation="Horizontal">
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.HunCharaList}" SelectedValue="{Binding SharedDataService.AwayTeam.GlobalBannedHunRecordArray[0]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.HunCharaList}" SelectedValue="{Binding SharedDataService.AwayTeam.GlobalBannedHunRecordArray[1]}" />
+                        <cc:CharaSelector ItemsSource="{Binding SharedDataService.HunCharaList}" SelectedValue="{Binding SharedDataService.AwayTeam.GlobalBannedHunRecordArray[2]}" />
+                    </WrapPanel>
+                </Grid>
+            </Grid>
+        </Border>
+    </WrapPanel>
+</Page>

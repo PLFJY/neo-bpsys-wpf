@@ -1,0 +1,252 @@
+﻿<Page
+    x:Class="neo_bpsys_wpf.Views.Pages.BanSurPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    Title="BanSurPage"
+    d:DataContext="{d:DesignInstance Type=vm:BanSurPageViewModel,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="1500"
+    d:DesignWidth="685"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <Style TargetType="cc:CharaSelector">
+            <Setter Property="Margin" Value="0,0,10,10" />
+        </Style>
+    </Page.Resources>
+    <WrapPanel Orientation="Horizontal">
+        <Border
+            Margin="0,0,10,10"
+            Padding="10"
+            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+            CornerRadius="8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="当局禁用" />
+                <WrapPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <cc:CharaSelector
+                        x:Name="BanSurCuurent0"
+                        Command="{Binding ConfirmCurrentBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.CurrentSurBannedList[0].HeaderImage_SingleColor}"
+                        Index="0"
+                        ItemsSource="{Binding SharedDataService.SurCharaList}"
+                        SelectedValue="{Binding CurrentBannedArray[0]}" />
+                    <cc:CharaSelector
+                        x:Name="BanSurCurrent1"
+                        Command="{Binding ConfirmCurrentBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.CurrentSurBannedList[1].HeaderImage_SingleColor}"
+                        Index="1"
+                        ItemsSource="{Binding SharedDataService.SurCharaList}"
+                        SelectedValue="{Binding CurrentBannedArray[1]}" />
+                    <cc:CharaSelector
+                        x:Name="BanSurCuurent2"
+                        Command="{Binding ConfirmCurrentBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.CurrentSurBannedList[2].HeaderImage_SingleColor}"
+                        Index="2"
+                        ItemsSource="{Binding SharedDataService.SurCharaList}"
+                        SelectedValue="{Binding CurrentBannedArray[2]}" />
+                    <cc:CharaSelector
+                        x:Name="BanSurCurrent3"
+                        Command="{Binding ConfirmCurrentBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.CurrentSurBannedList[3].HeaderImage_SingleColor}"
+                        Index="3"
+                        ItemsSource="{Binding SharedDataService.SurCharaList}"
+                        SelectedValue="{Binding CurrentBannedArray[3]}" />
+                </WrapPanel>
+            </Grid>
+        </Border>
+        <Border
+            Margin="0,0,10,10"
+            Padding="10"
+            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+            CornerRadius="8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="全局禁用" />
+                <WrapPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <cc:CharaSelector
+                        x:Name="BanSurGlobal0"
+                        Command="{Binding ConfirmGlobalBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[0].HeaderImage_SingleColor}"
+                        Index="0"
+                        ItemsSource="{Binding SharedDataService.SurCharaList}"
+                        SelectedValue="{Binding GlobalBannedArray[0]}" />
+                    <cc:CharaSelector
+                        x:Name="BanSurGlobal1"
+                        Command="{Binding ConfirmGlobalBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[1].HeaderImage_SingleColor}"
+                        Index="1"
+                        ItemsSource="{Binding SharedDataService.SurCharaList}"
+                        SelectedValue="{Binding GlobalBannedArray[1]}" />
+                    <cc:CharaSelector
+                        x:Name="BanSurGlobal2"
+                        Command="{Binding ConfirmGlobalBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[2].HeaderImage_SingleColor}"
+                        Index="2"
+                        ItemsSource="{Binding SharedDataService.SurCharaList}"
+                        SelectedValue="{Binding GlobalBannedArray[2]}" />
+                    <cc:CharaSelector
+                        x:Name="BanSurGlobal3"
+                        Command="{Binding ConfirmGlobalBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[3].HeaderImage_SingleColor}"
+                        Index="3"
+                        ItemsSource="{Binding SharedDataService.SurCharaList}"
+                        SelectedValue="{Binding GlobalBannedArray[3]}" />
+                    <cc:CharaSelector
+                        x:Name="BanSurGlobal4"
+                        Command="{Binding ConfirmGlobalBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[4].HeaderImage_SingleColor}"
+                        Index="4"
+                        ItemsSource="{Binding SharedDataService.SurCharaList}"
+                        SelectedValue="{Binding GlobalBannedArray[4]}" />
+                    <cc:CharaSelector
+                        x:Name="BanSurGlobal5"
+                        Command="{Binding ConfirmGlobalBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[5].HeaderImage_SingleColor}"
+                        Index="5"
+                        ItemsSource="{Binding SharedDataService.SurCharaList}"
+                        SelectedValue="{Binding GlobalBannedArray[5]}" />
+                    <cc:CharaSelector
+                        x:Name="BanSurGlobal6"
+                        Command="{Binding ConfirmGlobalBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[6].HeaderImage_SingleColor}"
+                        Index="6"
+                        ItemsSource="{Binding SharedDataService.SurCharaList}"
+                        SelectedValue="{Binding GlobalBannedArray[6]}" />
+                    <cc:CharaSelector
+                        x:Name="BanSurGlobal7"
+                        Command="{Binding ConfirmGlobalBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[7].HeaderImage_SingleColor}"
+                        Index="7"
+                        ItemsSource="{Binding SharedDataService.SurCharaList}"
+                        SelectedValue="{Binding GlobalBannedArray[7]}" />
+                    <cc:CharaSelector
+                        x:Name="BanSurGlobal8"
+                        Command="{Binding ConfirmGlobalBanCommand}"
+                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[8].HeaderImage_SingleColor}"
+                        Index="8"
+                        ItemsSource="{Binding SharedDataService.SurCharaList}"
+                        SelectedValue="{Binding GlobalBannedArray[8]}" />
+                </WrapPanel>
+            </Grid>
+        </Border>
+        <Border
+            Margin="0,0,0,10"
+            Padding="10"
+            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+            CornerRadius="8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="禁用数量控制" />
+                <TextBlock
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Text="当局禁用" />
+                <WrapPanel
+                    Grid.Row="2"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <ui:ToggleSwitch Margin="0,0,10,10" IsChecked="{Binding SharedDataService.CanCurrentSurBanned[0]}" />
+                    <TextBlock
+                        Margin="0,0,20,10"
+                        VerticalAlignment="Center"
+                        Text="1号位" />
+                    <ui:ToggleSwitch Margin="0,0,10,10" IsChecked="{Binding SharedDataService.CanCurrentSurBanned[1]}" />
+                    <TextBlock
+                        Margin="0,0,20,10"
+                        VerticalAlignment="Center"
+                        Text="2号位" />
+                    <ui:ToggleSwitch Margin="0,0,10,10" IsChecked="{Binding SharedDataService.CanCurrentSurBanned[2]}" />
+                    <TextBlock
+                        Margin="0,0,20,10"
+                        VerticalAlignment="Center"
+                        Text="3号位" />
+                    <ui:ToggleSwitch Margin="0,0,10,10" IsChecked="{Binding SharedDataService.CanCurrentSurBanned[3]}" />
+                    <TextBlock
+                        Margin="0,0,20,10"
+                        VerticalAlignment="Center"
+                        Text="4号位" />
+                </WrapPanel>
+                <TextBlock
+                    Grid.Row="3"
+                    Margin="0,10,0,0"
+                    Text="全局禁用" />
+                <WrapPanel
+                    Grid.Row="4"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <ui:ToggleSwitch Margin="0,0,10,10" IsChecked="{Binding SharedDataService.CanGlobalSurBanned[0]}" />
+                    <TextBlock
+                        Margin="0,0,20,10"
+                        VerticalAlignment="Center"
+                        Text="1号位" />
+                    <ui:ToggleSwitch Margin="0,0,10,10" IsChecked="{Binding SharedDataService.CanGlobalSurBanned[1]}" />
+                    <TextBlock
+                        Margin="0,0,20,10"
+                        VerticalAlignment="Center"
+                        Text="2号位" />
+                    <ui:ToggleSwitch Margin="0,0,10,10" IsChecked="{Binding SharedDataService.CanGlobalSurBanned[2]}" />
+                    <TextBlock
+                        Margin="0,0,20,10"
+                        VerticalAlignment="Center"
+                        Text="3号位" />
+                    <ui:ToggleSwitch Margin="0,0,10,10" IsChecked="{Binding SharedDataService.CanGlobalSurBanned[3]}" />
+                    <TextBlock
+                        Margin="0,0,20,10"
+                        VerticalAlignment="Center"
+                        Text="4号位" />
+                    <ui:ToggleSwitch Margin="0,0,10,10" IsChecked="{Binding SharedDataService.CanGlobalSurBanned[4]}" />
+                    <TextBlock
+                        Margin="0,0,20,10"
+                        VerticalAlignment="Center"
+                        Text="5号位" />
+                    <ui:ToggleSwitch Margin="0,0,10,10" IsChecked="{Binding SharedDataService.CanGlobalSurBanned[5]}" />
+                    <TextBlock
+                        Margin="0,0,20,10"
+                        VerticalAlignment="Center"
+                        Text="6号位" />
+                    <ui:ToggleSwitch Margin="0,0,10,10" IsChecked="{Binding SharedDataService.CanGlobalSurBanned[6]}" />
+                    <TextBlock
+                        Margin="0,0,20,10"
+                        VerticalAlignment="Center"
+                        Text="7号位" />
+                    <ui:ToggleSwitch Margin="0,0,10,10" IsChecked="{Binding SharedDataService.CanGlobalSurBanned[7]}" />
+                    <TextBlock
+                        Margin="0,0,20,10"
+                        VerticalAlignment="Center"
+                        Text="8号位" />
+                    <ui:ToggleSwitch Margin="0,0,10,10" IsChecked="{Binding SharedDataService.CanGlobalSurBanned[8]}" />
+                    <TextBlock
+                        Margin="0,0,20,10"
+                        VerticalAlignment="Center"
+                        Text="9号位" />
+                </WrapPanel>
+            </Grid>
+        </Border>
+    </WrapPanel>
+</Page>

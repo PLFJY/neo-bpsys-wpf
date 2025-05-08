@@ -1,0 +1,35 @@
+{
+  "Name": "队伍名称",
+  "ImageUri": "https://foruda.gitee.com/avatar/1674626656059195206/12314035_plfjy_1674626656.png",
+  "SurMemberList": [
+    {
+      "Name": "选手1",
+      "Camp": "Sur",
+      "Image": null
+    },
+    {
+      "Name": "选手2",
+      "Camp": "Sur",
+      "Image": null
+    },
+    {
+      "Name": "选手3",
+      "Camp": "Sur",
+      "Image": null
+    },
+    {
+      "Name": "选手4",
+      "Camp": "Sur",
+      "Image": null
+    }
+  ],
+  "HunMemberList": [
+    {
+      "Name": "选手5",
+      "Camp": "Hun",
+      "Image": null
+    }
+  ],
+  "SurGlobalBanList": [],
+  "HunGlobalBanList": []
+} 
