@@ -48,6 +48,7 @@ namespace neo_bpsys_wpf.Services
             RecordInitialPositions(_frontWindows[typeof(ScoreWindow)], "ScoreSurCanvas");
             RecordInitialPositions(_frontWindows[typeof(ScoreWindow)], "ScoreHunCanvas");
             RecordInitialPositions(_frontWindows[typeof(ScoreWindow)], "ScoreGlobalCanvas");
+            RecordInitialPositions(_frontWindows[typeof(WidgetsWindow)], "MapBpCanvas");
         }
 
         //窗口显示/隐藏管理

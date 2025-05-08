@@ -144,6 +144,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             SaveWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreSurCanvas");
             SaveWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreHunCanvas");
             SaveWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreGlobalCanvas");
+            SaveWindowConfigAsync(App.Services.GetRequiredService<WidgetsWindow>(), "MapBpCanvas");
         }
 
         private async void SaveWindowConfigAsync(Window window, string canvasName = "BaseCanvas")
@@ -186,6 +187,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             await LoadWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreSurCanvas");
             await LoadWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreHunCanvas");
             await LoadWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreGlobalCanvas");
+            await LoadWindowConfigAsync(App.Services.GetRequiredService<WidgetsWindow>(), "MapBpCanvas");
         }
 
         private async Task LoadWindowConfigAsync(Window window, string canvasName = "BaseCanvas")
@@ -237,10 +239,26 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             await ResetFrontWindowElementsPosision(App.Services.GetRequiredService<InterludeWindow>());
         }
 
+        /// <summary>
+        /// 重置<see cref="ScoreWindow"/>的配置
+        /// </summary>
+        /// <param name="canvasName"></param>
+        /// <returns></returns>
         [RelayCommand]
         private async Task ResetScoreWindowElementsPosition(string canvasName)
         {
             await ResetFrontWindowElementsPosision(App.Services.GetRequiredService<ScoreWindow>(), canvasName);
+        }
+
+        /// <summary>
+        /// 重置<see cref="WidgetsWindow"/>的配置
+        /// </summary>
+        /// <param name="canvasName"></param>
+        /// <returns></returns>
+        [RelayCommand]
+        private async Task ResetWidgetsWindowElementsPosition(string canvasName)
+        {
+            await ResetFrontWindowElementsPosision(App.Services.GetRequiredService<WidgetsWindow>(), canvasName);
         }
 
 
