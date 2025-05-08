@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Enums;
@@ -26,11 +27,14 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         [ObservableProperty]
         private ApplicationTheme _applicationTheme = ApplicationTheme.Dark;
+        private readonly IMessageBoxService _messageBoxService;
 
-        public MainWindowViewModel(ISharedDataService sharedDataService)
+        public MainWindowViewModel(ISharedDataService sharedDataService, IMessageBoxService messageBoxService)
         {
             SharedDataService = sharedDataService;
+            _messageBoxService = messageBoxService;
         }
+
 
         [RelayCommand]
         private async Task ThemeSwitchAsync()
@@ -40,7 +44,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         }
 
         [RelayCommand]
-        private void NewGame()
+        private async Task NewGameAsync()
         {
             Team surTeam = new(Camp.Sur);
             Team hunTeam = new(Camp.Hun);
@@ -59,12 +63,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 hunTeam,
                 SharedDataService.CurrentGameProgress
             );
-            MessageBox messageBox = new()
-            {
-                Title = "创建提示",
-                Content = $"已成功创建新对局\n{SharedDataService.CurrentGame.GUID}",
-            };
-            messageBox.ShowDialogAsync();
+            await _messageBoxService.ShowInfoAsync($"已成功创建新对局\n{SharedDataService.CurrentGame.GUID}", "创建提示");
         }
 
         public static event EventHandler<EventArgs>? Swapped;
@@ -89,7 +88,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         }
 
         [RelayCommand]
-        private void SaveGameInfo()
+        private async Task SaveGameInfoAsync()
         {
             var options = new JsonSerializerOptions()
             {
@@ -109,23 +108,31 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             try
             {
                 File.WriteAllText(fullPath, json);
-                MessageBox messageBox = new()
-                {
-                    Title = "保存提示",
-                    Content = $"已成功保存到\n{fullPath}",
-                };
-                messageBox.ShowDialogAsync();
+                await _messageBoxService.ShowInfoAsync($"已成功保存到\n{fullPath}", "保存提示");
             }
             catch (Exception ex)
             {
-                MessageBox messageBox = new()
-                {
-                    Title = "保存提示",
-                    Content = $"保存失败\n{ex.Message}",
-                };
-                messageBox.ShowDialogAsync();
+                await _messageBoxService.ShowInfoAsync($"保存失败\n{ex.Message}", "保存提示");
             }
         }
+
+
+        [RelayCommand]
+        private void TimerStart()
+        {
+            if (int.TryParse(TimerTime, out int time))
+                SharedDataService.TimerStart(time);
+            else
+                _messageBoxService.ShowWarningAsync("输入不合法");
+        }
+
+        [RelayCommand]
+        private void TimerStop()
+        {
+            SharedDataService.TimerStop();
+        }
+
+        public string TimerTime { get; set; } = "30";
 
         public List<int> RecommendTimmerList { get; } = [30, 45, 60, 90, 120, 150, 180];
 

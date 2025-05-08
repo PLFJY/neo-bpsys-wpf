@@ -44,12 +44,14 @@
                         </Grid.RowDefinitions>
                         <ui:TextBlock
                             Grid.Row="0"
+                            FontSize="18"
                             FontTypography="Body"
                             Text="neo-bpsys-wpf" />
                         <ui:TextBlock
                             Grid.Row="1"
+                            Margin="0,5,0,0"
                             VerticalAlignment="Center"
-                            FontSize="10"
+                            FontSize="12"
                             Text="Made By 零风PLFJY 作者QQ : 3424127335 软件反馈群 : 175741665" />
                     </Grid>
                     <ui:TextBlock
@@ -57,7 +59,7 @@
                         Margin="0,0,10,0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
-                        Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                         Text="{Binding AppVersion}" />
                 </Grid>
             </ui:CardExpander.Header>
@@ -65,15 +67,14 @@
                 <Grid>
                     <Grid.Resources>
                         <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="LightGray" />
-                            <Setter Property="FontSize" Value="10" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                            <Setter Property="FontSize" Value="12" />
                             <Setter Property="VerticalAlignment" Value="Center" />
                         </Style>
                     </Grid.Resources>
                     <TextBlock
                         HorizontalAlignment="Left"
                         VerticalAlignment="Center"
-                        Foreground="LightGray"
                         Text="neo-bpsys-wpf is licenced under GPLv3 licence" />
                     <StackPanel
                         HorizontalAlignment="Right"
@@ -102,9 +103,9 @@
                     <TextBlock Grid.Column="0" Text="项目地址" />
                     <ui:HyperlinkButton
                         Grid.Column="1"
-                        Content="https://github.com/plfjy/neo-bpsys-wpf"
-                        Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"
-                        NavigateUri="https://github.com/plfjy/neo-bpsys-wpf" />
+                        Content="https://github.com/PLFJY/neo-bpsys-wpf"
+                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                        NavigateUri="https://github.com/PLFJY/neo-bpsys-wpf" />
                 </Grid>
                 <ui:Button
                     x:Name="CheckUpdate"

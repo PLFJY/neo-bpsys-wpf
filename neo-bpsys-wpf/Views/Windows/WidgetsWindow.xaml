@@ -2,12 +2,158 @@
     x:Class="neo_bpsys_wpf.Views.Windows.WidgetsWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cb="clr-namespace:neo_bpsys_wpf.CustomBehaviors"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="WidgetsWindow"
     Width="800"
-    Height="450"
+    Height="554"
+    d:DataContext="{d:DesignInstance Type=vm:WidgetsWindowViewModel,
+                                     IsDesignTimeCreatable=True}"
+    Style="{StaticResource FrontWindow}"
     mc:Ignorable="d">
-    <Grid />
+    <Window.Background>
+        <SolidColorBrush Color="Blue" />
+    </Window.Background>
+    <Grid Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}" Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
+        <Canvas
+            Name="MapBpCanvas"
+            Width="308"
+            Height="554"
+            HorizontalAlignment="Left">
+            <Canvas.Background>
+                <ImageBrush d:ImageSource="/Assets/mapBp.png" />
+            </Canvas.Background>
+            <Canvas.Resources>
+                <Style BasedOn="{StaticResource {x:Type ui:Image}}" TargetType="ui:Image">
+                    <Setter Property="CornerRadius" Value="8" />
+                    <Setter Property="Stretch" Value="UniformToFill" />
+                    <Setter Property="Height" Value="138" />
+                    <Setter Property="Width" Value="290" />
+                </Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Foreground" Value="White" />
+                    <Setter Property="FontSize" Value="22" />
+                </Style>
+            </Canvas.Resources>
+            <ui:Image
+                Name="PickedMap"
+                Canvas.Left="9"
+                Canvas.Top="54"
+                cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+                d:Source="/Assets/map/唐人街.png"
+                Source="{Binding SharedDataService.CurrentGame.PickedMapImage}" />
+            <Border
+                Name="PickedMapName"
+                Canvas.Left="38"
+                Canvas.Top="149"
+                Width="232"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    d:Text="唐人街"
+                    FontFamily="{StaticResource Hanyi}"
+                    Text="{Binding SharedDataService.CurrentGame.PickedMap}" />
+            </Border>
+            <Border
+                Name="PickWord"
+                Canvas.Left="38"
+                Canvas.Top="197"
+                Width="232"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontFamily="{StaticResource POP1W5}"
+                    Text="选择" />
+            </Border>
+            <!--  Team info  -->
+            <Border
+                Name="SurTeamName"
+                Canvas.Top="265"
+                Width="137"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    d:Text="队伍名称"
+                    FontFamily="{StaticResource Hanyi}"
+                    FontSize="20"
+                    Text="{Binding SharedDataService.CurrentGame.SurTeam.Name}" />
+            </Border>
+
+            <TextBlock
+                Name="VS_Word"
+                Canvas.Left="142"
+                Canvas.Top="266"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                FontFamily="{StaticResource POP1W5}"
+                Text="VS" />
+
+            <Border
+                Name="HunTeamName"
+                Canvas.Left="171"
+                Canvas.Top="265"
+                Width="137"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    d:Text="队伍名称"
+                    FontFamily="{StaticResource Hanyi}"
+                    FontSize="20"
+                    Text="{Binding SharedDataService.CurrentGame.HunTeam.Name}" />
+            </Border>
+
+            <ui:Image
+                Name="BannedMap"
+                Canvas.Left="9"
+                Canvas.Top="375"
+                cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+                d:Source="/Assets/map_singleColor/红教堂.png"
+                Source="{Binding SharedDataService.CurrentGame.BannedMapImage}" />
+            <Border
+                Name="BannedMapName"
+                Canvas.Left="38"
+                Canvas.Top="475"
+                Width="232"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    d:Text="红教堂"
+                    FontFamily="{StaticResource Hanyi}"
+                    Text="{Binding SharedDataService.CurrentGame.BannedMap}" />
+            </Border>
+            <Border
+                Name="BanWord"
+                Canvas.Left="38"
+                Canvas.Top="522"
+                Width="232"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    FontFamily="{StaticResource POP1W5}"
+                    Text="禁用" />
+            </Border>
+        </Canvas>
+    </Grid>
 </Window>

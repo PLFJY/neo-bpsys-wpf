@@ -19,6 +19,8 @@ namespace neo_bpsys_wpf.Services
         ObservableCollection<bool> CanGlobalSurBanned { get; set; }
         ObservableCollection<bool> CanGlobalHunBanned { get; set; }
         bool IsTraitVisible { get; set; }
-        string Timer { get; set; }
+        string RemainingSeconds { get; set; }
+        void TimerStart(int seconds);
+        void TimerStop();
     }
 }

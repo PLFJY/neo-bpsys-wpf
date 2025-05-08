@@ -221,23 +221,33 @@
                             Orientation="Horizontal">
                             <ComboBox
                                 Width="100"
+                                d:Text="30"
                                 IsEditable="True"
                                 ItemsSource="{Binding RecommendTimmerList}"
                                 MaxDropDownHeight="150"
-                                SelectedIndex="0" />
+                                SelectedIndex="0"
+                                Text="{Binding TimerTime}" />
                             <ui:Button
                                 Margin="10,0,0,0"
+                                Command="{Binding TimerStartCommand}"
                                 Content="开始"
                                 Icon="{ui:SymbolIcon Symbol=Play24}" />
                             <ui:Button
                                 Margin="10,0,0,0"
-                                Content="停止 (隐藏)"
+                                Command="{Binding TimerStopCommand}"
+                                Content="停止 (恢复 VS)"
                                 Icon="{ui:SymbolIcon Symbol=Stop24}" />
-                            <ui:TextBlock
-                                Width="100"
+                            <TextBlock
+                                Width="35"
                                 Margin="10,0,0,0"
                                 VerticalAlignment="Center"
                                 Text="预览：" />
+                            <TextBlock
+                                Width="25"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                d:Text="VS"
+                                Text="{Binding SharedDataService.RemainingSeconds}" />
                         </StackPanel>
                     </Grid>
                 </Border>
@@ -263,7 +273,7 @@
                     ItemsSource="{Binding GameList}"
                     MaxDropDownHeight="190"
                     SelectedIndex="0"
-                    SelectedItem=""
+                    SelectedValue="{Binding SharedDataService.CurrentGameProgress}"
                     SelectedValuePath="Key" />
             </WrapPanel>
 
