@@ -1,0 +1,56 @@
+name: Build and Release for preview ver.
+
+on:
+  workflow_dispatch: # 手动触发
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: true # 如果需要子模块
+
+    - name: Setup .NET 9.0.4
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '9.0.400' # 根据实际SDK版本调整
+
+    - name: Run build script
+      working-directory: ${{ github.workspace }}
+      shell: cmd
+      run: |
+        build.bat
+
+    - name: Get EXE version
+      id: get_version
+      shell: powershell
+      run: |
+        $exePath = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "build\neo-bpsys-wpf\neo-bpsys-wpf.exe"
+        $fileVersion = (Get-Item $exePath).VersionInfo.FileVersion
+        echo "::set-output name=version::$fileVersion"
+
+    - name: Get latest commit message
+      id: get_commit
+      run: |
+        echo "::set-output name=message::$(git log -1 --pretty=%B)"
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      with:
+        tag_name: v${{ steps.get_version.outputs.version }}
+        release_name: neo-bpsys-wpf v${{ steps.get_version.outputs.version }}
+        body: ${{ steps.get_commit.outputs.message }}
+        draft: false
+        prerelease: true
+
+    - name: Upload Installer
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ github.workspace }}\build\neo-bpsys-wpf_Installer.exe
+        asset_name: neo-bpsys-wpf-installer.exe
+        asset_content_type: application/octet-stream
