@@ -65,7 +65,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
 
             [RelayCommand]
-            private void ImportInfoFromJson()
+            private async Task ImportInfoFromJsonAsync()
             {
                 var fileName = _filePickerService.PickJsonFile();
 
@@ -77,17 +77,24 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 if (string.IsNullOrEmpty(jsonFile))
                     return;
 
-                var teamInfo = JsonSerializer.Deserialize<Team>(jsonFile);
+                try
+                {
+                    var teamInfo = JsonSerializer.Deserialize<Team>(jsonFile);
 
-                if (teamInfo == null)
-                    return;
+                    if (teamInfo == null)
+                        return;
 
-                teamInfo.Camp = CurrentTeam.Camp;
-                CurrentTeam.ImportTeamInfo(teamInfo);
-                TeamName = CurrentTeam.Name;
-                App.Services.GetRequiredService<ISharedDataService>()
+                    teamInfo.Camp = CurrentTeam.Camp;
+                    CurrentTeam.ImportTeamInfo(teamInfo);
+                    TeamName = CurrentTeam.Name;
+                    App.Services.GetRequiredService<ISharedDataService>()
                     .CurrentGame.RefreshCurrentPlayer();
-                OnPropertyChanged();
+                    OnPropertyChanged();
+                }
+                catch (JsonException ex)
+                {
+                    await _messageBoxService.ShowWarningAsync($"Json文件格式错误\n{ex.Message}");
+                }
             }
 
             [RelayCommand(CanExecute = nameof(CanAddSurMember))]

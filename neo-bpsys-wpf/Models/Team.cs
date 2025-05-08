@@ -1,8 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Extensions;
+using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
@@ -12,15 +14,28 @@ namespace neo_bpsys_wpf.Models;
 
 public partial class Team : ObservableObject
 {
-#pragma warning disable CS8618 // ÔÚÍË³ö¹¹Ôìº¯ÊıÊ±£¬²»¿ÉÎª null µÄ×Ö¶Î±ØĞë°üº¬·Ç null Öµ¡£Çë¿¼ÂÇÌí¼Ó "required" ĞŞÊÎ·û»òÉùÃ÷Îª¿ÉÎª null¡£
+#pragma warning disable CS8618 // åœ¨é€€å‡ºæ„é€ å‡½æ•°æ—¶ï¼Œä¸å¯ä¸º null çš„å­—æ®µå¿…é¡»åŒ…å«é null å€¼ã€‚è¯·è€ƒè™‘æ·»åŠ  "required" ä¿®é¥°ç¬¦æˆ–å£°æ˜ä¸ºå¯ä¸º nullã€‚
     public Team()
-#pragma warning restore CS8618 // ÔÚÍË³ö¹¹Ôìº¯ÊıÊ±£¬²»¿ÉÎª null µÄ×Ö¶Î±ØĞë°üº¬·Ç null Öµ¡£Çë¿¼ÂÇÌí¼Ó "required" ĞŞÊÎ·û»òÉùÃ÷Îª¿ÉÎª null¡£
+#pragma warning restore CS8618 // åœ¨é€€å‡ºæ„é€ å‡½æ•°æ—¶ï¼Œä¸å¯ä¸º null çš„å­—æ®µå¿…é¡»åŒ…å«é null å€¼ã€‚è¯·è€ƒè™‘æ·»åŠ  "required" ä¿®é¥°ç¬¦æˆ–å£°æ˜ä¸ºå¯ä¸º nullã€‚
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
 
-    [ObservableProperty]
-    private String _name = string.Empty;
+    private string _name;
+
+    public string Name
+    {
+        get
+        {
+            return this.ToString();
+        }
+        set
+        {
+            _name = value;
+            OnPropertyChanged();
+        }
+    }
+
 
     [ObservableProperty]
     private Camp _camp;
@@ -170,5 +185,18 @@ public partial class Team : ObservableObject
     {
         GlobalBannedSurList = new(GlobalBannedSurRecordArray.ToList());
         GlobalBannedHunList = new(GlobalBannedHunRecordArray.ToList());
+    }
+
+    public override string ToString()
+    {
+        if (this == App.Services.GetRequiredService<ISharedDataService>().MainTeam)
+        {
+            return string.IsNullOrEmpty(_name) ? "ä¸»é˜Ÿ" : _name;
+        }
+        if (this == App.Services.GetRequiredService<ISharedDataService>().AwayTeam)
+        {
+            return string.IsNullOrEmpty(_name) ? "å®¢é˜Ÿ" : _name;
+        }
+        return _name;
     }
 }

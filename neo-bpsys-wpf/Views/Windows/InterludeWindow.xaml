@@ -23,8 +23,8 @@
     </Window.Resources>
     <Canvas
         x:Name="BaseCanvas"
-        Width="1440"
-        Height="810">
+        Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}"
+        Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
         <Canvas.Background>
             <ImageBrush ImageSource="/Assets/interlude.png" />
         </Canvas.Background>

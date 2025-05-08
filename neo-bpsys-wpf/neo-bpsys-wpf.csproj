@@ -100,9 +100,10 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="hyjiacan.pinyin4net" Version="4.1.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0-preview.3.25171.5" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0-preview.3.25171.5" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0-preview.3.25171.5" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.4" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
@@ -115,74 +116,6 @@
     <None Include="Resources\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Assets\Icons\hunTalent\**" />
-    <Compile Remove="Assets\Icons\surTalent\**" />
-    <Compile Remove="Assets\Icons\trait\**" />
-    <Compile Remove="Installer\**" />
-    <EmbeddedResource Remove="Assets\Icons\hunTalent\**" />
-    <EmbeddedResource Remove="Assets\Icons\surTalent\**" />
-    <EmbeddedResource Remove="Assets\Icons\trait\**" />
-    <EmbeddedResource Remove="Installer\**" />
-    <None Remove="Installer\**" />
-    <Page Remove="Installer\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Assets\bp.png" />
-    <None Remove="Assets\gameData.png" />
-    <None Remove="Assets\gameInfo.png" />
-    <None Remove="Assets\Icons\black\Abnormal.png" />
-    <None Remove="Assets\Icons\black\Blink.png" />
-    <None Remove="Assets\Icons\black\BorrowedTime.png" />
-    <None Remove="Assets\Icons\black\ConfinedSpace.png" />
-    <None Remove="Assets\Icons\black\Detention.png" />
-    <None Remove="Assets\Icons\black\Excitement.png" />
-    <None Remove="Assets\Icons\black\FlywheelEffect.png" />
-    <None Remove="Assets\Icons\black\Insolence.png" />
-    <None Remove="Assets\Icons\black\KneeJerkReflex.png" />
-    <None Remove="Assets\Icons\black\Listen.png" />
-    <None Remove="Assets\Icons\black\Patroller.png" />
-    <None Remove="Assets\Icons\black\Peeper.png" />
-    <None Remove="Assets\Icons\black\Teleport.png" />
-    <None Remove="Assets\Icons\black\TideTurner.png" />
-    <None Remove="Assets\Icons\black\TrumpCard.png" />
-    <None Remove="Assets\Icons\black\Warp.png" />
-    <None Remove="Assets\Icons\white\Abnormal.png" />
-    <None Remove="Assets\Icons\white\Blink.png" />
-    <None Remove="Assets\Icons\white\BorrowedTime.png" />
-    <None Remove="Assets\Icons\white\ConfinedSpace.png" />
-    <None Remove="Assets\Icons\white\Detention.png" />
-    <None Remove="Assets\Icons\white\Excitement.png" />
-    <None Remove="Assets\Icons\white\FlywheelEffect.png" />
-    <None Remove="Assets\Icons\white\Insolence.png" />
-    <None Remove="Assets\Icons\white\KneeJerkReflex.png" />
-    <None Remove="Assets\Icons\white\Listen.png" />
-    <None Remove="Assets\Icons\white\Patroller.png" />
-    <None Remove="Assets\Icons\white\Peeper.png" />
-    <None Remove="Assets\Icons\white\Teleport.png" />
-    <None Remove="Assets\Icons\white\TideTurner.png" />
-    <None Remove="Assets\Icons\white\TrumpCard.png" />
-    <None Remove="Assets\Icons\white\Warp.png" />
-    <None Remove="Assets\interlude.png" />
-    <None Remove="Assets\logo_net.jpg" />
-    <None Remove="Assets\logo_net.svg" />
-    <None Remove="Assets\mapBp.png" />
-    <None Remove="Assets\scoreGlobal.png" />
-    <None Remove="Assets\scoreGlobal_Bo3.png" />
-    <None Remove="Assets\scoreHun.png" />
-    <None Remove="Assets\scoreSur.png" />
-    <None Remove="Assets\testLogo.JPG" />
-    <None Remove="Assets\wpfui.png" />
-    <None Remove="Assets\先知.png" />
-    <None Remove="Assets\医生.png" />
-    <None Remove="Assets\厂长.png" />
-    <None Remove="Assets\小丑.png" />
-    <None Remove="Assets\幸运儿.png" />
-    <None Remove="Assets\新版头像.jpg" />
-    <None Remove="Assets\梦之女巫.png" />
-    <None Remove="Assets\闪现.png" />
-    <None Remove="Views\Windows\bp.png" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="favicon.ico" />
