@@ -13,10 +13,10 @@ jobs:
       with:
         submodules: true # 如果需要子模块
 
-    - name: Setup .NET 9.0.4
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '9.0.400' # 根据实际SDK版本调整
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v3.4.2
+      with: 
+          dotnet-version: '9.0.4'
 
     - name: Run build script
       working-directory: ${{ github.workspace }}
