@@ -26,21 +26,21 @@ public class Character
         HeaderImage = GetImageSource(camp == Camp.Sur ? ImageSourceKey.surHeader : ImageSourceKey.hunHeader);
         HeaderImage_SingleColor = GetImageSource(camp == Camp.Sur ? ImageSourceKey.surHeader_singleColor : ImageSourceKey.hunHeader_singleColor);
         HalfImage = GetImageSource(camp == Camp.Sur ? ImageSourceKey.surHalf : ImageSourceKey.hunHalf);
-        //∆¥“Ù¥¶¿Ì
+        //ÊãºÈü≥Â§ÑÁêÜ
         var format = PinyinFormat.WITHOUT_TONE | PinyinFormat.LOWERCASE | PinyinFormat.WITH_U_AND_COLON | PinyinFormat.WITH_V;
 
         var pinyin = Pinyin4Net.GetPinyin(name, format);
 
-        var parts = pinyin.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        var parts = pinyin.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
 
-        if (name[0].Equals('µ˜'))
+        if (name[0].Equals("Ë∞É"))
             parts[0] = "tiao";
 
         //full pinyin without space
         FullSpell = string.Concat(parts);
 
         //special case
-        if (name.Equals("26∫≈ ÿŒ¿"))
+        if (name.Equals("26Âè∑ÂÆàÂç´"))
         {
             Abbrev = "bb";
         }
