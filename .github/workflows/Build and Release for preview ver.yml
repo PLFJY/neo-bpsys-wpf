@@ -16,7 +16,7 @@ jobs:
     - name: Setup .NET Core SDK
       uses: actions/setup-dotnet@v3.4.2
       with: 
-          dotnet-version: '9.0.4'
+          dotnet-version: '9.0.*'
 
     - name: Run build script
       working-directory: ${{ github.workspace }}
