@@ -1,4 +1,4 @@
-name: Build and Release for preview ver.
+name: Build and Release for Beta ver.
 
 on:
   workflow_dispatch:
@@ -30,12 +30,13 @@ jobs:
       run: |
         $exePath = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "build\neo-bpsys-wpf\neo-bpsys-wpf.exe"
         $fileVersion = (Get-Item $exePath).VersionInfo.FileVersion
-        echo "::set-output name=version::$fileVersion"
+        echo "version=$fileVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8
 
     - name: Get latest commit message
       id: get_commit
+      shell: bash
       run: |
-        echo "::set-output name=message::$(git log -1 --pretty=%B)"
+        echo "message=$(git log -5 --pretty=%B)" >> $GITHUB_OUTPUT
         
     - name: Create GitHub Release
       id: create_release
@@ -44,7 +45,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: v${{ steps.get_version.outputs.version }}
-        release_name: neo-bpsys-wpf v${{ steps.get_version.outputs.version }}-beta
+        release_name: Beta-v${{ steps.get_version.outputs.version }}
         body: |
           ${{ steps.get_commit.outputs.message }}
         draft: false

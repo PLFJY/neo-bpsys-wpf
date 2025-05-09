@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build and Release for Alpha ver.
 
 on:
   workflow_dispatch:
@@ -45,11 +45,11 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: v${{ steps.get_version.outputs.version }}
-        release_name: Release-v${{ steps.get_version.outputs.version }}
+        release_name: Alpha-v${{ steps.get_version.outputs.version }}
         body: |
           ${{ steps.get_commit.outputs.message }}
         draft: false
-        prerelease: false
+        prerelease: true
 
     - name: Upload Installer
       uses: actions/upload-release-asset@v1
