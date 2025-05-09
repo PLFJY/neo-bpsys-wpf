@@ -69,10 +69,7 @@
                         VerticalAlignment="Center"
                         d:Text="当前状态：求生者"
                         Text="{Binding CurrentTeam.Camp, Converter={StaticResource CampToStringConverter}}" />
-                    <ui:Button
-                        Command="{Binding SetTeamLogoCommand}"
-                        Content="设置队伍LOGO"
-                        Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
+                    
                 </StackPanel>
 
                 <!--  player edit  -->
@@ -151,7 +148,7 @@
                     <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding CurrentTeam.HunMemberList}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                                <StackPanel Margin="10,0,0,10" Orientation="Horizontal">
                                     <ui:TextBox
                                         MinWidth="250"
                                         PlaceholderText="选手名称"
@@ -340,7 +337,7 @@
                     <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding CurrentTeam.HunMemberList}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Margin="10,0,0,10" Orientation="Horizontal">
+                                <StackPanel Margin="10,0,0,10" Orientation="Horizontal" Cursor="">
                                     <ui:TextBox
                                         MinWidth="250"
                                         PlaceholderText="选手名称"
@@ -447,7 +444,7 @@
                     <cc:CharacterChanger Command="{Binding SwapMembersInPlayersCommand}" Index="3" />
                 </StackPanel>
 
-                <TextBlock Margin="0,10,0,0" Text="监管者" />
+                <TextBlock Margin="0,10,0,10" Text="监管者" />
                 <ui:TextBox Text="{Binding SharedDataService.CurrentGame.HunPlayer.Member.Name}" />
             </StackPanel>
         </Border>
