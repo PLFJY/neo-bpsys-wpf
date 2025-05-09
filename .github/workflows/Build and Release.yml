@@ -36,7 +36,10 @@ jobs:
       id: get_commit
       shell: bash
       run: |
-        echo "message=$(git log -5 --pretty=%B)" >> $GITHUB_OUTPUT
+        # 获取最新提交信息并转义特殊字符
+        commit_msg=$(git log -1 --pretty=%B | tr -d '\r' | sed ':a;N;$!ba;s/\n/%0A/g' | sed 's/\r/%0D/g' | sed 's/\t/%09/g')
+        # 设置输出变量
+        echo "message=$commit_msg" >> "$GITHUB_OUTPUT"
         
     - name: Create GitHub Release
       id: create_release
