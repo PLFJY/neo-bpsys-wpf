@@ -1,0 +1,64 @@
+name: Build and Release for Beta ver.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v3.4.2
+      with: 
+          dotnet-version: '9.0.*'
+
+    - name: Run build script
+      working-directory: ${{ github.workspace }}
+      shell: cmd
+      run: |
+        build.bat
+
+    - name: Get EXE version
+      id: get_version
+      shell: powershell
+      run: |
+        $exePath = Join-Path -Path $env:GITHUB_WORKSPACE -ChildPath "build\neo-bpsys-wpf\neo-bpsys-wpf.exe"
+        $fileVersion = (Get-Item $exePath).VersionInfo.FileVersion
+        echo "version=$fileVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+
+    - name: Get latest commit message
+      id: get_commit
+      shell: bash
+      run: |
+        commit_msg=$(git log -5 --pretty=%B)
+        escaped_msg=$(echo "$commit_msg" | jq -Rs .)
+        echo "message=$escaped_msg" >> "$GITHUB_OUTPUT"
+        
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.get_version.outputs.version }}
+        release_name: Beta-v${{ steps.get_version.outputs.version }}
+        body: |
+          ${{ fromJSON(steps.get_commit.outputs.message) }}
+        draft: false
+        prerelease: true
+
+    - name: Upload Installer
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ github.workspace }}\build\neo-bpsys-wpf_Installer.exe
+        asset_name: neo-bpsys-wpf-installer.exe
+        asset_content_type: application/octet-stream
