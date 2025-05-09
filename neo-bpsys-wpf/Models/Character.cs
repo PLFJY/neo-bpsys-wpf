@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using hyjiacan.py4n;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Helpers;
+using System.Text.Json.Serialization;
 using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Models;
@@ -11,12 +12,16 @@ public class Character
     public string Name { get; set; } = string.Empty;
     public Camp Camp { get; }
     public string ImageFileName { get; set; } = string.Empty;
+    [JsonIgnore]
     public ImageSource? BigImage { get; set; }
+    [JsonIgnore]
     public ImageSource? HeaderImage { get; set; }
+    [JsonIgnore]
     public ImageSource? HeaderImage_SingleColor { get; set; }
+    [JsonIgnore]
     public ImageSource? HalfImage { get; set; }
-    public string FullSpell { get; set; } = string.Empty;
-    public string Abbrev { get; set; } = string.Empty;
+    public string FullSpell { get; set; } = string.Empty;// 角色名称全拼
+    public string Abbrev { get; set; } = string.Empty; //角色名称简拼
     public Character(string name, Camp camp, string imageFileName)
     {
         Name = name;
@@ -33,7 +38,7 @@ public class Character
 
         var parts = pinyin.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
 
-        if (name[0].Equals("调"))
+        if (name.StartsWith("调"))
             parts[0] = "tiao";
 
         //full pinyin without space

@@ -72,8 +72,8 @@ namespace neo_bpsys_wpf.Services
 
             CanCurrentSurBanned.AddRange(Enumerable.Repeat(true, 4));
             CanCurrentHunBanned.AddRange(Enumerable.Repeat(true, 2));
-            CanGlobalSurBanned.AddRange(Enumerable.Repeat(true, 9));
-            CanGlobalHunBanned.AddRange(Enumerable.Repeat(true, 3));
+            CanGlobalSurBanned.AddRange(Enumerable.Repeat(false, 9));
+            CanGlobalHunBanned.AddRange(Enumerable.Repeat(false, 3));
 
             _timer.Interval = TimeSpan.FromSeconds(1);
             _timer.Tick += Timer_Tick;
@@ -86,14 +86,10 @@ namespace neo_bpsys_wpf.Services
         public Dictionary<string, Character> CharacterList { get; set; } = new();
         public Dictionary<string, Character> SurCharaList { get; set; }
         public Dictionary<string, Character> HunCharaList { get; set; }
-        [ObservableProperty]
-        private ObservableCollection<bool> _canCurrentSurBanned = new();
-        [ObservableProperty]
-        private ObservableCollection<bool> _canCurrentHunBanned = new();
-        [ObservableProperty]
-        private ObservableCollection<bool> _canGlobalSurBanned = new();
-        [ObservableProperty]
-        private ObservableCollection<bool> _canGlobalHunBanned = new();
+        public ObservableCollection<bool> CanCurrentSurBanned { get; set; } = new();
+        public ObservableCollection<bool> CanCurrentHunBanned { get; set; } = new();
+        public ObservableCollection<bool> CanGlobalSurBanned { get; set; } = new();
+        public ObservableCollection<bool> CanGlobalHunBanned { get; set; } = new();
         [ObservableProperty]
         private bool _isTraitVisible = true;
 
