@@ -318,13 +318,13 @@
             Source="{Binding SharedDataService.CurrentGame.PickedMapImage}" />
         <Border
             Name="MapName"
-            Canvas.Left="604"
+            Canvas.Left="645"
             Canvas.Top="709"
-            Width="97"
+            Width="150"
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
             Panel.ZIndex="1"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}" Height="30">
             <TextBlock
                 Name="PickedMapName"
                 HorizontalAlignment="Center"
