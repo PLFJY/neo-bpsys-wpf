@@ -21,7 +21,7 @@ public partial class Team : ObservableObject
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
 
-    private string _name;
+    private string _name = string.Empty;
 
     public string Name
     {
