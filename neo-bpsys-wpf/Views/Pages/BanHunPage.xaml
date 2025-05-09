@@ -42,6 +42,7 @@
                         Command="{Binding ConfirmCurrentBanCommand}"
                         ImageSource="{Binding SharedDataService.CurrentGame.CurrentHunBannedList[0].HeaderImage_SingleColor}"
                         Index="0"
+                        IsEnabled="{Binding SharedDataService.CanCurrentHunBanned[0]}"
                         ItemsSource="{Binding SharedDataService.HunCharaList}"
                         SelectedValue="{Binding CurrentBannedArray[0], Mode=TwoWay}" />
                     <cc:CharaSelector
@@ -49,6 +50,7 @@
                         Command="{Binding ConfirmCurrentBanCommand}"
                         ImageSource="{Binding SharedDataService.CurrentGame.CurrentHunBannedList[1].HeaderImage_SingleColor}"
                         Index="1"
+                        IsEnabled="{Binding SharedDataService.CanCurrentHunBanned[1]}"
                         ItemsSource="{Binding SharedDataService.HunCharaList}"
                         SelectedValue="{Binding CurrentBannedArray[1]}" />
                 </WrapPanel>
@@ -74,6 +76,7 @@
                         Command="{Binding ConfirmGlobalBanCommand}"
                         ImageSource="{Binding SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[0].HeaderImage_SingleColor}"
                         Index="0"
+                        IsEnabled="{Binding SharedDataService.CanGlobalHunBanned[0]}"
                         ItemsSource="{Binding SharedDataService.HunCharaList}"
                         SelectedValue="{Binding GlobalBannedArray[0]}" />
                     <cc:CharaSelector
@@ -81,6 +84,7 @@
                         Command="{Binding ConfirmGlobalBanCommand}"
                         ImageSource="{Binding SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[1].HeaderImage_SingleColor}"
                         Index="1"
+                        IsEnabled="{Binding SharedDataService.CanGlobalHunBanned[1]}"
                         ItemsSource="{Binding SharedDataService.HunCharaList}"
                         SelectedValue="{Binding GlobalBannedArray[1]}" />
                     <cc:CharaSelector
@@ -88,6 +92,7 @@
                         Command="{Binding ConfirmGlobalBanCommand}"
                         ImageSource="{Binding SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[2].HeaderImage_SingleColor}"
                         Index="2"
+                        IsEnabled="{Binding SharedDataService.CanGlobalHunBanned[2]}"
                         ItemsSource="{Binding SharedDataService.HunCharaList}"
                         SelectedValue="{Binding GlobalBannedArray[2]}" />
                 </WrapPanel>

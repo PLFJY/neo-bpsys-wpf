@@ -198,7 +198,7 @@ namespace neo_bpsys_wpf.CustomControls
         private void combobox_TextChanged(object sender, TextChangedEventArgs e)
         {
             //press space to search
-            if (combobox.Text.Contains(' '))
+            if (combobox.Text.Contains(" "))
             {
                 var currentText = Text.Substring(0, Text.Length - 1);
                 var findedIndex = FindIndex(currentText);
