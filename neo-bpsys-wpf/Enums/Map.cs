@@ -2,6 +2,9 @@
 
 namespace neo_bpsys_wpf.Enums
 {
+    /// <summary>
+    /// 地图枚举
+    /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum Map
     {

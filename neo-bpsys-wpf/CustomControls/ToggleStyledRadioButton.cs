@@ -4,8 +4,19 @@ using System.Windows.Media;
 
 namespace neo_bpsys_wpf.CustomControls
 {
+    /**
+     * 自定义RadioButton控件，支持图像与标签组合样式
+     * 提供可视化样式定制功能，包含图像尺寸、标签内容等可配置属性
+     * 继承自RadioButton，保持原有单选按钮功能特性
+     */
     public class ToggleStyledRadioButton : RadioButton
     {
+        /**
+         * 获取或设置按钮显示的图像源
+         * 类型：ImageSource
+         * 默认值：null
+         * 支持绑定、动画和样式设置
+         */
         public ImageSource ImageSource
         {
             get { return (ImageSource)GetValue(ImageSourceProperty); }
@@ -20,6 +31,12 @@ namespace neo_bpsys_wpf.CustomControls
             new PropertyMetadata(null)
         );
 
+        /**
+         * 获取或设置与按钮关联的标签文本内容
+         * 类型：string
+         * 默认值：null
+         * 用于显示在按钮上的文字标签
+         */
         public string TagName
         {
             get { return (string)GetValue(TagNameProperty); }
@@ -34,6 +51,12 @@ namespace neo_bpsys_wpf.CustomControls
             new PropertyMetadata(null)
         );
 
+        /**
+         * 获取或设置按钮图像的显示高度
+         * 类型：double
+         * 默认值：73.0
+         * 影响UI布局尺寸，支持动态调整
+         */
         public double ImageHeight
         {
             get { return (double)GetValue(ImageHeightProperty); }
@@ -48,6 +71,12 @@ namespace neo_bpsys_wpf.CustomControls
             new PropertyMetadata(73.0)
         );
 
+        /**
+         * 获取或设置按钮图像的显示宽度
+         * 类型：double
+         * 默认值：276.0
+         * 控制图像区域的水平尺寸
+         */
         public double ImageWidth
         {
             get { return (double)GetValue(ImageWidthProperty); }
