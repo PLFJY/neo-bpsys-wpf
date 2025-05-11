@@ -77,7 +77,7 @@
             FontFamily="Arial"
             FontSize="28"
             FontWeight="Bold"
-            Text="{Binding SharedDataService.CurrentGame.SurTeam.Score, Converter={StaticResource ScoreToStringConverterInFront}}"
+            Text="{Binding SharedDataService.CurrentGame.SurTeam.Score, Converter={StaticResource ScoreToStringConverterInFront}, Mode=OneWay}"
             TextAlignment="Center" />
         <TextBlock
             Name="SurTeamName"
@@ -321,10 +321,11 @@
             Canvas.Left="645"
             Canvas.Top="709"
             Width="150"
+            Height="30"
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
             Panel.ZIndex="1"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}" Height="30">
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
             <TextBlock
                 Name="PickedMapName"
                 HorizontalAlignment="Center"

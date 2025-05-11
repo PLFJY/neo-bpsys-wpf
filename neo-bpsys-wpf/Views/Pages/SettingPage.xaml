@@ -15,7 +15,9 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
-
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Page.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -107,13 +109,61 @@
                         Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                         NavigateUri="https://github.com/PLFJY/neo-bpsys-wpf" />
                 </Grid>
-                <ui:Button
-                    x:Name="CheckUpdate"
-                    Margin="30,0,0,0"
-                    Content="检查更新"
-                    Icon="{ui:SymbolIcon ArrowSync24}"
-                    IsEnabled="False" />
-
+                <StackPanel Margin="15,0,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" Text="下载源：" />
+                        <ComboBox
+                            Margin="10,0,0,0"
+                            ItemsSource="{Binding MirrorList}"
+                            SelectedIndex="0"
+                            SelectedValue="{Binding Mirror}" />
+                        <TextBlock
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="下载预览版？" />
+                        <ui:ToggleSwitch Margin="10,0,0,0" IsChecked="{Binding UpdaterService.IsFindPreRelease}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                        <ui:Button
+                            Command="{Binding UpdateCheckCommand}"
+                            Content="检查更新"
+                            Icon="{ui:SymbolIcon ArrowSync24}" />
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            Command="{Binding InstallUpdateCommand}"
+                            Content="安装"
+                            Icon="{ui:SymbolIcon Symbol=DrawerArrowDownload24}" />
+                        <StackPanel Orientation="Horizontal" Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                Text="下载进度：" />
+                            <ProgressBar
+                                Width="175"
+                                Height="20"
+                                Margin="10,0,0,0"
+                                d:Value="50"
+                                Value="{Binding DownloadProgress}" />
+                            <TextBlock
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                d:Text="50.00%"
+                                Text="{Binding DownloadProgressText}" />
+                            <TextBlock
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                d:Text="10.00 Mb/s"
+                                Text="{Binding MbPerSecondSpeed}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <ui:Button
+                        Margin="520,10,0,0"
+                        HorizontalAlignment="Left"
+                        Command="{Binding CancelDownloadCommand}"
+                        Content="停止"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}"
+                        Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                </StackPanel>
             </StackPanel>
         </ui:CardExpander>
     </Grid>

@@ -4,6 +4,8 @@ using neo_bpsys_wpf.Services;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
+using MessageBox = Wpf.Ui.Controls.MessageBox;
+using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
 
 namespace neo_bpsys_wpf.Views.Windows
 {
@@ -12,16 +14,15 @@ namespace neo_bpsys_wpf.Views.Windows
     /// </summary>
     public partial class MainWindow : FluentWindow, INavigationWindow
     {
-        private readonly IMessageBoxService _messageBoxService;
-
         public MainWindow(
             INavigationService navigationService,
-            IMessageBoxService messageBoxService
+            IMessageBoxService messageBoxService,
+            IInfoBarService infoBarService
         )
         {
             InitializeComponent();
             navigationService.SetNavigationControl(RootNavigation);
-            _messageBoxService = messageBoxService;
+            infoBarService.SetInfoBarControl(InfoBar);
             this.Closing += MainWindow_Closing;
             TitleBar.MouseDown += TitleBar_MouseDown;
             WindowIcon.MouseDown += WindowIcon_MouseDown;
@@ -44,9 +45,20 @@ namespace neo_bpsys_wpf.Views.Windows
             await ConfirmToExitAsync();
         }
 
-        private async Task ConfirmToExitAsync()
+        private static async Task ConfirmToExitAsync()
         {
-            if (await _messageBoxService.ShowExitConfirmAsync("退出确认", "是否退出"))
+            var messageBox = new MessageBox()
+            {
+                Title = "退出确认",
+                Content = "是否退出",
+                PrimaryButtonText = "退出",
+                PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.ArrowExit20 },
+                CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
+                CloseButtonText = "取消",
+            };
+            var result = await messageBox.ShowDialogAsync();
+            
+            if (result == MessageBoxResult.Primary)
             {
                 App.Current.Shutdown();
             }

@@ -85,6 +85,7 @@ public partial class Game : ObservableObject
         GameProgress = gameProgress;
         CurrentHunBannedList.AddRange(Enumerable.Range(0, 2).Select(i => new Character(Camp.Hun)));
         CurrentSurBannedList.AddRange(Enumerable.Range(0, 4).Select(i => new Character(Camp.Sur)));
+        OnPropertyChanged(string.Empty);
     }
 
     public void RefreshCurrentPlayer()

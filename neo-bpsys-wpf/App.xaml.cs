@@ -1,11 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Http;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Theme;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Threading;
 using Wpf.Ui;
@@ -34,6 +36,9 @@ namespace neo_bpsys_wpf
                 // TaskBar manipulation
                 services.AddSingleton<ITaskBarService, TaskBarService>();
 
+                //UpdaterService
+                services.AddSingleton<IUpdaterService, UpdaterService>();
+
                 // Service containing navigation, same as INavigationWindow... but without window
                 services.AddSingleton<INavigationService, NavigationService>();
 
@@ -43,7 +48,8 @@ namespace neo_bpsys_wpf
                 // Main window with navigation
                 services.AddSingleton<INavigationWindow, MainWindow>(sp => new MainWindow(
                     sp.GetRequiredService<INavigationService>(),
-                    sp.GetRequiredService<IMessageBoxService>()
+                    sp.GetRequiredService<IMessageBoxService>(),
+                    sp.GetRequiredService<IInfoBarService>()
                 )
                 {
                     DataContext = sp.GetRequiredService<MainWindowViewModel>(),
@@ -56,6 +62,7 @@ namespace neo_bpsys_wpf
                 //Tool Services
                 services.AddSingleton<IFilePickerService, FilePickerService>();
                 services.AddSingleton<IMessageBoxService, MessageBoxService>();
+                services.AddSingleton<IInfoBarService, InfoBarService>();
 
                 //Views and ViewModels
                 //Window
@@ -178,6 +185,9 @@ namespace neo_bpsys_wpf
                 }
             };
             ApplicationThemeManager.Apply(ApplicationTheme.Dark, WindowBackdropType.Mica, true);
+#if !DEBUG
+            await _host.Services.GetRequiredService<IUpdaterService>().UpdateCheck(true);
+#endif
         }
 
         protected override async void OnExit(ExitEventArgs e)

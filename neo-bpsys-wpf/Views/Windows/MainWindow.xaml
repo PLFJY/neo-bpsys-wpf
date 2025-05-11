@@ -278,14 +278,20 @@
             </WrapPanel>
 
             <!--  navigation  -->
-            <ui:NavigationView
-                x:Name="RootNavigation"
-                Grid.Row="2"
-                FooterMenuItemsSource="{Binding FooterMenuItems}"
-                IsBackButtonVisible="Collapsed"
-                IsPaneToggleVisible="False"
-                MenuItemsSource="{Binding MenuItems}"
-                OpenPaneLength="130" />
+            <Grid Grid.Row="2">
+                <ui:InfoBar
+                    Name="InfoBar"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Panel.ZIndex="1" />
+                <ui:NavigationView
+                    x:Name="RootNavigation"
+                    FooterMenuItemsSource="{Binding FooterMenuItems}"
+                    IsBackButtonVisible="Collapsed"
+                    IsPaneToggleVisible="False"
+                    MenuItemsSource="{Binding MenuItems}"
+                    OpenPaneLength="130" />
+            </Grid>
         </Grid>
         <!--  主题切换相关的东西  -->
         <Rectangle

@@ -93,7 +93,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 }
                 catch (JsonException ex)
                 {
-                    await _messageBoxService.ShowWarningAsync($"Json文件格式错误\n{ex.Message}");
+                    await _messageBoxService.ShowErrorAsync($"Json文件格式错误\n{ex.Message}");
                 }
             }
 

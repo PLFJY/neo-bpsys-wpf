@@ -63,6 +63,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 hunTeam,
                 SharedDataService.CurrentGameProgress
             );
+
             await _messageBoxService.ShowInfoAsync($"已成功创建新对局\n{SharedDataService.CurrentGame.GUID}", "创建提示");
         }
 
@@ -123,7 +124,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             if (int.TryParse(TimerTime, out int time))
                 SharedDataService.TimerStart(time);
             else
-                _messageBoxService.ShowWarningAsync("输入不合法");
+                _messageBoxService.ShowErrorAsync("输入不合法");
         }
 
         [RelayCommand]
