@@ -7,6 +7,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         public GameDataPageViewModel()
         {
             //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+            //前面的区域以后再来探索吧~
         }
     }
 }
