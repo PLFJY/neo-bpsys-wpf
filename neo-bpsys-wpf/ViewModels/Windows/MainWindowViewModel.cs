@@ -25,6 +25,8 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         public ISharedDataService SharedDataService { get; }
 
+        private readonly JsonSerializerOptions jsonSerializerOptions;
+
         [ObservableProperty]
         private ApplicationTheme _applicationTheme = ApplicationTheme.Dark;
         private readonly IMessageBoxService _messageBoxService;
@@ -33,6 +35,12 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         {
             SharedDataService = sharedDataService;
             _messageBoxService = messageBoxService;
+            jsonSerializerOptions = new JsonSerializerOptions()
+            {
+                WriteIndented = true,
+                Converters = { new JsonStringEnumConverter() },
+                //Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
         }
 
 
@@ -91,13 +99,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [RelayCommand]
         private async Task SaveGameInfoAsync()
         {
-            var options = new JsonSerializerOptions()
-            {
-                WriteIndented = true,
-                Converters = { new JsonStringEnumConverter() },
-                //Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
-            var json = JsonSerializer.Serialize(SharedDataService.CurrentGame, options);
+            var json = JsonSerializer.Serialize(SharedDataService.CurrentGame, jsonSerializerOptions);
             var path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 "neo-bpsys-wpf\\GameInfoOutput"

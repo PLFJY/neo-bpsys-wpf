@@ -26,7 +26,6 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         private void Escape4()
         {
             SharedDataService.CurrentGame.SurTeam.Score.MinorPoints += 5;
-            OnPropertyChanged(string.Empty);
         }
 
         [RelayCommand]
@@ -34,7 +33,6 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             SharedDataService.CurrentGame.SurTeam.Score.MinorPoints += 3;
             SharedDataService.CurrentGame.HunTeam.Score.MinorPoints += 1;
-            OnPropertyChanged(string.Empty);
         }
 
         [RelayCommand]
@@ -42,7 +40,6 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             SharedDataService.CurrentGame.SurTeam.Score.MinorPoints += 2;
             SharedDataService.CurrentGame.HunTeam.Score.MinorPoints += 2;
-            OnPropertyChanged(string.Empty);
         }
 
         [RelayCommand]
@@ -50,14 +47,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             SharedDataService.CurrentGame.SurTeam.Score.MinorPoints += 1;
             SharedDataService.CurrentGame.HunTeam.Score.MinorPoints += 3;
-            OnPropertyChanged(string.Empty);
         }
 
         [RelayCommand]
         private void Out4()
         {
             SharedDataService.CurrentGame.HunTeam.Score.MinorPoints += 5;
-            OnPropertyChanged(string.Empty);
         }
 
         [RelayCommand]
@@ -65,7 +60,13 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             SharedDataService.MainTeam.Score = new();
             SharedDataService.AwayTeam.Score = new();
-            OnPropertyChanged(string.Empty);
+        }
+
+        [RelayCommand]
+        private void ResetMinorPoint()
+        {
+            SharedDataService.MainTeam.Score.MinorPoints = 0;
+            SharedDataService.AwayTeam.Score.MinorPoints = 0;
         }
 
         [RelayCommand]

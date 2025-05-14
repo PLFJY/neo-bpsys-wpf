@@ -20,9 +20,6 @@
     <Window.Background>
         <SolidColorBrush Color="Blue" />
     </Window.Background>
-    <Window.Resources>
-        <cv:ScoreToStringConverterInFront x:Key="ScoreToStringConverterInFront" />
-    </Window.Resources>
     <Grid Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}" Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
         <Grid.RowDefinitions>
             <RowDefinition Height="152" />
@@ -87,7 +84,7 @@
                         d:Text="W0 D0"
                         FontFamily="{StaticResource POP1W5}"
                         FontSize="38"
-                        Text="{Binding SharedDataService.CurrentGame.SurTeam.Score, Converter={StaticResource ScoreToStringConverterInFront}}"
+                        Text="{Binding SharedDataService.CurrentGame.SurTeam.Score.MajorPointsOnFront}"
                         TextAlignment="Center" />
                     <Border
                         Name="MinorPointsSur"
@@ -160,7 +157,7 @@
                         d:Text="W0 D0"
                         FontFamily="{StaticResource POP1W5}"
                         FontSize="38"
-                        Text="{Binding SharedDataService.CurrentGame.HunTeam.Score, Converter={StaticResource ScoreToStringConverterInFront}}"
+                        Text="{Binding SharedDataService.CurrentGame.HunTeam.Score.MajorPointsOnFront}"
                         TextAlignment="Center" />
                     <Border
                         Name="MinorPointsHun"

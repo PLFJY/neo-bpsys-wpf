@@ -4,15 +4,78 @@ namespace neo_bpsys_wpf.Models;
 
 public partial class Score : ObservableObject
 {
-    [ObservableProperty]
     private int _win = 0;
+    public int Win
+    {
+        get => _win;
+        set
+        {
+            if (_win != value)
+            {
+                _win = value;
+                OnPropertyChanged(nameof(Win));
+                OnPropertyChanged(nameof(MajorPointsOnFront));
+                OnPropertyChanged(nameof(ScorePreviewOnBack));
+            }
+        }
+    }
 
-    [ObservableProperty]
     private int _lose = 0;
+    public int Lose
+    {
+        get => _lose;
+        set
+        {
+            if (_lose != value)
+            {
+                _lose = value;
+                OnPropertyChanged(nameof(Lose));
+                OnPropertyChanged(nameof(MajorPointsOnFront));
+                OnPropertyChanged(nameof(ScorePreviewOnBack));
+            }
+        }
+    }
 
-    [ObservableProperty]
     private int _tie = 0;
+    public int Tie
+    {
+        get => _tie;
+        set
+        {
+            if (_tie != value)
+            {
+                _tie = value;
+                OnPropertyChanged(nameof(Tie));
+                OnPropertyChanged(nameof(MajorPointsOnFront));
+                OnPropertyChanged(nameof(ScorePreviewOnBack));
+            }
+        }
+    }
 
-    [ObservableProperty]
     private int _minorPoints = 0;
+    public int MinorPoints
+    {
+        get => _minorPoints;
+        set
+        {
+            if (_minorPoints != value)
+            {
+                _minorPoints = value;
+                OnPropertyChanged(nameof(MinorPoints));
+                OnPropertyChanged(nameof(ScorePreviewOnBack));
+            }
+        }
+    }
+
+
+    public string MajorPointsOnFront
+    {
+        get => $"W{Win}  D{Tie}";
+    }
+
+    public string ScorePreviewOnBack
+    {
+        get => $"W:{Lose} D:{Tie} 小比分:{MinorPoints}";
+    }
+
 }

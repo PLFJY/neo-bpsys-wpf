@@ -28,11 +28,31 @@ namespace neo_bpsys_wpf.Services
             HunCharaList = new();
 
 
-            var charaListFilePath = Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory,
-                "Resources\\CharacterList.json"
-            );
+            var charaListFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources\\CharacterList.json");
+            ReadCharaListFromFile(charaListFilePath);
 
+            SurCharaList = SurCharaList
+                ?.OrderBy(pair => pair.Key)
+                .ToDictionary(pair => pair.Key, pair => pair.Value)!;
+            HunCharaList = HunCharaList
+                ?.OrderBy(pair => pair.Key)
+                .ToDictionary(pair => pair.Key, pair => pair.Value)!;
+
+            CanCurrentSurBanned.AddRange(Enumerable.Repeat(true, 4));
+            CanCurrentHunBanned.AddRange(Enumerable.Repeat(true, 2));
+            CanGlobalSurBanned.AddRange(Enumerable.Repeat(false, 9));
+            CanGlobalHunBanned.AddRange(Enumerable.Repeat(false, 3));
+
+            _timer.Interval = TimeSpan.FromSeconds(1);
+            _timer.Tick += Timer_Tick;
+        }
+
+        /// <summary>
+        /// 从文件读取角色数据
+        /// </summary>
+        /// <param name="charaListFilePath"></param>
+        private void ReadCharaListFromFile(string charaListFilePath)
+        {
             if (!File.Exists(charaListFilePath))
                 return;
 
@@ -62,21 +82,6 @@ namespace neo_bpsys_wpf.Services
                 else
                     HunCharaList?.Add(i.Key, CharacterList[i.Key]);
             }
-
-            SurCharaList = SurCharaList
-                ?.OrderBy(pair => pair.Key)
-                .ToDictionary(pair => pair.Key, pair => pair.Value)!;
-            HunCharaList = HunCharaList
-                ?.OrderBy(pair => pair.Key)
-                .ToDictionary(pair => pair.Key, pair => pair.Value)!;
-
-            CanCurrentSurBanned.AddRange(Enumerable.Repeat(true, 4));
-            CanCurrentHunBanned.AddRange(Enumerable.Repeat(true, 2));
-            CanGlobalSurBanned.AddRange(Enumerable.Repeat(false, 9));
-            CanGlobalHunBanned.AddRange(Enumerable.Repeat(false, 3));
-
-            _timer.Interval = TimeSpan.FromSeconds(1);
-            _timer.Tick += Timer_Tick;
         }
 
         public Team MainTeam { get; set; }

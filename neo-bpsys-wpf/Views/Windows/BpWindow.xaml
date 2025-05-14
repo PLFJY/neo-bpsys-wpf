@@ -19,7 +19,6 @@
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
     <Window.Resources>
-        <cv:ScoreToStringConverterInFront x:Key="ScoreToStringConverterInFront" />
         <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
     </Window.Resources>
     <Canvas
@@ -77,7 +76,7 @@
             FontFamily="Arial"
             FontSize="28"
             FontWeight="Bold"
-            Text="{Binding SharedDataService.CurrentGame.SurTeam.Score, Converter={StaticResource ScoreToStringConverterInFront}, Mode=OneWay}"
+            Text="{Binding SharedDataService.CurrentGame.SurTeam.Score.MajorPointsOnFront}"
             TextAlignment="Center" />
         <TextBlock
             Name="SurTeamName"
@@ -153,7 +152,7 @@
             FontFamily="Arial"
             FontSize="28"
             FontWeight="Bold"
-            Text="{Binding SharedDataService.CurrentGame.HunTeam.Score, Converter={StaticResource ScoreToStringConverterInFront}}"
+            Text="{Binding SharedDataService.CurrentGame.HunTeam.Score.MajorPointsOnFront}"
             TextAlignment="Center" />
         <ui:Image
             Name="HunTeamLogo"
