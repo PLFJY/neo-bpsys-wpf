@@ -27,7 +27,17 @@ public partial class Team : ObservableObject
     {
         get
         {
-            return this.ToString();
+#if DEBUG
+            if (this == App.Services.GetRequiredService<ISharedDataService>().MainTeam)
+            {
+                return string.IsNullOrEmpty(_name) ? "主队" : _name;
+            }
+            if (this == App.Services.GetRequiredService<ISharedDataService>().AwayTeam)
+            {
+                return string.IsNullOrEmpty(_name) ? "客队" : _name;
+            }
+#endif
+            return _name;
         }
         set
         {
@@ -185,18 +195,5 @@ public partial class Team : ObservableObject
     {
         GlobalBannedSurList = new(GlobalBannedSurRecordArray.ToList());
         GlobalBannedHunList = new(GlobalBannedHunRecordArray.ToList());
-    }
-
-    public override string ToString()
-    {
-        if (this == App.Services.GetRequiredService<ISharedDataService>().MainTeam)
-        {
-            return string.IsNullOrEmpty(_name) ? "主队" : _name;
-        }
-        if (this == App.Services.GetRequiredService<ISharedDataService>().AwayTeam)
-        {
-            return string.IsNullOrEmpty(_name) ? "客队" : _name;
-        }
-        return _name;
     }
 }
