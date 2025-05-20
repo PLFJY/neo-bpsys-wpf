@@ -123,7 +123,7 @@
     <Content Include="favicon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="GameRule.json">
+    <None Update="GameRule1.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Resources\data\CharacterList.json">

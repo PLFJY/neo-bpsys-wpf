@@ -21,6 +21,7 @@ namespace neo_bpsys_wpf.Services
             AwayTeam = new Team(Camp.Hun);
 
             CurrentGameProgress = GameProgress.Free;
+            CurrentStep = Enums.Action.None;
 
             CurrentGame = new(MainTeam, AwayTeam, CurrentGameProgress);
 
@@ -88,6 +89,7 @@ namespace neo_bpsys_wpf.Services
         public Team AwayTeam { get; set; }
         public Game CurrentGame { get; set; }
         public GameProgress CurrentGameProgress { get; set; }
+        public Enums.Action CurrentStep { get; set; }
         public Dictionary<string, Character> CharacterList { get; set; } = new();
         public Dictionary<string, Character> SurCharaList { get; set; }
         public Dictionary<string, Character> HunCharaList { get; set; }
