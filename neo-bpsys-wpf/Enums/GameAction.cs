@@ -4,7 +4,7 @@ namespace neo_bpsys_wpf.Enums;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 // 用于存放当前对局步骤
-public enum Action
+public enum GameAction
 {
     None, // 空（默认值）
     BanMap, // ban图

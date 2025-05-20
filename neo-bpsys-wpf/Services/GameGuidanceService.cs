@@ -14,44 +14,75 @@ using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Extensions;
 using neo_bpsys_wpf.Models;
 using Wpf.Ui;
+using System.Windows.Controls;
+using System.Diagnostics;
+using System.CodeDom;
 
 namespace neo_bpsys_wpf.Services
 {
     public partial class GameGuidanceService : IGameGuidanceService
     {
-        public ISharedDataService SharedDataService { get; }
-        public INavigationService NavigationService { get; }
-        public GameProgress CurrentGameProgress { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        private readonly ISharedDataService _sharedDataService;
+        private readonly INavigationService _navigationService;
+        private readonly IMessageBoxService _messageBoxService;
+        private readonly string guidanceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GameRule.json");
+        private GameProperty _currentGameProperty = new();
 
-        public GameGuidanceService(GameProgress gameProgress, Enums.Action step, ISharedDataService sharedDataService, INavigationService navigationService)
+        public GameGuidanceService(ISharedDataService sharedDataService, INavigationService navigationService, IMessageBoxService messageBoxService)
         {
-            //var nextStep = ReadNextStepFromFile("GameRule.json", gameProgress, step);
-
+            _sharedDataService = sharedDataService;
+            _navigationService = navigationService;
+            _messageBoxService = messageBoxService;
         }
 
-        private static Enums.Action ReadNextStepFromFile(string gameRuleFilePath, GameProgress gameProgress, Enums.Action step)
+        public Step CurrentStep { get; set; } = new();
+
+        private GameProperty ReadGamePropertyFromFileAsync(GameProgress gameProgress)
         {
-            if (!File.Exists(gameRuleFilePath))
-                return Enums.Action.None;
-            var gameRuleFileContent = File.ReadAllText(gameRuleFilePath);
-            var deserializedFileContent = JsonSerializer.Deserialize<Dictionary<string, GameProperty>>(gameRuleFileContent);
-            var thisGameHalf = deserializedFileContent[gameProgress.ToString()];
-            var thisWorkFlow = thisGameHalf.StepArray;
-            var firstStepIndex = 0;
-            for (int i = 0; i < thisWorkFlow.Length; i++)
+            if (!File.Exists(guidanceFilePath))
             {
-                var thisStep = thisWorkFlow[i];
-                if (thisStep.ThisAction == step)
-                {
-                    firstStepIndex = i;
-                    break;
-                }
+                _messageBoxService.ShowErrorAsync("对局规则文件不存在");
+                throw new FileNotFoundException();
             }
-            if (firstStepIndex < thisWorkFlow.Length)
-            {
-                return thisWorkFlow[firstStepIndex + 1].ThisAction;
-            }
-            return Enums.Action.None;
+            var gameRuleFileContent = File.ReadAllText(guidanceFilePath);
+            var content = JsonSerializer.Deserialize<Dictionary<GameProgress, GameProperty>>(gameRuleFileContent);
+            if (content == null) return new();
+            return content[gameProgress];
+        }
+
+        public void StartGuidance()
+        {
+            _currentGameProperty = ReadGamePropertyFromFileAsync(_sharedDataService.CurrentGame.GameProgress);
+            CurrentStep = _currentGameProperty.WorkFlow[0];
+        }
+
+        public void StopGuidance()
+        {
+            throw new NotImplementedException();
+        }
+        public void NextStep()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void PrevStep()
+        {
+            throw new NotImplementedException();
+        }
+
+        public class GameProperty
+        {
+            public int SurCurrentBan { get; set; } = 4;
+            public int HunCurrentBan { get; set; } = 2;
+            public int SurGlobalBan { get; set; } = 9;
+            public int HunGlobalBan { get; set; } = 3;
+            public List<Step> WorkFlow { get; set; } = [];
+        }
+
+        public class Step
+        {
+            public GameAction ThisAction { get; set; }
+            public List<int> Index { get; set; } = [];
         }
     }
 }
