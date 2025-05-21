@@ -10,7 +10,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
-    Title="BpWindow"
+    Title="前台-BP"
     Width="1440"
     Height="810"
     d:DataContext="{d:DesignInstance Type=vm:BpWindowViewModel,
