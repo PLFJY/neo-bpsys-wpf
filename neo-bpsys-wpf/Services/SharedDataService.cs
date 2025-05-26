@@ -19,6 +19,7 @@ namespace neo_bpsys_wpf.Services
             AwayTeam = new Team(Camp.Hun);
 
             CurrentGameProgress = GameProgress.Free;
+            CurrentStep = Enums.GameAction.None;
 
             CurrentGame = new(MainTeam, AwayTeam, CurrentGameProgress);
 
@@ -89,6 +90,7 @@ namespace neo_bpsys_wpf.Services
         public ObservableCollection<bool> CanCurrentHunBanned { get; set; } = [];
         public ObservableCollection<bool> CanGlobalSurBanned { get; set; } = [];
         public ObservableCollection<bool> CanGlobalHunBanned { get; set; } = [];
+        public Enums.GameAction CurrentStep { get; set; }
         [ObservableProperty]
         private bool _isTraitVisible = true;
 

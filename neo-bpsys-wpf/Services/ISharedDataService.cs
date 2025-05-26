@@ -10,6 +10,7 @@ namespace neo_bpsys_wpf.Services
         Team AwayTeam { get; set; }
         Game CurrentGame { get; set; }
         GameProgress CurrentGameProgress { get; set; }
+        Enums.GameAction CurrentStep { get; set; }
         Dictionary<string, Character> CharacterList { get; set; }
         Dictionary<string, Character> SurCharaList { get; set; }
         Dictionary<string, Character> HunCharaList { get; set; }
