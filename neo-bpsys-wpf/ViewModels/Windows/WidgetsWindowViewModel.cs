@@ -1,13 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using neo_bpsys_wpf.Events;
-using neo_bpsys_wpf.Helpers;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
+using neo_bpsys_wpf.Messages;
+using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
-using neo_bpsys_wpf.ViewModels.Pages;
-using System.Windows.Media;
 
 namespace neo_bpsys_wpf.ViewModels.Windows
 {
-    public partial class WidgetsWindowViewModel : ObservableObject
+    public partial class WidgetsWindowViewModel : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<PropertyChangedMessage<bool>>
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public WidgetsWindowViewModel()
@@ -23,14 +23,26 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         public WidgetsWindowViewModel(ISharedDataService sharedDataService)
         {
-            FrontManagePageViewModel.DesignModeChanged += OnDesignModeChanged;
             SharedDataService = sharedDataService;
+            IsActive = true;
         }
 
-        private void OnDesignModeChanged(object? sender, DesignModeChangedEventArgs e)
+        public void Receive(NewGameMessage message)
         {
-            IsDesignMode = e.IsDesignMode;
+            if (message.IsNewGameCreated)
+            {
+                OnPropertyChanged(nameof(CurrentGame));
+            }
         }
 
+        public void Receive(PropertyChangedMessage<bool> message)
+        {
+            if (message.PropertyName == nameof(IsDesignMode) && IsDesignMode != message.NewValue)
+            {
+                IsDesignMode = message.NewValue;
+            }
+        }
+
+        public Game CurrentGame => SharedDataService.CurrentGame;
     }
 }

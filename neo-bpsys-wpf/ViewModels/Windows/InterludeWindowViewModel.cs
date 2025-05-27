@@ -1,13 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using neo_bpsys_wpf.Events;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Messages;
+using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
-using neo_bpsys_wpf.ViewModels.Pages;
 using System.Windows.Media;
 
 namespace neo_bpsys_wpf.ViewModels.Windows
 {
-    public partial class InterludeWindowViewModel : ObservableObject
+    public partial class InterludeWindowViewModel : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<PropertyChangedMessage<bool>>
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public InterludeWindowViewModel()
@@ -23,7 +25,6 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         public InterludeWindowViewModel(ISharedDataService sharedDataService)
         {
-            FrontManagePageViewModel.DesignModeChanged += OnDesignModeChanged;
             SharedDataService = sharedDataService;
             //Sur
             BorrowedTimeImageSource = ImageHelper.GetTalentImageSource(Enums.Camp.Sur, "回光返照");
@@ -35,31 +36,37 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             DetentionImageSource = ImageHelper.GetTalentImageSource(Enums.Camp.Hun, "挽留");
             InsolenceImageSource = ImageHelper.GetTalentImageSource(Enums.Camp.Hun, "张狂");
             TrumpCardImageSource = ImageHelper.GetTalentImageSource(Enums.Camp.Hun, "底牌");
+            IsActive = true;
         }
 
-        private void OnDesignModeChanged(object? sender, DesignModeChangedEventArgs e)
+        public void Receive(PropertyChangedMessage<bool> message)
         {
-            IsDesignMode = e.IsDesignMode;
+            if (message.PropertyName == nameof(IsDesignMode) && IsDesignMode != message.NewValue)
+            {
+                IsDesignMode = message.NewValue;
+            }
+        }
+
+        public void Receive(NewGameMessage message)
+        {
+            if (message.IsNewGameCreated)
+            {
+                OnPropertyChanged(nameof(CurrentGame));
+            }
         }
 
         //talent imageSource
         //Sur
-        [ObservableProperty]
-        private ImageSource? _borrowedTimeImageSource;
-        [ObservableProperty]
-        private ImageSource? _flywheelEffectImageSource;
-        [ObservableProperty]
-        private ImageSource? _kneeJerkReflexImageSource;
-        [ObservableProperty]
-        private ImageSource? _tideTurnerImageSource;
+        public ImageSource? BorrowedTimeImageSource { get; private set; }
+        public ImageSource? FlywheelEffectImageSource { get; private set; }
+        public ImageSource? KneeJerkReflexImageSource { get; private set; }
+        public ImageSource? TideTurnerImageSource { get; private set; }
         //Hun
-        [ObservableProperty]
-        private ImageSource? _confinedSpaceImageSource;
-        [ObservableProperty]
-        private ImageSource? _detentionImageSource;
-        [ObservableProperty]
-        private ImageSource? _insolenceImageSource;
-        [ObservableProperty]
-        private ImageSource? _trumpCardImageSource;
+        public ImageSource? ConfinedSpaceImageSource { get; private set; }
+        public ImageSource? DetentionImageSource { get; private set; }
+        public ImageSource? InsolenceImageSource { get; private set; }
+        public ImageSource? TrumpCardImageSource { get; private set; }
+
+        public Game CurrentGame => SharedDataService.CurrentGame;
     }
 }

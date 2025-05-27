@@ -1,14 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Models;
+using CommunityToolkit.Mvvm.Messaging;
+using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Services;
-using neo_bpsys_wpf.ViewModels.Windows;
-using System.Diagnostics;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
-    public partial class BanHunPageViewModel : ObservableObject
+    public partial class BanHunPageViewModel : ObservableRecipient, IRecipient<SwapMessage>
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public BanHunPageViewModel()
@@ -21,38 +20,81 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
         public BanHunPageViewModel(ISharedDataService sharedDataService)
         {
-            MainWindowViewModel.Swapped += MainWindowViewModel_Swapped;
             SharedDataService = sharedDataService;
+            BanHunCurrentViewModelList = [.. Enumerable.Range(0, 2).Select(i => new BanHunCurrentViewModel(SharedDataService, i))];
+            BanHunGlobalViewModelList = [.. Enumerable.Range(0, 3).Select(i => new BanHunGlobalViewModel(SharedDataService, i))];
+            SharedDataService.CanCurrentHunBanned.CollectionChanged += CanCurrentHunBanned_CollectionChanged;
+            SharedDataService.CanGlobalHunBanned.CollectionChanged += CanGlobalHunBanned_CollectionChanged;
+            IsActive = true;
+        }
+        //刷新Ban位状态
+        private void CanCurrentHunBanned_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == NotifyCollectionChangedAction.Replace)
+            {
+                for (int i = 0; i < SharedDataService.CanCurrentHunBanned.Count; i++)
+                {
+                    BanHunCurrentViewModelList[i].IsEnabled = SharedDataService.CanCurrentHunBanned[i];
+                }
+            }
         }
 
-        private void MainWindowViewModel_Swapped(object? sender, EventArgs e)
+        private void CanGlobalHunBanned_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            GlobalBannedArray = SharedDataService.CurrentGame.HunTeam.GlobalBannedHunRecordArray;
-            OnPropertyChanged();
+            if (e.Action == NotifyCollectionChangedAction.Replace)
+            {
+                for (int i = 0; i < SharedDataService.CanGlobalHunBanned.Count; i++)
+                {
+                    BanHunGlobalViewModelList[i].IsEnabled = SharedDataService.CanGlobalHunBanned[i];
+                }
+            }
         }
 
-        [ObservableProperty]
-        private Character?[] _currentBannedArray = new Character[2];
-
-        [ObservableProperty]
-        private Character?[] _globalBannedArray = new Character[3];
-
-        [RelayCommand]
-        private void ConfirmCurrentBan(object parameter)
+        public void Receive(SwapMessage message)
         {
-            if (parameter is not int index) return;
-
-            SharedDataService.CurrentGame.CurrentHunBannedList[index] = CurrentBannedArray[index];
-            OnPropertyChanged();
+            if (message.IsSwapped)
+            {
+                for (int i = 0; i < SharedDataService.CurrentGame.SurTeam.GlobalBannedHunRecordArray.Length; i++)
+                {
+                    BanHunGlobalViewModelList[i].SelectedChara = SharedDataService.CurrentGame.SurTeam.GlobalBannedHunRecordArray[i];
+                    BanHunGlobalViewModelList[i].SyncChara();
+                }
+                OnPropertyChanged();
+            }
         }
 
-        [RelayCommand]
-        private void ConfirmGlobalBan(object parameter)
-        {
-            if (parameter is not int index) return;
+        public ObservableCollection<BanHunCurrentViewModel> BanHunCurrentViewModelList { get; set; }
+        public ObservableCollection<BanHunGlobalViewModel> BanHunGlobalViewModelList { get; set; }
 
-            SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[index] = GlobalBannedArray[index];
-            OnPropertyChanged();
+        //基于模板基类的VM实现
+        public class BanHunCurrentViewModel : CharaSelectViewModelBase
+        {
+            public BanHunCurrentViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
+            {
+                CharaList = sharedDataService.HunCharaList;
+                IsEnabled = sharedDataService.CanCurrentHunBanned[index];
+            }
+
+            public override void SyncChara()
+            {
+                _sharedDataService.CurrentGame.CurrentHunBannedList[Index] = SelectedChara;
+                PreviewImage = _sharedDataService.CurrentGame.CurrentHunBannedList[Index]?.HeaderImage_SingleColor;
+            }
+        }
+
+        public class BanHunGlobalViewModel : CharaSelectViewModelBase
+        {
+            public BanHunGlobalViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
+            {
+                CharaList = sharedDataService.HunCharaList;
+                IsEnabled = sharedDataService.CanGlobalHunBanned[index];
+            }
+
+            public override void SyncChara()
+            {
+                _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[Index] = SelectedChara;
+                PreviewImage = _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[Index]?.HeaderImage_SingleColor;
+            }
         }
     }
 }

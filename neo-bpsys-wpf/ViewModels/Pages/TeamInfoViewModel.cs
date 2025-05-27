@@ -1,20 +1,12 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text.Json;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
+using System.IO;
+using System.Text.Json;
+using System.Windows.Media.Imaging;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {

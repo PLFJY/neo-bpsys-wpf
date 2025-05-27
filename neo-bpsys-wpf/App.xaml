@@ -12,7 +12,7 @@
                 <ui:ThemesDictionary Theme="Dark" />
                 <ui:ControlsDictionary />
                 <localTheme:IconThemesDictionary Theme="Dark" />
-                <ResourceDictionary Source="/CustomControls/CustomControlsDictionary.xaml" />
+                <ResourceDictionary Source="/CustomControls/CustomControlsStyleDictionary.xaml" />
                 <!--  Styles  -->
                 <ResourceDictionary Source="/Styles/ToggleButtonStyles.xaml" />
                 <ResourceDictionary Source="/Styles/Card.xaml" />

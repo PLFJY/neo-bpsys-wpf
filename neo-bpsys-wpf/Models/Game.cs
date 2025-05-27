@@ -1,14 +1,10 @@
-using System;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Reactive.Linq;
-using System.Security.Policy;
-using System.Text.Json.Serialization;
-using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Extensions;
 using neo_bpsys_wpf.Helpers;
+using System.Collections.ObjectModel;
+using System.Reactive.Linq;
+using System.Text.Json.Serialization;
+using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Models;
 
@@ -63,10 +59,10 @@ public partial class Game : ObservableObject
     private ImageSource? _bannedMapImage;
 
     [ObservableProperty]
-    private ObservableCollection<Character?> _currentHunBannedList = new();
+    private ObservableCollection<Character?> _currentHunBannedList = [];
 
     [ObservableProperty]
-    private ObservableCollection<Character?> _currentSurBannedList = new();
+    private ObservableCollection<Character?> _currentSurBannedList = [];
 
     [ObservableProperty]
     private ObservableCollection<Player> _surPlayerList;
@@ -80,11 +76,26 @@ public partial class Game : ObservableObject
         StartTime = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
         SurTeam = surTeam;
         HunTeam = hunTeam;
+        //重置角色选择
+        for (int i = 0; i < SurTeam.SurPlayerOnFieldList.Count; i++)
+        {
+            SurTeam.SurPlayerOnFieldList[i] = new(SurTeam.SurPlayerOnFieldList[i].Member);
+        }
+        SurTeam.HunPlayerOnField = new(SurTeam.HunPlayerOnField.Member);
+        for (int i = 0; i < HunTeam.SurPlayerOnFieldList.Count; i++)
+        {
+            HunTeam.SurPlayerOnFieldList[i] = new(HunTeam.SurPlayerOnFieldList[i].Member);
+        }
+        HunTeam.HunPlayerOnField = new(HunTeam.HunPlayerOnField.Member);
+        //刷新上场列表
         SurPlayerList = SurTeam.SurPlayerOnFieldList;
         HunPlayer = HunTeam.HunPlayerOnField;
         GameProgress = gameProgress;
-        CurrentHunBannedList.AddRange(Enumerable.Range(0, 2).Select(i => new Character(Camp.Hun)));
-        CurrentSurBannedList.AddRange(Enumerable.Range(0, 4).Select(i => new Character(Camp.Sur)));
+        //新建角色禁用列表
+        CurrentHunBannedList = [.. Enumerable.Range(0, 2).Select(i => new Character(Camp.Hun))];
+        CurrentSurBannedList = [.. Enumerable.Range(0, 4).Select(i => new Character(Camp.Sur))];
+        OnPropertyChanged(nameof(SurTeam));
+        OnPropertyChanged(nameof(HunTeam));
         OnPropertyChanged(string.Empty);
     }
 

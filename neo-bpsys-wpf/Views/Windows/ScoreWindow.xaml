@@ -58,7 +58,7 @@
                         cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
                         d:Source="/Assets/TestLogo.JPG"
                         CornerRadius="8"
-                        Source="{Binding SharedDataService.CurrentGame.SurTeam.Logo}"
+                        Source="{Binding CurrentGame.SurTeam.Logo}"
                         Stretch="Fill" />
                     <TextBlock
                         Name="SurTeamName"
@@ -71,7 +71,7 @@
                         d:Text="求生者队伍名称"
                         FontFamily="{StaticResource POP1W5}"
                         FontSize="32"
-                        Text="{Binding SharedDataService.CurrentGame.SurTeam.Name}"
+                        Text="{Binding CurrentGame.SurTeam.Name}"
                         TextAlignment="Center"
                         TextWrapping="WrapWithOverflow" />
                     <TextBlock
@@ -84,7 +84,7 @@
                         d:Text="W0 D0"
                         FontFamily="{StaticResource POP1W5}"
                         FontSize="38"
-                        Text="{Binding SharedDataService.CurrentGame.SurTeam.Score.MajorPointsOnFront}"
+                        Text="{Binding CurrentGame.SurTeam.Score.MajorPointsOnFront}"
                         TextAlignment="Center" />
                     <Border
                         Name="MinorPointsSur"
@@ -99,7 +99,7 @@
                             d:Text="0"
                             FontFamily="{StaticResource POP1W5}"
                             FontSize="100"
-                            Text="{Binding SharedDataService.CurrentGame.SurTeam.Score.MinorPoints}"
+                            Text="{Binding CurrentGame.SurTeam.Score.MinorPoints}"
                             TextAlignment="Center" />
                     </Border>
                 </Canvas>
@@ -131,7 +131,7 @@
                         cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
                         d:Source="/Assets/TestLogo.JPG"
                         CornerRadius="8"
-                        Source="{Binding SharedDataService.CurrentGame.HunTeam.Logo}"
+                        Source="{Binding CurrentGame.HunTeam.Logo}"
                         Stretch="Fill" />
                     <TextBlock
                         Name="HunTeamName"
@@ -144,7 +144,7 @@
                         d:Text="监管者队伍名称"
                         FontFamily="{StaticResource POP1W5}"
                         FontSize="32"
-                        Text="{Binding SharedDataService.CurrentGame.HunTeam.Name}"
+                        Text="{Binding CurrentGame.HunTeam.Name}"
                         TextAlignment="Center"
                         TextWrapping="WrapWithOverflow" />
                     <TextBlock
@@ -157,7 +157,7 @@
                         d:Text="W0 D0"
                         FontFamily="{StaticResource POP1W5}"
                         FontSize="38"
-                        Text="{Binding SharedDataService.CurrentGame.HunTeam.Score.MajorPointsOnFront}"
+                        Text="{Binding CurrentGame.HunTeam.Score.MajorPointsOnFront}"
                         TextAlignment="Center" />
                     <Border
                         Name="MinorPointsHun"
@@ -174,7 +174,7 @@
                             d:Text="0"
                             FontFamily="{StaticResource POP1W5}"
                             FontSize="100"
-                            Text="{Binding SharedDataService.CurrentGame.HunTeam.Score.MinorPoints}"
+                            Text="{Binding CurrentGame.HunTeam.Score.MinorPoints}"
                             TextAlignment="Center" />
                     </Border>
                 </Canvas>

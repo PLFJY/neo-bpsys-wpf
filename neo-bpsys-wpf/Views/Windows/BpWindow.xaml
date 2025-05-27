@@ -65,7 +65,7 @@
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/TestLogo.JPG"
             CornerRadius="8"
-            Source="{Binding SharedDataService.CurrentGame.SurTeam.Logo}"
+            Source="{Binding CurrentGame.SurTeam.Logo}"
             Stretch="Fill" />
         <TextBlock
             Name="SurTeamMajorPoint"
@@ -76,7 +76,7 @@
             FontFamily="Arial"
             FontSize="28"
             FontWeight="Bold"
-            Text="{Binding SharedDataService.CurrentGame.SurTeam.Score.MajorPointsOnFront}"
+            Text="{Binding CurrentGame.SurTeam.Score.MajorPointsOnFront}"
             TextAlignment="Center" />
         <TextBlock
             Name="SurTeamName"
@@ -87,7 +87,7 @@
             d:Text="求生者队伍名称"
             FontFamily="{StaticResource SourceHan}"
             FontSize="28"
-            Text="{Binding SharedDataService.CurrentGame.SurTeam.Name}"
+            Text="{Binding CurrentGame.SurTeam.Name}"
             TextAlignment="Center"
             TextWrapping="WrapWithOverflow" />
         <TextBlock
@@ -101,7 +101,7 @@
             FontFamily="{StaticResource POP1W5}"
             FontSize="50"
             FontWeight="Bold"
-            Text="{Binding SharedDataService.CurrentGame.SurTeam.Score.MinorPoints}"
+            Text="{Binding CurrentGame.SurTeam.Score.MinorPoints}"
             TextAlignment="Center" />
         <Border
             Name="Timer"
@@ -129,7 +129,7 @@
             FontFamily="{StaticResource POP1W5}"
             FontSize="50"
             FontWeight="Bold"
-            Text="{Binding SharedDataService.CurrentGame.HunTeam.Score.MinorPoints}"
+            Text="{Binding CurrentGame.HunTeam.Score.MinorPoints}"
             TextAlignment="Center" />
         <TextBlock
             Name="HunTeamName"
@@ -140,7 +140,7 @@
             d:Text="监管者队伍名称"
             FontFamily="{StaticResource SourceHan}"
             FontSize="28"
-            Text="{Binding SharedDataService.CurrentGame.HunTeam.Name}"
+            Text="{Binding CurrentGame.HunTeam.Name}"
             TextAlignment="Center"
             TextWrapping="WrapWithOverflow" />
         <TextBlock
@@ -152,7 +152,7 @@
             FontFamily="Arial"
             FontSize="28"
             FontWeight="Bold"
-            Text="{Binding SharedDataService.CurrentGame.HunTeam.Score.MajorPointsOnFront}"
+            Text="{Binding CurrentGame.HunTeam.Score.MajorPointsOnFront}"
             TextAlignment="Center" />
         <ui:Image
             Name="HunTeamLogo"
@@ -163,7 +163,7 @@
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/TestLogo.JPG"
             CornerRadius="8"
-            Source="{Binding SharedDataService.CurrentGame.HunTeam.Logo}"
+            Source="{Binding CurrentGame.HunTeam.Logo}"
             Stretch="Fill" />
 
         <!--  Current Ban  -->
@@ -174,7 +174,7 @@
             Canvas.Top="566"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/厂长.png"
-            Source="{Binding SharedDataService.CurrentGame.CurrentHunBannedList[0].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.CurrentHunBannedList[0].HeaderImage_SingleColor}"
             Style="{StaticResource CurrentBan}" />
         <Image
             Name="HunBanCurrent1"
@@ -182,7 +182,7 @@
             Canvas.Top="566"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/厂长.png"
-            Source="{Binding SharedDataService.CurrentGame.CurrentHunBannedList[1].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.CurrentHunBannedList[1].HeaderImage_SingleColor}"
             Style="{StaticResource CurrentBan}" />
         <!--  Hun Current Ban Lock  -->
         <Image
@@ -208,7 +208,7 @@
             Canvas.Top="566"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
-            Source="{Binding SharedDataService.CurrentGame.CurrentSurBannedList[3].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.CurrentSurBannedList[3].HeaderImage_SingleColor}"
             Style="{StaticResource CurrentBan}" />
         <Image
             Name="SurBanCurrent2"
@@ -216,7 +216,7 @@
             Canvas.Top="566"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
-            Source="{Binding SharedDataService.CurrentGame.CurrentSurBannedList[2].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.CurrentSurBannedList[2].HeaderImage_SingleColor}"
             Style="{StaticResource CurrentBan}" />
         <Image
             Name="SurBanCurrent1"
@@ -224,7 +224,7 @@
             Canvas.Top="566"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
-            Source="{Binding SharedDataService.CurrentGame.CurrentSurBannedList[1].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.CurrentSurBannedList[1].HeaderImage_SingleColor}"
             Style="{StaticResource CurrentBan}" />
         <Image
             Name="SurBanCurrent0"
@@ -232,7 +232,7 @@
             Canvas.Top="566"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
-            Source="{Binding SharedDataService.CurrentGame.CurrentSurBannedList[0].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.CurrentSurBannedList[0].HeaderImage_SingleColor}"
             Style="{StaticResource CurrentBan}" />
         <!--  Sur Current Ban Lock  -->
         <Image
@@ -276,7 +276,7 @@
             Height="159"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/医生.png"
-            Source="{Binding SharedDataService.CurrentGame.SurPlayerList[0].Character.HalfImage}" />
+            Source="{Binding CurrentGame.SurPlayerList[0].Character.HalfImage}" />
         <Image
             Name="SurPick1"
             Canvas.Left="141"
@@ -285,7 +285,7 @@
             Height="159"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/医生.png"
-            Source="{Binding SharedDataService.CurrentGame.SurPlayerList[1].Character.HalfImage}" />
+            Source="{Binding CurrentGame.SurPlayerList[1].Character.HalfImage}" />
         <Image
             Name="SurPick2"
             Canvas.Left="284"
@@ -294,7 +294,7 @@
             Height="159"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/医生.png"
-            Source="{Binding SharedDataService.CurrentGame.SurPlayerList[2].Character.HalfImage}" />
+            Source="{Binding CurrentGame.SurPlayerList[2].Character.HalfImage}" />
         <Image
             Name="SurPick3"
             Canvas.Left="424"
@@ -304,7 +304,7 @@
             HorizontalAlignment="Center"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/医生.png"
-            Source="{Binding SharedDataService.CurrentGame.SurPlayerList[3].Character.HalfImage}" />
+            Source="{Binding CurrentGame.SurPlayerList[3].Character.HalfImage}" />
         <!--  Middle  -->
         <Image
             Name="Map"
@@ -314,7 +314,7 @@
             Height="81"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/map/唐人街.png"
-            Source="{Binding SharedDataService.CurrentGame.PickedMapImage}" />
+            Source="{Binding CurrentGame.PickedMapImage}" />
         <Border
             Name="MapName"
             Canvas.Left="645"
@@ -332,7 +332,7 @@
                 d:Text="唐人街"
                 FontFamily="{StaticResource Hanyi}"
                 FontSize="25"
-                Text="{Binding SharedDataService.CurrentGame.PickedMap}" />
+                Text="{Binding CurrentGame.PickedMap}" />
         </Border>
         <!--  Global Ban  -->
         <!--  Hun  -->
@@ -342,7 +342,7 @@
             Canvas.Top="746"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/厂长.png"
-            Source="{Binding SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[0].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.HunTeam.GlobalBannedHunList[0].HeaderImage_SingleColor}"
             Style="{StaticResource GlobalBan}" />
         <Image
             Name="HunGlobalBan1"
@@ -350,7 +350,7 @@
             Canvas.Top="746"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/厂长.png"
-            Source="{Binding SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[1].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.HunTeam.GlobalBannedHunList[1].HeaderImage_SingleColor}"
             Style="{StaticResource GlobalBan}" />
         <Image
             Name="HunGlobalBan2"
@@ -358,7 +358,7 @@
             Canvas.Top="746"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/厂长.png"
-            Source="{Binding SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[2].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.HunTeam.GlobalBannedHunList[2].HeaderImage_SingleColor}"
             Style="{StaticResource GlobalBan}" />
         <!--  Hun Lock  -->
         <Image
@@ -392,7 +392,7 @@
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
-            Source="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[0].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[0].HeaderImage_SingleColor}"
             Style="{StaticResource GlobalBan}" />
         <Image
             Name="SurGlobalBan1"
@@ -400,7 +400,7 @@
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
-            Source="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[1].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[1].HeaderImage_SingleColor}"
             Style="{StaticResource GlobalBan}" />
         <Image
             Name="SurGlobalBan2"
@@ -408,7 +408,7 @@
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
-            Source="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[2].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[2].HeaderImage_SingleColor}"
             Style="{StaticResource GlobalBan}" />
         <Image
             Name="SurGlobalBan3"
@@ -416,7 +416,7 @@
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
-            Source="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[3].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[3].HeaderImage_SingleColor}"
             Style="{StaticResource GlobalBan}" />
         <Image
             Name="SurGlobalBan4"
@@ -424,7 +424,7 @@
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
-            Source="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[4].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[4].HeaderImage_SingleColor}"
             Style="{StaticResource GlobalBan}" />
         <Image
             Name="SurGlobalBan5"
@@ -432,7 +432,7 @@
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
-            Source="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[5].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[5].HeaderImage_SingleColor}"
             Style="{StaticResource GlobalBan}" />
         <Image
             Name="SurGlobalBan6"
@@ -440,7 +440,7 @@
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
-            Source="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[6].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[6].HeaderImage_SingleColor}"
             Style="{StaticResource GlobalBan}" />
         <Image
             Name="SurGlobalBan7"
@@ -448,7 +448,7 @@
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
-            Source="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[7].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[7].HeaderImage_SingleColor}"
             Style="{StaticResource GlobalBan}" />
         <Image
             Name="SurGlobalBan8"
@@ -456,7 +456,7 @@
             Canvas.Top="778.5"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
-            Source="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[8].HeaderImage_SingleColor}"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[8].HeaderImage_SingleColor}"
             Style="{StaticResource GlobalBan}" />
         <!--  Sur Lock  -->
         <Image
@@ -532,7 +532,7 @@
             Height="161"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/小丑.png"
-            Source="{Binding SharedDataService.CurrentGame.HunPlayer.Character.HalfImage}" />
+            Source="{Binding CurrentGame.HunPlayer.Character.HalfImage}" />
         <!--  Player Id  -->
         <!--  Sur  -->
         <Border
@@ -545,7 +545,7 @@
             <TextBlock
                 d:Text="求生者选手名Id"
                 Style="{StaticResource PlayerId}"
-                Text="{Binding SharedDataService.CurrentGame.SurPlayerList[0].Member.Name}" />
+                Text="{Binding CurrentGame.SurPlayerList[0].Member.Name}" />
         </Border>
         <Border
             Name="SurId1"
@@ -557,7 +557,7 @@
             <TextBlock
                 d:Text="求生者选手名Id"
                 Style="{StaticResource PlayerId}"
-                Text="{Binding SharedDataService.CurrentGame.SurPlayerList[1].Member.Name}" />
+                Text="{Binding CurrentGame.SurPlayerList[1].Member.Name}" />
         </Border>
         <Border
             Name="SurId2"
@@ -569,7 +569,7 @@
             <TextBlock
                 d:Text="求生者选手名Id"
                 Style="{StaticResource PlayerId}"
-                Text="{Binding SharedDataService.CurrentGame.SurPlayerList[2].Member.Name}" />
+                Text="{Binding CurrentGame.SurPlayerList[2].Member.Name}" />
         </Border>
         <Border
             Name="SurId3"
@@ -581,7 +581,7 @@
             <TextBlock
                 d:Text="求生者选手名Id"
                 Style="{StaticResource PlayerId}"
-                Text="{Binding SharedDataService.CurrentGame.SurPlayerList[3].Member.Name}" />
+                Text="{Binding CurrentGame.SurPlayerList[3].Member.Name}" />
         </Border>
         <!--  Hun  -->
         <Border
@@ -595,7 +595,7 @@
                 cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
                 d:Text="监管者选手名"
                 Style="{StaticResource PlayerId}"
-                Text="{Binding SharedDataService.CurrentGame.HunPlayer.Member.Name}" />
+                Text="{Binding CurrentGame.HunPlayer.Member.Name}" />
         </Border>
     </Canvas>
 </Window>

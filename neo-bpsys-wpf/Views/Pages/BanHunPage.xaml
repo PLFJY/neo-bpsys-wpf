@@ -16,11 +16,6 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
-    <Page.Resources>
-        <Style TargetType="cc:CharaSelector">
-            <Setter Property="Margin" Value="0,0,10,10" />
-        </Style>
-    </Page.Resources>
     <WrapPanel Orientation="Horizontal">
         <Border
             Margin="0,0,10,10"
@@ -33,27 +28,28 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="当局禁用" />
-                <WrapPanel
+                <ItemsControl
                     Grid.Row="1"
                     Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <cc:CharaSelector
-                        x:Name="BanHunCurrent0"
-                        Command="{Binding ConfirmCurrentBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.CurrentHunBannedList[0].HeaderImage_SingleColor}"
-                        Index="0"
-                        IsEnabled="{Binding SharedDataService.CanCurrentHunBanned[0]}"
-                        ItemsSource="{Binding SharedDataService.HunCharaList}"
-                        SelectedValue="{Binding CurrentBannedArray[0], Mode=TwoWay}" />
-                    <cc:CharaSelector
-                        x:Name="BanHunCurrent1"
-                        Command="{Binding ConfirmCurrentBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.CurrentHunBannedList[1].HeaderImage_SingleColor}"
-                        Index="1"
-                        IsEnabled="{Binding SharedDataService.CanCurrentHunBanned[1]}"
-                        ItemsSource="{Binding SharedDataService.HunCharaList}"
-                        SelectedValue="{Binding CurrentBannedArray[1]}" />
-                </WrapPanel>
+                    Focusable="False"
+                    ItemsSource="{Binding BanHunCurrentViewModelList}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <cc:CharacterSelector
+                                Margin="0,0,10,10"
+                                Command="{Binding ConfirmCommand}"
+                                ImageSource="{Binding PreviewImage}"
+                                IsEnabled="{Binding IsEnabled}"
+                                ItemsSource="{Binding CharaList}"
+                                SelectedValue="{Binding SelectedChara}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </Grid>
         </Border>
         <Border
@@ -67,35 +63,28 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="全局禁用" />
-                <WrapPanel
+                <ItemsControl
                     Grid.Row="1"
                     Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <cc:CharaSelector
-                        x:Name="BanHunGlobal0"
-                        Command="{Binding ConfirmGlobalBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[0].HeaderImage_SingleColor}"
-                        Index="0"
-                        IsEnabled="{Binding SharedDataService.CanGlobalHunBanned[0]}"
-                        ItemsSource="{Binding SharedDataService.HunCharaList}"
-                        SelectedValue="{Binding GlobalBannedArray[0]}" />
-                    <cc:CharaSelector
-                        x:Name="BanHunGlobal1"
-                        Command="{Binding ConfirmGlobalBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[1].HeaderImage_SingleColor}"
-                        Index="1"
-                        IsEnabled="{Binding SharedDataService.CanGlobalHunBanned[1]}"
-                        ItemsSource="{Binding SharedDataService.HunCharaList}"
-                        SelectedValue="{Binding GlobalBannedArray[1]}" />
-                    <cc:CharaSelector
-                        x:Name="BanHunGlobal2"
-                        Command="{Binding ConfirmGlobalBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[2].HeaderImage_SingleColor}"
-                        Index="2"
-                        IsEnabled="{Binding SharedDataService.CanGlobalHunBanned[2]}"
-                        ItemsSource="{Binding SharedDataService.HunCharaList}"
-                        SelectedValue="{Binding GlobalBannedArray[2]}" />
-                </WrapPanel>
+                    Focusable="False"
+                    ItemsSource="{Binding BanHunGlobalViewModelList}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <cc:CharacterSelector
+                                Margin="0,0,10,10"
+                                Command="{Binding ConfirmCommand}"
+                                ImageSource="{Binding PreviewImage}"
+                                IsEnabled="{Binding IsEnabled}"
+                                ItemsSource="{Binding CharaList}"
+                                SelectedValue="{Binding SelectedChara}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </Grid>
         </Border>
         <Border

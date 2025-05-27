@@ -1,8 +1,7 @@
-﻿using System.IO;
-using System.Windows.Input;
+﻿using neo_bpsys_wpf.Enums;
+using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using neo_bpsys_wpf.Enums;
 
 namespace neo_bpsys_wpf.Helpers
 {

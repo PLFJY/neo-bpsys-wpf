@@ -1,15 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using neo_bpsys_wpf.Models;
+using CommunityToolkit.Mvvm.Messaging;
+using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Services;
-using neo_bpsys_wpf.ViewModels.Windows;
-using System;
-using System.Diagnostics;
-using System.Reflection;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
-    public partial class BanSurPageViewModel : ObservableObject
+    public partial class BanSurPageViewModel : ObservableRecipient, IRecipient<SwapMessage>
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public BanSurPageViewModel()
@@ -22,38 +20,81 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
         public BanSurPageViewModel(ISharedDataService sharedDataService)
         {
-            MainWindowViewModel.Swapped += MainWindowViewModel_Swapped;
             SharedDataService = sharedDataService;
+            BanSurCurrentViewModelList = [.. Enumerable.Range(0, 4).Select(i => new BanSurCurrentViewModel(SharedDataService, i))];
+            BanSurGlobalViewModelList = [.. Enumerable.Range(0, 9).Select(i => new BanSurGlobalViewModel(SharedDataService, i))];
+            SharedDataService.CanCurrentSurBanned.CollectionChanged += CanCurrentSurBanned_CollectionChanged;
+            SharedDataService.CanGlobalSurBanned.CollectionChanged += CanGlobalSurBanned_CollectionChanged;
+            IsActive = true;
+        }
+        //刷新Ban位状态
+        private void CanCurrentSurBanned_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == NotifyCollectionChangedAction.Replace)
+            {
+                for (int i = 0; i < SharedDataService.CanCurrentSurBanned.Count; i++)
+                {
+                    BanSurCurrentViewModelList[i].IsEnabled = SharedDataService.CanCurrentSurBanned[i];
+                }
+            }
         }
 
-        private void MainWindowViewModel_Swapped(object? sender, EventArgs e)
+        private void CanGlobalSurBanned_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            GlobalBannedArray = SharedDataService.CurrentGame.SurTeam.GlobalBannedHunRecordArray;
-            OnPropertyChanged();
+            if (e.Action == NotifyCollectionChangedAction.Replace)
+            {
+                for (int i = 0; i < SharedDataService.CanGlobalSurBanned.Count; i++)
+                {
+                    BanSurGlobalViewModelList[i].IsEnabled = SharedDataService.CanGlobalSurBanned[i];
+                }
+            }
         }
 
-        [ObservableProperty]
-        private Character?[] _currentBannedArray = new Character[4];
-
-        [ObservableProperty]
-        private Character?[] _globalBannedArray = new Character[9];
-
-        [RelayCommand]
-        private void ConfirmCurrentBan(object parameter)
+        public void Receive(SwapMessage message)
         {
-            if (parameter is not int index) return; 
-
-            SharedDataService.CurrentGame.CurrentSurBannedList[index] = CurrentBannedArray[index];
-            OnPropertyChanged();
+            if (message.IsSwapped)
+            {
+                for (int i = 0; i < SharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray.Length; i++)
+                {
+                    BanSurGlobalViewModelList[i].SelectedChara = SharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray[i];
+                    BanSurGlobalViewModelList[i].SyncChara();
+                }
+                OnPropertyChanged();
+            }
         }
 
-        [RelayCommand]
-        private void ConfirmGlobalBan(object parameter)
-        {
-            if (parameter is not int index) return;
+        public ObservableCollection<BanSurCurrentViewModel> BanSurCurrentViewModelList { get; set; }
+        public ObservableCollection<BanSurGlobalViewModel> BanSurGlobalViewModelList { get; set; }
 
-            SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[index] = GlobalBannedArray[index];
-            OnPropertyChanged();
+        //基于模板基类的VM实现
+        public class BanSurCurrentViewModel : CharaSelectViewModelBase
+        {
+            public BanSurCurrentViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
+            {
+                CharaList = sharedDataService.SurCharaList;
+                IsEnabled = sharedDataService.CanCurrentSurBanned[index];
+            }
+
+            public override void SyncChara()
+            {
+                _sharedDataService.CurrentGame.CurrentSurBannedList[Index] = SelectedChara;
+                PreviewImage = _sharedDataService.CurrentGame.CurrentSurBannedList[Index]?.HeaderImage_SingleColor;
+            }
+        }
+
+        public class BanSurGlobalViewModel : CharaSelectViewModelBase
+        {
+            public BanSurGlobalViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
+            {
+                CharaList = sharedDataService.SurCharaList;
+                IsEnabled = sharedDataService.CanGlobalSurBanned[index];
+            }
+
+            public override void SyncChara()
+            {
+                _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index] = SelectedChara;
+                PreviewImage = _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index]?.HeaderImage_SingleColor;
+            }
         }
     }
 }

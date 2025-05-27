@@ -48,7 +48,7 @@
                     x:Name="IsEditMode"
                     Grid.Row="2"
                     HorizontalAlignment="Center"
-                    IsChecked="{Binding IsEditMode}">
+                    IsChecked="{Binding IsDesignMode}">
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Edit24" />
                         <TextBlock Margin="10,0,0,0" Text="设计模式" />

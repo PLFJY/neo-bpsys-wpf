@@ -16,11 +16,6 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
-    <Page.Resources>
-        <Style TargetType="cc:CharaSelector">
-            <Setter Property="Margin" Value="0,0,10,10" />
-        </Style>
-    </Page.Resources>
     <WrapPanel Orientation="Horizontal">
         <Border
             Margin="0,0,10,10"
@@ -33,43 +28,28 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="当局禁用" />
-                <WrapPanel
+                <ItemsControl
                     Grid.Row="1"
                     Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <cc:CharaSelector
-                        x:Name="BanSurCuurent0"
-                        Command="{Binding ConfirmCurrentBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.CurrentSurBannedList[0].HeaderImage_SingleColor}"
-                        Index="0"
-                        IsEnabled="{Binding SharedDataService.CanCurrentSurBanned[0]}"
-                        ItemsSource="{Binding SharedDataService.SurCharaList}"
-                        SelectedValue="{Binding CurrentBannedArray[0]}" />
-                    <cc:CharaSelector
-                        x:Name="BanSurCurrent1"
-                        Command="{Binding ConfirmCurrentBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.CurrentSurBannedList[1].HeaderImage_SingleColor}"
-                        Index="1"
-                        IsEnabled="{Binding SharedDataService.CanCurrentSurBanned[1]}"
-                        ItemsSource="{Binding SharedDataService.SurCharaList}"
-                        SelectedValue="{Binding CurrentBannedArray[1]}" />
-                    <cc:CharaSelector
-                        x:Name="BanSurCuurent2"
-                        Command="{Binding ConfirmCurrentBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.CurrentSurBannedList[2].HeaderImage_SingleColor}"
-                        Index="2"
-                        IsEnabled="{Binding SharedDataService.CanCurrentSurBanned[2]}"
-                        ItemsSource="{Binding SharedDataService.SurCharaList}"
-                        SelectedValue="{Binding CurrentBannedArray[2]}" />
-                    <cc:CharaSelector
-                        x:Name="BanSurCurrent3"
-                        Command="{Binding ConfirmCurrentBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.CurrentSurBannedList[3].HeaderImage_SingleColor}"
-                        Index="3"
-                        IsEnabled="{Binding SharedDataService.CanCurrentSurBanned[3]}"
-                        ItemsSource="{Binding SharedDataService.SurCharaList}"
-                        SelectedValue="{Binding CurrentBannedArray[3]}" />
-                </WrapPanel>
+                    Focusable="False"
+                    ItemsSource="{Binding BanSurCurrentViewModelList}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <cc:CharacterSelector
+                                Margin="0,0,10,10"
+                                Command="{Binding ConfirmCommand}"
+                                ImageSource="{Binding PreviewImage}"
+                                IsEnabled="{Binding IsEnabled}"
+                                ItemsSource="{Binding CharaList}"
+                                SelectedValue="{Binding SelectedChara}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </Grid>
         </Border>
         <Border
@@ -83,83 +63,28 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="全局禁用" />
-                <WrapPanel
+                <ItemsControl
                     Grid.Row="1"
                     Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <cc:CharaSelector
-                        x:Name="BanSurGlobal0"
-                        Command="{Binding ConfirmGlobalBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[0].HeaderImage_SingleColor}"
-                        Index="0"
-                        IsEnabled="{Binding SharedDataService.CanGlobalSurBanned[0]}"
-                        ItemsSource="{Binding SharedDataService.SurCharaList}"
-                        SelectedValue="{Binding GlobalBannedArray[0]}" />
-                    <cc:CharaSelector
-                        x:Name="BanSurGlobal1"
-                        Command="{Binding ConfirmGlobalBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[1].HeaderImage_SingleColor}"
-                        Index="1"
-                        IsEnabled="{Binding SharedDataService.CanGlobalSurBanned[1]}"
-                        ItemsSource="{Binding SharedDataService.SurCharaList}"
-                        SelectedValue="{Binding GlobalBannedArray[1]}" />
-                    <cc:CharaSelector
-                        x:Name="BanSurGlobal2"
-                        Command="{Binding ConfirmGlobalBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[2].HeaderImage_SingleColor}"
-                        Index="2"
-                        IsEnabled="{Binding SharedDataService.CanGlobalSurBanned[2]}"
-                        ItemsSource="{Binding SharedDataService.SurCharaList}"
-                        SelectedValue="{Binding GlobalBannedArray[2]}" />
-                    <cc:CharaSelector
-                        x:Name="BanSurGlobal3"
-                        Command="{Binding ConfirmGlobalBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[3].HeaderImage_SingleColor}"
-                        Index="3"
-                        IsEnabled="{Binding SharedDataService.CanGlobalSurBanned[3]}"
-                        ItemsSource="{Binding SharedDataService.SurCharaList}"
-                        SelectedValue="{Binding GlobalBannedArray[3]}" />
-                    <cc:CharaSelector
-                        x:Name="BanSurGlobal4"
-                        Command="{Binding ConfirmGlobalBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[4].HeaderImage_SingleColor}"
-                        Index="4"
-                        IsEnabled="{Binding SharedDataService.CanGlobalSurBanned[4]}"
-                        ItemsSource="{Binding SharedDataService.SurCharaList}"
-                        SelectedValue="{Binding GlobalBannedArray[4]}" />
-                    <cc:CharaSelector
-                        x:Name="BanSurGlobal5"
-                        Command="{Binding ConfirmGlobalBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[5].HeaderImage_SingleColor}"
-                        Index="5"
-                        IsEnabled="{Binding SharedDataService.CanGlobalSurBanned[5]}"
-                        ItemsSource="{Binding SharedDataService.SurCharaList}"
-                        SelectedValue="{Binding GlobalBannedArray[5]}" />
-                    <cc:CharaSelector
-                        x:Name="BanSurGlobal6"
-                        Command="{Binding ConfirmGlobalBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[6].HeaderImage_SingleColor}"
-                        Index="6"
-                        IsEnabled="{Binding SharedDataService.CanGlobalSurBanned[6]}"
-                        ItemsSource="{Binding SharedDataService.SurCharaList}"
-                        SelectedValue="{Binding GlobalBannedArray[6]}" />
-                    <cc:CharaSelector
-                        x:Name="BanSurGlobal7"
-                        Command="{Binding ConfirmGlobalBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[7].HeaderImage_SingleColor}"
-                        Index="7"
-                        IsEnabled="{Binding SharedDataService.CanGlobalSurBanned[7]}"
-                        ItemsSource="{Binding SharedDataService.SurCharaList}"
-                        SelectedValue="{Binding GlobalBannedArray[7]}" />
-                    <cc:CharaSelector
-                        x:Name="BanSurGlobal8"
-                        Command="{Binding ConfirmGlobalBanCommand}"
-                        ImageSource="{Binding SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[8].HeaderImage_SingleColor}"
-                        Index="8"
-                        IsEnabled="{Binding SharedDataService.CanGlobalSurBanned[8]}"
-                        ItemsSource="{Binding SharedDataService.SurCharaList}"
-                        SelectedValue="{Binding GlobalBannedArray[8]}" />
-                </WrapPanel>
+                    Focusable="False"
+                    ItemsSource="{Binding BanSurGlobalViewModelList}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <cc:CharacterSelector
+                                Margin="0,0,10,10"
+                                Command="{Binding ConfirmCommand}"
+                                ImageSource="{Binding PreviewImage}"
+                                IsEnabled="{Binding IsEnabled}"
+                                ItemsSource="{Binding CharaList}"
+                                SelectedValue="{Binding SelectedChara}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </Grid>
         </Border>
         <Border

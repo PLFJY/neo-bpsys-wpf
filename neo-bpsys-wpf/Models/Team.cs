@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Extensions;
 using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
@@ -56,24 +55,24 @@ public partial class Team : ObservableObject
     public string ImageUri { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private ObservableCollection<Member> _surMemberList = new();
+    private ObservableCollection<Member> _surMemberList = [];
 
     [ObservableProperty]
-    private ObservableCollection<Member> _hunMemberList = new();
+    private ObservableCollection<Member> _hunMemberList = [];
 
     [ObservableProperty]
-    private ObservableCollection<Character?> _globalBannedSurList = new();
+    private ObservableCollection<Character?> _globalBannedSurList = [];
 
     [ObservableProperty]
-    private ObservableCollection<Character?> _globalBannedHunList = new();
+    private ObservableCollection<Character?> _globalBannedHunList = [];
 
-    public Character?[] GlobalBannedSurRecordArray { get; set; } = new Character[9];
+    public Character?[] GlobalBannedSurRecordArray { get; set; }
 
-    public Character?[] GlobalBannedHunRecordArray { get; set; } = new Character[3];
+    public Character?[] GlobalBannedHunRecordArray { get; set; }
 
     [ObservableProperty]
     [JsonIgnore]
-    private ObservableCollection<Player> _surPlayerOnFieldList = new();
+    private ObservableCollection<Player> _surPlayerOnFieldList = [];
 
     [ObservableProperty]
     [JsonIgnore]
@@ -84,16 +83,19 @@ public partial class Team : ObservableObject
 
     public Team(Camp camp)
     {
-        SurMemberList.AddRange(Enumerable.Range(0, 4).Select(i => new Member(Camp.Sur)));
+        SurMemberList = [.. Enumerable.Range(0, 4).Select(i => new Member(Camp.Sur))];
         HunMemberList.Add(new Member(Camp.Hun));
 
         Camp = camp;
 
-        GlobalBannedHunList.AddRange(Enumerable.Range(0, 3).Select(i => new Character(Camp.Hun)));
-        GlobalBannedSurList.AddRange(Enumerable.Range(0, 9).Select(i => new Character(Camp.Sur)));
+        GlobalBannedHunList = [.. Enumerable.Range(0, 3).Select(i => new Character(Camp.Hun))];
+        GlobalBannedSurList = [.. Enumerable.Range(0, 9).Select(i => new Character(Camp.Sur))];
 
-        SurPlayerOnFieldList.AddRange(Enumerable.Range(0, 4).Select(i => new Player(Camp.Sur, i)));
+        SurPlayerOnFieldList = [.. Enumerable.Range(0, 4).Select(i => new Player(Camp.Sur))];
         HunPlayerOnField = new Player(Camp.Hun);
+
+        GlobalBannedSurRecordArray = [.. Enumerable.Range(0, 9).Select<int, Character?>(i => null)];
+        GlobalBannedHunRecordArray = [.. Enumerable.Range(0, 3).Select<int, Character?>(i => null)];
     }
 
     /// <summary>
@@ -111,9 +113,9 @@ public partial class Team : ObservableObject
         }
         SurMemberList = newTeam.SurMemberList;
         HunMemberList = newTeam.HunMemberList;
-        SurPlayerOnFieldList.AddRange(Enumerable.Range(0, 4).Select(i => new Player(Camp.Sur, i)));
+        SurPlayerOnFieldList = [.. Enumerable.Range(0, 4).Select(i => new Player(Camp.Sur))];
         HunPlayerOnField = new Player(Camp.Hun);
-
+        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<string>("PlayerName"));
         OnPropertyChanged();
     }
 
@@ -163,7 +165,7 @@ public partial class Team : ObservableObject
                 break;
             }
         }
-
+        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<string>("PlayerName"));
         return true;
     }
 
@@ -189,11 +191,6 @@ public partial class Team : ObservableObject
                 return;
             }
         }
-    }
-
-    public void SyncGlobalBanWithRecord()
-    {
-        GlobalBannedSurList = new(GlobalBannedSurRecordArray.ToList());
-        GlobalBannedHunList = new(GlobalBannedHunRecordArray.ToList());
+        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<string>("PlayerName"));
     }
 }

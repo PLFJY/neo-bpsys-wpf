@@ -1,6 +1,6 @@
-﻿using neo_bpsys_wpf.Events;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Helpers;
-using neo_bpsys_wpf.ViewModels.Pages;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
@@ -15,20 +15,23 @@ namespace neo_bpsys_wpf.Views.Windows
         public WidgetsWindow()
         {
             InitializeComponent();
-            FrontManagePageViewModel.DesignModeChanged += OnDesignModeChanged;
+            WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>>(this, OnDesignModeChanged);
             MouseLeftButtonDown += OnMouseLeftButtonDown;
             MapBpCanvas.Background = ImageHelper.GetUiImageBrush("mapBp");
         }
 
-        private void OnDesignModeChanged(object? sender, DesignModeChangedEventArgs e)
+        private void OnDesignModeChanged(object recipient, PropertyChangedMessage<bool> message)
         {
-            if (!e.IsDesignMode)
+            if (message.PropertyName == "IsDesignMode")
             {
-                MouseLeftButtonDown += OnMouseLeftButtonDown;
-            }
-            else
-            {
-                MouseLeftButtonDown -= OnMouseLeftButtonDown;
+                if (!message.NewValue)
+                {
+                    MouseLeftButtonDown += OnMouseLeftButtonDown;
+                }
+                else
+                {
+                    MouseLeftButtonDown -= OnMouseLeftButtonDown;
+                }
             }
         }
 

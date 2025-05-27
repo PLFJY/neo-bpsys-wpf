@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
-using System.Printing;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {

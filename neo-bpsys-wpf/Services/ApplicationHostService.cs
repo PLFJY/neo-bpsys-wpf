@@ -1,7 +1,7 @@
-﻿using System.Windows;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
+using System.Windows;
 using Wpf.Ui;
 
 namespace neo_bpsys_wpf.Services
@@ -29,17 +29,17 @@ namespace neo_bpsys_wpf.Services
                 _navigationWindow = (
                     serviceProvider.GetService(typeof(INavigationWindow)) as INavigationWindow
                 )!;
-                _navigationWindow!.ShowWindow();
+                _navigationWindow?.ShowWindow();
 
-                //提前加载调用了CharaSelector的页面，避免使用卡顿
-                _ = _navigationWindow.Navigate(typeof(PickPage));
+                //提前加载调用了CharaSelector的页面，避免使用过程中卡顿
+                _ = _navigationWindow?.Navigate(typeof(PickPage));
                 await Task.Delay(750);
-                _ = _navigationWindow.Navigate(typeof(BanSurPage));
+                _ = _navigationWindow?.Navigate(typeof(BanSurPage));
                 await Task.Delay(550);
-                _ = _navigationWindow.Navigate(typeof(BanHunPage));
+                _ = _navigationWindow?.Navigate(typeof(BanHunPage));
                 await Task.Delay(250);
 
-                _ = _navigationWindow.Navigate(typeof(HomePage));
+                _ = _navigationWindow?.Navigate(typeof(HomePage));
             }
             await Task.CompletedTask;
         }

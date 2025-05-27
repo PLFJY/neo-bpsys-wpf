@@ -1,8 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Services;
-using System.Diagnostics;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {

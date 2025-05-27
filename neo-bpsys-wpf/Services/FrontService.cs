@@ -1,7 +1,7 @@
-﻿using System.Text.Json;
+﻿using neo_bpsys_wpf.Views.Windows;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
-using neo_bpsys_wpf.Views.Windows;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -21,7 +21,7 @@ namespace neo_bpsys_wpf.Services
         private readonly Dictionary<
             string,
             Dictionary<string, (double left, double top)>
-        > _elementsInitialPositions = new();
+        > _elementsInitialPositions = [];
 
         public bool this[Type windowType]
         {

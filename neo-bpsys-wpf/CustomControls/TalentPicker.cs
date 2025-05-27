@@ -5,6 +5,7 @@ namespace neo_bpsys_wpf.CustomControls
 {
     /// <summary>
     /// 12, 3 ,6 ,9 分别对应的是天赋图在时钟对应的方向如下所示
+    /// 
     ///    12
     ///  9     3
     ///     6

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 using System.Windows.Data;
 
 namespace neo_bpsys_wpf.Converters
@@ -20,7 +15,7 @@ namespace neo_bpsys_wpf.Converters
 
         public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if(value is bool b && b)
+            if (value is bool b && b)
                 return parameter;
 
             return null;

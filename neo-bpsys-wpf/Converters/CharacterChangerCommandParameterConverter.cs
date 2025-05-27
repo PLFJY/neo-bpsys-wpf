@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using neo_bpsys_wpf.CustomControls;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
-using neo_bpsys_wpf.CustomControls;
-using neo_bpsys_wpf.Models;
 
 namespace neo_bpsys_wpf.Converters
 {

@@ -191,6 +191,10 @@
         "Camp": "Sur",
         "ImageFileName": "邮差.png"
     },
+    "逃脱大师": {
+        "Camp": "Sur",
+        "ImageFileName": "逃脱大师.png"
+    },
     "26号守卫": {
         "Camp": "Hun",
         "ImageFileName": "26号守卫.png"
@@ -315,7 +319,7 @@
         "Camp": "Hun",
         "ImageFileName": "蜘蛛.png"
     },
-    "杂货商":{
+    "杂货商": {
         "Camp": "Hun",
         "ImageFileName": "杂货商.png"
     }

@@ -1,9 +1,4 @@
 ﻿using Downloader;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static neo_bpsys_wpf.Services.UpdaterService;
 
 namespace neo_bpsys_wpf.Services

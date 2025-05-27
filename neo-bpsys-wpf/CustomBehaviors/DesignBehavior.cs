@@ -8,12 +8,7 @@ namespace neo_bpsys_wpf.CustomBehaviors
     public static class DesignBehavior
     {
         public static readonly DependencyProperty IsDesignModeProperty =
-            DependencyProperty.RegisterAttached(
-                "IsDesignMode",
-                typeof(bool),
-                typeof(DesignBehavior),
-                new PropertyMetadata(false, OnIsDesignModeChanged)
-            );
+            DependencyProperty.RegisterAttached("IsDesignMode", typeof(bool), typeof(DesignBehavior), new PropertyMetadata(false, OnIsDesignModeChanged));
 
         public static bool GetIsDesignMode(UIElement element)
         {
@@ -25,10 +20,7 @@ namespace neo_bpsys_wpf.CustomBehaviors
             element.SetValue(IsDesignModeProperty, value);
         }
 
-        private static void OnIsDesignModeChanged(
-            DependencyObject d,
-            DependencyPropertyChangedEventArgs e
-        )
+        private static void OnIsDesignModeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is UIElement element)
             {
@@ -82,8 +74,7 @@ namespace neo_bpsys_wpf.CustomBehaviors
             Canvas? canvas = GetParentCanvas(element);
             if (canvas != null)
             {
-                TextBlock? textBlock = element.GetValue(TagProperty) as TextBlock;
-                if (textBlock != null)
+                if (element.GetValue(TagProperty) is TextBlock textBlock)
                 {
                     canvas.Children.Remove(textBlock);
                     element.ClearValue(TagProperty);
@@ -94,7 +85,7 @@ namespace neo_bpsys_wpf.CustomBehaviors
         private static Canvas? GetParentCanvas(UIElement element)
         {
             DependencyObject parent = VisualTreeHelper.GetParent(element);
-            while (parent != null && !(parent is Canvas))
+            while (parent != null && parent is not Canvas)
             {
                 parent = VisualTreeHelper.GetParent(parent);
             }
@@ -102,12 +93,7 @@ namespace neo_bpsys_wpf.CustomBehaviors
         }
 
         private static readonly DependencyProperty TagProperty =
-            DependencyProperty.RegisterAttached(
-                "Tag",
-                typeof(object),
-                typeof(DesignBehavior),
-                new PropertyMetadata(null)
-            );
+            DependencyProperty.RegisterAttached("Tag", typeof(object), typeof(DesignBehavior), new PropertyMetadata(null));
 
         private static Point _startPoint;
         private static bool _isDragging;
@@ -160,8 +146,7 @@ namespace neo_bpsys_wpf.CustomBehaviors
             Canvas? canvas = GetParentCanvas(element);
             if (canvas != null)
             {
-                TextBlock? textBlock = element.GetValue(TagProperty) as TextBlock;
-                if (textBlock != null)
+                if (element.GetValue(TagProperty) is TextBlock textBlock)
                 {
                     Canvas.SetLeft(textBlock, Canvas.GetLeft(element));
                     Canvas.SetTop(textBlock, Canvas.GetTop(element) - textBlock.ActualHeight);

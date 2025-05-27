@@ -1,9 +1,6 @@
-﻿using System.Diagnostics;
-using System.Security.Permissions;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.CustomControls;
-using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Services;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
@@ -51,7 +48,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         private void SwapMembersInPlayers(CharacterChangerCommandParameter parameter)
         {
             (SharedDataService.CurrentGame.SurPlayerList[parameter.Target].Member,
-                SharedDataService.CurrentGame.SurPlayerList[parameter.Source].Member) = 
+                SharedDataService.CurrentGame.SurPlayerList[parameter.Source].Member) =
                 (SharedDataService.CurrentGame.SurPlayerList[parameter.Source].Member,
                 SharedDataService.CurrentGame.SurPlayerList[parameter.Target].Member);
 

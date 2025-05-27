@@ -1,5 +1,3 @@
-using System.Collections.ObjectModel;
-using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Enums;
 
@@ -7,14 +5,15 @@ namespace neo_bpsys_wpf.Models;
 
 public partial class Player : ObservableObject
 {
-    public Player(Camp camp, int? position = null)
+    public Player(Camp camp)
     {
         this.Character = new Character(camp);
     }
 
-    public Player(Camp camp, string name, BitmapImage image)
+    public Player(Member member)
     {
-        this.Character = new Character(camp);
+        this.Member = member;
+        this.Character = new Character(member.Camp);
     }
 
     [ObservableProperty]

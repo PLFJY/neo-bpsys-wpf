@@ -1,12 +1,12 @@
-﻿using System.IO;
-using System.Windows;
-using System.Windows.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
-using neo_bpsys_wpf.Events;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Views.Windows;
+using System.IO;
+using System.Windows;
 using Wpf.Ui.Controls;
 using static neo_bpsys_wpf.Services.FrontService;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
@@ -109,24 +109,15 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             [new(1440, 810), new(1920, 1080), new(960, 540)];
 
         //前台设计器模式
+        private bool _isDesignMode = false;
 
-        public static event EventHandler<DesignModeChangedEventArgs>? DesignModeChanged;
-
-        public void ToggleDesignMode(bool isDesignMode) =>
-            DesignModeChanged?.Invoke(
-                this,
-                new DesignModeChangedEventArgs { IsDesignMode = isDesignMode }
-            );
-
-        private bool _isEditMode = false;
-
-        public bool IsEditMode
+        public bool IsDesignMode
         {
-            get { return _isEditMode; }
+            get { return _isDesignMode; }
             set
             {
-                _isEditMode = value;
-                ToggleDesignMode(value);
+                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsDesignMode), _isDesignMode, value));
+                _isDesignMode = value;
                 if (!value)
                 {
                     SaveFrontConfig(); //保存前台窗口配置

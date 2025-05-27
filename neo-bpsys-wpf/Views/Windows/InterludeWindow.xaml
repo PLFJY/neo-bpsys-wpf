@@ -69,7 +69,7 @@
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/TestLogo.JPG"
             CornerRadius="8"
-            Source="{Binding SharedDataService.CurrentGame.SurTeam.Logo}"
+            Source="{Binding CurrentGame.SurTeam.Logo}"
             Stretch="Fill" />
         <TextBlock
             Name="SurTeamMajorPoint"
@@ -80,7 +80,7 @@
             FontFamily="Arial"
             FontSize="28"
             FontWeight="Bold"
-            Text="{Binding SharedDataService.CurrentGame.SurTeam.Score.MajorPointsOnFront}"
+            Text="{Binding CurrentGame.SurTeam.Score.MajorPointsOnFront}"
             TextAlignment="Center" />
         <TextBlock
             Name="SurTeamName"
@@ -91,7 +91,7 @@
             d:Text="求生者队伍名称"
             FontFamily="{StaticResource SourceHan}"
             FontSize="28"
-            Text="{Binding SharedDataService.CurrentGame.SurTeam.Name}"
+            Text="{Binding CurrentGame.SurTeam.Name}"
             TextAlignment="Center"
             TextWrapping="WrapWithOverflow" />
         <TextBlock
@@ -103,7 +103,7 @@
             d:Text="监管者队伍名称"
             FontFamily="{StaticResource SourceHan}"
             FontSize="28"
-            Text="{Binding SharedDataService.CurrentGame.HunTeam.Name}"
+            Text="{Binding CurrentGame.HunTeam.Name}"
             TextAlignment="Center"
             TextWrapping="WrapWithOverflow" />
         <TextBlock
@@ -115,7 +115,7 @@
             FontFamily="Arial"
             FontSize="28"
             FontWeight="Bold"
-            Text="{Binding SharedDataService.CurrentGame.HunTeam.Score.MajorPointsOnFront}"
+            Text="{Binding CurrentGame.HunTeam.Score.MajorPointsOnFront}"
             TextAlignment="Center" />
         <ui:Image
             Name="HunTeamLogo"
@@ -128,7 +128,7 @@
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/TestLogo.JPG"
             CornerRadius="8"
-            Source="{Binding SharedDataService.CurrentGame.HunTeam.Logo}"
+            Source="{Binding CurrentGame.HunTeam.Logo}"
             Stretch="Fill" />
         <!--  Map  -->
         <Image
@@ -140,7 +140,7 @@
             VerticalAlignment="Top"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/map/唐人街.png"
-            Source="{Binding SharedDataService.CurrentGame.PickedMapImage}" />
+            Source="{Binding CurrentGame.PickedMapImage}" />
         <Border
             Name="MapName"
             Canvas.Left="554"
@@ -153,60 +153,60 @@
                 d:Text="唐人街"
                 FontFamily="{StaticResource Hanyi}"
                 FontSize="50"
-                Text="{Binding SharedDataService.CurrentGame.PickedMap}" />
+                Text="{Binding CurrentGame.PickedMap}" />
         </Border>
 
         <!--  Sur Pick  -->
         <Image
             Name="SurPick0"
             Canvas.Left="-76"
-            Canvas.Top="109"
+            Canvas.Top="114"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/先知.png"
-            Source="{Binding SharedDataService.CurrentGame.SurPlayerList[0].Character.BigImage}"
+            Source="{Binding CurrentGame.SurPlayerList[0].Character.BigImage}"
             Style="{StaticResource SurPickImage}" />
         <Image
             Name="SurPick1"
             Canvas.Left="292"
-            Canvas.Top="109"
+            Canvas.Top="114"
             HorizontalAlignment="Center"
             VerticalAlignment="Top"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/先知.png"
-            Source="{Binding SharedDataService.CurrentGame.SurPlayerList[1].Character.BigImage}"
+            Source="{Binding CurrentGame.SurPlayerList[1].Character.BigImage}"
             Style="{StaticResource SurPickImage}" />
         <Image
             Name="SurPick2"
             Canvas.Left="-76"
-            Canvas.Top="462"
+            Canvas.Top="465"
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/先知.png"
-            Source="{Binding SharedDataService.CurrentGame.SurPlayerList[2].Character.BigImage}"
+            Source="{Binding CurrentGame.SurPlayerList[2].Character.BigImage}"
             Style="{StaticResource SurPickImage}" />
         <Image
             Name="SurPick3"
             Canvas.Left="292"
-            Canvas.Top="462"
+            Canvas.Top="465"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/先知.png"
-            Source="{Binding SharedDataService.CurrentGame.SurPlayerList[3].Character.BigImage}"
+            Source="{Binding CurrentGame.SurPlayerList[3].Character.BigImage}"
             Style="{StaticResource SurPickImage}" />
         <!--  Hun Pick  -->
         <Image
             Name="HunPick"
             Canvas.Left="720"
-            Canvas.Top="113"
+            Canvas.Top="114.5"
             Width="720"
-            Height="638"
+            Height="640"
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/梦之女巫.png"
-            Source="{Binding SharedDataService.CurrentGame.HunPlayer.Character.BigImage}" />
+            Source="{Binding CurrentGame.HunPlayer.Character.BigImage}" />
 
         <!--  Player Id  -->
         <!--  Sur  -->
@@ -219,7 +219,7 @@
             <TextBlock
                 d:Text="求生者选手名Id"
                 Style="{StaticResource PlayerId}"
-                Text="{Binding SharedDataService.CurrentGame.SurPlayerList[0].Member.Name}" />
+                Text="{Binding CurrentGame.SurPlayerList[0].Member.Name}" />
         </Border>
         <Border
             Name="SurId1"
@@ -231,7 +231,7 @@
             <TextBlock
                 d:Text="求生者选手名Id"
                 Style="{StaticResource PlayerId}"
-                Text="{Binding SharedDataService.CurrentGame.SurPlayerList[1].Member.Name}" />
+                Text="{Binding CurrentGame.SurPlayerList[1].Member.Name}" />
         </Border>
         <Border
             Name="SurId2"
@@ -243,7 +243,7 @@
             <TextBlock
                 d:Text="求生者选手名Id"
                 Style="{StaticResource PlayerId}"
-                Text="{Binding SharedDataService.CurrentGame.SurPlayerList[2].Member.Name}" />
+                Text="{Binding CurrentGame.SurPlayerList[2].Member.Name}" />
         </Border>
         <Border
             Name="SurId3"
@@ -255,7 +255,7 @@
             <TextBlock
                 d:Text="求生者选手名Id"
                 Style="{StaticResource PlayerId}"
-                Text="{Binding SharedDataService.CurrentGame.SurPlayerList[3].Member.Name}" />
+                Text="{Binding CurrentGame.SurPlayerList[3].Member.Name}" />
         </Border>
         <!--  Hun  -->
         <Border
@@ -271,7 +271,7 @@
                 d:Text="监管者选手名"
                 FontSize="24"
                 Style="{StaticResource PlayerId}"
-                Text="{Binding SharedDataService.CurrentGame.HunPlayer.Member.Name}" />
+                Text="{Binding CurrentGame.HunPlayer.Member.Name}" />
         </Border>
 
         <!--  Talent  -->
@@ -288,19 +288,19 @@
                     d:Source="/Assets/Icons/white/BorrowedTime.png"
                     d:Visibility="Visible"
                     Source="{Binding BorrowedTimeImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.SurPlayerList[0].Talent.BorrowedTime, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[0].Talent.BorrowedTime, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/TideTurner.png"
                     Source="{Binding TideTurnerImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.SurPlayerList[0].Talent.TideTurner, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[0].Talent.TideTurner, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/FlywheelEffect.png"
                     Source="{Binding FlywheelEffectImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.SurPlayerList[0].Talent.FlywheelEffect, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[0].Talent.FlywheelEffect, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/KneeJerkReflex.png"
                     Source="{Binding KneeJerkReflexImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.SurPlayerList[0].Talent.KneeJerkReflex, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[0].Talent.KneeJerkReflex, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
         </Border>
         <Border
@@ -316,19 +316,19 @@
                     d:Source="/Assets/Icons/white/BorrowedTime.png"
                     d:Visibility="Visible"
                     Source="{Binding BorrowedTimeImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.SurPlayerList[1].Talent.BorrowedTime, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[1].Talent.BorrowedTime, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/TideTurner.png"
                     Source="{Binding TideTurnerImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.SurPlayerList[1].Talent.TideTurner, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[1].Talent.TideTurner, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/FlywheelEffect.png"
                     Source="{Binding FlywheelEffectImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.SurPlayerList[1].Talent.FlywheelEffect, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[1].Talent.FlywheelEffect, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/KneeJerkReflex.png"
                     Source="{Binding KneeJerkReflexImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.SurPlayerList[1].Talent.KneeJerkReflex, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[1].Talent.KneeJerkReflex, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
         </Border>
         <Border
@@ -344,19 +344,19 @@
                     d:Source="/Assets/Icons/white/BorrowedTime.png"
                     d:Visibility="Visible"
                     Source="{Binding BorrowedTimeImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.SurPlayerList[2].Talent.BorrowedTime, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[2].Talent.BorrowedTime, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/TideTurner.png"
                     Source="{Binding TideTurnerImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.SurPlayerList[2].Talent.TideTurner, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[2].Talent.TideTurner, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/FlywheelEffect.png"
                     Source="{Binding FlywheelEffectImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.SurPlayerList[2].Talent.FlywheelEffect, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[2].Talent.FlywheelEffect, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/KneeJerkReflex.png"
                     Source="{Binding KneeJerkReflexImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.SurPlayerList[2].Talent.KneeJerkReflex, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[2].Talent.KneeJerkReflex, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
         </Border>
         <Border
@@ -372,19 +372,19 @@
                     d:Source="/Assets/Icons/white/BorrowedTime.png"
                     d:Visibility="Visible"
                     Source="{Binding BorrowedTimeImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.SurPlayerList[3].Talent.BorrowedTime, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[3].Talent.BorrowedTime, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/TideTurner.png"
                     Source="{Binding TideTurnerImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.SurPlayerList[3].Talent.TideTurner, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[3].Talent.TideTurner, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/FlywheelEffect.png"
                     Source="{Binding FlywheelEffectImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.SurPlayerList[3].Talent.FlywheelEffect, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[3].Talent.FlywheelEffect, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/KneeJerkReflex.png"
                     Source="{Binding KneeJerkReflexImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.SurPlayerList[3].Talent.KneeJerkReflex, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[3].Talent.KneeJerkReflex, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
         </Border>
         <!--  Hun  -->
@@ -401,19 +401,19 @@
                     d:Source="/Assets/Icons/white/TrumpCard.png"
                     d:Visibility="Visible"
                     Source="{Binding TrumpCardImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.HunPlayer.Talent.TrumpCard, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.HunPlayer.Talent.TrumpCard, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/Detention.png"
                     Source="{Binding DetentionImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.HunPlayer.Talent.Detention, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.HunPlayer.Talent.Detention, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/ConfinedSpace.png"
                     Source="{Binding ConfinedSpaceImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.HunPlayer.Talent.ConfinedSpace, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.HunPlayer.Talent.ConfinedSpace, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/Insolence.png"
                     Source="{Binding InsolenceImageSource}"
-                    Visibility="{Binding SharedDataService.CurrentGame.HunPlayer.Talent.Insolence, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.HunPlayer.Talent.Insolence, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
         </Border>
         <Image
@@ -426,7 +426,7 @@
             VerticalAlignment="Top"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/闪现.png"
-            Source="{Binding SharedDataService.CurrentGame.HunPlayer.Trait.Image}"
+            Source="{Binding CurrentGame.HunPlayer.Trait.Image}"
             Visibility="{Binding SharedDataService.IsTraitVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
     </Canvas>
 </Window>

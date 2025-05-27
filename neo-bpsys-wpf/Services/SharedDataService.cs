@@ -1,19 +1,17 @@
-﻿using System.Collections.ObjectModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Models;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows.Threading;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Extensions;
-using neo_bpsys_wpf.Models;
 
 namespace neo_bpsys_wpf.Services
 {
     public partial class SharedDataService : ObservableObject, ISharedDataService
     {
-        private DispatcherTimer _timer = new();
+        private readonly DispatcherTimer _timer = new();
 
         public SharedDataService()
         {
@@ -23,10 +21,6 @@ namespace neo_bpsys_wpf.Services
             CurrentGameProgress = GameProgress.Free;
 
             CurrentGame = new(MainTeam, AwayTeam, CurrentGameProgress);
-
-            SurCharaList = new();
-            HunCharaList = new();
-
 
             var charaListFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources\\CharacterList.json");
             ReadCharaListFromFile(charaListFilePath);
@@ -38,10 +32,10 @@ namespace neo_bpsys_wpf.Services
                 ?.OrderBy(pair => pair.Key)
                 .ToDictionary(pair => pair.Key, pair => pair.Value)!;
 
-            CanCurrentSurBanned.AddRange(Enumerable.Repeat(true, 4));
-            CanCurrentHunBanned.AddRange(Enumerable.Repeat(true, 2));
-            CanGlobalSurBanned.AddRange(Enumerable.Repeat(false, 9));
-            CanGlobalHunBanned.AddRange(Enumerable.Repeat(false, 3));
+            CanCurrentSurBanned = [.. Enumerable.Repeat(true, 4)];
+            CanCurrentHunBanned = [.. Enumerable.Repeat(true, 2)];
+            CanGlobalSurBanned = [.. Enumerable.Repeat(false, 9)];
+            CanGlobalHunBanned = [.. Enumerable.Repeat(false, 3)];
 
             _timer.Interval = TimeSpan.FromSeconds(1);
             _timer.Tick += Timer_Tick;
@@ -88,13 +82,13 @@ namespace neo_bpsys_wpf.Services
         public Team AwayTeam { get; set; }
         public Game CurrentGame { get; set; }
         public GameProgress CurrentGameProgress { get; set; }
-        public Dictionary<string, Character> CharacterList { get; set; } = new();
-        public Dictionary<string, Character> SurCharaList { get; set; }
-        public Dictionary<string, Character> HunCharaList { get; set; }
-        public ObservableCollection<bool> CanCurrentSurBanned { get; set; } = new();
-        public ObservableCollection<bool> CanCurrentHunBanned { get; set; } = new();
-        public ObservableCollection<bool> CanGlobalSurBanned { get; set; } = new();
-        public ObservableCollection<bool> CanGlobalHunBanned { get; set; } = new();
+        public Dictionary<string, Character> CharacterList { get; set; } = [];
+        public Dictionary<string, Character> SurCharaList { get; set; } = [];
+        public Dictionary<string, Character> HunCharaList { get; set; } = [];
+        public ObservableCollection<bool> CanCurrentSurBanned { get; set; } = [];
+        public ObservableCollection<bool> CanCurrentHunBanned { get; set; } = [];
+        public ObservableCollection<bool> CanGlobalSurBanned { get; set; } = [];
+        public ObservableCollection<bool> CanGlobalHunBanned { get; set; } = [];
         [ObservableProperty]
         private bool _isTraitVisible = true;
 
