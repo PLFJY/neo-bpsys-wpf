@@ -38,16 +38,6 @@ namespace neo_bpsys_wpf.Services
             { GameAction.PickHun, typeof (PickPage) },
         };
 
-//<<<<<<< HEAD
-////=======
-//        public GameGuidanceService(ISharedDataService sharedDataService, INavigationService navigationService, IMessageBoxService messageBoxService)
-//        {
-//            _sharedDataService = sharedDataService;
-//            _navigationService = navigationService;
-//            _messageBoxService = messageBoxService;
-//        }
-
-//>>>>>>> 5d440765c9e649bac2938734e7e3ffcf86064342
         public Step CurrentStep { get; set; } = new();
 
         

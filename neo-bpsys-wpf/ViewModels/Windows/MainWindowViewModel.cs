@@ -29,19 +29,18 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         private readonly JsonSerializerOptions jsonSerializerOptions;
         private readonly IMessageBoxService _messageBoxService;
-        private readonly GameGuidanceService _gameGuidanceService;
+        private readonly IGameGuidanceService _gameGuidanceService;
         [ObservableProperty]
         private ApplicationTheme _applicationTheme = ApplicationTheme.Dark;
 
         public string SurTeamName => SharedDataService.CurrentGame.SurTeam.Name;
         public string HunTeamName => SharedDataService.CurrentGame.HunTeam.Name;
 
-#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
-        public MainWindowViewModel(ISharedDataService sharedDataService, IMessageBoxService messageBoxService)
-#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
+        public MainWindowViewModel(ISharedDataService sharedDataService, IMessageBoxService messageBoxService, IGameGuidanceService gameGuidanceService)
         {
             SharedDataService = sharedDataService;
             _messageBoxService = messageBoxService;
+            _gameGuidanceService = gameGuidanceService;
             jsonSerializerOptions = new JsonSerializerOptions()
             {
                 WriteIndented = true,
