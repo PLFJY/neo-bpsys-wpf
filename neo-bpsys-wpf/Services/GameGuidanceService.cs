@@ -9,32 +9,45 @@ using neo_bpsys_wpf.ViewModels.Pages;
 
 namespace neo_bpsys_wpf.Services
 {
-    public partial class GameGuidanceService : IGameGuidanceService
+//<<<<<<< HEAD
+    public partial class GameGuidanceService(ISharedDataService sharedDataService, INavigationService navigationService, IMessageBoxService messageBoxService) : IGameGuidanceService
     {
-        private readonly ISharedDataService _sharedDataService;
-        private readonly INavigationService _navigationService;
-        private readonly IMessageBoxService _messageBoxService;
+        private readonly ISharedDataService _sharedDataService = sharedDataService;
+        private readonly INavigationService _navigationService = navigationService;
+        private readonly IMessageBoxService _messageBoxService = messageBoxService;
         private readonly string guidanceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GameRule.json");
         private GameProperty _currentGameProperty = new();
-        //private CharaSelectViewModelBase _charaSelectViewModelBase { get; set; }
+        private object? _charaSelectViewModelBase;
+//=======
+//    public partial class GameGuidanceService : IGameGuidanceService
+//    {
+//        private readonly ISharedDataService _sharedDataService;
+//        private readonly INavigationService _navigationService;
+//        private readonly IMessageBoxService _messageBoxService;
+//        private readonly string guidanceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "GameRule.json");
+//        private GameProperty _currentGameProperty = new();
+//        //private CharaSelectViewModelBase _charaSelectViewModelBase { get; set; }
+//>>>>>>> 5d440765c9e649bac2938734e7e3ffcf86064342
         private readonly Dictionary<GameAction, Type> ActionToPage = new()
         {
             { GameAction.BanMap, typeof (MapBpPage) },
             { GameAction.PickMap, typeof (MapBpPage) },
-            //{ GameAction.PickCamp, typeof (XuanBianYeMianCouShu) },
             { GameAction.BanSur, typeof (BanSurPage) },
             { GameAction.BanHun, typeof (BanHunPage) },
             { GameAction.PickSur, typeof (PickPage) },
             { GameAction.PickHun, typeof (PickPage) },
         };
 
-        public GameGuidanceService(ISharedDataService sharedDataService, INavigationService navigationService, IMessageBoxService messageBoxService)
-        {
-            _sharedDataService = sharedDataService;
-            _navigationService = navigationService;
-            _messageBoxService = messageBoxService;
-        }
+//<<<<<<< HEAD
+////=======
+//        public GameGuidanceService(ISharedDataService sharedDataService, INavigationService navigationService, IMessageBoxService messageBoxService)
+//        {
+//            _sharedDataService = sharedDataService;
+//            _navigationService = navigationService;
+//            _messageBoxService = messageBoxService;
+//        }
 
+//>>>>>>> 5d440765c9e649bac2938734e7e3ffcf86064342
         public Step CurrentStep { get; set; } = new();
 
         
@@ -64,13 +77,12 @@ namespace neo_bpsys_wpf.Services
 
         public void NextStep()
         {
-            //throw new NotImplementedException();
             
             if (CurrentStep.Sequence < _currentGameProperty.WorkFlow.Count)
             {
                 if (CurrentStep.ThisAction == GameAction.PickCamp)
                 {
-                    //_charaSelectViewModelBase.IsHighlighted = true;
+                    throw new NotImplementedException();
                 }
                 else
                 {

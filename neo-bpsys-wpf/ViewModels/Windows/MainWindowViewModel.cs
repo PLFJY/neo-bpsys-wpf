@@ -1,10 +1,12 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
+using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.Views.Pages;
 using System.IO;
 using System.Text.Json;
@@ -27,14 +29,16 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         private readonly JsonSerializerOptions jsonSerializerOptions;
         private readonly IMessageBoxService _messageBoxService;
-
+        private readonly GameGuidanceService _gameGuidanceService;
         [ObservableProperty]
         private ApplicationTheme _applicationTheme = ApplicationTheme.Dark;
 
         public string SurTeamName => SharedDataService.CurrentGame.SurTeam.Name;
         public string HunTeamName => SharedDataService.CurrentGame.HunTeam.Name;
 
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public MainWindowViewModel(ISharedDataService sharedDataService, IMessageBoxService messageBoxService)
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         {
             SharedDataService = sharedDataService;
             _messageBoxService = messageBoxService;
@@ -132,6 +136,18 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         private void TimerStop()
         {
             SharedDataService.TimerStop();
+        }
+
+        [RelayCommand]
+        private void NavigateToNextStep()
+        {
+            _gameGuidanceService.NextStep();
+        }
+
+        [RelayCommand]
+        private void NavigateToPreviousStep()
+        {
+            _gameGuidanceService.PrevStep();
         }
 
         public void Receive(NewGameMessage message)

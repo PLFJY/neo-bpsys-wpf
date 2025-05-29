@@ -19,7 +19,7 @@ namespace neo_bpsys_wpf.Services
             AwayTeam = new Team(Camp.Hun);
 
             CurrentGameProgress = GameProgress.Free;
-            CurrentStep = Enums.GameAction.None;
+            CurrentStep = GameAction.None;
 
             CurrentGame = new(MainTeam, AwayTeam, CurrentGameProgress);
 
@@ -107,6 +107,8 @@ namespace neo_bpsys_wpf.Services
                 OnPropertyChanged();
             }
         }
+
+        //public GameAction CurrentStep { get; set; }
 
         private void Timer_Tick(object? sender, EventArgs e)
         {

@@ -274,6 +274,14 @@
                     SelectedIndex="0"
                     SelectedValue="{Binding SharedDataService.CurrentGameProgress}"
                     SelectedValuePath="Key" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding NavigateToPreviousStepCommand}"
+                    Content="上一步"/>
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding NavigateToNextStepCommand}"
+                    Content="下一步"/>
             </WrapPanel>
 
             <!--  navigation  -->
