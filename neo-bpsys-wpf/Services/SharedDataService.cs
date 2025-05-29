@@ -1,5 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -9,7 +12,7 @@ using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.Services
 {
-    public partial class SharedDataService : ObservableObject, ISharedDataService
+    public partial class SharedDataService : ISharedDataService
     {
         private readonly DispatcherTimer _timer = new();
 
@@ -89,8 +92,8 @@ namespace neo_bpsys_wpf.Services
         public ObservableCollection<bool> CanCurrentHunBanned { get; set; } = [];
         public ObservableCollection<bool> CanGlobalSurBanned { get; set; } = [];
         public ObservableCollection<bool> CanGlobalHunBanned { get; set; } = [];
-        [ObservableProperty]
-        private bool _isTraitVisible = true;
+
+        public bool IsTraitVisible { get; set; } = true;
 
         private int _remainingSeconds = 0;
 
@@ -102,7 +105,7 @@ namespace neo_bpsys_wpf.Services
                 if (!int.TryParse(value, out _remainingSeconds))
                     _remainingSeconds = 0;
 
-                OnPropertyChanged();
+                WeakReferenceMessenger.Default.Send(new ValueChangedMessage<string>(nameof(RemainingSeconds)));
             }
         }
 
@@ -111,7 +114,7 @@ namespace neo_bpsys_wpf.Services
             if (_remainingSeconds > 0)
             {
                 _remainingSeconds--;
-                OnPropertyChanged(nameof(RemainingSeconds));
+                WeakReferenceMessenger.Default.Send(new ValueChangedMessage<string>(nameof(RemainingSeconds)));
             }
             else
             {
@@ -129,7 +132,40 @@ namespace neo_bpsys_wpf.Services
         {
             _remainingSeconds = 0;
             _timer.Stop();
-            OnPropertyChanged(nameof(RemainingSeconds));
+            WeakReferenceMessenger.Default.Send(new ValueChangedMessage<string>(nameof(RemainingSeconds)));
+        }
+
+        /// <summary>
+        /// 设置Ban位数量，第一个参数传入列表名称<br/>
+        /// 如 nameof(CanCurrentSurBanned)
+        /// </summary>
+        /// <param name="listName">传入的列表名称</param>
+        /// <param name="count">Ban位数量</param>
+        /// <exception cref="ArgumentException"></exception>
+        public void SetBanCount(string listName, int count)
+        {
+            switch (listName)
+            {
+                case nameof(CanCurrentSurBanned):
+                    for (int i = 0; i < CanCurrentSurBanned.Count; i++) 
+                        CanCurrentSurBanned[i] = i < count;
+                    break;
+                case nameof(CanCurrentHunBanned):
+                    for (int i = 0; i < CanCurrentHunBanned.Count; i++)
+                        CanCurrentHunBanned[i] = i < count;
+                    break;
+                case nameof(CanGlobalSurBanned):
+                    for (int i = 0; i < CanGlobalSurBanned.Count; i++)
+                        CanGlobalSurBanned[i] = i < count;
+                    break;
+                case nameof(CanGlobalHunBanned):
+                    for (int i = 0; i < CanGlobalHunBanned.Count; i++)
+                        CanGlobalHunBanned[i] = i < count;
+                    break;
+                default:
+                    throw new ArgumentException("Illegal ListName", nameof(listName));
+            }
+            WeakReferenceMessenger.Default.Send(new BanCountChangedMessage(listName));
         }
 
         private class CharacterMini

@@ -7,7 +7,7 @@ using neo_bpsys_wpf.Services;
 
 namespace neo_bpsys_wpf.ViewModels.Windows
 {
-    public partial class ScoreWindowViewModel : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<PropertyChangedMessage<bool>>
+    public partial class ScoreWindowViewModel : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<DesignModeChangedMessage>
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public ScoreWindowViewModel()
@@ -27,19 +27,18 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [ObservableProperty]
         private bool _isDesignMode = false;
 
-        public void Receive(PropertyChangedMessage<bool> message)
-        {
-            if (message.PropertyName == nameof(IsDesignMode) && IsDesignMode != message.NewValue)
-            {
-                IsDesignMode = message.NewValue;
-            }
-        }
         public void Receive(NewGameMessage message)
         {
             if (message.IsNewGameCreated)
             {
                 OnPropertyChanged(nameof(CurrentGame));
             }
+        }
+
+        public void Receive(DesignModeChangedMessage message)
+        {
+            if (IsDesignMode != message.IsDesignMode)
+                IsDesignMode = message.IsDesignMode;
         }
 
         public Game CurrentGame => SharedDataService.CurrentGame;

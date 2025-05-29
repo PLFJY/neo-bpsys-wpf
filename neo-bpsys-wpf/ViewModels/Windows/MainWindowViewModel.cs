@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
@@ -14,7 +15,7 @@ using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.ViewModels.Windows
 {
-    public partial class MainWindowViewModel : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<SwapMessage>
+    public partial class MainWindowViewModel : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<SwapMessage>, IRecipient<ValueChangedMessage<string>>
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public MainWindowViewModel()
@@ -23,7 +24,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
         }
 
-        public ISharedDataService SharedDataService { get; }
+        private readonly ISharedDataService _sharedDataService;
 
         private readonly JsonSerializerOptions jsonSerializerOptions;
         private readonly IMessageBoxService _messageBoxService;
@@ -31,12 +32,15 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [ObservableProperty]
         private ApplicationTheme _applicationTheme = ApplicationTheme.Dark;
 
-        public string SurTeamName => SharedDataService.CurrentGame.SurTeam.Name;
-        public string HunTeamName => SharedDataService.CurrentGame.HunTeam.Name;
+        public string SurTeamName => _sharedDataService.CurrentGame.SurTeam.Name;
+        public string HunTeamName => _sharedDataService.CurrentGame.HunTeam.Name;
+        public string RemainingSeconds => _sharedDataService.RemainingSeconds;
+
+        public GameProgress SelectedGameProgress { get; set; } = GameProgress.Free;
 
         public MainWindowViewModel(ISharedDataService sharedDataService, IMessageBoxService messageBoxService)
         {
-            SharedDataService = sharedDataService;
+            _sharedDataService = sharedDataService;
             _messageBoxService = messageBoxService;
             jsonSerializerOptions = new JsonSerializerOptions()
             {
@@ -60,23 +64,23 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         {
             Team surTeam = new(Camp.Sur);
             Team hunTeam = new(Camp.Hun);
-            if (SharedDataService.MainTeam.Camp == Camp.Sur)
+            if (_sharedDataService.MainTeam.Camp == Camp.Sur)
             {
-                surTeam = SharedDataService.MainTeam;
-                hunTeam = SharedDataService.AwayTeam;
+                surTeam = _sharedDataService.MainTeam;
+                hunTeam = _sharedDataService.AwayTeam;
             }
             else
             {
-                surTeam = SharedDataService.AwayTeam;
-                hunTeam = SharedDataService.MainTeam;
+                surTeam = _sharedDataService.AwayTeam;
+                hunTeam = _sharedDataService.MainTeam;
             }
 
-            SharedDataService.CurrentGame = new Game(surTeam, hunTeam, SharedDataService.CurrentGameProgress);
+            _sharedDataService.CurrentGame = new Game(surTeam, hunTeam, _sharedDataService.CurrentGameProgress);
 
             //发送新对局已创建的消息
             WeakReferenceMessenger.Default.Send(new NewGameMessage(this, true));
 
-            await _messageBoxService.ShowInfoAsync($"已成功创建新对局\n{SharedDataService.CurrentGame.GUID}", "创建提示");
+            await _messageBoxService.ShowInfoAsync($"已成功创建新对局\n{_sharedDataService.CurrentGame.GUID}", "创建提示");
             OnPropertyChanged();
         }
 
@@ -84,12 +88,12 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         private void Swap()
         {
             //交换阵营
-            (SharedDataService.MainTeam.Camp, SharedDataService.AwayTeam.Camp) =
-                (SharedDataService.AwayTeam.Camp, SharedDataService.MainTeam.Camp);
+            (_sharedDataService.MainTeam.Camp, _sharedDataService.AwayTeam.Camp) =
+                (_sharedDataService.AwayTeam.Camp, _sharedDataService.MainTeam.Camp);
             //交换队伍
-            (SharedDataService.CurrentGame.SurTeam, SharedDataService.CurrentGame.HunTeam) =
-                (SharedDataService.CurrentGame.HunTeam, SharedDataService.CurrentGame.SurTeam);
-            SharedDataService.CurrentGame.RefreshCurrentPlayer();
+            (_sharedDataService.CurrentGame.SurTeam, _sharedDataService.CurrentGame.HunTeam) =
+                (_sharedDataService.CurrentGame.HunTeam, _sharedDataService.CurrentGame.SurTeam);
+            _sharedDataService.CurrentGame.RefreshCurrentPlayer();
 
             WeakReferenceMessenger.Default.Send(new SwapMessage(this, true));
             OnPropertyChanged();
@@ -98,12 +102,12 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [RelayCommand]
         private async Task SaveGameInfoAsync()
         {
-            var json = JsonSerializer.Serialize(SharedDataService.CurrentGame, jsonSerializerOptions);
+            var json = JsonSerializer.Serialize(_sharedDataService.CurrentGame, jsonSerializerOptions);
             var path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 "neo-bpsys-wpf\\GameInfoOutput"
             );
-            var fullPath = Path.Combine(path, $"{SharedDataService.CurrentGame.StartTime}.json");
+            var fullPath = Path.Combine(path, $"{_sharedDataService.CurrentGame.StartTime}.json");
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
@@ -123,7 +127,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         private void TimerStart()
         {
             if (int.TryParse(TimerTime, out int time))
-                SharedDataService.TimerStart(time);
+                _sharedDataService.TimerStart(time);
             else
                 _messageBoxService.ShowErrorAsync("输入不合法");
         }
@@ -131,7 +135,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [RelayCommand]
         private void TimerStop()
         {
-            SharedDataService.TimerStop();
+            _sharedDataService.TimerStop();
         }
 
         public void Receive(NewGameMessage message)
@@ -147,6 +151,14 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         {
             OnPropertyChanged(nameof(SurTeamName));
             OnPropertyChanged(nameof(HunTeamName));
+        }
+
+        public void Receive(ValueChangedMessage<string> message)
+        {
+            if(message.Value == nameof(_sharedDataService.RemainingSeconds))
+            {
+                OnPropertyChanged(nameof(RemainingSeconds));
+            }
         }
 
         public string TimerTime { get; set; } = "30";

@@ -15,7 +15,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
     /// 2.设置<see cref="IsEnabled"/><br/>
     /// 3.实现<see cref="SyncChara"/>
     /// </summary>
-    public abstract partial class CharaSelectViewModelBase : ObservableRecipient, IRecipient<NewGameMessage>
+    public abstract partial class CharaSelectViewModelBase : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<BanCountChangedMessage>
     {
         protected readonly ISharedDataService _sharedDataService;
 
@@ -28,18 +28,25 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         [ObservableProperty]
         private ImageSource? _previewImage;
 
-        [ObservableProperty]
         private bool _isEnabled = true;
+        public bool IsEnabled
+        {
+            get => _isEnabled;
+            set
+            {
+                _isEnabled = value;
+                SyncIsEnabled();
+                OnPropertyChanged(nameof(IsEnabled));
+            }
+        }
 
         public Dictionary<string, Character> CharaList { get; set; } = [];
+
         public abstract void SyncChara();
+        public abstract void SyncIsEnabled();
 
         [RelayCommand]
-        private void Confirm()
-        {
-            SyncChara();
-            OnPropertyChanged();
-        }
+        private void Confirm() => SyncChara();
 
         protected CharaSelectViewModelBase(ISharedDataService sharedDataService, int index = 0)
         {
@@ -55,6 +62,11 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 SelectedChara = null;
                 PreviewImage = null;
             }
+        }
+
+        public virtual void Receive(BanCountChangedMessage message)
+        {
+            return;
         }
     }
 }

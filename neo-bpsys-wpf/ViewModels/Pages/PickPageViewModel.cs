@@ -87,6 +87,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                     OnPropertyChanged(nameof(PlayerName));
                 }
             }
+
+            public override void SyncIsEnabled()
+            {
+                throw new NotImplementedException();
+            }
+
         }
 
         public class HunPickViewModel : CharaSelectViewModelBase
@@ -95,10 +101,16 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             {
                 CharaList = sharedDataService.HunCharaList;
             }
+
             public override void SyncChara()
             {
                 _sharedDataService.CurrentGame.HunPlayer.Character = SelectedChara;
                 PreviewImage = _sharedDataService.CurrentGame.HunPlayer.Character?.HeaderImage;
+            }
+
+            public override void SyncIsEnabled()
+            {
+                throw new NotImplementedException();
             }
         }
 
@@ -122,6 +134,11 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
 
             public override void SyncChara() => throw new NotImplementedException();
+
+            public override void SyncIsEnabled()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public class MainHunGlobalBanRecordViewModel : CharaSelectViewModelBase
@@ -144,6 +161,11 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
 
             public override void SyncChara() => throw new NotImplementedException();
+
+            public override void SyncIsEnabled()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public class AwaySurGlobalBanRecordViewModel : CharaSelectViewModelBase
@@ -166,6 +188,11 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
 
             public override void SyncChara() => throw new NotImplementedException();
+
+            public override void SyncIsEnabled()
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public class AwayHunGlobalBanRecordViewModel : CharaSelectViewModelBase
@@ -188,6 +215,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
 
             public override void SyncChara() => throw new NotImplementedException();
+
+            public override void SyncIsEnabled()
+            {
+                throw new NotImplementedException();
+            }
+
         }
     }
 }

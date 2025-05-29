@@ -75,10 +75,23 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 IsEnabled = sharedDataService.CanCurrentSurBanned[index];
             }
 
+            public override void Receive(BanCountChangedMessage message)
+            {
+                if (message.ChangedList == nameof(ISharedDataService.CanCurrentSurBanned))
+                {
+                    IsEnabled = _sharedDataService.CanCurrentSurBanned[Index];
+                }
+            }
+
             public override void SyncChara()
             {
                 _sharedDataService.CurrentGame.CurrentSurBannedList[Index] = SelectedChara;
                 PreviewImage = _sharedDataService.CurrentGame.CurrentSurBannedList[Index]?.HeaderImage_SingleColor;
+            }
+
+            public override void SyncIsEnabled()
+            {
+                _sharedDataService.CanCurrentSurBanned[Index] = IsEnabled;
             }
         }
 
@@ -90,10 +103,23 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 IsEnabled = sharedDataService.CanGlobalSurBanned[index];
             }
 
+            public override void Receive(BanCountChangedMessage message)
+            {
+                if (message.ChangedList == nameof(ISharedDataService.CanGlobalSurBanned))
+                {
+                    IsEnabled = _sharedDataService.CanGlobalSurBanned[Index];
+                }
+            }
+
             public override void SyncChara()
             {
                 _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index] = SelectedChara;
                 PreviewImage = _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index]?.HeaderImage_SingleColor;
+            }
+
+            public override void SyncIsEnabled()
+            {
+                _sharedDataService.CanGlobalSurBanned[Index] = IsEnabled;
             }
         }
     }

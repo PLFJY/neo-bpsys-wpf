@@ -115,7 +115,7 @@
                 FontFamily="{StaticResource POP1W5}"
                 FontSize="58"
                 FontWeight="Bold"
-                Text="{Binding SharedDataService.RemainingSeconds}"
+                Text="{Binding RemainingSeconds}"
                 TextAlignment="Center" />
         </Border>
         <TextBlock
@@ -192,7 +192,7 @@
             Panel.ZIndex="1"
             Source="{Binding CurrentBanLockImage}"
             Style="{StaticResource CurrentBan}"
-            Visibility="{Binding SharedDataService.CanCurrentHunBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanCurrentHunBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
             Name="HunBanCurrentLock1"
             Canvas.Left="63"
@@ -200,7 +200,7 @@
             Panel.ZIndex="1"
             Source="{Binding CurrentBanLockImage}"
             Style="{StaticResource CurrentBan}"
-            Visibility="{Binding SharedDataService.CanCurrentHunBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanCurrentHunBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <!--  Sur Current Ban  -->
         <Image
             Name="SurBanCurrent3"
@@ -242,7 +242,7 @@
             Panel.ZIndex="1"
             Source="{Binding CurrentBanLockImage}"
             Style="{StaticResource CurrentBan}"
-            Visibility="{Binding SharedDataService.CanCurrentSurBanned[3], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanCurrentSurBanned[3], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
             Name="SurBanCurrentLock2"
             Canvas.Left="1281"
@@ -250,7 +250,7 @@
             Panel.ZIndex="1"
             Source="{Binding CurrentBanLockImage}"
             Style="{StaticResource CurrentBan}"
-            Visibility="{Binding SharedDataService.CanCurrentSurBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanCurrentSurBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
             Name="SurBanCurrentLock1"
             Canvas.Left="1329"
@@ -258,7 +258,7 @@
             Panel.ZIndex="1"
             Source="{Binding CurrentBanLockImage}"
             Style="{StaticResource CurrentBan}"
-            Visibility="{Binding SharedDataService.CanCurrentSurBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanCurrentSurBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
             Name="SurBanCurrentLock0"
             Canvas.Left="1379"
@@ -266,7 +266,7 @@
             Panel.ZIndex="1"
             Source="{Binding CurrentBanLockImage}"
             Style="{StaticResource CurrentBan}"
-            Visibility="{Binding SharedDataService.CanCurrentSurBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanCurrentSurBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <!--  Bottom  -->
         <!--  Sur Pick  -->
         <Image
@@ -368,7 +368,7 @@
             Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
             Style="{StaticResource GlobalBan}"
-            Visibility="{Binding SharedDataService.CanGlobalHunBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanGlobalHunBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
             Name="HunGlobalBanLock1"
             Canvas.Left="705"
@@ -376,7 +376,7 @@
             Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
             Style="{StaticResource GlobalBan}"
-            Visibility="{Binding SharedDataService.CanGlobalHunBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanGlobalHunBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
             Name="HunGlobalBanLock2"
             Canvas.Left="738"
@@ -384,7 +384,7 @@
             Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
             Style="{StaticResource GlobalBan}"
-            Visibility="{Binding SharedDataService.CanGlobalHunBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanGlobalHunBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <!--  Sur  -->
         <Image
             Name="SurGlobalBan0"
@@ -465,63 +465,63 @@
             Canvas.Top="778.5"
             Source="{Binding GlobalBanLockImage}"
             Style="{StaticResource GlobalBan}"
-            Visibility="{Binding SharedDataService.CanGlobalSurBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanGlobalSurBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
             Name="SurGlobalBanLock1"
             Canvas.Left="605"
             Canvas.Top="778.5"
             Source="{Binding GlobalBanLockImage}"
             Style="{StaticResource GlobalBan}"
-            Visibility="{Binding SharedDataService.CanGlobalSurBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanGlobalSurBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
             Name="SurGlobalBanLock2"
             Canvas.Left="638"
             Canvas.Top="778.5"
             Source="{Binding GlobalBanLockImage}"
             Style="{StaticResource GlobalBan}"
-            Visibility="{Binding SharedDataService.CanGlobalSurBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanGlobalSurBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
             Name="SurGlobalBanLock3"
             Canvas.Left="671"
             Canvas.Top="778.5"
             Source="{Binding GlobalBanLockImage}"
             Style="{StaticResource GlobalBan}"
-            Visibility="{Binding SharedDataService.CanGlobalSurBanned[3], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanGlobalSurBanned[3], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
             Name="SurGlobalBanLock4"
             Canvas.Left="705"
             Canvas.Top="778.5"
             Source="{Binding GlobalBanLockImage}"
             Style="{StaticResource GlobalBan}"
-            Visibility="{Binding SharedDataService.CanGlobalSurBanned[4], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanGlobalSurBanned[4], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
             Name="SurGlobalBanLock5"
             Canvas.Left="739"
             Canvas.Top="778.5"
             Source="{Binding GlobalBanLockImage}"
             Style="{StaticResource GlobalBan}"
-            Visibility="{Binding SharedDataService.CanGlobalSurBanned[5], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanGlobalSurBanned[5], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
             Name="SurGlobalBanLock6"
             Canvas.Left="772"
             Canvas.Top="778.5"
             Source="{Binding GlobalBanLockImage}"
             Style="{StaticResource GlobalBan}"
-            Visibility="{Binding SharedDataService.CanGlobalSurBanned[6], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanGlobalSurBanned[6], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
             Name="SurGlobalBanLock7"
             Canvas.Left="806"
             Canvas.Top="778.5"
             Source="{Binding GlobalBanLockImage}"
             Style="{StaticResource GlobalBan}"
-            Visibility="{Binding SharedDataService.CanGlobalSurBanned[7], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanGlobalSurBanned[7], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
             Name="SurGlobalBanLock8"
             Canvas.Left="840"
             Canvas.Top="778.5"
             Source="{Binding GlobalBanLockImage}"
             Style="{StaticResource GlobalBan}"
-            Visibility="{Binding SharedDataService.CanGlobalSurBanned[8], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+            Visibility="{Binding CanGlobalSurBanned[8], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
 
         <!--  Hun Pick  -->
         <Image

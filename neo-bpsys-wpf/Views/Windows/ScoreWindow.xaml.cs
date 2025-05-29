@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Messages;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
@@ -15,26 +16,19 @@ namespace neo_bpsys_wpf.Views.Windows
         public ScoreWindow()
         {
             InitializeComponent();
-            WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>>(this, OnDesignModeChanged);
+            WeakReferenceMessenger.Default.Register<DesignModeChangedMessage>(this, OnDesignModeChanged);
             MouseLeftButtonDown += OnMouseLeftButtonDown;
             ScoreSurCanvas.Background = ImageHelper.GetUiImageBrush("scoreSur");
             ScoreHunCanvas.Background = ImageHelper.GetUiImageBrush("scoreHun");
             ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush("scoreGlobal");
         }
 
-        private void OnDesignModeChanged(object recipient, PropertyChangedMessage<bool> message)
+        private void OnDesignModeChanged(object recipient, DesignModeChangedMessage message)
         {
-            if (message.PropertyName == "IsDesignMode")
-            {
-                if (!message.NewValue)
-                {
-                    MouseLeftButtonDown += OnMouseLeftButtonDown;
-                }
-                else
-                {
-                    MouseLeftButtonDown -= OnMouseLeftButtonDown;
-                }
-            }
+            if (message.IsDesignMode)
+                MouseLeftButtonDown -= OnMouseLeftButtonDown;
+            else
+                MouseLeftButtonDown += OnMouseLeftButtonDown;
         }
 
         private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)

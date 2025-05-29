@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
+using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Views.Windows;
 using System.IO;
@@ -24,10 +25,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
         private readonly IFrontService _frontService;
+        private readonly IMessageBoxService _messageBoxService;
 
-        public FrontManagePageViewModel(IFrontService frontService)
+        public FrontManagePageViewModel(IFrontService frontService, IMessageBoxService messageBoxService)
         {
             _frontService = frontService;
+            _messageBoxService = messageBoxService;
             LoadFrontConfig();
         }
 
@@ -116,8 +119,8 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             get { return _isDesignMode; }
             set
             {
-                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsDesignMode), _isDesignMode, value));
                 _isDesignMode = value;
+                WeakReferenceMessenger.Default.Send(new DesignModeChangedMessage(this, _isDesignMode));
                 if (!value)
                 {
                     SaveFrontConfig(); //保存前台窗口配置
@@ -159,12 +162,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
             catch (Exception ex)
             {
-                MessageBox messageBox = new()
-                {
-                    Title = "保存提示",
-                    Content = $"保存前台配置文件失败\n{ex.Message}",
-                };
-                await messageBox.ShowDialogAsync();
+                await _messageBoxService.ShowErrorAsync("加载提示", $"保存前台配置文件失败\n{ex.Message}");
             }
         }
 
@@ -200,12 +198,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 }
                 catch (Exception ex)
                 {
-                    MessageBox messageBox = new()
-                    {
-                        Title = "加载提示",
-                        Content = $"加载前台配置文件失败\n{ex.Message}",
-                    };
-                    await messageBox.ShowDialogAsync();
+                    await _messageBoxService.ShowErrorAsync("加载提示", $"加载前台配置文件失败\n{ex.Message}");
                 }
             }
         }
@@ -260,18 +253,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         /// <returns></returns>
         private async Task ResetFrontWindowElementsPosision(Window window, string canvasName = "BaseCanvas")
         {
-            var messageBox = new MessageBox()
-            {
-                Title = "重置提示",
-                Content = $"是否重置{window.GetType().Name}-{canvasName}的配置",
-                PrimaryButtonText = "确认",
-                PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Checkmark24 },
-                CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
-                CloseButtonText = "取消",
-            };
-            var result = await messageBox.ShowDialogAsync();
+            var result = await _messageBoxService.ShowConfirmAsync("重置提示", $"是否重置{window.GetType().Name}-{canvasName}的配置");
 
-            if (result == MessageBoxResult.Primary)
+            if (result)
             {
                 _frontService.RestoreInitialPositions(window, canvasName);
                 SaveWindowConfigAsync(window, canvasName);

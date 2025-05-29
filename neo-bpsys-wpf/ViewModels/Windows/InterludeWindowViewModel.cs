@@ -9,7 +9,7 @@ using System.Windows.Media;
 
 namespace neo_bpsys_wpf.ViewModels.Windows
 {
-    public partial class InterludeWindowViewModel : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<PropertyChangedMessage<bool>>
+    public partial class InterludeWindowViewModel : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<DesignModeChangedMessage>
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public InterludeWindowViewModel()
@@ -39,20 +39,18 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             IsActive = true;
         }
 
-        public void Receive(PropertyChangedMessage<bool> message)
-        {
-            if (message.PropertyName == nameof(IsDesignMode) && IsDesignMode != message.NewValue)
-            {
-                IsDesignMode = message.NewValue;
-            }
-        }
-
         public void Receive(NewGameMessage message)
         {
             if (message.IsNewGameCreated)
             {
                 OnPropertyChanged(nameof(CurrentGame));
             }
+        }
+
+        public void Receive(DesignModeChangedMessage message)
+        {
+            if (IsDesignMode != message.IsDesignMode)
+                IsDesignMode = message.IsDesignMode;
         }
 
         //talent imageSource

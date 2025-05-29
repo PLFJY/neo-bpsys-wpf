@@ -5,11 +5,12 @@ using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
+using System.Collections.ObjectModel;
 using System.Windows.Media;
 
 namespace neo_bpsys_wpf.ViewModels.Windows
 {
-    public partial class BpWindowViewModel : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<PropertyChangedMessage<bool>>
+    public partial class BpWindowViewModel : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<DesignModeChangedMessage>, IRecipient<ValueChangedMessage<string>>
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public BpWindowViewModel()
@@ -21,22 +22,14 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [ObservableProperty]
         private bool _isDesignMode = false;
 
-        public ISharedDataService SharedDataService { get; }
+        private readonly ISharedDataService _sharedDataService;
 
         public BpWindowViewModel(ISharedDataService sharedDataService)
         {
-            SharedDataService = sharedDataService;
+            _sharedDataService = sharedDataService;
             CurrentBanLockImage = ImageHelper.GetUiImageSource("CurrentBanLock");
             GlobalBanLockImage = ImageHelper.GetUiImageSource("GlobalBanLock");
             IsActive = true;
-        }
-
-        public void Receive(PropertyChangedMessage<bool> message)
-        {
-            if (message.PropertyName == nameof(IsDesignMode) && IsDesignMode != message.NewValue)
-            {
-                IsDesignMode = message.NewValue;
-            }
         }
 
         public void Receive(NewGameMessage message)
@@ -47,9 +40,30 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             }
         }
 
+        public void Receive(ValueChangedMessage<string> message)
+        {
+            if(message.Value == nameof(_sharedDataService.RemainingSeconds))
+            {
+                OnPropertyChanged(nameof(RemainingSeconds));
+            }
+        }
+
+        public void Receive(DesignModeChangedMessage message)
+        {
+            if(IsDesignMode != message.IsDesignMode)
+                IsDesignMode = message.IsDesignMode;
+        }
+
         public ImageSource? CurrentBanLockImage { get; private set; }
         public ImageSource? GlobalBanLockImage { get; private set; }
 
-        public Game CurrentGame => SharedDataService.CurrentGame;
+        public Game CurrentGame => _sharedDataService.CurrentGame;
+
+        public string RemainingSeconds => _sharedDataService.RemainingSeconds;
+
+        public ObservableCollection<bool> CanCurrentSurBanned => _sharedDataService.CanCurrentSurBanned;
+        public ObservableCollection<bool> CanCurrentHunBanned => _sharedDataService.CanCurrentHunBanned;
+        public ObservableCollection<bool> CanGlobalSurBanned => _sharedDataService.CanGlobalSurBanned;
+        public ObservableCollection<bool> CanGlobalHunBanned => _sharedDataService.CanGlobalHunBanned;
     }
 }
