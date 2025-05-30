@@ -15,7 +15,7 @@
 AppId={{842859C0-E6A4-4997-BA10-0933EC09444F}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-AppVerName={#MyAppName} {#MyAppVersion}
+AppVerName={#MyAppName}-v{#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
@@ -44,7 +44,8 @@ SolidCompression=yes
 WizardStyle=modern
 
 [Languages]
-Name: "chs"; MessagesFile: "compiler:Default.isl"
+Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
+Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkablealone
@@ -70,5 +71,5 @@ Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: postinstall shellexec skipifdoesntexist
 

@@ -4,14 +4,16 @@ A modern Identity V Bp system, which can help you live a Identity V game with be
 
 # Build
 
+You should prepare [.NET 9 SDK](https://dotnet.microsoft.com/zh-cn/download/dotnet/9.0) before you build the app
+
 ``` cmd
 mkdir build
 dotnet publish ".\neo-bpsys-wpf\neo-bpsys-wpf.csproj" -c Release -o ".\build\neo-bpsys-wpf"
 :: Pack installer
-".\InstallerGenerate\iscc\ISCC.exe" ".\InstallerGenerate\build_Installer.iss"
+".\InstallerGenerate\Inno Setup 6\ISCC.exe" ".\InstallerGenerate\build_Installer.iss"
 ```
 
-If you trust me, you also can use the script ver.
+You also can use the script version
 
 ``` cmd
 .\build.bat

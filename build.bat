@@ -15,7 +15,7 @@ dotnet publish %PROJ_PATH% -c Release -o %BUILD_PATH%
 
 :: pack installer
 :: set packer dir
-set ISCC_PATH=".\InstallerGenerate\iscc\ISCC.exe"
+set ISCC_PATH=".\InstallerGenerate\Inno Setup 6\ISCC.exe"
 :: set pack script dir
 set INSTALLER_PATH=".\InstallerGenerate\build_Installer.iss"
 :: pack
