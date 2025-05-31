@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Enums;
+using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Models;
 

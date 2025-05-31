@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Messages;
 using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Models;
@@ -19,7 +20,7 @@ public partial class Member : ObservableObject
         get => _name;
         set
         {
-            WeakReferenceMessenger.Default.Send(new ValueChangedMessage<string>("PlayerName"));
+            WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
             _name = value;
             OnPropertyChanged(nameof(Name));
         }

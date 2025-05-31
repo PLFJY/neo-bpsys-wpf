@@ -28,30 +28,6 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             IsActive = true;
         }
 
-        //刷新Ban位状态
-        //private void CanCurrentHunBanned_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        //{
-        //    if (e.Action == NotifyCollectionChangedAction.Replace)
-        //    {
-        //        for (int i = 0; i < _sharedDataService.CanCurrentHunBanned.Count; i++)
-        //        {
-        //            BanHunCurrentViewModelList[i].IsEnabled = _sharedDataService.CanCurrentHunBanned[i];
-        //        }
-        //    }
-        //}
-
-        //private void CanGlobalHunBanned_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        //{
-        //    if (e.Action == NotifyCollectionChangedAction.Replace)
-        //    {
-        //        for (int i = 0; i < _sharedDataService.CanGlobalHunBanned.Count; i++)
-        //        {
-        //            BanHunGlobalViewModelList[i].IsEnabled = _sharedDataService.CanGlobalHunBanned[i];
-        //        }
-        //        OnPropertyChanged();
-        //    }
-        //}
-
         public void Receive(SwapMessage message)
         {
             if (message.IsSwapped)

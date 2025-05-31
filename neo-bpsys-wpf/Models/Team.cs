@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
@@ -81,6 +82,8 @@ public partial class Team : ObservableObject
     [ObservableProperty]
     private Score _score = new();
 
+    private int _onFieldSurPlayerCnt = 0;
+
     public Team(Camp camp)
     {
         SurMemberList = [.. Enumerable.Range(0, 4).Select(i => new Member(Camp.Sur))];
@@ -115,7 +118,7 @@ public partial class Team : ObservableObject
         HunMemberList = newTeam.HunMemberList;
         SurPlayerOnFieldList = [.. Enumerable.Range(0, 4).Select(i => new Player(Camp.Sur))];
         HunPlayerOnField = new Player(Camp.Hun);
-        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<string>("PlayerName"));
+        WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
         OnPropertyChanged();
     }
 
@@ -131,11 +134,8 @@ public partial class Team : ObservableObject
             return !HunPlayerOnField.IsMemberValid;
         }
 
-        foreach (var p in SurPlayerOnFieldList)
-        {
-            if (!p.IsMemberValid)
-                return true;
-        }
+        if (_onFieldSurPlayerCnt < 4) return true;
+
         return false;
     }
 
@@ -153,19 +153,21 @@ public partial class Team : ObservableObject
         {
             HunPlayerOnField.Member = member;
             HunPlayerOnField.IsMemberValid = true;
-            return true;
         }
-
-        foreach (var p in SurPlayerOnFieldList)
+        else
         {
-            if (!p.IsMemberValid)
+            foreach (var p in SurPlayerOnFieldList)
             {
-                p.Member = member;
-                p.IsMemberValid = true;
-                break;
+                if (!p.IsMemberValid)
+                {
+                    p.Member = member;
+                    p.IsMemberValid = true;
+                    _onFieldSurPlayerCnt++;
+                    break;
+                }
             }
         }
-        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<string>("PlayerName"));
+        WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
         return true;
     }
 
@@ -179,18 +181,20 @@ public partial class Team : ObservableObject
         {
             HunPlayerOnField.Member = new(Camp.Hun);
             HunPlayerOnField.IsMemberValid = false;
-            return;
         }
-
-        foreach (var p in SurPlayerOnFieldList)
+        else
         {
-            if (p.Member == member)
+            foreach (var p in SurPlayerOnFieldList)
             {
-                p.Member = new(Camp.Sur);
-                p.IsMemberValid = false;
-                return;
+                if (p.Member == member)
+                {
+                    p.Member = new(Camp.Sur);
+                    p.IsMemberValid = false;
+                    _onFieldSurPlayerCnt--;
+                    break;
+                }
             }
         }
-        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<string>("PlayerName"));
+        WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
     }
 }

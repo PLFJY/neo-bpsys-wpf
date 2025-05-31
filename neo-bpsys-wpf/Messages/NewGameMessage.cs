@@ -2,8 +2,7 @@
 {
     public class NewGameMessage(object? sender, bool isNewGameCreated)
     {
-        public bool IsNewGameCreated { get; set; } = isNewGameCreated;
-
         public object? Sender { get; set; } = sender;
+        public bool IsNewGameCreated { get; set; } = isNewGameCreated;
     }
 }

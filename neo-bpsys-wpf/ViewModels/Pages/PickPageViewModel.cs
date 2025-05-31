@@ -40,7 +40,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         public ObservableCollection<AwayHunGlobalBanRecordViewModel> AwayHunGlobalBanRecordViewModelList { get; set; }
 
         //基于模板基类的VM实现
-        public partial class SurPickViewModel : CharaSelectViewModelBase, IRecipient<CharacterSwapMessage>, IRecipient<ValueChangedMessage<string>>
+        public partial class SurPickViewModel : CharaSelectViewModelBase, IRecipient<CharacterSwappedMessage>, IRecipient<PlayerSwappedMessage>, IRecipient<MemberStateChangedMessage>
         {
             public string PlayerName
             {
@@ -71,21 +71,13 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                     _sharedDataService.CurrentGame.SurPlayerList[parameter.Source].Character) =
                     (_sharedDataService.CurrentGame.SurPlayerList[parameter.Source].Character,
                     _sharedDataService.CurrentGame.SurPlayerList[parameter.Target].Character);
-                WeakReferenceMessenger.Default.Send(new CharacterSwapMessage(this));
+                WeakReferenceMessenger.Default.Send(new CharacterSwappedMessage(this));
                 OnPropertyChanged();
             }
 
-            public void Receive(CharacterSwapMessage message)
+            public void Receive(CharacterSwappedMessage message)
             {
                 RevertSyncChara();
-            }
-
-            public void Receive(ValueChangedMessage<string> message)
-            {
-                if (message.Value == "PlayerName")
-                {
-                    OnPropertyChanged(nameof(PlayerName));
-                }
             }
 
             public override void SyncIsEnabled()
@@ -93,6 +85,15 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 throw new NotImplementedException();
             }
 
+            public void Receive(PlayerSwappedMessage message)
+            {
+                OnPropertyChanged(nameof(PlayerName));
+            }
+
+            public void Receive(MemberStateChangedMessage message)
+            {
+                OnPropertyChanged(nameof(PlayerName));
+            }
         }
 
         public class HunPickViewModel : CharaSelectViewModelBase

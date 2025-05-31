@@ -25,11 +25,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             private readonly IFilePickerService _filePickerService;
             private readonly IMessageBoxService _messageBoxService;
 
-            public TeamInfoViewModel(
-                Team team,
-                IFilePickerService filePickerService,
-                IMessageBoxService messageBoxService
-            )
+            public TeamInfoViewModel(Team team, IFilePickerService filePickerService, IMessageBoxService messageBoxService)
             {
                 CurrentTeam = team;
                 _filePickerService = filePickerService;
@@ -98,7 +94,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 RefreshCanMemberOnFieldState(Camp.Sur);
             }
 
-            private bool CanAddSurMember() => true;
+            private static bool CanAddSurMember() => true;
 
             [RelayCommand(CanExecute = nameof(CanRemoveSurMember))]
             private async Task RemoveSurMemberAsync(Member member)
@@ -117,7 +113,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 RefreshCanMemberOnFieldState(Camp.Hun);
             }
 
-            private bool CanAddHunMember() => true;
+            private static bool CanAddHunMember() => true;
 
             [RelayCommand(CanExecute = nameof(CanRemoveHunMember))]
             private async Task RemoveHunMemberAsync(Member member)
@@ -131,16 +127,19 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                     ? string.Empty
                     : $" \"{member.Name}\" ";
 
-                if (
-                    await _messageBoxService.ShowDeleteConfirmAsync(
-                        "删除确认",
-                        $"确定删除{memberName}吗？"
-                    )
-                )
+                if (await _messageBoxService.ShowDeleteConfirmAsync("删除确认", $"确定删除{memberName}吗？"))
                 {
                     CurrentTeam.RemoveMemberInPlayer(member);
-                    CurrentTeam.SurMemberList.Remove(member);
-                    RemoveSurMemberCommand.NotifyCanExecuteChanged();
+                    if (member.Camp == Camp.Sur)
+                    {
+                        CurrentTeam.SurMemberList.Remove(member);
+                        RemoveSurMemberCommand.NotifyCanExecuteChanged();
+                    }
+                    else
+                    {
+                        CurrentTeam.HunMemberList.Remove(member);
+                        RemoveHunMemberCommand.NotifyCanExecuteChanged();
+                    }
                     RefreshCanMemberOnFieldState(member.Camp);
                 }
             }
@@ -169,9 +168,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                     foreach (var m in CurrentTeam.SurMemberList)
                     {
                         if (!m.IsOnField)
-                        {
                             m.CanOnFieldChange = canOthersOnField;
-                        }
                     }
                 }
                 else
@@ -179,9 +176,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                     foreach (var m in CurrentTeam.HunMemberList)
                     {
                         if (!m.IsOnField)
-                        {
                             m.CanOnFieldChange = canOthersOnField;
-                        }
                     }
                 }
             }
