@@ -6,6 +6,10 @@ using Wpf.Ui;
 
 namespace neo_bpsys_wpf.Services
 {
+    /// <summary>
+    /// 应用程序启动服务，包含导航页面预加载
+    /// </summary>
+    /// <param name="serviceProvider"></param>
     public class ApplicationHostService(IServiceProvider serviceProvider) : IHostedService
     {
         private INavigationWindow? _navigationWindow;

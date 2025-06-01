@@ -4,14 +4,14 @@ namespace neo_bpsys_wpf.Services
 {
     public interface IFrontService
     {
-        public void AllWindowShow();
-        public void AllWindowHide();
-        public void ShowWindow<T>()
-            where T : Window;
-        public void HideWindow<T>()
-            where T : Window;
-        public string GetWindowElementsPosition(Window window, string canvasName = "BaseCanvas");
-        public void LoadWindowElementsPosition(Window window, string json, string canvasName = "BaseCanvas");
-        public void RestoreInitialPositions(Window window, string canvasName = "BaseCanvas");
+        Dictionary<Type, bool> FrontWindowStates { get; }
+        Task LoadWindowElementsPositionAsync<T>(string canvasName = "BaseCanvas") where T : Window;
+        void AllWindowHide();
+        void AllWindowShow();
+        void ShowWindow<T>() where T : Window;
+        void HideWindow<T>() where T : Window;
+        void RegisterFrontWindowAndCanvas(Window window, string canvasName = "BaseCanvas");
+        void RestoreInitialPositions<T>(string canvasName = "BaseCanvas") where T : Window;
+        void SaveWindowElementsPosition<T>(string canvasName = "BaseCanvas") where T : Window;
     }
 }

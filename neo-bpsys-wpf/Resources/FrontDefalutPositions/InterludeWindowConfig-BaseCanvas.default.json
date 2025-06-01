@@ -1,0 +1,98 @@
+{
+  "SurTeamLogo": {
+    "Left": 250,
+    "Top": 9
+  },
+  "SurTeamMajorPoint": {
+    "Left": 384,
+    "Top": 35
+  },
+  "SurTeamName": {
+    "Left": 10,
+    "Top": 32
+  },
+  "HunTeamName": {
+    "Left": 1223,
+    "Top": 31
+  },
+  "HunTeamMajorPoint": {
+    "Left": 965,
+    "Top": 35
+  },
+  "HunTeamLogo": {
+    "Left": 1102,
+    "Top": 9
+  },
+  "Map": {
+    "Left": 491,
+    "Top": 0
+  },
+  "MapName": {
+    "Left": 554,
+    "Top": 21
+  },
+  "SurPick0": {
+    "Left": -76,
+    "Top": 114
+  },
+  "SurPick1": {
+    "Left": 292,
+    "Top": 114
+  },
+  "SurPick2": {
+    "Left": -76,
+    "Top": 465
+  },
+  "SurPick3": {
+    "Left": 292,
+    "Top": 465
+  },
+  "HunPick": {
+    "Left": 720,
+    "Top": 114.5
+  },
+  "SurId0": {
+    "Left": 4,
+    "Top": 419
+  },
+  "SurId1": {
+    "Left": 364,
+    "Top": 422
+  },
+  "SurId2": {
+    "Left": 4,
+    "Top": 774
+  },
+  "SurId3": {
+    "Left": 366,
+    "Top": 774
+  },
+  "HunId": {
+    "Left": 720,
+    "Top": 755
+  },
+  "SurTalent0": {
+    "Left": 176,
+    "Top": 419
+  },
+  "SurTalent1": {
+    "Left": 535,
+    "Top": 419
+  },
+  "SurTalent2": {
+    "Left": 176,
+    "Top": 770
+  },
+  "SurTalent3": {
+    "Left": 535,
+    "Top": 770
+  },
+  "HunTalent": {
+    "Left": 1102,
+    "Top": 760
+  },
+  "Trait": {
+    "Left": 1280,
+    "Top": 754
+  }
+}

@@ -1,54 +1,65 @@
 ﻿using neo_bpsys_wpf.Views.Windows;
+using System.IO;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Shapes;
+using System.Xml.Linq;
 
 namespace neo_bpsys_wpf.Services
 {
+    /// <summary>
+    /// 前台窗口服务, 实现了 <see cref="IFrontService"/> 接口，负责与前台窗口进行交互
+    /// </summary>
     public class FrontService : IFrontService
     {
-        private readonly Dictionary<Type, Window> _frontWindows = new();
+        private readonly Dictionary<Type, Window> _frontWindows = [];
 
-        private readonly Dictionary<Type, bool> _frontWindowStates = new();
+        public Dictionary<Type, bool> FrontWindowStates { get; } = [];
 
-        public bool IsBpWindowRunning { get; set; } = false;
-        public bool IsInterludeWindowRunning { get; set; } = false;
-        public bool IsGameDataWindowRunning { get; set; } = false;
-        public bool IsScoreWindowRunning { get; set; } = false;
-        public bool IsWidgetsWindowRunning { get; set; } = false;
+        private readonly List<(Window, string)> _frontCanvas = []; //List<string>是Canvas（们）的名称
 
-        // 存储XAML中定义的初始位置（控件名称 -> 初始坐标）
-        private readonly Dictionary<
-            string,
-            Dictionary<string, (double left, double top)>
-        > _elementsInitialPositions = [];
-
-        public bool this[Type windowType]
-        {
-            get => _frontWindowStates.TryGetValue(windowType, out var state) ? state : false;
-            set => _frontWindowStates[windowType] = value;
-        }
+        private readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
+        private readonly IMessageBoxService _messageBoxService;
 
         public FrontService(
             BpWindow bpWindow,
             InterludeWindow interludeWindow,
             GameDataWindow gameDataWindow,
             ScoreWindow scoreWindow,
-            WidgetsWindow widgetsWindow
+            WidgetsWindow widgetsWindow,
+            IMessageBoxService messageBoxService
         )
         {
-            _frontWindows[typeof(BpWindow)] = bpWindow;
-            _frontWindows[typeof(InterludeWindow)] = interludeWindow;
-            _frontWindows[typeof(GameDataWindow)] = gameDataWindow;
-            _frontWindows[typeof(ScoreWindow)] = scoreWindow;
-            _frontWindows[typeof(WidgetsWindow)] = widgetsWindow;
+            _messageBoxService = messageBoxService;
+            // 注册窗口和画布
+            RegisterFrontWindowAndCanvas(bpWindow);
+            RegisterFrontWindowAndCanvas(interludeWindow);
+            RegisterFrontWindowAndCanvas(gameDataWindow);
+            RegisterFrontWindowAndCanvas(scoreWindow, "ScoreSurCanvas");
+            RegisterFrontWindowAndCanvas(scoreWindow, "ScoreHunCanvas");
+            RegisterFrontWindowAndCanvas(scoreWindow, "ScoreGlobalCanvas");
+            RegisterFrontWindowAndCanvas(widgetsWindow, "MapBpCanvas");
 
-            RecordInitialPositions(_frontWindows[typeof(BpWindow)]);
-            RecordInitialPositions(_frontWindows[typeof(InterludeWindow)]);
-            RecordInitialPositions(_frontWindows[typeof(ScoreWindow)], "ScoreSurCanvas");
-            RecordInitialPositions(_frontWindows[typeof(ScoreWindow)], "ScoreHunCanvas");
-            RecordInitialPositions(_frontWindows[typeof(ScoreWindow)], "ScoreGlobalCanvas");
-            RecordInitialPositions(_frontWindows[typeof(WidgetsWindow)], "MapBpCanvas");
+            // 记录初始位置
+            foreach (var i in _frontCanvas)
+            {
+                RecordInitialPositions(i.Item1, i.Item2);
+            }
+        }
+
+        public void RegisterFrontWindowAndCanvas(Window window, string canvasName = "BaseCanvas")
+        {
+            Type type = window.GetType();
+
+            if (!_frontWindows.ContainsKey(type))
+            {
+                _frontWindows[type] = window;
+                FrontWindowStates[type] = false;
+            }
+            if (!_frontCanvas.Contains((window, canvasName)))
+                _frontCanvas.Add((window, canvasName));
         }
 
         //窗口显示/隐藏管理
@@ -57,7 +68,7 @@ namespace neo_bpsys_wpf.Services
             foreach (var window in _frontWindows.Values)
             {
                 window.Show();
-                _frontWindowStates[window.GetType()] = true;
+                FrontWindowStates[window.GetType()] = true;
             }
         }
 
@@ -66,28 +77,32 @@ namespace neo_bpsys_wpf.Services
             foreach (var window in _frontWindows.Values)
             {
                 window.Hide();
-                _frontWindowStates[window.GetType()] = false;
+                FrontWindowStates[window.GetType()] = false;
             }
         }
 
-        public void ShowWindow<T>()
-            where T : Window
+        public void ShowWindow<T>() where T : Window
         {
             if (!_frontWindows.TryGetValue(typeof(T), out var window))
-                throw new ArgumentException($"未注册的窗口类型：{typeof(T)}");
+            {
+                _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{typeof(T)}", "窗口启动错误");
+                return;
+            }
 
             window.Show();
-            _frontWindowStates[typeof(T)] = true;
+            FrontWindowStates[typeof(T)] = true;
         }
 
-        public void HideWindow<T>()
-            where T : Window
+        public void HideWindow<T>() where T : Window
         {
             if (!_frontWindows.TryGetValue(typeof(T), out var window))
-                throw new ArgumentException($"未注册的窗口类型：{typeof(T)}");
+            {
+                _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{typeof(T)}", "窗口关闭错误");
+                return;
+            }
 
             window.Hide();
-            _frontWindowStates[typeof(T)] = false;
+            FrontWindowStates[typeof(T)] = false;
         }
 
         /// <summary>
@@ -96,78 +111,143 @@ namespace neo_bpsys_wpf.Services
         /// <param name="window">该窗口的实例</param>
         private void RecordInitialPositions(Window window, string canvasName = "BaseCanvas")
         {
-            var canvas = window.FindName(canvasName) as Canvas;
-            if (canvas == null)
+            var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.default.json");
+
+            if (File.Exists(path)) return;
+#if DEBUG
+            if (window.FindName(canvasName) is not Canvas canvas)
                 return;
 
-            _elementsInitialPositions[$"{window.GetType().Name}-{canvasName}"] = new();
-            _elementsInitialPositions[$"{window.GetType().Name}-{canvasName}"].Clear();
+            var positions = new Dictionary<string, PositionInfo>();
             foreach (UIElement child in canvas.Children)
             {
                 if (child is FrameworkElement fe && !string.IsNullOrEmpty(fe.Name))
                 {
-                    _elementsInitialPositions[$"{window.GetType().Name}-{canvasName}"][fe.Name] = (
-                        Canvas.GetLeft(fe),
-                        Canvas.GetTop(fe)
-                    );
+                    var name = fe.Name;
+                    var left = Canvas.GetLeft(fe);
+                    if (double.IsNaN(left))
+                        left = 0;
+                    var top = Canvas.GetTop(fe);
+                    if (double.IsNaN(top))
+                        top = 0;
+
+                    positions[name] = new(left, top);
                 }
             }
+            var output = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
+
+            try
+            {
+                File.WriteAllText(path, output);
+            }
+            catch (Exception ex)
+            {
+                _messageBoxService.ShowErrorAsync(ex.Message, "生成默认前台配置文件发生错误");
+            }
+#endif
+#if !DEBUG
+            try
+            {
+                var sourceFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Resources\\FrontDefalutPositions", $"{window.GetType().Name}Config-{canvasName}.default.json");
+
+                if (File.Exists(sourceFilePath))
+                    File.Copy(sourceFilePath, path);
+            }
+            catch (Exception ex)
+            {
+                _messageBoxService.ShowErrorAsync(ex.Message, "复制默认前台配置文件发生错误");
+            }
+#endif
         }
 
         /// <summary>
         /// 获取窗口中元素的位置信息
         /// </summary>
-        /// <param name="window">该窗口的实例</param>
-        /// <returns></returns>
-        public string GetWindowElementsPosition(Window window, string canvasName = "BaseCanvas")
+        /// <typeparam name="T">窗口类型</typeparam>
+        /// <param name="canvasName">画布名称</param>
+        public void SaveWindowElementsPosition<T>(string canvasName = "BaseCanvas") where T : Window
         {
-            var position = new List<PositionInfo>();
-            var canvas = window.FindName(canvasName) as Canvas;
-            if (canvas != null)
+            if (!_frontWindows.TryGetValue(typeof(T), out var window))
+            {
+                _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{typeof(T)}", "配置文件保存错误");
+                return;
+            }
+
+            var positions = new Dictionary<string, PositionInfo>();
+            if (window.FindName(canvasName) is Canvas canvas)
             {
                 foreach (var child in canvas.Children)
                 {
                     if (child is FrameworkElement element)
                     {
-                        var name = element.Name;
                         var left = Canvas.GetLeft(element);
                         if (double.IsNaN(left))
                             left = 0;
                         var top = Canvas.GetTop(element);
                         if (double.IsNaN(top))
                             top = 0;
-                        position.Add(new PositionInfo(name, left, top));
+
+                        positions[element.Name] = new(left, top);
                     }
                 }
             }
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            return JsonSerializer.Serialize(position, options);
+
+            var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
+            try
+            {
+                var josnContent = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
+                File.WriteAllText(path, josnContent);
+            }
+            catch (Exception ex)
+            {
+                _messageBoxService.ShowInfoAsync($"保存前台配置文件失败\n{ex.Message}", "保存提示");
+            }
         }
 
         /// <summary>
         /// 从JSON中加载窗口中元素的位置信息
         /// </summary>
-        /// <param name="window">该窗口的实例</param>
-        /// <param name="json">记录有位置信息的Json原文件内容</param>
-        public void LoadWindowElementsPosition(Window window, string json, string canvasName = "BaseCanvas")
+        /// <typeparam name="T">窗口类型</typeparam>
+        /// <param name="canvasName">画布名称</param>
+        public async Task LoadWindowElementsPositionAsync<T>(string canvasName = "BaseCanvas") where T : Window
         {
-            var positions = JsonSerializer.Deserialize<List<PositionInfo>>(json);
-            if (window.FindName(canvasName) is Canvas canvas && positions != null)
+            if (!_frontWindows.TryGetValue(typeof(T), out var window))
             {
-                var positionMap = positions.ToDictionary(
-                    p => p.Name,
-                    p => (p.Left, p.Top),
-                    StringComparer.OrdinalIgnoreCase
-                );
-                foreach (UIElement child in canvas.Children)
+                await _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{typeof(T)}", "配置文件加载错误");
+                return;
+            }
+
+            var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
+            if (!File.Exists(path)) return;
+
+            try
+            {
+                var jsonContent = File.ReadAllText(path);
+                var positions = JsonSerializer.Deserialize<Dictionary<string, PositionInfo>>(jsonContent);
+
+                if (window.FindName(canvasName) is Canvas canvas && positions != null)
                 {
-                    if (child is FrameworkElement fe && positionMap.ContainsKey(fe.Name))
+                    foreach (UIElement child in canvas.Children)
                     {
-                        var (left, top) = positionMap[fe.Name];
-                        Canvas.SetLeft(fe, left);
-                        Canvas.SetTop(fe, top);
+                        if (child is FrameworkElement fe && positions.TryGetValue(fe.Name, out PositionInfo? value))
+                        {
+                            var left = value.Left;
+                            if (double.IsNaN(left))
+                                left = 0;
+                            var top = value.Top;
+                            if (double.IsNaN(top))
+                                top = 0;
+
+                            Canvas.SetLeft(fe, left);
+                            Canvas.SetTop(fe, top);
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                File.Move(path, path + ".disabled");
+                await _messageBoxService.ShowErrorAsync(ex.Message);
             }
         }
 
@@ -175,23 +255,50 @@ namespace neo_bpsys_wpf.Services
         /// 还原窗口中的元素到初始位置
         /// </summary>
         /// <param name="window">该窗口的实例</param>
-        public void RestoreInitialPositions(Window window, string canvasName = "BaseCanvas")
+        public void RestoreInitialPositions<T>(string canvasName = "BaseCanvas") where T : Window
         {
-            var canvas = window.FindName(canvasName) as Canvas;
-            if (canvas == null || _elementsInitialPositions[$"{window.GetType().Name}-{canvasName}"].Count == 0)
-                return;
-
-            foreach (UIElement child in canvas.Children)
+            if (!_frontWindows.TryGetValue(typeof(T), out var window))
             {
-                if (
-                    child is FrameworkElement fe
-                    && _elementsInitialPositions[$"{window.GetType().Name}-{canvasName}"].ContainsKey(fe.Name)
-                )
+                _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{typeof(T)}", "前台默认配置恢复错误");
+                return;
+            }
+
+            var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.default.json");
+            var sourceFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Resources\\FrontDefalutPositions", $"{window.GetType().Name}Config-{canvasName}.default.json");
+
+            if (!File.Exists(path) && File.Exists(sourceFilePath))
+            {
+                try
                 {
-                    var (left, top) = _elementsInitialPositions[$"{window.GetType().Name}-{canvasName}"][fe.Name];
-                    Canvas.SetLeft(fe, left);
-                    Canvas.SetTop(fe, top);
+                    File.Copy(sourceFilePath, path);
                 }
+                catch (Exception ex)
+                {
+                    _messageBoxService.ShowInfoAsync($"前台默认配置复制失败\n{ex.Message}", "复制提示");
+                }
+            }
+
+            try
+            {
+                var json = File.ReadAllText(path);
+                var positions = JsonSerializer.Deserialize<Dictionary<string, PositionInfo>>(json);
+                if (positions == null || window.FindName(canvasName) is not Canvas canvas || positions.Count == 0) return;
+
+                foreach (UIElement child in canvas.Children)
+                {
+                    if (child is FrameworkElement fe && positions.TryGetValue(fe.Name, out PositionInfo? value))
+                    {
+                        Canvas.SetLeft(fe, value.Left);
+                        Canvas.SetTop(fe, value.Top);
+                    }
+                }
+
+                var customFilePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
+                File.Move(customFilePath, customFilePath + ".disabled");
+            }
+            catch (Exception ex)
+            {
+                _messageBoxService.ShowErrorAsync(ex.Message, "读取前台默认配置错误");
             }
         }
 
@@ -201,9 +308,8 @@ namespace neo_bpsys_wpf.Services
         /// <param name="name"></param>
         /// <param name="left"></param>
         /// <param name="top"></param>
-        public class PositionInfo(string name, double left, double top)
+        public class PositionInfo(double left, double top)
         {
-            public string Name { get; set; } = name;
             public double Left { get; set; } = left;
             public double Top { get; set; } = top;
         }

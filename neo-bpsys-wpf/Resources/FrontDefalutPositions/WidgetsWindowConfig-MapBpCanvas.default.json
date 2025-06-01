@@ -1,0 +1,38 @@
+{
+  "PickedMap": {
+    "Left": 9,
+    "Top": 54
+  },
+  "PickedMapName": {
+    "Left": 38,
+    "Top": 149
+  },
+  "PickWord": {
+    "Left": 38,
+    "Top": 197
+  },
+  "SurTeamName": {
+    "Left": 0,
+    "Top": 265
+  },
+  "VS_Word": {
+    "Left": 142,
+    "Top": 266
+  },
+  "HunTeamName": {
+    "Left": 171,
+    "Top": 265
+  },
+  "BannedMap": {
+    "Left": 9,
+    "Top": 375
+  },
+  "BannedMapName": {
+    "Left": 38,
+    "Top": 475
+  },
+  "BanWord": {
+    "Left": 38,
+    "Top": 522
+  }
+}

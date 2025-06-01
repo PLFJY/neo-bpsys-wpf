@@ -4,12 +4,14 @@ using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Models;
 
-public partial class Trait : ObservableObject
+/// <summary>
+/// 天赋类, 属性设定均由构造函数完成，不存在后续修改
+/// </summary>
+public class Trait
 {
-    public Enums.Trait? TraitName { get; set; }
+    public Enums.Trait? TraitName { get; }
 
-    [ObservableProperty]
-    public ImageSource? _image;
+    public ImageSource? Image { get; }
 
     public Trait(Enums.Trait? trait)
     {

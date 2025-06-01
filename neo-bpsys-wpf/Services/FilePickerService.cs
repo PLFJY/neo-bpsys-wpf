@@ -3,8 +3,16 @@ using System.IO;
 
 namespace neo_bpsys_wpf.Services
 {
+    /// <summary>
+    /// 文件选择服务，实现了 <see cref="IFilePickerService"/> 接口
+    /// 用于封装文件选择操作
+    /// </summary>
     public class FilePickerService : IFilePickerService
     {
+        /// <summary>
+        /// 选择图片
+        /// </summary>
+        /// <returns>返回图片文件路径</returns>
         public string? PickImage()
         {
             OpenFileDialog openFileDialog = new()
@@ -19,6 +27,10 @@ namespace neo_bpsys_wpf.Services
             return openFileDialog.FileName;
         }
 
+        /// <summary>
+        /// 选择Json文件
+        /// </summary>
+        /// <returns>返回Json文件路径</returns>
         public string? PickJsonFile()
         {
             OpenFileDialog openFileDialog = new()

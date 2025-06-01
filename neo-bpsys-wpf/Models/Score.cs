@@ -1,7 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace neo_bpsys_wpf.Models;
 
+/// <summary>
+/// 比分类, 用于展示比分
+/// </summary>
 public partial class Score : ObservableObject
 {
     private int _win = 0;
@@ -67,12 +71,13 @@ public partial class Score : ObservableObject
         }
     }
 
-
+    [JsonIgnore]
     public string MajorPointsOnFront
     {
         get => $"W{Win}  D{Tie}";
     }
 
+    [JsonIgnore]
     public string ScorePreviewOnBack
     {
         get => $"W:{Lose} D:{Tie} 小比分:{MinorPoints}";

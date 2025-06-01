@@ -26,7 +26,11 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         private readonly ISharedDataService _sharedDataService;
 
-        private readonly JsonSerializerOptions jsonSerializerOptions;
+        private readonly JsonSerializerOptions jsonSerializerOptions = new()
+        {
+            WriteIndented = true,
+            Converters = { new JsonStringEnumConverter() },
+        };
         private readonly IMessageBoxService _messageBoxService;
 
         [ObservableProperty]
@@ -42,12 +46,6 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         {
             _sharedDataService = sharedDataService;
             _messageBoxService = messageBoxService;
-            jsonSerializerOptions = new JsonSerializerOptions()
-            {
-                WriteIndented = true,
-                Converters = { new JsonStringEnumConverter() },
-                //Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-            };
             IsActive = true;
         }
 
@@ -75,7 +73,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 hunTeam = _sharedDataService.MainTeam;
             }
 
-            _sharedDataService.CurrentGame = new Game(surTeam, hunTeam, _sharedDataService.CurrentGameProgress);
+            _sharedDataService.CurrentGame = new Game(surTeam, hunTeam, SelectedGameProgress);
 
             //发送新对局已创建的消息
             WeakReferenceMessenger.Default.Send(new NewGameMessage(this, true));
@@ -155,7 +153,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         public void Receive(ValueChangedMessage<string> message)
         {
-            if(message.Value == nameof(_sharedDataService.RemainingSeconds))
+            if (message.Value == nameof(_sharedDataService.RemainingSeconds))
             {
                 OnPropertyChanged(nameof(RemainingSeconds));
             }

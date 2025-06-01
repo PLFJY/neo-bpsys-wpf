@@ -1,0 +1,230 @@
+{
+  "SurTeamLogo": {
+    "Left": 42,
+    "Top": 10
+  },
+  "SurTeamMajorPoint": {
+    "Left": 175,
+    "Top": 38
+  },
+  "SurTeamName": {
+    "Left": 297,
+    "Top": 32
+  },
+  "MinorPointsSur": {
+    "Left": 541,
+    "Top": 29
+  },
+  "Timer": {
+    "Left": 671,
+    "Top": 23
+  },
+  "MinorPointsHun": {
+    "Left": 852,
+    "Top": 29
+  },
+  "HunTeamName": {
+    "Left": 936,
+    "Top": 32
+  },
+  "HunTeamMajorPoint": {
+    "Left": 1173,
+    "Top": 39
+  },
+  "HunTeamLogo": {
+    "Left": 1301,
+    "Top": 10
+  },
+  "HunBanCurrent0": {
+    "Left": 13,
+    "Top": 566
+  },
+  "HunBanCurrent1": {
+    "Left": 63,
+    "Top": 566
+  },
+  "HunBanCurrentLock0": {
+    "Left": 13,
+    "Top": 566
+  },
+  "HunBanCurrentLock1": {
+    "Left": 63,
+    "Top": 566
+  },
+  "SurBanCurrent3": {
+    "Left": 1231,
+    "Top": 566
+  },
+  "SurBanCurrent2": {
+    "Left": 1281,
+    "Top": 566
+  },
+  "SurBanCurrent1": {
+    "Left": 1329,
+    "Top": 566
+  },
+  "SurBanCurrent0": {
+    "Left": 1379,
+    "Top": 566
+  },
+  "SurBanCurrentLock3": {
+    "Left": 1231,
+    "Top": 566
+  },
+  "SurBanCurrentLock2": {
+    "Left": 1281,
+    "Top": 566
+  },
+  "SurBanCurrentLock1": {
+    "Left": 1329,
+    "Top": 566
+  },
+  "SurBanCurrentLock0": {
+    "Left": 1379,
+    "Top": 566
+  },
+  "SurPick0": {
+    "Left": 0,
+    "Top": 619
+  },
+  "SurPick1": {
+    "Left": 141,
+    "Top": 619
+  },
+  "SurPick2": {
+    "Left": 284,
+    "Top": 619
+  },
+  "SurPick3": {
+    "Left": 424,
+    "Top": 619
+  },
+  "Map": {
+    "Left": 567,
+    "Top": 658
+  },
+  "MapName": {
+    "Left": 645,
+    "Top": 709
+  },
+  "HunGlobalBan0": {
+    "Left": 672,
+    "Top": 746
+  },
+  "HunGlobalBan1": {
+    "Left": 705,
+    "Top": 746
+  },
+  "HunGlobalBan2": {
+    "Left": 738,
+    "Top": 746
+  },
+  "HunGlobalBanLock0": {
+    "Left": 672,
+    "Top": 746
+  },
+  "HunGlobalBanLock1": {
+    "Left": 705,
+    "Top": 746
+  },
+  "HunGlobalBanLock2": {
+    "Left": 738,
+    "Top": 746
+  },
+  "SurGlobalBan0": {
+    "Left": 571,
+    "Top": 778.5
+  },
+  "SurGlobalBan1": {
+    "Left": 605,
+    "Top": 778.5
+  },
+  "SurGlobalBan2": {
+    "Left": 638,
+    "Top": 778.5
+  },
+  "SurGlobalBan3": {
+    "Left": 671,
+    "Top": 778.5
+  },
+  "SurGlobalBan4": {
+    "Left": 705,
+    "Top": 778.5
+  },
+  "SurGlobalBan5": {
+    "Left": 739,
+    "Top": 778.5
+  },
+  "SurGlobalBan6": {
+    "Left": 772,
+    "Top": 778.5
+  },
+  "SurGlobalBan7": {
+    "Left": 806,
+    "Top": 778.5
+  },
+  "SurGlobalBan8": {
+    "Left": 840,
+    "Top": 778.5
+  },
+  "SurGlobalBanLock0": {
+    "Left": 571,
+    "Top": 778.5
+  },
+  "SurGlobalBanLock1": {
+    "Left": 605,
+    "Top": 778.5
+  },
+  "SurGlobalBanLock2": {
+    "Left": 638,
+    "Top": 778.5
+  },
+  "SurGlobalBanLock3": {
+    "Left": 671,
+    "Top": 778.5
+  },
+  "SurGlobalBanLock4": {
+    "Left": 705,
+    "Top": 778.5
+  },
+  "SurGlobalBanLock5": {
+    "Left": 739,
+    "Top": 778.5
+  },
+  "SurGlobalBanLock6": {
+    "Left": 772,
+    "Top": 778.5
+  },
+  "SurGlobalBanLock7": {
+    "Left": 806,
+    "Top": 778.5
+  },
+  "SurGlobalBanLock8": {
+    "Left": 840,
+    "Top": 778.5
+  },
+  "HunPick": {
+    "Left": 875,
+    "Top": 617
+  },
+  "SurId0": {
+    "Left": 2,
+    "Top": 778
+  },
+  "SurId1": {
+    "Left": 144,
+    "Top": 779
+  },
+  "SurId2": {
+    "Left": 286,
+    "Top": 778
+  },
+  "SurId3": {
+    "Left": 428,
+    "Top": 778
+  },
+  "HunId": {
+    "Left": 875,
+    "Top": 778
+  }
+}

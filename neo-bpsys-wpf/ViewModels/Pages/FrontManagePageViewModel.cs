@@ -133,37 +133,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         /// </summary>
         private void SaveFrontConfig()
         {
-            SaveWindowConfigAsync(App.Services.GetRequiredService<BpWindow>());
-            SaveWindowConfigAsync(App.Services.GetRequiredService<InterludeWindow>());
-            SaveWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreSurCanvas");
-            SaveWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreHunCanvas");
-            SaveWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreGlobalCanvas");
-            SaveWindowConfigAsync(App.Services.GetRequiredService<WidgetsWindow>(), "MapBpCanvas");
-        }
-
-        private async void SaveWindowConfigAsync(Window window, string canvasName = "BaseCanvas")
-        {
-            var path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "neo-bpsys-wpf"
-            );
-
-            if (!Directory.Exists(path))
-                Directory.CreateDirectory(path);
-
-            var windowElementsPosition = _frontService.GetWindowElementsPosition(window, canvasName);
-
-            try
-            {
-                File.WriteAllText(
-                    Path.Combine(path, $"{window.GetType().Name}Config-{canvasName}.json"),
-                    windowElementsPosition
-                );
-            }
-            catch (Exception ex)
-            {
-                await _messageBoxService.ShowErrorAsync("加载提示", $"保存前台配置文件失败\n{ex.Message}");
-            }
+            _frontService.SaveWindowElementsPosition<BpWindow>();
+            _frontService.SaveWindowElementsPosition<InterludeWindow>();
+            _frontService.SaveWindowElementsPosition<ScoreWindow>("ScoreSurCanvas");
+            _frontService.SaveWindowElementsPosition<ScoreWindow>("ScoreHunCanvas");
+            _frontService.SaveWindowElementsPosition<ScoreWindow>("ScoreGlobalCanvas");
+            _frontService.SaveWindowElementsPosition<WidgetsWindow>("MapBpCanvas");
         }
 
         /// <summary>
@@ -171,36 +146,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         /// </summary>
         private async void LoadFrontConfig()
         {
-            await LoadWindowConfigAsync(App.Services.GetRequiredService<BpWindow>());
-            await LoadWindowConfigAsync(App.Services.GetRequiredService<InterludeWindow>());
-            await LoadWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreSurCanvas");
-            await LoadWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreHunCanvas");
-            await LoadWindowConfigAsync(App.Services.GetRequiredService<ScoreWindow>(), "ScoreGlobalCanvas");
-            await LoadWindowConfigAsync(App.Services.GetRequiredService<WidgetsWindow>(), "MapBpCanvas");
-        }
-
-        private async Task LoadWindowConfigAsync(Window window, string canvasName = "BaseCanvas")
-        {
-            var path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "neo-bpsys-wpf"
-            );
-
-            if (!Directory.Exists(path))
-                Directory.CreateDirectory(path);
-
-            if (File.Exists(Path.Combine(path, $"{window.GetType().Name}Config-{canvasName}.json")))
-            {
-                try
-                {
-                    string json = await File.ReadAllTextAsync(Path.Combine(path, $"{window.GetType().Name}Config-{canvasName}.json"));
-                    _frontService.LoadWindowElementsPosition(window, json, canvasName);
-                }
-                catch (Exception ex)
-                {
-                    await _messageBoxService.ShowErrorAsync("加载提示", $"加载前台配置文件失败\n{ex.Message}");
-                }
-            }
+            await _frontService.LoadWindowElementsPositionAsync<BpWindow>();
+            await _frontService.LoadWindowElementsPositionAsync<InterludeWindow>();
+            await _frontService.LoadWindowElementsPositionAsync<ScoreWindow>("ScoreSurCanvas");
+            await _frontService.LoadWindowElementsPositionAsync<ScoreWindow>("ScoreHunCanvas");
+            await _frontService.LoadWindowElementsPositionAsync<ScoreWindow>("ScoreGlobalCanvas");
+            await _frontService.LoadWindowElementsPositionAsync<WidgetsWindow>("MapBpCanvas");
         }
 
         /// <summary>
@@ -208,9 +159,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         /// </summary>
         /// <returns></returns>
         [RelayCommand]
-        private async Task ResetBpWindowElementsPosition()
+        private void ResetBpWindowElementsPosition()
         {
-            await ResetFrontWindowElementsPosision(App.Services.GetRequiredService<BpWindow>());
+            _frontService.RestoreInitialPositions<BpWindow>();
         }
 
         /// <summary>
@@ -218,9 +169,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         /// </summary>
         /// <returns></returns>
         [RelayCommand]
-        private async Task ResetInterludeWindowElementsPosition()
+        private void ResetInterludeWindowElementsPosition()
         {
-            await ResetFrontWindowElementsPosision(App.Services.GetRequiredService<InterludeWindow>());
+            _frontService.RestoreInitialPositions<InterludeWindow>();
         }
 
         /// <summary>
@@ -229,9 +180,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         /// <param name="canvasName"></param>
         /// <returns></returns>
         [RelayCommand]
-        private async Task ResetScoreWindowElementsPosition(string canvasName)
+        private void ResetScoreWindowElementsPosition(string canvasName)
         {
-            await ResetFrontWindowElementsPosision(App.Services.GetRequiredService<ScoreWindow>(), canvasName);
+            _frontService.RestoreInitialPositions<ScoreWindow>(canvasName);
         }
 
         /// <summary>
@@ -240,26 +191,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         /// <param name="canvasName"></param>
         /// <returns></returns>
         [RelayCommand]
-        private async Task ResetWidgetsWindowElementsPosition(string canvasName)
+        private void ResetWidgetsWindowElementsPosition(string canvasName)
         {
-            await ResetFrontWindowElementsPosision(App.Services.GetRequiredService<WidgetsWindow>(), canvasName);
-        }
-
-
-        /// <summary>
-        /// 重置指定窗口的界面配置
-        /// </summary>
-        /// <param name="window">从IOC里拿</param>
-        /// <returns></returns>
-        private async Task ResetFrontWindowElementsPosision(Window window, string canvasName = "BaseCanvas")
-        {
-            var result = await _messageBoxService.ShowConfirmAsync("重置提示", $"是否重置{window.GetType().Name}-{canvasName}的配置");
-
-            if (result)
-            {
-                _frontService.RestoreInitialPositions(window, canvasName);
-                SaveWindowConfigAsync(window, canvasName);
-            }
+            _frontService.RestoreInitialPositions<WidgetsWindow>(canvasName);
         }
     }
 }

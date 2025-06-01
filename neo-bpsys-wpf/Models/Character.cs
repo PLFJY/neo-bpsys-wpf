@@ -6,21 +6,24 @@ using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Models;
 
+/// <summary>
+/// 角色类, 属性设定均由构造函数完成，不存在后续修改
+/// </summary>
 public class Character
 {
-    public string Name { get; set; } = string.Empty;
+    public string Name { get;  } = string.Empty;
     public Camp Camp { get; }
-    public string ImageFileName { get; set; } = string.Empty;
+    public string ImageFileName { get; } = string.Empty;
     [JsonIgnore]
-    public ImageSource? BigImage { get; set; }
+    public ImageSource? BigImage { get;  }
     [JsonIgnore]
-    public ImageSource? HeaderImage { get; set; }
+    public ImageSource? HeaderImage { get; }
     [JsonIgnore]
-    public ImageSource? HeaderImage_SingleColor { get; set; }
+    public ImageSource? HeaderImage_SingleColor { get;  }
     [JsonIgnore]
-    public ImageSource? HalfImage { get; set; }
-    public string FullSpell { get; set; } = string.Empty;// 角色名称全拼
-    public string Abbrev { get; set; } = string.Empty; //角色名称简拼
+    public ImageSource? HalfImage { get;  }
+    public string FullSpell { get;  } = string.Empty;// 角色名称全拼
+    public string Abbrev { get;  } = string.Empty; //角色名称简拼
     public Character(string name, Camp camp, string imageFileName)
     {
         Name = name;

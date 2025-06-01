@@ -21,9 +21,7 @@ namespace neo_bpsys_wpf.Services
             MainTeam = new Team(Camp.Sur);
             AwayTeam = new Team(Camp.Hun);
 
-            CurrentGameProgress = GameProgress.Free;
-
-            CurrentGame = new(MainTeam, AwayTeam, CurrentGameProgress);
+            CurrentGame = new(MainTeam, AwayTeam, GameProgress.Free);
 
             var charaListFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources\\CharacterList.json");
             ReadCharaListFromFile(charaListFilePath);
@@ -84,7 +82,6 @@ namespace neo_bpsys_wpf.Services
         public Team MainTeam { get; set; }
         public Team AwayTeam { get; set; }
         public Game CurrentGame { get; set; }
-        public GameProgress CurrentGameProgress { get; set; }
         public Dictionary<string, Character> CharacterList { get; set; } = [];
         public Dictionary<string, Character> SurCharaList { get; set; } = [];
         public Dictionary<string, Character> HunCharaList { get; set; } = [];

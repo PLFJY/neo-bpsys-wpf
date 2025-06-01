@@ -1,6 +1,9 @@
-namespace neo_bpsys_wpf.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 
+namespace neo_bpsys_wpf.Models;
+/// <summary>
+/// 赛后数据类，用于存储赛后数据
+/// </summary>
 public partial class PlayerData : ObservableObject
 {
     // Sur 相关数据

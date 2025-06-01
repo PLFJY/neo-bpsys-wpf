@@ -8,11 +8,14 @@ using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Models;
 
+/// <summary>
+/// 对局类, 创建需要导入 <see cref="SurTeam"/> 和 <see cref="HunTeam"/> 两支队伍以及对局进度
+/// </summary>
 public partial class Game : ObservableObject
 {
-    public Guid GUID { get; set; }
+    public Guid GUID { get; }
 
-    public string StartTime { get; set; }
+    public string StartTime { get; }
 
     [ObservableProperty]
     private Team _surTeam = new(Camp.Sur);
@@ -99,6 +102,9 @@ public partial class Game : ObservableObject
         OnPropertyChanged(string.Empty);
     }
 
+    /// <summary>
+    /// 刷新当前上场选手列表
+    /// </summary>
     public void RefreshCurrentPlayer()
     {
         SurPlayerList = SurTeam.SurPlayerOnFieldList;

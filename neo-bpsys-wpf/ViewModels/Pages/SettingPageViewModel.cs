@@ -2,13 +2,20 @@
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
     public partial class SettingPageViewModel : ObservableObject
     {
         public IUpdaterService UpdaterService { get; }
-
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
+        public SettingPageViewModel()
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
+        {
+            //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+        }
         public SettingPageViewModel(IUpdaterService updaterService)
         {
             //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
@@ -93,6 +100,22 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         private void CancelDownload()
         {
             UpdaterService.Downloader.CancelAsync();
+        }
+
+        [RelayCommand]
+        private static void HopToConfigDir()
+        {
+            Process.Start("explorer.exe", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf"));
+        }
+
+        [RelayCommand]
+        private static void HopToGameOutputDir()
+        {
+            var path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "neo-bpsys-wpf\\GameInfoOutput"
+            );
+            Process.Start("explorer.exe", path);
         }
 
         public ObservableCollection<string> MirrorList { get; } = [
