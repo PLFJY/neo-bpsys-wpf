@@ -1,0 +1,39 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters">
+    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
+    <Style TargetType="{x:Type cc:GlobalScorePresenter}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type cc:GlobalScorePresenter}">
+                    <Border Width="75">
+                        <StackPanel
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                            <Grid
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Visibility="{TemplateBinding Converter={StaticResource BooleanToVisibilityConverter},
+                                                             Property=IsCampVisible}">
+                                <Image Source="{DynamicResource surIcon}" Visibility="{TemplateBinding IsHunIcon, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                                <Image Source="{DynamicResource hunIcon}" Visibility="{TemplateBinding IsHunIcon, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            </Grid>
+                            <TextBlock
+                                Margin="5,0,0,0"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontSize="24"
+                                FontWeight="Bold"
+                                Foreground="White"
+                                Text="{TemplateBinding Text}" />
+                        </StackPanel>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

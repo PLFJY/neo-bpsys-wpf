@@ -13,6 +13,7 @@ namespace neo_bpsys_wpf.Views.Windows
     /// </summary>
     public partial class ScoreWindow : Window
     {
+         
         public ScoreWindow()
         {
             InitializeComponent();

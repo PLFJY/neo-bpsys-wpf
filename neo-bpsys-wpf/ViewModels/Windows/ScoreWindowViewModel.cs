@@ -16,11 +16,11 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
         }
 
-        public ISharedDataService SharedDataService { get; }
+        private readonly ISharedDataService _sharedDataService;
 
         public ScoreWindowViewModel(ISharedDataService sharedDataService)
         {
-            SharedDataService = sharedDataService;
+            _sharedDataService = sharedDataService;
             IsActive = true;
         }
 
@@ -41,6 +41,9 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 IsDesignMode = message.IsDesignMode;
         }
 
-        public Game CurrentGame => SharedDataService.CurrentGame;
+        public Game CurrentGame => _sharedDataService.CurrentGame;
+
+        public Team MainTeam => _sharedDataService.MainTeam;
+        public Team AwayTeam => _sharedDataService.AwayTeam;
     }
 }

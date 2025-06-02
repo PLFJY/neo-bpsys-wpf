@@ -120,10 +120,10 @@
                         <ComboBox
                             Width="150"
                             Margin="10,0,0,0"
-                            DisplayMemberPath="Value"
+                            DisplayMemberPath="Key"
                             ItemsSource="{Binding GameList}"
                             SelectedIndex="0"
-                            SelectedValuePath="Key" />
+                            SelectedValuePath="Value" />
                         <ui:Button
                             Margin="10,0,0,0"
                             Content="下一局"

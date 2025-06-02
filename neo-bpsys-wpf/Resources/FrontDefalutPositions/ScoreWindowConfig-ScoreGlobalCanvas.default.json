@@ -6,5 +6,109 @@
   "AwayTeamName": {
     "Left": 10,
     "Top": 153
+  },
+  "MainScoreTotal": {
+    "Left": 1345,
+    "Top": 81
+  },
+  "AwayScoreTotal": {
+    "Left": 1345,
+    "Top": 140
+  },
+  "Main0Game1FirstHalf": {
+    "Left": 170,
+    "Top": 86
+  },
+  "Main1Game1SecondHalf": {
+    "Left": 268,
+    "Top": 86
+  },
+  "Main2Game2FirstHalf": {
+    "Left": 366,
+    "Top": 86
+  },
+  "Main3Game2SecondHalf": {
+    "Left": 464,
+    "Top": 86
+  },
+  "Main4Game3FirstHalf": {
+    "Left": 562,
+    "Top": 86
+  },
+  "Main5Game3SecondHalf": {
+    "Left": 660,
+    "Top": 86
+  },
+  "Main6Game3ExtraFirstHalf": {
+    "Left": 758,
+    "Top": 86
+  },
+  "Main7Game3ExtraSecondHalf": {
+    "Left": 856,
+    "Top": 86
+  },
+  "Main8Game5FirstHalf": {
+    "Left": 954,
+    "Top": 86
+  },
+  "Main9Game5SecondHalf": {
+    "Left": 1052,
+    "Top": 86
+  },
+  "Main10Game5ExtraFirstHalf": {
+    "Left": 1150,
+    "Top": 86
+  },
+  "Main11Game5ExtraSecondHalf": {
+    "Left": 1248,
+    "Top": 86
+  },
+  "Away0Game1FirstHalf": {
+    "Left": 170,
+    "Top": 147
+  },
+  "Away1Game1SecondHalf": {
+    "Left": 268,
+    "Top": 147
+  },
+  "Away2Game2FirstHalf": {
+    "Left": 366,
+    "Top": 147
+  },
+  "Away3Game2SecondHalf": {
+    "Left": 464,
+    "Top": 147
+  },
+  "Away4Game3FirstHalf": {
+    "Left": 562,
+    "Top": 147
+  },
+  "Away5Game3SecondHalf": {
+    "Left": 660,
+    "Top": 147
+  },
+  "Away6Game3ExtraFirstHalf": {
+    "Left": 758,
+    "Top": 147
+  },
+  "Away7Game3ExtraSecondHalf": {
+    "Left": 856,
+    "Top": 147
+  },
+  "Away8Game5FirstHalf": {
+    "Left": 954,
+    "Top": 147
+  },
+  "Away9Game5SecondHalf": {
+    "Left": 1052,
+    "Top": 147
+  },
+  "Away10Game5ExtraFirstHalf": {
+    "Left": 1150,
+    "Top": 147
+  },
+  "Away11Game5ExtraSecondHalf": {
+    "Left": 1248,
+    "Top": 147
   }
 }

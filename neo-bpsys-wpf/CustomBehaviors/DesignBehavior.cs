@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using neo_bpsys_wpf.Messages;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -52,7 +54,7 @@ namespace neo_bpsys_wpf.CustomBehaviors
                 Canvas? canvas = GetParentCanvas(element);
                 if (canvas != null)
                 {
-                    TextBlock textBlock = new TextBlock
+                    TextBlock textBlock = new()
                     {
                         Text = fe.Name,
                         Foreground = Brushes.Black,

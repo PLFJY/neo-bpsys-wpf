@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Theme;
 using neo_bpsys_wpf.ViewModels.Pages;
@@ -169,6 +170,8 @@ namespace neo_bpsys_wpf
         {
             base.OnStartup(e);
             await _host.StartAsync();
+            Application.Current.Resources["surIcon"] = ImageHelper.GetUiImageSource("surIcon");
+            Application.Current.Resources["hunIcon"] = ImageHelper.GetUiImageSource("hunIcon");
             ApplicationThemeManager.Changed += (currentApplicationTheme, systemAccent) =>
             {
                 foreach (

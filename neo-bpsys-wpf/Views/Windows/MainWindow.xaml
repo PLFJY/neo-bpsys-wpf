@@ -268,12 +268,12 @@
                 <ComboBox
                     Width="150"
                     Margin="0,0,10,10"
-                    DisplayMemberPath="Value"
+                    DisplayMemberPath="Key"
                     ItemsSource="{Binding GameList}"
                     MaxDropDownHeight="190"
                     SelectedIndex="0"
                     SelectedValue="{Binding SelectedGameProgress}"
-                    SelectedValuePath="Key" />
+                    SelectedValuePath="Value" />
             </WrapPanel>
 
             <!--  navigation  -->

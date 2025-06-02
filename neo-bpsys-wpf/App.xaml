@@ -29,6 +29,10 @@
             <FontFamily x:Key="EssayText">/neo-bpsys-wpf;Component/Assets/Fonts/#Essay Text</FontFamily>
             <FontFamily x:Key="Selawik">/neo-bpsys-wpf;Component/Assets/Fonts/#Selawik</FontFamily>
             <FontFamily x:Key="SourceHan">/neo-bpsys-wpf;Component/Assets/Fonts/#Source Han Sans HW SC VF</FontFamily>
+
+            <!--  Images  -->
+            <BitmapImage x:Key="surIcon" />
+            <BitmapImage x:Key="hunIcon" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

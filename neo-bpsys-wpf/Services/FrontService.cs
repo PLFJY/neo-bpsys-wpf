@@ -1,11 +1,15 @@
-﻿using neo_bpsys_wpf.Views.Windows;
+﻿using neo_bpsys_wpf.CustomBehaviors;
+using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Views.Windows;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Shapes;
 using System.Xml.Linq;
+using Path = System.IO.Path;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -19,6 +23,9 @@ namespace neo_bpsys_wpf.Services
         public Dictionary<Type, bool> FrontWindowStates { get; } = [];
 
         private readonly List<(Window, string)> _frontCanvas = []; //List<string>是Canvas（们）的名称
+
+        public static readonly Dictionary<int, FrameworkElement> MainGlobalScoreControls = [];
+        public static readonly Dictionary<int, FrameworkElement> AwayGlobalScoreControls = [];
 
         private readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
         private readonly IMessageBoxService _messageBoxService;
@@ -41,6 +48,9 @@ namespace neo_bpsys_wpf.Services
             RegisterFrontWindowAndCanvas(scoreWindow, "ScoreHunCanvas");
             RegisterFrontWindowAndCanvas(scoreWindow, "ScoreGlobalCanvas");
             RegisterFrontWindowAndCanvas(widgetsWindow, "MapBpCanvas");
+
+            //注册分数统计界面的分数控件
+            GlobalScoreContorlsReg();
 
             // 记录初始位置
             foreach (var i in _frontCanvas)
@@ -105,13 +115,112 @@ namespace neo_bpsys_wpf.Services
             FrontWindowStates[typeof(T)] = false;
         }
 
+        #region 前台动态控件添加
+
+        /// <summary>
+        /// 注册全局计分板控件
+        /// </summary>
+        private void GlobalScoreContorlsReg()
+        {
+
+            if (_frontWindows[typeof(ScoreWindow)].FindName("ScoreGlobalCanvas") is Canvas canvas)
+            {
+                //主队
+                foreach (GameProgress progress in Enum.GetValues<GameProgress>())
+                {
+                    if (progress != GameProgress.Free)
+                    {
+                        var control = new CustomControls.GlobalScorePresenter();
+                        RegisterControl("Main", progress.ToString(), (int)progress, MainGlobalScoreControls, control);
+                        AddControlToCanvas(control, canvas, progress, 86); // 添加到 Canvas 并设置位置
+                    }
+                }
+                //客队
+                foreach (GameProgress progress in Enum.GetValues<GameProgress>())
+                {
+                    if (progress != GameProgress.Free)
+                    {
+                        var control = new CustomControls.GlobalScorePresenter();
+                        RegisterControl("Away", progress.ToString(), (int)progress, AwayGlobalScoreControls, control);
+                        AddControlToCanvas(control, canvas, progress, 147); // 添加到 Canvas 并设置位置
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 将控件添加到 Canvas 并设置位置
+        /// </summary>
+        private static void AddControlToCanvas(FrameworkElement control, Canvas canvas, GameProgress progress, int top)
+        {
+            // 设置控件位置（示例逻辑）
+            double left = CalculateLeftPosition(progress);
+
+            Canvas.SetLeft(control, left);
+            Canvas.SetTop(control, top);
+
+            //创建控件绑定
+            var binding = new Binding("IsDesignMode")
+            {
+                Source = canvas.DataContext,
+                Mode = BindingMode.TwoWay,
+                UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+            };
+            DesignBehavior.SetIsDesignMode(control, true); // 触发绑定
+            BindingOperations.SetBinding(control, DesignBehavior.IsDesignModeProperty, binding);
+
+            canvas.Children.Add(control);
+        }
+
+        private static double CalculateLeftPosition(GameProgress progress)
+        {
+            // 示例：根据枚举值计算水平位置
+            return 170 + ((int)progress) * 98; // 每个控件间隔 100 像素
+        }
+
+        /// <summary>
+        /// 注册控件
+        /// </summary>
+        /// <param name="nameHeader">控件名头</param>
+        /// <param name="nameFotter">控件名尾</param>
+        /// <param name="key">控件序号 (在字典中查找用的Key)</param>
+        /// <param name="elementDict">控件所在的字典</param>
+        /// <param name="control">控件</param>
+        /// <param name="isOverride">是否覆盖(当Key值相同的情况下)</param>
+        /// <exception cref="ArgumentException"></exception>
+        private static void RegisterControl(string nameHeader, string nameFotter, int key, Dictionary<int, FrameworkElement> elementDict, FrameworkElement control, bool isOverride = true, string designModeBindingPath = "IsDesignMode")
+        {
+            var name = nameHeader + key + nameFotter;
+            control.Name = name;
+            if (!elementDict.TryAdd(key, control))
+            {
+                if (!isOverride)
+                    throw new ArgumentException($"Control with key '{key}' already exists. Set isOverride to true to replace.");
+                else
+                    elementDict[key] = control;
+            }
+        }
+
+        /// <summary>
+        /// 获取控件
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        private static FrameworkElement? GetControl(int key, Dictionary<int, FrameworkElement> elementDict)
+        {
+            elementDict.TryGetValue(key, out var control);
+            return control;
+        }
+        #endregion 前台动态控件添加
+
+        #region 设计者模式
         /// <summary>
         /// 记录窗口中元素的初始位置
         /// </summary>
         /// <param name="window">该窗口的实例</param>
-        private void RecordInitialPositions(Window window, string canvasName = "BaseCanvas")
+        public void RecordInitialPositions(Window window, string canvasName = "BaseCanvas")
         {
-            var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.default.json");
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.default.json");
 
             if (File.Exists(path)) return;
 #if DEBUG
@@ -148,10 +257,10 @@ namespace neo_bpsys_wpf.Services
 #if !DEBUG
             try
             {
-                var sourceFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Resources\\FrontDefalutPositions", $"{window.GetType().Name}Config-{canvasName}.default.json");
+                var sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Resources\\FrontDefalutPositions", $"{window.GetType().Name}Config-{canvasName}.default.json");
 
                 if (File.Exists(sourceFilePath))
-                    File.Copy(sourceFilePath, path);
+                    File.Copy(sourceFilePath, path, true);
             }
             catch (Exception ex)
             {
@@ -192,7 +301,7 @@ namespace neo_bpsys_wpf.Services
                 }
             }
 
-            var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
             try
             {
                 var josnContent = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
@@ -217,7 +326,7 @@ namespace neo_bpsys_wpf.Services
                 return;
             }
 
-            var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
             if (!File.Exists(path)) return;
 
             try
@@ -246,7 +355,7 @@ namespace neo_bpsys_wpf.Services
             }
             catch (Exception ex)
             {
-                File.Move(path, path + ".disabled");
+                File.Move(path, path + ".disabled", true);
                 await _messageBoxService.ShowErrorAsync(ex.Message);
             }
         }
@@ -255,29 +364,32 @@ namespace neo_bpsys_wpf.Services
         /// 还原窗口中的元素到初始位置
         /// </summary>
         /// <param name="window">该窗口的实例</param>
-        public void RestoreInitialPositions<T>(string canvasName = "BaseCanvas") where T : Window
+        public async void RestoreInitialPositions<T>(string canvasName = "BaseCanvas") where T : Window
         {
             if (!_frontWindows.TryGetValue(typeof(T), out var window))
             {
-                _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{typeof(T)}", "前台默认配置恢复错误");
+                await _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{typeof(T)}", "前台默认配置恢复错误");
                 return;
             }
 
-            var path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.default.json");
-            var sourceFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Resources\\FrontDefalutPositions", $"{window.GetType().Name}Config-{canvasName}.default.json");
+            if (!await _messageBoxService.ShowConfirmAsync("重置提示", $"确认重置{window.GetType()}-{canvasName}的配置吗？")) return;
 
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.default.json");
+            var sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Resources\\FrontDefalutPositions", $"{window.GetType().Name}Config-{canvasName}.default.json");
+
+#if !DEBUG
             if (!File.Exists(path) && File.Exists(sourceFilePath))
             {
                 try
                 {
-                    File.Copy(sourceFilePath, path);
+                    File.Copy(sourceFilePath, path, true);
                 }
                 catch (Exception ex)
                 {
-                    _messageBoxService.ShowInfoAsync($"前台默认配置复制失败\n{ex.Message}", "复制提示");
+                    await _messageBoxService.ShowInfoAsync($"前台默认配置复制失败\n{ex.Message}", "复制提示");
                 }
             }
-
+#endif
             try
             {
                 var json = File.ReadAllText(path);
@@ -293,12 +405,13 @@ namespace neo_bpsys_wpf.Services
                     }
                 }
 
-                var customFilePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
-                File.Move(customFilePath, customFilePath + ".disabled");
+                var customFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
+                if(File.Exists(customFilePath))
+                    File.Move(customFilePath, customFilePath + ".disabled", true);
             }
             catch (Exception ex)
             {
-                _messageBoxService.ShowErrorAsync(ex.Message, "读取前台默认配置错误");
+                await _messageBoxService.ShowErrorAsync(ex.Message, "读取前台默认配置错误");
             }
         }
 
@@ -313,6 +426,7 @@ namespace neo_bpsys_wpf.Services
             public double Left { get; set; } = left;
             public double Top { get; set; } = top;
         }
+#endregion 设计者模式
 
         /// <summary>
         /// 窗口分辨率
