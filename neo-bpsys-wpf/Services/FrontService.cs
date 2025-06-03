@@ -1,5 +1,10 @@
 ﻿using neo_bpsys_wpf.CustomBehaviors;
+using neo_bpsys_wpf.CustomControls;
 using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Models;
+using neo_bpsys_wpf.ViewModels.Pages;
+using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
 using System.IO;
 using System.Text.Json;
@@ -19,13 +24,12 @@ namespace neo_bpsys_wpf.Services
     public class FrontService : IFrontService
     {
         private readonly Dictionary<Type, Window> _frontWindows = [];
-
         public Dictionary<Type, bool> FrontWindowStates { get; } = [];
 
         private readonly List<(Window, string)> _frontCanvas = []; //List<string>是Canvas（们）的名称
 
-        public static readonly Dictionary<int, FrameworkElement> MainGlobalScoreControls = [];
-        public static readonly Dictionary<int, FrameworkElement> AwayGlobalScoreControls = [];
+        public static readonly Dictionary<GameProgress, FrameworkElement> MainGlobalScoreControls = [];
+        public static readonly Dictionary<GameProgress, FrameworkElement> AwayGlobalScoreControls = [];
 
         private readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
         private readonly IMessageBoxService _messageBoxService;
@@ -59,6 +63,11 @@ namespace neo_bpsys_wpf.Services
             }
         }
 
+        /// <summary>
+        /// 注册窗口和画布
+        /// </summary>
+        /// <param name="window"></param>
+        /// <param name="canvasName"></param>
         public void RegisterFrontWindowAndCanvas(Window window, string canvasName = "BaseCanvas")
         {
             Type type = window.GetType();
@@ -72,7 +81,7 @@ namespace neo_bpsys_wpf.Services
                 _frontCanvas.Add((window, canvasName));
         }
 
-        //窗口显示/隐藏管理
+        #region 窗口显示/隐藏管理
         public void AllWindowShow()
         {
             foreach (var window in _frontWindows.Values)
@@ -114,39 +123,9 @@ namespace neo_bpsys_wpf.Services
             window.Hide();
             FrontWindowStates[typeof(T)] = false;
         }
+        #endregion 窗口显示/隐藏管理
 
         #region 前台动态控件添加
-
-        /// <summary>
-        /// 注册全局计分板控件
-        /// </summary>
-        private void GlobalScoreContorlsReg()
-        {
-
-            if (_frontWindows[typeof(ScoreWindow)].FindName("ScoreGlobalCanvas") is Canvas canvas)
-            {
-                //主队
-                foreach (GameProgress progress in Enum.GetValues<GameProgress>())
-                {
-                    if (progress != GameProgress.Free)
-                    {
-                        var control = new CustomControls.GlobalScorePresenter();
-                        RegisterControl("Main", progress.ToString(), (int)progress, MainGlobalScoreControls, control);
-                        AddControlToCanvas(control, canvas, progress, 86); // 添加到 Canvas 并设置位置
-                    }
-                }
-                //客队
-                foreach (GameProgress progress in Enum.GetValues<GameProgress>())
-                {
-                    if (progress != GameProgress.Free)
-                    {
-                        var control = new CustomControls.GlobalScorePresenter();
-                        RegisterControl("Away", progress.ToString(), (int)progress, AwayGlobalScoreControls, control);
-                        AddControlToCanvas(control, canvas, progress, 147); // 添加到 Canvas 并设置位置
-                    }
-                }
-            }
-        }
 
         /// <summary>
         /// 将控件添加到 Canvas 并设置位置
@@ -182,15 +161,14 @@ namespace neo_bpsys_wpf.Services
         /// 注册控件
         /// </summary>
         /// <param name="nameHeader">控件名头</param>
-        /// <param name="nameFotter">控件名尾</param>
         /// <param name="key">控件序号 (在字典中查找用的Key)</param>
         /// <param name="elementDict">控件所在的字典</param>
         /// <param name="control">控件</param>
         /// <param name="isOverride">是否覆盖(当Key值相同的情况下)</param>
         /// <exception cref="ArgumentException"></exception>
-        private static void RegisterControl(string nameHeader, string nameFotter, int key, Dictionary<int, FrameworkElement> elementDict, FrameworkElement control, bool isOverride = true, string designModeBindingPath = "IsDesignMode")
+        private static void RegisterControl(string nameHeader, GameProgress key, Dictionary<GameProgress, FrameworkElement> elementDict, FrameworkElement control, bool isOverride = true, string designModeBindingPath = "IsDesignMode")
         {
-            var name = nameHeader + key + nameFotter;
+            var name = nameHeader + key.ToString();
             control.Name = name;
             if (!elementDict.TryAdd(key, control))
             {
@@ -282,6 +260,8 @@ namespace neo_bpsys_wpf.Services
                 return;
             }
 
+            if(typeof(T) == typeof(ScoreWindow) && canvasName == "ScoreGlobalCanvas" && _isBo3Mode) return;
+
             var positions = new Dictionary<string, PositionInfo>();
             if (window.FindName(canvasName) is Canvas canvas)
             {
@@ -363,7 +343,8 @@ namespace neo_bpsys_wpf.Services
         /// <summary>
         /// 还原窗口中的元素到初始位置
         /// </summary>
-        /// <param name="window">该窗口的实例</param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="canvasName"></param>
         public async void RestoreInitialPositions<T>(string canvasName = "BaseCanvas") where T : Window
         {
             if (!_frontWindows.TryGetValue(typeof(T), out var window))
@@ -406,7 +387,7 @@ namespace neo_bpsys_wpf.Services
                 }
 
                 var customFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
-                if(File.Exists(customFilePath))
+                if (File.Exists(customFilePath))
                     File.Move(customFilePath, customFilePath + ".disabled", true);
             }
             catch (Exception ex)
@@ -426,7 +407,165 @@ namespace neo_bpsys_wpf.Services
             public double Left { get; set; } = left;
             public double Top { get; set; } = top;
         }
-#endregion 设计者模式
+        #endregion 设计者模式
+
+        #region 分数统计
+        private bool _isBo3Mode;
+
+        /// <summary>
+        /// 注册全局计分板控件
+        /// </summary>
+        private void GlobalScoreContorlsReg()
+        {
+
+            if (_frontWindows[typeof(ScoreWindow)].FindName("ScoreGlobalCanvas") is Canvas canvas)
+            {
+                //主队
+                foreach (GameProgress progress in Enum.GetValues<GameProgress>())
+                {
+                    if (progress != GameProgress.Free)
+                    {
+                        var control = new GlobalScorePresenter();
+                        RegisterControl("Main", progress, MainGlobalScoreControls, control);
+                        AddControlToCanvas(control, canvas, progress, 86); // 添加到 Canvas 并设置位置
+                    }
+                }
+                //客队
+                foreach (GameProgress progress in Enum.GetValues<GameProgress>())
+                {
+                    if (progress != GameProgress.Free)
+                    {
+                        var control = new GlobalScorePresenter();
+                        RegisterControl("Away", progress, AwayGlobalScoreControls, control);
+                        AddControlToCanvas(control, canvas, progress, 147); // 添加到 Canvas 并设置位置
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 设置分数统计
+        /// </summary>
+        /// <param name="Team"></param>
+        /// <param name="gameProgress"></param>
+        /// <param name="camp"></param>
+        /// <param name="score"></param>
+        public void SetGlobalScore(string team, GameProgress gameProgress, Camp camp, int score)
+        {
+            GlobalScorePresenter presenter = new();
+
+            if (team == nameof(ISharedDataService.MainTeam))
+            {
+
+                if (MainGlobalScoreControls[gameProgress] is GlobalScorePresenter item)
+                    presenter = item;
+            }
+            else
+            {
+                if (AwayGlobalScoreControls[gameProgress] is GlobalScorePresenter item1)
+                    presenter = item1;
+            }
+
+            presenter.IsCampVisible = true;
+            presenter.IsHunIcon = camp == Camp.Hun;
+            presenter.Text = score.ToString();
+        }
+
+        public void SetGlobalScoreToBar(string team, GameProgress gameProgress)
+        {
+            GlobalScorePresenter presenter = new();
+
+            if (team == nameof(ISharedDataService.MainTeam))
+            {
+                if (MainGlobalScoreControls[gameProgress] is GlobalScorePresenter item)
+                    presenter = item;
+            }
+            else
+            {
+                if (AwayGlobalScoreControls[gameProgress] is GlobalScorePresenter item1)
+                    presenter = item1;
+            }
+
+            presenter.IsCampVisible = false;
+            presenter.Text = "-";
+        }
+
+        /// <summary>
+        /// 重置全局分数统计
+        /// </summary>
+        public void ResetGlobalScore()
+        {
+            //主队
+            foreach (GameProgress progress in Enum.GetValues<GameProgress>())
+            {
+                if (progress != GameProgress.Free)
+                {
+                    SetGlobalScoreToBar(nameof(ISharedDataService.MainTeam), progress);
+                }
+            }
+            //客队
+            foreach (GameProgress progress in Enum.GetValues<GameProgress>())
+            {
+                if (progress != GameProgress.Free)
+                {
+                    SetGlobalScoreToBar(nameof(ISharedDataService.AwayTeam), progress);
+                }
+            }
+        }
+        public double GlobalScoreTotalMargin { get; set; }
+
+        private double _lastMove;
+
+        /// <summary>
+        /// 切换赛制到
+        /// </summary>
+        public void SwitchGameType(bool isBo3)
+        {
+            _isBo3Mode = isBo3;
+            if (_frontWindows[typeof(ScoreWindow)] is not ScoreWindow scoreWindow) return;
+            if (_isBo3Mode)
+            {
+                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush("scoreGlobal_Bo3");
+                foreach (var item in MainGlobalScoreControls)
+                {
+                    if(item.Key > GameProgress.Game3ExtraSecondHalf)
+                    {
+                        item.Value.Visibility = Visibility.Hidden;
+                    }
+                }
+                foreach (var item in AwayGlobalScoreControls)
+                {
+                    if (item.Key > GameProgress.Game3ExtraSecondHalf)
+                    {
+                        item.Value.Visibility = Visibility.Hidden;
+                    }
+                }
+                Canvas.SetLeft(scoreWindow.MainScoreTotal, Canvas.GetLeft(scoreWindow.MainScoreTotal) - GlobalScoreTotalMargin);
+                Canvas.SetLeft(scoreWindow.AwayScoreTotal, Canvas.GetLeft(scoreWindow.AwayScoreTotal) - GlobalScoreTotalMargin);
+                _lastMove = GlobalScoreTotalMargin;
+            }
+            else
+            {
+                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush("scoreGlobal");
+                foreach (var item in MainGlobalScoreControls)
+                {
+                    if (item.Key > GameProgress.Game3ExtraSecondHalf)
+                    {
+                        item.Value.Visibility = Visibility.Visible;
+                    }
+                }
+                foreach (var item in AwayGlobalScoreControls)
+                {
+                    if (item.Key > GameProgress.Game3ExtraSecondHalf)
+                    {
+                        item.Value.Visibility = Visibility.Visible;
+                    }
+                }
+                Canvas.SetLeft(scoreWindow.MainScoreTotal, Canvas.GetLeft(scoreWindow.MainScoreTotal) + _lastMove);
+                Canvas.SetLeft(scoreWindow.AwayScoreTotal, Canvas.GetLeft(scoreWindow.AwayScoreTotal) + _lastMove);
+            }
+        }
+        #endregion 分数统计
 
         /// <summary>
         /// 窗口分辨率

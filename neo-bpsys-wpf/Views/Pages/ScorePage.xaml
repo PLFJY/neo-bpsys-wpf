@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:enum="clr-namespace:neo_bpsys_wpf.Enums"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -68,29 +69,32 @@
                             <TextBlock
                                 VerticalAlignment="Center"
                                 d:Text="主队名称"
-                                Text="{Binding SharedDataService.MainTeam.Name}" />
+                                Text="{Binding MainTeam.Name}" />
                             <TextBlock
                                 Margin="10"
                                 HorizontalAlignment="Left"
                                 d:Text="W:0 D:0 小比分:0"
-                                Text="{Binding SharedDataService.MainTeam.Score.ScorePreviewOnBack}" />
+                                Text="{Binding MainTeam.Score.ScorePreviewOnBack}" />
                         </StackPanel>
                         <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
                             <TextBlock
                                 VerticalAlignment="Center"
                                 d:Text="客队名称"
-                                Text="{Binding SharedDataService.AwayTeam.Name}" />
+                                Text="{Binding AwayTeam.Name}" />
                             <TextBlock
                                 Margin="10"
                                 HorizontalAlignment="Left"
                                 d:Text="W:0 D:0 小比分:0"
-                                Text="{Binding SharedDataService.AwayTeam.Score.ScorePreviewOnBack}" />
+                                Text="{Binding AwayTeam.Score.ScorePreviewOnBack}" />
                         </StackPanel>
                     </StackPanel>
                 </Grid>
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">
+            <Border.Resources>
+                <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
+            </Border.Resources>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -106,9 +110,18 @@
                         <RowDefinition />
                     </Grid.RowDefinitions>
                     <StackPanel Grid.Row="0" Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" Text="赛制: BO5" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="赛制: BO5"
+                            Visibility="{Binding IsBo3Mode, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            d:Visibility="Collapsed"
+                            Text="赛制: BO3"
+                            Visibility="{Binding IsBo3Mode, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <ui:Button
                             Margin="10,0,0,0"
+                            Command="{Binding SwitchGameTypeCommand}"
                             Content="切换"
                             Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
                     </StackPanel>
@@ -122,10 +135,12 @@
                             Margin="10,0,0,0"
                             DisplayMemberPath="Key"
                             ItemsSource="{Binding GameList}"
-                            SelectedIndex="0"
+                            SelectedIndex="{Binding SelectedIndex}"
+                            SelectedValue="{Binding SelectedGameProgress}"
                             SelectedValuePath="Value" />
                         <ui:Button
                             Margin="10,0,0,0"
+                            Command="{Binding NextGameCommand}"
                             Content="下一局"
                             Icon="{ui:SymbolIcon Symbol=ArrowNext24}" />
                     </StackPanel>
@@ -133,8 +148,12 @@
                         x:Name="IsGameComplted"
                         Grid.Row="2"
                         Margin="0,10,0,0"
-                        Content="对局已完成" />
-                    <Grid Grid.Row="3" IsEnabled="{Binding ElementName=IsGameComplted, Path=IsChecked, Mode=TwoWay}">
+                        Content="对局已完成"
+                        IsChecked="{Binding IsGameFinished}" />
+                    <Grid
+                        Grid.Row="3"
+                        d:IsEnabled="False"
+                        IsEnabled="{Binding ElementName=IsGameComplted, Path=IsChecked, Mode=TwoWay}">
                         <Grid.RowDefinitions>
                             <RowDefinition />
                             <RowDefinition />
@@ -149,8 +168,15 @@
                                 Padding="5"
                                 Header="主场队伍阵营">
                                 <StackPanel>
-                                    <RadioButton Content="求生者" />
-                                    <RadioButton Margin="0,10,0,0" Content="监管者" />
+                                    <RadioButton
+                                        Name="MainSurRadioButton"
+                                        Content="求生者"
+                                        IsChecked="{Binding MainTeamCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Camp.Sur}}" />
+                                    <RadioButton
+                                        Name="MainHunRadioButton"
+                                        Margin="0,10,0,0"
+                                        Content="监管者"
+                                        IsChecked="{Binding MainTeamCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Camp.Hun}}" />
                                 </StackPanel>
                             </GroupBox>
                             <GroupBox
@@ -159,8 +185,15 @@
                                 Padding="5"
                                 Header="客场队伍阵营">
                                 <StackPanel>
-                                    <RadioButton Content="求生者" />
-                                    <RadioButton Margin="0,10,0,0" Content="监管者" />
+                                    <RadioButton
+                                        Name="AwaySurRadioButton"
+                                        Content="求生者"
+                                        IsChecked="{Binding ElementName=MainHunRadioButton, Path=IsChecked, Mode=TwoWay}" />
+                                    <RadioButton
+                                        Name="AwayHunRadioButton"
+                                        Margin="0,10,0,0"
+                                        Content="监管者"
+                                        IsChecked="{Binding ElementName=MainSurRadioButton, Path=IsChecked, Mode=TwoWay}" />
                                 </StackPanel>
                             </GroupBox>
                         </Grid>
@@ -176,22 +209,31 @@
                                     <ColumnDefinition />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <RadioButton Content="四跑" GroupName="GameResult" />
+                                    <RadioButton
+                                        Content="四跑"
+                                        GroupName="GameResult"
+                                        IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Escape4}}" />
                                     <RadioButton
                                         Margin="0,30,0,0"
                                         Content="三跑"
-                                        GroupName="GameResult" />
+                                        GroupName="GameResult"
+                                        IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Escape3}}" />
                                 </StackPanel>
                                 <RadioButton
                                     Grid.Column="1"
                                     Content="平局"
-                                    GroupName="GameResult" />
+                                    GroupName="GameResult"
+                                    IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Tie}}" />
                                 <StackPanel Grid.Column="2">
-                                    <RadioButton Content="四抓" GroupName="GameResult" />
+                                    <RadioButton
+                                        Content="四抓"
+                                        GroupName="GameResult"
+                                        IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Out4}}" />
                                     <RadioButton
                                         Margin="0,30,0,0"
                                         Content="三抓"
-                                        GroupName="GameResult" />
+                                        GroupName="GameResult"
+                                        IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Out3}}" />
                                 </StackPanel>
                             </Grid>
                         </GroupBox>

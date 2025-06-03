@@ -19,6 +19,7 @@
     <Page.Resources>
         <ResourceDictionary>
             <cv:WindowResolutionToStringConverter x:Key="WindowResolutionToStringConverter" />
+            <cv:StringToDoubleConverter x:Key="StringToDoubleConverter" />
         </ResourceDictionary>
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
@@ -27,6 +28,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="所有前台画面" />
@@ -54,6 +56,11 @@
                         <TextBlock Margin="10,0,0,0" Text="设计模式" />
                     </StackPanel>
                 </ToggleButton>
+                <TextBlock
+                    Grid.Row="3"
+                    Margin="0,10,0,0"
+                    Text="备注：分数统计界面BO3时不保存"
+                    TextWrapping="WrapWithOverflow" />
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">
@@ -98,6 +105,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="过场画面" />
@@ -130,6 +138,8 @@
         <Border Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -169,6 +179,15 @@
                     CommandParameter="ScoreGlobalCanvas"
                     Content="重置分数统计布局"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                <TextBlock
+                    Grid.Row="6"
+                    Margin="0,10,0,0"
+                    Text="BO3 和 BO5之间&quot;Total&quot;&#10;相差的距离 (下一次切换到BO3生效): " />
+                <ui:TextBox
+                    Grid.Row="7"
+                    Margin="0,10,0,0"
+                    PlaceholderText="单位距离"
+                    Text="{Binding GlobalScoreTotalMargin, Converter={StaticResource StringToDoubleConverter}}" />
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">
@@ -206,7 +225,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="其它小组件" />
+                <TextBlock Grid.Row="0" Text="其它小组件 (地图BP等)" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"

@@ -32,6 +32,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             _frontService = frontService;
             _messageBoxService = messageBoxService;
             LoadFrontConfig();
+            _frontService.GlobalScoreTotalMargin = GlobalScoreTotalMargin;
         }
 
         [RelayCommand]
@@ -105,6 +106,19 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             _frontService.HideWindow<WidgetsWindow>();
         }
+
+        private double _globalScoreTotalMargin = 390;
+
+        public double GlobalScoreTotalMargin
+        {
+            get => _globalScoreTotalMargin;
+            set
+            {
+                _globalScoreTotalMargin = value;
+                _frontService.GlobalScoreTotalMargin = _globalScoreTotalMargin;
+            }
+        }
+
 
         //前台窗口大小修改
 

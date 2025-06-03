@@ -10,4 +10,4 @@ using System.Windows;
 // app, or any theme specific resource dictionaries)
 )]
 [assembly: System.Runtime.Versioning.SupportedOSPlatform("windows")]
-[assembly: AssemblyVersion("0.1.4")]
+[assembly: AssemblyVersion("0.1.5")]

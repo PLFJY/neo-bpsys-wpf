@@ -41,7 +41,7 @@ namespace neo_bpsys_wpf
                 // Service containing navigation, same as INavigationWindow... but without window
                 services.AddSingleton<INavigationService, NavigationService>();
 
-                //SharedDataService
+                //_sharedDataService
                 services.AddSingleton<ISharedDataService, SharedDataService>();
 
                 // Main window with navigation
