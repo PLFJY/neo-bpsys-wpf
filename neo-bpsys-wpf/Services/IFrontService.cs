@@ -5,7 +5,13 @@ namespace neo_bpsys_wpf.Services
 {
     public interface IFrontService
     {
+        /// <summary>
+        /// 前台窗口状态
+        /// </summary>
         Dictionary<Type, bool> FrontWindowStates { get; }
+        /// <summary>
+        /// 全局分数统计的间隔(BO3和BO5之间)
+        /// </summary>
         double GlobalScoreTotalMargin { get; set; }
 
         /// <summary>
@@ -48,6 +54,10 @@ namespace neo_bpsys_wpf.Services
         /// 重置全局分数统计
         /// </summary>
         void ResetGlobalScore();
+        /// <summary>
+        /// 切换对局模式(BO3和BO5)
+        /// </summary>
+        /// <param name="isBo3"></param>
         void SwitchGameType(bool isBo3);
     }
 }

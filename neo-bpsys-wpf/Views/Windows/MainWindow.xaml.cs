@@ -1,6 +1,7 @@
 ﻿using neo_bpsys_wpf.Services;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Shell;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
@@ -29,23 +30,28 @@ namespace neo_bpsys_wpf.Views.Windows
             MaximizeButton.Click += MaximizeButton_Click;
             MinimizeButton.Click += MinimizeButton_Click;
             ExitButton.Click += ExitButton_Click;
+            StateChanged += MainWindow_StateChanged;
         }
 
-        private async void MainWindow_Closing(
-            object? sender,
-            System.ComponentModel.CancelEventArgs e
-        )
+        private void MainWindow_StateChanged(object? sender, EventArgs e)
+        {
+            MaximizeButton.Icon = this.WindowState == WindowState.Maximized
+                ? new SymbolIcon() { Symbol = SymbolRegular.SquareMultiple24 }
+                : new SymbolIcon() { Symbol = SymbolRegular.Maximize24 };
+        }
+
+        private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
             e.Cancel = true;
-            await ConfirmToExitAsync();
+            ConfirmToExitAsync();
         }
 
-        private async void ExitButton_Click(object sender, RoutedEventArgs e)
+        private void ExitButton_Click(object sender, RoutedEventArgs e)
         {
-            await ConfirmToExitAsync();
+            ConfirmToExitAsync();
         }
 
-        private static async Task ConfirmToExitAsync()
+        private static async void ConfirmToExitAsync()
         {
             var messageBox = new MessageBox()
             {
@@ -66,8 +72,9 @@ namespace neo_bpsys_wpf.Views.Windows
 
         private void MaximizeButton_Click(object sender, RoutedEventArgs e)
         {
-            this.WindowState =
-                this.WindowState == WindowState.Normal ? WindowState.Maximized : WindowState.Normal;
+            this.WindowState = 
+                this.WindowState == WindowState.Normal ?
+                WindowState.Maximized : WindowState.Normal;
         }
 
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
@@ -82,17 +89,20 @@ namespace neo_bpsys_wpf.Views.Windows
 
         private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ClickCount == 2 && e.ChangedButton == MouseButton.Left)
-                MaximizeButton_Click(sender, e);
-
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                this.DragMove();
-            }
-
             if (e.ChangedButton == MouseButton.Right)
             {
                 SystemCommands.ShowSystemMenu(this, this.PointToScreen(e.GetPosition(this)));
+            }
+
+            if (e.ClickCount == 2 && e.ChangedButton == MouseButton.Left)
+            {
+                MaximizeButton_Click(sender, e);
+                return;
+            }
+
+            if (e.ChangedButton == MouseButton.Left && e.LeftButton == MouseButtonState.Pressed)
+            {
+                this.DragMove();
             }
         }
 

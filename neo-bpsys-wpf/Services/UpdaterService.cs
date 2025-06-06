@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Windows;
+using System.Xml.Serialization;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -28,8 +29,10 @@ namespace neo_bpsys_wpf.Services
 
         public UpdaterService(IMessageBoxService messageBoxService, IInfoBarService infoBarService)
         {
-            _httpClient = new();
-            _httpClient.BaseAddress = new Uri(GitHubApiBaseUrl);
+            _httpClient = new()
+            {
+                BaseAddress = new Uri(GitHubApiBaseUrl)
+            };
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "neo-bpsys-wpf");
             _messageBoxService = messageBoxService;
@@ -182,6 +185,7 @@ namespace neo_bpsys_wpf.Services
             App.Current.Shutdown();
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:命名样式", Justification = "<挂起>")]
         public class ReleaseInfo
         {
             public string tag_name { get; set; } = string.Empty;
@@ -189,6 +193,7 @@ namespace neo_bpsys_wpf.Services
             public AssetsInfo[] assets { get; set; } = [];
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:命名样式", Justification = "<挂起>")]
         public class AssetsInfo
         {
             public string name { get; set; } = string.Empty;

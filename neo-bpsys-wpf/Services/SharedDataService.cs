@@ -78,19 +78,49 @@ namespace neo_bpsys_wpf.Services
             }
         }
 
+        /// <summary>
+        /// 主队
+        /// </summary>
         public Team MainTeam { get; set; }
+        /// <summary>
+        /// 客队
+        /// </summary>
         public Team AwayTeam { get; set; }
+        /// <summary>
+        /// 当前游戏
+        /// </summary>
         public Game CurrentGame { get; set; }
+        /// <summary>
+        /// 所有角色
+        /// </summary>
         public Dictionary<string, Character> CharacterList { get; set; } = [];
+        /// <summary>
+        /// 求生者角色列表
+        /// </summary>
         public Dictionary<string, Character> SurCharaList { get; set; } = [];
+        /// <summary>
+        /// 监管者角色列表
+        /// </summary>
         public Dictionary<string, Character> HunCharaList { get; set; } = [];
+        /// <summary>
+        /// 当局禁用是否可禁用
+        /// </summary>
         public ObservableCollection<bool> CanCurrentSurBanned { get; set; } = [];
         public ObservableCollection<bool> CanCurrentHunBanned { get; set; } = [];
+        /// <summary>
+        /// 全局禁用是否可禁用
+        /// </summary>
         public ObservableCollection<bool> CanGlobalSurBanned { get; set; } = [];
         public ObservableCollection<bool> CanGlobalHunBanned { get; set; } = [];
 
+        /// <summary>
+        /// 是否显示辅助特质
+        /// </summary>
         public bool IsTraitVisible { get; set; } = true;
 
+        /// <summary>
+        /// 倒计时剩余时间
+        /// </summary>
         private int _remainingSeconds = 0;
 
         public string RemainingSeconds

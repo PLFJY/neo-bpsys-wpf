@@ -101,6 +101,14 @@
             </Storyboard>
         </ResourceDictionary>
     </ui:FluentWindow.Resources>
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="35"
+            CornerRadius="8"
+            GlassFrameThickness="0"
+            ResizeBorderThickness="5"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
     <Grid>
         <i:Interaction.Triggers>
             <i:EventTrigger EventName="Loaded">
@@ -117,8 +125,8 @@
             <Grid
                 Name="TitleBar"
                 Grid.Row="0"
-                Height="35">
-                <Border Background="White" Opacity="0" />
+                Height="35"
+                Background="Transparent">
                 <StackPanel
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
