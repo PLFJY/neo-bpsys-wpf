@@ -108,8 +108,8 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [RelayCommand]
         private async Task NewGameAsync()
         {
-            Team surTeam = new(Camp.Sur);
-            Team hunTeam = new(Camp.Hun);
+            Team surTeam;
+            Team hunTeam;
             if (_sharedDataService.MainTeam.Camp == Camp.Sur)
             {
                 surTeam = _sharedDataService.MainTeam;
@@ -120,9 +120,15 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 surTeam = _sharedDataService.AwayTeam;
                 hunTeam = _sharedDataService.MainTeam;
             }
+            Map? pickedMap = _sharedDataService.CurrentGame.PickedMap;
+            Map? bannedMap = _sharedDataService.CurrentGame.BannedMap;
 
-            _sharedDataService.CurrentGame = new Game(surTeam, hunTeam, SelectedGameProgress);
-
+            _sharedDataService.CurrentGame = new Game(surTeam, hunTeam, SelectedGameProgress)
+            {
+                PickedMap = pickedMap,
+                BannedMap = bannedMap
+            };
+            
             //发送新对局已创建的消息
             WeakReferenceMessenger.Default.Send(new NewGameMessage(this, true));
 

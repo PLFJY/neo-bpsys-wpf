@@ -39,11 +39,11 @@
     "Left": 660,
     "Top": 86
   },
-  "MainGame3ExtraFirstHalf": {
+  "MainGame4FirstHalf": {
     "Left": 758,
     "Top": 86
   },
-  "MainGame3ExtraSecondHalf": {
+  "MainGame4SecondHalf": {
     "Left": 856,
     "Top": 86
   },
@@ -87,11 +87,11 @@
     "Left": 660,
     "Top": 147
   },
-  "AwayGame3ExtraFirstHalf": {
+  "AwayGame4FirstHalf": {
     "Left": 758,
     "Top": 147
   },
-  "AwayGame3ExtraSecondHalf": {
+  "AwayGame4SecondHalf": {
     "Left": 856,
     "Top": 147
   },

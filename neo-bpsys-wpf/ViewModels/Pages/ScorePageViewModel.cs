@@ -147,6 +147,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             set
             {
                 _mainTeamCamp = value;
+                SyncGlobalScore();
                 _gameGlobalInfoRecord[_selectedGameProgress].MainTeamCamp = _mainTeamCamp;
                 OnPropertyChanged();
             }
@@ -160,48 +161,62 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             set
             {
                 _selectedGameResult = value;
-                if (_selectedGameResult != null)
-                {
-                    int surScore = 0;
-                    int hunScore = 0;
-                    switch (_selectedGameResult)
-                    {
-                        case GameResult.Escape4:
-                            surScore = 5;
-                            hunScore = 0;
-                            break;
-                        case GameResult.Escape3:
-                            surScore = 3;
-                            hunScore = 1;
-                            break;
-                        case GameResult.Tie:
-                            surScore = 2;
-                            hunScore = 2;
-                            break;
-                        case GameResult.Out3:
-                            surScore = 1;
-                            hunScore = 3;
-                            break;
-                        case GameResult.Out4:
-                            surScore = 0;
-                            hunScore = 5;
-                            break;
-                        default:
-                            break;
-                    }
-                    if (MainTeamCamp == Camp.Sur)
-                    {
-                        _frontService.SetGlobalScore(nameof(ISharedDataService.MainTeam), SelectedGameProgress, Camp.Sur, surScore);
-                        _frontService.SetGlobalScore(nameof(ISharedDataService.AwayTeam), SelectedGameProgress, Camp.Hun, hunScore);
-                    }
-                    else
-                    {
-                        _frontService.SetGlobalScore(nameof(ISharedDataService.MainTeam), SelectedGameProgress, Camp.Hun, hunScore);
-                        _frontService.SetGlobalScore(nameof(ISharedDataService.AwayTeam), SelectedGameProgress, Camp.Sur, surScore);
-                    }
-                }
+                SyncGlobalScore();
                 _gameGlobalInfoRecord[_selectedGameProgress].GameResult = _selectedGameResult;
                 OnPropertyChanged();
+            }
+        }
+
+        private void SyncGlobalScore()
+        {
+            if(!_isGameFinished)
+            {
+                _frontService.SetGlobalScoreToBar(nameof(ISharedDataService.MainTeam), SelectedGameProgress);
+                _frontService.SetGlobalScoreToBar(nameof(ISharedDataService.AwayTeam), SelectedGameProgress);
+                return;
+            }
+
+            if (MainTeamCamp == null) return;
+
+            if (_selectedGameResult != null)
+            {
+                int surScore = 0;
+                int hunScore = 0;
+                switch (_selectedGameResult)
+                {
+                    case GameResult.Escape4:
+                        surScore = 5;
+                        hunScore = 0;
+                        break;
+                    case GameResult.Escape3:
+                        surScore = 3;
+                        hunScore = 1;
+                        break;
+                    case GameResult.Tie:
+                        surScore = 2;
+                        hunScore = 2;
+                        break;
+                    case GameResult.Out3:
+                        surScore = 1;
+                        hunScore = 3;
+                        break;
+                    case GameResult.Out4:
+                        surScore = 0;
+                        hunScore = 5;
+                        break;
+                    default:
+                        break;
+                }
+                if (MainTeamCamp == Camp.Sur)
+                {
+                    _frontService.SetGlobalScore(nameof(ISharedDataService.MainTeam), SelectedGameProgress, Camp.Sur, surScore);
+                    _frontService.SetGlobalScore(nameof(ISharedDataService.AwayTeam), SelectedGameProgress, Camp.Hun, hunScore);
+                }
+                if (MainTeamCamp == Camp.Hun)
+                {
+                    _frontService.SetGlobalScore(nameof(ISharedDataService.MainTeam), SelectedGameProgress, Camp.Hun, hunScore);
+                    _frontService.SetGlobalScore(nameof(ISharedDataService.AwayTeam), SelectedGameProgress, Camp.Sur, surScore);
+                }
             }
         }
 

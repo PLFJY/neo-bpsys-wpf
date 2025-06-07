@@ -127,9 +127,6 @@
     <Content Include="favicon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="GameRuleGuidance.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="GameRule.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

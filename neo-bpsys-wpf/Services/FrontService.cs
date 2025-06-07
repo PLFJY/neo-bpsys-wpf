@@ -166,7 +166,7 @@ namespace neo_bpsys_wpf.Services
         /// <param name="control">控件</param>
         /// <param name="isOverride">是否覆盖(当Key值相同的情况下)</param>
         /// <exception cref="ArgumentException"></exception>
-        private static void RegisterControl(string nameHeader, GameProgress key, Dictionary<GameProgress, FrameworkElement> elementDict, FrameworkElement control, bool isOverride = true, string designModeBindingPath = "IsDesignMode")
+        private static void RegisterControl(string nameHeader, GameProgress key, Dictionary<GameProgress, FrameworkElement> elementDict, FrameworkElement control, bool isOverride = true)
         {
             var name = nameHeader + key.ToString();
             control.Name = name;
@@ -427,7 +427,6 @@ namespace neo_bpsys_wpf.Services
                     {
                         var control = new GlobalScorePresenter();
                         RegisterControl("Main", progress, MainGlobalScoreControls, control);
-                        AddControlToCanvas(control, canvas, progress, 86); // 添加到 Canvas 并设置位置
                     }
                 }
                 //客队
@@ -437,8 +436,17 @@ namespace neo_bpsys_wpf.Services
                     {
                         var control = new GlobalScorePresenter();
                         RegisterControl("Away", progress, AwayGlobalScoreControls, control);
-                        AddControlToCanvas(control, canvas, progress, 147); // 添加到 Canvas 并设置位置
                     }
+                }
+
+                //添加控件到 Canvas 并设置位置
+                foreach (var item in MainGlobalScoreControls)
+                {
+                    AddControlToCanvas(item.Value, canvas, item.Key, 86);
+                }
+                foreach (var item in AwayGlobalScoreControls)
+                {
+                    AddControlToCanvas(item.Value, canvas, item.Key, 147);
                 }
             }
         }

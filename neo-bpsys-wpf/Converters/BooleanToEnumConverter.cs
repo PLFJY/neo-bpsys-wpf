@@ -8,7 +8,7 @@ namespace neo_bpsys_wpf.Converters
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value == null)
-                return Binding.DoNothing;
+                return false;
 
             return value.Equals(parameter);
         }
