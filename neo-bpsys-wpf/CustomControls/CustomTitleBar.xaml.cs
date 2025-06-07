@@ -39,7 +39,7 @@ namespace neo_bpsys_wpf.CustomControls
             // 事件绑定
             TitleBar.MouseDown += (s, e) =>
             {
-                if (e.ClickCount == 2 && e.ChangedButton == MouseButton.Left)
+                if (e.ClickCount == 2 && e.ChangedButton == MouseButton.Left && IsMaximizeVisible)
                     ToggleWindowState(window);
 
                 if (e.LeftButton == MouseButtonState.Pressed)

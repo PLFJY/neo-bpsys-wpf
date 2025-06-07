@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
+using neo_bpsys_wpf.Views.Windows;
 using System;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
@@ -18,11 +19,13 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
         public readonly ISharedDataService _sharedDataService;
         private readonly IFrontService _frontService;
+        private readonly ScoreManualWindow _scoreManual;
 
-        public ScorePageViewModel(ISharedDataService sharedDataService, IFrontService frontService)
+        public ScorePageViewModel(ISharedDataService sharedDataService, IFrontService frontService, ScoreManualWindow scoreManual)
         {
             _sharedDataService = sharedDataService;
             _frontService = frontService;
+            _scoreManual = scoreManual;
             GameList = GameListBo5;
         }
 
@@ -89,16 +92,20 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             else if (_sharedDataService.MainTeam.Score.MinorPoints > _sharedDataService.AwayTeam.Score.MinorPoints)
             {
                 _sharedDataService.MainTeam.Score.Win++;
-                _sharedDataService.AwayTeam.Score.Lose++;
             }
             else
             {
-                _sharedDataService.MainTeam.Score.Lose++;
                 _sharedDataService.AwayTeam.Score.Win++;
             }
             _sharedDataService.MainTeam.Score.MinorPoints = 0;
             _sharedDataService.AwayTeam.Score.MinorPoints = 0;
             OnPropertyChanged(string.Empty);
+        }
+
+        [RelayCommand]
+        private void ManualControl()
+        {
+            _scoreManual.ShowDialog();
         }
         #endregion
 

@@ -91,6 +91,11 @@ namespace neo_bpsys_wpf
                     DataContext = sp.GetRequiredService<WidgetsWindowViewModel>(),
                 });
                 services.AddSingleton<WidgetsWindowViewModel>();
+                services.AddSingleton<ScoreManualWindowViewModel>();
+                services.AddSingleton<ScoreManualWindow>(sp => new ScoreManualWindow()
+                {
+                    DataContext = sp.GetRequiredService<ScoreManualWindowViewModel>()
+                });
 
                 //Page
                 services.AddSingleton<HomePage>();
@@ -176,9 +181,7 @@ namespace neo_bpsys_wpf
             Application.Current.Resources["hunIcon"] = ImageHelper.GetUiImageSource("hunIcon");
             ApplicationThemeManager.Changed += (currentApplicationTheme, systemAccent) =>
             {
-                foreach (
-                    ResourceDictionary dict in Application.Current.Resources.MergedDictionaries
-                )
+                foreach (ResourceDictionary dict in Application.Current.Resources.MergedDictionaries)
                 {
                     if (dict is IconThemesDictionary iconThemesDictionary)
                     {

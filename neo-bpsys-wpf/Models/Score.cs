@@ -24,22 +24,6 @@ public partial class Score : ObservableObject
         }
     }
 
-    private int _lose = 0;
-    public int Lose
-    {
-        get => _lose;
-        set
-        {
-            if (_lose != value)
-            {
-                _lose = value;
-                OnPropertyChanged(nameof(Lose));
-                OnPropertyChanged(nameof(MajorPointsOnFront));
-                OnPropertyChanged(nameof(ScorePreviewOnBack));
-            }
-        }
-    }
-
     private int _tie = 0;
     public int Tie
     {
@@ -80,7 +64,7 @@ public partial class Score : ObservableObject
     [JsonIgnore]
     public string ScorePreviewOnBack
     {
-        get => $"W:{Lose} D:{Tie} 小比分:{MinorPoints}";
+        get => $"W:{Win} D:{Tie} 小比分:{MinorPoints}";
     }
 
 }
