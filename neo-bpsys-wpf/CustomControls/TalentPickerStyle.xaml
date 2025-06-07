@@ -34,7 +34,7 @@
                                 IsChecked="{Binding Is12Checked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
                                 <Grid>
                                     <Image Source="{DynamicResource FlywheelEffect}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                                    <Image Source="{DynamicResource ConfinedSpace}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    <Image Source="{DynamicResource ConfinedSpace}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BoolToVisibilityConverter}}" />
                                 </Grid>
                             </ToggleButton>
                             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
@@ -44,7 +44,7 @@
                                     IsChecked="{Binding Is9Checked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
                                     <Grid>
                                         <Image Source="{DynamicResource KneeJerkReflex}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                                        <Image Source="{DynamicResource Insolence}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        <Image Source="{DynamicResource Insolence}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BoolToVisibilityConverter}}" />
                                     </Grid>
                                 </ToggleButton>
                                 <ToggleButton
@@ -65,7 +65,7 @@
                                 IsChecked="{Binding Is6Checked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
                                 <Grid>
                                     <Image Source="{DynamicResource TideTurner}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                                    <Image Source="{DynamicResource Detention}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                    <Image Source="{DynamicResource Detention}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BoolToVisibilityConverter}}" />
                                 </Grid>
                             </ToggleButton>
                         </StackPanel>

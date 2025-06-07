@@ -39,6 +39,7 @@
                 </Style.Triggers>
             </Style>
             <cv:ApplicationThemeToBooleanConverter x:Key="ApplicationThemeToBooleanConverter" />
+            <cv:InverseBooleanConverter x:Key="InverseBooleanConverter" />
             <!--  Them Change Animation  -->
             <Storyboard x:Key="LightToDark">
                 <DoubleAnimation
@@ -214,7 +215,7 @@
                     </Grid>
                 </Border>
                 <!--  timer  -->
-                <Border Style="{StaticResource Card}">
+                <Border Width="440" Style="{StaticResource Card}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -272,16 +273,42 @@
                 <TextBlock
                     Margin="0,0,10,10"
                     VerticalAlignment="Center"
-                    Text="新对局为：" />
+                    Text="对局进度：" />
                 <ComboBox
                     Width="150"
                     Margin="0,0,10,10"
                     DisplayMemberPath="Key"
+                    IsEnabled="{Binding CanGameProgressChange}"
                     ItemsSource="{Binding GameList}"
                     MaxDropDownHeight="190"
                     SelectedIndex="0"
                     SelectedValue="{Binding SelectedGameProgress}"
                     SelectedValuePath="Value" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding StartNavigationCommand}"
+                    Content="开始导航"
+                    Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding NavigateToPreviousStepCommand}"
+                    Content="上一步"
+                    Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding NavigateToNextStepCommand}"
+                    Content="下一步"
+                    Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding StopNavigationCommand}"
+                    Content="结束导航"
+                    Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <TextBlock
+                    Margin="0,0,10,10"
+                    VerticalAlignment="Center"
+                    Text="{Binding ActionName}"
+                    Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
             </WrapPanel>
 
             <!--  navigation  -->
@@ -358,5 +385,6 @@
                 FontSize="14"
                 Text="Made By 零风PLFJY" />
         </Grid>
+
     </Grid>
 </ui:FluentWindow>

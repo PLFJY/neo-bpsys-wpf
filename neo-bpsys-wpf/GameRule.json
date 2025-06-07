@@ -1,623 +1,805 @@
-// 统一动词在前
 {
-  "Game1FirstHalf": { // 第x个对局的xx半场
-    "SurCurrentBan": 4, // ban求生总数
-    "HunCurrentBan": 0, // ban监管总数
-    "SurGlobalBan": 0, // 求生全局ban
-    "HunGlobalBan": 0, // 监管全局ban
-    "WorkFlow": { // 每一个半局的步骤
-      "Step1": {
-        "Action": "BanMap", // ban图
-        "Index": 1 // 0代表主队, 1代表客队
+  "Game1FirstHalf": {
+    "SurCurrentBan": 4,
+    "HunCurrentBan": 0,
+    "SurGlobalBan": 0,
+    "HunGlobalBan": 0,
+    "WorkFlow": [
+      {
+        "Sequence": 0,
+        "Action": "BanMap",
+        "Index": [ 1 ]
       },
-      "Step2": {
-        "Action": "PickMap", // 选图
-        "Index": 0
+      {
+        "Sequence": 1,
+        "Action": "PickMap",
+        "Index": [ 0 ]
       },
-      "Step3": {
-        "Action": "PickCamp", // 选边
-        "Index": 1
+      {
+        "Sequence": 2,
+        "Action": "PickCamp",
+        "Index": [ 1 ]
       },
-      "Step4": {
-        "Action": "BanSur", // ban求生者
-        "Index": [ 0, 1 ] //在角色的bp中，Index表示第几个位置；1个数是单个位置，数组是内部元素的所有位置
-      },
-      "Step5": {
-        "Action": "BanHun", // ban监管者
-        "Index": null // null表示不进行操作，此处为模板（绝对不是因为AI太蠢）
-      },
-      "Step6": {
-        "Action": "PickSur", // 选求生者
+      {
+        "Sequence": 3,
+        "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
-      "Step7": {
-        "Action": "BanSur",
-        "Index": 2
-      },
-      "Step8": {
+      {
+        "Sequence": 4,
         "Action": "PickSur",
-        "Index": 2
+        "Index": [ 0, 1 ]
       },
-      "Step9": {
+      {
+        "Sequence": 5,
         "Action": "BanSur",
-        "Index": 3
+        "Index": [ 2 ]
       },
-      "Step10": {
+      {
+        "Sequence": 6,
         "Action": "PickSur",
-        "Index": 3
+        "Index": [ 2 ]
       },
-      "Step11": {
-        "Action": "PickHun", // 选监管者
-        "Index": 0
+      {
+        "Sequence": 7,
+        "Action": "BanSur",
+        "Index": [ 3 ]
+      },
+      {
+        "Sequence": 8,
+        "Action": "PickSur",
+        "Index": [ 3 ]
+      },
+      {
+        "Sequence": 9,
+        "Action": "PickHun",
+        "Index": [ 0 ]
+      },
+      {
+        "Sequence": 10,
+        "Action": "PickTalent",
+        "Index" :  null
       }
-    }
+    ]
   },
   "Game1SecondHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 0,
     "SurGlobalBan": 0,
     "HunGlobalBan": 0,
-    "WorkFlow": {
-      "Step1": {
+    "WorkFlow": [
+      {
+        "Sequence": 0,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
-      "Step2": {
+      {
+        "Sequence": 1,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
-      "Step3": {
+      {
+        "Sequence": 2,
         "Action": "BanSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step4": {
+      {
+        "Sequence": 3,
         "Action": "PickSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step5": {
+      {
+        "Sequence": 4,
         "Action": "BanSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step6": {
+      {
+        "Sequence": 5,
         "Action": "PickSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step7": {
+      {
+        "Sequence": 6,
         "Action": "PickHun",
-        "Index": 0
+        "Index": [ 0 ]
+      },
+      {
+        "Sequence": 10,
+        "Action": "PickTalent",
+        "Index": null
       }
-    }
+    ]
   },
   "Game2FirstHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 1,
     "SurGlobalBan": 3,
     "HunGlobalBan": 1,
-    "WorkFlow": {
-      "Step1": {
+    "WorkFlow": [
+      {
+        "Sequence": 0,
         "Action": "BanMap",
-        "Index": 0
+        "Index": [ 0 ]
       },
-      "Step2": {
+      {
+        "Sequence": 1,
         "Action": "PickMap",
-        "Index": 1
+        "Index": [ 1 ]
       },
-      "Step3": {
+      {
+        "Sequence": 2,
         "Action": "PickCamp",
-        "Index": 0
+        "Index": [ 0 ]
       },
-      "Step4": {
+      {
+        "Sequence": 3,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
-      "Step5": {
+      {
+        "Sequence": 4,
         "Action": "BanHun",
-        "Index": 0
+        "Index": [ 0 ]
       },
-      "Step6": {
+      {
+        "Sequence": 5,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
-      "Step7": {
+      {
+        "Sequence": 6,
         "Action": "BanSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step8": {
+      {
+        "Sequence": 7,
         "Action": "PickSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step9": {
+      {
+        "Sequence": 8,
         "Action": "BanSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step10": {
+      {
+        "Sequence": 9,
         "Action": "PickSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step11": {
+      {
+        "Sequence": 10,
         "Action": "PickHun",
-        "Index": 0
+        "Index": [ 0 ]
+      },
+      {
+        "Sequence": 10,
+        "Action": "PickTalent",
+        "Index": null
       }
-    }
+    ]
   },
   "Game2SecondHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 1,
     "SurGlobalBan": 3,
     "HunGlobalBan": 1,
-    "WorkFlow": {
-      "Step1": {
+    "WorkFlow": [
+      {
+        "Sequence": 0,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
-      "Step2": {
+      {
+        "Sequence": 1,
         "Action": "BanHun",
-        "Index": 0
+        "Index": [ 0 ]
       },
-      "Step3": {
+      {
+        "Sequence": 2,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
-      "Step4": {
+      {
+        "Sequence": 3,
         "Action": "BanSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step5": {
+      {
+        "Sequence": 4,
         "Action": "PickSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step6": {
+      {
+        "Sequence": 5,
         "Action": "BanSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step7": {
+      {
+        "Sequence": 6,
         "Action": "PickSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step8": {
+      {
+        "Sequence": 7,
         "Action": "PickHun",
-        "Index": 0
+        "Index": [ 0 ]
+      },
+      {
+        "Sequence": 10,
+        "Action": "PickTalent",
+        "Index": null
       }
-    }
+    ]
   },
   "Game3FirstHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 2,
     "SurGlobalBan": 6,
     "HunGlobalBan": 2,
-    "WorkFlow": {
-      "Step1": {
+    "WorkFlow": [
+      {
+        "Sequence": 0,
         "Action": "PickMap",
-        "Index": 0
+        "Index": [ 0 ]
       },
-      "Step2": {
+      {
+        "Sequence": 1,
         "Action": "PickCamp",
-        "Index": 1
+        "Index": [ 1 ]
       },
-      "Step3": {
+      {
+        "Sequence": 2,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
-      "Step4": {
+      {
+        "Sequence": 3,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
-      "Step5": {
+      {
+        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
-      "Step6": {
+      {
+        "Sequence": 5,
         "Action": "BanSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step7": {
+      {
+        "Sequence": 6,
         "Action": "PickSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step8": {
+      {
+        "Sequence": 7,
         "Action": "BanSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step9": {
+      {
+        "Sequence": 8,
         "Action": "PickSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step10": {
+      {
+        "Sequence": 9,
         "Action": "PickHun",
-        "Index": 0
+        "Index": [ 0 ]
+      },
+      {
+        "Sequence": 10,
+        "Action": "PickTalent",
+        "Index": null
       }
-    }
+    ]
   },
   "Game3SecondHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 2,
     "SurGlobalBan": 6,
     "HunGlobalBan": 2,
-    "WorkFlow": {
-      "Step1": {
+    "WorkFlow": [
+      {
+        "Sequence": 0,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
-      "Step2": {
+      {
+        "Sequence": 1,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
-      "Step3": {
+      {
+        "Sequence": 2,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
-      "Step4": {
+      {
+        "Sequence": 3,
         "Action": "BanSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step5": {
+      {
+        "Sequence": 4,
         "Action": "PickSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step6": {
+      {
+        "Sequence": 5,
+        "极光": null,
         "Action": "BanSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step7": {
+      {
+        "Sequence": 6,
         "Action": "PickSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step8": {
+      {
+        "Sequence": 7,
         "Action": "PickHun",
-        "Index": 0
+        "Index": [ 0 ]
+      },
+      {
+        "Sequence": 10,
+        "Action": "PickTalent",
+        "Index": null
       }
-    }
+    ]
   },
   "Game3ExtraFirstHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 2,
     "SurGlobalBan": 9,
     "HunGlobalBan": 3,
-    "WorkFlow": {
-      "Step1": {
+    "WorkFlow": [
+      {
+        "Sequence": 0,
         "Action": "PickMap",
-        "Index": 1
+        "Index": [ 1 ]
       },
-      "Step2": {
+      {
+        "Sequence": 1,
         "Action": "PickCamp",
-        "Index": 0
+        "Index": [ 0 ]
       },
-      "Step3": {
+      {
+        "Sequence": 2,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
-      "Step4": {
+      {
+        "Sequence": 3,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
-      "Step5": {
+      {
+        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
-      "Step6": {
+      {
+        "Sequence": 5,
         "Action": "BanSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step7": {
+      {
+        "Sequence": 6,
         "Action": "PickSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step8": {
+      {
+        "Sequence": 7,
         "Action": "BanSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step9": {
+      {
+        "Sequence": 8,
         "Action": "PickSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step10": {
+      {
+        "Sequence": 9,
         "Action": "PickHun",
-        "Index": 0
+        "Index": [ 0 ]
+      },
+      {
+        "Sequence": 10,
+        "Action": "PickTalent",
+        "Index": null
       }
-    }
+    ]
   },
   "Game3ExtraSecondHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 2,
     "SurGlobalBan": 9,
     "HunGlobalBan": 3,
-    "WorkFlow": {
-      "Step1": {
+    "WorkFlow": [
+      {
+        "Sequence": 0,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
-      "Step2": {
+      {
+        "Sequence": 1,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
-      "Step3": {
+      {
+        "Sequence": 2,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
-      "Step4": {
+      {
+        "Sequence": 3,
         "Action": "BanSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step5": {
+      {
+        "Sequence": 4,
         "Action": "PickSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step6": {
+      {
+        "Sequence": 5,
         "Action": "BanSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step7": {
+      {
+        "Sequence": 6,
         "Action": "PickSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step8": {
+      {
+        "Sequence": 7,
         "Action": "PickHun",
-        "Index": 0
+        "Index": [ 0 ]
+      },
+      {
+        "Sequence": 10,
+        "Action": "PickTalent",
+        "Index": null
       }
-    }
+    ]
   },
   "Game4FirstHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 2,
     "SurGlobalBan": 9,
     "HunGlobalBan": 3,
-    "WorkFlow": {
-      "Step1": {
+    "WorkFlow": [
+      {
+        "Sequence": 0,
         "Action": "PickMap",
-        "Index": 1
+        "Index": [ 1 ]
       },
-      "Step2": {
+      {
+        "Sequence": 1,
         "Action": "PickCamp",
-        "Index": 0
+        "Index": [ 0 ]
       },
-      "Step3": {
+      {
+        "Sequence": 2,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
-      "Step4": {
+      {
+        "Sequence": 3,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
-      "Step5": {
+      {
+        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
-      "Step6": {
+      {
+        "Sequence": 5,
         "Action": "BanSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step7": {
+      {
+        "Sequence": 6,
         "Action": "PickSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step8": {
+      {
+        "Sequence": 7,
         "Action": "BanSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step9": {
+      {
+        "Sequence": 8,
         "Action": "PickSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step10": {
+      {
+        "Sequence": 9,
         "Action": "PickHun",
-        "Index": 0
+        "Index": [ 0 ]
+      },
+      {
+        "Sequence": 10,
+        "Action": "PickTalent",
+        "Index": null
       }
-    }
+    ]
   },
   "Game4SecondHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 2,
     "SurGlobalBan": 9,
     "HunGlobalBan": 3,
-    "WorkFlow": {
-      "Step1": {
+    "WorkFlow": [
+      {
+        "Sequence": 0,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
-      "Step2": {
+      {
+        "Sequence": 1,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
-      "Step3": {
+      {
+        "Sequence": 2,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
-      "Step4": {
+      {
+        "Sequence": 3,
         "Action": "BanSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step5": {
+      {
+        "Sequence": 4,
         "Action": "PickSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step6": {
+      {
+        "Sequence": 5,
         "Action": "BanSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step7": {
+      {
+        "Sequence": 6,
         "Action": "PickSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step8": {
+      {
+        "Sequence": 7,
         "Action": "PickHun",
-        "Index": 0
+        "Index": [ 0 ]
+      },
+      {
+        "Sequence": 10,
+        "Action": "PickTalent",
+        "Index": null
       }
-    }
+    ]
   },
   "Game5FirstHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 2,
     "SurGlobalBan": 9,
     "HunGlobalBan": 3,
-    "WorkFlow": {
-      "Step1": {
+    "WorkFlow": [
+      {
+        "Sequence": 0,
         "Action": "PickMap",
-        "Index": 0
+        "Index": [ 0 ]
       },
-      "Step2": {
+      {
+        "Sequence": 1,
         "Action": "PickCamp",
-        "Index": 1
+        "Index": [ 1 ]
       },
-      "Step3": {
+      {
+        "Sequence": 2,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
-      "Step4": {
+      {
+        "Sequence": 3,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
-      "Step5": {
+      {
+        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
-      "Step6": {
+      {
+        "Sequence": 5,
         "Action": "BanSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step7": {
+      {
+        "Sequence": 6,
         "Action": "PickSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step8": {
+      {
+        "Sequence": 7,
         "Action": "BanSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step9": {
+      {
+        "Sequence": 8,
         "Action": "PickSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step10": {
+      {
+        "Sequence": 9,
         "Action": "PickHun",
-        "Index": 0
+        "Index": [ 0 ]
+      },
+      {
+        "Sequence": 10,
+        "Action": "PickTalent",
+        "Index": null
       }
-    }
+    ]
   },
   "Game5SecondHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 2,
     "SurGlobalBan": 9,
     "HunGlobalBan": 3,
-    "WorkFlow": {
-      "Step1": {
+    "WorkFlow": [
+      {
+        "Sequence": 0,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
-      "Step2": {
+      {
+        "Sequence": 1,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
-      "Step3": {
+      {
+        "Sequence": 2,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
-      "Step4": {
+      {
+        "Sequence": 3,
         "Action": "BanSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step5": {
+      {
+        "Sequence": 4,
         "Action": "PickSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step6": {
+      {
+        "Sequence": 5,
         "Action": "BanSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step7": {
+      {
+        "Sequence": 6,
         "Action": "PickSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step8": {
+      {
+        "Sequence": 7,
         "Action": "PickHun",
-        "Index": 0
+        "Index": [ 0 ]
+      },
+      {
+        "Sequence": 10,
+        "Action": "PickTalent",
+        "Index": null
       }
-    }
+    ]
   },
   "Game5ExtraFirstHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 2,
     "SurGlobalBan": 9,
     "HunGlobalBan": 3,
-    "WorkFlow": {
-      "Step1": {
+    "WorkFlow": [
+      {
+        "Sequence": 0,
         "Action": "PickMap",
-        "Index": 1
+        "Index": [ 1 ]
       },
-      "Step2": {
+      {
+        "Sequence": 1,
         "Action": "PickCamp",
-        "Index": 0
+        "Index": [ 0 ]
       },
-      "Step3": {
+      {
+        "Sequence": 2,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
-      "Step4": {
+      {
+        "Sequence": 3,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
-      "Step5": {
+      {
+        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
-      "Step6": {
+      {
+        "Sequence": 5,
         "Action": "BanSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step7": {
+      {
+        "Sequence": 6,
         "Action": "PickSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step8": {
+      {
+        "Sequence": 7,
         "Action": "BanSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step9": {
+      {
+        "Sequence": 8,
         "Action": "PickSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step10": {
+      {
+        "Sequence": 9,
         "Action": "PickHun",
-        "Index": 0
+        "Index": [ 0 ]
       }
-    }
+    ]
   },
   "Game5ExtraSecondHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 2,
     "SurGlobalBan": 9,
     "HunGlobalBan": 3,
-    "WorkFlow": {
-      "Step1": {
+    "WorkFlow": [
+      {
+        "Sequence": 0,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
-      "Step2": {
+      {
+        "Sequence": 1,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
-      "Step3": {
+      {
+        "Sequence": 2,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
-      "Step4": {
+      {
+        "Sequence": 3,
         "Action": "BanSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step5": {
+      {
+        "Sequence": 4,
         "Action": "PickSur",
-        "Index": 2
+        "Index": [ 2 ]
       },
-      "Step6": {
+      {
+        "Sequence": 5,
         "Action": "BanSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step7": {
+      {
+        "Sequence": 6,
         "Action": "PickSur",
-        "Index": 3
+        "Index": [ 3 ]
       },
-      "Step8": {
+      {
+        "Sequence": 7,
         "Action": "PickHun",
-        "Index": 0
+        "Index": [ 0 ]
       }
-    }
+    ]
   }
 }

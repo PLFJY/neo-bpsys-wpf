@@ -1,21 +1,28 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
+using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.Views.Pages;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
+using neo_bpsys_wpf.Exceptions;
 
 namespace neo_bpsys_wpf.ViewModels.Windows
 {
-    public partial class MainWindowViewModel : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<SwapMessage>, IRecipient<ValueChangedMessage<string>>
+    public partial class MainWindowViewModel : ObservableRecipient,
+        IRecipient<NewGameMessage>,
+        IRecipient<SwapMessage>,
+        IRecipient<ValueChangedMessage<string>>,
+        IRecipient<PropertyChangedMessage<bool>>
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public MainWindowViewModel()
@@ -32,20 +39,61 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             Converters = { new JsonStringEnumConverter() },
         };
         private readonly IMessageBoxService _messageBoxService;
-
+        private readonly IGameGuidanceService _gameGuidanceService;
+        private readonly IInfoBarService _infoBarService;
         [ObservableProperty]
         private ApplicationTheme _applicationTheme = ApplicationTheme.Dark;
+
+        private bool _isGuidanceStarted;
+
+        public bool IsGuidanceStarted
+        {
+            get { return _isGuidanceStarted; }
+            set
+            {
+                _isGuidanceStarted = value;
+                OnPropertyChanged(nameof(IsGuidanceStarted));
+                OnPropertyChanged(nameof(CanGameProgressChange));
+            }
+        }
+
+        public bool CanGameProgressChange => !IsGuidanceStarted;
+
+
+        private GameProgress _selectedGameProgress = GameProgress.Free;
 
         public string SurTeamName => _sharedDataService.CurrentGame.SurTeam.Name;
         public string HunTeamName => _sharedDataService.CurrentGame.HunTeam.Name;
         public string RemainingSeconds => _sharedDataService.RemainingSeconds;
+        public GameProgress SelectedGameProgress
+        {
+            get => _selectedGameProgress;
+            set
+            {
+                _selectedGameProgress = value;
+                _sharedDataService.CurrentGame.GameProgress = _selectedGameProgress;
+            }
+        }
 
-        public GameProgress SelectedGameProgress { get; set; } = GameProgress.Free;
+        [ObservableProperty]
+        private string _actionName = string.Empty;
 
-        public MainWindowViewModel(ISharedDataService sharedDataService, IMessageBoxService messageBoxService)
+        public MainWindowViewModel(
+            ISharedDataService sharedDataService,
+            IMessageBoxService messageBoxService,
+            IGameGuidanceService gameGuidanceService,
+            IInfoBarService infoBarService)
         {
             _sharedDataService = sharedDataService;
             _messageBoxService = messageBoxService;
+            _gameGuidanceService = gameGuidanceService;
+            _infoBarService = infoBarService;
+            _isGuidanceStarted = false;
+            jsonSerializerOptions = new JsonSerializerOptions()
+            {
+                WriteIndented = true,
+                Converters = { new JsonStringEnumConverter() },
+            };
             IsActive = true;
         }
 
@@ -136,6 +184,40 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             _sharedDataService.TimerStop();
         }
 
+        [RelayCommand]
+        private void StartNavigation()
+        {
+            try
+            {
+                ActionName = _gameGuidanceService.StartGuidance();
+                IsGuidanceStarted = true;
+            }
+            catch (GuidanceNotSupportedException)
+            {
+                _infoBarService.ShowWarningInfoBar("自由对局不支持导航");
+            }
+        }
+
+        [RelayCommand]
+        private void StopNavigation()
+        {
+            _gameGuidanceService.StopGuidance();
+            IsGuidanceStarted = false;
+            ActionName = string.Empty;
+        }
+
+        [RelayCommand]
+        private void NavigateToNextStep()
+        {
+            ActionName = _gameGuidanceService.NextStep();
+        }
+
+        [RelayCommand]
+        private void NavigateToPreviousStep()
+        {
+            ActionName = _gameGuidanceService.PrevStep();
+        }
+
         public void Receive(NewGameMessage message)
         {
             if (message.IsNewGameCreated)
@@ -156,6 +238,15 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             if (message.Value == nameof(_sharedDataService.RemainingSeconds))
             {
                 OnPropertyChanged(nameof(RemainingSeconds));
+            }
+        }
+
+        public void Receive(PropertyChangedMessage<bool> message)
+        {
+            if (message.PropertyName == nameof(IGameGuidanceService.IsGuidanceStarted)
+                && message.NewValue != IsGuidanceStarted)
+            {
+                IsGuidanceStarted = message.NewValue;
             }
         }
 

@@ -288,19 +288,19 @@
                     d:Source="/Assets/Icons/white/BorrowedTime.png"
                     d:Visibility="Visible"
                     Source="{Binding BorrowedTimeImageSource}"
-                    Visibility="{Binding CurrentGame.SurPlayerList[0].Talent.BorrowedTime, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[0].Talent.BorrowedTime, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/TideTurner.png"
                     Source="{Binding TideTurnerImageSource}"
-                    Visibility="{Binding CurrentGame.SurPlayerList[0].Talent.TideTurner, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[0].Talent.TideTurner, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/FlywheelEffect.png"
                     Source="{Binding FlywheelEffectImageSource}"
-                    Visibility="{Binding CurrentGame.SurPlayerList[0].Talent.FlywheelEffect, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[0].Talent.FlywheelEffect, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/KneeJerkReflex.png"
                     Source="{Binding KneeJerkReflexImageSource}"
-                    Visibility="{Binding CurrentGame.SurPlayerList[0].Talent.KneeJerkReflex, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[0].Talent.KneeJerkReflex, Converter={StaticResource BoolToVisibilityConverter}}" />
             </StackPanel>
         </Border>
         <Border
@@ -316,19 +316,19 @@
                     d:Source="/Assets/Icons/white/BorrowedTime.png"
                     d:Visibility="Visible"
                     Source="{Binding BorrowedTimeImageSource}"
-                    Visibility="{Binding CurrentGame.SurPlayerList[1].Talent.BorrowedTime, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[1].Talent.BorrowedTime, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/TideTurner.png"
                     Source="{Binding TideTurnerImageSource}"
-                    Visibility="{Binding CurrentGame.SurPlayerList[1].Talent.TideTurner, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[1].Talent.TideTurner, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/FlywheelEffect.png"
                     Source="{Binding FlywheelEffectImageSource}"
-                    Visibility="{Binding CurrentGame.SurPlayerList[1].Talent.FlywheelEffect, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[1].Talent.FlywheelEffect, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/KneeJerkReflex.png"
                     Source="{Binding KneeJerkReflexImageSource}"
-                    Visibility="{Binding CurrentGame.SurPlayerList[1].Talent.KneeJerkReflex, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[1].Talent.KneeJerkReflex, Converter={StaticResource BoolToVisibilityConverter}}" />
             </StackPanel>
         </Border>
         <Border
@@ -344,19 +344,19 @@
                     d:Source="/Assets/Icons/white/BorrowedTime.png"
                     d:Visibility="Visible"
                     Source="{Binding BorrowedTimeImageSource}"
-                    Visibility="{Binding CurrentGame.SurPlayerList[2].Talent.BorrowedTime, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[2].Talent.BorrowedTime, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/TideTurner.png"
                     Source="{Binding TideTurnerImageSource}"
-                    Visibility="{Binding CurrentGame.SurPlayerList[2].Talent.TideTurner, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[2].Talent.TideTurner, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/FlywheelEffect.png"
                     Source="{Binding FlywheelEffectImageSource}"
-                    Visibility="{Binding CurrentGame.SurPlayerList[2].Talent.FlywheelEffect, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[2].Talent.FlywheelEffect, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/KneeJerkReflex.png"
                     Source="{Binding KneeJerkReflexImageSource}"
-                    Visibility="{Binding CurrentGame.SurPlayerList[2].Talent.KneeJerkReflex, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[2].Talent.KneeJerkReflex, Converter={StaticResource BoolToVisibilityConverter}}" />
             </StackPanel>
         </Border>
         <Border
@@ -372,19 +372,19 @@
                     d:Source="/Assets/Icons/white/BorrowedTime.png"
                     d:Visibility="Visible"
                     Source="{Binding BorrowedTimeImageSource}"
-                    Visibility="{Binding CurrentGame.SurPlayerList[3].Talent.BorrowedTime, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[3].Talent.BorrowedTime, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/TideTurner.png"
                     Source="{Binding TideTurnerImageSource}"
-                    Visibility="{Binding CurrentGame.SurPlayerList[3].Talent.TideTurner, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[3].Talent.TideTurner, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/FlywheelEffect.png"
                     Source="{Binding FlywheelEffectImageSource}"
-                    Visibility="{Binding CurrentGame.SurPlayerList[3].Talent.FlywheelEffect, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[3].Talent.FlywheelEffect, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/KneeJerkReflex.png"
                     Source="{Binding KneeJerkReflexImageSource}"
-                    Visibility="{Binding CurrentGame.SurPlayerList[3].Talent.KneeJerkReflex, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.SurPlayerList[3].Talent.KneeJerkReflex, Converter={StaticResource BoolToVisibilityConverter}}" />
             </StackPanel>
         </Border>
         <!--  Hun  -->
@@ -401,19 +401,19 @@
                     d:Source="/Assets/Icons/white/TrumpCard.png"
                     d:Visibility="Visible"
                     Source="{Binding TrumpCardImageSource}"
-                    Visibility="{Binding CurrentGame.HunPlayer.Talent.TrumpCard, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.HunPlayer.Talent.TrumpCard, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/Detention.png"
                     Source="{Binding DetentionImageSource}"
-                    Visibility="{Binding CurrentGame.HunPlayer.Talent.Detention, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.HunPlayer.Talent.Detention, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/ConfinedSpace.png"
                     Source="{Binding ConfinedSpaceImageSource}"
-                    Visibility="{Binding CurrentGame.HunPlayer.Talent.ConfinedSpace, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.HunPlayer.Talent.ConfinedSpace, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <Image
                     d:Source="/Assets/Icons/white/Insolence.png"
                     Source="{Binding InsolenceImageSource}"
-                    Visibility="{Binding CurrentGame.HunPlayer.Talent.Insolence, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    Visibility="{Binding CurrentGame.HunPlayer.Talent.Insolence, Converter={StaticResource BoolToVisibilityConverter}}" />
             </StackPanel>
         </Border>
         <Image
@@ -427,6 +427,6 @@
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/闪现.png"
             Source="{Binding CurrentGame.HunPlayer.Trait.Image}"
-            Visibility="{Binding SharedDataService.IsTraitVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            Visibility="{Binding SharedDataService.IsTraitVisible, Converter={StaticResource BoolToVisibilityConverter}}" />
     </Canvas>
 </Window>

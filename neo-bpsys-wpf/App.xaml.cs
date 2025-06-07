@@ -62,6 +62,7 @@ namespace neo_bpsys_wpf
                 services.AddSingleton<IFilePickerService, FilePickerService>();
                 services.AddSingleton<IMessageBoxService, MessageBoxService>();
                 services.AddSingleton<IInfoBarService, InfoBarService>();
+                services.AddSingleton<IGameGuidanceService, GameGuidanceService>();
 
                 //Views and ViewModels
                 //Window
@@ -155,6 +156,7 @@ namespace neo_bpsys_wpf
                     DataContext = sp.GetRequiredService<SettingPageViewModel>()
                 });
                 services.AddSingleton<SettingPageViewModel>();
+
             })
             .Build();
 

@@ -41,6 +41,11 @@ namespace neo_bpsys_wpf.Services
             _timer.Tick += Timer_Tick;
         }
 
+        private readonly JsonSerializerOptions jsonSerializerOptions = new()
+        {
+            Converters = { new JsonStringEnumConverter() }
+        };
+
         /// <summary>
         /// 从文件读取角色数据
         /// </summary>
@@ -52,13 +57,9 @@ namespace neo_bpsys_wpf.Services
 
             // 加载角色数据
             var characterFileContent = File.ReadAllText(charaListFilePath);
-            var options = new JsonSerializerOptions
-            {
-                Converters = { new JsonStringEnumConverter() },
-            };
             var characters = JsonSerializer.Deserialize<Dictionary<string, CharacterMini>>(
                 characterFileContent,
-                options
+                jsonSerializerOptions
             );
 
             if (characters == null)
@@ -173,7 +174,7 @@ namespace neo_bpsys_wpf.Services
             switch (listName)
             {
                 case nameof(CanCurrentSurBanned):
-                    for (int i = 0; i < CanCurrentSurBanned.Count; i++) 
+                    for (int i = 0; i < CanCurrentSurBanned.Count; i++)
                         CanCurrentSurBanned[i] = i < count;
                     break;
                 case nameof(CanCurrentHunBanned):
