@@ -25,19 +25,6 @@ namespace neo_bpsys_wpf.Views.Windows
             navigationService.SetNavigationControl(RootNavigation);
             infoBarService.SetInfoBarControl(InfoBar);
             this.Closing += MainWindow_Closing;
-            TitleBar.MouseDown += TitleBar_MouseDown;
-            WindowIcon.MouseDown += WindowIcon_MouseDown;
-            MaximizeButton.Click += MaximizeButton_Click;
-            MinimizeButton.Click += MinimizeButton_Click;
-            ExitButton.Click += ExitButton_Click;
-            StateChanged += MainWindow_StateChanged;
-        }
-
-        private void MainWindow_StateChanged(object? sender, EventArgs e)
-        {
-            MaximizeButton.Icon = this.WindowState == WindowState.Maximized
-                ? new SymbolIcon() { Symbol = SymbolRegular.SquareMultiple24 }
-                : new SymbolIcon() { Symbol = SymbolRegular.Maximize24 };
         }
 
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)

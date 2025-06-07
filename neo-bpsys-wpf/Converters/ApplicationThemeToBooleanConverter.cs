@@ -13,12 +13,7 @@ namespace neo_bpsys_wpf.Converters
             return applicationTheme == ApplicationTheme.Dark;
         }
 
-        public object ConvertBack(
-            object value,
-            Type targetType,
-            object parameter,
-            CultureInfo culture
-        )
+        public object ConvertBack(object value,Type targetType,object parameter,CultureInfo culture)
         {
             return (bool)value ? ApplicationTheme.Dark : ApplicationTheme.Light;
         }

@@ -142,7 +142,6 @@ namespace neo_bpsys_wpf.Services
                         _navigationService.Navigate(ActionToPage[thisStep.Action]);
                     }
                     returnValue += ActionName[thisStep.Action];
-
                 }
                 else
                 {

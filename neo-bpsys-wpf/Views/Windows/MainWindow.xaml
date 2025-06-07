@@ -25,21 +25,7 @@
     mc:Ignorable="d">
     <ui:FluentWindow.Resources>
         <ResourceDictionary>
-            <Style
-                x:Key="TitleBarToggleButton"
-                BasedOn="{StaticResource {x:Type ToggleButton}}"
-                TargetType="ToggleButton">
-                <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="Background" Value="{x:Null}" />
-                <Style.Triggers>
-                    <Trigger Property="IsChecked" Value="True">
-                        <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
-                        <Setter Property="Background" Value="{DynamicResource ControlStrokeColorOnAccentDefaultBrush}" />
-                    </Trigger>
-                </Style.Triggers>
-            </Style>
             <cv:ApplicationThemeToBooleanConverter x:Key="ApplicationThemeToBooleanConverter" />
-            <cv:InverseBooleanConverter x:Key="InverseBooleanConverter" />
             <!--  Them Change Animation  -->
             <Storyboard x:Key="LightToDark">
                 <DoubleAnimation
@@ -48,7 +34,6 @@
                     From="1"
                     To="0"
                     Duration="00:00:0.6" />
-
             </Storyboard>
             <Storyboard x:Key="DarkToLight">
                 <DoubleAnimation
@@ -123,65 +108,20 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <!--  TitleBar  -->
-            <Grid
-                Name="TitleBar"
+            <cc:CustomTitleBar
                 Grid.Row="0"
-                Height="35"
-                Background="Transparent">
-                <StackPanel
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal">
-                    <ui:Image
-                        Name="WindowIcon"
-                        Height="25"
-                        Margin="5,0,0,0"
-                        Focusable="False"
-                        Source="/Assets/icon.png" />
-                    <ui:TextBlock
-                        Margin="15,0,0,0"
-                        VerticalAlignment="Center"
-                        Text="{Binding Title, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}" />
-                </StackPanel>
-                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                    <ToggleButton
-                        x:Name="ThemeSwitch"
-                        Margin="0,0,10,0"
-                        styles:ToggleButtonAttach.IsAutoFold="True"
-                        Command="{Binding ThemeSwitchCommand}"
-                        Focusable="False"
-                        IsChecked="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}"
-                        Style="{StaticResource ToggleButtonGorgeousThemeSwitchStyle}">
-                        <i:Interaction.Triggers>
-                            <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="True">
-                                <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource LightToDark}" />
-                            </i:DataTrigger>
-                            <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="False">
-                                <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource DarkToLight}" />
-                            </i:DataTrigger>
-                        </i:Interaction.Triggers>
-                    </ToggleButton>
-                    <ToggleButton
-                        Height="35"
-                        Focusable="False"
-                        IsChecked="{Binding RelativeSource={RelativeSource AncestorType=ui:FluentWindow}, Path=Topmost, Mode=TwoWay}"
-                        Style="{StaticResource TitleBarToggleButton}">
-                        <ui:SymbolIcon Symbol="Pin24" />
-                    </ToggleButton>
-                    <ui:Button
-                        Name="MinimizeButton"
-                        Icon="{ui:SymbolIcon Symbol=Subtract24}"
-                        Style="{StaticResource TitleBarButton}" />
-                    <ui:Button
-                        Name="MaximizeButton"
-                        Icon="{ui:SymbolIcon Symbol=Maximize24}"
-                        Style="{StaticResource TitleBarButton}" />
-                    <ui:Button
-                        Name="ExitButton"
-                        Icon="{ui:SymbolIcon Symbol=Dismiss24}"
-                        Style="{StaticResource TitleBarButton}" />
-                </StackPanel>
-            </Grid>
+                Icon="/Assets/icon.png"
+                IsThemeChangeChecked="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}"
+                ThemeChangeCommand="{Binding ThemeSwitchCommand}">
+                <i:Interaction.Triggers>
+                    <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="True">
+                        <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource LightToDark}" />
+                    </i:DataTrigger>
+                    <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="False">
+                        <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource DarkToLight}" />
+                    </i:DataTrigger>
+                </i:Interaction.Triggers>
+            </cc:CustomTitleBar>
             <!--  Body  -->
 
             <!--  Global menu  -->
@@ -263,7 +203,7 @@
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding SaveGameInfoCommand}"
-                    Content="保存当前信息对局到本地"
+                    Content="保存当前对局信息到本地"
                     Icon="{ui:SymbolIcon Symbol=Save24}" />
                 <ui:Button
                     Margin="0,0,10,10"
