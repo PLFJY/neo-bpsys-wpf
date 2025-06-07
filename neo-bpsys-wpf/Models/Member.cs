@@ -33,11 +33,33 @@ public partial class Member : ObservableObject
     [ObservableProperty]
     private Camp _camp;
 
-    [ObservableProperty]
     private ImageSource? _image;
+    public ImageSource? Image
+    {
+        get => _image;
+        set
+        {
+            _image = value;
+            if (_image != null)
+                IsImageValid = true;
+            else
+                IsImageValid = false;
+            OnPropertyChanged(nameof(Image));
+            WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
+        }
+    }
 
-    [ObservableProperty]
     private bool _isOnField = false;
+    public bool IsOnField
+    {
+        get => _isOnField;
+        set
+        {
+            _isOnField = value;
+            OnPropertyChanged(nameof(IsOnField));
+            WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
+        }
+    }
 
     [ObservableProperty]
     [JsonIgnore]
@@ -47,4 +69,7 @@ public partial class Member : ObservableObject
     {
         Camp = camp;
     }
+
+    [ObservableProperty]
+    private bool _isImageValid = false;
 }

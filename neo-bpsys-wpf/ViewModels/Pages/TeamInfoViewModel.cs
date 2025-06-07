@@ -1,7 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
 using System.IO;
@@ -189,6 +191,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                     return;
 
                 member.Image = new BitmapImage(new Uri(imagePath));
+            }
+
+            [RelayCommand]
+            private void ClearMamberImage(Member member)
+            {
+                member.Image = null;
             }
         }
     }

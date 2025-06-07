@@ -21,6 +21,7 @@
     <Page.Resources>
         <cv:CampToStringConverter x:Key="CampToStringConverter" />
         <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
         <!--  main team  -->
@@ -92,6 +93,14 @@
                                         CommandParameter="{Binding}"
                                         Content="设置定妆照"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
+                                    <ui:Button
+                                        Margin="10,0,0,0"
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMamberImageCommand}"
+                                        CommandParameter="{Binding}"
+                                        Content="清除定妆照"
+                                        Icon="{ui:SymbolIcon Symbol=ImageOff24}"
+                                        Visibility="{Binding IsImageValid, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
                                     <ToggleButton
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SwitchMemberStateCommand}"
@@ -159,6 +168,13 @@
                                         CommandParameter="{Binding}"
                                         Content="设置定妆照"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
+                                    <ui:Button
+                                        Margin="10,0,0,0"
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMamberImageCommand}"
+                                        CommandParameter="{Binding}"
+                                        Content="清除定妆照"
+                                        Icon="{ui:SymbolIcon Symbol=ImageOff24}"
+                                        Visibility="{Binding IsImageValid, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                     <ToggleButton
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SwitchMemberStateCommand}"
@@ -279,6 +295,13 @@
                                         CommandParameter="{Binding}"
                                         Content="设置定妆照"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
+                                    <ui:Button
+                                        Margin="10,0,0,0"
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMamberImageCommand}"
+                                        CommandParameter="{Binding}"
+                                        Content="清除定妆照"
+                                        Icon="{ui:SymbolIcon Symbol=ImageOff24}"
+                                        Visibility="{Binding IsImageValid, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                     <ToggleButton
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SwitchMemberStateCommand}"
@@ -351,6 +374,13 @@
                                         CommandParameter="{Binding}"
                                         Content="设置定妆照"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
+                                    <ui:Button
+                                        Margin="10,0,0,0"
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMamberImageCommand}"
+                                        CommandParameter="{Binding}"
+                                        Content="清除定妆照"
+                                        Icon="{ui:SymbolIcon Symbol=ImageOff24}"
+                                        Visibility="{Binding IsImageValid, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                     <ToggleButton
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SwitchMemberStateCommand}"

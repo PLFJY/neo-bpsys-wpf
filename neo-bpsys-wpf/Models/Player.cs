@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Messages;
 using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Models;
@@ -7,17 +9,17 @@ namespace neo_bpsys_wpf.Models;
 /// <summary>
 /// 选手类, 注意与 <see cref="Models.Member"/> 类做区分，这是表示队伍内的成员，本类是表示上场的选手, <see cref="Player"/> 类包含操纵它的 <see cref="Models.Member"/>
 /// </summary>
-public partial class Player : ObservableObject
+public partial class Player : ObservableRecipient, IRecipient<MemberStateChangedMessage>
 {
     public Player()
     {
-        //this.Character = new Character(camp);
+        IsActive = true;
     }
 
     public Player(Member member)
     {
         this.Member = member;
-        //this.Character = new Character(member.Camp);
+        IsActive = true;
     }
 
     [ObservableProperty]
@@ -61,5 +63,10 @@ public partial class Player : ObservableObject
                 return Character.HalfImage;
             }
         }
+    }
+
+    public void Receive(MemberStateChangedMessage message)
+    {
+        OnPropertyChanged(nameof(PictureShown));
     }
 }
