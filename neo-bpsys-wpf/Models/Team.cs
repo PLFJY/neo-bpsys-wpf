@@ -99,8 +99,8 @@ public partial class Team : ObservableObject
         GlobalBannedHunList = [.. Enumerable.Range(0, 3).Select(i => new Character(Camp.Hun))];
         GlobalBannedSurList = [.. Enumerable.Range(0, 9).Select(i => new Character(Camp.Sur))];
 
-        SurPlayerOnFieldList = [.. Enumerable.Range(0, 4).Select(i => new Player(Camp.Sur))];
-        HunPlayerOnField = new Player(Camp.Hun);
+        SurPlayerOnFieldList = [.. Enumerable.Range(0, 4).Select(i => new Player())];
+        HunPlayerOnField = new Player();
 
         GlobalBannedSurRecordArray = [.. Enumerable.Range(0, 9).Select<int, Character?>(i => null)];
         GlobalBannedHunRecordArray = [.. Enumerable.Range(0, 3).Select<int, Character?>(i => null)];
@@ -121,8 +121,8 @@ public partial class Team : ObservableObject
         }
         SurMemberList = newTeam.SurMemberList;
         HunMemberList = newTeam.HunMemberList;
-        SurPlayerOnFieldList = [.. Enumerable.Range(0, 4).Select(i => new Player(Camp.Sur))];
-        HunPlayerOnField = new Player(Camp.Hun);
+        SurPlayerOnFieldList = [.. Enumerable.Range(0, 4).Select(i => new Player())];
+        HunPlayerOnField = new Player();
         WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
         OnPropertyChanged();
     }

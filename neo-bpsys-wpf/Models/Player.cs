@@ -9,15 +9,15 @@ namespace neo_bpsys_wpf.Models;
 /// </summary>
 public partial class Player : ObservableObject
 {
-    public Player(Camp camp)
+    public Player()
     {
-        this.Character = new Character(camp);
+        //this.Character = new Character(camp);
     }
 
     public Player(Member member)
     {
         this.Member = member;
-        this.Character = new Character(member.Camp);
+        //this.Character = new Character(member.Camp);
     }
 
     [ObservableProperty]
@@ -26,8 +26,17 @@ public partial class Player : ObservableObject
     [ObservableProperty]
     private bool _isMemberValid = false;
 
-    [ObservableProperty]
     private Character? _character;
+    public Character? Character
+    {
+        get => _character;
+        set
+        {
+            _character = value;
+            OnPropertyChanged(nameof(Character));
+            OnPropertyChanged(nameof(PictureShown));
+        }
+    }
 
     [ObservableProperty]
     private Talent _talent = new();
@@ -37,4 +46,20 @@ public partial class Player : ObservableObject
 
     [ObservableProperty]
     private PlayerData _data = new();
+    
+
+    public ImageSource? PictureShown
+    {
+        get
+        {
+            if (Character == null)
+            {
+                return Member.Image;
+            }
+            else
+            {
+                return Character.HalfImage;
+            }
+        }
+    }
 }

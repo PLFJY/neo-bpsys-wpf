@@ -276,7 +276,7 @@
             Height="159"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/医生.png"
-            Source="{Binding CurrentGame.SurPlayerList[0].Character.HalfImage}" />
+            Source="{Binding CurrentGame.SurPlayerList[0].PictureShown}" />
         <Image
             Name="SurPick1"
             Canvas.Left="141"
@@ -285,7 +285,7 @@
             Height="159"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/医生.png"
-            Source="{Binding CurrentGame.SurPlayerList[1].Character.HalfImage}" />
+            Source="{Binding CurrentGame.SurPlayerList[1].PictureShown}" />
         <Image
             Name="SurPick2"
             Canvas.Left="284"
@@ -294,7 +294,7 @@
             Height="159"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/医生.png"
-            Source="{Binding CurrentGame.SurPlayerList[2].Character.HalfImage}" />
+            Source="{Binding CurrentGame.SurPlayerList[2].PictureShown}" />
         <Image
             Name="SurPick3"
             Canvas.Left="424"
@@ -304,7 +304,7 @@
             HorizontalAlignment="Center"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/医生.png"
-            Source="{Binding CurrentGame.SurPlayerList[3].Character.HalfImage}" />
+            Source="{Binding CurrentGame.SurPlayerList[3].PictureShown}" />
         <!--  Middle  -->
         <Image
             Name="Map"
@@ -532,7 +532,7 @@
             Height="161"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/小丑.png"
-            Source="{Binding CurrentGame.HunPlayer.Character.HalfImage}" />
+            Source="{Binding CurrentGame.HunPlayer.PictureShown}" />
         <!--  Player Id  -->
         <!--  Sur  -->
         <Border
