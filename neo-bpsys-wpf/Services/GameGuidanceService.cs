@@ -130,9 +130,9 @@ namespace neo_bpsys_wpf.Services
 
             if (_currentGameProperty != null)
             {
-                if (_currentStep < _currentGameProperty.WorkFlow.Count)
+                if (_currentStep + 1 < _currentGameProperty.WorkFlow.Count)
                 {
-                    var thisStep = _currentGameProperty.WorkFlow[_currentStep++];
+                    var thisStep = _currentGameProperty.WorkFlow[++_currentStep];
                     if (thisStep.Action == GameAction.PickCamp)
                     {
                         //NotImplemented

@@ -13,7 +13,7 @@ using System.Windows;
 /// <summary>
 /// 版本号迭代原则：
 /// 首位仅在出现大型重构或又非常重大更改时（如官方规则改变、UI重构）才会跟进
-/// 第二位出现重大的新Module更新才会跟进
+/// 第二位出现重大的新Module更新/第三位满十才会跟进
 /// 第三位是有新Feature就会跟进
 /// 最后一位自动生成，用于BugFix和Improvement版本，不用手动迭代
 /// </summary>
