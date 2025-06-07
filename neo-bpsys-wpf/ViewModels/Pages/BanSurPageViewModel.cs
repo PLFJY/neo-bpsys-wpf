@@ -16,47 +16,25 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
         }
 
-        public ISharedDataService SharedDataService { get; }
+        private readonly ISharedDataService _sharedDataService;
+
+        public ObservableCollection<bool> CanCurrentHunBanned => _sharedDataService.CanCurrentSurBanned;
 
         public BanSurPageViewModel(ISharedDataService sharedDataService)
         {
-            SharedDataService = sharedDataService;
-            BanSurCurrentViewModelList = [.. Enumerable.Range(0, 4).Select(i => new BanSurCurrentViewModel(SharedDataService, i))];
-            BanSurGlobalViewModelList = [.. Enumerable.Range(0, 9).Select(i => new BanSurGlobalViewModel(SharedDataService, i))];
-            SharedDataService.CanCurrentSurBanned.CollectionChanged += CanCurrentSurBanned_CollectionChanged;
-            SharedDataService.CanGlobalSurBanned.CollectionChanged += CanGlobalSurBanned_CollectionChanged;
+            _sharedDataService = sharedDataService;
+            BanSurCurrentViewModelList = [.. Enumerable.Range(0, 4).Select(i => new BanSurCurrentViewModel(_sharedDataService, i))];
+            BanSurGlobalViewModelList = [.. Enumerable.Range(0, 9).Select(i => new BanSurGlobalViewModel(_sharedDataService, i))];
             IsActive = true;
-        }
-        //刷新Ban位状态
-        private void CanCurrentSurBanned_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        {
-            if (e.Action == NotifyCollectionChangedAction.Replace)
-            {
-                for (int i = 0; i < SharedDataService.CanCurrentSurBanned.Count; i++)
-                {
-                    BanSurCurrentViewModelList[i].IsEnabled = SharedDataService.CanCurrentSurBanned[i];
-                }
-            }
-        }
-
-        private void CanGlobalSurBanned_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        {
-            if (e.Action == NotifyCollectionChangedAction.Replace)
-            {
-                for (int i = 0; i < SharedDataService.CanGlobalSurBanned.Count; i++)
-                {
-                    BanSurGlobalViewModelList[i].IsEnabled = SharedDataService.CanGlobalSurBanned[i];
-                }
-            }
         }
 
         public void Receive(SwapMessage message)
         {
             if (message.IsSwapped)
             {
-                for (int i = 0; i < SharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray.Length; i++)
+                for (int i = 0; i < _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray.Length; i++)
                 {
-                    BanSurGlobalViewModelList[i].SelectedChara = SharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray[i];
+                    BanSurGlobalViewModelList[i].SelectedChara = _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray[i];
                     BanSurGlobalViewModelList[i].SyncChara();
                 }
                 OnPropertyChanged();
