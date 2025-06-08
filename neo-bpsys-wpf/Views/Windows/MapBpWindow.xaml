@@ -1,0 +1,14 @@
+﻿<Window
+    x:Class="neo_bpsys_wpf.Views.Windows.MapBpWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="MapBpWindow"
+    Width="1440"
+    Height="810"
+    Style="{StaticResource FrontWindow}"
+    mc:Ignorable="d">
+    <Grid />
+</Window>

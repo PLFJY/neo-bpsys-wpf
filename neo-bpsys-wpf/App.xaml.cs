@@ -91,11 +91,16 @@ namespace neo_bpsys_wpf
                     DataContext = sp.GetRequiredService<WidgetsWindowViewModel>(),
                 });
                 services.AddSingleton<WidgetsWindowViewModel>();
-                services.AddSingleton<ScoreManualWindowViewModel>();
                 services.AddSingleton<ScoreManualWindow>(sp => new ScoreManualWindow()
                 {
                     DataContext = sp.GetRequiredService<ScoreManualWindowViewModel>()
                 });
+                services.AddSingleton<ScoreManualWindowViewModel>();
+                services.AddSingleton<MapBpWindow>(sp => new MapBpWindow()
+                {
+                    DataContext = sp.GetRequiredService<MapBpWindowViewModel>()
+                });
+                services.AddSingleton<MapBpWindowViewModel>();
 
                 //Page
                 services.AddSingleton<HomePage>();
