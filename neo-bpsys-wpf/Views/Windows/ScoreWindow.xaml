@@ -236,7 +236,7 @@
                         FontFamily="{StaticResource POP1W5}"
                         FontSize="48"
                         FontWeight="Bold"
-                        Text="{Binding MainTeam.Score.Win}" />
+                        Text="{Binding TotalMainMinorPoint}" />
                 </Border>
                 <Border
                     Name="AwayScoreTotal"
@@ -252,7 +252,7 @@
                         FontFamily="{StaticResource POP1W5}"
                         FontSize="48"
                         FontWeight="Bold"
-                        Text="{Binding AwayTeam.Score.Win}" />
+                        Text="{Binding TotalAwayMinorPoint}" />
                 </Border>
             </Canvas>
         </Border>
