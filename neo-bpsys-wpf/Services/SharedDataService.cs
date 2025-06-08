@@ -117,7 +117,16 @@ namespace neo_bpsys_wpf.Services
         /// <summary>
         /// 是否显示辅助特质
         /// </summary>
-        public bool IsTraitVisible { get; set; } = true;
+        private bool _isTraitVisible = true;
+        public bool IsTraitVisible
+        {
+            get => _isTraitVisible;
+            set
+            {
+                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsTraitVisible), _isTraitVisible, value));
+                _isTraitVisible = value;
+            }
+        }
 
         /// <summary>
         /// 倒计时剩余时间

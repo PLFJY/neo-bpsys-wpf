@@ -427,6 +427,6 @@
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/闪现.png"
             Source="{Binding CurrentGame.HunPlayer.Trait.Image}"
-            Visibility="{Binding SharedDataService.IsTraitVisible, Converter={StaticResource BoolToVisibilityConverter}}" />
+            Visibility="{Binding IsTraitVisible, Converter={StaticResource BoolToVisibilityConverter}}" />
     </Canvas>
 </Window>

@@ -9,7 +9,11 @@ using System.Windows.Media;
 
 namespace neo_bpsys_wpf.ViewModels.Windows
 {
-    public partial class InterludeWindowViewModel : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<DesignModeChangedMessage>
+    public partial class InterludeWindowViewModel : 
+        ObservableRecipient, 
+        IRecipient<NewGameMessage>, 
+        IRecipient<DesignModeChangedMessage>,
+        IRecipient<PropertyChangedMessage<bool>>
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public InterludeWindowViewModel()
@@ -18,14 +22,14 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
         }
 
-        public ISharedDataService SharedDataService { get; }
+        private readonly ISharedDataService _sharedDataService;
 
         [ObservableProperty]
         private bool _isDesignMode = false;
 
         public InterludeWindowViewModel(ISharedDataService sharedDataService)
         {
-            SharedDataService = sharedDataService;
+            _sharedDataService = sharedDataService;
             //Sur
             BorrowedTimeImageSource = ImageHelper.GetTalentImageSource(Enums.Camp.Sur, "回光返照");
             FlywheelEffectImageSource = ImageHelper.GetTalentImageSource(Enums.Camp.Sur, "飞轮效应");
@@ -53,6 +57,14 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 IsDesignMode = message.IsDesignMode;
         }
 
+        public void Receive(PropertyChangedMessage<bool> message)
+        {
+            if(message.PropertyName == nameof(ISharedDataService.IsTraitVisible))
+            {
+                IsTraitVisible = message.NewValue;
+            }
+        }
+
         //talent imageSource
         //Sur
         public ImageSource? BorrowedTimeImageSource { get; private set; }
@@ -65,6 +77,9 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         public ImageSource? InsolenceImageSource { get; private set; }
         public ImageSource? TrumpCardImageSource { get; private set; }
 
-        public Game CurrentGame => SharedDataService.CurrentGame;
+        public Game CurrentGame => _sharedDataService.CurrentGame;
+
+        [ObservableProperty]
+        private bool _isTraitVisible = true;
     }
 }
