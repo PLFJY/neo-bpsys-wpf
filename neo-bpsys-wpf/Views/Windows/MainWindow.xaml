@@ -161,7 +161,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text="正计时（单位：秒 ; 可自定义, 下拉框给出的是预设）" />
+                        <TextBlock Grid.Row="0" Text="倒计时（单位：秒 ; 可自定义, 下拉框给出的是预设）" />
                         <StackPanel
                             Grid.Row="1"
                             Margin="0,10,0,0"
