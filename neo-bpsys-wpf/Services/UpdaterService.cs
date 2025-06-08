@@ -47,6 +47,19 @@ namespace neo_bpsys_wpf.Services
 
             Downloader = new DownloadService(downloadOpt);
             Downloader.DownloadFileCompleted += OnDownloadFileCompletedAsync;
+
+            var fileName = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf_Installer.exe");
+            if (File.Exists(fileName))
+            {
+                try
+                {
+                    File.Delete(fileName);
+                }
+                catch (Exception ex)
+                {
+                    _messageBoxService.ShowErrorAsync(ex.Message, "清理更新残留异常");
+                }
+            }
         }
 
         /// <summary>
@@ -54,10 +67,7 @@ namespace neo_bpsys_wpf.Services
         /// </summary>
         public async Task DownloadUpdate(string mirror = "")
         {
-            var fileName = Path.Combine(
-                Path.GetTempPath(),
-                NewVersionInfo.assets.Where(a => a.name == "neo-bpsys-wpf_Installer.exe").ToArray()[0].name
-                );
+            var fileName = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf_Installer.exe");
             var downloadUrl = NewVersionInfo.assets.Where(a => a.name == "neo-bpsys-wpf_Installer.exe").ToArray()[0].browser_download_url;
             try
             {
