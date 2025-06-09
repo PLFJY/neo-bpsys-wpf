@@ -19,6 +19,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Resource Include="Assets\bp.png" />
+    <Resource Include="Assets\bp_noAuthor.png" />
+    <Resource Include="Assets\CurrentBanLock.png" />
     <Resource Include="Assets\donate_QR_code.JPG" />
     <Resource Include="Assets\Fonts\Essay-Text-W01-Italic.ttf" />
     <Resource Include="Assets\Fonts\selawk.ttf" />
@@ -26,8 +28,11 @@
     <Resource Include="Assets\Fonts\华康POP1体W5-简体.ttf" />
     <Resource Include="Assets\Fonts\汉仪第五人格体.ttf" />
     <Resource Include="Assets\gameData.png" />
-    <Resource Include="Assets\gameInfo.png" />
+    <Resource Include="Assets\bpOverview.png" />
+    <Resource Include="Assets\GlobalBanLock.png" />
     <Resource Include="Assets\HomePageHeader.png" />
+    <Resource Include="Assets\hunIcon.png" />
+    <Resource Include="Assets\hun_black.png" />
     <Resource Include="Assets\icon.png" />
     <Resource Include="Assets\Icons\black\Abnormal.png" />
     <Resource Include="Assets\Icons\black\Blink.png" />
@@ -87,6 +92,8 @@
     <Resource Include="Assets\scoreGlobal_Bo3.png" />
     <Resource Include="Assets\scoreHun.png" />
     <Resource Include="Assets\scoreSur.png" />
+    <Resource Include="Assets\surIcon.png" />
+    <Resource Include="Assets\sur_black.png" />
     <Resource Include="Assets\testLogo.jpg" />
     <Resource Include="Assets\wpfui.png" />
     <Resource Include="Assets\先知.png" />
@@ -121,7 +128,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Assets\bp_noAuthor.png" />
+    <None Remove="Assets\CurrentBanLock.png" />
     <None Remove="Assets\donate_QR_code.JPG" />
+    <None Remove="Assets\GlobalBanLock.png" />
+    <None Remove="Assets\hunIcon.png" />
+    <None Remove="Assets\hun_black.png" />
+    <None Remove="Assets\surIcon.png" />
+    <None Remove="Assets\sur_black.png" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="favicon.ico" />

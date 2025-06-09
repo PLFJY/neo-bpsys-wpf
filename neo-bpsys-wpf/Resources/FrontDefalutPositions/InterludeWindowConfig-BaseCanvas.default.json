@@ -41,40 +41,46 @@
     "Left": 491,
     "Top": 0
   },
+  "MapMask": {
+    "Width": 457,
+    "Height": 33,
+    "Left": 491,
+    "Top": 75
+  },
   "MapName": {
     "Width": 168,
     "Height": 0,
     "Left": 491,
-    "Top": 38
+    "Top": 75
   },
   "GameProgress": {
     "Width": 265,
     "Height": 30,
-    "Left": 679,
-    "Top": 40
+    "Left": 678,
+    "Top": 78
   },
   "SurPick0": {
-    "Width": 503,
-    "Height": 304,
-    "Left": -76,
+    "Width": 356,
+    "Height": 0,
+    "Left": 1,
     "Top": 114
   },
   "SurPick1": {
-    "Width": 503,
-    "Height": 304,
-    "Left": 292,
+    "Width": 356,
+    "Height": 0,
+    "Left": 364,
     "Top": 114
   },
   "SurPick2": {
-    "Width": 503,
-    "Height": 304,
-    "Left": -76,
+    "Width": 356,
+    "Height": 0,
+    "Left": 1,
     "Top": 465
   },
   "SurPick3": {
-    "Width": 503,
-    "Height": 304,
-    "Left": 292,
+    "Width": 356,
+    "Height": 0,
+    "Left": 362,
     "Top": 465
   },
   "HunPick": {

@@ -2,9 +2,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Messages;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace neo_bpsys_wpf.Models;
 /// <summary>
@@ -34,6 +36,7 @@ public partial class Member : ObservableObject
     private Camp _camp;
 
     private ImageSource? _image;
+    [JsonIgnore]
     public ImageSource? Image
     {
         get => _image;
@@ -48,6 +51,8 @@ public partial class Member : ObservableObject
             WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
         }
     }
+
+    public string ImageUri { get; set; } = string.Empty;
 
     private bool _isOnField = false;
     public bool IsOnField

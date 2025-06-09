@@ -5,31 +5,29 @@
     {
       "Name": "选手1",
       "Camp": "Sur",
-      "Image": null
+      "ImageUri": null
     },
     {
       "Name": "选手2",
       "Camp": "Sur",
-      "Image": null
+      "ImageUri": null
     },
     {
       "Name": "选手3",
       "Camp": "Sur",
-      "Image": null
+      "ImageUri": null
     },
     {
       "Name": "选手4",
       "Camp": "Sur",
-      "Image": null
+      "ImageUri": null
     }
   ],
   "HunMemberList": [
     {
       "Name": "选手5",
       "Camp": "Hun",
-      "Image": null
+      "ImageUri": null
     }
-  ],
-  "SurGlobalBanList": [],
-  "HunGlobalBanList": []
+  ]
 } 
