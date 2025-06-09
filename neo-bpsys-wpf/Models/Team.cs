@@ -6,6 +6,7 @@ using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
+using System.Diagnostics.Eventing.Reader;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -13,18 +14,18 @@ using System.Windows.Media.Imaging;
 namespace neo_bpsys_wpf.Models;
 
 /// <summary>
-/// é˜Ÿä¼ç±», <see cref="SharedDataService"/> ä¸­ä¸»é˜Ÿå’Œå®¢é˜Ÿå¯¹åº”çš„å¯¹è±¡å…¨åœºå§‹ç»ˆä¸å˜ï¼Œä¿¡æ¯å¯¼å…¥ä¾é  <see cref="ImportTeamInfo(Team)"/> æ–¹æ³•
+/// ¶ÓÎéÀà, <see cref="SharedDataService"/> ÖĞÖ÷¶ÓºÍ¿Í¶Ó¶ÔÓ¦µÄ¶ÔÏóÈ«³¡Ê¼ÖÕ²»±ä£¬ĞÅÏ¢µ¼ÈëÒÀ¿¿ <see cref="ImportTeamInfo(Team)"/> ·½·¨
 /// </summary>
 public partial class Team : ObservableObject
 {
-#pragma warning disable CS8618 // åœ¨é€€å‡ºæ„é€ å‡½æ•°æ—¶ï¼Œä¸å¯ä¸º null çš„å­—æ®µå¿…é¡»åŒ…å«é null å€¼ã€‚è¯·è€ƒè™‘æ·»åŠ  "required" ä¿®é¥°ç¬¦æˆ–å£°æ˜ä¸ºå¯ä¸º nullã€‚
+#pragma warning disable CS8618 // ÔÚÍË³ö¹¹Ôìº¯ÊıÊ±£¬²»¿ÉÎª null µÄ×Ö¶Î±ØĞë°üº¬·Ç null Öµ¡£Çë¿¼ÂÇÌí¼Ó "required" ĞŞÊÎ·û»òÉùÃ÷Îª¿ÉÎª null¡£
     public Team()
-#pragma warning restore CS8618 // åœ¨é€€å‡ºæ„é€ å‡½æ•°æ—¶ï¼Œä¸å¯ä¸º null çš„å­—æ®µå¿…é¡»åŒ…å«é null å€¼ã€‚è¯·è€ƒè™‘æ·»åŠ  "required" ä¿®é¥°ç¬¦æˆ–å£°æ˜ä¸ºå¯ä¸º nullã€‚
+#pragma warning restore CS8618 // ÔÚÍË³ö¹¹Ôìº¯ÊıÊ±£¬²»¿ÉÎª null µÄ×Ö¶Î±ØĞë°üº¬·Ç null Öµ¡£Çë¿¼ÂÇÌí¼Ó "required" ĞŞÊÎ·û»òÉùÃ÷Îª¿ÉÎª null¡£
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
 
-    #region åŸºæœ¬ä¿¡æ¯
+    #region »ù±¾ĞÅÏ¢
     private string _name = string.Empty;
 
     public string Name
@@ -34,11 +35,11 @@ public partial class Team : ObservableObject
 #if DEBUG
             if (this == App.Services.GetRequiredService<ISharedDataService>().MainTeam)
             {
-                return string.IsNullOrEmpty(_name) ? "ä¸»é˜Ÿ" : _name;
+                return string.IsNullOrEmpty(_name) ? "Ö÷¶Ó" : _name;
             }
             if (this == App.Services.GetRequiredService<ISharedDataService>().AwayTeam)
             {
-                return string.IsNullOrEmpty(_name) ? "å®¢é˜Ÿ" : _name;
+                return string.IsNullOrEmpty(_name) ? "¿Í¶Ó" : _name;
             }
 #endif
             return _name;
@@ -58,7 +59,7 @@ public partial class Team : ObservableObject
     private ImageSource? _logo;
 
     public string ImageUri { get; set; } = string.Empty;
-    #endregion åŸºæœ¬ä¿¡æ¯
+    #endregion »ù±¾ĞÅÏ¢
 
     [ObservableProperty]
     private ObservableCollection<Member> _surMemberList = [];
@@ -119,10 +120,19 @@ public partial class Team : ObservableObject
             ImageUri = newTeam.ImageUri;
             Logo = new BitmapImage(new Uri(ImageUri));
         }
+        foreach (var member in SurMemberList)
+        {
+            RemoveMemberInPlayer(member);
+        }
+        foreach (var member in HunMemberList)
+        {
+            RemoveMemberInPlayer(member);
+        }
         SurMemberList = newTeam.SurMemberList;
         HunMemberList = newTeam.HunMemberList;
         SurPlayerOnFieldList = [.. Enumerable.Range(0, 4).Select(i => new Player())];
         HunPlayerOnField = new Player();
+        _onFieldSurPlayerCnt = 0;
         WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
         OnPropertyChanged();
     }
