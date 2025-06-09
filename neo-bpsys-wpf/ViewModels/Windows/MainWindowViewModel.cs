@@ -95,6 +95,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 Converters = { new JsonStringEnumConverter() },
             };
             IsActive = true;
+            GameList = GameListBo5;
         }
 
 
@@ -128,7 +129,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 PickedMap = pickedMap,
                 BannedMap = bannedMap
             };
-            
+
             //发送新对局已创建的消息
             WeakReferenceMessenger.Default.Send(new NewGameMessage(this, true));
 
@@ -256,29 +257,62 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             }
         }
 
+        private bool _isBo3Mode = false;
+
+        public bool IsBo3Mode
+        {
+            get { return _isBo3Mode; }
+            set
+            {
+                _isBo3Mode = value;
+                _sharedDataService.IsBo3Mode = _isBo3Mode;
+                if (!IsBo3Mode)
+                {
+                    GameList = GameListBo5;
+                }
+                else
+                {
+                    GameList = GameListBo3;
+                }
+                OnPropertyChanged(nameof(IsBo3Mode));
+            }
+        }
+
         public string TimerTime { get; set; } = "30";
 
         public List<int> RecommendTimmerList { get; } = [30, 45, 60, 90, 120, 150, 180];
 
-        public Dictionary<string, GameProgress> GameList { get; } =
-            new Dictionary<string, GameProgress>()
-            {
-                { "自由对局", GameProgress.Free },
-                { "BO1上半", GameProgress.Game1FirstHalf },
-                { "BO1下半", GameProgress.Game1SecondHalf },
-                { "BO2上半", GameProgress.Game2FirstHalf },
-                { "BO2下半", GameProgress.Game2SecondHalf },
-                { "BO3上半", GameProgress.Game3FirstHalf },
-                { "BO3下半", GameProgress.Game3SecondHalf },
-                { "BO3加赛上半", GameProgress.Game3ExtraFirstHalf },
-                { "BO3加赛下半", GameProgress.Game3ExtraSecondHalf },
-                { "BO4上半", GameProgress.Game4FirstHalf },
-                { "BO4下半", GameProgress.Game4SecondHalf },
-                { "BO5上半", GameProgress.Game5FirstHalf },
-                { "BO5下半", GameProgress.Game5SecondHalf },
-                { "BO5加赛上半", GameProgress.Game5ExtraFirstHalf },
-                { "BO5加赛下半", GameProgress.Game5ExtraSecondHalf },
-            };
+        [ObservableProperty]
+        private Dictionary<GameProgress, string> _gameList;
+
+        public static Dictionary<GameProgress, string> GameListBo5 => new()
+        {
+            { GameProgress.Free, "自由对局" },
+            { GameProgress.Game1FirstHalf, "第1局上半" },
+            { GameProgress.Game1SecondHalf, "第1局下半" },
+            { GameProgress.Game2FirstHalf, "第2局上半" },
+            { GameProgress.Game2SecondHalf, "第2局下半" },
+            { GameProgress.Game3FirstHalf, "第3局上半" },
+            { GameProgress.Game3SecondHalf, "第3局下半" },
+            { GameProgress.Game4FirstHalf, "第4局上半" },
+            { GameProgress.Game4SecondHalf, "第4局下半" },
+            { GameProgress.Game5FirstHalf, "第5局上半" },
+            { GameProgress.Game5SecondHalf, "第5局下半" },
+            { GameProgress.Game5ExtraFirstHalf, "第5局加赛上半" },
+            { GameProgress.Game5ExtraSecondHalf, "第5局加赛下半" }
+        };
+
+        public static Dictionary<GameProgress, string> GameListBo3 => new()
+        {
+            { GameProgress.Free, "自由对局" },
+            { GameProgress.Game1SecondHalf, "第1局下半" },
+            { GameProgress.Game2FirstHalf, "第2局上半" },
+            { GameProgress.Game2SecondHalf, "第2局下半" },
+            { GameProgress.Game3FirstHalf, "第3局上半" },
+            { GameProgress.Game3SecondHalf, "第3局下半" },
+            { GameProgress.Game3ExtraFirstHalf, "第3局加赛上半" },
+            { GameProgress.Game3ExtraSecondHalf, "第3局加赛下半" }
+        };
 
         public List<NavigationViewItem> MenuItems { get; } =
             [

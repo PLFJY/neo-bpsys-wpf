@@ -210,6 +210,15 @@
                     Command="{Binding NewGameCommand}"
                     Content="新对局 (重置)"
                     Icon="{ui:SymbolIcon Symbol=Add24}" />
+                <ToggleButton
+                    Margin="0,0,10,10"
+                    IsChecked="{Binding IsBo3Mode}"
+                    IsEnabled="{Binding CanGameProgressChange}">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="ArrowSwap24" />
+                        <TextBlock Margin="10,0,0,0" Text="切换至BO3模式" />
+                    </StackPanel>
+                </ToggleButton>
                 <TextBlock
                     Margin="0,0,10,10"
                     VerticalAlignment="Center"
@@ -217,13 +226,13 @@
                 <ComboBox
                     Width="150"
                     Margin="0,0,10,10"
-                    DisplayMemberPath="Key"
+                    DisplayMemberPath="Value"
                     IsEnabled="{Binding CanGameProgressChange}"
                     ItemsSource="{Binding GameList}"
                     MaxDropDownHeight="190"
                     SelectedIndex="0"
                     SelectedValue="{Binding SelectedGameProgress}"
-                    SelectedValuePath="Value" />
+                    SelectedValuePath="Key" />
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding StartNavigationCommand}"

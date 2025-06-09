@@ -14,7 +14,8 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         ObservableRecipient, 
         IRecipient<NewGameMessage>, 
         IRecipient<DesignModeChangedMessage>, 
-        IRecipient<ValueChangedMessage<string>>
+        IRecipient<ValueChangedMessage<string>>,
+        IRecipient<PropertyChangedMessage<bool>>
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public BpWindowViewModel()
@@ -56,6 +57,17 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         {
             if(IsDesignMode != message.IsDesignMode)
                 IsDesignMode = message.IsDesignMode;
+        }
+
+        [ObservableProperty]
+        private bool _isBo3Mode = false;
+
+        public void Receive(PropertyChangedMessage<bool> message)
+        {
+            if (message.PropertyName == nameof(ISharedDataService.IsBo3Mode))
+            {
+                IsBo3Mode = message.NewValue;
+            }
         }
 
         public ImageSource? CurrentBanLockImage { get; private set; }

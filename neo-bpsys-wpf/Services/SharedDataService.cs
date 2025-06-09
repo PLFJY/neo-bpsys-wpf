@@ -129,6 +129,20 @@ namespace neo_bpsys_wpf.Services
         }
 
         /// <summary>
+        /// 是否是BO3模式
+        /// </summary>
+        private bool _isBo3Mode = false;
+        public bool IsBo3Mode
+        {
+            get => _isBo3Mode;
+            set
+            {
+                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsBo3Mode), _isBo3Mode, value));
+                _isBo3Mode = value;
+            }
+        }
+
+        /// <summary>
         /// 倒计时剩余时间
         /// </summary>
         private int _remainingSeconds = 0;

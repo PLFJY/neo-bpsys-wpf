@@ -54,10 +54,5 @@ namespace neo_bpsys_wpf.Services
         /// 重置全局分数统计
         /// </summary>
         void ResetGlobalScore();
-        /// <summary>
-        /// 切换对局模式(BO3和BO5)
-        /// </summary>
-        /// <param name="isBo3"></param>
-        void SwitchGameType(bool isBo3);
     }
 }

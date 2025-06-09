@@ -11,7 +11,7 @@ using System;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
-    public partial class ScorePageViewModel : ObservableObject
+    public partial class ScorePageViewModel : ObservableRecipient, IRecipient<PropertyChangedMessage<bool>>
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public ScorePageViewModel()
@@ -30,6 +30,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             _frontService = frontService;
             _scoreManual = scoreManual;
             GameList = GameListBo5;
+            IsActive = true;
         }
 
         public Team MainTeam => _sharedDataService.MainTeam;
@@ -239,7 +240,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             int? index = 0;
             index = GameList
                 .Select((pair, index) => new { Pair = pair, Index = index })
-                .FirstOrDefault(pair => pair.Pair.Value == SelectedGameProgress)?.Index;
+                .FirstOrDefault(pair => pair.Pair.Key == SelectedGameProgress)?.Index;
             index++;
             if (index != null)
             {
@@ -248,20 +249,21 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
         }
 
-        [RelayCommand]
-        private void SwitchGameType()
+        public void Receive(PropertyChangedMessage<bool> message)
         {
-            IsBo3Mode = !IsBo3Mode;
-            if (!IsBo3Mode)
+            if(message.PropertyName == nameof(ISharedDataService.IsBo3Mode))
             {
-                GameList = GameListBo5;
+                IsBo3Mode = message.NewValue;
+                if (!IsBo3Mode)
+                {
+                    GameList = GameListBo5;
+                }
+                else
+                {
+                    GameList = GameListBo3;
+                }
+                SelectedIndex = 0;
             }
-            else
-            {
-                GameList = GameListBo3;
-            }
-            _frontService.SwitchGameType(IsBo3Mode);
-            SelectedIndex = 0;
         }
 
         private void UpdateTotalMinorPoint()
@@ -348,34 +350,34 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         };
 
         [ObservableProperty]
-        private Dictionary<string, GameProgress> _gameList;
+        private Dictionary<GameProgress, string> _gameList;
 
-        public static Dictionary<string, GameProgress> GameListBo5 => new()
+        public static Dictionary<GameProgress, string> GameListBo5 => new()
         {
-            { "第1局上半", GameProgress.Game1FirstHalf },
-            { "第1局下半", GameProgress.Game1SecondHalf },
-            { "第2局上半", GameProgress.Game2FirstHalf },
-            { "第2局下半", GameProgress.Game2SecondHalf },
-            { "第3局上半", GameProgress.Game3FirstHalf },
-            { "第3局下半", GameProgress.Game3SecondHalf },
-            { "第4局上半", GameProgress.Game4FirstHalf },
-            { "第4局下半", GameProgress.Game4SecondHalf },
-            { "第5局上半", GameProgress.Game5FirstHalf },
-            { "第5局下半", GameProgress.Game5SecondHalf },
-            { "第5局加赛上半", GameProgress.Game5ExtraFirstHalf },
-            { "第5局加赛下半", GameProgress.Game5ExtraSecondHalf },
+            { GameProgress.Game1FirstHalf, "第1局上半" },
+            { GameProgress.Game1SecondHalf, "第1局下半" },
+            { GameProgress.Game2FirstHalf, "第2局上半" },
+            { GameProgress.Game2SecondHalf, "第2局下半" },
+            { GameProgress.Game3FirstHalf, "第3局上半" },
+            { GameProgress.Game3SecondHalf, "第3局下半" },
+            { GameProgress.Game4FirstHalf, "第4局上半" },
+            { GameProgress.Game4SecondHalf, "第4局下半" },
+            { GameProgress.Game5FirstHalf, "第5局上半" },
+            { GameProgress.Game5SecondHalf, "第5局下半" },
+            { GameProgress.Game5ExtraFirstHalf, "第5局加赛上半" },
+            { GameProgress.Game5ExtraSecondHalf, "第5局加赛下半" }
         };
 
-        public static Dictionary<string, GameProgress> GameListBo3 => new()
+        public static Dictionary<GameProgress, string> GameListBo3 => new()
         {
-            { "第1局上半", GameProgress.Game1FirstHalf },
-            { "第1局下半", GameProgress.Game1SecondHalf },
-            { "第2局上半", GameProgress.Game2FirstHalf },
-            { "第2局下半", GameProgress.Game2SecondHalf },
-            { "第3局上半", GameProgress.Game3FirstHalf },
-            { "第3局下半", GameProgress.Game3SecondHalf },
-            { "第3局加赛上半", GameProgress.Game3ExtraFirstHalf },
-            { "第3局加赛下半", GameProgress.Game3ExtraSecondHalf },
+            { GameProgress.Game1FirstHalf, "第1局上半" },
+            { GameProgress.Game1SecondHalf, "第1局下半" },
+            { GameProgress.Game2FirstHalf, "第2局上半" },
+            { GameProgress.Game2SecondHalf, "第2局下半" },
+            { GameProgress.Game3FirstHalf, "第3局上半" },
+            { GameProgress.Game3SecondHalf, "第3局下半" },
+            { GameProgress.Game3ExtraFirstHalf, "第3局加赛上半" },
+            { GameProgress.Game3ExtraSecondHalf, "第3局加赛下半" }
         };
 
         public class GameGlobalInfo()

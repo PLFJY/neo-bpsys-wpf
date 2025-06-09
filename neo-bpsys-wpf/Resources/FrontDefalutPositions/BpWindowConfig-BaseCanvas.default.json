@@ -1,229 +1,349 @@
 {
   "SurTeamLogo": {
+    "Width": 85,
+    "Height": 85,
     "Left": 42,
     "Top": 10
   },
   "SurTeamMajorPoint": {
+    "Width": 0,
+    "Height": 0,
     "Left": 175,
     "Top": 38
   },
   "SurTeamName": {
+    "Width": 207,
+    "Height": 0,
     "Left": 297,
     "Top": 32
   },
   "MinorPointsSur": {
+    "Width": 52,
+    "Height": 62,
     "Left": 541,
     "Top": 29
   },
   "Timer": {
+    "Width": 100,
+    "Height": 0,
     "Left": 671,
     "Top": 23
   },
   "MinorPointsHun": {
+    "Width": 52,
+    "Height": 62,
     "Left": 852,
     "Top": 29
   },
   "HunTeamName": {
+    "Width": 207,
+    "Height": 0,
     "Left": 936,
     "Top": 32
   },
   "HunTeamMajorPoint": {
+    "Width": 0,
+    "Height": 0,
     "Left": 1173,
     "Top": 39
   },
   "HunTeamLogo": {
+    "Width": 85,
+    "Height": 85,
     "Left": 1301,
     "Top": 10
   },
   "HunBanCurrent0": {
+    "Width": 43,
+    "Height": 43,
     "Left": 13,
     "Top": 566
   },
   "HunBanCurrent1": {
+    "Width": 43,
+    "Height": 43,
     "Left": 63,
     "Top": 566
   },
   "HunBanCurrentLock0": {
+    "Width": 43,
+    "Height": 43,
     "Left": 13,
     "Top": 566
   },
   "HunBanCurrentLock1": {
+    "Width": 43,
+    "Height": 43,
     "Left": 63,
     "Top": 566
   },
   "SurBanCurrent3": {
+    "Width": 43,
+    "Height": 43,
     "Left": 1231,
     "Top": 566
   },
   "SurBanCurrent2": {
+    "Width": 43,
+    "Height": 43,
     "Left": 1281,
     "Top": 566
   },
   "SurBanCurrent1": {
+    "Width": 43,
+    "Height": 43,
     "Left": 1329,
     "Top": 566
   },
   "SurBanCurrent0": {
+    "Width": 43,
+    "Height": 43,
     "Left": 1379,
     "Top": 566
   },
   "SurBanCurrentLock3": {
+    "Width": 43,
+    "Height": 43,
     "Left": 1231,
     "Top": 566
   },
   "SurBanCurrentLock2": {
+    "Width": 43,
+    "Height": 43,
     "Left": 1281,
     "Top": 566
   },
   "SurBanCurrentLock1": {
+    "Width": 43,
+    "Height": 43,
     "Left": 1329,
     "Top": 566
   },
   "SurBanCurrentLock0": {
+    "Width": 43,
+    "Height": 43,
     "Left": 1379,
     "Top": 566
   },
   "SurPick0": {
+    "Width": 140,
+    "Height": 159,
     "Left": 0,
     "Top": 619
   },
   "SurPick1": {
+    "Width": 142,
+    "Height": 159,
     "Left": 141,
     "Top": 619
   },
   "SurPick2": {
+    "Width": 140,
+    "Height": 159,
     "Left": 284,
     "Top": 619
   },
   "SurPick3": {
+    "Width": 142,
+    "Height": 159,
     "Left": 424,
     "Top": 619
   },
   "Map": {
+    "Width": 306,
+    "Height": 81,
     "Left": 567,
     "Top": 658
   },
   "MapName": {
-    "Left": 645,
+    "Width": 119,
+    "Height": 30,
+    "Left": 567,
+    "Top": 709
+  },
+  "GameProgress": {
+    "Width": 178,
+    "Height": 30,
+    "Left": 697,
     "Top": 709
   },
   "HunGlobalBan0": {
+    "Width": 30,
+    "Height": 30,
     "Left": 672,
     "Top": 746
   },
   "HunGlobalBan1": {
+    "Width": 30,
+    "Height": 30,
     "Left": 705,
     "Top": 746
   },
   "HunGlobalBan2": {
+    "Width": 30,
+    "Height": 30,
     "Left": 738,
     "Top": 746
   },
   "HunGlobalBanLock0": {
+    "Width": 30,
+    "Height": 30,
     "Left": 672,
     "Top": 746
   },
   "HunGlobalBanLock1": {
+    "Width": 30,
+    "Height": 30,
     "Left": 705,
     "Top": 746
   },
   "HunGlobalBanLock2": {
+    "Width": 30,
+    "Height": 30,
     "Left": 738,
     "Top": 746
   },
   "SurGlobalBan0": {
+    "Width": 30,
+    "Height": 30,
     "Left": 571,
     "Top": 778.5
   },
   "SurGlobalBan1": {
+    "Width": 30,
+    "Height": 30,
     "Left": 605,
     "Top": 778.5
   },
   "SurGlobalBan2": {
+    "Width": 30,
+    "Height": 30,
     "Left": 638,
     "Top": 778.5
   },
   "SurGlobalBan3": {
+    "Width": 30,
+    "Height": 30,
     "Left": 671,
     "Top": 778.5
   },
   "SurGlobalBan4": {
+    "Width": 30,
+    "Height": 30,
     "Left": 705,
     "Top": 778.5
   },
   "SurGlobalBan5": {
+    "Width": 30,
+    "Height": 30,
     "Left": 739,
     "Top": 778.5
   },
   "SurGlobalBan6": {
+    "Width": 30,
+    "Height": 30,
     "Left": 772,
     "Top": 778.5
   },
   "SurGlobalBan7": {
+    "Width": 30,
+    "Height": 30,
     "Left": 806,
     "Top": 778.5
   },
   "SurGlobalBan8": {
+    "Width": 30,
+    "Height": 30,
     "Left": 840,
     "Top": 778.5
   },
   "SurGlobalBanLock0": {
+    "Width": 30,
+    "Height": 30,
     "Left": 571,
     "Top": 778.5
   },
   "SurGlobalBanLock1": {
+    "Width": 30,
+    "Height": 30,
     "Left": 605,
     "Top": 778.5
   },
   "SurGlobalBanLock2": {
+    "Width": 30,
+    "Height": 30,
     "Left": 638,
     "Top": 778.5
   },
   "SurGlobalBanLock3": {
+    "Width": 30,
+    "Height": 30,
     "Left": 671,
     "Top": 778.5
   },
   "SurGlobalBanLock4": {
+    "Width": 30,
+    "Height": 30,
     "Left": 705,
     "Top": 778.5
   },
   "SurGlobalBanLock5": {
+    "Width": 30,
+    "Height": 30,
     "Left": 739,
     "Top": 778.5
   },
   "SurGlobalBanLock6": {
+    "Width": 30,
+    "Height": 30,
     "Left": 772,
     "Top": 778.5
   },
   "SurGlobalBanLock7": {
+    "Width": 30,
+    "Height": 30,
     "Left": 806,
     "Top": 778.5
   },
   "SurGlobalBanLock8": {
+    "Width": 30,
+    "Height": 30,
     "Left": 840,
     "Top": 778.5
   },
   "HunPick": {
+    "Width": 565,
+    "Height": 161,
     "Left": 875,
     "Top": 617
   },
   "SurId0": {
+    "Width": 136,
+    "Height": 31,
     "Left": 2,
     "Top": 778
   },
   "SurId1": {
+    "Width": 136,
+    "Height": 31,
     "Left": 144,
     "Top": 779
   },
   "SurId2": {
+    "Width": 136,
+    "Height": 31,
     "Left": 286,
     "Top": 778
   },
   "SurId3": {
+    "Width": 136,
+    "Height": 31,
     "Left": 428,
     "Top": 778
   },
   "HunId": {
+    "Width": 565,
+    "Height": 31,
     "Left": 875,
     "Top": 778
   }

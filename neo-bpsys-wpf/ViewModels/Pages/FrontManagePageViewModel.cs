@@ -120,11 +120,6 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
 
-        //前台窗口大小修改
-
-        public List<WindowResolution> WindowResolutionsList { get; } =
-            [new(1440, 810), new(1920, 1080), new(960, 540)];
-
         //前台设计器模式
         private bool _isDesignMode = false;
 
@@ -208,6 +203,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         private void ResetWidgetsWindowElementsPosition(string canvasName)
         {
             _frontService.RestoreInitialPositions<WidgetsWindow>(canvasName);
+        }
+
+        [RelayCommand]
+        private void ResetGameDataWindowElementsPosition()
+        {
+            _frontService.RestoreInitialPositions<GameDataWindow>();
         }
     }
 }

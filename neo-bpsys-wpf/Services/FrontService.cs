@@ -1,7 +1,10 @@
-﻿using neo_bpsys_wpf.CustomBehaviors;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
+using neo_bpsys_wpf.CustomBehaviors;
 using neo_bpsys_wpf.CustomControls;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.Views.Pages;
@@ -52,6 +55,7 @@ namespace neo_bpsys_wpf.Services
             RegisterFrontWindowAndCanvas(scoreWindow, "ScoreHunCanvas");
             RegisterFrontWindowAndCanvas(scoreWindow, "ScoreGlobalCanvas");
             RegisterFrontWindowAndCanvas(widgetsWindow, "MapBpCanvas");
+            RegisterFrontWindowAndCanvas(gameDataWindow);
 
             //注册分数统计界面的分数控件
             GlobalScoreContorlsReg();
@@ -61,6 +65,8 @@ namespace neo_bpsys_wpf.Services
             {
                 RecordInitialPositions(i.Item1, i.Item2);
             }
+
+            WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>>(this, OnBo3ModeChanged);
         }
 
         /// <summary>
@@ -209,12 +215,17 @@ namespace neo_bpsys_wpf.Services
             if (window.FindName(canvasName) is not Canvas canvas)
                 return;
 
-            var positions = new Dictionary<string, PositionInfo>();
+            var positions = new Dictionary<string, ElementInfo>();
             foreach (UIElement child in canvas.Children)
             {
                 if (child is FrameworkElement fe && !string.IsNullOrEmpty(fe.Name))
                 {
-                    var name = fe.Name;
+                    var width = fe.Width;
+                    if (double.IsNaN(width))
+                        width = 0;
+                    var height = fe.Height;
+                    if (double.IsNaN(height))
+                        height = 0;
                     var left = Canvas.GetLeft(fe);
                     if (double.IsNaN(left))
                         left = 0;
@@ -222,7 +233,7 @@ namespace neo_bpsys_wpf.Services
                     if (double.IsNaN(top))
                         top = 0;
 
-                    positions[name] = new(left, top);
+                    positions[fe.Name] = new(width, height, left, top);
                 }
             }
             var output = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
@@ -266,21 +277,27 @@ namespace neo_bpsys_wpf.Services
 
             if (typeof(T) == typeof(ScoreWindow) && canvasName == "ScoreGlobalCanvas" && _isBo3Mode) return;
 
-            var positions = new Dictionary<string, PositionInfo>();
+            var positions = new Dictionary<string, ElementInfo>();
             if (window.FindName(canvasName) is Canvas canvas)
             {
                 foreach (var child in canvas.Children)
                 {
-                    if (child is FrameworkElement element)
+                    if (child is FrameworkElement fe && !string.IsNullOrEmpty(fe.Name))
                     {
-                        var left = Canvas.GetLeft(element);
+                        var width = fe.Width;
+                        if (double.IsNaN(width))
+                            width = 0;
+                        var height = fe.Height;
+                        if (double.IsNaN(height))
+                            height = 0;
+                        var left = Canvas.GetLeft(fe);
                         if (double.IsNaN(left))
                             left = 0;
-                        var top = Canvas.GetTop(element);
+                        var top = Canvas.GetTop(fe);
                         if (double.IsNaN(top))
                             top = 0;
 
-                        positions[element.Name] = new(left, top);
+                        positions[fe.Name] = new(width, height, left, top);
                     }
                 }
             }
@@ -316,14 +333,20 @@ namespace neo_bpsys_wpf.Services
             try
             {
                 var jsonContent = File.ReadAllText(path);
-                var positions = JsonSerializer.Deserialize<Dictionary<string, PositionInfo>>(jsonContent);
+                var positions = JsonSerializer.Deserialize<Dictionary<string, ElementInfo>>(jsonContent);
 
                 if (window.FindName(canvasName) is Canvas canvas && positions != null)
                 {
                     foreach (UIElement child in canvas.Children)
                     {
-                        if (child is FrameworkElement fe && positions.TryGetValue(fe.Name, out PositionInfo? value))
+                        if (child is FrameworkElement fe && positions.TryGetValue(fe.Name, out ElementInfo? value))
                         {
+                            var width = value.Width;
+                            if (double.IsNaN(width))
+                                width = 0;
+                            var height = value.Height;
+                            if (double.IsNaN(height))
+                                height = 0;
                             var left = value.Left;
                             if (double.IsNaN(left))
                                 left = 0;
@@ -331,6 +354,8 @@ namespace neo_bpsys_wpf.Services
                             if (double.IsNaN(top))
                                 top = 0;
 
+                            fe.Width = width;
+                            fe.Height = height;
                             Canvas.SetLeft(fe, left);
                             Canvas.SetTop(fe, top);
                         }
@@ -378,15 +403,30 @@ namespace neo_bpsys_wpf.Services
             try
             {
                 var json = File.ReadAllText(path);
-                var positions = JsonSerializer.Deserialize<Dictionary<string, PositionInfo>>(json);
+                var positions = JsonSerializer.Deserialize<Dictionary<string, ElementInfo>>(json);
                 if (positions == null || window.FindName(canvasName) is not Canvas canvas || positions.Count == 0) return;
 
                 foreach (UIElement child in canvas.Children)
                 {
-                    if (child is FrameworkElement fe && positions.TryGetValue(fe.Name, out PositionInfo? value))
+                    if (child is FrameworkElement fe && positions.TryGetValue(fe.Name, out ElementInfo? value))
                     {
-                        Canvas.SetLeft(fe, value.Left);
-                        Canvas.SetTop(fe, value.Top);
+                        var width = value.Width;
+                        if (double.IsNaN(width))
+                            width = 0;
+                        var height = value.Height;
+                        if (double.IsNaN(height))
+                            height = 0;
+                        var left = value.Left;
+                        if (double.IsNaN(left))
+                            left = 0;
+                        var top = value.Top;
+                        if (double.IsNaN(top))
+                            top = 0;
+
+                        fe.Width = width;
+                        fe.Height = height;
+                        Canvas.SetLeft(fe, left);
+                        Canvas.SetTop(fe, top);
                     }
                 }
 
@@ -403,11 +443,12 @@ namespace neo_bpsys_wpf.Services
         /// <summary>
         /// 窗口中元素的位置信息
         /// </summary>
-        /// <param name="name"></param>
         /// <param name="left"></param>
         /// <param name="top"></param>
-        public class PositionInfo(double left, double top)
+        public class ElementInfo(double width, double height, double left, double top)
         {
+            public double Width { get; } = width;
+            public double Height { get; } = height;
             public double Left { get; set; } = left;
             public double Top { get; set; } = top;
         }
@@ -529,65 +570,61 @@ namespace neo_bpsys_wpf.Services
         private double _lastMove;
 
         /// <summary>
-        /// 切换赛制到
+        /// 接收到切换赛制的消息
         /// </summary>
-        public void SwitchGameType(bool isBo3)
+        /// <param name="recipient"></param>
+        /// <param name="message"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        private void OnBo3ModeChanged(object recipient, PropertyChangedMessage<bool> message)
         {
-            _isBo3Mode = isBo3;
-            if (_frontWindows[typeof(ScoreWindow)] is not ScoreWindow scoreWindow) return;
-            if (_isBo3Mode)
+            if(message.PropertyName == nameof(ISharedDataService.IsBo3Mode))
             {
-                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush("scoreGlobal_Bo3");
-                foreach (var item in MainGlobalScoreControls)
+                _isBo3Mode = message.NewValue;
+                if (_frontWindows[typeof(ScoreWindow)] is not ScoreWindow scoreWindow) return;
+                if (_isBo3Mode)
                 {
-                    if (item.Key > GameProgress.Game3ExtraSecondHalf)
+                    scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush("scoreGlobal_Bo3");
+                    foreach (var item in MainGlobalScoreControls)
                     {
-                        item.Value.Visibility = Visibility.Hidden;
+                        if (item.Key > GameProgress.Game3ExtraSecondHalf)
+                        {
+                            item.Value.Visibility = Visibility.Hidden;
+                        }
                     }
+                    foreach (var item in AwayGlobalScoreControls)
+                    {
+                        if (item.Key > GameProgress.Game3ExtraSecondHalf)
+                        {
+                            item.Value.Visibility = Visibility.Hidden;
+                        }
+                    }
+                    Canvas.SetLeft(scoreWindow.MainScoreTotal, Canvas.GetLeft(scoreWindow.MainScoreTotal) - GlobalScoreTotalMargin);
+                    Canvas.SetLeft(scoreWindow.AwayScoreTotal, Canvas.GetLeft(scoreWindow.AwayScoreTotal) - GlobalScoreTotalMargin);
+                    _lastMove = GlobalScoreTotalMargin;
                 }
-                foreach (var item in AwayGlobalScoreControls)
+                else
                 {
-                    if (item.Key > GameProgress.Game3ExtraSecondHalf)
+                    scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush("scoreGlobal");
+                    foreach (var item in MainGlobalScoreControls)
                     {
-                        item.Value.Visibility = Visibility.Hidden;
+                        if (item.Key > GameProgress.Game3ExtraSecondHalf)
+                        {
+                            item.Value.Visibility = Visibility.Visible;
+                        }
                     }
-                }
-                Canvas.SetLeft(scoreWindow.MainScoreTotal, Canvas.GetLeft(scoreWindow.MainScoreTotal) - GlobalScoreTotalMargin);
-                Canvas.SetLeft(scoreWindow.AwayScoreTotal, Canvas.GetLeft(scoreWindow.AwayScoreTotal) - GlobalScoreTotalMargin);
-                _lastMove = GlobalScoreTotalMargin;
-            }
-            else
-            {
-                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush("scoreGlobal");
-                foreach (var item in MainGlobalScoreControls)
-                {
-                    if (item.Key > GameProgress.Game3ExtraSecondHalf)
+                    foreach (var item in AwayGlobalScoreControls)
                     {
-                        item.Value.Visibility = Visibility.Visible;
+                        if (item.Key > GameProgress.Game3ExtraSecondHalf)
+                        {
+                            item.Value.Visibility = Visibility.Visible;
+                        }
                     }
+                    Canvas.SetLeft(scoreWindow.MainScoreTotal, Canvas.GetLeft(scoreWindow.MainScoreTotal) + _lastMove);
+                    Canvas.SetLeft(scoreWindow.AwayScoreTotal, Canvas.GetLeft(scoreWindow.AwayScoreTotal) + _lastMove);
                 }
-                foreach (var item in AwayGlobalScoreControls)
-                {
-                    if (item.Key > GameProgress.Game3ExtraSecondHalf)
-                    {
-                        item.Value.Visibility = Visibility.Visible;
-                    }
-                }
-                Canvas.SetLeft(scoreWindow.MainScoreTotal, Canvas.GetLeft(scoreWindow.MainScoreTotal) + _lastMove);
-                Canvas.SetLeft(scoreWindow.AwayScoreTotal, Canvas.GetLeft(scoreWindow.AwayScoreTotal) + _lastMove);
             }
         }
-        #endregion 分数统计
 
-        /// <summary>
-        /// 窗口分辨率
-        /// </summary>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        public class WindowResolution(int width, int height)
-        {
-            public int Width { get; set; } = width;
-            public int Height { get; set; } = height;
-        }
+        #endregion 分数统计
     }
 }

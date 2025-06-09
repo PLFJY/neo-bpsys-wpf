@@ -57,6 +57,8 @@ namespace neo_bpsys_wpf.Services
         /// 倒计时剩余秒数
         /// </summary>
         string RemainingSeconds { get; set; }
+        bool IsBo3Mode { get; set; }
+
         /// <summary>
         /// 倒计时开始
         /// </summary>

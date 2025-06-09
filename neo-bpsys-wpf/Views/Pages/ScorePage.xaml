@@ -119,11 +119,6 @@
                             d:Visibility="Collapsed"
                             Text="赛制: BO3"
                             Visibility="{Binding IsBo3Mode, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                        <ui:Button
-                            Margin="10,0,0,0"
-                            Command="{Binding SwitchGameTypeCommand}"
-                            Content="切换"
-                            Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
                     </StackPanel>
                     <StackPanel
                         Grid.Row="1"
@@ -133,11 +128,11 @@
                         <ComboBox
                             Width="150"
                             Margin="10,0,0,0"
-                            DisplayMemberPath="Key"
+                            DisplayMemberPath="Value"
                             ItemsSource="{Binding GameList}"
                             SelectedIndex="{Binding SelectedIndex}"
                             SelectedValue="{Binding SelectedGameProgress}"
-                            SelectedValuePath="Value" />
+                            SelectedValuePath="Key" />
                         <ui:Button
                             Margin="10,0,0,0"
                             Command="{Binding NextGameCommand}"

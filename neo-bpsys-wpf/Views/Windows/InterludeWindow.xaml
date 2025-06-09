@@ -19,6 +19,7 @@
     mc:Ignorable="d">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <cv:GameprogressToStringConverter x:Key="GameprogressToStringConverter" />
     </Window.Resources>
     <Canvas
         x:Name="BaseCanvas"
@@ -138,22 +139,61 @@
             Height="108"
             HorizontalAlignment="Center"
             VerticalAlignment="Top"
+            Panel.ZIndex="-1"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/map/唐人街.png"
             Source="{Binding CurrentGame.PickedMapImage}" />
+        <Rectangle
+            Name="MapMask"
+            Canvas.Left="491"
+            Canvas.Top="75"
+            Width="457"
+            Height="33"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Fill="Black" />
         <Border
             Name="MapName"
-            Canvas.Left="554"
-            Canvas.Top="21"
-            Width="332"
+            Canvas.Left="491"
+            Canvas.Top="75"
+            Width="168"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+            <TextBlock
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                d:Text="唐人街"
+                FontFamily="{StaticResource Hanyi}"
+                FontSize="28"
+                Text="{Binding CurrentGame.PickedMap}" />
+        </Border>
+        <Border
+            Name="GameProgress"
+            Canvas.Left="678"
+            Canvas.Top="78"
+            Width="265"
+            Height="30"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            Panel.ZIndex="1"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
             <TextBlock
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                d:Text="唐人街"
-                FontFamily="{StaticResource Hanyi}"
-                FontSize="50"
-                Text="{Binding CurrentGame.PickedMap}" />
+                d:Text="GAME3 EXTRA FIRST HALF"
+                FontFamily="{StaticResource POP1W5}"
+                FontSize="24"
+                TextOptions.TextFormattingMode="Display"
+                TextOptions.TextRenderingMode="ClearType">
+                <TextBlock.Text>
+                    <MultiBinding Converter="{StaticResource GameprogressToStringConverter}">
+                        <Binding Path="CurrentGame.GameProgress" />
+                        <Binding Path="IsBo3Mode" />
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
         </Border>
 
         <!--  Sur Pick  -->

@@ -18,7 +18,6 @@
     mc:Ignorable="d">
     <Page.Resources>
         <ResourceDictionary>
-            <cv:WindowResolutionToStringConverter x:Key="WindowResolutionToStringConverter" />
             <cv:StringToDoubleConverter x:Key="StringToDoubleConverter" />
         </ResourceDictionary>
     </Page.Resources>
@@ -190,6 +189,12 @@
                         Command="{Binding HideGameDataWindowCommand}"
                         Content="关闭" />
                 </StackPanel>
+                <ui:Button
+                    Grid.Row="2"
+                    Margin="0,10,0,0"
+                    Command="{Binding ResetGameDataWindowElementsPositionCommand}"
+                    Content="重置布局"
+                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">

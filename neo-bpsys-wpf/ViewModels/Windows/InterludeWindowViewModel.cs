@@ -57,11 +57,18 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 IsDesignMode = message.IsDesignMode;
         }
 
+        [ObservableProperty]
+        private bool _isBo3Mode = false;
+
         public void Receive(PropertyChangedMessage<bool> message)
         {
             if(message.PropertyName == nameof(ISharedDataService.IsTraitVisible))
             {
                 IsTraitVisible = message.NewValue;
+            }
+            if (message.PropertyName == nameof(ISharedDataService.IsBo3Mode))
+            {
+                IsBo3Mode = message.NewValue;
             }
         }
 

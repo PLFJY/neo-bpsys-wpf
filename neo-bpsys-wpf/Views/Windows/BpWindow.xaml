@@ -20,6 +20,7 @@
     mc:Ignorable="d">
     <Window.Resources>
         <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
+        <cv:GameprogressToStringConverter x:Key="GameprogressToStringConverter" />
     </Window.Resources>
     <Canvas
         Name="BaseCanvas"
@@ -317,22 +318,47 @@
             Source="{Binding CurrentGame.PickedMapImage}" />
         <Border
             Name="MapName"
-            Canvas.Left="645"
+            Canvas.Left="567"
             Canvas.Top="709"
-            Width="150"
+            Width="119"
             Height="30"
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
             Panel.ZIndex="1"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
             <TextBlock
-                Name="PickedMapName"
-                HorizontalAlignment="Center"
+                HorizontalAlignment="Right"
                 VerticalAlignment="Center"
                 d:Text="唐人街"
                 FontFamily="{StaticResource Hanyi}"
-                FontSize="25"
+                FontSize="20"
                 Text="{Binding CurrentGame.PickedMap}" />
+        </Border>
+        <Border
+            Name="GameProgress"
+            Canvas.Left="697"
+            Canvas.Top="709"
+            Width="178"
+            Height="30"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            Panel.ZIndex="1"
+            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+            <TextBlock
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                d:Text="GAME3 EXTRA FIRST HALF"
+                FontFamily="{StaticResource POP1W5}"
+                FontSize="16"
+                TextOptions.TextFormattingMode="Display"
+                TextOptions.TextRenderingMode="ClearType">
+                <TextBlock.Text>
+                    <MultiBinding Converter="{StaticResource GameprogressToStringConverter}">
+                        <Binding Path="CurrentGame.GameProgress" />
+                        <Binding Path="IsBo3Mode" />
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
         </Border>
         <!--  Global Ban  -->
         <!--  Hun  -->
