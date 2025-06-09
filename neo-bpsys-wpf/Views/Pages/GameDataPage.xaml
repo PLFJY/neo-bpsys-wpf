@@ -34,14 +34,12 @@
                     <ui:TextBox
                         Grid.Row="0"
                         IsReadOnly="True"
-                        PlaceholderText="角色名称" />
-                    <StackPanel Grid.Row="1">
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="破译进度" />
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="砸板命中次数" />
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="救人次数" />
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="治疗次数" />
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="牵制监管者时间" />
-                    </StackPanel>
+                        PlaceholderText="角色名称"
+                        Text="{Binding SurPlayerList[0].Character.Name}" />
+                    <cc:GameDataEditor
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        PlayerData="{Binding SurPlayerList[0].Data}" />
                 </Grid>
             </Border>
             <Border Style="{StaticResource Card}">
@@ -53,14 +51,12 @@
                     <ui:TextBox
                         Grid.Row="0"
                         IsReadOnly="True"
-                        PlaceholderText="角色名称" />
-                    <StackPanel Grid.Row="1">
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="破译进度" />
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="砸板命中次数" />
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="救人次数" />
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="治疗次数" />
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="牵制监管者时间" />
-                    </StackPanel>
+                        PlaceholderText="角色名称"
+                        Text="{Binding SurPlayerList[1].Character.Name}" />
+                    <cc:GameDataEditor
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        PlayerData="{Binding SurPlayerList[1].Data}" />
                 </Grid>
             </Border>
             <Border Style="{StaticResource Card}">
@@ -72,14 +68,12 @@
                     <ui:TextBox
                         Grid.Row="0"
                         IsReadOnly="True"
-                        PlaceholderText="角色名称" />
-                    <StackPanel Grid.Row="1">
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="破译进度" />
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="砸板命中次数" />
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="救人次数" />
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="治疗次数" />
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="牵制监管者时间" />
-                    </StackPanel>
+                        PlaceholderText="角色名称"
+                        Text="{Binding SurPlayerList[2].Character.Name}" />
+                    <cc:GameDataEditor
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        PlayerData="{Binding SurPlayerList[2].Data}" />
                 </Grid>
             </Border>
             <Border Style="{StaticResource Card}">
@@ -91,14 +85,12 @@
                     <ui:TextBox
                         Grid.Row="0"
                         IsReadOnly="True"
-                        PlaceholderText="角色名称" />
-                    <StackPanel Grid.Row="1">
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="破译进度" />
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="砸板命中次数" />
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="救人次数" />
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="治疗次数" />
-                        <cc:GameDataEditor Margin="0,10,0,0" GameDataType="牵制监管者时间" />
-                    </StackPanel>
+                        PlaceholderText="角色名称"
+                        Text="{Binding SurPlayerList[3].Character.Name}" />
+                    <cc:GameDataEditor
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        PlayerData="{Binding SurPlayerList[3].Data}" />
                 </Grid>
             </Border>
         </WrapPanel>
@@ -113,14 +105,15 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <ui:TextBox Grid.Row="0" PlaceholderText="角色名称" />
-                <StackPanel Grid.Row="1">
-                    <cc:GameDataEditor Margin="0,10,0,0" GameDataType="剩余密码机数量" />
-                    <cc:GameDataEditor Margin="0,10,0,0" GameDataType="破坏板子数" />
-                    <cc:GameDataEditor Margin="0,10,0,0" GameDataType="命中求生者次数" />
-                    <cc:GameDataEditor Margin="0,10,0,0" GameDataType="恐惧震慑次数" />
-                    <cc:GameDataEditor Margin="0,10,0,0" GameDataType="击倒次数" />
-                </StackPanel>
+                <ui:TextBox
+                    Grid.Row="0"
+                    PlaceholderText="角色名称"
+                    Text="{Binding HunPlayer.Character.Name}" />
+                <cc:GameDataEditor
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    IsHunMode="True"
+                    PlayerData="{Binding HunPlayer.Data}" />
             </Grid>
         </Border>
     </Grid>

@@ -35,6 +35,7 @@
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
                     Orientation="Horizontal">
                     <ui:Button
                         Height="50"
@@ -49,6 +50,7 @@
                 <ToggleButton
                     x:Name="IsEditMode"
                     Grid.Row="2"
+                    Margin="0,10,0,0"
                     HorizontalAlignment="Center"
                     IsChecked="{Binding IsDesignMode}">
                     <StackPanel Orientation="Horizontal">
@@ -68,8 +70,6 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="BP画面" />
@@ -83,16 +83,8 @@
                         Command="{Binding HideBpWindowCommand}"
                         Content="关闭" />
                 </StackPanel>
-                <StackPanel Grid.Row="2" Margin="0,10,0,0">
-                    <TextBlock Text="窗口大小" />
-                    <ComboBox
-                        Width="200"
-                        Margin="0,10,0,0"
-                        ItemsSource="{Binding WindowResolutionsList, Converter={StaticResource WindowResolutionToStringConverter}}"
-                        SelectedIndex="0" />
-                </StackPanel>
                 <ui:Button
-                    Grid.Row="3"
+                    Grid.Row="2"
                     Margin="0,10,0,0"
                     Command="{Binding ResetBpWindowElementsPositionCommand}"
                     Content="重置布局"
@@ -102,8 +94,6 @@
         <Border Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -119,16 +109,8 @@
                         Command="{Binding HideInterludeWindowCommand}"
                         Content="关闭" />
                 </StackPanel>
-                <StackPanel Grid.Row="2" Margin="0,10,0,0">
-                    <TextBlock Text="窗口大小" />
-                    <ComboBox
-                        Width="200"
-                        Margin="0,10,0,0"
-                        ItemsSource="{Binding WindowResolutionsList, Converter={StaticResource WindowResolutionToStringConverter}}"
-                        SelectedIndex="0" />
-                </StackPanel>
                 <ui:Button
-                    Grid.Row="3"
+                    Grid.Row="2"
                     Margin="0,10,0,0"
                     Command="{Binding ResetInterludeWindowElementsPositionCommand}"
                     Content="重置布局"
@@ -207,14 +189,6 @@
                         Margin="10,0,0,0"
                         Command="{Binding HideGameDataWindowCommand}"
                         Content="关闭" />
-                </StackPanel>
-                <StackPanel Grid.Row="2" Margin="0,10,0,0">
-                    <TextBlock Text="窗口大小" />
-                    <ComboBox
-                        Width="200"
-                        Margin="0,10,0,0"
-                        ItemsSource="{Binding WindowResolutionsList, Converter={StaticResource WindowResolutionToStringConverter}}"
-                        SelectedIndex="0" />
                 </StackPanel>
             </Grid>
         </Border>

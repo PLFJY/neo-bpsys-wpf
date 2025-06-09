@@ -1,38 +1,29 @@
-﻿using System.Windows;
+﻿using neo_bpsys_wpf.Models;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace neo_bpsys_wpf.CustomControls
 {
     public class GameDataEditor : Control
     {
-        public string GameDataValue
+        public PlayerData PlayerData
         {
-            get { return (string)GetValue(GameDataValueProperty); }
-            set { SetValue(GameDataValueProperty, value); }
+            get { return (PlayerData)GetValue(PlayerDataProperty); }
+            set { SetValue(PlayerDataProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for GameDataValue.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty GameDataValueProperty =
-            DependencyProperty.Register(
-                "GameDataValue",
-                typeof(string),
-                typeof(GameDataEditor),
-                new PropertyMetadata(null)
-            );
+        // Using a DependencyProperty as the backing store for PlayerData.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty PlayerDataProperty =
+            DependencyProperty.Register("PlayerData", typeof(PlayerData), typeof(GameDataEditor), new PropertyMetadata(null));
 
-        public string GameDataType
+        public bool IsHunMode
         {
-            get { return (string)GetValue(GameDataTypeProperty); }
-            set { SetValue(GameDataTypeProperty, value); }
+            get { return (bool)GetValue(IsHunModeProperty); }
+            set { SetValue(IsHunModeProperty, value); }
         }
 
-        // Using a DependencyProperty as the backing store for GameDataType.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty GameDataTypeProperty =
-            DependencyProperty.Register(
-                "GameDataType",
-                typeof(string),
-                typeof(GameDataEditor),
-                new PropertyMetadata(null)
-            );
+        // Using a DependencyProperty as the backing store for IsHunMode.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IsHunModeProperty =
+            DependencyProperty.Register("IsHunMode", typeof(bool), typeof(GameDataEditor), new PropertyMetadata(false));
     }
 }

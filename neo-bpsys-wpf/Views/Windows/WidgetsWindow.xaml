@@ -13,11 +13,9 @@
     Height="554"
     d:DataContext="{d:DesignInstance Type=vm:WidgetsWindowViewModel,
                                      IsDesignTimeCreatable=True}"
+    Background="Blue"
     Style="{StaticResource FrontWindow}"
     mc:Ignorable="d">
-    <Window.Background>
-        <SolidColorBrush Color="Blue" />
-    </Window.Background>
     <Grid Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}" Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
         <Canvas
             Name="MapBpCanvas"

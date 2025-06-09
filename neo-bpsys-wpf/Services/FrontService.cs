@@ -86,6 +86,7 @@ namespace neo_bpsys_wpf.Services
         {
             foreach (var window in _frontWindows.Values)
             {
+                if (FrontWindowStates[window.GetType()]) continue;
                 window.Show();
                 FrontWindowStates[window.GetType()] = true;
             }
@@ -95,6 +96,7 @@ namespace neo_bpsys_wpf.Services
         {
             foreach (var window in _frontWindows.Values)
             {
+                if (!FrontWindowStates[window.GetType()]) continue;
                 window.Hide();
                 FrontWindowStates[window.GetType()] = false;
             }
@@ -108,6 +110,7 @@ namespace neo_bpsys_wpf.Services
                 return;
             }
 
+            if (FrontWindowStates[typeof(T)]) window.Activate();
             window.Show();
             FrontWindowStates[typeof(T)] = true;
         }
@@ -120,6 +123,7 @@ namespace neo_bpsys_wpf.Services
                 return;
             }
 
+            if (!FrontWindowStates[typeof(T)]) return;
             window.Hide();
             FrontWindowStates[typeof(T)] = false;
         }
@@ -260,7 +264,7 @@ namespace neo_bpsys_wpf.Services
                 return;
             }
 
-            if(typeof(T) == typeof(ScoreWindow) && canvasName == "ScoreGlobalCanvas" && _isBo3Mode) return;
+            if (typeof(T) == typeof(ScoreWindow) && canvasName == "ScoreGlobalCanvas" && _isBo3Mode) return;
 
             var positions = new Dictionary<string, PositionInfo>();
             if (window.FindName(canvasName) is Canvas canvas)
@@ -536,7 +540,7 @@ namespace neo_bpsys_wpf.Services
                 scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush("scoreGlobal_Bo3");
                 foreach (var item in MainGlobalScoreControls)
                 {
-                    if(item.Key > GameProgress.Game3ExtraSecondHalf)
+                    if (item.Key > GameProgress.Game3ExtraSecondHalf)
                     {
                         item.Value.Visibility = Visibility.Hidden;
                     }

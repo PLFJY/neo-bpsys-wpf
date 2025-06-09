@@ -26,7 +26,7 @@
         Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}"
         Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
         <Canvas.Background>
-            <ImageBrush ImageSource="/Assets/bp.png" />
+            <ImageBrush d:ImageSource="/Assets/bp.png" />
         </Canvas.Background>
         <Canvas.Resources>
             <Style TargetType="TextBlock">
@@ -539,11 +539,10 @@
             Name="SurId0"
             Canvas.Left="2"
             Canvas.Top="778"
-            Height="31"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
-                d:Text="求生者选手名Id"
+                d:Text="求生者选手Id"
                 Style="{StaticResource PlayerId}"
                 Text="{Binding CurrentGame.SurPlayerList[0].Member.Name}" />
         </Border>
@@ -551,11 +550,10 @@
             Name="SurId1"
             Canvas.Left="144"
             Canvas.Top="779"
-            Height="31"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
-                d:Text="求生者选手名Id"
+                d:Text="求生者选手Id"
                 Style="{StaticResource PlayerId}"
                 Text="{Binding CurrentGame.SurPlayerList[1].Member.Name}" />
         </Border>
@@ -563,11 +561,10 @@
             Name="SurId2"
             Canvas.Left="286"
             Canvas.Top="778"
-            Height="31"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
-                d:Text="求生者选手名Id"
+                d:Text="求生者选手Id"
                 Style="{StaticResource PlayerId}"
                 Text="{Binding CurrentGame.SurPlayerList[2].Member.Name}" />
         </Border>
@@ -575,11 +572,10 @@
             Name="SurId3"
             Canvas.Left="428"
             Canvas.Top="778"
-            Height="31"
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
-                d:Text="求生者选手名Id"
+                d:Text="求生者选手Id"
                 Style="{StaticResource PlayerId}"
                 Text="{Binding CurrentGame.SurPlayerList[3].Member.Name}" />
         </Border>
@@ -593,7 +589,7 @@
             <TextBlock
                 HorizontalAlignment="Center"
                 cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                d:Text="监管者选手名"
+                d:Text="监管者选手Id"
                 Style="{StaticResource PlayerId}"
                 Text="{Binding CurrentGame.HunPlayer.Member.Name}" />
         </Border>

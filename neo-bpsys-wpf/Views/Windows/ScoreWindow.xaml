@@ -15,12 +15,10 @@
     Height="347"
     d:DataContext="{d:DesignInstance Type=vm:ScoreWindowViewModel,
                                      IsDesignTimeCreatable=True}"
+    Background="Blue"
     Style="{StaticResource FrontWindow}"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
-    <Window.Background>
-        <SolidColorBrush Color="Blue" />
-    </Window.Background>
     <Grid Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}" Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
         <Grid.RowDefinitions>
             <RowDefinition Height="152" />

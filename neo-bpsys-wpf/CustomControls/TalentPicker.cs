@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using neo_bpsys_wpf.Models;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace neo_bpsys_wpf.CustomControls
@@ -35,6 +36,16 @@ namespace neo_bpsys_wpf.CustomControls
         // Using a DependencyProperty as the backing store for CharacterName.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty CharacterNameProperty =
             DependencyProperty.Register("CharacterName", typeof(string), typeof(TalentPicker), new PropertyMetadata(string.Empty));
+
+        public Player Player
+        {
+            get { return (Player)GetValue(PlayerProperty); }
+            set { SetValue(PlayerProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for Player.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty PlayerProperty =
+            DependencyProperty.Register("Player", typeof(Player), typeof(TalentPicker), new PropertyMetadata(null));
 
         public bool Is12Checked
         {

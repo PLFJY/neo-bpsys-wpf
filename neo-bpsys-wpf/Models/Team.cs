@@ -46,7 +46,7 @@ public partial class Team : ObservableObject
         set
         {
             _name = value;
-            OnPropertyChanged();
+            OnPropertyChanged(nameof(Name));
         }
     }
 
