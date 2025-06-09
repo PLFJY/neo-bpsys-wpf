@@ -30,32 +30,32 @@
                 <WrapPanel Grid.Row="1" Orientation="Horizontal">
                     <cc:TalentPicker
                         Margin="0,0,10,10"
-                        CharacterName="{Binding SharedDataService.CurrentGame.SurPlayerList[0].Character.Name}"
-                        Is12Checked="{Binding SharedDataService.CurrentGame.SurPlayerList[0].Talent.FlywheelEffect}"
-                        Is3Checked="{Binding SharedDataService.CurrentGame.SurPlayerList[0].Talent.BorrowedTime}"
-                        Is6Checked="{Binding SharedDataService.CurrentGame.SurPlayerList[0].Talent.TideTurner}"
-                        Is9Checked="{Binding SharedDataService.CurrentGame.SurPlayerList[0].Talent.KneeJerkReflex}" />
+                        CharacterName="{Binding CurrentGame.SurPlayerList[0].Character.Name, Mode=OneWay}"
+                        Is12Checked="{Binding CurrentGame.SurPlayerList[0].Talent.FlywheelEffect}"
+                        Is3Checked="{Binding CurrentGame.SurPlayerList[0].Talent.BorrowedTime}"
+                        Is6Checked="{Binding CurrentGame.SurPlayerList[0].Talent.TideTurner}"
+                        Is9Checked="{Binding CurrentGame.SurPlayerList[0].Talent.KneeJerkReflex}" />
                     <cc:TalentPicker
                         Margin="0,0,10,10"
-                        CharacterName="{Binding SharedDataService.CurrentGame.SurPlayerList[1].Character.Name}"
-                        Is12Checked="{Binding SharedDataService.CurrentGame.SurPlayerList[1].Talent.FlywheelEffect}"
-                        Is3Checked="{Binding SharedDataService.CurrentGame.SurPlayerList[1].Talent.BorrowedTime}"
-                        Is6Checked="{Binding SharedDataService.CurrentGame.SurPlayerList[1].Talent.TideTurner}"
-                        Is9Checked="{Binding SharedDataService.CurrentGame.SurPlayerList[1].Talent.KneeJerkReflex}" />
+                        CharacterName="{Binding CurrentGame.SurPlayerList[1].Character.Name, Mode=OneWay}"
+                        Is12Checked="{Binding CurrentGame.SurPlayerList[1].Talent.FlywheelEffect}"
+                        Is3Checked="{Binding CurrentGame.SurPlayerList[1].Talent.BorrowedTime}"
+                        Is6Checked="{Binding CurrentGame.SurPlayerList[1].Talent.TideTurner}"
+                        Is9Checked="{Binding CurrentGame.SurPlayerList[1].Talent.KneeJerkReflex}" />
                     <cc:TalentPicker
                         Margin="0,0,10,10"
-                        CharacterName="{Binding SharedDataService.CurrentGame.SurPlayerList[2].Character.Name}"
-                        Is12Checked="{Binding SharedDataService.CurrentGame.SurPlayerList[2].Talent.FlywheelEffect}"
-                        Is3Checked="{Binding SharedDataService.CurrentGame.SurPlayerList[2].Talent.BorrowedTime}"
-                        Is6Checked="{Binding SharedDataService.CurrentGame.SurPlayerList[2].Talent.TideTurner}"
-                        Is9Checked="{Binding SharedDataService.CurrentGame.SurPlayerList[2].Talent.KneeJerkReflex}" />
+                        CharacterName="{Binding CurrentGame.SurPlayerList[2].Character.Name, Mode=OneWay}"
+                        Is12Checked="{Binding CurrentGame.SurPlayerList[2].Talent.FlywheelEffect}"
+                        Is3Checked="{Binding CurrentGame.SurPlayerList[2].Talent.BorrowedTime}"
+                        Is6Checked="{Binding CurrentGame.SurPlayerList[2].Talent.TideTurner}"
+                        Is9Checked="{Binding CurrentGame.SurPlayerList[2].Talent.KneeJerkReflex}" />
                     <cc:TalentPicker
                         Margin="0,0,10,10"
-                        CharacterName="{Binding SharedDataService.CurrentGame.SurPlayerList[3].Character.Name}"
-                        Is12Checked="{Binding SharedDataService.CurrentGame.SurPlayerList[3].Talent.FlywheelEffect}"
-                        Is3Checked="{Binding SharedDataService.CurrentGame.SurPlayerList[3].Talent.BorrowedTime}"
-                        Is6Checked="{Binding SharedDataService.CurrentGame.SurPlayerList[3].Talent.TideTurner}"
-                        Is9Checked="{Binding SharedDataService.CurrentGame.SurPlayerList[3].Talent.KneeJerkReflex}" />
+                        CharacterName="{Binding CurrentGame.SurPlayerList[3].Character.Name, Mode=OneWay}"
+                        Is12Checked="{Binding CurrentGame.SurPlayerList[3].Talent.FlywheelEffect}"
+                        Is3Checked="{Binding CurrentGame.SurPlayerList[3].Talent.BorrowedTime}"
+                        Is6Checked="{Binding CurrentGame.SurPlayerList[3].Talent.TideTurner}"
+                        Is9Checked="{Binding CurrentGame.SurPlayerList[3].Talent.KneeJerkReflex}" />
                 </WrapPanel>
             </Grid>
         </Border>
@@ -70,11 +70,11 @@
                     Grid.Row="1"
                     Margin="0,0,20,10"
                     HorizontalAlignment="Left"
-                    CharacterName="{Binding SharedDataService.CurrentGame.HunPlayer.Character.Name}"
-                    Is12Checked="{Binding SharedDataService.CurrentGame.HunPlayer.Talent.ConfinedSpace}"
-                    Is3Checked="{Binding SharedDataService.CurrentGame.HunPlayer.Talent.TrumpCard}"
-                    Is6Checked="{Binding SharedDataService.CurrentGame.HunPlayer.Talent.Detention}"
-                    Is9Checked="{Binding SharedDataService.CurrentGame.HunPlayer.Talent.Insolence}"
+                    CharacterName="{Binding CurrentGame.HunPlayer.Character.Name, Mode=OneWay}"
+                    Is12Checked="{Binding CurrentGame.HunPlayer.Talent.ConfinedSpace}"
+                    Is3Checked="{Binding CurrentGame.HunPlayer.Talent.TrumpCard}"
+                    Is6Checked="{Binding CurrentGame.HunPlayer.Talent.Detention}"
+                    Is9Checked="{Binding CurrentGame.HunPlayer.Talent.Insolence}"
                     IsTypeHun="True" />
             </Grid>
         </Border>
@@ -103,7 +103,7 @@
                         Margin="20,0,0,0"
                         d:IsChecked="True"
                         Content="是否显示"
-                        IsChecked="{Binding SharedDataService.IsTraitVisible}" />
+                        IsChecked="{Binding IsTraitVisible}" />
                 </StackPanel>
                 <WrapPanel
                     Grid.Row="1"

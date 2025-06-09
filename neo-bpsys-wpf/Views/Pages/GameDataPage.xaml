@@ -35,7 +35,7 @@
                         Grid.Row="0"
                         IsReadOnly="True"
                         PlaceholderText="角色名称"
-                        Text="{Binding SurPlayerList[0].Character.Name}" />
+                        Text="{Binding SurPlayerList[0].Character.Name, Mode=OneWay}" />
                     <cc:GameDataEditor
                         Grid.Row="1"
                         Margin="0,10,0,0"
@@ -52,7 +52,7 @@
                         Grid.Row="0"
                         IsReadOnly="True"
                         PlaceholderText="角色名称"
-                        Text="{Binding SurPlayerList[1].Character.Name}" />
+                        Text="{Binding SurPlayerList[1].Character.Name, Mode=OneWay}" />
                     <cc:GameDataEditor
                         Grid.Row="1"
                         Margin="0,10,0,0"
@@ -69,7 +69,7 @@
                         Grid.Row="0"
                         IsReadOnly="True"
                         PlaceholderText="角色名称"
-                        Text="{Binding SurPlayerList[2].Character.Name}" />
+                        Text="{Binding SurPlayerList[2].Character.Name, Mode=OneWay}" />
                     <cc:GameDataEditor
                         Grid.Row="1"
                         Margin="0,10,0,0"
@@ -86,7 +86,7 @@
                         Grid.Row="0"
                         IsReadOnly="True"
                         PlaceholderText="角色名称"
-                        Text="{Binding SurPlayerList[3].Character.Name}" />
+                        Text="{Binding SurPlayerList[3].Character.Name, Mode=OneWay}" />
                     <cc:GameDataEditor
                         Grid.Row="1"
                         Margin="0,10,0,0"
@@ -108,7 +108,7 @@
                 <ui:TextBox
                     Grid.Row="0"
                     PlaceholderText="角色名称"
-                    Text="{Binding HunPlayer.Character.Name}" />
+                    Text="{Binding HunPlayer.Character.Name, Mode=OneWay}" />
                 <cc:GameDataEditor
                     Grid.Row="1"
                     Margin="0,10,0,0"
