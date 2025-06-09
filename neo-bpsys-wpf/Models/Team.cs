@@ -56,6 +56,7 @@ public partial class Team : ObservableObject
     private Camp _camp;
 
     [ObservableProperty]
+    [JsonIgnore]
     private ImageSource? _logo;
 
     public string ImageUri { get; set; } = string.Empty;
