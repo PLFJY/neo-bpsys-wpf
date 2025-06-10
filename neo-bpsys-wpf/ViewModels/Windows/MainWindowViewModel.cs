@@ -305,6 +305,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         public static Dictionary<GameProgress, string> GameListBo3 => new()
         {
             { GameProgress.Free, "自由对局" },
+            { GameProgress.Game1FirstHalf, "第1局上半" }, 
             { GameProgress.Game1SecondHalf, "第1局下半" },
             { GameProgress.Game2FirstHalf, "第2局上半" },
             { GameProgress.Game2SecondHalf, "第2局下半" },
