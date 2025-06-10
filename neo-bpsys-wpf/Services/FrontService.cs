@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.CustomBehaviors;
 using neo_bpsys_wpf.CustomControls;
 using neo_bpsys_wpf.Enums;
@@ -43,10 +44,13 @@ namespace neo_bpsys_wpf.Services
             GameDataWindow gameDataWindow,
             ScoreWindow scoreWindow,
             WidgetsWindow widgetsWindow,
-            IMessageBoxService messageBoxService
+            IMessageBoxService messageBoxService,
+            ISharedDataService sharedDataService
         )
         {
             _messageBoxService = messageBoxService;
+            var savePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf");
+            if (!Directory.Exists(savePath)) Directory.CreateDirectory(savePath);
             // 注册窗口和画布
             RegisterFrontWindowAndCanvas(bpWindow);
             RegisterFrontWindowAndCanvas(interludeWindow);
@@ -66,7 +70,16 @@ namespace neo_bpsys_wpf.Services
                 RecordInitialPositions(i.Item1, i.Item2);
             }
 
-            WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>>(this, OnBo3ModeChanged);
+            _isBo3Mode = sharedDataService.IsBo3Mode;
+            _globalScoreTotalMargin = sharedDataService.GlobalScoreTotalMargin;
+            WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>>(this, BoolPropertyChangedRecipient);
+            WeakReferenceMessenger.Default.Register<PropertyChangedMessage<double>>(this, DoublePropertyChangedRecipient);
+            OnBo3ModeChanged();
+        }
+
+        private void DoublePropertyChangedRecipient(object recipient, PropertyChangedMessage<double> message)
+        {
+            _globalScoreTotalMargin = message.NewValue;
         }
 
         /// <summary>
@@ -237,7 +250,6 @@ namespace neo_bpsys_wpf.Services
                 }
             }
             var output = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
-
             try
             {
                 File.WriteAllText(path, output);
@@ -565,7 +577,7 @@ namespace neo_bpsys_wpf.Services
                 }
             }
         }
-        public double GlobalScoreTotalMargin { get; set; }
+        private double _globalScoreTotalMargin;
 
         private double _lastMove;
 
@@ -574,54 +586,58 @@ namespace neo_bpsys_wpf.Services
         /// </summary>
         /// <param name="recipient"></param>
         /// <param name="message"></param>
-        /// <exception cref="NotImplementedException"></exception>
-        private void OnBo3ModeChanged(object recipient, PropertyChangedMessage<bool> message)
+        private void BoolPropertyChangedRecipient(object recipient, PropertyChangedMessage<bool> message)
         {
             if(message.PropertyName == nameof(ISharedDataService.IsBo3Mode))
             {
                 _isBo3Mode = message.NewValue;
-                if (_frontWindows[typeof(ScoreWindow)] is not ScoreWindow scoreWindow) return;
-                if (_isBo3Mode)
+                OnBo3ModeChanged();
+            }
+        }
+
+        private void OnBo3ModeChanged()
+        {
+            if (_frontWindows[typeof(ScoreWindow)] is not ScoreWindow scoreWindow) return;
+            if (_isBo3Mode)
+            {
+                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush("scoreGlobal_Bo3");
+                foreach (var item in MainGlobalScoreControls)
                 {
-                    scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush("scoreGlobal_Bo3");
-                    foreach (var item in MainGlobalScoreControls)
+                    if (item.Key > GameProgress.Game3ExtraSecondHalf)
                     {
-                        if (item.Key > GameProgress.Game3ExtraSecondHalf)
-                        {
-                            item.Value.Visibility = Visibility.Hidden;
-                        }
+                        item.Value.Visibility = Visibility.Hidden;
                     }
-                    foreach (var item in AwayGlobalScoreControls)
-                    {
-                        if (item.Key > GameProgress.Game3ExtraSecondHalf)
-                        {
-                            item.Value.Visibility = Visibility.Hidden;
-                        }
-                    }
-                    Canvas.SetLeft(scoreWindow.MainScoreTotal, Canvas.GetLeft(scoreWindow.MainScoreTotal) - GlobalScoreTotalMargin);
-                    Canvas.SetLeft(scoreWindow.AwayScoreTotal, Canvas.GetLeft(scoreWindow.AwayScoreTotal) - GlobalScoreTotalMargin);
-                    _lastMove = GlobalScoreTotalMargin;
                 }
-                else
+                foreach (var item in AwayGlobalScoreControls)
                 {
-                    scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush("scoreGlobal");
-                    foreach (var item in MainGlobalScoreControls)
+                    if (item.Key > GameProgress.Game3ExtraSecondHalf)
                     {
-                        if (item.Key > GameProgress.Game3ExtraSecondHalf)
-                        {
-                            item.Value.Visibility = Visibility.Visible;
-                        }
+                        item.Value.Visibility = Visibility.Hidden;
                     }
-                    foreach (var item in AwayGlobalScoreControls)
-                    {
-                        if (item.Key > GameProgress.Game3ExtraSecondHalf)
-                        {
-                            item.Value.Visibility = Visibility.Visible;
-                        }
-                    }
-                    Canvas.SetLeft(scoreWindow.MainScoreTotal, Canvas.GetLeft(scoreWindow.MainScoreTotal) + _lastMove);
-                    Canvas.SetLeft(scoreWindow.AwayScoreTotal, Canvas.GetLeft(scoreWindow.AwayScoreTotal) + _lastMove);
                 }
+                Canvas.SetLeft(scoreWindow.MainScoreTotal, Canvas.GetLeft(scoreWindow.MainScoreTotal) - _globalScoreTotalMargin);
+                Canvas.SetLeft(scoreWindow.AwayScoreTotal, Canvas.GetLeft(scoreWindow.AwayScoreTotal) - _globalScoreTotalMargin);
+                _lastMove = _globalScoreTotalMargin;
+            }
+            else
+            {
+                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush("scoreGlobal");
+                foreach (var item in MainGlobalScoreControls)
+                {
+                    if (item.Key > GameProgress.Game3ExtraSecondHalf)
+                    {
+                        item.Value.Visibility = Visibility.Visible;
+                    }
+                }
+                foreach (var item in AwayGlobalScoreControls)
+                {
+                    if (item.Key > GameProgress.Game3ExtraSecondHalf)
+                    {
+                        item.Value.Visibility = Visibility.Visible;
+                    }
+                }
+                Canvas.SetLeft(scoreWindow.MainScoreTotal, Canvas.GetLeft(scoreWindow.MainScoreTotal) + _lastMove);
+                Canvas.SetLeft(scoreWindow.AwayScoreTotal, Canvas.GetLeft(scoreWindow.AwayScoreTotal) + _lastMove);
             }
         }
 

@@ -96,6 +96,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             };
             IsActive = true;
             GameList = GameListBo5;
+            IsBo3Mode = _sharedDataService.IsBo3Mode;
         }
 
 
@@ -257,7 +258,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             }
         }
 
-        private bool _isBo3Mode = false;
+        private bool _isBo3Mode;
 
         public bool IsBo3Mode
         {

@@ -35,6 +35,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             CurrentBanLockImage = ImageHelper.GetUiImageSource("CurrentBanLock");
             GlobalBanLockImage = ImageHelper.GetUiImageSource("GlobalBanLock");
             IsActive = true;
+            IsBo3Mode = _sharedDataService.IsBo3Mode;
         }
 
         public void Receive(NewGameMessage message)
@@ -60,7 +61,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         }
 
         [ObservableProperty]
-        private bool _isBo3Mode = false;
+        private bool _isBo3Mode;
 
         public void Receive(PropertyChangedMessage<bool> message)
         {

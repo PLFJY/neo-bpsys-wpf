@@ -109,17 +109,6 @@
                         <RowDefinition />
                         <RowDefinition />
                     </Grid.RowDefinitions>
-                    <StackPanel Grid.Row="0" Orientation="Horizontal">
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            Text="赛制: BO5"
-                            Visibility="{Binding IsBo3Mode, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            d:Visibility="Collapsed"
-                            Text="赛制: BO3"
-                            Visibility="{Binding IsBo3Mode, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    </StackPanel>
                     <StackPanel
                         Grid.Row="1"
                         Margin="0,10,0,0"

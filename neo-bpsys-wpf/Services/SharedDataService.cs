@@ -218,6 +218,20 @@ namespace neo_bpsys_wpf.Services
             WeakReferenceMessenger.Default.Send(new BanCountChangedMessage(listName));
         }
 
+        /// <summary>
+        /// 分数统计界面 BO3 和 BO5之间"Total"相差的距离
+        /// </summary>
+        private double _globalScoreTotalMargin = 390;
+        public double GlobalScoreTotalMargin
+        {
+            get => _globalScoreTotalMargin;
+            set
+            {
+                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<double>(this, nameof(GlobalScoreTotalMargin), _globalScoreTotalMargin, value));
+                _globalScoreTotalMargin = value;
+            }
+        }
+
         private class CharacterMini
         {
             public Camp Camp { get; set; }

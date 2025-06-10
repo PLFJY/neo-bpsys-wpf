@@ -152,6 +152,7 @@ namespace neo_bpsys_wpf.Services
             else
             {
                 _messageBoxService.ShowErrorAsync("对局信息状态异常");
+                returnValue += "无";
             }
             return returnValue;
         }
@@ -182,11 +183,13 @@ namespace neo_bpsys_wpf.Services
                 else
                 {
                     _infoBarService.ShowInformationalInfoBar("已经是第一步");
+                    returnValue += "无";
                 }
             }
             else
             {
                 _messageBoxService.ShowErrorAsync("对局信息状态异常");
+                returnValue += "无";
             }
             return returnValue;
         }

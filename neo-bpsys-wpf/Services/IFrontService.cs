@@ -9,10 +9,6 @@ namespace neo_bpsys_wpf.Services
         /// 前台窗口状态
         /// </summary>
         Dictionary<Type, bool> FrontWindowStates { get; }
-        /// <summary>
-        /// 全局分数统计的间隔(BO3和BO5之间)
-        /// </summary>
-        double GlobalScoreTotalMargin { get; set; }
 
         /// <summary>
         /// 从JSON中加载窗口中元素的位置信息

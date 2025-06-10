@@ -26,13 +26,15 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
         private readonly IFrontService _frontService;
         private readonly IMessageBoxService _messageBoxService;
+        private readonly ISharedDataService _sharedDataService;
 
-        public FrontManagePageViewModel(IFrontService frontService, IMessageBoxService messageBoxService)
+        public FrontManagePageViewModel(IFrontService frontService, IMessageBoxService messageBoxService, ISharedDataService sharedDataService)
         {
             _frontService = frontService;
             _messageBoxService = messageBoxService;
+            _sharedDataService = sharedDataService;
+            _globalScoreTotalMargin = _sharedDataService.GlobalScoreTotalMargin;
             LoadFrontConfig();
-            _frontService.GlobalScoreTotalMargin = GlobalScoreTotalMargin;
         }
 
         [RelayCommand]
@@ -115,7 +117,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             set
             {
                 _globalScoreTotalMargin = value;
-                _frontService.GlobalScoreTotalMargin = _globalScoreTotalMargin;
+                _sharedDataService.GlobalScoreTotalMargin = _globalScoreTotalMargin;
             }
         }
 

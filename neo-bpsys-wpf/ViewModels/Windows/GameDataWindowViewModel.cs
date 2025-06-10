@@ -14,9 +14,9 @@ public partial class GameDataWindowViewModel :
     IRecipient<DesignModeChangedMessage>, 
     IRecipient<PropertyChangedMessage<bool>>
 {
-#pragma warning disable CS8618 // ÔÚÍË³ö¹¹Ôìº¯ÊýÊ±£¬²»¿ÉÎª null µÄ×Ö¶Î±ØÐë°üº¬·Ç null Öµ¡£Çë¿¼ÂÇÌí¼Ó "required" ÐÞÊÎ·û»òÉùÃ÷Îª¿ÉÎª null¡£
+#pragma warning disable CS8618 // åœ¨é€€å‡ºæž„é€ å‡½æ•°æ—¶ï¼Œä¸å¯ä¸º null çš„å­—æ®µå¿…é¡»åŒ…å«éž null å€¼ã€‚è¯·è€ƒè™‘æ·»åŠ  "required" ä¿®é¥°ç¬¦æˆ–å£°æ˜Žä¸ºå¯ä¸º nullã€‚
     public GameDataWindowViewModel()
-#pragma warning restore CS8618 // ÔÚÍË³ö¹¹Ôìº¯ÊýÊ±£¬²»¿ÉÎª null µÄ×Ö¶Î±ØÐë°üº¬·Ç null Öµ¡£Çë¿¼ÂÇÌí¼Ó "required" ÐÞÊÎ·û»òÉùÃ÷Îª¿ÉÎª null¡£
+#pragma warning restore CS8618 // åœ¨é€€å‡ºæž„é€ å‡½æ•°æ—¶ï¼Œä¸å¯ä¸º null çš„å­—æ®µå¿…é¡»åŒ…å«éž null å€¼ã€‚è¯·è€ƒè™‘æ·»åŠ  "required" ä¿®é¥°ç¬¦æˆ–å£°æ˜Žä¸ºå¯ä¸º nullã€‚
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -30,6 +30,7 @@ public partial class GameDataWindowViewModel :
     {
         IsActive = true;
         _sharedDataService = sharedDataService;
+        IsBo3Mode = _sharedDataService.IsBo3Mode;
     }
 
     public Game CurrentGame => _sharedDataService.CurrentGame;
@@ -46,7 +47,7 @@ public partial class GameDataWindowViewModel :
     }
 
     [ObservableProperty]
-    private bool _isBo3Mode = false;
+    private bool _isBo3Mode;
     public void Receive(PropertyChangedMessage<bool> message)
     {
         if (message.PropertyName == nameof(ISharedDataService.IsBo3Mode))

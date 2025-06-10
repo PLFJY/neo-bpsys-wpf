@@ -57,7 +57,14 @@ namespace neo_bpsys_wpf.Services
         /// 倒计时剩余秒数
         /// </summary>
         string RemainingSeconds { get; set; }
+        /// <summary>
+        /// 是否是Bo3模式
+        /// </summary>
         bool IsBo3Mode { get; set; }
+        /// <summary>
+        /// 分数统计界面 BO3 和 BO5之间"Total"相差的距离
+        /// </summary>
+        double GlobalScoreTotalMargin { get; set; }
 
         /// <summary>
         /// 倒计时开始

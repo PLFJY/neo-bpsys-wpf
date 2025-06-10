@@ -31,6 +31,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             _scoreManual = scoreManual;
             GameList = GameListBo5;
             IsActive = true;
+            IsBo3Mode = _sharedDataService.IsBo3Mode;
         }
 
         public Team MainTeam => _sharedDataService.MainTeam;
@@ -117,7 +118,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         private int _totalAwayMinorPoint = 0;
 
         [ObservableProperty]
-        private bool _isBo3Mode = false;
+        private bool _isBo3Mode;
 
         private GameProgress _selectedGameProgress = GameProgress.Game1FirstHalf;
         public GameProgress SelectedGameProgress

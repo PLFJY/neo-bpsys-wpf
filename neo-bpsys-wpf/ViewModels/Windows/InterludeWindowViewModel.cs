@@ -41,6 +41,9 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             InsolenceImageSource = ImageHelper.GetTalentImageSource(Enums.Camp.Hun, "张狂");
             TrumpCardImageSource = ImageHelper.GetTalentImageSource(Enums.Camp.Hun, "底牌");
             IsActive = true;
+
+            IsTraitVisible = _sharedDataService.IsTraitVisible;
+            _isBo3Mode = _sharedDataService.IsBo3Mode;
         }
 
         public void Receive(NewGameMessage message)
@@ -87,6 +90,6 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         public Game CurrentGame => _sharedDataService.CurrentGame;
 
         [ObservableProperty]
-        private bool _isTraitVisible = true;
+        private bool _isTraitVisible;
     }
 }
