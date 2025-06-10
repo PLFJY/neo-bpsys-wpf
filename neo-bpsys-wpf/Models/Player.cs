@@ -2,12 +2,13 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
+using System.Text.Json.Serialization;
 using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Models;
 
 /// <summary>
-/// Ñ¡ÊÖÀà, ×¢ÒâÓë <see cref="Models.Member"/> Àà×öÇø·Ö£¬ÕâÊÇ±íÊ¾¶ÓÎéÄÚµÄ³ÉÔ±£¬±¾ÀàÊÇ±íÊ¾ÉÏ³¡µÄÑ¡ÊÖ, <see cref="Player"/> Àà°üº¬²Ù×İËüµÄ <see cref="Models.Member"/>
+/// é€‰æ‰‹ç±», æ³¨æ„ä¸ <see cref="Models.Member"/> ç±»åšåŒºåˆ†ï¼Œè¿™æ˜¯è¡¨ç¤ºé˜Ÿä¼å†…çš„æˆå‘˜ï¼Œæœ¬ç±»æ˜¯è¡¨ç¤ºä¸Šåœºçš„é€‰æ‰‹, <see cref="Player"/> ç±»åŒ…å«æ“çºµå®ƒçš„ <see cref="Models.Member"/>
 /// </summary>
 public partial class Player : ObservableRecipient, IRecipient<MemberStateChangedMessage>
 {
@@ -48,8 +49,8 @@ public partial class Player : ObservableRecipient, IRecipient<MemberStateChanged
 
     [ObservableProperty]
     private PlayerData _data = new();
-    
 
+    [JsonIgnore]
     public ImageSource? PictureShown
     {
         get

@@ -1,16 +1,17 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Helpers;
+using System.Text.Json.Serialization;
 using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Models;
 
 /// <summary>
-/// Ìì¸³Àà, ÊôĞÔÉè¶¨¾ùÓÉ¹¹Ôìº¯ÊıÍê³É£¬²»´æÔÚºóĞøĞŞ¸Ä
+/// å¤©èµ‹ç±», å±æ€§è®¾å®šå‡ç”±æ„é€ å‡½æ•°å®Œæˆï¼Œä¸å­˜åœ¨åç»­ä¿®æ”¹
 /// </summary>
 public class Trait
 {
     public Enums.Trait? TraitName { get; }
-
+    [JsonIgnore]
     public ImageSource? Image { get; }
 
     public Trait(Enums.Trait? trait)
