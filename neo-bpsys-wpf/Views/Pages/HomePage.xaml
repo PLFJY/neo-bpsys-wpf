@@ -44,7 +44,7 @@
                                     Text="前往官网" />
                             </StackPanel>
                         </ui:HyperlinkButton>
-                        <ui:HyperlinkButton>
+                        <ui:HyperlinkButton NavigateUri="https://www.yuque.com/renjinotbot/dywp9i">
                             <StackPanel Orientation="Horizontal">
                                 <ui:SymbolIcon
                                     Margin="0,0,0,0"
