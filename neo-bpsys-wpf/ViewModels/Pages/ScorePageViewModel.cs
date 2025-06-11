@@ -31,7 +31,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             _scoreManual = scoreManual;
             GameList = GameListBo5;
             IsActive = true;
-            IsBo3Mode = _sharedDataService.IsBo3Mode;
+            _isBo3Mode = _sharedDataService.IsBo3Mode;
         }
 
         public Team MainTeam => _sharedDataService.MainTeam;
@@ -117,8 +117,26 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         private int _totalMainMinorPoint = 0;
         private int _totalAwayMinorPoint = 0;
 
-        [ObservableProperty]
+        //[ObservableProperty]
         private bool _isBo3Mode;
+        public bool IsBo3Mode
+        {
+            get { return _isBo3Mode; }
+            set
+            {
+                _isBo3Mode = value;
+                if (!_isBo3Mode)
+                {
+                    GameList = GameListBo5;
+                }
+                else
+                {
+                    GameList = GameListBo3;
+                }
+                SelectedIndex = 0;
+                OnPropertyChanged();
+            }
+        }
 
         private GameProgress _selectedGameProgress = GameProgress.Game1FirstHalf;
         public GameProgress SelectedGameProgress
@@ -255,15 +273,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             if(message.PropertyName == nameof(ISharedDataService.IsBo3Mode))
             {
                 IsBo3Mode = message.NewValue;
-                if (!IsBo3Mode)
-                {
-                    GameList = GameListBo5;
-                }
-                else
-                {
-                    GameList = GameListBo3;
-                }
-                SelectedIndex = 0;
+                
             }
         }
 

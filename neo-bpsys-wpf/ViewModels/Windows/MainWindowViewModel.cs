@@ -262,7 +262,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         public bool IsBo3Mode
         {
-            get { return _isBo3Mode; }
+            get => _isBo3Mode;
             set
             {
                 _isBo3Mode = value;

@@ -77,7 +77,7 @@ namespace neo_bpsys_wpf.Services
             OnBo3ModeChanged();
         }
 
-        private void DoublePropertyChangedRecipient(object recipient, PropertyChangedMessage<double> message)
+        private void DoublePropertyChangedRecipient(object receive, PropertyChangedMessage<double> message)
         {
             if (message.PropertyName == nameof(ISharedDataService.GlobalScoreTotalMargin))
             {
