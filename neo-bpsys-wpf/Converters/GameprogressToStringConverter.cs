@@ -15,7 +15,29 @@ namespace neo_bpsys_wpf.Converters
         {
             if (values[0] is not GameProgress gameProgress) return Binding.DoNothing;
             if (values[1] is not bool isBo3Mode) return Binding.DoNothing;
-            return gameProgress switch
+            string? para = null;
+            if (parameter != null)
+                para = parameter.ToString();
+
+            return para == "endl"
+                ? gameProgress switch
+                {
+                    GameProgress.Free => "自由对局",
+                    GameProgress.Game1FirstHalf => "GAME1\nFIRST HALF",
+                    GameProgress.Game1SecondHalf => "GAME1\nSECOND HALF",
+                    GameProgress.Game2FirstHalf => "GAME2\nFIRST HALF",
+                    GameProgress.Game2SecondHalf => "GAME2\nSECOND HALF",
+                    GameProgress.Game3FirstHalf => "GAME3\nFIRST HALF",
+                    GameProgress.Game3SecondHalf => "GAME3\nSECOND HALF",
+                    GameProgress.Game4FirstHalf => isBo3Mode ? "GAME3 EXTRA\nFIRST HALF" : "GAME4\nFIRST HALF",
+                    GameProgress.Game4SecondHalf => isBo3Mode ? "GAME3 EXTRA\nSECOND HALF" : "GAME4\nSECOND HALF",
+                    GameProgress.Game5FirstHalf => "GAME5\nFIRST HALF",
+                    GameProgress.Game5SecondHalf => "GAME5\nSECOND HALF",
+                    GameProgress.Game5ExtraFirstHalf => "GAME5 EXTRA\nFIRST HALF",
+                    GameProgress.Game5ExtraSecondHalf => "GAME5 EXTRA\nSECOND HALF",
+                    _ => Binding.DoNothing,
+                }
+                : gameProgress switch
             {
                 GameProgress.Free => "自由对局",
                 GameProgress.Game1FirstHalf => "GAME1 FIRST HALF",

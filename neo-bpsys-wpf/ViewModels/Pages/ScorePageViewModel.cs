@@ -284,6 +284,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             foreach(var i in _gameGlobalInfoRecord)
             {
                 if (!i.Value.IsGameFinished) continue;
+                if (IsBo3Mode && i.Key > GameProgress.Game4SecondHalf) break;
                 switch (i.Value.GameResult)
                 {
                     case GameResult.Escape4:

@@ -19,6 +19,7 @@ namespace neo_bpsys_wpf.Views.Windows
             WeakReferenceMessenger.Default.Register<DesignModeChangedMessage>(this, OnDesignModeChanged);
             MouseLeftButtonDown += OnMouseLeftButtonDown;
             MapBpCanvas.Background = ImageHelper.GetUiImageBrush("mapBp");
+            BpOverViewCanvas.Background = ImageHelper.GetUiImageBrush("bpOverview");
         }
 
         private void OnDesignModeChanged(object recipient, DesignModeChangedMessage message)

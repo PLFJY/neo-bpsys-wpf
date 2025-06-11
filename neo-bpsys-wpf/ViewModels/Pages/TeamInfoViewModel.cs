@@ -194,7 +194,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
 
             [RelayCommand]
-            private void ClearMamberImage(Member member)
+            private static void ClearMamberImage(Member member)
             {
                 member.Image = null;
             }
