@@ -79,7 +79,11 @@ namespace neo_bpsys_wpf.Services
 
         private void DoublePropertyChangedRecipient(object recipient, PropertyChangedMessage<double> message)
         {
-            _globalScoreTotalMargin = message.NewValue;
+            if (message.PropertyName == nameof(ISharedDataService.GlobalScoreTotalMargin))
+            {
+                _globalScoreTotalMargin = message.NewValue;
+            }
+                
         }
 
         /// <summary>
