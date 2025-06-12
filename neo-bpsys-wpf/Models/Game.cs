@@ -9,7 +9,7 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.Models;
 
 /// <summary>
-/// ¶Ô¾ÖÀà, ´´½¨ĞèÒªµ¼Èë <see cref="SurTeam"/> ºÍ <see cref="HunTeam"/> Á½Ö§¶ÓÎéÒÔ¼°¶Ô¾Ö½ø¶È
+/// å¯¹å±€ç±», åˆ›å»ºéœ€è¦å¯¼å…¥ <see cref="SurTeam"/> å’Œ <see cref="HunTeam"/> ä¸¤æ”¯é˜Ÿä¼ä»¥åŠå¯¹å±€è¿›åº¦
 /// </summary>
 public partial class Game : ObservableObject
 {
@@ -54,11 +54,11 @@ public partial class Game : ObservableObject
     }
 
     [ObservableProperty]
-    [JsonIgnore]
+    [property: JsonIgnore]
     private ImageSource? _pickedMapImage;
 
     [ObservableProperty]
-    [JsonIgnore]
+    [property: JsonIgnore]
     private ImageSource? _bannedMapImage;
 
     [ObservableProperty]
@@ -79,7 +79,7 @@ public partial class Game : ObservableObject
         StartTime = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
         SurTeam = surTeam;
         HunTeam = hunTeam;
-        //ÖØÖÃ½ÇÉ«Ñ¡Ôñ
+        //é‡ç½®è§’è‰²é€‰æ‹©
         for (int i = 0; i < SurTeam.SurPlayerOnFieldList.Count; i++)
         {
             SurTeam.SurPlayerOnFieldList[i] = new(SurTeam.SurPlayerOnFieldList[i].Member);
@@ -90,11 +90,11 @@ public partial class Game : ObservableObject
             HunTeam.SurPlayerOnFieldList[i] = new(HunTeam.SurPlayerOnFieldList[i].Member);
         }
         HunTeam.HunPlayerOnField = new(HunTeam.HunPlayerOnField.Member);
-        //Ë¢ĞÂÉÏ³¡ÁĞ±í
+        //åˆ·æ–°ä¸Šåœºåˆ—è¡¨
         SurPlayerList = SurTeam.SurPlayerOnFieldList;
         HunPlayer = HunTeam.HunPlayerOnField;
         GameProgress = gameProgress;
-        //ĞÂ½¨½ÇÉ«½ûÓÃÁĞ±í
+        //æ–°å»ºè§’è‰²ç¦ç”¨åˆ—è¡¨
         CurrentHunBannedList = [.. Enumerable.Range(0, 2).Select(i => new Character(Camp.Hun))];
         CurrentSurBannedList = [.. Enumerable.Range(0, 4).Select(i => new Character(Camp.Sur))];
         OnPropertyChanged(nameof(SurTeam));
@@ -103,7 +103,7 @@ public partial class Game : ObservableObject
     }
 
     /// <summary>
-    /// Ë¢ĞÂµ±Ç°ÉÏ³¡Ñ¡ÊÖÁĞ±í
+    /// åˆ·æ–°å½“å‰ä¸Šåœºé€‰æ‰‹åˆ—è¡¨
     /// </summary>
     public void RefreshCurrentPlayer()
     {

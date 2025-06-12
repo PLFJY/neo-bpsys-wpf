@@ -14,18 +14,18 @@ using System.Windows.Media.Imaging;
 namespace neo_bpsys_wpf.Models;
 
 /// <summary>
-/// ¶ÓÎéÀà, <see cref="SharedDataService"/> ÖĞÖ÷¶ÓºÍ¿Í¶Ó¶ÔÓ¦µÄ¶ÔÏóÈ«³¡Ê¼ÖÕ²»±ä£¬ĞÅÏ¢µ¼ÈëÒÀ¿¿ <see cref="ImportTeamInfo(Team)"/> ·½·¨
+/// é˜Ÿä¼ç±», <see cref="SharedDataService"/> ä¸­ä¸»é˜Ÿå’Œå®¢é˜Ÿå¯¹åº”çš„å¯¹è±¡å…¨åœºå§‹ç»ˆä¸å˜ï¼Œä¿¡æ¯å¯¼å…¥ä¾é  <see cref="ImportTeamInfo(Team)"/> æ–¹æ³•
 /// </summary>
 public partial class Team : ObservableObject
 {
-#pragma warning disable CS8618 // ÔÚÍË³ö¹¹Ôìº¯ÊıÊ±£¬²»¿ÉÎª null µÄ×Ö¶Î±ØĞë°üº¬·Ç null Öµ¡£Çë¿¼ÂÇÌí¼Ó "required" ĞŞÊÎ·û»òÉùÃ÷Îª¿ÉÎª null¡£
+#pragma warning disable CS8618 // åœ¨é€€å‡ºæ„é€ å‡½æ•°æ—¶ï¼Œä¸å¯ä¸º null çš„å­—æ®µå¿…é¡»åŒ…å«é null å€¼ã€‚è¯·è€ƒè™‘æ·»åŠ  "required" ä¿®é¥°ç¬¦æˆ–å£°æ˜ä¸ºå¯ä¸º nullã€‚
     public Team()
-#pragma warning restore CS8618 // ÔÚÍË³ö¹¹Ôìº¯ÊıÊ±£¬²»¿ÉÎª null µÄ×Ö¶Î±ØĞë°üº¬·Ç null Öµ¡£Çë¿¼ÂÇÌí¼Ó "required" ĞŞÊÎ·û»òÉùÃ÷Îª¿ÉÎª null¡£
+#pragma warning restore CS8618 // åœ¨é€€å‡ºæ„é€ å‡½æ•°æ—¶ï¼Œä¸å¯ä¸º null çš„å­—æ®µå¿…é¡»åŒ…å«é null å€¼ã€‚è¯·è€ƒè™‘æ·»åŠ  "required" ä¿®é¥°ç¬¦æˆ–å£°æ˜ä¸ºå¯ä¸º nullã€‚
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
 
-    #region »ù±¾ĞÅÏ¢
+    #region åŸºæœ¬ä¿¡æ¯
     private string _name = string.Empty;
 
     public string Name
@@ -35,11 +35,11 @@ public partial class Team : ObservableObject
 #if DEBUG
             if (this == App.Services.GetRequiredService<ISharedDataService>().MainTeam)
             {
-                return string.IsNullOrEmpty(_name) ? "Ö÷¶Ó" : _name;
+                return string.IsNullOrEmpty(_name) ? "ä¸»é˜Ÿ" : _name;
             }
             if (this == App.Services.GetRequiredService<ISharedDataService>().AwayTeam)
             {
-                return string.IsNullOrEmpty(_name) ? "¿Í¶Ó" : _name;
+                return string.IsNullOrEmpty(_name) ? "å®¢é˜Ÿ" : _name;
             }
 #endif
             return _name;
@@ -56,11 +56,11 @@ public partial class Team : ObservableObject
     private Camp _camp;
 
     [ObservableProperty]
-    [JsonIgnore]
+    [property: JsonIgnore]
     private ImageSource? _logo;
 
     public string ImageUri { get; set; } = string.Empty;
-    #endregion »ù±¾ĞÅÏ¢
+    #endregion åŸºæœ¬ä¿¡æ¯
 
     [ObservableProperty]
     private ObservableCollection<Member> _surMemberList = [];
@@ -79,11 +79,11 @@ public partial class Team : ObservableObject
     public Character?[] GlobalBannedHunRecordArray { get; set; }
 
     [ObservableProperty]
-    [JsonIgnore]
+    [property: JsonIgnore]
     private ObservableCollection<Player> _surPlayerOnFieldList = [];
 
     [ObservableProperty]
-    [JsonIgnore]
+    [property: JsonIgnore]
     private Player _hunPlayerOnField;
 
     [ObservableProperty]

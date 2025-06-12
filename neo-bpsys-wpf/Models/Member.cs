@@ -10,7 +10,7 @@ using System.Windows.Media.Imaging;
 
 namespace neo_bpsys_wpf.Models;
 /// <summary>
-/// Ñ¡ÊÖÀà, ×¢ÒâÓë <see cref="Player"/> Àà×öÇø·Ö£¬ÕâÊÇ±íÊ¾ÉÏ³¡µÄÑ¡ÊÖ£¬±¾ÀàÊÇ±íÊ¾¶ÓÎéÄÚµÄ³ÉÔ±, <see cref="Models.Member"/> ±»ËüËù²Ù×İµÄ <see cref="Player"/> °üº¬
+/// é€‰æ‰‹ç±», æ³¨æ„ä¸ <see cref="Player"/> ç±»åšåŒºåˆ†ï¼Œè¿™æ˜¯è¡¨ç¤ºä¸Šåœºçš„é€‰æ‰‹ï¼Œæœ¬ç±»æ˜¯è¡¨ç¤ºé˜Ÿä¼å†…çš„æˆå‘˜, <see cref="Models.Member"/> è¢«å®ƒæ‰€æ“çºµçš„ <see cref="Player"/> åŒ…å«
 /// </summary>
 public partial class Member : ObservableObject
 {
@@ -67,7 +67,7 @@ public partial class Member : ObservableObject
     }
 
     [ObservableProperty]
-    [JsonIgnore]
+    [property: JsonIgnore]
     private bool _canOnFieldChange = true;
 
     public Member(Camp camp)
