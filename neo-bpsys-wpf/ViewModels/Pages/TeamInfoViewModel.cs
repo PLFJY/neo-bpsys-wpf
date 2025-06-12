@@ -50,12 +50,18 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
                 if (string.IsNullOrEmpty(fileName))
                     return;
-
-                CurrentTeam.Logo = new BitmapImage(new Uri(fileName));
+                try
+                {
+                    CurrentTeam.Logo = new BitmapImage(new Uri(fileName));
+                }
+                catch
+                {
+                    _messageBoxService.ShowErrorAsync($"图片文件可能损坏或格式不受支持");
+                }
             }
 
             [RelayCommand]
-            private async Task ImportInfoFromJsonAsync()
+            private void ImportInfoFromJson()
             {
                 var fileName = _filePickerService.PickJsonFile();
 
@@ -83,7 +89,11 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 }
                 catch (JsonException ex)
                 {
-                    await _messageBoxService.ShowErrorAsync($"Json文件格式错误\n{ex.Message}");
+                    _messageBoxService.ShowErrorAsync($"Json文件格式错误\n{ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    _messageBoxService.ShowErrorAsync($"图片文件可能损坏或格式不受支持");
                 }
             }
 
@@ -190,7 +200,14 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 if (imagePath == null)
                     return;
 
-                member.Image = new BitmapImage(new Uri(imagePath));
+                try
+                {
+                    member.Image = new BitmapImage(new Uri(imagePath));
+                }
+                catch
+                {
+                    _messageBoxService.ShowErrorAsync($"图片文件可能损坏或格式不受支持");
+                }
             }
 
             [RelayCommand]
