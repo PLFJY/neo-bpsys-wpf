@@ -29,17 +29,9 @@ public partial class Player : ObservableRecipient, IRecipient<MemberStateChanged
     [ObservableProperty]
     private bool _isMemberValid = false;
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PictureShown))]
     private Character? _character;
-    public Character? Character
-    {
-        get => _character;
-        set
-        {
-            _character = value;
-            OnPropertyChanged(nameof(Character));
-            OnPropertyChanged(nameof(PictureShown));
-        }
-    }
 
     [ObservableProperty]
     private Talent _talent = new();

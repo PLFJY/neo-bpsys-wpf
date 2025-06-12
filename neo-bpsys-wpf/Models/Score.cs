@@ -8,52 +8,20 @@ namespace neo_bpsys_wpf.Models;
 /// </summary>
 public partial class Score : ObservableObject
 {
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
+    [NotifyPropertyChangedFor(nameof(ScorePreviewOnBack))]
     private int _win = 0;
-    public int Win
-    {
-        get => _win;
-        set
-        {
-            if (_win != value)
-            {
-                _win = value;
-                OnPropertyChanged(nameof(Win));
-                OnPropertyChanged(nameof(MajorPointsOnFront));
-                OnPropertyChanged(nameof(ScorePreviewOnBack));
-            }
-        }
-    }
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
+    [NotifyPropertyChangedFor(nameof(ScorePreviewOnBack))]
     private int _tie = 0;
-    public int Tie
-    {
-        get => _tie;
-        set
-        {
-            if (_tie != value)
-            {
-                _tie = value;
-                OnPropertyChanged(nameof(Tie));
-                OnPropertyChanged(nameof(MajorPointsOnFront));
-                OnPropertyChanged(nameof(ScorePreviewOnBack));
-            }
-        }
-    }
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
+    [NotifyPropertyChangedFor(nameof(ScorePreviewOnBack))]
     private int _minorPoints = 0;
-    public int MinorPoints
-    {
-        get => _minorPoints;
-        set
-        {
-            if (_minorPoints != value)
-            {
-                _minorPoints = value;
-                OnPropertyChanged(nameof(MinorPoints));
-                OnPropertyChanged(nameof(ScorePreviewOnBack));
-            }
-        }
-    }
 
     [JsonIgnore]
     public string MajorPointsOnFront
