@@ -9,7 +9,7 @@ using System.Windows.Data;
 
 namespace neo_bpsys_wpf.Converters
 {
-    public class GameprogressToStringConverter : IMultiValueConverter
+    public class GameProgressToStringConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {

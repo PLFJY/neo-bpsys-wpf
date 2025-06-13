@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # build Path
 build/
+
+#Jetbrains Rider
+.idea/

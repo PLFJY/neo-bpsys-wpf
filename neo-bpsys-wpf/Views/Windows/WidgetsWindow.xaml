@@ -171,7 +171,7 @@
                         <ImageBrush d:ImageSource="/Assets/bpOverview.png" />
                     </Canvas.Background>
                     <Canvas.Resources>
-                        <cv:GameprogressToStringConverter x:Key="GameprogressToStringConverter" />
+                        <cv:GameProgressToStringConverter x:Key="GameProgressToStringConverter" />
                         <Style TargetType="TextBlock">
                             <Setter Property="Foreground" Value="White" />
                         </Style>
@@ -407,7 +407,7 @@
                             TextOptions.TextFormattingMode="Display"
                             TextOptions.TextRenderingMode="ClearType">
                             <TextBlock.Text>
-                                <MultiBinding Converter="{StaticResource GameprogressToStringConverter}" ConverterParameter="endl">
+                                <MultiBinding Converter="{StaticResource GameProgressToStringConverter}" ConverterParameter="endl">
                                     <Binding Path="CurrentGame.GameProgress" />
                                     <Binding Path="IsBo3Mode" />
                                 </MultiBinding>

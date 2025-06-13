@@ -20,7 +20,7 @@
     mc:Ignorable="d">
     <Window.Resources>
         <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
-        <cv:GameprogressToStringConverter x:Key="GameprogressToStringConverter" />
+        <cv:GameProgressToStringConverter x:Key="GameProgressToStringConverter" />
     </Window.Resources>
     <Canvas
         Name="BaseCanvas"
@@ -353,7 +353,7 @@
                 TextOptions.TextFormattingMode="Display"
                 TextOptions.TextRenderingMode="ClearType">
                 <TextBlock.Text>
-                    <MultiBinding Converter="{StaticResource GameprogressToStringConverter}">
+                    <MultiBinding Converter="{StaticResource GameProgressToStringConverter}">
                         <Binding Path="CurrentGame.GameProgress" />
                         <Binding Path="IsBo3Mode" />
                     </MultiBinding>
@@ -559,7 +559,7 @@
             cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/小丑.png"
             Source="{Binding CurrentGame.HunPlayer.PictureShown}" />
-        <!--  Player Id  -->
+        <!--  Player ID  -->
         <!--  Sur  -->
         <Border
             Name="SurId0"

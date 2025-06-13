@@ -18,7 +18,7 @@
     Style="{StaticResource FrontWindow}"
     mc:Ignorable="d">
     <Window.Resources>
-        <cv:GameprogressToStringConverter x:Key="GameprogressToStringConverter" />
+        <cv:GameProgressToStringConverter x:Key="GameProgressToStringConverter" />
     </Window.Resources>
     <Canvas
         Name="BaseCanvas"
@@ -180,7 +180,7 @@
                 TextOptions.TextFormattingMode="Display"
                 TextOptions.TextRenderingMode="ClearType">
                 <TextBlock.Text>
-                    <MultiBinding Converter="{StaticResource GameprogressToStringConverter}">
+                    <MultiBinding Converter="{StaticResource GameProgressToStringConverter}">
                         <Binding Path="CurrentGame.GameProgress" />
                         <Binding Path="IsBo3Mode" />
                     </MultiBinding>

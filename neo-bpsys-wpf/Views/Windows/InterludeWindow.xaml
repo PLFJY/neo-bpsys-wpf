@@ -19,14 +19,14 @@
     mc:Ignorable="d">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <cv:GameprogressToStringConverter x:Key="GameprogressToStringConverter" />
+        <cv:GameProgressToStringConverter x:Key="GameProgressToStringConverter" />
     </Window.Resources>
     <Canvas
         x:Name="BaseCanvas"
         Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}"
         Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
         <Canvas.Background>
-            <ImageBrush ImageSource="/Assets/interlude.png" />
+            <ImageBrush d:ImageSource="/Assets/interlude.png" />
         </Canvas.Background>
         <Canvas.Resources>
             <Style TargetType="TextBlock">
@@ -193,7 +193,7 @@
                 TextOptions.TextFormattingMode="Display"
                 TextOptions.TextRenderingMode="ClearType">
                 <TextBlock.Text>
-                    <MultiBinding Converter="{StaticResource GameprogressToStringConverter}">
+                    <MultiBinding Converter="{StaticResource GameProgressToStringConverter}">
                         <Binding Path="CurrentGame.GameProgress" />
                         <Binding Path="IsBo3Mode" />
                     </MultiBinding>

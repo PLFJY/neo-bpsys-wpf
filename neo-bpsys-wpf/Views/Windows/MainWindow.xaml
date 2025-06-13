@@ -87,6 +87,14 @@
             </Storyboard>
         </ResourceDictionary>
     </ui:FluentWindow.Resources>
+    <i:Interaction.Triggers>
+        <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="True">
+            <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource LightToDark}" />
+        </i:DataTrigger>
+        <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="False">
+            <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource DarkToLight}" />
+        </i:DataTrigger>
+    </i:Interaction.Triggers>
     <WindowChrome.WindowChrome>
         <WindowChrome
             CaptionHeight="35"
@@ -112,16 +120,7 @@
                 Grid.Row="0"
                 Icon="/Assets/icon.png"
                 IsThemeChangeChecked="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}"
-                ThemeChangeCommand="{Binding ThemeSwitchCommand}">
-                <i:Interaction.Triggers>
-                    <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="True">
-                        <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource LightToDark}" />
-                    </i:DataTrigger>
-                    <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="False">
-                        <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource DarkToLight}" />
-                    </i:DataTrigger>
-                </i:Interaction.Triggers>
-            </cc:CustomTitleBar>
+                ThemeChangeCommand="{Binding ThemeSwitchCommand}" />
             <!--  Body  -->
 
             <!--  Global menu  -->
