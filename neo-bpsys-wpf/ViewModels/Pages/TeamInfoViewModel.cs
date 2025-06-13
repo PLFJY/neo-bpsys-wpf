@@ -83,15 +83,14 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                     teamInfo.Camp = CurrentTeam.Camp;
                     CurrentTeam.ImportTeamInfo(teamInfo);
                     TeamName = CurrentTeam.Name;
-                    App.Services.GetRequiredService<ISharedDataService>()
-                    .CurrentGame.RefreshCurrentPlayer();
+                    App.Services.GetRequiredService<ISharedDataService>().CurrentGame.RefreshCurrentPlayer();
                     OnPropertyChanged();
                 }
                 catch (JsonException ex)
                 {
                     _messageBoxService.ShowErrorAsync($"Json文件格式错误\n{ex.Message}");
                 }
-                catch (Exception ex)
+                catch
                 {
                     _messageBoxService.ShowErrorAsync($"图片文件可能损坏或格式不受支持");
                 }
@@ -102,7 +101,6 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             {
                 CurrentTeam.SurMemberList.Add(new Member(Camp.Sur));
                 RemoveSurMemberCommand.NotifyCanExecuteChanged();
-                var canOthersOnField = CurrentTeam.CanAddMemberInPlayer(Camp.Sur);
                 RefreshCanMemberOnFieldState(Camp.Sur);
             }
 
@@ -120,8 +118,6 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             private void AddHunMember()
             {
                 CurrentTeam.HunMemberList.Add(new Member(Camp.Hun));
-                RemoveHunMemberCommand.NotifyCanExecuteChanged();
-                var canOthersOnField = CurrentTeam.CanAddMemberInPlayer(Camp.Hun);
                 RefreshCanMemberOnFieldState(Camp.Hun);
             }
 
@@ -145,12 +141,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                     if (member.Camp == Camp.Sur)
                     {
                         CurrentTeam.SurMemberList.Remove(member);
-                        RemoveSurMemberCommand.NotifyCanExecuteChanged();
                     }
                     else
                     {
                         CurrentTeam.HunMemberList.Remove(member);
-                        RemoveHunMemberCommand.NotifyCanExecuteChanged();
                     }
                     RefreshCanMemberOnFieldState(member.Camp);
                 }
@@ -191,6 +185,8 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                             m.CanOnFieldChange = canOthersOnField;
                     }
                 }
+                RemoveSurMemberCommand.NotifyCanExecuteChanged();
+                RemoveHunMemberCommand.NotifyCanExecuteChanged();
             }
 
             [RelayCommand]
