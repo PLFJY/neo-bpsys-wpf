@@ -17,7 +17,7 @@ namespace neo_bpsys_wpf.Services
     {
         public string NewVersion { get; set; } = string.Empty;
         public ReleaseInfo NewVersionInfo { get; set; } = new();
-        public bool IsFindPreRelease { get; set; } = true;
+        public bool IsFindPreRelease { get; set; } = false;
         public DownloadService Downloader { get; }
 
         private const string owner = "plfjy";

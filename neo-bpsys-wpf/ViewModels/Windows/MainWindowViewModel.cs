@@ -169,7 +169,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
             try
             {
-                File.WriteAllText(fullPath, json);
+                await File.WriteAllTextAsync(fullPath, json);
                 await _messageBoxService.ShowInfoAsync($"已成功保存到\n{fullPath}", "保存提示");
             }
             catch (Exception ex)

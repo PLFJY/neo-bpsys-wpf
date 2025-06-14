@@ -5,6 +5,7 @@
     xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:enum="clr-namespace:neo_bpsys_wpf.Enums"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -82,6 +83,9 @@
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">
+            <Border.Resources>
+                <cv:BooleanMultiConverter x:Key="BooleanMultiConverter" />
+            </Border.Resources>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -95,35 +99,59 @@
                 <StackPanel Grid.Row="1">
                     <StackPanel
                         Margin="0,10,0,0"
+                        d:Visibility="Visible"
                         Orientation="Horizontal"
                         Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <ui:ToggleSwitch />
+                        <ui:ToggleSwitch
+                            Command="{Binding PickingBorderSwitchCommand}"
+                            CommandParameter="0"
+                            IsChecked="{Binding SurPickingBorderList[0]}" />
                         <TextBlock Margin="10,0,0,0" Text="求生者选择框 1" />
                     </StackPanel>
                     <StackPanel
                         Margin="0,10,0,0"
+                        d:Visibility="Visible"
                         Orientation="Horizontal"
                         Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <ui:ToggleSwitch />
+                        <ui:ToggleSwitch
+                            Command="{Binding PickingBorderSwitchCommand}"
+                            CommandParameter="1"
+                            IsChecked="{Binding SurPickingBorderList[1]}" />
                         <TextBlock Margin="10,0,0,0" Text="求生者选择框 2" />
                     </StackPanel>
                     <StackPanel
                         Margin="0,10,0,0"
                         Orientation="Horizontal"
                         Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BooleanToReverseVisibilityConverter}}">
-                        <ui:ToggleSwitch />
+                        <ui:ToggleSwitch Command="{Binding PickingBorderSwitchCommand}" CommandParameter="0and1">
+                            <ui:ToggleSwitch.IsChecked>
+                                <MultiBinding Converter="{StaticResource BooleanMultiConverter}" Mode="TwoWay">
+                                    <Binding Path="SurPickingBorderList[0]" />
+                                    <Binding Path="SurPickingBorderList[1]" />
+                                </MultiBinding>
+                            </ui:ToggleSwitch.IsChecked>
+                        </ui:ToggleSwitch>
                         <TextBlock Margin="10,0,0,0" Text="求生者选择框 1 &amp; 2" />
                     </StackPanel>
                     <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                        <ui:ToggleSwitch />
+                        <ui:ToggleSwitch
+                            Command="{Binding PickingBorderSwitchCommand}"
+                            CommandParameter="2"
+                            IsChecked="{Binding SurPickingBorderList[2]}" />
                         <TextBlock Margin="10,0,0,0" Text="求生者选择框 3" />
                     </StackPanel>
                     <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                        <ui:ToggleSwitch />
+                        <ui:ToggleSwitch
+                            Command="{Binding PickingBorderSwitchCommand}"
+                            CommandParameter="3"
+                            IsChecked="{Binding SurPickingBorderList[3]}" />
                         <TextBlock Margin="10,0,0,0" Text="求生者选择框 4" />
                     </StackPanel>
                     <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                        <ui:ToggleSwitch />
+                        <ui:ToggleSwitch
+                            Command="{Binding PickingBorderSwitchCommand}"
+                            CommandParameter="Hun"
+                            IsChecked="{Binding HunPickingBorder}" />
                         <TextBlock Margin="10,0,0,0" Text="监管者选择框" />
                     </StackPanel>
                 </StackPanel>

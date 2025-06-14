@@ -11,7 +11,7 @@ using neo_bpsys_wpf.Messages;
 
 namespace neo_bpsys_wpf.Services
 {
-    public partial class GameGuidanceService(
+    public class GameGuidanceService(
         ISharedDataService sharedDataService,
         INavigationService navigationService,
         IMessageBoxService messageBoxService,
@@ -109,7 +109,7 @@ namespace neo_bpsys_wpf.Services
             {
                 _currentGameProperty = ReadGamePropertyFromFileAsync(_sharedDataService.CurrentGame.GameProgress);
             }
-            catch (GuidanceNotSupportedException e)
+            catch
             {
                 _infoBarService.ShowWarningInfoBar("自由对局不支持引导");
                 return null;
@@ -140,6 +140,7 @@ namespace neo_bpsys_wpf.Services
             }
 
             _currentStep = 0;
+            _infoBarService.CloseInfoBar();
             WeakReferenceMessenger.Default.Send(new HighlightMessage(null, null));
             IsGuidanceStarted = false;
         }
@@ -216,7 +217,7 @@ namespace neo_bpsys_wpf.Services
             return returnValue;
         }
 
-        public class GameProperty
+        private class GameProperty
         {
             public int SurCurrentBan { get; set; } = 4;
             public int HunCurrentBan { get; set; } = 2;
@@ -225,7 +226,7 @@ namespace neo_bpsys_wpf.Services
             public List<Step> WorkFlow { get; set; } = [];
         }
 
-        public class Step
+        private class Step
         {
             public GameAction Action { get; set; }
             public List<int> Index { get; set; } = [];

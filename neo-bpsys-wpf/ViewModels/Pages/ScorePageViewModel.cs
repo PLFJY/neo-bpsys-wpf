@@ -281,10 +281,8 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             _totalMainMinorPoint = 0;
             _totalAwayMinorPoint = 0;
-            foreach(var i in _gameGlobalInfoRecord)
+            foreach (var i in _gameGlobalInfoRecord.Where(i => i.Value.IsGameFinished).TakeWhile(i => !IsBo3Mode || i.Key <= GameProgress.Game4SecondHalf))
             {
-                if (!i.Value.IsGameFinished) continue;
-                if (IsBo3Mode && i.Key > GameProgress.Game4SecondHalf) break;
                 switch (i.Value.GameResult)
                 {
                     case GameResult.Escape4:
@@ -300,45 +298,55 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                         }
                         break;
                     case GameResult.Escape3:
-                        if (i.Value.MainTeamCamp == Camp.Sur)
+                        switch (i.Value.MainTeamCamp)
                         {
-                            _totalMainMinorPoint += 3;
-                            _totalAwayMinorPoint += 1;
+                            case Camp.Sur:
+                                _totalMainMinorPoint += 3;
+                                _totalAwayMinorPoint += 1;
+                                break;
+                            case Camp.Hun:
+                                _totalMainMinorPoint += 1;
+                                _totalAwayMinorPoint += 3;
+                                break;
                         }
-                        if (i.Value.MainTeamCamp == Camp.Hun)
-                        {
-                            _totalMainMinorPoint += 1;
-                            _totalAwayMinorPoint += 3;
-                        }
+
                         break;
                     case GameResult.Tie:
                         _totalMainMinorPoint += 2;
                         _totalAwayMinorPoint += 2;
                         break;
                     case GameResult.Out3:
-                        if (i.Value.MainTeamCamp == Camp.Sur)
+                        switch (i.Value.MainTeamCamp)
                         {
-                            _totalMainMinorPoint += 1;
-                            _totalAwayMinorPoint += 3;
+                            case Camp.Sur:
+                                _totalMainMinorPoint += 1;
+                                _totalAwayMinorPoint += 3;
+                                break;
+                            case Camp.Hun:
+                                _totalMainMinorPoint += 3;
+                                _totalAwayMinorPoint += 1;
+                                break;
                         }
-                        if (i.Value.MainTeamCamp == Camp.Hun)
-                        {
-                            _totalMainMinorPoint += 3;
-                            _totalAwayMinorPoint += 1;
-                        }
+
                         break;
                     case GameResult.Out4:
-                        if (i.Value.MainTeamCamp == Camp.Sur)
+                        switch (i.Value.MainTeamCamp)
                         {
-                            _totalMainMinorPoint += 0;
-                            _totalAwayMinorPoint += 5;
+                            case Camp.Sur:
+                                _totalMainMinorPoint += 0;
+                                _totalAwayMinorPoint += 5;
+                                break;
+                            case Camp.Hun:
+                                _totalMainMinorPoint += 5;
+                                _totalAwayMinorPoint += 0;
+                                break;
                         }
-                        if (i.Value.MainTeamCamp == Camp.Hun)
-                        {
-                            _totalMainMinorPoint += 5;
-                            _totalAwayMinorPoint += 0;
-                        }
+
                         break;
+                    case null:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
             WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<int>(this, nameof(ScoreWindowViewModel.TotalMainMinorPoint), 0, _totalMainMinorPoint));

@@ -1,4 +1,5 @@
-﻿using Wpf.Ui.Controls;
+﻿using System.Runtime.CompilerServices;
+using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -47,6 +48,14 @@ namespace neo_bpsys_wpf.Services
                 _infoBar.Message = message;
                 _infoBar.Severity = InfoBarSeverity.Error;
                 _infoBar.IsOpen = true;
+            }
+        }
+
+        public void CloseInfoBar()
+        {
+            if(_infoBar != null)
+            {
+                _infoBar.IsOpen = false;
             }
         }
     }

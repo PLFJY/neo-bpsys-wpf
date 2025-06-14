@@ -50,5 +50,9 @@ namespace neo_bpsys_wpf.Services
         /// 重置全局分数统计
         /// </summary>
         void ResetGlobalScore();
+        void FadeInAnimation<T>(string controlNameHeader, int controlIndex, string controlNameFooter) where T : Window;
+        void FadeOutAnimation<T>(string controlNameHeader, int controlIndex, string controlNameFooter) where T : Window;
+        Task BreathingStart<T>(string controlNameHeader, int controlIndex, string controlNameFooter) where T : Window;
+        Task BreathingStop<T>(string controlNameHeader, int controlIndex, string controlNameFooter) where T : Window;
     }
 }

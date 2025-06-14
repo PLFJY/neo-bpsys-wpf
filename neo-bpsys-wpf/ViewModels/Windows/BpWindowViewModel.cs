@@ -34,6 +34,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             _sharedDataService = sharedDataService;
             CurrentBanLockImage = ImageHelper.GetUiImageSource("CurrentBanLock");
             GlobalBanLockImage = ImageHelper.GetUiImageSource("GlobalBanLock");
+            PickingBorderSource = ImageHelper.GetUiImageSource("pickingBorder");
             IsActive = true;
             IsBo3Mode = _sharedDataService.IsBo3Mode;
         }
@@ -73,6 +74,8 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         public ImageSource? CurrentBanLockImage { get; private set; }
         public ImageSource? GlobalBanLockImage { get; private set; }
+
+        public ImageSource? PickingBorderSource { get; private set; }
 
         public Game CurrentGame => _sharedDataService.CurrentGame;
 
