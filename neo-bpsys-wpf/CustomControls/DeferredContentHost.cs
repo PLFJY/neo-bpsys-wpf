@@ -51,23 +51,24 @@ namespace neo_bpsys_wpf.CustomControls
         #endregion
         #region Properties
         protected override int VisualChildrenCount => 1;
-        protected bool IsInDesignMode { get => DesignerProperties.GetIsInDesignMode(this); }
+        protected bool IsInDesignMode => DesignerProperties.GetIsInDesignMode(this);
+
         public object Content
         {
-            get { return (object)GetValue(ContentProperty); }
-            set { SetValue(ContentProperty, value); }
+            get => (object)GetValue(ContentProperty);
+            set => SetValue(ContentProperty, value);
         }
         // Using a DependencyProperty as the backing store for UIElement.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ContentProperty =
-            DependencyProperty.Register("Content", typeof(object), typeof(DeferredContentHost));
+            DependencyProperty.Register(nameof(Content), typeof(object), typeof(DeferredContentHost));
         public object Skeleton
         {
-            get { return (object)GetValue(SkeletonProperty); }
-            set { SetValue(SkeletonProperty, value); }
+            get => (object)GetValue(SkeletonProperty);
+            set => SetValue(SkeletonProperty, value);
         }
         // Using a DependencyProperty as the backing store for Skeleton.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty SkeletonProperty =
-            DependencyProperty.Register("Skeleton", typeof(object), typeof(DeferredContentHost));
+            DependencyProperty.Register(nameof(Skeleton), typeof(object), typeof(DeferredContentHost));
         #endregion
     }
 }

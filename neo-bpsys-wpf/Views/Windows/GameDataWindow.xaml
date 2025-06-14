@@ -2,7 +2,7 @@
     x:Class="neo_bpsys_wpf.Views.Windows.GameDataWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:cb="clr-namespace:neo_bpsys_wpf.CustomBehaviors"
+    xmlns:ab="clr-namespace:neo_bpsys_wpf.AttachedBehaviors"
     xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -76,7 +76,7 @@
             Canvas.Top="172"
             Width="85"
             Height="85"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/TestLogo.JPG"
             CornerRadius="8"
             Source="{Binding CurrentGame.SurTeam.Logo}"
@@ -87,7 +87,7 @@
             Canvas.Top="229"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Text="W0 D0"
             FontFamily="Arial"
             FontSize="30"
@@ -101,7 +101,7 @@
             Width="290"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Text="求生者队伍名称"
             FontFamily="{StaticResource SourceHan}"
             FontSize="32"
@@ -116,7 +116,7 @@
             Height="81"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Text="0"
             FontFamily="{StaticResource POP1W5}"
             FontSize="80"
@@ -130,7 +130,7 @@
             Width="313"
             Height="132"
             Panel.ZIndex="-1"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/map/唐人街.png"
             Source="{Binding CurrentGame.PickedMapImage}"
             Stretch="UniformToFill" />
@@ -140,7 +140,7 @@
             Canvas.Top="257"
             Width="313"
             Height="30"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Fill="Black" />
         <Border
             Name="MapName"
@@ -151,7 +151,7 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             Panel.ZIndex="1"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
             <TextBlock
                 Name="PickedMapName"
                 HorizontalAlignment="Left"
@@ -170,7 +170,7 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
             Panel.ZIndex="1"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
             <TextBlock
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
@@ -196,7 +196,7 @@
             Height="81"
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Text="0"
             FontFamily="{StaticResource POP1W5}"
             FontSize="80"
@@ -210,7 +210,7 @@
             Width="302"
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Text="监管者队伍名称"
             FontFamily="{StaticResource SourceHan}"
             FontSize="32"
@@ -223,7 +223,7 @@
             Canvas.Top="229"
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Text="W0 D0"
             FontFamily="Arial"
             FontSize="30"
@@ -236,7 +236,7 @@
             Canvas.Top="172"
             Width="85"
             Height="85"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/TestLogo.JPG"
             CornerRadius="8"
             Source="{Binding CurrentGame.HunTeam.Logo}"
@@ -246,7 +246,7 @@
             Name="Player0Header"
             Canvas.Left="53"
             Canvas.Top="349"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
             Source="{Binding CurrentGame.SurPlayerList[0].Character.HeaderImage}"
             Style="{StaticResource SurHeader}" />
@@ -254,7 +254,7 @@
             Name="Player1Header"
             Canvas.Left="53"
             Canvas.Top="405"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
             Source="{Binding CurrentGame.SurPlayerList[1].Character.HeaderImage}"
             Style="{StaticResource SurHeader}" />
@@ -262,7 +262,7 @@
             Name="Player2Header"
             Canvas.Left="53"
             Canvas.Top="461"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
             Source="{Binding CurrentGame.SurPlayerList[2].Character.HeaderImage}"
             Style="{StaticResource SurHeader}" />
@@ -270,7 +270,7 @@
             Name="Player3Header"
             Canvas.Left="53"
             Canvas.Top="517"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:Source="/Assets/幸运儿.png"
             Source="{Binding CurrentGame.SurPlayerList[3].Character.HeaderImage}"
             Style="{StaticResource SurHeader}" />
@@ -279,7 +279,7 @@
             Name="SurId0"
             Canvas.Left="128"
             Canvas.Top="350"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
                 d:Text="求生者选手Id"
@@ -290,7 +290,7 @@
             Name="SurId1"
             Canvas.Left="128"
             Canvas.Top="406"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
                 d:Text="求生者选手Id"
@@ -301,7 +301,7 @@
             Name="SurId2"
             Canvas.Left="128"
             Canvas.Top="460"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
                 d:Text="求生者选手Id"
@@ -312,7 +312,7 @@
             Name="SurId3"
             Canvas.Left="128"
             Canvas.Top="517"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
                 d:Text="求生者选手Id"
@@ -324,7 +324,7 @@
             Name="Sur0MachineDecoded"
             Canvas.Left="357"
             Canvas.Top="350"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <StackPanel
                 HorizontalAlignment="Center"
@@ -341,7 +341,7 @@
             Name="Sur1MachineDecoded"
             Canvas.Left="357"
             Canvas.Top="406"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <StackPanel
                 HorizontalAlignment="Center"
@@ -358,7 +358,7 @@
             Name="Sur2MachineDecoded"
             Canvas.Left="357"
             Canvas.Top="462"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <StackPanel
                 HorizontalAlignment="Center"
@@ -375,7 +375,7 @@
             Name="Sur3MachineDecoded"
             Canvas.Left="357"
             Canvas.Top="518"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <StackPanel
                 HorizontalAlignment="Center"
@@ -393,7 +393,7 @@
             Name="Sur0PalletStunTimes"
             Canvas.Left="511"
             Canvas.Top="350"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -404,7 +404,7 @@
             Name="Sur1PalletStunTimes"
             Canvas.Left="511"
             Canvas.Top="406"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -415,7 +415,7 @@
             Name="Sur2PalletStunTimes"
             Canvas.Left="511"
             Canvas.Top="462"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -426,7 +426,7 @@
             Name="Sur3PalletStunTimes"
             Canvas.Left="511"
             Canvas.Top="518"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -438,7 +438,7 @@
             Name="Sur0RescueTimes"
             Canvas.Left="666"
             Canvas.Top="350"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -449,7 +449,7 @@
             Name="Sur1RescueTimes"
             Canvas.Left="666"
             Canvas.Top="406"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -460,7 +460,7 @@
             Name="Sur2RescueTimes"
             Canvas.Left="666"
             Canvas.Top="462"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -471,7 +471,7 @@
             Name="Sur3RescueTimes"
             Canvas.Left="666"
             Canvas.Top="518"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -483,7 +483,7 @@
             Name="Sur0HealedTimes"
             Canvas.Left="809"
             Canvas.Top="350"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -494,7 +494,7 @@
             Name="Sur1HealedTimes"
             Canvas.Left="809"
             Canvas.Top="406"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -505,7 +505,7 @@
             Name="Sur2HealedTimes"
             Canvas.Left="809"
             Canvas.Top="462"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -516,7 +516,7 @@
             Name="Sur3HealedTimes"
             Canvas.Left="809"
             Canvas.Top="518"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -528,7 +528,7 @@
             Name="Sur0KiteTime"
             Canvas.Left="963"
             Canvas.Top="350"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -539,7 +539,7 @@
             Name="Sur1KiteTime"
             Canvas.Left="963"
             Canvas.Top="406"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -550,7 +550,7 @@
             Name="Sur2KiteTime"
             Canvas.Left="963"
             Canvas.Top="462"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -561,7 +561,7 @@
             Name="Sur3KiteTime"
             Canvas.Left="963"
             Canvas.Top="518"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -582,7 +582,7 @@
             Name="HunMachineLeft"
             Canvas.Left="1227"
             Canvas.Top="405"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource HunDataBorder}">
             <TextBlock
                 d:Text="1"
@@ -594,7 +594,7 @@
             Name="HunPalletBroken"
             Canvas.Left="1227"
             Canvas.Top="439"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource HunDataBorder}">
             <TextBlock
                 d:Text="8"
@@ -606,7 +606,7 @@
             Name="HunHitTimes"
             Canvas.Left="1227"
             Canvas.Top="472"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource HunDataBorder}">
             <TextBlock
                 d:Text="16"
@@ -618,7 +618,7 @@
             Name="HunTerrorShockTimes"
             Canvas.Left="1227"
             Canvas.Top="503"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource HunDataBorder}">
             <TextBlock
                 d:Text="0"
@@ -630,7 +630,7 @@
             Name="HunDownTimes"
             Canvas.Left="1227"
             Canvas.Top="537"
-            cb:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource HunDataBorder}">
             <TextBlock
                 d:Text="0"

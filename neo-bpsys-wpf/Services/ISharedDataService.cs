@@ -66,6 +66,8 @@ namespace neo_bpsys_wpf.Services
         /// </summary>
         double GlobalScoreTotalMargin { get; set; }
 
+        void SetBanCount(BanListName listName, int count);
+
         /// <summary>
         /// 倒计时开始
         /// </summary>

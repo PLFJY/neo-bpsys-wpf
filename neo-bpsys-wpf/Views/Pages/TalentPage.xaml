@@ -6,6 +6,7 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:enums="clr-namespace:neo_bpsys_wpf.Enums"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -31,31 +32,23 @@
                     <cc:TalentPicker
                         Margin="0,0,10,10"
                         CharacterName="{Binding CurrentGame.SurPlayerList[0].Character.Name, Mode=OneWay}"
-                        Is12Checked="{Binding CurrentGame.SurPlayerList[0].Talent.FlywheelEffect}"
-                        Is3Checked="{Binding CurrentGame.SurPlayerList[0].Talent.BorrowedTime}"
-                        Is6Checked="{Binding CurrentGame.SurPlayerList[0].Talent.TideTurner}"
-                        Is9Checked="{Binding CurrentGame.SurPlayerList[0].Talent.KneeJerkReflex}" />
+                        IsHighlighted="{Binding IsSurTalentHighlighted}"
+                        Player="{Binding CurrentGame.SurPlayerList[0]}" />
                     <cc:TalentPicker
                         Margin="0,0,10,10"
                         CharacterName="{Binding CurrentGame.SurPlayerList[1].Character.Name, Mode=OneWay}"
-                        Is12Checked="{Binding CurrentGame.SurPlayerList[1].Talent.FlywheelEffect}"
-                        Is3Checked="{Binding CurrentGame.SurPlayerList[1].Talent.BorrowedTime}"
-                        Is6Checked="{Binding CurrentGame.SurPlayerList[1].Talent.TideTurner}"
-                        Is9Checked="{Binding CurrentGame.SurPlayerList[1].Talent.KneeJerkReflex}" />
+                        IsHighlighted="{Binding IsSurTalentHighlighted}"
+                        Player="{Binding CurrentGame.SurPlayerList[1]}" />
                     <cc:TalentPicker
                         Margin="0,0,10,10"
                         CharacterName="{Binding CurrentGame.SurPlayerList[2].Character.Name, Mode=OneWay}"
-                        Is12Checked="{Binding CurrentGame.SurPlayerList[2].Talent.FlywheelEffect}"
-                        Is3Checked="{Binding CurrentGame.SurPlayerList[2].Talent.BorrowedTime}"
-                        Is6Checked="{Binding CurrentGame.SurPlayerList[2].Talent.TideTurner}"
-                        Is9Checked="{Binding CurrentGame.SurPlayerList[2].Talent.KneeJerkReflex}" />
+                        IsHighlighted="{Binding IsSurTalentHighlighted}"
+                        Player="{Binding CurrentGame.SurPlayerList[2]}" />
                     <cc:TalentPicker
                         Margin="0,0,10,10"
                         CharacterName="{Binding CurrentGame.SurPlayerList[3].Character.Name, Mode=OneWay}"
-                        Is12Checked="{Binding CurrentGame.SurPlayerList[3].Talent.FlywheelEffect}"
-                        Is3Checked="{Binding CurrentGame.SurPlayerList[3].Talent.BorrowedTime}"
-                        Is6Checked="{Binding CurrentGame.SurPlayerList[3].Talent.TideTurner}"
-                        Is9Checked="{Binding CurrentGame.SurPlayerList[3].Talent.KneeJerkReflex}" />
+                        IsHighlighted="{Binding IsSurTalentHighlighted}"
+                        Player="{Binding CurrentGame.SurPlayerList[3]}" />
                 </WrapPanel>
             </Grid>
         </Border>
@@ -71,11 +64,10 @@
                     Margin="0,0,20,10"
                     HorizontalAlignment="Left"
                     CharacterName="{Binding CurrentGame.HunPlayer.Character.Name, Mode=OneWay}"
-                    Is12Checked="{Binding CurrentGame.HunPlayer.Talent.ConfinedSpace}"
-                    Is3Checked="{Binding CurrentGame.HunPlayer.Talent.TrumpCard}"
-                    Is6Checked="{Binding CurrentGame.HunPlayer.Talent.Detention}"
-                    Is9Checked="{Binding CurrentGame.HunPlayer.Talent.Insolence}"
-                    IsTypeHun="True" />
+                    IsHighlighted="{Binding IsHunTalentHighlighted}"
+                    IsTypeHun="True"
+                    Player="{Binding CurrentGame.HunPlayer}">
+                </cc:TalentPicker>
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">

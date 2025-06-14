@@ -32,7 +32,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             MainTeamInfoViewModel = new(_sharedDataService.MainTeam, _filePickerService, _messageBoxService);
             AwayTeamInfoViewModel = new(_sharedDataService.AwayTeam, _filePickerService, _messageBoxService);
             OnFieldSurPlayerViewModels = [.. Enumerable.Range(0, 4).Select(i => new OnFieldSurPlayerViewModel(_sharedDataService, i))];
-            OnFieldHunPlayerVM = new(_sharedDataService);
+            OnFieldHunPlayerVm = new(_sharedDataService);
         }
 
         public TeamInfoViewModel MainTeamInfoViewModel { get; }
@@ -40,7 +40,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         public TeamInfoViewModel AwayTeamInfoViewModel { get; }
 
         public ObservableCollection<OnFieldSurPlayerViewModel> OnFieldSurPlayerViewModels { get; set; }
-        public OnFieldHunPlayerViewModel OnFieldHunPlayerVM { get; set; }
+        public OnFieldHunPlayerViewModel OnFieldHunPlayerVm { get; set; }
 
         public partial class OnFieldSurPlayerViewModel :
             ObservableRecipient, IRecipient<MemberStateChangedMessage>, IRecipient<PlayerSwappedMessage>, IRecipient<SwapMessage>
@@ -54,10 +54,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 IsActive = true;
             }
 
-            public Player ThisPlayer
-            {
-                get => _sharedDataService.CurrentGame.SurPlayerList[Index];
-            }
+            public Player ThisPlayer => _sharedDataService.CurrentGame.SurPlayerList[Index];
 
             public int Index { get; }
 
@@ -100,10 +97,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 IsActive = true;
             }
 
-            public Player ThisPlayer
-            {
-                get => _sharedDataService.CurrentGame.HunPlayer;
-            }
+            public Player ThisPlayer => _sharedDataService.CurrentGame.HunPlayer;
 
             public void Receive(MemberStateChangedMessage message)
             {

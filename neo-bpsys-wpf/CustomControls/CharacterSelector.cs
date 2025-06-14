@@ -11,94 +11,104 @@ namespace neo_bpsys_wpf.CustomControls
     {
         public bool IsSimpleModeEnabled
         {
-            get { return (bool)GetValue(IsSimpleModeEnabledProperty); }
-            set { SetValue(IsSimpleModeEnabledProperty, value); }
+            get => (bool)GetValue(IsSimpleModeEnabledProperty);
+            set => SetValue(IsSimpleModeEnabledProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for IsSimpleModeEnabled.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsSimpleModeEnabledProperty =
-            DependencyProperty.Register("IsSimpleModeEnabled", typeof(bool), typeof(CharacterSelector), new PropertyMetadata(false));
+            DependencyProperty.Register(nameof(IsSimpleModeEnabled), typeof(bool), typeof(CharacterSelector), new PropertyMetadata(false));
 
         public ICommand Command
         {
-            get { return (ICommand)GetValue(CommandProperty); }
-            set { SetValue(CommandProperty, value); }
+            get => (ICommand)GetValue(CommandProperty);
+            set => SetValue(CommandProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for Command.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty CommandProperty =
-            DependencyProperty.Register("Command", typeof(ICommand), typeof(CharacterSelector), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(Command), typeof(ICommand), typeof(CharacterSelector), new PropertyMetadata(null));
 
         public ImageSource ImageSource
         {
-            get { return (ImageSource)GetValue(ImageSourceProperty); }
-            set { SetValue(ImageSourceProperty, value); }
+            get => (ImageSource)GetValue(ImageSourceProperty);
+            set => SetValue(ImageSourceProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for ImageSource.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ImageSourceProperty =
-            DependencyProperty.Register("ImageSource", typeof(ImageSource), typeof(CharacterSelector), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(ImageSource), typeof(ImageSource), typeof(CharacterSelector), new PropertyMetadata(null));
 
         public string Text
         {
-            get { return (string)GetValue(TextProperty); }
-            set { SetValue(TextProperty, value); }
+            get => (string)GetValue(TextProperty);
+            set => SetValue(TextProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for Text.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty TextProperty =
-            DependencyProperty.Register("Text", typeof(string), typeof(CharacterSelector), new PropertyMetadata(string.Empty));
+            DependencyProperty.Register(nameof(Text), typeof(string), typeof(CharacterSelector), new PropertyMetadata(string.Empty));
 
 
         public IEnumerable ItemsSource
         {
-            get { return (IEnumerable)GetValue(ItemsSourceProperty); }
-            set { SetValue(ItemsSourceProperty, value); }
+            get => (IEnumerable)GetValue(ItemsSourceProperty);
+            set => SetValue(ItemsSourceProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for ItemsSource.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ItemsSourceProperty =
-            DependencyProperty.Register("ItemsSource", typeof(IEnumerable), typeof(CharacterSelector), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(ItemsSource), typeof(IEnumerable), typeof(CharacterSelector), new PropertyMetadata(null));
 
         public bool IsDropDownOpen
         {
-            get { return (bool)GetValue(IsDropDownOpenProperty); }
-            set { SetValue(IsDropDownOpenProperty, value); }
+            get => (bool)GetValue(IsDropDownOpenProperty);
+            set => SetValue(IsDropDownOpenProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for IsDropDownOpen.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsDropDownOpenProperty =
-            DependencyProperty.Register("IsDropDownOpen", typeof(bool), typeof(CharacterSelector), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+            DependencyProperty.Register(nameof(IsDropDownOpen), typeof(bool), typeof(CharacterSelector), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
         public int SelectedIndex
         {
-            get { return (int)GetValue(SelectedIndexProperty); }
-            set { SetValue(SelectedIndexProperty, value); }
+            get => (int)GetValue(SelectedIndexProperty);
+            set => SetValue(SelectedIndexProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for SelectedIndex.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty SelectedIndexProperty =
-            DependencyProperty.Register("SelectedIndex", typeof(int), typeof(CharacterSelector), new FrameworkPropertyMetadata(-1, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+            DependencyProperty.Register(nameof(SelectedIndex), typeof(int), typeof(CharacterSelector), new FrameworkPropertyMetadata(-1, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
         public object SelectedItem
         {
-            get { return (object)GetValue(SelectedItemProperty); }
-            set { SetValue(SelectedItemProperty, value); }
+            get => (object)GetValue(SelectedItemProperty);
+            set => SetValue(SelectedItemProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for SelectedItem.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty SelectedItemProperty =
-            DependencyProperty.Register("SelectedItem", typeof(object), typeof(CharacterSelector), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+            DependencyProperty.Register(nameof(SelectedItem), typeof(object), typeof(CharacterSelector), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
         public object SelectedValue
         {
-            get { return (object)GetValue(SelectedValueProperty); }
-            set { SetValue(SelectedValueProperty, value); }
+            get => (object)GetValue(SelectedValueProperty);
+            set => SetValue(SelectedValueProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for SelectedValue.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty SelectedValueProperty =
-            DependencyProperty.Register("SelectedValue", typeof(object), typeof(CharacterSelector), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+            DependencyProperty.Register(nameof(SelectedValue), typeof(object), typeof(CharacterSelector), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+
+        public bool IsHighlighted
+        {
+            get => (bool)GetValue(IsHighlightedProperty);
+            set => SetValue(IsHighlightedProperty, value);
+        }
+
+        // Using a DependencyProperty as the backing store for IsHighlighted.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IsHighlightedProperty =
+            DependencyProperty.Register(nameof(IsHighlighted), typeof(bool), typeof(CharacterSelector), new PropertyMetadata(false));
 
         public CharacterSelector()
         {

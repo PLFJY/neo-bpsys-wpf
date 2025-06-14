@@ -10,9 +10,9 @@ namespace neo_bpsys_wpf.Services
     {
         bool IsGuidanceStarted { get; set; }
 
-        string StartGuidance();
-        string NextStep();
-        string PrevStep();
+        string? StartGuidance();
+        Task<string> NextStepAsync();
+        Task<string> PrevStepAsync();
         void StopGuidance();
     }
 }

@@ -127,7 +127,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
         public bool IsDesignMode
         {
-            get { return _isDesignMode; }
+            get => _isDesignMode;
             set
             {
                 _isDesignMode = value;

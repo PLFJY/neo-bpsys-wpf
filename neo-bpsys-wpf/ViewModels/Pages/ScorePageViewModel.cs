@@ -121,7 +121,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         private bool _isBo3Mode;
         public bool IsBo3Mode
         {
-            get { return _isBo3Mode; }
+            get => _isBo3Mode;
             set
             {
                 _isBo3Mode = value;

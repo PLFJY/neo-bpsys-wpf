@@ -54,6 +54,7 @@
                                     Margin="0,10,0,0"
                                     Command="{Binding ConfirmCommand}"
                                     ImageSource="{Binding PreviewImage}"
+                                    IsHighlighted="{Binding IsHighlighted}"
                                     ItemsSource="{Binding CharaList}"
                                     SelectedValue="{Binding SelectedChara}" />
                                 <cc:CharacterChanger Command="{Binding SwapCharacterInPlayersCommand}" Index="{Binding Index}" />
@@ -73,10 +74,11 @@
                 <cc:CharacterSelector
                     Grid.Row="1"
                     Margin="0,10,0,0"
-                    Command="{Binding HunpickVM.ConfirmCommand}"
-                    ImageSource="{Binding HunpickVM.PreviewImage}"
-                    ItemsSource="{Binding HunpickVM.CharaList}"
-                    SelectedValue="{Binding HunpickVM.SelectedChara}" />
+                    Command="{Binding HunPickVm.ConfirmCommand}"
+                    ImageSource="{Binding HunPickVm.PreviewImage}"
+                    IsHighlighted="{Binding HunPickVm.IsHighlighted}"
+                    ItemsSource="{Binding HunPickVm.CharaList}"
+                    SelectedValue="{Binding HunPickVm.SelectedChara}" />
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">

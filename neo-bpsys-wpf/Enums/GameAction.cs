@@ -14,5 +14,6 @@ public enum GameAction
     BanHun,
     PickSur,
     PickHun,
-    PickTalent
+    PickSurTalent,
+    PickHunTalent,
 }

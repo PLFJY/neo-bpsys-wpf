@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
 using System.Windows.Media;
+using neo_bpsys_wpf.Enums;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -15,20 +16,22 @@ namespace neo_bpsys_wpf.ViewModels.Pages
     /// 2.设置<see cref="IsEnabled"/><br/>
     /// 3.实现<see cref="SyncChara"/>
     /// </summary>
-    public abstract partial class CharaSelectViewModelBase : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<BanCountChangedMessage>
+    public abstract partial class CharaSelectViewModelBase :
+        ObservableRecipient,
+        IRecipient<NewGameMessage>,
+        IRecipient<BanCountChangedMessage>,
+        IRecipient<HighlightMessage>
     {
-        protected readonly ISharedDataService _sharedDataService;
+        protected readonly ISharedDataService SharedDataService;
 
-        private readonly int _index;
-        public int Index { get => _index; }
+        public int Index { get; }
 
-        [ObservableProperty]
-        private Character? _selectedChara;
+        [ObservableProperty] private Character? _selectedChara;
 
-        [ObservableProperty]
-        private ImageSource? _previewImage;
+        [ObservableProperty] private ImageSource? _previewImage;
 
         private bool _isEnabled = true;
+
         public bool IsEnabled
         {
             get => _isEnabled;
@@ -36,14 +39,17 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             {
                 _isEnabled = value;
                 SyncIsEnabled();
-                OnPropertyChanged(nameof(IsEnabled));
+                OnPropertyChanged();
             }
         }
+
+        [ObservableProperty] private bool _isHighlighted = false;
 
         public Dictionary<string, Character> CharaList { get; set; } = [];
 
         public abstract void SyncChara();
-        public abstract void SyncIsEnabled();
+        protected abstract void SyncIsEnabled();
+        protected abstract bool IsActionNameCorrect(GameAction? action);
 
         [RelayCommand]
         private void Confirm() => SyncChara();
@@ -51,22 +57,32 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         protected CharaSelectViewModelBase(ISharedDataService sharedDataService, int index = 0)
         {
             IsActive = true;
-            _sharedDataService = sharedDataService;
-            _index = index;
+            SharedDataService = sharedDataService;
+            Index = index;
         }
 
         public void Receive(NewGameMessage message)
         {
-            if (message.IsNewGameCreated)
-            {
-                SelectedChara = null;
-                PreviewImage = null;
-            }
+            if (!message.IsNewGameCreated) return;
+            SelectedChara = null;
+            PreviewImage = null;
         }
 
         public virtual void Receive(BanCountChangedMessage message)
         {
-            return;
+            
+        }
+
+        public void Receive(HighlightMessage message)
+        {
+            if (IsActionNameCorrect(message.GameAction) && message.Index != null && message.Index.Contains(Index))
+            {
+                IsHighlighted = true;
+            }
+            else
+            {
+                IsHighlighted = false;
+            }
         }
     }
 }

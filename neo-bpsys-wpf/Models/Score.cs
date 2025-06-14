@@ -24,15 +24,8 @@ public partial class Score : ObservableObject
     private int _minorPoints = 0;
 
     [JsonIgnore]
-    public string MajorPointsOnFront
-    {
-        get => $"W{Win}  D{Tie}";
-    }
+    public string MajorPointsOnFront => $"W{Win}  D{Tie}";
 
     [JsonIgnore]
-    public string ScorePreviewOnBack
-    {
-        get => $"W:{Win} D:{Tie} 小比分:{MinorPoints}";
-    }
-
+    public string ScorePreviewOnBack => $"W:{Win} D:{Tie} 小比分:{MinorPoints}";
 }

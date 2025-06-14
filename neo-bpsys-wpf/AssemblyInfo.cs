@@ -17,4 +17,4 @@ using System.Windows;
 /// 第三位是有新Feature就会跟进
 /// 最后一位自动生成，用于BugFix和Improvement版本，不用手动迭代
 /// </summary>
-[assembly: AssemblyVersion("0.1.8.*")]
+[assembly: AssemblyVersion("0.1.9.*")]

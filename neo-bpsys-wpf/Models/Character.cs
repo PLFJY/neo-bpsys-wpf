@@ -11,17 +11,66 @@ namespace neo_bpsys_wpf.Models;
 /// </summary>
 public class Character
 {
+    private ImageSource? _bigImage;
+    private ImageSource? _headerImage;
+    private ImageSource? _headerImageSingleColor;
+    private ImageSource? _halfImage;
     public string Name { get;  } = string.Empty;
     public Camp Camp { get; }
     public string ImageFileName { get; } = string.Empty;
+
     [JsonIgnore]
-    public ImageSource? BigImage { get;  }
+    public ImageSource? BigImage
+    {
+        get
+        {
+            if (_bigImage == null)
+            {
+                _bigImage = GetImageSource(Camp == Camp.Sur ? ImageSourceKey.surBig : ImageSourceKey.hunBig);
+            }
+            return _bigImage ;
+        }
+    }
+
     [JsonIgnore]
-    public ImageSource? HeaderImage { get; }
+    public ImageSource? HeaderImage
+    {
+        get
+        {
+            if (_headerImage == null)
+            {
+                _headerImage = GetImageSource(Camp == Camp.Sur ? ImageSourceKey.surHeader : ImageSourceKey.hunHeader);
+            }
+            return _headerImage;
+        }
+    }
+
     [JsonIgnore]
-    public ImageSource? HeaderImage_SingleColor { get;  }
+    public ImageSource? HeaderImageSingleColor
+    {
+        get
+        {
+            if (_headerImageSingleColor == null)
+            {
+                _headerImageSingleColor = GetImageSource(Camp == Camp.Sur ? ImageSourceKey.surHeader_singleColor : ImageSourceKey.hunHeader_singleColor);
+            }
+            return _headerImageSingleColor;
+        }
+    }
+
     [JsonIgnore]
-    public ImageSource? HalfImage { get;  }
+    public ImageSource? HalfImage
+    {
+        get
+        {
+            if (_halfImage == null)
+            {
+                _halfImage = GetImageSource(Camp == Camp.Sur ? ImageSourceKey.surHalf : ImageSourceKey.hunHalf);
+            }
+            return _halfImage;
+        }
+    }
+
     public string FullSpell { get;  } = string.Empty;// 角色名称全拼
     public string Abbrev { get;  } = string.Empty; //角色名称简拼
     public Character(string name, Camp camp, string imageFileName)
@@ -29,10 +78,6 @@ public class Character
         Name = name;
         Camp = camp;
         ImageFileName = imageFileName;
-        BigImage = GetImageSource(camp == Camp.Sur ? ImageSourceKey.surBig : ImageSourceKey.hunBig);
-        HeaderImage = GetImageSource(camp == Camp.Sur ? ImageSourceKey.surHeader : ImageSourceKey.hunHeader);
-        HeaderImage_SingleColor = GetImageSource(camp == Camp.Sur ? ImageSourceKey.surHeader_singleColor : ImageSourceKey.hunHeader_singleColor);
-        HalfImage = GetImageSource(camp == Camp.Sur ? ImageSourceKey.surHalf : ImageSourceKey.hunHalf);
         //拼音处理
         var format = PinyinFormat.WITHOUT_TONE | PinyinFormat.LOWERCASE | PinyinFormat.WITH_U_AND_COLON | PinyinFormat.WITH_V;
 

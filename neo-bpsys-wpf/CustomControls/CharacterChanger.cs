@@ -15,7 +15,7 @@ namespace neo_bpsys_wpf.CustomControls
         }
 
         public static readonly DependencyProperty IndexProperty = DependencyProperty.Register(
-            "Index",
+            nameof(Index),
             typeof(int),
             typeof(CharacterChanger),
             new PropertyMetadata(0)
@@ -23,12 +23,12 @@ namespace neo_bpsys_wpf.CustomControls
 
         public int Index
         {
-            get { return (int)GetValue(IndexProperty); }
-            set { SetValue(IndexProperty, value); }
+            get => (int)GetValue(IndexProperty);
+            set => SetValue(IndexProperty, value);
         }
 
         public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(
-            "Command",
+            nameof(Command),
             typeof(ICommand),
             typeof(CharacterChanger),
             new PropertyMetadata(null)
@@ -36,20 +36,20 @@ namespace neo_bpsys_wpf.CustomControls
 
         public ICommand Command
         {
-            get { return (ICommand)GetValue(CommandProperty); }
-            set { SetValue(CommandProperty, value); }
+            get => (ICommand)GetValue(CommandProperty);
+            set => SetValue(CommandProperty, value);
         }
 
         public static readonly DependencyProperty SpacingProperty = DependencyProperty.Register(
-            "Spacing",
+            nameof(Spacing),
             typeof(double),
             typeof(CharacterChanger),
             new PropertyMetadata(0.0)
         );
         public double Spacing
         {
-            get { return (double)GetValue(SpacingProperty); }
-            set { SetValue(SpacingProperty, value); }
+            get => (double)GetValue(SpacingProperty);
+            set => SetValue(SpacingProperty, value);
         }
     }
 }

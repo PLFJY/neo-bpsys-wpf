@@ -8,13 +8,13 @@ namespace neo_bpsys_wpf.CustomControls
     {
         public ImageSource ImageSource
         {
-            get { return (ImageSource)GetValue(ImageSourceProperty); }
-            set { SetValue(ImageSourceProperty, value); }
+            get => (ImageSource)GetValue(ImageSourceProperty);
+            set => SetValue(ImageSourceProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for ImageSource.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ImageSourceProperty = DependencyProperty.Register(
-            "ImageSource",
+            nameof(ImageSource),
             typeof(ImageSource),
             typeof(ToggleStyledRadioButton),
             new PropertyMetadata(null)
@@ -22,13 +22,13 @@ namespace neo_bpsys_wpf.CustomControls
 
         public string TagName
         {
-            get { return (string)GetValue(TagNameProperty); }
-            set { SetValue(TagNameProperty, value); }
+            get => (string)GetValue(TagNameProperty);
+            set => SetValue(TagNameProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for TagName.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty TagNameProperty = DependencyProperty.Register(
-            "TagName",
+            nameof(TagName),
             typeof(string),
             typeof(ToggleStyledRadioButton),
             new PropertyMetadata(null)
@@ -36,13 +36,13 @@ namespace neo_bpsys_wpf.CustomControls
 
         public double ImageHeight
         {
-            get { return (double)GetValue(ImageHeightProperty); }
-            set { SetValue(ImageHeightProperty, value); }
+            get => (double)GetValue(ImageHeightProperty);
+            set => SetValue(ImageHeightProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for ImageHeight.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ImageHeightProperty = DependencyProperty.Register(
-            "ImageHeight",
+            nameof(ImageHeight),
             typeof(double),
             typeof(ToggleStyledRadioButton),
             new PropertyMetadata(73.0)
@@ -50,13 +50,13 @@ namespace neo_bpsys_wpf.CustomControls
 
         public double ImageWidth
         {
-            get { return (double)GetValue(ImageWidthProperty); }
-            set { SetValue(ImageWidthProperty, value); }
+            get => (double)GetValue(ImageWidthProperty);
+            set => SetValue(ImageWidthProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for ImageWidth.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ImageWidthProperty = DependencyProperty.Register(
-            "ImageWidth",
+            nameof(ImageWidth),
             typeof(double),
             typeof(ToggleStyledRadioButton),
             new PropertyMetadata(276.0)

@@ -22,7 +22,8 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         IRecipient<NewGameMessage>,
         IRecipient<SwapMessage>,
         IRecipient<ValueChangedMessage<string>>,
-        IRecipient<PropertyChangedMessage<bool>>
+        IRecipient<PropertyChangedMessage<bool>>,
+        IRecipient<HighlightMessage>
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public MainWindowViewModel()
@@ -38,17 +39,17 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             WriteIndented = true,
             Converters = { new JsonStringEnumConverter() },
         };
+
         private readonly IMessageBoxService _messageBoxService;
         private readonly IGameGuidanceService _gameGuidanceService;
         private readonly IInfoBarService _infoBarService;
-        [ObservableProperty]
-        private ApplicationTheme _applicationTheme = ApplicationTheme.Dark;
+        [ObservableProperty] private ApplicationTheme _applicationTheme = ApplicationTheme.Dark;
 
         private bool _isGuidanceStarted;
 
         public bool IsGuidanceStarted
         {
-            get { return _isGuidanceStarted; }
+            get => _isGuidanceStarted;
             set
             {
                 _isGuidanceStarted = value;
@@ -65,6 +66,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         public string SurTeamName => _sharedDataService.CurrentGame.SurTeam.Name;
         public string HunTeamName => _sharedDataService.CurrentGame.HunTeam.Name;
         public string RemainingSeconds => _sharedDataService.RemainingSeconds;
+
         public GameProgress SelectedGameProgress
         {
             get => _selectedGameProgress;
@@ -75,8 +77,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             }
         }
 
-        [ObservableProperty]
-        private string _actionName = string.Empty;
+        [ObservableProperty] private string _actionName = string.Empty;
 
         public MainWindowViewModel(
             ISharedDataService sharedDataService,
@@ -122,6 +123,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 surTeam = _sharedDataService.AwayTeam;
                 hunTeam = _sharedDataService.MainTeam;
             }
+
             Map? pickedMap = _sharedDataService.CurrentGame.PickedMap;
             Map? bannedMap = _sharedDataService.CurrentGame.BannedMap;
 
@@ -195,15 +197,10 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [RelayCommand]
         private void StartNavigation()
         {
-            try
-            {
-                ActionName = _gameGuidanceService.StartGuidance();
-                IsGuidanceStarted = true;
-            }
-            catch (GuidanceNotSupportedException)
-            {
-                _infoBarService.ShowWarningInfoBar("自由对局不支持导航");
-            }
+            var result = _gameGuidanceService.StartGuidance();
+            if(string.IsNullOrEmpty(result)) return;
+            ActionName = result;
+            IsGuidanceStarted = true;
         }
 
         [RelayCommand]
@@ -215,15 +212,15 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         }
 
         [RelayCommand]
-        private void NavigateToNextStep()
+        private async Task NavigateToNextStepAsync()
         {
-            ActionName = _gameGuidanceService.NextStep();
+            ActionName = await _gameGuidanceService.NextStepAsync();
         }
 
         [RelayCommand]
-        private void NavigateToPreviousStep()
+        private async Task NavigateToPreviousStepAsync()
         {
-            ActionName = _gameGuidanceService.PrevStep();
+            ActionName = await _gameGuidanceService.PrevStepAsync();
         }
 
         public void Receive(NewGameMessage message)
@@ -275,16 +272,24 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 {
                     GameList = GameListBo3;
                 }
+
                 OnPropertyChanged(nameof(IsBo3Mode));
             }
+        }
+
+        [ObservableProperty] 
+        private bool _isSwapHighlighted = false;
+        
+        public void Receive(HighlightMessage message)
+        {
+            IsSwapHighlighted = message.GameAction == GameAction.PickCamp;
         }
 
         public string TimerTime { get; set; } = "30";
 
         public List<int> RecommendTimmerList { get; } = [30, 45, 60, 90, 120, 150, 180];
 
-        [ObservableProperty]
-        private Dictionary<GameProgress, string> _gameList;
+        [ObservableProperty] private Dictionary<GameProgress, string> _gameList;
 
         public static Dictionary<GameProgress, string> GameListBo5 => new()
         {
@@ -306,7 +311,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         public static Dictionary<GameProgress, string> GameListBo3 => new()
         {
             { GameProgress.Free, "自由对局" },
-            { GameProgress.Game1FirstHalf, "第1局上半" }, 
+            { GameProgress.Game1FirstHalf, "第1局上半" },
             { GameProgress.Game1SecondHalf, "第1局下半" },
             { GameProgress.Game2FirstHalf, "第2局上半" },
             { GameProgress.Game2SecondHalf, "第2局下半" },
@@ -317,23 +322,23 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         };
 
         public List<NavigationViewItem> MenuItems { get; } =
-            [
-                new("启动页", SymbolRegular.Home24, typeof(HomePage)),
-                new("队伍信息", SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
-                new("地图禁选", SymbolRegular.Map24, typeof(MapBpPage)),
-                new("禁用监管者", SymbolRegular.PresenterOff24, typeof(BanHunPage)),
-                new("禁用求生者", SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
-                new("选择角色", SymbolRegular.PersonAdd24, typeof(PickPage)),
-                new("天赋特质", SymbolRegular.PersonWalking24, typeof(TalentPage)),
-                new("比分控制", SymbolRegular.NumberRow24, typeof(ScorePage)),
-                new("赛后数据", SymbolRegular.TextNumberListLtr24, typeof(GameDataPage)),
-            ];
+        [
+            new("启动页", SymbolRegular.Home24, typeof(HomePage)),
+            new("队伍信息", SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
+            new("地图禁选", SymbolRegular.Map24, typeof(MapBpPage)),
+            new("禁用监管者", SymbolRegular.PresenterOff24, typeof(BanHunPage)),
+            new("禁用求生者", SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
+            new("选择角色", SymbolRegular.PersonAdd24, typeof(PickPage)),
+            new("天赋特质", SymbolRegular.PersonWalking24, typeof(TalentPage)),
+            new("比分控制", SymbolRegular.NumberRow24, typeof(ScorePage)),
+            new("赛后数据", SymbolRegular.TextNumberListLtr24, typeof(GameDataPage)),
+        ];
 
         public List<NavigationViewItem> FooterMenuItems { get; } =
-            [
-                new("前台管理", SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
-                new("扩展功能", SymbolRegular.AppsAddIn24, typeof(ExtensionPage)),
-                new("设置", SymbolRegular.Settings24, typeof(SettingPage)),
-            ];
+        [
+            new("前台管理", SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
+            new("扩展功能", SymbolRegular.AppsAddIn24, typeof(ExtensionPage)),
+            new("设置", SymbolRegular.Settings24, typeof(SettingPage)),
+        ];
     }
 }

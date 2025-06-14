@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using neo_bpsys_wpf.Enums;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -55,22 +56,24 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
             public override void Receive(BanCountChangedMessage message)
             {
-                if (message.ChangedList == nameof(ISharedDataService.CanCurrentSurBanned))
+                if (message.ChangedList == BanListName.CanCurrentSurBanned)
                 {
-                    IsEnabled = _sharedDataService.CanCurrentSurBanned[Index];
+                    IsEnabled = SharedDataService.CanCurrentSurBanned[Index];
                 }
             }
 
             public override void SyncChara()
             {
-                _sharedDataService.CurrentGame.CurrentSurBannedList[Index] = SelectedChara;
-                PreviewImage = _sharedDataService.CurrentGame.CurrentSurBannedList[Index]?.HeaderImage_SingleColor;
+                SharedDataService.CurrentGame.CurrentSurBannedList[Index] = SelectedChara;
+                PreviewImage = SharedDataService.CurrentGame.CurrentSurBannedList[Index]?.HeaderImageSingleColor;
             }
 
-            public override void SyncIsEnabled()
+            protected override void SyncIsEnabled()
             {
-                _sharedDataService.CanCurrentSurBanned[Index] = IsEnabled;
+                SharedDataService.CanCurrentSurBanned[Index] = IsEnabled;
             }
+
+            protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanSur;
         }
 
         public class BanSurGlobalViewModel : CharaSelectViewModelBase
@@ -83,22 +86,24 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
             public override void Receive(BanCountChangedMessage message)
             {
-                if (message.ChangedList == nameof(ISharedDataService.CanGlobalSurBanned))
+                if (message.ChangedList == BanListName.CanGlobalSurBanned)
                 {
-                    IsEnabled = _sharedDataService.CanGlobalSurBanned[Index];
+                    IsEnabled = SharedDataService.CanGlobalSurBanned[Index];
                 }
             }
 
             public override void SyncChara()
             {
-                _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index] = SelectedChara;
-                PreviewImage = _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index]?.HeaderImage_SingleColor;
+                SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index] = SelectedChara;
+                PreviewImage = SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index]?.HeaderImageSingleColor;
             }
 
-            public override void SyncIsEnabled()
+            protected override void SyncIsEnabled()
             {
-                _sharedDataService.CanGlobalSurBanned[Index] = IsEnabled;
+                SharedDataService.CanGlobalSurBanned[Index] = IsEnabled;
             }
+
+            protected override bool IsActionNameCorrect(GameAction? action) => false;
         }
     }
 }

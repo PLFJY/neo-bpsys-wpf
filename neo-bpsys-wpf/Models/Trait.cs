@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Helpers;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
@@ -10,14 +11,25 @@ namespace neo_bpsys_wpf.Models;
 /// </summary>
 public class Trait
 {
+    private ImageSource? _image;
+
     public Enums.Trait? TraitName { get; }
+
     [JsonIgnore]
-    public ImageSource? Image { get; }
+    public ImageSource? Image
+    {
+        get
+        {
+            if(_image == null)
+            {
+                _image = ImageHelper.GetImageSourceFromName(Enums.ImageSourceKey.trait, TraitName.ToString());
+            }
+            return _image;
+        }
+    }
 
     public Trait(Enums.Trait? trait)
     {
         if (trait == null) return;
-
-        Image = ImageHelper.GetImageSourceFromName(Enums.ImageSourceKey.trait, trait.ToString());
     }
 }

@@ -26,49 +26,105 @@
                             IsReadOnly="True"
                             PlaceholderText="角色名称"
                             Text="{TemplateBinding CharacterName}" />
-                        <StackPanel Grid.Row="1" Margin="10,10,10,10">
-                            <ToggleButton
-                                Width="50"
-                                Height="50"
-                                HorizontalAlignment="Center"
-                                IsChecked="{Binding Is12Checked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
-                                <Grid>
-                                    <Image Source="{DynamicResource FlywheelEffect}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                                    <Image Source="{DynamicResource ConfinedSpace}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                </Grid>
-                            </ToggleButton>
-                            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                        <Grid Row="1">
+                            <!--  Sur  -->
+                            <StackPanel Margin="10,10,10,10" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}">
                                 <ToggleButton
                                     Width="50"
                                     Height="50"
-                                    IsChecked="{Binding Is9Checked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                    HorizontalAlignment="Center"
+                                    IsChecked="{Binding Player.Talent.FlywheelEffect, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
                                     <Grid>
-                                        <Image Source="{DynamicResource KneeJerkReflex}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                                        <Image Source="{DynamicResource Insolence}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <Image Source="{DynamicResource FlywheelEffect}" />
                                     </Grid>
                                 </ToggleButton>
+                                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                    <ToggleButton
+                                        Width="50"
+                                        Height="50"
+                                        IsChecked="{Binding Player.Talent.KneeJerkReflex, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                        <Grid>
+                                            <Image Source="{DynamicResource KneeJerkReflex}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                                        </Grid>
+                                    </ToggleButton>
+                                    <ToggleButton
+                                        Width="50"
+                                        Height="50"
+                                        Margin="60,0,0,0"
+                                        IsChecked="{Binding Player.Talent.BorrowedTime, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                        <Grid>
+                                            <Image Source="{DynamicResource BorrowedTime}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                                        </Grid>
+                                    </ToggleButton>
+                                </StackPanel>
                                 <ToggleButton
                                     Width="50"
                                     Height="50"
-                                    Margin="60,0,0,0"
-                                    IsChecked="{Binding Is3Checked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                    HorizontalAlignment="Center"
+                                    IsChecked="{Binding Player.Talent.TideTurner, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
                                     <Grid>
-                                        <Image Source="{DynamicResource BorrowedTime}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                                        <Image Source="{DynamicResource TrumpCard}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        <Image Source="{DynamicResource TideTurner}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                                     </Grid>
                                 </ToggleButton>
                             </StackPanel>
-                            <ToggleButton
-                                Width="50"
-                                Height="50"
-                                HorizontalAlignment="Center"
-                                IsChecked="{Binding Is6Checked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
-                                <Grid>
-                                    <Image Source="{DynamicResource TideTurner}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                                    <Image Source="{DynamicResource Detention}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                </Grid>
-                            </ToggleButton>
-                        </StackPanel>
+                            <!--  Hun  -->
+                            <StackPanel Margin="10,10,10,10" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <ToggleButton
+                                    Width="50"
+                                    Height="50"
+                                    HorizontalAlignment="Center"
+                                    IsChecked="{Binding Player.Talent.ConfinedSpace, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                    <Grid>
+                                        <Image Source="{DynamicResource ConfinedSpace}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    </Grid>
+                                </ToggleButton>
+                                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                                    <ToggleButton
+                                        Width="50"
+                                        Height="50"
+                                        IsChecked="{Binding Player.Talent.Insolence, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                        <Grid>
+                                            <Image Source="{DynamicResource Insolence}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        </Grid>
+                                    </ToggleButton>
+                                    <ToggleButton
+                                        Width="50"
+                                        Height="50"
+                                        Margin="60,0,0,0"
+                                        IsChecked="{Binding Player.Talent.TrumpCard, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                        <Grid>
+                                            <Image Source="{DynamicResource TrumpCard}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        </Grid>
+                                    </ToggleButton>
+                                </StackPanel>
+                                <ToggleButton
+                                    Width="50"
+                                    Height="50"
+                                    HorizontalAlignment="Center"
+                                    IsChecked="{Binding Player.Talent.Detention, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                    <Grid>
+                                        <Image Source="{DynamicResource Detention}" Visibility="{TemplateBinding IsTypeHun, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    </Grid>
+                                </ToggleButton>
+                            </StackPanel>
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsHighlighted}" Value="true">
+                                            <Setter Property="Effect">
+                                                <Setter.Value>
+                                                    <DropShadowEffect
+                                                        BlurRadius="15"
+                                                        Opacity="0.8"
+                                                        ShadowDepth="0"
+                                                        Color="Gold" />
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                        </Grid>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

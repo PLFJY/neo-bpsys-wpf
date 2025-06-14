@@ -1,0 +1,51 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <Style
+        x:Key="HighlightedButton"
+        BasedOn="{StaticResource {x:Type ui:Button}}"
+        TargetType="ui:Button">
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect
+                    BlurRadius="20"
+                    Direction="0"
+                    Opacity="0.8"
+                    RenderingBias="Quality"
+                    ShadowDepth="0"
+                    Color="Gold" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style
+        x:Key="HighlightedComboBox"
+        BasedOn="{StaticResource {x:Type ComboBox}}"
+        TargetType="ComboBox">
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect
+                    BlurRadius="20"
+                    Direction="0"
+                    Opacity="0.8"
+                    RenderingBias="Quality"
+                    ShadowDepth="0"
+                    Color="Gold" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="HighlightedWrapPanel" TargetType="WrapPanel">
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect
+                    BlurRadius="20"
+                    Direction="0"
+                    Opacity="0.8"
+                    RenderingBias="Quality"
+                    ShadowDepth="0"
+                    Color="Gold" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

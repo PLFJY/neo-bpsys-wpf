@@ -469,7 +469,7 @@
                 </ItemsControl>
 
                 <TextBlock Margin="0,10,0,10" Text="监管者" />
-                <ui:TextBox Text="{Binding OnFieldHunPlayerVM.ThisPlayer.Member.Name}" />
+                <ui:TextBox Text="{Binding OnFieldHunPlayerVm.ThisPlayer.Member.Name}" />
             </StackPanel>
         </Border>
     </WrapPanel>

@@ -7,6 +7,7 @@ using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
+using neo_bpsys_wpf.Enums;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -19,13 +20,13 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
         }
 
-        public ISharedDataService SharedDataService { get; }
+        private ISharedDataService _sharedDataService;
 
         public PickPageViewModel(ISharedDataService sharedDataService)
         {
-            SharedDataService = sharedDataService;
+            _sharedDataService = sharedDataService;
             SurPickViewModelList = [.. Enumerable.Range(0, 4).Select(i => new SurPickViewModel(sharedDataService, i))];
-            HunpickVM = new(sharedDataService);
+            HunPickVm = new HunPickViewModel(sharedDataService);
             MainSurGlobalBanRecordViewModelList = [.. Enumerable.Range(0, 9).Select(i => new MainSurGlobalBanRecordViewModel(sharedDataService, i))];
             MainHunGlobalBanRecordViewModelList = [.. Enumerable.Range(0, 3).Select(i => new MainHunGlobalBanRecordViewModel(sharedDataService, i))];
             AwaySurGlobalBanRecordViewModelList = [.. Enumerable.Range(0, 9).Select(i => new AwaySurGlobalBanRecordViewModel(sharedDataService, i))];
@@ -33,19 +34,21 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
         public ObservableCollection<SurPickViewModel> SurPickViewModelList { get; set; }
-        public HunPickViewModel HunpickVM { get; set; }
+        public HunPickViewModel HunPickVm { get; set; }
         public ObservableCollection<MainSurGlobalBanRecordViewModel> MainSurGlobalBanRecordViewModelList { get; set; }
         public ObservableCollection<MainHunGlobalBanRecordViewModel> MainHunGlobalBanRecordViewModelList { get; set; }
         public ObservableCollection<AwaySurGlobalBanRecordViewModel> AwaySurGlobalBanRecordViewModelList { get; set; }
         public ObservableCollection<AwayHunGlobalBanRecordViewModel> AwayHunGlobalBanRecordViewModelList { get; set; }
 
         //基于模板基类的VM实现
-        public partial class SurPickViewModel : CharaSelectViewModelBase, IRecipient<CharacterSwappedMessage>, IRecipient<PlayerSwappedMessage>, IRecipient<MemberStateChangedMessage>
+        public partial class SurPickViewModel : 
+            CharaSelectViewModelBase, 
+            IRecipient<CharacterSwappedMessage>, 
+            IRecipient<PlayerSwappedMessage>, 
+            IRecipient<MemberStateChangedMessage>,
+            IRecipient<SwapMessage>
         {
-            public string PlayerName
-            {
-                get => _sharedDataService.CurrentGame.SurPlayerList[Index].Member.Name;
-            }
+            public string PlayerName => SharedDataService.CurrentGame.SurPlayerList[Index].Member.Name;
 
             public SurPickViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
             {
@@ -54,23 +57,23 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
             public override void SyncChara()
             {
-                _sharedDataService.CurrentGame.SurPlayerList[Index].Character = SelectedChara;
-                PreviewImage = _sharedDataService.CurrentGame.SurPlayerList[Index].Character?.HeaderImage;
+                SharedDataService.CurrentGame.SurPlayerList[Index].Character = SelectedChara;
+                PreviewImage = SharedDataService.CurrentGame.SurPlayerList[Index].Character?.HeaderImage;
             }
 
             private void RevertSyncChara()
             {
-                SelectedChara = _sharedDataService.CurrentGame.SurPlayerList[Index].Character;
-                PreviewImage = _sharedDataService.CurrentGame.SurPlayerList[Index].Character?.HeaderImage;
+                SelectedChara = SharedDataService.CurrentGame.SurPlayerList[Index].Character;
+                PreviewImage = SharedDataService.CurrentGame.SurPlayerList[Index].Character?.HeaderImage;
             }
 
             [RelayCommand]
             private void SwapCharacterInPlayers(CharacterChangerCommandParameter parameter)
             {
-                (_sharedDataService.CurrentGame.SurPlayerList[parameter.Target].Character,
-                    _sharedDataService.CurrentGame.SurPlayerList[parameter.Source].Character) =
-                    (_sharedDataService.CurrentGame.SurPlayerList[parameter.Source].Character,
-                    _sharedDataService.CurrentGame.SurPlayerList[parameter.Target].Character);
+                (SharedDataService.CurrentGame.SurPlayerList[parameter.Target].Character,
+                    SharedDataService.CurrentGame.SurPlayerList[parameter.Source].Character) =
+                    (SharedDataService.CurrentGame.SurPlayerList[parameter.Source].Character,
+                    SharedDataService.CurrentGame.SurPlayerList[parameter.Target].Character);
                 WeakReferenceMessenger.Default.Send(new CharacterSwappedMessage(this));
                 OnPropertyChanged();
             }
@@ -80,10 +83,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 RevertSyncChara();
             }
 
-            public override void SyncIsEnabled()
+            protected override void SyncIsEnabled()
             {
                 throw new NotImplementedException();
             }
+
+            protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickSur;
 
             public void Receive(PlayerSwappedMessage message)
             {
@@ -93,6 +98,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             public void Receive(MemberStateChangedMessage message)
             {
                 OnPropertyChanged(nameof(PlayerName));
+            }
+
+            public void Receive(SwapMessage message)
+            {
+                if(message.IsSwapped)
+                    OnPropertyChanged(nameof(PlayerName));
             }
         }
 
@@ -105,14 +116,16 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
             public override void SyncChara()
             {
-                _sharedDataService.CurrentGame.HunPlayer.Character = SelectedChara;
-                PreviewImage = _sharedDataService.CurrentGame.HunPlayer.Character?.HeaderImage;
+                SharedDataService.CurrentGame.HunPlayer.Character = SelectedChara;
+                PreviewImage = SharedDataService.CurrentGame.HunPlayer.Character?.HeaderImage;
             }
 
-            public override void SyncIsEnabled()
+            protected override void SyncIsEnabled()
             {
                 throw new NotImplementedException();
             }
+            
+            protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickHun;
         }
 
         public class MainSurGlobalBanRecordViewModel : CharaSelectViewModelBase
@@ -125,7 +138,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 set
                 {
                     _recordedChara = value;
-                    _sharedDataService.MainTeam.GlobalBannedSurRecordArray[Index] = _recordedChara;
+                    SharedDataService.MainTeam.GlobalBannedSurRecordArray[Index] = _recordedChara;
                 }
             }
 
@@ -136,10 +149,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
             public override void SyncChara() => throw new NotImplementedException();
 
-            public override void SyncIsEnabled()
+            protected override void SyncIsEnabled()
             {
                 throw new NotImplementedException();
             }
+
+            protected override bool IsActionNameCorrect(GameAction? action) => false;
         }
 
         public class MainHunGlobalBanRecordViewModel : CharaSelectViewModelBase
@@ -152,7 +167,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 set
                 {
                     _recordedChara = value;
-                    _sharedDataService.MainTeam.GlobalBannedHunRecordArray[Index] = _recordedChara;
+                    SharedDataService.MainTeam.GlobalBannedHunRecordArray[Index] = _recordedChara;
                 }
             }
 
@@ -162,11 +177,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
 
             public override void SyncChara() => throw new NotImplementedException();
+            
+            protected override void SyncIsEnabled() => throw new NotImplementedException();
 
-            public override void SyncIsEnabled()
-            {
-                throw new NotImplementedException();
-            }
+            protected override bool IsActionNameCorrect(GameAction? action) => false;
         }
 
         public class AwaySurGlobalBanRecordViewModel : CharaSelectViewModelBase
@@ -179,7 +193,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 set
                 {
                     _recordedChara = value;
-                    _sharedDataService.AwayTeam.GlobalBannedSurRecordArray[Index] = _recordedChara;
+                    SharedDataService.AwayTeam.GlobalBannedSurRecordArray[Index] = _recordedChara;
                 }
             }
 
@@ -189,11 +203,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
 
             public override void SyncChara() => throw new NotImplementedException();
+            
+            protected override void SyncIsEnabled() => throw new NotImplementedException();
 
-            public override void SyncIsEnabled()
-            {
-                throw new NotImplementedException();
-            }
+            protected override bool IsActionNameCorrect(GameAction? action) => false;
         }
 
         public class AwayHunGlobalBanRecordViewModel : CharaSelectViewModelBase
@@ -206,7 +219,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 set
                 {
                     _recordedChara = value;
-                    _sharedDataService.AwayTeam.GlobalBannedHunRecordArray[Index] = _recordedChara;
+                    SharedDataService.AwayTeam.GlobalBannedHunRecordArray[Index] = _recordedChara;
                 }
             }
 
@@ -217,11 +230,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
             public override void SyncChara() => throw new NotImplementedException();
 
-            public override void SyncIsEnabled()
-            {
-                throw new NotImplementedException();
-            }
-
+            protected override void SyncIsEnabled() => throw new NotImplementedException();
+            
+            protected override bool IsActionNameCorrect(GameAction? action) => false;
         }
     }
 }

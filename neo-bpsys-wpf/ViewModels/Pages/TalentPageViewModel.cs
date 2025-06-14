@@ -1,13 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
-    public partial class TalentPageViewModel : ObservableRecipient, IRecipient<NewGameMessage>
+    public partial class TalentPageViewModel : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<HighlightMessage>
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public TalentPageViewModel()
@@ -28,7 +29,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
         public Enums.Trait? SelectedTrait
         {
-            get { return _selectedTrait; }
+            get => _selectedTrait;
             set
             {
                 _selectedTrait = value;
@@ -51,7 +52,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
         public bool IsTraitVisible
         {
-            get { return _isTraitVisible; }
+            get => _isTraitVisible;
             set
             {
                 _isTraitVisible = value;
@@ -60,5 +61,16 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
         }
 
+        [ObservableProperty] 
+        private bool _isSurTalentHighlighted = false;
+        
+        [ObservableProperty] 
+        private bool _isHunTalentHighlighted = false;
+
+        public void Receive(HighlightMessage message)
+        {
+            IsSurTalentHighlighted = message.GameAction == GameAction.PickSurTalent;
+            IsHunTalentHighlighted = message.GameAction == GameAction.PickHunTalent;
+        }
     }
 }

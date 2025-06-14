@@ -187,33 +187,32 @@ namespace neo_bpsys_wpf.Services
 
         /// <summary>
         /// 设置Ban位数量，第一个参数传入列表名称<br/>
-        /// 如 nameof(CanCurrentSurBanned)
         /// </summary>
         /// <param name="listName">传入的列表名称</param>
         /// <param name="count">Ban位数量</param>
         /// <exception cref="ArgumentException"></exception>
-        public void SetBanCount(string listName, int count)
+        public void SetBanCount(BanListName listName, int count)
         {
             switch (listName)
             {
-                case nameof(CanCurrentSurBanned):
+                case BanListName.CanCurrentSurBanned:
                     for (int i = 0; i < CanCurrentSurBanned.Count; i++)
                         CanCurrentSurBanned[i] = i < count;
                     break;
-                case nameof(CanCurrentHunBanned):
+                case BanListName.CanCurrentHunBanned:
                     for (int i = 0; i < CanCurrentHunBanned.Count; i++)
                         CanCurrentHunBanned[i] = i < count;
                     break;
-                case nameof(CanGlobalSurBanned):
+                case BanListName.CanGlobalSurBanned:
                     for (int i = 0; i < CanGlobalSurBanned.Count; i++)
                         CanGlobalSurBanned[i] = i < count;
                     break;
-                case nameof(CanGlobalHunBanned):
+                case BanListName.CanGlobalHunBanned:
                     for (int i = 0; i < CanGlobalHunBanned.Count; i++)
                         CanGlobalHunBanned[i] = i < count;
                     break;
                 default:
-                    throw new ArgumentException("Illegal ListName", nameof(listName));
+                    throw new ArgumentOutOfRangeException(nameof(listName), listName, null);
             }
             WeakReferenceMessenger.Default.Send(new BanCountChangedMessage(listName));
         }

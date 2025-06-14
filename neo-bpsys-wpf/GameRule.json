@@ -6,59 +6,52 @@
     "HunGlobalBan": 0,
     "WorkFlow": [
       {
-        "Sequence": 0,
         "Action": "BanMap",
         "Index": [ 1 ]
       },
       {
-        "Sequence": 1,
         "Action": "PickMap",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 2,
         "Action": "PickCamp",
         "Index": [ 1 ]
       },
       {
-        "Sequence": 3,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 5,
         "Action": "BanSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 6,
         "Action": "PickSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 7,
         "Action": "BanSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 8,
         "Action": "PickSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 9,
+        "Action": "PickSurTalent",
+        "Index": null
+      },
+      {
         "Action": "PickHun",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 10,
-        "Action": "PickTalent",
-        "Index" :  null
+        "Action": "PickHunTalent",
+        "Index": null
       }
     ]
   },
@@ -69,43 +62,39 @@
     "HunGlobalBan": 0,
     "WorkFlow": [
       {
-        "Sequence": 0,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 1,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 2,
         "Action": "BanSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 3,
         "Action": "PickSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 4,
         "Action": "BanSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 5,
         "Action": "PickSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 6,
+        "Action": "PickSurTalent",
+        "Index": null
+      },
+      {
         "Action": "PickHun",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 10,
-        "Action": "PickTalent",
+        "Action": "PickHunTalent",
         "Index": null
       }
     ]
@@ -117,63 +106,55 @@
     "HunGlobalBan": 1,
     "WorkFlow": [
       {
-        "Sequence": 0,
         "Action": "BanMap",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 1,
         "Action": "PickMap",
         "Index": [ 1 ]
       },
       {
-        "Sequence": 2,
         "Action": "PickCamp",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 3,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 4,
         "Action": "BanHun",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 5,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 6,
         "Action": "BanSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 7,
         "Action": "PickSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 8,
         "Action": "BanSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 9,
         "Action": "PickSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 10,
+        "Action": "PickSurTalent",
+        "Index": null
+      },
+      {
         "Action": "PickHun",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 10,
-        "Action": "PickTalent",
+        "Action": "PickHunTalent",
         "Index": null
       }
     ]
@@ -185,48 +166,43 @@
     "HunGlobalBan": 1,
     "WorkFlow": [
       {
-        "Sequence": 0,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 1,
         "Action": "BanHun",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 2,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 3,
         "Action": "BanSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 5,
         "Action": "BanSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 6,
         "Action": "PickSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 7,
+        "Action": "PickSurTalent",
+        "Index": null
+      },
+      {
         "Action": "PickHun",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 10,
-        "Action": "PickTalent",
+        "Action": "PickHunTalent",
         "Index": null
       }
     ]
@@ -238,58 +214,51 @@
     "HunGlobalBan": 2,
     "WorkFlow": [
       {
-        "Sequence": 0,
         "Action": "PickMap",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 1,
         "Action": "PickCamp",
         "Index": [ 1 ]
       },
       {
-        "Sequence": 2,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 3,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 5,
         "Action": "BanSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 6,
         "Action": "PickSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 7,
         "Action": "BanSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 8,
         "Action": "PickSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 9,
+        "Action": "PickSurTalent",
+        "Index": null
+      },
+      {
         "Action": "PickHun",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 10,
-        "Action": "PickTalent",
+        "Action": "PickHunTalent",
         "Index": null
       }
     ]
@@ -301,49 +270,43 @@
     "HunGlobalBan": 2,
     "WorkFlow": [
       {
-        "Sequence": 0,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 1,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 2,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 3,
         "Action": "BanSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 5,
-        "极光": null,
         "Action": "BanSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 6,
         "Action": "PickSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 7,
+        "Action": "PickSurTalent",
+        "Index": null
+      },
+      {
         "Action": "PickHun",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 10,
-        "Action": "PickTalent",
+        "Action": "PickHunTalent",
         "Index": null
       }
     ]
@@ -355,58 +318,51 @@
     "HunGlobalBan": 3,
     "WorkFlow": [
       {
-        "Sequence": 0,
         "Action": "PickMap",
         "Index": [ 1 ]
       },
       {
-        "Sequence": 1,
         "Action": "PickCamp",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 2,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 3,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 5,
         "Action": "BanSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 6,
         "Action": "PickSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 7,
         "Action": "BanSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 8,
         "Action": "PickSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 9,
+        "Action": "PickSurTalent",
+        "Index": null
+      },
+      {
         "Action": "PickHun",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 10,
-        "Action": "PickTalent",
+        "Action": "PickHunTalent",
         "Index": null
       }
     ]
@@ -418,48 +374,43 @@
     "HunGlobalBan": 3,
     "WorkFlow": [
       {
-        "Sequence": 0,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 1,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 2,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 3,
         "Action": "BanSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 5,
         "Action": "BanSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 6,
         "Action": "PickSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 7,
+        "Action": "PickSurTalent",
+        "Index": null
+      },
+      {
         "Action": "PickHun",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 10,
-        "Action": "PickTalent",
+        "Action": "PickHunTalent",
         "Index": null
       }
     ]
@@ -471,58 +422,51 @@
     "HunGlobalBan": 3,
     "WorkFlow": [
       {
-        "Sequence": 0,
         "Action": "PickMap",
         "Index": [ 1 ]
       },
       {
-        "Sequence": 1,
         "Action": "PickCamp",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 2,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 3,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 5,
         "Action": "BanSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 6,
         "Action": "PickSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 7,
         "Action": "BanSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 8,
         "Action": "PickSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 9,
+        "Action": "PickSurTalent",
+        "Index": null
+      },
+      {
         "Action": "PickHun",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 10,
-        "Action": "PickTalent",
+        "Action": "PickHunTalent",
         "Index": null
       }
     ]
@@ -534,48 +478,43 @@
     "HunGlobalBan": 3,
     "WorkFlow": [
       {
-        "Sequence": 0,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 1,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 2,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 3,
         "Action": "BanSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 5,
         "Action": "BanSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 6,
         "Action": "PickSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 7,
+        "Action": "PickSurTalent",
+        "Index": null
+      },
+      {
         "Action": "PickHun",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 10,
-        "Action": "PickTalent",
+        "Action": "PickHunTalent",
         "Index": null
       }
     ]
@@ -587,58 +526,51 @@
     "HunGlobalBan": 3,
     "WorkFlow": [
       {
-        "Sequence": 0,
         "Action": "PickMap",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 1,
         "Action": "PickCamp",
         "Index": [ 1 ]
       },
       {
-        "Sequence": 2,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 3,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 5,
         "Action": "BanSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 6,
         "Action": "PickSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 7,
         "Action": "BanSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 8,
         "Action": "PickSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 9,
+        "Action": "PickSurTalent",
+        "Index": null
+      },
+      {
         "Action": "PickHun",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 10,
-        "Action": "PickTalent",
+        "Action": "PickHunTalent",
         "Index": null
       }
     ]
@@ -650,48 +582,43 @@
     "HunGlobalBan": 3,
     "WorkFlow": [
       {
-        "Sequence": 0,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 1,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 2,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 3,
         "Action": "BanSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 5,
         "Action": "BanSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 6,
         "Action": "PickSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 7,
+        "Action": "PickSurTalent",
+        "Index": null
+      },
+      {
         "Action": "PickHun",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 10,
-        "Action": "PickTalent",
+        "Action": "PickHunTalent",
         "Index": null
       }
     ]
@@ -703,52 +630,46 @@
     "HunGlobalBan": 3,
     "WorkFlow": [
       {
-        "Sequence": 0,
         "Action": "PickMap",
         "Index": [ 1 ]
       },
       {
-        "Sequence": 1,
         "Action": "PickCamp",
         "Index": [ 0 ]
       },
       {
-        "Sequence": 2,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 3,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 5,
         "Action": "BanSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 6,
         "Action": "PickSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 7,
         "Action": "BanSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 8,
         "Action": "PickSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 9,
+        "Action": "PickSurTalent",
+        "Index": null
+      },
+      {
         "Action": "PickHun",
         "Index": [ 0 ]
       }
@@ -761,42 +682,38 @@
     "HunGlobalBan": 3,
     "WorkFlow": [
       {
-        "Sequence": 0,
         "Action": "BanSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 1,
         "Action": "BanHun",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 2,
         "Action": "PickSur",
         "Index": [ 0, 1 ]
       },
       {
-        "Sequence": 3,
         "Action": "BanSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 4,
         "Action": "PickSur",
         "Index": [ 2 ]
       },
       {
-        "Sequence": 5,
         "Action": "BanSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 6,
         "Action": "PickSur",
         "Index": [ 3 ]
       },
       {
-        "Sequence": 7,
+        "Action": "PickSurTalent",
+        "Index": null
+      },
+      {
         "Action": "PickHun",
         "Index": [ 0 ]
       }

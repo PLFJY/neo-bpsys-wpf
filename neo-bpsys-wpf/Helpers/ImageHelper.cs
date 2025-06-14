@@ -10,7 +10,7 @@ namespace neo_bpsys_wpf.Helpers
         /// <summary>
         /// Get Ui ImageBrush from Resources\bpui\
         /// </summary>
-        /// <param name="key">ui image filename without filename extension</param>
+        /// <param name="key">ui _image filename without filename extension</param>
         /// <returns></returns>
         public static ImageBrush? GetUiImageBrush(string key)
         {
@@ -26,7 +26,7 @@ namespace neo_bpsys_wpf.Helpers
         /// <summary>
         /// Get Ui ImageSource from Resources\bpui\
         /// </summary>
-        /// <param name="key">ui image filename without filename extension</param>
+        /// <param name="key">ui _image filename without filename extension</param>
         /// <returns></returns>
         public static ImageSource? GetUiImageSource(string key)
         {

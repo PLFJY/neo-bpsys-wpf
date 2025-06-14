@@ -49,6 +49,7 @@
                                 Command="{Binding ConfirmCommand}"
                                 ImageSource="{Binding PreviewImage}"
                                 IsEnabled="{Binding IsEnabled}"
+                                IsHighlighted="{Binding IsHighlighted}"
                                 ItemsSource="{Binding CharaList}"
                                 SelectedValue="{Binding SelectedChara}" />
                         </DataTemplate>
@@ -84,6 +85,7 @@
                                 Command="{Binding ConfirmCommand}"
                                 ImageSource="{Binding PreviewImage}"
                                 IsEnabled="{Binding IsEnabled}"
+                                IsHighlighted="{Binding IsHighlighted}"
                                 ItemsSource="{Binding CharaList}"
                                 SelectedValue="{Binding SelectedChara}" />
                         </DataTemplate>

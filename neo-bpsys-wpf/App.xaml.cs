@@ -177,10 +177,7 @@ namespace neo_bpsys_wpf
         /// <summary>
         /// Gets services.
         /// </summary>
-        public static IServiceProvider Services
-        {
-            get { return _host.Services; }
-        }
+        public static IServiceProvider Services => _host.Services;
 
         protected override async void OnStartup(StartupEventArgs e)
         {

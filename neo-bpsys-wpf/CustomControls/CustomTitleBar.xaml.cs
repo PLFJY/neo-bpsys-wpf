@@ -82,73 +82,73 @@ namespace neo_bpsys_wpf.CustomControls
 
         public bool IsThemeChangeChecked
         {
-            get { return (bool)GetValue(IsThemeChangeButtonCheckedProperty); }
-            set { SetValue(IsThemeChangeButtonCheckedProperty, value); }
+            get => (bool)GetValue(IsThemeChangeButtonCheckedProperty);
+            set => SetValue(IsThemeChangeButtonCheckedProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for IsThemeChangeChecked.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsThemeChangeButtonCheckedProperty =
-            DependencyProperty.Register("IsThemeChangeChecked", typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
+            DependencyProperty.Register(nameof(IsThemeChangeChecked), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
 
         public bool IsThemeChangeVisible
         {
-            get { return (bool)GetValue(IsThemeChangeButtonVisibleProperty); }
-            set { SetValue(IsThemeChangeButtonVisibleProperty, value); }
+            get => (bool)GetValue(IsThemeChangeButtonVisibleProperty);
+            set => SetValue(IsThemeChangeButtonVisibleProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for IsThemeChangeVisible.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsThemeChangeButtonVisibleProperty =
-            DependencyProperty.Register("IsThemeChangeVisible", typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
+            DependencyProperty.Register(nameof(IsThemeChangeVisible), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
 
         public ICommand ThemeChangeCommand
         {
-            get { return (ICommand)GetValue(ThemeChangeCommandProperty); }
-            set { SetValue(ThemeChangeCommandProperty, value); }
+            get => (ICommand)GetValue(ThemeChangeCommandProperty);
+            set => SetValue(ThemeChangeCommandProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for ThemeChangeCommand.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ThemeChangeCommandProperty =
-            DependencyProperty.Register("ThemeChangeCommand", typeof(ICommand), typeof(CustomTitleBar), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(ThemeChangeCommand), typeof(ICommand), typeof(CustomTitleBar), new PropertyMetadata(null));
 
         public bool IsMaximizeVisible
         {
-            get { return (bool)GetValue(IsMaximizeVisibleProperty); }
-            set { SetValue(IsMaximizeVisibleProperty, value); }
+            get => (bool)GetValue(IsMaximizeVisibleProperty);
+            set => SetValue(IsMaximizeVisibleProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for IsMaximizeVisible.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsMaximizeVisibleProperty =
-            DependencyProperty.Register("IsMaximizeVisible", typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
+            DependencyProperty.Register(nameof(IsMaximizeVisible), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
 
         public bool IsMinimizeVisible
         {
-            get { return (bool)GetValue(IsMinimizeVisibleProperty); }
-            set { SetValue(IsMinimizeVisibleProperty, value); }
+            get => (bool)GetValue(IsMinimizeVisibleProperty);
+            set => SetValue(IsMinimizeVisibleProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for IsMinimizeVisible.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsMinimizeVisibleProperty =
-            DependencyProperty.Register("IsMinimizeVisible", typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
+            DependencyProperty.Register(nameof(IsMinimizeVisible), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
 
         public bool IsTopMostVisible
         {
-            get { return (bool)GetValue(IsTopMostVisibleProperty); }
-            set { SetValue(IsTopMostVisibleProperty, value); }
+            get => (bool)GetValue(IsTopMostVisibleProperty);
+            set => SetValue(IsTopMostVisibleProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for IsTopMostVisible.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsTopMostVisibleProperty =
-            DependencyProperty.Register("IsTopMostVisible", typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
+            DependencyProperty.Register(nameof(IsTopMostVisible), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
 
 
         public ImageSource Icon
         {
-            get { return (ImageSource)GetValue(IconProperty); }
-            set { SetValue(IconProperty, value); }
+            get => (ImageSource)GetValue(IconProperty);
+            set => SetValue(IconProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for Icon.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IconProperty =
-            DependencyProperty.Register("Icon", typeof(ImageSource), typeof(CustomTitleBar), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(Icon), typeof(ImageSource), typeof(CustomTitleBar), new PropertyMetadata(null));
     }
 }

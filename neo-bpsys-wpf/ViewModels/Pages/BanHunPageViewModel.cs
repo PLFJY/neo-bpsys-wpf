@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
+using neo_bpsys_wpf.Enums;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -32,9 +32,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             if (message.IsSwapped)
             {
-                for (int i = 0; i < _sharedDataService.CurrentGame.SurTeam.GlobalBannedHunRecordArray.Length; i++)
+                for (int i = 0; i < _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunRecordArray.Length; i++)
                 {
-                    BanHunGlobalViewModelList[i].SelectedChara = _sharedDataService.CurrentGame.SurTeam.GlobalBannedHunRecordArray[i];
+                    BanHunGlobalViewModelList[i].SelectedChara = _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunRecordArray[i];
                     BanHunGlobalViewModelList[i].SyncChara();
                 }
                 OnPropertyChanged();
@@ -55,22 +55,24 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
             public override void Receive(BanCountChangedMessage message)
             {
-                if (message.ChangedList == nameof(ISharedDataService.CanCurrentHunBanned))
+                if (message.ChangedList == BanListName.CanCurrentHunBanned)
                 {
-                    IsEnabled = _sharedDataService.CanCurrentHunBanned[Index];
+                    IsEnabled = SharedDataService.CanCurrentHunBanned[Index];
                 }
             }
 
             public override void SyncChara()
             {
-                _sharedDataService.CurrentGame.CurrentHunBannedList[Index] = SelectedChara;
-                PreviewImage = _sharedDataService.CurrentGame.CurrentHunBannedList[Index]?.HeaderImage_SingleColor;
+                SharedDataService.CurrentGame.CurrentHunBannedList[Index] = SelectedChara;
+                PreviewImage = SharedDataService.CurrentGame.CurrentHunBannedList[Index]?.HeaderImageSingleColor;
             }
 
-            public override void SyncIsEnabled()
+            protected override void SyncIsEnabled()
             {
-                _sharedDataService.CanCurrentHunBanned[Index] = IsEnabled;
+                SharedDataService.CanCurrentHunBanned[Index] = IsEnabled;
             }
+
+            protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanHun;
         }
 
         public class BanHunGlobalViewModel : CharaSelectViewModelBase
@@ -83,22 +85,24 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
             public override void Receive(BanCountChangedMessage message)
             {
-                if (message.ChangedList == nameof(ISharedDataService.CanGlobalHunBanned))
+                if (message.ChangedList == BanListName.CanGlobalHunBanned)
                 {
-                    IsEnabled = _sharedDataService.CanGlobalHunBanned[Index];
+                    IsEnabled = SharedDataService.CanGlobalHunBanned[Index];
                 }
             }
 
             public override void SyncChara()
             {
-                _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[Index] = SelectedChara;
-                PreviewImage = _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[Index]?.HeaderImage_SingleColor;
+                SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[Index] = SelectedChara;
+                PreviewImage = SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[Index]?.HeaderImageSingleColor;
             }
 
-            public override void SyncIsEnabled()
+            protected override void SyncIsEnabled()
             {
-                _sharedDataService.CanGlobalHunBanned[Index] = IsEnabled;
+                SharedDataService.CanGlobalHunBanned[Index] = IsEnabled;
             }
+
+            protected override bool IsActionNameCorrect(GameAction? action) => false;
         }
     }
 }

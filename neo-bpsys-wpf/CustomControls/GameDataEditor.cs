@@ -8,22 +8,22 @@ namespace neo_bpsys_wpf.CustomControls
     {
         public PlayerData PlayerData
         {
-            get { return (PlayerData)GetValue(PlayerDataProperty); }
-            set { SetValue(PlayerDataProperty, value); }
+            get => (PlayerData)GetValue(PlayerDataProperty);
+            set => SetValue(PlayerDataProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for PlayerData.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty PlayerDataProperty =
-            DependencyProperty.Register("PlayerData", typeof(PlayerData), typeof(GameDataEditor), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(PlayerData), typeof(PlayerData), typeof(GameDataEditor), new PropertyMetadata(null));
 
         public bool IsHunMode
         {
-            get { return (bool)GetValue(IsHunModeProperty); }
-            set { SetValue(IsHunModeProperty, value); }
+            get => (bool)GetValue(IsHunModeProperty);
+            set => SetValue(IsHunModeProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for IsHunMode.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty IsHunModeProperty =
-            DependencyProperty.Register("IsHunMode", typeof(bool), typeof(GameDataEditor), new PropertyMetadata(false));
+            DependencyProperty.Register(nameof(IsHunMode), typeof(bool), typeof(GameDataEditor), new PropertyMetadata(false));
     }
 }

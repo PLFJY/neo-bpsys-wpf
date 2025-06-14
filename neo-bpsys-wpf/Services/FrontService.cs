@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
-using neo_bpsys_wpf.CustomBehaviors;
 using neo_bpsys_wpf.CustomControls;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Helpers;
@@ -18,6 +17,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Shapes;
 using System.Xml.Linq;
+using neo_bpsys_wpf.AttachedBehaviors;
 using Path = System.IO.Path;
 
 namespace neo_bpsys_wpf.Services
