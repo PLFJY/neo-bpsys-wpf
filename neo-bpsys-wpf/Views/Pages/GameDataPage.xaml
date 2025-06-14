@@ -1,0 +1,122 @@
+﻿<Page
+    x:Class="neo_bpsys_wpf.Views.Pages.GameDataPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    Title="GameDataPage"
+    d:DataContext="{d:DesignInstance Type=vm:GameDataPageViewModel,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="1500"
+    d:DesignWidth="685"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    mc:Ignorable="d">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Text="求生者" />
+        <WrapPanel Grid.Row="1" Margin="0,10,0,0">
+            <Border Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <ui:TextBox
+                        Grid.Row="0"
+                        IsReadOnly="True"
+                        PlaceholderText="角色名称"
+                        Text="{Binding SurPlayerList[0].Character.Name, Mode=OneWay}" />
+                    <cc:GameDataEditor
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        PlayerData="{Binding SurPlayerList[0].Data}" />
+                </Grid>
+            </Border>
+            <Border Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <ui:TextBox
+                        Grid.Row="0"
+                        IsReadOnly="True"
+                        PlaceholderText="角色名称"
+                        Text="{Binding SurPlayerList[1].Character.Name, Mode=OneWay}" />
+                    <cc:GameDataEditor
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        PlayerData="{Binding SurPlayerList[1].Data}" />
+                </Grid>
+            </Border>
+            <Border Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <ui:TextBox
+                        Grid.Row="0"
+                        IsReadOnly="True"
+                        PlaceholderText="角色名称"
+                        Text="{Binding SurPlayerList[2].Character.Name, Mode=OneWay}" />
+                    <cc:GameDataEditor
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        PlayerData="{Binding SurPlayerList[2].Data}" />
+                </Grid>
+            </Border>
+            <Border Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <ui:TextBox
+                        Grid.Row="0"
+                        IsReadOnly="True"
+                        PlaceholderText="角色名称"
+                        Text="{Binding SurPlayerList[3].Character.Name, Mode=OneWay}" />
+                    <cc:GameDataEditor
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        PlayerData="{Binding SurPlayerList[3].Data}" />
+                </Grid>
+            </Border>
+        </WrapPanel>
+        <TextBlock Grid.Row="2" Text="监管者" />
+        <Border
+            Grid.Row="3"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <ui:TextBox
+                    Grid.Row="0"
+                    PlaceholderText="角色名称"
+                    Text="{Binding HunPlayer.Character.Name, Mode=OneWay}" />
+                <cc:GameDataEditor
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    IsHunMode="True"
+                    PlayerData="{Binding HunPlayer.Data}" />
+            </Grid>
+        </Border>
+    </Grid>
+
+
+</Page>

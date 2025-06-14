@@ -1,0 +1,158 @@
+{
+  "SurTeamLogo": {
+    "Width": 85,
+    "Height": 85,
+    "Left": 250,
+    "Top": 9
+  },
+  "SurTeamMajorPoint": {
+    "Width": 0,
+    "Height": 0,
+    "Left": 384,
+    "Top": 35
+  },
+  "SurTeamName": {
+    "Width": 207,
+    "Height": 0,
+    "Left": 10,
+    "Top": 32
+  },
+  "HunTeamName": {
+    "Width": 207,
+    "Height": 0,
+    "Left": 1223,
+    "Top": 31
+  },
+  "HunTeamMajorPoint": {
+    "Width": 0,
+    "Height": 0,
+    "Left": 965,
+    "Top": 35
+  },
+  "HunTeamLogo": {
+    "Width": 85,
+    "Height": 85,
+    "Left": 1102,
+    "Top": 9
+  },
+  "Map": {
+    "Width": 457,
+    "Height": 108,
+    "Left": 491,
+    "Top": 0
+  },
+  "MapMask": {
+    "Width": 457,
+    "Height": 33,
+    "Left": 491,
+    "Top": 75
+  },
+  "MapName": {
+    "Width": 168,
+    "Height": 0,
+    "Left": 491,
+    "Top": 75
+  },
+  "GameProgress": {
+    "Width": 265,
+    "Height": 30,
+    "Left": 678,
+    "Top": 78
+  },
+  "SurPick0": {
+    "Width": 356,
+    "Height": 0,
+    "Left": 1,
+    "Top": 114
+  },
+  "SurPick1": {
+    "Width": 356,
+    "Height": 0,
+    "Left": 364,
+    "Top": 114
+  },
+  "SurPick2": {
+    "Width": 356,
+    "Height": 0,
+    "Left": 1,
+    "Top": 465
+  },
+  "SurPick3": {
+    "Width": 356,
+    "Height": 0,
+    "Left": 362,
+    "Top": 465
+  },
+  "HunPick": {
+    "Width": 720,
+    "Height": 640,
+    "Left": 720,
+    "Top": 114.5
+  },
+  "SurId0": {
+    "Width": 180,
+    "Height": 38,
+    "Left": 4,
+    "Top": 419
+  },
+  "SurId1": {
+    "Width": 180,
+    "Height": 32,
+    "Left": 364,
+    "Top": 422
+  },
+  "SurId2": {
+    "Width": 180,
+    "Height": 31,
+    "Left": 4,
+    "Top": 774
+  },
+  "SurId3": {
+    "Width": 180,
+    "Height": 31,
+    "Left": 366,
+    "Top": 774
+  },
+  "HunId": {
+    "Width": 382,
+    "Height": 55,
+    "Left": 720,
+    "Top": 755
+  },
+  "SurTalent0": {
+    "Width": 180,
+    "Height": 38,
+    "Left": 176,
+    "Top": 419
+  },
+  "SurTalent1": {
+    "Width": 180,
+    "Height": 38,
+    "Left": 535,
+    "Top": 419
+  },
+  "SurTalent2": {
+    "Width": 180,
+    "Height": 38,
+    "Left": 176,
+    "Top": 770
+  },
+  "SurTalent3": {
+    "Width": 180,
+    "Height": 38,
+    "Left": 535,
+    "Top": 770
+  },
+  "HunTalent": {
+    "Width": 195,
+    "Height": 45,
+    "Left": 1102,
+    "Top": 760
+  },
+  "Trait": {
+    "Width": 58,
+    "Height": 56,
+    "Left": 1280,
+    "Top": 754
+  }
+}

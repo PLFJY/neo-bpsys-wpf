@@ -1,0 +1,86 @@
+﻿<UserControl
+    x:Class="neo_bpsys_wpf.CustomControls.CustomTitleBar"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:attachedBehaviors="clr-namespace:neo_bpsys_wpf.AttachedBehaviors"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.CustomControls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    d:DesignHeight="35"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <Style
+            x:Key="TitleBarToggleButton"
+            BasedOn="{StaticResource {x:Type ToggleButton}}"
+            TargetType="ToggleButton">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="{x:Null}" />
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                    <Setter Property="Background" Value="{DynamicResource ControlStrokeColorOnAccentDefaultBrush}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <cv:ApplicationThemeToBooleanConverter x:Key="ApplicationThemeToBooleanConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </UserControl.Resources>
+    <Grid
+        Name="TitleBar"
+        Grid.Row="0"
+        Height="35"
+        Background="Transparent">
+        <StackPanel
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            Orientation="Horizontal">
+            <ui:Image
+                Name="WindowIcon"
+                Height="25"
+                Margin="5,0,0,0"
+                Focusable="False"
+                Source="{Binding RelativeSource={RelativeSource AncestorType=local:CustomTitleBar}, Path=Icon}" />
+            <ui:TextBlock
+                Margin="15,0,0,0"
+                VerticalAlignment="Center"
+                Text="{Binding Title, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}" />
+        </StackPanel>
+        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+            <ToggleButton
+                x:Name="ThemeSwitch"
+                Margin="0,0,10,0"
+                attachedBehaviors:ToggleButtonAttach.IsAutoFold="True"
+                Command="{Binding RelativeSource={RelativeSource AncestorType=local:CustomTitleBar}, Path=ThemeChangeCommand}"
+                Focusable="False"
+                IsChecked="{Binding RelativeSource={RelativeSource AncestorType=local:CustomTitleBar}, Path=IsThemeChangeChecked, Mode=TwoWay}"
+                Style="{StaticResource ToggleButtonGorgeousThemeSwitchStyle}"
+                Visibility="{Binding RelativeSource={RelativeSource AncestorType=local:CustomTitleBar}, Path=IsThemeChangeVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <ToggleButton
+                Height="35"
+                Focusable="False"
+                IsChecked="{Binding RelativeSource={RelativeSource AncestorType=ui:FluentWindow}, Path=Topmost, Mode=TwoWay}"
+                Style="{StaticResource TitleBarToggleButton}"
+                Visibility="{Binding RelativeSource={RelativeSource AncestorType=local:CustomTitleBar}, Path=IsTopMostVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <ui:SymbolIcon Symbol="Pin24" />
+            </ToggleButton>
+            <ui:Button
+                Name="MinimizeButton"
+                Icon="{ui:SymbolIcon Symbol=Subtract24}"
+                Style="{StaticResource TitleBarButton}"
+                Visibility="{Binding RelativeSource={RelativeSource AncestorType=local:CustomTitleBar}, Path=IsMinimizeVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <ui:Button
+                Name="MaximizeButton"
+                Icon="{ui:SymbolIcon Symbol=Maximize24}"
+                Style="{StaticResource TitleBarButton}"
+                Visibility="{Binding RelativeSource={RelativeSource AncestorType=local:CustomTitleBar}, Path=IsMaximizeVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            <ui:Button
+                Name="ExitButton"
+                Icon="{ui:SymbolIcon Symbol=Dismiss24}"
+                Style="{StaticResource TitleBarButton}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

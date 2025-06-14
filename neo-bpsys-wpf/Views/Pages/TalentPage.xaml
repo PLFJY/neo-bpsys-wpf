@@ -1,0 +1,141 @@
+﻿<Page
+    x:Class="neo_bpsys_wpf.Views.Pages.TalentPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:enums="clr-namespace:neo_bpsys_wpf.Enums"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    Title="TalentPage"
+    d:DataContext="{d:DesignInstance Type=vm:TalentPageViewModel,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="1500"
+    d:DesignWidth="685"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    mc:Ignorable="d">
+    <WrapPanel Orientation="Horizontal">
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="求生者天赋" />
+                <WrapPanel Grid.Row="1" Orientation="Horizontal">
+                    <cc:TalentPicker
+                        Margin="0,0,10,10"
+                        CharacterName="{Binding CurrentGame.SurPlayerList[0].Character.Name, Mode=OneWay}"
+                        IsHighlighted="{Binding IsSurTalentHighlighted}"
+                        Player="{Binding CurrentGame.SurPlayerList[0]}" />
+                    <cc:TalentPicker
+                        Margin="0,0,10,10"
+                        CharacterName="{Binding CurrentGame.SurPlayerList[1].Character.Name, Mode=OneWay}"
+                        IsHighlighted="{Binding IsSurTalentHighlighted}"
+                        Player="{Binding CurrentGame.SurPlayerList[1]}" />
+                    <cc:TalentPicker
+                        Margin="0,0,10,10"
+                        CharacterName="{Binding CurrentGame.SurPlayerList[2].Character.Name, Mode=OneWay}"
+                        IsHighlighted="{Binding IsSurTalentHighlighted}"
+                        Player="{Binding CurrentGame.SurPlayerList[2]}" />
+                    <cc:TalentPicker
+                        Margin="0,0,10,10"
+                        CharacterName="{Binding CurrentGame.SurPlayerList[3].Character.Name, Mode=OneWay}"
+                        IsHighlighted="{Binding IsSurTalentHighlighted}"
+                        Player="{Binding CurrentGame.SurPlayerList[3]}" />
+                </WrapPanel>
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="监管者天赋" />
+                <cc:TalentPicker
+                    Grid.Row="1"
+                    Margin="0,0,20,10"
+                    HorizontalAlignment="Left"
+                    CharacterName="{Binding CurrentGame.HunPlayer.Character.Name, Mode=OneWay}"
+                    IsHighlighted="{Binding IsHunTalentHighlighted}"
+                    IsTypeHun="True"
+                    Player="{Binding CurrentGame.HunPlayer}">
+                </cc:TalentPicker>
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Border.Resources>
+                <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+                <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
+            </Border.Resources>
+            <Grid>
+                <Grid.Resources>
+                    <Style BasedOn="{StaticResource {x:Type cc:ToggleStyledRadioButton}}" TargetType="cc:ToggleStyledRadioButton">
+                        <Setter Property="ImageHeight" Value="50" />
+                        <Setter Property="ImageWidth" Value="50" />
+                        <Setter Property="GroupName" Value="Trait" />
+                        <Setter Property="Margin" Value="0,0,0,10" />
+                    </Style>
+                </Grid.Resources>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                    <TextBlock Text="监管者辅助特质" />
+                    <ui:ToggleSwitch
+                        x:Name="IsTraitVisible"
+                        Margin="20,0,0,0"
+                        d:IsChecked="True"
+                        Content="是否显示"
+                        IsChecked="{Binding IsTraitVisible}" />
+                </StackPanel>
+                <WrapPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal"
+                    Visibility="{Binding ElementName=IsTraitVisible, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}, Mode=TwoWay}">
+                    <cc:ToggleStyledRadioButton
+                        ImageSource="{DynamicResource Listen}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.聆听}}"
+                        TagName="聆听" />
+                    <cc:ToggleStyledRadioButton
+                        ImageSource="{DynamicResource Abnormal}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.失常}}"
+                        TagName="失常" />
+                    <cc:ToggleStyledRadioButton
+                        ImageSource="{DynamicResource Excitement}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.兴奋}}"
+                        TagName="兴奋" />
+                    <cc:ToggleStyledRadioButton
+                        ImageSource="{DynamicResource Patroller}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.巡视者}}"
+                        TagName="巡视者" />
+                    <cc:ToggleStyledRadioButton
+                        ImageSource="{DynamicResource Teleport}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.传送}}"
+                        TagName="传送" />
+                    <cc:ToggleStyledRadioButton
+                        ImageSource="{DynamicResource Peeper}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.窥视者}}"
+                        TagName="窥视者" />
+                    <cc:ToggleStyledRadioButton
+                        ImageSource="{DynamicResource Blink}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.闪现}}"
+                        TagName="闪现" />
+                    <cc:ToggleStyledRadioButton
+                        ImageSource="{DynamicResource Warp}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.移形}}"
+                        TagName="移形" />
+                </WrapPanel>
+            </Grid>
+        </Border>
+    </WrapPanel>
+</Page>

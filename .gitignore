@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# build Path
+build/
+
+#Jetbrains Rider
+.idea/

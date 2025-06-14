@@ -1,0 +1,10 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/CustomControls/CharacterSelectorStyle.xaml" />
+        <ResourceDictionary Source="/CustomControls/ToggleStyledRadioButtonStyle.xaml" />
+        <ResourceDictionary Source="/CustomControls/CharacterChangerStyle.xaml" />
+        <ResourceDictionary Source="/CustomControls/GameDataEditorStyle.xaml" />
+        <ResourceDictionary Source="/CustomControls/TalentPickerStyle.xaml" />
+        <ResourceDictionary Source="/CustomControls/GlobalScorePresenterStyle.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>

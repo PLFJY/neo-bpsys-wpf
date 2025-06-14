@@ -1,0 +1,67 @@
+﻿<Page
+    x:Class="neo_bpsys_wpf.Views.Pages.HomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="HomePage"
+    d:DesignHeight="750"
+    d:DesignWidth="685"
+    mc:Ignorable="d">
+
+    <Grid>
+        <Border VerticalAlignment="Top" CornerRadius="4">
+            <Grid>
+                <Image Source="/Assets/HomePageHeader.png" />
+                <StackPanel
+                    Margin="35,0,0,35"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom">
+                    <TextBlock
+                        FontSize="25"
+                        Foreground="White"
+                        Text="neo-bpsys-wpf" />
+                    <TextBlock
+                        Margin="0,10,0,0"
+                        FontSize="15"
+                        Foreground="White"
+                        Text="新一代的的第五人格BP展示软件" />
+                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                        <ui:HyperlinkButton NavigateUri="https://bpsys.plfjy.top/">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon
+                                    Margin="0,0,0,0"
+                                    FontSize="20"
+                                    Foreground="DarkGray"
+                                    Symbol="Link24" />
+                                <TextBlock
+                                    Margin="5,0,0,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    Foreground="DarkGray"
+                                    Text="前往官网" />
+                            </StackPanel>
+                        </ui:HyperlinkButton>
+                        <ui:HyperlinkButton NavigateUri="https://www.yuque.com/renjinotbot/dywp9i">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon
+                                    Margin="0,0,0,0"
+                                    FontSize="20"
+                                    Foreground="DarkGray"
+                                    Symbol="Link24" />
+                                <TextBlock
+                                    Margin="5,0,0,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    Foreground="DarkGray"
+                                    Text="查看文档" />
+                            </StackPanel>
+                        </ui:HyperlinkButton>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>

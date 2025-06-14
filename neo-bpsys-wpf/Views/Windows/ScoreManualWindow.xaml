@@ -1,0 +1,185 @@
+﻿<ui:FluentWindow
+    x:Class="neo_bpsys_wpf.Views.Windows.ScoreManualWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
+    Title="手动控制"
+    Width="650"
+    Height="250"
+    d:DataContext="{d:DesignInstance Type=vm:ScoreManualWindowViewModel,
+                                     IsDesignTimeCreatable=True}"
+    ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Background="{DynamicResource ApplicationBackgroundBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    ResizeMode="NoResize"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+    <ui:FluentWindow.Resources>
+        <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="{x:Type Button}">
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Width" Value="110" />
+        </Style>
+    </ui:FluentWindow.Resources>
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="35"
+            CornerRadius="8"
+            GlassFrameThickness="0"
+            ResizeBorderThickness="5"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <cc:CustomTitleBar
+            Grid.Row="0"
+            Icon="/Assets/icon.png"
+            IsMaximizeVisible="False"
+            IsMinimizeVisible="False"
+            IsThemeChangeVisible="False"
+            IsTopMostVisible="False" />
+        <StackPanel
+            Grid.Row="1"
+            Margin="10,10,0,0"
+            VerticalAlignment="Center"
+            Orientation="Horizontal">
+            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                <Button
+                    Name="MainWinAdd"
+                    Command="{Binding EditMainWinCommand}"
+                    Content="主场胜+1">
+                    <Button.CommandParameter>
+                        <sys:Int32>1</sys:Int32>
+                    </Button.CommandParameter>
+                </Button>
+                <Button
+                    Name="MainTieAdd"
+                    Margin="0,30,0,0"
+                    Command="{Binding EditMainTieCommand}"
+                    Content="主场平+1">
+                    <Button.CommandParameter>
+                        <sys:Int32>1</sys:Int32>
+                    </Button.CommandParameter>
+                </Button>
+                <Button
+                    Name="MainSAdd"
+                    Margin="0,30,0,0"
+                    Command="{Binding EditMainMinorPointsCommand}"
+                    Content="主场小比分+1">
+                    <Button.CommandParameter>
+                        <sys:Int32>1</sys:Int32>
+                    </Button.CommandParameter>
+                </Button>
+            </StackPanel>
+            <StackPanel
+                Grid.Column="1"
+                Margin="15,0,0,0"
+                VerticalAlignment="Center">
+                <Button
+                    Name="MainWinMinus"
+                    Command="{Binding EditMainWinCommand}"
+                    Content="主场胜-1">
+                    <Button.CommandParameter>
+                        <sys:Int32>-1</sys:Int32>
+                    </Button.CommandParameter>
+                </Button>
+                <Button
+                    Name="MainTieMinus"
+                    Margin="0,30,0,0"
+                    Command="{Binding EditMainTieCommand}"
+                    Content="主场平-1">
+                    <Button.CommandParameter>
+                        <sys:Int32>-1</sys:Int32>
+                    </Button.CommandParameter>
+                </Button>
+                <Button
+                    Name="MainSMinus"
+                    Margin="0,30,0,0"
+                    Command="{Binding EditMainMinorPointsCommand}"
+                    Content="主场小比分-1">
+                    <Button.CommandParameter>
+                        <sys:Int32>-1</sys:Int32>
+                    </Button.CommandParameter>
+                </Button>
+            </StackPanel>
+            <StackPanel
+                Grid.Column="3"
+                Margin="15,0,0,0"
+                VerticalAlignment="Center">
+                <Button
+                    Name="AwayWinAdd"
+                    Command="{Binding EditAwayWinCommand}"
+                    Content="客场胜+1">
+                    <Button.CommandParameter>
+                        <sys:Int32>1</sys:Int32>
+                    </Button.CommandParameter>
+                </Button>
+                <Button
+                    Name="AwayTieAdd"
+                    Margin="0,30,0,0"
+                    Command="{Binding EditAwayTieCommand}"
+                    Content="客场平+1">
+                    <Button.CommandParameter>
+                        <sys:Int32>1</sys:Int32>
+                    </Button.CommandParameter>
+                </Button>
+                <Button
+                    Name="AwaySAdd"
+                    Margin="0,30,0,0"
+                    Command="{Binding EditAwayMinorPointsCommand}"
+                    Content="客场小比分+1">
+                    <Button.CommandParameter>
+                        <sys:Int32>1</sys:Int32>
+                    </Button.CommandParameter>
+                </Button>
+            </StackPanel>
+            <StackPanel
+                Grid.Column="4"
+                Margin="15,0,0,0"
+                VerticalAlignment="Center">
+                <Button
+                    Name="AwayWinMinus"
+                    Command="{Binding EditAwayWinCommand}"
+                    Content="客场胜-1">
+                    <Button.CommandParameter>
+                        <sys:Int32>-1</sys:Int32>
+                    </Button.CommandParameter>
+                </Button>
+                <Button
+                    Name="AwayTieMinus"
+                    Margin="0,30,0,0"
+                    Command="{Binding EditAwayTieCommand}"
+                    Content="客场平-1">
+                    <Button.CommandParameter>
+                        <sys:Int32>-1</sys:Int32>
+                    </Button.CommandParameter>
+                </Button>
+                <Button
+                    Name="AwaySMinus"
+                    Margin="0,30,0,0"
+                    Command="{Binding EditAwayMinorPointsCommand}"
+                    Content="客场小比分-1">
+                    <Button.CommandParameter>
+                        <sys:Int32>-1</sys:Int32>
+                    </Button.CommandParameter>
+                </Button>
+            </StackPanel>
+            <Button
+                Name="Clear"
+                Grid.Column="5"
+                Height="50"
+                Margin="15,0,0,0"
+                Command="{Binding ClearMinorPointsCommand}"
+                Content="小比分清零" />
+        </StackPanel>
+    </Grid>
+</ui:FluentWindow>

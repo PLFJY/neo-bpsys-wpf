@@ -1,0 +1,93 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
+    <Style TargetType="{x:Type cc:CharacterSelector}">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type cc:CharacterSelector}">
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel>
+                            <ComboBox
+                                Width="150"
+                                Height="35"
+                                IsDropDownOpen="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsDropDownOpen}"
+                                IsEditable="True"
+                                ItemsSource="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=ItemsSource}"
+                                MaxDropDownHeight="200"
+                                SelectedIndex="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SelectedIndex}"
+                                SelectedItem="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SelectedItem}"
+                                SelectedValue="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=SelectedValue}"
+                                SelectedValuePath="Value"
+                                Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Text}"
+                                TextSearch.TextPath="Key"
+                                VirtualizingStackPanel.IsVirtualizing="True"
+                                VirtualizingStackPanel.VirtualizationMode="Recycling">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel
+                                            Grid.Row="0"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <Image
+                                                Width="40"
+                                                Height="40"
+                                                Source="{Binding Value.HeaderImage}"
+                                                Stretch="UniformToFill" />
+                                            <TextBlock
+                                                Margin="5,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Text="{Binding Key}"
+                                                TextWrapping="WrapWithOverflow" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                                <ComboBox.Style>
+                                    <Style BasedOn="{StaticResource {x:Type ComboBox}}" TargetType="ComboBox">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsHighlighted}" Value="true">
+                                                <Setter Property="Effect">
+                                                    <Setter.Value>
+                                                        <DropShadowEffect
+                                                            BlurRadius="20"
+                                                            Direction="0"
+                                                            Opacity="0.8"
+                                                            RenderingBias="Quality"
+                                                            ShadowDepth="0"
+                                                            Color="Gold" />
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ComboBox.Style>
+                            </ComboBox>
+                            <Image
+                                Name="image"
+                                Width="100"
+                                Height="100"
+                                Margin="0,10,0,0"
+                                Focusable="False"
+                                Source="{Binding Path=ImageSource, RelativeSource={RelativeSource TemplatedParent}}"
+                                Stretch="UniformToFill"
+                                Visibility="{Binding Path=IsSimpleModeEnabled, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                        </StackPanel>
+                        <ui:Button
+                            Name="button"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Top"
+                            Command="{Binding Command, RelativeSource={RelativeSource TemplatedParent}}"
+                            Content="确认"
+                            Icon="{ui:SymbolIcon Symbol=Checkmark24}"
+                            Visibility="{Binding Path=IsSimpleModeEnabled, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                    </StackPanel>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

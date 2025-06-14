@@ -1,0 +1,209 @@
+﻿<Page
+    x:Class="neo_bpsys_wpf.Views.Pages.SettingPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    Title="SettingPage"
+    d:DataContext="{d:DesignInstance Type=vm:SettingPageViewModel,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="1500"
+    d:DesignWidth="685"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Page.Resources>
+    <StackPanel Margin="10,10,0,0">
+        <StackPanel>
+            <ui:Button
+                Command="{Binding HopToConfigDirCommand}"
+                Content="打开前台配置文件所在目录"
+                Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
+            <ui:Button
+                Margin="0,10,0,0"
+                Command="{Binding HopToGameOutputDirCommand}"
+                Content="打开对局文件输出目录"
+                Icon="{ui:SymbolIcon Symbol=Games24}" />
+        </StackPanel>
+        <StackPanel Margin="0,10,0,0">
+            <ui:TextBlock
+                Margin="0,0,0,5"
+                FontTypography="BodyStrong"
+                Text="关于" />
+            <ui:CardExpander
+                Margin="0,0,0,12"
+                Icon="{ui:ImageIcon 'pack://application:,,,/Assets/icon.png',
+                                    Width=50,
+                                    Height=50}"
+                IsExpanded="True">
+                <ui:CardExpander.Header>
+                    <Grid>
+                        <Grid HorizontalAlignment="Left">
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+                            <ui:TextBlock
+                                Grid.Row="0"
+                                FontSize="18"
+                                FontTypography="Body"
+                                Text="neo-bpsys-wpf" />
+                            <ui:TextBlock
+                                Grid.Row="1"
+                                Margin="0,5,0,0"
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Text="Made By 零风PLFJY 作者QQ : 3424127335 软件反馈群 : 175741665" />
+                        </Grid>
+                        <ui:TextBlock
+                            Grid.Row="1"
+                            Margin="0,0,10,0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            Text="{Binding AppVersion}" />
+                    </Grid>
+                </ui:CardExpander.Header>
+                <StackPanel>
+                    <Grid>
+                        <Grid.Resources>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                <Setter Property="FontSize" Value="12" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                            </Style>
+                        </Grid.Resources>
+                        <TextBlock
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            Text="neo-bpsys-wpf is licenced under GPLv3 licence" />
+                        <StackPanel
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                            <TextBlock Text="Powered by" />
+                            <ui:ImageIcon
+                                Width="25"
+                                Height="25"
+                                Margin="5,0,5,0"
+                                Source="/Assets/logo_net.jpg " />
+                            <TextBlock Text="9.0.4 &amp; " />
+                            <ui:ImageIcon
+                                Width="25"
+                                Height="25"
+                                Margin="5,0,5,0"
+                                Source="/Assets/wpfui.png" />
+                            <TextBlock Text="WPF UI 4.0.2" />
+                        </StackPanel>
+                    </Grid>
+                    <Grid Margin="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="项目地址" />
+                        <ui:HyperlinkButton
+                            Grid.Column="1"
+                            Content="https://github.com/PLFJY/neo-bpsys-wpf"
+                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                            NavigateUri="https://github.com/PLFJY/neo-bpsys-wpf" />
+                    </Grid>
+                    <StackPanel Margin="15,0,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock VerticalAlignment="Center" Text="下载源：" />
+                            <ComboBox
+                                Margin="10,0,0,0"
+                                ItemsSource="{Binding MirrorList}"
+                                SelectedIndex="0"
+                                SelectedValue="{Binding Mirror}" />
+                            <TextBlock
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                Text="下载预览版？" />
+                            <ui:ToggleSwitch Margin="10,0,0,0" IsChecked="{Binding UpdaterService.IsFindPreRelease}" />
+                        </StackPanel>
+                        <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                            <ui:Button
+                                Command="{Binding UpdateCheckCommand}"
+                                Content="检查更新"
+                                Icon="{ui:SymbolIcon ArrowSync24}" />
+                            <ui:Button
+                                Margin="10,0,0,0"
+                                Command="{Binding InstallUpdateCommand}"
+                                Content="安装"
+                                Icon="{ui:SymbolIcon Symbol=DrawerArrowDownload24}" />
+                            <StackPanel Orientation="Horizontal" Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <TextBlock
+                                    Margin="10,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Text="下载进度：" />
+                                <ProgressBar
+                                    Width="175"
+                                    Height="20"
+                                    Margin="10,0,0,0"
+                                    d:Value="50"
+                                    Value="{Binding DownloadProgress}" />
+                                <TextBlock
+                                    Margin="10,0,0,0"
+                                    VerticalAlignment="Center"
+                                    d:Text="50.00%"
+                                    Text="{Binding DownloadProgressText}" />
+                                <TextBlock
+                                    Margin="10,0,0,0"
+                                    VerticalAlignment="Center"
+                                    d:Text="10.00 Mb/s"
+                                    Text="{Binding MbPerSecondSpeed}" />
+                            </StackPanel>
+                        </StackPanel>
+                        <ui:Button
+                            Margin="520,10,0,0"
+                            HorizontalAlignment="Left"
+                            Command="{Binding CancelDownloadCommand}"
+                            Content="停止"
+                            Icon="{ui:SymbolIcon Symbol=Stop24}"
+                            Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    </StackPanel>
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,10,0">
+                            <ui:TextBlock FontSize="22" FontWeight="Bold">赞助渠道</ui:TextBlock>
+                            <ui:TextBlock Margin="0,10,0,0" TextWrapping="WrapWithOverflow">
+                                <Run>neo-bpsys-wpf 软件本身是</Run>
+                                <Run Foreground="Red">完全开源和免费</Run>
+                                <Run>
+                                    的。
+                                </Run>
+                                <LineBreak />
+                                <Run>
+                                    我，零风PLFJY 制作的BP软件切实帮助到了很多的民间赛事团队，从 idv-bp-asg-e 到 bp-sys-wpf 项目一路走来，感谢大家的支持。
+                                    同时维护如此庞大的项目和开发新功能也需要一定的支持才能更加持久的延续。（高中生时间不多，拖更严重致歉）
+                                </Run>
+                                <LineBreak />
+                            </ui:TextBlock>
+                            <ui:TextBlock TextWrapping="WrapWithOverflow">
+                                <Run>
+                                    如果你是个人用户，并且享受到了本工具所带来的便利和帮助，请考虑捐赠以示感谢（就当是请我喝杯奶茶），
+                                    本软件的开发人员和ASG赛事组的成员将对此表示感谢！
+                                </Run>
+                            </ui:TextBlock>
+                        </StackPanel>
+                        <ui:Image
+                            Grid.Column="1"
+                            Height="350"
+                            HorizontalAlignment="Right"
+                            CornerRadius="8"
+                            Source="/Assets/donate_QR_code.JPG" />
+                    </Grid>
+                </StackPanel>
+            </ui:CardExpander>
+        </StackPanel>
+    </StackPanel>
+</Page>

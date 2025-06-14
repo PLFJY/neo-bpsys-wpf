@@ -1,0 +1,326 @@
+{
+    "调香师": {
+        "Camp": "Sur",
+        "ImageFileName": "调香师.png"
+    },
+    "画家": {
+        "Camp": "Sur",
+        "ImageFileName": "画家.png"
+    },
+    "记者": {
+        "Camp": "Sur",
+        "ImageFileName": "记者.png"
+    },
+    "昆虫学者": {
+        "Camp": "Sur",
+        "ImageFileName": "昆虫学者.png"
+    },
+    "魔术师": {
+        "Camp": "Sur",
+        "ImageFileName": "魔术师.png"
+    },
+    "前锋": {
+        "Camp": "Sur",
+        "ImageFileName": "前锋.png"
+    },
+    "舞女": {
+        "Camp": "Sur",
+        "ImageFileName": "舞女.png"
+    },
+    "幸运儿": {
+        "Camp": "Sur",
+        "ImageFileName": "幸运儿.png"
+    },
+    "园丁": {
+        "Camp": "Sur",
+        "ImageFileName": "园丁.png"
+    },
+    "病患": {
+        "Camp": "Sur",
+        "ImageFileName": "病患.png"
+    },
+    "法罗女士": {
+        "Camp": "Sur",
+        "ImageFileName": "法罗女士.png"
+    },
+    "火灾调查员": {
+        "Camp": "Sur",
+        "ImageFileName": "火灾调查员.png"
+    },
+    "教授": {
+        "Camp": "Sur",
+        "ImageFileName": "教授.png"
+    },
+    "拉拉队员": {
+        "Camp": "Sur",
+        "ImageFileName": "拉拉队员.png"
+    },
+    "木偶师": {
+        "Camp": "Sur",
+        "ImageFileName": "木偶师.png"
+    },
+    "囚徒": {
+        "Camp": "Sur",
+        "ImageFileName": "囚徒.png"
+    },
+    "先知": {
+        "Camp": "Sur",
+        "ImageFileName": "先知.png"
+    },
+    "野人": {
+        "Camp": "Sur",
+        "ImageFileName": "野人.png"
+    },
+    "杂技演员": {
+        "Camp": "Sur",
+        "ImageFileName": "杂技演员.png"
+    },
+    "慈善家": {
+        "Camp": "Sur",
+        "ImageFileName": "慈善家.png"
+    },
+    "飞行家": {
+        "Camp": "Sur",
+        "ImageFileName": "飞行家.png"
+    },
+    "击球手": {
+        "Camp": "Sur",
+        "ImageFileName": "击球手.png"
+    },
+    "勘探员": {
+        "Camp": "Sur",
+        "ImageFileName": "勘探员.png"
+    },
+    "律师": {
+        "Camp": "Sur",
+        "ImageFileName": "律师.png"
+    },
+    "牛仔": {
+        "Camp": "Sur",
+        "ImageFileName": "牛仔.png"
+    },
+    "入殓师": {
+        "Camp": "Sur",
+        "ImageFileName": "入殓师.png"
+    },
+    "小女孩": {
+        "Camp": "Sur",
+        "ImageFileName": "小女孩.png"
+    },
+    "医生": {
+        "Camp": "Sur",
+        "ImageFileName": "医生.png"
+    },
+    "咒术师": {
+        "Camp": "Sur",
+        "ImageFileName": "咒术师.png"
+    },
+    "大副": {
+        "Camp": "Sur",
+        "ImageFileName": "大副.png"
+    },
+    "弓箭手": {
+        "Camp": "Sur",
+        "ImageFileName": "弓箭手.png"
+    },
+    "机械师": {
+        "Camp": "Sur",
+        "ImageFileName": "机械师.png"
+    },
+    "空军": {
+        "Camp": "Sur",
+        "ImageFileName": "空军.png"
+    },
+    "盲女": {
+        "Camp": "Sur",
+        "ImageFileName": "盲女.png"
+    },
+    "骑士": {
+        "Camp": "Sur",
+        "ImageFileName": "骑士.png"
+    },
+    "守墓人": {
+        "Camp": "Sur",
+        "ImageFileName": "守墓人.png"
+    },
+    "小说家": {
+        "Camp": "Sur",
+        "ImageFileName": "小说家.png"
+    },
+    "佣兵": {
+        "Camp": "Sur",
+        "ImageFileName": "佣兵.png"
+    },
+    "作曲家": {
+        "Camp": "Sur",
+        "ImageFileName": "作曲家.png"
+    },
+    "调酒师": {
+        "Camp": "Sur",
+        "ImageFileName": "调酒师.png"
+    },
+    "古董商": {
+        "Camp": "Sur",
+        "ImageFileName": "古董商.png"
+    },
+    "祭司": {
+        "Camp": "Sur",
+        "ImageFileName": "祭司.png"
+    },
+    "哭泣小丑": {
+        "Camp": "Sur",
+        "ImageFileName": "哭泣小丑.png"
+    },
+    "冒险家": {
+        "Camp": "Sur",
+        "ImageFileName": "冒险家.png"
+    },
+    "气象学家": {
+        "Camp": "Sur",
+        "ImageFileName": "气象学家.png"
+    },
+    "玩具商": {
+        "Camp": "Sur",
+        "ImageFileName": "玩具商.png"
+    },
+    "心理学家": {
+        "Camp": "Sur",
+        "ImageFileName": "心理学家.png"
+    },
+    "邮差": {
+        "Camp": "Sur",
+        "ImageFileName": "邮差.png"
+    },
+    "逃脱大师": {
+        "Camp": "Sur",
+        "ImageFileName": "逃脱大师.png"
+    },
+    "26号守卫": {
+        "Camp": "Hun",
+        "ImageFileName": "26号守卫.png"
+    },
+    "爱哭鬼": {
+        "Camp": "Hun",
+        "ImageFileName": "爱哭鬼.png"
+    },
+    "跛脚羊": {
+        "Camp": "Hun",
+        "ImageFileName": "跛脚羊.png"
+    },
+    "雕刻家": {
+        "Camp": "Hun",
+        "ImageFileName": "雕刻家.png"
+    },
+    "疯眼": {
+        "Camp": "Hun",
+        "ImageFileName": "疯眼.png"
+    },
+    "红蝶": {
+        "Camp": "Hun",
+        "ImageFileName": "红蝶.png"
+    },
+    "黄衣之主": {
+        "Camp": "Hun",
+        "ImageFileName": "黄衣之主.png"
+    },
+    "杰克": {
+        "Camp": "Hun",
+        "ImageFileName": "杰克.png"
+    },
+    "鹿头": {
+        "Camp": "Hun",
+        "ImageFileName": "鹿头.png"
+    },
+    "孽蜥": {
+        "Camp": "Hun",
+        "ImageFileName": "孽蜥.png"
+    },
+    "摄影师": {
+        "Camp": "Hun",
+        "ImageFileName": "摄影师.png"
+    },
+    "使徒": {
+        "Camp": "Hun",
+        "ImageFileName": "使徒.png"
+    },
+    "宿伞之魂": {
+        "Camp": "Hun",
+        "ImageFileName": "宿伞之魂.png"
+    },
+    "小提琴家": {
+        "Camp": "Hun",
+        "ImageFileName": "小提琴家.png"
+    },
+    "隐士": {
+        "Camp": "Hun",
+        "ImageFileName": "隐士.png"
+    },
+    "渔女": {
+        "Camp": "Hun",
+        "ImageFileName": "渔女.png"
+    },
+    "博士": {
+        "Camp": "Hun",
+        "ImageFileName": "博士.png"
+    },
+    "厂长": {
+        "Camp": "Hun",
+        "ImageFileName": "厂长.png"
+    },
+    "噩梦": {
+        "Camp": "Hun",
+        "ImageFileName": "噩梦.png"
+    },
+    "歌剧演员": {
+        "Camp": "Hun",
+        "ImageFileName": "歌剧演员.png"
+    },
+    "红夫人": {
+        "Camp": "Hun",
+        "ImageFileName": "红夫人.png"
+    },
+    "记录员": {
+        "Camp": "Hun",
+        "ImageFileName": "记录员.png"
+    },
+    "蜡像师": {
+        "Camp": "Hun",
+        "ImageFileName": "蜡像师.png"
+    },
+    "梦之女巫": {
+        "Camp": "Hun",
+        "ImageFileName": "梦之女巫.png"
+    },
+    "破轮": {
+        "Camp": "Hun",
+        "ImageFileName": "破轮.png"
+    },
+    "时空之影": {
+        "Camp": "Hun",
+        "ImageFileName": "时空之影.png"
+    },
+    "守夜人": {
+        "Camp": "Hun",
+        "ImageFileName": "守夜人.png"
+    },
+    "小丑": {
+        "Camp": "Hun",
+        "ImageFileName": "小丑.png"
+    },
+    "喧嚣": {
+        "Camp": "Hun",
+        "ImageFileName": "喧嚣.png"
+    },
+    "愚人金": {
+        "Camp": "Hun",
+        "ImageFileName": "愚人金.png"
+    },
+    "蜘蛛": {
+        "Camp": "Hun",
+        "ImageFileName": "蜘蛛.png"
+    },
+    "杂货商": {
+        "Camp": "Hun",
+        "ImageFileName": "杂货商.png"
+    }
+}

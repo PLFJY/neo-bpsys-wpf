@@ -1,33 +1,154 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows7.0</TargetFramework>
     <RootNamespace>neo_bpsys_wpf</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>favicon.ico</ApplicationIcon>
+    <Deterministic>False</Deterministic>
+    <GenerateDocumentationFile>False</GenerateDocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+  </PropertyGroup>
   <ItemGroup>
-    <None Remove="Assets\icon.png" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <Resource Include="Assets\bp.png" />
+    <Resource Include="Assets\bp_noAuthor.png" />
+    <Resource Include="Assets\CurrentBanLock.png" />
+    <Resource Include="Assets\donate_QR_code.JPG" />
+    <Resource Include="Assets\Fonts\Essay-Text-W01-Italic.ttf" />
+    <Resource Include="Assets\Fonts\selawk.ttf" />
+    <Resource Include="Assets\Fonts\SourceHanSansHWSC-VF.ttf" />
+    <Resource Include="Assets\Fonts\华康POP1体W5-简体.ttf" />
+    <Resource Include="Assets\Fonts\汉仪第五人格体.ttf" />
+    <Resource Include="Assets\gameData.png" />
+    <Resource Include="Assets\bpOverview.png" />
+    <Resource Include="Assets\GlobalBanLock.png" />
+    <Resource Include="Assets\HomePageHeader.png" />
+    <Resource Include="Assets\hunIcon.png" />
+    <Resource Include="Assets\hun_black.png" />
     <Resource Include="Assets\icon.png" />
+    <Resource Include="Assets\Icons\black\Abnormal.png" />
+    <Resource Include="Assets\Icons\black\Blink.png" />
+    <Resource Include="Assets\Icons\black\BorrowedTime.png" />
+    <Resource Include="Assets\Icons\black\ConfinedSpace.png" />
+    <Resource Include="Assets\Icons\black\Detention.png" />
+    <Resource Include="Assets\Icons\black\Excitement.png" />
+    <Resource Include="Assets\Icons\black\FlywheelEffect.png" />
+    <Resource Include="Assets\Icons\black\Insolence.png" />
+    <Resource Include="Assets\Icons\black\KneeJerkReflex.png" />
+    <Resource Include="Assets\Icons\black\Listen.png" />
+    <Resource Include="Assets\Icons\black\Patroller.png" />
+    <Resource Include="Assets\Icons\black\Peeper.png" />
+    <Resource Include="Assets\Icons\black\Teleport.png" />
+    <Resource Include="Assets\Icons\black\TideTurner.png" />
+    <Resource Include="Assets\Icons\black\TrumpCard.png" />
+    <Resource Include="Assets\Icons\black\Warp.png" />
+    <Resource Include="Assets\Icons\white\Abnormal.png" />
+    <Resource Include="Assets\Icons\white\Blink.png" />
+    <Resource Include="Assets\Icons\white\BorrowedTime.png" />
+    <Resource Include="Assets\Icons\white\ConfinedSpace.png" />
+    <Resource Include="Assets\Icons\white\Detention.png" />
+    <Resource Include="Assets\Icons\white\Excitement.png" />
+    <Resource Include="Assets\Icons\white\FlywheelEffect.png" />
+    <Resource Include="Assets\Icons\white\Insolence.png" />
+    <Resource Include="Assets\Icons\white\KneeJerkReflex.png" />
+    <Resource Include="Assets\Icons\white\Listen.png" />
+    <Resource Include="Assets\Icons\white\Patroller.png" />
+    <Resource Include="Assets\Icons\white\Peeper.png" />
+    <Resource Include="Assets\Icons\white\Teleport.png" />
+    <Resource Include="Assets\Icons\white\TideTurner.png" />
+    <Resource Include="Assets\Icons\white\TrumpCard.png" />
+    <Resource Include="Assets\Icons\white\Warp.png" />
+    <Resource Include="Assets\interlude.png" />
+    <Resource Include="Assets\logo_net.jpg" />
+    <Resource Include="Assets\mapBp.png" />
+    <Resource Include="Assets\map\不归林.png" />
+    <Resource Include="Assets\map\军工厂.png" />
+    <Resource Include="Assets\map\唐人街.png" />
+    <Resource Include="Assets\map\圣心医院.png" />
+    <Resource Include="Assets\map\月亮河公园.png" />
+    <Resource Include="Assets\map\永眠镇.png" />
+    <Resource Include="Assets\map\湖景村.png" />
+    <Resource Include="Assets\map\红教堂.png" />
+    <Resource Include="Assets\map\里奥的回忆.png" />
+    <Resource Include="Assets\map_singleColor\不归林.png" />
+    <Resource Include="Assets\map_singleColor\军工厂.png" />
+    <Resource Include="Assets\map_singleColor\唐人街.png" />
+    <Resource Include="Assets\map_singleColor\圣心医院.png" />
+    <Resource Include="Assets\map_singleColor\无禁用.png" />
+    <Resource Include="Assets\map_singleColor\月亮河公园.png" />
+    <Resource Include="Assets\map_singleColor\永眠镇.png" />
+    <Resource Include="Assets\map_singleColor\湖景村.png" />
+    <Resource Include="Assets\map_singleColor\红教堂.png" />
+    <Resource Include="Assets\map_singleColor\里奥的回忆.png" />
+    <Resource Include="Assets\scoreGlobal.png" />
+    <Resource Include="Assets\scoreGlobal_Bo3.png" />
+    <Resource Include="Assets\scoreHun.png" />
+    <Resource Include="Assets\scoreSur.png" />
+    <Resource Include="Assets\surIcon.png" />
+    <Resource Include="Assets\sur_black.png" />
+    <Resource Include="Assets\testLogo.jpg" />
+    <Resource Include="Assets\wpfui.png" />
+    <Resource Include="Assets\先知.png" />
+    <Resource Include="Assets\医生.png" />
+    <Resource Include="Assets\厂长.png" />
+    <Resource Include="Assets\小丑.png" />
+    <Resource Include="Assets\幸运儿.png" />
+    <Resource Include="Assets\新版头像.jpg" />
+    <Resource Include="Assets\梦之女巫.png" />
+    <Resource Include="Assets\闪现.png" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="WPF-UI" Version="4.0.0" />
-    <PackageReference Include="WPF-UI.Abstractions" Version="4.0.0" />
+    <PackageReference Include="Downloader" Version="3.3.4" />
+    <PackageReference Include="hyjiacan.pinyin4net" Version="4.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.5" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
+    <PackageReference Include="WPF-UI" Version="4.0.2" />
+    <PackageReference Include="WPF-UI.Abstractions" Version="4.0.2" />
+    <PackageReference Include="WPF-UI.DependencyInjection" Version="4.0.2" />
+    <PackageReference Include="XamlFlair.WPF" Version="1.2.13" />
   </ItemGroup>
-
   <ItemGroup>
-    <Folder Include="Models\" />
-    <Folder Include="ViewModels\Windows\" />
-    <Folder Include="ViewModels\Pages\" />
-    <Folder Include="Views\Pages\" />
+    <None Include="Resources\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
-
+  <ItemGroup>
+    <None Remove="Assets\bp_noAuthor.png" />
+    <None Remove="Assets\CurrentBanLock.png" />
+    <None Remove="Assets\donate_QR_code.JPG" />
+    <None Remove="Assets\GlobalBanLock.png" />
+    <None Remove="Assets\hunIcon.png" />
+    <None Remove="Assets\hun_black.png" />
+    <None Remove="Assets\surIcon.png" />
+    <None Remove="Assets\sur_black.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="favicon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="GameRule.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\data\CharacterList.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\队伍信息导入示例.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

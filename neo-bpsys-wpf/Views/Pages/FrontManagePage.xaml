@@ -1,0 +1,228 @@
+﻿<Page
+    x:Class="neo_bpsys_wpf.Views.Pages.FrontManagePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    Title="FrontManagePage"
+    d:DataContext="{d:DesignInstance Type=vm:FrontManagePageViewModel,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="1500"
+    d:DesignWidth="685"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <ResourceDictionary>
+            <cv:StringToDoubleConverter x:Key="StringToDoubleConverter" />
+        </ResourceDictionary>
+    </Page.Resources>
+    <WrapPanel Orientation="Horizontal">
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="所有前台画面" />
+                <StackPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal">
+                    <ui:Button
+                        Height="50"
+                        Command="{Binding ShowAllWinowsCommand}"
+                        Content="全部启动" />
+                    <ui:Button
+                        Height="50"
+                        Margin="10,0,0,0"
+                        Command="{Binding HideAllWinowsCommand}"
+                        Content="全部关闭" />
+                </StackPanel>
+                <ToggleButton
+                    x:Name="IsEditMode"
+                    Grid.Row="2"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    IsChecked="{Binding IsDesignMode}">
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Edit24" />
+                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                    </StackPanel>
+                </ToggleButton>
+                <TextBlock
+                    Grid.Row="3"
+                    Margin="0,10,0,0"
+                    Text="备注：分数统计界面BO3时不保存"
+                    TextWrapping="WrapWithOverflow" />
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="BP画面" />
+                <StackPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <ui:Button Command="{Binding ShowBpWindowCommand}" Content="启动" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding HideBpWindowCommand}"
+                        Content="关闭" />
+                </StackPanel>
+                <ui:Button
+                    Grid.Row="2"
+                    Margin="0,10,0,0"
+                    Command="{Binding ResetBpWindowElementsPositionCommand}"
+                    Content="重置布局"
+                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="过场画面" />
+                <StackPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <ui:Button Command="{Binding ShowInterludeWindowCommand}" Content="启动" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding HideInterludeWindowCommand}"
+                        Content="关闭" />
+                </StackPanel>
+                <ui:Button
+                    Grid.Row="2"
+                    Margin="0,10,0,0"
+                    Command="{Binding ResetInterludeWindowElementsPositionCommand}"
+                    Content="重置布局"
+                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="比分组件" />
+                <StackPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <ui:Button Command="{Binding ShowScoreWindowCommand}" Content="启动" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding HideScoreWindowCommand}"
+                        Content="关闭" />
+                </StackPanel>
+                <ui:Button
+                    Grid.Row="3"
+                    Margin="0,10,0,0"
+                    Command="{Binding ResetScoreWindowElementsPositionCommand}"
+                    CommandParameter="ScoreSurCanvas"
+                    Content="重置求生者游戏内比分布局"
+                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                <ui:Button
+                    Grid.Row="4"
+                    Margin="0,10,0,0"
+                    Command="{Binding ResetScoreWindowElementsPositionCommand}"
+                    CommandParameter="ScoreHunCanvas"
+                    Content="重置监管者游戏内比分布局"
+                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                <ui:Button
+                    Grid.Row="5"
+                    Margin="0,10,0,0"
+                    Command="{Binding ResetScoreWindowElementsPositionCommand}"
+                    CommandParameter="ScoreGlobalCanvas"
+                    Content="重置分数统计布局"
+                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                <TextBlock
+                    Grid.Row="6"
+                    Margin="0,10,0,0"
+                    Text="BO3 和 BO5之间&quot;Total&quot;&#10;相差的距离 (下一次切换到BO3生效): " />
+                <ui:TextBox
+                    Grid.Row="7"
+                    Margin="0,10,0,0"
+                    PlaceholderText="单位距离"
+                    Text="{Binding GlobalScoreTotalMargin, Converter={StaticResource StringToDoubleConverter}}" />
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="赛后数据画面" />
+                <StackPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <ui:Button Command="{Binding ShowGameDataWindowCommand}" Content="启动" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding HideGameDataWindowCommand}"
+                        Content="关闭" />
+                </StackPanel>
+                <ui:Button
+                    Grid.Row="2"
+                    Margin="0,10,0,0"
+                    Command="{Binding ResetGameDataWindowElementsPositionCommand}"
+                    Content="重置布局"
+                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="其它小组件 (地图BP等)" />
+                <StackPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <ui:Button Command="{Binding ShowWidgetsWindowCommand}" Content="启动" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding HideWidgetsWindowCommand}"
+                        Content="关闭" />
+                </StackPanel>
+                <ui:Button
+                    Grid.Row="3"
+                    Margin="0,10,0,0"
+                    Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
+                    CommandParameter="MapBpCanvas"
+                    Content="重置地图BP布局"
+                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+            </Grid>
+        </Border>
+    </WrapPanel>
+</Page>

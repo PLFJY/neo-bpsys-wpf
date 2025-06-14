@@ -1,0 +1,285 @@
+﻿<Page
+    x:Class="neo_bpsys_wpf.Views.Pages.PickPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:enum="clr-namespace:neo_bpsys_wpf.Enums"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    Title="PickPage"
+    d:DataContext="{d:DesignInstance Type=vm:PickPageViewModel,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="1500"
+    d:DesignWidth="685"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
+        <Style BasedOn="{StaticResource {x:Type cc:CharacterChanger}}" TargetType="cc:CharacterChanger">
+            <Setter Property="Spacing" Value="20" />
+            <Setter Property="Margin" Value="5,10,0,0" />
+        </Style>
+        <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="ui:TextBox">
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="PlaceholderText" Value="选手名称" />
+        </Style>
+    </Page.Resources>
+    <WrapPanel Orientation="Horizontal">
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="选择求生者" />
+                <ItemsControl
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    ItemsSource="{Binding SurPickViewModelList}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,0,10,10">
+                                <ui:TextBox IsReadOnly="True" Text="{Binding PlayerName, Mode=OneWay}" />
+                                <cc:CharacterSelector
+                                    Margin="0,10,0,0"
+                                    Command="{Binding ConfirmCommand}"
+                                    ImageSource="{Binding PreviewImage}"
+                                    IsHighlighted="{Binding IsHighlighted}"
+                                    ItemsSource="{Binding CharaList}"
+                                    SelectedValue="{Binding SelectedChara}" />
+                                <cc:CharacterChanger Command="{Binding SwapCharacterInPlayersCommand}" Index="{Binding Index}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="选择监管者" />
+                <cc:CharacterSelector
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Command="{Binding HunPickVm.ConfirmCommand}"
+                    ImageSource="{Binding HunPickVm.PreviewImage}"
+                    IsHighlighted="{Binding HunPickVm.IsHighlighted}"
+                    ItemsSource="{Binding HunPickVm.CharaList}"
+                    SelectedValue="{Binding HunPickVm.SelectedChara}" />
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Border.Resources>
+                <cv:BooleanMultiConverter x:Key="BooleanMultiConverter" />
+            </Border.Resources>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                    <TextBlock Grid.Row="0" Text="待选择边框开关  | " />
+                    <ui:ToggleSwitch x:Name="IsSingleControlEnabled" Margin="10,0,0,0" />
+                    <TextBlock Margin="10,0,0,0" Text="1 &amp; 2 分别控制" />
+                </StackPanel>
+                <StackPanel Grid.Row="1">
+                    <StackPanel
+                        Margin="0,10,0,0"
+                        d:Visibility="Visible"
+                        Orientation="Horizontal"
+                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <ui:ToggleSwitch
+                            Command="{Binding PickingBorderSwitchCommand}"
+                            CommandParameter="0"
+                            IsChecked="{Binding SurPickingBorderList[0]}" />
+                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 1" />
+                    </StackPanel>
+                    <StackPanel
+                        Margin="0,10,0,0"
+                        d:Visibility="Visible"
+                        Orientation="Horizontal"
+                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <ui:ToggleSwitch
+                            Command="{Binding PickingBorderSwitchCommand}"
+                            CommandParameter="1"
+                            IsChecked="{Binding SurPickingBorderList[1]}" />
+                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 2" />
+                    </StackPanel>
+                    <StackPanel
+                        Margin="0,10,0,0"
+                        Orientation="Horizontal"
+                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BooleanToReverseVisibilityConverter}}">
+                        <ui:ToggleSwitch Command="{Binding PickingBorderSwitchCommand}" CommandParameter="0and1">
+                            <ui:ToggleSwitch.IsChecked>
+                                <MultiBinding Converter="{StaticResource BooleanMultiConverter}" Mode="TwoWay">
+                                    <Binding Path="SurPickingBorderList[0]" />
+                                    <Binding Path="SurPickingBorderList[1]" />
+                                </MultiBinding>
+                            </ui:ToggleSwitch.IsChecked>
+                        </ui:ToggleSwitch>
+                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 1 &amp; 2" />
+                    </StackPanel>
+                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                        <ui:ToggleSwitch
+                            Command="{Binding PickingBorderSwitchCommand}"
+                            CommandParameter="2"
+                            IsChecked="{Binding SurPickingBorderList[2]}" />
+                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 3" />
+                    </StackPanel>
+                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                        <ui:ToggleSwitch
+                            Command="{Binding PickingBorderSwitchCommand}"
+                            CommandParameter="3"
+                            IsChecked="{Binding SurPickingBorderList[3]}" />
+                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 4" />
+                    </StackPanel>
+                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                        <ui:ToggleSwitch
+                            Command="{Binding PickingBorderSwitchCommand}"
+                            CommandParameter="Hun"
+                            IsChecked="{Binding HunPickingBorder}" />
+                        <TextBlock Margin="10,0,0,0" Text="监管者选择框" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="全局禁选记录" />
+                <Grid Grid.Row="1" Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="主队" />
+                    <TextBlock
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        Text="全局禁用求生者" />
+                    <ItemsControl
+                        Grid.Row="2"
+                        Margin="0,10,0,0"
+                        ItemsSource="{Binding MainSurGlobalBanRecordViewModelList}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <cc:CharacterSelector
+                                    Margin="0,0,10,10"
+                                    IsSimpleModeEnabled="True"
+                                    ItemsSource="{Binding CharaList}"
+                                    SelectedValue="{Binding RecordedChara}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock
+                        Grid.Row="4"
+                        Margin="0,10,0,0"
+                        Text="全局禁用监管者" />
+                    <ItemsControl
+                        Grid.Row="5"
+                        Margin="0,10,0,0"
+                        ItemsSource="{Binding MainHunGlobalBanRecordViewModelList}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <cc:CharacterSelector
+                                    Margin="0,0,10,10"
+                                    IsSimpleModeEnabled="True"
+                                    ItemsSource="{Binding CharaList}"
+                                    SelectedValue="{Binding RecordedChara}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+                <Grid Grid.Row="2" Margin="0,20,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="客队" />
+                    <TextBlock
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        Text="全局禁用求生者" />
+                    <ItemsControl
+                        Grid.Row="2"
+                        Margin="0,10,0,0"
+                        ItemsSource="{Binding AwaySurGlobalBanRecordViewModelList}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <cc:CharacterSelector
+                                    Margin="0,0,10,10"
+                                    IsSimpleModeEnabled="True"
+                                    ItemsSource="{Binding CharaList}"
+                                    SelectedValue="{Binding RecordedChara}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock
+                        Grid.Row="4"
+                        Margin="0,10,0,0"
+                        Text="全局禁用监管者" />
+                    <ItemsControl
+                        Grid.Row="5"
+                        Margin="0,10,0,0"
+                        ItemsSource="{Binding AwayHunGlobalBanRecordViewModelList}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <cc:CharacterSelector
+                                    Margin="0,0,10,10"
+                                    IsSimpleModeEnabled="True"
+                                    ItemsSource="{Binding CharaList}"
+                                    SelectedValue="{Binding RecordedChara}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </Grid>
+        </Border>
+    </WrapPanel>
+</Page>

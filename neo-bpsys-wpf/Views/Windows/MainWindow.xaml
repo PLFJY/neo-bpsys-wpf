@@ -2,18 +2,365 @@
     x:Class="neo_bpsys_wpf.Views.Windows.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ab="clr-namespace:neo_bpsys_wpf.AttachedBehaviors"
+    xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:neo_bpsys_wpf"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    Title="MainWindow"
-    Width="800"
-    Height="450"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
+    Title="后台控制"
+    Width="880"
+    Height="695"
+    MinWidth="830"
+    d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel,
+                                     IsDesignTimeCreatable=True}"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    RenderOptions.BitmapScalingMode="HighQuality"
+    RenderOptions.ClearTypeHint="Enabled"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
+    <ui:FluentWindow.Resources>
+        <ResourceDictionary>
+            <cv:ApplicationThemeToBooleanConverter x:Key="ApplicationThemeToBooleanConverter" />
+            <!--  Them Change Animation  -->
+            <Storyboard x:Key="LightToDark">
+                <DoubleAnimation
+                    Storyboard.TargetName="rectangle"
+                    Storyboard.TargetProperty="(UIElement.Opacity)"
+                    From="1"
+                    To="0"
+                    Duration="00:00:0.6" />
+            </Storyboard>
+            <Storyboard x:Key="DarkToLight">
+                <DoubleAnimation
+                    Storyboard.TargetName="rectangle"
+                    Storyboard.TargetProperty="(UIElement.Opacity)"
+                    From="1"
+                    To="0"
+                    Duration="600" />
+                <ColorAnimation
+                    Storyboard.TargetName="rectangle"
+                    Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)"
+                    From="#202020"
+                    To="White"
+                    Duration="00:00:0.6" />
+            </Storyboard>
+            <Storyboard x:Key="StartupLoading">
+                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="loading" Storyboard.TargetProperty="(UIElement.Visibility)">
+                    <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="{x:Static Visibility.Visible}" />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:03.5" Value="{x:Static Visibility.Collapsed}" />
+                </ObjectAnimationUsingKeyFrames>
+                <DoubleAnimation
+                    BeginTime="00:00:03.3"
+                    Storyboard.TargetName="loading"
+                    Storyboard.TargetProperty="(UIElement.Opacity)"
+                    From="1"
+                    To="0"
+                    Duration="00:00:00.2" />
+                <DoubleAnimation
+                    BeginTime="00:00:03.3"
+                    Storyboard.TargetName="loading"
+                    Storyboard.TargetProperty="RenderTransform.ScaleX"
+                    From="1"
+                    To="1.5"
+                    Duration="0:0:0.2" />
+                <DoubleAnimation
+                    BeginTime="00:00:03.3"
+                    Storyboard.TargetName="loading"
+                    Storyboard.TargetProperty="RenderTransform.ScaleY"
+                    From="1"
+                    To="1.5"
+                    Duration="0:0:0.2" />
+                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="loadingText" Storyboard.TargetProperty="(TextBlock.Text)">
+                    <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="Loading" />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:01" Value="Loading." />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:01.5" Value="Loading.." />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:02" Value="Loading..." />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:02.5" Value="Loading...." />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:03" Value="Loading....." />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:03.5" Value="Loading......" />
+                </ObjectAnimationUsingKeyFrames>
+            </Storyboard>
+        </ResourceDictionary>
+    </ui:FluentWindow.Resources>
+    <i:Interaction.Triggers>
+        <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="True">
+            <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource LightToDark}" />
+        </i:DataTrigger>
+        <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="False">
+            <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource DarkToLight}" />
+        </i:DataTrigger>
+    </i:Interaction.Triggers>
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="35"
+            CornerRadius="8"
+            GlassFrameThickness="0"
+            ResizeBorderThickness="5"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
     <Grid>
-        
+        <i:Interaction.Triggers>
+            <i:EventTrigger EventName="Loaded">
+                <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource StartupLoading}" />
+            </i:EventTrigger>
+        </i:Interaction.Triggers>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto " />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <!--  TitleBar  -->
+            <cc:CustomTitleBar
+                Grid.Row="0"
+                Icon="/Assets/icon.png"
+                IsThemeChangeChecked="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}"
+                ThemeChangeCommand="{Binding ThemeSwitchCommand}" />
+            <!--  Body  -->
+
+            <!--  Global menu  -->
+            <WrapPanel
+                Grid.Row="1"
+                Margin="10,10,0,0"
+                Orientation="Horizontal">
+                <!--  current team  -->
+                <Border Width="360" Style="{StaticResource Card}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                            <TextBlock Text="当前求生者队伍:" />
+                            <TextBlock Margin="20,0,0,0" Text="{Binding SurTeamName}" />
+                        </StackPanel>
+                        <ui:Button
+                            Grid.Row="1"
+                            Margin="0,10,0,10"
+                            HorizontalAlignment="Center"
+                            Command="{Binding SwapCommand}"
+                            Content="换边"
+                            Icon="{ui:SymbolIcon Symbol=ArrowSort24}">
+                            <i:Interaction.Triggers>
+                                <i:DataTrigger Binding="{Binding IsSwapHighlighted}" Value="true">
+                                    <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedButton}" />
+                                </i:DataTrigger>
+                                <i:DataTrigger Binding="{Binding IsSwapHighlighted}" Value="false">
+                                    <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource {x:Type ui:Button}}" />
+                                </i:DataTrigger>
+                            </i:Interaction.Triggers>
+                        </ui:Button>
+                        <StackPanel Grid.Row="2" Orientation="Horizontal">
+                            <TextBlock Text="当前监管者队伍:" />
+                            <TextBlock Margin="20,0,0,0" Text="{Binding HunTeamName}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <!--  timer  -->
+                <Border Width="440" Style="{StaticResource Card}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="倒计时（单位：秒 ; 可自定义, 下拉框给出的是预设）" />
+                        <StackPanel
+                            Grid.Row="1"
+                            Margin="0,10,0,0"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal">
+                            <ComboBox
+                                Width="100"
+                                d:Text="30"
+                                IsEditable="True"
+                                ItemsSource="{Binding RecommendTimmerList}"
+                                MaxDropDownHeight="150"
+                                SelectedIndex="0"
+                                Text="{Binding TimerTime}" />
+                            <ui:Button
+                                Margin="10,0,0,0"
+                                Command="{Binding TimerStartCommand}"
+                                Content="开始"
+                                Icon="{ui:SymbolIcon Symbol=Play24}" />
+                            <ui:Button
+                                Margin="10,0,0,0"
+                                Command="{Binding TimerStopCommand}"
+                                Content="停止 (恢复 VS)"
+                                Icon="{ui:SymbolIcon Symbol=Stop24}" />
+                            <TextBlock
+                                Width="35"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                Text="预览：" />
+                            <TextBlock
+                                Width="25"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                d:Text="VS"
+                                Text="{Binding RemainingSeconds}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <!--  game control  -->
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding SaveGameInfoCommand}"
+                    Content="保存当前对局信息到本地"
+                    Icon="{ui:SymbolIcon Symbol=Save24}" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding NewGameCommand}"
+                    Content="新对局 (重置)"
+                    Icon="{ui:SymbolIcon Symbol=Add24}" />
+                <ToggleButton
+                    Margin="0,0,10,10"
+                    IsChecked="{Binding IsBo3Mode}"
+                    IsEnabled="{Binding CanGameProgressChange}">
+                    <ToggleButton.Style>
+                        <Style BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="ToggleButton">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CanGameProgressChange}" Value="false">
+                                    <Setter Property="Content">
+                                        <Setter.Value>
+                                            <StackPanel Orientation="Horizontal">
+                                                <ui:SymbolIcon Foreground="Gray" Symbol="ArrowSwap24" />
+                                                <TextBlock
+                                                    Margin="10,0,0,0"
+                                                    Foreground="Gray"
+                                                    Text="切换至BO3模式" />
+                                            </StackPanel>
+                                        </Setter.Value>
+                                    </Setter>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ToggleButton.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="ArrowSwap24" />
+                        <TextBlock Margin="10,0,0,0" Text="切换至BO3模式" />
+                    </StackPanel>
+                </ToggleButton>
+                <TextBlock
+                    Margin="0,0,10,10"
+                    VerticalAlignment="Center"
+                    Text="对局进度：" />
+                <ComboBox
+                    Width="150"
+                    Margin="0,0,10,10"
+                    DisplayMemberPath="Value"
+                    IsEnabled="{Binding CanGameProgressChange}"
+                    ItemsSource="{Binding GameList}"
+                    MaxDropDownHeight="190"
+                    SelectedIndex="0"
+                    SelectedValue="{Binding SelectedGameProgress}"
+                    SelectedValuePath="Key" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding StartNavigationCommand}"
+                    Content="开始对局引导"
+                    Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding NavigateToPreviousStepCommand}"
+                    Content="上一步"
+                    Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding NavigateToNextStepCommand}"
+                    Content="下一步"
+                    Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding StopNavigationCommand}"
+                    Content="结束对局引导"
+                    Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <TextBlock
+                    Margin="0,0,10,10"
+                    VerticalAlignment="Center"
+                    Text="{Binding ActionName}"
+                    Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+            </WrapPanel>
+
+            <!--  navigation  -->
+            <Grid Grid.Row="2">
+                <ui:InfoBar
+                    Name="InfoBar"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Panel.ZIndex="1" />
+                <ui:NavigationView
+                    x:Name="RootNavigation"
+                    FooterMenuItemsSource="{Binding FooterMenuItems}"
+                    IsBackButtonVisible="Collapsed"
+                    IsPaneToggleVisible="False"
+                    MenuItemsSource="{Binding MenuItems}"
+                    OpenPaneLength="130" />
+            </Grid>
+        </Grid>
+        <!--  主题切换相关的东西  -->
+        <Rectangle
+            x:Name="rectangle"
+            Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+            Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+            Panel.ZIndex="-1"
+            Fill="White"
+            Opacity="0" />
+
+        <!--  Loading  -->
+        <Grid
+            Name="loading"
+            Panel.ZIndex="1"
+            Visibility="Collapsed">
+            <Grid.RenderTransform>
+                <ScaleTransform CenterX="415" CenterY="374.5" />
+            </Grid.RenderTransform>
+            <Rectangle
+                Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+                Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+                Fill="#202020" />
+            <StackPanel
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Panel.ZIndex="2">
+                <Image
+                    Width="75"
+                    Height="75"
+                    HorizontalAlignment="Center"
+                    Source="/Assets/icon.png" />
+                <TextBlock
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    FontFamily="{StaticResource SourceHan}"
+                    FontSize="35"
+                    Text="neo-bpsys-wpf" />
+                <TextBlock
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    FontFamily="{StaticResource SourceHan}"
+                    FontSize="16"
+                    Text="一个第五人格直播BP展示工具" />
+                <TextBlock
+                    Name="loadingText"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    FontFamily="{StaticResource SourceHan}"
+                    FontSize="35"
+                    Text="Loading" />
+            </StackPanel>
+            <TextBlock
+                Margin="0,0,0,10"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                FontFamily="{StaticResource SourceHan}"
+                FontSize="14"
+                Text="Made By 零风PLFJY" />
+        </Grid>
+
     </Grid>
 </ui:FluentWindow>

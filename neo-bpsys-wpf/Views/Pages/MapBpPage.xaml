@@ -1,0 +1,160 @@
+﻿<Page
+    x:Class="neo_bpsys_wpf.Views.Pages.MapBpPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:enum="clr-namespace:neo_bpsys_wpf.Enums"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    Title="MapBpPage"
+    d:DataContext="{d:DesignInstance Type=vm:MapBpPageViewModel,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="1500"
+    d:DesignWidth="685"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    mc:Ignorable="d">
+    <Page.Resources>
+        <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
+    </Page.Resources>
+    <StackPanel>
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="地图选择" />
+                <ComboBox
+                    Grid.Row="1"
+                    Width="400"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Left"
+                    ItemsSource="{Binding PickedMapSelections}"
+                    SelectedValue="{Binding PickedMap}"
+                    SelectedValuePath="Map">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:Image
+                                    Width="200"
+                                    CornerRadius="4"
+                                    Source="{Binding ImageSource}" />
+                                <TextBlock
+                                    Margin="20,0,0,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="16"
+                                    Text="{Binding Map}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                    <i:Interaction.Triggers>
+                        <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Page}, Path=DataContext.IsPickHighlighted}" Value="true">
+                            <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedComboBox}" />
+                        </i:DataTrigger>
+                        <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Page}, Path=DataContext.IsPickHighlighted}" Value="false">
+                            <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource {x:Type ComboBox}}" />
+                        </i:DataTrigger>
+                    </i:Interaction.Triggers>
+                </ComboBox>
+            </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="地图禁用" />
+                <WrapPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <cc:ToggleStyledRadioButton
+                        Width="300"
+                        Margin="0,0,10,10"
+                        GroupName="MapBan"
+                        ImageSource="/Assets/map_singleColor/无禁用.png"
+                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.无禁用}}"
+                        TagName="无禁用" />
+                    <cc:ToggleStyledRadioButton
+                        Width="300"
+                        Margin="0,0,10,10"
+                        GroupName="MapBan"
+                        ImageSource="/Assets/map_singleColor/军工厂.png"
+                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.军工厂}}"
+                        TagName="军工厂" />
+                    <cc:ToggleStyledRadioButton
+                        Width="300"
+                        Margin="0,0,10,10"
+                        GroupName="MapBan"
+                        ImageSource="/Assets/map_singleColor/红教堂.png"
+                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.红教堂}}"
+                        TagName="红教堂" />
+                    <cc:ToggleStyledRadioButton
+                        Width="300"
+                        Margin="0,0,10,10"
+                        GroupName="MapBan"
+                        ImageSource="/Assets/map_singleColor/圣心医院.png"
+                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.圣心医院}}"
+                        TagName="圣心医院" />
+                    <cc:ToggleStyledRadioButton
+                        Width="300"
+                        Margin="0,0,10,10"
+                        GroupName="MapBan"
+                        ImageSource="/Assets/map_singleColor/里奥的回忆.png"
+                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.里奥的回忆}}"
+                        TagName="里奥的回忆" />
+                    <cc:ToggleStyledRadioButton
+                        Width="300"
+                        Margin="0,0,10,10"
+                        GroupName="MapBan"
+                        ImageSource="/Assets/map_singleColor/月亮河公园.png"
+                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.月亮河公园}}"
+                        TagName="月亮河公园" />
+                    <cc:ToggleStyledRadioButton
+                        Width="300"
+                        Margin="0,0,10,10"
+                        GroupName="MapBan"
+                        ImageSource="/Assets/map_singleColor/湖景村.png"
+                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.湖景村}}"
+                        TagName="湖景村" />
+                    <cc:ToggleStyledRadioButton
+                        Width="300"
+                        Margin="0,0,10,10"
+                        GroupName="MapBan"
+                        ImageSource="/Assets/map_singleColor/永眠镇.png"
+                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.永眠镇}}"
+                        TagName="永眠镇" />
+                    <cc:ToggleStyledRadioButton
+                        Width="300"
+                        Margin="0,0,10,10"
+                        GroupName="MapBan"
+                        ImageSource="/Assets/map_singleColor/唐人街.png"
+                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.唐人街}}"
+                        TagName="唐人街" />
+                    <cc:ToggleStyledRadioButton
+                        Width="300"
+                        Margin="0,0,10,10"
+                        GroupName="MapBan"
+                        ImageSource="/Assets/map_singleColor/不归林.png"
+                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.不归林}}"
+                        TagName="不归林" />
+                    <i:Interaction.Triggers>
+                        <i:DataTrigger Binding="{Binding IsBanHighlighted}" Value="true">
+                            <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedWrapPanel}" />
+                        </i:DataTrigger>
+                        <i:DataTrigger Binding="{Binding IsBanHighlighted}" Value="false">
+                            <i:ChangePropertyAction PropertyName="Style" Value="{x:Null}" />
+                        </i:DataTrigger>
+                    </i:Interaction.Triggers>
+                </WrapPanel>
+            </Grid>
+        </Border>
+    </StackPanel>
+</Page>
