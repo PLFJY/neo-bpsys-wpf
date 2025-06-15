@@ -142,14 +142,13 @@ namespace neo_bpsys_wpf.Services
             }
         }
 
+        private int _remainingSeconds = -1;
         /// <summary>
         /// 倒计时剩余时间
         /// </summary>
-        private int _remainingSeconds = 0;
-
         public string RemainingSeconds
         {
-            get => _remainingSeconds == 0 ? "VS" : _remainingSeconds.ToString();
+            get => _remainingSeconds < 0 ? "VS" : _remainingSeconds.ToString();
             set
             {
                 if (!int.TryParse(value, out _remainingSeconds))
@@ -161,7 +160,7 @@ namespace neo_bpsys_wpf.Services
 
         private void Timer_Tick(object? sender, EventArgs e)
         {
-            if (_remainingSeconds > 0)
+            if (_remainingSeconds >= 0)
             {
                 _remainingSeconds--;
                 WeakReferenceMessenger.Default.Send(new ValueChangedMessage<string>(nameof(RemainingSeconds)));
@@ -172,9 +171,10 @@ namespace neo_bpsys_wpf.Services
             }
         }
 
-        public void TimerStart(int seconds)
+        public void TimerStart(int? seconds)
         {
-            _remainingSeconds = seconds;
+            if (seconds == null) return;
+            _remainingSeconds = (int)seconds;
             _timer.Start();
         }
 

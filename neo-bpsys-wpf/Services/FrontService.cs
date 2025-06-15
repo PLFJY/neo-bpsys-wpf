@@ -239,6 +239,7 @@ namespace neo_bpsys_wpf.Services
             {
                 if (child is FrameworkElement fe && !string.IsNullOrEmpty(fe.Name))
                 {
+                    if (fe.Tag?.ToString() == "nv") continue;
                     var width = fe.Width;
                     if (double.IsNaN(width))
                         width = 0;
@@ -302,6 +303,7 @@ namespace neo_bpsys_wpf.Services
                 {
                     if (child is FrameworkElement fe && !string.IsNullOrEmpty(fe.Name))
                     {
+                        if (fe.Tag?.ToString() == "nv") continue;
                         var width = fe.Width;
                         if (double.IsNaN(width))
                             width = 0;
@@ -359,6 +361,7 @@ namespace neo_bpsys_wpf.Services
                     {
                         if (child is FrameworkElement fe && positions.TryGetValue(fe.Name, out ElementInfo? value))
                         {
+                            if (fe.Tag?.ToString() == "nv") continue;
                             var width = value.Width;
                             if (double.IsNaN(width))
                                 width = 0;
@@ -428,6 +431,7 @@ namespace neo_bpsys_wpf.Services
                 {
                     if (child is FrameworkElement fe && positions.TryGetValue(fe.Name, out ElementInfo? value))
                     {
+                        if (fe.Tag?.ToString() == "nv") continue;
                         var width = value.Width;
                         if (double.IsNaN(width))
                             width = 0;

@@ -10,7 +10,7 @@
     <cv:DoubleToThicknessConverter x:Key="DoubleToThicknessConverter" />
     <cv:CharacterChangerCommandParameterConverter x:Key="CharacterChangerCommandParameterConverter" />
     <Style TargetType="{x:Type control:CharacterChanger}">
-        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="Focusable" Value="False" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type control:CharacterChanger}">
@@ -37,6 +37,25 @@
                             CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource CharacterChangerCommandParameterConverter}, ConverterParameter={StaticResource IndexToButton3ContentConverter}}"
                             Content="{TemplateBinding Index,
                                                       Converter={StaticResource IndexToButton3ContentConverter}}" />
+                        <StackPanel.Resources>
+                            <Style TargetType="StackPanel">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=IsHighlighted}" Value="true">
+                                        <Setter Property="Effect">
+                                            <Setter.Value>
+                                                <DropShadowEffect
+                                                    BlurRadius="20"
+                                                    Direction="0"
+                                                    Opacity="0.8"
+                                                    RenderingBias="Quality"
+                                                    ShadowDepth="0"
+                                                    Color="Gold" />
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Resources>
                     </StackPanel>
                 </ControlTemplate>
             </Setter.Value>

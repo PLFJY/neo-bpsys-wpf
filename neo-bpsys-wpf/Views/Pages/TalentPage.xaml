@@ -66,8 +66,7 @@
                     CharacterName="{Binding CurrentGame.HunPlayer.Character.Name, Mode=OneWay}"
                     IsHighlighted="{Binding IsHunTalentHighlighted}"
                     IsTypeHun="True"
-                    Player="{Binding CurrentGame.HunPlayer}">
-                </cc:TalentPicker>
+                    Player="{Binding CurrentGame.HunPlayer}" />
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">
@@ -134,6 +133,14 @@
                         ImageSource="{DynamicResource Warp}"
                         IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:Trait.移形}}"
                         TagName="移形" />
+                    <i:Interaction.Triggers>
+                        <i:DataTrigger Binding="{Binding IsHunTalentHighlighted}" Value="true">
+                            <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedWrapPanel}" />
+                        </i:DataTrigger>
+                        <i:DataTrigger Binding="{Binding IsHunTalentHighlighted}" Value="false">
+                            <i:ChangePropertyAction PropertyName="Style" Value="{x:Null}" />
+                        </i:DataTrigger>
+                    </i:Interaction.Triggers>
                 </WrapPanel>
             </Grid>
         </Border>

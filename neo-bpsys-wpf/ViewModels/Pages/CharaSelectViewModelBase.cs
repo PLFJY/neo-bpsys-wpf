@@ -26,9 +26,11 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
         public int Index { get; }
 
-        [ObservableProperty] private Character? _selectedChara;
+        [ObservableProperty] 
+        private Character? _selectedChara;
 
-        [ObservableProperty] private ImageSource? _previewImage;
+        [ObservableProperty] 
+        private ImageSource? _previewImage;
 
         private bool _isEnabled = true;
 
@@ -43,7 +45,11 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
         }
 
-        [ObservableProperty] private bool _isHighlighted = false;
+        [ObservableProperty] 
+        private bool _isHighlighted = false;
+        
+        [ObservableProperty] 
+        private bool _isCharaChangerHighlighted = false;
 
         public Dictionary<string, Character> CharaList { get; set; } = [];
 
@@ -83,6 +89,8 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             {
                 IsHighlighted = false;
             }
+            
+            IsCharaChangerHighlighted = message.GameAction == GameAction.DistributeChara;
         }
     }
 }

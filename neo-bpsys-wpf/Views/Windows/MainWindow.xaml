@@ -179,6 +179,7 @@
                                 Width="100"
                                 d:Text="30"
                                 IsEditable="True"
+                                IsTextSearchEnabled="False"
                                 ItemsSource="{Binding RecommendTimmerList}"
                                 MaxDropDownHeight="150"
                                 SelectedIndex="0"
@@ -279,7 +280,16 @@
                     Margin="0,0,10,10"
                     Command="{Binding StopNavigationCommand}"
                     Content="结束对局引导"
-                    Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <i:Interaction.Triggers>
+                        <i:DataTrigger Binding="{Binding IsEndGuidanceHighlighted}" Value="true">
+                            <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedButton}" />
+                        </i:DataTrigger>
+                        <i:DataTrigger Binding="{Binding IsEndGuidanceHighlighted}" Value="false">
+                            <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource {x:Type Button}}" />
+                        </i:DataTrigger>
+                    </i:Interaction.Triggers>
+                </ui:Button>
                 <TextBlock
                     Margin="0,0,10,10"
                     VerticalAlignment="Center"

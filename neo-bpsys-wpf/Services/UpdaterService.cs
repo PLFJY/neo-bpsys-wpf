@@ -92,7 +92,7 @@ namespace neo_bpsys_wpf.Services
 
             await Application.Current.Dispatcher.InvokeAsync(async () =>
             {
-                if (await _messageBoxService.ShowConfirmAsync("下载完成", "下载提示", "安装"))
+                if (await _messageBoxService.ShowConfirmAsync("下载提示", "下载完成", "安装"))
                 {
                     InstallUpdate();
                 }
@@ -127,7 +127,7 @@ namespace neo_bpsys_wpf.Services
             }
             if (!isinitial)
             {
-                await _messageBoxService.ShowInfoAsync("更新检查", "当前已是最新版本");
+                await _messageBoxService.ShowInfoAsync("当前已是最新版本", "更新检查"); 
             }
             return false;
         }

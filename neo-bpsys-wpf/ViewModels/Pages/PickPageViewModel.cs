@@ -103,11 +103,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             {
                 for (var i = 0; i < SurPickingBorderList.Count; i++)
                 {
-                    if(SurPickingBorderList[i])
-                    {
-                        SurPickingBorderList[i] = false;
-                        PickingBorderSwitch(i.ToString());
-                    }
+                    if (!SurPickingBorderList[i]) continue;
+                    SurPickingBorderList[i] = false;
+                    PickingBorderSwitch(i.ToString());
                 }
             }
 
@@ -118,13 +116,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
             else
             {
-                if (HunPickingBorder)
-                {
-                    HunPickingBorder = false;
-                    PickingBorderSwitch("Hun");
-                }
+                if (!HunPickingBorder) return;
+                HunPickingBorder = false;
+                PickingBorderSwitch("Hun");
             }
-            
         }
 
         public ObservableCollection<bool> SurPickingBorderList { get; set; } = [.. Enumerable.Range(0, 4).Select(i => false)];
