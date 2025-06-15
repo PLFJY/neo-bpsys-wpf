@@ -57,7 +57,7 @@ namespace neo_bpsys_wpf.Services
             { GameAction.PickHunTalent, "选择监管者天赋" }
         };
 
-        private int _currentStep = 0;
+        private int _currentStep = -1;
 
         private bool _isGuidanceStarted = false;
 
@@ -117,7 +117,7 @@ namespace neo_bpsys_wpf.Services
             
             if (_currentGameProperty != null)
             {
-                _currentStep = 0;
+                _currentStep = -1;
                 _sharedDataService.SetBanCount(BanListName.CanCurrentSurBanned, _currentGameProperty.SurCurrentBan);
                 _sharedDataService.SetBanCount(BanListName.CanCurrentHunBanned, _currentGameProperty.HunCurrentBan);
                 _sharedDataService.SetBanCount(BanListName.CanGlobalSurBanned, _currentGameProperty.SurGlobalBan);
