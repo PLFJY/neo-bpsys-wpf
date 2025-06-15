@@ -16,5 +16,6 @@ public enum GameAction
     PickHun,
     PickSurTalent,
     PickHunTalent,
+    DistributeChara,
     EndGuidance
 }

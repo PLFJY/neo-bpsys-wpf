@@ -8,51 +8,67 @@
       {
         "Action": "BanMap",
         "Index": [ 1 ],
-        "Time" : null
+        "Time": null
       },
       {
         "Action": "PickMap",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": null
       },
       {
         "Action": "PickCamp",
-        "Index": [ 1 ]
+        "Index": [ 1 ],
+        "Time": null
       },
       {
         "Action": "BanSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "PickSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "BanSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
+      },
+      {
+        "Action": "DistributeChara",
+        "Index": null,
+        "Time": 30
       },
       {
         "Action": "PickSurTalent",
-        "Index": null
+        "Index": null,
+        "Time": 60
       },
       {
         "Action": "PickHun",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": 30
       },
       {
         "Action": "PickHunTalent",
-        "Index": null
+        "Index": null,
+        "Time": 40
       }
     ]
   },
@@ -64,39 +80,53 @@
     "WorkFlow": [
       {
         "Action": "BanSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "PickSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "BanSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
+      },
+      {
+        "Action": "DistributeChara",
+        "Index": null,
+        "Time": 30
       },
       {
         "Action": "PickSurTalent",
-        "Index": null
+        "Index": null,
+        "Time": 60
       },
       {
         "Action": "PickHun",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": 30
       },
       {
         "Action": "PickHunTalent",
-        "Index": null
+        "Index": null,
+        "Time": 40
       }
     ]
   },
@@ -108,55 +138,73 @@
     "WorkFlow": [
       {
         "Action": "BanMap",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": null
       },
       {
         "Action": "PickMap",
-        "Index": [ 1 ]
+        "Index": [ 1 ],
+        "Time": null
       },
       {
         "Action": "PickCamp",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": null
       },
       {
         "Action": "BanSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanHun",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": 60
       },
       {
         "Action": "PickSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "BanSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
+      },
+      {
+        "Action": "DistributeChara",
+        "Index": null,
+        "Time": 30
       },
       {
         "Action": "PickSurTalent",
-        "Index": null
+        "Index": null,
+        "Time": 60
       },
       {
         "Action": "PickHun",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": 30
       },
       {
         "Action": "PickHunTalent",
-        "Index": null
+        "Index": null,
+        "Time": 40
       }
     ]
   },
@@ -168,43 +216,58 @@
     "WorkFlow": [
       {
         "Action": "BanSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanHun",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": 60
       },
       {
         "Action": "PickSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "BanSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
+      },
+      {
+        "Action": "DistributeChara",
+        "Index": null,
+        "Time": 30
       },
       {
         "Action": "PickSurTalent",
-        "Index": null
+        "Index": null,
+        "Time": 60
       },
       {
         "Action": "PickHun",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": 30
       },
       {
         "Action": "PickHunTalent",
-        "Index": null
+        "Index": null,
+        "Time": 40
       }
     ]
   },
@@ -216,51 +279,68 @@
     "WorkFlow": [
       {
         "Action": "PickMap",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": null
       },
       {
         "Action": "PickCamp",
-        "Index": [ 1 ]
+        "Index": [ 1 ],
+        "Time": null
       },
       {
         "Action": "BanSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanHun",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "PickSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "BanSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
+      },
+      {
+        "Action": "DistributeChara",
+        "Index": null,
+        "Time": 30
       },
       {
         "Action": "PickSurTalent",
-        "Index": null
+        "Index": null,
+        "Time": 60
       },
       {
         "Action": "PickHun",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": 30
       },
       {
         "Action": "PickHunTalent",
-        "Index": null
+        "Index": null,
+        "Time": 40
       }
     ]
   },
@@ -272,43 +352,58 @@
     "WorkFlow": [
       {
         "Action": "BanSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanHun",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "PickSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "BanSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
+      },
+      {
+        "Action": "DistributeChara",
+        "Index": null,
+        "Time": 30
       },
       {
         "Action": "PickSurTalent",
-        "Index": null
+        "Index": null,
+        "Time": 60
       },
       {
         "Action": "PickHun",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": 30
       },
       {
         "Action": "PickHunTalent",
-        "Index": null
+        "Index": null,
+        "Time": 40
       }
     ]
   },
@@ -320,51 +415,68 @@
     "WorkFlow": [
       {
         "Action": "PickMap",
-        "Index": [ 1 ]
+        "Index": [ 1 ],
+        "Time": null
       },
       {
         "Action": "PickCamp",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": null
       },
       {
         "Action": "BanSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanHun",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "PickSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "BanSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
+      },
+      {
+        "Action": "DistributeChara",
+        "Index": null,
+        "Time": 30
       },
       {
         "Action": "PickSurTalent",
-        "Index": null
+        "Index": null,
+        "Time": 60
       },
       {
         "Action": "PickHun",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": 30
       },
       {
         "Action": "PickHunTalent",
-        "Index": null
+        "Index": null,
+        "Time": 40
       }
     ]
   },
@@ -376,43 +488,58 @@
     "WorkFlow": [
       {
         "Action": "BanSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanHun",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "PickSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "BanSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
+      },
+      {
+        "Action": "DistributeChara",
+        "Index": null,
+        "Time": 30
       },
       {
         "Action": "PickSurTalent",
-        "Index": null
+        "Index": null,
+        "Time": 60
       },
       {
         "Action": "PickHun",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": 30
       },
       {
         "Action": "PickHunTalent",
-        "Index": null
+        "Index": null,
+        "Time": 40
       }
     ]
   },
@@ -424,51 +551,68 @@
     "WorkFlow": [
       {
         "Action": "PickMap",
-        "Index": [ 1 ]
+        "Index": [ 1 ],
+        "Time": null
       },
       {
         "Action": "PickCamp",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": null
       },
       {
         "Action": "BanSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanHun",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "PickSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "BanSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
+      },
+      {
+        "Action": "DistributeChara",
+        "Index": null,
+        "Time": 30
       },
       {
         "Action": "PickSurTalent",
-        "Index": null
+        "Index": null,
+        "Time": 60
       },
       {
         "Action": "PickHun",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": 30
       },
       {
         "Action": "PickHunTalent",
-        "Index": null
+        "Index": null,
+        "Time": 40
       }
     ]
   },
@@ -480,43 +624,58 @@
     "WorkFlow": [
       {
         "Action": "BanSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanHun",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "PickSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "BanSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
+      },
+      {
+        "Action": "DistributeChara",
+        "Index": null,
+        "Time": 30
       },
       {
         "Action": "PickSurTalent",
-        "Index": null
+        "Index": null,
+        "Time": 60
       },
       {
         "Action": "PickHun",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": 30
       },
       {
         "Action": "PickHunTalent",
-        "Index": null
+        "Index": null,
+        "Time": 40
       }
     ]
   },
@@ -528,51 +687,68 @@
     "WorkFlow": [
       {
         "Action": "PickMap",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": null
       },
       {
         "Action": "PickCamp",
-        "Index": [ 1 ]
+        "Index": [ 1 ],
+        "Time": null
       },
       {
         "Action": "BanSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanHun",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "PickSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "BanSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
+      },
+      {
+        "Action": "DistributeChara",
+        "Index": null,
+        "Time": 30
       },
       {
         "Action": "PickSurTalent",
-        "Index": null
+        "Index": null,
+        "Time": 60
       },
       {
         "Action": "PickHun",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": 30
       },
       {
         "Action": "PickHunTalent",
-        "Index": null
+        "Index": null,
+        "Time": 40
       }
     ]
   },
@@ -584,43 +760,58 @@
     "WorkFlow": [
       {
         "Action": "BanSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanHun",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "PickSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "BanSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
+      },
+      {
+        "Action": "DistributeChara",
+        "Index": null,
+        "Time": 30
       },
       {
         "Action": "PickSurTalent",
-        "Index": null
+        "Index": null,
+        "Time": 60
       },
       {
         "Action": "PickHun",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": 30
       },
       {
         "Action": "PickHunTalent",
-        "Index": null
+        "Index": null,
+        "Time": 40
       }
     ]
   },
@@ -632,47 +823,63 @@
     "WorkFlow": [
       {
         "Action": "PickMap",
-        "Index": [ 1 ]
+        "Index": [ 1 ],
+        "Time": null
       },
       {
         "Action": "PickCamp",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": null
       },
       {
         "Action": "BanSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanHun",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "PickSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "BanSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
+      },
+      {
+        "Action": "DistributeChara",
+        "Index": null,
+        "Time": 30
       },
       {
         "Action": "PickSurTalent",
-        "Index": null
+        "Index": null,
+        "Time": 60
       },
       {
         "Action": "PickHun",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": 30
       }
     ]
   },
@@ -684,39 +891,53 @@
     "WorkFlow": [
       {
         "Action": "BanSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanHun",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "PickSur",
-        "Index": [ 0, 1 ]
+        "Index": [ 0, 1 ],
+        "Time": 60
       },
       {
         "Action": "BanSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 2 ]
+        "Index": [ 2 ],
+        "Time": 30
       },
       {
         "Action": "BanSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
       },
       {
         "Action": "PickSur",
-        "Index": [ 3 ]
+        "Index": [ 3 ],
+        "Time": 30
+      },
+      {
+        "Action": "DistributeChara",
+        "Index": null,
+        "Time": 30
       },
       {
         "Action": "PickSurTalent",
-        "Index": null
+        "Index": null,
+        "Time": 60
       },
       {
         "Action": "PickHun",
-        "Index": [ 0 ]
+        "Index": [ 0 ],
+        "Time": 30
       }
     ]
   }

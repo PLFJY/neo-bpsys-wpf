@@ -51,5 +51,17 @@ namespace neo_bpsys_wpf.CustomControls
             get => (double)GetValue(SpacingProperty);
             set => SetValue(SpacingProperty, value);
         }
+
+        public bool IsHighlighted
+        {
+            get { return (bool)GetValue(IsHighlightedProperty); }
+            set { SetValue(IsHighlightedProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for IsHighlighted.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IsHighlightedProperty =
+            DependencyProperty.Register("IsHighlighted", typeof(bool), typeof(CharacterChanger), new PropertyMetadata(false));
+
+
     }
 }

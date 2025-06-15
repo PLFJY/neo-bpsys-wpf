@@ -195,9 +195,9 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         }
 
         [RelayCommand]
-        private void StartNavigation()
+        private async Task StartNavigationAsync()
         {
-            var result = _gameGuidanceService.StartGuidance();
+            var result = await _gameGuidanceService.StartGuidance();
             if(string.IsNullOrEmpty(result)) return;
             ActionName = result;
             IsGuidanceStarted = true;

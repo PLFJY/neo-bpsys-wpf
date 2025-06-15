@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Exceptions;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Messages;
+using System.Threading.Tasks;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -39,6 +40,7 @@ namespace neo_bpsys_wpf.Services
             { GameAction.BanSur, typeof(BanSurPage) },
             { GameAction.BanHun, typeof(BanHunPage) },
             { GameAction.PickSur, typeof(PickPage) },
+            { GameAction.DistributeChara, typeof(PickPage) },
             { GameAction.PickHun, typeof(PickPage) },
             { GameAction.PickSurTalent, typeof(TalentPage) },
             { GameAction.PickHunTalent, typeof(TalentPage) }
@@ -52,6 +54,7 @@ namespace neo_bpsys_wpf.Services
             { GameAction.BanSur, "禁用求生者" },
             { GameAction.BanHun, "禁用监管者" },
             { GameAction.PickSur, "选择求生者" },
+            { GameAction.DistributeChara, "分配角色" },
             { GameAction.PickHun, "选择监管者" },
             { GameAction.PickSurTalent, "选择求生者天赋" },
             { GameAction.PickHunTalent, "选择监管者天赋" }
@@ -98,7 +101,7 @@ namespace neo_bpsys_wpf.Services
             return content[gameProgress];
         }
 
-        public string? StartGuidance()
+        public async Task<string?> StartGuidance()
         {
             var returnValue = "当前步骤: ";
             if (IsGuidanceStarted)
@@ -117,7 +120,7 @@ namespace neo_bpsys_wpf.Services
             }
             catch (Exception ex)
             {
-                _messageBoxService.ShowErrorAsync($"对局规则文件状态异常\n{ex}");
+                await _messageBoxService.ShowErrorAsync($"对局规则文件状态异常\n{ex}");
                 return null;
             }
             
@@ -129,10 +132,10 @@ namespace neo_bpsys_wpf.Services
                 _sharedDataService.SetBanCount(BanListName.CanGlobalSurBanned, _currentGameProperty.SurGlobalBan);
                 _sharedDataService.SetBanCount(BanListName.CanGlobalHunBanned, _currentGameProperty.HunGlobalBan);
                 IsGuidanceStarted = true;
-                returnValue += "无";
+                returnValue = await NextStepAsync();
             }
             else
-                _messageBoxService.ShowErrorAsync("对局规则文件状态异常");
+                await _messageBoxService.ShowErrorAsync("对局规则文件状态异常");
 
             return returnValue;
         }
@@ -168,6 +171,7 @@ namespace neo_bpsys_wpf.Services
                     if (thisStep.Action != GameAction.PickCamp)
                         _navigationService.Navigate(_actionToPage[thisStep.Action]);
 
+                    _sharedDataService.TimerStart(thisStep.Time);
                     await Task.Delay(250);
                     WeakReferenceMessenger.Default.Send(new HighlightMessage(thisStep.Action, thisStep.Index));
                     returnValue += ActionName[thisStep.Action];
@@ -205,6 +209,7 @@ namespace neo_bpsys_wpf.Services
                     if (thisStep.Action != GameAction.PickCamp)
                         _navigationService.Navigate(_actionToPage[thisStep.Action]);
 
+                    _sharedDataService.TimerStart(thisStep.Time);
                     await Task.Delay(250);
                     WeakReferenceMessenger.Default.Send(new HighlightMessage(thisStep.Action, thisStep.Index));
                     returnValue += ActionName[thisStep.Action];

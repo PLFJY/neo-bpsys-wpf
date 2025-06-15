@@ -58,7 +58,10 @@
                                     IsHighlighted="{Binding IsHighlighted}"
                                     ItemsSource="{Binding CharaList}"
                                     SelectedValue="{Binding SelectedChara}" />
-                                <cc:CharacterChanger Command="{Binding SwapCharacterInPlayersCommand}" Index="{Binding Index}" />
+                                <cc:CharacterChanger
+                                    Command="{Binding SwapCharacterInPlayersCommand}"
+                                    Index="{Binding Index}"
+                                    IsHighlighted="{Binding IsCharaChangerHighlighted}" />
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
