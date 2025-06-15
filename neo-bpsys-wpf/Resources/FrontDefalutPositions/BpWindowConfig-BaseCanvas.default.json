@@ -65,18 +65,6 @@
     "Left": 63,
     "Top": 566
   },
-  "HunBanCurrentLock0": {
-    "Width": 43,
-    "Height": 43,
-    "Left": 13,
-    "Top": 566
-  },
-  "HunBanCurrentLock1": {
-    "Width": 43,
-    "Height": 43,
-    "Left": 63,
-    "Top": 566
-  },
   "SurBanCurrent3": {
     "Width": 43,
     "Height": 43,
@@ -101,30 +89,6 @@
     "Left": 1379,
     "Top": 566
   },
-  "SurBanCurrentLock3": {
-    "Width": 43,
-    "Height": 43,
-    "Left": 1231,
-    "Top": 566
-  },
-  "SurBanCurrentLock2": {
-    "Width": 43,
-    "Height": 43,
-    "Left": 1281,
-    "Top": 566
-  },
-  "SurBanCurrentLock1": {
-    "Width": 43,
-    "Height": 43,
-    "Left": 1329,
-    "Top": 566
-  },
-  "SurBanCurrentLock0": {
-    "Width": 43,
-    "Height": 43,
-    "Left": 1379,
-    "Top": 566
-  },
   "SurPick0": {
     "Width": 140,
     "Height": 159,
@@ -132,7 +96,7 @@
     "Top": 619
   },
   "SurPick1": {
-    "Width": 142,
+    "Width": 140,
     "Height": 159,
     "Left": 141,
     "Top": 619
@@ -144,7 +108,31 @@
     "Top": 619
   },
   "SurPick3": {
-    "Width": 142,
+    "Width": 140,
+    "Height": 159,
+    "Left": 424,
+    "Top": 619
+  },
+  "SurPickingBorder0": {
+    "Width": 140,
+    "Height": 159,
+    "Left": 0,
+    "Top": 619
+  },
+  "SurPickingBorder1": {
+    "Width": 140,
+    "Height": 159,
+    "Left": 141,
+    "Top": 619
+  },
+  "SurPickingBorder2": {
+    "Width": 140,
+    "Height": 159,
+    "Left": 284,
+    "Top": 619
+  },
+  "SurPickingBorder3": {
+    "Width": 140,
     "Height": 159,
     "Left": 424,
     "Top": 619
@@ -180,24 +168,6 @@
     "Top": 746
   },
   "HunGlobalBan2": {
-    "Width": 30,
-    "Height": 30,
-    "Left": 738,
-    "Top": 746
-  },
-  "HunGlobalBanLock0": {
-    "Width": 30,
-    "Height": 30,
-    "Left": 672,
-    "Top": 746
-  },
-  "HunGlobalBanLock1": {
-    "Width": 30,
-    "Height": 30,
-    "Left": 705,
-    "Top": 746
-  },
-  "HunGlobalBanLock2": {
     "Width": 30,
     "Height": 30,
     "Left": 738,
@@ -257,61 +227,13 @@
     "Left": 840,
     "Top": 778.5
   },
-  "SurGlobalBanLock0": {
-    "Width": 30,
-    "Height": 30,
-    "Left": 571,
-    "Top": 778.5
-  },
-  "SurGlobalBanLock1": {
-    "Width": 30,
-    "Height": 30,
-    "Left": 605,
-    "Top": 778.5
-  },
-  "SurGlobalBanLock2": {
-    "Width": 30,
-    "Height": 30,
-    "Left": 638,
-    "Top": 778.5
-  },
-  "SurGlobalBanLock3": {
-    "Width": 30,
-    "Height": 30,
-    "Left": 671,
-    "Top": 778.5
-  },
-  "SurGlobalBanLock4": {
-    "Width": 30,
-    "Height": 30,
-    "Left": 705,
-    "Top": 778.5
-  },
-  "SurGlobalBanLock5": {
-    "Width": 30,
-    "Height": 30,
-    "Left": 739,
-    "Top": 778.5
-  },
-  "SurGlobalBanLock6": {
-    "Width": 30,
-    "Height": 30,
-    "Left": 772,
-    "Top": 778.5
-  },
-  "SurGlobalBanLock7": {
-    "Width": 30,
-    "Height": 30,
-    "Left": 806,
-    "Top": 778.5
-  },
-  "SurGlobalBanLock8": {
-    "Width": 30,
-    "Height": 30,
-    "Left": 840,
-    "Top": 778.5
-  },
   "HunPick": {
+    "Width": 565,
+    "Height": 161,
+    "Left": 875,
+    "Top": 617
+  },
+  "HunPickingBorder": {
     "Width": 565,
     "Height": 161,
     "Left": 875,
