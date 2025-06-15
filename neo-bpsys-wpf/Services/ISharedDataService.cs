@@ -72,7 +72,7 @@ namespace neo_bpsys_wpf.Services
         /// 倒计时开始
         /// </summary>
         /// <param name="seconds"></param>
-        void TimerStart(int seconds);
+        void TimerStart(int? seconds);
         /// <summary>
         /// 倒计时停止
         /// </summary>

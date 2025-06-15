@@ -105,13 +105,19 @@ namespace neo_bpsys_wpf.Services
             {
                 _infoBarService.ShowWarningInfoBar("对局已开始");
             }
+
             try
             {
                 _currentGameProperty = ReadGamePropertyFromFileAsync(_sharedDataService.CurrentGame.GameProgress);
             }
-            catch
+            catch (GuidanceNotSupportedException)
             {
                 _infoBarService.ShowWarningInfoBar("自由对局不支持引导");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _messageBoxService.ShowErrorAsync($"对局规则文件状态异常\n{ex}");
                 return null;
             }
             
@@ -126,7 +132,7 @@ namespace neo_bpsys_wpf.Services
                 returnValue += "无";
             }
             else
-                _messageBoxService.ShowErrorAsync("对局文件状态异常");
+                _messageBoxService.ShowErrorAsync("对局规则文件状态异常");
 
             return returnValue;
         }
@@ -169,6 +175,7 @@ namespace neo_bpsys_wpf.Services
                 else
                 {
                     _infoBarService.ShowInformationalInfoBar("已经是最后一步");
+                    WeakReferenceMessenger.Default.Send(new HighlightMessage(GameAction.EndGuidance, null));
                     returnValue += "无";
                 }
             }
@@ -230,6 +237,7 @@ namespace neo_bpsys_wpf.Services
         {
             public GameAction Action { get; set; }
             public List<int> Index { get; set; } = [];
+            public int? Time { get; set; }
         }
     }
 }

@@ -215,12 +215,14 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         private async Task NavigateToNextStepAsync()
         {
             ActionName = await _gameGuidanceService.NextStepAsync();
+            await Task.Delay(250);
         }
 
         [RelayCommand]
         private async Task NavigateToPreviousStepAsync()
         {
             ActionName = await _gameGuidanceService.PrevStepAsync();
+            await Task.Delay(250);
         }
 
         public void Receive(NewGameMessage message)
@@ -279,10 +281,13 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         [ObservableProperty] 
         private bool _isSwapHighlighted = false;
-        
+
+        [ObservableProperty]
+        private bool _isEndGuidanceHighlighted = false;
         public void Receive(HighlightMessage message)
         {
             IsSwapHighlighted = message.GameAction == GameAction.PickCamp;
+            IsEndGuidanceHighlighted = message.GameAction == GameAction.EndGuidance;
         }
 
         public string TimerTime { get; set; } = "30";

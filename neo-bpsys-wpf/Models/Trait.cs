@@ -20,10 +20,7 @@ public class Trait
     {
         get
         {
-            if(_image == null)
-            {
-                _image = ImageHelper.GetImageSourceFromName(Enums.ImageSourceKey.trait, TraitName.ToString());
-            }
+            _image ??= ImageHelper.GetImageSourceFromName(ImageSourceKey.trait, TraitName.ToString());
             return _image;
         }
     }
@@ -31,5 +28,6 @@ public class Trait
     public Trait(Enums.Trait? trait)
     {
         if (trait == null) return;
+        TraitName = trait;
     }
 }
