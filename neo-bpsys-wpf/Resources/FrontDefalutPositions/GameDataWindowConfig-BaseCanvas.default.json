@@ -6,14 +6,14 @@
     "Top": 172
   },
   "SurTeamMajorPoint": {
-    "Width": 0,
-    "Height": 0,
+    "Width": null,
+    "Height": null,
     "Left": 285,
     "Top": 229
   },
   "SurTeamName": {
     "Width": 290,
-    "Height": 0,
+    "Height": null,
     "Left": 186,
     "Top": 176
   },
@@ -55,13 +55,13 @@
   },
   "HunTeamName": {
     "Width": 302,
-    "Height": 0,
+    "Height": null,
     "Left": 976,
     "Top": 176
   },
   "HunTeamMajorPoint": {
-    "Width": 0,
-    "Height": 0,
+    "Width": null,
+    "Height": null,
     "Left": 1081,
     "Top": 229
   },

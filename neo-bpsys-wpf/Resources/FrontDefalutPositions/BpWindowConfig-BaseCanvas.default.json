@@ -6,14 +6,14 @@
     "Top": 10
   },
   "SurTeamMajorPoint": {
-    "Width": 0,
-    "Height": 0,
+    "Width": null,
+    "Height": null,
     "Left": 175,
     "Top": 38
   },
   "SurTeamName": {
     "Width": 207,
-    "Height": 0,
+    "Height": null,
     "Left": 297,
     "Top": 32
   },
@@ -25,7 +25,7 @@
   },
   "Timer": {
     "Width": 100,
-    "Height": 0,
+    "Height": null,
     "Left": 671,
     "Top": 23
   },
@@ -37,13 +37,13 @@
   },
   "HunTeamName": {
     "Width": 207,
-    "Height": 0,
+    "Height": null,
     "Left": 936,
     "Top": 32
   },
   "HunTeamMajorPoint": {
-    "Width": 0,
-    "Height": 0,
+    "Width": null,
+    "Height": null,
     "Left": 1173,
     "Top": 39
   },
@@ -92,7 +92,7 @@
   "SurPick0": {
     "Width": 140,
     "Height": 159,
-    "Left": 0,
+    "Left": null,
     "Top": 619
   },
   "SurPick1": {
@@ -116,7 +116,7 @@
   "SurPickingBorder0": {
     "Width": 140,
     "Height": 159,
-    "Left": 0,
+    "Left": null,
     "Top": 619
   },
   "SurPickingBorder1": {

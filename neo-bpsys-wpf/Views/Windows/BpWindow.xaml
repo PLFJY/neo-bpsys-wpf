@@ -1,14 +1,7 @@
 <Window
-    Height="810"
-    Style="{StaticResource FrontWindow}"
-    Title="前台-BP"
-    Width="1440"
-    WindowStartupLocation="CenterScreen"
-    d:DataContext="{d:DesignInstance Type=vm:BpWindowViewModel,
-                                     IsDesignTimeCreatable=True}"
-    mc:Ignorable="d"
     x:Class="neo_bpsys_wpf.Views.Windows.BpWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ab="clr-namespace:neo_bpsys_wpf.AttachedBehaviors"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -17,15 +10,22 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    Title="前台-BP"
+    Width="1440"
+    Height="810"
+    d:DataContext="{d:DesignInstance Type=vm:BpWindowViewModel,
+                                     IsDesignTimeCreatable=True}"
+    Style="{StaticResource FrontWindow}"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
     <Window.Resources>
         <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
         <cv:GameProgressToStringConverter x:Key="GameProgressToStringConverter" />
     </Window.Resources>
     <Canvas
-        Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}"
         Name="BaseCanvas"
-        Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}">
+        Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}"
+        Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
         <Canvas.Background>
             <ImageBrush d:ImageSource="/Assets/bp.png" />
         </Canvas.Background>
@@ -36,7 +36,7 @@
             <Style TargetType="Image">
                 <Setter Property="Stretch" Value="UniformToFill" />
             </Style>
-            <Style TargetType="TextBlock" x:Key="PlayerId">
+            <Style x:Key="PlayerId" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="16" />
                 <Setter Property="FontFamily" Value="{StaticResource SourceHan}" />
                 <Setter Property="HorizontalAlignment" Value="Left" />
@@ -46,359 +46,359 @@
         </Canvas.Resources>
         <!--  Top bar  -->
         <ui:Image
+            Name="SurTeamLogo"
             Canvas.Left="42"
             Canvas.Top="10"
-            CornerRadius="8"
-            Height="85"
-            Name="SurTeamLogo"
-            Source="{Binding CurrentGame.SurTeam.Logo}"
-            Stretch="Fill"
             Width="85"
+            Height="85"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/TestLogo.JPG" />
+            d:Source="/Assets/TestLogo.JPG"
+            CornerRadius="8"
+            Source="{Binding CurrentGame.SurTeam.Logo}"
+            Stretch="Fill" />
         <TextBlock
+            Name="SurTeamMajorPoint"
             Canvas.Left="175"
             Canvas.Top="38"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:Text="W0 D0"
             FontFamily="Arial"
             FontSize="28"
             FontWeight="Bold"
-            Name="SurTeamMajorPoint"
             Text="{Binding CurrentGame.SurTeam.Score.MajorPointsOnFront}"
-            TextAlignment="Center"
-            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Text="W0 D0" />
+            TextAlignment="Center" />
         <TextBlock
+            Name="SurTeamName"
             Canvas.Left="297"
             Canvas.Top="32"
-            FontFamily="{StaticResource SourceHan}"
-            FontSize="28"
-            Name="SurTeamName"
-            Text="{Binding CurrentGame.SurTeam.Name}"
-            TextAlignment="Center"
-            TextWrapping="WrapWithOverflow"
             Width="207"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Text="求生者队伍名称" />
+            d:Text="求生者队伍名称"
+            FontFamily="{StaticResource SourceHan}"
+            FontSize="28"
+            Text="{Binding CurrentGame.SurTeam.Name}"
+            TextAlignment="Center"
+            TextWrapping="WrapWithOverflow" />
         <TextBlock
+            Name="MinorPointsSur"
             Canvas.Left="541"
             Canvas.Top="29"
+            Width="52"
+            Height="62"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:Text="0"
             FontFamily="{StaticResource POP1W5}"
             FontSize="50"
             FontWeight="Bold"
-            Height="62"
-            Name="MinorPointsSur"
             Text="{Binding CurrentGame.SurTeam.Score.MinorPoints}"
-            TextAlignment="Center"
-            Width="52"
-            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Text="0" />
+            TextAlignment="Center" />
         <Border
+            Name="Timer"
             Canvas.Left="671"
             Canvas.Top="23"
-            Name="Timer"
             Width="100"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
             <TextBlock
+                HorizontalAlignment="Center"
+                d:Text="VS"
                 FontFamily="{StaticResource POP1W5}"
                 FontSize="58"
                 FontWeight="Bold"
-                HorizontalAlignment="Center"
                 Text="{Binding RemainingSeconds}"
-                TextAlignment="Center"
-                d:Text="VS" />
+                TextAlignment="Center" />
         </Border>
         <TextBlock
+            Name="MinorPointsHun"
             Canvas.Left="852"
             Canvas.Top="29"
+            Width="52"
+            Height="62"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:Text="0"
             FontFamily="{StaticResource POP1W5}"
             FontSize="50"
             FontWeight="Bold"
-            Height="62"
-            Name="MinorPointsHun"
             Text="{Binding CurrentGame.HunTeam.Score.MinorPoints}"
-            TextAlignment="Center"
-            Width="52"
-            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Text="0" />
+            TextAlignment="Center" />
         <TextBlock
+            Name="HunTeamName"
             Canvas.Left="936"
             Canvas.Top="32"
-            FontFamily="{StaticResource SourceHan}"
-            FontSize="28"
-            Name="HunTeamName"
-            Text="{Binding CurrentGame.HunTeam.Name}"
-            TextAlignment="Center"
-            TextWrapping="WrapWithOverflow"
             Width="207"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Text="监管者队伍名称" />
+            d:Text="监管者队伍名称"
+            FontFamily="{StaticResource SourceHan}"
+            FontSize="28"
+            Text="{Binding CurrentGame.HunTeam.Name}"
+            TextAlignment="Center"
+            TextWrapping="WrapWithOverflow" />
         <TextBlock
+            Name="HunTeamMajorPoint"
             Canvas.Left="1173"
             Canvas.Top="39"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:Text="W0 D0"
             FontFamily="Arial"
             FontSize="28"
             FontWeight="Bold"
-            Name="HunTeamMajorPoint"
             Text="{Binding CurrentGame.HunTeam.Score.MajorPointsOnFront}"
-            TextAlignment="Center"
-            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Text="W0 D0" />
+            TextAlignment="Center" />
         <ui:Image
+            Name="HunTeamLogo"
             Canvas.Left="1301"
             Canvas.Top="10"
-            CornerRadius="8"
-            Height="85"
-            Name="HunTeamLogo"
-            Source="{Binding CurrentGame.HunTeam.Logo}"
-            Stretch="Fill"
             Width="85"
+            Height="85"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/TestLogo.JPG" />
+            d:Source="/Assets/TestLogo.JPG"
+            CornerRadius="8"
+            Source="{Binding CurrentGame.HunTeam.Logo}"
+            Stretch="Fill" />
 
         <!--  Current Ban  -->
         <!--  Hun Current Ban  -->
         <Image
+            Name="HunBanCurrent0"
             Canvas.Left="13"
             Canvas.Top="566"
-            Height="43"
-            Name="HunBanCurrent0"
-            Source="{Binding CurrentGame.CurrentHunBannedList[0].HeaderImageSingleColor}"
             Width="43"
+            Height="43"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/厂长.png" />
+            d:Source="/Assets/厂长.png"
+            Source="{Binding CurrentGame.CurrentHunBannedList[0].HeaderImageSingleColor}" />
         <Image
+            Name="HunBanCurrent1"
             Canvas.Left="63"
             Canvas.Top="566"
-            Height="43"
-            Name="HunBanCurrent1"
-            Source="{Binding CurrentGame.CurrentHunBannedList[1].HeaderImageSingleColor}"
             Width="43"
+            Height="43"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/厂长.png" />
+            d:Source="/Assets/厂长.png"
+            Source="{Binding CurrentGame.CurrentHunBannedList[1].HeaderImageSingleColor}" />
         <!--  Hun Current Ban Lock  -->
         <Image
+            Name="HunBanCurrentLock0"
             Canvas.Left="{Binding ElementName=HunBanCurrent0, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=HunBanCurrent0, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=HunBanCurrent0, Path=Width}"
             Height="{Binding ElementName=HunBanCurrent0, Path=Height}"
-            Name="HunBanCurrentLock0"
             Panel.ZIndex="1"
             Source="{Binding CurrentBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanCurrentHunBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=HunBanCurrent0, Path=Width}" />
+            Visibility="{Binding CanCurrentHunBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
+            Name="HunBanCurrentLock1"
             Canvas.Left="{Binding ElementName=HunBanCurrent1, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=HunBanCurrent1, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=HunBanCurrent1, Path=Width}"
             Height="{Binding ElementName=HunBanCurrent1, Path=Height}"
-            Name="HunBanCurrentLock1"
             Panel.ZIndex="1"
             Source="{Binding CurrentBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanCurrentHunBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=HunBanCurrent1, Path=Width}" />
+            Visibility="{Binding CanCurrentHunBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <!--  Sur Current Ban  -->
         <Image
+            Name="SurBanCurrent3"
             Canvas.Left="1231"
             Canvas.Top="566"
-            Height="43"
-            Name="SurBanCurrent3"
-            Source="{Binding CurrentGame.CurrentSurBannedList[3].HeaderImageSingleColor}"
             Width="43"
+            Height="43"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png" />
+            d:Source="/Assets/幸运儿.png"
+            Source="{Binding CurrentGame.CurrentSurBannedList[3].HeaderImageSingleColor}" />
         <Image
+            Name="SurBanCurrent2"
             Canvas.Left="1281"
             Canvas.Top="566"
-            Height="43"
-            Name="SurBanCurrent2"
-            Source="{Binding CurrentGame.CurrentSurBannedList[2].HeaderImageSingleColor}"
             Width="43"
+            Height="43"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png" />
+            d:Source="/Assets/幸运儿.png"
+            Source="{Binding CurrentGame.CurrentSurBannedList[2].HeaderImageSingleColor}" />
         <Image
+            Name="SurBanCurrent1"
             Canvas.Left="1329"
             Canvas.Top="566"
-            Height="43"
-            Name="SurBanCurrent1"
-            Source="{Binding CurrentGame.CurrentSurBannedList[1].HeaderImageSingleColor}"
             Width="43"
+            Height="43"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png" />
+            d:Source="/Assets/幸运儿.png"
+            Source="{Binding CurrentGame.CurrentSurBannedList[1].HeaderImageSingleColor}" />
         <Image
+            Name="SurBanCurrent0"
             Canvas.Left="1379"
             Canvas.Top="566"
-            Height="43"
-            Name="SurBanCurrent0"
-            Source="{Binding CurrentGame.CurrentSurBannedList[0].HeaderImageSingleColor}"
             Width="43"
+            Height="43"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png" />
+            d:Source="/Assets/幸运儿.png"
+            Source="{Binding CurrentGame.CurrentSurBannedList[0].HeaderImageSingleColor}" />
         <!--  Sur Current Ban Lock  -->
         <Image
+            Name="SurBanCurrentLock3"
             Canvas.Left="{Binding ElementName=SurBanCurrent3, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurBanCurrent3, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurBanCurrent3, Path=Width}"
             Height="{Binding ElementName=SurBanCurrent3, Path=Height}"
-            Name="SurBanCurrentLock3"
             Panel.ZIndex="1"
             Source="{Binding CurrentBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanCurrentSurBanned[3], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=SurBanCurrent3, Path=Width}" />
+            Visibility="{Binding CanCurrentSurBanned[3], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
+            Name="SurBanCurrentLock2"
             Canvas.Left="{Binding ElementName=SurBanCurrent2, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurBanCurrent2, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurBanCurrent2, Path=Width}"
             Height="{Binding ElementName=SurBanCurrent2, Path=Height}"
-            Name="SurBanCurrentLock2"
             Panel.ZIndex="1"
             Source="{Binding CurrentBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanCurrentSurBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=SurBanCurrent2, Path=Width}" />
+            Visibility="{Binding CanCurrentSurBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
+            Name="SurBanCurrentLock1"
             Canvas.Left="{Binding ElementName=SurBanCurrent1, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurBanCurrent1, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurBanCurrent1, Path=Width}"
             Height="{Binding ElementName=SurBanCurrent1, Path=Height}"
-            Name="SurBanCurrentLock1"
             Panel.ZIndex="1"
             Source="{Binding CurrentBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanCurrentSurBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=SurBanCurrent1, Path=Width}" />
+            Visibility="{Binding CanCurrentSurBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
+            Name="SurBanCurrentLock0"
             Canvas.Left="{Binding ElementName=SurBanCurrent0, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurBanCurrent0, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurBanCurrent0, Path=Width}"
             Height="{Binding ElementName=SurBanCurrent0, Path=Height}"
-            Name="SurBanCurrentLock0"
             Panel.ZIndex="1"
             Source="{Binding CurrentBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanCurrentSurBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=SurBanCurrent0, Path=Width}" />
+            Visibility="{Binding CanCurrentSurBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <!--  Bottom  -->
         <!--  Sur Pick  -->
         <Image
-            Canvas.Top="619"
-            Height="159"
             Name="SurPick0"
-            Source="{Binding CurrentGame.SurPlayerList[0].PictureShown}"
+            Canvas.Top="619"
             Width="140"
+            Height="159"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/医生.png" />
+            d:Source="/Assets/医生.png"
+            Source="{Binding CurrentGame.SurPlayerList[0].PictureShown}" />
         <Image
+            Name="SurPick1"
             Canvas.Left="141"
             Canvas.Top="619"
-            Height="159"
-            Name="SurPick1"
-            Source="{Binding CurrentGame.SurPlayerList[1].PictureShown}"
             Width="140"
+            Height="159"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/医生.png" />
+            d:Source="/Assets/医生.png"
+            Source="{Binding CurrentGame.SurPlayerList[1].PictureShown}" />
         <Image
+            Name="SurPick2"
             Canvas.Left="284"
             Canvas.Top="619"
-            Height="159"
-            Name="SurPick2"
-            Source="{Binding CurrentGame.SurPlayerList[2].PictureShown}"
             Width="140"
+            Height="159"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/医生.png" />
+            d:Source="/Assets/医生.png"
+            Source="{Binding CurrentGame.SurPlayerList[2].PictureShown}" />
         <Image
+            Name="SurPick3"
             Canvas.Left="424"
             Canvas.Top="619"
+            Width="140"
             Height="159"
             HorizontalAlignment="Center"
-            Name="SurPick3"
-            Source="{Binding CurrentGame.SurPlayerList[3].PictureShown}"
-            Width="140"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/医生.png" />
+            d:Source="/Assets/医生.png"
+            Source="{Binding CurrentGame.SurPlayerList[3].PictureShown}" />
         <!--  Sur Picking Border  -->
         <Image
+            Name="SurPickingBorder0"
             Canvas.Left="{Binding ElementName=SurPick0, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurPick0, Path=(Canvas.Top)}"
+            Width="140"
             Height="159"
-            Name="SurPickingBorder0"
+            d:Source="/Assets/pickingBorder.png"
             Source="{Binding PickingBorderSource}"
             Stretch="Fill"
-            Visibility="Hidden"
-            Width="140"
-            d:Source="/Assets/pickingBorder.png" />
+            Visibility="Hidden" />
         <Image
+            Name="SurPickingBorder1"
             Canvas.Left="{Binding ElementName=SurPick1, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurPick1, Path=(Canvas.Top)}"
+            Width="140"
             Height="159"
-            Name="SurPickingBorder1"
+            d:Source="/Assets/pickingBorder.png"
             Source="{Binding PickingBorderSource}"
             Stretch="Fill"
-            Visibility="Hidden"
-            Width="140"
-            d:Source="/Assets/pickingBorder.png" />
+            Visibility="Hidden" />
         <Image
+            Name="SurPickingBorder2"
             Canvas.Left="{Binding ElementName=SurPick2, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurPick2, Path=(Canvas.Top)}"
+            Width="140"
             Height="159"
-            Name="SurPickingBorder2"
+            d:Source="/Assets/pickingBorder.png"
             Source="{Binding PickingBorderSource}"
             Stretch="Fill"
-            Visibility="Hidden"
-            Width="140"
-            d:Source="/Assets/pickingBorder.png" />
+            Visibility="Hidden" />
         <Image
+            Name="SurPickingBorder3"
             Canvas.Left="{Binding ElementName=SurPick3, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurPick3, Path=(Canvas.Top)}"
+            Width="140"
             Height="159"
-            Name="SurPickingBorder3"
+            d:Source="/Assets/pickingBorder.png"
             Source="{Binding PickingBorderSource}"
             Stretch="Fill"
-            Visibility="Hidden"
-            Width="140"
-            d:Source="/Assets/pickingBorder.png" />
+            Visibility="Hidden" />
         <!--  Middle  -->
         <Image
+            Name="Map"
             Canvas.Left="567"
             Canvas.Top="658"
-            Height="81"
-            Name="Map"
-            Source="{Binding CurrentGame.PickedMapImage}"
             Width="306"
+            Height="81"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/map/唐人街.png" />
+            d:Source="/Assets/map/唐人街.png"
+            Source="{Binding CurrentGame.PickedMapImage}" />
         <Border
+            Name="MapName"
             Canvas.Left="567"
             Canvas.Top="709"
+            Width="119"
             Height="30"
             HorizontalAlignment="Left"
-            Name="MapName"
-            Panel.ZIndex="1"
             VerticalAlignment="Center"
-            Width="119"
+            Panel.ZIndex="1"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
             <TextBlock
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                d:Text="唐人街"
                 FontFamily="{StaticResource Hanyi}"
                 FontSize="20"
-                HorizontalAlignment="Right"
-                Text="{Binding CurrentGame.PickedMap}"
-                VerticalAlignment="Center"
-                d:Text="唐人街" />
+                Text="{Binding CurrentGame.PickedMap}" />
         </Border>
         <Border
+            Name="GameProgress"
             Canvas.Left="697"
             Canvas.Top="709"
+            Width="178"
             Height="30"
             HorizontalAlignment="Left"
-            Name="GameProgress"
-            Panel.ZIndex="1"
             VerticalAlignment="Center"
-            Width="178"
+            Panel.ZIndex="1"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
             <TextBlock
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                d:Text="GAME3 EXTRA FIRST HALF"
                 FontFamily="{StaticResource POP1W5}"
                 FontSize="16"
-                HorizontalAlignment="Center"
                 TextOptions.TextFormattingMode="Display"
-                TextOptions.TextRenderingMode="ClearType"
-                VerticalAlignment="Center"
-                d:Text="GAME3 EXTRA FIRST HALF">
+                TextOptions.TextRenderingMode="ClearType">
                 <TextBlock.Text>
                     <MultiBinding Converter="{StaticResource GameProgressToStringConverter}">
                         <Binding Path="CurrentGame.GameProgress" />
@@ -410,312 +410,312 @@
         <!--  Global Ban  -->
         <!--  Hun  -->
         <Image
+            Name="HunGlobalBan0"
             Canvas.Left="672"
             Canvas.Top="746"
-            Height="30"
-            Name="HunGlobalBan0"
-            Source="{Binding CurrentGame.HunTeam.GlobalBannedHunList[0].HeaderImageSingleColor}"
             Width="30"
+            Height="30"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/厂长.png" />
+            d:Source="/Assets/厂长.png"
+            Source="{Binding CurrentGame.HunTeam.GlobalBannedHunList[0].HeaderImageSingleColor}" />
         <Image
+            Name="HunGlobalBan1"
             Canvas.Left="705"
             Canvas.Top="746"
-            Height="30"
-            Name="HunGlobalBan1"
-            Source="{Binding CurrentGame.HunTeam.GlobalBannedHunList[1].HeaderImageSingleColor}"
             Width="30"
+            Height="30"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/厂长.png" />
+            d:Source="/Assets/厂长.png"
+            Source="{Binding CurrentGame.HunTeam.GlobalBannedHunList[1].HeaderImageSingleColor}" />
         <Image
+            Name="HunGlobalBan2"
             Canvas.Left="738"
             Canvas.Top="746"
-            Height="30"
-            Name="HunGlobalBan2"
-            Source="{Binding CurrentGame.HunTeam.GlobalBannedHunList[2].HeaderImageSingleColor}"
             Width="30"
+            Height="30"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/厂长.png" />
+            d:Source="/Assets/厂长.png"
+            Source="{Binding CurrentGame.HunTeam.GlobalBannedHunList[2].HeaderImageSingleColor}" />
         <!--  Hun Lock  -->
         <Image
+            Name="HunGlobalBanLock0"
             Canvas.Left="{Binding ElementName=HunGlobalBan0, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=HunGlobalBan0, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=HunGlobalBan0, Path=Width}"
             Height="{Binding ElementName=HunGlobalBan0, Path=Height}"
-            Name="HunGlobalBanLock0"
             Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanGlobalHunBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=HunGlobalBan0, Path=Width}" />
+            Visibility="{Binding CanGlobalHunBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
+            Name="HunGlobalBanLock1"
             Canvas.Left="{Binding ElementName=HunGlobalBan1, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=HunGlobalBan1, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=HunGlobalBan1, Path=Width}"
             Height="{Binding ElementName=HunGlobalBan1, Path=Height}"
-            Name="HunGlobalBanLock1"
             Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanGlobalHunBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=HunGlobalBan1, Path=Width}" />
+            Visibility="{Binding CanGlobalHunBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
+            Name="HunGlobalBanLock2"
             Canvas.Left="{Binding ElementName=HunGlobalBan2, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=HunGlobalBan2, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=HunGlobalBan2, Path=Width}"
             Height="{Binding ElementName=HunGlobalBan2, Path=Height}"
-            Name="HunGlobalBanLock2"
             Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanGlobalHunBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=HunGlobalBan2, Path=Width}" />
+            Visibility="{Binding CanGlobalHunBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <!--  Sur  -->
         <Image
+            Name="SurGlobalBan0"
             Canvas.Left="571"
             Canvas.Top="778.5"
-            Height="30"
-            Name="SurGlobalBan0"
-            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[0].HeaderImageSingleColor}"
             Width="30"
+            Height="30"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png" />
+            d:Source="/Assets/幸运儿.png"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[0].HeaderImageSingleColor}" />
         <Image
+            Name="SurGlobalBan1"
             Canvas.Left="605"
             Canvas.Top="778.5"
-            Height="30"
-            Name="SurGlobalBan1"
-            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[1].HeaderImageSingleColor}"
             Width="30"
+            Height="30"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png" />
+            d:Source="/Assets/幸运儿.png"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[1].HeaderImageSingleColor}" />
         <Image
+            Name="SurGlobalBan2"
             Canvas.Left="638"
             Canvas.Top="778.5"
-            Height="30"
-            Name="SurGlobalBan2"
-            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[2].HeaderImageSingleColor}"
             Width="30"
+            Height="30"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png" />
+            d:Source="/Assets/幸运儿.png"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[2].HeaderImageSingleColor}" />
         <Image
+            Name="SurGlobalBan3"
             Canvas.Left="671"
             Canvas.Top="778.5"
-            Height="30"
-            Name="SurGlobalBan3"
-            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[3].HeaderImageSingleColor}"
             Width="30"
+            Height="30"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png" />
+            d:Source="/Assets/幸运儿.png"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[3].HeaderImageSingleColor}" />
         <Image
+            Name="SurGlobalBan4"
             Canvas.Left="705"
             Canvas.Top="778.5"
-            Height="30"
-            Name="SurGlobalBan4"
-            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[4].HeaderImageSingleColor}"
             Width="30"
+            Height="30"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png" />
+            d:Source="/Assets/幸运儿.png"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[4].HeaderImageSingleColor}" />
         <Image
+            Name="SurGlobalBan5"
             Canvas.Left="739"
             Canvas.Top="778.5"
-            Height="30"
-            Name="SurGlobalBan5"
-            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[5].HeaderImageSingleColor}"
             Width="30"
+            Height="30"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png" />
+            d:Source="/Assets/幸运儿.png"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[5].HeaderImageSingleColor}" />
         <Image
+            Name="SurGlobalBan6"
             Canvas.Left="772"
             Canvas.Top="778.5"
-            Height="30"
-            Name="SurGlobalBan6"
-            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[6].HeaderImageSingleColor}"
             Width="30"
+            Height="30"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png" />
+            d:Source="/Assets/幸运儿.png"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[6].HeaderImageSingleColor}" />
         <Image
+            Name="SurGlobalBan7"
             Canvas.Left="806"
             Canvas.Top="778.5"
-            Height="30"
-            Name="SurGlobalBan7"
-            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[7].HeaderImageSingleColor}"
             Width="30"
+            Height="30"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png" />
+            d:Source="/Assets/幸运儿.png"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[7].HeaderImageSingleColor}" />
         <Image
+            Name="SurGlobalBan8"
             Canvas.Left="840"
             Canvas.Top="778.5"
-            Height="30"
-            Name="SurGlobalBan8"
-            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[8].HeaderImageSingleColor}"
             Width="30"
+            Height="30"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png" />
+            d:Source="/Assets/幸运儿.png"
+            Source="{Binding CurrentGame.SurTeam.GlobalBannedSurList[8].HeaderImageSingleColor}" />
         <!--  Sur Lock  -->
         <Image
+            Name="SurGlobalBanLock0"
             Canvas.Left="{Binding ElementName=SurGlobalBan0, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurGlobalBan0, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurGlobalBan0, Path=Width}"
             Height="{Binding ElementName=SurGlobalBan0, Path=Height}"
-            Name="SurGlobalBanLock0"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanGlobalSurBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=SurGlobalBan0, Path=Width}" />
+            Visibility="{Binding CanGlobalSurBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
+            Name="SurGlobalBanLock1"
             Canvas.Left="{Binding ElementName=SurGlobalBan1, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurGlobalBan1, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurGlobalBan1, Path=Width}"
             Height="{Binding ElementName=SurGlobalBan1, Path=Height}"
-            Name="SurGlobalBanLock1"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanGlobalSurBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=SurGlobalBan1, Path=Width}" />
+            Visibility="{Binding CanGlobalSurBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
+            Name="SurGlobalBanLock2"
             Canvas.Left="{Binding ElementName=SurGlobalBan2, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurGlobalBan2, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurGlobalBan2, Path=Width}"
             Height="{Binding ElementName=SurGlobalBan2, Path=Height}"
-            Name="SurGlobalBanLock2"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanGlobalSurBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=SurGlobalBan2, Path=Width}" />
+            Visibility="{Binding CanGlobalSurBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
+            Name="SurGlobalBanLock3"
             Canvas.Left="{Binding ElementName=SurGlobalBan3, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurGlobalBan3, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurGlobalBan3, Path=Width}"
             Height="{Binding ElementName=SurGlobalBan3, Path=Height}"
-            Name="SurGlobalBanLock3"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanGlobalSurBanned[3], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=SurGlobalBan3, Path=Width}" />
+            Visibility="{Binding CanGlobalSurBanned[3], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
+            Name="SurGlobalBanLock4"
             Canvas.Left="{Binding ElementName=SurGlobalBan4, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurGlobalBan4, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurGlobalBan4, Path=Width}"
             Height="{Binding ElementName=SurGlobalBan4, Path=Height}"
-            Name="SurGlobalBanLock4"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanGlobalSurBanned[4], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=SurGlobalBan4, Path=Width}" />
+            Visibility="{Binding CanGlobalSurBanned[4], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
+            Name="SurGlobalBanLock5"
             Canvas.Left="{Binding ElementName=SurGlobalBan5, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurGlobalBan5, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurGlobalBan5, Path=Width}"
             Height="{Binding ElementName=SurGlobalBan5, Path=Height}"
-            Name="SurGlobalBanLock5"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanGlobalSurBanned[5], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=SurGlobalBan5, Path=Width}" />
+            Visibility="{Binding CanGlobalSurBanned[5], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
+            Name="SurGlobalBanLock6"
             Canvas.Left="{Binding ElementName=SurGlobalBan6, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurGlobalBan6, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurGlobalBan6, Path=Width}"
             Height="{Binding ElementName=SurGlobalBan6, Path=Height}"
-            Name="SurGlobalBanLock6"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanGlobalSurBanned[6], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=SurGlobalBan6, Path=Width}" />
+            Visibility="{Binding CanGlobalSurBanned[6], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
+            Name="SurGlobalBanLock7"
             Canvas.Left="{Binding ElementName=SurGlobalBan7, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurGlobalBan7, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurGlobalBan7, Path=Width}"
             Height="{Binding ElementName=SurGlobalBan7, Path=Height}"
-            Name="SurGlobalBanLock7"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanGlobalSurBanned[7], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=SurGlobalBan7, Path=Width}" />
+            Visibility="{Binding CanGlobalSurBanned[7], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
+            Name="SurGlobalBanLock8"
             Canvas.Left="{Binding ElementName=SurGlobalBan8, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurGlobalBan8, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurGlobalBan8, Path=Width}"
             Height="{Binding ElementName=SurGlobalBan8, Path=Height}"
-            Name="SurGlobalBanLock8"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
-            Visibility="{Binding CanGlobalSurBanned[8], Converter={StaticResource BooleanToReverseVisibilityConverter}}"
-            Width="{Binding ElementName=SurGlobalBan8, Path=Width}" />
+            Visibility="{Binding CanGlobalSurBanned[8], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
 
         <!--  Hun Pick  -->
         <Image
+            Name="HunPick"
             Canvas.Left="875"
             Canvas.Top="617"
-            Height="161"
-            Name="HunPick"
-            Source="{Binding CurrentGame.HunPlayer.PictureShown}"
             Width="565"
+            Height="161"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/小丑.png" />
+            d:Source="/Assets/小丑.png"
+            Source="{Binding CurrentGame.HunPlayer.PictureShown}" />
         <!--  Hun Picking Border  -->
         <Image
+            Name="HunPickingBorder"
             Canvas.Left="{Binding ElementName=HunPick, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=HunPick, Path=(Canvas.Top)}"
+            Width="565"
             Height="161"
-            Name="HunPickingBorder"
+            d:Source="/Assets/pickingBorder.png"
             Source="{Binding PickingBorderSource}"
             Stretch="Fill"
-            Visibility="Hidden"
-            Width="565"
-            d:Source="/Assets/pickingBorder.png" />
+            Visibility="Hidden" />
         <!--  Player ID  -->
         <!--  Sur  -->
         <Border
+            Name="SurId0"
             Canvas.Left="2"
             Canvas.Top="778"
-            Height="31"
-            Name="SurId0"
             Width="136"
+            Height="31"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
             <TextBlock
+                d:Text="求生者选手Id"
                 Style="{StaticResource PlayerId}"
-                Text="{Binding CurrentGame.SurPlayerList[0].Member.Name}"
-                d:Text="求生者选手Id" />
+                Text="{Binding CurrentGame.SurPlayerList[0].Member.Name}" />
         </Border>
         <Border
+            Name="SurId1"
             Canvas.Left="144"
             Canvas.Top="779"
-            Height="31"
-            Name="SurId1"
             Width="136"
+            Height="31"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
             <TextBlock
+                d:Text="求生者选手Id"
                 Style="{StaticResource PlayerId}"
-                Text="{Binding CurrentGame.SurPlayerList[1].Member.Name}"
-                d:Text="求生者选手Id" />
+                Text="{Binding CurrentGame.SurPlayerList[1].Member.Name}" />
         </Border>
         <Border
+            Name="SurId2"
             Canvas.Left="286"
             Canvas.Top="778"
-            Height="31"
-            Name="SurId2"
             Width="136"
+            Height="31"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
             <TextBlock
+                d:Text="求生者选手Id"
                 Style="{StaticResource PlayerId}"
-                Text="{Binding CurrentGame.SurPlayerList[2].Member.Name}"
-                d:Text="求生者选手Id" />
+                Text="{Binding CurrentGame.SurPlayerList[2].Member.Name}" />
         </Border>
         <Border
+            Name="SurId3"
             Canvas.Left="428"
             Canvas.Top="778"
-            Height="31"
-            Name="SurId3"
             Width="136"
+            Height="31"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
             <TextBlock
+                d:Text="求生者选手Id"
                 Style="{StaticResource PlayerId}"
-                Text="{Binding CurrentGame.SurPlayerList[3].Member.Name}"
-                d:Text="求生者选手Id" />
+                Text="{Binding CurrentGame.SurPlayerList[3].Member.Name}" />
         </Border>
         <!--  Hun  -->
         <Border
+            Name="HunId"
             Canvas.Left="875"
             Canvas.Top="778"
-            Height="31"
-            Name="HunId"
             Width="565"
+            Height="31"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
             <TextBlock
                 HorizontalAlignment="Center"
+                d:Text="监管者选手Id"
                 Style="{StaticResource PlayerId}"
-                Text="{Binding CurrentGame.HunPlayer.Member.Name}"
-                d:Text="监管者选手Id" />
+                Text="{Binding CurrentGame.HunPlayer.Member.Name}" />
         </Border>
     </Canvas>
 </Window>

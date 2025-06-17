@@ -7,31 +7,31 @@
   },
   "PickedMapName": {
     "Width": 232,
-    "Height": 0,
+    "Height": null,
     "Left": 38,
     "Top": 149
   },
   "PickWord": {
     "Width": 232,
-    "Height": 0,
+    "Height": null,
     "Left": 38,
     "Top": 197
   },
   "SurTeamName": {
     "Width": 137,
-    "Height": 0,
-    "Left": 0,
+    "Height": null,
+    "Left": null,
     "Top": 265
   },
   "VS_Word": {
-    "Width": 0,
-    "Height": 0,
+    "Width": null,
+    "Height": null,
     "Left": 142,
     "Top": 266
   },
   "HunTeamName": {
     "Width": 137,
-    "Height": 0,
+    "Height": null,
     "Left": 171,
     "Top": 265
   },
@@ -43,13 +43,13 @@
   },
   "BannedMapName": {
     "Width": 232,
-    "Height": 0,
+    "Height": null,
     "Left": 38,
     "Top": 475
   },
   "BanWord": {
     "Width": 232,
-    "Height": 0,
+    "Height": null,
     "Left": 38,
     "Top": 522
   }
