@@ -157,12 +157,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         /// </summary>
         private async void LoadFrontConfig()
         {
-            await _frontService.LoadWindowElementsPositionAsync<BpWindow>();
-            await _frontService.LoadWindowElementsPositionAsync<InterludeWindow>();
-            await _frontService.LoadWindowElementsPositionAsync<ScoreWindow>("ScoreSurCanvas");
-            await _frontService.LoadWindowElementsPositionAsync<ScoreWindow>("ScoreHunCanvas");
-            await _frontService.LoadWindowElementsPositionAsync<ScoreWindow>("ScoreGlobalCanvas");
-            await _frontService.LoadWindowElementsPositionAsync<WidgetsWindow>("MapBpCanvas");
+            await _frontService.LoadWindowElementsPositionOnStartupAsync<BpWindow>();
+            await _frontService.LoadWindowElementsPositionOnStartupAsync<InterludeWindow>();
+            await _frontService.LoadWindowElementsPositionOnStartupAsync<ScoreWindow>("ScoreSurCanvas");
+            await _frontService.LoadWindowElementsPositionOnStartupAsync<ScoreWindow>("ScoreHunCanvas");
+            await _frontService.LoadWindowElementsPositionOnStartupAsync<ScoreWindow>("ScoreGlobalCanvas");
+            await _frontService.LoadWindowElementsPositionOnStartupAsync<WidgetsWindow>("MapBpCanvas");
         }
 
         /// <summary>

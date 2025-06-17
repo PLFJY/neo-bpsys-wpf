@@ -7,13 +7,13 @@
   },
   "HunTeamName": {
     "Width": 231,
-    "Height": 0,
+    "Height": null,
     "Left": 99,
     "Top": 33
   },
   "HunTeamMajorPoint": {
-    "Width": 0,
-    "Height": 0,
+    "Width": null,
+    "Height": null,
     "Left": 167,
     "Top": 85
   },

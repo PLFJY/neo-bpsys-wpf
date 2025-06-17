@@ -7,13 +7,13 @@
   },
   "SurTeamName": {
     "Width": 231,
-    "Height": 0,
+    "Height": null,
     "Left": 153,
     "Top": 34
   },
   "SurTeamMajorPoint": {
-    "Width": 0,
-    "Height": 0,
+    "Width": null,
+    "Height": null,
     "Left": 209,
     "Top": 86
   },
