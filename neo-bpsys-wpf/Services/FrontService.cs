@@ -356,7 +356,7 @@ namespace neo_bpsys_wpf.Services
             if (!await _messageBoxService.ShowConfirmAsync("重置提示", $"确认重置{window.GetType()}-{canvasName}的配置吗？")) return;
 
             var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.default.json");
-
+            var sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Resources\\FrontDefalutPositions", $"{window.GetType().Name}Config-{canvasName}.default.json");
 #if !DEBUG
             if (!File.Exists(path) && File.Exists(sourceFilePath))
             {
