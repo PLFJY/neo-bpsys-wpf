@@ -1,26 +1,17 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
-using Microsoft.Extensions.DependencyInjection;
-using neo_bpsys_wpf.CustomControls;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Helpers;
-using neo_bpsys_wpf.Messages;
-using neo_bpsys_wpf.Models;
-using neo_bpsys_wpf.ViewModels.Pages;
-using neo_bpsys_wpf.Views.Pages;
-using neo_bpsys_wpf.Views.Windows;
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media.Animation;
-using System.Windows.Shapes;
-using System.Xml.Linq;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.AttachedBehaviors;
+using neo_bpsys_wpf.CustomControls;
+using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Views.Windows;
 using Path = System.IO.Path;
-using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -66,12 +57,13 @@ namespace neo_bpsys_wpf.Services
             //注册分数统计界面的分数控件
             GlobalScoreControlsReg();
 
+#if DEBUG
             // 记录初始位置
             foreach (var i in _frontCanvas)
             {
                 RecordInitialPositions(i.Item1, i.Item2);
             }
-
+#endif
             _isBo3Mode = sharedDataService.IsBo3Mode;
             _globalScoreTotalMargin = sharedDataService.GlobalScoreTotalMargin;
             WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>>(this, BoolPropertyChangedRecipient);
@@ -204,24 +196,13 @@ namespace neo_bpsys_wpf.Services
             else
                 elementDict[key] = control;
         }
-
-        /// <summary>
-        /// 获取控件
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="elementDict"></param>
-        /// <returns></returns>
-        private static FrameworkElement? GetControl(int key, Dictionary<int, FrameworkElement> elementDict)
-        {
-            elementDict.TryGetValue(key, out var control);
-            return control;
-        }
+        
         #endregion
 
         #region 设计者模式
 
         /// <summary>
-        /// 记录窗口中元素的初始位置
+        /// 记录窗口中元素的初始位置 (仅在DEBUG下有效)
         /// </summary>
         /// <param name="window">该窗口的实例</param>
         /// <param name="canvasName"></param>
@@ -230,32 +211,9 @@ namespace neo_bpsys_wpf.Services
             var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.default.json");
 
             if (File.Exists(path)) return;
-#if DEBUG
-            if (window.FindName(canvasName) is not Canvas canvas)
-                return;
 
-            var positions = new Dictionary<string, ElementInfo>();
-            foreach (UIElement child in canvas.Children)
-            {
-                if (child is FrameworkElement fe && !string.IsNullOrEmpty(fe.Name))
-                {
-                    if (fe.Tag?.ToString() == "nv") continue;
-                    var width = fe.Width;
-                    if (double.IsNaN(width))
-                        width = 0;
-                    var height = fe.Height;
-                    if (double.IsNaN(height))
-                        height = 0;
-                    var left = Canvas.GetLeft(fe);
-                    if (double.IsNaN(left))
-                        left = 0;
-                    var top = Canvas.GetTop(fe);
-                    if (double.IsNaN(top))
-                        top = 0;
-
-                    positions[fe.Name] = new ElementInfo(width, height, left, top);
-                }
-            }
+            var positions = GetElementsPositions(window, canvasName);
+            if(positions == null) return;
             var output = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
             try
             {
@@ -265,24 +223,38 @@ namespace neo_bpsys_wpf.Services
             {
                 _messageBoxService.ShowErrorAsync(ex.Message, "生成默认前台配置文件发生错误");
             }
-#endif
-#if !DEBUG
-            try
-            {
-                var sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Resources\\FrontDefalutPositions", $"{window.GetType().Name}Config-{canvasName}.default.json");
 
-                if (File.Exists(sourceFilePath))
-                    File.Copy(sourceFilePath, path, true);
-            }
-            catch (Exception ex)
-            {
-                _messageBoxService.ShowErrorAsync(ex.Message, "复制默认前台配置文件发生错误");
-            }
-#endif
         }
 
         /// <summary>
         /// 获取窗口中元素的位置信息
+        /// </summary>
+        /// <param name="window"></param>
+        /// <param name="canvasName"></param>
+        /// <returns></returns>
+        private static Dictionary<string, ElementInfo>? GetElementsPositions(Window window, string canvasName)
+        {
+            if (window.FindName(canvasName) is not Canvas canvas)
+                return null;
+
+            var positions = new Dictionary<string, ElementInfo>();
+            foreach (UIElement child in canvas.Children)
+            {
+                if (child is not FrameworkElement fe || string.IsNullOrEmpty(fe.Name)) continue;
+                if (fe.Tag?.ToString() == "nv") continue;
+
+                positions[fe.Name] = new ElementInfo(
+                    double.IsNaN(fe.Width) ? null : fe.Width,
+                    double.IsNaN(fe.Height) ? null : fe.Height,
+                    double.IsNaN(Canvas.GetLeft(fe)) ? null : Canvas.GetLeft(fe),
+                    double.IsNaN(Canvas.GetTop(fe)) ? null : Canvas.GetTop(fe));
+            }
+
+            return positions;
+        }
+
+        /// <summary>
+        /// 保存窗口中元素的位置信息
         /// </summary>
         /// <typeparam name="T">窗口类型</typeparam>
         /// <param name="canvasName">画布名称</param>
@@ -296,37 +268,14 @@ namespace neo_bpsys_wpf.Services
 
             if (typeof(T) == typeof(ScoreWindow) && canvasName == "ScoreGlobalCanvas" && _isBo3Mode) return;
 
-            var positions = new Dictionary<string, ElementInfo>();
-            if (window.FindName(canvasName) is Canvas canvas)
-            {
-                foreach (var child in canvas.Children)
-                {
-                    if (child is FrameworkElement fe && !string.IsNullOrEmpty(fe.Name))
-                    {
-                        if (fe.Tag?.ToString() == "nv") continue;
-                        var width = fe.Width;
-                        if (double.IsNaN(width))
-                            width = 0;
-                        var height = fe.Height;
-                        if (double.IsNaN(height))
-                            height = 0;
-                        var left = Canvas.GetLeft(fe);
-                        if (double.IsNaN(left))
-                            left = 0;
-                        var top = Canvas.GetTop(fe);
-                        if (double.IsNaN(top))
-                            top = 0;
-
-                        positions[fe.Name] = new ElementInfo(width, height, left, top);
-                    }
-                }
-            }
+            var positions = GetElementsPositions(window, canvasName);
+            if(positions == null) return;
 
             var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
             try
             {
-                var josnContent = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
-                File.WriteAllText(path, josnContent);
+                var jsonContent = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
+                File.WriteAllText(path, jsonContent);
             }
             catch (Exception ex)
             {
@@ -335,11 +284,11 @@ namespace neo_bpsys_wpf.Services
         }
 
         /// <summary>
-        /// 从JSON中加载窗口中元素的位置信息
+        /// 程序启动时从JSON中加载窗口中元素的位置信息
         /// </summary>
         /// <typeparam name="T">窗口类型</typeparam>
         /// <param name="canvasName">画布名称</param>
-        public async Task LoadWindowElementsPositionAsync<T>(string canvasName = "BaseCanvas") where T : Window
+        public async Task LoadWindowElementsPositionOnStartupAsync<T>(string canvasName = "BaseCanvas") where T : Window
         {
             if (!_frontWindows.TryGetValue(typeof(T), out var window))
             {
@@ -352,36 +301,8 @@ namespace neo_bpsys_wpf.Services
 
             try
             {
-                var jsonContent = File.ReadAllText(path);
-                var positions = JsonSerializer.Deserialize<Dictionary<string, ElementInfo>>(jsonContent);
-
-                if (window.FindName(canvasName) is Canvas canvas && positions != null)
-                {
-                    foreach (UIElement child in canvas.Children)
-                    {
-                        if (child is FrameworkElement fe && positions.TryGetValue(fe.Name, out ElementInfo? value))
-                        {
-                            if (fe.Tag?.ToString() == "nv") continue;
-                            var width = value.Width;
-                            if (double.IsNaN(width))
-                                width = 0;
-                            var height = value.Height;
-                            if (double.IsNaN(height))
-                                height = 0;
-                            var left = value.Left;
-                            if (double.IsNaN(left))
-                                left = 0;
-                            var top = value.Top;
-                            if (double.IsNaN(top))
-                                top = 0;
-
-                            fe.Width = width;
-                            fe.Height = height;
-                            Canvas.SetLeft(fe, left);
-                            Canvas.SetTop(fe, top);
-                        }
-                    }
-                }
+                var jsonContent = await File.ReadAllTextAsync(path);
+                LoadElementsPositions<T>(canvasName, jsonContent, window);
             }
             catch (Exception ex)
             {
@@ -391,11 +312,40 @@ namespace neo_bpsys_wpf.Services
         }
 
         /// <summary>
+        /// 从JSON中加载窗口中元素位置信息
+        /// </summary>
+        /// <param name="canvasName"></param>
+        /// <param name="jsonContent"></param>
+        /// <param name="window"></param>
+        /// <typeparam name="T"></typeparam>
+        private static void LoadElementsPositions<T>(string canvasName, string jsonContent, Window window) where T : Window
+        {
+            var positions = JsonSerializer.Deserialize<Dictionary<string, ElementInfo>>(jsonContent);
+
+            if (window.FindName(canvasName) is not Canvas canvas || positions == null) return;
+            foreach (UIElement child in canvas.Children)
+            {
+                if (child is not FrameworkElement fe ||
+                    !positions.TryGetValue(fe.Name, out var value)) continue;
+                if (fe.Tag?.ToString() == "nv") continue;
+
+                if (value.Width != null)
+                    fe.Width = (double)value.Width;
+                if (value.Height != null)
+                    fe.Height = (double)value.Height;
+                if (value.Left != null)
+                    Canvas.SetLeft(fe, (double)value.Left);
+                if (value.Top != null)
+                    Canvas.SetTop(fe, (double)value.Top);
+            }
+        }
+
+        /// <summary>
         /// 还原窗口中的元素到初始位置
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="canvasName"></param>
-        public async void RestoreInitialPositions<T>(string canvasName = "BaseCanvas") where T : Window
+        public async Task RestoreInitialPositions<T>(string canvasName = "BaseCanvas") where T : Window
         {
             if (!_frontWindows.TryGetValue(typeof(T), out var window))
             {
@@ -406,8 +356,7 @@ namespace neo_bpsys_wpf.Services
             if (!await _messageBoxService.ShowConfirmAsync("重置提示", $"确认重置{window.GetType()}-{canvasName}的配置吗？")) return;
 
             var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.default.json");
-            var sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Resources\\FrontDefalutPositions", $"{window.GetType().Name}Config-{canvasName}.default.json");
-
+            var sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Resources\\FrontDefaultPositions", $"{window.GetType().Name}Config-{canvasName}.default.json");
 #if !DEBUG
             if (!File.Exists(path) && File.Exists(sourceFilePath))
             {
@@ -423,34 +372,8 @@ namespace neo_bpsys_wpf.Services
 #endif
             try
             {
-                var json = File.ReadAllText(path);
-                var positions = JsonSerializer.Deserialize<Dictionary<string, ElementInfo>>(json);
-                if (positions == null || window.FindName(canvasName) is not Canvas canvas || positions.Count == 0) return;
-
-                foreach (UIElement child in canvas.Children)
-                {
-                    if (child is FrameworkElement fe && positions.TryGetValue(fe.Name, out ElementInfo? value))
-                    {
-                        if (fe.Tag?.ToString() == "nv") continue;
-                        var width = value.Width;
-                        if (double.IsNaN(width))
-                            width = 0;
-                        var height = value.Height;
-                        if (double.IsNaN(height))
-                            height = 0;
-                        var left = value.Left;
-                        if (double.IsNaN(left))
-                            left = 0;
-                        var top = value.Top;
-                        if (double.IsNaN(top))
-                            top = 0;
-
-                        fe.Width = width;
-                        fe.Height = height;
-                        Canvas.SetLeft(fe, left);
-                        Canvas.SetTop(fe, top);
-                    }
-                }
+                var json = await File.ReadAllTextAsync(path);
+                LoadElementsPositions<T>(canvasName, json, window);
 
                 var customFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
                 if (File.Exists(customFilePath))
@@ -462,17 +385,20 @@ namespace neo_bpsys_wpf.Services
             }
         }
 
+        
         /// <summary>
-        /// 窗口中元素的位置信息
+        /// 窗口中元素位置信息
         /// </summary>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
         /// <param name="left"></param>
         /// <param name="top"></param>
-        private class ElementInfo(double width, double height, double left, double top)
+        private class ElementInfo(double? width, double? height, double? left, double? top)
         {
-            public double Width { get; } = width;
-            public double Height { get; } = height;
-            public double Left { get; set; } = left;
-            public double Top { get; set; } = top;
+            public double? Width { get; } = width;
+            public double? Height { get; } = height;
+            public double? Left { get; set; } = left;
+            public double? Top { get; set; } = top;
         }
         #endregion
 

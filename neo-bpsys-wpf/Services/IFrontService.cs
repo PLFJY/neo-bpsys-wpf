@@ -15,17 +15,18 @@ namespace neo_bpsys_wpf.Services
         /// </summary>
         /// <typeparam name="T">窗口类型</typeparam>
         /// <param name="canvasName">画布名称</param>
-        Task LoadWindowElementsPositionAsync<T>(string canvasName = "BaseCanvas") where T : Window;
+        Task LoadWindowElementsPositionOnStartupAsync<T>(string canvasName = "BaseCanvas") where T : Window;
         void AllWindowHide();
         void AllWindowShow();
         void ShowWindow<T>() where T : Window;
         void HideWindow<T>() where T : Window;
+
         /// <summary>
         /// 还原窗口中的元素到初始位置
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="canvasName"></param>
-        void RestoreInitialPositions<T>(string canvasName = "BaseCanvas") where T : Window;
+        Task RestoreInitialPositions<T>(string canvasName = "BaseCanvas") where T : Window;
         /// <summary>
         /// 获取窗口中元素的位置信息
         /// </summary>

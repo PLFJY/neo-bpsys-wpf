@@ -6,26 +6,26 @@
     "Top": 9
   },
   "SurTeamMajorPoint": {
-    "Width": 0,
-    "Height": 0,
+    "Width": null,
+    "Height": null,
     "Left": 384,
     "Top": 35
   },
   "SurTeamName": {
     "Width": 207,
-    "Height": 0,
+    "Height": null,
     "Left": 10,
     "Top": 32
   },
   "HunTeamName": {
     "Width": 207,
-    "Height": 0,
+    "Height": null,
     "Left": 1223,
     "Top": 31
   },
   "HunTeamMajorPoint": {
-    "Width": 0,
-    "Height": 0,
+    "Width": null,
+    "Height": null,
     "Left": 965,
     "Top": 35
   },
@@ -39,7 +39,7 @@
     "Width": 457,
     "Height": 108,
     "Left": 491,
-    "Top": 0
+    "Top": null
   },
   "MapMask": {
     "Width": 457,
@@ -49,7 +49,7 @@
   },
   "MapName": {
     "Width": 168,
-    "Height": 0,
+    "Height": null,
     "Left": 491,
     "Top": 75
   },
@@ -61,25 +61,25 @@
   },
   "SurPick0": {
     "Width": 356,
-    "Height": 0,
+    "Height": null,
     "Left": 1,
     "Top": 114
   },
   "SurPick1": {
     "Width": 356,
-    "Height": 0,
+    "Height": null,
     "Left": 364,
     "Top": 114
   },
   "SurPick2": {
     "Width": 356,
-    "Height": 0,
+    "Height": null,
     "Left": 1,
     "Top": 465
   },
   "SurPick3": {
     "Width": 356,
-    "Height": 0,
+    "Height": null,
     "Left": 362,
     "Top": 465
   },
