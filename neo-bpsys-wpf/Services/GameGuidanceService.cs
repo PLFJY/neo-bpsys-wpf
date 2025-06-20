@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Messages;
 using System.Threading.Tasks;
+using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.Services
 {

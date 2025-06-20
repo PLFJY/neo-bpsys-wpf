@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace neo_bpsys_wpf.CustomControls
+namespace neo_bpsys_wpf.Controls
 {
     public class CharacterChanger : Control
     {

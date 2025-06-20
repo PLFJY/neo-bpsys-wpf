@@ -2,7 +2,7 @@
     x:Class="neo_bpsys_wpf.Views.Pages.BanHunPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
+    xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
@@ -44,7 +44,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <cc:CharacterSelector
+                            <controls:CharacterSelector
                                 Margin="0,0,10,10"
                                 Command="{Binding ConfirmCommand}"
                                 ImageSource="{Binding PreviewImage}"
@@ -80,7 +80,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <cc:CharacterSelector
+                            <controls:CharacterSelector
                                 Margin="0,0,10,10"
                                 Command="{Binding ConfirmCommand}"
                                 ImageSource="{Binding PreviewImage}"

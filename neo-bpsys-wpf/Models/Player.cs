@@ -19,7 +19,7 @@ public partial class Player : ObservableRecipient, IRecipient<MemberStateChanged
 
     public Player(Member member)
     {
-        this.Member = member;
+        Member = member;
         IsActive = true;
     }
 

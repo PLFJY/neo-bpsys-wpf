@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
-using neo_bpsys_wpf.CustomControls;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
@@ -10,6 +9,8 @@ using System.Collections.ObjectModel;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Views.Windows;
 using System.Collections.Specialized;
+using neo_bpsys_wpf.Abstractions.Services;
+using neo_bpsys_wpf.Controls;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -136,7 +137,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
         //基于模板基类的VM实现
         public partial class SurPickViewModel : 
-            CharaSelectViewModelBase, 
+            Abstractions.ViewModels.CharaSelectViewModelBase, 
             IRecipient<CharacterSwappedMessage>, 
             IRecipient<PlayerSwappedMessage>, 
             IRecipient<MemberStateChangedMessage>,
@@ -206,7 +207,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
         }
 
-        public class HunPickViewModel : CharaSelectViewModelBase
+        public class HunPickViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
         {
             private readonly IFrontService _frontService;
 
@@ -233,7 +234,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickHun;
         }
 
-        public class MainSurGlobalBanRecordViewModel : CharaSelectViewModelBase
+        public class MainSurGlobalBanRecordViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
         {
             private Character? _recordedChara;
 
@@ -262,7 +263,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             protected override bool IsActionNameCorrect(GameAction? action) => false;
         }
 
-        public class MainHunGlobalBanRecordViewModel : CharaSelectViewModelBase
+        public class MainHunGlobalBanRecordViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
         {
             private Character? _recordedChara;
 
@@ -288,7 +289,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             protected override bool IsActionNameCorrect(GameAction? action) => false;
         }
 
-        public class AwaySurGlobalBanRecordViewModel : CharaSelectViewModelBase
+        public class AwaySurGlobalBanRecordViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
         {
             private Character? _recordedChara;
 
@@ -314,7 +315,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             protected override bool IsActionNameCorrect(GameAction? action) => false;
         }
 
-        public class AwayHunGlobalBanRecordViewModel : CharaSelectViewModelBase
+        public class AwayHunGlobalBanRecordViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
         {
             private Character? _recordedChara;
 

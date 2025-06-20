@@ -1,8 +1,8 @@
-﻿using neo_bpsys_wpf.Models;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
+using neo_bpsys_wpf.Models;
 
-namespace neo_bpsys_wpf.CustomControls
+namespace neo_bpsys_wpf.Controls
 {
     /// <summary>
     /// 天赋选择器，传入玩家即可

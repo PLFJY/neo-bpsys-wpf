@@ -1,11 +1,12 @@
-﻿using neo_bpsys_wpf.Models;
-using System.Collections;
+﻿using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using neo_bpsys_wpf.Models;
 
-namespace neo_bpsys_wpf.CustomControls
+namespace neo_bpsys_wpf.Controls
 {
     public class CharacterSelector : Control
     {
@@ -113,7 +114,7 @@ namespace neo_bpsys_wpf.CustomControls
         public CharacterSelector()
         {
             // 注册TextBox的OnTextBoxTextChanged事件处理程序，借助事件冒泡实现搜索
-            AddHandler(TextBox.TextChangedEvent, new TextChangedEventHandler(OnTextBoxTextChanged), true);
+            AddHandler(TextBoxBase.TextChangedEvent, new TextChangedEventHandler(OnTextBoxTextChanged), true);
         }
 
         private void OnTextBoxTextChanged(object sender, TextChangedEventArgs e)

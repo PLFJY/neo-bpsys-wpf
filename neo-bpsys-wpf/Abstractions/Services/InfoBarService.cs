@@ -1,7 +1,6 @@
-﻿using System.Runtime.CompilerServices;
-using Wpf.Ui.Controls;
+﻿using Wpf.Ui.Controls;
 
-namespace neo_bpsys_wpf.Services
+namespace neo_bpsys_wpf.Abstractions.Services
 {
     public class InfoBarService : IInfoBarService
     {

@@ -10,6 +10,7 @@ using System.Diagnostics.Eventing.Reader;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.Models;
 

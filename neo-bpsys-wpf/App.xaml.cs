@@ -2,13 +2,14 @@
 using Microsoft.Extensions.Hosting;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services;
-using neo_bpsys_wpf.Theme;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
 using System.Windows;
 using System.Windows.Threading;
+using neo_bpsys_wpf.Abstractions.Services;
+using neo_bpsys_wpf.Themes;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;

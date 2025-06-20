@@ -1,10 +1,4 @@
-﻿using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Models;
-using System.Collections.ObjectModel;
-using System.Windows;
-using static neo_bpsys_wpf.Services.GameGuidanceService;
-
-namespace neo_bpsys_wpf.Services
+﻿namespace neo_bpsys_wpf.Abstractions.Services
 {
     public interface IGameGuidanceService
     {

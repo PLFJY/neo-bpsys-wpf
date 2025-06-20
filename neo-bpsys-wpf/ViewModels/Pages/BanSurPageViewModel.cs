@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Enums;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
@@ -46,7 +47,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         public ObservableCollection<BanSurGlobalViewModel> BanSurGlobalViewModelList { get; set; }
 
         //基于模板基类的VM实现
-        public class BanSurCurrentViewModel : CharaSelectViewModelBase
+        public class BanSurCurrentViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
         {
             public BanSurCurrentViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
             {
@@ -76,7 +77,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanSur;
         }
 
-        public class BanSurGlobalViewModel : CharaSelectViewModelBase
+        public class BanSurGlobalViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
         {
             public BanSurGlobalViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
             {

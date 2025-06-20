@@ -4,6 +4,8 @@ using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Windows;
+using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -19,7 +21,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         public SettingPageViewModel(IUpdaterService updaterService)
         {
             //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
-            AppVersion = "版本 v" + App.ResourceAssembly.GetName().Version!.ToString();
+            AppVersion = "版本 v" + Application.ResourceAssembly.GetName().Version!.ToString();
             UpdaterService = updaterService;
             UpdaterService.Downloader.DownloadProgressChanged += Downloader_DownloadProgressChanged;
             UpdaterService.Downloader.DownloadFileCompleted += Downloader_DownloadFileCompleted;
@@ -50,7 +52,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
         private void Downloader_DownloadStarted(object? sender, Downloader.DownloadStartedEventArgs e)
         {
-            App.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 IsDownloading = true;
             });
@@ -60,14 +62,14 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             if (e.Error == null && !e.Cancelled)
             {
-                App.Current.Dispatcher.Invoke(() =>
+                Application.Current.Dispatcher.Invoke(() =>
                 {
                     IsDownloadFinished = true;
                     IsDownloading = false;
                 });
                 return;
             }
-            App.Current.Dispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 IsDownloading = false;
             });

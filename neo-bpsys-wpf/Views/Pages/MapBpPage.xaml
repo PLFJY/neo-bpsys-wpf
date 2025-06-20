@@ -2,7 +2,7 @@
     x:Class="neo_bpsys_wpf.Views.Pages.MapBpPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:cc="clr-namespace:neo_bpsys_wpf.CustomControls"
+    xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:enum="clr-namespace:neo_bpsys_wpf.Enums"
@@ -75,70 +75,70 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <cc:ToggleStyledRadioButton
+                    <controls:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/无禁用.png"
                         IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.无禁用}}"
                         TagName="无禁用" />
-                    <cc:ToggleStyledRadioButton
+                    <controls:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/军工厂.png"
                         IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.军工厂}}"
                         TagName="军工厂" />
-                    <cc:ToggleStyledRadioButton
+                    <controls:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/红教堂.png"
                         IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.红教堂}}"
                         TagName="红教堂" />
-                    <cc:ToggleStyledRadioButton
+                    <controls:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/圣心医院.png"
                         IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.圣心医院}}"
                         TagName="圣心医院" />
-                    <cc:ToggleStyledRadioButton
+                    <controls:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/里奥的回忆.png"
                         IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.里奥的回忆}}"
                         TagName="里奥的回忆" />
-                    <cc:ToggleStyledRadioButton
+                    <controls:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/月亮河公园.png"
                         IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.月亮河公园}}"
                         TagName="月亮河公园" />
-                    <cc:ToggleStyledRadioButton
+                    <controls:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/湖景村.png"
                         IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.湖景村}}"
                         TagName="湖景村" />
-                    <cc:ToggleStyledRadioButton
+                    <controls:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/永眠镇.png"
                         IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.永眠镇}}"
                         TagName="永眠镇" />
-                    <cc:ToggleStyledRadioButton
+                    <controls:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"
                         ImageSource="/Assets/map_singleColor/唐人街.png"
                         IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.唐人街}}"
                         TagName="唐人街" />
-                    <cc:ToggleStyledRadioButton
+                    <controls:ToggleStyledRadioButton
                         Width="300"
                         Margin="0,0,10,10"
                         GroupName="MapBan"

@@ -1,13 +1,13 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Windows.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using neo_bpsys_wpf.Abstractions.Services;
+using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
-using neo_bpsys_wpf.Services;
-using System.Windows.Media;
-using neo_bpsys_wpf.Enums;
 
-namespace neo_bpsys_wpf.ViewModels.Pages
+namespace neo_bpsys_wpf.Abstractions.ViewModels
 {
     /// <summary>
     /// 用于选择角色的角色选择器行为的基类

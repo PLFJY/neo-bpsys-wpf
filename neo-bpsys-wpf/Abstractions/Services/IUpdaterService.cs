@@ -1,7 +1,7 @@
 ﻿using Downloader;
 using static neo_bpsys_wpf.Services.UpdaterService;
 
-namespace neo_bpsys_wpf.Services
+namespace neo_bpsys_wpf.Abstractions.Services
 {
     public interface IUpdaterService
     {

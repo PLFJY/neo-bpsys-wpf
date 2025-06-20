@@ -1,11 +1,10 @@
-﻿using neo_bpsys_wpf.Views.Windows;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Wpf.Ui.Controls;
 
-namespace neo_bpsys_wpf.CustomControls
+namespace neo_bpsys_wpf.Controls
 {
     /// <summary>
     /// CustomTitleBar.xaml 的交互逻辑

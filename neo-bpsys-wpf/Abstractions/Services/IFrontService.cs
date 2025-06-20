@@ -1,7 +1,7 @@
-﻿using neo_bpsys_wpf.Enums;
-using System.Windows;
+﻿using System.Windows;
+using neo_bpsys_wpf.Enums;
 
-namespace neo_bpsys_wpf.Services
+namespace neo_bpsys_wpf.Abstractions.Services
 {
     public interface IFrontService
     {

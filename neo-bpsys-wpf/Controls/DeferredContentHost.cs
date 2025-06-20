@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media;
 
-namespace neo_bpsys_wpf.CustomControls
+namespace neo_bpsys_wpf.Controls
 {
     [ContentProperty("Content")]
     public class DeferredContentHost : FrameworkElement

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
+using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Enums;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
@@ -45,7 +46,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         public ObservableCollection<BanHunGlobalViewModel> BanHunGlobalViewModelList { get; set; }
 
         //基于模板基类的VM实现
-        public class BanHunCurrentViewModel : CharaSelectViewModelBase
+        public class BanHunCurrentViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
         {
             public BanHunCurrentViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
             {
@@ -75,7 +76,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanHun;
         }
 
-        public class BanHunGlobalViewModel : CharaSelectViewModelBase
+        public class BanHunGlobalViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
         {
             public BanHunGlobalViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
             {

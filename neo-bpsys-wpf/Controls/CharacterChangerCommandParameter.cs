@@ -1,4 +1,4 @@
-﻿namespace neo_bpsys_wpf.CustomControls
+﻿namespace neo_bpsys_wpf.Controls
 {
     public class CharacterChangerCommandParameter(int index, int buttonContent)
     {

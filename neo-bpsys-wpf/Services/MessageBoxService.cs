@@ -1,4 +1,5 @@
-﻿using Wpf.Ui.Controls;
+﻿using neo_bpsys_wpf.Abstractions.Services;
+using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Services
 {

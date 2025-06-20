@@ -1,6 +1,6 @@
 ﻿using Wpf.Ui.Controls;
 
-namespace neo_bpsys_wpf.Services
+namespace neo_bpsys_wpf.Abstractions.Services
 {
     public interface IInfoBarService
     {

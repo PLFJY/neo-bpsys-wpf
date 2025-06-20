@@ -1,8 +1,8 @@
-﻿using neo_bpsys_wpf.Enums;
+﻿using System.Collections.ObjectModel;
+using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Models;
-using System.Collections.ObjectModel;
 
-namespace neo_bpsys_wpf.Services
+namespace neo_bpsys_wpf.Abstractions.Services
 {
     /// <summary>
     /// 共享数据服务接口
