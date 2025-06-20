@@ -43,20 +43,7 @@ public partial class Player : ObservableRecipient, IRecipient<MemberStateChanged
     private PlayerData _data = new();
 
     [JsonIgnore]
-    public ImageSource? PictureShown
-    {
-        get
-        {
-            if (Character == null)
-            {
-                return Member.Image;
-            }
-            else
-            {
-                return Character.HalfImage;
-            }
-        }
-    }
+    public ImageSource? PictureShown => Character == null ? Member.Image : Character.HalfImage;
 
     public void Receive(MemberStateChangedMessage message)
     {
