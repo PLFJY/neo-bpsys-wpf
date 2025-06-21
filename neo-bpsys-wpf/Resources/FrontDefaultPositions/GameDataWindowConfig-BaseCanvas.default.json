@@ -245,6 +245,12 @@
     "Left": 1075,
     "Top": 295
   },
+  "HunId": {
+    "Width": 194,
+    "Height": 35,
+    "Left": 1080,
+    "Top": 357
+  },
   "HunMachineLeft": {
     "Width": 145,
     "Height": 25,

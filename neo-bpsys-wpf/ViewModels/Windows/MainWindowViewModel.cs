@@ -293,11 +293,11 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         public string TimerTime { get; set; } = "30";
 
-        public List<int> RecommendTimmerList { get; } = [30, 45, 60, 90, 120, 150, 180];
+        public List<int> RecommendTimerList { get; } = [30, 45, 60, 90, 120, 150, 180];
 
         [ObservableProperty] private Dictionary<GameProgress, string> _gameList;
 
-        public static Dictionary<GameProgress, string> GameListBo5 => new()
+        private static Dictionary<GameProgress, string> GameListBo5 => new()
         {
             { GameProgress.Free, "自由对局" },
             { GameProgress.Game1FirstHalf, "第1局上半" },
@@ -314,7 +314,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             { GameProgress.Game5ExtraSecondHalf, "第5局加赛下半" }
         };
 
-        public static Dictionary<GameProgress, string> GameListBo3 => new()
+        private static Dictionary<GameProgress, string> GameListBo3 => new()
         {
             { GameProgress.Free, "自由对局" },
             { GameProgress.Game1FirstHalf, "第1局上半" },

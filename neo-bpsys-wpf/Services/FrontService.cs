@@ -248,8 +248,8 @@ namespace neo_bpsys_wpf.Services
                 if (fe.Tag?.ToString() == "nv") continue;
 
                 positions[fe.Name] = new ElementInfo(
-                    double.IsNaN(fe.ActualWidth) ? null : fe.ActualWidth,
-                    double.IsNaN(fe.ActualHeight) ? null : fe.ActualHeight,
+                    double.IsNaN(fe.Width) ? null : fe.Width,
+                    double.IsNaN(fe.Height) ? null : fe.Height,
                     double.IsNaN(Canvas.GetLeft(fe)) ? null : Canvas.GetLeft(fe),
                     double.IsNaN(Canvas.GetTop(fe)) ? null : Canvas.GetTop(fe));
             }

@@ -576,6 +576,20 @@
             d:Source="/Assets/小丑.png"
             Source="{Binding CurrentGame.HunPlayer.Character.HalfImage}"
             Stretch="UniformToFill" />
+        <Border
+            Name="HunId"
+            Canvas.Left="1080"
+            Canvas.Top="357"
+            Height="35"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            Style="{StaticResource PlayerIdBorder}">
+            <TextBlock
+                d:Text="监管者选手Id"
+                Style="{StaticResource PlayerId}"
+                Text="{Binding CurrentGame.HunPlayer.Member.Name}" />
+        </Border>
         <!--  剩余密码机数量  -->
         <Border
             Name="HunMachineLeft"
