@@ -34,7 +34,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             get => _selectedTrait;
             set
             {
-                _selectedTrait = value;
+                SetProperty(ref _selectedTrait, value);
                 _sharedDataService.CurrentGame.HunPlayer.Trait = new Trait(_selectedTrait);
                 OnPropertyChanged();
             }
@@ -46,7 +46,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             if (!message.IsNewGameCreated) return;
             OnPropertyChanged(nameof(CurrentGame));
-            OnPropertyChanged(nameof(SelectedTrait));
+            SelectedTrait = null;
         }
 
         private bool _isTraitVisible = true;
