@@ -1,6 +1,6 @@
-﻿using neo_bpsys_wpf.CustomControls;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Windows.Data;
+using neo_bpsys_wpf.Controls;
 
 namespace neo_bpsys_wpf.Converters
 {

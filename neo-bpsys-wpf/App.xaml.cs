@@ -2,13 +2,14 @@
 using Microsoft.Extensions.Hosting;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services;
-using neo_bpsys_wpf.Theme;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
 using System.Windows;
 using System.Windows.Threading;
+using neo_bpsys_wpf.Abstractions.Services;
+using neo_bpsys_wpf.Themes;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
@@ -63,6 +64,7 @@ namespace neo_bpsys_wpf
                 services.AddSingleton<IMessageBoxService, MessageBoxService>();
                 services.AddSingleton<IInfoBarService, InfoBarService>();
                 services.AddSingleton<IGameGuidanceService, GameGuidanceService>();
+                services.AddSingleton<ISettingsHostService, SettingsHostService>();
 
                 //Views and ViewModels
                 //Window
@@ -187,13 +189,11 @@ namespace neo_bpsys_wpf
             Application.Current.Resources["hunIcon"] = ImageHelper.GetUiImageSource("hunIcon");
             ApplicationThemeManager.Changed += (currentApplicationTheme, systemAccent) =>
             {
-                foreach (ResourceDictionary dict in Application.Current.Resources.MergedDictionaries)
+                foreach (var dict in Application.Current.Resources.MergedDictionaries)
                 {
-                    if (dict is IconThemesDictionary iconThemesDictionary)
-                    {
-                        iconThemesDictionary.Theme = currentApplicationTheme;
-                        break;
-                    }
+                    if (dict is not IconThemesDictionary iconThemesDictionary) continue;
+                    iconThemesDictionary.Theme = currentApplicationTheme;
+                    break;
                 }
             };
             ApplicationThemeManager.Apply(ApplicationTheme.Dark, WindowBackdropType.Mica, true);

@@ -11,5 +11,10 @@ namespace neo_bpsys_wpf.Views.Pages
         {
             InitializeComponent();
         }
+
+        private void Border_ManipulationInertiaStarting(object sender, System.Windows.Input.ManipulationInertiaStartingEventArgs e)
+        {
+
+        }
     }
 }

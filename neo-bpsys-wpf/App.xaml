@@ -3,7 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:neo_bpsys_wpf"
-    xmlns:localTheme="clr-namespace:neo_bpsys_wpf.Theme"
+    xmlns:themes="clr-namespace:neo_bpsys_wpf.Themes"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     DispatcherUnhandledException="OnDispatcherUnhandledException">
     <Application.Resources>
@@ -11,8 +11,8 @@
             <ResourceDictionary.MergedDictionaries>
                 <ui:ThemesDictionary Theme="Dark" />
                 <ui:ControlsDictionary />
-                <localTheme:IconThemesDictionary Theme="Dark" />
-                <ResourceDictionary Source="/CustomControls/CustomControlsStyleDictionary.xaml" />
+                <themes:IconThemesDictionary Theme="Dark" />
+                <ResourceDictionary Source="/Controls/CustomControlsStyleDictionary.xaml" />
                 <!--  Styles  -->
                 <ResourceDictionary Source="/Styles/ToggleButtonStyles.xaml" />
                 <ResourceDictionary Source="/Styles/Card.xaml" />

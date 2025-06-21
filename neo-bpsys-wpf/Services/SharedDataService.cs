@@ -8,9 +8,13 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows.Threading;
+using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.Services
 {
+    /// <summary>
+    /// 共享数据服务, 实现了 <see cref="ISharedDataService"/> 接口，负责全局的共享数据
+    /// </summary>
     public partial class SharedDataService : ISharedDataService
     {
         private readonly DispatcherTimer _timer = new();
@@ -20,7 +24,7 @@ namespace neo_bpsys_wpf.Services
             MainTeam = new Team(Camp.Sur);
             AwayTeam = new Team(Camp.Hun);
 
-            CurrentGame = new(MainTeam, AwayTeam, GameProgress.Free);
+            CurrentGame = new Game(MainTeam, AwayTeam, GameProgress.Free);
 
             var charaListFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources\\CharacterList.json");
             ReadCharaListFromFile(charaListFilePath);
@@ -41,7 +45,7 @@ namespace neo_bpsys_wpf.Services
             _timer.Tick += Timer_Tick;
         }
 
-        private readonly JsonSerializerOptions jsonSerializerOptions = new()
+        private readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             Converters = { new JsonStringEnumConverter() }
         };
@@ -59,7 +63,7 @@ namespace neo_bpsys_wpf.Services
             var characterFileContent = File.ReadAllText(charaListFilePath);
             var characters = JsonSerializer.Deserialize<Dictionary<string, CharacterMini>>(
                 characterFileContent,
-                jsonSerializerOptions
+                _jsonSerializerOptions
             );
 
             if (characters == null)
@@ -106,13 +110,13 @@ namespace neo_bpsys_wpf.Services
         /// <summary>
         /// 当局禁用是否可禁用
         /// </summary>
-        public ObservableCollection<bool> CanCurrentSurBanned { get; set; } = [];
-        public ObservableCollection<bool> CanCurrentHunBanned { get; set; } = [];
+        public ObservableCollection<bool> CanCurrentSurBanned { get; set; }
+        public ObservableCollection<bool> CanCurrentHunBanned { get; set; }
         /// <summary>
         /// 全局禁用是否可禁用
         /// </summary>
-        public ObservableCollection<bool> CanGlobalSurBanned { get; set; } = [];
-        public ObservableCollection<bool> CanGlobalHunBanned { get; set; } = [];
+        public ObservableCollection<bool> CanGlobalSurBanned { get; set; }
+        public ObservableCollection<bool> CanGlobalHunBanned { get; set; }
 
         /// <summary>
         /// 是否显示辅助特质
@@ -196,19 +200,19 @@ namespace neo_bpsys_wpf.Services
             switch (listName)
             {
                 case BanListName.CanCurrentSurBanned:
-                    for (int i = 0; i < CanCurrentSurBanned.Count; i++)
+                    for (var i = 0; i < CanCurrentSurBanned.Count; i++)
                         CanCurrentSurBanned[i] = i < count;
                     break;
                 case BanListName.CanCurrentHunBanned:
-                    for (int i = 0; i < CanCurrentHunBanned.Count; i++)
+                    for (var i = 0; i < CanCurrentHunBanned.Count; i++)
                         CanCurrentHunBanned[i] = i < count;
                     break;
                 case BanListName.CanGlobalSurBanned:
-                    for (int i = 0; i < CanGlobalSurBanned.Count; i++)
+                    for (var i = 0; i < CanGlobalSurBanned.Count; i++)
                         CanGlobalSurBanned[i] = i < count;
                     break;
                 case BanListName.CanGlobalHunBanned:
-                    for (int i = 0; i < CanGlobalHunBanned.Count; i++)
+                    for (var i = 0; i < CanGlobalHunBanned.Count; i++)
                         CanGlobalHunBanned[i] = i < count;
                     break;
                 default:

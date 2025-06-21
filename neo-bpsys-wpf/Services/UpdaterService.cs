@@ -5,8 +5,10 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows;
 using System.Xml.Serialization;
+using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -20,16 +22,17 @@ namespace neo_bpsys_wpf.Services
         public bool IsFindPreRelease { get; set; } = false;
         public DownloadService Downloader { get; }
 
-        private const string owner = "plfjy";
-        private const string repo = "neo-bpsys-wpf";
+        private const string Owner = "plfjy";
+        private const string Repo = "neo-bpsys-wpf";
         private const string GitHubApiBaseUrl = "https://api.github.com";
+        private const string InstallerFileName = "neo-bpsys-wpf_Installer.exe";
         private readonly HttpClient _httpClient;
         private readonly IMessageBoxService _messageBoxService;
         private readonly IInfoBarService _infoBarService;
 
         public UpdaterService(IMessageBoxService messageBoxService, IInfoBarService infoBarService)
         {
-            _httpClient = new()
+            _httpClient = new HttpClient
             {
                 BaseAddress = new Uri(GitHubApiBaseUrl)
             };
@@ -49,16 +52,14 @@ namespace neo_bpsys_wpf.Services
             Downloader.DownloadFileCompleted += OnDownloadFileCompletedAsync;
 
             var fileName = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf_Installer.exe");
-            if (File.Exists(fileName))
+            if (!File.Exists(fileName)) return;
+            try
             {
-                try
-                {
-                    File.Delete(fileName);
-                }
-                catch (Exception ex)
-                {
-                    _messageBoxService.ShowErrorAsync(ex.Message, "清理更新残留异常");
-                }
+                File.Delete(fileName);
+            }
+            catch (Exception ex)
+            {
+                _messageBoxService.ShowErrorAsync(ex.Message, "清理更新残留异常");
             }
         }
 
@@ -67,8 +68,8 @@ namespace neo_bpsys_wpf.Services
         /// </summary>
         public async Task DownloadUpdate(string mirror = "")
         {
-            var fileName = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf_Installer.exe");
-            var downloadUrl = NewVersionInfo.assets.Where(a => a.name == "neo-bpsys-wpf_Installer.exe").ToArray()[0].browser_download_url;
+            var fileName = Path.Combine(Path.GetTempPath(), InstallerFileName);
+            var downloadUrl = NewVersionInfo.Assets.First(a => a.Name == InstallerFileName).BrowserDownloadUrl;
             try
             {
                 await Downloader.DownloadFileTaskAsync(mirror + downloadUrl, fileName);
@@ -103,29 +104,29 @@ namespace neo_bpsys_wpf.Services
         /// 检查更新
         /// </summary>
         /// <returns>如果有新版本则返回true，反之为false</returns>
-        public async Task<bool> UpdateCheck(bool isinitial = false, string mirror = "")
+        public async Task<bool> UpdateCheck(bool isInitial = false, string mirror = "")
         {
             await GetNewVersionInfoAsync();
-            if (string.IsNullOrEmpty(NewVersionInfo.tag_name))
+            if (string.IsNullOrEmpty(NewVersionInfo.TagName))
             {
                 await _messageBoxService.ShowErrorAsync("获取更新错误");
                 return false;
             }
-            if (NewVersionInfo.tag_name != "v" + App.ResourceAssembly.GetName().Version!.ToString())
+            if (NewVersionInfo.TagName != "v" + Application.ResourceAssembly.GetName().Version!.ToString())
             {
-                if (!isinitial)
+                if (!isInitial)
                 {
-                    var result = await _messageBoxService.ShowConfirmAsync("更新检查", $"检测到新版本{NewVersionInfo.tag_name}，是否更新？", "更新");
+                    var result = await _messageBoxService.ShowConfirmAsync("更新检查", $"检测到新版本{NewVersionInfo.TagName}，是否更新？", "更新");
                     if (result)
                         await DownloadUpdate(mirror);
                 }
                 else
                 {
-                    _infoBarService.ShowSuccessInfoBar($"检测到新版本{NewVersionInfo.tag_name}，前往设置页进行更新");
+                    _infoBarService.ShowSuccessInfoBar($"检测到新版本{NewVersionInfo.TagName}，前往设置页进行更新");
                 }
                 return true;
             }
-            if (!isinitial)
+            if (!isInitial)
             {
                 await _messageBoxService.ShowInfoAsync("当前已是最新版本", "更新检查"); 
             }
@@ -138,10 +139,10 @@ namespace neo_bpsys_wpf.Services
         /// <returns></returns>
         private async Task GetNewVersionInfoAsync()
         {
-            NewVersionInfo = new();
+            NewVersionInfo = new ReleaseInfo();
             try
             {
-                var response = await _httpClient.GetAsync($"repos/{owner}/{repo}/releases{(IsFindPreRelease ? string.Empty : "/latest")}");
+                var response = await _httpClient.GetAsync($"repos/{Owner}/{Repo}/releases{(IsFindPreRelease ? string.Empty : "/latest")}");
                 response.EnsureSuccessStatusCode();
                 var content = await response.Content.ReadAsStringAsync();
                 if (string.IsNullOrEmpty(content)) return;
@@ -186,28 +187,31 @@ namespace neo_bpsys_wpf.Services
         {
             var fileName = Path.Combine(
                 Path.GetTempPath(),
-                NewVersionInfo.assets.Where(a => a.name == "neo-bpsys-wpf_Installer.exe").ToArray()[0].name
+                NewVersionInfo.Assets.First(a => a.Name == InstallerFileName).Name
                 );
             Process p = new();
             p.StartInfo.FileName = fileName;
             p.StartInfo.Arguments = "/silent";
             p.Start();
-            App.Current.Shutdown();
+            Application.Current.Shutdown();
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:命名样式", Justification = "<挂起>")]
         public class ReleaseInfo
         {
-            public string tag_name { get; set; } = string.Empty;
-            public string body { get; set; } = string.Empty;
-            public AssetsInfo[] assets { get; set; } = [];
+            [JsonPropertyName("tag_name")]
+            public string TagName { get; init; } = string.Empty;
+            [JsonPropertyName("body")]
+            public string Body { get; init; } = string.Empty;
+            [JsonPropertyName("assets")]
+            public AssetsInfo[] Assets { get; init; } = [];
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:命名样式", Justification = "<挂起>")]
         public class AssetsInfo
         {
-            public string name { get; set; } = string.Empty;
-            public string browser_download_url { get; set; } = string.Empty;
+            [JsonPropertyName("name")]
+            public string Name { get; set; } = string.Empty;
+            [JsonPropertyName("browser_download_url")]
+            public string BrowserDownloadUrl { get; set; } = string.Empty;
         }
     }
 }

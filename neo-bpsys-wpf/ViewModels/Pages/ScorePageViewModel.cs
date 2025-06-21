@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Windows;
 using System;
+using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {

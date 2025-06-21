@@ -9,6 +9,7 @@ using neo_bpsys_wpf.Services;
 using System.IO;
 using System.Text.Json;
 using System.Windows.Media.Imaging;
+using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {

@@ -2,7 +2,7 @@
 using System.Windows.Markup;
 using Wpf.Ui.Appearance;
 
-namespace neo_bpsys_wpf.Theme
+namespace neo_bpsys_wpf.Themes
 {
     [Localizability(LocalizationCategory.Ignore)]
     [Ambient]

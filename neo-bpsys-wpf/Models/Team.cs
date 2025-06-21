@@ -10,6 +10,7 @@ using System.Diagnostics.Eventing.Reader;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.Models;
 
@@ -150,9 +151,7 @@ public partial class Team : ObservableObject
             return !HunPlayerOnField.IsMemberValid;
         }
 
-        if (_onFieldSurPlayerCnt < 4) return true;
-
-        return false;
+        return _onFieldSurPlayerCnt < 4;
     }
 
     /// <summary>
@@ -174,13 +173,11 @@ public partial class Team : ObservableObject
         {
             foreach (var p in SurPlayerOnFieldList)
             {
-                if (!p.IsMemberValid)
-                {
-                    p.Member = member;
-                    p.IsMemberValid = true;
-                    _onFieldSurPlayerCnt++;
-                    break;
-                }
+                if (p.IsMemberValid) continue;
+                p.Member = member;
+                p.IsMemberValid = true;
+                _onFieldSurPlayerCnt++;
+                break;
             }
         }
         WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
@@ -195,20 +192,18 @@ public partial class Team : ObservableObject
     {
         if (member.Camp == Camp.Hun)
         {
-            HunPlayerOnField.Member = new(Camp.Hun);
+            HunPlayerOnField.Member = new Member(Camp.Hun);
             HunPlayerOnField.IsMemberValid = false;
         }
         else
         {
             foreach (var p in SurPlayerOnFieldList)
             {
-                if (p.Member == member)
-                {
-                    p.Member = new(Camp.Sur);
-                    p.IsMemberValid = false;
-                    _onFieldSurPlayerCnt--;
-                    break;
-                }
+                if (p.Member != member) continue;
+                p.Member = new Member(Camp.Sur);
+                p.IsMemberValid = false;
+                _onFieldSurPlayerCnt--;
+                break;
             }
         }
         WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));

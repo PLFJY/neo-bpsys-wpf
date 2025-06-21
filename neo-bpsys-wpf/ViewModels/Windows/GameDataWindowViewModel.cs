@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
 using System.Windows.Input;
+using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
@@ -12,7 +13,8 @@ public partial class GameDataWindowViewModel :
     ObservableRecipient, 
     IRecipient<NewGameMessage>, 
     IRecipient<DesignModeChangedMessage>, 
-    IRecipient<PropertyChangedMessage<bool>>
+    IRecipient<PropertyChangedMessage<bool>>,
+    IRecipient<MemberStateChangedMessage>
 {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     public GameDataWindowViewModel()
@@ -54,5 +56,10 @@ public partial class GameDataWindowViewModel :
         {
             IsBo3Mode = message.NewValue;
         }
+    }
+
+    public void Receive(MemberStateChangedMessage message)
+    {
+        OnPropertyChanged(nameof(CurrentGame));
     }
 }

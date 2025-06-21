@@ -1,7 +1,11 @@
-﻿using Wpf.Ui.Controls;
+﻿using neo_bpsys_wpf.Abstractions.Services;
+using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Services
-{
+{   
+    /// <summary>
+    /// 信息框服务, 实现了 <see cref="IMessageBoxService"/> 接口，负责展示信息框
+    /// </summary>
     public class MessageBoxService : IMessageBoxService
     {
         /// <summary>

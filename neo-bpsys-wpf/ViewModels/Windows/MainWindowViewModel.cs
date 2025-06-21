@@ -12,6 +12,7 @@ using neo_bpsys_wpf.Views.Pages;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using neo_bpsys_wpf.Abstractions.Services;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using neo_bpsys_wpf.Exceptions;
@@ -34,7 +35,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         private readonly ISharedDataService _sharedDataService;
 
-        private readonly JsonSerializerOptions jsonSerializerOptions = new()
+        private readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             WriteIndented = true,
             Converters = { new JsonStringEnumConverter() },
@@ -90,7 +91,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             _gameGuidanceService = gameGuidanceService;
             _infoBarService = infoBarService;
             _isGuidanceStarted = false;
-            jsonSerializerOptions = new JsonSerializerOptions()
+            _jsonSerializerOptions = new JsonSerializerOptions()
             {
                 WriteIndented = true,
                 Converters = { new JsonStringEnumConverter() },
@@ -124,8 +125,8 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 hunTeam = _sharedDataService.MainTeam;
             }
 
-            Map? pickedMap = _sharedDataService.CurrentGame.PickedMap;
-            Map? bannedMap = _sharedDataService.CurrentGame.BannedMap;
+            var pickedMap = _sharedDataService.CurrentGame.PickedMap;
+            var bannedMap = _sharedDataService.CurrentGame.BannedMap;
 
             _sharedDataService.CurrentGame = new Game(surTeam, hunTeam, SelectedGameProgress)
             {
@@ -136,7 +137,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             //发送新对局已创建的消息
             WeakReferenceMessenger.Default.Send(new NewGameMessage(this, true));
 
-            await _messageBoxService.ShowInfoAsync($"已成功创建新对局\n{_sharedDataService.CurrentGame.GUID}", "创建提示");
+            await _messageBoxService.ShowInfoAsync($"已成功创建新对局\n{_sharedDataService.CurrentGame.Guid}", "创建提示");
             OnPropertyChanged();
         }
 
@@ -158,7 +159,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [RelayCommand]
         private async Task SaveGameInfoAsync()
         {
-            var json = JsonSerializer.Serialize(_sharedDataService.CurrentGame, jsonSerializerOptions);
+            var json = JsonSerializer.Serialize(_sharedDataService.CurrentGame, _jsonSerializerOptions);
             var path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 "neo-bpsys-wpf\\GameInfoOutput"
@@ -292,11 +293,11 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         public string TimerTime { get; set; } = "30";
 
-        public List<int> RecommendTimmerList { get; } = [30, 45, 60, 90, 120, 150, 180];
+        public List<int> RecommendTimerList { get; } = [30, 45, 60, 90, 120, 150, 180];
 
         [ObservableProperty] private Dictionary<GameProgress, string> _gameList;
 
-        public static Dictionary<GameProgress, string> GameListBo5 => new()
+        private static Dictionary<GameProgress, string> GameListBo5 => new()
         {
             { GameProgress.Free, "自由对局" },
             { GameProgress.Game1FirstHalf, "第1局上半" },
@@ -313,7 +314,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             { GameProgress.Game5ExtraSecondHalf, "第5局加赛下半" }
         };
 
-        public static Dictionary<GameProgress, string> GameListBo3 => new()
+        private static Dictionary<GameProgress, string> GameListBo3 => new()
         {
             { GameProgress.Free, "自由对局" },
             { GameProgress.Game1FirstHalf, "第1局上半" },

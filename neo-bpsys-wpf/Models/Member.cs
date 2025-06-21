@@ -7,6 +7,7 @@ using neo_bpsys_wpf.Messages;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using static System.String;
 
 namespace neo_bpsys_wpf.Models;
 /// <summary>
@@ -19,15 +20,15 @@ public partial class Member : ObservableObject
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
 
-    private string _name = string.Empty;
+    private string _name = Empty;
     public string Name
     {
         get => _name;
         set
         {
             WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
-            _name = value;
-            OnPropertyChanged(nameof(Name));
+            SetProperty(ref _name, value);
+            OnPropertyChanged();
         }
     }
 
@@ -39,20 +40,23 @@ public partial class Member : ObservableObject
     [JsonIgnore]
     public ImageSource? Image
     {
-        get => _image;
+        get
+        {
+            if (_image != null || ImageUri == null) return _image;
+            _image = new BitmapImage(new Uri(ImageUri));
+            OnPropertyChanged(nameof(IsImageValid));
+            return _image;
+        }
         set
         {
-            _image = value;
-            if (_image != null)
-                IsImageValid = true;
-            else
-                IsImageValid = false;
-            OnPropertyChanged(nameof(Image));
+            SetProperty(ref _image, value);
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsImageValid));
             WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
         }
     }
 
-    public string ImageUri { get; set; } = string.Empty;
+    public string? ImageUri { get; set; }
 
     private bool _isOnField = false;
     public bool IsOnField
@@ -60,8 +64,8 @@ public partial class Member : ObservableObject
         get => _isOnField;
         set
         {
-            _isOnField = value;
-            OnPropertyChanged(nameof(IsOnField));
+            SetProperty(ref _isOnField, value);
+            OnPropertyChanged();
             WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
         }
     }
@@ -75,6 +79,5 @@ public partial class Member : ObservableObject
         Camp = camp;
     }
 
-    [ObservableProperty]
-    private bool _isImageValid = false;
+    public bool IsImageValid => Image != null;
 }

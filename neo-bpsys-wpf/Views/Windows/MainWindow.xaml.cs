@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Shell;
+using neo_bpsys_wpf.Abstractions.Services;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
@@ -53,7 +54,7 @@ namespace neo_bpsys_wpf.Views.Windows
 
             if (result == MessageBoxResult.Primary)
             {
-                App.Current.Shutdown();
+                Application.Current.Shutdown();
             }
         }
 

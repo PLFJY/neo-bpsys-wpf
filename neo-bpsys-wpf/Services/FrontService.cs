@@ -6,8 +6,9 @@ using System.Windows.Data;
 using System.Windows.Media.Animation;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.AttachedBehaviors;
-using neo_bpsys_wpf.CustomControls;
+using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Views.Windows;
@@ -16,7 +17,7 @@ using Path = System.IO.Path;
 namespace neo_bpsys_wpf.Services
 {
     /// <summary>
-    /// 前台窗口服务, 实现了 <see cref="IFrontService"/> 接口，负责与前台窗口进行交互
+    /// 对局引导服务, 实现了 <see cref="IFrontService"/> 接口，负责与前台窗口进行交互
     /// </summary>
     public class FrontService : IFrontService
     {
@@ -97,12 +98,16 @@ namespace neo_bpsys_wpf.Services
                 _frontCanvas.Add((window, canvasName));
         }
 
+        private void SetUiImage()
+        {
+            
+        }
+
         #region 窗口显示/隐藏管理
         public void AllWindowShow()
         {
-            foreach (var window in _frontWindows.Values)
+            foreach (var window in _frontWindows.Values.Where(window => !FrontWindowStates[window.GetType()]))
             {
-                if (FrontWindowStates[window.GetType()]) continue;
                 window.Show();
                 FrontWindowStates[window.GetType()] = true;
             }
@@ -110,9 +115,8 @@ namespace neo_bpsys_wpf.Services
 
         public void AllWindowHide()
         {
-            foreach (var window in _frontWindows.Values)
+            foreach (var window in _frontWindows.Values.Where(window => FrontWindowStates[window.GetType()]))
             {
-                if (!FrontWindowStates[window.GetType()]) continue;
                 window.Hide();
                 FrontWindowStates[window.GetType()] = false;
             }
