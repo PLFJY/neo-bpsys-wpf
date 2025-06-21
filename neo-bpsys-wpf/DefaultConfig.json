@@ -1,0 +1,17 @@
+{
+  "IsAdminOnStartup": false,
+  "FrontResolution": {
+    "BpWindow": {
+      "Width": 1080,
+      "Height": 1920
+    },
+    "InterludeWindow": {
+      "Width": 1080,
+      "Height": 1920
+    },
+    "GameDataWindow": {
+      "Width": 1080,
+      "Height": 1920
+    }
+  }
+}

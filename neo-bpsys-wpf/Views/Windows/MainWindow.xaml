@@ -180,7 +180,7 @@
                                 d:Text="30"
                                 IsEditable="True"
                                 IsTextSearchEnabled="False"
-                                ItemsSource="{Binding RecommendTimmerList}"
+                                ItemsSource="{Binding RecommendTimerList}"
                                 MaxDropDownHeight="150"
                                 SelectedIndex="0"
                                 Text="{Binding TimerTime}" />

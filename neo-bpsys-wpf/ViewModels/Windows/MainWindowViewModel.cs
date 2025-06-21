@@ -35,7 +35,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         private readonly ISharedDataService _sharedDataService;
 
-        private readonly JsonSerializerOptions jsonSerializerOptions = new()
+        private readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             WriteIndented = true,
             Converters = { new JsonStringEnumConverter() },
@@ -91,7 +91,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             _gameGuidanceService = gameGuidanceService;
             _infoBarService = infoBarService;
             _isGuidanceStarted = false;
-            jsonSerializerOptions = new JsonSerializerOptions()
+            _jsonSerializerOptions = new JsonSerializerOptions()
             {
                 WriteIndented = true,
                 Converters = { new JsonStringEnumConverter() },
@@ -125,8 +125,8 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 hunTeam = _sharedDataService.MainTeam;
             }
 
-            Map? pickedMap = _sharedDataService.CurrentGame.PickedMap;
-            Map? bannedMap = _sharedDataService.CurrentGame.BannedMap;
+            var pickedMap = _sharedDataService.CurrentGame.PickedMap;
+            var bannedMap = _sharedDataService.CurrentGame.BannedMap;
 
             _sharedDataService.CurrentGame = new Game(surTeam, hunTeam, SelectedGameProgress)
             {
@@ -137,7 +137,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             //发送新对局已创建的消息
             WeakReferenceMessenger.Default.Send(new NewGameMessage(this, true));
 
-            await _messageBoxService.ShowInfoAsync($"已成功创建新对局\n{_sharedDataService.CurrentGame.GUID}", "创建提示");
+            await _messageBoxService.ShowInfoAsync($"已成功创建新对局\n{_sharedDataService.CurrentGame.Guid}", "创建提示");
             OnPropertyChanged();
         }
 
@@ -159,7 +159,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [RelayCommand]
         private async Task SaveGameInfoAsync()
         {
-            var json = JsonSerializer.Serialize(_sharedDataService.CurrentGame, jsonSerializerOptions);
+            var json = JsonSerializer.Serialize(_sharedDataService.CurrentGame, _jsonSerializerOptions);
             var path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 "neo-bpsys-wpf\\GameInfoOutput"

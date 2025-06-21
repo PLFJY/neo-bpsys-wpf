@@ -34,7 +34,9 @@ namespace neo_bpsys_wpf.Abstractions.Services
         /// <summary>
         /// 检查更新
         /// </summary>
+        /// <param name="isInitial">是否为初始检查</param>
+        /// <param name="mirror">ghproxy镜像链接</param>
         /// <returns>如果有新版本则返回true，反之为false</returns>
-        Task<bool> UpdateCheck(bool isinitial = false, string mirror = "");
+        Task<bool> UpdateCheck(bool isInitial = false, string mirror = "");
     }
 }

@@ -52,16 +52,14 @@ namespace neo_bpsys_wpf.Services
             Downloader.DownloadFileCompleted += OnDownloadFileCompletedAsync;
 
             var fileName = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf_Installer.exe");
-            if (File.Exists(fileName))
+            if (!File.Exists(fileName)) return;
+            try
             {
-                try
-                {
-                    File.Delete(fileName);
-                }
-                catch (Exception ex)
-                {
-                    _messageBoxService.ShowErrorAsync(ex.Message, "清理更新残留异常");
-                }
+                File.Delete(fileName);
+            }
+            catch (Exception ex)
+            {
+                _messageBoxService.ShowErrorAsync(ex.Message, "清理更新残留异常");
             }
         }
 
@@ -106,7 +104,7 @@ namespace neo_bpsys_wpf.Services
         /// 检查更新
         /// </summary>
         /// <returns>如果有新版本则返回true，反之为false</returns>
-        public async Task<bool> UpdateCheck(bool isinitial = false, string mirror = "")
+        public async Task<bool> UpdateCheck(bool isInitial = false, string mirror = "")
         {
             await GetNewVersionInfoAsync();
             if (string.IsNullOrEmpty(NewVersionInfo.TagName))
@@ -116,7 +114,7 @@ namespace neo_bpsys_wpf.Services
             }
             if (NewVersionInfo.TagName != "v" + Application.ResourceAssembly.GetName().Version!.ToString())
             {
-                if (!isinitial)
+                if (!isInitial)
                 {
                     var result = await _messageBoxService.ShowConfirmAsync("更新检查", $"检测到新版本{NewVersionInfo.TagName}，是否更新？", "更新");
                     if (result)
@@ -128,7 +126,7 @@ namespace neo_bpsys_wpf.Services
                 }
                 return true;
             }
-            if (!isinitial)
+            if (!isInitial)
             {
                 await _messageBoxService.ShowInfoAsync("当前已是最新版本", "更新检查"); 
             }

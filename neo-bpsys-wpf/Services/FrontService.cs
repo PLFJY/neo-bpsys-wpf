@@ -98,12 +98,16 @@ namespace neo_bpsys_wpf.Services
                 _frontCanvas.Add((window, canvasName));
         }
 
+        private void SetUiImage()
+        {
+            
+        }
+
         #region 窗口显示/隐藏管理
         public void AllWindowShow()
         {
-            foreach (var window in _frontWindows.Values)
+            foreach (var window in _frontWindows.Values.Where(window => !FrontWindowStates[window.GetType()]))
             {
-                if (FrontWindowStates[window.GetType()]) continue;
                 window.Show();
                 FrontWindowStates[window.GetType()] = true;
             }
@@ -111,9 +115,8 @@ namespace neo_bpsys_wpf.Services
 
         public void AllWindowHide()
         {
-            foreach (var window in _frontWindows.Values)
+            foreach (var window in _frontWindows.Values.Where(window => FrontWindowStates[window.GetType()]))
             {
-                if (!FrontWindowStates[window.GetType()]) continue;
                 window.Hide();
                 FrontWindowStates[window.GetType()] = false;
             }
@@ -245,8 +248,8 @@ namespace neo_bpsys_wpf.Services
                 if (fe.Tag?.ToString() == "nv") continue;
 
                 positions[fe.Name] = new ElementInfo(
-                    double.IsNaN(fe.Width) ? null : fe.Width,
-                    double.IsNaN(fe.Height) ? null : fe.Height,
+                    double.IsNaN(fe.ActualWidth) ? null : fe.ActualWidth,
+                    double.IsNaN(fe.ActualHeight) ? null : fe.ActualHeight,
                     double.IsNaN(Canvas.GetLeft(fe)) ? null : Canvas.GetLeft(fe),
                     double.IsNaN(Canvas.GetTop(fe)) ? null : Canvas.GetTop(fe));
             }

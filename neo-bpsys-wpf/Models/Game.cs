@@ -13,9 +13,9 @@ namespace neo_bpsys_wpf.Models;
 /// </summary>
 public partial class Game : ObservableObject
 {
-    public Guid GUID { get; }
+    public Guid Guid { get; }
 
-    public string StartTime { get; }
+    public DateTime StartTime { get; }
 
     [ObservableProperty]
     private Team _surTeam = new(Camp.Sur);
@@ -75,21 +75,21 @@ public partial class Game : ObservableObject
 
     public Game(Team surTeam, Team hunTeam, GameProgress gameProgress)
     {
-        GUID = Guid.NewGuid();
-        StartTime = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
+        Guid = Guid.NewGuid();
+        StartTime = DateTime.Now;
         SurTeam = surTeam;
         HunTeam = hunTeam;
         //重置角色选择
         for (int i = 0; i < SurTeam.SurPlayerOnFieldList.Count; i++)
         {
-            SurTeam.SurPlayerOnFieldList[i] = new(SurTeam.SurPlayerOnFieldList[i].Member);
+            SurTeam.SurPlayerOnFieldList[i] = new Player(SurTeam.SurPlayerOnFieldList[i].Member);
         }
-        SurTeam.HunPlayerOnField = new(SurTeam.HunPlayerOnField.Member);
+        SurTeam.HunPlayerOnField = new Player(SurTeam.HunPlayerOnField.Member);
         for (int i = 0; i < HunTeam.SurPlayerOnFieldList.Count; i++)
         {
-            HunTeam.SurPlayerOnFieldList[i] = new(HunTeam.SurPlayerOnFieldList[i].Member);
+            HunTeam.SurPlayerOnFieldList[i] = new Player(HunTeam.SurPlayerOnFieldList[i].Member);
         }
-        HunTeam.HunPlayerOnField = new(HunTeam.HunPlayerOnField.Member);
+        HunTeam.HunPlayerOnField = new Player(HunTeam.HunPlayerOnField.Member);
         //刷新上场列表
         SurPlayerList = SurTeam.SurPlayerOnFieldList;
         HunPlayer = HunTeam.HunPlayerOnField;

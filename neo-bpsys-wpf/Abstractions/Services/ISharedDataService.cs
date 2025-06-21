@@ -65,16 +65,19 @@ namespace neo_bpsys_wpf.Abstractions.Services
         /// 分数统计界面 BO3 和 BO5之间"Total"相差的距离
         /// </summary>
         double GlobalScoreTotalMargin { get; set; }
-
-        void SetBanCount(BanListName listName, int count);
-
         /// <summary>
-        /// 倒计时开始
+        /// 设置Ban位数量
+        /// </summary>
+        /// <param name="listName">Ban位列表名称</param>
+        /// <param name="count">Ban位数量</param>
+        void SetBanCount(BanListName listName, int count);
+        /// <summary>
+        /// 开始倒计时
         /// </summary>
         /// <param name="seconds"></param>
         void TimerStart(int? seconds);
         /// <summary>
-        /// 倒计时停止
+        /// 停止倒计时
         /// </summary>
         void TimerStop();
     }
