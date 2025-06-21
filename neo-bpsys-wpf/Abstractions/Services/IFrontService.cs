@@ -3,6 +3,9 @@ using neo_bpsys_wpf.Enums;
 
 namespace neo_bpsys_wpf.Abstractions.Services
 {
+    /// <summary>
+    /// 前台窗口接口服务
+    /// </summary>
     public interface IFrontService
     {
         /// <summary>

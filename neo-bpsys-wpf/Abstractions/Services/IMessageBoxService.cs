@@ -1,5 +1,8 @@
 ﻿namespace neo_bpsys_wpf.Abstractions.Services
 {
+    /// <summary>
+    /// 提示框服务接口
+    /// </summary>
     public interface IMessageBoxService
     {
         /// <summary>

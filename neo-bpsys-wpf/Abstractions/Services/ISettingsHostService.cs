@@ -7,6 +7,9 @@ using neo_bpsys_wpf.Models;
 
 namespace neo_bpsys_wpf.Abstractions.Services
 {
+    /// <summary>
+    /// 应用设置服务接口
+    /// </summary>
     public interface ISettingsHostService
     {
         Settings Settings { get; set; }

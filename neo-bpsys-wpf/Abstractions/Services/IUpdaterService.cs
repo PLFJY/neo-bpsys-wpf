@@ -3,6 +3,9 @@ using static neo_bpsys_wpf.Services.UpdaterService;
 
 namespace neo_bpsys_wpf.Abstractions.Services
 {
+    /// <summary>
+    /// 更新服务接口
+    /// </summary>
     public interface IUpdaterService
     {
         /// <summary>
