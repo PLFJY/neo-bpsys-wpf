@@ -13,6 +13,13 @@ using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.Services
 {
+    /// <summary>
+    /// 前台窗口服务, 实现了 <see cref="IGameGuidanceService"/> 接口，负责对局引导功能
+    /// </summary>
+    /// <param name="sharedDataService"></param>
+    /// <param name="navigationService"></param>
+    /// <param name="messageBoxService"></param>
+    /// <param name="infoBarService"></param>
     public class GameGuidanceService(
         ISharedDataService sharedDataService,
         INavigationService navigationService,
@@ -230,7 +237,7 @@ namespace neo_bpsys_wpf.Services
             return returnValue;
         }
 
-        private class GameProperty
+        public class GameProperty
         {
             public int SurCurrentBan { get; set; } = 4;
             public int HunCurrentBan { get; set; } = 2;
@@ -239,7 +246,7 @@ namespace neo_bpsys_wpf.Services
             public List<Step> WorkFlow { get; set; } = [];
         }
 
-        private class Step
+        public class Step
         {
             public GameAction Action { get; set; }
             public List<int> Index { get; set; } = [];

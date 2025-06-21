@@ -12,6 +12,9 @@ using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.Services
 {
+    /// <summary>
+    /// 共享数据服务, 实现了 <see cref="ISharedDataService"/> 接口，负责全局的共享数据
+    /// </summary>
     public partial class SharedDataService : ISharedDataService
     {
         private readonly DispatcherTimer _timer = new();

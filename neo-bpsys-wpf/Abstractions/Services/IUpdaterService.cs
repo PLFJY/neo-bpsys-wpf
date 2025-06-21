@@ -21,7 +21,7 @@ namespace neo_bpsys_wpf.Abstractions.Services
         /// </summary>
         DownloadService Downloader { get; }
         /// <summary>
-        /// 是否找到预览版
+        /// 是否寻找预览版
         /// </summary>
         bool IsFindPreRelease { get; set; }
         /// <summary>

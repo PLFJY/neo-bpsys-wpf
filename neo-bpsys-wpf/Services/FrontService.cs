@@ -17,7 +17,7 @@ using Path = System.IO.Path;
 namespace neo_bpsys_wpf.Services
 {
     /// <summary>
-    /// 前台窗口服务, 实现了 <see cref="IFrontService"/> 接口，负责与前台窗口进行交互
+    /// 对局引导服务, 实现了 <see cref="IFrontService"/> 接口，负责与前台窗口进行交互
     /// </summary>
     public class FrontService : IFrontService
     {

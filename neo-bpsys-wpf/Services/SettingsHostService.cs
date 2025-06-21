@@ -12,6 +12,9 @@ using neo_bpsys_wpf.Models;
 
 namespace neo_bpsys_wpf.Services
 {
+    /// <summary>
+    /// 设置服务, 实现了 <see cref="ISettingsHostService"/> 接口，负责设置相关的内容
+    /// </summary>
     public class SettingsHostService : ISettingsHostService
     {
         public Settings Settings { get; set; } = new();
