@@ -1,6 +1,6 @@
 # neo-bpsys-wpf
 
-powered by <img src="E:\_PersonalStuff\ASG\bpsys\neo-bpsys-docs\images\logo_net.jpg" width="30px" height="25px"> 9.0.4 & <img src="E:\_PersonalStuff\ASG\bpsys\neo-bpsys-docs\images\wpfui.png" width="30px" height="25px"> 4.0.3
+powered by <img src="https://github.com/PLFJY/neo-bpsys-wpf/raw/refs/heads/main/neo-bpsys-wpf/Assets/logo_net.jpg" width="30px" height="30px"> 9.0.4 & <img src="https://github.com/PLFJY/neo-bpsys-wpf/raw/refs/heads/main/neo-bpsys-wpf/Assets/wpfui.png" width="30px" height="30px"> 4.0.3
 
 [项目官网](https://bpsys.plfjy.top/) | [备用官网](https://plfjy.github.io/neo-bpsys-website/) | [项目仓库](https://github.com/PLFJY/neo-bpsys-wpf) | [使用文档](https://docs.bpsys.plfjy.top/docs/neo-bpsys-wpf%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3/%E5%89%8D%E8%A8%80) | [开发文档](https://docs.bpsys.plfjy.top/docs/%E5%BC%80%E5%8F%91%E6%96%87%E6%A1%A3) | [QQ交流群](https://qm.qq.com/q/uqoK5tMtJQ)
 
