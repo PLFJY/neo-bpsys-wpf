@@ -27,7 +27,7 @@ public partial class Member : ObservableObject
         set
         {
             WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
-            _name = value;
+            SetProperty(ref _name, value);
             OnPropertyChanged();
         }
     }
@@ -42,16 +42,14 @@ public partial class Member : ObservableObject
     {
         get
         {
-            if (_image == null && ImageUri != null)
-            {
-                _image = new BitmapImage(new Uri(ImageUri));
-                OnPropertyChanged(nameof(IsImageValid));
-            }
+            if (_image != null || ImageUri == null) return _image;
+            _image = new BitmapImage(new Uri(ImageUri));
+            OnPropertyChanged(nameof(IsImageValid));
             return _image;
         }
         set
         {
-            _image = value;
+            SetProperty(ref _image, value);
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsImageValid));
             WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
@@ -66,7 +64,7 @@ public partial class Member : ObservableObject
         get => _isOnField;
         set
         {
-            _isOnField = value;
+            SetProperty(ref _isOnField, value);
             OnPropertyChanged();
             WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
         }

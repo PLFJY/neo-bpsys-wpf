@@ -6,6 +6,7 @@ using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
+using Trait = neo_bpsys_wpf.Models.Trait;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -34,7 +35,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             set
             {
                 _selectedTrait = value;
-                _sharedDataService.CurrentGame.HunPlayer.Trait = new(_selectedTrait);
+                _sharedDataService.CurrentGame.HunPlayer.Trait = new Trait(_selectedTrait);
                 OnPropertyChanged();
             }
         }
@@ -43,10 +44,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
         public void Receive(NewGameMessage message)
         {
-            if (message.IsNewGameCreated)
-            {
-                OnPropertyChanged(nameof(CurrentGame));
-            }
+            if (!message.IsNewGameCreated) return;
+            OnPropertyChanged(nameof(CurrentGame));
+            OnPropertyChanged(nameof(SelectedTrait));
         }
 
         private bool _isTraitVisible = true;

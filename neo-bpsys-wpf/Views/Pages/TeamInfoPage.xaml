@@ -246,7 +246,7 @@
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                     <ui:TextBox
-                        Width="150"
+                        Width="250"
                         PlaceholderText="队伍名称"
                         Text="{Binding TeamName}" />
                     <ui:Button
