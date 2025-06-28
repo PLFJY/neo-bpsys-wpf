@@ -2,13 +2,12 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Models;
-using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Windows;
-using System;
-using neo_bpsys_wpf.Abstractions.Services;
+using System.ComponentModel;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -21,11 +20,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
         }
 
-        public readonly ISharedDataService _sharedDataService;
+        private readonly ISharedDataService _sharedDataService;
         private readonly IFrontService _frontService;
         private readonly ScoreManualWindow _scoreManual;
 
-        public ScorePageViewModel(ISharedDataService sharedDataService, IFrontService frontService, ScoreManualWindow scoreManual)
+        public ScorePageViewModel(ISharedDataService sharedDataService, IFrontService frontService,
+            ScoreManualWindow scoreManual)
         {
             _sharedDataService = sharedDataService;
             _frontService = frontService;
@@ -39,6 +39,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         public Team AwayTeam => _sharedDataService.AwayTeam;
 
         #region 比分控制
+
         [RelayCommand]
         private void Escape4()
         {
@@ -75,8 +76,8 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         [RelayCommand]
         private void Reset()
         {
-            _sharedDataService.MainTeam.Score = new();
-            _sharedDataService.AwayTeam.Score = new();
+            _sharedDataService.MainTeam.Score = new Score();
+            _sharedDataService.AwayTeam.Score = new Score();
         }
 
         [RelayCommand]
@@ -87,7 +88,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
         [RelayCommand]
-        private void CaculateMajorPoint()
+        private void CalculateMajorPoint()
         {
             if (_sharedDataService.MainTeam.Score.MinorPoints == _sharedDataService.AwayTeam.Score.MinorPoints)
             {
@@ -102,6 +103,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             {
                 _sharedDataService.AwayTeam.Score.Win++;
             }
+
             _sharedDataService.MainTeam.Score.MinorPoints = 0;
             _sharedDataService.AwayTeam.Score.MinorPoints = 0;
             OnPropertyChanged(string.Empty);
@@ -112,61 +114,67 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             _scoreManual.ShowDialog();
         }
+
         #endregion
 
         #region 分数统计
+
         private int _totalMainMinorPoint = 0;
         private int _totalAwayMinorPoint = 0;
 
-        //[ObservableProperty]
         private bool _isBo3Mode;
-        public bool IsBo3Mode
+
+        private bool IsBo3Mode
         {
             get => _isBo3Mode;
             set
             {
-                _isBo3Mode = value;
-                if (!_isBo3Mode)
-                {
-                    GameList = GameListBo5;
-                }
-                else
-                {
-                    GameList = GameListBo3;
-                }
+                SetProperty(ref _isBo3Mode, value);
+                GameList = !_isBo3Mode ? GameListBo5 : GameListBo3;
                 SelectedIndex = 0;
+                OnPropertyChanged(nameof(IsGameFinished));
+                OnPropertyChanged(nameof(MainTeamCamp));
+                OnPropertyChanged(nameof(SelectedGameResult));
+                UpdateTotalMinorPoint();
                 OnPropertyChanged();
             }
         }
 
         private GameProgress _selectedGameProgress = GameProgress.Game1FirstHalf;
+
         public GameProgress SelectedGameProgress
         {
             get => _selectedGameProgress;
             set
             {
-                _selectedGameProgress = value;
-                MainTeamCamp = _gameGlobalInfoRecord[_selectedGameProgress].MainTeamCamp;
-                IsGameFinished = _gameGlobalInfoRecord[_selectedGameProgress].IsGameFinished;
-                SelectedGameResult = _gameGlobalInfoRecord[_selectedGameProgress].GameResult;
+                SetProperty(ref _selectedGameProgress, value);
+                _mainTeamCamp = _gameGlobalInfoRecord[_selectedGameProgress].MainTeamCamp;
+                _isGameFinished = _gameGlobalInfoRecord[_selectedGameProgress].IsGameFinished;
+                _selectedGameResult = _gameGlobalInfoRecord[_selectedGameProgress].GameResult;
+                SyncGlobalScore();
+                OnPropertyChanged(nameof(IsGameFinished));
+                OnPropertyChanged(nameof(MainTeamCamp));
+                OnPropertyChanged(nameof(SelectedGameResult));
                 OnPropertyChanged();
             }
         }
-        [ObservableProperty]
-        private int _selectedIndex = 0;
+
+        [ObservableProperty] private int _selectedIndex = 0;
 
         private bool _isGameFinished;
+
         public bool IsGameFinished
         {
             get => _isGameFinished;
             set
             {
-                _isGameFinished = value;
+                SetProperty(ref _isGameFinished, value);
                 if (!_isGameFinished)
                 {
-                    _frontService.SetGlobalScoreToBar(nameof(ISharedDataService.MainTeam), SelectedGameProgress);
-                    _frontService.SetGlobalScoreToBar(nameof(ISharedDataService.AwayTeam), SelectedGameProgress);
+                    _frontService.SetGlobalScoreToBar(nameof(ISharedDataService.MainTeam), _selectedGameProgress);
+                    _frontService.SetGlobalScoreToBar(nameof(ISharedDataService.AwayTeam), _selectedGameProgress);
                 }
+
                 _gameGlobalInfoRecord[_selectedGameProgress].IsGameFinished = _isGameFinished;
                 UpdateTotalMinorPoint();
                 OnPropertyChanged();
@@ -180,7 +188,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             get => _mainTeamCamp;
             set
             {
-                _mainTeamCamp = value;
+                SetProperty(ref _mainTeamCamp, value);
                 SyncGlobalScore();
                 _gameGlobalInfoRecord[_selectedGameProgress].MainTeamCamp = _mainTeamCamp;
                 UpdateTotalMinorPoint();
@@ -188,14 +196,14 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
         }
 
-        public GameResult? _selectedGameResult;
+        private GameResult? _selectedGameResult;
 
         public GameResult? SelectedGameResult
         {
             get => _selectedGameResult;
             set
             {
-                _selectedGameResult = value;
+                SetProperty(ref _selectedGameResult, value);
                 SyncGlobalScore();
                 _gameGlobalInfoRecord[_selectedGameProgress].GameResult = _selectedGameResult;
                 UpdateTotalMinorPoint();
@@ -207,50 +215,61 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             if (!_isGameFinished)
             {
-                _frontService.SetGlobalScoreToBar(nameof(ISharedDataService.MainTeam), SelectedGameProgress);
-                _frontService.SetGlobalScoreToBar(nameof(ISharedDataService.AwayTeam), SelectedGameProgress);
+                _frontService.SetGlobalScoreToBar(nameof(ISharedDataService.MainTeam), _selectedGameProgress);
+                _frontService.SetGlobalScoreToBar(nameof(ISharedDataService.AwayTeam), _selectedGameProgress);
                 return;
             }
 
-            if (MainTeamCamp == null) return;
+            if (_mainTeamCamp == null || _selectedGameResult == null) return;
 
-            if (_selectedGameResult != null)
+            var surScore = 0;
+            var hunScore = 0;
+            switch (_selectedGameResult)
             {
-                int surScore = 0;
-                int hunScore = 0;
-                switch (_selectedGameResult)
-                {
-                    case GameResult.Escape4:
-                        surScore = 5;
-                        hunScore = 0;
-                        break;
-                    case GameResult.Escape3:
-                        surScore = 3;
-                        hunScore = 1;
-                        break;
-                    case GameResult.Tie:
-                        surScore = 2;
-                        hunScore = 2;
-                        break;
-                    case GameResult.Out3:
-                        surScore = 1;
-                        hunScore = 3;
-                        break;
-                    case GameResult.Out4:
-                        surScore = 0;
-                        hunScore = 5;
-                        break;
-                }
-                if (MainTeamCamp == Camp.Sur)
-                {
-                    _frontService.SetGlobalScore(nameof(ISharedDataService.MainTeam), SelectedGameProgress, Camp.Sur, surScore);
-                    _frontService.SetGlobalScore(nameof(ISharedDataService.AwayTeam), SelectedGameProgress, Camp.Hun, hunScore);
-                }
-                if (MainTeamCamp == Camp.Hun)
-                {
-                    _frontService.SetGlobalScore(nameof(ISharedDataService.MainTeam), SelectedGameProgress, Camp.Hun, hunScore);
-                    _frontService.SetGlobalScore(nameof(ISharedDataService.AwayTeam), SelectedGameProgress, Camp.Sur, surScore);
-                }
+                case GameResult.Escape4:
+                    surScore = 5;
+                    hunScore = 0;
+                    break;
+                case GameResult.Escape3:
+                    surScore = 3;
+                    hunScore = 1;
+                    break;
+                case GameResult.Tie:
+                    surScore = 2;
+                    hunScore = 2;
+                    break;
+                case GameResult.Out3:
+                    surScore = 1;
+                    hunScore = 3;
+                    break;
+                case GameResult.Out4:
+                    surScore = 0;
+                    hunScore = 5;
+                    break;
+                case null:
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException();
+            }
+
+            switch (MainTeamCamp)
+            {
+                case Camp.Sur:
+                    _frontService.SetGlobalScore(nameof(ISharedDataService.MainTeam), _selectedGameProgress, Camp.Sur,
+                        surScore);
+                    _frontService.SetGlobalScore(nameof(ISharedDataService.AwayTeam), _selectedGameProgress, Camp.Hun,
+                        hunScore);
+                    break;
+                case Camp.Hun:
+                    _frontService.SetGlobalScore(nameof(ISharedDataService.MainTeam), _selectedGameProgress, Camp.Hun,
+                        hunScore);
+                    _frontService.SetGlobalScore(nameof(ISharedDataService.AwayTeam), _selectedGameProgress, Camp.Sur,
+                        surScore);
+                    break;
+                case null:
+                    break;
+                default:
+                    throw new InvalidEnumArgumentException();
             }
         }
 
@@ -259,22 +278,20 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             int? index = 0;
             index = GameList
-                .Select((pair, index) => new { Pair = pair, Index = index })
+                .Select((pair, i) => new { Pair = pair, Index = i })
                 .FirstOrDefault(pair => pair.Pair.Key == SelectedGameProgress)?.Index;
             index++;
-            if (index != null)
-            {
-                int i = (int)index;
-                SelectedIndex = i;
-            }
+            if (index == null) return;
+
+            var i = (int)index;
+            SelectedIndex = i;
         }
 
         public void Receive(PropertyChangedMessage<bool> message)
         {
-            if(message.PropertyName == nameof(ISharedDataService.IsBo3Mode))
+            if (message.PropertyName == nameof(ISharedDataService.IsBo3Mode))
             {
                 IsBo3Mode = message.NewValue;
-                
             }
         }
 
@@ -282,21 +299,24 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             _totalMainMinorPoint = 0;
             _totalAwayMinorPoint = 0;
-            foreach (var i in _gameGlobalInfoRecord.Where(i => i.Value.IsGameFinished).TakeWhile(i => !IsBo3Mode || i.Key <= GameProgress.Game4SecondHalf))
+            foreach (var i in _gameGlobalInfoRecord.Where(i => i.Value.IsGameFinished)
+                         .TakeWhile(i => !IsBo3Mode || i.Key <= GameProgress.Game4SecondHalf))
             {
                 switch (i.Value.GameResult)
                 {
                     case GameResult.Escape4:
-                        if(i.Value.MainTeamCamp == Camp.Sur)
+                        if (i.Value.MainTeamCamp == Camp.Sur)
                         {
                             _totalMainMinorPoint += 5;
                             _totalAwayMinorPoint += 0;
                         }
-                        if(i.Value.MainTeamCamp == Camp.Hun)
+
+                        if (i.Value.MainTeamCamp == Camp.Hun)
                         {
                             _totalMainMinorPoint += 0;
                             _totalAwayMinorPoint += 5;
                         }
+
                         break;
                     case GameResult.Escape3:
                         switch (i.Value.MainTeamCamp)
@@ -327,6 +347,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                                 _totalMainMinorPoint += 3;
                                 _totalAwayMinorPoint += 1;
                                 break;
+                            case null:
+                                break;
+                            default:
+                                throw new InvalidEnumArgumentException();
                         }
 
                         break;
@@ -341,39 +365,45 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                                 _totalMainMinorPoint += 5;
                                 _totalAwayMinorPoint += 0;
                                 break;
+                            case null:
+                                break;
+                            default:
+                                throw new InvalidEnumArgumentException();
                         }
 
                         break;
                     case null:
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new InvalidEnumArgumentException();
                 }
             }
-            WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<int>(this, nameof(ScoreWindowViewModel.TotalMainMinorPoint), 0, _totalMainMinorPoint));
-            WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<int>(this, nameof(ScoreWindowViewModel.TotalAwayMinorPoint), 0, _totalAwayMinorPoint));
+
+            WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<int>(this,
+                nameof(ScoreWindowViewModel.TotalMainMinorPoint), 0, _totalMainMinorPoint));
+            WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<int>(this,
+                nameof(ScoreWindowViewModel.TotalAwayMinorPoint), 0, _totalAwayMinorPoint));
         }
 
         private readonly Dictionary<GameProgress, GameGlobalInfo> _gameGlobalInfoRecord = new()
         {
-            {GameProgress.Game1FirstHalf, new()},
-            {GameProgress.Game1SecondHalf, new()},
-            {GameProgress.Game2FirstHalf, new()},
-            {GameProgress.Game2SecondHalf, new()},
-            {GameProgress.Game3FirstHalf, new()},
-            {GameProgress.Game3SecondHalf, new()},
-            {GameProgress.Game4FirstHalf, new()},
-            {GameProgress.Game4SecondHalf, new()},
-            {GameProgress.Game5FirstHalf, new()},
-            {GameProgress.Game5SecondHalf, new()},
-            {GameProgress.Game5ExtraFirstHalf, new()},
-            {GameProgress.Game5ExtraSecondHalf, new()},
+            { GameProgress.Game1FirstHalf, new GameGlobalInfo() },
+            { GameProgress.Game1SecondHalf, new GameGlobalInfo() },
+            { GameProgress.Game2FirstHalf, new GameGlobalInfo() },
+            { GameProgress.Game2SecondHalf, new GameGlobalInfo() },
+            { GameProgress.Game3FirstHalf, new GameGlobalInfo() },
+            { GameProgress.Game3SecondHalf, new GameGlobalInfo() },
+            { GameProgress.Game4FirstHalf, new GameGlobalInfo() },
+            { GameProgress.Game4SecondHalf, new GameGlobalInfo() },
+            { GameProgress.Game5FirstHalf, new GameGlobalInfo() },
+            { GameProgress.Game5SecondHalf, new GameGlobalInfo() },
+            { GameProgress.Game5ExtraFirstHalf, new GameGlobalInfo() },
+            { GameProgress.Game5ExtraSecondHalf, new GameGlobalInfo() },
         };
 
-        [ObservableProperty]
-        private Dictionary<GameProgress, string> _gameList;
+        [ObservableProperty] private Dictionary<GameProgress, string> _gameList;
 
-        public static Dictionary<GameProgress, string> GameListBo5 => new()
+        private static Dictionary<GameProgress, string> GameListBo5 => new()
         {
             { GameProgress.Game1FirstHalf, "第1局上半" },
             { GameProgress.Game1SecondHalf, "第1局下半" },

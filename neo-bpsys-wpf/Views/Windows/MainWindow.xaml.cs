@@ -8,6 +8,7 @@ using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
 using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
+using System.ComponentModel;
 
 namespace neo_bpsys_wpf.Views.Windows
 {
@@ -28,7 +29,7 @@ namespace neo_bpsys_wpf.Views.Windows
             this.Closing += MainWindow_Closing;
         }
 
-        private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+        private void MainWindow_Closing(object? sender, CancelEventArgs e)
         {
             e.Cancel = true;
             ConfirmToExitAsync();
