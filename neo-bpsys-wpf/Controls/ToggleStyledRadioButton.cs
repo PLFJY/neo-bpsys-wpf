@@ -61,5 +61,26 @@ namespace neo_bpsys_wpf.Controls
             typeof(ToggleStyledRadioButton),
             new PropertyMetadata(276.0)
         );
+
+        public double TagNameFontSize
+        {
+            get { return (double)GetValue(TagNameFontSizeProperty); }
+            set { SetValue(TagNameFontSizeProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for TagNameFontSize.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty TagNameFontSizeProperty =
+            DependencyProperty.Register("TagNameFontSize", typeof(double), typeof(ToggleStyledRadioButton), new PropertyMetadata(14.0));
+
+        public bool IsImageVisible
+        {
+            get { return (bool)GetValue(IsImageVisibleProperty); }
+            set { SetValue(IsImageVisibleProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for IsImageVisible.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty IsImageVisibleProperty =
+            DependencyProperty.Register("IsImageVisible", typeof(bool), typeof(ToggleStyledRadioButton), new PropertyMetadata(true));
+
     }
 }

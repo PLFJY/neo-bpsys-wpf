@@ -223,28 +223,29 @@
                     Margin="0,0,10,10"
                     IsChecked="{Binding IsBo3Mode}"
                     IsEnabled="{Binding CanGameProgressChange}">
-                    <ToggleButton.Style>
-                        <Style BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="ToggleButton">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding CanGameProgressChange}" Value="false">
-                                    <Setter Property="Content">
-                                        <Setter.Value>
-                                            <StackPanel Orientation="Horizontal">
-                                                <ui:SymbolIcon Foreground="Gray" Symbol="ArrowSwap24" />
-                                                <TextBlock
-                                                    Margin="10,0,0,0"
-                                                    Foreground="Gray"
-                                                    Text="切换至BO3模式" />
-                                            </StackPanel>
-                                        </Setter.Value>
-                                    </Setter>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ToggleButton.Style>
                     <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="ArrowSwap24" />
-                        <TextBlock Margin="10,0,0,0" Text="切换至BO3模式" />
+                        <ui:SymbolIcon Symbol="ArrowSwap24">
+                            <ui:SymbolIcon.Style>
+                                <Style TargetType="ui:SymbolIcon">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CanGameProgressChange}" Value="false">
+                                            <Setter Property="Foreground" Value="Gray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:SymbolIcon.Style>
+                        </ui:SymbolIcon>
+                        <TextBlock Margin="10,0,0,0" Text="切换至BO3模式">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CanGameProgressChange}" Value="false">
+                                            <Setter Property="Foreground" Value="Gray" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
                     </StackPanel>
                 </ToggleButton>
                 <TextBlock

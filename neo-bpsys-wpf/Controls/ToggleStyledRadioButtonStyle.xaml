@@ -4,23 +4,37 @@
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     <Style BasedOn="{StaticResource {x:Type RadioButton}}" TargetType="{x:Type controls:ToggleStyledRadioButton}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:ToggleStyledRadioButton}">
                     <ToggleButton ContentTemplate="{TemplateBinding ContentTemplate}" IsChecked="{Binding Path=IsChecked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
-                        <StackPanel>
+                        <StackPanel IsEnabled="{TemplateBinding IsEnabled}">
                             <Image
                                 Width="{TemplateBinding ImageWidth}"
                                 Height="{TemplateBinding ImageHeight}"
+                                Margin="0,0,0,5"
                                 Focusable="False"
                                 Source="{TemplateBinding ImageSource}"
-                                Stretch="UniformToFill" />
+                                Stretch="UniformToFill"
+                                Visibility="{TemplateBinding IsImageVisible,
+                                                             Converter={StaticResource BooleanToVisibilityConverter}}" />
                             <TextBlock
-                                Margin="0,5,0,0"
                                 HorizontalAlignment="Center"
                                 Focusable="False"
-                                Text="{TemplateBinding TagName}" />
+                                FontSize="{TemplateBinding TagNameFontSize}"
+                                Text="{TemplateBinding TagName}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource TemplatedParent}}" Value="false">
+                                                <Setter Property="Foreground" Value="Gray" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                         </StackPanel>
                     </ToggleButton>
                 </ControlTemplate>
