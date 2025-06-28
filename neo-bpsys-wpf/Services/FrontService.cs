@@ -250,8 +250,8 @@ namespace neo_bpsys_wpf.Services
                 positions[fe.Name] = new ElementInfo(
                     double.IsNaN(fe.Width) ? null : fe.Width,
                     double.IsNaN(fe.Height) ? null : fe.Height,
-                    double.IsNaN(Canvas.GetLeft(fe)) ? null : Canvas.GetLeft(fe),
-                    double.IsNaN(Canvas.GetTop(fe)) ? null : Canvas.GetTop(fe));
+                    double.IsNaN(Canvas.GetLeft(fe)) ? 0 : Canvas.GetLeft(fe),
+                    double.IsNaN(Canvas.GetTop(fe)) ? 0 : Canvas.GetTop(fe));
             }
 
             return positions;

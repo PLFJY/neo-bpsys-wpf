@@ -65,25 +65,25 @@
     "Left": 63,
     "Top": 566
   },
-  "SurBanCurrent3": {
+  "SurBanCurrent0": {
     "Width": 43,
     "Height": 43,
     "Left": 1231,
     "Top": 566
   },
-  "SurBanCurrent2": {
+  "SurBanCurrent1": {
     "Width": 43,
     "Height": 43,
     "Left": 1281,
     "Top": 566
   },
-  "SurBanCurrent1": {
+  "SurBanCurrent2": {
     "Width": 43,
     "Height": 43,
     "Left": 1329,
     "Top": 566
   },
-  "SurBanCurrent0": {
+  "SurBanCurrent3": {
     "Width": 43,
     "Height": 43,
     "Left": 1379,
@@ -92,7 +92,7 @@
   "SurPick0": {
     "Width": 140,
     "Height": 159,
-    "Left": null,
+    "Left": 0,
     "Top": 619
   },
   "SurPick1": {
@@ -108,30 +108,6 @@
     "Top": 619
   },
   "SurPick3": {
-    "Width": 140,
-    "Height": 159,
-    "Left": 424,
-    "Top": 619
-  },
-  "SurPickingBorder0": {
-    "Width": 140,
-    "Height": 159,
-    "Left": null,
-    "Top": 619
-  },
-  "SurPickingBorder1": {
-    "Width": 140,
-    "Height": 159,
-    "Left": 141,
-    "Top": 619
-  },
-  "SurPickingBorder2": {
-    "Width": 140,
-    "Height": 159,
-    "Left": 284,
-    "Top": 619
-  },
-  "SurPickingBorder3": {
     "Width": 140,
     "Height": 159,
     "Left": 424,
@@ -228,12 +204,6 @@
     "Top": 778.5
   },
   "HunPick": {
-    "Width": 565,
-    "Height": 161,
-    "Left": 875,
-    "Top": 617
-  },
-  "HunPickingBorder": {
     "Width": 565,
     "Height": 161,
     "Left": 875,

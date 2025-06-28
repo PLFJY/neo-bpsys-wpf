@@ -20,7 +20,7 @@
   "SurTeamName": {
     "Width": 137,
     "Height": null,
-    "Left": null,
+    "Left": 0,
     "Top": 265
   },
   "VS_Word": {

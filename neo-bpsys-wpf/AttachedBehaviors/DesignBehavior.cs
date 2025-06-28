@@ -1,5 +1,7 @@
-﻿using System.Windows;
+﻿using neo_bpsys_wpf.Controls;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -33,6 +35,8 @@ public static class DesignBehavior
 
                 // 显示控件名称
                 ShowControlName(element);
+                var myAdornerLayer = AdornerLayer.GetAdornerLayer(element);
+                myAdornerLayer?.Add(new CanvasAdorner(element));
             }
             else
             {
@@ -42,6 +46,19 @@ public static class DesignBehavior
 
                 // 隐藏控件名称
                 HideControlName(element);
+                AdornerLayer adornerLayer = AdornerLayer.GetAdornerLayer(element);
+                if (adornerLayer != null)
+                {
+                    Adorner[] adorners = adornerLayer.GetAdorners(element);
+                    if (adorners != null)
+                    {
+                        foreach (Adorner adorner in adorners)
+                        {
+                            adornerLayer.Remove(adorner);
+                        }
+                    }
+                }
+
             }
         }
     }

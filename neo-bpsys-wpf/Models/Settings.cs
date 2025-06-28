@@ -4,7 +4,6 @@ namespace neo_bpsys_wpf.Models;
 
 public class Settings
 {
-    public bool IsAdminOnStartup { get; set; } = false;
     public FrontResolution FrontResolution { get; set; } = new();
 }
 

@@ -175,7 +175,7 @@
                         <Style TargetType="TextBlock">
                             <Setter Property="Foreground" Value="White" />
                         </Style>
-                        <Style x:Key="CurrentBan" TargetType="Image">
+                        <Style x:Key="CurrentBan" TargetType="Border">
                             <Setter Property="Width" Value="38.5" />
                             <Setter Property="Height" Value="38.5" />
                         </Style>
@@ -243,105 +243,111 @@
                         Stretch="Fill" />
                     <!--  Current Ban  -->
                     <!--  Hun Current Ban  -->
-                    <Image
+                    <Border
                         Name="HunBanCurrent0"
                         Canvas.Left="205"
                         Canvas.Top="6"
                         ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                        d:Source="/Assets/厂长.png"
-                        Source="{Binding CurrentGame.CurrentHunBannedList[0].HeaderImageSingleColor}"
-                        Style="{StaticResource CurrentBan}" />
-                    <Image
+                        Style="{StaticResource CurrentBan}">
+                        <Image d:Source="/Assets/厂长.png" Source="{Binding CurrentGame.CurrentHunBannedList[0].HeaderImageSingleColor}" />
+                    </Border>
+                    <Border
                         Name="HunBanCurrent1"
                         Canvas.Left="304"
                         Canvas.Top="6"
                         ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                        d:Source="/Assets/厂长.png"
-                        Source="{Binding CurrentGame.CurrentHunBannedList[1].HeaderImageSingleColor}"
-                        Style="{StaticResource CurrentBan}" />
+                        Style="{StaticResource CurrentBan}">
+                        <Image d:Source="/Assets/厂长.png" Source="{Binding CurrentGame.CurrentHunBannedList[1].HeaderImageSingleColor}" />
+                    </Border>
                     <!--  Hun Current Ban Lock  -->
                     <Image
                         Name="HunBanCurrentLock0"
-                        Canvas.Left="205"
-                        Canvas.Top="6"
+                        Canvas.Left="{Binding ElementName=HunBanCurrent0, Path=(Canvas.Left)}"
+                        Canvas.Top="{Binding ElementName=HunBanCurrent0, Path=(Canvas.Top)}"
+                        Width="{Binding ElementName=HunBanCurrent0, Path=ActualWidth}"
+                        Height="{Binding ElementName=HunBanCurrent0, Path=ActualHeight}"
                         Panel.ZIndex="1"
                         Source="{Binding CurrentBanLockImage}"
-                        Style="{StaticResource CurrentBan}"
                         Visibility="{Binding CanCurrentHunBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                     <Image
                         Name="HunBanCurrentLock1"
-                        Canvas.Left="304"
-                        Canvas.Top="6"
+                        Canvas.Left="{Binding ElementName=HunBanCurrent1, Path=(Canvas.Left)}"
+                        Canvas.Top="{Binding ElementName=HunBanCurrent1, Path=(Canvas.Top)}"
+                        Width="{Binding ElementName=HunBanCurrent1, Path=ActualWidth}"
+                        Height="{Binding ElementName=HunBanCurrent1, Path=ActualHeight}"
                         Panel.ZIndex="1"
                         Source="{Binding CurrentBanLockImage}"
-                        Style="{StaticResource CurrentBan}"
                         Visibility="{Binding CanCurrentHunBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                     <!--  Sur Current Ban  -->
-                    <Image
+                    <Border
                         Name="SurBanCurrent3"
                         Canvas.Left="897"
                         Canvas.Top="6"
                         ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                        d:Source="/Assets/幸运儿.png"
-                        Source="{Binding CurrentGame.CurrentSurBannedList[3].HeaderImageSingleColor}"
-                        Style="{StaticResource CurrentBan}" />
-                    <Image
+                        Style="{StaticResource CurrentBan}">
+                        <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.CurrentSurBannedList[3].HeaderImageSingleColor}" />
+                    </Border>
+                    <Border
                         Name="SurBanCurrent2"
                         Canvas.Left="820"
                         Canvas.Top="6"
                         ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                        d:Source="/Assets/幸运儿.png"
-                        Source="{Binding CurrentGame.CurrentSurBannedList[2].HeaderImageSingleColor}"
-                        Style="{StaticResource CurrentBan}" />
-                    <Image
+                        Style="{StaticResource CurrentBan}">
+                        <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.CurrentSurBannedList[2].HeaderImageSingleColor}" />
+                    </Border>
+                    <Border
                         Name="SurBanCurrent1"
                         Canvas.Left="746"
                         Canvas.Top="6"
                         ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                        d:Source="/Assets/幸运儿.png"
-                        Source="{Binding CurrentGame.CurrentSurBannedList[1].HeaderImageSingleColor}"
-                        Style="{StaticResource CurrentBan}" />
-                    <Image
+                        Style="{StaticResource CurrentBan}">
+                        <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.CurrentSurBannedList[1].HeaderImageSingleColor}" />
+                    </Border>
+                    <Border
                         Name="SurBanCurrent0"
                         Canvas.Left="668"
                         Canvas.Top="6"
                         ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                        d:Source="/Assets/幸运儿.png"
-                        Source="{Binding CurrentGame.CurrentSurBannedList[0].HeaderImageSingleColor}"
-                        Style="{StaticResource CurrentBan}" />
+                        Style="{StaticResource CurrentBan}">
+                        <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.CurrentSurBannedList[0].HeaderImageSingleColor}" />
+                    </Border>
                     <!--  Sur Current Ban Lock  -->
                     <Image
-                        Name="SurBanCurrentLock3"
-                        Canvas.Left="897"
-                        Canvas.Top="6"
+                        Name="SurBanCurrentLock0"
+                        Canvas.Left="{Binding ElementName=SurBanCurrent0, Path=(Canvas.Left)}"
+                        Canvas.Top="{Binding ElementName=SurBanCurrent0, Path=(Canvas.Top)}"
+                        Width="{Binding ElementName=SurBanCurrent0, Path=ActualWidth}"
+                        Height="{Binding ElementName=SurBanCurrent0, Path=ActualHeight}"
                         Panel.ZIndex="1"
                         Source="{Binding CurrentBanLockImage}"
-                        Style="{StaticResource CurrentBan}"
-                        Visibility="{Binding CanCurrentSurBanned[3], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                    <Image
-                        Name="SurBanCurrentLock2"
-                        Canvas.Left="820"
-                        Canvas.Top="6"
-                        Panel.ZIndex="1"
-                        Source="{Binding CurrentBanLockImage}"
-                        Style="{StaticResource CurrentBan}"
-                        Visibility="{Binding CanCurrentSurBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                        Visibility="{Binding CanCurrentSurBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                     <Image
                         Name="SurBanCurrentLock1"
-                        Canvas.Left="746"
-                        Canvas.Top="6"
+                        Canvas.Left="{Binding ElementName=SurBanCurrent1, Path=(Canvas.Left)}"
+                        Canvas.Top="{Binding ElementName=SurBanCurrent1, Path=(Canvas.Top)}"
+                        Width="{Binding ElementName=SurBanCurrent1, Path=ActualWidth}"
+                        Height="{Binding ElementName=SurBanCurrent1, Path=ActualHeight}"
                         Panel.ZIndex="1"
                         Source="{Binding CurrentBanLockImage}"
-                        Style="{StaticResource CurrentBan}"
                         Visibility="{Binding CanCurrentSurBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                     <Image
-                        Name="SurBanCurrentLock0"
-                        Canvas.Left="668"
-                        Canvas.Top="6"
+                        Name="SurBanCurrentLock2"
+                        Canvas.Left="{Binding ElementName=SurBanCurrent2, Path=(Canvas.Left)}"
+                        Canvas.Top="{Binding ElementName=SurBanCurrent2, Path=(Canvas.Top)}"
+                        Width="{Binding ElementName=SurBanCurrent2, Path=ActualWidth}"
+                        Height="{Binding ElementName=SurBanCurrent2, Path=ActualHeight}"
                         Panel.ZIndex="1"
                         Source="{Binding CurrentBanLockImage}"
-                        Style="{StaticResource CurrentBan}"
-                        Visibility="{Binding CanCurrentSurBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                        Visibility="{Binding CanCurrentSurBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                    <Image
+                        Name="SurBanCurrentLock3"
+                        Canvas.Left="{Binding ElementName=SurBanCurrent3, Path=(Canvas.Left)}"
+                        Canvas.Top="{Binding ElementName=SurBanCurrent3, Path=(Canvas.Top)}"
+                        Width="{Binding ElementName=SurBanCurrent3, Path=ActualWidth}"
+                        Height="{Binding ElementName=SurBanCurrent3, Path=ActualHeight}"
+                        Panel.ZIndex="1"
+                        Source="{Binding CurrentBanLockImage}"
+                        Visibility="{Binding CanCurrentSurBanned[3], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                     <!--  Sur Pick  -->
                     <Border
                         Name="SurPick0"
@@ -465,7 +471,7 @@
                         ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
                         Style="{StaticResource SurPickImageBorder}">
                         <Image
-                            Width="260"
+                            Width="264"
                             d:Source="/Assets/梦之女巫.png"
                             Source="{Binding CurrentGame.HunPlayer.Character.BigImage}"
                             Style="{StaticResource SurPickImage}" />
