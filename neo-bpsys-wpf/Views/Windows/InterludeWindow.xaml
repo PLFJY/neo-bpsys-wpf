@@ -137,17 +137,15 @@
             Source="{Binding CurrentGame.HunTeam.Logo}"
             Stretch="Fill" />
         <!--  Map  -->
-        <Image
+        <Border
             Name="Map"
             Canvas.Left="491"
             Width="457"
             Height="108"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Top"
             Panel.ZIndex="-1"
-            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/map/唐人街.png"
-            Source="{Binding CurrentGame.PickedMapImage}" />
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+            <Image d:Source="/Assets/map/唐人街.png" Source="{Binding CurrentGame.PickedMapImage}" />
+        </Border>
         <Rectangle
             Name="MapMask"
             Canvas.Left="491"
@@ -247,18 +245,15 @@
                 Style="{StaticResource SurPickImage}" />
         </Border>
         <!--  Hun Pick  -->
-        <Image
+        <Border
             Name="HunPick"
             Canvas.Left="720"
             Canvas.Top="114.5"
             Width="720"
             Height="640"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Center"
-            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/梦之女巫.png"
-            Source="{Binding CurrentGame.HunPlayer.Character.BigImage}" />
-
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+            <Image d:Source="/Assets/梦之女巫.png" Source="{Binding CurrentGame.HunPlayer.Character.BigImage}" />
+        </Border>
         <!--  Player Id  -->
         <!--  Sur  -->
         <Border

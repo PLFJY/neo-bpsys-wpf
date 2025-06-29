@@ -1,14 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
-using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Views.Windows;
-using System.Collections.Specialized;
 using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Controls;
 
@@ -30,61 +27,67 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             _sharedDataService = sharedDataService;
             _frontService = frontService;
-            SurPickViewModelList = [.. Enumerable.Range(0, 4).Select(i => new SurPickViewModel(sharedDataService, frontService, i))];
+            SurPickViewModelList =
+                [.. Enumerable.Range(0, 4).Select(i => new SurPickViewModel(sharedDataService, frontService, i))];
             HunPickVm = new HunPickViewModel(sharedDataService, frontService);
-            MainSurGlobalBanRecordViewModelList = [.. Enumerable.Range(0, 9).Select(i => new MainSurGlobalBanRecordViewModel(sharedDataService, i))];
-            MainHunGlobalBanRecordViewModelList = [.. Enumerable.Range(0, 3).Select(i => new MainHunGlobalBanRecordViewModel(sharedDataService, i))];
-            AwaySurGlobalBanRecordViewModelList = [.. Enumerable.Range(0, 9).Select(i => new AwaySurGlobalBanRecordViewModel(sharedDataService, i))];
-            AwayHunGlobalBanRecordViewModelList = [.. Enumerable.Range(0, 3).Select(i => new AwayHunGlobalBanRecordViewModel(sharedDataService, i))];
+            MainSurGlobalBanRecordViewModelList =
+                [.. Enumerable.Range(0, 9).Select(i => new MainSurGlobalBanRecordViewModel(sharedDataService, i))];
+            MainHunGlobalBanRecordViewModelList =
+                [.. Enumerable.Range(0, 3).Select(i => new MainHunGlobalBanRecordViewModel(sharedDataService, i))];
+            AwaySurGlobalBanRecordViewModelList =
+                [.. Enumerable.Range(0, 9).Select(i => new AwaySurGlobalBanRecordViewModel(sharedDataService, i))];
+            AwayHunGlobalBanRecordViewModelList =
+                [.. Enumerable.Range(0, 3).Select(i => new AwayHunGlobalBanRecordViewModel(sharedDataService, i))];
             IsActive = true;
         }
 
         [RelayCommand]
-        private void PickingBorderSwitch(string index)
+        private async Task PickingBorderSwitchAsync(string index)
         {
             switch (index)
             {
                 case "0":
                     if (SurPickingBorderList[0])
-                        _frontService.BreathingStart<BpWindow>("SurPickingBorder", 0, string.Empty);
+                        await _frontService.BreathingStart<BpWindow>("SurPickingBorder", 0, string.Empty);
                     else
-                        _frontService.BreathingStop<BpWindow>("SurPickingBorder", 0, string.Empty);
+                        await _frontService.BreathingStop<BpWindow>("SurPickingBorder", 0, string.Empty);
                     break;
                 case "1":
                     if (SurPickingBorderList[1])
-                        _frontService.BreathingStart<BpWindow>("SurPickingBorder", 1, string.Empty);
+                        await _frontService.BreathingStart<BpWindow>("SurPickingBorder", 1, string.Empty);
                     else
-                        _frontService.BreathingStop<BpWindow>("SurPickingBorder", 1, string.Empty);
+                        await _frontService.BreathingStop<BpWindow>("SurPickingBorder", 1, string.Empty);
                     break;
                 case "2":
                     if (SurPickingBorderList[2])
-                        _frontService.BreathingStart<BpWindow>("SurPickingBorder", 2, string.Empty);
+                        await _frontService.BreathingStart<BpWindow>("SurPickingBorder", 2, string.Empty);
                     else
-                        _frontService.BreathingStop<BpWindow>("SurPickingBorder", 2, string.Empty);
+                        await _frontService.BreathingStop<BpWindow>("SurPickingBorder", 2, string.Empty);
                     break;
                 case "3":
                     if (SurPickingBorderList[3])
-                        _frontService.BreathingStart<BpWindow>("SurPickingBorder", 3, string.Empty);
+                        await _frontService.BreathingStart<BpWindow>("SurPickingBorder", 3, string.Empty);
                     else
-                        _frontService.BreathingStop<BpWindow>("SurPickingBorder", 3, string.Empty);
+                        await _frontService.BreathingStop<BpWindow>("SurPickingBorder", 3, string.Empty);
                     break;
                 case "0and1":
                     if (SurPickingBorderList[0] && SurPickingBorderList[1])
                     {
-                        _frontService.BreathingStart<BpWindow>("SurPickingBorder", 0, string.Empty);
-                        _frontService.BreathingStart<BpWindow>("SurPickingBorder", 1, string.Empty);
+                        _ = _frontService.BreathingStart<BpWindow>("SurPickingBorder", 0, string.Empty);
+                        await _frontService.BreathingStart<BpWindow>("SurPickingBorder", 1, string.Empty);
                     }
                     else
                     {
-                        _frontService.BreathingStop<BpWindow>("SurPickingBorder", 0, string.Empty);
-                        _frontService.BreathingStop<BpWindow>("SurPickingBorder", 1, string.Empty);
+                        _ = _frontService.BreathingStop<BpWindow>("SurPickingBorder", 0, string.Empty);
+                        await _frontService.BreathingStop<BpWindow>("SurPickingBorder", 1, string.Empty);
                     }
+
                     break;
                 case "Hun":
                     if (HunPickingBorder)
-                        _frontService.BreathingStart<BpWindow>("HunPickingBorder", -1, string.Empty);
+                        await _frontService.BreathingStart<BpWindow>("HunPickingBorder", -1, string.Empty);
                     else
-                        _frontService.BreathingStop<BpWindow>("HunPickingBorder", -1, string.Empty);
+                        await _frontService.BreathingStop<BpWindow>("HunPickingBorder", -1, string.Empty);
                     break;
             }
         }
@@ -97,7 +100,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 foreach (var i in message.Index)
                 {
                     SurPickingBorderList[i] = true;
-                    PickingBorderSwitch(i.ToString());
+                    _ = PickingBorderSwitchAsync(i.ToString());
                 }
             }
             else
@@ -106,28 +109,28 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 {
                     if (!SurPickingBorderList[i]) continue;
                     SurPickingBorderList[i] = false;
-                    PickingBorderSwitch(i.ToString());
+                    _ = PickingBorderSwitchAsync(i.ToString());
                 }
             }
 
             if (message.GameAction == GameAction.PickHun)
             {
                 HunPickingBorder = true;
-                PickingBorderSwitch("Hun");
+                _ = PickingBorderSwitchAsync("Hun");
             }
             else
             {
                 if (!HunPickingBorder) return;
                 HunPickingBorder = false;
-                PickingBorderSwitch("Hun");
+                _ = PickingBorderSwitchAsync("Hun");
             }
         }
 
-        public ObservableCollection<bool> SurPickingBorderList { get; set; } = [.. Enumerable.Range(0, 4).Select(i => false)];
+        public ObservableCollection<bool> SurPickingBorderList { get; set; } =
+            [.. Enumerable.Range(0, 4).Select(i => false)];
 
-        [ObservableProperty]
-        private bool _hunPickingBorder = false;
-        
+        [ObservableProperty] private bool _hunPickingBorder = false;
+
         public ObservableCollection<SurPickViewModel> SurPickViewModelList { get; set; }
         public HunPickViewModel HunPickVm { get; set; }
         public ObservableCollection<MainSurGlobalBanRecordViewModel> MainSurGlobalBanRecordViewModelList { get; set; }
@@ -136,17 +139,18 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         public ObservableCollection<AwayHunGlobalBanRecordViewModel> AwayHunGlobalBanRecordViewModelList { get; set; }
 
         //基于模板基类的VM实现
-        public partial class SurPickViewModel : 
-            Abstractions.ViewModels.CharaSelectViewModelBase, 
-            IRecipient<CharacterSwappedMessage>, 
-            IRecipient<PlayerSwappedMessage>, 
+        public partial class SurPickViewModel :
+            Abstractions.ViewModels.CharaSelectViewModelBase,
+            IRecipient<CharacterSwappedMessage>,
+            IRecipient<PlayerSwappedMessage>,
             IRecipient<MemberStateChangedMessage>,
             IRecipient<SwapMessage>
         {
             private readonly IFrontService _frontService;
             public string PlayerName => SharedDataService.CurrentGame.SurPlayerList[Index].Member.Name;
 
-            public SurPickViewModel(ISharedDataService sharedDataService, IFrontService frontService, int index = 0) : base(sharedDataService, index)
+            public SurPickViewModel(ISharedDataService sharedDataService, IFrontService frontService, int index = 0) :
+                base(sharedDataService, index)
             {
                 _frontService = frontService;
                 CharaList = sharedDataService.SurCharaList;
@@ -154,10 +158,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
             public override async void SyncChara()
             {
-                _frontService.FadeOutAnimation<BpWindow>("SurPick" , Index, string.Empty);
+                _frontService.FadeOutAnimation<BpWindow>("SurPick", Index, string.Empty);
                 await Task.Delay(250);
                 SharedDataService.CurrentGame.SurPlayerList[Index].Character = SelectedChara;
-                _frontService.FadeInAnimation<BpWindow>("SurPick" , Index, string.Empty);
+                _frontService.FadeInAnimation<BpWindow>("SurPick", Index, string.Empty);
                 PreviewImage = SharedDataService.CurrentGame.SurPlayerList[Index].Character?.HeaderImage;
             }
 
@@ -171,9 +175,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             private void SwapCharacterInPlayers(CharacterChangerCommandParameter parameter)
             {
                 (SharedDataService.CurrentGame.SurPlayerList[parameter.Target].Character,
-                    SharedDataService.CurrentGame.SurPlayerList[parameter.Source].Character) =
+                        SharedDataService.CurrentGame.SurPlayerList[parameter.Source].Character) =
                     (SharedDataService.CurrentGame.SurPlayerList[parameter.Source].Character,
-                    SharedDataService.CurrentGame.SurPlayerList[parameter.Target].Character);
+                        SharedDataService.CurrentGame.SurPlayerList[parameter.Target].Character);
                 WeakReferenceMessenger.Default.Send(new CharacterSwappedMessage(this));
                 OnPropertyChanged();
             }
@@ -187,7 +191,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             {
                 throw new NotImplementedException();
             }
-            
+
             protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickSur;
 
             public void Receive(PlayerSwappedMessage message)
@@ -202,7 +206,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
             public void Receive(SwapMessage message)
             {
-                if(message.IsSwapped)
+                if (message.IsSwapped)
                     OnPropertyChanged(nameof(PlayerName));
             }
         }
@@ -211,7 +215,8 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             private readonly IFrontService _frontService;
 
-            public HunPickViewModel(ISharedDataService sharedDataService, IFrontService frontService) : base(sharedDataService)
+            public HunPickViewModel(ISharedDataService sharedDataService, IFrontService frontService) : base(
+                sharedDataService)
             {
                 _frontService = frontService;
                 CharaList = sharedDataService.HunCharaList;
@@ -230,7 +235,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             {
                 throw new NotImplementedException();
             }
-            
+
             protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickHun;
         }
 
@@ -248,7 +253,8 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 }
             }
 
-            public MainSurGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
+            public MainSurGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
+                sharedDataService, index)
             {
                 CharaList = sharedDataService.SurCharaList;
             }
@@ -277,13 +283,14 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 }
             }
 
-            public MainHunGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
+            public MainHunGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
+                sharedDataService, index)
             {
                 CharaList = sharedDataService.HunCharaList;
             }
 
             public override void SyncChara() => throw new NotImplementedException();
-            
+
             protected override void SyncIsEnabled() => throw new NotImplementedException();
 
             protected override bool IsActionNameCorrect(GameAction? action) => false;
@@ -303,13 +310,14 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 }
             }
 
-            public AwaySurGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
+            public AwaySurGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
+                sharedDataService, index)
             {
                 CharaList = sharedDataService.SurCharaList;
             }
 
             public override void SyncChara() => throw new NotImplementedException();
-            
+
             protected override void SyncIsEnabled() => throw new NotImplementedException();
 
             protected override bool IsActionNameCorrect(GameAction? action) => false;
@@ -329,7 +337,8 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 }
             }
 
-            public AwayHunGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
+            public AwayHunGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
+                sharedDataService, index)
             {
                 CharaList = sharedDataService.HunCharaList;
             }
@@ -337,7 +346,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             public override void SyncChara() => throw new NotImplementedException();
 
             protected override void SyncIsEnabled() => throw new NotImplementedException();
-            
+
             protected override bool IsActionNameCorrect(GameAction? action) => false;
         }
     }

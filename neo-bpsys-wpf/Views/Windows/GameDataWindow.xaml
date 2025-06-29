@@ -41,7 +41,7 @@
                 <Setter Property="Height" Value="49" />
                 <Setter Property="Width" Value="194" />
             </Style>
-            <Style x:Key="SurHeader" TargetType="Image">
+            <Style x:Key="SurHeader" TargetType="Border">
                 <Setter Property="Height" Value="50" />
                 <Setter Property="Width" Value="50" />
             </Style>
@@ -122,17 +122,19 @@
             FontWeight="Bold"
             Text="{Binding CurrentGame.SurTeam.Score.MinorPoints}"
             TextAlignment="Center" />
-        <Image
+        <Border
             Name="Map"
             Canvas.Left="564"
             Canvas.Top="155"
             Width="313"
             Height="132"
             Panel.ZIndex="-1"
-            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/map/唐人街.png"
-            Source="{Binding CurrentGame.PickedMapImage}"
-            Stretch="UniformToFill" />
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+            <Image
+                d:Source="/Assets/map/唐人街.png"
+                Source="{Binding CurrentGame.PickedMapImage}"
+                Stretch="UniformToFill" />
+        </Border>
         <Rectangle
             Name="MapMask"
             Canvas.Left="564"
@@ -241,38 +243,38 @@
             Source="{Binding CurrentGame.HunTeam.Logo}"
             Stretch="Fill" />
         <!--  求生者头像  -->
-        <Image
+        <Border
             Name="Player0Header"
             Canvas.Left="53"
             Canvas.Top="349"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png"
-            Source="{Binding CurrentGame.SurPlayerList[0].Character.HeaderImage}"
-            Style="{StaticResource SurHeader}" />
-        <Image
+            Style="{StaticResource SurHeader}">
+            <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.SurPlayerList[0].Character.HeaderImage}" />
+        </Border>
+        <Border
             Name="Player1Header"
             Canvas.Left="53"
             Canvas.Top="405"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png"
-            Source="{Binding CurrentGame.SurPlayerList[1].Character.HeaderImage}"
-            Style="{StaticResource SurHeader}" />
-        <Image
+            Style="{StaticResource SurHeader}">
+            <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.SurPlayerList[1].Character.HeaderImage}" />
+        </Border>
+        <Border
             Name="Player2Header"
             Canvas.Left="53"
             Canvas.Top="461"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png"
-            Source="{Binding CurrentGame.SurPlayerList[2].Character.HeaderImage}"
-            Style="{StaticResource SurHeader}" />
-        <Image
+            Style="{StaticResource SurHeader}">
+            <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.SurPlayerList[2].Character.HeaderImage}" />
+        </Border>
+        <Border
             Name="Player3Header"
             Canvas.Left="53"
             Canvas.Top="517"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/幸运儿.png"
-            Source="{Binding CurrentGame.SurPlayerList[3].Character.HeaderImage}"
-            Style="{StaticResource SurHeader}" />
+            Style="{StaticResource SurHeader}">
+            <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.SurPlayerList[3].Character.HeaderImage}" />
+        </Border>
         <!--  求生者选手Id  -->
         <Border
             Name="SurId0"
@@ -567,15 +569,18 @@
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[3].Data.KiteTime}" />
         </Border>
-        <Image
+        <Border
             Name="HunImage"
             Canvas.Left="1075"
             Canvas.Top="295"
             Width="314"
             Height="96"
-            d:Source="/Assets/小丑.png"
-            Source="{Binding CurrentGame.HunPlayer.Character.HalfImage}"
-            Stretch="UniformToFill" />
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+            <Image
+                d:Source="/Assets/小丑.png"
+                Source="{Binding CurrentGame.HunPlayer.Character.HalfImage}"
+                Stretch="UniformToFill" />
+        </Border>
         <Border
             Name="HunId"
             Canvas.Left="1080"

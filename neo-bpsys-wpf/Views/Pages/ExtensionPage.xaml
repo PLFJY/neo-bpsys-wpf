@@ -18,7 +18,7 @@
 
     <WrapPanel Orientation="Horizontal">
         <Border Style="{StaticResource Card}">
-
+            <TextBlock Text="前面的区域以后再来探索吧" />
         </Border>
     </WrapPanel>
 </Page>
