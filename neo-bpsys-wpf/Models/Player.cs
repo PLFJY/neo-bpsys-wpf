@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using System.Text.Json.Serialization;
 using System.Windows.Media;

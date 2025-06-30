@@ -1,4 +1,5 @@
 ﻿using Downloader;
+using neo_bpsys_wpf.Abstractions.Services;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -7,8 +8,6 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
-using System.Xml.Serialization;
-using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -128,7 +127,7 @@ namespace neo_bpsys_wpf.Services
             }
             if (!isInitial)
             {
-                await _messageBoxService.ShowInfoAsync("当前已是最新版本", "更新检查"); 
+                await _messageBoxService.ShowInfoAsync("当前已是最新版本", "更新检查");
             }
             return false;
         }

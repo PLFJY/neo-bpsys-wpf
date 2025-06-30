@@ -1,11 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
-using neo_bpsys_wpf.Services;
 using Trait = neo_bpsys_wpf.Models.Trait;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
@@ -62,10 +60,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
         }
 
-        [ObservableProperty] 
+        [ObservableProperty]
         private bool _isSurTalentHighlighted = false;
-        
-        [ObservableProperty] 
+
+        [ObservableProperty]
         private bool _isHunTalentHighlighted = false;
 
         public void Receive(HighlightMessage message)

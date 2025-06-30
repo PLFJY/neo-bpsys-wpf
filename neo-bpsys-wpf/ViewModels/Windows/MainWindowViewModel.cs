@@ -1,21 +1,17 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using Microsoft.Extensions.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
-using neo_bpsys_wpf.Services;
-using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.Views.Pages;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using neo_bpsys_wpf.Abstractions.Services;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
-using neo_bpsys_wpf.Exceptions;
 
 namespace neo_bpsys_wpf.ViewModels.Windows
 {
@@ -199,7 +195,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         private async Task StartNavigationAsync()
         {
             var result = await _gameGuidanceService.StartGuidance();
-            if(string.IsNullOrEmpty(result)) return;
+            if (string.IsNullOrEmpty(result)) return;
             ActionName = result;
             IsGuidanceStarted = true;
         }
@@ -280,7 +276,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             }
         }
 
-        [ObservableProperty] 
+        [ObservableProperty]
         private bool _isSwapHighlighted = false;
 
         [ObservableProperty]

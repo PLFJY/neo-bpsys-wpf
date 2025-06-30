@@ -1,11 +1,10 @@
-﻿using System.Windows.Media;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Messages;
-using neo_bpsys_wpf.Services;
+using System.Windows.Media;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -52,12 +51,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
         }
 
-        [ObservableProperty] 
-        private bool _isPickHighlighted = false;
-        
         [ObservableProperty]
-        private bool  _isBanHighlighted = false;
-        
+        private bool _isPickHighlighted = false;
+
+        [ObservableProperty]
+        private bool _isBanHighlighted = false;
+
         public void Receive(HighlightMessage message)
         {
             IsPickHighlighted = message.GameAction == GameAction.PickMap;
@@ -76,11 +75,11 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             new(Map.唐人街, ImageHelper.GetImageSourceFromName(ImageSourceKey.map, "唐人街")),
             new(Map.不归林, ImageHelper.GetImageSourceFromName(ImageSourceKey.map, "不归林")),
         ];
-        
+
         public class MapSelection(Map map, ImageSource? imageSource)
         {
             public Map Map { get; set; } = map;
-            public ImageSource? ImageSource { get; set; } = imageSource;    
+            public ImageSource? ImageSource { get; set; } = imageSource;
         }
     }
 }

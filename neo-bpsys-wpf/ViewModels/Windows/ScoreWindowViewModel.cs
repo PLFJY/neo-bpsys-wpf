@@ -1,17 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
-using neo_bpsys_wpf.Services;
-using System.ComponentModel.Design.Serialization;
-using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.ViewModels.Windows
 {
-    public partial class ScoreWindowViewModel : 
-        ObservableRecipient, 
-        IRecipient<NewGameMessage>, 
+    public partial class ScoreWindowViewModel :
+        ObservableRecipient,
+        IRecipient<NewGameMessage>,
         IRecipient<DesignModeChangedMessage>,
         IRecipient<PropertyChangedMessage<int>>
     {
@@ -55,11 +53,11 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         public void Receive(PropertyChangedMessage<int> message)
         {
-            if(message.PropertyName == nameof(TotalMainMinorPoint))
+            if (message.PropertyName == nameof(TotalMainMinorPoint))
             {
                 TotalMainMinorPoint = message.NewValue;
             }
-            if(message.PropertyName == nameof(TotalAwayMinorPoint))
+            if (message.PropertyName == nameof(TotalAwayMinorPoint))
             {
                 TotalAwayMinorPoint = message.NewValue;
             }

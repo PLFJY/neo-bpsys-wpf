@@ -1,14 +1,7 @@
 ﻿using neo_bpsys_wpf.Abstractions.Services;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using System.Windows;
 using neo_bpsys_wpf.Models;
+using System.IO;
+using System.Text.Json;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -39,7 +32,7 @@ namespace neo_bpsys_wpf.Services
         {
             if (!Directory.Exists(_settingFileDirectory))
                 Directory.CreateDirectory(_settingFileDirectory);
-            
+
             File.WriteAllText(_settingFilePath, JsonSerializer.Serialize(Settings));
         }
         public void LoadConfig()
@@ -66,7 +59,7 @@ namespace neo_bpsys_wpf.Services
             {
                 if (!Directory.Exists(_settingFileDirectory))
                     Directory.CreateDirectory(_settingFileDirectory);
-                
+
                 File.Copy(_settingFileDefaultPath, _settingFilePath);
                 LoadConfig();
             }

@@ -1,10 +1,4 @@
-﻿using System.IO;
-using System.Text.Json;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Media.Animation;
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.AttachedBehaviors;
@@ -12,6 +6,12 @@ using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Views.Windows;
+using System.IO;
+using System.Text.Json;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Media.Animation;
 using Path = System.IO.Path;
 
 namespace neo_bpsys_wpf.Services
@@ -78,7 +78,7 @@ namespace neo_bpsys_wpf.Services
             {
                 _globalScoreTotalMargin = message.NewValue;
             }
-                
+
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace neo_bpsys_wpf.Services
 
         private void SetUiImage()
         {
-            
+
         }
 
         #region 窗口显示/隐藏管理
@@ -200,7 +200,7 @@ namespace neo_bpsys_wpf.Services
             else
                 elementDict[key] = control;
         }
-        
+
         #endregion
 
         #region 设计者模式
@@ -217,7 +217,7 @@ namespace neo_bpsys_wpf.Services
             if (File.Exists(path)) return;
 
             var positions = GetElementsPositions(window, canvasName);
-            if(positions == null) return;
+            if (positions == null) return;
             var output = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
             try
             {
@@ -273,7 +273,7 @@ namespace neo_bpsys_wpf.Services
             if (typeof(T) == typeof(ScoreWindow) && canvasName == "ScoreGlobalCanvas" && _isBo3Mode) return;
 
             var positions = GetElementsPositions(window, canvasName);
-            if(positions == null) return;
+            if (positions == null) return;
 
             var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
             try
@@ -389,7 +389,7 @@ namespace neo_bpsys_wpf.Services
             }
         }
 
-        
+
         /// <summary>
         /// 窗口中元素位置信息
         /// </summary>
@@ -563,7 +563,7 @@ namespace neo_bpsys_wpf.Services
         #endregion
 
         #region 动画
-        
+
         /// <summary>
         /// 渐显动画
         /// </summary>
@@ -573,15 +573,15 @@ namespace neo_bpsys_wpf.Services
         /// <typeparam name="T"></typeparam>
         public void FadeInAnimation<T>(string controlNameHeader, int controlIndex, string controlNameFooter) where T : Window
         {
-            var ctrName = controlNameHeader + (controlIndex >= 0 ?  controlIndex : string.Empty) + controlNameFooter;
+            var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
             if (_frontWindows[typeof(T)] is not T window) return;
-            
+
             if (window.FindName(ctrName) is FrameworkElement element)
             {
                 element.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, new Duration(TimeSpan.FromSeconds(0.5))));
             }
         }
-        
+
         /// <summary>
         /// 渐隐动画
         /// </summary>
@@ -590,8 +590,8 @@ namespace neo_bpsys_wpf.Services
         /// <param name="controlNameFooter"></param>
         /// <typeparam name="T"></typeparam>
         public void FadeOutAnimation<T>(string controlNameHeader, int controlIndex, string controlNameFooter) where T : Window
-        { 
-            var ctrName = controlNameHeader + (controlIndex >= 0 ?  controlIndex : string.Empty) + controlNameFooter;
+        {
+            var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
             if (_frontWindows[typeof(T)] is not T window) return;
             if (window.FindName(ctrName) is FrameworkElement element)
             {
@@ -607,8 +607,8 @@ namespace neo_bpsys_wpf.Services
         /// <param name="controlNameFooter"></param>
         /// <typeparam name="T"></typeparam>
         public async Task BreathingStart<T>(string controlNameHeader, int controlIndex, string controlNameFooter) where T : Window
-        { 
-            var ctrName = controlNameHeader + (controlIndex >= 0 ?  controlIndex : string.Empty) + controlNameFooter;
+        {
+            var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
             if (_frontWindows[typeof(T)] is not T window) return;
             if (window.FindName(ctrName) is not FrameworkElement element) return;
 
@@ -619,7 +619,7 @@ namespace neo_bpsys_wpf.Services
 
             // 如果已有动画，先停止
             await BreathingStop<T>(controlNameHeader, controlIndex, controlNameFooter);
-            
+
             var animation = new DoubleAnimation
             {
                 From = 1.0,
@@ -647,7 +647,7 @@ namespace neo_bpsys_wpf.Services
         /// <typeparam name="T"></typeparam>
         public async Task BreathingStop<T>(string controlNameHeader, int controlIndex, string controlNameFooter) where T : Window
         {
-            var ctrName = controlNameHeader + (controlIndex >= 0 ?  controlIndex : string.Empty) + controlNameFooter;
+            var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
             if (_frontWindows[typeof(T)] is not T window) return;
             if (window.FindName(ctrName) is not FrameworkElement element) return;
             if (element.Tag is not Storyboard storyboard) return;

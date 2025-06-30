@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Helpers;
 using System.Collections.ObjectModel;
-using System.Reactive.Linq;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 

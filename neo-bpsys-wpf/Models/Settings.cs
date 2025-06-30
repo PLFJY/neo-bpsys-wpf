@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace neo_bpsys_wpf.Models;
 
 public class Settings

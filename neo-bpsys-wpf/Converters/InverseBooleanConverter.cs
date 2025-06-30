@@ -1,7 +1,5 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Windows.Data;
-using Wpf.Ui.Appearance;
 
 namespace neo_bpsys_wpf.Converters
 {

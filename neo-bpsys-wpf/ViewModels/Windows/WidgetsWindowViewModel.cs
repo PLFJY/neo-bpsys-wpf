@@ -1,19 +1,18 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
-using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
 using System.Windows.Media;
-using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.ViewModels.Windows
 {
-    public partial class WidgetsWindowViewModel : 
-        ObservableRecipient, 
-        IRecipient<NewGameMessage>, 
+    public partial class WidgetsWindowViewModel :
+        ObservableRecipient,
+        IRecipient<NewGameMessage>,
         IRecipient<DesignModeChangedMessage>,
         IRecipient<PropertyChangedMessage<bool>>
     {

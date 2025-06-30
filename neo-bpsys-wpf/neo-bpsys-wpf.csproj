@@ -118,9 +118,7 @@
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
     <PackageReference Include="WPF-UI" Version="4.0.3" />
-    <PackageReference Include="WPF-UI.Abstractions" Version="4.0.3" />
     <PackageReference Include="WPF-UI.DependencyInjection" Version="4.0.3" />
-    <PackageReference Include="XamlFlair.WPF" Version="1.2.13" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\**">

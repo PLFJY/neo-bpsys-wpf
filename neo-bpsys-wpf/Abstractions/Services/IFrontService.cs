@@ -1,5 +1,5 @@
-﻿using System.Windows;
-using neo_bpsys_wpf.Enums;
+﻿using neo_bpsys_wpf.Enums;
+using System.Windows;
 
 namespace neo_bpsys_wpf.Abstractions.Services
 {

@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Hosting;
+using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
 using System.Windows;
-using neo_bpsys_wpf.Abstractions.Services;
 using Wpf.Ui;
 
 namespace neo_bpsys_wpf.Services
@@ -36,7 +36,7 @@ namespace neo_bpsys_wpf.Services
                 )!;
                 _navigationWindow?.ShowWindow();
 
-                var settingsHostService =serviceProvider.GetService(typeof(ISettingsHostService)) as ISettingsHostService;
+                var settingsHostService = serviceProvider.GetService(typeof(ISettingsHostService)) as ISettingsHostService;
                 settingsHostService?.LoadConfig();
 
                 //提前加载调用了CharaSelector的页面，避免使用过程中卡顿

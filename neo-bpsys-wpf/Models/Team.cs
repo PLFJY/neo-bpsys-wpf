@@ -1,16 +1,14 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
+using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
-using System.Diagnostics.Eventing.Reader;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.Models;
 

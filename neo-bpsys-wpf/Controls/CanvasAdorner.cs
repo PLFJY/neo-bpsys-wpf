@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -133,7 +132,7 @@ namespace neo_bpsys_wpf.Controls
             if (string.IsNullOrEmpty(element.Name)) return;
             var canvas = GetParentCanvas(element);
             if (canvas == null) return;
-            Canvas.SetLeft(_textBlock, (Canvas.GetLeft(element) + element.ActualWidth / 2)  - _textBlock.ActualWidth / 2);
+            Canvas.SetLeft(_textBlock, (Canvas.GetLeft(element) + element.ActualWidth / 2) - _textBlock.ActualWidth / 2);
             Canvas.SetTop(_textBlock, Canvas.GetTop(element) - _textBlock.ActualHeight * 1.5);
             canvas.Children.Add(_textBlock);
             element.SetValue(TagProperty, _textBlock);

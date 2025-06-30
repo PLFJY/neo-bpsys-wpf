@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using neo_bpsys_wpf.Models;
+﻿using neo_bpsys_wpf.Models;
 
 namespace neo_bpsys_wpf.Abstractions.Services
 {

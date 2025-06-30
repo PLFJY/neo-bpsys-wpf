@@ -1,11 +1,11 @@
-﻿using System.Windows.Media;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
+using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Abstractions.ViewModels
 {
@@ -26,10 +26,10 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
 
         public int Index { get; }
 
-        [ObservableProperty] 
+        [ObservableProperty]
         private Character? _selectedChara;
 
-        [ObservableProperty] 
+        [ObservableProperty]
         private ImageSource? _previewImage;
 
         private bool _isEnabled = true;
@@ -45,10 +45,10 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
             }
         }
 
-        [ObservableProperty] 
+        [ObservableProperty]
         private bool _isHighlighted = false;
-        
-        [ObservableProperty] 
+
+        [ObservableProperty]
         private bool _isCharaChangerHighlighted = false;
 
         public Dictionary<string, Character> CharaList { get; set; } = [];
@@ -76,7 +76,7 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
 
         public virtual void Receive(BanCountChangedMessage message)
         {
-            
+
         }
 
         public void Receive(HighlightMessage message)
@@ -89,7 +89,7 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
             {
                 IsHighlighted = false;
             }
-            
+
             IsCharaChangerHighlighted = message.GameAction == GameAction.DistributeChara;
         }
     }

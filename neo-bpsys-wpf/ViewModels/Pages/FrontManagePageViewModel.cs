@@ -1,18 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
-using Microsoft.Extensions.DependencyInjection;
-using neo_bpsys_wpf.Messages;
-using neo_bpsys_wpf.Services;
-using neo_bpsys_wpf.Views.Windows;
-using System.IO;
-using System.Windows;
 using neo_bpsys_wpf.Abstractions.Services;
-using Wpf.Ui.Controls;
-using static neo_bpsys_wpf.Services.FrontService;
-using MessageBox = Wpf.Ui.Controls.MessageBox;
-using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
+using neo_bpsys_wpf.Messages;
+using neo_bpsys_wpf.Views.Windows;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {

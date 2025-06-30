@@ -15,7 +15,7 @@ public class Character
     private ImageSource? _headerImage;
     private ImageSource? _headerImageSingleColor;
     private ImageSource? _halfImage;
-    public string Name { get;  } = string.Empty;
+    public string Name { get; } = string.Empty;
     public Camp Camp { get; }
     public string ImageFileName { get; } = string.Empty;
 
@@ -28,7 +28,7 @@ public class Character
             {
                 _bigImage = GetImageSource(Camp == Camp.Sur ? ImageSourceKey.surBig : ImageSourceKey.hunBig);
             }
-            return _bigImage ;
+            return _bigImage;
         }
     }
 
@@ -71,8 +71,8 @@ public class Character
         }
     }
 
-    public string FullSpell { get;  } = string.Empty;// 角色名称全拼
-    public string Abbrev { get;  } = string.Empty; //角色名称简拼
+    public string FullSpell { get; } = string.Empty;// 角色名称全拼
+    public string Abbrev { get; } = string.Empty; //角色名称简拼
     public Character(string name, Camp camp, string imageFileName)
     {
         Name = name;
