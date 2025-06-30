@@ -80,6 +80,7 @@
             <ui:Button
                 Name="ExitButton"
                 Icon="{ui:SymbolIcon Symbol=Dismiss24}"
+                MouseOverBackground="#C42B1C"
                 Style="{StaticResource TitleBarButton}" />
         </StackPanel>
     </Grid>
