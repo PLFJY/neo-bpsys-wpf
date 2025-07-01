@@ -34,7 +34,7 @@ namespace neo_bpsys_wpf.Services
 
         public FrontService(
             BpWindow bpWindow,
-            InterludeWindow interludeWindow,
+            CutSceneWindow cutSceneWindow,
             GameDataWindow gameDataWindow,
             ScoreWindow scoreWindow,
             WidgetsWindow widgetsWindow,
@@ -47,7 +47,7 @@ namespace neo_bpsys_wpf.Services
             if (!Directory.Exists(savePath)) Directory.CreateDirectory(savePath);
             // 注册窗口和画布
             RegisterFrontWindowAndCanvas(bpWindow);
-            RegisterFrontWindowAndCanvas(interludeWindow);
+            RegisterFrontWindowAndCanvas(cutSceneWindow);
             RegisterFrontWindowAndCanvas(gameDataWindow);
             RegisterFrontWindowAndCanvas(scoreWindow, "ScoreSurCanvas");
             RegisterFrontWindowAndCanvas(scoreWindow, "ScoreHunCanvas");

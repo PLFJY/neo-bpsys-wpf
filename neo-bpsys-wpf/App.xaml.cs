@@ -73,11 +73,11 @@ namespace neo_bpsys_wpf
                     DataContext = sp.GetRequiredService<BpWindowViewModel>(),
                 });
                 services.AddSingleton<BpWindowViewModel>();
-                services.AddSingleton<InterludeWindow>(sp => new InterludeWindow()
+                services.AddSingleton<CutSceneWindow>(sp => new CutSceneWindow()
                 {
-                    DataContext = sp.GetRequiredService<InterludeWindowViewModel>(),
+                    DataContext = sp.GetRequiredService<CutSceneWindowViewModel>(),
                 });
-                services.AddSingleton<InterludeWindowViewModel>();
+                services.AddSingleton<CutSceneWindowViewModel>();
                 services.AddSingleton<ScoreWindow>(sp => new ScoreWindow()
                 {
                     DataContext = sp.GetRequiredService<ScoreWindowViewModel>(),

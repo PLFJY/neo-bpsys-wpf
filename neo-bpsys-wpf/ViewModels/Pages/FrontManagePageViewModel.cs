@@ -54,15 +54,15 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
         [RelayCommand]
-        private void ShowInterludeWindow()
+        private void ShowCutSceneWindow()
         {
-            _frontService.ShowWindow<InterludeWindow>();
+            _frontService.ShowWindow<CutSceneWindow>();
         }
 
         [RelayCommand]
-        private void HideInterludeWindow()
+        private void HideCutSceneWindow()
         {
-            _frontService.HideWindow<InterludeWindow>();
+            _frontService.HideWindow<CutSceneWindow>();
         }
 
         [RelayCommand]
@@ -137,7 +137,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         private void SaveFrontConfig()
         {
             _frontService.SaveWindowElementsPosition<BpWindow>();
-            _frontService.SaveWindowElementsPosition<InterludeWindow>();
+            _frontService.SaveWindowElementsPosition<CutSceneWindow>();
             _frontService.SaveWindowElementsPosition<ScoreWindow>("ScoreSurCanvas");
             _frontService.SaveWindowElementsPosition<ScoreWindow>("ScoreHunCanvas");
             _frontService.SaveWindowElementsPosition<ScoreWindow>("ScoreGlobalCanvas");
@@ -150,7 +150,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         private async void LoadFrontConfig()
         {
             await _frontService.LoadWindowElementsPositionOnStartupAsync<BpWindow>();
-            await _frontService.LoadWindowElementsPositionOnStartupAsync<InterludeWindow>();
+            await _frontService.LoadWindowElementsPositionOnStartupAsync<CutSceneWindow>();
             await _frontService.LoadWindowElementsPositionOnStartupAsync<ScoreWindow>("ScoreSurCanvas");
             await _frontService.LoadWindowElementsPositionOnStartupAsync<ScoreWindow>("ScoreHunCanvas");
             await _frontService.LoadWindowElementsPositionOnStartupAsync<ScoreWindow>("ScoreGlobalCanvas");
@@ -168,13 +168,13 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
         /// <summary>
-        /// 重置<see cref="InterludeWindow"/>的配置
+        /// 重置<see cref="CutSceneWindow"/>的配置
         /// </summary>
         /// <returns></returns>
         [RelayCommand]
-        private void ResetInterludeWindowElementsPosition()
+        private void ResetCutSceneWindowElementsPosition()
         {
-            _frontService.RestoreInitialPositions<InterludeWindow>();
+            _frontService.RestoreInitialPositions<CutSceneWindow>();
         }
 
         /// <summary>

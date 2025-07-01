@@ -102,16 +102,16 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <ui:Button Command="{Binding ShowInterludeWindowCommand}" Content="启动" />
+                    <ui:Button Command="{Binding ShowCutSceneWindowCommand}" Content="启动" />
                     <ui:Button
                         Margin="10,0,0,0"
-                        Command="{Binding HideInterludeWindowCommand}"
+                        Command="{Binding HideCutSceneWindowCommand}"
                         Content="关闭" />
                 </StackPanel>
                 <ui:Button
                     Grid.Row="2"
                     Margin="0,10,0,0"
-                    Command="{Binding ResetInterludeWindowElementsPositionCommand}"
+                    Command="{Binding ResetCutSceneWindowElementsPositionCommand}"
                     Content="重置布局"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
