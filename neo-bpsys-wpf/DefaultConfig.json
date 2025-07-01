@@ -1,16 +1,204 @@
 {
-  "FrontResolution": {
-    "BpWindow": {
-      "Width": 1080,
-      "Height": 1920
+  "BpWindowSettings": {
+    "Resolution": {
+      "Width": 1440,
+      "Height": 810
     },
-    "CutSceneWindow": {
-      "Width": 1080,
-      "Height": 1920
+    "BgImageUri": null,
+    "CurrentBanLockImageUri": null,
+    "GlobalBanLockImageUri": null,
+    "PickingBorderImageUri": null,
+    "TextSettings": {
+      "Timer": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontSize": 58
+      },
+      "TeamName": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF",
+        "FontSize": 28
+      },
+      "MinorPoints": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontSize": 50
+      },
+      "MajorScore": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "Arial",
+        "FontSize": 28
+      },
+      "PlayerId": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF",
+        "FontSize": 16
+      },
+      "MapName": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#汉仪第五人格体简",
+        "FontSize": 20
+      },
+      "GameProgress": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontSize": 16
+      }
+    }
+  },
+  "CutSceneWindowSettings": {
+    "Resolution": {
+      "Width": 1440,
+      "Height": 810
     },
-    "GameDataWindow": {
-      "Width": 1080,
-      "Height": 1920
+    "BgUri": null,
+    "TextSettings": {
+      "TeamName": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF",
+        "FontSize": 28
+      },
+      "MajorScore": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "Arial",
+        "FontSize": 28
+      },
+      "PlayerId": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF",
+        "FontSize": 18
+      },
+      "MapName": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#汉仪第五人格体简",
+        "FontSize": 28
+      },
+      "GameProgress": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontSize": 24
+      }
+    }
+  },
+  "ScoreWindowSettings": {
+    "Resolution": {
+      "Width": 1440,
+      "Height": 810
+    },
+    "SurScoreBgImageUri": null,
+    "HunScoreBgImageUri": null,
+    "GlobalScoreBgImageUri": null,
+    "TextSettings": {
+      "MinorPoints": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontSize": 36
+      },
+      "MajorScore": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontSize": 24
+      },
+      "TeamName": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontSize": 20
+      },
+      "ScoreGlobal_TeamName": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontSize": 18
+      },
+      "ScoreGlobal_Data": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontSize": 16
+      }
+    }
+  },
+  "GameDataWindowSettings": {
+    "Resolution": {
+      "Width": 1440,
+      "Height": 810
+    },
+    "BgImageUri": null,
+    "BpWindowTextSettings": {
+      "TeamName": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF",
+        "FontSize": 32
+      },
+      "MinorPoints": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontSize": 80
+      },
+      "MajorScore": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "Arial",
+        "FontSize": 30
+      },
+      "PlayerId": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF",
+        "FontSize": 22
+      },
+      "MapName": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#汉仪第五人格体简",
+        "FontSize": 18
+      },
+      "GameProgress": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontSize": 16
+      },
+      "GameData": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontSize": 16
+      }
+    }
+  },
+  "WidgetsWindowSettings": {
+    "MapBpBgUri": null,
+    "BpOverviewBgUri": null,
+    "BpWindowTextSettings": {
+      "MapBp_MapName": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#汉仪第五人格体简",
+        "FontSize": 22
+      },
+      "MapBp_PickWord": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontSize": 22
+      },
+      "MapBp_BanWord": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontSize": 22
+      },
+      "MapBp_TeamName": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#汉仪第五人格体简",
+        "FontSize": 20
+      },
+      "BpOverview_TeamName": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF",
+        "FontSize": 22
+      },
+      "BpOverview_GameProgress": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontSize": 22
+      },
+      "BpOverview_MinorPoints": {
+        "Color": "#FFFFFFFF",
+        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontSize": 50
+      }
     }
   }
 }
