@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
@@ -31,24 +32,22 @@ namespace neo_bpsys_wpf.Services
 
             if (!Application.Current.Windows.OfType<MainWindow>().Any())
             {
-                _navigationWindow = (
-                    serviceProvider.GetService(typeof(INavigationWindow)) as INavigationWindow
-                )!;
-                _navigationWindow?.ShowWindow();
+                _navigationWindow = serviceProvider.GetRequiredService<INavigationWindow>();
+                _navigationWindow.ShowWindow();
 
-                var settingsHostService = serviceProvider.GetService(typeof(ISettingsHostService)) as ISettingsHostService;
+                var settingsHostService = serviceProvider.GetService<ISettingsHostService>();
                 settingsHostService?.LoadConfig();
 
                 //提前加载调用了CharaSelector的页面，避免使用过程中卡顿
                 await Task.Delay(300);
-                _ = _navigationWindow?.Navigate(typeof(PickPage));
+                _ = _navigationWindow.Navigate(typeof(PickPage));
                 await Task.Delay(750);
-                _ = _navigationWindow?.Navigate(typeof(BanSurPage));
+                _ = _navigationWindow.Navigate(typeof(BanSurPage));
                 await Task.Delay(550);
-                _ = _navigationWindow?.Navigate(typeof(BanHunPage));
+                _ = _navigationWindow.Navigate(typeof(BanHunPage));
                 await Task.Delay(250);
 
-                _ = _navigationWindow?.Navigate(typeof(HomePage));
+                _ = _navigationWindow.Navigate(typeof(HomePage));
             }
             await Task.CompletedTask;
         }

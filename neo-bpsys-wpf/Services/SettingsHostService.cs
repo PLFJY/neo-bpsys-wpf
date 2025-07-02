@@ -2,6 +2,7 @@
 using neo_bpsys_wpf.Models;
 using System.IO;
 using System.Text.Json;
+using neo_bpsys_wpf.Views.Windows;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -20,7 +21,7 @@ namespace neo_bpsys_wpf.Services
         public SettingsHostService(IMessageBoxService messageBoxService)
         {
             _messageBoxService = messageBoxService;
-            _settingFileDefaultPath = Path.Combine(Environment.CurrentDirectory, "DefaultConfig.json");
+            _settingFileDefaultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DefaultConfig.json");
             _settingFileDirectory = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "neo-bpsys-wpf");
@@ -42,7 +43,17 @@ namespace neo_bpsys_wpf.Services
             var json = File.ReadAllText(_settingFilePath);
             try
             {
-                Settings = JsonSerializer.Deserialize<Settings>(json)!;
+                var settings = JsonSerializer.Deserialize<Settings>(json);
+                if (settings != null)
+                {
+                    Settings = settings;
+                }
+                else
+                {
+                    _messageBoxService.ShowErrorAsync("配置文件为空");
+                    ResetConfig();
+                }
+                
             }
             catch (JsonException e)
             {
@@ -60,7 +71,7 @@ namespace neo_bpsys_wpf.Services
                 if (!Directory.Exists(_settingFileDirectory))
                     Directory.CreateDirectory(_settingFileDirectory);
 
-                File.Copy(_settingFileDefaultPath, _settingFilePath);
+                File.Copy(_settingFileDefaultPath, _settingFilePath, true);
                 LoadConfig();
             }
             catch (Exception e)

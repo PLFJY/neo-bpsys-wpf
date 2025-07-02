@@ -30,13 +30,13 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
         [RelayCommand]
-        private void ShowAllWinows()
+        private void ShowAllWindows()
         {
             _frontService.AllWindowShow();
         }
 
         [RelayCommand]
-        private void HideAllWinows()
+        private void HideAllWindows()
         {
             _frontService.AllWindowHide();
         }
@@ -147,7 +147,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         /// <summary>
         /// 加载前台窗口配置
         /// </summary>
-        private async void LoadFrontConfig()
+        private async Task LoadFrontConfig()
         {
             await _frontService.LoadWindowElementsPositionOnStartupAsync<BpWindow>();
             await _frontService.LoadWindowElementsPositionOnStartupAsync<CutSceneWindow>();

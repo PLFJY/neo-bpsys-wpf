@@ -19,7 +19,7 @@ public class Trait
     {
         get
         {
-            _image ??= ImageHelper.GetImageSourceFromName(ImageSourceKey.trait, TraitName.ToString());
+            _image ??= ImageHelper.GetTraitImageSource(TraitName);
             return _image;
         }
     }

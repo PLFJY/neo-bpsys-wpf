@@ -37,7 +37,7 @@ namespace neo_bpsys_wpf.Services
             OpenFileDialog openFileDialog = new()
             {
                 Filter = "Json文件 (*.json) | *.json",
-                DefaultDirectory = Path.Combine(Environment.CurrentDirectory, "Resources"),
+                DefaultDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources"),
             };
 
             if (openFileDialog.ShowDialog() != true)

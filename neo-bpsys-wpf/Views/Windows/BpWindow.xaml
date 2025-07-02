@@ -92,21 +92,19 @@
             FontWeight="Bold"
             Text="{Binding CurrentGame.SurTeam.Score.MinorPoints}"
             TextAlignment="Center" />
-        <Border
+        <TextBlock
             Name="Timer"
             Canvas.Left="671"
             Canvas.Top="23"
             Width="100"
-            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
-            <TextBlock
-                HorizontalAlignment="Center"
-                d:Text="VS"
-                FontFamily="{StaticResource POP1W5}"
-                FontSize="58"
-                FontWeight="Bold"
-                Text="{Binding RemainingSeconds}"
-                TextAlignment="Center" />
-        </Border>
+            HorizontalAlignment="Center"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:Text="VS"
+            FontFamily="{StaticResource POP1W5}"
+            FontSize="58"
+            FontWeight="Bold"
+            Text="{Binding RemainingSeconds}"
+            TextAlignment="Center" />
         <TextBlock
             Name="MinorPointsHun"
             Canvas.Left="852"

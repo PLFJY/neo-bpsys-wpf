@@ -1,5 +1,7 @@
+using System.Net.Mime;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
+using neo_bpsys_wpf.Helpers;
 
 namespace neo_bpsys_wpf.Models;
 
@@ -14,24 +16,23 @@ public class Settings
 
 public class TextSettings(string color, string fontFamilySite, double fontSize)
 {
-    public string Color { get; set; } = color;
-    public string FontFamilySite { get; set; } = fontFamilySite;
+    public string? Color { get; set; } = color;
 
-    private FontFamily? _fontFamily;
+    [JsonIgnore] public Brush ColorBrush => ColorHelper.HexToBrush(string.IsNullOrEmpty(Color) ? "#FFFFFFFF" : Color);
     
+    public string? FontFamilySite { get; set; } = fontFamilySite;
+
     [JsonIgnore]
     public FontFamily FontFamily
     {
         get
         {
-            if (_fontFamily == null) return _fontFamily = new FontFamily("Arial");
+            if (string.IsNullOrEmpty(FontFamilySite)) return new FontFamily("Arial");
             
-            _fontFamily = FontFamilySite.StartsWith("pack://application:,,,/")
+            return FontFamilySite.StartsWith("pack://application:,,,/")
                 ? new FontFamily(new Uri("pack://application:,,,/"),
-                    FontFamilySite[("pack://application:,,,/".Length - 1)..])
+                    FontFamilySite.Substring("pack://application:,,,/".Length - 1))
                 : new FontFamily(FontFamilySite);
-
-            return _fontFamily;
         }
     }
 
@@ -58,7 +59,7 @@ public class BpWindowTextSettings
     public TextSettings MinorPoints { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts#华康POP1体W5", 50);
 
-    public TextSettings MajorScore { get; set; } = new("#FFFFFFFF", "Arial", 28);
+    public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 28);
 
     public TextSettings PlayerId { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF", 16);
@@ -72,6 +73,7 @@ public class BpWindowTextSettings
 public class CutSceneWindowSettings
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
+    public bool IsBlackTalentAndTraitEnable { get; set; } = false;
     public string? BgUri { get; set; }
     public CutSceneWindowTextSettings TextSettings { get; set; } = new();
 }
@@ -81,7 +83,7 @@ public class CutSceneWindowTextSettings
     public TextSettings TeamName { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF", 28);
 
-    public TextSettings MajorScore { get; set; } = new("#FFFFFFFF", "Arial", 28);
+    public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 28);
 
     public TextSettings PlayerId { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF", 18);
@@ -98,6 +100,7 @@ public class ScoreWindowSettings
     public string? SurScoreBgImageUri { get; set; }
     public string? HunScoreBgImageUri { get; set; }
     public string? GlobalScoreBgImageUri { get; set; }
+    public double GlobalScoreTotalMargin { get; set; } = 390;
     public ScoreWindowTextSettings TextSettings { get; set; } = new();
 }
 
@@ -106,7 +109,7 @@ public class ScoreWindowTextSettings
     public TextSettings MinorPoints { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts#华康POP1体W5", 36);
 
-    public TextSettings MajorScore { get; set; } =
+    public TextSettings MajorPoints { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts#华康POP1体W5", 24);
 
     public TextSettings TeamName { get; set; } = new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts#华康POP1体W5", 20);
@@ -116,13 +119,16 @@ public class ScoreWindowTextSettings
 
     public TextSettings ScoreGlobal_Data { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts#华康POP1体W5", 16);
+
+    public TextSettings ScoreGlobal_Total { get; set; } =
+        new TextSettings("#FFFFFFFF", "pack://application:,,,/Assets/Fonts#华康POP1体W5", 48);
 }
 
 public class GameDataWindowSettings
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
     public string? BgImageUri { get; set; }
-    public GameDataWindowTextSettings BpWindowTextSettings { get; set; } = new();
+    public GameDataWindowTextSettings TextSettings { get; set; } = new();
 }
 
 public class GameDataWindowTextSettings
@@ -133,7 +139,7 @@ public class GameDataWindowTextSettings
     public TextSettings MinorPoints { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts#华康POP1体W5", 80);
 
-    public TextSettings MajorScore { get; set; } = new("#FFFFFFFF", "Arial", 30);
+    public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 30);
 
     public TextSettings PlayerId { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF", 22);
@@ -143,14 +149,16 @@ public class GameDataWindowTextSettings
     public TextSettings GameProgress { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts#华康POP1体W5", 16);
 
-    public TextSettings GameData { get; set; } = new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts#华康POP1体W5", 16);
+    public TextSettings SurData { get; set; } = new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts#华康POP1体W5", 16);
+    
+    public TextSettings HunData { get; set; } = new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts#华康POP1体W5", 22);
 }
 
 public class WidgetsWindowSettings
 {
     public string? MapBpBgUri { get; set; }
     public string? BpOverviewBgUri { get; set; }
-    public WidgetsWindowTextSettings BpWindowTextSettings { get; set; } = new();
+    public WidgetsWindowTextSettings TextSettings { get; set; } = new();
 }
 
 public class WidgetsWindowTextSettings

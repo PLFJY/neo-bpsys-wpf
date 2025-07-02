@@ -38,12 +38,12 @@
                     Orientation="Horizontal">
                     <ui:Button
                         Height="50"
-                        Command="{Binding ShowAllWinowsCommand}"
+                        Command="{Binding ShowAllWindowsCommand}"
                         Content="全部启动" />
                     <ui:Button
                         Height="50"
                         Margin="10,0,0,0"
-                        Command="{Binding HideAllWinowsCommand}"
+                        Command="{Binding HideAllWindowsCommand}"
                         Content="全部关闭" />
                 </StackPanel>
                 <ToggleButton
