@@ -205,5 +205,14 @@
                 </StackPanel>
             </ui:CardExpander>
         </StackPanel>
+        <TextBlock
+            FontSize="18"
+            FontWeight="Bold"
+            Text="调试选项" />
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
+            <WrapPanel Orientation="Horizontal">
+                <Button Command="{Binding ManualGCCommand}" Content="手动触发GC回收" />
+            </WrapPanel>
+        </Border>
     </StackPanel>
 </Page>

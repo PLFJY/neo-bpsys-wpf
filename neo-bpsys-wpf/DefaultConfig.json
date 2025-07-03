@@ -11,17 +11,17 @@
     "TextSettings": {
       "Timer": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 58
       },
       "TeamName": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#Source Han Sans HW SC VF",
         "FontSize": 28
       },
       "MinorPoints": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 50
       },
       "MajorPoints": {
@@ -31,17 +31,17 @@
       },
       "PlayerId": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#Source Han Sans HW SC VF",
         "FontSize": 16
       },
       "MapName": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#汉仪第五人格体简",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#汉仪第五人格体简",
         "FontSize": 20
       },
       "GameProgress": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 16
       }
     }
@@ -56,7 +56,7 @@
     "TextSettings": {
       "TeamName": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#Source Han Sans HW SC VF",
         "FontSize": 28
       },
       "MajorPoints": {
@@ -66,17 +66,17 @@
       },
       "PlayerId": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#Source Han Sans HW SC VF",
         "FontSize": 18
       },
       "MapName": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#汉仪第五人格体简",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#汉仪第五人格体简",
         "FontSize": 28
       },
       "GameProgress": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 24
       }
     }
@@ -93,32 +93,32 @@
     "TextSettings": {
       "MinorPoints": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 36
       },
       "MajorPoints": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 24
       },
       "TeamName": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 20
       },
       "ScoreGlobal_TeamName": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 18
       },
       "ScoreGlobal_Data": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 16
       },
       "ScoreGlobal_Total": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 48
       }
     }
@@ -132,12 +132,12 @@
     "TextSettings": {
       "TeamName": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#Source Han Sans HW SC VF",
         "FontSize": 32
       },
       "MinorPoints": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 80
       },
       "MajorPoints": {
@@ -147,27 +147,27 @@
       },
       "PlayerId": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#Source Han Sans HW SC VF",
         "FontSize": 22
       },
       "MapName": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#汉仪第五人格体简",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#汉仪第五人格体简",
         "FontSize": 18
       },
       "GameProgress": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 16
       },
       "SurData": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 16
       },
       "HunData": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 22
       }
     }
@@ -178,37 +178,37 @@
     "TextSettings": {
       "MapBp_MapName": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#汉仪第五人格体简",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#汉仪第五人格体简",
         "FontSize": 22
       },
       "MapBp_PickWord": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 22
       },
       "MapBp_BanWord": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 22
       },
       "MapBp_TeamName": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#汉仪第五人格体简",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#汉仪第五人格体简",
         "FontSize": 20
       },
       "BpOverview_TeamName": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#Source Han Sans HW SC VF",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#Source Han Sans HW SC VF",
         "FontSize": 22
       },
       "BpOverview_GameProgress": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 22
       },
       "BpOverview_MinorPoints": {
         "Color": "#FFFFFFFF",
-        "FontFamilySite": "pack://application:,,,/Assets/Fonts#华康POP1体W5",
+        "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
         "FontSize": 50
       }
     }

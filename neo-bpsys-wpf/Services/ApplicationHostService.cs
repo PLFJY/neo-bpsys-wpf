@@ -18,7 +18,7 @@ namespace neo_bpsys_wpf.Services
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            await HandleAvtivationAsync();
+            await HandleActivationAsync();
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
@@ -26,7 +26,7 @@ namespace neo_bpsys_wpf.Services
             await Task.CompletedTask;
         }
 
-        private async Task HandleAvtivationAsync()
+        private async Task HandleActivationAsync()
         {
             await Task.CompletedTask;
 
@@ -34,9 +34,6 @@ namespace neo_bpsys_wpf.Services
             {
                 _navigationWindow = serviceProvider.GetRequiredService<INavigationWindow>();
                 _navigationWindow.ShowWindow();
-
-                var settingsHostService = serviceProvider.GetService<ISettingsHostService>();
-                settingsHostService?.LoadConfig();
 
                 //提前加载调用了CharaSelector的页面，避免使用过程中卡顿
                 await Task.Delay(300);

@@ -78,7 +78,8 @@ namespace neo_bpsys_wpf.Services
             WeakReferenceMessenger.Default.Register<PropertyChangedMessage<double>>(this,
                 DoublePropertyChangedRecipient);
             OnBo3ModeChanged();
-
+            
+            settingsHostService.LoadConfig();
             ApplyAllWindowsSettings();
         }
 

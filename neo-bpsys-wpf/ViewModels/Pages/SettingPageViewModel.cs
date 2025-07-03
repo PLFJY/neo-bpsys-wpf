@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using System.Xml.Serialization;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -117,6 +118,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 "neo-bpsys-wpf\\GameInfoOutput"
             );
             Process.Start("explorer.exe", path);
+        }
+
+        [RelayCommand]
+        private void ManualGC()
+        {
+            GC.Collect();
         }
 
         public ObservableCollection<string> MirrorList { get; } = [
