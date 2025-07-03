@@ -118,6 +118,7 @@ namespace neo_bpsys_wpf.Services
                 window.Show();
                 FrontWindowStates[window.GetType()] = true;
             }
+            Application.Current.MainWindow?.Activate();
         }
 
         public void AllWindowHide()
@@ -140,6 +141,8 @@ namespace neo_bpsys_wpf.Services
             if (FrontWindowStates[typeof(T)]) window.Activate();
             window.Show();
             FrontWindowStates[typeof(T)] = true;
+
+            Application.Current.MainWindow?.Activate();
         }
 
         public void HideWindow<T>() where T : Window

@@ -79,7 +79,6 @@ namespace neo_bpsys_wpf.Helpers
         /// </summary>
         /// <param name="camp"></param>
         /// <param name="name">Talent Name</param>
-        /// <param name="isBlackVerEnable">是否启用黑色模式</param>
         /// <returns></returns>
         public static ImageSource? GetTalentImageSource(Camp camp, string? name)
         {

@@ -28,7 +28,10 @@ namespace neo_bpsys_wpf.Services
             _settingFilePath = Path.Combine(_settingFileDirectory, SettingFileName);
             LoadConfig();
         }
-
+        
+        /// <summary>
+        /// 保存设置
+        /// </summary>
         public void SaveConfig()
         {
             if (!Directory.Exists(_settingFileDirectory))
@@ -36,6 +39,10 @@ namespace neo_bpsys_wpf.Services
 
             File.WriteAllText(_settingFilePath, JsonSerializer.Serialize(Settings));
         }
+        
+        /// <summary>
+        /// 加载设置
+        /// </summary>
         public void LoadConfig()
         {
             if (!File.Exists(_settingFilePath))
@@ -62,7 +69,10 @@ namespace neo_bpsys_wpf.Services
                 ResetConfig();
             }
         }
-
+        
+        /// <summary>
+        /// 重置设置
+        /// </summary>
         public void ResetConfig()
         {
             if (!File.Exists(_settingFileDefaultPath)) return;

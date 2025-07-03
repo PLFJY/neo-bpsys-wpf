@@ -14,14 +14,26 @@ public class Settings
     public WidgetsWindowSettings WidgetsWindowSettings { get; set; } = new();
 }
 
+/// <summary>
+/// 文本设置
+/// </summary>
+/// <param name="color">文本颜色</param>
+/// <param name="fontFamilySite">字体地址</param>
+/// <param name="fontSize">字体大小</param>
 public class TextSettings(string color, string fontFamilySite, double fontSize)
 {
     public string? Color { get; set; } = color;
 
+    /// <summary>
+    /// 文本颜色Brush
+    /// </summary>
     [JsonIgnore] public Brush ColorBrush => ColorHelper.HexToBrush(string.IsNullOrEmpty(Color) ? "#FFFFFFFF" : Color);
     
     public string? FontFamilySite { get; set; } = fontFamilySite;
-
+    
+    /// <summary>
+    /// 字体(字体对象)
+    /// </summary>
     [JsonIgnore]
     public FontFamily FontFamily
     {
@@ -39,6 +51,9 @@ public class TextSettings(string color, string fontFamilySite, double fontSize)
     public double FontSize { get; set; } = fontSize;
 }
 
+/// <summary>
+/// BP窗口设置
+/// </summary>
 public class BpWindowSettings
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
@@ -49,6 +64,9 @@ public class BpWindowSettings
     public BpWindowTextSettings TextSettings { get; set; } = new();
 }
 
+/// <summary>
+/// BP窗口文本设置
+/// </summary>
 public class BpWindowTextSettings
 {
     public TextSettings Timer { get; set; } = new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 58);
@@ -70,6 +88,9 @@ public class BpWindowTextSettings
         new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 16);
 }
 
+/// <summary>
+/// 过场窗口设置
+/// </summary>
 public class CutSceneWindowSettings
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
@@ -78,6 +99,9 @@ public class CutSceneWindowSettings
     public CutSceneWindowTextSettings TextSettings { get; set; } = new();
 }
 
+/// <summary>
+/// 过场窗口文本设置
+/// </summary>
 public class CutSceneWindowTextSettings
 {
     public TextSettings TeamName { get; set; } =
@@ -94,6 +118,9 @@ public class CutSceneWindowTextSettings
         new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 24);
 }
 
+/// <summary>
+/// 比分窗口设置
+/// </summary>
 public class ScoreWindowSettings
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
@@ -104,6 +131,9 @@ public class ScoreWindowSettings
     public ScoreWindowTextSettings TextSettings { get; set; } = new();
 }
 
+/// <summary>
+/// 分数窗口文本设置
+/// </summary>
 public class ScoreWindowTextSettings
 {
     public TextSettings MinorPoints { get; set; } =
@@ -124,6 +154,9 @@ public class ScoreWindowTextSettings
         new TextSettings("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 48);
 }
 
+/// <summary>
+/// 赛后数据窗口设置
+/// </summary>
 public class GameDataWindowSettings
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
@@ -131,6 +164,9 @@ public class GameDataWindowSettings
     public GameDataWindowTextSettings TextSettings { get; set; } = new();
 }
 
+/// <summary>
+/// 赛后数据窗口文本设置
+/// </summary>
 public class GameDataWindowTextSettings
 {
     public TextSettings TeamName { get; set; } =
@@ -154,6 +190,9 @@ public class GameDataWindowTextSettings
     public TextSettings HunData { get; set; } = new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 22);
 }
 
+/// <summary>
+/// 小组件窗口设置
+/// </summary>
 public class WidgetsWindowSettings
 {
     public string? MapBpBgUri { get; set; }
@@ -161,6 +200,9 @@ public class WidgetsWindowSettings
     public WidgetsWindowTextSettings TextSettings { get; set; } = new();
 }
 
+/// <summary>
+/// 小组件窗口文本设置
+/// </summary>
 public class WidgetsWindowTextSettings
 {
     public TextSettings MapBp_MapName { get; set; } =
