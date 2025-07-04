@@ -60,6 +60,7 @@ namespace neo_bpsys_wpf.Services
             RegisterFrontWindowAndCanvas(scoreWindow, "ScoreHunCanvas");
             RegisterFrontWindowAndCanvas(scoreWindow, "ScoreGlobalCanvas");
             RegisterFrontWindowAndCanvas(widgetsWindow, "MapBpCanvas");
+            RegisterFrontWindowAndCanvas(widgetsWindow, "BpOverViewCanvas");
             RegisterFrontWindowAndCanvas(gameDataWindow);
 
             //注册分数统计界面的分数控件
