@@ -94,17 +94,17 @@
       "MinorPoints": {
         "Color": "#FFFFFFFF",
         "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
-        "FontSize": 36
+        "FontSize": 100
       },
       "MajorPoints": {
         "Color": "#FFFFFFFF",
         "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
-        "FontSize": 24
+        "FontSize": 38
       },
       "TeamName": {
         "Color": "#FFFFFFFF",
         "FontFamilySite": "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5",
-        "FontSize": 20
+        "FontSize": 32
       },
       "ScoreGlobal_TeamName": {
         "Color": "#FFFFFFFF",

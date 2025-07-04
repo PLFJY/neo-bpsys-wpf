@@ -78,7 +78,7 @@ namespace neo_bpsys_wpf.Services
             WeakReferenceMessenger.Default.Register<PropertyChangedMessage<double>>(this,
                 DoublePropertyChangedRecipient);
             OnBo3ModeChanged();
-            
+
             settingsHostService.LoadConfig();
             ApplyAllWindowsSettings();
         }
@@ -138,9 +138,15 @@ namespace neo_bpsys_wpf.Services
                 return;
             }
 
-            if (FrontWindowStates[typeof(T)]) window.Activate();
-            window.Show();
-            FrontWindowStates[typeof(T)] = true;
+            if (FrontWindowStates[typeof(T)])
+            {
+                window.Activate();
+            }
+            else
+            {
+                window.Show();
+                FrontWindowStates[typeof(T)] = true;
+            }
 
             Application.Current.MainWindow?.Activate();
         }
@@ -904,7 +910,7 @@ namespace neo_bpsys_wpf.Services
 
                 //大比分
                 TextSettingApply(window.SurTeamMajorPoint, setting.TextSettings.MajorPoints);
-                TextSettingApply(window.MinorPointsHun, setting.TextSettings.MajorPoints);
+                TextSettingApply(window.HunTeamMajorPoint, setting.TextSettings.MajorPoints);
 
                 //地图名称
                 if (window.MapName.Child is TextBlock mapName)

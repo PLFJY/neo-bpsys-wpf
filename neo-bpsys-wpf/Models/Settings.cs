@@ -137,12 +137,12 @@ public class ScoreWindowSettings
 public class ScoreWindowTextSettings
 {
     public TextSettings MinorPoints { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 36);
+        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 100);
 
     public TextSettings MajorPoints { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 24);
+        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 38);
 
-    public TextSettings TeamName { get; set; } = new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 20);
+    public TextSettings TeamName { get; set; } = new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 32);
 
     public TextSettings ScoreGlobal_TeamName { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 18);
