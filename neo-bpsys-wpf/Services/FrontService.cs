@@ -118,6 +118,7 @@ namespace neo_bpsys_wpf.Services
                 window.Show();
                 FrontWindowStates[window.GetType()] = true;
             }
+            Thread.Sleep(250);
             Application.Current.MainWindow?.Activate();
         }
 
@@ -147,7 +148,7 @@ namespace neo_bpsys_wpf.Services
                 window.Show();
                 FrontWindowStates[typeof(T)] = true;
             }
-
+            Thread.Sleep(250);
             Application.Current.MainWindow?.Activate();
         }
 
