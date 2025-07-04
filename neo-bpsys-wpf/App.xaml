@@ -18,7 +18,6 @@
                 <ResourceDictionary Source="/Styles/Card.xaml" />
                 <ResourceDictionary Source="/Styles/TitleBarButtonStyles.xaml" />
                 <ResourceDictionary Source="/Styles/HighlightStyle.xaml" />
-                <ResourceDictionary Source="/Styles/PickingBorderStyle.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <Style x:Key="FrontWindow" TargetType="Window">
                 <Setter Property="ResizeMode" Value="NoResize" />
