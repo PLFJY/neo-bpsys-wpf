@@ -1,3 +1,4 @@
+using System.Security.AccessControl;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Enums;
@@ -13,9 +14,9 @@ namespace neo_bpsys_wpf.Models;
 /// </summary>
 public partial class Member : ObservableObject
 {
-    public Member()
+    public Member(Camp camp)
     {
-        //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+        Camp = camp;
     }
 
     private string _name = Empty;
@@ -24,9 +25,9 @@ public partial class Member : ObservableObject
         get => _name;
         set
         {
-            WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
             SetProperty(ref _name, value);
             OnPropertyChanged();
+            WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this));
         }
     }
 
@@ -48,7 +49,8 @@ public partial class Member : ObservableObject
         {
             SetProperty(ref _image, value);
             OnPropertyChanged();
-            WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
+            OnPropertyChanged(nameof(IsImageValid));
+            WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this));
         }
     }
 
@@ -62,7 +64,7 @@ public partial class Member : ObservableObject
         {
             SetProperty(ref _isOnField, value);
             OnPropertyChanged();
-            WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
+            WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this));
         }
     }
 
@@ -70,8 +72,5 @@ public partial class Member : ObservableObject
     [property: JsonIgnore]
     private bool _canOnFieldChange = true;
 
-    public Member(Camp camp)
-    {
-        Camp = camp;
-    }
+    public bool IsImageValid => Image != null;
 }

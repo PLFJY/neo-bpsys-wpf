@@ -7,6 +7,8 @@ using neo_bpsys_wpf.Models;
 using System.IO;
 using System.Text.Json;
 using System.Windows.Media.Imaging;
+using CommunityToolkit.Mvvm.Messaging;
+using neo_bpsys_wpf.Messages;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -81,7 +83,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                     teamInfo.Camp = CurrentTeam.Camp;
                     CurrentTeam.ImportTeamInfo(teamInfo);
                     TeamName = CurrentTeam.Name;
-                    App.Services.GetRequiredService<ISharedDataService>().CurrentGame.RefreshCurrentPlayer();
+                    WeakReferenceMessenger.Default.Send(new MemberOnFieldChangedMessage(this));
                     OnPropertyChanged();
                 }
                 catch (JsonException ex)
@@ -135,7 +137,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
                 if (await _messageBoxService.ShowDeleteConfirmAsync("删除确认", $"确定删除{memberName}吗？"))
                 {
-                    CurrentTeam.RemoveMemberInPlayer(member);
+                    CurrentTeam.MemberOffField(member);
                     if (member.Camp == Camp.Sur)
                     {
                         CurrentTeam.SurMemberList.Remove(member);
@@ -155,18 +157,18 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             {
                 if (member.IsOnField)
                 {
-                    member.IsOnField = CurrentTeam.AddMemberInPlayer(member);
+                    member.IsOnField = CurrentTeam.MemberOnField(member);
                 }
                 else
                 {
-                    CurrentTeam.RemoveMemberInPlayer(member);
+                    CurrentTeam.MemberOffField(member);
                 }
                 RefreshCanMemberOnFieldState(member.Camp);
             }
 
             private void RefreshCanMemberOnFieldState(Camp camp)
             {
-                var canOthersOnField = CurrentTeam.CanAddMemberInPlayer(camp);
+                var canOthersOnField = CurrentTeam.CanMemberOnField(camp);
                 if (camp == Camp.Sur)
                 {
                     foreach (var m in CurrentTeam.SurMemberList)
@@ -205,7 +207,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
 
             [RelayCommand]
-            private static void ClearMamberImage(Member member)
+            private static void ClearMemberImage(Member member)
             {
                 member.Image = null;
             }

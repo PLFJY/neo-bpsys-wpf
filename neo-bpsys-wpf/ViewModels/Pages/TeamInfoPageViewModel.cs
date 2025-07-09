@@ -27,10 +27,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             _sharedDataService = sharedDataService;
             _filePickerService = filePickerService;
             _messageBoxService = messageBoxService;
-            MainTeamInfoViewModel = new(_sharedDataService.MainTeam, _filePickerService, _messageBoxService);
-            AwayTeamInfoViewModel = new(_sharedDataService.AwayTeam, _filePickerService, _messageBoxService);
+            MainTeamInfoViewModel = new TeamInfoViewModel(_sharedDataService.MainTeam, _filePickerService, _messageBoxService);
+            AwayTeamInfoViewModel = new TeamInfoViewModel(_sharedDataService.AwayTeam, _filePickerService, _messageBoxService);
             OnFieldSurPlayerViewModels = [.. Enumerable.Range(0, 4).Select(i => new OnFieldSurPlayerViewModel(_sharedDataService, i))];
-            OnFieldHunPlayerVm = new(_sharedDataService);
+            OnFieldHunPlayerVm = new OnFieldHunPlayerViewModel(_sharedDataService);
         }
 
         public TeamInfoViewModel MainTeamInfoViewModel { get; }
@@ -41,7 +41,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         public OnFieldHunPlayerViewModel OnFieldHunPlayerVm { get; set; }
 
         public partial class OnFieldSurPlayerViewModel :
-            ObservableRecipient, IRecipient<MemberStateChangedMessage>, IRecipient<PlayerSwappedMessage>, IRecipient<SwapMessage>
+            ObservableRecipient, IRecipient<MemberPropertyChangedMessage>, IRecipient<PlayerSwappedMessage>, IRecipient<SwapMessage>
         {
             private readonly ISharedDataService _sharedDataService;
 
@@ -56,7 +56,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
             public int Index { get; }
 
-            public void Receive(MemberStateChangedMessage message)
+            public void Receive(MemberPropertyChangedMessage message)
             {
                 OnPropertyChanged(nameof(ThisPlayer));
             }
@@ -85,7 +85,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
         public class OnFieldHunPlayerViewModel :
-            ObservableRecipient, IRecipient<MemberStateChangedMessage>, IRecipient<SwapMessage>
+            ObservableRecipient, IRecipient<MemberPropertyChangedMessage>, IRecipient<SwapMessage>
         {
             private readonly ISharedDataService _sharedDataService;
 
@@ -97,7 +97,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
             public Player ThisPlayer => _sharedDataService.CurrentGame.HunPlayer;
 
-            public void Receive(MemberStateChangedMessage message)
+            public void Receive(MemberPropertyChangedMessage message)
             {
                 OnPropertyChanged(nameof(ThisPlayer));
             }

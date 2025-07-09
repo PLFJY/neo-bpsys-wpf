@@ -77,13 +77,13 @@ public partial class Team : ObservableObject
 
     public Character?[] GlobalBannedHunRecordArray { get; set; }
 
-    [ObservableProperty]
+    [ObservableProperty] 
     [property: JsonIgnore]
-    private ObservableCollection<Player> _surPlayerOnFieldList = [];
-
-    [ObservableProperty]
+    private ObservableCollection<Member?> _surMemberOnFieldList = [];
+    
+    [ObservableProperty] 
     [property: JsonIgnore]
-    private Player _hunPlayerOnField;
+    private Member? _hunMemberOnField;
 
     [ObservableProperty]
     private Score _score = new();
@@ -92,16 +92,16 @@ public partial class Team : ObservableObject
 
     public Team(Camp camp)
     {
-        SurMemberList = [.. Enumerable.Range(0, 4).Select(i => new Member(Camp.Sur))];
+        SurMemberList = [.. Enumerable.Range(0, 4).Select(_ => new Member(Camp.Sur))];
         HunMemberList.Add(new Member(Camp.Hun));
 
         Camp = camp;
 
-        GlobalBannedHunList = [.. Enumerable.Range(0, 3).Select(i => new Character(Camp.Hun))];
-        GlobalBannedSurList = [.. Enumerable.Range(0, 9).Select(i => new Character(Camp.Sur))];
+        GlobalBannedHunList = [.. Enumerable.Range(0, 3).Select(_ => new Character(Camp.Hun))];
+        GlobalBannedSurList = [.. Enumerable.Range(0, 9).Select(_ => new Character(Camp.Sur))];
 
-        SurPlayerOnFieldList = [.. Enumerable.Range(0, 4).Select(i => new Player())];
-        HunPlayerOnField = new Player();
+        SurMemberOnFieldList = [.. Enumerable.Range(0, 4).Select<int, Member?>(_ => null)];
+        HunMemberOnField = null;
 
         GlobalBannedSurRecordArray = [.. Enumerable.Range(0, 9).Select<int, Character?>(i => null)];
         GlobalBannedHunRecordArray = [.. Enumerable.Range(0, 3).Select<int, Character?>(i => null)];
@@ -122,18 +122,21 @@ public partial class Team : ObservableObject
         }
         foreach (var member in SurMemberList)
         {
-            RemoveMemberInPlayer(member);
+            MemberOffField(member);
         }
         foreach (var member in HunMemberList)
         {
-            RemoveMemberInPlayer(member);
+            MemberOffField(member);
         }
         SurMemberList = newTeam.SurMemberList;
         HunMemberList = newTeam.HunMemberList;
-        SurPlayerOnFieldList = [.. Enumerable.Range(0, 4).Select(i => new Player())];
-        HunPlayerOnField = new Player();
+        
+        SurMemberOnFieldList = [.. Enumerable.Range(0, 4).Select<int, Member?>(_ => null)];
+        HunMemberOnField = null;
+        
         _onFieldSurPlayerCnt = 0;
-        WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
+        WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this));
+        WeakReferenceMessenger.Default.Send(new MemberOnFieldChangedMessage(this));
         OnPropertyChanged();
     }
 
@@ -142,11 +145,11 @@ public partial class Team : ObservableObject
     /// </summary>
     /// <param name="camp"></param>
     /// <returns></returns>
-    public bool CanAddMemberInPlayer(Camp camp)
+    public bool CanMemberOnField(Camp camp)
     {
         if (camp == Camp.Hun)
         {
-            return !HunPlayerOnField.IsMemberValid;
+            return HunMemberOnField == null;
         }
 
         return _onFieldSurPlayerCnt < 4;
@@ -157,28 +160,27 @@ public partial class Team : ObservableObject
     /// </summary>
     /// <param name="member"></param>
     /// <returns></returns>
-    public bool AddMemberInPlayer(Member member)
+    public bool MemberOnField(Member member)
     {
-        if (!CanAddMemberInPlayer(member.Camp))
+        if (!CanMemberOnField(member.Camp))
             return false;
 
         if (member.Camp == Camp.Hun)
         {
-            HunPlayerOnField.Member = member;
-            HunPlayerOnField.IsMemberValid = true;
+            HunMemberOnField = member;
         }
         else
         {
-            foreach (var p in SurPlayerOnFieldList)
+            for (var i = 0; i < SurMemberOnFieldList.Count; i++)
             {
-                if (p.IsMemberValid) continue;
-                p.Member = member;
-                p.IsMemberValid = true;
+                if(SurMemberOnFieldList[i]!=null) continue;
+                SurMemberOnFieldList[i] = member;
                 _onFieldSurPlayerCnt++;
                 break;
             }
         }
-        WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
+
+        WeakReferenceMessenger.Default.Send(new MemberOnFieldChangedMessage(this));
         return true;
     }
 
@@ -186,24 +188,22 @@ public partial class Team : ObservableObject
     /// let a member off field
     /// </summary>
     /// <param name="member"></param>
-    public void RemoveMemberInPlayer(Member member)
+    public void MemberOffField(Member member)
     {
         if (member.Camp == Camp.Hun)
         {
-            HunPlayerOnField.Member = new Member(Camp.Hun);
-            HunPlayerOnField.IsMemberValid = false;
+            HunMemberOnField = null;
         }
         else
         {
-            foreach (var p in SurPlayerOnFieldList)
+            for (var i = 0; i < SurMemberOnFieldList.Count; i++)
             {
-                if (p.Member != member) continue;
-                p.Member = new Member(Camp.Sur);
-                p.IsMemberValid = false;
+                if(SurMemberOnFieldList[i]!=member) continue;
+                SurMemberOnFieldList[i] = null;
                 _onFieldSurPlayerCnt--;
                 break;
             }
         }
-        WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
+        WeakReferenceMessenger.Default.Send(new MemberOnFieldChangedMessage(this));
     }
 }

@@ -146,7 +146,6 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             //交换队伍
             (_sharedDataService.CurrentGame.SurTeam, _sharedDataService.CurrentGame.HunTeam) =
                 (_sharedDataService.CurrentGame.HunTeam, _sharedDataService.CurrentGame.SurTeam);
-            _sharedDataService.CurrentGame.RefreshCurrentPlayer();
 
             WeakReferenceMessenger.Default.Send(new SwapMessage(this, true));
             OnPropertyChanged();

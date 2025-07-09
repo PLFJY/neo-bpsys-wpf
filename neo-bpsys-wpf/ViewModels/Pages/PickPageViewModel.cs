@@ -145,7 +145,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             Abstractions.ViewModels.CharaSelectViewModelBase,
             IRecipient<CharacterSwappedMessage>,
             IRecipient<PlayerSwappedMessage>,
-            IRecipient<MemberStateChangedMessage>,
+            IRecipient<MemberPropertyChangedMessage>,
             IRecipient<SwapMessage>
         {
             private readonly IFrontService _frontService;
@@ -201,7 +201,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 OnPropertyChanged(nameof(PlayerName));
             }
 
-            public void Receive(MemberStateChangedMessage message)
+            public void Receive(MemberPropertyChangedMessage message)
             {
                 OnPropertyChanged(nameof(PlayerName));
             }
