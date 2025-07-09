@@ -1,4 +1,3 @@
-using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Helpers;
 using System.Text.Json.Serialization;
@@ -20,7 +19,7 @@ public class Trait
     {
         get
         {
-            _image ??= ImageHelper.GetImageSourceFromName(ImageSourceKey.trait, TraitName.ToString());
+            _image ??= ImageHelper.GetTraitImageSource(TraitName);
             return _image;
         }
     }

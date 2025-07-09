@@ -1,10 +1,10 @@
-﻿using System.Collections;
+﻿using neo_bpsys_wpf.Models;
+using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
-using neo_bpsys_wpf.Models;
 
 namespace neo_bpsys_wpf.Controls
 {

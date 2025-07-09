@@ -1,20 +1,19 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
-using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
 using System.Windows.Media;
-using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.ViewModels.Windows
 {
-    public partial class BpWindowViewModel : 
-        ObservableRecipient, 
-        IRecipient<NewGameMessage>, 
-        IRecipient<DesignModeChangedMessage>, 
+    public partial class BpWindowViewModel :
+        ObservableRecipient,
+        IRecipient<NewGameMessage>,
+        IRecipient<DesignModeChangedMessage>,
         IRecipient<ValueChangedMessage<string>>,
         IRecipient<PropertyChangedMessage<bool>>
     {
@@ -50,7 +49,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         public void Receive(ValueChangedMessage<string> message)
         {
-            if(message.Value == nameof(_sharedDataService.RemainingSeconds))
+            if (message.Value == nameof(_sharedDataService.RemainingSeconds))
             {
                 OnPropertyChanged(nameof(RemainingSeconds));
             }
@@ -58,7 +57,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         public void Receive(DesignModeChangedMessage message)
         {
-            if(IsDesignMode != message.IsDesignMode)
+            if (IsDesignMode != message.IsDesignMode)
                 IsDesignMode = message.IsDesignMode;
         }
 

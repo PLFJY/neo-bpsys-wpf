@@ -2,11 +2,9 @@ using System.Text.Json.Serialization;
 
 namespace neo_bpsys_wpf.Models;
 
-public class WindowResolution
+public class WindowResolution(int width, int height)
 {
-    [JsonPropertyName("Width")]
-    public int Width { get; set; }
+    public int Width { get; set; } = width;
 
-    [JsonPropertyName("Height")]
-    public int Height { get; set; }
+    public int Height { get; set; } = height;
 }

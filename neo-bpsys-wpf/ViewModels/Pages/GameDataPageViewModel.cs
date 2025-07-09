@@ -1,10 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
-using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
-using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -17,7 +16,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
         }
-        
+
         private readonly ISharedDataService _sharedDataService;
 
         public GameDataPageViewModel(ISharedDataService sharedDataService)

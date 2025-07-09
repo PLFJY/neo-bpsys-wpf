@@ -1,9 +1,3 @@
-﻿using System.IO;
-using System.Text.Json;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Media.Animation;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Abstractions.Services;
@@ -12,6 +6,15 @@ using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Views.Windows;
+using System.IO;
+using System.Text.Json;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
+using neo_bpsys_wpf.Models;
 using Path = System.IO.Path;
 
 namespace neo_bpsys_wpf.Services
@@ -21,55 +24,78 @@ namespace neo_bpsys_wpf.Services
     /// </summary>
     public class FrontService : IFrontService
     {
-        private readonly Dictionary<Type, Window> _frontWindows = [];
-        public Dictionary<Type, bool> FrontWindowStates { get; } = [];
+        private readonly Dictionary<FrontWindowType, Window> _frontWindows = [];
+        private readonly Dictionary<FrontWindowType, bool> _frontWindowStates = [];
 
-        private readonly List<(Window, string)> _frontCanvas = []; //List<string>是Canvas（们）的名称
+        private readonly List<(FrontWindowType, string)> _frontCanvas = []; //List<string>是Canvas（们）的名称
 
         private static readonly Dictionary<GameProgress, FrameworkElement> MainGlobalScoreControls = [];
         private static readonly Dictionary<GameProgress, FrameworkElement> AwayGlobalScoreControls = [];
 
         private readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
         private readonly IMessageBoxService _messageBoxService;
+        private readonly ISettingsHostService _settingsHostService;
 
         public FrontService(
             BpWindow bpWindow,
-            InterludeWindow interludeWindow,
+            CutSceneWindow cutSceneWindow,
             GameDataWindow gameDataWindow,
             ScoreWindow scoreWindow,
             WidgetsWindow widgetsWindow,
             IMessageBoxService messageBoxService,
-            ISharedDataService sharedDataService
+            ISharedDataService sharedDataService,
+            ISettingsHostService settingsHostService
         )
         {
             _messageBoxService = messageBoxService;
-            var savePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf");
+            _settingsHostService = settingsHostService;
+            var savePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "neo-bpsys-wpf");
             if (!Directory.Exists(savePath)) Directory.CreateDirectory(savePath);
             // 注册窗口和画布
-            RegisterFrontWindowAndCanvas(bpWindow);
-            RegisterFrontWindowAndCanvas(interludeWindow);
-            RegisterFrontWindowAndCanvas(gameDataWindow);
-            RegisterFrontWindowAndCanvas(scoreWindow, "ScoreSurCanvas");
-            RegisterFrontWindowAndCanvas(scoreWindow, "ScoreHunCanvas");
-            RegisterFrontWindowAndCanvas(scoreWindow, "ScoreGlobalCanvas");
-            RegisterFrontWindowAndCanvas(widgetsWindow, "MapBpCanvas");
-            RegisterFrontWindowAndCanvas(gameDataWindow);
+            RegisterFrontWindowAndCanvas(FrontWindowType.BpWindow, bpWindow);
+            RegisterFrontWindowAndCanvas(FrontWindowType.CutSceneWindow, cutSceneWindow);
+            RegisterFrontWindowAndCanvas(FrontWindowType.GameDataWindow, gameDataWindow);
+            RegisterFrontWindowAndCanvas(FrontWindowType.ScoreWindow, scoreWindow, "ScoreSurCanvas");
+            RegisterFrontWindowAndCanvas(FrontWindowType.ScoreWindow, scoreWindow, "ScoreHunCanvas");
+            RegisterFrontWindowAndCanvas(FrontWindowType.ScoreWindow, scoreWindow, "ScoreGlobalCanvas");
+            RegisterFrontWindowAndCanvas(FrontWindowType.WidgetsWindow, widgetsWindow, "MapBpCanvas");
+            RegisterFrontWindowAndCanvas(FrontWindowType.WidgetsWindow, widgetsWindow, "BpOverViewCanvas");
+            RegisterFrontWindowAndCanvas(FrontWindowType.GameDataWindow, gameDataWindow);
 
             //注册分数统计界面的分数控件
             GlobalScoreControlsReg();
 
 #if DEBUG
-            // 记录初始位置
+            //记录初始位置
             foreach (var i in _frontCanvas)
             {
                 RecordInitialPositions(i.Item1, i.Item2);
             }
 #endif
+
+            //从文件加载位置信息
+            _ = LoadDefaultPosition();
+
+            //分数统计部分的消息订阅和部分参数
             _isBo3Mode = sharedDataService.IsBo3Mode;
             _globalScoreTotalMargin = sharedDataService.GlobalScoreTotalMargin;
             WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>>(this, BoolPropertyChangedRecipient);
-            WeakReferenceMessenger.Default.Register<PropertyChangedMessage<double>>(this, DoublePropertyChangedRecipient);
+            WeakReferenceMessenger.Default.Register<PropertyChangedMessage<double>>(this,
+                DoublePropertyChangedRecipient);
             OnBo3ModeChanged();
+
+            //字体和颜色自定义的配置加载
+            settingsHostService.LoadConfig();
+            ApplyAllWindowsSettings();
+        }
+
+        private async Task LoadDefaultPosition()
+        {
+            foreach (var i in _frontCanvas)
+            {
+                await LoadWindowElementsPositionOnStartupAsync(i.Item1, i.Item2);
+            }
         }
 
         private void DoublePropertyChangedRecipient(object recipient, PropertyChangedMessage<double> message)
@@ -78,76 +104,85 @@ namespace neo_bpsys_wpf.Services
             {
                 _globalScoreTotalMargin = message.NewValue;
             }
-                
         }
 
         /// <summary>
         /// 注册窗口和画布
         /// </summary>
+        /// <param name="windowType">窗口类型</param>
         /// <param name="window"></param>
         /// <param name="canvasName"></param>
-        private void RegisterFrontWindowAndCanvas(Window window, string canvasName = "BaseCanvas")
+        private void RegisterFrontWindowAndCanvas(FrontWindowType windowType, Window window,
+            string canvasName = "BaseCanvas")
         {
-            var type = window.GetType();
-
-            if (_frontWindows.TryAdd(type, window))
+            if (_frontWindows.TryAdd(windowType, window))
             {
-                FrontWindowStates[type] = false;
+                _frontWindowStates[windowType] = false;
             }
-            if (!_frontCanvas.Contains((window, canvasName)))
-                _frontCanvas.Add((window, canvasName));
-        }
 
-        private void SetUiImage()
-        {
-            
+            if (!_frontCanvas.Contains((windowType, canvasName)))
+                _frontCanvas.Add((windowType, canvasName));
         }
 
         #region 窗口显示/隐藏管理
+
         public void AllWindowShow()
         {
-            foreach (var window in _frontWindows.Values.Where(window => !FrontWindowStates[window.GetType()]))
+            foreach (var window in _frontWindows.Where(pair => !_frontWindowStates[pair.Key]))
             {
-                window.Show();
-                FrontWindowStates[window.GetType()] = true;
+                window.Value.Show();
+                _frontWindowStates[window.Key] = true;
             }
+
+            Thread.Sleep(250);
+            Application.Current.MainWindow?.Activate();
         }
 
         public void AllWindowHide()
         {
-            foreach (var window in _frontWindows.Values.Where(window => FrontWindowStates[window.GetType()]))
+            foreach (var window in _frontWindows.Where(pair => _frontWindowStates[pair.Key]))
             {
-                window.Hide();
-                FrontWindowStates[window.GetType()] = false;
+                window.Value.Hide();
+                _frontWindowStates[window.Key] = false;
             }
         }
 
-        public void ShowWindow<T>() where T : Window
+        public void ShowWindow(FrontWindowType windowType)
         {
-            if (!_frontWindows.TryGetValue(typeof(T), out var window))
+            if (!_frontWindows.TryGetValue(windowType, out var window))
             {
-                _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{typeof(T)}", "窗口启动错误");
+                _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "窗口启动错误");
                 return;
             }
 
-            if (FrontWindowStates[typeof(T)]) window.Activate();
-            window.Show();
-            FrontWindowStates[typeof(T)] = true;
+            if (_frontWindowStates[windowType])
+            {
+                window.Activate();
+            }
+            else
+            {
+                window.Show();
+                _frontWindowStates[windowType] = true;
+            }
+
+            Thread.Sleep(250);
+            Application.Current.MainWindow?.Activate();
         }
 
-        public void HideWindow<T>() where T : Window
+        public void HideWindow(FrontWindowType windowType)
         {
-            if (!_frontWindows.TryGetValue(typeof(T), out var window))
+            if (!_frontWindows.TryGetValue(windowType, out var window))
             {
-                _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{typeof(T)}", "窗口关闭错误");
+                _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "窗口关闭错误");
                 return;
             }
 
-            if (!FrontWindowStates[typeof(T)]) return;
+            if (!_frontWindowStates[windowType]) return;
             window.Hide();
-            FrontWindowStates[typeof(T)] = false;
+            _frontWindowStates[windowType] = false;
         }
-        #endregion 
+
+        #endregion
 
         #region 前台动态控件添加
 
@@ -189,18 +224,21 @@ namespace neo_bpsys_wpf.Services
         /// <param name="elementDict">控件所在的字典</param>
         /// <param name="control">控件</param>
         /// <param name="isOverride">是否覆盖(当Key值相同的情况下)</param>
-        /// <exception cref="ArgumentException"></exception>
-        private static void RegisterControl(string nameHeader, GameProgress key, Dictionary<GameProgress, FrameworkElement> elementDict, FrameworkElement control, bool isOverride = true)
+        /// <typeparam name="T">控件的Key类型</typeparam>
+        /// <exception cref="ArgumentException">添加控件时，Key值已经存在</exception>
+        private static void RegisterControl<T>(string nameHeader, T key,
+            Dictionary<T, FrameworkElement> elementDict, FrameworkElement control, bool isOverride = true)
+            where T : notnull
         {
             var name = nameHeader + key.ToString();
             control.Name = name;
             if (elementDict.TryAdd(key, control)) return;
             if (!isOverride)
-                throw new ArgumentException($"Control with key '{key}' already exists. Set isOverride to true to replace.");
-            else
-                elementDict[key] = control;
+                throw new ArgumentException(
+                    $"Control with key '{key}' already exists. Set isOverride to true to replace.");
+            elementDict[key] = control;
         }
-        
+
         #endregion
 
         #region 设计者模式
@@ -208,16 +246,18 @@ namespace neo_bpsys_wpf.Services
         /// <summary>
         /// 记录窗口中元素的初始位置 (仅在DEBUG下有效)
         /// </summary>
-        /// <param name="window">该窗口的实例</param>
-        /// <param name="canvasName"></param>
-        private void RecordInitialPositions(Window window, string canvasName = "BaseCanvas")
+        /// <param name="windowType">窗口类型</param>
+        /// <param name="canvasName">画布名称</param>
+        private void RecordInitialPositions(FrontWindowType windowType, string canvasName = "BaseCanvas")
         {
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.default.json");
+            if(!_frontWindows.TryGetValue(windowType, out var window)) return;
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.default.json");
 
             if (File.Exists(path)) return;
 
             var positions = GetElementsPositions(window, canvasName);
-            if(positions == null) return;
+            if (positions == null) return;
             var output = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
             try
             {
@@ -227,7 +267,6 @@ namespace neo_bpsys_wpf.Services
             {
                 _messageBoxService.ShowErrorAsync(ex.Message, "生成默认前台配置文件发生错误");
             }
-
         }
 
         /// <summary>
@@ -260,22 +299,23 @@ namespace neo_bpsys_wpf.Services
         /// <summary>
         /// 保存窗口中元素的位置信息
         /// </summary>
-        /// <typeparam name="T">窗口类型</typeparam>
+        /// <param name="windowType">窗口类型</param>
         /// <param name="canvasName">画布名称</param>
-        public void SaveWindowElementsPosition<T>(string canvasName = "BaseCanvas") where T : Window
+        public void SaveWindowElementsPosition(FrontWindowType windowType, string canvasName = "BaseCanvas")
         {
-            if (!_frontWindows.TryGetValue(typeof(T), out var window))
+            if (!_frontWindows.TryGetValue(windowType, out var window))
             {
-                _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{typeof(T)}", "配置文件保存错误");
+                _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "配置文件保存错误");
                 return;
             }
 
-            if (typeof(T) == typeof(ScoreWindow) && canvasName == "ScoreGlobalCanvas" && _isBo3Mode) return;
+            if (windowType == FrontWindowType.ScoreWindow && canvasName == "ScoreGlobalCanvas" && _isBo3Mode) return;
 
             var positions = GetElementsPositions(window, canvasName);
-            if(positions == null) return;
+            if (positions == null) return;
 
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
             try
             {
                 var jsonContent = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
@@ -288,25 +328,38 @@ namespace neo_bpsys_wpf.Services
         }
 
         /// <summary>
+        /// 批量保存所有窗口中元素位置信息
+        /// </summary>
+        public void SaveAllWindowElementsPosition()
+        {
+            foreach (var i in _frontCanvas)
+            {
+                SaveWindowElementsPosition(i.Item1, i.Item2);
+            }
+        }
+
+        /// <summary>
         /// 程序启动时从JSON中加载窗口中元素的位置信息
         /// </summary>
-        /// <typeparam name="T">窗口类型</typeparam>
+        /// <param name="windowType">窗口类型</param>
         /// <param name="canvasName">画布名称</param>
-        public async Task LoadWindowElementsPositionOnStartupAsync<T>(string canvasName = "BaseCanvas") where T : Window
+        private async Task LoadWindowElementsPositionOnStartupAsync(FrontWindowType windowType,
+            string canvasName = "BaseCanvas")
         {
-            if (!_frontWindows.TryGetValue(typeof(T), out var window))
+            if (!_frontWindows.TryGetValue(windowType, out var window))
             {
-                await _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{typeof(T)}", "配置文件加载错误");
+                await _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "配置文件加载错误");
                 return;
             }
 
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
             if (!File.Exists(path)) return;
 
             try
             {
                 var jsonContent = await File.ReadAllTextAsync(path);
-                LoadElementsPositions<T>(canvasName, jsonContent, window);
+                LoadElementsPositions(canvasName, jsonContent, window);
             }
             catch (Exception ex)
             {
@@ -318,11 +371,10 @@ namespace neo_bpsys_wpf.Services
         /// <summary>
         /// 从JSON中加载窗口中元素位置信息
         /// </summary>
-        /// <param name="canvasName"></param>
-        /// <param name="jsonContent"></param>
-        /// <param name="window"></param>
-        /// <typeparam name="T"></typeparam>
-        private static void LoadElementsPositions<T>(string canvasName, string jsonContent, Window window) where T : Window
+        /// <param name="canvasName">画布名称</param>
+        /// <param name="jsonContent">JSON内容</param>
+        /// <param name="window">窗口实例</param>
+        private static void LoadElementsPositions(string canvasName, string jsonContent, Window window)
         {
             var positions = JsonSerializer.Deserialize<Dictionary<string, ElementInfo>>(jsonContent);
 
@@ -347,41 +399,36 @@ namespace neo_bpsys_wpf.Services
         /// <summary>
         /// 还原窗口中的元素到初始位置
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="canvasName"></param>
-        public async Task RestoreInitialPositions<T>(string canvasName = "BaseCanvas") where T : Window
+        /// <param name="windowType">窗口类型</param>
+        /// <param name="canvasName">画布名称</param>
+        public async Task RestoreInitialPositions(FrontWindowType windowType, string canvasName = "BaseCanvas")
         {
-            if (!_frontWindows.TryGetValue(typeof(T), out var window))
+            if (!_frontWindows.TryGetValue(windowType, out var window))
             {
-                await _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{typeof(T)}", "前台默认配置恢复错误");
+                await _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "前台默认配置恢复错误");
                 return;
             }
 
-            if (!await _messageBoxService.ShowConfirmAsync("重置提示", $"确认重置{window.GetType()}-{canvasName}的配置吗？")) return;
+            if (!await _messageBoxService.ShowConfirmAsync("重置提示", $"确认重置{window.GetType().Name}-{canvasName}的配置吗？")) return;
 
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.default.json");
-            var sourceFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"Resources\\FrontDefaultPositions", $"{window.GetType().Name}Config-{canvasName}.default.json");
-#if !DEBUG
-            if (!File.Exists(path) && File.Exists(sourceFilePath))
-            {
-                try
-                {
-                    File.Copy(sourceFilePath, path, true);
-                }
-                catch (Exception ex)
-                {
-                    await _messageBoxService.ShowInfoAsync($"前台默认配置复制失败\n{ex.Message}", "复制提示");
-                }
-            }
-#endif
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                "Resources", "FrontDefaultPositions", $"{window.GetType().Name}Config-{canvasName}.default.json");
+
             try
             {
                 var json = await File.ReadAllTextAsync(path);
-                LoadElementsPositions<T>(canvasName, json, window);
+                LoadElementsPositions(canvasName, json, window);
 
-                var customFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
+                var customFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
+
                 if (File.Exists(customFilePath))
                     File.Move(customFilePath, customFilePath + ".disabled", true);
+
+                if (File.Exists(path) && Directory.Exists(Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                        "neo-bpsys-wpf")))
+                    File.Copy(path, customFilePath, true);
             }
             catch (Exception ex)
             {
@@ -389,7 +436,7 @@ namespace neo_bpsys_wpf.Services
             }
         }
 
-        
+
         /// <summary>
         /// 窗口中元素位置信息
         /// </summary>
@@ -404,9 +451,11 @@ namespace neo_bpsys_wpf.Services
             public double? Left { get; set; } = left;
             public double? Top { get; set; } = top;
         }
+
         #endregion
 
         #region 分数统计
+
         private bool _isBo3Mode;
 
         /// <summary>
@@ -414,16 +463,17 @@ namespace neo_bpsys_wpf.Services
         /// </summary>
         private void GlobalScoreControlsReg()
         {
-            if (_frontWindows[typeof(ScoreWindow)].FindName("ScoreGlobalCanvas") is not Canvas canvas) return;
+            if (_frontWindows[FrontWindowType.ScoreWindow].FindName("ScoreGlobalCanvas") is not Canvas canvas) return;
             //主队
-            foreach (GameProgress progress in Enum.GetValues<GameProgress>())
+            foreach (var progress in Enum.GetValues<GameProgress>())
             {
                 if (progress == GameProgress.Free) continue;
                 var control = new GlobalScorePresenter();
-                RegisterControl("Main", progress, MainGlobalScoreControls, control);
+                RegisterControl("MainTeam", progress, MainGlobalScoreControls, control);
             }
+
             //客队
-            foreach (GameProgress progress in Enum.GetValues<GameProgress>())
+            foreach (var progress in Enum.GetValues<GameProgress>())
             {
                 if (progress == GameProgress.Free) continue;
                 var control = new GlobalScorePresenter();
@@ -435,6 +485,7 @@ namespace neo_bpsys_wpf.Services
             {
                 AddControlToCanvas(item.Value, canvas, item.Key, 86);
             }
+
             foreach (var item in AwayGlobalScoreControls)
             {
                 AddControlToCanvas(item.Value, canvas, item.Key, 147);
@@ -448,13 +499,12 @@ namespace neo_bpsys_wpf.Services
         /// <param name="gameProgress"></param>
         /// <param name="camp"></param>
         /// <param name="score"></param>
-        public void SetGlobalScore(string team, GameProgress gameProgress, Camp camp, int score)
+        public void SetGlobalScore(TeamType team, GameProgress gameProgress, Camp camp, int score)
         {
             GlobalScorePresenter presenter = new();
 
-            if (team == nameof(ISharedDataService.MainTeam))
+            if (team == TeamType.MainTeam)
             {
-
                 if (MainGlobalScoreControls[gameProgress] is GlobalScorePresenter item)
                     presenter = item;
             }
@@ -469,11 +519,11 @@ namespace neo_bpsys_wpf.Services
             presenter.Text = score.ToString();
         }
 
-        public void SetGlobalScoreToBar(string team, GameProgress gameProgress)
+        public void SetGlobalScoreToBar(TeamType team, GameProgress gameProgress)
         {
             GlobalScorePresenter presenter = new();
 
-            if (team == nameof(ISharedDataService.MainTeam))
+            if (team == TeamType.MainTeam)
             {
                 if (MainGlobalScoreControls[gameProgress] is GlobalScorePresenter item)
                     presenter = item;
@@ -494,22 +544,24 @@ namespace neo_bpsys_wpf.Services
         public void ResetGlobalScore()
         {
             //主队
-            foreach (GameProgress progress in Enum.GetValues<GameProgress>())
+            foreach (var progress in Enum.GetValues<GameProgress>())
             {
                 if (progress != GameProgress.Free)
                 {
-                    SetGlobalScoreToBar(nameof(ISharedDataService.MainTeam), progress);
+                    SetGlobalScoreToBar(TeamType.MainTeam, progress);
                 }
             }
+
             //客队
-            foreach (GameProgress progress in Enum.GetValues<GameProgress>())
+            foreach (var progress in Enum.GetValues<GameProgress>())
             {
                 if (progress != GameProgress.Free)
                 {
-                    SetGlobalScoreToBar(nameof(ISharedDataService.AwayTeam), progress);
+                    SetGlobalScoreToBar(TeamType.AwayTeam, progress);
                 }
             }
         }
+
         private double _globalScoreTotalMargin;
 
         private double _lastMove;
@@ -528,33 +580,43 @@ namespace neo_bpsys_wpf.Services
 
         private void OnBo3ModeChanged()
         {
-            if (_frontWindows[typeof(ScoreWindow)] is not ScoreWindow scoreWindow) return;
+            if (_frontWindows[FrontWindowType.ScoreWindow] is not ScoreWindow scoreWindow) return;
             if (_isBo3Mode)
             {
-                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush("scoreGlobal_Bo3");
-                foreach (var item in MainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
+                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush(_settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageUriBo3 ?? "scoreGlobal_Bo3");
+                foreach (var item in
+                         MainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
                 {
                     item.Value.Visibility = Visibility.Hidden;
                 }
-                foreach (var item in AwayGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
+
+                foreach (var item in
+                         AwayGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
                 {
                     item.Value.Visibility = Visibility.Hidden;
                 }
-                Canvas.SetLeft(scoreWindow.MainScoreTotal, Canvas.GetLeft(scoreWindow.MainScoreTotal) - _globalScoreTotalMargin);
-                Canvas.SetLeft(scoreWindow.AwayScoreTotal, Canvas.GetLeft(scoreWindow.AwayScoreTotal) - _globalScoreTotalMargin);
+
+                Canvas.SetLeft(scoreWindow.MainScoreTotal,
+                    Canvas.GetLeft(scoreWindow.MainScoreTotal) - _globalScoreTotalMargin);
+                Canvas.SetLeft(scoreWindow.AwayScoreTotal,
+                    Canvas.GetLeft(scoreWindow.AwayScoreTotal) - _globalScoreTotalMargin);
                 _lastMove = _globalScoreTotalMargin;
             }
             else
             {
-                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush("scoreGlobal");
-                foreach (var item in MainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
+                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush(_settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageUri ?? "scoreGlobal");
+                foreach (var item in
+                         MainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
                 {
                     item.Value.Visibility = Visibility.Visible;
                 }
-                foreach (var item in AwayGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
+
+                foreach (var item in
+                         AwayGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
                 {
                     item.Value.Visibility = Visibility.Visible;
                 }
+
                 Canvas.SetLeft(scoreWindow.MainScoreTotal, Canvas.GetLeft(scoreWindow.MainScoreTotal) + _lastMove);
                 Canvas.SetLeft(scoreWindow.AwayScoreTotal, Canvas.GetLeft(scoreWindow.AwayScoreTotal) + _lastMove);
             }
@@ -563,63 +625,66 @@ namespace neo_bpsys_wpf.Services
         #endregion
 
         #region 动画
-        
+
         /// <summary>
         /// 渐显动画
         /// </summary>
-        /// <param name="controlNameHeader"></param>
-        /// <param name="controlIndex"></param>
-        /// <param name="controlNameFooter"></param>
-        /// <typeparam name="T"></typeparam>
-        public void FadeInAnimation<T>(string controlNameHeader, int controlIndex, string controlNameFooter) where T : Window
+        /// <param name="windowType">窗体类型</param>
+        /// <param name="controlNameHeader">控件名称头</param>
+        /// <param name="controlIndex">控件索引(-1表示没有)</param>
+        /// <param name="controlNameFooter">控件名称尾</param>
+        public void FadeInAnimation(FrontWindowType windowType, string controlNameHeader, int controlIndex, string controlNameFooter)
         {
-            var ctrName = controlNameHeader + (controlIndex >= 0 ?  controlIndex : string.Empty) + controlNameFooter;
-            if (_frontWindows[typeof(T)] is not T window) return;
-            
+            var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
+            if (!_frontWindows.TryGetValue(windowType, out var window)) return;
+
             if (window.FindName(ctrName) is FrameworkElement element)
             {
-                element.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, new Duration(TimeSpan.FromSeconds(0.5))));
+                element.BeginAnimation(UIElement.OpacityProperty,
+                    new DoubleAnimation(0, 1, new Duration(TimeSpan.FromSeconds(0.5))));
             }
         }
-        
+
         /// <summary>
         /// 渐隐动画
         /// </summary>
-        /// <param name="controlNameHeader"></param>
-        /// <param name="controlIndex"></param>
-        /// <param name="controlNameFooter"></param>
-        /// <typeparam name="T"></typeparam>
-        public void FadeOutAnimation<T>(string controlNameHeader, int controlIndex, string controlNameFooter) where T : Window
-        { 
-            var ctrName = controlNameHeader + (controlIndex >= 0 ?  controlIndex : string.Empty) + controlNameFooter;
-            if (_frontWindows[typeof(T)] is not T window) return;
+        /// <param name="windowType">窗体类型</param>
+        /// <param name="controlNameHeader">控件名称头</param>
+        /// <param name="controlIndex">控件索引(-1表示没有)</param>
+        /// <param name="controlNameFooter">控件名称尾</param>
+        public void FadeOutAnimation(FrontWindowType windowType, string controlNameHeader, int controlIndex, string controlNameFooter)
+        {
+            var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
+            if (!_frontWindows.TryGetValue(windowType, out var window)) return;
             if (window.FindName(ctrName) is FrameworkElement element)
             {
-                element.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(1, 0, new Duration(TimeSpan.FromSeconds(0.5))));
+                element.BeginAnimation(UIElement.OpacityProperty,
+                    new DoubleAnimation(1, 0, new Duration(TimeSpan.FromSeconds(0.5))));
             }
         }
 
         /// <summary>
         /// 呼吸动画开始
         /// </summary>
-        /// <param name="controlNameHeader"></param>
-        /// <param name="controlIndex"></param>
-        /// <param name="controlNameFooter"></param>
-        /// <typeparam name="T"></typeparam>
-        public async Task BreathingStart<T>(string controlNameHeader, int controlIndex, string controlNameFooter) where T : Window
-        { 
-            var ctrName = controlNameHeader + (controlIndex >= 0 ?  controlIndex : string.Empty) + controlNameFooter;
-            if (_frontWindows[typeof(T)] is not T window) return;
+        /// <param name="windowType">窗体类型</param>
+        /// <param name="controlNameHeader">控件名称头</param>
+        /// <param name="controlIndex">控件索引(-1表示没有)</param>
+        /// <param name="controlNameFooter">控件名称尾</param>
+        public async Task BreathingStart(FrontWindowType windowType, string controlNameHeader, int controlIndex, string controlNameFooter)
+        {
+            var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
+            if (!_frontWindows.TryGetValue(windowType, out var window)) return;
             if (window.FindName(ctrName) is not FrameworkElement element) return;
 
             element.Opacity = 0;
             element.Visibility = Visibility.Visible;
-            element.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(0, 1, new Duration(TimeSpan.FromSeconds(0.5))));
+            element.BeginAnimation(UIElement.OpacityProperty,
+                new DoubleAnimation(0, 1, new Duration(TimeSpan.FromSeconds(0.5))));
             await Task.Delay(500);
 
             // 如果已有动画，先停止
-            await BreathingStop<T>(controlNameHeader, controlIndex, controlNameFooter);
-            
+            await BreathingStop(windowType, controlNameHeader, controlIndex, controlNameFooter);
+
             var animation = new DoubleAnimation
             {
                 From = 1.0,
@@ -641,25 +706,392 @@ namespace neo_bpsys_wpf.Services
         /// <summary>
         /// 停止呼吸动画
         /// </summary>
-        /// <param name="controlNameHeader"></param>
-        /// <param name="controlIndex"></param>
-        /// <param name="controlNameFooter"></param>
-        /// <typeparam name="T"></typeparam>
-        public async Task BreathingStop<T>(string controlNameHeader, int controlIndex, string controlNameFooter) where T : Window
+        /// <param name="windowType">窗体类型</param>
+        /// <param name="controlNameHeader">控件名称头</param>
+        /// <param name="controlIndex">控件索引(-1表示没有)</param>
+        /// <param name="controlNameFooter">控件名称尾</param>
+        public async Task BreathingStop(FrontWindowType windowType, string controlNameHeader, int controlIndex, string controlNameFooter)
         {
-            var ctrName = controlNameHeader + (controlIndex >= 0 ?  controlIndex : string.Empty) + controlNameFooter;
-            if (_frontWindows[typeof(T)] is not T window) return;
+            var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
+            if (!_frontWindows.TryGetValue(windowType, out var window)) return;
             if (window.FindName(ctrName) is not FrameworkElement element) return;
             if (element.Tag is not Storyboard storyboard) return;
 
             storyboard.Stop();
-            element.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(1, 0, new Duration(TimeSpan.FromSeconds(0.5))));
+            element.BeginAnimation(UIElement.OpacityProperty,
+                new DoubleAnimation(1, 0, new Duration(TimeSpan.FromSeconds(0.5))));
             await Task.Delay(500);
 
             element.Opacity = 0; // 恢复初始状态
             element.Tag = null;
             element.Visibility = Visibility.Hidden;
         }
+
+        #endregion
+
+        #region 设置读取
+
+        /// <summary>
+        /// 应用设置
+        /// </summary>
+        /// <param name="windowType">窗口类型</param>
+        public void ApplySettings(FrontWindowType windowType)
+        {
+            var settingsApplyMap = new Dictionary<FrontWindowType, Action>
+            {
+                { FrontWindowType.BpWindow, ApplyBpWindowSettings },
+                { FrontWindowType.CutSceneWindow, ApplyCutSceneWindowSettings },
+                { FrontWindowType.ScoreWindow, ApplyScoreWindowSettings },
+                { FrontWindowType.GameDataWindow, ApplyGameDataWindowSettings },
+                { FrontWindowType.WidgetsWindow, ApplyWidgetsWindowSettings }
+            };
+
+            if (!settingsApplyMap.TryGetValue(windowType, out var action)) return;
+
+            action.Invoke();
+        }
+
+        private void ApplyWidgetsWindowSettings()
+        {
+            //获取窗口实例
+            if (_frontWindows[FrontWindowType.WidgetsWindow] is not WidgetsWindow window) return;
+            //获取设置项
+            var setting = _settingsHostService.Settings.WidgetsWindowSettings;
+
+            //地图BP
+            //设置UI背景
+            ImageSettingApply(window.MapBpCanvas, setting.MapBpBgUri);
+
+            //地图名称
+            TextSettingApply(window.PickedMapName, setting.TextSettings.MapBp_MapName);
+            TextSettingApply(window.BannedMapName, setting.TextSettings.MapBp_MapName);
+
+
+            //选择和禁用的字
+            TextSettingApply(window.PickWord, setting.TextSettings.MapBp_PickWord);
+            TextSettingApply(window.BanWord, setting.TextSettings.MapBp_BanWord);
+
+            //队伍名称
+            TextSettingApply(window.SurTeamName, setting.TextSettings.MapBp_TeamName);
+            TextSettingApply(window.HunTeamName, setting.TextSettings.MapBp_TeamName);
+
+            //bp总览
+            //设置UI背景
+            ImageSettingApply(window.BpOverViewCanvas, setting.BpOverviewBgUri);
+
+            //队伍名称
+            TextSettingApply(window.SurTeamNameInOverview, setting.TextSettings.BpOverview_TeamName);
+            TextSettingApply(window.HunTeamNameInOverview, setting.TextSettings.BpOverview_TeamName);
+
+            //对局进度
+            TextSettingApply(window.GameProgress, setting.TextSettings.BpOverview_GameProgress);
+
+            //小比分
+            TextSettingApply(window.MinorPointsSur, setting.TextSettings.BpOverview_MinorPoints);
+            TextSettingApply(window.MinorPointsHun, setting.TextSettings.BpOverview_MinorPoints);
+            TextSettingApply(window.RatioChar, setting.TextSettings.BpOverview_MinorPoints);
+        }
+
+        private void ApplyGameDataWindowSettings()
+        {
+            //获取窗口实例
+            if (_frontWindows[FrontWindowType.GameDataWindow] is not GameDataWindow window) return;
+            //获取设置项
+            var setting = _settingsHostService.Settings.GameDataWindowSettings;
+
+            //背景UI
+            ImageSettingApply(window.BaseCanvas, setting.BgImageUri);
+
+            //队伍名称
+            TextSettingApply(window.SurTeamName, setting.TextSettings.TeamName);
+            TextSettingApply(window.HunTeamName, setting.TextSettings.TeamName);
+
+            //小比分
+            TextSettingApply(window.MinorPointsSur, setting.TextSettings.MinorPoints);
+            TextSettingApply(window.MinorPointsHun, setting.TextSettings.MinorPoints);
+
+            //大比分
+            TextSettingApply(window.SurTeamMajorPoint, setting.TextSettings.MajorPoints);
+            TextSettingApply(window.HunTeamMajorPoint, setting.TextSettings.MajorPoints);
+
+            //地图名称
+            TextSettingApply(window.MapName, setting.TextSettings.MapName);
+
+            //对局进度
+            TextSettingApply(window.GameProgress, setting.TextSettings.GameProgress);
+
+            //求生者数据
+            //选手ID
+            TextSettingApply(window, "SurId", string.Empty, 4, setting.TextSettings.PlayerId);
+
+            //破译进度
+            TextSettingApply(window, "Sur", "MachineDecoded", 4, setting.TextSettings.SurData);
+
+            //砸板命中次数
+            TextSettingApply(window, "Sur", "PalletStunTimes", 4, setting.TextSettings.SurData);
+            //救人次数
+            TextSettingApply(window, "Sur", "RescueTimes", 4, setting.TextSettings.SurData);
+            //治疗次数
+            TextSettingApply(window, "Sur", "HealedTimes", 4, setting.TextSettings.SurData);
+            //牵制时长
+            TextSettingApply(window, "Sur", "KiteTime", 4, setting.TextSettings.SurData);
+
+            //监管者数据
+            //选手Id
+            TextSettingApply(window.HunId, setting.TextSettings.PlayerId);
+
+            //剩余密码机数量
+            TextSettingApply(window.HunMachineLeft, setting.TextSettings.HunData);
+
+            //破坏板子数
+            TextSettingApply(window.HunPalletBroken, setting.TextSettings.HunData);
+
+            //命中求生者次数
+            TextSettingApply(window.HunHitTimes, setting.TextSettings.HunData);
+
+            //恐惧震慑次数
+            TextSettingApply(window.HunTerrorShockTimes, setting.TextSettings.HunData);
+
+            //击倒次数
+            TextSettingApply(window.HunDownTimes, setting.TextSettings.HunData);
+        }
+
+        private void ApplyScoreWindowSettings()
+        {
+            //获取窗口实例
+            if (_frontWindows[FrontWindowType.ScoreWindow] is not ScoreWindow window) return;
+            //获取设置项
+            var setting = _settingsHostService.Settings.ScoreWindowSettings;
+
+            //背景UI
+            ImageSettingApply(window.ScoreSurCanvas, setting.SurScoreBgImageUri);
+
+            ImageSettingApply(window.ScoreHunCanvas, setting.HunScoreBgImageUri);
+            
+            ImageSettingApply(window.ScoreGlobalCanvas, _isBo3Mode ? setting.GlobalScoreBgImageUriBo3 : setting.GlobalScoreBgImageUri);
+
+            //队伍名称
+            TextSettingApply(window.SurTeamName, setting.TextSettings.TeamName);
+            TextSettingApply(window.HunTeamName, setting.TextSettings.TeamName);
+            TextSettingApply(window.MainTeamName, setting.TextSettings.ScoreGlobal_TeamName);
+            TextSettingApply(window.AwayTeamName, setting.TextSettings.ScoreGlobal_TeamName);
+
+            //小比分
+            TextSettingApply(window.MinorPointsSur, setting.TextSettings.MinorPoints);
+            TextSettingApply(window.MinorPointsHun, setting.TextSettings.MinorPoints);
+
+
+            //大比分
+            TextSettingApply(window.SurTeamMajorPoint, setting.TextSettings.MajorPoints);
+            TextSettingApply(window.HunTeamMajorPoint, setting.TextSettings.MajorPoints);
+
+            //分数统计总小比分
+            TextSettingApply(window.MainScoreTotal, setting.TextSettings.ScoreGlobal_Total);
+            TextSettingApply(window.AwayScoreTotal, setting.TextSettings.ScoreGlobal_Total);
+
+            //分数统计
+            foreach (var fe in MainGlobalScoreControls)
+            {
+                if (fe.Value is not TextBlock tb) continue;
+                TextSettingApply(tb, setting.TextSettings.ScoreGlobal_Data);
+            }
+
+            foreach (var fe in AwayGlobalScoreControls)
+            {
+                if (fe.Value is not TextBlock tb) continue;
+                TextSettingApply(tb, setting.TextSettings.ScoreGlobal_Data);
+            }
+        }
+
+        private void ApplyCutSceneWindowSettings()
+        {
+            //获取窗口实例
+            if (_frontWindows[FrontWindowType.CutSceneWindow] is not CutSceneWindow window) return;
+            //获取设置项
+            var setting = _settingsHostService.Settings.CutSceneWindowSettings;
+
+            //过场背景图
+            ImageSettingApply(window.BaseCanvas, setting.BgUri);
+
+            //设置队伍名称
+            TextSettingApply(window.SurTeamName, setting.TextSettings.TeamName);
+            TextSettingApply(window.HunTeamName, setting.TextSettings.TeamName);
+
+            //大比分
+            TextSettingApply(window.SurTeamMajorPoint, setting.TextSettings.MajorPoints);
+            TextSettingApply(window.HunTeamMajorPoint, setting.TextSettings.MajorPoints);
+
+            //地图名称
+            TextSettingApply(window.MapName, setting.TextSettings.MapName);
+
+            //对局进度
+            TextSettingApply(window.GameProgress, setting.TextSettings.GameProgress);
+
+            //求生者选手Id
+            TextSettingApply(window, "SurId", string.Empty, 4, setting.TextSettings.PlayerId);
+
+            //监管者选手Id
+            TextSettingApply(window.HunId, setting.TextSettings.PlayerId);
+        }
+
+        private void ApplyBpWindowSettings()
+        {
+            //获取窗口实例
+            if (_frontWindows[FrontWindowType.BpWindow] is not BpWindow window) return;
+            //获取设置项
+            var setting = _settingsHostService.Settings.BpWindowSettings;
+
+            //设置Bp背景
+            ImageSettingApply(window.BaseCanvas, setting.BgImageUri);
+
+            //设置当局禁选锁
+            ImageSettingApply(window, "HunBanCurrentLock", string.Empty, 2, setting.CurrentBanLockImageUri);
+            ImageSettingApply(window, "SurBanCurrentLock", string.Empty, 4, setting.CurrentBanLockImageUri);
+
+            //设置全局禁选锁
+            ImageSettingApply(window, "HunGlobalBanLock", string.Empty, 3, setting.GlobalBanLockImageUri);
+            ImageSettingApply(window, "SurGlobalBanLock", string.Empty, 9, setting.GlobalBanLockImageUri);
+
+            //待选框
+            ImageSettingApply(window, "SurPickingBorder", string.Empty, 4, setting.PickingBorderImageUri);
+
+            //倒计时
+            TextSettingApply(window.Timer, setting.TextSettings.Timer);
+
+            //队伍名称
+            TextSettingApply(window.SurTeamName, setting.TextSettings.TeamName);
+            TextSettingApply(window.HunTeamName, setting.TextSettings.TeamName);
+
+            //小比分
+            TextSettingApply(window.MinorPointsSur, setting.TextSettings.MinorPoints);
+            TextSettingApply(window.MinorPointsHun, setting.TextSettings.MinorPoints);
+
+            //大比分
+            TextSettingApply(window.SurTeamMajorPoint, setting.TextSettings.MajorPoints);
+            TextSettingApply(window.HunTeamMajorPoint, setting.TextSettings.MajorPoints);
+
+            //选手id
+            TextSettingApply(window, "SurId", string.Empty, 4, setting.TextSettings.PlayerId);
+
+            TextSettingApply(window.HunId, setting.TextSettings.PlayerId);
+
+            //地图名称
+            TextSettingApply(window.MapName, setting.TextSettings.MapName);
+
+            //对局进度
+            TextSettingApply(window.GameProgress, setting.TextSettings.GameProgress);
+        }
+
+        /// <summary>
+        /// 文本样式应用
+        /// </summary>
+        /// <param name="textBlock">文本控件</param>
+        /// <param name="settings">文本样式</param>
+        private static void TextSettingApply(TextBlock textBlock, TextSettings settings)
+        {
+            textBlock.Foreground = settings.ColorBrush;
+            textBlock.FontFamily = settings.FontFamily;
+            textBlock.FontSize = settings.FontSize;
+        }
+
+        /// <summary>
+        /// 文本样式应用
+        /// </summary>
+        /// <param name="border">边框控件</param>
+        /// <param name="settings">文本样式</param>
+        private static void TextSettingApply(Border border, TextSettings settings)
+        {
+            if (border.Child is not TextBlock textBlock) return;
+            TextSettingApply(textBlock, settings);
+        }
+
+        /// <summary>
+        /// 文本样式应用
+        /// </summary>
+        /// <param name="panel">面板控件</param>
+        /// <param name="settings">文本样式</param>
+        private static void TextSettingApply(Panel panel, TextSettings settings)
+        {
+            foreach (var element in panel.Children)
+            {
+                if (element is TextBlock tb)
+                    TextSettingApply(tb, settings);
+            }
+        }
+
+        /// <summary>
+        /// 文本样式应用
+        /// </summary>
+        /// <param name="window">窗口</param>
+        /// <param name="controlHeader">控件头部名称</param>
+        /// <param name="controlFooter">控件尾部名称</param>
+        /// <param name="range">控件数量</param>
+        /// <param name="settings">文本样式</param>
+        private static void TextSettingApply(Window window, string controlHeader, string controlFooter, int range,
+            TextSettings settings)
+        {
+            for (var i = 0; i < range; i++)
+            {
+                if (window.FindName($"{controlHeader}{i}{controlFooter}") is not Border border) continue;
+                if (border.Child is Panel panel)
+                    TextSettingApply(panel, settings);
+                else
+                    TextSettingApply(border, settings);
+            }
+        }
+
+        /// <summary>
+        /// 图片样式应用
+        /// </summary>
+        /// <param name="canvas">画布控件</param>
+        /// <param name="uri">图片uri</param>
+        private static void ImageSettingApply(Canvas canvas, string? uri)
+        {
+            if (string.IsNullOrEmpty(uri)) return;
+            canvas.Background = new ImageBrush(new BitmapImage(new Uri(uri)));
+        }
+
+        /// <summary>
+        /// 图片样式应用
+        /// </summary>
+        /// <param name="image">图片控件</param>
+        /// <param name="uri">图片uri</param>
+        private static void ImageSettingApply(Image image, string? uri)
+        {
+            if (string.IsNullOrEmpty(uri)) return;
+            image.Source = new BitmapImage(new Uri(uri));
+        }
+
+        /// <summary>
+        /// 图片样式应用
+        /// </summary>
+        /// <param name="window">窗口</param>
+        /// <param name="controlHeader">控件头部名称</param>
+        /// <param name="controlFooter">控件尾部名称</param>
+        /// <param name="range">控件数量</param>
+        /// <param name="uri">图片uri</param>
+        private static void ImageSettingApply(Window window, string controlHeader, string controlFooter, int range,
+            string? uri)
+        {
+            if (string.IsNullOrEmpty(uri)) return;
+            for (var i = 0; i < range; i++)
+            {
+                if (window.FindName($"{controlHeader}{i}{controlFooter}") is Image image)
+                    ImageSettingApply(image, uri);
+            }
+        }
+
+        /// <summary>
+        /// 应用所有窗口设置
+        /// </summary>
+        public void ApplyAllWindowsSettings()
+        {
+            foreach (var window in _frontWindows)
+            {
+                ApplySettings(window.Key);
+            }
+        }
+
         #endregion
     }
 }

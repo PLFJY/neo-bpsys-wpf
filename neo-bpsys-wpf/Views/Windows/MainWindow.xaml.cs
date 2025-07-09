@@ -1,14 +1,12 @@
-﻿using neo_bpsys_wpf.Services;
+﻿using neo_bpsys_wpf.Abstractions.Services;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Shell;
-using neo_bpsys_wpf.Abstractions.Services;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
 using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
-using System.ComponentModel;
 
 namespace neo_bpsys_wpf.Views.Windows
 {
@@ -61,7 +59,7 @@ namespace neo_bpsys_wpf.Views.Windows
 
         private void MaximizeButton_Click(object sender, RoutedEventArgs e)
         {
-            this.WindowState = 
+            this.WindowState =
                 this.WindowState == WindowState.Normal ?
                 WindowState.Maximized : WindowState.Normal;
         }

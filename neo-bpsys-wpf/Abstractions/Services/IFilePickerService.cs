@@ -8,12 +8,12 @@
         /// <summary>
         /// 选择图片
         /// </summary>
-        /// <returns></returns>
+        /// <returns>文件路径</returns>
         public string? PickImage();
         /// <summary>
         /// 选择Json文件
         /// </summary>
-        /// <returns></returns>
+        /// <returns>文件路径</returns>
         public string? PickJsonFile();
     }
 }

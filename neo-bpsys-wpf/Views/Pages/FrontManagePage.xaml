@@ -38,12 +38,12 @@
                     Orientation="Horizontal">
                     <ui:Button
                         Height="50"
-                        Command="{Binding ShowAllWinowsCommand}"
+                        Command="{Binding ShowAllWindowsCommand}"
                         Content="全部启动" />
                     <ui:Button
                         Height="50"
                         Margin="10,0,0,0"
-                        Command="{Binding HideAllWinowsCommand}"
+                        Command="{Binding HideAllWindowsCommand}"
                         Content="全部关闭" />
                 </StackPanel>
                 <ToggleButton
@@ -102,16 +102,16 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <ui:Button Command="{Binding ShowInterludeWindowCommand}" Content="启动" />
+                    <ui:Button Command="{Binding ShowCutSceneWindowCommand}" Content="启动" />
                     <ui:Button
                         Margin="10,0,0,0"
-                        Command="{Binding HideInterludeWindowCommand}"
+                        Command="{Binding HideCutSceneWindowCommand}"
                         Content="关闭" />
                 </StackPanel>
                 <ui:Button
                     Grid.Row="2"
                     Margin="0,10,0,0"
-                    Command="{Binding ResetInterludeWindowElementsPositionCommand}"
+                    Command="{Binding ResetCutSceneWindowElementsPositionCommand}"
                     Content="重置布局"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
@@ -160,15 +160,6 @@
                     CommandParameter="ScoreGlobalCanvas"
                     Content="重置分数统计布局"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-                <TextBlock
-                    Grid.Row="6"
-                    Margin="0,10,0,0"
-                    Text="BO3 和 BO5之间&quot;Total&quot;&#10;相差的距离 (下一次切换到BO3生效): " />
-                <ui:TextBox
-                    Grid.Row="7"
-                    Margin="0,10,0,0"
-                    PlaceholderText="单位距离"
-                    Text="{Binding GlobalScoreTotalMargin, Converter={StaticResource StringToDoubleConverter}}" />
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">
@@ -202,6 +193,9 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="其它小组件 (地图BP等)" />
@@ -221,6 +215,13 @@
                     Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
                     CommandParameter="MapBpCanvas"
                     Content="重置地图BP布局"
+                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                <ui:Button
+                    Grid.Row="4"
+                    Margin="0,10,0,0"
+                    Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
+                    CommandParameter="BpOverViewCanvas"
+                    Content="重置BP总览布局"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>

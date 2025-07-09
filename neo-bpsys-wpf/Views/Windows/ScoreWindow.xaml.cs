@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Messages;
 using System.ComponentModel;
@@ -13,7 +12,7 @@ namespace neo_bpsys_wpf.Views.Windows
     /// </summary>
     public partial class ScoreWindow : Window
     {
-         
+
         public ScoreWindow()
         {
             InitializeComponent();

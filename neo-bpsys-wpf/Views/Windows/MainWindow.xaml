@@ -14,7 +14,6 @@
     Title="后台控制"
     Width="880"
     Height="720"
-    MinWidth="830"
     d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel,
                                      IsDesignTimeCreatable=True}"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
@@ -29,61 +28,57 @@
             <!--  Them Change Animation  -->
             <Storyboard x:Key="LightToDark">
                 <DoubleAnimation
-                    Storyboard.TargetName="rectangle"
+                    Storyboard.TargetName="themeMask"
                     Storyboard.TargetProperty="(UIElement.Opacity)"
                     From="1"
                     To="0"
                     Duration="00:00:0.6" />
+                <ColorAnimation
+                    Storyboard.TargetName="themeMask"
+                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                    From="White"
+                    To="#202020"
+                    Duration="00:00:0.6" />
             </Storyboard>
             <Storyboard x:Key="DarkToLight">
                 <DoubleAnimation
-                    Storyboard.TargetName="rectangle"
+                    Storyboard.TargetName="themeMask"
                     Storyboard.TargetProperty="(UIElement.Opacity)"
                     From="1"
                     To="0"
                     Duration="600" />
                 <ColorAnimation
-                    Storyboard.TargetName="rectangle"
-                    Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)"
+                    Storyboard.TargetName="themeMask"
+                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
                     From="#202020"
                     To="White"
                     Duration="00:00:0.6" />
             </Storyboard>
             <Storyboard x:Key="StartupLoading">
                 <ObjectAnimationUsingKeyFrames Storyboard.TargetName="loading" Storyboard.TargetProperty="(UIElement.Visibility)">
-                    <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="{x:Static Visibility.Visible}" />
-                    <DiscreteObjectKeyFrame KeyTime="00:00:03.5" Value="{x:Static Visibility.Collapsed}" />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:03.75" Value="{x:Static Visibility.Collapsed}" />
                 </ObjectAnimationUsingKeyFrames>
                 <DoubleAnimation
-                    BeginTime="00:00:03.3"
+                    BeginTime="00:00:03.60"
                     Storyboard.TargetName="loading"
                     Storyboard.TargetProperty="(UIElement.Opacity)"
                     From="1"
                     To="0"
-                    Duration="00:00:00.2" />
+                    Duration="00:00:0.15" />
                 <DoubleAnimation
-                    BeginTime="00:00:03.3"
-                    Storyboard.TargetName="loading"
-                    Storyboard.TargetProperty="RenderTransform.ScaleX"
-                    From="1"
-                    To="1.5"
-                    Duration="0:0:0.2" />
+                    BeginTime="00:00:0"
+                    Storyboard.TargetName="loadingProgress"
+                    Storyboard.TargetProperty="Value"
+                    From="0"
+                    To="25"
+                    Duration="0:0:0.30" />
                 <DoubleAnimation
-                    BeginTime="00:00:03.3"
-                    Storyboard.TargetName="loading"
-                    Storyboard.TargetProperty="RenderTransform.ScaleY"
-                    From="1"
-                    To="1.5"
-                    Duration="0:0:0.2" />
-                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="loadingText" Storyboard.TargetProperty="(TextBlock.Text)">
-                    <DiscreteObjectKeyFrame KeyTime="00:00:00" Value="Loading" />
-                    <DiscreteObjectKeyFrame KeyTime="00:00:01" Value="Loading." />
-                    <DiscreteObjectKeyFrame KeyTime="00:00:01.5" Value="Loading.." />
-                    <DiscreteObjectKeyFrame KeyTime="00:00:02" Value="Loading..." />
-                    <DiscreteObjectKeyFrame KeyTime="00:00:02.5" Value="Loading...." />
-                    <DiscreteObjectKeyFrame KeyTime="00:00:03" Value="Loading....." />
-                    <DiscreteObjectKeyFrame KeyTime="00:00:03.5" Value="Loading......" />
-                </ObjectAnimationUsingKeyFrames>
+                    BeginTime="00:00:3.2"
+                    Storyboard.TargetName="loadingProgress"
+                    Storyboard.TargetProperty="Value"
+                    From="25"
+                    To="100"
+                    Duration="0:0:0.5" />
             </Storyboard>
         </ResourceDictionary>
     </ui:FluentWindow.Resources>
@@ -315,26 +310,21 @@
             </Grid>
         </Grid>
         <!--  主题切换相关的东西  -->
-        <Rectangle
-            x:Name="rectangle"
-            Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
-            Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
+        <Border
+            x:Name="themeMask"
             Panel.ZIndex="-1"
-            Fill="White"
+            Background="White"
             Opacity="0" />
 
         <!--  Loading  -->
         <Grid
             Name="loading"
             Panel.ZIndex="1"
-            Visibility="Collapsed">
+            d:Visibility="Collapsed"
+            Background="#202020">
             <Grid.RenderTransform>
                 <ScaleTransform CenterX="415" CenterY="374.5" />
             </Grid.RenderTransform>
-            <Rectangle
-                Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
-                Height="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=ui:FluentWindow}}"
-                Fill="#202020" />
             <StackPanel
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
@@ -356,13 +346,15 @@
                     FontFamily="{StaticResource SourceHan}"
                     FontSize="16"
                     Text="一个第五人格直播BP展示工具" />
-                <TextBlock
-                    Name="loadingText"
-                    Margin="0,10,0,0"
+                <ProgressBar
+                    Name="loadingProgress"
+                    Width="500"
+                    Height="18"
+                    Margin="0,20,0,0"
                     HorizontalAlignment="Center"
-                    FontFamily="{StaticResource SourceHan}"
-                    FontSize="35"
-                    Text="Loading" />
+                    VerticalAlignment="Center"
+                    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                    Value="20" />
             </StackPanel>
             <TextBlock
                 Margin="0,0,0,10"
@@ -372,6 +364,5 @@
                 FontSize="14"
                 Text="Made By 零风PLFJY" />
         </Grid>
-
     </Grid>
 </ui:FluentWindow>

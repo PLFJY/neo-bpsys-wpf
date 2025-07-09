@@ -1,18 +1,45 @@
 # neo-bpsys-wpf
 
-powered by <img src="https://github.com/PLFJY/neo-bpsys-wpf/raw/refs/heads/main/neo-bpsys-wpf/Assets/logo_net.jpg" width="30px" height="30px"> 9.0.4 & <img src="https://github.com/PLFJY/neo-bpsys-wpf/raw/refs/heads/main/neo-bpsys-wpf/Assets/wpfui.png" width="30px" height="30px"> 4.0.3
+powered by <img src="E:\_PersonalStuff\ASG\bpsys\neo-bpsys-docs\images\logo_net.jpg" width="30px" height="25px"> 9.0.4 & <img src="E:\_PersonalStuff\ASG\bpsys\neo-bpsys-docs\images\wpfui.png" width="30px" height="25px"> 4.0.3
+
+[![](https://img.shields.io/github/issues/plfjy/neo-bpsys-wpf.svg)](https://github.com/plfjy/neo-bpsys-wpf/issues)[![](https://img.shields.io/github/forks/plfjy/neo-bpsys-wpf.svg)](https://github.com/plfjy/neo-bpsys-wpf/network) [![](https://img.shields.io/github/stars/plfjy/neo-bpsys-wpf.svg)](https://github.com/caiyongji/emoji-list/stargazers) [![](https://img.shields.io/github/release/plfjy/neo-bpsys-wpf.svg)](https://github.com/caiyongji/emoji-list/releases)
 
 [项目官网](https://bpsys.plfjy.top/) | [备用官网](https://plfjy.github.io/neo-bpsys-website/) | [项目仓库](https://github.com/PLFJY/neo-bpsys-wpf) | [使用文档](https://docs.bpsys.plfjy.top/docs/neo-bpsys-wpf%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3/%E5%89%8D%E8%A8%80) | [开发文档](https://docs.bpsys.plfjy.top/docs/%E5%BC%80%E5%8F%91%E6%96%87%E6%A1%A3) | [QQ交流群](https://qm.qq.com/q/uqoK5tMtJQ)
 
-## 软件简介
+---
 
-neo-bpsys-wpf是一个基于.NET WPF开发的第五人格直播BP软件，其前身为[bp-sys-wpf](https://github.com/PLFJY/bp-sys-wpf)与[idv-bp-asg-e](https://github.com/PLFJY/idv-bp-asg-e)(均已不再维护）。它由[零风PLFJY](https://plfjy.top/)制作并于2025年6月14日发布v1.0.0.0正式版。其包含地图BP、角色BP与赛后数据显示等在第五人格赛事中能用到的功能。
+## :book: 项目简介
 
-
+neo-bpsys-wpf 是一个基于 .NET WPF 开发的第五人格直播BP软件，其前身为[bp-sys-wpf](https://github.com/PLFJY/bp-sys-wpf)与[idv-bp-asg-e](https://github.com/PLFJY/idv-bp-asg-e)(均已分别因为屎山代码和技术栈老旧停止维护）。其包含地图BP、角色BP与赛后数据显示等在第五人格赛事中能用到的功能。
 
 本项目的前身 [bp-sys-wpf](https://github.com/plfjy/bp-sys-wpf) 曾帮助了40余个民间赛事，希望它能够在未来帮助到你。
 
-## 构建
+## :sparkles: 功能
+
+- [x] 基础BP界面
+- [x] 过场画面
+- [x] 比分
+  - [x] 游戏内比分
+  - [x] 分数统计（用于场间）
+- [x] 赛后数据
+- [x] 地图BP
+- [x] BP概览（用于场间）
+- [x] 后台引导式BP导播
+- [x] 队员管理
+  - [x] 选手定妆照
+  - [x] 选手数量动态调整
+- [x] 前台UI自定义
+  - [x] 控件位置自定义
+  - [x] 文字颜色、字体、大小自定义
+  - [x] UI背景图片自定义
+
+## :white_check_mark: To Do
+
+- [ ] 2025IVL夏季赛新地图BP规则
+- [ ] OCR识别自动填充赛后数据
+- [ ] OCR识别实现全自动BP
+
+## :computer: 构建
 
 Release有提前编译好的安装包可以直接下载并安装
 
@@ -31,6 +58,12 @@ dotnet publish ".\neo-bpsys-wpf\neo-bpsys-wpf.csproj" -c Release -o ".\build\neo
 
 同时，也可以使用脚本自动构建
 
-```powershell
+```cmd
 .\build.bat
 ```
+
+---
+
+
+## Stargazers over time
+[![Stargazers over time](https://starchart.cc/PLFJY/neo-bpsys-wpf.svg?variant=adaptive)](https://starchart.cc/PLFJY/neo-bpsys-wpf)

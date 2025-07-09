@@ -21,7 +21,7 @@
     <Resource Include="Assets\bp.png" />
     <Resource Include="Assets\bp_noAuthor.png" />
     <Resource Include="Assets\CurrentBanLock.png" />
-    <Resource Include="Assets\donate_QR_code.JPG" />
+    <Resource Include="Assets\donate_QR_code.png" />
     <Resource Include="Assets\Fonts\Essay-Text-W01-Italic.ttf" />
     <Resource Include="Assets\Fonts\selawk.ttf" />
     <Resource Include="Assets\Fonts\SourceHanSansHWSC-VF.ttf" />
@@ -66,7 +66,7 @@
     <Resource Include="Assets\Icons\white\TideTurner.png" />
     <Resource Include="Assets\Icons\white\TrumpCard.png" />
     <Resource Include="Assets\Icons\white\Warp.png" />
-    <Resource Include="Assets\interlude.png" />
+    <Resource Include="Assets\cutScene.png" />
     <Resource Include="Assets\logo_net.jpg" />
     <Resource Include="Assets\mapBp.png" />
     <Resource Include="Assets\map\不归林.png" />
@@ -115,25 +115,22 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.6" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.6" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+    <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
     <PackageReference Include="WPF-UI" Version="4.0.3" />
-    <PackageReference Include="WPF-UI.Abstractions" Version="4.0.3" />
     <PackageReference Include="WPF-UI.DependencyInjection" Version="4.0.3" />
-    <PackageReference Include="XamlFlair.WPF" Version="1.2.13" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="DefaultConfig.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
     <None Remove="Assets\bp_noAuthor.png" />
     <None Remove="Assets\CurrentBanLock.png" />
     <None Remove="Assets\donate_QR_code.JPG" />
+    <None Remove="Assets\donate_QR_code.png" />
     <None Remove="Assets\GlobalBanLock.png" />
     <None Remove="Assets\hunIcon.png" />
     <None Remove="Assets\hun_black.png" />
@@ -153,5 +150,8 @@
     <None Update="Resources\队伍信息导入示例.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Extensions\" />
   </ItemGroup>
 </Project>

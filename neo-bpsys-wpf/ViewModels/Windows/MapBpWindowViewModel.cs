@@ -1,10 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using neo_bpsys_wpf.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using neo_bpsys_wpf.Abstractions.Services;
 
 namespace neo_bpsys_wpf.ViewModels.Windows

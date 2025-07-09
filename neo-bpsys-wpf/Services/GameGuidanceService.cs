@@ -1,15 +1,14 @@
-﻿using System.IO;
-using System.Text.Json;
-using neo_bpsys_wpf.Enums;
-using Wpf.Ui;
-using neo_bpsys_wpf.Views.Pages;
-using System.Text.Json.Serialization;
-using neo_bpsys_wpf.Exceptions;
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
-using neo_bpsys_wpf.Messages;
-using System.Threading.Tasks;
 using neo_bpsys_wpf.Abstractions.Services;
+using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Exceptions;
+using neo_bpsys_wpf.Messages;
+using neo_bpsys_wpf.Views.Pages;
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Wpf.Ui;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -131,7 +130,7 @@ namespace neo_bpsys_wpf.Services
                 await _messageBoxService.ShowErrorAsync($"对局规则文件状态异常\n{ex}");
                 return null;
             }
-            
+
             if (_currentGameProperty != null)
             {
                 _currentStep = -1;

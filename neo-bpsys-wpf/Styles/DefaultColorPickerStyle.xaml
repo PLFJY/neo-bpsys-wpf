@@ -1,0 +1,24 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="DefaultColorPickerStyle" TargetType="UserControl">
+        <Style.Resources>
+            <ResourceDictionary>
+                <ResourceDictionary.MergedDictionaries>
+                    <ResourceDictionary Source="/Styles/DarkTabControlStyle.xaml" />
+                    <ResourceDictionary Source="/Styles/DarkTextBoxStyle.xaml" />
+                    <ResourceDictionary Source="/Styles/DarkComboBoxStyle.xaml" />
+                    <ResourceDictionary Source="/Styles/RoundedColorDisplayStyle.xaml" />
+                </ResourceDictionary.MergedDictionaries>
+                <Style TargetType="Label">
+                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                </Style>
+                <Style TargetType="Grid">
+                    <Style.Triggers>
+                        <Trigger Property="Name" Value="MainGrid">
+                            <Setter Property="Background" Value="{DynamicResource ApplicationBackgroundBrush}" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </ResourceDictionary>
+        </Style.Resources>
+    </Style>
+</ResourceDictionary>

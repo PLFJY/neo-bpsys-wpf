@@ -1,6 +1,6 @@
-﻿using System.Collections.ObjectModel;
-using neo_bpsys_wpf.Enums;
+﻿using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Models;
+using System.Collections.ObjectModel;
 
 namespace neo_bpsys_wpf.Abstractions.Services
 {

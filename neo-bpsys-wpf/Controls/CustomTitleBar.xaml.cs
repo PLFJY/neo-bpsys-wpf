@@ -81,12 +81,12 @@ namespace neo_bpsys_wpf.Controls
 
         public bool IsThemeChangeChecked
         {
-            get => (bool)GetValue(IsThemeChangeButtonCheckedProperty);
-            set => SetValue(IsThemeChangeButtonCheckedProperty, value);
+            get => (bool)GetValue(IsThemeChangeCheckedProperty);
+            set => SetValue(IsThemeChangeCheckedProperty, value);
         }
 
         // Using a DependencyProperty as the backing store for IsThemeChangeChecked.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty IsThemeChangeButtonCheckedProperty =
+        public static readonly DependencyProperty IsThemeChangeCheckedProperty =
             DependencyProperty.Register(nameof(IsThemeChangeChecked), typeof(bool), typeof(CustomTitleBar), new PropertyMetadata(true));
 
         public bool IsThemeChangeVisible

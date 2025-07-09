@@ -1,8 +1,7 @@
+using System.Security.AccessControl;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Messages;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
@@ -15,9 +14,9 @@ namespace neo_bpsys_wpf.Models;
 /// </summary>
 public partial class Member : ObservableObject
 {
-    public Member()
+    public Member(Camp camp)
     {
-        //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+        Camp = camp;
     }
 
     private string _name = Empty;
@@ -26,9 +25,9 @@ public partial class Member : ObservableObject
         get => _name;
         set
         {
-            WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
             SetProperty(ref _name, value);
             OnPropertyChanged();
+            WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this));
         }
     }
 
@@ -44,7 +43,6 @@ public partial class Member : ObservableObject
         {
             if (_image != null || ImageUri == null) return _image;
             _image = new BitmapImage(new Uri(ImageUri));
-            OnPropertyChanged(nameof(IsImageValid));
             return _image;
         }
         set
@@ -52,7 +50,7 @@ public partial class Member : ObservableObject
             SetProperty(ref _image, value);
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsImageValid));
-            WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
+            WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this));
         }
     }
 
@@ -66,18 +64,13 @@ public partial class Member : ObservableObject
         {
             SetProperty(ref _isOnField, value);
             OnPropertyChanged();
-            WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
+            WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this));
         }
     }
 
     [ObservableProperty]
     [property: JsonIgnore]
     private bool _canOnFieldChange = true;
-
-    public Member(Camp camp)
-    {
-        Camp = camp;
-    }
 
     public bool IsImageValid => Image != null;
 }

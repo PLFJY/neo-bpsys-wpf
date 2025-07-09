@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Messages;
 using System.ComponentModel;
@@ -9,14 +8,14 @@ using System.Windows.Input;
 namespace neo_bpsys_wpf.Views.Windows
 {
     /// <summary>
-    /// InterludeWindow.xaml 的交互逻辑
+    /// CutSceneWindow.xaml 的交互逻辑
     /// </summary>
-    public partial class InterludeWindow : Window
+    public partial class CutSceneWindow : Window
     {
-        public InterludeWindow()
+        public CutSceneWindow()
         {
             InitializeComponent();
-            BaseCanvas.Background = ImageHelper.GetUiImageBrush("interlude");
+            BaseCanvas.Background = ImageHelper.GetUiImageBrush("cutScene");
             WeakReferenceMessenger.Default.Register<DesignModeChangedMessage>(this, OnDesignModeChanged);
             MouseLeftButtonDown += OnMouseLeftButtonDown;
         }

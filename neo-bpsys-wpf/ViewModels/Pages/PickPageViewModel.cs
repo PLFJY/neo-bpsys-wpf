@@ -1,13 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Messages;
-using neo_bpsys_wpf.Models;
-using System.Collections.ObjectModel;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Views.Windows;
 using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Controls;
+using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Messages;
+using neo_bpsys_wpf.Models;
+using neo_bpsys_wpf.Views.Windows;
+using System.Collections.ObjectModel;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -42,53 +42,55 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
         [RelayCommand]
-        private async Task PickingBorderSwitchAsync(string index)
+        private async Task PickingBorderSwitchAsync(string arg)
         {
-            switch (index)
+            var argsMapSur = new Dictionary<string, int[]>
             {
-                case "0":
-                    if (SurPickingBorderList[0])
-                        await _frontService.BreathingStart<BpWindow>("SurPickingBorder", 0, string.Empty);
-                    else
-                        await _frontService.BreathingStop<BpWindow>("SurPickingBorder", 0, string.Empty);
-                    break;
-                case "1":
-                    if (SurPickingBorderList[1])
-                        await _frontService.BreathingStart<BpWindow>("SurPickingBorder", 1, string.Empty);
-                    else
-                        await _frontService.BreathingStop<BpWindow>("SurPickingBorder", 1, string.Empty);
-                    break;
-                case "2":
-                    if (SurPickingBorderList[2])
-                        await _frontService.BreathingStart<BpWindow>("SurPickingBorder", 2, string.Empty);
-                    else
-                        await _frontService.BreathingStop<BpWindow>("SurPickingBorder", 2, string.Empty);
-                    break;
-                case "3":
-                    if (SurPickingBorderList[3])
-                        await _frontService.BreathingStart<BpWindow>("SurPickingBorder", 3, string.Empty);
-                    else
-                        await _frontService.BreathingStop<BpWindow>("SurPickingBorder", 3, string.Empty);
-                    break;
-                case "0and1":
-                    if (SurPickingBorderList[0] && SurPickingBorderList[1])
-                    {
-                        _ = _frontService.BreathingStart<BpWindow>("SurPickingBorder", 0, string.Empty);
-                        await _frontService.BreathingStart<BpWindow>("SurPickingBorder", 1, string.Empty);
-                    }
-                    else
-                    {
-                        _ = _frontService.BreathingStop<BpWindow>("SurPickingBorder", 0, string.Empty);
-                        await _frontService.BreathingStop<BpWindow>("SurPickingBorder", 1, string.Empty);
-                    }
+                { "0", [0] },
+                { "1", [1] },
+                { "2", [2] },
+                { "3", [3] },
+                { "0and1", [0, 1] }
+            };
+            if (arg == "Hun")
+            {
+                if (HunPickingBorder)
+                    await _frontService.BreathingStart(FrontWindowType.BpWindow, "HunPickingBorder", -1, string.Empty);
+                else
+                    await _frontService.BreathingStop(FrontWindowType.BpWindow, "HunPickingBorder", -1, string.Empty);
+                return;
+            }
 
-                    break;
-                case "Hun":
-                    if (HunPickingBorder)
-                        await _frontService.BreathingStart<BpWindow>("HunPickingBorder", -1, string.Empty);
+
+            for (var i = 0; i < argsMapSur[arg].Length; i++)
+            {
+                var index = argsMapSur[arg][i];
+                if (SurPickingBorderList[index])
+                {
+                    if (index == argsMapSur[arg].Length - 1)
+                    {
+                        await _frontService.BreathingStart(FrontWindowType.BpWindow, "SurPickingBorder", index,
+                            string.Empty);
+                    }
                     else
-                        await _frontService.BreathingStop<BpWindow>("HunPickingBorder", -1, string.Empty);
-                    break;
+                    {
+                        _ = _frontService.BreathingStart(FrontWindowType.BpWindow, "SurPickingBorder", index,
+                            string.Empty);
+                    }
+                }
+                else
+                {
+                    if (index == argsMapSur[arg].Length - 1)
+                    {
+                        await _frontService.BreathingStop(FrontWindowType.BpWindow, "SurPickingBorder", index,
+                            string.Empty);
+                    }
+                    else
+                    {
+                        _ = _frontService.BreathingStop(FrontWindowType.BpWindow, "SurPickingBorder", index,
+                            string.Empty);
+                    }
+                }
             }
         }
 
@@ -143,7 +145,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             Abstractions.ViewModels.CharaSelectViewModelBase,
             IRecipient<CharacterSwappedMessage>,
             IRecipient<PlayerSwappedMessage>,
-            IRecipient<MemberStateChangedMessage>,
+            IRecipient<MemberPropertyChangedMessage>,
             IRecipient<SwapMessage>
         {
             private readonly IFrontService _frontService;
@@ -158,10 +160,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
             public override async void SyncChara()
             {
-                _frontService.FadeOutAnimation<BpWindow>("SurPick", Index, string.Empty);
+                _frontService.FadeOutAnimation(FrontWindowType.BpWindow, "SurPick", Index, string.Empty);
                 await Task.Delay(250);
                 SharedDataService.CurrentGame.SurPlayerList[Index].Character = SelectedChara;
-                _frontService.FadeInAnimation<BpWindow>("SurPick", Index, string.Empty);
+                _frontService.FadeInAnimation(FrontWindowType.BpWindow, "SurPick", Index, string.Empty);
                 PreviewImage = SharedDataService.CurrentGame.SurPlayerList[Index].Character?.HeaderImage;
             }
 
@@ -199,7 +201,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 OnPropertyChanged(nameof(PlayerName));
             }
 
-            public void Receive(MemberStateChangedMessage message)
+            public void Receive(MemberPropertyChangedMessage message)
             {
                 OnPropertyChanged(nameof(PlayerName));
             }
@@ -224,10 +226,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
             public override async void SyncChara()
             {
-                _frontService.FadeOutAnimation<BpWindow>("HunPick", -1, string.Empty);
+                _frontService.FadeOutAnimation(FrontWindowType.BpWindow, "HunPick", -1, string.Empty);
                 await Task.Delay(250);
                 SharedDataService.CurrentGame.HunPlayer.Character = SelectedChara;
-                _frontService.FadeInAnimation<BpWindow>("HunPick", -1, string.Empty);
+                _frontService.FadeInAnimation(FrontWindowType.BpWindow, "HunPick", -1, string.Empty);
                 PreviewImage = SharedDataService.CurrentGame.HunPlayer.Character?.HeaderImage;
             }
 

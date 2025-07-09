@@ -1,9 +1,6 @@
 ﻿using neo_bpsys_wpf.Controls;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
 
 namespace neo_bpsys_wpf.AttachedBehaviors;
 
@@ -34,19 +31,13 @@ public static class DesignBehavior
             }
             else
             {
-                AdornerLayer adornerLayer = AdornerLayer.GetAdornerLayer(element);
-                if (adornerLayer != null)
+                var adornerLayer = AdornerLayer.GetAdornerLayer(element);
+                var adorners = adornerLayer?.GetAdorners(element);
+                if (adorners == null) return;
+                foreach (var adorner in adorners)
                 {
-                    Adorner[] adorners = adornerLayer.GetAdorners(element);
-                    if (adorners != null)
-                    {
-                        foreach (Adorner adorner in adorners)
-                        {
-                            adornerLayer.Remove(adorner);
-                        }
-                    }
+                    adornerLayer?.Remove(adorner);
                 }
-
             }
         }
     }

@@ -16,6 +16,7 @@
                                      IsDesignTimeCreatable=True}"
     Background="Blue"
     Style="{StaticResource FrontWindow}"
+    WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
     <Grid Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}" Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
         <Grid.ColumnDefinitions>

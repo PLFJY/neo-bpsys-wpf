@@ -95,7 +95,7 @@
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
-                                        Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMamberImageCommand}"
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMemberImageCommand}"
                                         CommandParameter="{Binding}"
                                         Content="清除定妆照"
                                         Icon="{ui:SymbolIcon Symbol=ImageOff24}"
@@ -170,7 +170,7 @@
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
-                                        Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMamberImageCommand}"
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMemberImageCommand}"
                                         CommandParameter="{Binding}"
                                         Content="清除定妆照"
                                         Icon="{ui:SymbolIcon Symbol=ImageOff24}"
@@ -297,7 +297,7 @@
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
-                                        Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMamberImageCommand}"
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMemberImageCommand}"
                                         CommandParameter="{Binding}"
                                         Content="清除定妆照"
                                         Icon="{ui:SymbolIcon Symbol=ImageOff24}"
@@ -376,7 +376,7 @@
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
-                                        Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMamberImageCommand}"
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMemberImageCommand}"
                                         CommandParameter="{Binding}"
                                         Content="清除定妆照"
                                         Icon="{ui:SymbolIcon Symbol=ImageOff24}"

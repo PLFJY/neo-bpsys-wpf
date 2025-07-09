@@ -1,15 +1,15 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services;
+using neo_bpsys_wpf.Themes;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
 using System.Windows;
 using System.Windows.Threading;
-using neo_bpsys_wpf.Abstractions.Services;
-using neo_bpsys_wpf.Themes;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
@@ -45,7 +45,7 @@ namespace neo_bpsys_wpf
                 //_sharedDataService
                 services.AddSingleton<ISharedDataService, SharedDataService>();
 
-                // Main window with navigation
+                // MainTeam window with navigation
                 services.AddSingleton<INavigationWindow, MainWindow>(sp => new MainWindow(
                     sp.GetRequiredService<INavigationService>(),
                     sp.GetRequiredService<IMessageBoxService>(),
@@ -65,6 +65,7 @@ namespace neo_bpsys_wpf
                 services.AddSingleton<IInfoBarService, InfoBarService>();
                 services.AddSingleton<IGameGuidanceService, GameGuidanceService>();
                 services.AddSingleton<ISettingsHostService, SettingsHostService>();
+                services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
 
                 //Views and ViewModels
                 //Window
@@ -73,11 +74,11 @@ namespace neo_bpsys_wpf
                     DataContext = sp.GetRequiredService<BpWindowViewModel>(),
                 });
                 services.AddSingleton<BpWindowViewModel>();
-                services.AddSingleton<InterludeWindow>(sp => new InterludeWindow()
+                services.AddSingleton<CutSceneWindow>(sp => new CutSceneWindow()
                 {
-                    DataContext = sp.GetRequiredService<InterludeWindowViewModel>(),
+                    DataContext = sp.GetRequiredService<CutSceneWindowViewModel>(),
                 });
-                services.AddSingleton<InterludeWindowViewModel>();
+                services.AddSingleton<CutSceneWindowViewModel>();
                 services.AddSingleton<ScoreWindow>(sp => new ScoreWindow()
                 {
                     DataContext = sp.GetRequiredService<ScoreWindowViewModel>(),
@@ -105,7 +106,7 @@ namespace neo_bpsys_wpf
                 services.AddSingleton<MapBpWindowViewModel>();
 
                 //Page
-                services.AddSingleton<HomePage>();
+                services.AddTransient<HomePage>();
 
                 services.AddSingleton<TeamInfoPage>(sp => new TeamInfoPage()
                 {
@@ -167,7 +168,7 @@ namespace neo_bpsys_wpf
                 });
                 services.AddSingleton<ExtensionPageViewModel>();
 
-                services.AddSingleton<SettingPage>(sp => new SettingPage()
+                services.AddSingleton<SettingPage>(sp => new SettingPage(sp.GetRequiredService<ITextSettingsNavigationService>())
                 {
                     DataContext = sp.GetRequiredService<SettingPageViewModel>()
                 });
