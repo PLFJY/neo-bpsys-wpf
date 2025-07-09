@@ -22,10 +22,7 @@ namespace neo_bpsys_wpf.Services
                     "图片文件 (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp",
             };
 
-            if (openFileDialog.ShowDialog() != true)
-                return null;
-
-            return openFileDialog.FileName;
+            return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
         }
 
         /// <summary>
@@ -37,13 +34,10 @@ namespace neo_bpsys_wpf.Services
             OpenFileDialog openFileDialog = new()
             {
                 Filter = "Json文件 (*.json) | *.json",
-                DefaultDirectory = Path.Combine(Environment.CurrentDirectory, "Resources"),
+                DefaultDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources"),
             };
 
-            if (openFileDialog.ShowDialog() != true)
-                return null;
-
-            return openFileDialog.FileName;
+            return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
         }
     }
 }

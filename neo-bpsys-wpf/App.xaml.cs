@@ -45,7 +45,7 @@ namespace neo_bpsys_wpf
                 //_sharedDataService
                 services.AddSingleton<ISharedDataService, SharedDataService>();
 
-                // Main window with navigation
+                // MainTeam window with navigation
                 services.AddSingleton<INavigationWindow, MainWindow>(sp => new MainWindow(
                     sp.GetRequiredService<INavigationService>(),
                     sp.GetRequiredService<IMessageBoxService>(),
@@ -65,6 +65,7 @@ namespace neo_bpsys_wpf
                 services.AddSingleton<IInfoBarService, InfoBarService>();
                 services.AddSingleton<IGameGuidanceService, GameGuidanceService>();
                 services.AddSingleton<ISettingsHostService, SettingsHostService>();
+                services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
 
                 //Views and ViewModels
                 //Window
@@ -105,7 +106,7 @@ namespace neo_bpsys_wpf
                 services.AddSingleton<MapBpWindowViewModel>();
 
                 //Page
-                services.AddSingleton<HomePage>();
+                services.AddTransient<HomePage>();
 
                 services.AddSingleton<TeamInfoPage>(sp => new TeamInfoPage()
                 {
@@ -167,7 +168,7 @@ namespace neo_bpsys_wpf
                 });
                 services.AddSingleton<ExtensionPageViewModel>();
 
-                services.AddSingleton<SettingPage>(sp => new SettingPage()
+                services.AddSingleton<SettingPage>(sp => new SettingPage(sp.GetRequiredService<ITextSettingsNavigationService>())
                 {
                     DataContext = sp.GetRequiredService<SettingPageViewModel>()
                 });

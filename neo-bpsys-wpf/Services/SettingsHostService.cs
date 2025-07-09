@@ -2,6 +2,8 @@
 using neo_bpsys_wpf.Models;
 using System.IO;
 using System.Text.Json;
+using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Views.Windows;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -16,25 +18,38 @@ namespace neo_bpsys_wpf.Services
         private readonly string _settingFileDefaultPath;
         private readonly string _settingFilePath;
         private readonly string _settingFileDirectory;
+        
+        private readonly JsonSerializerOptions _jsonSerializerOptions = new ()
+        {
+            WriteIndented = true, 
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        };
 
         public SettingsHostService(IMessageBoxService messageBoxService)
         {
             _messageBoxService = messageBoxService;
-            _settingFileDefaultPath = Path.Combine(Environment.CurrentDirectory, "DefaultConfig.json");
+            _settingFileDefaultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DefaultConfig.json");
             _settingFileDirectory = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "neo-bpsys-wpf");
             _settingFilePath = Path.Combine(_settingFileDirectory, SettingFileName);
             LoadConfig();
         }
-
+        
+        /// <summary>
+        /// 保存设置
+        /// </summary>
         public void SaveConfig()
         {
             if (!Directory.Exists(_settingFileDirectory))
                 Directory.CreateDirectory(_settingFileDirectory);
 
-            File.WriteAllText(_settingFilePath, JsonSerializer.Serialize(Settings));
+            File.WriteAllText(_settingFilePath, JsonSerializer.Serialize(Settings, _jsonSerializerOptions));
         }
+        
+        /// <summary>
+        /// 加载设置
+        /// </summary>
         public void LoadConfig()
         {
             if (!File.Exists(_settingFilePath))
@@ -42,7 +57,17 @@ namespace neo_bpsys_wpf.Services
             var json = File.ReadAllText(_settingFilePath);
             try
             {
-                Settings = JsonSerializer.Deserialize<Settings>(json)!;
+                var settings = JsonSerializer.Deserialize<Settings>(json);
+                if (settings != null)
+                {
+                    Settings = settings;
+                }
+                else
+                {
+                    _messageBoxService.ShowErrorAsync("配置文件为空");
+                    ResetConfig();
+                }
+                
             }
             catch (JsonException e)
             {
@@ -51,17 +76,61 @@ namespace neo_bpsys_wpf.Services
                 ResetConfig();
             }
         }
-
+        
+        /// <summary>
+        /// 重置设置
+        /// </summary>
         public void ResetConfig()
         {
-            if (!File.Exists(_settingFileDefaultPath)) return;
             try
             {
                 if (!Directory.Exists(_settingFileDirectory))
                     Directory.CreateDirectory(_settingFileDirectory);
 
-                File.Copy(_settingFileDefaultPath, _settingFilePath);
+                Settings = new Settings();
+                SaveConfig();
                 LoadConfig();
+            }
+            catch (Exception e)
+            {
+                _messageBoxService.ShowErrorAsync($"重置配置文件错误\n{e.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 重置指定窗口的设置
+        /// </summary>
+        /// <param name="windowType">窗口类型</param>
+        public void ResetConfig(FrontWindowType windowType)
+        {
+            try
+            {
+                if (!Directory.Exists(_settingFileDirectory))
+                    Directory.CreateDirectory(_settingFileDirectory);
+                
+                switch (windowType)
+                {
+                    case FrontWindowType.BpWindow:
+                        Settings.BpWindowSettings = new BpWindowSettings();
+                        break;
+                    case FrontWindowType.CutSceneWindow:
+                        Settings.CutSceneWindowSettings = new CutSceneWindowSettings();
+                        break;
+                    case FrontWindowType.ScoreWindow:
+                        Settings.ScoreWindowSettings = new ScoreWindowSettings();
+                        break;
+                    case FrontWindowType.GameDataWindow:
+                        Settings.GameDataWindowSettings = new GameDataWindowSettings();
+                        break;
+                    case FrontWindowType.WidgetsWindow:
+                        Settings.WidgetsWindowSettings = new WidgetsWindowSettings();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(windowType), windowType, null);
+                }
+
+                SaveConfig();
             }
             catch (Exception e)
             {

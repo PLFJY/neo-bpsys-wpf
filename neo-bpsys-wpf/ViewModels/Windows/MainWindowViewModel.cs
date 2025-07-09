@@ -158,9 +158,10 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             var json = JsonSerializer.Serialize(_sharedDataService.CurrentGame, _jsonSerializerOptions);
             var path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                "neo-bpsys-wpf\\GameInfoOutput"
+                "neo-bpsys-wpf", 
+                "GameInfoOutput"
             );
-            var fullPath = Path.Combine(path, $"{_sharedDataService.CurrentGame.StartTime}.json");
+            var fullPath = Path.Combine(path, $"{_sharedDataService.CurrentGame.StartTime:yyyy-MM-dd-HH-mm-ss}.json");
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
@@ -276,11 +277,10 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             }
         }
 
-        [ObservableProperty]
-        private bool _isSwapHighlighted = false;
+        [ObservableProperty] private bool _isSwapHighlighted = false;
 
-        [ObservableProperty]
-        private bool _isEndGuidanceHighlighted = false;
+        [ObservableProperty] private bool _isEndGuidanceHighlighted = false;
+
         public void Receive(HighlightMessage message)
         {
             IsSwapHighlighted = message.GameAction == GameAction.PickCamp;

@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Abstractions.Services;
+using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Views.Windows;
 
@@ -25,18 +26,16 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             _frontService = frontService;
             _messageBoxService = messageBoxService;
             _sharedDataService = sharedDataService;
-            _globalScoreTotalMargin = _sharedDataService.GlobalScoreTotalMargin;
-            LoadFrontConfig();
         }
 
         [RelayCommand]
-        private void ShowAllWinows()
+        private void ShowAllWindows()
         {
             _frontService.AllWindowShow();
         }
 
         [RelayCommand]
-        private void HideAllWinows()
+        private void HideAllWindows()
         {
             _frontService.AllWindowHide();
         }
@@ -44,75 +43,62 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         [RelayCommand]
         private void ShowBpWindow()
         {
-            _frontService.ShowWindow<BpWindow>();
+            _frontService.ShowWindow(FrontWindowType.BpWindow);
         }
 
         [RelayCommand]
         private void HideBpWindow()
         {
-            _frontService.HideWindow<BpWindow>();
+            _frontService.HideWindow(FrontWindowType.BpWindow);
         }
 
         [RelayCommand]
         private void ShowCutSceneWindow()
         {
-            _frontService.ShowWindow<CutSceneWindow>();
+            _frontService.ShowWindow(FrontWindowType.CutSceneWindow);
         }
 
         [RelayCommand]
         private void HideCutSceneWindow()
         {
-            _frontService.HideWindow<CutSceneWindow>();
+            _frontService.HideWindow(FrontWindowType.CutSceneWindow);
         }
 
         [RelayCommand]
         private void ShowScoreWindow()
         {
-            _frontService.ShowWindow<ScoreWindow>();
+            _frontService.ShowWindow(FrontWindowType.ScoreWindow);
         }
 
         [RelayCommand]
         private void HideScoreWindow()
         {
-            _frontService.HideWindow<ScoreWindow>();
+            _frontService.HideWindow(FrontWindowType.ScoreWindow);
         }
 
         [RelayCommand]
         private void ShowGameDataWindow()
         {
-            _frontService.ShowWindow<GameDataWindow>();
+            _frontService.ShowWindow(FrontWindowType.GameDataWindow);
         }
 
         [RelayCommand]
         private void HideGameDataWindow()
         {
-            _frontService.HideWindow<GameDataWindow>();
+            _frontService.HideWindow(FrontWindowType.GameDataWindow);
         }
 
         [RelayCommand]
         private void ShowWidgetsWindow()
         {
-            _frontService.ShowWindow<WidgetsWindow>();
+            _frontService.ShowWindow(FrontWindowType.WidgetsWindow);
         }
 
         [RelayCommand]
         private void HideWidgetsWindow()
         {
-            _frontService.HideWindow<WidgetsWindow>();
+            _frontService.HideWindow(FrontWindowType.WidgetsWindow);
         }
-
-        private double _globalScoreTotalMargin = 390;
-
-        public double GlobalScoreTotalMargin
-        {
-            get => _globalScoreTotalMargin;
-            set
-            {
-                _globalScoreTotalMargin = value;
-                _sharedDataService.GlobalScoreTotalMargin = _globalScoreTotalMargin;
-            }
-        }
-
 
         //前台设计器模式
         private bool _isDesignMode = false;
@@ -126,35 +112,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 WeakReferenceMessenger.Default.Send(new DesignModeChangedMessage(this, _isDesignMode));
                 if (!value)
                 {
-                    SaveFrontConfig(); //保存前台窗口配置
+                    _frontService.SaveAllWindowElementsPosition();
                 }
             }
-        }
-
-        /// <summary>
-        /// 保存前台窗口配置
-        /// </summary>
-        private void SaveFrontConfig()
-        {
-            _frontService.SaveWindowElementsPosition<BpWindow>();
-            _frontService.SaveWindowElementsPosition<CutSceneWindow>();
-            _frontService.SaveWindowElementsPosition<ScoreWindow>("ScoreSurCanvas");
-            _frontService.SaveWindowElementsPosition<ScoreWindow>("ScoreHunCanvas");
-            _frontService.SaveWindowElementsPosition<ScoreWindow>("ScoreGlobalCanvas");
-            _frontService.SaveWindowElementsPosition<WidgetsWindow>("MapBpCanvas");
-        }
-
-        /// <summary>
-        /// 加载前台窗口配置
-        /// </summary>
-        private async void LoadFrontConfig()
-        {
-            await _frontService.LoadWindowElementsPositionOnStartupAsync<BpWindow>();
-            await _frontService.LoadWindowElementsPositionOnStartupAsync<CutSceneWindow>();
-            await _frontService.LoadWindowElementsPositionOnStartupAsync<ScoreWindow>("ScoreSurCanvas");
-            await _frontService.LoadWindowElementsPositionOnStartupAsync<ScoreWindow>("ScoreHunCanvas");
-            await _frontService.LoadWindowElementsPositionOnStartupAsync<ScoreWindow>("ScoreGlobalCanvas");
-            await _frontService.LoadWindowElementsPositionOnStartupAsync<WidgetsWindow>("MapBpCanvas");
         }
 
         /// <summary>
@@ -164,7 +124,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         [RelayCommand]
         private void ResetBpWindowElementsPosition()
         {
-            _frontService.RestoreInitialPositions<BpWindow>();
+            _frontService.RestoreInitialPositions(FrontWindowType.BpWindow);
         }
 
         /// <summary>
@@ -174,7 +134,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         [RelayCommand]
         private void ResetCutSceneWindowElementsPosition()
         {
-            _frontService.RestoreInitialPositions<CutSceneWindow>();
+            _frontService.RestoreInitialPositions(FrontWindowType.CutSceneWindow);
         }
 
         /// <summary>
@@ -185,7 +145,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         [RelayCommand]
         private void ResetScoreWindowElementsPosition(string canvasName)
         {
-            _frontService.RestoreInitialPositions<ScoreWindow>(canvasName);
+            _frontService.RestoreInitialPositions(FrontWindowType.ScoreWindow, canvasName);
         }
 
         /// <summary>
@@ -196,13 +156,13 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         [RelayCommand]
         private void ResetWidgetsWindowElementsPosition(string canvasName)
         {
-            _frontService.RestoreInitialPositions<WidgetsWindow>(canvasName);
+            _frontService.RestoreInitialPositions(FrontWindowType.WidgetsWindow, canvasName);
         }
 
         [RelayCommand]
         private void ResetGameDataWindowElementsPosition()
         {
-            _frontService.RestoreInitialPositions<GameDataWindow>();
+            _frontService.RestoreInitialPositions(FrontWindowType.GameDataWindow);
         }
     }
 }

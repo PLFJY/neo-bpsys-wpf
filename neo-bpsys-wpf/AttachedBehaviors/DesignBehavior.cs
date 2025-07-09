@@ -31,19 +31,13 @@ public static class DesignBehavior
             }
             else
             {
-                AdornerLayer adornerLayer = AdornerLayer.GetAdornerLayer(element);
-                if (adornerLayer != null)
+                var adornerLayer = AdornerLayer.GetAdornerLayer(element);
+                var adorners = adornerLayer?.GetAdorners(element);
+                if (adorners == null) return;
+                foreach (var adorner in adorners)
                 {
-                    Adorner[] adorners = adornerLayer.GetAdorners(element);
-                    if (adorners != null)
-                    {
-                        foreach (Adorner adorner in adorners)
-                        {
-                            adornerLayer.Remove(adorner);
-                        }
-                    }
+                    adornerLayer?.Remove(adorner);
                 }
-
             }
         }
     }

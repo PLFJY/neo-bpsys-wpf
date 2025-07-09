@@ -1,4 +1,5 @@
-﻿using neo_bpsys_wpf.Models;
+﻿using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Models;
 
 namespace neo_bpsys_wpf.Abstractions.Services
 {
@@ -7,6 +8,9 @@ namespace neo_bpsys_wpf.Abstractions.Services
     /// </summary>
     public interface ISettingsHostService
     {
+        /// <summary>
+        /// 设置项
+        /// </summary>
         Settings Settings { get; set; }
         /// <summary>
         /// 保存配置
@@ -20,5 +24,10 @@ namespace neo_bpsys_wpf.Abstractions.Services
         /// 重置配置
         /// </summary>
         void ResetConfig();
+        /// <summary>
+        /// 重置指定窗口的配置
+        /// </summary>
+        /// <param name="windowType">窗口类型</param>
+        void ResetConfig(FrontWindowType windowType);
     }
 }

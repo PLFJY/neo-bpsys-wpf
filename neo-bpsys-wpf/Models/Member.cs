@@ -42,14 +42,12 @@ public partial class Member : ObservableObject
         {
             if (_image != null || ImageUri == null) return _image;
             _image = new BitmapImage(new Uri(ImageUri));
-            OnPropertyChanged(nameof(IsImageValid));
             return _image;
         }
         set
         {
             SetProperty(ref _image, value);
             OnPropertyChanged();
-            OnPropertyChanged(nameof(IsImageValid));
             WeakReferenceMessenger.Default.Send(new MemberStateChangedMessage(this));
         }
     }
@@ -76,6 +74,4 @@ public partial class Member : ObservableObject
     {
         Camp = camp;
     }
-
-    public bool IsImageValid => Image != null;
 }
