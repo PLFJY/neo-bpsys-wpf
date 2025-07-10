@@ -127,6 +127,12 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Extensions\**" />
+    <EmbeddedResource Remove="Extensions\**" />
+    <None Remove="Extensions\**" />
+    <Page Remove="Extensions\**" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="Assets\bp_noAuthor.png" />
     <None Remove="Assets\CurrentBanLock.png" />
     <None Remove="Assets\donate_QR_code.JPG" />
@@ -150,8 +156,5 @@
     <None Update="Resources\队伍信息导入示例.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Extensions\" />
   </ItemGroup>
 </Project>
