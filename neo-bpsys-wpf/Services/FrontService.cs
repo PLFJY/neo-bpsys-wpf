@@ -14,6 +14,7 @@ using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using Path = System.IO.Path;
 
@@ -250,7 +251,7 @@ namespace neo_bpsys_wpf.Services
         /// <param name="canvasName">画布名称</param>
         private void RecordInitialPositions(FrontWindowType windowType, string canvasName = "BaseCanvas")
         {
-            if(!_frontWindows.TryGetValue(windowType, out var window)) return;
+            if (!_frontWindows.TryGetValue(windowType, out var window)) return;
             var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.default.json");
 
@@ -409,7 +410,8 @@ namespace neo_bpsys_wpf.Services
                 return;
             }
 
-            if (!await _messageBoxService.ShowConfirmAsync("重置提示", $"确认重置{window.GetType().Name}-{canvasName}的配置吗？")) return;
+            if (!await _messageBoxService.ShowConfirmAsync("重置提示", $"确认重置{window.GetType().Name}-{canvasName}的配置吗？"))
+                return;
 
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 "Resources", "FrontDefaultPositions", $"{window.GetType().Name}Config-{canvasName}.default.json");
@@ -484,11 +486,29 @@ namespace neo_bpsys_wpf.Services
             foreach (var item in MainGlobalScoreControls)
             {
                 AddControlToCanvas(item.Value, canvas, item.Key, 86);
+                SetBinding(item.Value, TextBlock.FontSizeProperty, "Settings.TextSettings.ScoreGlobal_Data.FontSize");
+                SetBinding(item.Value, TextBlock.FontFamilyProperty, "Settings.TextSettings.ScoreGlobal_Data.FontFamily");
+                SetBinding(item.Value, TextBlock.FontWeightProperty, "Settings.TextSettings.ScoreGlobal_Data.FontWeight");
+                SetBinding(item.Value, TextBlock.ForegroundProperty, "Settings.TextSettings.ScoreGlobal_Data.Foreground");
             }
 
             foreach (var item in AwayGlobalScoreControls)
             {
                 AddControlToCanvas(item.Value, canvas, item.Key, 147);
+                SetBinding(item.Value, TextBlock.FontSizeProperty, "Settings.TextSettings.ScoreGlobal_Data.FontSize");
+                SetBinding(item.Value, TextBlock.FontFamilyProperty, "Settings.TextSettings.ScoreGlobal_Data.FontFamily");
+                SetBinding(item.Value, TextBlock.FontWeightProperty, "Settings.TextSettings.ScoreGlobal_Data.FontWeight");
+                SetBinding(item.Value, TextBlock.ForegroundProperty, "Settings.TextSettings.ScoreGlobal_Data.Foreground");
+            }
+
+            return;
+
+            void SetBinding(UIElement textBlock, DependencyProperty dependencyProperty, string bindingPath)
+            {
+                BindingOperations.SetBinding(textBlock, dependencyProperty, new Binding(bindingPath)
+                {
+                    Source = canvas.DataContext
+                });
             }
         }
 
@@ -583,7 +603,8 @@ namespace neo_bpsys_wpf.Services
             if (_frontWindows[FrontWindowType.ScoreWindow] is not ScoreWindow scoreWindow) return;
             if (_isBo3Mode)
             {
-                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush(_settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageUriBo3 ?? "scoreGlobal_Bo3");
+                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush(
+                    _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageUriBo3 ?? "scoreGlobal_Bo3");
                 foreach (var item in
                          MainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
                 {
@@ -604,7 +625,8 @@ namespace neo_bpsys_wpf.Services
             }
             else
             {
-                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush(_settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageUri ?? "scoreGlobal");
+                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush(
+                    _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageUri ?? "scoreGlobal");
                 foreach (var item in
                          MainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
                 {
@@ -633,7 +655,8 @@ namespace neo_bpsys_wpf.Services
         /// <param name="controlNameHeader">控件名称头</param>
         /// <param name="controlIndex">控件索引(-1表示没有)</param>
         /// <param name="controlNameFooter">控件名称尾</param>
-        public void FadeInAnimation(FrontWindowType windowType, string controlNameHeader, int controlIndex, string controlNameFooter)
+        public void FadeInAnimation(FrontWindowType windowType, string controlNameHeader, int controlIndex,
+            string controlNameFooter)
         {
             var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
             if (!_frontWindows.TryGetValue(windowType, out var window)) return;
@@ -652,7 +675,8 @@ namespace neo_bpsys_wpf.Services
         /// <param name="controlNameHeader">控件名称头</param>
         /// <param name="controlIndex">控件索引(-1表示没有)</param>
         /// <param name="controlNameFooter">控件名称尾</param>
-        public void FadeOutAnimation(FrontWindowType windowType, string controlNameHeader, int controlIndex, string controlNameFooter)
+        public void FadeOutAnimation(FrontWindowType windowType, string controlNameHeader, int controlIndex,
+            string controlNameFooter)
         {
             var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
             if (!_frontWindows.TryGetValue(windowType, out var window)) return;
@@ -670,7 +694,8 @@ namespace neo_bpsys_wpf.Services
         /// <param name="controlNameHeader">控件名称头</param>
         /// <param name="controlIndex">控件索引(-1表示没有)</param>
         /// <param name="controlNameFooter">控件名称尾</param>
-        public async Task BreathingStart(FrontWindowType windowType, string controlNameHeader, int controlIndex, string controlNameFooter)
+        public async Task BreathingStart(FrontWindowType windowType, string controlNameHeader, int controlIndex,
+            string controlNameFooter)
         {
             var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
             if (!_frontWindows.TryGetValue(windowType, out var window)) return;
@@ -710,7 +735,8 @@ namespace neo_bpsys_wpf.Services
         /// <param name="controlNameHeader">控件名称头</param>
         /// <param name="controlIndex">控件索引(-1表示没有)</param>
         /// <param name="controlNameFooter">控件名称尾</param>
-        public async Task BreathingStop(FrontWindowType windowType, string controlNameHeader, int controlIndex, string controlNameFooter)
+        public async Task BreathingStop(FrontWindowType windowType, string controlNameHeader, int controlIndex,
+            string controlNameFooter)
         {
             var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
             if (!_frontWindows.TryGetValue(windowType, out var window)) return;
@@ -745,10 +771,9 @@ namespace neo_bpsys_wpf.Services
                 { FrontWindowType.GameDataWindow, ApplyGameDataWindowSettings },
                 { FrontWindowType.WidgetsWindow, ApplyWidgetsWindowSettings }
             };
-
             if (!settingsApplyMap.TryGetValue(windowType, out var action)) return;
-
             action.Invoke();
+            WeakReferenceMessenger.Default.Send(new SettingsChangedMessage(windowType));
         }
 
         private void ApplyWidgetsWindowSettings()
@@ -761,35 +786,6 @@ namespace neo_bpsys_wpf.Services
             //地图BP
             //设置UI背景
             ImageSettingApply(window.MapBpCanvas, setting.MapBpBgUri);
-
-            //地图名称
-            TextSettingApply(window.PickedMapName, setting.TextSettings.MapBp_MapName);
-            TextSettingApply(window.BannedMapName, setting.TextSettings.MapBp_MapName);
-
-
-            //选择和禁用的字
-            TextSettingApply(window.PickWord, setting.TextSettings.MapBp_PickWord);
-            TextSettingApply(window.BanWord, setting.TextSettings.MapBp_BanWord);
-
-            //队伍名称
-            TextSettingApply(window.SurTeamName, setting.TextSettings.MapBp_TeamName);
-            TextSettingApply(window.HunTeamName, setting.TextSettings.MapBp_TeamName);
-
-            //bp总览
-            //设置UI背景
-            ImageSettingApply(window.BpOverViewCanvas, setting.BpOverviewBgUri);
-
-            //队伍名称
-            TextSettingApply(window.SurTeamNameInOverview, setting.TextSettings.BpOverview_TeamName);
-            TextSettingApply(window.HunTeamNameInOverview, setting.TextSettings.BpOverview_TeamName);
-
-            //对局进度
-            TextSettingApply(window.GameProgress, setting.TextSettings.BpOverview_GameProgress);
-
-            //小比分
-            TextSettingApply(window.MinorPointsSur, setting.TextSettings.BpOverview_MinorPoints);
-            TextSettingApply(window.MinorPointsHun, setting.TextSettings.BpOverview_MinorPoints);
-            TextSettingApply(window.RatioChar, setting.TextSettings.BpOverview_MinorPoints);
         }
 
         private void ApplyGameDataWindowSettings()
@@ -801,59 +797,6 @@ namespace neo_bpsys_wpf.Services
 
             //背景UI
             ImageSettingApply(window.BaseCanvas, setting.BgImageUri);
-
-            //队伍名称
-            TextSettingApply(window.SurTeamName, setting.TextSettings.TeamName);
-            TextSettingApply(window.HunTeamName, setting.TextSettings.TeamName);
-
-            //小比分
-            TextSettingApply(window.MinorPointsSur, setting.TextSettings.MinorPoints);
-            TextSettingApply(window.MinorPointsHun, setting.TextSettings.MinorPoints);
-
-            //大比分
-            TextSettingApply(window.SurTeamMajorPoint, setting.TextSettings.MajorPoints);
-            TextSettingApply(window.HunTeamMajorPoint, setting.TextSettings.MajorPoints);
-
-            //地图名称
-            TextSettingApply(window.MapName, setting.TextSettings.MapName);
-
-            //对局进度
-            TextSettingApply(window.GameProgress, setting.TextSettings.GameProgress);
-
-            //求生者数据
-            //选手ID
-            TextSettingApply(window, "SurId", string.Empty, 4, setting.TextSettings.PlayerId);
-
-            //破译进度
-            TextSettingApply(window, "Sur", "MachineDecoded", 4, setting.TextSettings.SurData);
-
-            //砸板命中次数
-            TextSettingApply(window, "Sur", "PalletStunTimes", 4, setting.TextSettings.SurData);
-            //救人次数
-            TextSettingApply(window, "Sur", "RescueTimes", 4, setting.TextSettings.SurData);
-            //治疗次数
-            TextSettingApply(window, "Sur", "HealedTimes", 4, setting.TextSettings.SurData);
-            //牵制时长
-            TextSettingApply(window, "Sur", "KiteTime", 4, setting.TextSettings.SurData);
-
-            //监管者数据
-            //选手Id
-            TextSettingApply(window.HunId, setting.TextSettings.PlayerId);
-
-            //剩余密码机数量
-            TextSettingApply(window.HunMachineLeft, setting.TextSettings.HunData);
-
-            //破坏板子数
-            TextSettingApply(window.HunPalletBroken, setting.TextSettings.HunData);
-
-            //命中求生者次数
-            TextSettingApply(window.HunHitTimes, setting.TextSettings.HunData);
-
-            //恐惧震慑次数
-            TextSettingApply(window.HunTerrorShockTimes, setting.TextSettings.HunData);
-
-            //击倒次数
-            TextSettingApply(window.HunDownTimes, setting.TextSettings.HunData);
         }
 
         private void ApplyScoreWindowSettings()
@@ -867,40 +810,9 @@ namespace neo_bpsys_wpf.Services
             ImageSettingApply(window.ScoreSurCanvas, setting.SurScoreBgImageUri);
 
             ImageSettingApply(window.ScoreHunCanvas, setting.HunScoreBgImageUri);
-            
-            ImageSettingApply(window.ScoreGlobalCanvas, _isBo3Mode ? setting.GlobalScoreBgImageUriBo3 : setting.GlobalScoreBgImageUri);
 
-            //队伍名称
-            TextSettingApply(window.SurTeamName, setting.TextSettings.TeamName);
-            TextSettingApply(window.HunTeamName, setting.TextSettings.TeamName);
-            TextSettingApply(window.MainTeamName, setting.TextSettings.ScoreGlobal_TeamName);
-            TextSettingApply(window.AwayTeamName, setting.TextSettings.ScoreGlobal_TeamName);
-
-            //小比分
-            TextSettingApply(window.MinorPointsSur, setting.TextSettings.MinorPoints);
-            TextSettingApply(window.MinorPointsHun, setting.TextSettings.MinorPoints);
-
-
-            //大比分
-            TextSettingApply(window.SurTeamMajorPoint, setting.TextSettings.MajorPoints);
-            TextSettingApply(window.HunTeamMajorPoint, setting.TextSettings.MajorPoints);
-
-            //分数统计总小比分
-            TextSettingApply(window.MainScoreTotal, setting.TextSettings.ScoreGlobal_Total);
-            TextSettingApply(window.AwayScoreTotal, setting.TextSettings.ScoreGlobal_Total);
-
-            //分数统计
-            foreach (var fe in MainGlobalScoreControls)
-            {
-                if (fe.Value is not TextBlock tb) continue;
-                TextSettingApply(tb, setting.TextSettings.ScoreGlobal_Data);
-            }
-
-            foreach (var fe in AwayGlobalScoreControls)
-            {
-                if (fe.Value is not TextBlock tb) continue;
-                TextSettingApply(tb, setting.TextSettings.ScoreGlobal_Data);
-            }
+            ImageSettingApply(window.ScoreGlobalCanvas,
+                _isBo3Mode ? setting.GlobalScoreBgImageUriBo3 : setting.GlobalScoreBgImageUri);
         }
 
         private void ApplyCutSceneWindowSettings()
@@ -912,26 +824,6 @@ namespace neo_bpsys_wpf.Services
 
             //过场背景图
             ImageSettingApply(window.BaseCanvas, setting.BgUri);
-
-            //设置队伍名称
-            TextSettingApply(window.SurTeamName, setting.TextSettings.TeamName);
-            TextSettingApply(window.HunTeamName, setting.TextSettings.TeamName);
-
-            //大比分
-            TextSettingApply(window.SurTeamMajorPoint, setting.TextSettings.MajorPoints);
-            TextSettingApply(window.HunTeamMajorPoint, setting.TextSettings.MajorPoints);
-
-            //地图名称
-            TextSettingApply(window.MapName, setting.TextSettings.MapName);
-
-            //对局进度
-            TextSettingApply(window.GameProgress, setting.TextSettings.GameProgress);
-
-            //求生者选手Id
-            TextSettingApply(window, "SurId", string.Empty, 4, setting.TextSettings.PlayerId);
-
-            //监管者选手Id
-            TextSettingApply(window.HunId, setting.TextSettings.PlayerId);
         }
 
         private void ApplyBpWindowSettings()
@@ -954,90 +846,6 @@ namespace neo_bpsys_wpf.Services
 
             //待选框
             ImageSettingApply(window, "SurPickingBorder", string.Empty, 4, setting.PickingBorderImageUri);
-
-            //倒计时
-            TextSettingApply(window.Timer, setting.TextSettings.Timer);
-
-            //队伍名称
-            TextSettingApply(window.SurTeamName, setting.TextSettings.TeamName);
-            TextSettingApply(window.HunTeamName, setting.TextSettings.TeamName);
-
-            //小比分
-            TextSettingApply(window.MinorPointsSur, setting.TextSettings.MinorPoints);
-            TextSettingApply(window.MinorPointsHun, setting.TextSettings.MinorPoints);
-
-            //大比分
-            TextSettingApply(window.SurTeamMajorPoint, setting.TextSettings.MajorPoints);
-            TextSettingApply(window.HunTeamMajorPoint, setting.TextSettings.MajorPoints);
-
-            //选手id
-            TextSettingApply(window, "SurId", string.Empty, 4, setting.TextSettings.PlayerId);
-
-            TextSettingApply(window.HunId, setting.TextSettings.PlayerId);
-
-            //地图名称
-            TextSettingApply(window.MapName, setting.TextSettings.MapName);
-
-            //对局进度
-            TextSettingApply(window.GameProgress, setting.TextSettings.GameProgress);
-        }
-
-        /// <summary>
-        /// 文本样式应用
-        /// </summary>
-        /// <param name="textBlock">文本控件</param>
-        /// <param name="settings">文本样式</param>
-        private static void TextSettingApply(TextBlock textBlock, TextSettings settings)
-        {
-            textBlock.Foreground = settings.ColorBrush;
-            textBlock.FontFamily = settings.FontFamily;
-            textBlock.FontSize = settings.FontSize;
-        }
-
-        /// <summary>
-        /// 文本样式应用
-        /// </summary>
-        /// <param name="border">边框控件</param>
-        /// <param name="settings">文本样式</param>
-        private static void TextSettingApply(Border border, TextSettings settings)
-        {
-            if (border.Child is not TextBlock textBlock) return;
-            TextSettingApply(textBlock, settings);
-        }
-
-        /// <summary>
-        /// 文本样式应用
-        /// </summary>
-        /// <param name="panel">面板控件</param>
-        /// <param name="settings">文本样式</param>
-        private static void TextSettingApply(Panel panel, TextSettings settings)
-        {
-            foreach (var element in panel.Children)
-            {
-                if (element is TextBlock tb)
-                    TextSettingApply(tb, settings);
-            }
-        }
-
-        /// <summary>
-        /// 文本样式应用
-        /// </summary>
-        /// <param name="window">窗口</param>
-        /// <param name="controlHeader">控件头部名称</param>
-        /// <param name="controlFooter">控件尾部名称</param>
-        /// <param name="range">控件数量</param>
-        /// <param name="settings">文本样式</param>
-        private static void TextSettingApply(Window window, string controlHeader, string controlFooter, int range,
-            TextSettings settings)
-        {
-            for (var i = 0; i < range; i++)
-            {
-                if (window.FindName($"{controlHeader}{i}{controlFooter}") is not Border border) continue;
-                if (border.Child is Panel panel)
-                    TextSettingApply(panel, settings);
-                else
-                    TextSettingApply(border, settings);
-            }
         }
 
         /// <summary>

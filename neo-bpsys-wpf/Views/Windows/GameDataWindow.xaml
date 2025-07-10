@@ -31,12 +31,31 @@
             <Style TargetType="TextBlock">
                 <Setter Property="Foreground" Value="White" />
             </Style>
+            <Style x:Key="MinorPoints" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MinorPoints.FontSize}" />
+                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MinorPoints.FontFamily}" />
+                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MinorPoints.FontWeight}" />
+                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MinorPoints.Foreground}" />
+            </Style>
+            <Style x:Key="MajorPoints" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MajorPoints.FontSize}" />
+                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MajorPoints.FontFamily}" />
+                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MajorPoints.FontWeight}" />
+                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MajorPoints.Foreground}" />
+            </Style>
+            <Style x:Key="TeamName" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.TeamName.FontSize}" />
+                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.TeamName.FontFamily}" />
+                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.TeamName.FontWeight}" />
+                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.TeamName.Foreground}" />
+            </Style>
             <Style x:Key="PlayerId" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="22" />
-                <Setter Property="FontFamily" Value="{StaticResource SourceHan}" />
+                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.PlayerId.FontSize}" />
+                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.PlayerId.FontFamily}" />
                 <Setter Property="HorizontalAlignment" Value="Left" />
                 <Setter Property="VerticalAlignment" Value="Center" />
-                <Setter Property="Foreground" Value="White" />
+                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.PlayerId.Foreground}" />
+                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.PlayerId.FontWeight}" />
             </Style>
             <Style x:Key="PlayerIdBorder" TargetType="Border">
                 <Setter Property="Height" Value="49" />
@@ -51,22 +70,24 @@
                 <Setter Property="Width" Value="55" />
             </Style>
             <Style x:Key="SurData" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="22" />
-                <Setter Property="FontFamily" Value="{StaticResource POP1W5}" />
+                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.SurData.FontSize}" />
+                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.SurData.FontFamily}" />
+                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.SurData.FontWeight}" />
+                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.SurData.Foreground}" />
                 <Setter Property="HorizontalAlignment" Value="Center" />
                 <Setter Property="VerticalAlignment" Value="Center" />
-                <Setter Property="Foreground" Value="White" />
             </Style>
             <Style x:Key="HunDataBorder" TargetType="Border">
                 <Setter Property="Height" Value="25" />
                 <Setter Property="Width" Value="145" />
             </Style>
             <Style x:Key="HunData" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="22" />
-                <Setter Property="FontFamily" Value="{StaticResource POP1W5}" />
+                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.HunData.FontSize}" />
+                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.HunData.FontFamily}" />
+                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.HunData.FontWeight}" />
+                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.HunData.Foreground}" />
                 <Setter Property="HorizontalAlignment" Value="Right" />
                 <Setter Property="VerticalAlignment" Value="Center" />
-                <Setter Property="Foreground" Value="White" />
             </Style>
         </Canvas.Resources>
         <!--  顶栏  -->
@@ -88,10 +109,12 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:FontFamily="Arial"
+            d:FontSize="30"
+            d:FontWeight="Bold"
+            d:Foreground="White"
             d:Text="W0 D0"
-            FontFamily="Arial"
-            FontSize="30"
-            FontWeight="Bold"
+            Style="{StaticResource MajorPoints}"
             Text="{Binding CurrentGame.SurTeam.Score.MajorPointsOnFront}"
             TextAlignment="Center" />
         <TextBlock
@@ -102,9 +125,11 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:FontFamily="{StaticResource SourceHan}"
+            d:FontSize="32"
+            d:Foreground="White"
             d:Text="求生者队伍名称"
-            FontFamily="{StaticResource SourceHan}"
-            FontSize="32"
+            Style="{StaticResource TeamName}"
             Text="{Binding CurrentGame.SurTeam.Name}"
             TextAlignment="Center"
             TextWrapping="WrapWithOverflow" />
@@ -117,10 +142,12 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:FontFamily="{StaticResource POP1W5}"
+            d:FontSize="80"
+            d:FontWeight="Bold"
+            d:Foreground="White"
             d:Text="0"
-            FontFamily="{StaticResource POP1W5}"
-            FontSize="80"
-            FontWeight="Bold"
+            Style="{StaticResource MinorPoints}"
             Text="{Binding CurrentGame.SurTeam.Score.MinorPoints}"
             TextAlignment="Center" />
         <Border
@@ -158,9 +185,14 @@
                 Name="PickedMapName"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
+                d:FontFamily="{StaticResource Hanyi}"
+                d:FontSize="18"
+                d:Foreground="White"
                 d:Text="唐人街"
-                FontFamily="{StaticResource Hanyi}"
-                FontSize="18"
+                FontFamily="{Binding Settings.TextSettings.MapName.FontFamily}"
+                FontSize="{Binding Settings.TextSettings.MapName.FontSize}"
+                FontWeight="{Binding Settings.TextSettings.MapName.FontWeight}"
+                Foreground="{Binding Settings.TextSettings.MapName.Foreground}"
                 Text="{Binding CurrentGame.PickedMap}" />
         </Border>
         <Border
@@ -176,9 +208,14 @@
             <TextBlock
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="16"
+                d:Foreground="White"
                 d:Text="GAME3 EXTRA FIRST HALF"
-                FontFamily="{StaticResource POP1W5}"
-                FontSize="16"
+                FontFamily="{Binding Settings.TextSettings.GameProgress.FontFamily}"
+                FontSize="{Binding Settings.TextSettings.GameProgress.FontSize}"
+                FontWeight="{Binding Settings.TextSettings.GameProgress.FontWeight}"
+                Foreground="{Binding Settings.TextSettings.GameProgress.Foreground}"
                 TextOptions.TextFormattingMode="Display"
                 TextOptions.TextRenderingMode="ClearType">
                 <TextBlock.Text>
@@ -199,10 +236,12 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:FontFamily="{StaticResource POP1W5}"
+            d:FontSize="80"
+            d:FontWeight="Bold"
+            d:Foreground="White"
             d:Text="0"
-            FontFamily="{StaticResource POP1W5}"
-            FontSize="80"
-            FontWeight="Bold"
+            Style="{StaticResource MinorPoints}"
             Text="{Binding CurrentGame.HunTeam.Score.MinorPoints}"
             TextAlignment="Center" />
         <TextBlock
@@ -213,9 +252,11 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:FontFamily="{StaticResource SourceHan}"
+            d:FontSize="32"
+            d:Foreground="White"
             d:Text="监管者队伍名称"
-            FontFamily="{StaticResource SourceHan}"
-            FontSize="32"
+            Style="{StaticResource TeamName}"
             Text="{Binding CurrentGame.HunTeam.Name}"
             TextAlignment="Center"
             TextWrapping="WrapWithOverflow" />
@@ -226,10 +267,12 @@
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:FontFamily="Arial"
+            d:FontSize="30"
+            d:FontWeight="Bold"
+            d:Foreground="White"
             d:Text="W0 D0"
-            FontFamily="Arial"
-            FontSize="30"
-            FontWeight="Bold"
+            Style="{StaticResource MajorPoints}"
             Text="{Binding CurrentGame.HunTeam.Score.MajorPointsOnFront}"
             TextAlignment="Center" />
         <ui:Image
@@ -284,6 +327,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource SourceHan}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="求生者选手Id"
                 Style="{StaticResource PlayerId}"
                 Text="{Binding CurrentGame.SurPlayerList[0].Member.Name}" />
@@ -295,6 +341,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource SourceHan}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="求生者选手Id"
                 Style="{StaticResource PlayerId}"
                 Text="{Binding CurrentGame.SurPlayerList[1].Member.Name}" />
@@ -306,6 +355,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource SourceHan}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="求生者选手Id"
                 Style="{StaticResource PlayerId}"
                 Text="{Binding CurrentGame.SurPlayerList[2].Member.Name}" />
@@ -317,6 +369,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource SourceHan}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="求生者选手Id"
                 Style="{StaticResource PlayerId}"
                 Text="{Binding CurrentGame.SurPlayerList[3].Member.Name}" />
@@ -333,10 +388,18 @@
                 VerticalAlignment="Center"
                 Orientation="Horizontal">
                 <TextBlock
+                    d:FontFamily="{StaticResource POP1W5}"
+                    d:FontSize="22"
+                    d:Foreground="White"
                     d:Text="25"
                     Style="{StaticResource SurData}"
                     Text="{Binding CurrentGame.SurPlayerList[0].Data.MachineDecoded}" />
-                <TextBlock Style="{StaticResource SurData}" Text="%" />
+                <TextBlock
+                    d:FontFamily="{StaticResource POP1W5}"
+                    d:FontSize="22"
+                    d:Foreground="White"
+                    Style="{StaticResource SurData}"
+                    Text="%" />
             </StackPanel>
         </Border>
         <Border
@@ -350,10 +413,18 @@
                 VerticalAlignment="Center"
                 Orientation="Horizontal">
                 <TextBlock
+                    d:FontFamily="{StaticResource POP1W5}"
+                    d:FontSize="22"
+                    d:Foreground="White"
                     d:Text="25"
                     Style="{StaticResource SurData}"
                     Text="{Binding CurrentGame.SurPlayerList[1].Data.MachineDecoded}" />
-                <TextBlock Style="{StaticResource SurData}" Text="%" />
+                <TextBlock
+                    d:FontFamily="{StaticResource POP1W5}"
+                    d:FontSize="22"
+                    d:Foreground="White"
+                    Style="{StaticResource SurData}"
+                    Text="%" />
             </StackPanel>
         </Border>
         <Border
@@ -367,10 +438,18 @@
                 VerticalAlignment="Center"
                 Orientation="Horizontal">
                 <TextBlock
+                    d:FontFamily="{StaticResource POP1W5}"
+                    d:FontSize="22"
+                    d:Foreground="White"
                     d:Text="25"
                     Style="{StaticResource SurData}"
                     Text="{Binding CurrentGame.SurPlayerList[2].Data.MachineDecoded}" />
-                <TextBlock Style="{StaticResource SurData}" Text="%" />
+                <TextBlock
+                    d:FontFamily="{StaticResource POP1W5}"
+                    d:FontSize="22"
+                    d:Foreground="White"
+                    Style="{StaticResource SurData}"
+                    Text="%" />
             </StackPanel>
         </Border>
         <Border
@@ -384,10 +463,18 @@
                 VerticalAlignment="Center"
                 Orientation="Horizontal">
                 <TextBlock
+                    d:FontFamily="{StaticResource POP1W5}"
+                    d:FontSize="22"
+                    d:Foreground="White"
                     d:Text="25"
                     Style="{StaticResource SurData}"
                     Text="{Binding CurrentGame.SurPlayerList[3].Data.MachineDecoded}" />
-                <TextBlock Style="{StaticResource SurData}" Text="%" />
+                <TextBlock
+                    d:FontFamily="{StaticResource POP1W5}"
+                    d:FontSize="22"
+                    d:Foreground="White"
+                    Style="{StaticResource SurData}"
+                    Text="%" />
             </StackPanel>
         </Border>
         <!--  砸板命中次数  -->
@@ -398,6 +485,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[0].Data.PalletStunTimes}" />
@@ -409,6 +499,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[1].Data.PalletStunTimes}" />
@@ -420,6 +513,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[2].Data.PalletStunTimes}" />
@@ -431,6 +527,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[3].Data.PalletStunTimes}" />
@@ -443,6 +542,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[0].Data.RescueTimes}" />
@@ -454,6 +556,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[1].Data.RescueTimes}" />
@@ -465,6 +570,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[2].Data.RescueTimes}" />
@@ -476,6 +584,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[3].Data.RescueTimes}" />
@@ -488,6 +599,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[0].Data.HealedTimes}" />
@@ -499,6 +613,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[1].Data.HealedTimes}" />
@@ -510,6 +627,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[2].Data.HealedTimes}" />
@@ -521,6 +641,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[3].Data.HealedTimes}" />
@@ -533,6 +656,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[0].Data.KiteTime}" />
@@ -544,6 +670,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[1].Data.KiteTime}" />
@@ -555,6 +684,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[2].Data.KiteTime}" />
@@ -566,6 +698,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource SurDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
                 Text="{Binding CurrentGame.SurPlayerList[3].Data.KiteTime}" />
@@ -592,6 +727,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource SourceHan}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="监管者选手Id"
                 Style="{StaticResource PlayerId}"
                 Text="{Binding CurrentGame.HunPlayer.Member.Name}" />
@@ -604,6 +742,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource HunDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource HunData}"
                 Text="{Binding CurrentGame.HunPlayer.Data.MachineLeft}" />
@@ -616,6 +757,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource HunDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="8"
                 Style="{StaticResource HunData}"
                 Text="{Binding CurrentGame.HunPlayer.Data.PalletBroken}" />
@@ -628,6 +772,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource HunDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="16"
                 Style="{StaticResource HunData}"
                 Text="{Binding CurrentGame.HunPlayer.Data.HitTimes}" />
@@ -640,6 +787,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource HunDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="0"
                 Style="{StaticResource HunData}"
                 Text="{Binding CurrentGame.HunPlayer.Data.TerrorShockTimes}" />
@@ -652,6 +802,9 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource HunDataBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="22"
+                d:Foreground="White"
                 d:Text="0"
                 Style="{StaticResource HunData}"
                 Text="{Binding CurrentGame.HunPlayer.Data.DownTimes}" />

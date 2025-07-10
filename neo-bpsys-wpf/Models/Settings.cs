@@ -1,36 +1,36 @@
 using System.Net.Mime;
 using System.Text.Json.Serialization;
+using System.Windows;
 using System.Windows.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Helpers;
 
 namespace neo_bpsys_wpf.Models;
 
-public class Settings
+public partial class Settings : ObservableObject
 {
-    public BpWindowSettings BpWindowSettings { get; set; } = new();
-    public CutSceneWindowSettings CutSceneWindowSettings { get; set; } = new();
-    public ScoreWindowSettings ScoreWindowSettings { get; set; } = new();
-    public GameDataWindowSettings GameDataWindowSettings { get; set; } = new();
-    public WidgetsWindowSettings WidgetsWindowSettings { get; set; } = new();
+    [ObservableProperty] private BpWindowSettings _bpWindowSettings = new();
+    [ObservableProperty] private CutSceneWindowSettings _cutSceneWindowSettings = new();
+    [ObservableProperty] private ScoreWindowSettings _scoreWindowSettings = new();
+    [ObservableProperty] private GameDataWindowSettings _gameDataWindowSettings = new();
+    [ObservableProperty] private WidgetsWindowSettings _widgetsWindowSettings = new();
 }
 
 /// <summary>
 /// 文本设置
 /// </summary>
-/// <param name="color">文本颜色</param>
-/// <param name="fontFamilySite">字体地址</param>
-/// <param name="fontSize">字体大小</param>
-public class TextSettings(string color, string fontFamilySite, double fontSize)
+public partial class TextSettings : ObservableObject
 {
-    public string? Color { get; set; } = color;
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(Foreground))]
+    private string? _color;
 
     /// <summary>
     /// 文本颜色Brush
     /// </summary>
     [JsonIgnore]
-    public Brush ColorBrush => ColorHelper.HexToBrush(string.IsNullOrEmpty(Color) ? "#FFFFFFFF" : Color);
+    public Brush Foreground => ColorHelper.HexToBrush(string.IsNullOrEmpty(Color) ? "#FFFFFFFF" : Color);
 
-    public string? FontFamilySite { get; set; } = fontFamilySite;
+    public string? FontFamilySite { get; set; }
 
     private FontFamily? _fontFamily;
 
@@ -46,7 +46,7 @@ public class TextSettings(string color, string fontFamilySite, double fontSize)
 
             return FontFamilySite.StartsWith("pack://application:,,,/")
                 ? new FontFamily(new Uri(FontFamilySite[..FontFamilySite.IndexOf('#')]),
-                    FontFamilySite[(FontFamilySite.IndexOf('#'))..])
+                    "./" + FontFamilySite[FontFamilySite.IndexOf('#')..])
                 : new FontFamily(FontFamilySite);
         }
         set
@@ -55,8 +55,28 @@ public class TextSettings(string color, string fontFamilySite, double fontSize)
             FontFamilySite = _fontFamily.Source;
         }
     }
+    
+    [ObservableProperty] private FontWeight _fontWeight;
 
-    public double FontSize { get; set; } = fontSize;
+    [ObservableProperty] private double _fontSize;
+    
+    [JsonConstructor]
+    public TextSettings() { }
+
+    /// <summary>
+    /// 文本设置
+    /// </summary>
+    /// <param name="color">文本颜色</param>
+    /// <param name="fontFamilySite">字体地址</param>
+    /// <param name="fontSize">字体大小</param>
+    /// <param name="fontWeight">字体粗细</param>
+    public TextSettings(string color, string? fontFamilySite, double fontSize, FontWeight? fontWeight = null)
+    {
+        Color = color;
+        FontFamilySite = fontFamilySite;
+        FontWeight = fontWeight?? FontWeights.Normal;
+        FontSize = fontSize;
+    }
 }
 
 /// <summary>
@@ -78,24 +98,24 @@ public class BpWindowSettings
 public class BpWindowTextSettings
 {
     public TextSettings Timer { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 58);
+        "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 58, FontWeights.Bold);
 
     public TextSettings TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#Source Han Sans HW SC VF", 28);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 28);
 
     public TextSettings MinorPoints { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 50);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 50, FontWeights.Bold);
 
-    public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 28);
+    public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 28, FontWeights.Bold);
 
     public TextSettings PlayerId { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#Source Han Sans HW SC VF", 16);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 16);
 
     public TextSettings MapName { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#汉仪第五人格体简", 20);
+        "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 20);
 
     public TextSettings GameProgress { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 16);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 16);
 }
 
 /// <summary>
@@ -115,18 +135,21 @@ public class CutSceneWindowSettings
 public class CutSceneWindowTextSettings
 {
     public TextSettings TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#Source Han Sans HW SC VF", 28);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 28);
 
-    public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 28);
+    public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 28, FontWeights.Bold);
 
-    public TextSettings PlayerId { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#Source Han Sans HW SC VF", 18);
+    public TextSettings SurPlayerId { get; set; } =
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 18);
+    
+    public TextSettings HunPlayerId { get; set; } =
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 24);
 
     public TextSettings MapName { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#汉仪第五人格体简", 28);
+        "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 28);
 
     public TextSettings GameProgress { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 24);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 24);
 }
 
 /// <summary>
@@ -149,22 +172,22 @@ public class ScoreWindowSettings
 public class ScoreWindowTextSettings
 {
     public TextSettings MinorPoints { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 100);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 100);
 
     public TextSettings MajorPoints { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 38);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 38);
 
     public TextSettings TeamName { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 32);
+        "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 32);
 
     public TextSettings ScoreGlobal_TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 18);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 18);
 
     public TextSettings ScoreGlobal_Data { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 16);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 16);
 
     public TextSettings ScoreGlobal_Total { get; set; } =
-        new TextSettings("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 48);
+        new TextSettings("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 48, FontWeights.Bold);
 }
 
 /// <summary>
@@ -183,27 +206,27 @@ public class GameDataWindowSettings
 public class GameDataWindowTextSettings
 {
     public TextSettings TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#Source Han Sans HW SC VF", 32);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 32);
 
     public TextSettings MinorPoints { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 80);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 80, FontWeights.Bold);
 
-    public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 30);
+    public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 30, FontWeights.Bold);
 
     public TextSettings PlayerId { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#Source Han Sans HW SC VF", 22);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 22);
 
     public TextSettings MapName { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#汉仪第五人格体简", 18);
+        "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 18);
 
     public TextSettings GameProgress { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 16);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 16);
 
     public TextSettings SurData { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 16);
+        "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
 
     public TextSettings HunData { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 22);
+        "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
 }
 
 /// <summary>
@@ -222,23 +245,23 @@ public class WidgetsWindowSettings
 public class WidgetsWindowTextSettings
 {
     public TextSettings MapBp_MapName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#汉仪第五人格体简", 22);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 22);
 
     public TextSettings MapBp_PickWord { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 22);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
 
     public TextSettings MapBp_BanWord { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 22);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
 
     public TextSettings MapBp_TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#汉仪第五人格体简", 20);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 22);
 
     public TextSettings BpOverview_TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#Source Han Sans HW SC VF", 22);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 22);
 
     public TextSettings BpOverview_GameProgress { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 22);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
 
     public TextSettings BpOverview_MinorPoints { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/neo-bpsys-wpf;Component/Assets/Fonts/#华康POP1体W5", 50);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 50);
 }

@@ -35,12 +35,25 @@
             <Style TargetType="Image">
                 <Setter Property="Stretch" Value="UniformToFill" />
             </Style>
-            <Style x:Key="PlayerId" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="18" />
-                <Setter Property="FontFamily" Value="{StaticResource SourceHan}" />
+            <Style x:Key="TeamName" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.TeamName.FontSize}" />
+                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.TeamName.FontFamily}" />
+                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.TeamName.Foreground}" />
+                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.TeamName.FontWeight}" />
+            </Style>
+            <Style x:Key="MajorPoints" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MajorPoints.FontSize}" />
+                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MajorPoints.FontFamily}" />
+                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MajorPoints.Foreground}" />
+                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MajorPoints.FontWeight}" />
+            </Style>
+            <Style x:Key="SurPlayerId" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.SurPlayerId.FontSize}" />
+                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.SurPlayerId.FontFamily}" />
                 <Setter Property="HorizontalAlignment" Value="Left" />
                 <Setter Property="VerticalAlignment" Value="Center" />
-                <Setter Property="Foreground" Value="White" />
+                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.SurPlayerId.Foreground}" />
+                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.SurPlayerId.FontWeight}" />
             </Style>
             <Style x:Key="PlayerIdBorder" TargetType="Border">
                 <Setter Property="Height" Value="38" />
@@ -82,10 +95,12 @@
             Canvas.Left="384"
             Canvas.Top="35"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:FontFamily="Arial"
+            d:FontSize="28"
+            d:FontWeight="Bold"
+            d:Foreground="White"
             d:Text="W0 D0"
-            FontFamily="Arial"
-            FontSize="28"
-            FontWeight="Bold"
+            Style="{StaticResource MajorPoints}"
             Text="{Binding CurrentGame.SurTeam.Score.MajorPointsOnFront}"
             TextAlignment="Center" />
         <TextBlock
@@ -94,9 +109,11 @@
             Canvas.Top="32"
             Width="207"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:FontFamily="{StaticResource SourceHan}"
+            d:FontSize="28"
+            d:Foreground="White"
             d:Text="求生者队伍名称"
-            FontFamily="{StaticResource SourceHan}"
-            FontSize="28"
+            Style="{StaticResource TeamName}"
             Text="{Binding CurrentGame.SurTeam.Name}"
             TextAlignment="Center"
             TextWrapping="WrapWithOverflow" />
@@ -106,9 +123,11 @@
             Canvas.Top="31"
             Width="207"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:FontFamily="{StaticResource SourceHan}"
+            d:FontSize="28"
+            d:Foreground="White"
             d:Text="监管者队伍名称"
-            FontFamily="{StaticResource SourceHan}"
-            FontSize="28"
+            Style="{StaticResource TeamName}"
             Text="{Binding CurrentGame.HunTeam.Name}"
             TextAlignment="Center"
             TextWrapping="WrapWithOverflow" />
@@ -117,10 +136,12 @@
             Canvas.Left="965"
             Canvas.Top="35"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:FontFamily="Arial"
+            d:FontSize="28"
+            d:FontWeight="Bold"
+            d:Foreground="White"
             d:Text="W0 D0"
-            FontFamily="Arial"
-            FontSize="28"
-            FontWeight="Bold"
+            Style="{StaticResource MajorPoints}"
             Text="{Binding CurrentGame.HunTeam.Score.MajorPointsOnFront}"
             TextAlignment="Center" />
         <ui:Image
@@ -167,9 +188,14 @@
             <TextBlock
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
+                d:FontFamily="{StaticResource Hanyi}"
+                d:FontSize="28"
+                d:Foreground="White"
                 d:Text="唐人街"
-                FontFamily="{StaticResource Hanyi}"
-                FontSize="28"
+                FontFamily="{Binding Settings.TextSettings.MapName.FontFamily}"
+                FontSize="{Binding Settings.TextSettings.MapName.FontSize}"
+                FontWeight="{Binding Settings.TextSettings.MapName.FontWeight}"
+                Foreground="{Binding Settings.TextSettings.MapName.Foreground}"
                 Text="{Binding CurrentGame.PickedMap}" />
         </Border>
         <Border
@@ -185,9 +211,14 @@
             <TextBlock
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="24"
+                d:Foreground="White"
                 d:Text="GAME3 EXTRA FIRST HALF"
-                FontFamily="{StaticResource POP1W5}"
-                FontSize="24"
+                FontFamily="{Binding Settings.TextSettings.GameProgress.FontFamily}"
+                FontSize="{Binding Settings.TextSettings.GameProgress.FontSize}"
+                FontWeight="{Binding Settings.TextSettings.GameProgress.FontWeight}"
+                Foreground="{Binding Settings.TextSettings.GameProgress.Foreground}"
                 TextOptions.TextFormattingMode="Display"
                 TextOptions.TextRenderingMode="ClearType">
                 <TextBlock.Text>
@@ -263,8 +294,11 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource SourceHan}"
+                d:FontSize="18"
+                d:Foreground="White"
                 d:Text="求生者选手名Id"
-                Style="{StaticResource PlayerId}"
+                Style="{StaticResource SurPlayerId}"
                 Text="{Binding CurrentGame.SurPlayerList[0].Member.Name}" />
         </Border>
         <Border
@@ -275,8 +309,11 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource SourceHan}"
+                d:FontSize="18"
+                d:Foreground="White"
                 d:Text="求生者选手名Id"
-                Style="{StaticResource PlayerId}"
+                Style="{StaticResource SurPlayerId}"
                 Text="{Binding CurrentGame.SurPlayerList[1].Member.Name}" />
         </Border>
         <Border
@@ -287,8 +324,11 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource SourceHan}"
+                d:FontSize="18"
+                d:Foreground="White"
                 d:Text="求生者选手名Id"
-                Style="{StaticResource PlayerId}"
+                Style="{StaticResource SurPlayerId}"
                 Text="{Binding CurrentGame.SurPlayerList[2].Member.Name}" />
         </Border>
         <Border
@@ -299,8 +339,11 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
+                d:FontFamily="{StaticResource SourceHan}"
+                d:FontSize="18"
+                d:Foreground="White"
                 d:Text="求生者选手名Id"
-                Style="{StaticResource PlayerId}"
+                Style="{StaticResource SurPlayerId}"
                 Text="{Binding CurrentGame.SurPlayerList[3].Member.Name}" />
         </Border>
         <!--  Hun  -->
@@ -313,10 +356,16 @@
             Style="{StaticResource PlayerIdBorder}">
             <TextBlock
                 HorizontalAlignment="Center"
+                VerticalAlignment="Center"
                 ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+                d:FontFamily="{StaticResource SourceHan}"
+                d:FontSize="24"
+                d:Foreground="White"
                 d:Text="监管者选手名"
-                FontSize="24"
-                Style="{StaticResource PlayerId}"
+                FontFamily="{Binding Settings.TextSettings.HunPlayerId.FontFamily}"
+                FontSize="{Binding Settings.TextSettings.HunPlayerId.FontSize}"
+                FontWeight="{Binding Settings.TextSettings.HunPlayerId.FontWeight}"
+                Foreground="{Binding Settings.TextSettings.HunPlayerId.Foreground}"
                 Text="{Binding CurrentGame.HunPlayer.Member.Name}" />
         </Border>
 
