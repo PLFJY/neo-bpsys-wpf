@@ -16,8 +16,6 @@ using Wpf.Ui.Controls;
 namespace neo_bpsys_wpf.ViewModels.Windows
 {
     public partial class MainWindowViewModel : ObservableRecipient,
-        IRecipient<NewGameMessage>,
-        IRecipient<SwapMessage>,
         IRecipient<ValueChangedMessage<string>>,
         IRecipient<PropertyChangedMessage<bool>>,
         IRecipient<HighlightMessage>
@@ -55,13 +53,15 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             }
         }
 
+        public Game CurrentGame => _sharedDataService.CurrentGame;
+
         public bool CanGameProgressChange => !IsGuidanceStarted;
 
 
         private GameProgress _selectedGameProgress = GameProgress.Free;
 
-        public string SurTeamName => _sharedDataService.CurrentGame.SurTeam.Name;
-        public string HunTeamName => _sharedDataService.CurrentGame.HunTeam.Name;
+        public string SurTeamName => CurrentGame.SurTeam.Name;
+        public string HunTeamName => CurrentGame.HunTeam.Name;
         public string RemainingSeconds => _sharedDataService.RemainingSeconds;
 
         public GameProgress SelectedGameProgress
@@ -70,7 +70,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             set
             {
                 _selectedGameProgress = value;
-                _sharedDataService.CurrentGame.GameProgress = _selectedGameProgress;
+                CurrentGame.GameProgress = _selectedGameProgress;
             }
         }
 
@@ -134,18 +134,18 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             WeakReferenceMessenger.Default.Send(new NewGameMessage(this, true));
 
             await _messageBoxService.ShowInfoAsync($"已成功创建新对局\n{_sharedDataService.CurrentGame.Guid}", "创建提示");
-            OnPropertyChanged();
+            OnPropertyChanged(nameof(CurrentGame));
         }
 
         [RelayCommand]
         private void Swap()
         {
             //交换阵营
-            (_sharedDataService.MainTeam.Camp, _sharedDataService.AwayTeam.Camp) =
-                (_sharedDataService.AwayTeam.Camp, _sharedDataService.MainTeam.Camp);
+            (CurrentGame.SurTeam.Camp, CurrentGame.HunTeam.Camp) =
+                (CurrentGame.HunTeam.Camp, CurrentGame.SurTeam.Camp);
             //交换队伍
-            (_sharedDataService.CurrentGame.SurTeam, _sharedDataService.CurrentGame.HunTeam) =
-                (_sharedDataService.CurrentGame.HunTeam, _sharedDataService.CurrentGame.SurTeam);
+            (CurrentGame.SurTeam, _sharedDataService.CurrentGame.HunTeam) =
+                (CurrentGame.HunTeam, _sharedDataService.CurrentGame.SurTeam);
 
             WeakReferenceMessenger.Default.Send(new SwapMessage(this, true));
             OnPropertyChanged();
@@ -154,13 +154,13 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [RelayCommand]
         private async Task SaveGameInfoAsync()
         {
-            var json = JsonSerializer.Serialize(_sharedDataService.CurrentGame, _jsonSerializerOptions);
+            var json = JsonSerializer.Serialize(CurrentGame, _jsonSerializerOptions);
             var path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 "neo-bpsys-wpf", 
                 "GameInfoOutput"
             );
-            var fullPath = Path.Combine(path, $"{_sharedDataService.CurrentGame.StartTime:yyyy-MM-dd-HH-mm-ss}.json");
+            var fullPath = Path.Combine(path, $"{CurrentGame.StartTime:yyyy-MM-dd-HH-mm-ss}.json");
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
@@ -220,21 +220,6 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         {
             ActionName = await _gameGuidanceService.PrevStepAsync();
             await Task.Delay(250);
-        }
-
-        public void Receive(NewGameMessage message)
-        {
-            if (message.IsNewGameCreated)
-            {
-                OnPropertyChanged(nameof(SurTeamName));
-                OnPropertyChanged(nameof(HunTeamName));
-            }
-        }
-
-        public void Receive(SwapMessage message)
-        {
-            OnPropertyChanged(nameof(SurTeamName));
-            OnPropertyChanged(nameof(HunTeamName));
         }
 
         public void Receive(ValueChangedMessage<string> message)
