@@ -57,7 +57,6 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
         public bool CanGameProgressChange => !IsGuidanceStarted;
 
-
         private GameProgress _selectedGameProgress = GameProgress.Free;
 
         public string SurTeamName => CurrentGame.SurTeam.Name;

@@ -67,7 +67,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             {
                 { "队伍名称", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.TeamName },
                 { "大比分", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.MajorPoints },
-                { "玩家ID", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.PlayerId },
+                { "玩家ID", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.SurPlayerId },
                 { "地图名称", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.MapName },
                 { "对局进度", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.GameProgress }
             };
@@ -369,7 +369,8 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             if (!await _messageBoxService.ShowConfirmAsync("重置提示", $"是否重置{windowType}的个性化设置")) return;
             _settingsHostService.ResetConfig(windowType);
-            _ = _messageBoxService.ShowInfoAsync("重启后生效");
+            _frontService.ApplySettings(windowType);
+            _ = _messageBoxService.ShowInfoAsync("部分设置重启后生效");
         }
         
         [RelayCommand]
@@ -377,7 +378,8 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         {
             if (!await _messageBoxService.ShowConfirmAsync("重置提示", $"是否重置所有前台窗口的个性化设置")) return;
             _settingsHostService.ResetConfig();
-            _ = _messageBoxService.ShowInfoAsync("重启后生效");
+            _frontService.ApplyAllWindowsSettings();
+            _ = _messageBoxService.ShowInfoAsync("部分设置重启后生效");
         }
 
         public Dictionary<string, TextSettings> BpWindowTextSettings { get; }

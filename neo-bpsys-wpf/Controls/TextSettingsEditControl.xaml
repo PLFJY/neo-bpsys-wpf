@@ -46,6 +46,22 @@
             </ComboBox>
         </StackPanel>
         <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+            <TextBlock VerticalAlignment="Center" Text="字体权重:" />
+            <ComboBox
+                Width="250"
+                Margin="10,0,0,0"
+                IsEditable="True"
+                IsTextSearchEnabled="True"
+                ItemsSource="{Binding FontWeightList}"
+                SelectedValue="{Binding SelectedFontWeight}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock FontWeight="{Binding}" Text="{Binding}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </StackPanel>
+        <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
             <TextBlock VerticalAlignment="Center" Text="字体颜色:" />
             <colorpicker:PortableColorPicker
                 Width="60"

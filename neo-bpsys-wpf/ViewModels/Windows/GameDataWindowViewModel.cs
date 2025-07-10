@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Abstractions.Services;
+using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 
@@ -12,7 +13,8 @@ public partial class GameDataWindowViewModel :
     IRecipient<NewGameMessage>,
     IRecipient<DesignModeChangedMessage>,
     IRecipient<PropertyChangedMessage<bool>>,
-    IRecipient<MemberPropertyChangedMessage>
+    IRecipient<MemberPropertyChangedMessage>,
+    IRecipient<SettingsChangedMessage>
 {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     public GameDataWindowViewModel()
@@ -22,14 +24,16 @@ public partial class GameDataWindowViewModel :
     }
 
     private readonly ISharedDataService _sharedDataService;
+    private readonly ISettingsHostService _settingsHostService;
 
     [ObservableProperty]
     private bool _isDesignMode = false;
 
-    public GameDataWindowViewModel(ISharedDataService sharedDataService)
+    public GameDataWindowViewModel(ISharedDataService sharedDataService, ISettingsHostService settingsHostService)
     {
         IsActive = true;
         _sharedDataService = sharedDataService;
+        _settingsHostService = settingsHostService;
         IsBo3Mode = _sharedDataService.IsBo3Mode;
     }
 
@@ -59,5 +63,13 @@ public partial class GameDataWindowViewModel :
     public void Receive(MemberPropertyChangedMessage message)
     {
         OnPropertyChanged(nameof(CurrentGame));
+    }
+    
+    public GameDataWindowSettings Settings => _settingsHostService.Settings.GameDataWindowSettings;
+
+    public void Receive(SettingsChangedMessage message)
+    {
+        if(message.WindowType == FrontWindowType.ScoreWindow)
+            OnPropertyChanged(nameof(Settings));
     }
 }

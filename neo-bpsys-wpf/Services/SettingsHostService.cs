@@ -1,9 +1,11 @@
 ﻿using neo_bpsys_wpf.Abstractions.Services;
+using neo_bpsys_wpf.Converters;
+using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Models;
+using neo_bpsys_wpf.Views.Windows;
 using System.IO;
 using System.Text.Json;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Views.Windows;
+using System.Windows;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -18,11 +20,13 @@ namespace neo_bpsys_wpf.Services
         private readonly string _settingFileDefaultPath;
         private readonly string _settingFilePath;
         private readonly string _settingFileDirectory;
-        
-        private readonly JsonSerializerOptions _jsonSerializerOptions = new ()
+
+        private readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
-            WriteIndented = true, 
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            PropertyNameCaseInsensitive = true,
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            Converters = { new FontWeightJsonConverter() }
         };
 
         public SettingsHostService(IMessageBoxService messageBoxService)
@@ -35,7 +39,7 @@ namespace neo_bpsys_wpf.Services
             _settingFilePath = Path.Combine(_settingFileDirectory, SettingFileName);
             LoadConfig();
         }
-        
+
         /// <summary>
         /// 保存设置
         /// </summary>
@@ -43,10 +47,16 @@ namespace neo_bpsys_wpf.Services
         {
             if (!Directory.Exists(_settingFileDirectory))
                 Directory.CreateDirectory(_settingFileDirectory);
-
-            File.WriteAllText(_settingFilePath, JsonSerializer.Serialize(Settings, _jsonSerializerOptions));
+            try
+            {
+                File.WriteAllText(_settingFilePath, JsonSerializer.Serialize(Settings, _jsonSerializerOptions));
+            }
+            catch (Exception e)
+            {
+                _messageBoxService.ShowErrorAsync($"配置文件存储错误\n{e.Message}");
+            }
         }
-        
+
         /// <summary>
         /// 加载设置
         /// </summary>
@@ -57,7 +67,7 @@ namespace neo_bpsys_wpf.Services
             var json = File.ReadAllText(_settingFilePath);
             try
             {
-                var settings = JsonSerializer.Deserialize<Settings>(json);
+                var settings = JsonSerializer.Deserialize<Settings>(json, _jsonSerializerOptions);
                 if (settings != null)
                 {
                     Settings = settings;
@@ -67,16 +77,14 @@ namespace neo_bpsys_wpf.Services
                     _messageBoxService.ShowErrorAsync("配置文件为空");
                     ResetConfig();
                 }
-                
             }
-            catch (JsonException e)
+            catch (Exception e)
             {
                 _messageBoxService.ShowErrorAsync($"读取配置文件错误\n{e.Message}");
-                File.Delete(_settingFilePath);
                 ResetConfig();
             }
         }
-        
+
         /// <summary>
         /// 重置设置
         /// </summary>
@@ -108,7 +116,7 @@ namespace neo_bpsys_wpf.Services
             {
                 if (!Directory.Exists(_settingFileDirectory))
                     Directory.CreateDirectory(_settingFileDirectory);
-                
+
                 switch (windowType)
                 {
                     case FrontWindowType.BpWindow:

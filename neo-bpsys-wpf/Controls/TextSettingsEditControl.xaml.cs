@@ -1,24 +1,10 @@
-﻿using ColorPicker.Models;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Data.Common;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace neo_bpsys_wpf.Controls
 {
@@ -43,23 +29,22 @@ namespace neo_bpsys_wpf.Controls
             _applyAction = applyAction;
             _saveAction = saveAction;
             _closeAction = cancelAction;
-            if(textSettings == null) return;
+            if (textSettings == null) return;
             SelectedColor = textSettings.Color.ToColor();
             SelectedFontFamily = textSettings.FontFamily;
             SelectedFontSize = textSettings.FontSize.ToString();
+            SelectedFontWeight = textSettings.FontWeight;
         }
 
-        [ObservableProperty]
-        private List<FontFamily> _fontList;
+        [ObservableProperty] private List<FontFamily> _fontList;
 
-        [ObservableProperty]
-        private Color _selectedColor = Color.FromArgb(255, 255, 255, 255);
+        [ObservableProperty] private Color _selectedColor = Color.FromArgb(255, 255, 255, 255);
 
-        [ObservableProperty]
-        private FontFamily _selectedFontFamily = new("Arial");
+        [ObservableProperty] private FontFamily _selectedFontFamily = new("Arial");
 
-        [ObservableProperty]
-        private string _selectedFontSize = "16.0";
+        [ObservableProperty] private string _selectedFontSize = "16.0";
+
+        [ObservableProperty] private FontWeight _selectedFontWeight = FontWeights.Normal;
 
         [RelayCommand]
         private void Apply()
@@ -70,10 +55,11 @@ namespace neo_bpsys_wpf.Controls
                 return;
             }
 
-            if(double.TryParse(SelectedFontSize, out var fontsize))
+            if (double.TryParse(SelectedFontSize, out var fontsize))
                 _textSettings.FontSize = fontsize;
             _textSettings.FontFamily = SelectedFontFamily;
             _textSettings.Color = SelectedColor.ToArgbHexString();
+            _textSettings.FontWeight = SelectedFontWeight;
             _applyAction.Invoke();
         }
 
@@ -86,10 +72,11 @@ namespace neo_bpsys_wpf.Controls
                 return;
             }
 
-            if(double.TryParse(SelectedFontSize, out var fontsize))
+            if (double.TryParse(SelectedFontSize, out var fontsize))
                 _textSettings.FontSize = fontsize;
             _textSettings.FontFamily = SelectedFontFamily;
             _textSettings.Color = SelectedColor.ToArgbHexString();
+            _textSettings.FontWeight = SelectedFontWeight;
             _saveAction?.Invoke();
         }
 
@@ -98,5 +85,17 @@ namespace neo_bpsys_wpf.Controls
         {
             _closeAction?.Invoke();
         }
+
+        public List<FontWeight> FontWeightList { get; } =
+        [
+            FontWeights.Thin,
+            FontWeights.ExtraLight,
+            FontWeights.Light,
+            FontWeights.Normal,
+            FontWeights.Medium,
+            FontWeights.SemiBold,
+            FontWeights.Bold,
+            FontWeights.ExtraBold, FontWeights.Black
+        ];
     }
 }
