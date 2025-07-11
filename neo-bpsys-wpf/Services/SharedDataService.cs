@@ -9,6 +9,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -17,10 +18,12 @@ namespace neo_bpsys_wpf.Services
     /// </summary>
     public partial class SharedDataService : ISharedDataService
     {
+        private readonly ILogger<SharedDataService> _logger;
         private readonly DispatcherTimer _timer = new();
 
-        public SharedDataService()
+        public SharedDataService(ILogger<SharedDataService> logger)
         {
+            _logger = logger;
             MainTeam = new Team(Camp.Sur);
             AwayTeam = new Team(Camp.Hun);
 
@@ -43,6 +46,7 @@ namespace neo_bpsys_wpf.Services
 
             _timer.Interval = TimeSpan.FromSeconds(1);
             _timer.Tick += Timer_Tick;
+            _logger.LogInformation("SharedDataService initialized");
         }
 
         private readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -81,6 +85,7 @@ namespace neo_bpsys_wpf.Services
                 else
                     HunCharaList?.Add(i.Key, CharacterList[i.Key]);
             }
+            _logger.LogInformation("CharacterList loaded");
         }
 
         /// <summary>
@@ -127,8 +132,10 @@ namespace neo_bpsys_wpf.Services
             get => _isTraitVisible;
             set
             {
+                if(_isTraitVisible == value) return;
                 WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsTraitVisible), _isTraitVisible, value));
                 _isTraitVisible = value;
+                _logger.LogInformation($"IsTraitVisible changed to {value}");
             }
         }
 
@@ -141,8 +148,10 @@ namespace neo_bpsys_wpf.Services
             get => _isBo3Mode;
             set
             {
+                if(_isBo3Mode == value) return;
                 WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsBo3Mode), _isBo3Mode, value));
                 _isBo3Mode = value;
+                _logger.LogInformation($"IsBo3Mode changed to {value}");
             }
         }
 
@@ -157,7 +166,7 @@ namespace neo_bpsys_wpf.Services
             {
                 if (!int.TryParse(value, out _remainingSeconds))
                     _remainingSeconds = 0;
-
+                
                 WeakReferenceMessenger.Default.Send(new ValueChangedMessage<string>(nameof(RemainingSeconds)));
             }
         }
@@ -180,6 +189,7 @@ namespace neo_bpsys_wpf.Services
             if (seconds == null) return;
             _remainingSeconds = (int)seconds;
             _timer.Start();
+            _logger.LogInformation($"Timer started with {seconds} seconds");
         }
 
         public void TimerStop()
@@ -187,6 +197,7 @@ namespace neo_bpsys_wpf.Services
             _remainingSeconds = 0;
             _timer.Stop();
             WeakReferenceMessenger.Default.Send(new ValueChangedMessage<string>(nameof(RemainingSeconds)));
+            _logger.LogInformation("Timer stopped");
         }
 
         /// <summary>
@@ -219,6 +230,7 @@ namespace neo_bpsys_wpf.Services
                     throw new ArgumentOutOfRangeException(nameof(listName), listName, null);
             }
             WeakReferenceMessenger.Default.Send(new BanCountChangedMessage(listName));
+            _logger.LogInformation($"{listName} set ban count to {count}");
         }
 
         /// <summary>
@@ -231,7 +243,9 @@ namespace neo_bpsys_wpf.Services
             set
             {
                 WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<double>(this, nameof(GlobalScoreTotalMargin), _globalScoreTotalMargin, value));
+                if(Math.Abs(_globalScoreTotalMargin - value) < 0.01) return;
                 _globalScoreTotalMargin = value;
+                _logger.LogInformation($"GlobalScoreTotalMargin changed to {value}");
             }
         }
 

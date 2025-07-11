@@ -12,11 +12,5 @@ namespace neo_bpsys_wpf.Views.Windows
         {
             InitializeComponent();
         }
-
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            e.Cancel = true;
-            this.Hide();
-        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using neo_bpsys_wpf.Abstractions.Services;
+﻿using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Abstractions.Services;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
@@ -15,30 +16,34 @@ namespace neo_bpsys_wpf.Views.Windows
     /// </summary>
     public partial class MainWindow : FluentWindow, INavigationWindow
     {
+        private readonly ILogger<MainWindow> _logger;
+
         public MainWindow(
             INavigationService navigationService,
             IMessageBoxService messageBoxService,
-            IInfoBarService infoBarService
+            IInfoBarService infoBarService,
+            ILogger<MainWindow> logger
         )
         {
+            _logger = logger;
             InitializeComponent();
             navigationService.SetNavigationControl(RootNavigation);
             infoBarService.SetInfoBarControl(InfoBar);
-            this.Closing += MainWindow_Closing;
         }
 
-        private void MainWindow_Closing(object? sender, CancelEventArgs e)
+        protected override void OnClosing(CancelEventArgs e)
         {
+            base.OnClosing(e);
             e.Cancel = true;
-            ConfirmToExitAsync();
+            _ = ConfirmToExitAsync();
         }
 
         private void ExitButton_Click(object sender, RoutedEventArgs e)
         {
-            ConfirmToExitAsync();
+            _ = ConfirmToExitAsync();
         }
 
-        private static async void ConfirmToExitAsync()
+        private async Task ConfirmToExitAsync()
         {
             var messageBox = new MessageBox()
             {
@@ -53,6 +58,7 @@ namespace neo_bpsys_wpf.Views.Windows
 
             if (result == MessageBoxResult.Primary)
             {
+                _logger.LogInformation("Application Closing");
                 Application.Current.Shutdown();
             }
         }
@@ -99,7 +105,11 @@ namespace neo_bpsys_wpf.Views.Windows
 
         public void ShowWindow() => Show();
 
-        public bool Navigate(Type pageType) => RootNavigation.Navigate(pageType);
+        public bool Navigate(Type pageType)
+        {
+            _logger.LogInformation("Navigate to {PageType}", pageType);
+            return RootNavigation.Navigate(pageType);
+        }
 
         public void SetPageService(INavigationViewPageProvider navigationViewPageProvider) =>
             RootNavigation.SetPageProviderService(navigationViewPageProvider);

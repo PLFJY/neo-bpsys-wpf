@@ -221,6 +221,11 @@
                     Command="{Binding HopToGameOutputDirCommand}"
                     Content="打开对局文件输出目录"
                     Icon="{ui:SymbolIcon Symbol=Games24}" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding HopToLogDirCommand}"
+                    Content="打开日志目录"
+                    Icon="{ui:SymbolIcon Symbol=Games24}" />
             </WrapPanel>
         </Border>
         <TextBlock
