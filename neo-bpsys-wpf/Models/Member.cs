@@ -48,6 +48,7 @@ public partial class Member : ObservableObject
         set
         {
             SetProperty(ref _image, value);
+            ImageUri = null;
             OnPropertyChanged();
             OnPropertyChanged(nameof(IsImageValid));
             WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this));
