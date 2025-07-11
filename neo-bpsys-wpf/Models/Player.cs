@@ -9,13 +9,8 @@ namespace neo_bpsys_wpf.Models;
 /// <summary>
 /// 选手类, 注意与 <see cref="Models.Member"/> 类做区分，这是表示队伍内的成员，本类是表示上场的选手, <see cref="Player"/> 类包含操纵它的 <see cref="Models.Member"/>
 /// </summary>
-public partial class Player : ObservableRecipient, IRecipient<MemberPropertyChangedMessage>
+public partial class Player : ObservableRecipient, IRecipient<MemberPropertyChangedMessage>, IRecipient<MemberOnFieldChangedMessage>, IRecipient<SwapMessage>
 {
-    //public Player()
-    //{
-    //    IsActive = true;
-    //}
-
     public Player(Member member, bool isMemberValid)
     {
         Member = member;
@@ -39,4 +34,10 @@ public partial class Player : ObservableRecipient, IRecipient<MemberPropertyChan
     [JsonIgnore] public ImageSource? PictureShown => Character == null ? Member?.Image : Character.HalfImage;
 
     public void Receive(MemberPropertyChangedMessage message) => OnPropertyChanged(nameof(PictureShown));
+    public void Receive(MemberOnFieldChangedMessage message) => OnPropertyChanged(nameof(PictureShown));
+    public void Receive(SwapMessage message)
+    {
+        if(message.IsSwapped)
+            OnPropertyChanged(nameof(PictureShown));
+    }
 }
