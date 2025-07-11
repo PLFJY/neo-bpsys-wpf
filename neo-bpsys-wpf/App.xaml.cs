@@ -86,7 +86,7 @@ namespace neo_bpsys_wpf
                 services.AddSingleton<ScoreWindowViewModel>();
                 services.AddSingleton<GameDataWindow>(sp => new GameDataWindow()
                 {
-                    DataContext = sp.GetRequiredService<BpWindowViewModel>(),
+                    DataContext = sp.GetRequiredService<GameDataWindowViewModel>(),
                 });
                 services.AddSingleton<GameDataWindowViewModel>();
                 services.AddSingleton<WidgetsWindow>(sp => new WidgetsWindow()

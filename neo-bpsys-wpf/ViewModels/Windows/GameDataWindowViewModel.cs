@@ -69,7 +69,7 @@ public partial class GameDataWindowViewModel :
 
     public void Receive(SettingsChangedMessage message)
     {
-        if(message.WindowType == FrontWindowType.ScoreWindow)
+        if(message.WindowType == FrontWindowType.GameDataWindow)
             OnPropertyChanged(nameof(Settings));
     }
 }
