@@ -433,6 +433,7 @@
                 VerticalAlignment="Center"
                 d:FontFamily="{StaticResource POP1W5}"
                 d:FontSize="16"
+                d:Foreground="White"
                 d:Text="GAME3 EXTRA FIRST HALF"
                 FontFamily="{Binding Settings.TextSettings.GameProgress.FontFamily}"
                 FontSize="{Binding Settings.TextSettings.GameProgress.FontSize}"
@@ -450,33 +451,33 @@
         </Border>
         <!--  Global Ban  -->
         <!--  Hun  -->
-        <Image
+        <Border
             Name="HunGlobalBan0"
             Canvas.Left="672"
             Canvas.Top="746"
             Width="30"
             Height="30"
-            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/厂长.png"
-            Source="{Binding CurrentGame.HunTeam.GlobalBannedHunList[0].HeaderImageSingleColor}" />
-        <Image
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+            <Image d:Source="/Assets/厂长.png" Source="{Binding CurrentGame.HunTeam.GlobalBannedHunList[0].HeaderImageSingleColor}" />
+        </Border>
+        <Border
             Name="HunGlobalBan1"
             Canvas.Left="705"
             Canvas.Top="746"
             Width="30"
             Height="30"
-            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/厂长.png"
-            Source="{Binding CurrentGame.HunTeam.GlobalBannedHunList[1].HeaderImageSingleColor}" />
-        <Image
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+            <Image d:Source="/Assets/厂长.png" Source="{Binding CurrentGame.HunTeam.GlobalBannedHunList[1].HeaderImageSingleColor}" />
+        </Border>
+        <Border
             Name="HunGlobalBan2"
             Canvas.Left="738"
             Canvas.Top="746"
             Width="30"
             Height="30"
-            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/厂长.png"
-            Source="{Binding CurrentGame.HunTeam.GlobalBannedHunList[2].HeaderImageSingleColor}" />
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+            <Image d:Source="/Assets/厂长.png" Source="{Binding CurrentGame.HunTeam.GlobalBannedHunList[2].HeaderImageSingleColor}" />
+        </Border>
         <!--  Hun Lock  -->
         <Image
             Name="HunGlobalBanLock0"
@@ -486,7 +487,6 @@
             Height="{Binding ElementName=HunGlobalBan0, Path=ActualHeight}"
             Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
-            Stretch="Fill"
             Tag="nv"
             Visibility="{Binding CanGlobalHunBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
@@ -497,7 +497,6 @@
             Height="{Binding ElementName=HunGlobalBan1, Path=ActualHeight}"
             Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
-            Stretch="Fill"
             Tag="nv"
             Visibility="{Binding CanGlobalHunBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
@@ -508,7 +507,6 @@
             Height="{Binding ElementName=HunGlobalBan2, Path=ActualHeight}"
             Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
-            Stretch="Fill"
             Tag="nv"
             Visibility="{Binding CanGlobalHunBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <!--  Sur  -->
@@ -600,6 +598,7 @@
             Canvas.Top="{Binding ElementName=SurGlobalBan0, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurGlobalBan0, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan0, Path=ActualHeight}"
+            Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
@@ -609,6 +608,7 @@
             Canvas.Top="{Binding ElementName=SurGlobalBan1, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurGlobalBan1, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan1, Path=ActualHeight}"
+            Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
@@ -618,6 +618,7 @@
             Canvas.Top="{Binding ElementName=SurGlobalBan2, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurGlobalBan2, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan2, Path=ActualHeight}"
+            Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
@@ -627,6 +628,7 @@
             Canvas.Top="{Binding ElementName=SurGlobalBan3, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurGlobalBan3, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan3, Path=ActualHeight}"
+            Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[3], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
@@ -636,6 +638,7 @@
             Canvas.Top="{Binding ElementName=SurGlobalBan4, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurGlobalBan4, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan4, Path=ActualHeight}"
+            Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[4], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
@@ -645,6 +648,7 @@
             Canvas.Top="{Binding ElementName=SurGlobalBan5, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurGlobalBan5, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan5, Path=ActualHeight}"
+            Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[5], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
@@ -654,6 +658,7 @@
             Canvas.Top="{Binding ElementName=SurGlobalBan6, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurGlobalBan6, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan6, Path=ActualHeight}"
+            Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[6], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
@@ -663,6 +668,7 @@
             Canvas.Top="{Binding ElementName=SurGlobalBan7, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurGlobalBan7, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan7, Path=ActualHeight}"
+            Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[7], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
@@ -672,6 +678,7 @@
             Canvas.Top="{Binding ElementName=SurGlobalBan8, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurGlobalBan8, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan8, Path=ActualHeight}"
+            Panel.ZIndex="1"
             Source="{Binding GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[8], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />

@@ -207,9 +207,10 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             }
 
             [RelayCommand]
-            private static void ClearMemberImage(Member member)
+            private async void ClearMemberImage(Member member)
             {
-                member.Image = null;
+                if (await _messageBoxService.ShowConfirmAsync("清除提示", $"是否清除选手{(string.IsNullOrEmpty(member.Name) ? string.Empty : member.Name)}的定妆照"))
+                    member.Image = null;
             }
         }
     }
