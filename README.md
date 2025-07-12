@@ -2,7 +2,8 @@
 
 powered by <img src="https://raw.githubusercontent.com/PLFJY/neo-bpsys-wpf/refs/heads/main/neo-bpsys-wpf/Assets/logo_net.jpg" width="30px" height="25px"> 9.0.4 & <img src="https://raw.githubusercontent.com/PLFJY/neo-bpsys-wpf/refs/heads/main/neo-bpsys-wpf/Assets/wpfui.png" width="30px" height="25px"> 4.0.3
 
-[![](https://img.shields.io/github/issues/plfjy/neo-bpsys-wpf.svg)](https://github.com/plfjy/neo-bpsys-wpf/issues) [![](https://img.shields.io/github/forks/plfjy/neo-bpsys-wpf.svg)](https://github.com/plfjy/neo-bpsys-wpf/network) [![](https://img.shields.io/github/stars/plfjy/neo-bpsys-wpf.svg)](https://github.com/plfjy/neo-bpsys-wpf/stargazers) [![](https://img.shields.io/github/release/plfjy/neo-bpsys-wpf.svg)](https://github.com/caiyongji/emoji-list/releases)
+![GitHub License](https://img.shields.io/github/license/plfjy/neo-bpsys-wpf) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/plfjy/neo-bpsys-wpf) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-pr/plfjy/neo-bpsys-wpf) ![GitHub forks](https://img.shields.io/github/forks/plfjy/neo-bpsys-wpf?style=flat) ![GitHub Repo stars](https://img.shields.io/github/stars/plfjy/neo-bpsys-wpf?style=flat)
+![GitHub Release](https://img.shields.io/github/v/release/plfjy/neo-bpsys-wpf) ![GitHub Downloads (specific asset, all releases)](https://img.shields.io/github/downloads/plfjy/neo-bpsys-wpf/neo-bpsys-wpf_Installer.exe)
 
 [项目官网](https://bpsys.plfjy.top/) | [备用官网](https://plfjy.github.io/neo-bpsys-website/) | [项目仓库](https://github.com/PLFJY/neo-bpsys-wpf) | [使用文档](https://docs.bpsys.plfjy.top/docs/neo-bpsys-wpf%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3/%E5%89%8D%E8%A8%80) | [开发文档](https://docs.bpsys.plfjy.top/docs/%E5%BC%80%E5%8F%91%E6%96%87%E6%A1%A3) | [QQ交流群](https://qm.qq.com/q/uqoK5tMtJQ)
 
@@ -47,10 +48,14 @@ Release有提前编译好的安装包可以直接下载并安装
 
 ```cmd
 git clone https://github.com/PLFJY/neo-bpsys-wpf.git
+
 cd neo-bpsys-wpf
 mkdir build
+
 dotnet publish ".\neo-bpsys-wpf\neo-bpsys-wpf.csproj" -c Release -o ".\build\neo-bpsys-wpf"
-:: Pack installer
+```
+安装包构建
+```cmd
 ".\InstallerGenerate\Inno Setup 6\ISCC.exe" ".\InstallerGenerate\build_Installer.iss"
 ```
 
@@ -65,5 +70,5 @@ dotnet publish ".\neo-bpsys-wpf\neo-bpsys-wpf.csproj" -c Release -o ".\build\neo
 ---
 
 
-## Stargazers over time
+## :star: Stargazers over time
 [![Stargazers over time](https://starchart.cc/PLFJY/neo-bpsys-wpf.svg?variant=adaptive)](https://starchart.cc/PLFJY/neo-bpsys-wpf)
