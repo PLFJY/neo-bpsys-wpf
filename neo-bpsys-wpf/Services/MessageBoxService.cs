@@ -1,4 +1,5 @@
 ﻿using neo_bpsys_wpf.Abstractions.Services;
+using neo_bpsys_wpf.Views.Windows;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Services
@@ -26,6 +27,7 @@ namespace neo_bpsys_wpf.Services
                 PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Delete24 },
                 CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
                 CloseButtonText = secondaryButtonText,
+                Owner = App.Current.MainWindow,
             };
             var result = await messageBox.ShowDialogAsync();
 
@@ -47,6 +49,7 @@ namespace neo_bpsys_wpf.Services
                 Content = message,
                 CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Dismiss24 },
                 CloseButtonText = closeButtonText,
+                Owner = App.Current.MainWindow,
             };
 
             await messageBox.ShowDialogAsync();
@@ -67,6 +70,7 @@ namespace neo_bpsys_wpf.Services
                 Content = message,
                 CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Dismiss24 },
                 CloseButtonText = closeButtonText,
+                Owner = App.Current.MainWindow,
             };
 
             await messageBox.ShowDialogAsync();
@@ -89,7 +93,8 @@ namespace neo_bpsys_wpf.Services
                 PrimaryButtonText = primaryButtonText,
                 CloseButtonText = secondaryButtonText,
                 CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Dismiss24 },
-                PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Checkmark24 }
+                PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Checkmark24 },
+                Owner = App.Current.MainWindow
             };
             var result = await messageBox.ShowDialogAsync();
 

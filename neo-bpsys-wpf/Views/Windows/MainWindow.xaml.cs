@@ -53,6 +53,7 @@ namespace neo_bpsys_wpf.Views.Windows
                 PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.ArrowExit20 },
                 CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
                 CloseButtonText = "取消",
+                Owner = App.Current.MainWindow,
             };
             var result = await messageBox.ShowDialogAsync();
 
