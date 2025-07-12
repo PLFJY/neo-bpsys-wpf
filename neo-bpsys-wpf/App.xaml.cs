@@ -130,7 +130,8 @@ namespace neo_bpsys_wpf
                 services.AddSingleton<WidgetsWindowViewModel>();
                 services.AddTransient<ScoreManualWindow>(sp => new ScoreManualWindow()
                 {
-                    DataContext = sp.GetRequiredService<ScoreManualWindowViewModel>()
+                    DataContext = sp.GetRequiredService<ScoreManualWindowViewModel>(),
+                    Owner = App.Current.MainWindow
                 });
                 services.AddSingleton<ScoreManualWindowViewModel>();
 

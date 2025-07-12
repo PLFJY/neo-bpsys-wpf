@@ -46,8 +46,7 @@
                         Command="{Binding HideAllWindowsCommand}"
                         Content="全部关闭" />
                 </StackPanel>
-                <ToggleButton
-                    x:Name="IsEditMode"
+                <ui:ToggleSwitch
                     Grid.Row="2"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
@@ -56,7 +55,7 @@
                         <ui:SymbolIcon Symbol="Edit24" />
                         <TextBlock Margin="10,0,0,0" Text="设计模式" />
                     </StackPanel>
-                </ToggleButton>
+                </ui:ToggleSwitch>
                 <TextBlock
                     Grid.Row="3"
                     Margin="0,10,0,0"

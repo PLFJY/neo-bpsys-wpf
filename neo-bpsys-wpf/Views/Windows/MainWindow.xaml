@@ -12,8 +12,8 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="后台控制"
-    Width="880"
-    Height="720"
+    Width="910"
+    Height="780"
     d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel,
                                      IsDesignTimeCreatable=True}"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
@@ -214,35 +214,25 @@
                     Command="{Binding NewGameCommand}"
                     Content="新对局 (重置)"
                     Icon="{ui:SymbolIcon Symbol=Add24}" />
-                <ToggleButton
-                    Margin="0,0,10,10"
-                    IsChecked="{Binding IsBo3Mode}"
-                    IsEnabled="{Binding CanGameProgressChange}">
+                <Border Margin="0,0,10,10" Style="{StaticResource Card}">
                     <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="ArrowSwap24">
-                            <ui:SymbolIcon.Style>
-                                <Style TargetType="ui:SymbolIcon">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding CanGameProgressChange}" Value="false">
-                                            <Setter Property="Foreground" Value="Gray" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ui:SymbolIcon.Style>
-                        </ui:SymbolIcon>
-                        <TextBlock Margin="10,0,0,0" Text="切换至BO3模式">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding CanGameProgressChange}" Value="false">
-                                            <Setter Property="Foreground" Value="Gray" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                        <TextBlock
+                            Grid.Row="0"
+                            VerticalAlignment="Center"
+                            Text="赛制:" />
+                        <RadioButton
+                            Margin="10,0,0,0"
+                            Content="BO5"
+                            GroupName="Bo3Mode"
+                            IsChecked="True"
+                            IsEnabled="{Binding CanGameProgressChange}" />
+                        <RadioButton
+                            Content="BO3"
+                            GroupName="Bo3Mode"
+                            IsChecked="{Binding IsBo3Mode}"
+                            IsEnabled="{Binding CanGameProgressChange}" />
                     </StackPanel>
-                </ToggleButton>
+                </Border>
                 <TextBlock
                     Margin="0,0,10,10"
                     VerticalAlignment="Center"

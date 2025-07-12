@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Models;
@@ -22,14 +23,11 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
         private readonly ISharedDataService _sharedDataService;
         private readonly IFrontService _frontService;
-        private readonly ScoreManualWindow _scoreManual;
 
-        public ScorePageViewModel(ISharedDataService sharedDataService, IFrontService frontService,
-            ScoreManualWindow scoreManual)
+        public ScorePageViewModel(ISharedDataService sharedDataService, IFrontService frontService)
         {
             _sharedDataService = sharedDataService;
             _frontService = frontService;
-            _scoreManual = scoreManual;
             GameList = GameListBo5;
             IsActive = true;
             _isBo3Mode = _sharedDataService.IsBo3Mode;
@@ -110,9 +108,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
         [RelayCommand]
-        private void ManualControl()
+        private static void ManualControl()
         {
-            _scoreManual.ShowDialog();
+            App.Services.GetRequiredService<ScoreManualWindow>().ShowDialog();
         }
 
         #endregion
