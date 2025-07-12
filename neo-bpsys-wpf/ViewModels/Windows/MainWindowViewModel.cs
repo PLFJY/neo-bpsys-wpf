@@ -10,6 +10,7 @@ using neo_bpsys_wpf.Views.Pages;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
@@ -38,6 +39,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         private readonly IMessageBoxService _messageBoxService;
         private readonly IGameGuidanceService _gameGuidanceService;
         private readonly IInfoBarService _infoBarService;
+        private readonly ILogger<MainWindowViewModel> _logger;
         [ObservableProperty] private ApplicationTheme _applicationTheme = ApplicationTheme.Dark;
 
         private bool _isGuidanceStarted;
@@ -58,9 +60,6 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         public bool CanGameProgressChange => !IsGuidanceStarted;
 
         private GameProgress _selectedGameProgress = GameProgress.Free;
-
-        public string SurTeamName => CurrentGame.SurTeam.Name;
-        public string HunTeamName => CurrentGame.HunTeam.Name;
         public string RemainingSeconds => _sharedDataService.RemainingSeconds;
 
         public GameProgress SelectedGameProgress
@@ -79,12 +78,14 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             ISharedDataService sharedDataService,
             IMessageBoxService messageBoxService,
             IGameGuidanceService gameGuidanceService,
-            IInfoBarService infoBarService)
+            IInfoBarService infoBarService,
+            ILogger<MainWindowViewModel> logger)
         {
             _sharedDataService = sharedDataService;
             _messageBoxService = messageBoxService;
             _gameGuidanceService = gameGuidanceService;
             _infoBarService = infoBarService;
+            _logger = logger;
             _isGuidanceStarted = false;
             _jsonSerializerOptions = new JsonSerializerOptions()
             {
@@ -102,6 +103,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         {
             await Task.Delay(60);
             ApplicationThemeManager.Apply(ApplicationTheme, WindowBackdropType.Mica, true);
+            _logger.LogInformation($"Theme changed to {ApplicationTheme}");
         }
 
         [RelayCommand]
@@ -131,9 +133,10 @@ namespace neo_bpsys_wpf.ViewModels.Windows
 
             //发送新对局已创建的消息
             WeakReferenceMessenger.Default.Send(new NewGameMessage(this, true));
-
-            await _messageBoxService.ShowInfoAsync($"已成功创建新对局\n{_sharedDataService.CurrentGame.Guid}", "创建提示");
+            
             OnPropertyChanged(nameof(CurrentGame));
+            await _messageBoxService.ShowInfoAsync($"已成功创建新对局\n{CurrentGame.Guid}", "创建提示");
+            _logger.LogInformation($"New Game Created{CurrentGame.Guid}");
         }
 
         [RelayCommand]
@@ -147,6 +150,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
                 (CurrentGame.HunTeam, _sharedDataService.CurrentGame.SurTeam);
 
             WeakReferenceMessenger.Default.Send(new SwapMessage(this, true));
+            _logger.LogInformation("Team swapped");
             OnPropertyChanged();
         }
 
@@ -167,10 +171,12 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             {
                 await File.WriteAllTextAsync(fullPath, json);
                 await _messageBoxService.ShowInfoAsync($"已成功保存到\n{fullPath}", "保存提示");
+                _logger.LogInformation($"Save game {CurrentGame.Guid} info successfully");
             }
             catch (Exception ex)
             {
                 await _messageBoxService.ShowInfoAsync($"保存失败\n{ex.Message}", "保存提示");
+                _logger.LogError($"Save game {CurrentGame.Guid} info failed\n{ex.Message}");
             }
         }
 
@@ -178,63 +184,83 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         [RelayCommand]
         private void TimerStart()
         {
-            if (int.TryParse(TimerTime, out int time))
+            if (int.TryParse(TimerTime, out var time))
+            {
+                _logger.LogInformation($"Calling timer started with {time} seconds");
                 _sharedDataService.TimerStart(time);
+            }
             else
+            {
                 _messageBoxService.ShowErrorAsync("输入不合法");
+                _logger.LogError("Timer input is not valid");
+            }
         }
 
         [RelayCommand]
         private void TimerStop()
         {
+            _logger.LogInformation("Calling Time to stop");
             _sharedDataService.TimerStop();
         }
 
         [RelayCommand]
         private async Task StartNavigationAsync()
         {
+            _logger.LogInformation("Calling GameGuidance to start");
             var result = await _gameGuidanceService.StartGuidance();
             if (string.IsNullOrEmpty(result)) return;
             ActionName = result;
             IsGuidanceStarted = true;
+            _logger.LogInformation($"Accepted current step: {result}");
         }
 
         [RelayCommand]
         private void StopNavigation()
         {
+            _logger.LogInformation("Calling GameGuidance to stop");
             _gameGuidanceService.StopGuidance();
             IsGuidanceStarted = false;
             ActionName = string.Empty;
+            _logger.LogInformation("Accepted Current step: None");
         }
 
         [RelayCommand]
         private async Task NavigateToNextStepAsync()
         {
+            _logger.LogInformation("Calling navigating to the next step");
             ActionName = await _gameGuidanceService.NextStepAsync();
+            _logger.LogInformation($"Accepted current step: {ActionName}");
             await Task.Delay(250);
         }
 
         [RelayCommand]
         private async Task NavigateToPreviousStepAsync()
         {
+            _logger.LogInformation("Calling navigating to the previous step");
             ActionName = await _gameGuidanceService.PrevStepAsync();
+            _logger.LogInformation($"Accepted current step: {ActionName}");
             await Task.Delay(250);
         }
 
         public void Receive(ValueChangedMessage<string> message)
         {
-            if (message.Value == nameof(_sharedDataService.RemainingSeconds))
+            switch (message.Value)
             {
-                OnPropertyChanged(nameof(RemainingSeconds));
+                case nameof(_sharedDataService.RemainingSeconds):
+                    OnPropertyChanged(nameof(RemainingSeconds));
+                    break;
             }
         }
 
         public void Receive(PropertyChangedMessage<bool> message)
         {
-            if (message.PropertyName == nameof(IGameGuidanceService.IsGuidanceStarted)
-                && message.NewValue != IsGuidanceStarted)
+            switch (message.PropertyName)
             {
-                IsGuidanceStarted = message.NewValue;
+                case nameof(IGameGuidanceService.IsGuidanceStarted)
+                    when message.NewValue != IsGuidanceStarted:
+                    IsGuidanceStarted = message.NewValue;
+                    _logger.LogInformation($"Accepted IsGuidanceStarted value: {message.NewValue}");
+                    break;
             }
         }
 
@@ -245,18 +271,11 @@ namespace neo_bpsys_wpf.ViewModels.Windows
             get => _isBo3Mode;
             set
             {
-                _isBo3Mode = value;
+                SetProperty(ref _isBo3Mode, value);
                 _sharedDataService.IsBo3Mode = _isBo3Mode;
-                if (!IsBo3Mode)
-                {
-                    GameList = GameListBo5;
-                }
-                else
-                {
-                    GameList = GameListBo3;
-                }
-
-                OnPropertyChanged(nameof(IsBo3Mode));
+                GameList = !IsBo3Mode ? GameListBo5 : GameListBo3;
+                _logger.LogInformation($"Accepted IsBo3Mode value: {value}");
+                OnPropertyChanged();
             }
         }
 
@@ -268,6 +287,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows
         {
             IsSwapHighlighted = message.GameAction == GameAction.PickCamp;
             IsEndGuidanceHighlighted = message.GameAction == GameAction.EndGuidance;
+            _logger.LogInformation($"Accepted highlight message: {message.GameAction}");
         }
 
         public string TimerTime { get; set; } = "30";

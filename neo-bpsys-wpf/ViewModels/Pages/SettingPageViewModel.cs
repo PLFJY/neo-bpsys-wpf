@@ -195,6 +195,13 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         }
 
         [RelayCommand]
+        private static void HopToLogDir()
+        {
+            Process.Start("explorer.exe",
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", "Log"));
+        }
+
+        [RelayCommand]
         private static void ManualGc()
         {
             GC.Collect();

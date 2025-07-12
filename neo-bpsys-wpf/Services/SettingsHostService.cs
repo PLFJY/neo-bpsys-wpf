@@ -17,7 +17,6 @@ namespace neo_bpsys_wpf.Services
         public Settings Settings { get; set; } = new();
         private readonly IMessageBoxService _messageBoxService;
         private const string SettingFileName = "Config.json";
-        private readonly string _settingFileDefaultPath;
         private readonly string _settingFilePath;
         private readonly string _settingFileDirectory;
 
@@ -32,7 +31,6 @@ namespace neo_bpsys_wpf.Services
         public SettingsHostService(IMessageBoxService messageBoxService)
         {
             _messageBoxService = messageBoxService;
-            _settingFileDefaultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DefaultConfig.json");
             _settingFileDirectory = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "neo-bpsys-wpf");
