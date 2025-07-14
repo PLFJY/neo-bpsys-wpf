@@ -1,10 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
+using neo_bpsys_wpf.Services;
 using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Abstractions.ViewModels
@@ -24,6 +27,8 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
     {
         protected readonly ISharedDataService SharedDataService;
 
+        protected readonly Lazy<ILogger> Logger =
+            new(() => App.Services.GetRequiredService<ILogger>());
         public int Index { get; }
 
         [ObservableProperty]
@@ -34,6 +39,7 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
 
         private bool _isEnabled = true;
 
+        private readonly ILogger<CharaSelectViewModelBase> _logger;
         public bool IsEnabled
         {
             get => _isEnabled;
@@ -60,16 +66,21 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
         [RelayCommand]
         private void Confirm() => SyncChara();
 
-        protected CharaSelectViewModelBase(ISharedDataService sharedDataService, int index = 0)
+        protected CharaSelectViewModelBase(ILogger<CharaSelectViewModelBase> logger, ISharedDataService sharedDataService, int index = 0)
         {
             IsActive = true;
             SharedDataService = sharedDataService;
             Index = index;
+            _logger = logger;
         }
 
         public void Receive(NewGameMessage message)
         {
-            if (!message.IsNewGameCreated) return;
+            if (!message.IsNewGameCreated)
+            {
+                _logger.LogInformation("Received NewGameMessage, but isNewGameCreated is false.");
+                return;
+            }
             SelectedChara = null;
             PreviewImage = null;
         }
@@ -91,6 +102,7 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
             }
 
             IsCharaChangerHighlighted = message.GameAction == GameAction.DistributeChara;
+            _logger.BeginScope("HighlightMessage received: GameAction={GameAction}, Index={Index}", message.GameAction, message.Index);
         }
     }
 }

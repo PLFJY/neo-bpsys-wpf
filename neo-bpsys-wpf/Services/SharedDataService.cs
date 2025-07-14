@@ -60,7 +60,9 @@ namespace neo_bpsys_wpf.Services
         /// <param name="charaListFilePath"></param>
         private void ReadCharaListFromFile(string charaListFilePath)
         {
+            _logger.LogInformation($"Loading character list from {charaListFilePath}");
             if (!File.Exists(charaListFilePath))
+                _logger.LogWarning($"Character list file not found: {charaListFilePath}");
                 return;
 
             // 加载角色数据
@@ -69,8 +71,9 @@ namespace neo_bpsys_wpf.Services
                 characterFileContent,
                 _jsonSerializerOptions
             );
-
+            _logger.LogInformation($"Character list loaded, count: {characters?.Count ?? 0}");
             if (characters == null)
+                _logger.LogError("Failed to deserialize character list from file.");
                 return;
 
             foreach (var i in characters)
@@ -166,7 +169,7 @@ namespace neo_bpsys_wpf.Services
             {
                 if (!int.TryParse(value, out _remainingSeconds))
                     _remainingSeconds = 0;
-                
+                _logger.LogInformation($"RemainingSeconds changed to {RemainingSeconds}");
                 WeakReferenceMessenger.Default.Send(new ValueChangedMessage<string>(nameof(RemainingSeconds)));
             }
         }
@@ -182,6 +185,7 @@ namespace neo_bpsys_wpf.Services
             {
                 _timer.Stop();
             }
+            _logger.LogInformation($"Timer ticked, remaining seconds: {RemainingSeconds}");
         }
 
         public void TimerStart(int? seconds)
