@@ -29,6 +29,7 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
 
         protected readonly Lazy<ILogger> Logger =
             new(() => App.Services.GetRequiredService<ILogger>());
+
         public int Index { get; }
 
         [ObservableProperty]
@@ -39,7 +40,6 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
 
         private bool _isEnabled = true;
 
-        private readonly ILogger<CharaSelectViewModelBase> _logger;
         public bool IsEnabled
         {
             get => _isEnabled;
@@ -52,10 +52,10 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
         }
 
         [ObservableProperty]
-        private bool _isHighlighted = false;
+        private bool _isHighlighted;
 
         [ObservableProperty]
-        private bool _isCharaChangerHighlighted = false;
+        private bool _isCharaChangerHighlighted;
 
         public Dictionary<string, Character> CharaList { get; set; } = [];
 
@@ -66,19 +66,18 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
         [RelayCommand]
         private void Confirm() => SyncChara();
 
-        protected CharaSelectViewModelBase(ILogger<CharaSelectViewModelBase> logger, ISharedDataService sharedDataService, int index = 0)
+        protected CharaSelectViewModelBase(ISharedDataService sharedDataService, int index = 0)
         {
             IsActive = true;
             SharedDataService = sharedDataService;
             Index = index;
-            _logger = logger;
         }
 
         public void Receive(NewGameMessage message)
         {
             if (!message.IsNewGameCreated)
             {
-                _logger.LogInformation("Received NewGameMessage, but isNewGameCreated is false.");
+                Logger.Value.LogInformation("Received NewGameMessage, but new Game is not created.");
                 return;
             }
             SelectedChara = null;
@@ -102,7 +101,7 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
             }
 
             IsCharaChangerHighlighted = message.GameAction == GameAction.DistributeChara;
-            _logger.BeginScope("HighlightMessage received: GameAction={GameAction}, Index={Index}", message.GameAction, message.Index);
+            Logger.Value.LogInformation("HighlightMessage received: GameAction={GameAction}, Index={Index}", message.GameAction, message.Index);
         }
     }
 }

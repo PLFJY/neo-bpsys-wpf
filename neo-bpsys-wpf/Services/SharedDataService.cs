@@ -29,7 +29,8 @@ namespace neo_bpsys_wpf.Services
 
             CurrentGame = new Game(MainTeam, AwayTeam, GameProgress.Free);
 
-            var charaListFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources\\CharacterList.json");
+            var charaListFilePath =
+                Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "CharacterList.json");
             ReadCharaListFromFile(charaListFilePath);
 
             SurCharaList = SurCharaList
@@ -60,10 +61,12 @@ namespace neo_bpsys_wpf.Services
         /// <param name="charaListFilePath"></param>
         private void ReadCharaListFromFile(string charaListFilePath)
         {
-            _logger.LogInformation($"Loading character list from {charaListFilePath}");
+            _logger.LogInformation("Loading character list from {CharaListFilePath}", charaListFilePath);
             if (!File.Exists(charaListFilePath))
-                _logger.LogWarning($"Character list file not found: {charaListFilePath}");
+            {
+                _logger.LogWarning("Character list file not found: {CharaListFilePath}", charaListFilePath);
                 return;
+            }
 
             // 加载角色数据
             var characterFileContent = File.ReadAllText(charaListFilePath);
@@ -71,10 +74,12 @@ namespace neo_bpsys_wpf.Services
                 characterFileContent,
                 _jsonSerializerOptions
             );
-            _logger.LogInformation($"Character list loaded, count: {characters?.Count ?? 0}");
+            _logger.LogInformation("Character list loaded, count: {CharactersCount}", characters?.Count ?? 0);
             if (characters == null)
+            {
                 _logger.LogError("Failed to deserialize character list from file.");
                 return;
+            }
 
             foreach (var i in characters)
             {
@@ -88,6 +93,7 @@ namespace neo_bpsys_wpf.Services
                 else
                     HunCharaList?.Add(i.Key, CharacterList[i.Key]);
             }
+
             _logger.LogInformation("CharacterList loaded");
         }
 
@@ -95,50 +101,61 @@ namespace neo_bpsys_wpf.Services
         /// 主队
         /// </summary>
         public Team MainTeam { get; set; }
+
         /// <summary>
         /// 客队
         /// </summary>
         public Team AwayTeam { get; set; }
+
         /// <summary>
         /// 当前游戏
         /// </summary>
         public Game CurrentGame { get; set; }
+
         /// <summary>
         /// 所有角色
         /// </summary>
         public Dictionary<string, Character> CharacterList { get; set; } = [];
+
         /// <summary>
         /// 求生者角色列表
         /// </summary>
         public Dictionary<string, Character> SurCharaList { get; set; } = [];
+
         /// <summary>
         /// 监管者角色列表
         /// </summary>
         public Dictionary<string, Character> HunCharaList { get; set; } = [];
+
         /// <summary>
         /// 当局禁用是否可禁用
         /// </summary>
         public ObservableCollection<bool> CanCurrentSurBanned { get; set; }
+
         public ObservableCollection<bool> CanCurrentHunBanned { get; set; }
+
         /// <summary>
         /// 全局禁用是否可禁用
         /// </summary>
         public ObservableCollection<bool> CanGlobalSurBanned { get; set; }
+
         public ObservableCollection<bool> CanGlobalHunBanned { get; set; }
 
         /// <summary>
         /// 是否显示辅助特质
         /// </summary>
         private bool _isTraitVisible = true;
+
         public bool IsTraitVisible
         {
             get => _isTraitVisible;
             set
             {
-                if(_isTraitVisible == value) return;
-                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsTraitVisible), _isTraitVisible, value));
+                if (_isTraitVisible == value) return;
+                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsTraitVisible),
+                    _isTraitVisible, value));
                 _isTraitVisible = value;
-                _logger.LogInformation($"IsTraitVisible changed to {value}");
+                _logger.LogInformation("IsTraitVisible changed to {Value}", value);
             }
         }
 
@@ -146,19 +163,22 @@ namespace neo_bpsys_wpf.Services
         /// 是否是BO3模式
         /// </summary>
         private bool _isBo3Mode = false;
+
         public bool IsBo3Mode
         {
             get => _isBo3Mode;
             set
             {
-                if(_isBo3Mode == value) return;
-                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsBo3Mode), _isBo3Mode, value));
+                if (_isBo3Mode == value) return;
+                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsBo3Mode),
+                    _isBo3Mode, value));
                 _isBo3Mode = value;
-                _logger.LogInformation($"IsBo3Mode changed to {value}");
+                _logger.LogInformation("IsBo3Mode changed to {Value}", value);
             }
         }
 
         private int _remainingSeconds = -1;
+
         /// <summary>
         /// 倒计时剩余时间
         /// </summary>
@@ -169,7 +189,7 @@ namespace neo_bpsys_wpf.Services
             {
                 if (!int.TryParse(value, out _remainingSeconds))
                     _remainingSeconds = 0;
-                _logger.LogInformation($"RemainingSeconds changed to {RemainingSeconds}");
+                _logger.LogInformation("RemainingSeconds changed to {S}", RemainingSeconds);
                 WeakReferenceMessenger.Default.Send(new ValueChangedMessage<string>(nameof(RemainingSeconds)));
             }
         }
@@ -185,7 +205,8 @@ namespace neo_bpsys_wpf.Services
             {
                 _timer.Stop();
             }
-            _logger.LogInformation($"Timer ticked, remaining seconds: {RemainingSeconds}");
+
+            _logger.LogInformation("Timer ticked, remaining seconds: {S}", RemainingSeconds);
         }
 
         public void TimerStart(int? seconds)
@@ -193,7 +214,7 @@ namespace neo_bpsys_wpf.Services
             if (seconds == null) return;
             _remainingSeconds = (int)seconds;
             _timer.Start();
-            _logger.LogInformation($"Timer started with {seconds} seconds");
+            _logger.LogInformation("Timer started with {Seconds} seconds", seconds);
         }
 
         public void TimerStop()
@@ -233,23 +254,26 @@ namespace neo_bpsys_wpf.Services
                 default:
                     throw new ArgumentOutOfRangeException(nameof(listName), listName, null);
             }
+
             WeakReferenceMessenger.Default.Send(new BanCountChangedMessage(listName));
-            _logger.LogInformation($"{listName} set ban count to {count}");
+            _logger.LogInformation("{BanListName} set ban count to {Count}", listName, count);
         }
 
         /// <summary>
         /// 分数统计界面 BO3 和 BO5之间"Total"相差的距离
         /// </summary>
         private double _globalScoreTotalMargin = 390;
+
         public double GlobalScoreTotalMargin
         {
             get => _globalScoreTotalMargin;
             set
             {
-                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<double>(this, nameof(GlobalScoreTotalMargin), _globalScoreTotalMargin, value));
-                if(Math.Abs(_globalScoreTotalMargin - value) < 0.01) return;
+                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<double>(this,
+                    nameof(GlobalScoreTotalMargin), _globalScoreTotalMargin, value));
+                if (Math.Abs(_globalScoreTotalMargin - value) < 0.01) return;
                 _globalScoreTotalMargin = value;
-                _logger.LogInformation($"GlobalScoreTotalMargin changed to {value}");
+                _logger.LogInformation("GlobalScoreTotalMargin changed to {Value}", value);
             }
         }
 

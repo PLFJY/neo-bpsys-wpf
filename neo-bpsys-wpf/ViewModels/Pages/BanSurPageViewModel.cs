@@ -30,15 +30,13 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
         public void Receive(SwapMessage message)
         {
-            if (message.IsSwapped)
+            if (!message.IsSwapped) return;
+            for (var i = 0; i < _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray.Length; i++)
             {
-                for (int i = 0; i < _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray.Length; i++)
-                {
-                    BanSurGlobalViewModelList[i].SelectedChara = _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray[i];
-                    BanSurGlobalViewModelList[i].SyncChara();
-                }
-                OnPropertyChanged();
+                BanSurGlobalViewModelList[i].SelectedChara = _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray[i];
+                BanSurGlobalViewModelList[i].SyncChara();
             }
+            OnPropertyChanged();
         }
 
         public ObservableCollection<BanSurCurrentViewModel> BanSurCurrentViewModelList { get; set; }
