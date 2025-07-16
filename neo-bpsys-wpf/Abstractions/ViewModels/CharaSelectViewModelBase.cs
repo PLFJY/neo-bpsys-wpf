@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services;
+using Serilog.Core;
 using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Abstractions.ViewModels
@@ -27,8 +28,7 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
     {
         protected readonly ISharedDataService SharedDataService;
 
-        protected readonly Lazy<ILogger> Logger =
-            new(() => App.Services.GetRequiredService<ILogger>());
+        protected readonly ILogger Logger = logger;
 
         public int Index { get; }
 
@@ -66,7 +66,7 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
         [RelayCommand]
         private void Confirm() => SyncChara();
 
-        protected CharaSelectViewModelBase(ISharedDataService sharedDataService, int index = 0)
+        protected CharaSelectViewModelBase(ISharedDataService sharedDataService, ILogger logger, int index = 0)
         {
             IsActive = true;
             SharedDataService = sharedDataService;
@@ -77,7 +77,7 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
         {
             if (!message.IsNewGameCreated)
             {
-                Logger.Value.LogInformation("Received NewGameMessage, but new Game is not created.");
+                Logger.LogInformation("Received NewGameMessage, but new Game is not created.");
                 return;
             }
             SelectedChara = null;
@@ -101,7 +101,7 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels
             }
 
             IsCharaChangerHighlighted = message.GameAction == GameAction.DistributeChara;
-            Logger.Value.LogInformation("HighlightMessage received: GameAction={GameAction}, Index={Index}", message.GameAction, message.Index);
+            Logger.LogInformation("HighlightMessage received: GameAction={GameAction}, Index={Index}", message.GameAction, message.Index);
         }
     }
 }

@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using System.Collections.ObjectModel;
 using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
@@ -50,15 +51,12 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         public ObservableCollection<BanHunGlobalViewModel> BanHunGlobalViewModelList { get; set; }
 
         //基于模板基类的VM实现
-        public class BanHunCurrentViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+        public class BanHunCurrentViewModel : CharaSelectViewModelBase
         {
-            private readonly ILogger<BanHunCurrentViewModel> _logger;
-
-            public BanHunCurrentViewModel(ISharedDataService sharedDataService, int index = 0, ILogger<BanHunCurrentViewModel> logger = null) : base(sharedDataService, index)
+            public BanHunCurrentViewModel(ISharedDataService sharedDataService, ILogger<BanHunCurrentViewModel> logger, int index = 0) : base(sharedDataService, logger, index)
             {
                 CharaList = sharedDataService.HunCharaList;
                 IsEnabled = sharedDataService.CanCurrentHunBanned[index];
-                _logger = logger;
             }
 
             public override void Receive(BanCountChangedMessage message)
@@ -66,7 +64,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 if (message.ChangedList == BanListName.CanCurrentHunBanned)
                 {
                     IsEnabled = SharedDataService.CanCurrentHunBanned[Index];
-                    _logger.LogInformation($"BanHunCurrentViewModel[{Index}] IsEnabled set to {IsEnabled}.");
+                    Logger.LogInformation($"BanHunCurrentViewModel[{Index}] IsEnabled set to {IsEnabled}.");
                 }
             }
 
@@ -74,22 +72,22 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             {
                 SharedDataService.CurrentGame.CurrentHunBannedList[Index] = SelectedChara;
                 PreviewImage = SharedDataService.CurrentGame.CurrentHunBannedList[Index]?.HeaderImageSingleColor;
-                _logger?.LogInformation($"BanHunCurrentViewModel[{Index}] synced with SelectedChara: {SelectedChara?.Name ?? "null"}.");
+                Logger.LogInformation($"BanHunCurrentViewModel[{Index}] synced with SelectedChara: {SelectedChara?.Name ?? "null"}.");
             }
 
             protected override void SyncIsEnabled()
             {
                 SharedDataService.CanCurrentHunBanned[Index] = IsEnabled;
-                _logger?.LogInformation($"BanHunCurrentViewModel[{Index}] IsEnabled synced to {IsEnabled}.");
+                Logger.LogInformation($"BanHunCurrentViewModel[{Index}] IsEnabled synced to {IsEnabled}.");
             }
 
             protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanHun;
         }
 
-        public class BanHunGlobalViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+        public class BanHunGlobalViewModel : CharaSelectViewModelBase
         {
             private readonly ILogger<BanHunGlobalViewModel> _logger;
-            public BanHunGlobalViewModel(ISharedDataService sharedDataService, int index = 0, ILogger<BanHunGlobalViewModel> logger = null) : base(sharedDataService, index)
+            public BanHunGlobalViewModel(ISharedDataService sharedDataService, ILogger<BanHunGlobalViewModel> logger, int index = 0) : base(sharedDataService, logger, index)
             {
                 CharaList = sharedDataService.HunCharaList;
                 IsEnabled = sharedDataService.CanGlobalHunBanned[index];
