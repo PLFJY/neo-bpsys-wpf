@@ -5,24 +5,34 @@ using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Messages;
 using System.Windows.Media;
+// 添加日志命名空间
+using Microsoft.Extensions.Logging;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
     public partial class MapBpPageViewModel : ObservableRecipient, IRecipient<HighlightMessage>
     {
+        private readonly ILogger<MapBpPageViewModel> _logger;
+
         public ISharedDataService SharedDataService { get; }
 
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public MapBpPageViewModel()
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         {
-            //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+            // 设计时构造函数保持不变
         }
 
-        public MapBpPageViewModel(ISharedDataService sharedDataService)
+        // 修改运行时构造函数添加日志参数
+        public MapBpPageViewModel(ISharedDataService sharedDataService, ILogger<MapBpPageViewModel> logger)
         {
             SharedDataService = sharedDataService;
+            _logger = logger;
+
+            _logger.LogInformation("Initializing MapBpPageViewModel");
+
             IsActive = true;
+            _logger.LogDebug("Message receiver activated");
         }
 
         private Map? _pickedMap;
@@ -32,9 +42,15 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             get => _pickedMap;
             set
             {
-                _pickedMap = value;
-                SharedDataService.CurrentGame.PickedMap = _pickedMap;
-                OnPropertyChanged();
+                if (_pickedMap != value)
+                {
+                    _logger.LogInformation("Setting PickedMap: {NewValue}", value?.ToString() ?? "null");
+                    _pickedMap = value;
+                    SharedDataService.CurrentGame.PickedMap = _pickedMap;
+                    OnPropertyChanged();
+
+                    _logger.LogDebug("PickedMap updated in shared data service");
+                }
             }
         }
 
@@ -45,9 +61,15 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             get => _bannedMap;
             set
             {
-                _bannedMap = value;
-                SharedDataService.CurrentGame.BannedMap = _bannedMap;
-                OnPropertyChanged();
+                if (_bannedMap != value)
+                {
+                    _logger.LogInformation("Setting BannedMap: {NewValue}", value?.ToString() ?? "null");
+                    _bannedMap = value;
+                    SharedDataService.CurrentGame.BannedMap = _bannedMap;
+                    OnPropertyChanged();
+
+                    _logger.LogDebug("BannedMap updated in shared data service");
+                }
             }
         }
 
@@ -59,8 +81,23 @@ namespace neo_bpsys_wpf.ViewModels.Pages
 
         public void Receive(HighlightMessage message)
         {
-            IsPickHighlighted = message.GameAction == GameAction.PickMap;
-            IsBanHighlighted = message.GameAction == GameAction.BanMap;
+            _logger.LogInformation("Received HighlightMessage: {GameAction}", message.GameAction);
+
+            // 原始逻辑不变，增加日志
+            bool newPickState = message.GameAction == GameAction.PickMap;
+            bool newBanState = message.GameAction == GameAction.BanMap;
+
+            if (IsPickHighlighted != newPickState || IsBanHighlighted != newBanState)
+            {
+                IsPickHighlighted = newPickState;
+                IsBanHighlighted = newBanState;
+                _logger.LogDebug("Highlight states updated: Pick={IsPickHighlighted}, Ban={IsBanHighlighted}",
+                    IsPickHighlighted, IsBanHighlighted);
+            }
+            else
+            {
+                _logger.LogDebug("Highlight states unchanged");
+            }
         }
 
         public List<MapSelection> PickedMapSelections { get; } =

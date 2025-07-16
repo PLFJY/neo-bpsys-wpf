@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using neo_bpsys_wpf.Abstractions.Services;
 using System.IO;
+using Microsoft.Extensions.Logging;
 
 namespace neo_bpsys_wpf.Services
 {
@@ -10,19 +11,35 @@ namespace neo_bpsys_wpf.Services
     /// </summary>
     public class FilePickerService : IFilePickerService
     {
+        private readonly ILogger<FilePickerService> _logger;
+
+        public FilePickerService(ILogger<FilePickerService> logger)
+        {
+            _logger = logger;
+        }
+
         /// <summary>
         /// 选择图片
         /// </summary>
         /// <returns>返回图片文件路径</returns>
         public string? PickImage()
         {
+            _logger.LogInformation($"{nameof(FilePickerService)}.{nameof(PickImage)}: Invoking image selection dialog.");
+
             OpenFileDialog openFileDialog = new()
             {
                 Filter =
                     "图片文件 (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp",
             };
 
-            return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
+            if (openFileDialog.ShowDialog() != true)
+            {
+                _logger.LogInformation($"{nameof(FilePickerService)}.{nameof(PickImage)}: User canceled image selection.");
+                return null;
+            }
+
+            _logger.LogInformation($"{nameof(FilePickerService)}.{nameof(PickImage)}: Selected image: {openFileDialog.FileName}");
+            return openFileDialog.FileName;
         }
 
         /// <summary>
@@ -31,13 +48,22 @@ namespace neo_bpsys_wpf.Services
         /// <returns>返回Json文件路径</returns>
         public string? PickJsonFile()
         {
+            _logger.LogInformation($"{nameof(FilePickerService)}.{nameof(PickJsonFile)}: Invoking JSON file selection dialog.");
+
             OpenFileDialog openFileDialog = new()
             {
                 Filter = "Json文件 (*.json) | *.json",
                 DefaultDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources"),
             };
 
-            return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
+            if (openFileDialog.ShowDialog() != true)
+            {
+                _logger.LogInformation($"{nameof(FilePickerService)}.{nameof(PickJsonFile)}: User canceled JSON file selection.");
+                return null;
+            }
+
+            _logger.LogInformation($"{nameof(FilePickerService)}.{nameof(PickJsonFile)}: Selected JSON file: {openFileDialog.FileName}");
+            return openFileDialog.FileName;
         }
     }
 }

@@ -8,11 +8,13 @@ using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Views.Windows;
 using System.Collections.ObjectModel;
+using Microsoft.Extensions.Logging;
 
 namespace neo_bpsys_wpf.ViewModels.Pages
 {
     public partial class PickPageViewModel : ObservableRecipient, IRecipient<HighlightMessage>
     {
+        private readonly ILogger<PickPageViewModel> _logger;
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public PickPageViewModel()
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
@@ -23,8 +25,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages
         private readonly ISharedDataService _sharedDataService;
         private readonly IFrontService _frontService;
 
-        public PickPageViewModel(ISharedDataService sharedDataService, IFrontService frontService)
+        public PickPageViewModel(ISharedDataService sharedDataService, IFrontService frontService, ILogger<PickPageViewModel> logger)
         {
+            _logger = logger;
             _sharedDataService = sharedDataService;
             _frontService = frontService;
             SurPickViewModelList =
@@ -39,6 +42,8 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             AwayHunGlobalBanRecordViewModelList =
                 [.. Enumerable.Range(0, 3).Select(i => new AwayHunGlobalBanRecordViewModel(sharedDataService, i))];
             IsActive = true;
+            _logger.LogInformation("PickPageViewModel initialized with {SurPickCount} Sur picks and {HunPickCount} Hun picks",
+                SurPickViewModelList.Count, HunPickVm != null ? 1 : 0);
         }
 
         [RelayCommand]
@@ -55,9 +60,15 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             if (arg == "Hun")
             {
                 if (HunPickingBorder)
+                {
                     await _frontService.BreathingStart(FrontWindowType.BpWindow, "HunPickingBorder", -1, string.Empty);
+                    _logger.LogInformation("Breathing started for HunPickingBorder");
+                }
                 else
+                {
                     await _frontService.BreathingStop(FrontWindowType.BpWindow, "HunPickingBorder", -1, string.Empty);
+                    _logger.LogInformation("Breathing stopped for HunPickingBorder");
+                }
                 return;
             }
 
@@ -77,6 +88,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                         _ = _frontService.BreathingStart(FrontWindowType.BpWindow, "SurPickingBorder", index,
                             string.Empty);
                     }
+                    _logger.LogInformation("Breathing started for SurPickingBorder at index {Index}", index);
                 }
                 else
                 {
@@ -90,6 +102,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                         _ = _frontService.BreathingStop(FrontWindowType.BpWindow, "SurPickingBorder", index,
                             string.Empty);
                     }
+                    _logger.LogInformation("Breathing stopped for SurPickingBorder at index {Index}", index);
                 }
             }
         }
@@ -104,6 +117,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                     SurPickingBorderList[i] = true;
                     _ = PickingBorderSwitchAsync(i.ToString());
                 }
+                _logger.LogInformation("SurPickingBorderList updated with indices: {Indices}", string.Join(", ", message.Index));
             }
             else
             {
@@ -113,18 +127,21 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                     SurPickingBorderList[i] = false;
                     _ = PickingBorderSwitchAsync(i.ToString());
                 }
+                _logger.LogInformation("SurPickingBorderList reset to false for all indices");
             }
 
             if (message.GameAction == GameAction.PickHun)
             {
                 HunPickingBorder = true;
                 _ = PickingBorderSwitchAsync("Hun");
+                _logger.LogInformation("HunPickingBorder set to true");
             }
             else
             {
                 if (!HunPickingBorder) return;
                 HunPickingBorder = false;
                 _ = PickingBorderSwitchAsync("Hun");
+                _logger.LogInformation("HunPickingBorder set to false");
             }
         }
 
@@ -148,14 +165,18 @@ namespace neo_bpsys_wpf.ViewModels.Pages
             IRecipient<MemberPropertyChangedMessage>,
             IRecipient<SwapMessage>
         {
+            private readonly ILogger<SurPickViewModel> _logger;
+
             private readonly IFrontService _frontService;
             public string PlayerName => SharedDataService.CurrentGame.SurPlayerList[Index].Member.Name;
 
-            public SurPickViewModel(ISharedDataService sharedDataService, IFrontService frontService, int index = 0) :
+            public SurPickViewModel(ILogger<SurPickViewModel> logger, ISharedDataService sharedDataService, IFrontService frontService, int index = 0) :
                 base(sharedDataService, index)
             {
                 _frontService = frontService;
                 CharaList = sharedDataService.SurCharaList;
+                _logger = logger;
+                _logger.LogInformation("SurPickViewModel initialized for player {Index} ({PlayerName})", index, PlayerName);
             }
 
             public override async void SyncChara()
@@ -165,12 +186,16 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                 SharedDataService.CurrentGame.SurPlayerList[Index].Character = SelectedChara;
                 _frontService.FadeInAnimation(FrontWindowType.BpWindow, "SurPick", Index, string.Empty);
                 PreviewImage = SharedDataService.CurrentGame.SurPlayerList[Index].Character?.HeaderImage;
+                _logger.LogInformation("Character synced for player {Index} ({PlayerName}): {CharacterName}",
+                    Index, PlayerName, SelectedChara?.Name ?? "None");
             }
 
             private void RevertSyncChara()
             {
                 SelectedChara = SharedDataService.CurrentGame.SurPlayerList[Index].Character;
                 PreviewImage = SharedDataService.CurrentGame.SurPlayerList[Index].Character?.HeaderImage;
+                _logger.LogInformation("Reverted character sync for player {Index} ({PlayerName}): {CharacterName}",
+                    Index, PlayerName, SelectedChara?.Name ?? "None");
             }
 
             [RelayCommand]
@@ -181,16 +206,21 @@ namespace neo_bpsys_wpf.ViewModels.Pages
                     (SharedDataService.CurrentGame.SurPlayerList[parameter.Source].Character,
                         SharedDataService.CurrentGame.SurPlayerList[parameter.Target].Character);
                 WeakReferenceMessenger.Default.Send(new CharacterSwappedMessage(this));
+                _logger.LogInformation("Swapped characters between players {Target} and {Source}",
+                    parameter.Target, parameter.Source);
                 OnPropertyChanged();
             }
 
             public void Receive(CharacterSwappedMessage message)
             {
                 RevertSyncChara();
+                _logger.LogInformation("Received CharacterSwappedMessage, reverting character sync for player {Index} ({PlayerName})",
+                    Index, PlayerName);
             }
 
             protected override void SyncIsEnabled()
             {
+                _logger.LogError("SyncIsEnabled should not be called in SurPickViewModel, it is not implemented.");
                 throw new NotImplementedException();
             }
 

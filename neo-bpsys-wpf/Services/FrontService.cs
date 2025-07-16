@@ -14,6 +14,7 @@ using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using Path = System.IO.Path;
@@ -25,6 +26,7 @@ namespace neo_bpsys_wpf.Services
     /// </summary>
     public class FrontService : IFrontService
     {
+        private readonly ILogger<FrontService> _logger;
         private readonly Dictionary<FrontWindowType, Window> _frontWindows = [];
         private readonly Dictionary<FrontWindowType, bool> _frontWindowStates = [];
 
@@ -45,15 +47,25 @@ namespace neo_bpsys_wpf.Services
             WidgetsWindow widgetsWindow,
             IMessageBoxService messageBoxService,
             ISharedDataService sharedDataService,
-            ISettingsHostService settingsHostService
+            ISettingsHostService settingsHostService,
+            ILogger<FrontService> logger
         )
         {
+            _logger = logger;
+            _logger.LogInformation($"{nameof(FrontService)}: Initializing front service");
+
             _messageBoxService = messageBoxService;
             _settingsHostService = settingsHostService;
             var savePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "neo-bpsys-wpf");
-            if (!Directory.Exists(savePath)) Directory.CreateDirectory(savePath);
+            if (!Directory.Exists(savePath))
+            {
+                _logger.LogInformation($"{nameof(FrontService)}: Creating application data directory at {savePath}");
+                Directory.CreateDirectory(savePath);
+            }
+
             // 注册窗口和画布
+            _logger.LogInformation($"{nameof(FrontService)}: Registering front windows and canvases");
             RegisterFrontWindowAndCanvas(FrontWindowType.BpWindow, bpWindow);
             RegisterFrontWindowAndCanvas(FrontWindowType.CutSceneWindow, cutSceneWindow);
             RegisterFrontWindowAndCanvas(FrontWindowType.GameDataWindow, gameDataWindow);
@@ -65,9 +77,11 @@ namespace neo_bpsys_wpf.Services
             RegisterFrontWindowAndCanvas(FrontWindowType.GameDataWindow, gameDataWindow);
 
             //注册分数统计界面的分数控件
+            _logger.LogInformation($"{nameof(FrontService)}: Registering global score controls");
             GlobalScoreControlsReg();
 
 #if DEBUG
+            _logger.LogInformation($"{nameof(FrontService)}: Recording initial positions in DEBUG mode");
             //记录初始位置
             foreach (var i in _frontCanvas)
             {
@@ -76,6 +90,7 @@ namespace neo_bpsys_wpf.Services
 #endif
 
             //从文件加载位置信息
+            _logger.LogInformation($"{nameof(FrontService)}: Loading default window positions");
             _ = LoadDefaultPosition();
 
             //分数统计部分的消息订阅和部分参数
@@ -87,12 +102,16 @@ namespace neo_bpsys_wpf.Services
             OnBo3ModeChanged();
 
             //字体和颜色自定义的配置加载
+            _logger.LogInformation($"{nameof(FrontService)}: Loading settings configuration");
             settingsHostService.LoadConfig();
             ApplyAllWindowsSettings();
+
+            _logger.LogInformation($"{nameof(FrontService)}: Initialization completed");
         }
 
         private async Task LoadDefaultPosition()
         {
+            _logger.LogInformation($"{nameof(FrontService)}.{nameof(LoadDefaultPosition)}: Loading window positions");
             foreach (var i in _frontCanvas)
             {
                 await LoadWindowElementsPositionOnStartupAsync(i.Item1, i.Item2);
@@ -104,6 +123,7 @@ namespace neo_bpsys_wpf.Services
             if (message.PropertyName == nameof(ISharedDataService.GlobalScoreTotalMargin))
             {
                 _globalScoreTotalMargin = message.NewValue;
+                _logger.LogInformation($"{nameof(FrontService)}: Global score margin changed to {message.NewValue}");
             }
         }
 
@@ -116,6 +136,9 @@ namespace neo_bpsys_wpf.Services
         private void RegisterFrontWindowAndCanvas(FrontWindowType windowType, Window window,
             string canvasName = "BaseCanvas")
         {
+            _logger.LogDebug($"{nameof(FrontService)}.{nameof(RegisterFrontWindowAndCanvas)}: " +
+                             $"Registering {windowType} with canvas '{canvasName}'");
+
             if (_frontWindows.TryAdd(windowType, window))
             {
                 _frontWindowStates[windowType] = false;
@@ -129,10 +152,13 @@ namespace neo_bpsys_wpf.Services
 
         public void AllWindowShow()
         {
+            _logger.LogInformation($"{nameof(FrontService)}.{nameof(AllWindowShow)}: Showing all windows");
             foreach (var window in _frontWindows.Where(pair => !_frontWindowStates[pair.Key]))
             {
                 window.Value.Show();
                 _frontWindowStates[window.Key] = true;
+                _logger.LogDebug($"{nameof(FrontService)}.{nameof(AllWindowShow)}: " +
+                                 $"Showing {window.Key} window");
             }
 
             Thread.Sleep(250);
@@ -141,27 +167,38 @@ namespace neo_bpsys_wpf.Services
 
         public void AllWindowHide()
         {
+            _logger.LogInformation($"{nameof(FrontService)}.{nameof(AllWindowHide)}: Hiding all windows");
             foreach (var window in _frontWindows.Where(pair => _frontWindowStates[pair.Key]))
             {
                 window.Value.Hide();
                 _frontWindowStates[window.Key] = false;
+                _logger.LogDebug($"{nameof(FrontService)}.{nameof(AllWindowHide)}: " +
+                                 $"Hiding {window.Key} window");
             }
         }
 
         public void ShowWindow(FrontWindowType windowType)
         {
+            _logger.LogInformation($"{nameof(FrontService)}.{nameof(ShowWindow)}: Showing {windowType} window");
+
             if (!_frontWindows.TryGetValue(windowType, out var window))
             {
+                _logger.LogError($"{nameof(FrontService)}.{nameof(ShowWindow)}: " +
+                                $"Unregistered window type: {windowType}");
                 _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "窗口启动错误");
                 return;
             }
 
             if (_frontWindowStates[windowType])
             {
+                _logger.LogDebug($"{nameof(FrontService)}.{nameof(ShowWindow)}: " +
+                                $"Activating existing {windowType} window");
                 window.Activate();
             }
             else
             {
+                _logger.LogDebug($"{nameof(FrontService)}.{nameof(ShowWindow)}: " +
+                                $"Opening {windowType} window");
                 window.Show();
                 _frontWindowStates[windowType] = true;
             }
@@ -172,15 +209,26 @@ namespace neo_bpsys_wpf.Services
 
         public void HideWindow(FrontWindowType windowType)
         {
+            _logger.LogInformation($"{nameof(FrontService)}.{nameof(HideWindow)}: Hiding {windowType} window");
+
             if (!_frontWindows.TryGetValue(windowType, out var window))
             {
+                _logger.LogError($"{nameof(FrontService)}.{nameof(HideWindow)}: " +
+                                $"Unregistered window type: {windowType}");
                 _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "窗口关闭错误");
                 return;
             }
 
-            if (!_frontWindowStates[windowType]) return;
+            if (!_frontWindowStates[windowType])
+            {
+                _logger.LogDebug($"{nameof(FrontService)}.{nameof(HideWindow)}: " +
+                                $"Window {windowType} already hidden");
+                return;
+            }
+
             window.Hide();
             _frontWindowStates[windowType] = false;
+            _logger.LogDebug($"{nameof(FrontService)}.{nameof(HideWindow)}: Window {windowType} hidden");
         }
 
         #endregion
@@ -251,11 +299,19 @@ namespace neo_bpsys_wpf.Services
         /// <param name="canvasName">画布名称</param>
         private void RecordInitialPositions(FrontWindowType windowType, string canvasName = "BaseCanvas")
         {
+            _logger.LogDebug($"{nameof(FrontService)}.{nameof(RecordInitialPositions)}: " +
+                            $"Recording initial positions for {windowType}/{canvasName}");
+
             if (!_frontWindows.TryGetValue(windowType, out var window)) return;
             var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.default.json");
 
-            if (File.Exists(path)) return;
+            if (File.Exists(path))
+            {
+                _logger.LogDebug($"{nameof(FrontService)}.{nameof(RecordInitialPositions)}: " +
+                                $"Default config already exists at {path}");
+                return;
+            }
 
             var positions = GetElementsPositions(window, canvasName);
             if (positions == null) return;
@@ -263,9 +319,13 @@ namespace neo_bpsys_wpf.Services
             try
             {
                 File.WriteAllText(path, output);
+                _logger.LogInformation($"{nameof(FrontService)}.{nameof(RecordInitialPositions)}: " +
+                                      $"Created default position config at {path}");
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"{nameof(FrontService)}.{nameof(RecordInitialPositions)}: " +
+                                    $"Error creating default position config: {ex.Message}");
                 _messageBoxService.ShowErrorAsync(ex.Message, "生成默认前台配置文件发生错误");
             }
         }
@@ -304,8 +364,13 @@ namespace neo_bpsys_wpf.Services
         /// <param name="canvasName">画布名称</param>
         public void SaveWindowElementsPosition(FrontWindowType windowType, string canvasName = "BaseCanvas")
         {
+            _logger.LogInformation($"{nameof(FrontService)}.{nameof(SaveWindowElementsPosition)}: " +
+                                  $"Saving positions for {windowType}/{canvasName}");
+
             if (!_frontWindows.TryGetValue(windowType, out var window))
             {
+                _logger.LogError($"{nameof(FrontService)}.{nameof(SaveWindowElementsPosition)}: " +
+                                $"Unregistered window type: {windowType}");
                 _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "配置文件保存错误");
                 return;
             }
@@ -321,9 +386,13 @@ namespace neo_bpsys_wpf.Services
             {
                 var jsonContent = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
                 File.WriteAllText(path, jsonContent);
+                _logger.LogInformation($"{nameof(FrontService)}.{nameof(SaveWindowElementsPosition)}: " +
+                                      $"Saved positions to {path}");
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"{nameof(FrontService)}.{nameof(SaveWindowElementsPosition)}: " +
+                                    $"Error saving positions: {ex.Message}");
                 _messageBoxService.ShowInfoAsync($"保存前台配置文件失败\n{ex.Message}", "保存提示");
             }
         }
@@ -333,6 +402,8 @@ namespace neo_bpsys_wpf.Services
         /// </summary>
         public void SaveAllWindowElementsPosition()
         {
+            _logger.LogInformation($"{nameof(FrontService)}.{nameof(SaveAllWindowElementsPosition)}: " +
+                                  "Saving positions for all windows");
             foreach (var i in _frontCanvas)
             {
                 SaveWindowElementsPosition(i.Item1, i.Item2);
@@ -347,23 +418,37 @@ namespace neo_bpsys_wpf.Services
         private async Task LoadWindowElementsPositionOnStartupAsync(FrontWindowType windowType,
             string canvasName = "BaseCanvas")
         {
+            _logger.LogInformation($"{nameof(FrontService)}.{nameof(LoadWindowElementsPositionOnStartupAsync)}: " +
+                                  $"Loading positions for {windowType}/{canvasName}");
+
             if (!_frontWindows.TryGetValue(windowType, out var window))
             {
+                _logger.LogError($"{nameof(FrontService)}.{nameof(LoadWindowElementsPositionOnStartupAsync)}: " +
+                                $"Unregistered window type: {windowType}");
                 await _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "配置文件加载错误");
                 return;
             }
 
             var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
-            if (!File.Exists(path)) return;
+            if (!File.Exists(path))
+            {
+                _logger.LogInformation($"{nameof(FrontService)}.{nameof(LoadWindowElementsPositionOnStartupAsync)}: " +
+                                      $"No config file found at {path}");
+                return;
+            }
 
             try
             {
                 var jsonContent = await File.ReadAllTextAsync(path);
                 LoadElementsPositions(canvasName, jsonContent, window);
+                _logger.LogInformation($"{nameof(FrontService)}.{nameof(LoadWindowElementsPositionOnStartupAsync)}: " +
+                                      $"Loaded positions from {path}");
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"{nameof(FrontService)}.{nameof(LoadWindowElementsPositionOnStartupAsync)}: " +
+                                    $"Error loading positions: {ex.Message}");
                 File.Move(path, path + ".disabled", true);
                 await _messageBoxService.ShowErrorAsync(ex.Message);
             }
@@ -404,14 +489,23 @@ namespace neo_bpsys_wpf.Services
         /// <param name="canvasName">画布名称</param>
         public async Task RestoreInitialPositions(FrontWindowType windowType, string canvasName = "BaseCanvas")
         {
+            _logger.LogInformation($"{nameof(FrontService)}.{nameof(RestoreInitialPositions)}: " +
+                                  $"Resetting positions for {windowType}/{canvasName}");
+
             if (!_frontWindows.TryGetValue(windowType, out var window))
             {
+                _logger.LogError($"{nameof(FrontService)}.{nameof(RestoreInitialPositions)}: " +
+                                $"Unregistered window type: {windowType}");
                 await _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "前台默认配置恢复错误");
                 return;
             }
 
             if (!await _messageBoxService.ShowConfirmAsync("重置提示", $"确认重置{window.GetType().Name}-{canvasName}的配置吗？"))
+            {
+                _logger.LogInformation($"{nameof(FrontService)}.{nameof(RestoreInitialPositions)}: " +
+                                      $"User canceled reset for {windowType}/{canvasName}");
                 return;
+            }
 
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                 "Resources", "FrontDefaultPositions", $"{window.GetType().Name}Config-{canvasName}.default.json");
@@ -431,9 +525,14 @@ namespace neo_bpsys_wpf.Services
                         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                         "neo-bpsys-wpf")))
                     File.Copy(path, customFilePath, true);
+
+                _logger.LogInformation($"{nameof(FrontService)}.{nameof(RestoreInitialPositions)}: " +
+                                      $"Positions reset for {windowType}/{canvasName}");
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"{nameof(FrontService)}.{nameof(RestoreInitialPositions)}: " +
+                                    $"Error resetting positions: {ex.Message}");
                 await _messageBoxService.ShowErrorAsync(ex.Message, "读取前台默认配置错误");
             }
         }
@@ -522,6 +621,8 @@ namespace neo_bpsys_wpf.Services
         public void SetGlobalScore(TeamType team, GameProgress gameProgress, Camp camp, int score)
         {
             GlobalScorePresenter presenter = new();
+            _logger.LogDebug($"{nameof(FrontService)}.{nameof(SetGlobalScore)}: " +
+                            $"Setting {team} score at {gameProgress}: Camp={camp}, Score={score}");
 
             if (team == TeamType.MainTeam)
             {
@@ -542,6 +643,8 @@ namespace neo_bpsys_wpf.Services
         public void SetGlobalScoreToBar(TeamType team, GameProgress gameProgress)
         {
             GlobalScorePresenter presenter = new();
+            _logger.LogDebug($"{nameof(FrontService)}.{nameof(SetGlobalScoreToBar)}: " +
+                            $"Resetting {team} score at {gameProgress} to '-'");
 
             if (team == TeamType.MainTeam)
             {
@@ -563,6 +666,7 @@ namespace neo_bpsys_wpf.Services
         /// </summary>
         public void ResetGlobalScore()
         {
+            _logger.LogInformation($"{nameof(FrontService)}.{nameof(ResetGlobalScore)}: Resetting all scores");
             //主队
             foreach (var progress in Enum.GetValues<GameProgress>())
             {
@@ -594,53 +698,63 @@ namespace neo_bpsys_wpf.Services
         private void BoolPropertyChangedRecipient(object recipient, PropertyChangedMessage<bool> message)
         {
             if (message.PropertyName != nameof(ISharedDataService.IsBo3Mode)) return;
+            _logger.LogInformation($"{nameof(FrontService)}: BO3 mode changed to {message.NewValue}");
             _isBo3Mode = message.NewValue;
             OnBo3ModeChanged();
         }
 
         private void OnBo3ModeChanged()
         {
+            _logger.LogInformation($"{nameof(FrontService)}.{nameof(OnBo3ModeChanged)}: " +
+                                  $"Updating UI for BO3 mode: {_isBo3Mode}");
+
             if (_frontWindows[FrontWindowType.ScoreWindow] is not ScoreWindow scoreWindow) return;
             if (_isBo3Mode)
             {
-                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush(
-                    _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageUriBo3 ?? "scoreGlobal_Bo3");
-                foreach (var item in
-                         MainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
+                var bgImage = _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageUriBo3 ?? "scoreGlobal_Bo3";
+                _logger.LogDebug($"{nameof(FrontService)}.{nameof(OnBo3ModeChanged)}: " +
+                                $"Setting BO3 background: {bgImage}");
+                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush(bgImage);
+
+                foreach (var item in MainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
                 {
                     item.Value.Visibility = Visibility.Hidden;
                 }
 
-                foreach (var item in
-                         AwayGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
+                foreach (var item in AwayGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
                 {
                     item.Value.Visibility = Visibility.Hidden;
                 }
 
-                Canvas.SetLeft(scoreWindow.MainScoreTotal,
-                    Canvas.GetLeft(scoreWindow.MainScoreTotal) - _globalScoreTotalMargin);
-                Canvas.SetLeft(scoreWindow.AwayScoreTotal,
-                    Canvas.GetLeft(scoreWindow.AwayScoreTotal) - _globalScoreTotalMargin);
+                var leftAdjustment = Canvas.GetLeft(scoreWindow.MainScoreTotal) - _globalScoreTotalMargin;
+                Canvas.SetLeft(scoreWindow.MainScoreTotal, leftAdjustment);
+                Canvas.SetLeft(scoreWindow.AwayScoreTotal, leftAdjustment);
                 _lastMove = _globalScoreTotalMargin;
+                _logger.LogDebug($"{nameof(FrontService)}.{nameof(OnBo3ModeChanged)}: " +
+                                $"Adjusted score total positions by {-_globalScoreTotalMargin}px");
             }
             else
             {
-                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush(
-                    _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageUri ?? "scoreGlobal");
-                foreach (var item in
-                         MainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
+                var bgImage = _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageUri ?? "scoreGlobal";
+                _logger.LogDebug($"{nameof(FrontService)}.{nameof(OnBo3ModeChanged)}: " +
+                                $"Setting standard background: {bgImage}");
+                scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush(bgImage);
+
+                foreach (var item in MainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
                 {
                     item.Value.Visibility = Visibility.Visible;
                 }
 
-                foreach (var item in
-                         AwayGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
+                foreach (var item in AwayGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
                 {
                     item.Value.Visibility = Visibility.Visible;
                 }
 
-                Canvas.SetLeft(scoreWindow.MainScoreTotal, Canvas.GetLeft(scoreWindow.MainScoreTotal) + _lastMove);
-                Canvas.SetLeft(scoreWindow.AwayScoreTotal, Canvas.GetLeft(scoreWindow.AwayScoreTotal) + _lastMove);
+                var leftAdjustment = Canvas.GetLeft(scoreWindow.MainScoreTotal) + _lastMove;
+                Canvas.SetLeft(scoreWindow.MainScoreTotal, leftAdjustment);
+                Canvas.SetLeft(scoreWindow.AwayScoreTotal, leftAdjustment);
+                _logger.LogDebug($"{nameof(FrontService)}.{nameof(OnBo3ModeChanged)}: " +
+                                $"Restored score total positions by {_lastMove}px");
             }
         }
 
@@ -660,6 +774,8 @@ namespace neo_bpsys_wpf.Services
         {
             var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
             if (!_frontWindows.TryGetValue(windowType, out var window)) return;
+            _logger.LogDebug($"{nameof(FrontService)}.{nameof(FadeInAnimation)}: " +
+                            $"Fading in {windowType}/{ctrName}");
 
             if (window.FindName(ctrName) is FrameworkElement element)
             {
@@ -680,6 +796,9 @@ namespace neo_bpsys_wpf.Services
         {
             var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
             if (!_frontWindows.TryGetValue(windowType, out var window)) return;
+            _logger.LogDebug($"{nameof(FrontService)}.{nameof(FadeOutAnimation)}: " +
+                            $"Fading out {windowType}/{ctrName}");
+
             if (window.FindName(ctrName) is FrameworkElement element)
             {
                 element.BeginAnimation(UIElement.OpacityProperty,
@@ -699,6 +818,9 @@ namespace neo_bpsys_wpf.Services
         {
             var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
             if (!_frontWindows.TryGetValue(windowType, out var window)) return;
+            _logger.LogDebug($"{nameof(FrontService)}.{nameof(BreathingStart)}: " +
+                            $"Starting breathing animation on {windowType}/{ctrName}");
+
             if (window.FindName(ctrName) is not FrameworkElement element) return;
 
             element.Opacity = 0;
@@ -740,6 +862,9 @@ namespace neo_bpsys_wpf.Services
         {
             var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
             if (!_frontWindows.TryGetValue(windowType, out var window)) return;
+            _logger.LogDebug($"{nameof(FrontService)}.{nameof(BreathingStop)}: " +
+                            $"Stopping breathing animation on {windowType}/{ctrName}");
+
             if (window.FindName(ctrName) is not FrameworkElement element) return;
             if (element.Tag is not Storyboard storyboard) return;
 
@@ -763,6 +888,7 @@ namespace neo_bpsys_wpf.Services
         /// <param name="windowType">窗口类型</param>
         public void ApplySettings(FrontWindowType windowType)
         {
+            _logger.LogInformation($"{nameof(FrontService)}.{nameof(ApplySettings)}: Applying settings for {windowType}");
             var settingsApplyMap = new Dictionary<FrontWindowType, Action>
             {
                 { FrontWindowType.BpWindow, ApplyBpWindowSettings },
@@ -778,6 +904,7 @@ namespace neo_bpsys_wpf.Services
 
         private void ApplyWidgetsWindowSettings()
         {
+            _logger.LogDebug($"{nameof(FrontService)}.{nameof(ApplyWidgetsWindowSettings)}: Applying widget settings");
             //获取窗口实例
             if (_frontWindows[FrontWindowType.WidgetsWindow] is not WidgetsWindow window) return;
             //获取设置项
@@ -790,6 +917,7 @@ namespace neo_bpsys_wpf.Services
 
         private void ApplyGameDataWindowSettings()
         {
+            _logger.LogDebug($"{nameof(FrontService)}.{nameof(ApplyGameDataWindowSettings)}: Applying game data settings");
             //获取窗口实例
             if (_frontWindows[FrontWindowType.GameDataWindow] is not GameDataWindow window) return;
             //获取设置项
@@ -801,6 +929,7 @@ namespace neo_bpsys_wpf.Services
 
         private void ApplyScoreWindowSettings()
         {
+            _logger.LogDebug($"{nameof(FrontService)}.{nameof(ApplyScoreWindowSettings)}: Applying score window settings");
             //获取窗口实例
             if (_frontWindows[FrontWindowType.ScoreWindow] is not ScoreWindow window) return;
             //获取设置项
@@ -817,6 +946,7 @@ namespace neo_bpsys_wpf.Services
 
         private void ApplyCutSceneWindowSettings()
         {
+            _logger.LogDebug($"{nameof(FrontService)}.{nameof(ApplyCutSceneWindowSettings)}: Applying cut scene settings");
             //获取窗口实例
             if (_frontWindows[FrontWindowType.CutSceneWindow] is not CutSceneWindow window) return;
             //获取设置项
@@ -828,6 +958,7 @@ namespace neo_bpsys_wpf.Services
 
         private void ApplyBpWindowSettings()
         {
+            _logger.LogDebug($"{nameof(FrontService)}.{nameof(ApplyBpWindowSettings)}: Applying BP window settings");
             //获取窗口实例
             if (_frontWindows[FrontWindowType.BpWindow] is not BpWindow window) return;
             //获取设置项
@@ -894,6 +1025,7 @@ namespace neo_bpsys_wpf.Services
         /// </summary>
         public void ApplyAllWindowsSettings()
         {
+            _logger.LogInformation($"{nameof(FrontService)}.{nameof(ApplyAllWindowsSettings)}: Applying settings to all windows");
             foreach (var window in _frontWindows)
             {
                 ApplySettings(window.Key);

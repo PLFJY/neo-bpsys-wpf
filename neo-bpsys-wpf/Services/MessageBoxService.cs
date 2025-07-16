@@ -1,4 +1,5 @@
-﻿using neo_bpsys_wpf.Abstractions.Services;
+﻿using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Views.Windows;
 using Wpf.Ui.Controls;
 
@@ -9,6 +10,14 @@ namespace neo_bpsys_wpf.Services
     /// </summary>
     public class MessageBoxService : IMessageBoxService
     {
+        private readonly ILogger<MessageBoxService> _logger;
+
+        public MessageBoxService(ILogger<MessageBoxService> logger)
+        {
+            _logger = logger;
+            _logger.LogInformation("MessageBoxService initialized");
+        }
+
         /// <summary>
         /// 显示删除确认对话框
         /// </summary>
@@ -19,19 +28,35 @@ namespace neo_bpsys_wpf.Services
         /// <returns></returns>
         public async Task<bool> ShowDeleteConfirmAsync(string title, string message, string primaryButtonText = "确认", string secondaryButtonText = "取消")
         {
-            var messageBox = new MessageBox()
-            {
-                Title = title,
-                Content = message,
-                PrimaryButtonText = primaryButtonText,
-                PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Delete24 },
-                CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
-                CloseButtonText = secondaryButtonText,
-                Owner = App.Current.MainWindow,
-            };
-            var result = await messageBox.ShowDialogAsync();
+            _logger.LogInformation("Showing delete confirmation dialog - Title: {Title}, Message length: {Length}",
+                title, message.Length);
 
-            return result == MessageBoxResult.Primary;
+            try
+            {
+                var messageBox = new MessageBox()
+                {
+                    Title = title,
+                    Content = message,
+                    PrimaryButtonText = primaryButtonText,
+                    PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Delete24 },
+                    CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
+                    CloseButtonText = secondaryButtonText,
+                    Owner = App.Current.MainWindow,
+                };
+
+                var result = await messageBox.ShowDialogAsync();
+                var confirmed = result == MessageBoxResult.Primary;
+
+                _logger.LogInformation("Delete confirmation dialog closed - Result: {Result}",
+                    confirmed ? "Confirmed" : "Cancelled");
+
+                return confirmed;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error showing delete confirmation dialog");
+                throw;
+            }
         }
 
         /// <summary>
@@ -43,16 +68,28 @@ namespace neo_bpsys_wpf.Services
         /// <returns></returns>
         public async Task ShowInfoAsync(string message, string title = "提示", string closeButtonText = "关闭")
         {
-            var messageBox = new MessageBox()
-            {
-                Title = title,
-                Content = message,
-                CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Dismiss24 },
-                CloseButtonText = closeButtonText,
-                Owner = App.Current.MainWindow,
-            };
+            _logger.LogInformation("Showing information dialog - Title: {Title}, Message length: {Length}",
+                title, message.Length);
 
-            await messageBox.ShowDialogAsync();
+            try
+            {
+                var messageBox = new MessageBox()
+                {
+                    Title = title,
+                    Content = message,
+                    CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Dismiss24 },
+                    CloseButtonText = closeButtonText,
+                    Owner = App.Current.MainWindow,
+                };
+
+                await messageBox.ShowDialogAsync();
+                _logger.LogDebug("Information dialog closed");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error showing information dialog");
+                throw;
+            }
         }
 
         /// <summary>
@@ -64,16 +101,28 @@ namespace neo_bpsys_wpf.Services
         /// <returns></returns>
         public async Task ShowErrorAsync(string message, string title = "错误", string closeButtonText = "关闭")
         {
-            var messageBox = new MessageBox()
-            {
-                Title = title,
-                Content = message,
-                CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Dismiss24 },
-                CloseButtonText = closeButtonText,
-                Owner = App.Current.MainWindow,
-            };
+            _logger.LogError("Showing error dialog - Title: {Title}, Message: {ErrorMessage}",
+                title, message);
 
-            await messageBox.ShowDialogAsync();
+            try
+            {
+                var messageBox = new MessageBox()
+                {
+                    Title = title,
+                    Content = message,
+                    CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Dismiss24 },
+                    CloseButtonText = closeButtonText,
+                    Owner = App.Current.MainWindow,
+                };
+
+                await messageBox.ShowDialogAsync();
+                _logger.LogDebug("Error dialog closed");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error showing error dialog");
+                throw;
+            }
         }
 
         /// <summary>
@@ -86,19 +135,35 @@ namespace neo_bpsys_wpf.Services
         /// <returns></returns>
         public async Task<bool> ShowConfirmAsync(string title, string message, string primaryButtonText = "确认", string secondaryButtonText = "取消")
         {
-            var messageBox = new MessageBox()
-            {
-                Title = title,
-                Content = message,
-                PrimaryButtonText = primaryButtonText,
-                CloseButtonText = secondaryButtonText,
-                CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Dismiss24 },
-                PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Checkmark24 },
-                Owner = App.Current.MainWindow
-            };
-            var result = await messageBox.ShowDialogAsync();
+            _logger.LogInformation("Showing confirmation dialog - Title: {Title}, Message length: {Length}",
+                title, message.Length);
 
-            return result == MessageBoxResult.Primary;
+            try
+            {
+                var messageBox = new MessageBox()
+                {
+                    Title = title,
+                    Content = message,
+                    PrimaryButtonText = primaryButtonText,
+                    CloseButtonText = secondaryButtonText,
+                    CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Dismiss24 },
+                    PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Checkmark24 },
+                    Owner = App.Current.MainWindow
+                };
+
+                var result = await messageBox.ShowDialogAsync();
+                var confirmed = result == MessageBoxResult.Primary;
+
+                _logger.LogInformation("Confirmation dialog closed - Result: {Result}",
+                    confirmed ? "Confirmed" : "Cancelled");
+
+                return confirmed;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error showing confirmation dialog");
+                throw;
+            }
         }
     }
 }
