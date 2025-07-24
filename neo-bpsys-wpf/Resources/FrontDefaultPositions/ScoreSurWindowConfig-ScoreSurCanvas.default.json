@@ -1,0 +1,26 @@
+{
+  "SurTeamLogo": {
+    "Width": 115,
+    "Height": 114,
+    "Left": 22,
+    "Top": 18
+  },
+  "SurTeamName": {
+    "Width": 231,
+    "Height": null,
+    "Left": 153,
+    "Top": 34
+  },
+  "SurTeamMajorPoint": {
+    "Width": null,
+    "Height": null,
+    "Left": 209,
+    "Top": 86
+  },
+  "MinorPointsSur": {
+    "Width": 64,
+    "Height": 130,
+    "Left": 389,
+    "Top": 11
+  }
+}

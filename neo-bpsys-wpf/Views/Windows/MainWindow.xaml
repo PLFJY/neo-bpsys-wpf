@@ -56,7 +56,7 @@
             </Storyboard>
             <Storyboard x:Key="StartupLoading">
                 <ObjectAnimationUsingKeyFrames Storyboard.TargetName="loading" Storyboard.TargetProperty="(UIElement.Visibility)">
-                    <DiscreteObjectKeyFrame KeyTime="00:00:03.75" Value="{x:Static Visibility.Collapsed}" />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:01" Value="{x:Static Visibility.Collapsed}" />
                 </ObjectAnimationUsingKeyFrames>
                 <DoubleAnimation
                     BeginTime="00:00:03.60"

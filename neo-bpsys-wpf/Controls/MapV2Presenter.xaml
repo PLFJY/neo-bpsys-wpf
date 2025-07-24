@@ -1,0 +1,183 @@
+﻿<UserControl
+    x:Class="neo_bpsys_wpf.Controls.MapV2Presenter"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="clr-namespace:neo_bpsys_wpf.Models"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    d:DesignHeight="155"
+    d:DesignWidth="200"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <cv:CampToStringConverter x:Key="CampToStringConverter" />
+        <cv:CampSurToVisibilityConverter x:Key="CampSurToVisibilityConverter" />
+        <cv:CampHunToVisibilityConverter x:Key="CampHunToVisibilityConverter" />
+        <cv:NullObjectToVisibilityConverter x:Key="NullObjectToVisibilityConverter" />
+        <cv:NullObjectToReverseVisibilityConverter x:Key="NullObjectToReverseVisibilityConverter" />
+        <Storyboard
+            x:Key="BreathAnimation"
+            AutoReverse="True"
+            FillBehavior="Stop"
+            RepeatBehavior="Forever"
+            Storyboard.TargetName="PickingBorder">
+            <DoubleAnimation
+                Storyboard.TargetProperty="Opacity"
+                From="0.25"
+                To="1"
+                Duration="0:0:1" />
+        </Storyboard>
+        <Storyboard x:Key="FadeInAnimation" Storyboard.TargetName="PickingBorder">
+            <DoubleAnimation
+                Storyboard.TargetProperty="Opacity"
+                From="0"
+                To="1"
+                Duration="0:0:1" />
+        </Storyboard>
+        <Storyboard x:Key="FadeOutAnimation" Storyboard.TargetName="PickingBorder">
+            <ObjectAnimationUsingKeyFrames BeginTime="00:00:01" Storyboard.TargetProperty="(UIElement.Visibility)">
+                <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Collapsed}" />
+            </ObjectAnimationUsingKeyFrames>
+            <DoubleAnimation
+                Storyboard.TargetProperty="Opacity"
+                From="1"
+                To="0"
+                Duration="0:0:1" />
+        </Storyboard>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1.5*" />
+            <RowDefinition Height="2*" />
+            <RowDefinition Height="1*" />
+        </Grid.RowDefinitions>
+        <!--  染色层  -->
+        <Rectangle
+            x:Name="PickingBorder"
+            Grid.RowSpan="3"
+            Panel.ZIndex="1"
+            d:Fill="#FF032903"
+            d:Visibility="Visible"
+            Fill="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=PickingBorderBrush}"
+            Visibility="Collapsed">
+            <Rectangle.OpacityMask>
+                <ImageBrush
+                    d:ImageSource="/Assets/pickingBorder.png"
+                    ImageSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=PickingBorderImage}"
+                    Stretch="Fill">
+                </ImageBrush>
+            </Rectangle.OpacityMask>
+            <i:Interaction.Triggers>
+                <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.IsBreathing}" Value="True">
+                    <i:ChangePropertyAction PropertyName="Visibility" Value="{x:Static Visibility.Visible}" />
+                    <i:ControlStoryboardAction ControlStoryboardOption="Stop" Storyboard="{StaticResource FadeOutAnimation}" />
+                    <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource FadeInAnimation}" />
+                    <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource BreathAnimation}" />
+                </i:DataTrigger>
+                <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.IsBreathing}" Value="False">
+                    <i:ControlStoryboardAction ControlStoryboardOption="Stop" Storyboard="{StaticResource BreathAnimation}" />
+                    <i:ControlStoryboardAction ControlStoryboardOption="Stop" Storyboard="{StaticResource FadeInAnimation}" />
+                    <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource FadeOutAnimation}" />
+                </i:DataTrigger>
+            </i:Interaction.Triggers>
+        </Rectangle>
+        <StackPanel
+            Grid.Row="0"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal">
+            <ui:Image
+                x:Name="TeamLogo"
+                Width="50"
+                Height="50"
+                VerticalAlignment="Center"
+                d:Source="/Assets/testLogo.jpg"
+                CornerRadius="8"
+                Source="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.OperationTeam.Logo}"
+                Visibility="{Binding RelativeSource={RelativeSource Mode=Self}, Path=Source, Converter={StaticResource NullObjectToVisibilityConverter}}" />
+            <TextBlock
+                Grid.Row="0"
+                Margin="5,0,0,0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                d:FontSize="16"
+                d:Foreground="White"
+                d:Text="队伍名称"
+                FontFamily="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=TeamNameFontFamily}"
+                FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=TeamNameFontSize}"
+                FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=TeamNameFontWeight}"
+                Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=TeamNameForeground}"
+                Text="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.OperationTeam.Name}"
+                Visibility="{Binding ElementName=TeamLogo, Path=Source, Converter={StaticResource NullObjectToReverseVisibilityConverter}}" />
+        </StackPanel>
+        <Border
+            x:Name="MapBorder"
+            Grid.Row="1"
+            Margin="5,5,5,5"
+            d:BorderBrush="#2b483b"
+            BorderBrush="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.MapBorderBrush}"
+            BorderThickness="2"
+            CornerRadius="8">
+            <Border.Background>
+                <ImageBrush
+                    d:ImageSource="/Assets/map/军工厂.png"
+                    ImageSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.ImageSource}"
+                    Stretch="UniformToFill" />
+            </Border.Background>
+            <Border
+                Height="20"
+                VerticalAlignment="Bottom"
+                Background="Black"
+                CornerRadius="4">
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    d:FontFamily="{StaticResource Hanyi}"
+                    d:FontSize="14"
+                    d:Foreground="White"
+                    d:Text="军工厂"
+                    FontFamily="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontFamily}"
+                    FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontSize}"
+                    FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontWeight}"
+                    Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameForeground}"
+                    Text="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.MapName}" />
+            </Border>
+        </Border>
+
+        <Grid
+            Grid.Row="2"
+            VerticalAlignment="Center"
+            d:Visibility="Visible"
+            Visibility="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.IsCampVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <TextBlock
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                d:FontSize="20"
+                d:Foreground="White"
+                d:Text="求生者"
+                FontFamily="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=CampNameFontFamily}"
+                FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=CampNameFontSize}"
+                FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=CampNameFontWeight}"
+                Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=CampNameForeground}"
+                Text="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.OperationTeam.Camp, Converter={StaticResource CampToStringConverter}}" />
+            <Grid HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Image
+                    Width="30"
+                    Height="30"
+                    d:Source="/Assets/surIcon.png"
+                    d:Visibility="Visible"
+                    Source="{DynamicResource scoreGlobal_surIcon}"
+                    Visibility="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.OperationTeam.Camp, Converter={StaticResource CampSurToVisibilityConverter}}" />
+                <Image
+                    Width="30"
+                    Height="30"
+                    Source="{DynamicResource scoreGlobal_hunIcon}"
+                    Stretch="UniformToFill"
+                    Visibility="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.OperationTeam.Camp, Converter={StaticResource CampHunToVisibilityConverter}}" />
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

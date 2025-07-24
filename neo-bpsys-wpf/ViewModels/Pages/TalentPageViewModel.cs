@@ -6,70 +6,68 @@ using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using Trait = neo_bpsys_wpf.Models.Trait;
 
-namespace neo_bpsys_wpf.ViewModels.Pages
+namespace neo_bpsys_wpf.ViewModels.Pages;
+
+public partial class TalentPageViewModel : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<HighlightMessage>
 {
-    public partial class TalentPageViewModel : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<HighlightMessage>
-    {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
-        public TalentPageViewModel()
+    public TalentPageViewModel()
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
+    {
+        //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+    }
+
+    private readonly ISharedDataService _sharedDataService;
+
+    public TalentPageViewModel(ISharedDataService sharedDataService)
+    {
+        _sharedDataService = sharedDataService;
+        IsActive = true;
+    }
+
+    private Enums.Trait? _selectedTrait;
+
+    public Enums.Trait? SelectedTrait
+    {
+        get => _selectedTrait;
+        set
         {
-            //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+            SetProperty(ref _selectedTrait, value);
+            _sharedDataService.CurrentGame.HunPlayer.Trait = new Trait(_selectedTrait);
         }
+    }
 
-        private readonly ISharedDataService _sharedDataService;
+    public Game CurrentGame => _sharedDataService.CurrentGame;
 
-        public TalentPageViewModel(ISharedDataService sharedDataService)
+    public void Receive(NewGameMessage message)
+    {
+        if (!message.IsNewGameCreated) return;
+        OnPropertyChanged(nameof(CurrentGame));
+        SelectedTrait = null;
+    }
+
+    private bool _isTraitVisible = true;
+
+    public bool IsTraitVisible
+    {
+        get => _isTraitVisible;
+        set
         {
-            _sharedDataService = sharedDataService;
-            IsActive = true;
+            _isTraitVisible = value;
+            _sharedDataService.IsTraitVisible = _isTraitVisible;
+            OnPropertyChanged();
         }
+    }
 
-        private Enums.Trait? _selectedTrait = null;
+    [ObservableProperty]
+    private bool _isSurTalentHighlighted;
 
-        public Enums.Trait? SelectedTrait
-        {
-            get => _selectedTrait;
-            set
-            {
-                SetProperty(ref _selectedTrait, value);
-                _sharedDataService.CurrentGame.HunPlayer.Trait = new Trait(_selectedTrait);
-                OnPropertyChanged();
-            }
-        }
+    [ObservableProperty]
+    private bool _isHunTalentHighlighted;
 
-        public Game CurrentGame => _sharedDataService.CurrentGame;
-
-        public void Receive(NewGameMessage message)
-        {
-            if (!message.IsNewGameCreated) return;
-            OnPropertyChanged(nameof(CurrentGame));
-            SelectedTrait = null;
-        }
-
-        private bool _isTraitVisible = true;
-
-        public bool IsTraitVisible
-        {
-            get => _isTraitVisible;
-            set
-            {
-                _isTraitVisible = value;
-                _sharedDataService.IsTraitVisible = _isTraitVisible;
-                OnPropertyChanged();
-            }
-        }
-
-        [ObservableProperty]
-        private bool _isSurTalentHighlighted = false;
-
-        [ObservableProperty]
-        private bool _isHunTalentHighlighted = false;
-
-        public void Receive(HighlightMessage message)
-        {
-            IsSurTalentHighlighted = message.GameAction == GameAction.PickSurTalent;
-            IsHunTalentHighlighted = message.GameAction == GameAction.PickHunTalent;
-        }
+    public void Receive(HighlightMessage message)
+    {
+        IsSurTalentHighlighted = message.GameAction == GameAction.PickSurTalent;
+        IsHunTalentHighlighted = message.GameAction == GameAction.PickHunTalent;
     }
 }

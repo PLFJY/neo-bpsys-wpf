@@ -19,8 +19,8 @@
                                 VerticalAlignment="Center"
                                 Visibility="{TemplateBinding Converter={StaticResource BooleanToVisibilityConverter},
                                                              Property=IsCampVisible}">
-                                <Image Source="{DynamicResource surIcon}" Visibility="{TemplateBinding IsHunIcon, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                                <Image Source="{DynamicResource hunIcon}" Visibility="{TemplateBinding IsHunIcon, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <Image Source="{DynamicResource scoreGlobal_surIcon}" Visibility="{TemplateBinding IsHunIcon, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                                <Image Source="{DynamicResource scoreGlobal_hunIcon}" Visibility="{TemplateBinding IsHunIcon, Converter={StaticResource BooleanToVisibilityConverter}}" />
                             </Grid>
                             <TextBlock
                                 Margin="5,0,0,0"

@@ -11,17 +11,17 @@ public partial class Score : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
     [NotifyPropertyChangedFor(nameof(ScorePreviewOnBack))]
-    private int _win = 0;
+    private int _win;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
     [NotifyPropertyChangedFor(nameof(ScorePreviewOnBack))]
-    private int _tie = 0;
+    private int _tie;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
     [NotifyPropertyChangedFor(nameof(ScorePreviewOnBack))]
-    private int _minorPoints = 0;
+    private int _minorPoints;
 
     [JsonIgnore]
     public string MajorPointsOnFront => $"W{Win}  D{Tie}";

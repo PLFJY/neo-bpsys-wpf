@@ -55,13 +55,15 @@ public partial class TextSettings : ObservableObject
             FontFamilySite = _fontFamily.Source;
         }
     }
-    
+
     [ObservableProperty] private FontWeight _fontWeight;
 
     [ObservableProperty] private double _fontSize;
-    
+
     [JsonConstructor]
-    public TextSettings() { }
+    public TextSettings()
+    {
+    }
 
     /// <summary>
     /// 文本设置
@@ -74,7 +76,7 @@ public partial class TextSettings : ObservableObject
     {
         Color = color;
         FontFamilySite = fontFamilySite;
-        FontWeight = fontWeight?? FontWeights.Normal;
+        FontWeight = fontWeight ?? FontWeights.Normal;
         FontSize = fontSize;
     }
 }
@@ -82,13 +84,22 @@ public partial class TextSettings : ObservableObject
 /// <summary>
 /// BP窗口设置
 /// </summary>
-public class BpWindowSettings
+public partial class BpWindowSettings : ObservableObject
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
     public string? BgImageUri { get; set; }
     public string? CurrentBanLockImageUri { get; set; }
     public string? GlobalBanLockImageUri { get; set; }
     public string? PickingBorderImageUri { get; set; }
+    
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(PickingBorderBrush))]
+    private string? _pickingBorderColor = Colors.White.ToString();
+
+    /// <summary>
+    /// 文本颜色Brush
+    /// </summary>
+    [JsonIgnore]
+    public Brush PickingBorderBrush => ColorHelper.HexToBrush(string.IsNullOrEmpty(PickingBorderColor) ? Colors.DarkGreen.ToString() : PickingBorderColor);
     public BpWindowTextSettings TextSettings { get; set; } = new();
 }
 
@@ -141,7 +152,7 @@ public class CutSceneWindowTextSettings
 
     public TextSettings SurPlayerId { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 18);
-    
+
     public TextSettings HunPlayerId { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 24);
 
@@ -162,6 +173,7 @@ public class ScoreWindowSettings
     public string? HunScoreBgImageUri { get; set; }
     public string? GlobalScoreBgImageUri { get; set; }
     public string? GlobalScoreBgImageUriBo3 { get; set; }
+    public bool IsCampIconBlackVerEnabled { get; set; }
     public double GlobalScoreTotalMargin { get; set; } = 390;
     public ScoreWindowTextSettings TextSettings { get; set; } = new();
 }
@@ -232,10 +244,23 @@ public class GameDataWindowTextSettings
 /// <summary>
 /// 小组件窗口设置
 /// </summary>
-public class WidgetsWindowSettings
+public partial class WidgetsWindowSettings : ObservableObject
 {
     public string? MapBpBgUri { get; set; }
+    public string? MapBpV2BgUri { get; set; }
+    public string? MapBpV2PickBorderImageUri { get; set; }
+    public bool IsCampIconBlackVerEnabled { get; set; }
     public string? BpOverviewBgUri { get; set; }
+    public string? CurrentBanLockImageUri { get; set; }
+    public string? GlobalBanLockImageUri { get; set; }
+    
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(MapBpV2_PickingBorderBrush))]
+    private string? _mapBpV2_PickingBorderColor = Colors.DarkGreen.ToString();
+    /// <summary>
+    /// MapBpV2文本颜色Brush
+    /// </summary>
+    [JsonIgnore]
+    public Brush MapBpV2_PickingBorderBrush => ColorHelper.HexToBrush(string.IsNullOrEmpty(MapBpV2_PickingBorderColor) ? Colors.DarkGreen.ToString() : MapBpV2_PickingBorderColor);
     public WidgetsWindowTextSettings TextSettings { get; set; } = new();
 }
 
@@ -255,6 +280,15 @@ public class WidgetsWindowTextSettings
 
     public TextSettings MapBp_TeamName { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 22);
+
+    public TextSettings MapBpV2_MapName { get; set; } =
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 16);
+
+    public TextSettings MapBpV2_TeamName { get; set; } =
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 18);
+
+    public TextSettings MapBpV2_CampWords { get; set; } =
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 20);
 
     public TextSettings BpOverview_TeamName { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 22);

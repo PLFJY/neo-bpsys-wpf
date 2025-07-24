@@ -1,7 +1,6 @@
-﻿namespace neo_bpsys_wpf.Messages
+﻿namespace neo_bpsys_wpf.Messages;
+
+public class MemberPropertyChangedMessage(object? sender)
 {
-    public class MemberPropertyChangedMessage(object? sender)
-    {
-        public object? Sender { get; set; } = sender;
-    }
+    public object? Sender { get; set; } = sender;
 }

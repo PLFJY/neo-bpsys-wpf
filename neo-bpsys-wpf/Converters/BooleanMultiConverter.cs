@@ -3,6 +3,9 @@ using System.Windows.Data;
 
 namespace neo_bpsys_wpf.Converters;
 
+/// <summary>
+/// 转换多个布尔值到一个布尔值，用于合并待选框1和2的
+/// </summary>
 public class BooleanMultiConverter : IMultiValueConverter
 {
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
@@ -23,7 +26,7 @@ public class BooleanMultiConverter : IMultiValueConverter
     {
         if (value is bool boolValue)
         {
-            return targetTypes.Select(t => (object)boolValue).ToArray();
+            return [.. targetTypes.Select(t => (object)boolValue)];
         }
 
         return [false, false]; // 默认值，适用于两个源属性的情况

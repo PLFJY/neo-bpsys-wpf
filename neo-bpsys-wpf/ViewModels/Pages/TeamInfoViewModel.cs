@@ -10,208 +10,207 @@ using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Messages;
 
-namespace neo_bpsys_wpf.ViewModels.Pages
+namespace neo_bpsys_wpf.ViewModels.Pages;
+
+public partial class TeamInfoPageViewModel
 {
-    public partial class TeamInfoPageViewModel
+    public partial class TeamInfoViewModel : ObservableRecipient
     {
-        public partial class TeamInfoViewModel : ObservableRecipient
-        {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
-            public TeamInfoViewModel()
+        public TeamInfoViewModel()
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
+        {
+            //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+        }
+
+        public Team CurrentTeam { get; private set; }
+        private readonly IFilePickerService _filePickerService;
+        private readonly IMessageBoxService _messageBoxService;
+
+        public TeamInfoViewModel(Team team, IFilePickerService filePickerService, IMessageBoxService messageBoxService)
+        {
+            CurrentTeam = team;
+            _filePickerService = filePickerService;
+            _messageBoxService = messageBoxService;
+        }
+
+        [ObservableProperty]
+        private string _teamName = string.Empty;
+
+        [RelayCommand]
+        private void ConfirmTeamName()
+        {
+            CurrentTeam.Name = TeamName;
+        }
+
+        [RelayCommand]
+        private void SetTeamLogo()
+        {
+            var fileName = _filePickerService.PickImage();
+
+            if (string.IsNullOrEmpty(fileName))
+                return;
+            try
             {
-                //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+                CurrentTeam.Logo = new BitmapImage(new Uri(fileName));
             }
-
-            public Team CurrentTeam { get; private set; }
-            private readonly IFilePickerService _filePickerService;
-            private readonly IMessageBoxService _messageBoxService;
-
-            public TeamInfoViewModel(Team team, IFilePickerService filePickerService, IMessageBoxService messageBoxService)
+            catch
             {
-                CurrentTeam = team;
-                _filePickerService = filePickerService;
-                _messageBoxService = messageBoxService;
+                _messageBoxService.ShowErrorAsync($"图片文件可能损坏或格式不受支持");
             }
+        }
 
-            [ObservableProperty]
-            private string _teamName = string.Empty;
+        [RelayCommand]
+        private void ImportInfoFromJson()
+        {
+            var fileName = _filePickerService.PickJsonFile();
 
-            [RelayCommand]
-            private void ConfirmTeamName()
+            if (string.IsNullOrEmpty(fileName))
+                return;
+
+            var jsonFile = File.ReadAllText(fileName);
+
+            if (string.IsNullOrEmpty(jsonFile))
+                return;
+
+            try
             {
-                CurrentTeam.Name = TeamName;
-            }
+                var teamInfo = JsonSerializer.Deserialize<Team>(jsonFile);
 
-            [RelayCommand]
-            private void SetTeamLogo()
-            {
-                var fileName = _filePickerService.PickImage();
-
-                if (string.IsNullOrEmpty(fileName))
+                if (teamInfo == null)
                     return;
-                try
-                {
-                    CurrentTeam.Logo = new BitmapImage(new Uri(fileName));
-                }
-                catch
-                {
-                    _messageBoxService.ShowErrorAsync($"图片文件可能损坏或格式不受支持");
-                }
+
+                teamInfo.Camp = CurrentTeam.Camp;
+                CurrentTeam.ImportTeamInfo(teamInfo);
+                TeamName = CurrentTeam.Name;
+                WeakReferenceMessenger.Default.Send(new MemberOnFieldChangedMessage(this));
+                OnPropertyChanged();
             }
-
-            [RelayCommand]
-            private void ImportInfoFromJson()
+            catch (JsonException ex)
             {
-                var fileName = _filePickerService.PickJsonFile();
+                _messageBoxService.ShowErrorAsync($"Json文件格式错误\n{ex.Message}");
+            }
+            catch
+            {
+                _messageBoxService.ShowErrorAsync($"图片文件可能损坏或格式不受支持");
+            }
+        }
 
-                if (string.IsNullOrEmpty(fileName))
-                    return;
+        [RelayCommand(CanExecute = nameof(CanAddSurMember))]
+        private void AddSurMember()
+        {
+            CurrentTeam.SurMemberList.Add(new Member(Camp.Sur));
+            RemoveSurMemberCommand.NotifyCanExecuteChanged();
+            RefreshCanMemberOnFieldState(Camp.Sur);
+        }
 
-                var jsonFile = File.ReadAllText(fileName);
+        private static bool CanAddSurMember() => true;
 
-                if (string.IsNullOrEmpty(jsonFile))
-                    return;
+        [RelayCommand(CanExecute = nameof(CanRemoveSurMember))]
+        private async Task RemoveSurMemberAsync(Member member)
+        {
+            await RemoveMemberAsync(member);
+        }
 
-                try
+        private bool CanRemoveSurMember(Member member) => CurrentTeam.SurMemberList.Count > 4;
+
+        [RelayCommand(CanExecute = nameof(CanAddHunMember))]
+        private void AddHunMember()
+        {
+            CurrentTeam.HunMemberList.Add(new Member(Camp.Hun));
+            RefreshCanMemberOnFieldState(Camp.Hun);
+        }
+
+        private static bool CanAddHunMember() => true;
+
+        [RelayCommand(CanExecute = nameof(CanRemoveHunMember))]
+        private async Task RemoveHunMemberAsync(Member member)
+        {
+            await RemoveMemberAsync(member);
+        }
+
+        private async Task RemoveMemberAsync(Member member)
+        {
+            var memberName = string.IsNullOrEmpty(member.Name)
+                ? string.Empty
+                : $" \"{member.Name}\" ";
+
+            if (await _messageBoxService.ShowDeleteConfirmAsync("删除确认", $"确定删除{memberName}吗？"))
+            {
+                CurrentTeam.MemberOffField(member);
+                if (member.Camp == Camp.Sur)
                 {
-                    var teamInfo = JsonSerializer.Deserialize<Team>(jsonFile);
-
-                    if (teamInfo == null)
-                        return;
-
-                    teamInfo.Camp = CurrentTeam.Camp;
-                    CurrentTeam.ImportTeamInfo(teamInfo);
-                    TeamName = CurrentTeam.Name;
-                    WeakReferenceMessenger.Default.Send(new MemberOnFieldChangedMessage(this));
-                    OnPropertyChanged();
-                }
-                catch (JsonException ex)
-                {
-                    _messageBoxService.ShowErrorAsync($"Json文件格式错误\n{ex.Message}");
-                }
-                catch
-                {
-                    _messageBoxService.ShowErrorAsync($"图片文件可能损坏或格式不受支持");
-                }
-            }
-
-            [RelayCommand(CanExecute = nameof(CanAddSurMember))]
-            private void AddSurMember()
-            {
-                CurrentTeam.SurMemberList.Add(new Member(Camp.Sur));
-                RemoveSurMemberCommand.NotifyCanExecuteChanged();
-                RefreshCanMemberOnFieldState(Camp.Sur);
-            }
-
-            private static bool CanAddSurMember() => true;
-
-            [RelayCommand(CanExecute = nameof(CanRemoveSurMember))]
-            private async Task RemoveSurMemberAsync(Member member)
-            {
-                await RemoveMemberAsync(member);
-            }
-
-            private bool CanRemoveSurMember(Member member) => CurrentTeam.SurMemberList.Count > 4;
-
-            [RelayCommand(CanExecute = nameof(CanAddHunMember))]
-            private void AddHunMember()
-            {
-                CurrentTeam.HunMemberList.Add(new Member(Camp.Hun));
-                RefreshCanMemberOnFieldState(Camp.Hun);
-            }
-
-            private static bool CanAddHunMember() => true;
-
-            [RelayCommand(CanExecute = nameof(CanRemoveHunMember))]
-            private async Task RemoveHunMemberAsync(Member member)
-            {
-                await RemoveMemberAsync(member);
-            }
-
-            private async Task RemoveMemberAsync(Member member)
-            {
-                var memberName = string.IsNullOrEmpty(member.Name)
-                    ? string.Empty
-                    : $" \"{member.Name}\" ";
-
-                if (await _messageBoxService.ShowDeleteConfirmAsync("删除确认", $"确定删除{memberName}吗？"))
-                {
-                    CurrentTeam.MemberOffField(member);
-                    if (member.Camp == Camp.Sur)
-                    {
-                        CurrentTeam.SurMemberList.Remove(member);
-                    }
-                    else
-                    {
-                        CurrentTeam.HunMemberList.Remove(member);
-                    }
-                    RefreshCanMemberOnFieldState(member.Camp);
-                }
-            }
-
-            private bool CanRemoveHunMember() => CurrentTeam.HunMemberList.Count > 1;
-
-            [RelayCommand]
-            private void SwitchMemberState(Member member)
-            {
-                if (member.IsOnField)
-                {
-                    member.IsOnField = CurrentTeam.MemberOnField(member);
+                    CurrentTeam.SurMemberList.Remove(member);
                 }
                 else
                 {
-                    CurrentTeam.MemberOffField(member);
+                    CurrentTeam.HunMemberList.Remove(member);
                 }
                 RefreshCanMemberOnFieldState(member.Camp);
             }
+        }
 
-            private void RefreshCanMemberOnFieldState(Camp camp)
+        private bool CanRemoveHunMember() => CurrentTeam.HunMemberList.Count > 1;
+
+        [RelayCommand]
+        private void SwitchMemberState(Member member)
+        {
+            if (member.IsOnField)
             {
-                var canOthersOnField = CurrentTeam.CanMemberOnField(camp);
-                if (camp == Camp.Sur)
-                {
-                    foreach (var m in CurrentTeam.SurMemberList)
-                    {
-                        if (!m.IsOnField)
-                            m.CanOnFieldChange = canOthersOnField;
-                    }
-                }
-                else
-                {
-                    foreach (var m in CurrentTeam.HunMemberList)
-                    {
-                        if (!m.IsOnField)
-                            m.CanOnFieldChange = canOthersOnField;
-                    }
-                }
-                RemoveSurMemberCommand.NotifyCanExecuteChanged();
-                RemoveHunMemberCommand.NotifyCanExecuteChanged();
+                member.IsOnField = CurrentTeam.MemberOnField(member);
             }
-
-            [RelayCommand]
-            private void SetMemberImage(Member member)
+            else
             {
-                var imagePath = _filePickerService.PickImage();
-                if (imagePath == null)
-                    return;
+                CurrentTeam.MemberOffField(member);
+            }
+            RefreshCanMemberOnFieldState(member.Camp);
+        }
 
-                try
+        private void RefreshCanMemberOnFieldState(Camp camp)
+        {
+            var canOthersOnField = CurrentTeam.CanMemberOnField(camp);
+            if (camp == Camp.Sur)
+            {
+                foreach (var m in CurrentTeam.SurMemberList)
                 {
-                    member.Image = new BitmapImage(new Uri(imagePath));
-                }
-                catch
-                {
-                    _messageBoxService.ShowErrorAsync($"图片文件可能损坏或格式不受支持");
+                    if (!m.IsOnField)
+                        m.CanOnFieldChange = canOthersOnField;
                 }
             }
-
-            [RelayCommand]
-            private async Task ClearMemberImageAsync(Member member)
+            else
             {
-                if (await _messageBoxService.ShowConfirmAsync("清除提示", $"是否清除选手{(string.IsNullOrEmpty(member.Name) ? string.Empty : member.Name)}的定妆照"))
-                    member.Image = null;
+                foreach (var m in CurrentTeam.HunMemberList)
+                {
+                    if (!m.IsOnField)
+                        m.CanOnFieldChange = canOthersOnField;
+                }
             }
+            RemoveSurMemberCommand.NotifyCanExecuteChanged();
+            RemoveHunMemberCommand.NotifyCanExecuteChanged();
+        }
+
+        [RelayCommand]
+        private void SetMemberImage(Member member)
+        {
+            var imagePath = _filePickerService.PickImage();
+            if (imagePath == null)
+                return;
+
+            try
+            {
+                member.Image = new BitmapImage(new Uri(imagePath));
+            }
+            catch
+            {
+                _messageBoxService.ShowErrorAsync($"图片文件可能损坏或格式不受支持");
+            }
+        }
+
+        [RelayCommand]
+        private async Task ClearMemberImageAsync(Member member)
+        {
+            if (await _messageBoxService.ShowConfirmAsync("清除提示", $"是否清除选手{(string.IsNullOrEmpty(member.Name) ? string.Empty : member.Name)}的定妆照"))
+                member.Image = null;
         }
     }
 }

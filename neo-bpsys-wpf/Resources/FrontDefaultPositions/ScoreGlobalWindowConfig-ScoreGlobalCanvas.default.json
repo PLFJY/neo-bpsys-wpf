@@ -1,0 +1,170 @@
+{
+  "MainTeamName": {
+    "Width": 134,
+    "Height": null,
+    "Left": 10,
+    "Top": 96
+  },
+  "AwayTeamName": {
+    "Width": 134,
+    "Height": null,
+    "Left": 10,
+    "Top": 153
+  },
+  "MainScoreTotal": {
+    "Width": 87,
+    "Height": null,
+    "Left": 1345,
+    "Top": 81
+  },
+  "AwayScoreTotal": {
+    "Width": 87,
+    "Height": null,
+    "Left": 1345,
+    "Top": 140
+  },
+  "MainTeamGame1FirstHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 170,
+    "Top": 86
+  },
+  "MainTeamGame1SecondHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 268,
+    "Top": 86
+  },
+  "MainTeamGame2FirstHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 366,
+    "Top": 86
+  },
+  "MainTeamGame2SecondHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 464,
+    "Top": 86
+  },
+  "MainTeamGame3FirstHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 562,
+    "Top": 86
+  },
+  "MainTeamGame3SecondHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 660,
+    "Top": 86
+  },
+  "MainTeamGame4FirstHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 758,
+    "Top": 86
+  },
+  "MainTeamGame4SecondHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 856,
+    "Top": 86
+  },
+  "MainTeamGame5FirstHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 954,
+    "Top": 86
+  },
+  "MainTeamGame5SecondHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 1052,
+    "Top": 86
+  },
+  "MainTeamGame5ExtraFirstHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 1150,
+    "Top": 86
+  },
+  "MainTeamGame5ExtraSecondHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 1248,
+    "Top": 86
+  },
+  "AwayGame1FirstHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 170,
+    "Top": 147
+  },
+  "AwayGame1SecondHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 268,
+    "Top": 147
+  },
+  "AwayGame2FirstHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 366,
+    "Top": 147
+  },
+  "AwayGame2SecondHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 464,
+    "Top": 147
+  },
+  "AwayGame3FirstHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 562,
+    "Top": 147
+  },
+  "AwayGame3SecondHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 660,
+    "Top": 147
+  },
+  "AwayGame4FirstHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 758,
+    "Top": 147
+  },
+  "AwayGame4SecondHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 856,
+    "Top": 147
+  },
+  "AwayGame5FirstHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 954,
+    "Top": 147
+  },
+  "AwayGame5SecondHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 1052,
+    "Top": 147
+  },
+  "AwayGame5ExtraFirstHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 1150,
+    "Top": 147
+  },
+  "AwayGame5ExtraSecondHalf": {
+    "Width": null,
+    "Height": null,
+    "Left": 1248,
+    "Top": 147
+  }
+}

@@ -7,7 +7,9 @@ public enum FrontWindowType
 {
     BpWindow,
     CutSceneWindow,
-    ScoreWindow,
+    ScoreSurWindow,
+    ScoreHunWindow,
+    ScoreGlobalWindow,
     GameDataWindow,
     WidgetsWindow
 }
