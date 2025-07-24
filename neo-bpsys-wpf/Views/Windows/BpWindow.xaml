@@ -27,14 +27,14 @@
         Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}"
         Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
         <Canvas.Background>
-            <ImageBrush d:ImageSource="/Assets/bp.png" />
+            <ImageBrush d:ImageSource="/Assets/bp.png" ImageSource="{Binding BgImage}" />
         </Canvas.Background>
         <Canvas.Resources>
             <Style TargetType="TextBlock">
                 <Setter Property="Foreground" Value="White" />
             </Style>
             <Style TargetType="Image">
-                <Setter Property="Stretch" Value="UniformToFill" />
+                <Setter Property="Stretch" Value="Uniform" />
             </Style>
             <Style x:Key="MajorPoints" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MajorPoints.FontSize}" />
@@ -61,6 +61,10 @@
                 <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.PlayerId.FontWeight}" />
                 <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="Foreground" Value="{Binding Settings.TextSettings.PlayerId.Foreground}" />
+            </Style>
+            <Style x:Key="GlowBorderStyle" TargetType="Rectangle">
+                <Setter Property="Fill" Value="{Binding Settings.PickingBorderBrush}" />
+                <Setter Property="Panel.ZIndex" Value="2" />
             </Style>
         </Canvas.Resources>
         <!--  Top bar  -->
@@ -345,50 +349,71 @@
             <Image d:Source="/Assets/医生.png" Source="{Binding CurrentGame.SurPlayerList[3].PictureShown}" />
         </Border>
         <!--  Sur Picking Border  -->
-        <Image
+        <Rectangle
             Name="SurPickingBorder0"
             Canvas.Left="{Binding ElementName=SurPick0, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurPick0, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurPick0, Path=ActualWidth}"
             Height="{Binding ElementName=SurPick0, Path=ActualHeight}"
-            d:Source="/Assets/pickingBorder.png"
-            Source="{Binding PickingBorderSource}"
-            Stretch="Fill"
+            d:Visibility="Visible"
+            Style="{StaticResource GlowBorderStyle}"
             Tag="nv"
-            Visibility="Hidden" />
-        <Image
+            Visibility="Hidden">
+            <Rectangle.OpacityMask>
+                <ImageBrush
+                    d:ImageSource="/Assets/pickingBorder.png"
+                    ImageSource="{Binding PickingBorderSource}"
+                    Stretch="Fill" />
+            </Rectangle.OpacityMask>
+        </Rectangle>
+        <Rectangle
             Name="SurPickingBorder1"
             Canvas.Left="{Binding ElementName=SurPick1, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurPick1, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurPick1, Path=ActualWidth}"
             Height="{Binding ElementName=SurPick1, Path=ActualHeight}"
-            d:Source="/Assets/pickingBorder.png"
-            Source="{Binding PickingBorderSource}"
-            Stretch="Fill"
+            Style="{StaticResource GlowBorderStyle}"
             Tag="nv"
-            Visibility="Hidden" />
-        <Image
+            Visibility="Hidden">
+            <Rectangle.OpacityMask>
+                <ImageBrush
+                    d:ImageSource="/Assets/pickingBorder.png"
+                    ImageSource="{Binding PickingBorderSource}"
+                    Stretch="Fill" />
+            </Rectangle.OpacityMask>
+        </Rectangle>
+        <Rectangle
             Name="SurPickingBorder2"
             Canvas.Left="{Binding ElementName=SurPick2, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurPick2, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurPick2, Path=ActualWidth}"
             Height="{Binding ElementName=SurPick2, Path=ActualHeight}"
-            d:Source="/Assets/pickingBorder.png"
-            Source="{Binding PickingBorderSource}"
-            Stretch="Fill"
+            Style="{StaticResource GlowBorderStyle}"
             Tag="nv"
-            Visibility="Hidden" />
-        <Image
+            Visibility="Hidden">
+            <Rectangle.OpacityMask>
+                <ImageBrush
+                    d:ImageSource="/Assets/pickingBorder.png"
+                    ImageSource="{Binding PickingBorderSource}"
+                    Stretch="Fill" />
+            </Rectangle.OpacityMask>
+        </Rectangle>
+        <Rectangle
             Name="SurPickingBorder3"
             Canvas.Left="{Binding ElementName=SurPick3, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurPick3, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurPick3, Path=ActualWidth}"
             Height="{Binding ElementName=SurPick3, Path=ActualHeight}"
-            d:Source="/Assets/pickingBorder.png"
-            Source="{Binding PickingBorderSource}"
-            Stretch="Fill"
+            Style="{StaticResource GlowBorderStyle}"
             Tag="nv"
-            Visibility="Hidden" />
+            Visibility="Hidden">
+            <Rectangle.OpacityMask>
+                <ImageBrush
+                    d:ImageSource="/Assets/pickingBorder.png"
+                    ImageSource="{Binding PickingBorderSource}"
+                    Stretch="Fill" />
+            </Rectangle.OpacityMask>
+        </Rectangle>
         <!--  Middle  -->
         <Border
             Name="Map"
@@ -694,17 +719,22 @@
             <Image d:Source="/Assets/小丑.png" Source="{Binding CurrentGame.HunPlayer.PictureShown}" />
         </Border>
         <!--  Hun Picking Border  -->
-        <Image
+        <Rectangle
             Name="HunPickingBorder"
             Canvas.Left="{Binding ElementName=HunPick, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=HunPick, Path=(Canvas.Top)}"
             Width="{Binding ElementName=HunPick, Path=ActualWidth}"
             Height="{Binding ElementName=HunPick, Path=ActualHeight}"
-            d:Source="/Assets/pickingBorder.png"
-            Source="{Binding PickingBorderSource}"
-            Stretch="Fill"
+            Style="{StaticResource GlowBorderStyle}"
             Tag="nv"
-            Visibility="Hidden" />
+            Visibility="Hidden">
+            <Rectangle.OpacityMask>
+                <ImageBrush
+                    d:ImageSource="/Assets/pickingBorder.png"
+                    ImageSource="{Binding PickingBorderSource}"
+                    Stretch="Fill" />
+            </Rectangle.OpacityMask>
+        </Rectangle>
         <!--  Player ID  -->
         <!--  Sur  -->
         <Border

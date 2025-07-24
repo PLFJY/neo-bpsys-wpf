@@ -1,24 +1,20 @@
 ﻿using System.Globalization;
 using System.Windows.Data;
 
-namespace neo_bpsys_wpf.Converters
+namespace neo_bpsys_wpf.Converters;
+
+/// <summary>
+/// 转换布尔值到枚举
+/// </summary>
+public class BooleanToEnumConverter : IValueConverter
 {
-    public class BooleanToEnumConverter : IValueConverter
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value == null)
-                return false;
+        return value != null && value.Equals(parameter);
+    }
 
-            return value.Equals(parameter);
-        }
-
-        public object? ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is bool b && b)
-                return parameter;
-
-            return null;
-        }
+    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return value is true ? parameter : null;
     }
 }

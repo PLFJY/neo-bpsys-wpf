@@ -108,7 +108,6 @@
                         <RowDefinition />
                         <RowDefinition />
                         <RowDefinition />
-                        <RowDefinition />
                     </Grid.RowDefinitions>
                     <StackPanel
                         Grid.Row="1"
@@ -129,12 +128,19 @@
                             Content="下一局"
                             Icon="{ui:SymbolIcon Symbol=ArrowNext24}" />
                     </StackPanel>
-                    <CheckBox
-                        x:Name="IsGameComplted"
-                        Grid.Row="2"
-                        Margin="0,10,0,0"
-                        Content="对局已完成"
-                        IsChecked="{Binding IsGameFinished}" />
+                    <Grid Grid.Row="2" Margin="0,10,0,0">
+                        <CheckBox
+                            x:Name="IsGameComplted"
+                            HorizontalAlignment="Left"
+                            Content="对局已完成"
+                            IsChecked="{Binding IsGameFinished}" />
+                        <ui:Button
+                            Grid.Row="4"
+                            HorizontalAlignment="Right"
+                            Command="{Binding GlobalScoreUpdateToFrontCommand}"
+                            Content="同步至前台"
+                            Icon="{ui:SymbolIcon Symbol=ArrowUpload24}" />
+                    </Grid>
                     <Grid
                         Grid.Row="3"
                         d:IsEnabled="False"
@@ -231,9 +237,23 @@
                             </Grid>
                         </GroupBox>
                     </Grid>
-
                 </Grid>
             </Grid>
+        </Border>
+        <Border Style="{StaticResource Card}" Visibility="{Binding IsDebugContentVisible, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneTime}">
+            <Border.Resources>
+                <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            </Border.Resources>
+            <StackPanel>
+                <DataGrid ItemsSource="{Binding GameGlobalInfoRecord}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Binding="{Binding Key}" Header="Key" />
+                        <DataGridTextColumn Binding="{Binding Value.IsGameFinished}" Header="IsGameFinished" />
+                        <DataGridTextColumn Binding="{Binding Value.MainTeamCamp}" Header="MainTeamCamp" />
+                        <DataGridTextColumn Binding="{Binding Value.GameResult}" Header="GameResult" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </StackPanel>
         </Border>
     </WrapPanel>
 </Page>

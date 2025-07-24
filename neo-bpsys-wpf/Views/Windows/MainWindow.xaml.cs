@@ -9,120 +9,119 @@ using Wpf.Ui.Controls;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
 using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
 
-namespace neo_bpsys_wpf.Views.Windows
+namespace neo_bpsys_wpf.Views.Windows;
+
+/// <summary>
+/// Interaction logic for MainWindow.xaml
+/// </summary>
+public partial class MainWindow : FluentWindow, INavigationWindow
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : FluentWindow, INavigationWindow
+    private readonly ILogger<MainWindow> _logger;
+
+    public MainWindow(
+        INavigationService navigationService,
+        IMessageBoxService messageBoxService,
+        IInfoBarService infoBarService,
+        ILogger<MainWindow> logger
+    )
     {
-        private readonly ILogger<MainWindow> _logger;
+        _logger = logger;
+        InitializeComponent();
+        navigationService.SetNavigationControl(RootNavigation);
+        infoBarService.SetInfoBarControl(InfoBar);
+    }
 
-        public MainWindow(
-            INavigationService navigationService,
-            IMessageBoxService messageBoxService,
-            IInfoBarService infoBarService,
-            ILogger<MainWindow> logger
-        )
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        base.OnClosing(e);
+        e.Cancel = true;
+        _ = ConfirmToExitAsync();
+    }
+
+    private void ExitButton_Click(object sender, RoutedEventArgs e)
+    {
+        _ = ConfirmToExitAsync();
+    }
+
+    private async Task ConfirmToExitAsync()
+    {
+        var messageBox = new MessageBox()
         {
-            _logger = logger;
-            InitializeComponent();
-            navigationService.SetNavigationControl(RootNavigation);
-            infoBarService.SetInfoBarControl(InfoBar);
+            Title = "退出确认",
+            Content = "是否退出",
+            PrimaryButtonText = "退出",
+            PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.ArrowExit20 },
+            CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
+            CloseButtonText = "取消",
+            Owner = App.Current.MainWindow,
+        };
+        var result = await messageBox.ShowDialogAsync();
+
+        if (result == MessageBoxResult.Primary)
+        {
+            _logger.LogInformation("Application Closing");
+            Application.Current.Shutdown();
         }
+    }
 
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            base.OnClosing(e);
-            e.Cancel = true;
-            _ = ConfirmToExitAsync();
-        }
-
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
-        {
-            _ = ConfirmToExitAsync();
-        }
-
-        private async Task ConfirmToExitAsync()
-        {
-            var messageBox = new MessageBox()
-            {
-                Title = "退出确认",
-                Content = "是否退出",
-                PrimaryButtonText = "退出",
-                PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.ArrowExit20 },
-                CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
-                CloseButtonText = "取消",
-                Owner = App.Current.MainWindow,
-            };
-            var result = await messageBox.ShowDialogAsync();
-
-            if (result == MessageBoxResult.Primary)
-            {
-                _logger.LogInformation("Application Closing");
-                Application.Current.Shutdown();
-            }
-        }
-
-        private void MaximizeButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.WindowState =
-                this.WindowState == WindowState.Normal ?
+    private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+    {
+        this.WindowState =
+            this.WindowState == WindowState.Normal ?
                 WindowState.Maximized : WindowState.Normal;
-        }
+    }
 
-        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.WindowState = WindowState.Minimized;
-        }
+    private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+    {
+        this.WindowState = WindowState.Minimized;
+    }
 
-        private void WindowIcon_MouseDown(object sender, MouseButtonEventArgs e)
+    private void WindowIcon_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        SystemCommands.ShowSystemMenu(this, this.PointToScreen(e.GetPosition(this)));
+    }
+
+    private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton == MouseButton.Right)
         {
             SystemCommands.ShowSystemMenu(this, this.PointToScreen(e.GetPosition(this)));
         }
 
-        private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
+        if (e.ClickCount == 2 && e.ChangedButton == MouseButton.Left)
         {
-            if (e.ChangedButton == MouseButton.Right)
-            {
-                SystemCommands.ShowSystemMenu(this, this.PointToScreen(e.GetPosition(this)));
-            }
-
-            if (e.ClickCount == 2 && e.ChangedButton == MouseButton.Left)
-            {
-                MaximizeButton_Click(sender, e);
-                return;
-            }
-
-            if (e.ChangedButton == MouseButton.Left && e.LeftButton == MouseButtonState.Pressed)
-            {
-                this.DragMove();
-            }
+            MaximizeButton_Click(sender, e);
+            return;
         }
 
-        public INavigationView GetNavigation() => RootNavigation;
-
-        public void CloseWindow() => Close();
-
-        public void ShowWindow() => Show();
-
-        public bool Navigate(Type pageType)
+        if (e.ChangedButton == MouseButton.Left && e.LeftButton == MouseButtonState.Pressed)
         {
-            _logger.LogInformation("Navigate to {PageType}", pageType);
-            return RootNavigation.Navigate(pageType);
+            this.DragMove();
         }
+    }
 
-        public void SetPageService(INavigationViewPageProvider navigationViewPageProvider) =>
-            RootNavigation.SetPageProviderService(navigationViewPageProvider);
+    public INavigationView GetNavigation() => RootNavigation;
 
-        INavigationView INavigationWindow.GetNavigation()
-        {
-            throw new NotImplementedException();
-        }
+    public void CloseWindow() => Close();
 
-        public void SetServiceProvider(IServiceProvider serviceProvider)
-        {
-            throw new NotImplementedException();
-        }
+    public void ShowWindow() => Show();
+
+    public bool Navigate(Type pageType)
+    {
+        _logger.LogInformation("Navigate to {PageType}", pageType);
+        return RootNavigation.Navigate(pageType);
+    }
+
+    public void SetPageService(INavigationViewPageProvider navigationViewPageProvider) =>
+        RootNavigation.SetPageProviderService(navigationViewPageProvider);
+
+    INavigationView INavigationWindow.GetNavigation()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void SetServiceProvider(IServiceProvider serviceProvider)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -7,106 +7,105 @@ using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using System.Collections.ObjectModel;
 
-namespace neo_bpsys_wpf.ViewModels.Pages
+namespace neo_bpsys_wpf.ViewModels.Pages;
+
+public partial class TeamInfoPageViewModel : ObservableRecipient
 {
-    public partial class TeamInfoPageViewModel : ObservableRecipient
-    {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
-        public TeamInfoPageViewModel()
+    public TeamInfoPageViewModel()
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
-        {
-            //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
-        }
+    {
+        //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+    }
 
+    private readonly ISharedDataService _sharedDataService;
+    private readonly IFilePickerService _filePickerService;
+    private readonly IMessageBoxService _messageBoxService;
+
+    public TeamInfoPageViewModel(ISharedDataService sharedDataService, IFilePickerService filePickerService, IMessageBoxService messageBoxService)
+    {
+        _sharedDataService = sharedDataService;
+        _filePickerService = filePickerService;
+        _messageBoxService = messageBoxService;
+        MainTeamInfoViewModel = new TeamInfoViewModel(_sharedDataService.MainTeam, _filePickerService, _messageBoxService);
+        AwayTeamInfoViewModel = new TeamInfoViewModel(_sharedDataService.AwayTeam, _filePickerService, _messageBoxService);
+        OnFieldSurPlayerViewModels = [.. Enumerable.Range(0, 4).Select(i => new OnFieldSurPlayerViewModel(_sharedDataService, i))];
+        OnFieldHunPlayerVm = new OnFieldHunPlayerViewModel(_sharedDataService);
+    }
+
+    public TeamInfoViewModel MainTeamInfoViewModel { get; }
+
+    public TeamInfoViewModel AwayTeamInfoViewModel { get; }
+
+    public ObservableCollection<OnFieldSurPlayerViewModel> OnFieldSurPlayerViewModels { get; set; }
+    public OnFieldHunPlayerViewModel OnFieldHunPlayerVm { get; set; }
+
+    public partial class OnFieldSurPlayerViewModel :
+        ObservableRecipient, IRecipient<MemberPropertyChangedMessage>, IRecipient<PlayerSwappedMessage>, IRecipient<SwapMessage>
+    {
         private readonly ISharedDataService _sharedDataService;
-        private readonly IFilePickerService _filePickerService;
-        private readonly IMessageBoxService _messageBoxService;
 
-        public TeamInfoPageViewModel(ISharedDataService sharedDataService, IFilePickerService filePickerService, IMessageBoxService messageBoxService)
+        public OnFieldSurPlayerViewModel(ISharedDataService sharedDataService, int index)
         {
             _sharedDataService = sharedDataService;
-            _filePickerService = filePickerService;
-            _messageBoxService = messageBoxService;
-            MainTeamInfoViewModel = new TeamInfoViewModel(_sharedDataService.MainTeam, _filePickerService, _messageBoxService);
-            AwayTeamInfoViewModel = new TeamInfoViewModel(_sharedDataService.AwayTeam, _filePickerService, _messageBoxService);
-            OnFieldSurPlayerViewModels = [.. Enumerable.Range(0, 4).Select(i => new OnFieldSurPlayerViewModel(_sharedDataService, i))];
-            OnFieldHunPlayerVm = new OnFieldHunPlayerViewModel(_sharedDataService);
+            Index = index;
+            IsActive = true;
         }
 
-        public TeamInfoViewModel MainTeamInfoViewModel { get; }
+        public Player ThisPlayer => _sharedDataService.CurrentGame.SurPlayerList[Index];
 
-        public TeamInfoViewModel AwayTeamInfoViewModel { get; }
+        public int Index { get; }
 
-        public ObservableCollection<OnFieldSurPlayerViewModel> OnFieldSurPlayerViewModels { get; set; }
-        public OnFieldHunPlayerViewModel OnFieldHunPlayerVm { get; set; }
-
-        public partial class OnFieldSurPlayerViewModel :
-            ObservableRecipient, IRecipient<MemberPropertyChangedMessage>, IRecipient<PlayerSwappedMessage>, IRecipient<SwapMessage>
+        public void Receive(MemberPropertyChangedMessage message)
         {
-            private readonly ISharedDataService _sharedDataService;
+            OnPropertyChanged(nameof(ThisPlayer));
+        }
 
-            public OnFieldSurPlayerViewModel(ISharedDataService sharedDataService, int index)
-            {
-                _sharedDataService = sharedDataService;
-                Index = index;
-                IsActive = true;
-            }
+        public void Receive(PlayerSwappedMessage message)
+        {
+            OnPropertyChanged(nameof(ThisPlayer));
+        }
 
-            public Player ThisPlayer => _sharedDataService.CurrentGame.SurPlayerList[Index];
+        public void Receive(SwapMessage message)
+        {
+            OnPropertyChanged(nameof(ThisPlayer));
+        }
 
-            public int Index { get; }
-
-            public void Receive(MemberPropertyChangedMessage message)
-            {
-                OnPropertyChanged(nameof(ThisPlayer));
-            }
-
-            public void Receive(PlayerSwappedMessage message)
-            {
-                OnPropertyChanged(nameof(ThisPlayer));
-            }
-
-            public void Receive(SwapMessage message)
-            {
-                OnPropertyChanged(nameof(ThisPlayer));
-            }
-
-            [RelayCommand]
-            private void SwapMembersInPlayers(CharacterChangerCommandParameter parameter)
-            {
-                (_sharedDataService.CurrentGame.SurPlayerList[parameter.Target].Member,
+        [RelayCommand]
+        private void SwapMembersInPlayers(CharacterChangerCommandParameter parameter)
+        {
+            (_sharedDataService.CurrentGame.SurPlayerList[parameter.Target].Member,
                     _sharedDataService.CurrentGame.SurPlayerList[parameter.Source].Member) =
-                    (_sharedDataService.CurrentGame.SurPlayerList[parameter.Source].Member,
+                (_sharedDataService.CurrentGame.SurPlayerList[parameter.Source].Member,
                     _sharedDataService.CurrentGame.SurPlayerList[parameter.Target].Member);
-                WeakReferenceMessenger.Default.Send(new PlayerSwappedMessage(this));
+            WeakReferenceMessenger.Default.Send(new PlayerSwappedMessage(this));
 
-                OnPropertyChanged();
-            }
+            OnPropertyChanged();
         }
-
-        public class OnFieldHunPlayerViewModel :
-            ObservableRecipient, IRecipient<MemberPropertyChangedMessage>, IRecipient<SwapMessage>
-        {
-            private readonly ISharedDataService _sharedDataService;
-
-            public OnFieldHunPlayerViewModel(ISharedDataService sharedDataService)
-            {
-                _sharedDataService = sharedDataService;
-                IsActive = true;
-            }
-
-            public Player ThisPlayer => _sharedDataService.CurrentGame.HunPlayer;
-
-            public void Receive(MemberPropertyChangedMessage message)
-            {
-                OnPropertyChanged(nameof(ThisPlayer));
-            }
-
-            public void Receive(SwapMessage message)
-            {
-                OnPropertyChanged(nameof(ThisPlayer));
-            }
-        }
-
     }
+
+    public class OnFieldHunPlayerViewModel :
+        ObservableRecipient, IRecipient<MemberPropertyChangedMessage>, IRecipient<SwapMessage>
+    {
+        private readonly ISharedDataService _sharedDataService;
+
+        public OnFieldHunPlayerViewModel(ISharedDataService sharedDataService)
+        {
+            _sharedDataService = sharedDataService;
+            IsActive = true;
+        }
+
+        public Player ThisPlayer => _sharedDataService.CurrentGame.HunPlayer;
+
+        public void Receive(MemberPropertyChangedMessage message)
+        {
+            OnPropertyChanged(nameof(ThisPlayer));
+        }
+
+        public void Receive(SwapMessage message)
+        {
+            OnPropertyChanged(nameof(ThisPlayer));
+        }
+    }
+
 }

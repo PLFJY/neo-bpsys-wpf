@@ -1,7 +1,8 @@
-﻿<Page
+<Page
     x:Class="neo_bpsys_wpf.Views.Pages.SettingPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:enums="clr-namespace:neo_bpsys_wpf.Enums"
@@ -237,7 +238,7 @@
             Padding="10,10,10,10"
             Style="{StaticResource Card}">
             <Border.Resources>
-                <Style BasedOn="{StaticResource {x:Type ComboBox}}" TargetType="ComboBox">
+                <Style x:Key="DictionaryComboBoxStyle" BasedOn="{StaticResource {x:Type ComboBox}}" TargetType="ComboBox">
                     <Setter Property="SelectedValuePath" Value="Value" />
                     <Setter Property="DisplayMemberPath" Value="Key" />
                 </Style>
@@ -276,6 +277,20 @@
                                     </ContextMenu>
                                 </ui:DropDownButton.Flyout>
                             </ui:DropDownButton>
+                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="待选框边缘颜色（染色，会覆盖你的待选框贴图本身的颜色）:" />
+                                <colorpicker:PortableColorPicker
+                                    Width="60"
+                                    Height="30"
+                                    Margin="10,0,0,0"
+                                    SelectedColor="{Binding BpWindowPickingColorSettings, Mode=TwoWay}"
+                                    Style="{StaticResource DefaultColorPickerStyle}" />
+                                <ui:Button
+                                    Margin="10,0,0,0"
+                                    Command="{Binding SaveBpWindowPickingBorderColorCommand}"
+                                    Content="保存"
+                                    Icon="{ui:SymbolIcon Symbol=Save24}" />
+                            </StackPanel>
                             <Grid Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -288,7 +303,8 @@
                                         Margin="0,10,0,0"
                                         HorizontalAlignment="Left"
                                         ItemsSource="{Binding BpWindowTextSettings}"
-                                        SelectedValue="{Binding SelectedBpWindowTextSettings}" />
+                                        SelectedValue="{Binding SelectedBpWindowTextSettings}"
+                                        Style="{StaticResource DictionaryComboBoxStyle}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
@@ -321,10 +337,17 @@
                                 Command="{Binding EditCutSceneWindowImagesCommand}"
                                 Content="修改过场背景图片"
                                 Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
-                            <ui:ToggleSwitch
-                                Margin="0,10,0,0"
-                                Content="天赋和辅助特质切换为黑色版本"
-                                IsChecked="{Binding IsTalentAndTraitBlackVerEnable}" />
+                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="天赋和辅助特质图标颜色" />
+                                <RadioButton
+                                    Margin="10,0,0,0"
+                                    Content="白色"
+                                    IsChecked="True" />
+                                <RadioButton
+                                    Margin="10,0,0,0"
+                                    Content="黑色"
+                                    IsChecked="{Binding IsTalentAndTraitBlackVerEnable}" />
+                            </StackPanel>
                             <Grid Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -337,7 +360,8 @@
                                         Margin="0,10,0,0"
                                         HorizontalAlignment="Left"
                                         ItemsSource="{Binding CutSceneWindowTextSettings}"
-                                        SelectedValue="{Binding SelectedCutSceneWindowTextSettings}" />
+                                        SelectedValue="{Binding SelectedCutSceneWindowTextSettings}"
+                                        Style="{StaticResource DictionaryComboBoxStyle}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
@@ -401,6 +425,17 @@
                                     Content="保存"
                                     Icon="{ui:SymbolIcon Symbol=Save24}" />
                             </StackPanel>
+                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="分数统计的阵营图标颜色" />
+                                <RadioButton
+                                    Margin="10,0,0,0"
+                                    Content="白色"
+                                    IsChecked="True" />
+                                <RadioButton
+                                    Margin="10,0,0,0"
+                                    Content="黑色"
+                                    IsChecked="{Binding IsScoreGlobalCampIconBlackVerEnable}" />
+                            </StackPanel>
                             <Grid Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -413,17 +448,18 @@
                                         Margin="0,10,0,0"
                                         HorizontalAlignment="Left"
                                         ItemsSource="{Binding ScoreWindowTextSettings}"
-                                        SelectedValue="{Binding SelectedScoreWindowTextSettings}" />
+                                        SelectedValue="{Binding SelectedScoreWindowTextSettings}"
+                                        Style="{StaticResource DictionaryComboBoxStyle}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.ScoreWindow}"
+                                        CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
                                         Content="编辑"
                                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding ResetCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.ScoreWindow}"
+                                        CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
                                         Content="重置该窗口的全部个性化设置"
                                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </StackPanel>
@@ -458,7 +494,8 @@
                                         Margin="0,10,0,0"
                                         HorizontalAlignment="Left"
                                         ItemsSource="{Binding GameDataWindowTextSettings}"
-                                        SelectedValue="{Binding SelectedGameDataWindowTextSettings}" />
+                                        SelectedValue="{Binding SelectedGameDataWindowTextSettings}"
+                                        Style="{StaticResource DictionaryComboBoxStyle}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
@@ -495,12 +532,57 @@
                                             CommandParameter="MapBpBgUri"
                                             Header="地图BP" />
                                         <MenuItem
-                                            Command="{Binding BpOverviewBgUri}"
+                                            Command="{Binding EditWidgetsWindowImagesCommand}"
+                                            CommandParameter="MapBpV2BgUri"
+                                            Header="地图BpV2背景" />
+                                        <MenuItem
+                                            Command="{Binding EditWidgetsWindowImagesCommand}"
+                                            CommandParameter="MapBpV2SurIconUri"
+                                            Header="地图BpV2求生者图标" />
+                                        <MenuItem
+                                            Command="{Binding EditWidgetsWindowImagesCommand}"
+                                            CommandParameter="MapBpV2HunIconUri"
+                                            Header="地图BpV2监管者图标" />
+                                        <MenuItem
+                                            Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="MapBpBgUri"
                                             Header="BP总览" />
+                                        <MenuItem
+                                            Command="{Binding EditWidgetsWindowImagesCommand}"
+                                            CommandParameter="CurrentBanLockImageUri"
+                                            Header="BP总览-当局禁用锁" />
+                                        <MenuItem
+                                            Command="{Binding EditWidgetsWindowImagesCommand}"
+                                            CommandParameter="GlobalBanLockImageUri"
+                                            Header="BP总览-全局禁用锁" />
                                     </ContextMenu>
                                 </ui:DropDownButton.Flyout>
                             </ui:DropDownButton>
+                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="地图BpV2 阵营图标颜色" />
+                                <RadioButton
+                                    Margin="10,0,0,0"
+                                    Content="白色"
+                                    IsChecked="True" />
+                                <RadioButton
+                                    Margin="10,0,0,0"
+                                    Content="黑色"
+                                    IsChecked="{Binding IsMapBpV2CampIconBlackVerEnable}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="地图BpV2 待选框边缘颜色（染色，会覆盖你的待选框贴图本身的颜色）:" />
+                                <colorpicker:PortableColorPicker
+                                    Width="60"
+                                    Height="30"
+                                    Margin="10,0,0,0"
+                                    SelectedColor="{Binding MapBpV2PickingColorSettings, Mode=TwoWay}"
+                                    Style="{StaticResource DefaultColorPickerStyle}" />
+                                <ui:Button
+                                    Margin="10,0,0,0"
+                                    Command="{Binding SaveMapBpV2PickingBorderColorCommand}"
+                                    Content="保存"
+                                    Icon="{ui:SymbolIcon Symbol=Save24}" />
+                            </StackPanel>
                             <Grid Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -513,7 +595,8 @@
                                         Margin="0,10,0,0"
                                         HorizontalAlignment="Left"
                                         ItemsSource="{Binding WidgetsWindowTextSettings}"
-                                        SelectedValue="{Binding SelectedWidgetsWindowTextSettings}" />
+                                        SelectedValue="{Binding SelectedWidgetsWindowTextSettings}"
+                                        Style="{StaticResource DictionaryComboBoxStyle}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
@@ -545,8 +628,7 @@
                     VerticalAlignment="Center"
                     FontSize="18"
                     FontWeight="Bold"
-                    Text="赞助渠道">
-                </TextBlock>
+                    Text="赞助渠道" />
             </ui:CardExpander.Header>
             <Grid>
                 <Grid.ColumnDefinitions>

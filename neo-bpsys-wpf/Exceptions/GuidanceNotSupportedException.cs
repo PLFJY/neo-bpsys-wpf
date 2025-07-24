@@ -1,6 +1,5 @@
-﻿namespace neo_bpsys_wpf.Exceptions
+﻿namespace neo_bpsys_wpf.Exceptions;
+
+public class GuidanceNotSupportedException : Exception
 {
-    public class GuidanceNotSupportedException : Exception
-    {
-    }
 }

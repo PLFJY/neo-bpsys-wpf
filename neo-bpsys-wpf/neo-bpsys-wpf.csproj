@@ -32,7 +32,7 @@
     <Resource Include="Assets\GlobalBanLock.png" />
     <Resource Include="Assets\HomePageHeader.png" />
     <Resource Include="Assets\hunIcon.png" />
-    <Resource Include="Assets\hun_black.png" />
+    <Resource Include="Assets\hunIcon_black.png" />
     <Resource Include="Assets\icon.png" />
     <Resource Include="Assets\Icons\black\Abnormal.png" />
     <Resource Include="Assets\Icons\black\Blink.png" />
@@ -69,6 +69,7 @@
     <Resource Include="Assets\cutScene.png" />
     <Resource Include="Assets\logo_net.jpg" />
     <Resource Include="Assets\mapBp.png" />
+    <Resource Include="Assets\mapBpV2.png" />
     <Resource Include="Assets\map\不归林.png" />
     <Resource Include="Assets\map\军工厂.png" />
     <Resource Include="Assets\map\唐人街.png" />
@@ -88,12 +89,13 @@
     <Resource Include="Assets\map_singleColor\湖景村.png" />
     <Resource Include="Assets\map_singleColor\红教堂.png" />
     <Resource Include="Assets\map_singleColor\里奥的回忆.png" />
+    <Resource Include="Assets\pickingBorder.png" />
     <Resource Include="Assets\scoreGlobal.png" />
     <Resource Include="Assets\scoreGlobal_Bo3.png" />
     <Resource Include="Assets\scoreHun.png" />
     <Resource Include="Assets\scoreSur.png" />
     <Resource Include="Assets\surIcon.png" />
-    <Resource Include="Assets\sur_black.png" />
+    <Resource Include="Assets\surIcon_black.png" />
     <Resource Include="Assets\testLogo.jpg" />
     <Resource Include="Assets\wpfui.png" />
     <Resource Include="Assets\先知.png" />
@@ -132,12 +134,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Extensions\**" />
-    <EmbeddedResource Remove="Extensions\**" />
-    <None Remove="Extensions\**" />
-    <Page Remove="Extensions\**" />
-  </ItemGroup>
-  <ItemGroup>
     <None Remove="Assets\bp_noAuthor.png" />
     <None Remove="Assets\CurrentBanLock.png" />
     <None Remove="Assets\donate_QR_code.JPG" />
@@ -145,6 +141,8 @@
     <None Remove="Assets\GlobalBanLock.png" />
     <None Remove="Assets\hunIcon.png" />
     <None Remove="Assets\hun_black.png" />
+    <None Remove="Assets\mapBpV2.png" />
+    <None Remove="Assets\pickingBorder.png" />
     <None Remove="Assets\surIcon.png" />
     <None Remove="Assets\sur_black.png" />
   </ItemGroup>

@@ -24,13 +24,48 @@
     </Page.Resources>
     <StackPanel>
         <Border Style="{StaticResource Card}">
+            <StackPanel Orientation="Horizontal">
+                <ui:ToggleSwitch Content="待选框呼吸灯开关" IsChecked="{Binding IsBreathing}" />
+                <ui:ToggleSwitch
+                    Margin="10,0,0,0"
+                    Content="阵营选择结果展示开关"
+                    IsChecked="{Binding IsCampVisible}" />
+            </StackPanel>
+        </Border>
+        <Border Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="地图选择" />
+                <Grid Grid.Row="0">
+                    <TextBlock VerticalAlignment="Center" Text="地图选择" />
+                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" Text="操作队伍：" />
+                        <ComboBox
+                            ItemsSource="{Binding MapSelectTeamsList}"
+                            SelectedIndex="0"
+                            SelectedValue="{Binding PickMapTeam}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock>
+                                            <Run Text="{Binding DisplayedTeamType, Mode=OneTime}" /><Run Text=" - " />
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding Team.Name}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="SelectionChanged">
+                                    <i:InvokeCommandAction Command="{Binding PickMapCommand}" CommandParameter="{Binding ElementName=PickMapCombobox, Path=SelectedValue}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
                 <ComboBox
+                    x:Name="PickMapCombobox"
                     Grid.Row="1"
                     Width="400"
                     Margin="0,10,0,0"
@@ -38,6 +73,11 @@
                     ItemsSource="{Binding PickedMapSelections}"
                     SelectedValue="{Binding PickedMap}"
                     SelectedValuePath="Map">
+                    <ComboBox.ItemContainerStyle>
+                        <Style BasedOn="{StaticResource {x:Type ComboBoxItem}}" TargetType="ComboBoxItem">
+                            <Setter Property="IsEnabled" Value="{Binding CanPickInvoke}" />
+                        </Style>
+                    </ComboBox.ItemContainerStyle>
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
@@ -54,6 +94,9 @@
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                     <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="SelectionChanged">
+                            <i:InvokeCommandAction Command="{Binding PickMapCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=ComboBox}, Path=SelectedValue}" />
+                        </i:EventTrigger>
                         <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Page}, Path=DataContext.IsPickHighlighted}" Value="true">
                             <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedComboBox}" />
                         </i:DataTrigger>
@@ -70,90 +113,85 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="地图禁用" />
-                <WrapPanel
+                <Grid Grid.Row="0">
+                    <TextBlock VerticalAlignment="Center" Text="地图禁用" />
+                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" Text="操作队伍：" />
+                        <ComboBox
+                            ItemsSource="{Binding MapSelectTeamsList}"
+                            SelectedIndex="0"
+                            SelectedValue="{Binding BanMapTeam}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock>
+                                            <Run Text="{Binding DisplayedTeamType, Mode=OneTime}" /><Run Text=" - " />
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding Team.Name}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="SelectionChanged">
+                                    <i:InvokeCommandAction Command="{Binding BanMapCommand}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+                <ItemsControl
                     Grid.Row="1"
                     Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <controls:ToggleStyledRadioButton
-                        Width="300"
-                        Margin="0,0,10,10"
-                        GroupName="MapBan"
-                        ImageSource="/Assets/map_singleColor/无禁用.png"
-                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.无禁用}}"
-                        TagName="无禁用" />
-                    <controls:ToggleStyledRadioButton
-                        Width="300"
-                        Margin="0,0,10,10"
-                        GroupName="MapBan"
-                        ImageSource="/Assets/map_singleColor/军工厂.png"
-                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.军工厂}}"
-                        TagName="军工厂" />
-                    <controls:ToggleStyledRadioButton
-                        Width="300"
-                        Margin="0,0,10,10"
-                        GroupName="MapBan"
-                        ImageSource="/Assets/map_singleColor/红教堂.png"
-                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.红教堂}}"
-                        TagName="红教堂" />
-                    <controls:ToggleStyledRadioButton
-                        Width="300"
-                        Margin="0,0,10,10"
-                        GroupName="MapBan"
-                        ImageSource="/Assets/map_singleColor/圣心医院.png"
-                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.圣心医院}}"
-                        TagName="圣心医院" />
-                    <controls:ToggleStyledRadioButton
-                        Width="300"
-                        Margin="0,0,10,10"
-                        GroupName="MapBan"
-                        ImageSource="/Assets/map_singleColor/里奥的回忆.png"
-                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.里奥的回忆}}"
-                        TagName="里奥的回忆" />
-                    <controls:ToggleStyledRadioButton
-                        Width="300"
-                        Margin="0,0,10,10"
-                        GroupName="MapBan"
-                        ImageSource="/Assets/map_singleColor/月亮河公园.png"
-                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.月亮河公园}}"
-                        TagName="月亮河公园" />
-                    <controls:ToggleStyledRadioButton
-                        Width="300"
-                        Margin="0,0,10,10"
-                        GroupName="MapBan"
-                        ImageSource="/Assets/map_singleColor/湖景村.png"
-                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.湖景村}}"
-                        TagName="湖景村" />
-                    <controls:ToggleStyledRadioButton
-                        Width="300"
-                        Margin="0,0,10,10"
-                        GroupName="MapBan"
-                        ImageSource="/Assets/map_singleColor/永眠镇.png"
-                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.永眠镇}}"
-                        TagName="永眠镇" />
-                    <controls:ToggleStyledRadioButton
-                        Width="300"
-                        Margin="0,0,10,10"
-                        GroupName="MapBan"
-                        ImageSource="/Assets/map_singleColor/唐人街.png"
-                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.唐人街}}"
-                        TagName="唐人街" />
-                    <controls:ToggleStyledRadioButton
-                        Width="300"
-                        Margin="0,0,10,10"
-                        GroupName="MapBan"
-                        ImageSource="/Assets/map_singleColor/不归林.png"
-                        IsChecked="{Binding BannedMap, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Map.不归林}}"
-                        TagName="不归林" />
-                    <i:Interaction.Triggers>
-                        <i:DataTrigger Binding="{Binding IsBanHighlighted}" Value="true">
-                            <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedWrapPanel}" />
-                        </i:DataTrigger>
-                        <i:DataTrigger Binding="{Binding IsBanHighlighted}" Value="false">
-                            <i:ChangePropertyAction PropertyName="Style" Value="{x:Null}" />
-                        </i:DataTrigger>
-                    </i:Interaction.Triggers>
-                </WrapPanel>
+                    ItemsSource="{Binding BannedMap}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <ToggleButton
+                                Margin="0,0,10,10"
+                                Command="{Binding DataContext.BanMapCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding Map}"
+                                IsChecked="{Binding IsBanned, Mode=TwoWay}"
+                                IsEnabled="{Binding CanBanInvoke}">
+                                <StackPanel IsEnabled="{TemplateBinding IsEnabled}">
+                                    <Image
+                                        Width="276"
+                                        Height="73"
+                                        Margin="0,0,0,5"
+                                        Focusable="False"
+                                        Source="{Binding ImageSource}"
+                                        Stretch="UniformToFill" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        Focusable="False"
+                                        FontSize="14"
+                                        Text="{Binding Map}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="false">
+                                                        <Setter Property="Foreground" Value="Gray" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </ToggleButton>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <i:Interaction.Triggers>
+                    <i:DataTrigger Binding="{Binding IsBanHighlighted}" Value="true">
+                        <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedGrid}" />
+                    </i:DataTrigger>
+                    <i:DataTrigger Binding="{Binding IsBanHighlighted}" Value="false">
+                        <i:ChangePropertyAction PropertyName="Style" Value="{x:Null}" />
+                    </i:DataTrigger>
+                </i:Interaction.Triggers>
             </Grid>
         </Border>
     </StackPanel>

@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 
 namespace neo_bpsys_wpf.Models;
 
@@ -24,7 +25,6 @@ public partial class Team : ObservableObject
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
 
-    #region 基本信息
     private string _name = string.Empty;
 
     public string Name
@@ -43,11 +43,7 @@ public partial class Team : ObservableObject
 #endif
             return _name;
         }
-        set
-        {
-            _name = value;
-            OnPropertyChanged(nameof(Name));
-        }
+        set => SetProperty(ref _name, value);
     }
 
 
@@ -59,7 +55,6 @@ public partial class Team : ObservableObject
     private ImageSource? _logo;
 
     public string ImageUri { get; set; } = string.Empty;
-    #endregion 基本信息
 
     [ObservableProperty]
     private ObservableCollection<Member> _surMemberList = [];
@@ -73,9 +68,9 @@ public partial class Team : ObservableObject
     [ObservableProperty]
     private ObservableCollection<Character?> _globalBannedHunList = [];
 
-    public Character?[] GlobalBannedSurRecordArray { get; set; }
+    public Character?[] GlobalBannedSurRecordArray { get; }
 
-    public Character?[] GlobalBannedHunRecordArray { get; set; }
+    public Character?[] GlobalBannedHunRecordArray { get; }
 
     [ObservableProperty] 
     [property: JsonIgnore]
@@ -88,7 +83,7 @@ public partial class Team : ObservableObject
     [ObservableProperty]
     private Score _score = new();
 
-    private int _onFieldSurPlayerCnt = 0;
+    private int _onFieldSurPlayerCnt;
 
     public Team(Camp camp)
     {

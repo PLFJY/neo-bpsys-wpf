@@ -1,8 +1,11 @@
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 
@@ -27,7 +30,7 @@ public partial class GameDataWindowViewModel :
     private readonly ISettingsHostService _settingsHostService;
 
     [ObservableProperty]
-    private bool _isDesignMode = false;
+    private bool _isDesignMode;
 
     public GameDataWindowViewModel(ISharedDataService sharedDataService, ISettingsHostService settingsHostService)
     {
@@ -36,6 +39,10 @@ public partial class GameDataWindowViewModel :
         _settingsHostService = settingsHostService;
         IsBo3Mode = _sharedDataService.IsBo3Mode;
     }
+    
+    public ImageSource? BgImage => Settings.BgImageUri == null
+        ? ImageHelper.GetUiImageSource("gameData")
+        : new BitmapImage(new Uri(Settings.BgImageUri));
 
     public Game CurrentGame => _sharedDataService.CurrentGame;
 

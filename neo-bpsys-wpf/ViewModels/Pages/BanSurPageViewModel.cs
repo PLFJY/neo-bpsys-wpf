@@ -5,104 +5,103 @@ using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using System.Collections.ObjectModel;
 
-namespace neo_bpsys_wpf.ViewModels.Pages
+namespace neo_bpsys_wpf.ViewModels.Pages;
+
+public partial class BanSurPageViewModel : ObservableRecipient, IRecipient<SwapMessage>
 {
-    public partial class BanSurPageViewModel : ObservableRecipient, IRecipient<SwapMessage>
-    {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
-        public BanSurPageViewModel()
+    public BanSurPageViewModel()
 #pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
+    {
+        //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+    }
+
+    private readonly ISharedDataService _sharedDataService;
+
+    public ObservableCollection<bool> CanCurrentHunBanned => _sharedDataService.CanCurrentSurBanned;
+
+    public BanSurPageViewModel(ISharedDataService sharedDataService)
+    {
+        _sharedDataService = sharedDataService;
+        BanSurCurrentViewModelList = [.. Enumerable.Range(0, 4).Select(i => new BanSurCurrentViewModel(_sharedDataService, i))];
+        BanSurGlobalViewModelList = [.. Enumerable.Range(0, 9).Select(i => new BanSurGlobalViewModel(_sharedDataService, i))];
+        IsActive = true;
+    }
+
+    public void Receive(SwapMessage message)
+    {
+        if (message.IsSwapped)
         {
-            //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+            for (int i = 0; i < _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray.Length; i++)
+            {
+                BanSurGlobalViewModelList[i].SelectedChara = _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray[i];
+                BanSurGlobalViewModelList[i].SyncChara();
+            }
+            OnPropertyChanged();
+        }
+    }
+
+    public ObservableCollection<BanSurCurrentViewModel> BanSurCurrentViewModelList { get; set; }
+    public ObservableCollection<BanSurGlobalViewModel> BanSurGlobalViewModelList { get; set; }
+
+    //基于模板基类的VM实现
+    public class BanSurCurrentViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+    {
+        public BanSurCurrentViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
+        {
+            CharaList = sharedDataService.SurCharaList;
+            IsEnabled = sharedDataService.CanCurrentSurBanned[index];
         }
 
-        private readonly ISharedDataService _sharedDataService;
-
-        public ObservableCollection<bool> CanCurrentHunBanned => _sharedDataService.CanCurrentSurBanned;
-
-        public BanSurPageViewModel(ISharedDataService sharedDataService)
+        public override void Receive(BanCountChangedMessage message)
         {
-            _sharedDataService = sharedDataService;
-            BanSurCurrentViewModelList = [.. Enumerable.Range(0, 4).Select(i => new BanSurCurrentViewModel(_sharedDataService, i))];
-            BanSurGlobalViewModelList = [.. Enumerable.Range(0, 9).Select(i => new BanSurGlobalViewModel(_sharedDataService, i))];
-            IsActive = true;
-        }
-
-        public void Receive(SwapMessage message)
-        {
-            if (message.IsSwapped)
+            if (message.ChangedList == BanListName.CanCurrentSurBanned)
             {
-                for (int i = 0; i < _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray.Length; i++)
-                {
-                    BanSurGlobalViewModelList[i].SelectedChara = _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray[i];
-                    BanSurGlobalViewModelList[i].SyncChara();
-                }
-                OnPropertyChanged();
+                IsEnabled = SharedDataService.CanCurrentSurBanned[Index];
             }
         }
 
-        public ObservableCollection<BanSurCurrentViewModel> BanSurCurrentViewModelList { get; set; }
-        public ObservableCollection<BanSurGlobalViewModel> BanSurGlobalViewModelList { get; set; }
-
-        //基于模板基类的VM实现
-        public class BanSurCurrentViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+        public override void SyncChara()
         {
-            public BanSurCurrentViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
-            {
-                CharaList = sharedDataService.SurCharaList;
-                IsEnabled = sharedDataService.CanCurrentSurBanned[index];
-            }
-
-            public override void Receive(BanCountChangedMessage message)
-            {
-                if (message.ChangedList == BanListName.CanCurrentSurBanned)
-                {
-                    IsEnabled = SharedDataService.CanCurrentSurBanned[Index];
-                }
-            }
-
-            public override void SyncChara()
-            {
-                SharedDataService.CurrentGame.CurrentSurBannedList[Index] = SelectedChara;
-                PreviewImage = SharedDataService.CurrentGame.CurrentSurBannedList[Index]?.HeaderImageSingleColor;
-            }
-
-            protected override void SyncIsEnabled()
-            {
-                SharedDataService.CanCurrentSurBanned[Index] = IsEnabled;
-            }
-
-            protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanSur;
+            SharedDataService.CurrentGame.CurrentSurBannedList[Index] = SelectedChara;
+            PreviewImage = SharedDataService.CurrentGame.CurrentSurBannedList[Index]?.HeaderImageSingleColor;
         }
 
-        public class BanSurGlobalViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+        protected override void SyncIsEnabled()
         {
-            public BanSurGlobalViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
-            {
-                CharaList = sharedDataService.SurCharaList;
-                IsEnabled = sharedDataService.CanGlobalSurBanned[index];
-            }
-
-            public override void Receive(BanCountChangedMessage message)
-            {
-                if (message.ChangedList == BanListName.CanGlobalSurBanned)
-                {
-                    IsEnabled = SharedDataService.CanGlobalSurBanned[Index];
-                }
-            }
-
-            public override void SyncChara()
-            {
-                SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index] = SelectedChara;
-                PreviewImage = SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index]?.HeaderImageSingleColor;
-            }
-
-            protected override void SyncIsEnabled()
-            {
-                SharedDataService.CanGlobalSurBanned[Index] = IsEnabled;
-            }
-
-            protected override bool IsActionNameCorrect(GameAction? action) => false;
+            SharedDataService.CanCurrentSurBanned[Index] = IsEnabled;
         }
+
+        protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanSur;
+    }
+
+    public class BanSurGlobalViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+    {
+        public BanSurGlobalViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
+        {
+            CharaList = sharedDataService.SurCharaList;
+            IsEnabled = sharedDataService.CanGlobalSurBanned[index];
+        }
+
+        public override void Receive(BanCountChangedMessage message)
+        {
+            if (message.ChangedList == BanListName.CanGlobalSurBanned)
+            {
+                IsEnabled = SharedDataService.CanGlobalSurBanned[Index];
+            }
+        }
+
+        public override void SyncChara()
+        {
+            SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index] = SelectedChara;
+            PreviewImage = SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index]?.HeaderImageSingleColor;
+        }
+
+        protected override void SyncIsEnabled()
+        {
+            SharedDataService.CanGlobalSurBanned[Index] = IsEnabled;
+        }
+
+        protected override bool IsActionNameCorrect(GameAction? action) => false;
     }
 }

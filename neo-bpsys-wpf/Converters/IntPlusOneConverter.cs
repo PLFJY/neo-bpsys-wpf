@@ -1,21 +1,20 @@
 ﻿using System.Globalization;
 using System.Windows.Data;
 
-namespace neo_bpsys_wpf.Converters
+namespace neo_bpsys_wpf.Converters;
+
+public class IntPlusOneConverter : IValueConverter
 {
-    public class IntPlusOneConverter : IValueConverter
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is int index)
-                return index + 1;
+        if (value is int index)
+            return index + 1;
 
-            return Binding.DoNothing;
-        }
+        return Binding.DoNothing;
+    }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
     }
 }

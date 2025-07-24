@@ -25,7 +25,7 @@
         Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}"
         Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
         <Canvas.Background>
-            <ImageBrush d:ImageSource="/Assets/gameData.png" />
+            <ImageBrush d:ImageSource="/Assets/gameData.png" ImageSource="{Binding BgImage}" />
         </Canvas.Background>
         <Canvas.Resources>
             <Style TargetType="TextBlock">

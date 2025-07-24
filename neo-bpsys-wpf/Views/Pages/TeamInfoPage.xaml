@@ -67,9 +67,9 @@
                     <TextBlock
                         Width="150"
                         Margin="20,0,0,0"
-                        VerticalAlignment="Center"
-                        d:Text="当前状态：求生者"
-                        Text="{Binding CurrentTeam.Camp, Converter={StaticResource CampToStringConverter}}" />
+                        VerticalAlignment="Center">
+                        <Run Text="当前状态：" /><Run d:Text="求生者" Text="{Binding CurrentTeam.Camp, Converter={StaticResource CampToStringConverter}}" />
+                    </TextBlock>
 
                 </StackPanel>
 
@@ -271,8 +271,9 @@
                     <TextBlock
                         Width="150"
                         Margin="20,0,0,0"
-                        VerticalAlignment="Center"
-                        Text="{Binding CurrentTeam.Camp, Converter={StaticResource CampToStringConverter}}" />
+                        VerticalAlignment="Center">
+                        <Run Text="当前状态：" /><Run d:Text="监管者" Text="{Binding CurrentTeam.Camp, Converter={StaticResource CampToStringConverter}}" />
+                    </TextBlock>
                 </StackPanel>
 
                 <!--  player edit  -->

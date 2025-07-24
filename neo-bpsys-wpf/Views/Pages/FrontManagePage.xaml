@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:enums="clr-namespace:neo_bpsys_wpf.Enums"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -75,10 +76,14 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <ui:Button Command="{Binding ShowBpWindowCommand}" Content="启动" />
+                    <ui:Button
+                        Command="{Binding ShowWindowCommand}"
+                        CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
+                        Content="启动" />
                     <ui:Button
                         Margin="10,0,0,0"
-                        Command="{Binding HideBpWindowCommand}"
+                        Command="{Binding HideWindowCommand}"
+                        CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
                         Content="关闭" />
                 </StackPanel>
                 <ui:Button
@@ -101,10 +106,14 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <ui:Button Command="{Binding ShowCutSceneWindowCommand}" Content="启动" />
+                    <ui:Button
+                        Command="{Binding ShowWindowCommand}"
+                        CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
+                        Content="启动" />
                     <ui:Button
                         Margin="10,0,0,0"
-                        Command="{Binding HideCutSceneWindowCommand}"
+                        Command="{Binding HideWindowCommand}"
+                        CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
                         Content="关闭" />
                 </StackPanel>
                 <ui:Button
@@ -125,6 +134,8 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Text="比分组件" />
@@ -132,30 +143,68 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <ui:Button Command="{Binding ShowScoreWindowCommand}" Content="启动" />
+                    <TextBlock VerticalAlignment="Center" Text="游戏内比分求生者" />
                     <ui:Button
                         Margin="10,0,0,0"
-                        Command="{Binding HideScoreWindowCommand}"
+                        Command="{Binding ShowWindowCommand}"
+                        CommandParameter="{x:Static enums:FrontWindowType.ScoreSurWindow}"
+                        Content="启动" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding HideWindowCommand}"
+                        CommandParameter="{x:Static enums:FrontWindowType.ScoreSurWindow}"
+                        Content="关闭" />
+                </StackPanel>
+                <StackPanel
+                    Grid.Row="2"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="游戏内比分监管者" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding ShowWindowCommand}"
+                        CommandParameter="{x:Static enums:FrontWindowType.ScoreHunWindow}"
+                        Content="启动" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding HideWindowCommand}"
+                        CommandParameter="{x:Static enums:FrontWindowType.ScoreHunWindow}"
+                        Content="关闭" />
+                </StackPanel>
+                <StackPanel
+                    Grid.Row="3"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="分数统计" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding ShowWindowCommand}"
+                        CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
+                        Content="启动" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding HideWindowCommand}"
+                        CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
                         Content="关闭" />
                 </StackPanel>
                 <ui:Button
-                    Grid.Row="3"
+                    Grid.Row="4"
                     Margin="0,10,0,0"
-                    Command="{Binding ResetScoreWindowElementsPositionCommand}"
+                    Command="{Binding ResetScoreSurWindowElementsPositionCommand}"
                     CommandParameter="ScoreSurCanvas"
                     Content="重置求生者游戏内比分布局"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
-                    Grid.Row="4"
+                    Grid.Row="5"
                     Margin="0,10,0,0"
-                    Command="{Binding ResetScoreWindowElementsPositionCommand}"
+                    Command="{Binding ResetScoreHunWindowElementsPositionCommand}"
                     CommandParameter="ScoreHunCanvas"
                     Content="重置监管者游戏内比分布局"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
-                    Grid.Row="5"
+                    Grid.Row="6"
                     Margin="0,10,0,0"
-                    Command="{Binding ResetScoreWindowElementsPositionCommand}"
+                    Command="{Binding ResetScoreGlobalWindowElementsPositionCommand}"
                     CommandParameter="ScoreGlobalCanvas"
                     Content="重置分数统计布局"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
@@ -173,10 +222,14 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <ui:Button Command="{Binding ShowGameDataWindowCommand}" Content="启动" />
+                    <ui:Button
+                        Command="{Binding ShowWindowCommand}"
+                        CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
+                        Content="启动" />
                     <ui:Button
                         Margin="10,0,0,0"
-                        Command="{Binding HideGameDataWindowCommand}"
+                        Command="{Binding HideWindowCommand}"
+                        CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
                         Content="关闭" />
                 </StackPanel>
                 <ui:Button
@@ -202,10 +255,14 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <ui:Button Command="{Binding ShowWidgetsWindowCommand}" Content="启动" />
+                    <ui:Button
+                        Command="{Binding ShowWindowCommand}"
+                        CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
+                        Content="启动" />
                     <ui:Button
                         Margin="10,0,0,0"
-                        Command="{Binding HideWidgetsWindowCommand}"
+                        Command="{Binding HideWindowCommand}"
+                        CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
                         Content="关闭" />
                 </StackPanel>
                 <ui:Button

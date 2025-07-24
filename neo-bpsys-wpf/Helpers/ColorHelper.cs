@@ -21,7 +21,7 @@ public static class ColorHelper
 
         // 移除可能存在的#前缀
         if (hexColor.StartsWith("#"))
-            hexColor = hexColor.Substring(1);
+            hexColor = hexColor[1..];
 
         Color color;
 
@@ -31,7 +31,7 @@ public static class ColorHelper
             {
                 // ARGB格式 (8个字符)
                 case 8:
-                    var a = byte.Parse(hexColor.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
+                    var a = byte.Parse(hexColor[..2], System.Globalization.NumberStyles.HexNumber);
                     var r = byte.Parse(hexColor.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
                     var g = byte.Parse(hexColor.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
                     var b = byte.Parse(hexColor.Substring(6, 2), System.Globalization.NumberStyles.HexNumber);
@@ -40,7 +40,7 @@ public static class ColorHelper
 
                 // RGB格式 (6个字符)
                 case 6:
-                    r = byte.Parse(hexColor.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
+                    r = byte.Parse(hexColor[..2], System.Globalization.NumberStyles.HexNumber);
                     g = byte.Parse(hexColor.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
                     b = byte.Parse(hexColor.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
                     color = Color.FromArgb(255, r, g, b); // 默认不透明
@@ -74,7 +74,7 @@ public static class ColorHelper
 
         // 移除可能存在的#前缀
         if (argb.StartsWith("#"))
-            argb = argb.Substring(1);
+            argb = argb[1..];
 
         Color color;
 
@@ -84,7 +84,7 @@ public static class ColorHelper
             {
                 // ARGB格式 (8个字符)
                 case 8:
-                    var a = byte.Parse(argb.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
+                    var a = byte.Parse(argb[..2], System.Globalization.NumberStyles.HexNumber);
                     var r = byte.Parse(argb.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
                     var g = byte.Parse(argb.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
                     var b = byte.Parse(argb.Substring(6, 2), System.Globalization.NumberStyles.HexNumber);
@@ -93,7 +93,7 @@ public static class ColorHelper
 
                 // RGB格式 (6个字符)
                 case 6:
-                    r = byte.Parse(argb.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
+                    r = byte.Parse(argb[..2], System.Globalization.NumberStyles.HexNumber);
                     g = byte.Parse(argb.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
                     b = byte.Parse(argb.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
                     color = Color.FromArgb(255, r, g, b); // 默认不透明

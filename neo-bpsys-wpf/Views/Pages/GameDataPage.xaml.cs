@@ -1,15 +1,14 @@
 ﻿using System.Windows.Controls;
 
-namespace neo_bpsys_wpf.Views.Pages
+namespace neo_bpsys_wpf.Views.Pages;
+
+/// <summary>
+/// GameDataPage.xaml 的交互逻辑
+/// </summary>
+public partial class GameDataPage : Page
 {
-    /// <summary>
-    /// GameDataPage.xaml 的交互逻辑
-    /// </summary>
-    public partial class GameDataPage : Page
+    public GameDataPage()
     {
-        public GameDataPage()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

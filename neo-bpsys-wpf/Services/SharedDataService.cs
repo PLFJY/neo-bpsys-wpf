@@ -49,11 +49,6 @@ namespace neo_bpsys_wpf.Services
             _logger.LogInformation("SharedDataService initialized");
         }
 
-        private readonly JsonSerializerOptions _jsonSerializerOptions = new()
-        {
-            Converters = { new JsonStringEnumConverter() }
-        };
-
         /// <summary>
         /// 从文件读取角色数据
         /// </summary>
@@ -65,10 +60,11 @@ namespace neo_bpsys_wpf.Services
 
             // 加载角色数据
             var characterFileContent = File.ReadAllText(charaListFilePath);
+
             var characters = JsonSerializer.Deserialize<Dictionary<string, CharacterMini>>(
-                characterFileContent,
-                _jsonSerializerOptions
-            );
+                    characterFileContent,
+                    new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } }
+                );
 
             if (characters == null)
                 return;
@@ -132,7 +128,7 @@ namespace neo_bpsys_wpf.Services
             get => _isTraitVisible;
             set
             {
-                if(_isTraitVisible == value) return;
+                if (_isTraitVisible == value) return;
                 WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsTraitVisible), _isTraitVisible, value));
                 _isTraitVisible = value;
                 _logger.LogInformation($"IsTraitVisible changed to {value}");
@@ -142,13 +138,13 @@ namespace neo_bpsys_wpf.Services
         /// <summary>
         /// 是否是BO3模式
         /// </summary>
-        private bool _isBo3Mode = false;
+        private bool _isBo3Mode;
         public bool IsBo3Mode
         {
             get => _isBo3Mode;
             set
             {
-                if(_isBo3Mode == value) return;
+                if (_isBo3Mode == value) return;
                 WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsBo3Mode), _isBo3Mode, value));
                 _isBo3Mode = value;
                 _logger.LogInformation($"IsBo3Mode changed to {value}");
@@ -166,7 +162,7 @@ namespace neo_bpsys_wpf.Services
             {
                 if (!int.TryParse(value, out _remainingSeconds))
                     _remainingSeconds = 0;
-                
+
                 WeakReferenceMessenger.Default.Send(new ValueChangedMessage<string>(nameof(RemainingSeconds)));
             }
         }
@@ -243,7 +239,7 @@ namespace neo_bpsys_wpf.Services
             set
             {
                 WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<double>(this, nameof(GlobalScoreTotalMargin), _globalScoreTotalMargin, value));
-                if(Math.Abs(_globalScoreTotalMargin - value) < 0.01) return;
+                if (Math.Abs(_globalScoreTotalMargin - value) < 0.01) return;
                 _globalScoreTotalMargin = value;
                 _logger.LogInformation($"GlobalScoreTotalMargin changed to {value}");
             }

@@ -1,0 +1,26 @@
+{
+  "HunTeamLogo": {
+    "Width": 116,
+    "Height": 114,
+    "Left": 352,
+    "Top": 18
+  },
+  "HunTeamName": {
+    "Width": 231,
+    "Height": null,
+    "Left": 99,
+    "Top": 33
+  },
+  "HunTeamMajorPoint": {
+    "Width": null,
+    "Height": null,
+    "Left": 167,
+    "Top": 85
+  },
+  "MinorPointsHun": {
+    "Width": 64,
+    "Height": 130,
+    "Left": 21,
+    "Top": 10
+  }
+}
