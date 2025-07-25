@@ -95,9 +95,9 @@ public partial class FrontManagePageViewModel : ObservableObject
     /// <param name="canvasName"></param>
     /// <returns></returns>
     [RelayCommand]
-    private void ResetScoreGlobalWindowElementsPosition(string canvasName)
+    private void ResetScoreGlobalWindowElementsPosition()
     {
-        _frontService.RestoreInitialPositions(FrontWindowType.ScoreGlobalWindow, canvasName);
+        _frontService.RestoreInitialPositions(FrontWindowType.ScoreGlobalWindow);
     }
 
     /// <summary>
@@ -106,9 +106,9 @@ public partial class FrontManagePageViewModel : ObservableObject
     /// <param name="canvasName"></param>
     /// <returns></returns>
     [RelayCommand]
-    private void ResetScoreSurWindowElementsPosition(string canvasName)
+    private void ResetScoreSurWindowElementsPosition()
     {
-        _frontService.RestoreInitialPositions(FrontWindowType.ScoreSurWindow, canvasName);
+        _frontService.RestoreInitialPositions(FrontWindowType.ScoreSurWindow);
     }
 
     /// <summary>
@@ -117,9 +117,9 @@ public partial class FrontManagePageViewModel : ObservableObject
     /// <param name="canvasName"></param>
     /// <returns></returns>
     [RelayCommand]
-    private void ResetScoreHunWindowElementsPosition(string canvasName)
+    private void ResetScoreHunWindowElementsPosition()
     {
-        _frontService.RestoreInitialPositions(FrontWindowType.ScoreHunWindow, canvasName);
+        _frontService.RestoreInitialPositions(FrontWindowType.ScoreHunWindow);
     }
 
     /// <summary>

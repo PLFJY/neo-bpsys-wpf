@@ -59,12 +59,12 @@ public class FrontService : IFrontService
         RegisterFrontWindowAndCanvas(FrontWindowType.BpWindow, bpWindow);
         RegisterFrontWindowAndCanvas(FrontWindowType.CutSceneWindow, cutSceneWindow);
         RegisterFrontWindowAndCanvas(FrontWindowType.GameDataWindow, gameDataWindow);
-        RegisterFrontWindowAndCanvas(FrontWindowType.ScoreSurWindow, scoreSurWindow, "ScoreSurCanvas");
-        RegisterFrontWindowAndCanvas(FrontWindowType.ScoreHunWindow, scoreHunWindow, "ScoreHunCanvas");
-        RegisterFrontWindowAndCanvas(FrontWindowType.ScoreGlobalWindow, scoreGlobalWindow, "ScoreGlobalCanvas");
+        RegisterFrontWindowAndCanvas(FrontWindowType.ScoreSurWindow, scoreSurWindow);
+        RegisterFrontWindowAndCanvas(FrontWindowType.ScoreHunWindow, scoreHunWindow);
+        RegisterFrontWindowAndCanvas(FrontWindowType.ScoreGlobalWindow, scoreGlobalWindow);
         RegisterFrontWindowAndCanvas(FrontWindowType.WidgetsWindow, widgetsWindow, "MapBpCanvas");
         RegisterFrontWindowAndCanvas(FrontWindowType.WidgetsWindow, widgetsWindow, "BpOverViewCanvas");
-        RegisterFrontWindowAndCanvas(FrontWindowType.GameDataWindow, gameDataWindow);
+        RegisterFrontWindowAndCanvas(FrontWindowType.WidgetsWindow, widgetsWindow, "MapV2Canvas");
 
         //注册分数统计界面的分数控件
         GlobalScoreControlsReg();
@@ -607,7 +607,7 @@ public class FrontService : IFrontService
         if (_frontWindows[FrontWindowType.ScoreGlobalWindow] is not ScoreGlobalWindow scoreWindow) return;
         if (_isBo3Mode)
         {
-            scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush(
+            scoreWindow.BaseCanvas.Background = ImageHelper.GetUiImageBrush(
                 _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageUriBo3 ?? "scoreGlobal_Bo3");
             foreach (var item in
                      MainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
@@ -629,7 +629,7 @@ public class FrontService : IFrontService
         }
         else
         {
-            scoreWindow.ScoreGlobalCanvas.Background = ImageHelper.GetUiImageBrush(
+            scoreWindow.BaseCanvas.Background = ImageHelper.GetUiImageBrush(
                 _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageUri ?? "scoreGlobal");
             foreach (var item in
                      MainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))

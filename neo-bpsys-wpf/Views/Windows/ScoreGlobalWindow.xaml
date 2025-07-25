@@ -34,7 +34,7 @@
             </Style>
         </Grid.Resources>
         <Border BorderBrush="Black" BorderThickness="1">
-            <Canvas Name="ScoreGlobalCanvas">
+            <Canvas Name="BaseCanvas">
                 <Canvas.Background>
                     <ImageBrush d:ImageSource="/Assets/scoreGlobal.png" ImageSource="{Binding ScoreGlobalImage}" />
                 </Canvas.Background>

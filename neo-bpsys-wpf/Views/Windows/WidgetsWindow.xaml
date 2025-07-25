@@ -560,7 +560,10 @@
             Grid.Row="1"
             BorderBrush="Black"
             BorderThickness="1">
-            <Canvas Width="1440" Height="160">
+            <Canvas
+                Name="MapV2Canvas"
+                Width="1440"
+                Height="160">
                 <Canvas.Background>
                     <ImageBrush d:ImageSource="/Assets/mapBpV2.png" ImageSource="{Binding MapBpV2Image}" />
                 </Canvas.Background>
@@ -583,6 +586,7 @@
                     </Style>
                 </Canvas.Resources>
                 <controls:MapV2Presenter
+                    x:Name="Arms_Factory"
                     Canvas.Left="50"
                     Width="147"
                     Height="160"
@@ -592,6 +596,7 @@
                     Map="{Binding CurrentGame.MapV2Dictionary[军工厂]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
+                    x:Name="The_Red_Church"
                     Canvas.Left="202"
                     Width="149"
                     Height="160"
@@ -601,6 +606,7 @@
                     Map="{Binding CurrentGame.MapV2Dictionary[红教堂]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
+                    x:Name="Sacred_Heart_Hospital"
                     Canvas.Left="359"
                     Width="149"
                     Height="160"
@@ -610,6 +616,7 @@
                     Map="{Binding CurrentGame.MapV2Dictionary[圣心医院]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
+                    x:Name="Leo_s_Memory"
                     Canvas.Left="514"
                     Width="149"
                     Height="160"
@@ -619,6 +626,7 @@
                     Map="{Binding CurrentGame.MapV2Dictionary[里奥的回忆]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
+                    x:Name="Moonlit_River_Park"
                     Canvas.Left="670"
                     Width="149"
                     Height="160"
@@ -628,6 +636,7 @@
                     Map="{Binding CurrentGame.MapV2Dictionary[月亮河公园]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
+                    x:Name="Lakeside_Village"
                     Canvas.Left="824"
                     Width="150"
                     Height="160"
@@ -637,6 +646,7 @@
                     Map="{Binding CurrentGame.MapV2Dictionary[湖景村]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
+                    x:Name="Eversleeping_Town"
                     Canvas.Left="980"
                     Width="147"
                     Height="160"
@@ -646,6 +656,7 @@
                     Map="{Binding CurrentGame.MapV2Dictionary[永眠镇]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
+                    x:Name="Chinatown"
                     Canvas.Left="1134"
                     Width="150"
                     Height="160"
@@ -655,6 +666,7 @@
                     Map="{Binding CurrentGame.MapV2Dictionary[唐人街]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
+                    x:Name="Darkwoods"
                     Canvas.Left="1292"
                     Width="148"
                     Height="160"

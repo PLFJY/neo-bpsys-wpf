@@ -1,0 +1,26 @@
+{
+  "MainTeamName": {
+    "Width": 134,
+    "Height": null,
+    "Left": 10,
+    "Top": 96
+  },
+  "AwayTeamName": {
+    "Width": 134,
+    "Height": null,
+    "Left": 10,
+    "Top": 153
+  },
+  "MainScoreTotal": {
+    "Width": 87,
+    "Height": null,
+    "Left": 1345,
+    "Top": 81
+  },
+  "AwayScoreTotal": {
+    "Width": 87,
+    "Height": null,
+    "Left": 1345,
+    "Top": 140
+  }
+}

@@ -238,7 +238,10 @@
             Padding="10,10,10,10"
             Style="{StaticResource Card}">
             <Border.Resources>
-                <Style x:Key="DictionaryComboBoxStyle" BasedOn="{StaticResource {x:Type ComboBox}}" TargetType="ComboBox">
+                <Style
+                    x:Key="DictionaryComboBoxStyle"
+                    BasedOn="{StaticResource {x:Type ComboBox}}"
+                    TargetType="ComboBox">
                     <Setter Property="SelectedValuePath" Value="Value" />
                     <Setter Property="DisplayMemberPath" Value="Key" />
                 </Style>
