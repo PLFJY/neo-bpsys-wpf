@@ -177,7 +177,9 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="主队" />
+                    <TextBlock Grid.Row="0">
+                        <Run Text="主队：" /><Run Text="{Binding MainTeam.Name}" />
+                    </TextBlock>
                     <TextBlock
                         Grid.Row="1"
                         Margin="0,10,0,0"
@@ -234,7 +236,9 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="客队" />
+                    <TextBlock Grid.Row="0">
+                        <Run Text="客队：" /><Run Text="{Binding AwayTeam.Name}" />
+                    </TextBlock>
                     <TextBlock
                         Grid.Row="1"
                         Margin="0,10,0,0"

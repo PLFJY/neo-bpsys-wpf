@@ -128,6 +128,9 @@ public partial class PickPageViewModel : ObservableRecipient, IRecipient<Highlig
         }
     }
 
+    public Team MainTeam => _sharedDataService.MainTeam;
+    public Team AwayTeam => _sharedDataService.AwayTeam;
+
     public ObservableCollection<bool> SurPickingBorderList { get; set; } =
         [.. Enumerable.Range(0, 4).Select(i => false)];
 
