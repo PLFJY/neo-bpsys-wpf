@@ -17,7 +17,7 @@
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
     <Canvas
-        Name="ScoreSurCanvas"
+        Name="BaseCanvas"
         Grid.Column="0"
         Width="480"
         Height="152">

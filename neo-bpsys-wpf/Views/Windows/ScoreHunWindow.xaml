@@ -17,7 +17,7 @@
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
     <Canvas
-        Name="ScoreHunCanvas"
+        Name="BaseCanvas"
         Width="480"
         Height="152">
         <Canvas.Background>
