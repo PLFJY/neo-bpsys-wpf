@@ -72,11 +72,11 @@ public partial class Team : ObservableObject
 
     public Character?[] GlobalBannedHunRecordArray { get; }
 
-    [ObservableProperty] 
+    [ObservableProperty]
     [property: JsonIgnore]
     private ObservableCollection<Member?> _surMemberOnFieldList = [];
-    
-    [ObservableProperty] 
+
+    [ObservableProperty]
     [property: JsonIgnore]
     private Member? _hunMemberOnField;
 
@@ -125,10 +125,10 @@ public partial class Team : ObservableObject
         }
         SurMemberList = newTeam.SurMemberList;
         HunMemberList = newTeam.HunMemberList;
-        
+
         SurMemberOnFieldList = [.. Enumerable.Range(0, 4).Select<int, Member?>(_ => null)];
         HunMemberOnField = null;
-        
+
         _onFieldSurPlayerCnt = 0;
         WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this));
         WeakReferenceMessenger.Default.Send(new MemberOnFieldChangedMessage(this));
@@ -168,7 +168,7 @@ public partial class Team : ObservableObject
         {
             for (var i = 0; i < SurMemberOnFieldList.Count; i++)
             {
-                if(SurMemberOnFieldList[i]!=null) continue;
+                if (SurMemberOnFieldList[i] != null) continue;
                 SurMemberOnFieldList[i] = member;
                 _onFieldSurPlayerCnt++;
                 break;
@@ -187,18 +187,20 @@ public partial class Team : ObservableObject
     {
         if (member.Camp == Camp.Hun)
         {
+            if (HunMemberOnField != member) return;
             HunMemberOnField = null;
+            WeakReferenceMessenger.Default.Send(new MemberOnFieldChangedMessage(this));
         }
         else
         {
             for (var i = 0; i < SurMemberOnFieldList.Count; i++)
             {
-                if(SurMemberOnFieldList[i]!=member) continue;
+                if (SurMemberOnFieldList[i] != member) continue;
                 SurMemberOnFieldList[i] = null;
                 _onFieldSurPlayerCnt--;
-                break;
+                WeakReferenceMessenger.Default.Send(new MemberOnFieldChangedMessage(this));
+                return;
             }
         }
-        WeakReferenceMessenger.Default.Send(new MemberOnFieldChangedMessage(this));
     }
 }
