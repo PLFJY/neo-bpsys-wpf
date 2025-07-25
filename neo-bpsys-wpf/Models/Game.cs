@@ -128,8 +128,8 @@ public partial class Game : ObservableRecipient, IRecipient<MemberOnFieldChanged
         }
 
         var matchedMap = MapV2Dictionary.Values
-                             .FirstOrDefault(x => x.MapName == map && !x.IsPicked)
-                         ?? throw new InvalidOperationException($"未找到符合条件的地图: {map}");
+                             .FirstOrDefault(x => x.MapName == map)
+                         ?? throw new InvalidOperationException($"未找到地图: {map}");
 
         matchedMap.OperationTeam = team;
         matchedMap.IsPicked = true;
