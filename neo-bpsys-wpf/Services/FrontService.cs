@@ -215,11 +215,12 @@ public class FrontService : IFrontService
         canvas.Children.Add(control);
     }
 
-    private static double CalculateLeftPosition(GameProgress progress)
-    {
-        // 示例：根据枚举值计算水平位置
-        return 170 + ((int)progress) * 98; // 每个控件间隔 100 像素
-    }
+    /// <summary>
+    /// 计算控件左侧距离
+    /// </summary>
+    /// <param name="progress"></param>
+    /// <returns></returns>
+    private static double CalculateLeftPosition(GameProgress progress) => 170 + ((int)progress) * 98; // 每个控件间隔 100 像素
 
     /// <summary>
     /// 注册控件
@@ -469,7 +470,7 @@ public class FrontService : IFrontService
     /// </summary>
     private void GlobalScoreControlsReg()
     {
-        if (_frontWindows[FrontWindowType.ScoreGlobalWindow].FindName("ScoreGlobalCanvas") is not Canvas canvas) return;
+        if (_frontWindows[FrontWindowType.ScoreGlobalWindow].FindName("BaseCanvas") is not Canvas canvas) return;
         //主队
         foreach (var progress in Enum.GetValues<GameProgress>())
         {
