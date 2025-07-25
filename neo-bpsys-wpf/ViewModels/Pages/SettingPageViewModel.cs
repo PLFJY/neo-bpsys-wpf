@@ -249,6 +249,7 @@ public partial class SettingPageViewModel : ObservableObject
             WeakReferenceMessenger.Default.Send(new SettingsChangedMessage(windowType));
         }
         _settingsHostService.SaveConfig();
+        _messageBoxService.ShowInfoAsync("重启后生效");
     }
 
     [RelayCommand]

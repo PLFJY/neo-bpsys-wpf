@@ -178,7 +178,7 @@ public class GameGuidanceService(
                 return await HandleStepChange(_currentStep + 1);
             }
 
-            _infoBarService.ShowInformationalInfoBar("已经是最后一步");
+            _infoBarService.ShowWarningInfoBar("已经是最后一步");
             WeakReferenceMessenger.Default.Send(new HighlightMessage(GameAction.EndGuidance, null));
         }
         else
@@ -208,7 +208,7 @@ public class GameGuidanceService(
                 return await HandleStepChange(_currentStep - 1);
             }
 
-            _infoBarService.ShowInformationalInfoBar("已经是第一步");
+            _infoBarService.ShowWarningInfoBar("已经是第一步");
         }
         else
         {

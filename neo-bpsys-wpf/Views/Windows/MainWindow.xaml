@@ -56,29 +56,29 @@
             </Storyboard>
             <Storyboard x:Key="StartupLoading">
                 <ObjectAnimationUsingKeyFrames Storyboard.TargetName="loading" Storyboard.TargetProperty="(UIElement.Visibility)">
-                    <DiscreteObjectKeyFrame KeyTime="00:00:01" Value="{x:Static Visibility.Collapsed}" />
+                    <DiscreteObjectKeyFrame KeyTime="00:00:05" Value="{x:Static Visibility.Collapsed}" />
                 </ObjectAnimationUsingKeyFrames>
                 <DoubleAnimation
-                    BeginTime="00:00:03.60"
+                    BeginTime="00:00:04.75"
                     Storyboard.TargetName="loading"
                     Storyboard.TargetProperty="(UIElement.Opacity)"
                     From="1"
                     To="0"
-                    Duration="00:00:0.15" />
+                    Duration="00:00:0.5" />
                 <DoubleAnimation
                     BeginTime="00:00:0"
                     Storyboard.TargetName="loadingProgress"
                     Storyboard.TargetProperty="Value"
                     From="0"
                     To="25"
-                    Duration="0:0:0.30" />
+                    Duration="0:0:0.3" />
                 <DoubleAnimation
-                    BeginTime="00:00:3.2"
+                    BeginTime="00:00:4.45"
                     Storyboard.TargetName="loadingProgress"
                     Storyboard.TargetProperty="Value"
                     From="25"
                     To="100"
-                    Duration="0:0:0.5" />
+                    Duration="0:0:0.3" />
             </Storyboard>
         </ResourceDictionary>
     </ui:FluentWindow.Resources>

@@ -1,5 +1,7 @@
 ﻿using neo_bpsys_wpf.Abstractions.Services;
+using System.Windows.Media;
 using Wpf.Ui.Controls;
+using Wpf.Ui.Markup;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -58,7 +60,7 @@ public class InfoBarService : IInfoBarService
     {
         if (_infoBar == null) return;
         _infoBar.Message = message;
-        _infoBar.Severity = InfoBarSeverity.Error;
+        _infoBar.Severity = InfoBarSeverity.Warning;
         _infoBar.IsOpen = true;
     }
     /// <summary>
