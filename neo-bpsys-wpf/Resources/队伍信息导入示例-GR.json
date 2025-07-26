@@ -1,0 +1,43 @@
+{
+  "Name": "Gr",
+  "ImageUri": "https://patchwiki.biligame.com/images/dwrg/b/be/fca4fwk94d87pkj9d4rudposbk3r2y0.png",
+  "SurMemberList": [
+    {
+      "Name": "Gr_heart",
+      "Camp": "Sur",
+      "ImageUri": "https://patchwiki.biligame.com/images/dwrg/d/d9/tokh7z1vgovzel9tplgrn4k3waub1co.png"
+    },
+    {
+      "Name": "Gr_AK",
+      "Camp": "Sur",
+      "ImageUri": "https://patchwiki.biligame.com/images/dwrg/b/b7/g3xph7i8sg4s72neqcx17ykqlj6g1t5.png"
+    },
+    {
+      "Name": "Gr_ac",
+      "Camp": "Sur",
+      "ImageUri": "https://patchwiki.biligame.com/images/dwrg/c/ce/1rtb0oxkmjksay3a5lk4h4y1cl1dpmp.png"
+    },
+    {
+      "Name": "Gr_Xmiao5",
+      "Camp": "Sur",
+      "ImageUri": "https://patchwiki.biligame.com/images/dwrg/1/1d/3kmh5ukn49445uudj6zx37ej1bcq5ba.png"
+    },
+    {
+      "Name": "Gr_iron",
+      "Camp": "Sur",
+      "ImageUri": "https://patchwiki.biligame.com/images/dwrg/4/45/iic2g4zv1t42wtslzdsq35uy1335p3q.png"
+    }
+  ],
+  "HunMemberList": [
+    {
+      "Name": "Gr_mlx",
+      "Camp": "Hun",
+      "ImageUri": "https://patchwiki.biligame.com/images/dwrg/a/a6/r9kgxgq6lqz7caj77mjrfwel7jr0lwd.png"
+    },
+    {
+      "Name": "Gr_Jin",
+      "Camp": "Hun",
+      "ImageUri": "https://patchwiki.biligame.com/images/dwrg/0/08/2fp7w10or7jlufkjcoxkeofv33v4abk.png"
+    }
+  ]
+} 
