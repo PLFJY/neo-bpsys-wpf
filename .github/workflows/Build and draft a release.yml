@@ -48,4 +48,10 @@ jobs:
         draft: true
         tag_name: v${{ env.VERSION }}
         files: ${{ env.INSTALLER_OUTPUT }}
+        body: |
+          ## :sparkles: New Feature:
+
+          ## :wrench: Bug Fix and Improvement:
+
+          ## :white_check_mark: To-do:
         name: Release-v${{ env.VERSION }}
