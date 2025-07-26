@@ -10,7 +10,12 @@ namespace neo_bpsys_wpf.Models;
 /// <summary>
 /// 选手类, 注意与 <see cref="Models.Member"/> 类做区分，这是表示队伍内的成员，本类是表示上场的选手, <see cref="Player"/> 类包含操纵它的 <see cref="Models.Member"/>
 /// </summary>
-public partial class Player : ViewModelBase, IRecipient<MemberPropertyChangedMessage>, IRecipient<MemberOnFieldChangedMessage>, IRecipient<SwapMessage>
+public partial class Player : 
+    ViewModelBase, 
+    IRecipient<MemberPropertyChangedMessage>, 
+    IRecipient<MemberOnFieldChangedMessage>, 
+    IRecipient<SwapMessage>,
+    IRecipient<PlayerSwappedMessage>
 {
     public Player(Member member, bool isMemberValid)
     {
@@ -41,4 +46,6 @@ public partial class Player : ViewModelBase, IRecipient<MemberPropertyChangedMes
         if(message.IsSwapped)
             OnPropertyChanged(nameof(PictureShown));
     }
+
+    public void Receive(PlayerSwappedMessage message) => OnPropertyChanged(nameof(PictureShown));
 }
