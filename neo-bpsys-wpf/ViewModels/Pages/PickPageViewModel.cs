@@ -161,7 +161,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             CharaList = sharedDataService.SurCharaList;
         }
 
-        public override async void SyncChara()
+        public override async Task SyncCharaAsync()
         {
             _frontService.FadeOutAnimation(FrontWindowType.BpWindow, "SurPick", Index, string.Empty);
             await Task.Delay(250);
@@ -177,12 +177,17 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         }
 
         [RelayCommand]
-        private void SwapCharacterInPlayers(CharacterChangerCommandParameter parameter)
+        private async Task SwapCharacterInPlayersAsync(CharacterChangerCommandParameter parameter)
         {
+            _frontService.FadeOutAnimation(FrontWindowType.BpWindow, "SurPick", parameter.Source, string.Empty);
+            _frontService.FadeOutAnimation(FrontWindowType.BpWindow, "SurPick", parameter.Target, string.Empty);
+            await Task.Delay(250);
             (SharedDataService.CurrentGame.SurPlayerList[parameter.Target].Character,
                     SharedDataService.CurrentGame.SurPlayerList[parameter.Source].Character) =
                 (SharedDataService.CurrentGame.SurPlayerList[parameter.Source].Character,
                     SharedDataService.CurrentGame.SurPlayerList[parameter.Target].Character);
+            _frontService.FadeInAnimation(FrontWindowType.BpWindow, "SurPick", parameter.Source, string.Empty);
+            _frontService.FadeInAnimation(FrontWindowType.BpWindow, "SurPick", parameter.Target, string.Empty);
             WeakReferenceMessenger.Default.Send(new CharacterSwappedMessage(this));
             OnPropertyChanged();
         }
@@ -233,7 +238,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             CharaList = sharedDataService.HunCharaList;
         }
 
-        public override async void SyncChara()
+        public override async Task SyncCharaAsync()
         {
             _frontService.FadeOutAnimation(FrontWindowType.BpWindow, "HunPick", -1, string.Empty);
             await Task.Delay(250);
@@ -270,7 +275,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             CharaList = sharedDataService.SurCharaList;
         }
 
-        public override void SyncChara() => throw new NotImplementedException();
+        public override Task SyncCharaAsync() => throw new NotImplementedException();
 
         protected override void SyncIsEnabled()
         {
@@ -300,7 +305,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             CharaList = sharedDataService.HunCharaList;
         }
 
-        public override void SyncChara() => throw new NotImplementedException();
+        public override Task SyncCharaAsync() => throw new NotImplementedException();
 
         protected override void SyncIsEnabled() => throw new NotImplementedException();
 
@@ -327,7 +332,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             CharaList = sharedDataService.SurCharaList;
         }
 
-        public override void SyncChara() => throw new NotImplementedException();
+        public override Task SyncCharaAsync() => throw new NotImplementedException();
 
         protected override void SyncIsEnabled() => throw new NotImplementedException();
 
@@ -354,7 +359,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             CharaList = sharedDataService.HunCharaList;
         }
 
-        public override void SyncChara() => throw new NotImplementedException();
+        public override Task SyncCharaAsync() => throw new NotImplementedException();
 
         protected override void SyncIsEnabled() => throw new NotImplementedException();
 

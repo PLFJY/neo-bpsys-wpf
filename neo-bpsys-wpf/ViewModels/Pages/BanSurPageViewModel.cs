@@ -35,7 +35,7 @@ public partial class BanSurPageViewModel : ViewModelBase, IRecipient<SwapMessage
             for (int i = 0; i < _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray.Length; i++)
             {
                 BanSurGlobalViewModelList[i].SelectedChara = _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray[i];
-                BanSurGlobalViewModelList[i].SyncChara();
+                BanSurGlobalViewModelList[i].SyncCharaAsync();
             }
             OnPropertyChanged();
         }
@@ -61,10 +61,11 @@ public partial class BanSurPageViewModel : ViewModelBase, IRecipient<SwapMessage
             }
         }
 
-        public override void SyncChara()
+        public override Task SyncCharaAsync()
         {
             SharedDataService.CurrentGame.CurrentSurBannedList[Index] = SelectedChara;
             PreviewImage = SharedDataService.CurrentGame.CurrentSurBannedList[Index]?.HeaderImageSingleColor;
+            return Task.CompletedTask;
         }
 
         protected override void SyncIsEnabled()
@@ -91,10 +92,11 @@ public partial class BanSurPageViewModel : ViewModelBase, IRecipient<SwapMessage
             }
         }
 
-        public override void SyncChara()
+        public override Task SyncCharaAsync()
         {
             SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index] = SelectedChara;
             PreviewImage = SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index]?.HeaderImageSingleColor;
+            return Task.CompletedTask;
         }
 
         protected override void SyncIsEnabled()
