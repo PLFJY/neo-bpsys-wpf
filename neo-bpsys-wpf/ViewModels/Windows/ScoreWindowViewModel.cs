@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Abstractions.Services;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Messages;
@@ -13,7 +14,7 @@ using neo_bpsys_wpf.Models;
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
 public partial class ScoreWindowViewModel :
-    ObservableRecipient,
+    ViewModelBase,
     IRecipient<NewGameMessage>,
     IRecipient<DesignModeChangedMessage>,
     IRecipient<PropertyChangedMessage<int>>,
@@ -34,7 +35,6 @@ public partial class ScoreWindowViewModel :
     {
         _sharedDataService = sharedDataService;
         _settingsHostService = settingsHostService;
-        IsActive = true;
         IsBo3Mode = _sharedDataService.IsBo3Mode;
     }
 

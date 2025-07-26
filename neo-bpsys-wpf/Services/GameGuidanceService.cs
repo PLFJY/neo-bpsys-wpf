@@ -76,8 +76,9 @@ public class GameGuidanceService(
         get => _isGuidanceStarted;
         set
         {
-            WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsGuidanceStarted), _isGuidanceStarted, value));
+            var oldValue = _isGuidanceStarted;
             _isGuidanceStarted = value;
+            WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsGuidanceStarted), oldValue, value));
         }
     }
 

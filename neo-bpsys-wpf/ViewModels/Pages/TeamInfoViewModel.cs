@@ -8,13 +8,14 @@ using System.IO;
 using System.Text.Json;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.Messaging;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 using neo_bpsys_wpf.Messages;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class TeamInfoPageViewModel
 {
-    public partial class TeamInfoViewModel : ObservableRecipient
+    public partial class TeamInfoViewModel : ViewModelBase
     {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
         public TeamInfoViewModel()

@@ -9,10 +9,11 @@ using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Windows;
 using System.ComponentModel;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
-public partial class ScorePageViewModel : ObservableRecipient, IRecipient<PropertyChangedMessage<bool>>
+public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChangedMessage<bool>>
 {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     public ScorePageViewModel()
@@ -29,7 +30,6 @@ public partial class ScorePageViewModel : ObservableRecipient, IRecipient<Proper
         _sharedDataService = sharedDataService;
         _frontService = frontService;
         GameList = GameListBo5;
-        IsActive = true;
         _isBo3Mode = _sharedDataService.IsBo3Mode;
 #if DEBUG
         IsDebugContentVisible = true;

@@ -9,11 +9,12 @@ using neo_bpsys_wpf.Models;
 using System.Collections.ObjectModel;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
 public partial class WidgetsWindowViewModel :
-    ObservableRecipient,
+    ViewModelBase,
     IRecipient<NewGameMessage>,
     IRecipient<DesignModeChangedMessage>,
     IRecipient<PropertyChangedMessage<bool>>,
@@ -36,7 +37,6 @@ public partial class WidgetsWindowViewModel :
     {
         _sharedDataService = sharedDataService;
         _settingsHostService = settingsHostService;
-        IsActive = true;
         IsBo3Mode = _sharedDataService.IsBo3Mode;
     }
 

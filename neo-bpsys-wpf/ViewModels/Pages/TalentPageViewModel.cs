@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Abstractions.Services;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
@@ -8,7 +9,7 @@ using Trait = neo_bpsys_wpf.Models.Trait;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
-public partial class TalentPageViewModel : ObservableRecipient, IRecipient<NewGameMessage>, IRecipient<HighlightMessage>
+public partial class TalentPageViewModel : ViewModelBase, IRecipient<NewGameMessage>, IRecipient<HighlightMessage>
 {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     public TalentPageViewModel()
@@ -22,7 +23,6 @@ public partial class TalentPageViewModel : ObservableRecipient, IRecipient<NewGa
     public TalentPageViewModel(ISharedDataService sharedDataService)
     {
         _sharedDataService = sharedDataService;
-        IsActive = true;
     }
 
     private Enums.Trait? _selectedTrait;

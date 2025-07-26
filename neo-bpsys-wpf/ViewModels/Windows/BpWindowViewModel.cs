@@ -8,12 +8,13 @@ using neo_bpsys_wpf.Models;
 using System.Collections.ObjectModel;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 using neo_bpsys_wpf.Enums;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
 public partial class BpWindowViewModel :
-    ObservableRecipient,
+    ViewModelBase,
     IRecipient<NewGameMessage>,
     IRecipient<DesignModeChangedMessage>,
     IRecipient<ValueChangedMessage<string>>,
@@ -38,7 +39,6 @@ public partial class BpWindowViewModel :
     {
         _sharedDataService = sharedDataService;
         _settingsHostService = settingsHostService;
-        IsActive = true;
         IsBo3Mode = _sharedDataService.IsBo3Mode;
     }
 

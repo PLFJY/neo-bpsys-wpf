@@ -7,12 +7,13 @@ using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 using neo_bpsys_wpf.Enums;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
 public partial class CutSceneWindowViewModel :
-    ObservableRecipient,
+    ViewModelBase,
     IRecipient<NewGameMessage>,
     IRecipient<DesignModeChangedMessage>,
     IRecipient<PropertyChangedMessage<bool>>,
@@ -34,7 +35,6 @@ public partial class CutSceneWindowViewModel :
     {
         _sharedDataService = sharedDataService;
         _settingsHostService = settingsHostService;
-        IsActive = true;
 
         IsTraitVisible = _sharedDataService.IsTraitVisible;
         _isBo3Mode = _sharedDataService.IsBo3Mode;

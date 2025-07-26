@@ -11,12 +11,14 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
-public partial class MainWindowViewModel : ObservableRecipient,
+public partial class MainWindowViewModel : 
+    ViewModelBase,
     IRecipient<ValueChangedMessage<string>>,
     IRecipient<PropertyChangedMessage<bool>>,
     IRecipient<HighlightMessage>
@@ -92,7 +94,6 @@ public partial class MainWindowViewModel : ObservableRecipient,
             WriteIndented = true,
             Converters = { new JsonStringEnumConverter() },
         };
-        IsActive = true;
         GameList = GameListBo5;
         IsBo3Mode = _sharedDataService.IsBo3Mode;
     }
@@ -124,12 +125,9 @@ public partial class MainWindowViewModel : ObservableRecipient,
 
         var pickedMap = _sharedDataService.CurrentGame.PickedMap;
         var bannedMap = _sharedDataService.CurrentGame.BannedMap;
+        var mapV2Dictionary = _sharedDataService.CurrentGame.MapV2Dictionary;
 
-        _sharedDataService.CurrentGame = new Game(surTeam, hunTeam, SelectedGameProgress)
-        {
-            PickedMap = pickedMap,
-            BannedMap = bannedMap
-        };
+        _sharedDataService.CurrentGame = new Game(surTeam, hunTeam, SelectedGameProgress, pickedMap, bannedMap, mapV2Dictionary);
 
         //发送新对局已创建的消息
         WeakReferenceMessenger.Default.Send(new NewGameMessage(this, true));

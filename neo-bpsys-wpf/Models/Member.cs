@@ -6,13 +6,15 @@ using neo_bpsys_wpf.Messages;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 using static System.String;
 
 namespace neo_bpsys_wpf.Models;
+
 /// <summary>
 /// 选手类, 注意与 <see cref="Player"/> 类做区分，这是表示上场的选手，本类是表示队伍内的成员, <see cref="Models.Member"/> 被它所操纵的 <see cref="Player"/> 包含
 /// </summary>
-public partial class Member : ObservableObject
+public partial class Member : ViewModelBase
 {
     public Member(Camp camp)
     {
@@ -20,21 +22,20 @@ public partial class Member : ObservableObject
     }
 
     private string _name = Empty;
+
     public string Name
     {
         get => _name;
-        set
-        {
-            SetProperty(ref _name, value);
-            WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this));
-        }
+        set =>
+            SetPropertyWithAction(ref _name, value,
+                (_, _) => { WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this)); });
     }
 
 
-    [ObservableProperty]
-    private Camp _camp;
+    [ObservableProperty] private Camp _camp;
 
     private ImageSource? _image;
+
     [JsonIgnore]
     public ImageSource? Image
     {
@@ -44,30 +45,26 @@ public partial class Member : ObservableObject
             _image = new BitmapImage(new Uri(ImageUri));
             return _image;
         }
-        set
+        set => SetPropertyWithAction(ref _image, value, (_, _) =>
         {
-            SetProperty(ref _image, value);
             ImageUri = null;
-            OnPropertyChanged(nameof(IsImageValid));
             WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this));
-        }
+            OnPropertyChanged(nameof(IsImageValid));
+        });
     }
 
     public string? ImageUri { get; set; }
 
     private bool _isOnField;
+
     public bool IsOnField
     {
         get => _isOnField;
-        set
-        {
-            SetProperty(ref _isOnField, value);
-            WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this));
-        }
+        set => SetPropertyWithAction(ref _isOnField, value,
+            (_, _) => { WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this)); });
     }
 
-    [ObservableProperty]
-    [property: JsonIgnore]
+    [ObservableProperty] [property: JsonIgnore]
     private bool _canOnFieldChange = true;
 
     public bool IsImageValid => Image != null;

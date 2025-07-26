@@ -2,13 +2,14 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Abstractions.Services;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Views.Windows;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
-public partial class FrontManagePageViewModel : ObservableObject
+public partial class FrontManagePageViewModel : ViewModelBase
 {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     public FrontManagePageViewModel()
@@ -21,7 +22,8 @@ public partial class FrontManagePageViewModel : ObservableObject
     private readonly IMessageBoxService _messageBoxService;
     private readonly ISharedDataService _sharedDataService;
 
-    public FrontManagePageViewModel(IFrontService frontService, IMessageBoxService messageBoxService, ISharedDataService sharedDataService)
+    public FrontManagePageViewModel(IFrontService frontService, IMessageBoxService messageBoxService,
+        ISharedDataService sharedDataService)
     {
         _frontService = frontService;
         _messageBoxService = messageBoxService;
@@ -58,15 +60,14 @@ public partial class FrontManagePageViewModel : ObservableObject
     public bool IsDesignMode
     {
         get => _isDesignMode;
-        set
+        set => SetPropertyWithAction(ref _isDesignMode, value, (_, newValue) =>
         {
-            _isDesignMode = value;
-            WeakReferenceMessenger.Default.Send(new DesignModeChangedMessage(this, _isDesignMode));
-            if (!value)
+            WeakReferenceMessenger.Default.Send(new DesignModeChangedMessage(this, newValue));
+            if (!newValue)
             {
                 _frontService.SaveAllWindowElementsPosition();
             }
-        }
+        });
     }
 
     /// <summary>
@@ -92,7 +93,6 @@ public partial class FrontManagePageViewModel : ObservableObject
     /// <summary>
     /// 重置<see cref="ScoreGlobalWindow"/>的配置
     /// </summary>
-    /// <param name="canvasName"></param>
     /// <returns></returns>
     [RelayCommand]
     private void ResetScoreGlobalWindowElementsPosition()
@@ -103,7 +103,6 @@ public partial class FrontManagePageViewModel : ObservableObject
     /// <summary>
     /// 重置<see cref="ScoreSurWindow"/>的配置
     /// </summary>
-    /// <param name="canvasName"></param>
     /// <returns></returns>
     [RelayCommand]
     private void ResetScoreSurWindowElementsPosition()
@@ -114,7 +113,6 @@ public partial class FrontManagePageViewModel : ObservableObject
     /// <summary>
     /// 重置<see cref="ScoreHunWindow"/>的配置
     /// </summary>
-    /// <param name="canvasName"></param>
     /// <returns></returns>
     [RelayCommand]
     private void ResetScoreHunWindowElementsPosition()

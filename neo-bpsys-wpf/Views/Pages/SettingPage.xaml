@@ -197,6 +197,7 @@
                         </StackPanel>
                         <StackPanel Grid.Column="2">
                             <ui:HyperlinkButton Content="WPF UI" NavigateUri="https://github.com/lepoco/wpfui" />
+                            <ui:HyperlinkButton Content="WpfGorgeousThemeSwitch" NavigateUri="https://github.com/SunnyDesignor/WpfGorgeousThemeSwitch" />
                             <ui:HyperlinkButton Content="XamlBehaviors for WPF" NavigateUri="https://github.com/microsoft/XamlBehaviorsWpf" />
                         </StackPanel>
                     </Grid>

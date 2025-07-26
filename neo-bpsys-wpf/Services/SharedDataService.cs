@@ -129,8 +129,9 @@ namespace neo_bpsys_wpf.Services
             set
             {
                 if (_isTraitVisible == value) return;
-                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsTraitVisible), _isTraitVisible, value));
+                var oldValue = _isTraitVisible;
                 _isTraitVisible = value;
+                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsTraitVisible), oldValue, value));
                 _logger.LogInformation($"IsTraitVisible changed to {value}");
             }
         }
@@ -145,8 +146,9 @@ namespace neo_bpsys_wpf.Services
             set
             {
                 if (_isBo3Mode == value) return;
-                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsBo3Mode), _isBo3Mode, value));
+                var oldValue = _isBo3Mode;
                 _isBo3Mode = value;
+                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsBo3Mode), oldValue, value));
                 _logger.LogInformation($"IsBo3Mode changed to {value}");
             }
         }
@@ -238,9 +240,10 @@ namespace neo_bpsys_wpf.Services
             get => _globalScoreTotalMargin;
             set
             {
-                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<double>(this, nameof(GlobalScoreTotalMargin), _globalScoreTotalMargin, value));
+                var oldValue = _globalScoreTotalMargin;
                 if (Math.Abs(_globalScoreTotalMargin - value) < 0.01) return;
                 _globalScoreTotalMargin = value;
+                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<double>(this, nameof(GlobalScoreTotalMargin), oldValue, value));
                 _logger.LogInformation($"GlobalScoreTotalMargin changed to {value}");
             }
         }
