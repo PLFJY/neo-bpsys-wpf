@@ -48,5 +48,5 @@ jobs:
         draft: true
         tag_name: v${{ env.VERSION }}
         files: ${{ env.INSTALLER_OUTPUT }}
-        body: release_template.txt
+        body_path: release_template.txt
         name: Release-v${{ env.VERSION }}
