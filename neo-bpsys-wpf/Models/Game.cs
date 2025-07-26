@@ -8,6 +8,7 @@ using System.Windows.Media;
 using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Messages;
 using System.Linq;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 using neo_bpsys_wpf.ViewModels.Pages;
 
 namespace neo_bpsys_wpf.Models;
@@ -15,7 +16,7 @@ namespace neo_bpsys_wpf.Models;
 /// <summary>
 /// 对局类, 创建需要导入 <see cref="SurTeam"/> 和 <see cref="HunTeam"/> 两支队伍以及对局进度
 /// </summary>
-public partial class Game : ObservableRecipient, IRecipient<MemberOnFieldChangedMessage>, IRecipient<NewGameMessage>
+public partial class Game : ViewModelBase, IRecipient<MemberOnFieldChangedMessage>, IRecipient<NewGameMessage>
 {
     public Guid Guid { get; }
 
@@ -60,7 +61,7 @@ public partial class Game : ObservableRecipient, IRecipient<MemberOnFieldChanged
     [ObservableProperty] [property: JsonIgnore]
     private ImageSource? _bannedMapImage;
 
-    public Dictionary<string, MapV2> MapV2Dictionary { get; } = [];
+    public Dictionary<string, MapV2> MapV2Dictionary { get; }
 
     [ObservableProperty] private ObservableCollection<Character?> _currentHunBannedList = [];
 
@@ -70,9 +71,9 @@ public partial class Game : ObservableRecipient, IRecipient<MemberOnFieldChanged
 
     [ObservableProperty] private Player _hunPlayer;
 
-    public Game(Team surTeam, Team hunTeam, GameProgress gameProgress)
+    public Game(Team surTeam, Team hunTeam, GameProgress gameProgress, Map? pickedMap = null, Map? bannedMap = null,
+        Dictionary<string, MapV2>? mapV2Dictionary = null)
     {
-        IsActive = true;
         Guid = Guid.NewGuid();
         StartTime = DateTime.Now;
         SurTeam = surTeam;
@@ -94,9 +95,14 @@ public partial class Game : ObservableRecipient, IRecipient<MemberOnFieldChanged
         OnPropertyChanged(nameof(HunTeam));
         OnPropertyChanged(string.Empty);
 
+
+        if (pickedMap != null) PickedMap = pickedMap;
+        if (bannedMap != null) BannedMap = bannedMap;
+        MapV2Dictionary = mapV2Dictionary ?? [];
+        MapV2Dictionary = [];
         foreach (var map in Enum.GetValues<Map>())
         {
-            MapV2Dictionary.Add(map.ToString(), new(map));
+            MapV2Dictionary.Add(map.ToString(), new MapV2(map));
         }
     }
 
@@ -149,7 +155,7 @@ public partial class Game : ObservableRecipient, IRecipient<MemberOnFieldChanged
             var matchedMap = MapV2Dictionary.Values
                                  .FirstOrDefault(x => x.MapName == map.Map)
                              ?? throw new InvalidOperationException($"未找到符合条件的地图: {map}");
-            
+
             if (matchedMap.IsPicked) continue;
             
             matchedMap.IsBanned = map.IsBanned;
@@ -163,6 +169,18 @@ public partial class Game : ObservableRecipient, IRecipient<MemberOnFieldChanged
                      .Where(x => x.IsPicked || x.IsBanned))
         {
             mapValue.IsCampVisible = state ?? !mapValue.IsCampVisible;
+        }
+    }
+
+    public void ResetMapBp()
+    {
+        PickedMap = null;
+        BannedMap = null;
+        foreach (var map in MapV2Dictionary)
+        {
+            map.Value.IsPicked = false;
+            map.Value.OperationTeam = null;
+            map.Value.IsBanned = false;
         }
     }
 }

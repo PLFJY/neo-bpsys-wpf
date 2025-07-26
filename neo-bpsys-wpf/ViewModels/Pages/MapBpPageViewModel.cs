@@ -8,14 +8,16 @@ using neo_bpsys_wpf.Messages;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 using neo_bpsys_wpf.Models;
 using static neo_bpsys_wpf.Enums.GameAction;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
-public partial class MapBpPageViewModel : ObservableRecipient, IRecipient<HighlightMessage>
+public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMessage>
 {
     private readonly ISharedDataService _sharedDataService;
+    private readonly IMessageBoxService _messageBoxService;
 
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     public MapBpPageViewModel()
@@ -24,9 +26,10 @@ public partial class MapBpPageViewModel : ObservableRecipient, IRecipient<Highli
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
 
-    public MapBpPageViewModel(ISharedDataService sharedDataService)
+    public MapBpPageViewModel(ISharedDataService sharedDataService, IMessageBoxService messageBoxService)
     {
         _sharedDataService = sharedDataService;
+        _messageBoxService = messageBoxService;
         MapSelectTeamsList =
         [
             new MapSelectTeam(_sharedDataService.MainTeam, TeamType.MainTeam),
@@ -43,14 +46,13 @@ public partial class MapBpPageViewModel : ObservableRecipient, IRecipient<Highli
     public bool IsBreathing
     {
         get => _breathing;
-        set
+        set => SetPropertyWithAction(ref _breathing, value, (oldValue, newValue) =>
         {
             WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this,
                 nameof(IsBreathing),
-                _breathing,
-                value));
-            SetProperty(ref _breathing, value);
-        }
+                oldValue,
+                newValue));
+        });
     }
 
     private bool _isCampVisible;
@@ -58,14 +60,13 @@ public partial class MapBpPageViewModel : ObservableRecipient, IRecipient<Highli
     public bool IsCampVisible
     {
         get => _isCampVisible;
-        set
+        set => SetPropertyWithAction(ref _isCampVisible, value, (oldValue, newValue) =>
         {
             WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this,
                 nameof(IsCampVisible),
-                _isCampVisible,
-                value));
-            SetProperty(ref _isCampVisible, value);
-        }
+                oldValue,
+                newValue));
+        });
     }
 
     private Map? _pickedMap;
@@ -73,15 +74,14 @@ public partial class MapBpPageViewModel : ObservableRecipient, IRecipient<Highli
     public Map? PickedMap
     {
         get => _pickedMap;
-        set
+        set => SetPropertyWithAction(ref _pickedMap, value, (oldValue, newValue) =>
         {
             WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<Map?>(this,
                 nameof(PickedMap),
-                _pickedMap,
-                value));
-            SetProperty(ref _pickedMap, value);
+                oldValue,
+                newValue));
             _sharedDataService.CurrentGame.PickedMap = _pickedMap;
-        }
+        });
     }
 
     [RelayCommand]
@@ -100,9 +100,36 @@ public partial class MapBpPageViewModel : ObservableRecipient, IRecipient<Highli
     private void BanMap(Map? map = null)
     {
         _sharedDataService.CurrentGame.BanMap(BannedMap, BanMapTeam.Team);
+        WeakReferenceMessenger.Default.Send(
+            new PropertyChangedMessage<List<BanMapInfo>>(this, nameof(BannedMap), [], BannedMap));
         if (map == null) return;
-        _sharedDataService.CurrentGame.BannedMap = map;
-        WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<List<BanMapInfo>>(this, nameof(BannedMap), [], BannedMap));
+        if (BannedMap.First(x => x.Map == map).IsBanned)
+        {
+            _sharedDataService.CurrentGame.BannedMap = map;
+            _bannedMapSequence.Add((Map)map);
+        }
+        else
+        {
+            _bannedMapSequence.RemoveAt(_bannedMapSequence.Count - 1);
+            if (_bannedMapSequence.Count > 0)
+                _sharedDataService.CurrentGame.BannedMap = _bannedMapSequence.Last();
+            else
+                _sharedDataService.CurrentGame.BannedMap = null;
+        }
+    }
+
+    private readonly List<Map> _bannedMapSequence = [];
+
+    [RelayCommand]
+    private async Task ResetMapBpAsync()
+    {
+        if (!await _messageBoxService.ShowConfirmAsync("确认提示", "是否要重置地图BP")) return;
+        _sharedDataService.CurrentGame.ResetMapBp();
+        PickedMap = null;
+        foreach (var map in BannedMap)
+        {
+            map.IsBanned = false;
+        }
     }
 
     [ObservableProperty] private bool _isPickHighlighted;
@@ -125,7 +152,7 @@ public partial class MapBpPageViewModel : ObservableRecipient, IRecipient<Highli
                     x.TeamType == (message.Index?[0] == 0 ? TeamType.MainTeam : TeamType.AwayTeam));
                 IsBreathing = true;
                 break;
-            case GameAction.PickCamp:
+            case PickCamp:
                 IsCampVisible = true;
                 IsBreathing = true;
                 break;
@@ -158,19 +185,13 @@ public partial class MapBpPageViewModel : ObservableRecipient, IRecipient<Highli
         public string DisplayedTeamType { get; } = teamType == TeamType.MainTeam ? "主队" : "客队";
     }
 
-    public partial class MapSelection : ObservableRecipient, IRecipient<PropertyChangedMessage<List<BanMapInfo>>>
+    public partial class MapSelection(Map? map = null, ImageSource? imageSource = null)
+        : ViewModelBase, IRecipient<PropertyChangedMessage<List<BanMapInfo>>>
     {
-        public Map? Map { get; set; }
-        public ImageSource? ImageSource { get; set; }
+        public Map? Map { get; set; } = map;
+        public ImageSource? ImageSource { get; set; } = imageSource;
 
         [ObservableProperty] private bool _canPickInvoke = true;
-
-        public MapSelection(Map? map = null, ImageSource? imageSource = null)
-        {
-            Map = map;
-            ImageSource = imageSource;
-            IsActive = true;
-        }
 
         public void Receive(PropertyChangedMessage<List<BanMapInfo>> message)
         {
@@ -184,22 +205,24 @@ public partial class MapBpPageViewModel : ObservableRecipient, IRecipient<Highli
         }
     }
 
-    public partial class BanMapInfo : ObservableRecipient, IRecipient<PropertyChangedMessage<Map?>>
+    public partial class BanMapInfo(Map map) : ViewModelBase, IRecipient<PropertyChangedMessage<Map?>>
     {
-        public Map Map { get; }
+        public Map Map { get; } = map;
         [ObservableProperty] private bool _isBanned;
 
-        public ImageSource? ImageSource { get; }
+        public ImageSource? ImageSource { get; } =
+            ImageHelper.GetImageSourceFromName(ImageSourceKey.map_singleColor, map.ToString());
 
         [ObservableProperty] private bool _canBanInvoke = true;
 
-        public BanMapInfo(Map map)
+        public void Receive(PropertyChangedMessage<Map?> message)
         {
-            Map = map;
-            ImageSource = ImageHelper.GetImageSourceFromName(ImageSourceKey.map_singleColor, map.ToString());
-            IsActive = true;
+            switch (message.PropertyName)
+            {
+                case nameof(PickedMap):
+                    CanBanInvoke = Map != message.NewValue;
+                    break;
+            }
         }
-
-        public void Receive(PropertyChangedMessage<Map?> message) => CanBanInvoke = Map != message.NewValue;
     }
 }

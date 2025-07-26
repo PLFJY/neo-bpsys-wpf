@@ -3,11 +3,12 @@ using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 using neo_bpsys_wpf.Helpers;
 
 namespace neo_bpsys_wpf.Models;
 
-public partial class Settings : ObservableObject
+public partial class Settings : ViewModelBase
 {
     [ObservableProperty] private BpWindowSettings _bpWindowSettings = new();
     [ObservableProperty] private CutSceneWindowSettings _cutSceneWindowSettings = new();

@@ -30,6 +30,11 @@
                     Margin="10,0,0,0"
                     Content="阵营选择结果展示开关"
                     IsChecked="{Binding IsCampVisible}" />
+                <ui:Button
+                    Margin="10,0,0,0"
+                    Command="{Binding ResetMapBpCommand}"
+                    Content="重置地图BP"
+                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </StackPanel>
         </Border>
         <Border Style="{StaticResource Card}">

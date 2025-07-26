@@ -29,13 +29,13 @@ public partial class WidgetsWindow : Window
 
     private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        this.DragMove();
+        DragMove();
     }
 
     protected override void OnClosing(CancelEventArgs e)
     {
         e.Cancel = true;
-        this.Hide();
+        Hide();
         base.OnClosing(e);
     }
 }

@@ -4,10 +4,11 @@ using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Messages;
 using System.Collections.ObjectModel;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
-public partial class BanHunPageViewModel : ObservableRecipient, IRecipient<SwapMessage>
+public partial class BanHunPageViewModel : ViewModelBase, IRecipient<SwapMessage>
 {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     public BanHunPageViewModel()
@@ -25,7 +26,6 @@ public partial class BanHunPageViewModel : ObservableRecipient, IRecipient<SwapM
         _sharedDataService = sharedDataService;
         BanHunCurrentViewModelList = [.. Enumerable.Range(0, 2).Select(i => new BanHunCurrentViewModel(_sharedDataService, i))];
         BanHunGlobalViewModelList = [.. Enumerable.Range(0, 3).Select(i => new BanHunGlobalViewModel(_sharedDataService, i))];
-        IsActive = true;
     }
 
     public void Receive(SwapMessage message)
@@ -45,7 +45,7 @@ public partial class BanHunPageViewModel : ObservableRecipient, IRecipient<SwapM
     public ObservableCollection<BanHunGlobalViewModel> BanHunGlobalViewModelList { get; set; }
 
     //基于模板基类的VM实现
-    public class BanHunCurrentViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+    public class BanHunCurrentViewModel : CharaSelectViewModelBase
     {
         public BanHunCurrentViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
         {
@@ -75,7 +75,7 @@ public partial class BanHunPageViewModel : ObservableRecipient, IRecipient<SwapM
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanHun;
     }
 
-    public class BanHunGlobalViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+    public class BanHunGlobalViewModel : CharaSelectViewModelBase
     {
         public BanHunGlobalViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
         {

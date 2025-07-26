@@ -66,26 +66,26 @@ public partial class MainWindow : FluentWindow, INavigationWindow
 
     private void MaximizeButton_Click(object sender, RoutedEventArgs e)
     {
-        this.WindowState =
-            this.WindowState == WindowState.Normal ?
+        WindowState =
+            WindowState == WindowState.Normal ?
                 WindowState.Maximized : WindowState.Normal;
     }
 
     private void MinimizeButton_Click(object sender, RoutedEventArgs e)
     {
-        this.WindowState = WindowState.Minimized;
+        WindowState = WindowState.Minimized;
     }
 
     private void WindowIcon_MouseDown(object sender, MouseButtonEventArgs e)
     {
-        SystemCommands.ShowSystemMenu(this, this.PointToScreen(e.GetPosition(this)));
+        SystemCommands.ShowSystemMenu(this, PointToScreen(e.GetPosition(this)));
     }
 
     private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
     {
         if (e.ChangedButton == MouseButton.Right)
         {
-            SystemCommands.ShowSystemMenu(this, this.PointToScreen(e.GetPosition(this)));
+            SystemCommands.ShowSystemMenu(this, PointToScreen(e.GetPosition(this)));
         }
 
         if (e.ClickCount == 2 && e.ChangedButton == MouseButton.Left)
@@ -96,7 +96,7 @@ public partial class MainWindow : FluentWindow, INavigationWindow
 
         if (e.ChangedButton == MouseButton.Left && e.LeftButton == MouseButtonState.Pressed)
         {
-            this.DragMove();
+            DragMove();
         }
     }
 

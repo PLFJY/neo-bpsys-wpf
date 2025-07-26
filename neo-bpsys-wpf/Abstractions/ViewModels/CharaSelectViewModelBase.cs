@@ -16,15 +16,15 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels;
 /// 2.设置<see cref="IsEnabled"/><br/>
 /// 3.实现<see cref="SyncChara"/>
 /// </summary>
-public abstract partial class CharaSelectViewModelBase :
-    ObservableRecipient,
+public abstract partial class CharaSelectViewModelBase(ISharedDataService sharedDataService, int index = 0) :
+    ViewModelBase,
     IRecipient<NewGameMessage>,
     IRecipient<BanCountChangedMessage>,
     IRecipient<HighlightMessage>
 {
-    protected readonly ISharedDataService SharedDataService;
+    protected readonly ISharedDataService SharedDataService = sharedDataService;
 
-    public int Index { get; }
+    public int Index { get; } = index;
 
     [ObservableProperty]
     private Character? _selectedChara;
@@ -59,13 +59,6 @@ public abstract partial class CharaSelectViewModelBase :
 
     [RelayCommand]
     private void Confirm() => SyncChara();
-
-    protected CharaSelectViewModelBase(ISharedDataService sharedDataService, int index = 0)
-    {
-        IsActive = true;
-        SharedDataService = sharedDataService;
-        Index = index;
-    }
 
     public virtual void Receive(NewGameMessage message)
     {

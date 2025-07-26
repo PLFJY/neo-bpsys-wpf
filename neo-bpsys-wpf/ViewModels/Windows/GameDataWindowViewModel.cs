@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Abstractions.Services;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 using neo_bpsys_wpf.Enums;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Messages;
@@ -12,7 +13,7 @@ using neo_bpsys_wpf.Models;
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
 public partial class GameDataWindowViewModel :
-    ObservableRecipient,
+    ViewModelBase,
     IRecipient<NewGameMessage>,
     IRecipient<DesignModeChangedMessage>,
     IRecipient<PropertyChangedMessage<bool>>,
@@ -34,7 +35,6 @@ public partial class GameDataWindowViewModel :
 
     public GameDataWindowViewModel(ISharedDataService sharedDataService, ISettingsHostService settingsHostService)
     {
-        IsActive = true;
         _sharedDataService = sharedDataService;
         _settingsHostService = settingsHostService;
         IsBo3Mode = _sharedDataService.IsBo3Mode;

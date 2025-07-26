@@ -1,12 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Text.Json.Serialization;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 
 namespace neo_bpsys_wpf.Models;
 
 /// <summary>
 /// 比分类, 用于展示比分
 /// </summary>
-public partial class Score : ObservableObject
+public partial class Score : ViewModelBase
 {
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]

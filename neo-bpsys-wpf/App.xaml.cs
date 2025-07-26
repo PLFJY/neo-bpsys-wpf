@@ -106,9 +106,9 @@ public partial class App : Application
             //Window
             services.AddSingleton<BpWindow>(sp => new BpWindow()
             {
-                DataContext = sp.GetRequiredService<ViewModels.Windows.BpWindowViewModel>(),
+                DataContext = sp.GetRequiredService<BpWindowViewModel>(),
             });
-            services.AddSingleton<ViewModels.Windows.BpWindowViewModel>();
+            services.AddSingleton<BpWindowViewModel>();
             services.AddSingleton<CutSceneWindow>(sp => new CutSceneWindow()
             {
                 DataContext = sp.GetRequiredService<CutSceneWindowViewModel>(),

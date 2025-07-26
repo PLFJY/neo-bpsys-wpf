@@ -8,10 +8,11 @@ using neo_bpsys_wpf.Messages;
 using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Views.Windows;
 using System.Collections.ObjectModel;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
-public partial class PickPageViewModel : ObservableRecipient, IRecipient<HighlightMessage>
+public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMessage>
 {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     public PickPageViewModel()
@@ -38,7 +39,6 @@ public partial class PickPageViewModel : ObservableRecipient, IRecipient<Highlig
             [.. Enumerable.Range(0, 9).Select(i => new AwaySurGlobalBanRecordViewModel(sharedDataService, i))];
         AwayHunGlobalBanRecordViewModelList =
             [.. Enumerable.Range(0, 3).Select(i => new AwayHunGlobalBanRecordViewModel(sharedDataService, i))];
-        IsActive = true;
     }
 
     [RelayCommand]

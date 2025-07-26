@@ -1,10 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 
 namespace neo_bpsys_wpf.Models;
 /// <summary>
 /// 赛后数据类，用于存储赛后数据
 /// </summary>
-public partial class PlayerData : ObservableObject
+public partial class PlayerData : ViewModelBase
 {
     // Sur 相关数据
     [ObservableProperty]

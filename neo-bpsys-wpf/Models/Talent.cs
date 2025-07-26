@@ -1,8 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using neo_bpsys_wpf.Abstractions.ViewModels;
 
 namespace neo_bpsys_wpf.Models;
 
-public partial class Talent : ObservableObject
+public partial class Talent : ViewModelBase
 {
     //Sur
     [ObservableProperty]
