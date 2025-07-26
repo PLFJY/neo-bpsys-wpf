@@ -14,7 +14,7 @@ namespace neo_bpsys_wpf.Abstractions.ViewModels;
 /// 需要派生类所做的是: <br/>
 /// 1.设置<see cref="CharaList"/><br/>
 /// 2.设置<see cref="IsEnabled"/><br/>
-/// 3.实现<see cref="SyncChara"/>
+/// 3.实现<see cref="SyncCharaAsync"/>
 /// </summary>
 public abstract partial class CharaSelectViewModelBase(ISharedDataService sharedDataService, int index = 0) :
     ViewModelBase,
@@ -53,12 +53,12 @@ public abstract partial class CharaSelectViewModelBase(ISharedDataService shared
 
     public Dictionary<string, Character> CharaList { get; set; } = [];
 
-    public abstract void SyncChara();
+    public abstract Task SyncCharaAsync();
     protected abstract void SyncIsEnabled();
     protected abstract bool IsActionNameCorrect(GameAction? action);
 
     [RelayCommand]
-    private void Confirm() => SyncChara();
+    private async Task ConfirmAsync() => await SyncCharaAsync();
 
     public virtual void Receive(NewGameMessage message)
     {

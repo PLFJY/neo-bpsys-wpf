@@ -35,7 +35,7 @@ public partial class BanHunPageViewModel : ViewModelBase, IRecipient<SwapMessage
             for (int i = 0; i < _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunRecordArray.Length; i++)
             {
                 BanHunGlobalViewModelList[i].SelectedChara = _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunRecordArray[i];
-                BanHunGlobalViewModelList[i].SyncChara();
+                BanHunGlobalViewModelList[i].SyncCharaAsync();
             }
             OnPropertyChanged();
         }
@@ -61,10 +61,11 @@ public partial class BanHunPageViewModel : ViewModelBase, IRecipient<SwapMessage
             }
         }
 
-        public override void SyncChara()
+        public override Task SyncCharaAsync()
         {
             SharedDataService.CurrentGame.CurrentHunBannedList[Index] = SelectedChara;
             PreviewImage = SharedDataService.CurrentGame.CurrentHunBannedList[Index]?.HeaderImageSingleColor;
+            return Task.CompletedTask;
         }
 
         protected override void SyncIsEnabled()
@@ -91,10 +92,11 @@ public partial class BanHunPageViewModel : ViewModelBase, IRecipient<SwapMessage
             }
         }
 
-        public override void SyncChara()
+        public override Task SyncCharaAsync()
         {
             SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[Index] = SelectedChara;
             PreviewImage = SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[Index]?.HeaderImageSingleColor;
+            return Task.CompletedTask;
         }
 
         protected override void SyncIsEnabled()
