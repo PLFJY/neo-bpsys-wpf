@@ -76,6 +76,7 @@
                     Margin="0,10,0,0"
                     HorizontalAlignment="Left"
                     ItemsSource="{Binding PickedMapSelections}"
+                    SelectedIndex="{Binding SelectedIndex, Mode=OneWay}"
                     SelectedValue="{Binding PickedMap}"
                     SelectedValuePath="Map">
                     <ComboBox.ItemContainerStyle>

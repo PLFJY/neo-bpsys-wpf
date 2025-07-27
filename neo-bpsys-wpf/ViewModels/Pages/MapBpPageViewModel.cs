@@ -69,6 +69,8 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         });
     }
 
+    public int SelectedIndex => PickedMapSelections.IndexOf(PickedMapSelections.First(x => x.Map == PickedMap));
+
     private Map? _pickedMap;
 
     public Map? PickedMap
@@ -81,6 +83,7 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
                 oldValue,
                 value));
             _sharedDataService.CurrentGame.PickedMap = _pickedMap;
+            OnPropertyChanged(nameof(SelectedIndex));
         });
     }
 
