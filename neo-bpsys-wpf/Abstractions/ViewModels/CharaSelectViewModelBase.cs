@@ -26,30 +26,26 @@ public abstract partial class CharaSelectViewModelBase(ISharedDataService shared
 
     public int Index { get; } = index;
 
-    [ObservableProperty]
-    private Character? _selectedChara;
+    [ObservableProperty] private Character? _selectedChara;
 
-    [ObservableProperty]
-    private ImageSource? _previewImage;
+    [ObservableProperty] private ImageSource? _previewImage;
 
     private bool _isEnabled = true;
 
     public bool IsEnabled
     {
         get => _isEnabled;
-        set
-        {
-            _isEnabled = value;
-            SyncIsEnabled();
-            OnPropertyChanged();
-        }
+        set =>
+            SetPropertyWithAction(ref _isEnabled, value, _ =>
+            {
+                SyncIsEnabled();
+                OnPropertyChanged();
+            });
     }
 
-    [ObservableProperty]
-    private bool _isHighlighted;
+    [ObservableProperty] private bool _isHighlighted;
 
-    [ObservableProperty]
-    private bool _isCharaChangerHighlighted;
+    [ObservableProperty] private bool _isCharaChangerHighlighted;
 
     public Dictionary<string, Character> CharaList { get; set; } = [];
 
@@ -69,7 +65,6 @@ public abstract partial class CharaSelectViewModelBase(ISharedDataService shared
 
     public virtual void Receive(BanCountChangedMessage message)
     {
-
     }
 
     public void Receive(HighlightMessage message)

@@ -29,12 +29,12 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     {
         _sharedDataService = sharedDataService;
         _frontService = frontService;
-        GameList = GameListBo5;
         _isBo3Mode = _sharedDataService.IsBo3Mode;
 #if DEBUG
         IsDebugContentVisible = true;
 #endif
     }
+
     public bool IsDebugContentVisible { get; set; }
 
     public Team MainTeam => _sharedDataService.MainTeam;
@@ -120,21 +120,20 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     #endregion
 
     #region 分数统计
+
     private bool _isBo3Mode;
 
     private bool IsBo3Mode
     {
         get => _isBo3Mode;
-        set
+        set => SetPropertyWithAction(ref _isBo3Mode, value, _ =>
         {
-            if (!SetProperty(ref _isBo3Mode, value)) return;
-            GameList = !_isBo3Mode ? GameListBo5 : GameListBo3;
-            SelectedIndex = 0;
+            GameList = !value ? GameListBo5 : GameListBo3;
             OnPropertyChanged(nameof(IsGameFinished));
             OnPropertyChanged(nameof(MainTeamCamp));
             OnPropertyChanged(nameof(SelectedGameResult));
             UpdateTotalMinorPoint();
-        }
+        });
     }
 
     private GameProgress _selectedGameProgress = GameProgress.Game1FirstHalf;
@@ -142,30 +141,27 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     public GameProgress SelectedGameProgress
     {
         get => _selectedGameProgress;
-        set
+        set => SetPropertyWithAction(ref _selectedGameProgress, value, _ =>
         {
-            if (!SetProperty(ref _selectedGameProgress, value)) return;
-            IsGameFinished = GameGlobalInfoRecord[_selectedGameProgress].IsGameFinished;
-            MainTeamCamp = GameGlobalInfoRecord[_selectedGameProgress].MainTeamCamp;
-            SelectedGameResult = GameGlobalInfoRecord[_selectedGameProgress].GameResult;
-        }
+            var gameInfo = GameGlobalInfoRecord[value];
+            IsGameFinished = gameInfo.IsGameFinished;
+            MainTeamCamp = gameInfo.MainTeamCamp;
+            SelectedGameResult = gameInfo.GameResult;
+
+            OnPropertyChanged(nameof(IsGameFinished));
+            OnPropertyChanged(nameof(MainTeamCamp));
+            OnPropertyChanged(nameof(SelectedGameResult));
+            OnPropertyChanged(nameof(SelectedIndex));
+        });
     }
 
-    [ObservableProperty]
-    private int _selectedIndex;
+    public int SelectedIndex => GameList.IndexOf(SelectedGameProgress);
 
     [RelayCommand]
     private void NextGame()
     {
-        int? index = 0;
-        index = GameList
-            .Select((pair, i) => new { Pair = pair, Index = i })
-            .FirstOrDefault(pair => pair.Pair.Key == SelectedGameProgress)?.Index;
-        index++;
-        if (index == null) return;
-
-        var i = (int)index;
-        SelectedIndex = i;
+        var index = GameList.IndexOf(SelectedGameProgress);
+        SelectedGameProgress = GameList.ElementAt(index + 1).Key;
     }
 
     [RelayCommand]
@@ -179,20 +175,18 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
             UpdateTotalMinorPoint();
             return;
         }
+
         GameGlobalInfoRecord[SelectedGameProgress].MainTeamCamp = MainTeamCamp;
         GameGlobalInfoRecord[SelectedGameProgress].GameResult = SelectedGameResult;
         UpdateGlobalScore();
         UpdateTotalMinorPoint();
     }
 
-    [ObservableProperty]
-    private bool _isGameFinished;
+    [ObservableProperty] private bool _isGameFinished;
 
-    [ObservableProperty]
-    private Camp? _mainTeamCamp;
+    [ObservableProperty] private Camp? _mainTeamCamp;
 
-    [ObservableProperty]
-    private GameResult? _selectedGameResult;
+    [ObservableProperty] private GameResult? _selectedGameResult;
 
     private void UpdateGlobalScore()
     {
@@ -366,9 +360,18 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
         { GameProgress.Game5ExtraSecondHalf, new GameGlobalInfo() },
     };
 
-    [ObservableProperty] private Dictionary<GameProgress, string> _gameList;
+    private OrderedDictionary<GameProgress, string> _gameList = GameListBo5;
 
-    private static Dictionary<GameProgress, string> GameListBo5 => new()
+    public OrderedDictionary<GameProgress, string> GameList
+    {
+        get => _gameList;
+        private set => SetPropertyWithAction(ref _gameList, value, _ =>
+        {
+            SelectedGameProgress = value.ElementAt(0).Key;
+        });
+    }
+
+    private static OrderedDictionary<GameProgress, string> GameListBo5 => new()
     {
         { GameProgress.Game1FirstHalf, "第1局上半" },
         { GameProgress.Game1SecondHalf, "第1局下半" },
@@ -384,7 +387,7 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
         { GameProgress.Game5ExtraSecondHalf, "第5局加赛下半" }
     };
 
-    public static Dictionary<GameProgress, string> GameListBo3 => new()
+    public static OrderedDictionary<GameProgress, string> GameListBo3 => new()
     {
         { GameProgress.Game1FirstHalf, "第1局上半" },
         { GameProgress.Game1SecondHalf, "第1局下半" },
@@ -398,12 +401,9 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
 
     public partial class GameGlobalInfo() : ObservableObject
     {
-        [ObservableProperty]
-        private bool _isGameFinished;
-        [ObservableProperty]
-        private Camp? _mainTeamCamp;
-        [ObservableProperty]
-        private GameResult? _gameResult;
+        [ObservableProperty] private bool _isGameFinished;
+        [ObservableProperty] private Camp? _mainTeamCamp;
+        [ObservableProperty] private GameResult? _gameResult;
     }
 
     #endregion

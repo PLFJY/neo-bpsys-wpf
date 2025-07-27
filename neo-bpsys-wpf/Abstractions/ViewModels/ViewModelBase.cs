@@ -11,13 +11,14 @@ public abstract partial class ViewModelBase : ObservableRecipient
     {
         IsActive = true;
     }
-    protected bool SetPropertyWithAction<T>(ref T field, T value, Action<T, T>? onChanged = null, [CallerMemberName] string? propertyName = null)
+    protected bool SetPropertyWithAction<T>(ref T field, T value, Action<T>? onChanged = null,
+        [CallerMemberName] string? propertyName = null)
     {
         var oldValue = field;
         if (!SetProperty(ref field, value))
             return false;
 
-        onChanged?.Invoke(oldValue, value);
+        onChanged?.Invoke(oldValue);
         return true;
     }
 }

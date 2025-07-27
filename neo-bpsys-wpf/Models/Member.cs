@@ -28,7 +28,7 @@ public partial class Member : ViewModelBase
         get => _name;
         set =>
             SetPropertyWithAction(ref _name, value,
-                (_, _) => { WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this)); });
+                _ => { WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this)); });
     }
 
 
@@ -45,7 +45,7 @@ public partial class Member : ViewModelBase
             _image = new BitmapImage(new Uri(ImageUri));
             return _image;
         }
-        set => SetPropertyWithAction(ref _image, value, (_, _) =>
+        set => SetPropertyWithAction(ref _image, value, _ =>
         {
             ImageUri = null;
             WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this));
@@ -61,7 +61,7 @@ public partial class Member : ViewModelBase
     {
         get => _isOnField;
         set => SetPropertyWithAction(ref _isOnField, value,
-            (_, _) => { WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this)); });
+            _ => { WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this)); });
     }
 
     [ObservableProperty] [property: JsonIgnore]

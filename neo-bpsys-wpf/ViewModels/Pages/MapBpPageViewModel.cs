@@ -46,12 +46,12 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     public bool IsBreathing
     {
         get => _breathing;
-        set => SetPropertyWithAction(ref _breathing, value, (oldValue, newValue) =>
+        set => SetPropertyWithAction(ref _breathing, value, (oldValue) =>
         {
             WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this,
                 nameof(IsBreathing),
                 oldValue,
-                newValue));
+                value));
         });
     }
 
@@ -60,12 +60,12 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     public bool IsCampVisible
     {
         get => _isCampVisible;
-        set => SetPropertyWithAction(ref _isCampVisible, value, (oldValue, newValue) =>
+        set => SetPropertyWithAction(ref _isCampVisible, value, (oldValue) =>
         {
             WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this,
                 nameof(IsCampVisible),
                 oldValue,
-                newValue));
+                value));
         });
     }
 
@@ -74,12 +74,12 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     public Map? PickedMap
     {
         get => _pickedMap;
-        set => SetPropertyWithAction(ref _pickedMap, value, (oldValue, newValue) =>
+        set => SetPropertyWithAction(ref _pickedMap, value, (oldValue) =>
         {
             WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<Map?>(this,
                 nameof(PickedMap),
                 oldValue,
-                newValue));
+                value));
             _sharedDataService.CurrentGame.PickedMap = _pickedMap;
         });
     }

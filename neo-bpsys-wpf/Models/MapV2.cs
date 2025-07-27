@@ -32,12 +32,12 @@ public partial class MapV2(Map mapName, string mapBorderNormal = "#2B483B", stri
     public bool IsBanned
     {
         get => _isBanned;
-        set => SetPropertyWithAction(ref _isBanned, value, (oldValue, newValue) =>
+        set => SetPropertyWithAction(ref _isBanned, value, (oldValue) =>
         {
-            if (oldValue && !newValue)
+            if (oldValue && !value)
             {
                 WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsBanned), oldValue,
-                    newValue));
+                    value));
             }
 
             OnPropertyChanged(nameof(ImageSource));
