@@ -1,0 +1,38 @@
+{
+  "Name": "Wolves",
+  "ImageUri": "https://patchwiki.biligame.com/images/dwrg/0/0f/5upqyt4fcxhv4g8tbgzw01c3ijy2xmz.png",
+  "SurMemberList": [
+    {
+      "Name": "Wolves_487",
+      "Camp": "Sur",
+      "ImageUri": "https://patchwiki.biligame.com/images/dwrg/6/6d/ery6o97q1e2pgcacstg73tyrmtyibij.png"
+    },
+    {
+      "Name": "Wolves_Jelly",
+      "Camp": "Sur",
+      "ImageUri": "https://patchwiki.biligame.com/images/dwrg/0/05/c4sgrg7oxnsygca01g7w44k02fq4knq.png"
+    },
+    {
+      "Name": "Wolves_XMX",
+      "Camp": "Sur",
+      "ImageUri": "https://patchwiki.biligame.com/images/dwrg/b/b3/9ih5l1tr1pj3vr1q1o67awxxhfn1wnx.png"
+    },
+    {
+      "Name": "Wolves_DKing",
+      "Camp": "Sur",
+      "ImageUri": "https://patchwiki.biligame.com/images/dwrg/8/86/b88uor92d5z8uiiqqb8n1jfyeddd02l.png"
+    }
+  ],
+  "HunMemberList": [
+    {
+      "Name": "Wolves_ChoAi",
+      "Camp": "Hun",
+      "ImageUri": "https://patchwiki.biligame.com/images/dwrg/c/c2/ahjuo114o8icn6zznr96o8addi91zq3.png"
+    },
+    {
+      "Name": "Wolves_Yeyv",
+      "Camp": "Hun",
+      "ImageUri": "https://patchwiki.biligame.com/images/dwrg/2/28/89wlcs5x73vseaqcgq2a0y72e40bpdr.png"
+    }
+  ]
+} 

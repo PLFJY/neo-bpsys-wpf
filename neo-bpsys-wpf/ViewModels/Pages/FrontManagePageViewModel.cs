@@ -60,10 +60,10 @@ public partial class FrontManagePageViewModel : ViewModelBase
     public bool IsDesignMode
     {
         get => _isDesignMode;
-        set => SetPropertyWithAction(ref _isDesignMode, value, (_, newValue) =>
+        set => SetPropertyWithAction(ref _isDesignMode, value, _ =>
         {
-            WeakReferenceMessenger.Default.Send(new DesignModeChangedMessage(this, newValue));
-            if (!newValue)
+            WeakReferenceMessenger.Default.Send(new DesignModeChangedMessage(this, value));
+            if (!value)
             {
                 _frontService.SaveAllWindowElementsPosition();
             }

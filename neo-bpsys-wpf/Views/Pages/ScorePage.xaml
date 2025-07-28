@@ -119,7 +119,7 @@
                             Margin="10,0,0,0"
                             DisplayMemberPath="Value"
                             ItemsSource="{Binding GameList}"
-                            SelectedIndex="{Binding SelectedIndex}"
+                            SelectedIndex="{Binding SelectedIndex, Mode=OneWay}"
                             SelectedValue="{Binding SelectedGameProgress}"
                             SelectedValuePath="Key" />
                         <ui:Button
@@ -166,12 +166,12 @@
                                         Width="20"
                                         Height="30"
                                         Content="求生者"
-                                        IsChecked="{Binding MainTeamCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Camp.Sur}}" />
+                                        IsChecked="{Binding MainTeamCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Camp.Sur}, Mode=TwoWay}" />
                                     <RadioButton
                                         Name="MainHunRadioButton"
                                         Margin="0,10,0,0"
                                         Content="监管者"
-                                        IsChecked="{Binding MainTeamCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Camp.Hun}}" />
+                                        IsChecked="{Binding MainTeamCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Camp.Hun}, Mode=TwoWay}" />
                                 </StackPanel>
                             </GroupBox>
                             <GroupBox
@@ -211,28 +211,28 @@
                                     <RadioButton
                                         Content="四跑"
                                         GroupName="GameResult"
-                                        IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Escape4}}" />
+                                        IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Escape4}, Mode=TwoWay}" />
                                     <RadioButton
                                         Margin="0,30,0,0"
                                         Content="三跑"
                                         GroupName="GameResult"
-                                        IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Escape3}}" />
+                                        IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Escape3}, Mode=TwoWay}" />
                                 </StackPanel>
                                 <RadioButton
                                     Grid.Column="1"
                                     Content="平局"
                                     GroupName="GameResult"
-                                    IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Tie}}" />
+                                    IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Tie}, Mode=TwoWay}" />
                                 <StackPanel Grid.Column="2">
                                     <RadioButton
                                         Content="四抓"
                                         GroupName="GameResult"
-                                        IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Out4}}" />
+                                        IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Out4}, Mode=TwoWay}" />
                                     <RadioButton
                                         Margin="0,30,0,0"
                                         Content="三抓"
                                         GroupName="GameResult"
-                                        IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Out3}}" />
+                                        IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Out3}, Mode=TwoWay}" />
                                 </StackPanel>
                             </Grid>
                         </GroupBox>

@@ -1,0 +1,33 @@
+{
+  "Name": "",
+  "ImageUri": "",
+  "SurMemberList": [
+    {
+      "Name": "",
+      "Camp": "Sur",
+      "ImageUri": ""
+    },
+    {
+      "Name": "",
+      "Camp": "Sur",
+      "ImageUri": null
+    },
+    {
+      "Name": "",
+      "Camp": "Sur",
+      "ImageUri": null
+    },
+    {
+      "Name": "",
+      "Camp": "Sur",
+      "ImageUri": null
+    }
+  ],
+  "HunMemberList": [
+    {
+      "Name": "",
+      "Camp": "Hun",
+      "ImageUri": null
+    }
+  ]
+} 
