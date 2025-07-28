@@ -17,7 +17,7 @@ using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
-public partial class MainWindowViewModel : 
+public partial class MainWindowViewModel :
     ViewModelBase,
     IRecipient<ValueChangedMessage<string>>,
     IRecipient<PropertyChangedMessage<bool>>,
@@ -131,7 +131,7 @@ public partial class MainWindowViewModel :
 
         //发送新对局已创建的消息
         WeakReferenceMessenger.Default.Send(new NewGameMessage(this, true));
-            
+
         OnPropertyChanged(nameof(CurrentGame));
         await _messageBoxService.ShowInfoAsync($"已成功创建新对局\n{CurrentGame.Guid}", "创建提示");
         _logger.LogInformation($"New Game Created{CurrentGame.Guid}");
@@ -156,21 +156,21 @@ public partial class MainWindowViewModel :
     [RelayCommand]
     private async Task SaveGameInfoAsync()
     {
-        var json = JsonSerializer.Serialize(CurrentGame, _jsonSerializerOptions);
-        var path = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "neo-bpsys-wpf", 
-            "GameInfoOutput"
-        );
-        var fullPath = Path.Combine(path, $"{CurrentGame.StartTime:yyyy-MM-dd-HH-mm-ss}.json");
-        if (!Directory.Exists(path))
-            Directory.CreateDirectory(path);
-
         try
         {
+            var json = JsonSerializer.Serialize(CurrentGame, _jsonSerializerOptions);
+            var path = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            "neo-bpsys-wpf",
+            "GameInfoOutput"
+        );
+            var fullPath = Path.Combine(path, $"{CurrentGame.StartTime:yyyy-MM-dd-HH-mm-ss}.json");
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
             await File.WriteAllTextAsync(fullPath, json);
             await _messageBoxService.ShowInfoAsync($"已成功保存到\n{fullPath}", "保存提示");
             _logger.LogInformation($"Save game {CurrentGame.Guid} info successfully");
+
         }
         catch (Exception ex)
         {

@@ -13,6 +13,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Abstractions.ViewModels;
+using System.Text.Json.Serialization;
 
 namespace neo_bpsys_wpf.Models;
 
@@ -50,7 +51,7 @@ public partial class MapV2(Map mapName, string mapBorderNormal = "#2B483B", stri
     private Team? _operationTeam;
 
     private bool _isCampVisible;
-
+    [JsonIgnore]
     public bool IsCampVisible
     {
         get => OperationTeam != null && _isCampVisible;
@@ -58,7 +59,7 @@ public partial class MapV2(Map mapName, string mapBorderNormal = "#2B483B", stri
     }
 
     private bool _isBreathing;
-
+    [JsonIgnore]
     public bool IsBreathing
     {
         //如果是Ban就会灭掉
@@ -68,7 +69,7 @@ public partial class MapV2(Map mapName, string mapBorderNormal = "#2B483B", stri
 
     private ImageSource? _imageSourceBanned;
     private ImageSource? _imageSourceNormal;
-
+    [JsonIgnore]
     public ImageSource? ImageSource
     {
         get
@@ -82,7 +83,7 @@ public partial class MapV2(Map mapName, string mapBorderNormal = "#2B483B", stri
 
     private readonly Brush _mapBorderNormalBrush = ColorHelper.HexToBrush(mapBorderNormal);
     private readonly Brush _mapBorderBannedBrush = ColorHelper.HexToBrush(mapBorderBanned);
-
+    [JsonIgnore]
     public Brush MapBorderBrush => IsBanned ? _mapBorderBannedBrush : _mapBorderNormalBrush;
 
 
