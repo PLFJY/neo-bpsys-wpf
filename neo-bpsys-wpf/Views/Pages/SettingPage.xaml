@@ -292,7 +292,7 @@
                                 <ui:Button
                                     Margin="10,0,0,0"
                                     Command="{Binding SaveBpWindowPickingBorderColorCommand}"
-                                    Content="保存"
+                                    Content="保存并应用"
                                     Icon="{ui:SymbolIcon Symbol=Save24}" />
                             </StackPanel>
                             <Grid Margin="0,10,0,0">
@@ -584,7 +584,7 @@
                                 <ui:Button
                                     Margin="10,0,0,0"
                                     Command="{Binding SaveMapBpV2PickingBorderColorCommand}"
-                                    Content="保存"
+                                    Content="保存并应用"
                                     Icon="{ui:SymbolIcon Symbol=Save24}" />
                             </StackPanel>
                             <Grid Margin="0,10,0,0">
