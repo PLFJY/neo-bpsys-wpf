@@ -116,7 +116,8 @@ public partial class SettingPageViewModel : ViewModelBase
         };
 
         BpWindowPickingColorSettings = _settingsHostService.Settings.BpWindowSettings.PickingBorderColor.ToColor();
-        MapBpV2PickingColorSettings = _settingsHostService.Settings.WidgetsWindowSettings.MapBpV2_PickingBorderColor.ToColor();
+        MapBpV2PickingColorSettings =
+            _settingsHostService.Settings.WidgetsWindowSettings.MapBpV2_PickingBorderColor.ToColor();
 
         GlobalScoreTotalMargin = _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreTotalMargin;
         _sharedDataService.GlobalScoreTotalMargin = GlobalScoreTotalMargin;
@@ -124,12 +125,10 @@ public partial class SettingPageViewModel : ViewModelBase
 
     [ObservableProperty] private string _appVersion = string.Empty;
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(UpdateCheckCommand))]
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(UpdateCheckCommand))]
     private bool _isDownloading;
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(InstallUpdateCommand))]
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(InstallUpdateCommand))]
     private bool _isDownloadFinished;
 
     [ObservableProperty] private string _downloadProgressText = string.Empty;
@@ -201,7 +200,8 @@ public partial class SettingPageViewModel : ViewModelBase
     {
         var path = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "neo-bpsys-wpf\\GameInfoOutput"
+            "neo-bpsys-wpf",
+            "GameInfoOutput"
         );
         Process.Start("explorer.exe", path);
     }
@@ -232,7 +232,7 @@ public partial class SettingPageViewModel : ViewModelBase
             "neo-bpsys-wpf", "CustomUi");
         var destFileName = Path.Combine(destDir, Path.GetFileName(fileName));
 
-        if(!Directory.Exists(destDir))
+        if (!Directory.Exists(destDir))
             Directory.CreateDirectory(destDir);
 
         try
@@ -250,8 +250,8 @@ public partial class SettingPageViewModel : ViewModelBase
         {
             WeakReferenceMessenger.Default.Send(new SettingsChangedMessage(windowType));
         }
+
         _settingsHostService.SaveConfig();
-        _messageBoxService.ShowInfoAsync("重启后生效");
     }
 
     [RelayCommand]
@@ -310,7 +310,8 @@ public partial class SettingPageViewModel : ViewModelBase
         };
 
         if (!propertyMap.TryGetValue(arg, out var action)) return;
-        SetUiImage(action, [FrontWindowType.ScoreSurWindow, FrontWindowType.ScoreHunWindow, FrontWindowType.ScoreGlobalWindow]);
+        SetUiImage(action,
+            [FrontWindowType.ScoreSurWindow, FrontWindowType.ScoreHunWindow, FrontWindowType.ScoreGlobalWindow]);
     }
 
     [ObservableProperty] private double _globalScoreTotalMargin = 390;
@@ -399,43 +400,34 @@ public partial class SettingPageViewModel : ViewModelBase
             { FrontWindowType.GameDataWindow, SelectedGameDataWindowTextSettings },
             { FrontWindowType.WidgetsWindow, SelectedWidgetsWindowTextSettings }
         };
-        if (!settingsMap.TryGetValue(type, out var settings) || settings == null)
-        {
-            return;
-        }
+
+        if (!settingsMap.TryGetValue(type, out var settings) || settings == null) return;
 
         _textSettingsNavigationService.Navigate(
             type,
-            new TextSettingsEditControl(_systemFonts, settings, SaveAction, CloseAction));
-
-        return;
-
-        void CloseAction()
-        {
-            _textSettingsNavigationService.Close(type);
-        }
-
-        void SaveAction()
-        {
-            _settingsHostService.SaveConfig();
-        }
+            new TextSettingsEditControl(_systemFonts,
+                settings,
+                () => WeakReferenceMessenger.Default.Send(new SettingsChangedMessage(type)),
+                () => _settingsHostService.SaveConfig(),
+                () => _textSettingsNavigationService.Close(type)));
     }
-    
+
     [RelayCommand]
     private void SaveBpWindowPickingBorderColor()
     {
-        _settingsHostService.Settings.BpWindowSettings.PickingBorderColor = BpWindowPickingColorSettings.ToArgbHexString();
+        _settingsHostService.Settings.BpWindowSettings.PickingBorderColor =
+            BpWindowPickingColorSettings.ToArgbHexString();
+        WeakReferenceMessenger.Default.Send(new SettingsChangedMessage(FrontWindowType.BpWindow));
         _settingsHostService.SaveConfig();
-        _messageBoxService.ShowInfoAsync("重启后生效");
     }
-    
+
     [RelayCommand]
     private void SaveMapBpV2PickingBorderColor()
     {
         _settingsHostService.Settings.WidgetsWindowSettings.MapBpV2_PickingBorderColor =
             MapBpV2PickingColorSettings.ToArgbHexString();
+        WeakReferenceMessenger.Default.Send(new SettingsChangedMessage(FrontWindowType.WidgetsWindow));
         _settingsHostService.SaveConfig();
-        _messageBoxService.ShowInfoAsync("重启后生效");
     }
 
     [RelayCommand]

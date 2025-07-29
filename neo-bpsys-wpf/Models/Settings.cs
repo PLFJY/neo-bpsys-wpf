@@ -8,19 +8,19 @@ using neo_bpsys_wpf.Helpers;
 
 namespace neo_bpsys_wpf.Models;
 
-public partial class Settings : ViewModelBase
+public partial class Settings
 {
-    [ObservableProperty] private BpWindowSettings _bpWindowSettings = new();
-    [ObservableProperty] private CutSceneWindowSettings _cutSceneWindowSettings = new();
-    [ObservableProperty] private ScoreWindowSettings _scoreWindowSettings = new();
-    [ObservableProperty] private GameDataWindowSettings _gameDataWindowSettings = new();
-    [ObservableProperty] private WidgetsWindowSettings _widgetsWindowSettings = new();
+    public BpWindowSettings BpWindowSettings { get; set; } = new();
+    public CutSceneWindowSettings CutSceneWindowSettings { get; set; } = new();
+    public ScoreWindowSettings ScoreWindowSettings { get; set; } = new();
+    public GameDataWindowSettings GameDataWindowSettings { get; set; } = new();
+    public WidgetsWindowSettings WidgetsWindowSettings { get; set; } = new();
 }
 
 /// <summary>
 /// 文本设置
 /// </summary>
-public partial class TextSettings : ObservableObject
+public partial class TextSettings : ViewModelBase
 {
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(Foreground))]
     private string? _color;
@@ -31,7 +31,8 @@ public partial class TextSettings : ObservableObject
     [JsonIgnore]
     public Brush Foreground => ColorHelper.HexToBrush(string.IsNullOrEmpty(Color) ? "#FFFFFFFF" : Color);
 
-    public string? FontFamilySite { get; set; }
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(FontFamily))]
+    private string? _fontFamilySite;
 
     private FontFamily? _fontFamily;
 
@@ -85,14 +86,14 @@ public partial class TextSettings : ObservableObject
 /// <summary>
 /// BP窗口设置
 /// </summary>
-public partial class BpWindowSettings : ObservableObject
+public partial class BpWindowSettings : ViewModelBase
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
     public string? BgImageUri { get; set; }
     public string? CurrentBanLockImageUri { get; set; }
     public string? GlobalBanLockImageUri { get; set; }
     public string? PickingBorderImageUri { get; set; }
-    
+
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(PickingBorderBrush))]
     private string? _pickingBorderColor = Colors.White.ToString();
 
@@ -100,14 +101,17 @@ public partial class BpWindowSettings : ObservableObject
     /// 文本颜色Brush
     /// </summary>
     [JsonIgnore]
-    public Brush PickingBorderBrush => ColorHelper.HexToBrush(string.IsNullOrEmpty(PickingBorderColor) ? Colors.DarkGreen.ToString() : PickingBorderColor);
+    public Brush PickingBorderBrush => ColorHelper.HexToBrush(string.IsNullOrEmpty(PickingBorderColor)
+        ? Colors.DarkGreen.ToString()
+        : PickingBorderColor);
+
     public BpWindowTextSettings TextSettings { get; set; } = new();
 }
 
 /// <summary>
 /// BP窗口文本设置
 /// </summary>
-public class BpWindowTextSettings
+public partial class BpWindowTextSettings : ViewModelBase
 {
     public TextSettings Timer { get; set; } = new("#FFFFFFFF",
         "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 58, FontWeights.Bold);
@@ -245,7 +249,7 @@ public class GameDataWindowTextSettings
 /// <summary>
 /// 小组件窗口设置
 /// </summary>
-public partial class WidgetsWindowSettings : ObservableObject
+public partial class WidgetsWindowSettings : ViewModelBase
 {
     public string? MapBpBgUri { get; set; }
     public string? MapBpV2BgUri { get; set; }
@@ -254,14 +258,18 @@ public partial class WidgetsWindowSettings : ObservableObject
     public string? BpOverviewBgUri { get; set; }
     public string? CurrentBanLockImageUri { get; set; }
     public string? GlobalBanLockImageUri { get; set; }
-    
+
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(MapBpV2_PickingBorderBrush))]
     private string? _mapBpV2_PickingBorderColor = Colors.DarkGreen.ToString();
+
     /// <summary>
     /// MapBpV2文本颜色Brush
     /// </summary>
     [JsonIgnore]
-    public Brush MapBpV2_PickingBorderBrush => ColorHelper.HexToBrush(string.IsNullOrEmpty(MapBpV2_PickingBorderColor) ? Colors.DarkGreen.ToString() : MapBpV2_PickingBorderColor);
+    public Brush MapBpV2_PickingBorderBrush => ColorHelper.HexToBrush(string.IsNullOrEmpty(MapBpV2_PickingBorderColor)
+        ? Colors.DarkGreen.ToString()
+        : MapBpV2_PickingBorderColor);
+
     public WidgetsWindowTextSettings TextSettings { get; set; } = new();
 }
 

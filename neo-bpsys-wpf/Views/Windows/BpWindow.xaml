@@ -88,7 +88,6 @@
             d:FontSize="28"
             d:Foreground="White"
             d:Text="W0 D0"
-            FontWeight="Bold"
             Style="{StaticResource MajorPoints}"
             Text="{Binding CurrentGame.SurTeam.Score.MajorPointsOnFront}"
             TextAlignment="Center" />
@@ -117,7 +116,6 @@
             d:FontSize="50"
             d:Foreground="White"
             d:Text="0"
-            FontWeight="Bold"
             Style="{StaticResource MinorPoints}"
             Text="{Binding CurrentGame.SurTeam.Score.MinorPoints}"
             TextAlignment="Center" />

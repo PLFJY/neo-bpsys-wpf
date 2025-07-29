@@ -15,16 +15,18 @@ namespace neo_bpsys_wpf.Controls;
 public partial class TextSettingsEditControl : UserControl
 {
     private readonly TextSettings? _textSettings;
-    private readonly Action _saveAction;
-    private readonly Action _closeAction;
+    private readonly Action? _applyAction;
+    private readonly Action? _saveAction;
+    private readonly Action? _closeAction;
 
-    public TextSettingsEditControl(List<FontFamily> fontList, TextSettings? textSettings,
-        Action saveAction, Action cancelAction)
+    public TextSettingsEditControl(List<FontFamily> fontList, TextSettings? textSettings, Action? applyAction,
+        Action? saveAction, Action? cancelAction)
     {
         InitializeComponent();
         DataContext = this;
         FontList = fontList;
         _textSettings = textSettings;
+        _applyAction = applyAction;
         _saveAction = saveAction;
         _closeAction = cancelAction;
         if (textSettings == null) return;
@@ -34,15 +36,19 @@ public partial class TextSettingsEditControl : UserControl
         SelectedFontWeight = textSettings.FontWeight;
     }
 
-    [ObservableProperty] private List<FontFamily> _fontList;
-
-    [ObservableProperty] private Color _selectedColor = Color.FromArgb(255, 255, 255, 255);
-
-    [ObservableProperty] private FontFamily _selectedFontFamily = new("Arial");
-
-    [ObservableProperty] private string _selectedFontSize = "16.0";
-
-    [ObservableProperty] private FontWeight _selectedFontWeight = FontWeights.Normal;
+    public List<FontFamily> FontList { get; }
+    
+    [ObservableProperty]
+    private Color _selectedColor = Color.FromArgb(255, 255, 255, 255);
+    
+    [ObservableProperty]
+    private FontFamily _selectedFontFamily = new("Arial");
+    
+    [ObservableProperty]
+    private string _selectedFontSize = "16.0";
+    
+    [ObservableProperty]
+    private FontWeight _selectedFontWeight = FontWeights.Normal;
 
     [RelayCommand]
     private void Apply()
@@ -53,11 +59,12 @@ public partial class TextSettingsEditControl : UserControl
             return;
         }
 
-        if (double.TryParse(SelectedFontSize, out var fontsize))
-            _textSettings.FontSize = fontsize;
+        if (double.TryParse(SelectedFontSize, out var fontSize))
+            _textSettings.FontSize = fontSize;
         _textSettings.FontFamily = SelectedFontFamily;
         _textSettings.Color = SelectedColor.ToArgbHexString();
         _textSettings.FontWeight = SelectedFontWeight;
+        _applyAction?.Invoke();
     }
 
     [RelayCommand]
@@ -69,11 +76,12 @@ public partial class TextSettingsEditControl : UserControl
             return;
         }
 
-        if (double.TryParse(SelectedFontSize, out var fontsize))
-            _textSettings.FontSize = fontsize;
+        if (double.TryParse(SelectedFontSize, out var fontSize))
+            _textSettings.FontSize = fontSize;
         _textSettings.FontFamily = SelectedFontFamily;
         _textSettings.Color = SelectedColor.ToArgbHexString();
         _textSettings.FontWeight = SelectedFontWeight;
+        _applyAction?.Invoke();
         _saveAction?.Invoke();
     }
 
