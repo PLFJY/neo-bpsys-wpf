@@ -1,21 +1,18 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using neo_bpsys_wpf.Abstractions.Services;
-using neo_bpsys_wpf.Helpers;
-using neo_bpsys_wpf.Models;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
-using System.Windows.Threading;
-using System.Xml.Serialization;
 using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Abstractions.ViewModels;
 using neo_bpsys_wpf.Controls;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Messages;
-using neo_bpsys_wpf.Views.Windows;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Messages;
+using TextSettings = neo_bpsys_wpf.Core.Models.TextSettings;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 

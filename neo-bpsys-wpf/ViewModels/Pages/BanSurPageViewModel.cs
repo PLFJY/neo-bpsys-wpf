@@ -1,10 +1,10 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Abstractions.Services;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Messages;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
-using neo_bpsys_wpf.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Messages;
+using CharaSelectViewModelBase = neo_bpsys_wpf.Core.Abstractions.ViewModels.CharaSelectViewModelBase;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -45,7 +45,7 @@ public partial class BanSurPageViewModel : ViewModelBase, IRecipient<SwapMessage
     public ObservableCollection<BanSurGlobalViewModel> BanSurGlobalViewModelList { get; set; }
 
     //基于模板基类的VM实现
-    public class BanSurCurrentViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+    public class BanSurCurrentViewModel : CharaSelectViewModelBase
     {
         public BanSurCurrentViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
         {
@@ -76,7 +76,7 @@ public partial class BanSurPageViewModel : ViewModelBase, IRecipient<SwapMessage
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanSur;
     }
 
-    public class BanSurGlobalViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+    public class BanSurGlobalViewModel : CharaSelectViewModelBase
     {
         public BanSurGlobalViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
         {

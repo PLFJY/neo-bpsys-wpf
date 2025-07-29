@@ -1,11 +1,11 @@
-﻿using neo_bpsys_wpf.Abstractions.Services;
-using neo_bpsys_wpf.Converters;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Models;
-using neo_bpsys_wpf.Views.Windows;
+﻿using neo_bpsys_wpf.Converters;
+using neo_bpsys_wpf.Core.Models;
 using System.IO;
 using System.Text.Json;
-using System.Windows;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
+using BpWindowSettings = neo_bpsys_wpf.Core.Models.BpWindowSettings;
+using WidgetsWindowSettings = neo_bpsys_wpf.Core.Models.WidgetsWindowSettings;
 
 namespace neo_bpsys_wpf.Services;
 

@@ -1,16 +1,17 @@
 ﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Abstractions.Services;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Helpers;
-using neo_bpsys_wpf.Messages;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging.Messages;
-using neo_bpsys_wpf.Abstractions.ViewModels;
-using neo_bpsys_wpf.Models;
-using static neo_bpsys_wpf.Enums.GameAction;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Messages;
+using neo_bpsys_wpf.Core.Models;
+using static neo_bpsys_wpf.Core.Enums.GameAction;
+using Team = neo_bpsys_wpf.Core.Models.Team;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -203,27 +204,6 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
             {
                 case nameof(BannedMap):
                     CanPickInvoke = !message.NewValue.Any(x => x.Map == Map && x.IsBanned);
-                    break;
-            }
-        }
-    }
-
-    public partial class BanMapInfo(Map map) : ViewModelBase, IRecipient<PropertyChangedMessage<Map?>>
-    {
-        public Map Map { get; } = map;
-        [ObservableProperty] private bool _isBanned;
-
-        public ImageSource? ImageSource { get; } =
-            ImageHelper.GetImageSourceFromName(ImageSourceKey.map_singleColor, map.ToString());
-
-        [ObservableProperty] private bool _canBanInvoke = true;
-
-        public void Receive(PropertyChangedMessage<Map?> message)
-        {
-            switch (message.PropertyName)
-            {
-                case nameof(PickedMap):
-                    CanBanInvoke = Map != message.NewValue;
                     break;
             }
         }

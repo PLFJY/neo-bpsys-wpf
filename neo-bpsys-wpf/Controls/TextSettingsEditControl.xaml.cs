@@ -1,10 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using neo_bpsys_wpf.Helpers;
-using neo_bpsys_wpf.Models;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using neo_bpsys_wpf.Core.Helpers;
+using TextSettings = neo_bpsys_wpf.Core.Models.TextSettings;
 
 namespace neo_bpsys_wpf.Controls;
 

@@ -1,7 +1,5 @@
-﻿using neo_bpsys_wpf.Abstractions.Services;
-using System.Windows.Media;
+﻿using neo_bpsys_wpf.Core.Abstractions.Services;
 using Wpf.Ui.Controls;
-using Wpf.Ui.Markup;
 
 namespace neo_bpsys_wpf.Services;
 

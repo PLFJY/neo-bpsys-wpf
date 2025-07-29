@@ -1,4 +1,4 @@
-﻿using neo_bpsys_wpf.Models;
+﻿using neo_bpsys_wpf.Core.Models;
 using System.Collections;
 using System.Windows;
 using System.Windows.Controls;

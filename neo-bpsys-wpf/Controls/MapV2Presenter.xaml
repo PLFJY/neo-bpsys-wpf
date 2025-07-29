@@ -7,7 +7,7 @@
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:models="clr-namespace:neo_bpsys_wpf.Models"
+    xmlns:models="clr-namespace:neo_bpsys_wpf.Core.Models;assembly=neo-bpsys-wpf.Core"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     d:DesignHeight="155"
     d:DesignWidth="200"

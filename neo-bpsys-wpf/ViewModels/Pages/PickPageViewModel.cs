@@ -1,14 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Controls;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Messages;
-using neo_bpsys_wpf.Models;
-using neo_bpsys_wpf.Views.Windows;
+using neo_bpsys_wpf.Core.Models;
 using System.Collections.ObjectModel;
-using neo_bpsys_wpf.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Messages;
+using CharaSelectViewModelBase = neo_bpsys_wpf.Core.Abstractions.ViewModels.CharaSelectViewModelBase;
+using Team = neo_bpsys_wpf.Core.Models.Team;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -145,7 +146,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
 
     //基于模板基类的VM实现
     public partial class SurPickViewModel :
-        Abstractions.ViewModels.CharaSelectViewModelBase,
+        CharaSelectViewModelBase,
         IRecipient<CharacterSwappedMessage>,
         IRecipient<PlayerSwappedMessage>,
         IRecipient<MemberPropertyChangedMessage>,
@@ -227,7 +228,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         }
     }
 
-    public class HunPickViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+    public class HunPickViewModel : CharaSelectViewModelBase
     {
         private readonly IFrontService _frontService;
 
@@ -255,7 +256,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickHun;
     }
 
-    public class MainSurGlobalBanRecordViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+    public class MainSurGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;
 
@@ -285,7 +286,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         protected override bool IsActionNameCorrect(GameAction? action) => false;
     }
 
-    public class MainHunGlobalBanRecordViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+    public class MainHunGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;
 
@@ -312,7 +313,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         protected override bool IsActionNameCorrect(GameAction? action) => false;
     }
 
-    public class AwaySurGlobalBanRecordViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+    public class AwaySurGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;
 
@@ -339,7 +340,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         protected override bool IsActionNameCorrect(GameAction? action) => false;
     }
 
-    public class AwayHunGlobalBanRecordViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+    public class AwayHunGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;
 

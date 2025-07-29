@@ -1,10 +1,9 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Abstractions.Services;
-using neo_bpsys_wpf.Abstractions.ViewModels;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Messages;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Views.Windows;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;

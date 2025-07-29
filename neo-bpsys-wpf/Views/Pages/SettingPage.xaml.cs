@@ -1,7 +1,6 @@
-﻿using neo_bpsys_wpf.Abstractions.Services;
-using neo_bpsys_wpf.Views.Windows;
-using System.Windows.Controls;
-using neo_bpsys_wpf.Enums;
+﻿using System.Windows.Controls;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
 
 namespace neo_bpsys_wpf.Views.Pages;
 

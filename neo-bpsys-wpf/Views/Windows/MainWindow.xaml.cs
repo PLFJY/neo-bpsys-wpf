@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
-using neo_bpsys_wpf.Abstractions.Services;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;

@@ -1,14 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
-using neo_bpsys_wpf.Abstractions.Services;
-using neo_bpsys_wpf.Helpers;
-using neo_bpsys_wpf.Messages;
-using neo_bpsys_wpf.Models;
+using neo_bpsys_wpf.Core.Models;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using neo_bpsys_wpf.Abstractions.ViewModels;
-using neo_bpsys_wpf.Enums;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Messages;
+using Game = neo_bpsys_wpf.Core.Models.Game;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 

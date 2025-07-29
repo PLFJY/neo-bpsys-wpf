@@ -1,10 +1,9 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Abstractions.Services;
-using neo_bpsys_wpf.Messages;
-using neo_bpsys_wpf.Models;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
-using neo_bpsys_wpf.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Messages;
+using Player = neo_bpsys_wpf.Core.Models.Player;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 

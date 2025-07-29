@@ -1,11 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Abstractions.Services;
-using neo_bpsys_wpf.Abstractions.ViewModels;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Messages;
-using neo_bpsys_wpf.Models;
-using Trait = neo_bpsys_wpf.Models.Trait;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Messages;
+using Game = neo_bpsys_wpf.Core.Models.Game;
+using Trait = neo_bpsys_wpf.Core.Models.Trait;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -19,21 +19,23 @@ public partial class TalentPageViewModel : ViewModelBase, IRecipient<NewGameMess
     }
 
     private readonly ISharedDataService _sharedDataService;
+    private readonly ISettingsHostService _settingsHostService;
 
-    public TalentPageViewModel(ISharedDataService sharedDataService)
+    public TalentPageViewModel(ISharedDataService sharedDataService, ISettingsHostService settingsHostService)
     {
         _sharedDataService = sharedDataService;
+        _settingsHostService = settingsHostService;
     }
 
-    private Enums.Trait? _selectedTrait;
+    private Core.Enums.Trait? _selectedTrait;
 
-    public Enums.Trait? SelectedTrait
+    public Core.Enums.Trait? SelectedTrait
     {
         get => _selectedTrait;
         set
         {
             SetProperty(ref _selectedTrait, value);
-            _sharedDataService.CurrentGame.HunPlayer.Trait = new Trait(_selectedTrait);
+            _sharedDataService.CurrentGame.HunPlayer.Trait = new Trait(_selectedTrait, _settingsHostService.Settings.CutSceneWindowSettings.IsBlackTalentAndTraitEnable);
         }
     }
 

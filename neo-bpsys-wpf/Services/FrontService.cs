@@ -1,21 +1,17 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
-using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.AttachedBehaviors;
 using neo_bpsys_wpf.Controls;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Views.Windows;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using neo_bpsys_wpf.Messages;
-using neo_bpsys_wpf.Models;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using Path = System.IO.Path;
 
 namespace neo_bpsys_wpf.Services;

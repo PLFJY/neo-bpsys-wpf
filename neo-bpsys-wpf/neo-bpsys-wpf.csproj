@@ -132,6 +132,8 @@
     <None Include="Resources\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Remove="Messages\**" />
+    <None Remove="Enums\**" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Assets\bp_noAuthor.png" />
@@ -159,5 +161,20 @@
     <None Update="Resources\队伍信息导入示例.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Messages\**" />
+    <Compile Remove="Enums\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="Messages\**" />
+    <EmbeddedResource Remove="Enums\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Remove="Messages\**" />
+    <Page Remove="Enums\**" />
   </ItemGroup>
 </Project>
