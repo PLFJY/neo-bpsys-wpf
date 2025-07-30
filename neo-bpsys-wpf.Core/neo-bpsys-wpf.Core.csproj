@@ -15,4 +15,8 @@
       <PackageReference Include="WPF-UI" Version="4.0.3" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Extensions\Events\" />
+    </ItemGroup>
+
 </Project>
