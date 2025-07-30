@@ -299,8 +299,9 @@ public partial class App : Application
         DispatcherUnhandledExceptionEventArgs e
     )
     {
-        var _logger = _host.Services.GetRequiredService<ILogger<App>>();
-        _logger.LogError("Application crashed unexpectedly");
+        var logger = _host.Services.GetRequiredService<ILogger<App>>();
+        logger.LogError("Application crashed unexpectedly");
+        _host.Services.GetRequiredService<SettingsHostService>().ResetConfig();
         // For more info see https://docs.microsoft.com/en-us/dotnet/api/system.windows.application.dispatcherunhandledexception?view=windowsdesktop-6.0
     }
 }
