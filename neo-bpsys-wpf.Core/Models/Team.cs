@@ -38,6 +38,7 @@ public partial class Team : ViewModelBase
                 _ => _name
             };
 #endif
+            return _name;
         }
         set => SetProperty(ref _name, value);
     }
