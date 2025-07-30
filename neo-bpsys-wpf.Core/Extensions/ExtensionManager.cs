@@ -14,27 +14,65 @@ public class ExtensionManager
     private static ExtensionManager _instance;
     private static readonly object Lock = new();
     
-    public IReadOnlySharedDataService SharedDataService;
+    public ISharedDataService SharedDataService;
 
     private ObservableCollection<IExtension> Extensions { get; } = new();
     
     private ExtensionManager(ISharedDataService sharedDataService)
     {
-        SharedDataService = new ReadOnlySharedDataService(sharedDataService);
+        SharedDataService = sharedDataService;
     }
     
+    /// <summary>
+    /// 获取一个 ExtensionManager 的单例实例，若不存在则创建一个新的实例。
+    /// </summary>
+    /// <param name="sharedDataService">当前Context中的 sharedDataService</param>
+    /// <returns></returns>
     public static ExtensionManager Instance(ISharedDataService sharedDataService)
     {
         lock (Lock) { 
             return _instance ??= new ExtensionManager(sharedDataService);
         }
     }
+    /// <summary>
+    /// 获取 ExtensionManager 的单例实例，若不存在则抛出异常。
+    /// 该方法应在 ExtensionManager 已经被初始化后调用。
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public static ExtensionManager Instance()
+    {
+        lock (Lock)
+        {
+            if (_instance == null)
+            {
+                throw new InvalidOperationException("ExtensionManager has not been initialized. Please call Instance(ISharedDataService) first.");
+            }
+            return _instance;
+        }
+    }
     
+    /// <summary>
+    /// 检查 ExtensionManager 是否已经被初始化。
+    /// </summary>
+    /// <returns></returns>
+    public static bool IsInitialized()
+    {
+        lock (Lock)
+        {
+            return _instance != null;
+        }
+    }
+    
+    /// <summary>
+    /// 若 sharedDataService 发生变化，可以通过此方法更新 ExtensionManager 中的 SharedDataService。
+    /// </summary>
+    /// <param name="sharedDataService"></param>
     public void SetSharedDataService(ISharedDataService sharedDataService)
     {
         lock (Lock)
         {
-            SharedDataService = new ReadOnlySharedDataService(sharedDataService);
+            SharedDataService = sharedDataService;
         }
     }
     
@@ -47,6 +85,7 @@ public class ExtensionManager
             if (!Extensions.Contains(extension))
             {
                 Extensions.Add(extension);
+                extension.Initialize(); // 初始化插件
             }
         }
     }
@@ -56,35 +95,33 @@ public class ExtensionManager
         
         lock (Lock)
         {
+            Extensions.Remove(extension);
+        }
+    }
+    
+    public void EnableExtension(IExtension extension)
+    {
+        ArgumentNullException.ThrowIfNull(extension);
+        
+        lock (Lock)
+        {
             if (Extensions.Contains(extension))
             {
-                Extensions.Remove(extension);
+                extension.OnEnable();
             }
         }
     }
-}
 
-/// <summary>
-/// 只读的共享数据服务实现，提供对共享数据的只读访问。
-/// 该类实现了 <see cref="IReadOnlySharedDataService"/> 接口，并将所有属性委托给传入的 <see cref="ISharedDataService"/> 实例。
-/// 这样可以确保外部代码只能读取数据，而不能修改数据，从而保护共享数据的完整性。
-/// </summary>
-/// <param name="sharedDataService"></param>
-public class ReadOnlySharedDataService(ISharedDataService sharedDataService) : IReadOnlySharedDataService
-{
-    // 实现 IReadOnlySharedDataService 的所有属性，返回 _sharedDataService 的对应值
-    public Team MainTeam => sharedDataService.MainTeam;
-    public Team AwayTeam => sharedDataService.AwayTeam;
-    public Game CurrentGame => sharedDataService.CurrentGame;
-    public IReadOnlyDictionary<string, Character> CharacterList => new ReadOnlyDictionary<string, Character>(sharedDataService.CharacterList);
-    public IReadOnlyDictionary<string, Character> SurCharaList => new ReadOnlyDictionary<string, Character>(sharedDataService.SurCharaList);
-    public IReadOnlyDictionary<string, Character> HunCharaList => new ReadOnlyDictionary<string, Character>(sharedDataService.HunCharaList);
-    public ReadOnlyObservableCollection<bool> CanCurrentSurBanned => new ReadOnlyObservableCollection<bool>(sharedDataService.CanCurrentSurBanned);
-    public ReadOnlyObservableCollection<bool> CanCurrentHunBanned => new ReadOnlyObservableCollection<bool>(sharedDataService.CanCurrentHunBanned);
-    public ReadOnlyObservableCollection<bool> CanGlobalSurBanned => new ReadOnlyObservableCollection<bool>(sharedDataService.CanGlobalSurBanned);
-    public ReadOnlyObservableCollection<bool> CanGlobalHunBanned => new ReadOnlyObservableCollection<bool>(sharedDataService.CanGlobalHunBanned);
-    public bool IsTraitVisible => sharedDataService.IsTraitVisible;
-    public string RemainingSeconds => sharedDataService.RemainingSeconds;
-    public bool IsBo3Mode => sharedDataService.IsBo3Mode;
-    public double GlobalScoreTotalMargin => sharedDataService.GlobalScoreTotalMargin;
+    public void DisableExtension(IExtension extension)
+    {
+        ArgumentNullException.ThrowIfNull(extension);
+
+        lock (Lock)
+        {
+            if (Extensions.Contains(extension))
+            {
+                extension.OnDisable();
+            }
+        }
+    }
 }
