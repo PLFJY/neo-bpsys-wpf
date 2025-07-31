@@ -13,6 +13,7 @@ using System.Windows;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Extensions;
 using neo_bpsys_wpf.Core.Helpers;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
@@ -227,6 +228,23 @@ public partial class App : Application
                );
         await _host.StartAsync();
         var _logger = _host.Services.GetRequiredService<ILogger<App>>();
+        
+        // Extensions Startup
+        string ExtensionsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "neo-bpsys-wpf", "Extensions");
+        if (!Directory.Exists(ExtensionsDirectory))
+        {
+            Directory.CreateDirectory(ExtensionsDirectory);
+        }
+
+        _logger.LogInformation("Initializing ExtensionManager...");
+        ExtensionManager.Instance().SetSharedDataService(Services.GetRequiredService<ISharedDataService>());
+        ExtensionManager.Instance().SetLogger(Services.GetRequiredService<ILogger<ExtensionManager>>());
+        _logger.LogInformation("ExtensionManager initialized. Initializing Extensions (At: {ExtensionsPath})...", ExtensionsDirectory);
+        ExtensionManager.Instance().LoadExtensions(ExtensionsDirectory);
+        _logger.LogInformation("{ExtensionCount} extensions has been initialized. ",
+            ExtensionManager.Instance().ReadOnlyExtensions.Count);
+        
         _logger.LogInformation("Application Started");
         _logger.LogInformation("""
 
