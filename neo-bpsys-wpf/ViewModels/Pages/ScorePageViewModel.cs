@@ -79,8 +79,8 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     [RelayCommand]
     private void Reset()
     {
-        _sharedDataService.MainTeam.Score = new Score();
-        _sharedDataService.AwayTeam.Score = new Score();
+        _sharedDataService.MainTeam.ResetScore(); 
+        _sharedDataService.AwayTeam.ResetScore();
     }
 
     [RelayCommand]

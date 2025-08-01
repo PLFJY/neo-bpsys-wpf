@@ -9,40 +9,66 @@ using neo_bpsys_wpf.Core.Helpers;
 
 namespace neo_bpsys_wpf.Core.Models;
 
-public partial class MapV2(Map mapName, string mapBorderNormal = "#2B483B", string mapBorderBanned = "#9C3E2F")
+public partial class MapV2(Map? mapName, string mapBorderNormal = "#2B483B", string mapBorderBanned = "#9C3E2F")
     : ViewModelBase, IRecipient<PropertyChangedMessage<bool>>
 {
-    public Map MapName { get; } = mapName;
+    /// <summary>
+    /// 地图名称
+    /// </summary>
+    public Map? MapName { get; } = mapName;
 
+    /// <summary>
+    /// 地图是否被选中
+    /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ImageSource))]
     [NotifyPropertyChangedFor(nameof(MapBorderBrush))]
     [NotifyPropertyChangedFor(nameof(IsBreathing))]
+    [NotifyPropertyChangedFor(nameof(CanBePicked))]
+    [NotifyPropertyChangedFor(nameof(CanBeBanned))]
     private bool _isPicked;
 
     private bool _isBanned;
 
+    /// <summary>
+    /// 地图是否被禁用
+    /// </summary>
     public bool IsBanned
     {
         get => _isBanned;
-        set => SetPropertyWithAction(ref _isBanned, value, (oldValue) =>
+        set => SetPropertyWithAction(ref _isBanned, value, oldValue =>
         {
-            if (oldValue && !value)
-            {
-                WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsBanned), oldValue,
-                    value));
-            }
-
             OnPropertyChanged(nameof(ImageSource));
             OnPropertyChanged(nameof(MapBorderBrush));
             OnPropertyChanged(nameof(IsBreathing));
+            OnPropertyChanged(nameof(CanBePicked));
+            OnPropertyChanged(nameof(CanBeBanned));
+            WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsBanned), oldValue,
+                value));
         });
     }
 
+    /// <summary>
+    /// 执行地图操作的队伍
+    /// </summary>
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsCampVisible))]
     private Team? _operationTeam;
 
+    /// <summary>
+    /// 地图是否可被选
+    /// </summary>
+    public bool CanBePicked => !IsBanned;
+
+    /// <summary>
+    /// 地图是否可被Ban
+    /// </summary>
+    public bool CanBeBanned => !IsPicked;
+
     private bool _isCampVisible;
+
+    /// <summary>
+    /// 阵营选择是否可见
+    /// </summary>
     [JsonIgnore]
     public bool IsCampVisible
     {
@@ -51,6 +77,10 @@ public partial class MapV2(Map mapName, string mapBorderNormal = "#2B483B", stri
     }
 
     private bool _isBreathing;
+
+    /// <summary>
+    /// 呼吸灯是否开启
+    /// </summary>
     [JsonIgnore]
     public bool IsBreathing
     {
@@ -59,8 +89,10 @@ public partial class MapV2(Map mapName, string mapBorderNormal = "#2B483B", stri
         set => SetProperty(ref _isBreathing, value);
     }
 
+
     private ImageSource? _imageSourceBanned;
     private ImageSource? _imageSourceNormal;
+
     [JsonIgnore]
     public ImageSource? ImageSource
     {
@@ -75,23 +107,17 @@ public partial class MapV2(Map mapName, string mapBorderNormal = "#2B483B", stri
 
     private readonly Brush _mapBorderNormalBrush = ColorHelper.HexToBrush(mapBorderNormal);
     private readonly Brush _mapBorderBannedBrush = ColorHelper.HexToBrush(mapBorderBanned);
-    [JsonIgnore]
-    public Brush MapBorderBrush => IsBanned ? _mapBorderBannedBrush : _mapBorderNormalBrush;
 
-
+    [JsonIgnore] public Brush MapBorderBrush => IsBanned ? _mapBorderBannedBrush : _mapBorderNormalBrush;
     public void Receive(PropertyChangedMessage<bool> message)
     {
         switch (message.PropertyName)
         {
-            case nameof(IsBreathing) when IsBreathing != message.NewValue:
-                IsBreathing = message.NewValue;
-                break;
-            case nameof(IsCampVisible) when IsCampVisible != message.NewValue:
-                IsCampVisible = message.NewValue;
-                break;
-            case nameof(IsBanned) when _isBreathing:
-                if (message.Sender != this && !message.NewValue && !_isBanned)
+            case nameof(IsBanned):
+                if (message is { OldValue: true, NewValue: false })
+                {
                     OnPropertyChanged(nameof(IsBreathing));
+                }
                 break;
         }
     }

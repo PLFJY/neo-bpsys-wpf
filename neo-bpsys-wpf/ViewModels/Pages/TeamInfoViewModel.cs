@@ -84,7 +84,6 @@ public partial class TeamInfoPageViewModel
                 teamInfo.Camp = CurrentTeam.Camp;
                 CurrentTeam.ImportTeamInfo(teamInfo);
                 TeamName = CurrentTeam.Name;
-                WeakReferenceMessenger.Default.Send(new MemberOnFieldChangedMessage(this));
                 OnPropertyChanged();
             }
             catch (JsonException ex)

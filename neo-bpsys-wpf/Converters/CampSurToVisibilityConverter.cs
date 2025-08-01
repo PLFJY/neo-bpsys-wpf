@@ -4,7 +4,9 @@ using System.Windows.Data;
 using neo_bpsys_wpf.Core.Enums;
 
 namespace neo_bpsys_wpf.Converters;
-
+/// <summary>
+/// 阵营为Sur时显示，用于MapV2Presenter
+/// </summary>
 public class CampSurToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

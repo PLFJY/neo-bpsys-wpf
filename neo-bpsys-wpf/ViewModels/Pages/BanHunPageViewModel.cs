@@ -8,7 +8,7 @@ using CharaSelectViewModelBase = neo_bpsys_wpf.Core.Abstractions.ViewModels.Char
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
-public partial class BanHunPageViewModel : ViewModelBase, IRecipient<SwapMessage>
+public partial class BanHunPageViewModel : ViewModelBase
 {
 #pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     public BanHunPageViewModel()
@@ -19,26 +19,21 @@ public partial class BanHunPageViewModel : ViewModelBase, IRecipient<SwapMessage
 
     private readonly ISharedDataService _sharedDataService;
 
-    public ObservableCollection<bool> CanCurrentHunBanned => _sharedDataService.CanCurrentHunBanned;
+    public ObservableCollection<bool> CanCurrentHunBanned => _sharedDataService.CanCurrentHunBannedList;
 
     public BanHunPageViewModel(ISharedDataService sharedDataService)
     {
         _sharedDataService = sharedDataService;
         BanHunCurrentViewModelList = [.. Enumerable.Range(0, 2).Select(i => new BanHunCurrentViewModel(_sharedDataService, i))];
         BanHunGlobalViewModelList = [.. Enumerable.Range(0, 3).Select(i => new BanHunGlobalViewModel(_sharedDataService, i))];
-    }
-
-    public void Receive(SwapMessage message)
-    {
-        if (message.IsSwapped)
+        sharedDataService.TeamSwapped += (_, _) =>
         {
-            for (int i = 0; i < _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunRecordArray.Length; i++)
+            for (var i = 0; i < _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunRecordArray.Length; i++)
             {
                 BanHunGlobalViewModelList[i].SelectedChara = _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunRecordArray[i];
                 BanHunGlobalViewModelList[i].SyncCharaAsync();
             }
-            OnPropertyChanged();
-        }
+        };
     }
 
     public ObservableCollection<BanHunCurrentViewModel> BanHunCurrentViewModelList { get; set; }
@@ -50,14 +45,15 @@ public partial class BanHunPageViewModel : ViewModelBase, IRecipient<SwapMessage
         public BanHunCurrentViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
         {
             CharaList = sharedDataService.HunCharaList;
-            IsEnabled = sharedDataService.CanCurrentHunBanned[index];
+            IsEnabled = sharedDataService.CanCurrentHunBannedList[index];
+            SharedDataService.BanCountChanged += OnBanCountChanged;
         }
 
-        public override void Receive(BanCountChangedMessage message)
+        private void OnBanCountChanged(object? sender, BanCountChangedEventArgs e)
         {
-            if (message.ChangedList == BanListName.CanCurrentHunBanned)
+            if (e.BanListName == BanListName.CanCurrentHunBanned)
             {
-                IsEnabled = SharedDataService.CanCurrentHunBanned[Index];
+                IsEnabled = SharedDataService.CanCurrentHunBannedList[Index];
             }
         }
 
@@ -70,7 +66,7 @@ public partial class BanHunPageViewModel : ViewModelBase, IRecipient<SwapMessage
 
         protected override void SyncIsEnabled()
         {
-            SharedDataService.CanCurrentHunBanned[Index] = IsEnabled;
+            SharedDataService.CanCurrentHunBannedList[Index] = IsEnabled;
         }
 
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanHun;
@@ -81,14 +77,15 @@ public partial class BanHunPageViewModel : ViewModelBase, IRecipient<SwapMessage
         public BanHunGlobalViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
         {
             CharaList = sharedDataService.HunCharaList;
-            IsEnabled = sharedDataService.CanGlobalHunBanned[index];
+            IsEnabled = sharedDataService.CanGlobalHunBannedList[index];
+            SharedDataService.BanCountChanged += OnBanCountChanged;
         }
-
-        public override void Receive(BanCountChangedMessage message)
+        
+        private void OnBanCountChanged(object? sender, BanCountChangedEventArgs e)
         {
-            if (message.ChangedList == BanListName.CanGlobalHunBanned)
+            if (e.BanListName == BanListName.CanGlobalHunBanned)
             {
-                IsEnabled = SharedDataService.CanGlobalHunBanned[Index];
+                IsEnabled = SharedDataService.CanGlobalHunBannedList[Index];
             }
         }
 
@@ -101,7 +98,7 @@ public partial class BanHunPageViewModel : ViewModelBase, IRecipient<SwapMessage
 
         protected override void SyncIsEnabled()
         {
-            SharedDataService.CanGlobalHunBanned[Index] = IsEnabled;
+            SharedDataService.CanGlobalHunBannedList[Index] = IsEnabled;
         }
 
         protected override bool IsActionNameCorrect(GameAction? action) => false;

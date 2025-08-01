@@ -168,7 +168,7 @@ public class GameGuidanceService(
         if (!IsGuidanceStarted)
         {
             _infoBarService.ShowWarningInfoBar("请先开始对局");
-            returnValue += "无";
+            returnValue += "无禁用";
             return returnValue;
         }
 
@@ -187,7 +187,7 @@ public class GameGuidanceService(
             await _messageBoxService.ShowErrorAsync("对局信息状态异常");
         }
 
-        returnValue += "无";
+        returnValue += "无禁用";
 
         return returnValue;
     }
@@ -198,7 +198,7 @@ public class GameGuidanceService(
         if (!IsGuidanceStarted)
         {
             _infoBarService.ShowWarningInfoBar("请先开始对局");
-            returnValue += "无";
+            returnValue += "无禁用";
             return returnValue;
         }
 
@@ -216,7 +216,7 @@ public class GameGuidanceService(
             await _messageBoxService.ShowErrorAsync("对局信息状态异常");
         }
 
-        returnValue += "无";
+        returnValue += "无禁用";
 
         return returnValue;
     }

@@ -116,4 +116,25 @@ public static class ImageHelper
         );
         return !File.Exists(fileName) ? null : new BitmapImage(new Uri(fileName));
     }
+
+    public static ImageSource? GetImageFromUriStr(string? uriStr)
+    {
+        if (string.IsNullOrEmpty(uriStr)) return null;
+        ImageSource? img = null;
+        try
+        {
+            img = new BitmapImage(new Uri(uriStr));
+        }
+        catch
+        {
+            // ignored
+        }
+
+        return img;
+    }
+
+    public static ImageSource? GetUiImageFromSetting(string? uriStr, string defaultKey)
+    {
+        return string.IsNullOrEmpty(uriStr) ? GetUiImageSource(defaultKey) : GetImageFromUriStr(uriStr);
+    }
 }

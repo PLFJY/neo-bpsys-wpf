@@ -243,11 +243,6 @@ public partial class SettingPageViewModel : ViewModelBase
         }
 
         setAction.Invoke(destFileName);
-        foreach (var windowType in windowTypes)
-        {
-            WeakReferenceMessenger.Default.Send(new SettingsChangedMessage(windowType));
-        }
-
         _settingsHostService.SaveConfig();
     }
 
@@ -404,7 +399,7 @@ public partial class SettingPageViewModel : ViewModelBase
             type,
             new TextSettingsEditControl(_systemFonts,
                 settings,
-                () => WeakReferenceMessenger.Default.Send(new SettingsChangedMessage(type)),
+                () => { },
                 () => _settingsHostService.SaveConfig(),
                 () => _textSettingsNavigationService.Close(type)));
     }
@@ -414,7 +409,6 @@ public partial class SettingPageViewModel : ViewModelBase
     {
         _settingsHostService.Settings.BpWindowSettings.PickingBorderColor =
             BpWindowPickingColorSettings.ToArgbHexString();
-        WeakReferenceMessenger.Default.Send(new SettingsChangedMessage(FrontWindowType.BpWindow));
         _settingsHostService.SaveConfig();
     }
 
@@ -423,7 +417,6 @@ public partial class SettingPageViewModel : ViewModelBase
     {
         _settingsHostService.Settings.WidgetsWindowSettings.MapBpV2_PickingBorderColor =
             MapBpV2PickingColorSettings.ToArgbHexString();
-        WeakReferenceMessenger.Default.Send(new SettingsChangedMessage(FrontWindowType.WidgetsWindow));
         _settingsHostService.SaveConfig();
     }
 

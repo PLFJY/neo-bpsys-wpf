@@ -4,7 +4,11 @@ using System.Windows.Data;
 namespace neo_bpsys_wpf.Converters;
 
 /// <summary>
-/// 将Index转换为CharacterChanger的Button Content，对应Button的Nmae的数字-1
+/// 将Index转换为CharacterChanger的Button Content<br/>
+/// 如果Index是0那么对应的就是1号位角色，那么剩下三个按钮则是2,3,4<br/>
+/// 如果Index是1那么对应的就是2号位角色，那么剩下三个按钮则是1,3,4<br/>
+/// 如果Index是2那么对应的就是3号位角色，那么剩下三个按钮则是1,2,4<br/>
+/// 如果Index是3那么对应的就是4号位角色，那么剩下三个按钮则是1,2,3
 /// </summary>
 public class IndexToButtonContentConverter : IValueConverter
 {
@@ -12,63 +16,58 @@ public class IndexToButtonContentConverter : IValueConverter
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        int controlIndex = (int)value;
-        var buttonName = GetButtonName(controlIndex);
-        if (buttonName == null)
-            return Binding.DoNothing;
-        return buttonName;
+        var controlIndex = (int)value;
+        var buttonContent = GetButtonContent(controlIndex);
+        return buttonContent ?? Binding.DoNothing;
     }
 
-    private int? GetButtonName(int controlIndex)
+    /// <summary>
+    /// 获取按钮名称
+    /// </summary>
+    /// <param name="controlIndex">控件索引</param>
+    /// <returns>按钮名称</returns>
+    private int? GetButtonContent(int controlIndex)
     {
         switch (controlIndex)
         {
             case 0:
-                if (ButtonIndex == 1)
-                    return 2;
-                else if (ButtonIndex == 2)
-                    return 3;
-                else if (ButtonIndex == 3)
-                    return 4;
-                else
-                    return null;
+                return ButtonIndex switch
+                {
+                    1 => 2,
+                    2 => 3,
+                    3 => 4,
+                    _ => null
+                };
             case 1:
-                if (ButtonIndex == 1)
-                    return 1;
-                else if (ButtonIndex == 2)
-                    return 3;
-                else if (ButtonIndex == 3)
-                    return 4;
-                else
-                    return null;
+                return ButtonIndex switch
+                {
+                    1 => 1,
+                    2 => 3,
+                    3 => 4,
+                    _ => null
+                };
             case 2:
-                if (ButtonIndex == 1)
-                    return 1;
-                else if (ButtonIndex == 2)
-                    return 2;
-                else if (ButtonIndex == 3)
-                    return 4;
-                else
-                    return null;
+                return ButtonIndex switch
+                {
+                    1 => 1,
+                    2 => 2,
+                    3 => 4,
+                    _ => null
+                };
             case 3:
-                if (ButtonIndex == 1)
-                    return 1;
-                else if (ButtonIndex == 2)
-                    return 2;
-                else if (ButtonIndex == 3)
-                    return 3;
-                else
-                    return null;
+                return ButtonIndex switch
+                {
+                    1 => 1,
+                    2 => 2,
+                    3 => 3,
+                    _ => null
+                };
             default:
                 return null;
         }
     }
 
-    public object ConvertBack(
-        object value,
-        Type targetType,
-        object parameter,
-        CultureInfo culture
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture
     )
     {
         throw new NotImplementedException();

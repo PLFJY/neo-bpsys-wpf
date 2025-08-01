@@ -4,12 +4,16 @@ using neo_bpsys_wpf.Core.Enums;
 
 namespace neo_bpsys_wpf.Converters;
 
+/// <summary>
+/// 对局进度到文字转换器<br/>
+/// 比如：<see cref="GameProgress.Game1FirstHalf"/> 会变为 GAME1 FIRST HALF<br/>
+/// 若传入了其它参数比如endl表示输出换行版则是 GAME1\nFIRST HALF，同时利用Bo3Mode（MultiBinding的第二个Value）来判断是输出
+/// </summary>
 public class GameProgressToStringConverter : IMultiValueConverter
 {
-    public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+    public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (values[0] is not GameProgress gameProgress) return Binding.DoNothing;
-        if (values[1] is not bool isBo3Mode) return Binding.DoNothing;
+        if (values[0] is not GameProgress gameProgress || values[1] is not bool isBo3Mode) return Binding.DoNothing;
         string? para = null;
         if (parameter != null)
             para = parameter.ToString();

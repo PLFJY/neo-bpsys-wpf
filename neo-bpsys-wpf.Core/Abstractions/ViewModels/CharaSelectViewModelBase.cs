@@ -16,15 +16,13 @@ namespace neo_bpsys_wpf.Core.Abstractions.ViewModels;
 /// 2.设置<see cref="IsEnabled"/><br/>
 /// 3.实现<see cref="SyncCharaAsync"/>
 /// </summary>
-public abstract partial class CharaSelectViewModelBase(ISharedDataService sharedDataService, int index = 0) :
+public abstract partial class CharaSelectViewModelBase :
     ViewModelBase,
-    IRecipient<NewGameMessage>,
-    IRecipient<BanCountChangedMessage>,
     IRecipient<HighlightMessage>
 {
-    protected readonly ISharedDataService SharedDataService = sharedDataService;
+    protected readonly ISharedDataService SharedDataService;
 
-    public int Index { get; } = index;
+    public int Index { get; }
 
     [ObservableProperty] private Character? _selectedChara;
 
@@ -47,6 +45,21 @@ public abstract partial class CharaSelectViewModelBase(ISharedDataService shared
 
     [ObservableProperty] private bool _isCharaChangerHighlighted;
 
+    /// <summary>
+    /// 用于选择角色的角色选择器行为的基类
+    /// 需要派生类所做的是: <br/>
+    /// 1.设置<see cref="CharaList"/><br/>
+    /// 2.设置<see cref="IsEnabled"/><br/>
+    /// 3.实现<see cref="SyncCharaAsync"/>
+    /// </summary>
+    protected CharaSelectViewModelBase(ISharedDataService sharedDataService, int index = 0)
+    {
+        SharedDataService = sharedDataService;
+        Index = index;
+        
+        SharedDataService.CurrentGameChanged += OnCurrentGameChanged;
+    }
+
     public Dictionary<string, Character> CharaList { get; set; } = [];
 
     public abstract Task SyncCharaAsync();
@@ -56,15 +69,10 @@ public abstract partial class CharaSelectViewModelBase(ISharedDataService shared
     [RelayCommand]
     private async Task ConfirmAsync() => await SyncCharaAsync();
 
-    public virtual void Receive(NewGameMessage message)
+    private void OnCurrentGameChanged(object? sender, EventArgs args)
     {
-        if (!message.IsNewGameCreated) return;
         SelectedChara = null;
         PreviewImage = null;
-    }
-
-    public virtual void Receive(BanCountChangedMessage message)
-    {
     }
 
     public void Receive(HighlightMessage message)

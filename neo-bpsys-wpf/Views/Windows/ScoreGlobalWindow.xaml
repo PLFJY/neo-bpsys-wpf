@@ -18,96 +18,97 @@
     Style="{StaticResource FrontWindow}"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
-    <Grid Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}" Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
-        <Grid.Resources>
+    <Canvas
+        Name="BaseCanvas"
+        Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}"
+        Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
+        <Canvas.Background>
+            <ImageBrush d:ImageSource="/Assets/scoreGlobal.png" ImageSource="{Binding Settings.GlobalScoreBgImage}" />
+        </Canvas.Background>
+        <Canvas.Resources>
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="White" />
+            </Style>
             <Style x:Key="ScoreGlobal_TeamName" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="{Binding Settings.TextSettings.ScoreGlobal_TeamName.FontSize}" />
                 <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.ScoreGlobal_TeamName.FontFamily}" />
                 <Setter Property="Foreground" Value="{Binding Settings.TextSettings.ScoreGlobal_TeamName.Foreground}" />
                 <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.ScoreGlobal_TeamName.FontWeight}" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
             <Style x:Key="ScoreGlobal_Total" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="{Binding Settings.TextSettings.ScoreGlobal_Total.FontSize}" />
                 <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.ScoreGlobal_Total.FontFamily}" />
                 <Setter Property="Foreground" Value="{Binding Settings.TextSettings.ScoreGlobal_Total.Foreground}" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.ScoreGlobal_Total.FontWeight}" />
             </Style>
-        </Grid.Resources>
-        <Border BorderBrush="Black" BorderThickness="1">
-            <Canvas Name="BaseCanvas">
-                <Canvas.Background>
-                    <ImageBrush d:ImageSource="/Assets/scoreGlobal.png" ImageSource="{Binding ScoreGlobalImage}" />
-                </Canvas.Background>
-                <Canvas.Resources>
-                    <Style TargetType="TextBlock">
-                        <Setter Property="Foreground" Value="White" />
-                    </Style>
-                </Canvas.Resources>
-                <TextBlock
-                    Name="MainTeamName"
-                    Canvas.Left="10"
-                    Canvas.Top="96"
-                    Width="134"
-                    ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                    d:FontFamily="{StaticResource POP1W5}"
-                    d:FontSize="18"
-                    d:Foreground="White"
-                    d:Text="主队队伍名称"
-                    Style="{StaticResource ScoreGlobal_TeamName}"
-                    Text="{Binding MainTeam.Name}"
-                    TextAlignment="Center"
-                    TextWrapping="WrapWithOverflow" />
-                <TextBlock
-                    Name="AwayTeamName"
-                    Canvas.Left="10"
-                    Canvas.Top="153"
-                    Width="134"
-                    ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                    d:FontFamily="{StaticResource POP1W5}"
-                    d:FontSize="18"
-                    d:Foreground="White"
-                    d:Text="客队队伍名称"
-                    Style="{StaticResource ScoreGlobal_TeamName}"
-                    Text="{Binding AwayTeam.Name}"
-                    TextAlignment="Center"
-                    TextWrapping="WrapWithOverflow" />
-                <Border
-                    Name="MainScoreTotal"
-                    Canvas.Left="1345"
-                    Canvas.Top="81"
-                    Width="87"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
-                    ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
-                    <TextBlock
-                        HorizontalAlignment="Center"
-                        d:FontFamily="{StaticResource POP1W5}"
-                        d:FontSize="48"
-                        d:FontWeight="Bold"
-                        d:Foreground="White"
-                        d:Text="0"
-                        Style="{StaticResource ScoreGlobal_Total}"
-                        Text="{Binding TotalMainMinorPoint}" />
-                </Border>
-                <Border
-                    Name="AwayScoreTotal"
-                    Canvas.Left="1345"
-                    Canvas.Top="140"
-                    Width="87"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
-                    ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
-                    <TextBlock
-                        HorizontalAlignment="Center"
-                        d:FontFamily="{StaticResource POP1W5}"
-                        d:FontSize="48"
-                        d:FontWeight="Bold"
-                        d:Foreground="White"
-                        d:Text="0"
-                        Style="{StaticResource ScoreGlobal_Total}"
-                        Text="{Binding TotalAwayMinorPoint}" />
-                </Border>
-            </Canvas>
+        </Canvas.Resources>
+        <TextBlock
+            Name="MainTeamName"
+            Canvas.Left="10"
+            Canvas.Top="96"
+            Width="134"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:FontFamily="{StaticResource POP1W5}"
+            d:FontSize="18"
+            d:Foreground="White"
+            d:Text="主队队伍名称"
+            Style="{StaticResource ScoreGlobal_TeamName}"
+            Text="{Binding MainTeam.Name}"
+            TextAlignment="Center"
+            TextWrapping="WrapWithOverflow" />
+        <TextBlock
+            Name="AwayTeamName"
+            Canvas.Left="10"
+            Canvas.Top="153"
+            Width="134"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
+            d:FontFamily="{StaticResource POP1W5}"
+            d:FontSize="18"
+            d:Foreground="White"
+            d:Text="客队队伍名称"
+            Style="{StaticResource ScoreGlobal_TeamName}"
+            Text="{Binding AwayTeam.Name}"
+            TextAlignment="Center"
+            TextWrapping="WrapWithOverflow" />
+        <Border
+            Name="MainScoreTotal"
+            Canvas.Left="1345"
+            Canvas.Top="81"
+            Width="87"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+            <TextBlock
+                HorizontalAlignment="Center"
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="48"
+                d:FontWeight="Bold"
+                d:Foreground="White"
+                d:Text="0"
+                Style="{StaticResource ScoreGlobal_Total}"
+                Text="{Binding TotalMainMinorPoint}" />
         </Border>
-    </Grid>
+        <Border
+            Name="AwayScoreTotal"
+            Canvas.Left="1345"
+            Canvas.Top="140"
+            Width="87"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
+            <TextBlock
+                HorizontalAlignment="Center"
+                d:FontFamily="{StaticResource POP1W5}"
+                d:FontSize="48"
+                d:FontWeight="Bold"
+                d:Foreground="White"
+                d:Text="0"
+                Style="{StaticResource ScoreGlobal_Total}"
+                Text="{Binding TotalAwayMinorPoint}" />
+        </Border>
+    </Canvas>
 </Window>
