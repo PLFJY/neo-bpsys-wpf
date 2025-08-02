@@ -46,6 +46,8 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
 
         BannedMap = [.. sharedDataService.CurrentGame.MapV2Dictionary.Values.Select(mapV2 => new BanMapInfo(mapV2))];
         sharedDataService.CurrentGameChanged += (_, _) => OnPropertyChanged(nameof(CurrentGame));
+        sharedDataService.IsMapV2BreathingChanged += (_, _) => IsBreathing = sharedDataService.IsMapV2Breathing;
+        sharedDataService.IsMapV2CampVisibleChanged += (_, _) => IsBreathing = sharedDataService.IsMapV2CampVisible;
     }
 
     public Game CurrentGame => _sharedDataService.CurrentGame;
@@ -56,7 +58,7 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     {
         get => _breathing;
         set => SetPropertyWithAction(ref _breathing, value,
-            (_) => { _sharedDataService.CurrentGame.IsMapV2Breathing = value; });
+            (_) => { _sharedDataService.IsMapV2Breathing = value; });
     }
 
     private bool _isCampVisible;
@@ -65,7 +67,7 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     {
         get => _isCampVisible;
         set => SetPropertyWithAction(ref _isCampVisible, value,
-            (_) => { _sharedDataService.CurrentGame.IsMapV2CampVisible = value; });
+            (_) => { _sharedDataService.IsMapV2CampVisible = value; });
     }
 
     public int PickedMapIndex =>
@@ -148,7 +150,7 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
                 IsBreathing = true;
                 break;
             default:
-                if (!IsBreathing) IsBreathing = false;
+                if (IsBreathing) IsBreathing = false;
                 break;
         }
     }

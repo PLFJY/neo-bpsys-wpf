@@ -148,9 +148,9 @@ public partial class Game : ViewModelBase
         HunPlayer.Member = HunTeam.HunMemberOnField ?? new Member(Camp.Hun);
     }
 
+    private void OnMemberOnFieldChanged(object? sender, EventArgs args) => LoadMembers();
     #endregion
 
-    private void OnMemberOnFieldChanged(object? sender, EventArgs args) => LoadMembers();
 
     #region 地图BP
 
@@ -179,13 +179,13 @@ public partial class Game : ViewModelBase
     }
 
     /// <summary>
-    /// 残留的屎山，后续利用Converter实现，这里不应该出现，因为是Windows特征代码
+    /// 选择的地图的图片
     /// </summary>
     [ObservableProperty] [property: JsonIgnore]
     private ImageSource? _pickedMapImage;
 
     /// <summary>
-    /// 残留的屎山，后续利用Converter实现，这里不应该出现，因为是Windows特征代码
+    /// Ban掉的地图的图片
     /// </summary>
     [ObservableProperty] [property: JsonIgnore]
     private ImageSource? _bannedMapImage;
@@ -226,40 +226,6 @@ public partial class Game : ViewModelBase
         }
     }
     
-    private bool _isMapV2Breathing;
-
-    /// <summary>
-    /// 地图V2呼吸灯是否开启
-    /// </summary>
-    public bool IsMapV2Breathing
-    {
-        get => _isMapV2Breathing;
-        set => SetPropertyWithAction(ref _isMapV2Breathing, value, _ =>
-        {
-            foreach (var mapValue in MapV2Dictionary.Values)
-            {
-                mapValue.IsBreathing = value;
-            }
-        });
-    }
-
-    private bool _isMapV2CampVisible;
-
-    /// <summary>
-    /// 地图V2阵营是否可见
-    /// </summary>
-    public bool IsMapV2CampVisible
-    {
-        get => _isMapV2CampVisible;
-        set => SetPropertyWithAction(ref _isMapV2CampVisible, value, _ =>
-        {
-            foreach (var mapValue in MapV2Dictionary.Values)
-            {
-                mapValue.IsCampVisible = value;
-            }
-        });
-    }
-
     /// <summary>
     /// 重置地图BP
     /// </summary>

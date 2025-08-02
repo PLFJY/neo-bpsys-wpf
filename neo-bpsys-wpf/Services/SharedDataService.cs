@@ -138,7 +138,7 @@ public partial class SharedDataService : ISharedDataService
         }
     }
 
-    private void OnTeamSwapped(object? sender, EventArgs args) => TeamSwapped?.Invoke(this,EventArgs.Empty);
+    private void OnTeamSwapped(object? sender, EventArgs args) => TeamSwapped?.Invoke(this, EventArgs.Empty);
 
     #region 角色字典
 
@@ -227,7 +227,7 @@ public partial class SharedDataService : ISharedDataService
     }
 
     #endregion
-        
+
     #region 倒计时
 
     private readonly DispatcherTimer _timer = new();
@@ -338,6 +338,46 @@ public partial class SharedDataService : ISharedDataService
         }
     }
 
+    private bool _isMapV2Breathing;
+
+    /// <summary>
+    /// 地图V2呼吸灯是否开启
+    /// </summary>
+    public bool IsMapV2Breathing
+    {
+        get => _isMapV2Breathing;
+        set
+        {
+            if (_isMapV2Breathing == value) return;
+            _isMapV2Breathing = value;
+            IsMapV2BreathingChanged?.Invoke(this, EventArgs.Empty);
+            foreach (var mapValue in CurrentGame.MapV2Dictionary.Values)
+            {
+                mapValue.IsBreathing = value;
+            }
+        }
+    }
+
+    private bool _isMapV2CampVisible;
+
+    /// <summary>
+    /// 地图V2阵营是否可见
+    /// </summary>
+    public bool IsMapV2CampVisible
+    {
+        get => _isMapV2CampVisible;
+        set
+        {
+            if(_isMapV2CampVisible == value) return;
+            _isMapV2CampVisible = value;
+            IsMapV2CampVisibleChanged?.Invoke(this, EventArgs.Empty);
+            foreach (var mapValue in CurrentGame.MapV2Dictionary.Values)
+            {
+                mapValue.IsCampVisible = value;
+            }
+        }
+    }
+
     private class CharacterMini
     {
         public Camp Camp { get; set; }
@@ -370,16 +410,26 @@ public partial class SharedDataService : ISharedDataService
     /// BO3模式改变事件
     /// </summary>
     public event EventHandler? IsBo3ModeChanged;
-        
+
     /// <summary>
     /// 倒计时剩余秒数改变事件
     /// </summary>
     public event EventHandler? CountDownValueChanged;
-    
+
     /// <summary>
     /// 队伍换边事件
     /// </summary>
     public event EventHandler? TeamSwapped;
+
+    /// <summary>
+    /// 地图V2呼吸灯改变事件
+    /// </summary>
+    public event EventHandler? IsMapV2BreathingChanged;
+
+    /// <summary>
+    /// 地图V2阵营是否可见改变事件
+    /// </summary>
+    public event EventHandler? IsMapV2CampVisibleChanged;
 
     #endregion
 }

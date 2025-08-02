@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
@@ -26,6 +27,11 @@ public partial class TalentPageViewModel : ViewModelBase, IRecipient<HighlightMe
         _sharedDataService = sharedDataService;
         _settingsHostService = settingsHostService;
         sharedDataService.IsTraitVisibleChanged += (_, _) => IsTraitVisible = sharedDataService.IsTraitVisible;
+        sharedDataService.CurrentGameChanged += (_, _) =>
+        {
+            SelectedTrait = null;
+            OnPropertyChanged(nameof(CurrentGame));
+        };
     }
 
     private Core.Enums.Trait? _selectedTrait;

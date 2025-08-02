@@ -81,6 +81,16 @@ public interface ISharedDataService
     double GlobalScoreTotalMargin { get; set; }
 
     /// <summary>
+    /// 地图V2呼吸灯是否开启
+    /// </summary>
+    bool IsMapV2Breathing { get; set; }
+
+    /// <summary>
+    /// 地图V2阵营是否可见
+    /// </summary>
+    bool IsMapV2CampVisible { get; set; }
+
+    /// <summary>
     /// 设置Ban位数量
     /// </summary>
     /// <param name="listName">Ban位列表名称</param>
@@ -132,4 +142,14 @@ public interface ISharedDataService
     /// 队伍换边事件
     /// </summary>
     event EventHandler? TeamSwapped;
+
+    /// <summary>
+    /// 地图V2呼吸灯改变事件
+    /// </summary>
+    event EventHandler? IsMapV2BreathingChanged;
+
+    /// <summary>
+    /// 地图V2阵营是否可见改变事件
+    /// </summary>
+    event EventHandler? IsMapV2CampVisibleChanged;
 }

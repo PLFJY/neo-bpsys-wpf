@@ -24,11 +24,11 @@
     <StackPanel>
         <Border Style="{StaticResource Card}">
             <StackPanel Orientation="Horizontal">
-                <ui:ToggleSwitch Content="待选框呼吸灯开关" IsChecked="{Binding CurrentGame.IsMapV2Breathing}" />
+                <ui:ToggleSwitch Content="待选框呼吸灯开关" IsChecked="{Binding IsBreathing}" />
                 <ui:ToggleSwitch
                     Margin="10,0,0,0"
                     Content="阵营选择结果展示开关"
-                    IsChecked="{Binding CurrentGame.IsMapV2CampVisible}" />
+                    IsChecked="{Binding IsCampVisible}" />
                 <ui:Button
                     Margin="10,0,0,0"
                     Command="{Binding ResetMapBpCommand}"

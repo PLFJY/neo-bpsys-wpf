@@ -13,7 +13,7 @@ public abstract partial class ViewModelBase : ObservableRecipient
         [CallerMemberName] string? propertyName = null)
     {
         var oldValue = field;
-        if (!SetProperty(ref field, value))
+        if (!SetProperty(ref field, value, propertyName))
             return false;
 
         onChanged?.Invoke(oldValue);
