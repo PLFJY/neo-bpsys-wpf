@@ -23,8 +23,4 @@
       </Page>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Extensions\Events\" />
-    </ItemGroup>
-
 </Project>
