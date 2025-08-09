@@ -17,9 +17,12 @@
     mc:Ignorable="d">
 
     
-    <WrapPanel Orientation="Horizontal">
+    <WrapPanel Orientation="Vertical">
         <Border Style="{StaticResource Card}">
-            <TextBlock Text="前面的区域以后再来探索吧" />
+            <StackPanel>
+                <TextBlock Text="{Binding LoadedExtensionsCount, Mode=OneWay}" />
+                <TextBlock Text="{Binding EnabledExtensionsCount, Mode=OneWay}" />
+            </StackPanel>
         </Border>
         <ItemsControl ItemsSource="{Binding ExtensionUIs}">
             <ItemsControl.ItemsPanel>
