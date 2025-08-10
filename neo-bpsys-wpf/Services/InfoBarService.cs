@@ -13,9 +13,10 @@ public class InfoBarService : IInfoBarService
     /// 设置提示框控件
     /// </summary>
     /// <param name="infoBar"></param>
-    public void SetInfoBarControl(InfoBar infoBar)
+    public void SetInfoBarControl(object infoBar)
     {
-        _infoBar = infoBar;
+        if (infoBar is not InfoBar ctrl) return;
+        _infoBar = ctrl;
     }
     /// <summary>
     /// 显示错误提示框

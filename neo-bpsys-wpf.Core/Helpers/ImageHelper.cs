@@ -6,6 +6,9 @@ using neo_bpsys_wpf.Core.Enums;
 
 namespace neo_bpsys_wpf.Core.Helpers;
 
+/// <summary>
+/// 图片工具类
+/// </summary>
 public static class ImageHelper
 {
 
@@ -103,7 +106,7 @@ public static class ImageHelper
     /// <param name="trait">Trait</param>
     /// <param name="isBlackTalentAndTraitEnable">Is Black Ver Enable</param>
     /// <returns></returns>
-    public static ImageSource? GetTraitImageSource(Trait? trait, bool isBlackTalentAndTraitEnable)
+    public static ImageSource? GetTraitImageSource(TraitType? trait, bool isBlackTalentAndTraitEnable)
     {
         if (trait == null) return null;
         
@@ -115,5 +118,26 @@ public static class ImageHelper
             trait + ".png"
         );
         return !File.Exists(fileName) ? null : new BitmapImage(new Uri(fileName));
+    }
+
+    public static ImageSource? GetImageFromUriStr(string? uriStr)
+    {
+        if (string.IsNullOrEmpty(uriStr)) return null;
+        ImageSource? img = null;
+        try
+        {
+            img = new BitmapImage(new Uri(uriStr));
+        }
+        catch
+        {
+            // ignored
+        }
+
+        return img;
+    }
+
+    public static ImageSource? GetUiImageFromSetting(string? uriStr, string defaultKey)
+    {
+        return string.IsNullOrEmpty(uriStr) ? GetUiImageSource(defaultKey) : GetImageFromUriStr(uriStr);
     }
 }

@@ -2,9 +2,10 @@ using System.Text.Json.Serialization;
 
 namespace neo_bpsys_wpf.Core.Enums;
 
+/// <summary>
+/// 游戏进度枚举，Bo3加赛和Bo4共用枚举值
+/// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
-[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1069:��Ӧ����ö��ֵ", Justification = "<����>")] //BO3������BO4�ǹ��ÿؼ����ֵ�ֵ��
-[System.Diagnostics.CodeAnalysis.SuppressMessage("CodeQuality", "IDE0079:��ɾ������Ҫ�ĺ���", Justification = "<����>")]
 public enum GameProgress
 {
     Free = -1,

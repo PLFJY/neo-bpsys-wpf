@@ -15,6 +15,10 @@ namespace neo_bpsys_wpf.Core.Models;
 /// </summary>
 public partial class Member : ViewModelBase
 {
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="camp"></param>
     public Member(Camp camp)
     {
         Camp = camp;
@@ -22,19 +26,25 @@ public partial class Member : ViewModelBase
 
     private string _name = Empty;
 
+    /// <summary>
+    /// 选手名称
+    /// </summary>
     public string Name
     {
         get => _name;
-        set =>
-            SetPropertyWithAction(ref _name, value,
-                _ => { WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this)); });
+        set => SetProperty(ref _name, value);
     }
 
-
+    /// <summary>
+    /// 选手所属阵营
+    /// </summary>
     [ObservableProperty] private Camp _camp;
 
     private ImageSource? _image;
 
+    /// <summary>
+    /// 选手定妆照
+    /// </summary>
     [JsonIgnore]
     public ImageSource? Image
     {
@@ -47,24 +57,28 @@ public partial class Member : ViewModelBase
         set => SetPropertyWithAction(ref _image, value, _ =>
         {
             ImageUri = null;
-            WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this));
             OnPropertyChanged(nameof(IsImageValid));
         });
     }
-
+    
+    /// <summary>
+    /// 选手定妆照的图片 Uri
+    /// </summary>
     public string? ImageUri { get; set; }
-
-    private bool _isOnField;
-
-    public bool IsOnField
-    {
-        get => _isOnField;
-        set => SetPropertyWithAction(ref _isOnField, value,
-            _ => { WeakReferenceMessenger.Default.Send(new MemberPropertyChangedMessage(this)); });
-    }
-
+    
+    /// <summary>
+    /// 选手是否上场
+    /// </summary>
+    [ObservableProperty] private bool _isOnField;
+    
+    /// <summary>
+    /// 选手是否可上场
+    /// </summary>
     [ObservableProperty] [property: JsonIgnore]
     private bool _canOnFieldChange = true;
-
+    
+    /// <summary>
+    /// 选手定妆照是否有效
+    /// </summary>
     public bool IsImageValid => Image != null;
 }

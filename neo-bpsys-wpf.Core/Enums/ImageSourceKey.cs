@@ -1,5 +1,8 @@
 ﻿namespace neo_bpsys_wpf.Core.Enums;
 
+/// <summary>
+/// 图片源
+/// </summary>
 public enum ImageSourceKey
 {
     bpui,

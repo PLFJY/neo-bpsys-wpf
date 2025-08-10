@@ -7,7 +7,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Windows;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Abstractions.Services.Updater;
+using neo_bpsys_wpf.Core.Models;
 
 namespace neo_bpsys_wpf.Services;
 

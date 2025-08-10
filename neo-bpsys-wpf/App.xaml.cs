@@ -26,7 +26,7 @@ namespace neo_bpsys_wpf;
 public partial class App : Application
 {
     private static readonly IHost _host = Host.CreateDefaultBuilder()
-        .UseSerilog((hostingContext, loggerConfiguration) =>
+        .UseSerilog((_, loggerConfiguration) =>
         {
             var loggingDir = Path.Combine(Environment.GetFolderPath
                     (Environment.SpecialFolder.ApplicationData),
@@ -266,7 +266,7 @@ public partial class App : Application
             settingsHostService.Settings.ScoreWindowSettings.IsCampIconBlackVerEnabled
                 ? "hunIcon_black"
                 : "hunIcon");
-        ApplicationThemeManager.Changed += (currentApplicationTheme, systemAccent) =>
+        ApplicationThemeManager.Changed += (currentApplicationTheme, _) =>
         {
             foreach (var dict in Current.Resources.MergedDictionaries)
             {
@@ -301,7 +301,13 @@ public partial class App : Application
     {
         var logger = _host.Services.GetRequiredService<ILogger<App>>();
         logger.LogError("Application crashed unexpectedly");
-        _host.Services.GetRequiredService<SettingsHostService>().ResetConfig();
+        var loggingDir = Path.Combine(Environment.GetFolderPath
+                (Environment.SpecialFolder.ApplicationData),
+            "neo-bpsys-wpf",
+            "Log");
+#if !DEBUG
+        MessageBox.Show($"出现了些在意料之外的错误，请带着\n{loggingDir}\n处的日志文件联系开发者解决", "错误");
+#endif
         // For more info see https://docs.microsoft.com/en-us/dotnet/api/system.windows.application.dispatcherunhandledexception?view=windowsdesktop-6.0
     }
 }

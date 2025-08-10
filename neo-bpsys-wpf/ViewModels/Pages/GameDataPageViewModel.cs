@@ -7,12 +7,9 @@ using Player = neo_bpsys_wpf.Core.Models.Player;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
-public class GameDataPageViewModel : ViewModelBase, IRecipient<NewGameMessage>
+public class GameDataPageViewModel : ViewModelBase
 {
-
-#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     public GameDataPageViewModel()
-#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -22,16 +19,14 @@ public class GameDataPageViewModel : ViewModelBase, IRecipient<NewGameMessage>
     public GameDataPageViewModel(ISharedDataService sharedDataService)
     {
         _sharedDataService = sharedDataService;
-        IsActive = true;
+        sharedDataService.CurrentGameChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(SurPlayerList));
+            OnPropertyChanged(nameof(HunPlayer));
+        };
     }
 
-    public ObservableCollection<Player> SurPlayerList => _sharedDataService.CurrentGame.SurPlayerList;
+    public IReadOnlyCollection<Player> SurPlayerList => _sharedDataService.CurrentGame.SurPlayerList;
 
     public Player HunPlayer => _sharedDataService.CurrentGame.HunPlayer;
-
-    public void Receive(NewGameMessage message)
-    {
-        OnPropertyChanged(nameof(SurPlayerList));
-        OnPropertyChanged(nameof(HunPlayer));
-    }
 }

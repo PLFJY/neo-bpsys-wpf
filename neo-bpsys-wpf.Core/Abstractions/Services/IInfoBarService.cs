@@ -15,7 +15,7 @@ public interface IInfoBarService
     /// 设置 InfoBar 控件
     /// </summary>
     /// <param name="infoBar"></param>
-    void SetInfoBarControl(InfoBar infoBar);
+    void SetInfoBarControl(object infoBar);
     /// <summary>
     /// 显示错误信息
     /// </summary>

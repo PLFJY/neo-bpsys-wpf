@@ -9,11 +9,21 @@ namespace neo_bpsys_wpf.Core.Models;
 /// </summary>
 public class Trait
 {
+    /// <summary>
+    /// 是否启用黑色版本
+    /// </summary>
     private readonly bool _isBlackTalentAndTraitEnable;
+
+    /// <summary>
+    /// 天赋名称
+    /// </summary>
+    public Enums.TraitType? TraitName { get; }
+
     private ImageSource? _image;
 
-    public Core.Enums.Trait? TraitName { get; }
-
+    /// <summary>
+    /// 天赋图标
+    /// </summary>
     [JsonIgnore]
     public ImageSource? Image
     {
@@ -23,11 +33,17 @@ public class Trait
             return _image;
         }
     }
-
-    public Trait(Core.Enums.Trait? trait, bool isBlackTalentAndTraitEnable = false)
+    
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="trait">天赋名称</param>
+    /// <param name="isBlackTalentAndTraitEnable">是否启用黑色版本</param>
+    public Trait(Enums.TraitType? trait, bool isBlackTalentAndTraitEnable = false)
     {
         _isBlackTalentAndTraitEnable = isBlackTalentAndTraitEnable;
         if (trait == null) return;
+        TraitName = trait;
         _image = ImageHelper.GetTraitImageSource(trait, isBlackTalentAndTraitEnable);
     }
 }

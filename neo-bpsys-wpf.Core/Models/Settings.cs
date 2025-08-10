@@ -4,16 +4,20 @@ using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Enums;
 
 namespace neo_bpsys_wpf.Core.Models;
 
-public partial class Settings
+/// <summary>
+/// 设置
+/// </summary>
+public partial class Settings : ViewModelBase
 {
-    public BpWindowSettings BpWindowSettings { get; set; } = new();
-    public CutSceneWindowSettings CutSceneWindowSettings { get; set; } = new();
-    public ScoreWindowSettings ScoreWindowSettings { get; set; } = new();
-    public GameDataWindowSettings GameDataWindowSettings { get; set; } = new();
-    public WidgetsWindowSettings WidgetsWindowSettings { get; set; } = new();
+    [ObservableProperty] private BpWindowSettings _bpWindowSettings = new();
+    [ObservableProperty] private CutSceneWindowSettings _cutSceneWindowSettings = new();
+    [ObservableProperty] private ScoreWindowSettings _scoreWindowSettings = new();
+    [ObservableProperty] private GameDataWindowSettings _gameDataWindowSettings = new();
+    [ObservableProperty] private WidgetsWindowSettings _widgetsWindowSettings = new();
 }
 
 /// <summary>
@@ -88,10 +92,18 @@ public partial class TextSettings : ViewModelBase
 public partial class BpWindowSettings : ViewModelBase
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
-    public string? BgImageUri { get; set; }
-    public string? CurrentBanLockImageUri { get; set; }
-    public string? GlobalBanLockImageUri { get; set; }
-    public string? PickingBorderImageUri { get; set; }
+
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(BgImage))]
+    private string? _bgImageUri;
+
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CurrentBanLockImage))]
+    private string? _currentBanLockImageUri;
+
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(GlobalBanLockImage))]
+    private string? _globalBanLockImageUri;
+
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(PickingBorderImage))]
+    private string? _pickingBorderImageUri;
 
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(PickingBorderBrush))]
     private string? _pickingBorderColor = Colors.White.ToString();
@@ -101,16 +113,27 @@ public partial class BpWindowSettings : ViewModelBase
     /// </summary>
     [JsonIgnore]
     public Brush PickingBorderBrush => ColorHelper.HexToBrush(string.IsNullOrEmpty(PickingBorderColor)
-        ? Colors.DarkGreen.ToString()
+        ? Colors.White.ToString()
         : PickingBorderColor);
 
-    public BpWindowTextSettings TextSettings { get; set; } = new();
+    [ObservableProperty] private BpWindowTextSettings _textSettings = new();
+
+    [JsonIgnore] public ImageSource? BgImage => ImageHelper.GetUiImageFromSetting(BgImageUri, "bp");
+
+    [JsonIgnore]
+    public ImageSource? CurrentBanLockImage => ImageHelper.GetUiImageFromSetting(BgImageUri, "CurrentBanLock");
+
+    [JsonIgnore]
+    public ImageSource? GlobalBanLockImage => ImageHelper.GetUiImageFromSetting(BgImageUri, "GlobalBanLock");
+
+    [JsonIgnore]
+    public ImageSource? PickingBorderImage => ImageHelper.GetUiImageFromSetting(BgImageUri, "pickingBorder");
 }
 
 /// <summary>
 /// BP窗口文本设置
 /// </summary>
-public partial class BpWindowTextSettings : ViewModelBase
+public class BpWindowTextSettings
 {
     public TextSettings Timer { get; set; } = new("#FFFFFFFF",
         "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 58, FontWeights.Bold);
@@ -136,12 +159,17 @@ public partial class BpWindowTextSettings : ViewModelBase
 /// <summary>
 /// 过场窗口设置
 /// </summary>
-public class CutSceneWindowSettings
+public partial class CutSceneWindowSettings : ViewModelBase
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
     public bool IsBlackTalentAndTraitEnable { get; set; } = false;
-    public string? BgUri { get; set; }
-    public CutSceneWindowTextSettings TextSettings { get; set; } = new();
+
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(BgImage))]
+    private string? _bgUri;
+
+    [ObservableProperty] private CutSceneWindowTextSettings _textSettings = new();
+
+    [JsonIgnore] public ImageSource? BgImage => ImageHelper.GetUiImageFromSetting(BgUri, "cutScene");
 }
 
 /// <summary>
@@ -170,16 +198,38 @@ public class CutSceneWindowTextSettings
 /// <summary>
 /// 比分窗口设置
 /// </summary>
-public class ScoreWindowSettings
+public partial class ScoreWindowSettings : ViewModelBase
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
-    public string? SurScoreBgImageUri { get; set; }
-    public string? HunScoreBgImageUri { get; set; }
-    public string? GlobalScoreBgImageUri { get; set; }
-    public string? GlobalScoreBgImageUriBo3 { get; set; }
+
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(SurScoreBgImage))]
+    private string? _surScoreBgImageUri;
+
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HunScoreBgImage))]
+    private string? _hunScoreBgImageUri;
+
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(GlobalScoreBgImage))]
+    private string? _globalScoreBgImageUri;
+
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(GlobalScoreBgImageBo3))]
+    private string? _globalScoreBgImageUriBo3;
+
     public bool IsCampIconBlackVerEnabled { get; set; }
     public double GlobalScoreTotalMargin { get; set; } = 390;
-    public ScoreWindowTextSettings TextSettings { get; set; } = new();
+    [ObservableProperty] private ScoreWindowTextSettings _textSettings = new();
+
+    [JsonIgnore]
+    public ImageSource? SurScoreBgImage => ImageHelper.GetUiImageFromSetting(SurScoreBgImageUri, "scoreSur");
+
+    [JsonIgnore]
+    public ImageSource? HunScoreBgImage => ImageHelper.GetUiImageFromSetting(HunScoreBgImageUri, "scoreHun");
+
+    [JsonIgnore]
+    public ImageSource? GlobalScoreBgImage => ImageHelper.GetUiImageFromSetting(GlobalScoreBgImageUri, "scoreGlobal");
+
+    [JsonIgnore]
+    public ImageSource? GlobalScoreBgImageBo3 =>
+        ImageHelper.GetUiImageFromSetting(GlobalScoreBgImageUriBo3, "scoreGlobal_Bo3");
 }
 
 /// <summary>
@@ -209,11 +259,16 @@ public class ScoreWindowTextSettings
 /// <summary>
 /// 赛后数据窗口设置
 /// </summary>
-public class GameDataWindowSettings
+public partial class GameDataWindowSettings : ViewModelBase
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
-    public string? BgImageUri { get; set; }
-    public GameDataWindowTextSettings TextSettings { get; set; } = new();
+
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(BgImage))]
+    private string? _bgImageUri;
+
+    [ObservableProperty] private GameDataWindowTextSettings _textSettings = new();
+
+    [JsonIgnore] public ImageSource? BgImage => ImageHelper.GetUiImageFromSetting(BgImageUri, "gameData");
 }
 
 /// <summary>
@@ -250,13 +305,25 @@ public class GameDataWindowTextSettings
 /// </summary>
 public partial class WidgetsWindowSettings : ViewModelBase
 {
-    public string? MapBpBgUri { get; set; }
-    public string? MapBpV2BgUri { get; set; }
-    public string? MapBpV2PickBorderImageUri { get; set; }
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(MapBpBgImage))]
+    private string? _mapBpBgUri;
+
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(MapBpV2BgImage))]
+    private string? _mapBpV2BgUri;
+
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(MapBpV2PickBorderImage))]
+    private string? _mapBpV2PickBorderImageUri;
+
     public bool IsCampIconBlackVerEnabled { get; set; }
-    public string? BpOverviewBgUri { get; set; }
-    public string? CurrentBanLockImageUri { get; set; }
-    public string? GlobalBanLockImageUri { get; set; }
+
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(BpOverviewBgImage))]
+    private string? _bpOverviewBgUri;
+
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CurrentBanLockImage))]
+    private string? _currentBanLockImageUri;
+
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(GlobalBanLockImage))]
+    private string? _globalBanLockImageUri;
 
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(MapBpV2_PickingBorderBrush))]
     private string? _mapBpV2_PickingBorderColor = Colors.DarkGreen.ToString();
@@ -269,7 +336,24 @@ public partial class WidgetsWindowSettings : ViewModelBase
         ? Colors.DarkGreen.ToString()
         : MapBpV2_PickingBorderColor);
 
-    public WidgetsWindowTextSettings TextSettings { get; set; } = new();
+    [ObservableProperty] private WidgetsWindowTextSettings _textSettings = new();
+
+    [JsonIgnore] public ImageSource? MapBpBgImage => ImageHelper.GetUiImageFromSetting(MapBpBgUri, "mapBp");
+    [JsonIgnore] public ImageSource? MapBpV2BgImage => ImageHelper.GetUiImageFromSetting(MapBpV2BgUri, "mapBpV2");
+
+    [JsonIgnore]
+    public ImageSource? MapBpV2PickBorderImage =>
+        ImageHelper.GetUiImageFromSetting(MapBpV2PickBorderImageUri, "pickingBorder");
+
+    [JsonIgnore]
+    public ImageSource? BpOverviewBgImage => ImageHelper.GetUiImageFromSetting(BpOverviewBgUri, "bpOverview");
+
+    [JsonIgnore]
+    public ImageSource? CurrentBanLockImage =>
+        ImageHelper.GetUiImageFromSetting(CurrentBanLockImageUri, "CurrentBanLock");
+
+    [JsonIgnore]
+    public ImageSource? GlobalBanLockImage => ImageHelper.GetUiImageFromSetting(GlobalBanLockImageUri, "GlobalBanLock");
 }
 
 /// <summary>

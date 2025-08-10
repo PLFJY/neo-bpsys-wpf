@@ -10,42 +10,45 @@ namespace neo_bpsys_wpf.Core.Models;
 /// <summary>
 /// 选手类, 注意与 <see cref="Models.Member"/> 类做区分，这是表示队伍内的成员，本类是表示上场的选手, <see cref="Player"/> 类包含操纵它的 <see cref="Models.Member"/>
 /// </summary>
-public partial class Player : 
-    ViewModelBase, 
-    IRecipient<MemberPropertyChangedMessage>, 
-    IRecipient<MemberOnFieldChangedMessage>, 
-    IRecipient<SwapMessage>,
-    IRecipient<PlayerSwappedMessage>
+public partial class Player : ViewModelBase
 {
-    public Player(Member member, bool isMemberValid)
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="member">选手</param>
+    public Player(Member member)
     {
         Member = member;
-        IsActive = true;
-        IsMemberValid = isMemberValid;
     }
 
-    [ObservableProperty] private Member _member;
-
-    public bool IsMemberValid { get; set; }
-
+    /// <summary>
+    /// 操控的选手
+    /// </summary>
+    [ObservableProperty][NotifyPropertyChangedFor(nameof(PictureShown))] private Member _member;
+    
+    /// <summary>
+    /// 选手所选的角色
+    /// </summary>
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(PictureShown))]
     private Character? _character;
 
+    /// <summary>
+    /// 天赋
+    /// </summary>
     [ObservableProperty] private Talent _talent = new();
-
+    
+    /// <summary>
+    /// 辅助特质
+    /// </summary>
     [ObservableProperty] private Trait _trait = new(null);
-
+    
+    /// <summary>
+    /// 选手的数据
+    /// </summary>
     [ObservableProperty] private PlayerData _data = new();
-
-    [JsonIgnore] public ImageSource? PictureShown => Character == null ? Member?.Image : Character.HalfImage;
-
-    public void Receive(MemberPropertyChangedMessage message) => OnPropertyChanged(nameof(PictureShown));
-    public void Receive(MemberOnFieldChangedMessage message) => OnPropertyChanged(nameof(PictureShown));
-    public void Receive(SwapMessage message)
-    {
-        if(message.IsSwapped)
-            OnPropertyChanged(nameof(PictureShown));
-    }
-
-    public void Receive(PlayerSwappedMessage message) => OnPropertyChanged(nameof(PictureShown));
+    
+    /// <summary>
+    /// 显示的图片
+    /// </summary>
+    [JsonIgnore] public ImageSource? PictureShown => Character == null ? Member.Image : Character?.HalfImage;
 }

@@ -20,9 +20,9 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     private readonly ISharedDataService _sharedDataService;
     private readonly IMessageBoxService _messageBoxService;
 
-#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
+
     public MapBpPageViewModel()
-#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
+
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -37,23 +37,28 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
             new MapSelectTeam(_sharedDataService.AwayTeam, TeamType.AwayTeam)
         ];
         PickMapTeam = MapSelectTeamsList[0];
-        BanMapTeam = MapSelectTeamsList[0];
-        BannedMap = [.. PickedMapSelections.Select(selection => new BanMapInfo(selection.Map ?? Map.无禁用))];
-        IsActive = true;
+        BanMapTeam = MapSelectTeamsList[1];
+        PickedMapSelections.Add(new MapSelection());
+        foreach (var mapV2 in sharedDataService.CurrentGame.MapV2Dictionary.Values.Where(x => x.MapName != Map.无禁用))
+        {
+            PickedMapSelections.Add(new MapSelection(mapV2));
+        }
+
+        BannedMap = [.. sharedDataService.CurrentGame.MapV2Dictionary.Values.Select(mapV2 => new BanMapInfo(mapV2))];
+        sharedDataService.CurrentGameChanged += (_, _) => OnPropertyChanged(nameof(CurrentGame));
+        sharedDataService.IsMapV2BreathingChanged += (_, _) => IsBreathing = sharedDataService.IsMapV2Breathing;
+        sharedDataService.IsMapV2CampVisibleChanged += (_, _) => IsCampVisible = sharedDataService.IsMapV2CampVisible;
     }
+
+    public Game CurrentGame => _sharedDataService.CurrentGame;
 
     private bool _breathing;
 
     public bool IsBreathing
     {
         get => _breathing;
-        set => SetPropertyWithAction(ref _breathing, value, (oldValue) =>
-        {
-            WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this,
-                nameof(IsBreathing),
-                oldValue,
-                value));
-        });
+        set => SetPropertyWithAction(ref _breathing, value,
+            (_) => { _sharedDataService.IsMapV2Breathing = value; });
     }
 
     private bool _isCampVisible;
@@ -61,16 +66,12 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     public bool IsCampVisible
     {
         get => _isCampVisible;
-        set => SetPropertyWithAction(ref _isCampVisible, value, (oldValue) =>
-        {
-            WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this,
-                nameof(IsCampVisible),
-                oldValue,
-                value));
-        });
+        set => SetPropertyWithAction(ref _isCampVisible, value,
+            (_) => { _sharedDataService.IsMapV2CampVisible = value; });
     }
 
-    public int SelectedIndex => PickedMapSelections.IndexOf(PickedMapSelections.First(x => x.Map == PickedMap));
+    public int PickedMapIndex =>
+        PickedMapSelections.IndexOf(PickedMapSelections.First(x => x.Map.MapName == PickedMap));
 
     private Map? _pickedMap;
 
@@ -79,12 +80,8 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         get => _pickedMap;
         set => SetPropertyWithAction(ref _pickedMap, value, (oldValue) =>
         {
-            WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<Map?>(this,
-                nameof(PickedMap),
-                oldValue,
-                value));
             _sharedDataService.CurrentGame.PickedMap = _pickedMap;
-            OnPropertyChanged(nameof(SelectedIndex));
+            OnPropertyChanged(nameof(PickedMapIndex));
         });
     }
 
@@ -103,26 +100,22 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     [RelayCommand]
     private void BanMap(Map? map = null)
     {
-        _sharedDataService.CurrentGame.BanMap(BannedMap, BanMapTeam.Team);
-        WeakReferenceMessenger.Default.Send(
-            new PropertyChangedMessage<List<BanMapInfo>>(this, nameof(BannedMap), [], BannedMap));
         if (map == null) return;
-        if (BannedMap.First(x => x.Map == map).IsBanned)
+        if (CurrentGame.MapV2Dictionary.TryGetValue(map.ToString()!, out var mapV2) && mapV2 is { IsBanned: true })
         {
+            mapV2.OperationTeam = BanMapTeam.Team;
             _sharedDataService.CurrentGame.BannedMap = map;
             _bannedMapSequence.Add((Map)map);
         }
-        else
+        else if (mapV2 is { IsBanned: false })
         {
-            _bannedMapSequence.RemoveAt(_bannedMapSequence.Count - 1);
-            if (_bannedMapSequence.Count > 0)
-                _sharedDataService.CurrentGame.BannedMap = _bannedMapSequence.Last();
-            else
-                _sharedDataService.CurrentGame.BannedMap = null;
+            mapV2.OperationTeam = null;
+            _bannedMapSequence.Remove(map);
+            _sharedDataService.CurrentGame.BannedMap = _bannedMapSequence.Count > 0 ? _bannedMapSequence.Last() : null;
         }
     }
 
-    private readonly List<Map> _bannedMapSequence = [];
+    private readonly List<Map?> _bannedMapSequence = [];
 
     [RelayCommand]
     private async Task ResetMapBpAsync()
@@ -130,10 +123,6 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         if (!await _messageBoxService.ShowConfirmAsync("确认提示", "是否要重置地图BP")) return;
         _sharedDataService.CurrentGame.ResetMapBp();
         PickedMap = null;
-        foreach (var map in BannedMap)
-        {
-            map.IsBanned = false;
-        }
     }
 
     [ObservableProperty] private bool _isPickHighlighted;
@@ -150,35 +139,25 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
                 PickMapTeam = MapSelectTeamsList.First(x =>
                     x.TeamType == (message.Index?[0] == 0 ? TeamType.MainTeam : TeamType.AwayTeam));
                 IsBreathing = true;
+                IsCampVisible = false;
                 break;
             case GameAction.BanMap:
                 BanMapTeam = MapSelectTeamsList.First(x =>
                     x.TeamType == (message.Index?[0] == 0 ? TeamType.MainTeam : TeamType.AwayTeam));
                 IsBreathing = true;
+                IsCampVisible = false;
                 break;
-            case PickCamp:
+            case GameAction.PickCamp:
                 IsCampVisible = true;
                 IsBreathing = true;
                 break;
             default:
-                if (!IsBreathing) IsBreathing = false;
+                if (IsBreathing) IsBreathing = false;
                 break;
         }
     }
 
-    public ObservableCollection<MapSelection> PickedMapSelections { get; } =
-    [
-        new(),
-        new(Map.军工厂, ImageHelper.GetImageSourceFromName(ImageSourceKey.map, nameof(Map.军工厂))),
-        new(Map.红教堂, ImageHelper.GetImageSourceFromName(ImageSourceKey.map, nameof(Map.红教堂))),
-        new(Map.圣心医院, ImageHelper.GetImageSourceFromName(ImageSourceKey.map, nameof(Map.圣心医院))),
-        new(Map.里奥的回忆, ImageHelper.GetImageSourceFromName(ImageSourceKey.map, nameof(Map.里奥的回忆))),
-        new(Map.月亮河公园, ImageHelper.GetImageSourceFromName(ImageSourceKey.map, nameof(Map.月亮河公园))),
-        new(Map.湖景村, ImageHelper.GetImageSourceFromName(ImageSourceKey.map, nameof(Map.湖景村))),
-        new(Map.永眠镇, ImageHelper.GetImageSourceFromName(ImageSourceKey.map, nameof(Map.永眠镇))),
-        new(Map.唐人街, ImageHelper.GetImageSourceFromName(ImageSourceKey.map, nameof(Map.唐人街))),
-        new(Map.不归林, ImageHelper.GetImageSourceFromName(ImageSourceKey.map, nameof(Map.不归林))),
-    ];
+    public ObservableCollection<MapSelection> PickedMapSelections { get; } = [];
 
     public List<MapSelectTeam> MapSelectTeamsList { get; }
 
@@ -189,23 +168,19 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         public string DisplayedTeamType { get; } = teamType == TeamType.MainTeam ? "主队" : "客队";
     }
 
-    public partial class MapSelection(Map? map = null, ImageSource? imageSource = null)
-        : ViewModelBase, IRecipient<PropertyChangedMessage<List<BanMapInfo>>>
+    public class MapSelection(MapV2? map = null)
     {
-        public Map? Map { get; set; } = map;
-        public ImageSource? ImageSource { get; set; } = imageSource;
+        public MapV2 Map { get; } = map ?? new MapV2(null);
 
-        [ObservableProperty] private bool _canPickInvoke = true;
+        public ImageSource? ImageSource { get; } =
+            ImageHelper.GetImageSourceFromName(ImageSourceKey.map_singleColor, map?.MapName.ToString());
+    }
 
-        public void Receive(PropertyChangedMessage<List<BanMapInfo>> message)
-        {
-            if (Map == null) return;
-            switch (message.PropertyName)
-            {
-                case nameof(BannedMap):
-                    CanPickInvoke = !message.NewValue.Any(x => x.Map == Map && x.IsBanned);
-                    break;
-            }
-        }
+    public class BanMapInfo(MapV2 map)
+    {
+        public MapV2 Map { get; } = map;
+
+        public ImageSource? ImageSource { get; } =
+            ImageHelper.GetImageSourceFromName(ImageSourceKey.map_singleColor, map.MapName.ToString());
     }
 }

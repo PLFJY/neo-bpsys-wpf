@@ -2,6 +2,9 @@
 
 namespace neo_bpsys_wpf.Core.Helpers;
 
+/// <summary>
+/// 字体工具类
+/// </summary>
 public static class FontsHelper
 {
 

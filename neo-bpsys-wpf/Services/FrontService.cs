@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
@@ -31,6 +32,7 @@ public class FrontService : IFrontService
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
     private readonly IMessageBoxService _messageBoxService;
+    private readonly ISharedDataService _sharedDataService;
     private readonly ISettingsHostService _settingsHostService;
 
     public FrontService(
@@ -47,6 +49,7 @@ public class FrontService : IFrontService
     )
     {
         _messageBoxService = messageBoxService;
+        _sharedDataService = sharedDataService;
         _settingsHostService = settingsHostService;
         var savePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "neo-bpsys-wpf");
@@ -79,10 +82,9 @@ public class FrontService : IFrontService
         //分数统计部分的消息订阅和部分参数
         _isBo3Mode = sharedDataService.IsBo3Mode;
         _globalScoreTotalMargin = sharedDataService.GlobalScoreTotalMargin;
-        WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>>(this, BoolPropertyChangedRecipient);
-        WeakReferenceMessenger.Default.Register<PropertyChangedMessage<double>>(this,
-            DoublePropertyChangedRecipient);
-        OnBo3ModeChanged();
+        sharedDataService.GlobalScoreTotalMarginChanged += OnGlobalScoreTotalMarginChanged;
+        sharedDataService.IsBo3ModeChanged += OnBo3ModeChanged;
+        OnBo3ModeChanged(this, EventArgs.Empty);
     }
 
     private async Task LoadDefaultPosition()
@@ -90,19 +92,6 @@ public class FrontService : IFrontService
         foreach (var i in _frontCanvas)
         {
             await LoadWindowElementsPositionOnStartupAsync(i.Item1, i.Item2);
-        }
-    }
-
-    /// <summary>
-    /// 接收GlobalScoreTotalMargin变更的消息
-    /// </summary>
-    /// <param name="recipient"></param>
-    /// <param name="message"></param>
-    private void DoublePropertyChangedRecipient(object recipient, PropertyChangedMessage<double> message)
-    {
-        if (message.PropertyName == nameof(ISharedDataService.GlobalScoreTotalMargin))
-        {
-            _globalScoreTotalMargin = message.NewValue;
         }
     }
 
@@ -587,25 +576,20 @@ public class FrontService : IFrontService
 
     private double _lastMove;
 
+    
     /// <summary>
-    /// 接收到切换赛制的消息
+    /// 赛制切换
     /// </summary>
-    /// <param name="recipient"></param>
-    /// <param name="message"></param>
-    private void BoolPropertyChangedRecipient(object recipient, PropertyChangedMessage<bool> message)
+    /// <param name="sender"></param>
+    /// <param name="args"></param>
+    private void OnBo3ModeChanged(object? sender, EventArgs args)
     {
-        if (message.PropertyName != nameof(ISharedDataService.IsBo3Mode)) return;
-        _isBo3Mode = message.NewValue;
-        OnBo3ModeChanged();
-    }
-
-    private void OnBo3ModeChanged()
-    {
+        _isBo3Mode = _sharedDataService.IsBo3Mode;
         if (_frontWindows[FrontWindowType.ScoreGlobalWindow] is not ScoreGlobalWindow scoreWindow) return;
         if (_isBo3Mode)
         {
-            scoreWindow.BaseCanvas.Background = ImageHelper.GetUiImageBrush(
-                _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageUriBo3 ?? "scoreGlobal_Bo3");
+            scoreWindow.BaseCanvas.Background =
+                new ImageBrush(_settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageBo3);
             foreach (var item in
                      MainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
             {
@@ -626,8 +610,8 @@ public class FrontService : IFrontService
         }
         else
         {
-            scoreWindow.BaseCanvas.Background = ImageHelper.GetUiImageBrush(
-                _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageUri ?? "scoreGlobal");
+            scoreWindow.BaseCanvas.Background =
+                new ImageBrush(_settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImage);
             foreach (var item in
                      MainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
             {
@@ -643,6 +627,18 @@ public class FrontService : IFrontService
             Canvas.SetLeft(scoreWindow.MainScoreTotal, Canvas.GetLeft(scoreWindow.MainScoreTotal) + _lastMove);
             Canvas.SetLeft(scoreWindow.AwayScoreTotal, Canvas.GetLeft(scoreWindow.AwayScoreTotal) + _lastMove);
         }
+    }
+
+
+    /// <summary>
+    /// 接收GlobalScoreTotalMargin变更
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="args"></param>
+    private void OnGlobalScoreTotalMarginChanged(object? sender, EventArgs args)
+    {
+        _globalScoreTotalMargin = _sharedDataService.GlobalScoreTotalMargin;
+        _globalScoreTotalMargin = _sharedDataService.GlobalScoreTotalMargin;
     }
 
     #endregion

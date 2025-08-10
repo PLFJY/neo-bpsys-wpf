@@ -14,7 +14,18 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public class SettingsHostService : ISettingsHostService
 {
-    public Settings Settings { get; set; } = new();
+    private Settings _settings = new();
+    public Settings Settings
+    {
+        get => _settings;
+        set
+        {
+            if(_settings== value) return;
+            _settings = value;
+            SettingsChanged?.Invoke(this, value);
+        }
+    }
+
     private readonly IMessageBoxService _messageBoxService;
     private const string SettingFileName = "Config.json";
     private readonly string _settingFilePath;
@@ -124,6 +135,8 @@ public class SettingsHostService : ISettingsHostService
                     Settings.CutSceneWindowSettings = new CutSceneWindowSettings();
                     break;
                 case FrontWindowType.ScoreGlobalWindow:
+                case FrontWindowType.ScoreSurWindow:
+                case FrontWindowType.ScoreHunWindow:
                     Settings.ScoreWindowSettings = new ScoreWindowSettings();
                     break;
                 case FrontWindowType.GameDataWindow:
@@ -144,4 +157,8 @@ public class SettingsHostService : ISettingsHostService
             throw;
         }
     }
+    /// <summary>
+    /// 配置文件改变事件
+    /// </summary>
+    public event EventHandler<Settings>? SettingsChanged;
 }

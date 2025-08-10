@@ -4,6 +4,9 @@ using Wpf.Ui.Appearance;
 
 namespace neo_bpsys_wpf.Converters;
 
+/// <summary>
+/// 将主题和 bool 之间互转，false是Dark，true是Light
+/// </summary>
 public class ApplicationThemeToBooleanConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

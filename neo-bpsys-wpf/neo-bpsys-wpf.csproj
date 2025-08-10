@@ -10,6 +10,7 @@
     <Deterministic>False</Deterministic>
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<CETCompat>false</CETCompat>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>

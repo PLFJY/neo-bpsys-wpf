@@ -4,6 +4,9 @@ using Color = System.Windows.Media.Color;
 
 namespace neo_bpsys_wpf.Core.Helpers;
 
+/// <summary>
+/// 颜色工具类
+/// </summary>
 public static class ColorHelper
 {
     /// <summary>

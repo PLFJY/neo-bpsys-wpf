@@ -27,7 +27,7 @@
         Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}"
         Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
         <Canvas.Background>
-            <ImageBrush d:ImageSource="/Assets/bp.png" ImageSource="{Binding BgImage}" />
+            <ImageBrush d:ImageSource="/Assets/bp.png" ImageSource="{Binding Settings.BgImage}" />
         </Canvas.Background>
         <Canvas.Resources>
             <Style TargetType="TextBlock">
@@ -41,18 +41,24 @@
                 <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MajorPoints.FontFamily}" />
                 <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MajorPoints.Foreground}" />
                 <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MajorPoints.FontWeight}" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
             <Style x:Key="TeamName" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="{Binding Settings.TextSettings.TeamName.FontSize}" />
                 <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.TeamName.FontFamily}" />
                 <Setter Property="Foreground" Value="{Binding Settings.TextSettings.TeamName.Foreground}" />
                 <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.TeamName.FontWeight}" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
             <Style x:Key="MinorPoints" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MinorPoints.FontSize}" />
                 <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MinorPoints.FontFamily}" />
                 <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MinorPoints.Foreground}" />
                 <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MinorPoints.FontWeight}" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
             <Style x:Key="PlayerId" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="{Binding Settings.TextSettings.PlayerId.FontSize}" />
@@ -125,6 +131,7 @@
             Canvas.Top="23"
             Width="100"
             HorizontalAlignment="Center"
+            VerticalAlignment="Center"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
             d:FontFamily="{StaticResource POP1W5}"
             d:FontSize="58"
@@ -218,7 +225,7 @@
             Width="{Binding ElementName=HunBanCurrent0, Path=ActualWidth}"
             Height="{Binding ElementName=HunBanCurrent0, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding CurrentBanLockImage}"
+            Source="{Binding Settings.CurrentBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanCurrentHunBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
@@ -228,7 +235,7 @@
             Width="{Binding ElementName=HunBanCurrent1, Path=ActualWidth}"
             Height="{Binding ElementName=HunBanCurrent1, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding CurrentBanLockImage}"
+            Source="{Binding Settings.CurrentBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanCurrentHunBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <!--  Sur Current Ban  -->
@@ -276,7 +283,7 @@
             Width="{Binding ElementName=SurBanCurrent0, Path=ActualWidth}"
             Height="{Binding ElementName=SurBanCurrent0, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding CurrentBanLockImage}"
+            Source="{Binding Settings.CurrentBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanCurrentSurBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
@@ -286,7 +293,7 @@
             Width="{Binding ElementName=SurBanCurrent1, Path=ActualWidth}"
             Height="{Binding ElementName=SurBanCurrent1, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding CurrentBanLockImage}"
+            Source="{Binding Settings.CurrentBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanCurrentSurBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
@@ -296,7 +303,7 @@
             Width="{Binding ElementName=SurBanCurrent2, Path=ActualWidth}"
             Height="{Binding ElementName=SurBanCurrent2, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding CurrentBanLockImage}"
+            Source="{Binding Settings.CurrentBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanCurrentSurBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
@@ -306,7 +313,7 @@
             Width="{Binding ElementName=SurBanCurrent3, Path=ActualWidth}"
             Height="{Binding ElementName=SurBanCurrent3, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding CurrentBanLockImage}"
+            Source="{Binding Settings.CurrentBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanCurrentSurBanned[3], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <!--  Bottom  -->
@@ -360,7 +367,7 @@
             <Rectangle.OpacityMask>
                 <ImageBrush
                     d:ImageSource="/Assets/pickingBorder.png"
-                    ImageSource="{Binding PickingBorderSource}"
+                    ImageSource="{Binding Settings.PickingBorderImage}"
                     Stretch="Fill" />
             </Rectangle.OpacityMask>
         </Rectangle>
@@ -376,7 +383,7 @@
             <Rectangle.OpacityMask>
                 <ImageBrush
                     d:ImageSource="/Assets/pickingBorder.png"
-                    ImageSource="{Binding PickingBorderSource}"
+                    ImageSource="{Binding Settings.PickingBorderImage}"
                     Stretch="Fill" />
             </Rectangle.OpacityMask>
         </Rectangle>
@@ -392,7 +399,7 @@
             <Rectangle.OpacityMask>
                 <ImageBrush
                     d:ImageSource="/Assets/pickingBorder.png"
-                    ImageSource="{Binding PickingBorderSource}"
+                    ImageSource="{Binding Settings.PickingBorderImage}"
                     Stretch="Fill" />
             </Rectangle.OpacityMask>
         </Rectangle>
@@ -408,7 +415,7 @@
             <Rectangle.OpacityMask>
                 <ImageBrush
                     d:ImageSource="/Assets/pickingBorder.png"
-                    ImageSource="{Binding PickingBorderSource}"
+                    ImageSource="{Binding Settings.PickingBorderImage}"
                     Stretch="Fill" />
             </Rectangle.OpacityMask>
         </Rectangle>
@@ -509,7 +516,7 @@
             Width="{Binding ElementName=HunGlobalBan0, Path=ActualWidth}"
             Height="{Binding ElementName=HunGlobalBan0, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding GlobalBanLockImage}"
+            Source="{Binding Settings.GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalHunBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
@@ -519,7 +526,7 @@
             Width="{Binding ElementName=HunGlobalBan1, Path=ActualWidth}"
             Height="{Binding ElementName=HunGlobalBan1, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding GlobalBanLockImage}"
+            Source="{Binding Settings.GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalHunBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
@@ -529,7 +536,7 @@
             Width="{Binding ElementName=HunGlobalBan2, Path=ActualWidth}"
             Height="{Binding ElementName=HunGlobalBan2, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding GlobalBanLockImage}"
+            Source="{Binding Settings.GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalHunBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <!--  Sur  -->
@@ -622,7 +629,7 @@
             Width="{Binding ElementName=SurGlobalBan0, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan0, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding GlobalBanLockImage}"
+            Source="{Binding Settings.GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
@@ -632,7 +639,7 @@
             Width="{Binding ElementName=SurGlobalBan1, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan1, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding GlobalBanLockImage}"
+            Source="{Binding Settings.GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
@@ -642,7 +649,7 @@
             Width="{Binding ElementName=SurGlobalBan2, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan2, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding GlobalBanLockImage}"
+            Source="{Binding Settings.GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
@@ -652,7 +659,7 @@
             Width="{Binding ElementName=SurGlobalBan3, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan3, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding GlobalBanLockImage}"
+            Source="{Binding Settings.GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[3], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
@@ -662,7 +669,7 @@
             Width="{Binding ElementName=SurGlobalBan4, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan4, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding GlobalBanLockImage}"
+            Source="{Binding Settings.GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[4], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
@@ -672,7 +679,7 @@
             Width="{Binding ElementName=SurGlobalBan5, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan5, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding GlobalBanLockImage}"
+            Source="{Binding Settings.GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[5], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
@@ -682,7 +689,7 @@
             Width="{Binding ElementName=SurGlobalBan6, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan6, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding GlobalBanLockImage}"
+            Source="{Binding Settings.GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[6], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
@@ -692,7 +699,7 @@
             Width="{Binding ElementName=SurGlobalBan7, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan7, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding GlobalBanLockImage}"
+            Source="{Binding Settings.GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[7], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
         <Image
@@ -702,7 +709,7 @@
             Width="{Binding ElementName=SurGlobalBan8, Path=ActualWidth}"
             Height="{Binding ElementName=SurGlobalBan8, Path=ActualHeight}"
             Panel.ZIndex="1"
-            Source="{Binding GlobalBanLockImage}"
+            Source="{Binding Settings.GlobalBanLockImage}"
             Tag="nv"
             Visibility="{Binding CanGlobalSurBanned[8], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
 
@@ -729,7 +736,7 @@
             <Rectangle.OpacityMask>
                 <ImageBrush
                     d:ImageSource="/Assets/pickingBorder.png"
-                    ImageSource="{Binding PickingBorderSource}"
+                    ImageSource="{Binding Settings.PickingBorderImage}"
                     Stretch="Fill" />
             </Rectangle.OpacityMask>
         </Rectangle>

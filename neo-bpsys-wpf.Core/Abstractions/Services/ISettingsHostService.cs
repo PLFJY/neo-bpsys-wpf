@@ -29,4 +29,8 @@ public interface ISettingsHostService
     /// </summary>
     /// <param name="windowType">窗口类型</param>
     void ResetConfig(FrontWindowType windowType);
+    /// <summary>
+    /// 配置项改变事件
+    /// </summary>
+    event EventHandler<Settings> SettingsChanged;
 }

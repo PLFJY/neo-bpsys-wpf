@@ -5,23 +5,51 @@ namespace neo_bpsys_wpf.Core.Models;
 
 public partial class Talent : ViewModelBase
 {
-    //Sur
-    [ObservableProperty]
-    private bool _borrowedTime;
-    [ObservableProperty]
-    private bool _flywheelEffect;
-    [ObservableProperty]
-    private bool _kneeJerkReflex;
-    [ObservableProperty]
-    private bool _tideTurner;
+    #region Sur
 
-    //Hun
-    [ObservableProperty]
-    private bool _confinedSpace;
-    [ObservableProperty]
-    private bool _detention;
-    [ObservableProperty]
-    private bool _insolence;
-    [ObservableProperty]
-    private bool _trumpCard;
+    /// <summary>
+    /// 回光返照
+    /// </summary>
+    [ObservableProperty] private bool _borrowedTime;
+
+    /// <summary>
+    /// 飞轮效应
+    /// </summary>
+    [ObservableProperty] private bool _flywheelEffect;
+
+    /// <summary>
+    /// 膝跳反射
+    /// </summary>
+    [ObservableProperty] private bool _kneeJerkReflex;
+
+    /// <summary>
+    /// 化险为夷
+    /// </summary>
+    [ObservableProperty] private bool _tideTurner;
+
+    #endregion
+
+    #region Hun
+
+    /// <summary>
+    /// 禁闭空间
+    /// </summary>
+    [ObservableProperty] private bool _confinedSpace;
+
+    /// <summary>
+    /// 挽留
+    /// </summary>
+    [ObservableProperty] private bool _detention;
+
+    /// <summary>
+    /// 张狂
+    /// </summary>
+    [ObservableProperty] private bool _insolence;
+
+    /// <summary>
+    /// 底牌
+    /// </summary>
+    [ObservableProperty] private bool _trumpCard;
+
+    #endregion
 }

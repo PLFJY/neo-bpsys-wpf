@@ -15,7 +15,7 @@ public interface IGameGuidanceService
     /// <returns></returns>
     Task<string?> StartGuidance();
     /// <summary>
-    /// 下一步
+    /// 下一步·
     /// </summary>
     /// <returns></returns>
     Task<string> NextStepAsync();

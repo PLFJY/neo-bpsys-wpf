@@ -1,5 +1,5 @@
 ﻿using Downloader;
-using neo_bpsys_wpf.Core.Abstractions.Services.Updater;
+using neo_bpsys_wpf.Core.Models;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 

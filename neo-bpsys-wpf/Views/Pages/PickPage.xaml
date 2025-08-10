@@ -49,7 +49,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Margin="0,0,10,10">
-                                <ui:TextBox IsReadOnly="True" Text="{Binding PlayerName, Mode=OneWay}" />
+                                <ui:TextBox IsReadOnly="True" Text="{Binding ThisPlayer.Member.Name, Mode=OneWay}" />
                                 <cc:CharacterSelector
                                     Margin="0,10,0,0"
                                     Command="{Binding ConfirmCommand}"
