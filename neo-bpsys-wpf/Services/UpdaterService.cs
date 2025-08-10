@@ -19,7 +19,8 @@ public class UpdaterService : IUpdaterService
     public string NewVersion { get; set; } = string.Empty;
     public ReleaseInfo NewVersionInfo { get; set; } = new();
     public bool IsFindPreRelease { get; set; } = false;
-    public DownloadService Downloader { get; }
+    private readonly DownloadService _downloader;
+    public object Downloader => _downloader;
 
     private const string Owner = "plfjy";
     private const string Repo = "neo-bpsys-wpf";
@@ -47,8 +48,8 @@ public class UpdaterService : IUpdaterService
             ParallelCount = 6,
         };
 
-        Downloader = new DownloadService(downloadOpt);
-        Downloader.DownloadFileCompleted += OnDownloadFileCompletedAsync;
+        _downloader = new DownloadService(downloadOpt);
+        _downloader.DownloadFileCompleted += OnDownloadFileCompletedAsync;
 
         var fileName = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf_Installer.exe");
         if (!File.Exists(fileName)) return;
@@ -71,7 +72,7 @@ public class UpdaterService : IUpdaterService
         var downloadUrl = NewVersionInfo.Assets.First(a => a.Name == InstallerFileName).BrowserDownloadUrl;
         try
         {
-            await Downloader.DownloadFileTaskAsync(mirror + downloadUrl, fileName);
+            await _downloader.DownloadFileTaskAsync(mirror + downloadUrl, fileName);
         }
         catch (Exception ex)
         {

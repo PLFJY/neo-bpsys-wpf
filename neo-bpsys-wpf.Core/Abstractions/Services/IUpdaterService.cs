@@ -1,5 +1,4 @@
-﻿using Downloader;
-using neo_bpsys_wpf.Core.Models;
+﻿using neo_bpsys_wpf.Core.Models;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
@@ -17,9 +16,9 @@ public interface IUpdaterService
     /// </summary>
     ReleaseInfo NewVersionInfo { get; set; }
     /// <summary>
-    /// 下载器
+    /// 下载器对象
     /// </summary>
-    DownloadService Downloader { get; }
+    object Downloader { get; }
     /// <summary>
     /// 是否寻找预览版
     /// </summary>

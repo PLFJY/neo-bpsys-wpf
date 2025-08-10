@@ -6,6 +6,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Messaging;
+using Downloader;
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
@@ -32,6 +33,7 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly IFilePickerService _filePickerService;
     private readonly ISharedDataService _sharedDataService;
     private readonly IMessageBoxService _messageBoxService;
+    private readonly DownloadService _downloader;
 
     public SettingPageViewModel(IUpdaterService updaterService, ISettingsHostService settingsHostService,
         ITextSettingsNavigationService textSettingsNavigationService, IFrontService frontService,
@@ -46,9 +48,14 @@ public partial class SettingPageViewModel : ViewModelBase
         _filePickerService = filePickerService;
         _sharedDataService = sharedDataService;
         _messageBoxService = messageBoxService;
-        UpdaterService.Downloader.DownloadProgressChanged += Downloader_DownloadProgressChanged;
-        UpdaterService.Downloader.DownloadFileCompleted += Downloader_DownloadFileCompleted;
-        UpdaterService.Downloader.DownloadStarted += Downloader_DownloadStarted;
+        if (updaterService.Downloader is Downloader.DownloadService downloader)
+        {
+            _downloader = downloader;
+            _downloader.DownloadProgressChanged += Downloader_DownloadProgressChanged;
+            _downloader.DownloadFileCompleted += Downloader_DownloadFileCompleted;
+            _downloader.DownloadStarted += Downloader_DownloadStarted;
+        }
+
         _systemFonts = FontsHelper.GetSystemFonts();
 
         //设置项列表初始化
@@ -181,7 +188,7 @@ public partial class SettingPageViewModel : ViewModelBase
     [RelayCommand]
     private void CancelDownload()
     {
-        UpdaterService.Downloader.CancelAsync();
+        _downloader.CancelAsync();
     }
 
     [RelayCommand]
