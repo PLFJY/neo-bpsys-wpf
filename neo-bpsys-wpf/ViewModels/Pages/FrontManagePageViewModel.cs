@@ -51,20 +51,21 @@ public partial class FrontManagePageViewModel : ViewModelBase
         _frontService.HideWindow(windowType);
     }
 
-    //前台设计器模式
-    private bool _isDesignMode;
+    #region 设计者模式
 
-    public bool IsDesignMode
+    /// <summary>
+    /// 切换前台设计模式
+    /// </summary>
+    /// <param name="param">[0]参数: 开关信息<br/>[1]参数: 窗口类型</param>
+    [RelayCommand]
+    private void ChangeDesignMode(object?[] param)
     {
-        get => _isDesignMode;
-        set => SetPropertyWithAction(ref _isDesignMode, value, _ =>
+        if (param[0] is not bool isDesignMode || param[1] is not FrontWindowType frontWindowType) return;
+        WeakReferenceMessenger.Default.Send(new DesignModeChangedMessage(this, isDesignMode, frontWindowType));
+        if (!isDesignMode)
         {
-            WeakReferenceMessenger.Default.Send(new DesignModeChangedMessage(this, value));
-            if (!value)
-            {
-                _frontService.SaveAllWindowElementsPosition();
-            }
-        });
+            _frontService.SaveWindowElementsPosition(frontWindowType);
+        }
     }
 
     /// <summary>
@@ -128,9 +129,14 @@ public partial class FrontManagePageViewModel : ViewModelBase
         _frontService.RestoreInitialPositions(FrontWindowType.WidgetsWindow, canvasName);
     }
 
+    /// <summary>
+    /// 重置<see cref="GameDataWindow"/>的配置
+    /// </summary>
     [RelayCommand]
     private void ResetGameDataWindowElementsPosition()
     {
         _frontService.RestoreInitialPositions(FrontWindowType.GameDataWindow);
     }
+
+    #endregion
 }

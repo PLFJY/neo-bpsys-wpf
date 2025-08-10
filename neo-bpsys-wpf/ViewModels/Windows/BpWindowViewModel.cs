@@ -18,7 +18,6 @@ public partial class BpWindowViewModel :
     ViewModelBase,
     IRecipient<DesignModeChangedMessage>
 {
-
     public BpWindowViewModel()
 
     {
@@ -42,14 +41,14 @@ public partial class BpWindowViewModel :
         settingsHostService.SettingsChanged += (_, _) => OnPropertyChanged(nameof(Settings));
         settingsHostService.Settings.PropertyChanged += (_, e) =>
         {
-            if(e.PropertyName == nameof(settingsHostService.Settings.BpWindowSettings))
+            if (e.PropertyName == nameof(settingsHostService.Settings.BpWindowSettings))
                 OnPropertyChanged(nameof(Settings));
         };
     }
 
     public void Receive(DesignModeChangedMessage message)
     {
-        if (IsDesignMode != message.IsDesignMode)
+        if (message.FrontWindowType == FrontWindowType.BpWindow && IsDesignMode != message.IsDesignMode)
             IsDesignMode = message.IsDesignMode;
     }
 

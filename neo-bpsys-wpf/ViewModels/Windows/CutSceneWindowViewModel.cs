@@ -37,18 +37,18 @@ public partial class CutSceneWindowViewModel :
         settingsHostService.SettingsChanged += (_, _) => OnPropertyChanged(nameof(Settings));
         settingsHostService.Settings.PropertyChanged += (_, e) =>
         {
-            if(e.PropertyName == nameof(settingsHostService.Settings.CutSceneWindowSettings))
+            if (e.PropertyName == nameof(settingsHostService.Settings.CutSceneWindowSettings))
                 OnPropertyChanged(nameof(Settings));
         };
     }
 
     public void Receive(DesignModeChangedMessage message)
     {
-        if (IsDesignMode != message.IsDesignMode)
+        if (message.FrontWindowType == FrontWindowType.CutSceneWindow && IsDesignMode != message.IsDesignMode)
             IsDesignMode = message.IsDesignMode;
     }
 
-    public  bool IsBo3Mode => _sharedDataService.IsBo3Mode;
+    public bool IsBo3Mode => _sharedDataService.IsBo3Mode;
 
     //talent imageSource
 
@@ -80,7 +80,7 @@ public partial class CutSceneWindowViewModel :
 
     public Game CurrentGame => _sharedDataService.CurrentGame;
 
-    public  bool IsTraitVisible => _sharedDataService.IsTraitVisible;
+    public bool IsTraitVisible => _sharedDataService.IsTraitVisible;
 
     public CutSceneWindowSettings Settings => _settingsHostService.Settings.CutSceneWindowSettings;
 }

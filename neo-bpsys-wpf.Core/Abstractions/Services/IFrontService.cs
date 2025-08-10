@@ -72,11 +72,17 @@ public interface IFrontService
     /// </summary>
     void SaveAllWindowElementsPosition();
     /// <summary>
-    /// 保存窗口元素位置
+    /// 保存指定窗口的指定Canvas中元素的位置信息
     /// </summary>
     /// <param name="windowType">窗口类型</param>
     /// <param name="canvasName">画布名称</param>
-    void SaveWindowElementsPosition(FrontWindowType windowType, string canvasName = "BaseCanvas");
+    void SaveWindowCanvasElementsPosition(FrontWindowType windowType, string canvasName = "BaseCanvas");
+
+    /// <summary>
+    /// 保存指定窗口的元素位置信息
+    /// </summary>
+    /// <param name="windowType">窗口类型</param>
+    public void SaveWindowElementsPosition(FrontWindowType windowType);
     /// <summary>
     /// 设置全局分数
     /// </summary>

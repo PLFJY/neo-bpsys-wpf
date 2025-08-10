@@ -36,7 +36,7 @@ public partial class ScoreWindowViewModel :
         settingsHostService.SettingsChanged += (_, _) => OnPropertyChanged(nameof(Settings));
         settingsHostService.Settings.PropertyChanged += (_, e) =>
         {
-            if(e.PropertyName == nameof(settingsHostService.Settings.ScoreWindowSettings))
+            if (e.PropertyName == nameof(settingsHostService.Settings.ScoreWindowSettings))
                 OnPropertyChanged(nameof(Settings));
         };
     }
@@ -51,7 +51,11 @@ public partial class ScoreWindowViewModel :
 
     public void Receive(DesignModeChangedMessage message)
     {
-        if (IsDesignMode != message.IsDesignMode)
+        if (message.FrontWindowType is FrontWindowType.ScoreGlobalWindow 
+                or FrontWindowType.ScoreHunWindow 
+                or FrontWindowType.ScoreSurWindow
+                or FrontWindowType.ScoreWindow
+            && IsDesignMode != message.IsDesignMode)
             IsDesignMode = message.IsDesignMode;
     }
 
@@ -67,7 +71,7 @@ public partial class ScoreWindowViewModel :
                 break;
         }
     }
-    
+
     public Game CurrentGame => _sharedDataService.CurrentGame;
 
     public Team MainTeam => _sharedDataService.MainTeam;

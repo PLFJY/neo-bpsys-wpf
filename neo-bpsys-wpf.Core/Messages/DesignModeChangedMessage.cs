@@ -10,7 +10,16 @@ namespace neo_bpsys_wpf.Core.Messages;
 /// <param name="frontWindowType">フロントウィンドウ種別</param>
 public class DesignModeChangedMessage(object? sender, bool isDesignMode, FrontWindowType? frontWindowType = null)
 {
+    /// <summary>
+    /// 送信元
+    /// </summary>
     public object? Sender { get; set; } = sender;
+    /// <summary>
+    /// 設計モード
+    /// </summary>
     public bool IsDesignMode { get; set; } = isDesignMode;
+    /// <summary>
+    /// フロットウィンドウ種別
+    /// </summary>
     public FrontWindowType? FrontWindowType { get; } = frontWindowType;
 }

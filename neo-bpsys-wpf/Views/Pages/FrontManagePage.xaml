@@ -4,11 +4,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:enums="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
-    xmlns:enums="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
     Title="FrontManagePage"
     d:DataContext="{d:DesignInstance Type=vm:FrontManagePageViewModel,
                                      IsDesignTimeCreatable=True}"
@@ -20,6 +20,7 @@
     <Page.Resources>
         <ResourceDictionary>
             <cv:StringToDoubleConverter x:Key="StringToDoubleConverter" />
+            <cv:MultiCommandParameterConverter x:Key="MultiCommandParameterConverter" />
         </ResourceDictionary>
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
@@ -27,7 +28,6 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
@@ -47,26 +47,13 @@
                         Command="{Binding HideAllWindowsCommand}"
                         Content="全部关闭" />
                 </StackPanel>
-                <ui:ToggleSwitch
-                    Grid.Row="2"
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    IsChecked="{Binding IsDesignMode}">
-                    <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
-                    </StackPanel>
-                </ui:ToggleSwitch>
-                <TextBlock
-                    Grid.Row="3"
-                    Margin="0,10,0,0"
-                    Text="备注：分数统计界面BO3时不保存"
-                    TextWrapping="WrapWithOverflow" />
             </Grid>
         </Border>
         <Border Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -86,8 +73,24 @@
                         CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
                         Content="关闭" />
                 </StackPanel>
-                <ui:Button
+                <ui:ToggleSwitch
                     Grid.Row="2"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Command="{Binding ChangeDesignModeCommand}">
+                    <ui:ToggleSwitch.CommandParameter>
+                        <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
+                            <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
+                            <Binding Source="{x:Static enums:FrontWindowType.BpWindow}" />
+                        </MultiBinding>
+                    </ui:ToggleSwitch.CommandParameter>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Edit24" />
+                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                    </StackPanel>
+                </ui:ToggleSwitch>
+                <ui:Button
+                    Grid.Row="3"
                     Margin="0,10,0,0"
                     Command="{Binding ResetBpWindowElementsPositionCommand}"
                     Content="重置布局"
@@ -97,6 +100,8 @@
         <Border Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -116,8 +121,24 @@
                         CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
                         Content="关闭" />
                 </StackPanel>
-                <ui:Button
+                <ui:ToggleSwitch
                     Grid.Row="2"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Command="{Binding ChangeDesignModeCommand}">
+                    <ui:ToggleSwitch.CommandParameter>
+                        <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
+                            <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
+                            <Binding Source="{x:Static enums:FrontWindowType.CutSceneWindow}" />
+                        </MultiBinding>
+                    </ui:ToggleSwitch.CommandParameter>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Edit24" />
+                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                    </StackPanel>
+                </ui:ToggleSwitch>
+                <ui:Button
+                    Grid.Row="3"
                     Margin="0,10,0,0"
                     Command="{Binding ResetCutSceneWindowElementsPositionCommand}"
                     Content="重置布局"
@@ -127,6 +148,8 @@
         <Border Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -187,20 +210,41 @@
                         CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
                         Content="关闭" />
                 </StackPanel>
-                <ui:Button
+                <ui:ToggleSwitch
                     Grid.Row="4"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Command="{Binding ChangeDesignModeCommand}">
+                    <ui:ToggleSwitch.CommandParameter>
+                        <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
+                            <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
+                            <Binding Source="{x:Static enums:FrontWindowType.ScoreWindow}" />
+                        </MultiBinding>
+                    </ui:ToggleSwitch.CommandParameter>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Edit24" />
+                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                    </StackPanel>
+                </ui:ToggleSwitch>
+                <TextBlock
+                    Grid.Row="5"
+                    Margin="0,10,0,0"
+                    Text="备注：分数统计界面BO3时不保存"
+                    TextWrapping="WrapWithOverflow" />
+                <ui:Button
+                    Grid.Row="6"
                     Margin="0,10,0,0"
                     Command="{Binding ResetScoreSurWindowElementsPositionCommand}"
                     Content="重置求生者游戏内比分布局"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
-                    Grid.Row="5"
+                    Grid.Row="7"
                     Margin="0,10,0,0"
                     Command="{Binding ResetScoreHunWindowElementsPositionCommand}"
                     Content="重置监管者游戏内比分布局"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
-                    Grid.Row="6"
+                    Grid.Row="8"
                     Margin="0,10,0,0"
                     Command="{Binding ResetScoreGlobalWindowElementsPositionCommand}"
                     Content="重置分数统计布局"
@@ -210,6 +254,8 @@
         <Border Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -229,8 +275,24 @@
                         CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
                         Content="关闭" />
                 </StackPanel>
-                <ui:Button
+                <ui:ToggleSwitch
                     Grid.Row="2"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Command="{Binding ChangeDesignModeCommand}">
+                    <ui:ToggleSwitch.CommandParameter>
+                        <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
+                            <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
+                            <Binding Source="{x:Static enums:FrontWindowType.GameDataWindow}" />
+                        </MultiBinding>
+                    </ui:ToggleSwitch.CommandParameter>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Edit24" />
+                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                    </StackPanel>
+                </ui:ToggleSwitch>
+                <ui:Button
+                    Grid.Row="3"
                     Margin="0,10,0,0"
                     Command="{Binding ResetGameDataWindowElementsPositionCommand}"
                     Content="重置布局"
@@ -240,6 +302,7 @@
         <Border Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -263,22 +326,38 @@
                         CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
                         Content="关闭" />
                 </StackPanel>
-                <ui:Button
+                <ui:ToggleSwitch
                     Grid.Row="3"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Command="{Binding ChangeDesignModeCommand}">
+                    <ui:ToggleSwitch.CommandParameter>
+                        <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
+                            <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
+                            <Binding Source="{x:Static enums:FrontWindowType.WidgetsWindow}" />
+                        </MultiBinding>
+                    </ui:ToggleSwitch.CommandParameter>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon Symbol="Edit24" />
+                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                    </StackPanel>
+                </ui:ToggleSwitch>
+                <ui:Button
+                    Grid.Row="4"
                     Margin="0,10,0,0"
                     Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
                     CommandParameter="MapBpCanvas"
                     Content="重置地图BP布局"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
-                    Grid.Row="4"
+                    Grid.Row="5"
                     Margin="0,10,0,0"
                     Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
                     CommandParameter="BpOverViewCanvas"
                     Content="重置BP总览布局"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
-                    Grid.Row="5"
+                    Grid.Row="6"
                     Margin="0,10,0,0"
                     Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
                     CommandParameter="MapV2Canvas"

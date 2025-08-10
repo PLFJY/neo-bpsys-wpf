@@ -288,11 +288,11 @@ public class FrontService : IFrontService
     }
 
     /// <summary>
-    /// 保存窗口中元素的位置信息
+    /// 保存指定窗口的指定Canvas中元素的位置信息
     /// </summary>
     /// <param name="windowType">窗口类型</param>
     /// <param name="canvasName">画布名称</param>
-    public void SaveWindowElementsPosition(FrontWindowType windowType, string canvasName = "BaseCanvas")
+    public void SaveWindowCanvasElementsPosition(FrontWindowType windowType, string canvasName = "BaseCanvas")
     {
         if (!_frontWindows.TryGetValue(windowType, out var window))
         {
@@ -319,13 +319,32 @@ public class FrontService : IFrontService
     }
 
     /// <summary>
+    /// 保存指定窗口的元素位置信息
+    /// </summary>
+    /// <param name="windowType">窗口类型</param>
+    public void SaveWindowElementsPosition(FrontWindowType windowType)
+    {
+        if (windowType == FrontWindowType.ScoreWindow)
+        {
+            SaveWindowElementsPosition(FrontWindowType.ScoreSurWindow);
+            SaveWindowElementsPosition(FrontWindowType.ScoreHunWindow);
+            SaveWindowElementsPosition(FrontWindowType.ScoreGlobalWindow);
+        }
+        foreach (var tuple in _frontCanvas.Where(x =>
+                     x.Item1 == windowType))
+        {
+            SaveWindowCanvasElementsPosition(tuple.Item1, tuple.Item2);
+        }
+    }
+
+    /// <summary>
     /// 批量保存所有窗口中元素位置信息
     /// </summary>
     public void SaveAllWindowElementsPosition()
     {
         foreach (var i in _frontCanvas)
         {
-            SaveWindowElementsPosition(i.Item1, i.Item2);
+            SaveWindowCanvasElementsPosition(i.Item1, i.Item2);
         }
     }
 
@@ -576,7 +595,7 @@ public class FrontService : IFrontService
 
     private double _lastMove;
 
-    
+
     /// <summary>
     /// 赛制切换
     /// </summary>
