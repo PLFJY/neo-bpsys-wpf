@@ -5,11 +5,11 @@
     xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:enums="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
-    xmlns:enums="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
     Title="SettingPage"
     d:DataContext="{d:DesignInstance Type=vm:SettingPageViewModel,
                                      IsDesignTimeCreatable=True}"
@@ -223,17 +223,27 @@
                     Command="{Binding HopToGameOutputDirCommand}"
                     Content="打开对局文件输出目录"
                     Icon="{ui:SymbolIcon Symbol=Games24}" />
-                <ui:Button
-                    Margin="0,0,10,10"
-                    Command="{Binding HopToLogDirCommand}"
-                    Content="打开日志目录"
-                    Icon="{ui:SymbolIcon Symbol=Games24}" />
             </WrapPanel>
         </Border>
         <TextBlock
-            Margin="0,10,0,0"
+            Margin="0,10,0,10"
             Style="{StaticResource Title}"
             Text="前台UI个性化" />
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <StackPanel Orientation="Horizontal">
+                    <ui:Button
+                        Command="{Binding ExportUiConfigCommand}"
+                        Content="导出当前UI配置"
+                        Icon="{ui:SymbolIcon Symbol=ArrowExportLtr24}" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding ImportUiConfigCommand}"
+                        Content="导入UI配置"
+                        Icon="{ui:SymbolIcon Symbol=ArrowImport24}" />
+                </StackPanel>
+            </Grid>
+        </Border>
         <Border
             Margin="0,10,0,0"
             Padding="10,10,10,10"
@@ -541,6 +551,10 @@
                                             Header="地图BpV2背景" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
+                                            CommandParameter="MapBpV2PickingBorderImageUri"
+                                            Header="地图BpV2待选闪烁框" />
+                                        <MenuItem
+                                            Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="MapBpV2SurIconUri"
                                             Header="地图BpV2求生者图标" />
                                         <MenuItem
@@ -681,6 +695,15 @@
                     Margin="0,0,10,10"
                     Command="{Binding ManualGcCommand}"
                     Content="手动触发GC回收" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding SwitchDebugGlobalScoreCommand}"
+                    Content="切换分数统计调试表格" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding HopToLogDirCommand}"
+                    Content="打开日志目录"
+                    Icon="{ui:SymbolIcon Symbol=DocumentText24}" />
             </WrapPanel>
         </Border>
     </StackPanel>

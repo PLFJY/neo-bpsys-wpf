@@ -3,24 +3,28 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Messaging;
 using Downloader;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Win32;
 using neo_bpsys_wpf.Controls;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Messages;
-using TextSettings = neo_bpsys_wpf.Core.Models.TextSettings;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class SettingPageViewModel : ViewModelBase
 {
-    public IUpdaterService UpdaterService { get; }
-
     public SettingPageViewModel()
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
@@ -33,7 +37,8 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly IFilePickerService _filePickerService;
     private readonly ISharedDataService _sharedDataService;
     private readonly IMessageBoxService _messageBoxService;
-    private readonly DownloadService _downloader;
+    public IUpdaterService UpdaterService { get; }
+    private readonly DownloadService? _downloader;
 
     public SettingPageViewModel(IUpdaterService updaterService, ISettingsHostService settingsHostService,
         ITextSettingsNavigationService textSettingsNavigationService, IFrontService frontService,
@@ -126,6 +131,8 @@ public partial class SettingPageViewModel : ViewModelBase
         _sharedDataService.GlobalScoreTotalMargin = GlobalScoreTotalMargin;
     }
 
+    #region 自动更新
+
     [ObservableProperty] private string _appVersion = string.Empty;
 
     [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(UpdateCheckCommand))]
@@ -188,34 +195,47 @@ public partial class SettingPageViewModel : ViewModelBase
     [RelayCommand]
     private void CancelDownload()
     {
-        _downloader.CancelAsync();
+        _downloader?.CancelAsync();
     }
 
+    public ObservableCollection<string> MirrorList { get; } =
+    [
+        "https://ghproxy.net/",
+        "https://gh.plfjy.top/",
+        "https://ghfast.top/",
+        ""
+    ];
+
+    #endregion
+
+    #region 快捷入口
+
+    /// <summary>
+    /// 跳转到配置目录
+    /// </summary>
     [RelayCommand]
     private static void HopToConfigDir()
     {
-        Process.Start("explorer.exe",
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf"));
+        Process.Start("explorer.exe", AppConstants.AppDataPath);
     }
 
+    /// <summary>
+    /// 跳转到游戏输出目录
+    /// </summary>
     [RelayCommand]
     private static void HopToGameOutputDir()
     {
-        var path = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "neo-bpsys-wpf",
-            "GameInfoOutput"
-        );
+        var path = Path.Combine(AppConstants.AppOutputPath, "GameInfoOutput");
         Process.Start("explorer.exe", path);
     }
 
-    [RelayCommand]
-    private static void HopToLogDir()
-    {
-        Process.Start("explorer.exe",
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "neo-bpsys-wpf", "Log"));
-    }
+    #endregion
 
+    #region 调试选项
+
+    /// <summary>
+    /// 手动触发GC (调试选项)
+    /// </summary>
     [RelayCommand]
     private static void ManualGc()
     {
@@ -223,20 +243,42 @@ public partial class SettingPageViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// 跳转到日志目录
+    /// </summary>
+    [RelayCommand]
+    private static void HopToLogDir()
+    {
+        Process.Start("explorer.exe", AppConstants.LogPath);
+    }
+
+    /// <summary>
+    /// 切换全局分数调试开启状态
+    /// </summary>
+    [RelayCommand]
+    private static void SwitchDebugGlobalScore()
+    {
+        App.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible =
+            !App.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible;
+    }
+
+    #endregion
+
+    #region 前台UI自定义
+
+    /// <summary>
     /// 设置UI图片
     /// </summary>
     /// <param name="setAction">应用设置的Action</param>
-    /// <param name="windowTypes">窗口类型</param>
-    private void SetUiImage(Action<string?> setAction, FrontWindowType[] windowTypes)
+    /// <param name="originalFileName">原始文件名</param>
+    private void SetUiImage(Action<string?> setAction, string? originalFileName = null)
     {
         var fileName = _filePickerService.PickImage();
         if (fileName == null) return;
-        var destDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "neo-bpsys-wpf", "CustomUi");
-        var destFileName = Path.Combine(destDir, Path.GetFileName(fileName));
 
-        if (!Directory.Exists(destDir))
-            Directory.CreateDirectory(destDir);
+        var destFileName = Path.Combine(AppConstants.CustomUiPath, Path.GetFileName(fileName));
+
+        if (!Directory.Exists(AppConstants.CustomUiPath))
+            Directory.CreateDirectory(AppConstants.CustomUiPath);
 
         try
         {
@@ -250,30 +292,48 @@ public partial class SettingPageViewModel : ViewModelBase
 
         setAction.Invoke(destFileName);
         _settingsHostService.SaveConfig();
+        if (originalFileName == null) return;
+        try
+        {
+            File.Delete(originalFileName);
+        }
+        catch
+        {
+            // ignored
+        }
     }
 
     [RelayCommand]
     private void EditBpWindowImages(string arg)
     {
         var settings = _settingsHostService.Settings.BpWindowSettings;
-
-        var propertyMap = new Dictionary<string, Action<string?>>
+        //Value Tuple的Value1是应用的行为，Value2是原设置中的文件名
+        var propertyMap = new Dictionary<string, (Action<string?>, string?)>
         {
-            { "BgImageUri", value => settings.BgImageUri = value },
-            { "CurrentBanLockImageUri", value => settings.CurrentBanLockImageUri = value },
-            { "GlobalBanLockImageUri", value => settings.GlobalBanLockImageUri = value },
-            { "PickingBorderImageUri", value => settings.PickingBorderImageUri = value }
+            { "BgImageUri", (value => settings.BgImageUri = value, settings.BgImageUri) },
+            {
+                "CurrentBanLockImageUri",
+                (value => settings.CurrentBanLockImageUri = value, settings.CurrentBanLockImageUri)
+            },
+            {
+                "GlobalBanLockImageUri",
+                (value => settings.GlobalBanLockImageUri = value, settings.GlobalBanLockImageUri)
+            },
+            {
+                "PickingBorderImageUri",
+                (value => settings.PickingBorderImageUri = value, settings.PickingBorderImageUri)
+            }
         };
 
-        if (!propertyMap.TryGetValue(arg, out var action)) return;
-        SetUiImage(action, [FrontWindowType.BpWindow]);
+        if (!propertyMap.TryGetValue(arg, out var valueTuple)) return;
+        SetUiImage(valueTuple.Item1, valueTuple.Item2);
     }
 
     [RelayCommand]
     private void EditCutSceneWindowImages()
     {
         var settings = _settingsHostService.Settings.CutSceneWindowSettings;
-        SetUiImage(value => { settings.BgUri = value; }, [FrontWindowType.CutSceneWindow]);
+        SetUiImage(value => { settings.BgUri = value; }, settings.BgUri);
     }
 
     public bool IsTalentAndTraitBlackVerEnable
@@ -299,17 +359,23 @@ public partial class SettingPageViewModel : ViewModelBase
     {
         var settings = _settingsHostService.Settings.ScoreWindowSettings;
 
-        var propertyMap = new Dictionary<string, Action<string?>>
+        //Value Tuple的Value1是应用的行为，Value2是原设置中的文件名
+        var propertyMap = new Dictionary<string, (Action<string?>, string?)>
         {
-            { "SurScoreBgImageUri", value => settings.SurScoreBgImageUri = value },
-            { "HunScoreBgImageUri", value => settings.HunScoreBgImageUri = value },
-            { "GlobalScoreBgImageUri", value => settings.GlobalScoreBgImageUri = value },
-            { "GlobalScoreBgImageUriBo3", value => settings.GlobalScoreBgImageUriBo3 = value }
+            { "SurScoreBgImageUri", (value => settings.SurScoreBgImageUri = value, settings.SurScoreBgImageUri) },
+            { "HunScoreBgImageUri", (value => settings.HunScoreBgImageUri = value, settings.HunScoreBgImageUri) },
+            {
+                "GlobalScoreBgImageUri",
+                (value => settings.GlobalScoreBgImageUri = value, settings.GlobalScoreBgImageUri)
+            },
+            {
+                "GlobalScoreBgImageUriBo3",
+                (value => settings.GlobalScoreBgImageUriBo3 = value, settings.GlobalScoreBgImageUriBo3)
+            }
         };
 
-        if (!propertyMap.TryGetValue(arg, out var action)) return;
-        SetUiImage(action,
-            [FrontWindowType.ScoreSurWindow, FrontWindowType.ScoreHunWindow, FrontWindowType.ScoreGlobalWindow]);
+        if (!propertyMap.TryGetValue(arg, out var valueTuple)) return;
+        SetUiImage(valueTuple.Item1, valueTuple.Item2);
     }
 
     [ObservableProperty] private double _globalScoreTotalMargin = 390;
@@ -347,7 +413,7 @@ public partial class SettingPageViewModel : ViewModelBase
     private void EditGameDataWindowImages()
     {
         var settings = _settingsHostService.Settings.GameDataWindowSettings;
-        SetUiImage(value => { settings.BgImageUri = value; }, [FrontWindowType.GameDataWindow]);
+        SetUiImage(value => { settings.BgImageUri = value; }, settings.BgImageUri);
     }
 
 
@@ -374,17 +440,28 @@ public partial class SettingPageViewModel : ViewModelBase
     {
         var settings = _settingsHostService.Settings.WidgetsWindowSettings;
 
-        var propertyMap = new Dictionary<string, Action<string?>>
+        //Value Tuple的Value1是应用的行为，Value2是原设置中的文件名
+        var propertyMap = new Dictionary<string, (Action<string?>, string?)>
         {
-            { "MapBpBgUri", value => settings.MapBpBgUri = value },
-            { "MapBpV2BgUri", value => settings.MapBpV2BgUri = value },
-            { "BpOverviewBgUri", value => settings.BpOverviewBgUri = value },
-            { "CurrentBanLockImageUri", value => settings.CurrentBanLockImageUri = value },
-            { "GlobalBanLockImageUri", value => settings.GlobalBanLockImageUri = value },
+            { "MapBpBgUri", (value => settings.MapBpBgUri = value, settings.MapBpBgUri) },
+            { "MapBpV2BgUri", (value => settings.MapBpV2BgUri = value, settings.MapBpV2BgUri) },
+            {
+                "MapBpV2PickingBorderImageUri",
+                (value => settings.MapBpV2PickingBorderImageUri = value, settings.MapBpV2PickingBorderImageUri)
+            },
+            { "BpOverviewBgUri", (value => settings.BpOverviewBgUri = value, settings.BpOverviewBgUri) },
+            {
+                "CurrentBanLockImageUri",
+                (value => settings.CurrentBanLockImageUri = value, settings.CurrentBanLockImageUri)
+            },
+            {
+                "GlobalBanLockImageUri",
+                (value => settings.GlobalBanLockImageUri = value, settings.GlobalBanLockImageUri)
+            }
         };
 
-        if (!propertyMap.TryGetValue(arg, out var action)) return;
-        SetUiImage(action, [FrontWindowType.WidgetsWindow]);
+        if (!propertyMap.TryGetValue(arg, out var valueTuple)) return;
+        SetUiImage(valueTuple.Item1, valueTuple.Item2);
     }
 
     [RelayCommand]
@@ -459,11 +536,355 @@ public partial class SettingPageViewModel : ViewModelBase
     public Dictionary<string, TextSettings> WidgetsWindowTextSettings { get; }
     public TextSettings? SelectedWidgetsWindowTextSettings { get; set; }
 
-    public ObservableCollection<string> MirrorList { get; } =
-    [
-        "https://ghproxy.net/",
-        "https://gh.plfjy.top/",
-        "https://ghfast.top/",
-        ""
-    ];
+    #endregion
+
+    #region 前台UI导入导出
+
+    //==============================================================
+    // bpui文件目录结构:
+    // *.bpui/
+    // ├── CustomUi/
+    // ├── FrontElementsConfig/
+    // └── Config.json
+    // 导出过程：先触发一次UI保存逻辑，复制Config.json到临时目录
+    // 导入UI对象，利用反射拿到所有自定义UI的路径，复制所有自定义UI文件到临时目录
+    // 复制前台元素位置文件到临时目录
+    // 打包，改名，输出
+    // 
+    // 导入过程: 读取文件，解压，复制，覆盖，删除
+    //==============================================================
+
+    /// <summary>
+    /// 临时文件路径
+    /// </summary>
+    private static readonly string TempPath = Path.Combine(AppConstants.AppTempPath, "UiPackage");
+
+    /// <summary>
+    /// 自定义UI临时文件路径
+    /// </summary>
+    private static readonly string CustomUiTempPath = Path.Combine(TempPath, "CustomUi");
+
+    /// <summary>
+    /// 配置临时文件路径
+    /// </summary>
+    private static readonly string ConfigTempPath = Path.Combine(TempPath, "Config.json");
+
+    /// <summary>
+    /// 前台元素位置临时文件路径
+    /// </summary>
+    private static readonly string FrontElementsConfigTempPath = Path.Combine(TempPath, "FrontElementsConfig");
+
+    /// <summary>
+    /// 导出UI配置
+    /// </summary>
+    [RelayCommand]
+    private async Task ExportUiConfigAsync()
+    {
+        //打开通用对话框选择保存路径
+        var dialog = new SaveFileDialog
+        {
+            Filter = "bpui文件(*.bpui)|*.bpui|所有文件(*.*)|*.*",
+            DefaultExt = ".bpui",
+            AddExtension = true,
+            DefaultDirectory = AppConstants.AppOutputPath,
+            Title = "保存为",
+            FileName = "saved_ui",
+            OverwritePrompt = false
+        };
+        var result = (bool)dialog.ShowDialog()!;
+        //如果用户没选择直接退出
+        if (!result) return;
+
+        //准备一些路径
+        var savePath = dialog.FileName;
+        //先保存一遍配置保证地址格式已被转换
+        _settingsHostService.SaveConfig();
+        try
+        {
+            //创建临时文件夹
+            if (Directory.Exists(TempPath))
+                Directory.Delete(TempPath, true);
+
+            Directory.CreateDirectory(TempPath);
+
+            //复制Config文件
+            File.Copy(AppConstants.ConfigFilePath, ConfigTempPath);
+            //复制自定义UI
+            CopyCustomUiToTemp(_settingsHostService.Settings, CustomUiTempPath);
+            //复制前台配置文件
+            foreach (var valueTuple in _frontService.FrontCanvas)
+            {
+                var windowName = _frontService.GetWindowName(valueTuple.Item1);
+                if (windowName == null) continue;
+                CopyFrontElementsPositionFileToTemp(windowName, valueTuple.Item2);
+            }
+
+            //打包
+            var zipPath = Path.Combine(AppConstants.AppTempPath, Path.GetFileName(savePath));
+            if (File.Exists(zipPath)) File.Delete(zipPath);
+            ZipFile.CreateFromDirectory(TempPath, zipPath);
+            //保存
+            if (await _messageBoxService.ShowConfirmAsync("覆盖提示", $"{savePath}已存在，是否覆盖"))
+                File.Delete(savePath);
+            else
+            {
+                //删除作案痕迹
+                Directory.Delete(TempPath, true);
+                File.Delete(zipPath);
+                return;
+            }
+
+            File.Copy(zipPath, savePath);
+            //删除作案痕迹
+            Directory.Delete(TempPath, true);
+            File.Delete(zipPath);
+            //提示用户已完成
+            await _messageBoxService.ShowInfoAsync($"UI 配置已被保存为{savePath}");
+        }
+        catch (Exception e)
+        {
+            await _messageBoxService.ShowErrorAsync(e.Message, "打包UI错误");
+        }
+    }
+
+    /// <summary>
+    /// 复制自定义UI位置文件
+    /// </summary>
+    /// <param name="windowName">窗口名称</param>
+    /// <param name="canvasName">画布名称</param>
+    private static void CopyFrontElementsPositionFileToTemp(string windowName,
+        string canvasName = "BaseCanvas")
+    {
+        var path = Path.Combine(AppConstants.AppDataPath, $"{windowName}Config-{canvasName}.json");
+        var destPath = Path.Combine(FrontElementsConfigTempPath, $"{windowName}Config-{canvasName}.json");
+        if (!Directory.Exists(FrontElementsConfigTempPath)) Directory.CreateDirectory(FrontElementsConfigTempPath);
+        if (File.Exists(path))
+            File.Copy(path, destPath);
+    }
+
+    /// <summary>
+    /// 复制自定义UI图片文件
+    /// </summary>
+    /// <param name="settings">设置</param>
+    /// <param name="targetPath">目标路径</param>
+    private static void CopyCustomUiToTemp(Settings settings, string targetPath)
+    {
+        var paths = CollectValidImagePathsIterative(settings);
+        if (!Directory.Exists(targetPath)) Directory.CreateDirectory(targetPath);
+        foreach (var path in paths)
+        {
+            File.Copy(path, Path.Combine(targetPath, Path.GetFileName(path)), true);
+        }
+    }
+
+    /// <summary>
+    /// 递归获取有效的图片路径
+    /// </summary>
+    /// <param name="root">根对象</param>
+    /// <returns>有效的图片路径</returns>
+    private static HashSet<string> CollectValidImagePathsIterative(object root)
+    {
+        var validPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var visitedObjects = new HashSet<object>(ReferenceEqualityComparer.Instance);
+        var queue = new Queue<object>();
+
+        queue.Enqueue(root);
+        visitedObjects.Add(root);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            var type = current.GetType();
+
+            // 仅处理我们关心的命名空间（避免进入WPF内部对象）
+            if (!type.Namespace?.StartsWith("neo_bpsys_wpf.Core.Models") == true)
+                continue;
+
+            // 处理当前对象的所有属性
+            foreach (var prop in GetRelevantProperties(type))
+            {
+                try
+                {
+                    var value = prop.GetValue(current);
+
+                    // 处理字符串属性（图片URI）
+                    if (prop.PropertyType == typeof(string))
+                    {
+                        ProcessStringProperty(value as string, validPaths);
+                    }
+                    // 处理嵌套对象
+                    else if (value != null &&
+                             !visitedObjects.Contains(value) &&
+                             !IsWpfResourceType(prop.PropertyType))
+                    {
+                        visitedObjects.Add(value);
+                        queue.Enqueue(value);
+                    }
+                }
+                catch
+                {
+                    // 忽略无法访问的属性
+                }
+            }
+        }
+
+        return validPaths;
+    }
+
+    /// <summary>
+    /// 获取所有可访问的属性路径
+    /// </summary>
+    /// <param name="type">类型</param>
+    /// <returns>属性信息列表</returns>
+    private static IEnumerable<PropertyInfo> GetRelevantProperties(Type type)
+    {
+        // 仅获取：公共实例属性 + 非索引器 + (字符串或自定义类型)
+        return type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.GetIndexParameters().Length == 0 &&
+                        (p.PropertyType == typeof(string) ||
+                         !p.PropertyType.IsValueType));
+    }
+
+    /// <summary>
+    /// 获取所有可序列化的属性
+    /// </summary>
+    /// <param name="path">路径</param>
+    /// <param name="validPaths">有效路径列表</param>
+    private static void ProcessStringProperty(string? path, HashSet<string> validPaths)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return;
+
+        // 排除WPF资源路径
+        if (path.StartsWith("pack://", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        // 排除颜色代码（#FFFFFFFF）
+        if (Regex.IsMatch(path, "^#[0-9A-Fa-f]{6,8}$"))
+            return;
+
+        // 处理环境变量
+        var expandedPath = Environment.ExpandEnvironmentVariables(path);
+
+        // 规范化路径
+        if (TryNormalizePath(expandedPath, out var normalizedPath) &&
+            File.Exists(normalizedPath))
+        {
+            validPaths.Add(normalizedPath);
+        }
+    }
+
+    /// <summary>
+    /// 是否是WPF的资源类型，如果是返回否，不进行递归
+    /// </summary>
+    /// <param name="type">类型</param>
+    /// <returns>是否是WPF的资源类型</returns>
+    private static bool IsWpfResourceType(Type type)
+    {
+        // 排除WPF资源类型，防止进入复杂对象图
+        return type.Namespace?.StartsWith("System.Windows") == true ||
+               type.Namespace?.StartsWith("System.Media") == true ||
+               type == typeof(FontFamily) ||
+               type == typeof(Brush) ||
+               type == typeof(ImageSource);
+    }
+
+    /// <summary>
+    /// 尝试使路径规则化
+    /// </summary>
+    /// <param name="inputPath">输入路径</param>
+    /// <param name="normalizedPath">正规化后的路径</param>
+    /// <returns>是否成功</returns>
+    private static bool TryNormalizePath(string inputPath, out string? normalizedPath)
+    {
+        normalizedPath = null;
+
+        try
+        {
+            // 获取绝对路径，确保路径斜线格式正确
+            var cleanPath = Path.GetFullPath(
+                inputPath.Replace('/', Path.DirectorySeparatorChar)
+                    .Replace('\\', Path.DirectorySeparatorChar)
+            );
+
+            // 验证路径是否在应用程序目录或用户目录内（安全检查）
+            var appDir = AppDomain.CurrentDomain.BaseDirectory;
+            var userDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+
+            if (cleanPath.StartsWith(appDir, StringComparison.OrdinalIgnoreCase) ||
+                cleanPath.StartsWith(userDir, StringComparison.OrdinalIgnoreCase))
+            {
+                normalizedPath = cleanPath;
+                return true;
+            }
+        }
+        catch
+        {
+            // ignored
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 导入UI配置
+    /// </summary>
+    [RelayCommand]
+    private async Task ImportUiConfigAsync()
+    {
+        //打开通用对话框选择保存路径
+        var dialog = new OpenFileDialog()
+        {
+            Filter = "bpui文件(*.bpui)|*.bpui|所有文件(*.*)|*.*",
+            InitialDirectory = AppConstants.AppOutputPath,
+            RestoreDirectory = false
+        };
+        var result = (bool)dialog.ShowDialog()!;
+        //如果用户没选择直接退出
+        if (!result) return;
+
+        //准备ui文件名
+        var uiFilePath = dialog.FileName;
+
+        //如果存在了文件夹直接删除
+        if (Directory.Exists(TempPath))
+            Directory.Delete(TempPath, true);
+
+        try
+        {
+            //解压UI包
+            ZipFile.ExtractToDirectory(uiFilePath, TempPath);
+
+            //拷贝配置文件
+            File.Copy(ConfigTempPath, AppConstants.ConfigFilePath, true);
+
+            //拷贝自定义UI图片
+            var customUiFiles = Directory.GetFiles(CustomUiTempPath);
+            foreach (var customUiFile in customUiFiles)
+            {
+                File.Copy(customUiFile, Path.Combine(AppConstants.CustomUiPath, Path.GetFileName(customUiFile)), true);
+            }
+            
+            //拷贝前台位置配置文件
+            var frontElementConfigures = Directory.GetFiles(FrontElementsConfigTempPath);
+            foreach (var frontElementConfigure in frontElementConfigures)
+            {
+                File.Copy(frontElementConfigure, Path.Combine(AppConstants.AppDataPath, Path.GetFileName(frontElementConfigure)), true);
+            }
+            
+            //清理作案痕迹
+            Directory.Delete(TempPath, true);
+
+            //告诉用户已经导入完了
+            await _messageBoxService.ShowInfoAsync("UI导入完成，应用将自动重启", "UI 导入提示");
+            
+            //重启应用程序
+            App.Restart();
+        }
+        catch (Exception e)
+        {
+            await _messageBoxService.ShowErrorAsync(e.Message, "加载UI包失败");
+        }
+    }
+
+    #endregion
 }

@@ -121,13 +121,13 @@ public partial class BpWindowSettings : ViewModelBase
     [JsonIgnore] public ImageSource? BgImage => ImageHelper.GetUiImageFromSetting(BgImageUri, "bp");
 
     [JsonIgnore]
-    public ImageSource? CurrentBanLockImage => ImageHelper.GetUiImageFromSetting(BgImageUri, "CurrentBanLock");
+    public ImageSource? CurrentBanLockImage => ImageHelper.GetUiImageFromSetting(CurrentBanLockImageUri, "CurrentBanLock");
 
     [JsonIgnore]
-    public ImageSource? GlobalBanLockImage => ImageHelper.GetUiImageFromSetting(BgImageUri, "GlobalBanLock");
+    public ImageSource? GlobalBanLockImage => ImageHelper.GetUiImageFromSetting(GlobalBanLockImageUri, "GlobalBanLock");
 
     [JsonIgnore]
-    public ImageSource? PickingBorderImage => ImageHelper.GetUiImageFromSetting(BgImageUri, "pickingBorder");
+    public ImageSource? PickingBorderImage => ImageHelper.GetUiImageFromSetting(PickingBorderImageUri, "pickingBorder");
 }
 
 /// <summary>
@@ -312,7 +312,7 @@ public partial class WidgetsWindowSettings : ViewModelBase
     private string? _mapBpV2BgUri;
 
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(MapBpV2PickBorderImage))]
-    private string? _mapBpV2PickBorderImageUri;
+    private string? _mapBpV2PickingBorderImageUri;
 
     public bool IsCampIconBlackVerEnabled { get; set; }
 
@@ -343,7 +343,7 @@ public partial class WidgetsWindowSettings : ViewModelBase
 
     [JsonIgnore]
     public ImageSource? MapBpV2PickBorderImage =>
-        ImageHelper.GetUiImageFromSetting(MapBpV2PickBorderImageUri, "pickingBorder");
+        ImageHelper.GetUiImageFromSetting(MapBpV2PickingBorderImageUri, "pickingBorder");
 
     [JsonIgnore]
     public ImageSource? BpOverviewBgImage => ImageHelper.GetUiImageFromSetting(BpOverviewBgUri, "bpOverview");

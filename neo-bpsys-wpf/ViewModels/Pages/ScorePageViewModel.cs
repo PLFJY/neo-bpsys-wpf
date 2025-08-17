@@ -34,7 +34,7 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
 #endif
     }
 
-    public bool IsDebugContentVisible { get; set; }
+    [ObservableProperty] private bool _isDebugContentVisible;
 
     public Team MainTeam => _sharedDataService.MainTeam;
     public Team AwayTeam => _sharedDataService.AwayTeam;
@@ -386,7 +386,7 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
         { GameProgress.Game5ExtraSecondHalf, "第5局加赛下半" }
     };
 
-    public static OrderedDictionary<GameProgress, string> GameListBo3 => new()
+    private static OrderedDictionary<GameProgress, string> GameListBo3 => new()
     {
         { GameProgress.Game1FirstHalf, "第1局上半" },
         { GameProgress.Game1SecondHalf, "第1局下半" },

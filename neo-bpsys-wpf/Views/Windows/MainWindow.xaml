@@ -25,7 +25,7 @@
     <ui:FluentWindow.Resources>
         <ResourceDictionary>
             <cv:ApplicationThemeToBooleanConverter x:Key="ApplicationThemeToBooleanConverter" />
-            <!--  Them Change Animation  -->
+            <!--  Theme Change Animation  -->
             <Storyboard x:Key="LightToDark">
                 <DoubleAnimation
                     Storyboard.TargetName="themeMask"

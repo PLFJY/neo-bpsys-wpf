@@ -1,4 +1,5 @@
 ﻿using neo_bpsys_wpf.Core.Enums;
+using System.Windows;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
@@ -7,6 +8,18 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 /// </summary>
 public interface IFrontService
 {
+    /// <summary>
+    /// 前台画布列表
+    /// </summary>
+    List<(FrontWindowType, string)> FrontCanvas { get; }
+    /// <summary>
+    /// 前台窗口列表
+    /// </summary>
+    Dictionary<FrontWindowType, Window> FrontWindows { get; }
+    /// <summary>
+    /// 前台窗口状态列表
+    /// </summary>
+    Dictionary<FrontWindowType, bool> FrontWindowStates { get; }
     /// <summary>
     /// 隐藏全部窗口
     /// </summary>
@@ -51,11 +64,21 @@ public interface IFrontService
     /// <param name="controlNameFooter">控件名称尾</param>
     /// <returns></returns>
     void FadeOutAnimation(FrontWindowType windowType, string controlNameHeader, int controlIndex, string controlNameFooter);
+
+    /// <summary>
+    /// 获取窗口名称
+    /// </summary>
+    /// <param name="windowType"></param>
+    /// <returns></returns>
+    string? GetWindowName(FrontWindowType windowType);
+
     /// <summary>
     /// 隐藏窗口
     /// </summary>
     /// <param name="windowType">窗口类型</param>
     void HideWindow(FrontWindowType windowType);
+    void RegisterFrontWindowAndCanvas(FrontWindowType windowType, Window window, string canvasName = "BaseCanvas");
+
     /// <summary>
     /// 重置全局分数
     /// </summary>

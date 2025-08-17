@@ -583,16 +583,6 @@
                         <Setter Property="PickingBorderImage" Value="{Binding Settings.MapBpV2PickBorderImage}" />
                         <Setter Property="PickingBorderBrush" Value="{Binding Settings.MapBpV2_PickingBorderBrush}" />
                     </Style>
-                    <Storyboard
-                        x:Key="MapV2BreathAnimation"
-                        AutoReverse="True"
-                        RepeatBehavior="Forever">
-                        <DoubleAnimation
-                            Storyboard.TargetProperty="Opacity"
-                            From="0.25"
-                            To="1"
-                            Duration="0:0:1" />
-                    </Storyboard>
                 </Canvas.Resources>
                 <controls:MapV2Presenter
                     x:Name="Arms_Factory"

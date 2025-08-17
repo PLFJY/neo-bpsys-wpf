@@ -1,4 +1,5 @@
 using System.IO;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -119,21 +120,39 @@ public static class ImageHelper
         );
         return !File.Exists(fileName) ? null : new BitmapImage(new Uri(fileName));
     }
-
+    
+    /// <summary>
+    /// 获取Ui图片
+    /// </summary>
+    /// <param name="uriStr">图片uri</param>
+    /// <returns></returns>
     public static ImageSource? GetImageFromUriStr(string? uriStr)
     {
         if (string.IsNullOrEmpty(uriStr)) return null;
-        ImageSource? img = null;
+        uriStr = Environment.ExpandEnvironmentVariables(uriStr);
+
         try
         {
-            img = new BitmapImage(new Uri(uriStr));
+            var bitmapImage = new BitmapImage();
+            bitmapImage.BeginInit();
+            bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+            using (Stream ms = new MemoryStream(File.ReadAllBytes(uriStr)))
+            {
+                bitmapImage.StreamSource = ms;
+                bitmapImage.EndInit();
+                bitmapImage.Freeze();
+            }
+            return bitmapImage;
         }
-        catch
+        catch (Exception ex)
         {
             // ignored
+#if DEBUG
+            MessageBox.Show(ex.Message);
+#endif
         }
 
-        return img;
+        return null;
     }
 
     public static ImageSource? GetUiImageFromSetting(string? uriStr, string defaultKey)

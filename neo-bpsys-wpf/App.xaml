@@ -15,7 +15,7 @@
                 <ResourceDictionary Source="/Controls/CustomControlsStyleDictionary.xaml" />
                 <!--  Styles  -->
                 <ResourceDictionary Source="/Styles/ToggleButtonStyles.xaml" />
-                <ResourceDictionary Source="/Styles/Card.xaml" />
+                <ResourceDictionary Source="/neo-bpsys-wpf.Core;component/Styles/Card.xaml" />
                 <ResourceDictionary Source="/Styles/TitleBarButtonStyles.xaml" />
                 <ResourceDictionary Source="/Styles/HighlightStyle.xaml" />
                 <ResourceDictionary Source="/Styles/DefaultColorPickerStyle.xaml" />

@@ -173,7 +173,7 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         public MapV2 Map { get; } = map ?? new MapV2(null);
 
         public ImageSource? ImageSource { get; } =
-            ImageHelper.GetImageSourceFromName(ImageSourceKey.map_singleColor, map?.MapName.ToString());
+            ImageHelper.GetImageSourceFromName(ImageSourceKey.map, map?.MapName.ToString());
     }
 
     public class BanMapInfo(MapV2 map)

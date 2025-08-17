@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Windows;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -37,7 +38,7 @@ public class UpdaterService : IUpdaterService
             BaseAddress = new Uri(GitHubApiBaseUrl)
         };
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-        _httpClient.DefaultRequestHeaders.Add("User-Agent", "neo-bpsys-wpf");
+        _httpClient.DefaultRequestHeaders.Add("User-Agent", AppConstants.AppName);
         _messageBoxService = messageBoxService;
         _infoBarService = infoBarService;
         var downloadOpt = new DownloadConfiguration()

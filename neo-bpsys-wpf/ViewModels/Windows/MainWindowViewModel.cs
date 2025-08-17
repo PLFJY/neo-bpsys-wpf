@@ -17,6 +17,7 @@ using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using Game = neo_bpsys_wpf.Core.Models.Game;
 using Team = neo_bpsys_wpf.Core.Models.Team;
+using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
@@ -153,11 +154,7 @@ public partial class MainWindowViewModel :
         try
         {
             var json = JsonSerializer.Serialize(CurrentGame, _jsonSerializerOptions);
-            var path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                "neo-bpsys-wpf",
-                "GameInfoOutput"
-            );
+            var path = Path.Combine(AppConstants.AppOutputPath, "GameInfoOutput");
             var fullPath = Path.Combine(path, $"{CurrentGame.StartTime:yyyy-MM-dd-HH-mm-ss}.json");
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
