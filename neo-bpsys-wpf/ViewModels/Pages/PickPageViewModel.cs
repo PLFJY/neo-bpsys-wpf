@@ -1,22 +1,23 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.Controls;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Messages;
-using neo_bpsys_wpf.Models;
-using neo_bpsys_wpf.Views.Windows;
+using neo_bpsys_wpf.Core.Models;
 using System.Collections.ObjectModel;
-using neo_bpsys_wpf.Abstractions.ViewModels;
+using System.ComponentModel;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Messages;
+using CharaSelectViewModelBase = neo_bpsys_wpf.Core.Abstractions.ViewModels.CharaSelectViewModelBase;
+using Team = neo_bpsys_wpf.Core.Models.Team;
+using System.Windows.Media.Imaging;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMessage>
 {
-#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     public PickPageViewModel()
-#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -132,7 +133,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
     public Team AwayTeam => _sharedDataService.AwayTeam;
 
     public ObservableCollection<bool> SurPickingBorderList { get; set; } =
-        [.. Enumerable.Range(0, 4).Select(i => false)];
+        [.. Enumerable.Range(0, 4).Select(_ => false)];
 
     [ObservableProperty] private bool _hunPickingBorder;
 
@@ -144,36 +145,39 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
     public ObservableCollection<AwayHunGlobalBanRecordViewModel> AwayHunGlobalBanRecordViewModelList { get; set; }
 
     //基于模板基类的VM实现
-    public partial class SurPickViewModel :
-        Abstractions.ViewModels.CharaSelectViewModelBase,
-        IRecipient<CharacterSwappedMessage>,
-        IRecipient<PlayerSwappedMessage>,
-        IRecipient<MemberPropertyChangedMessage>,
-        IRecipient<SwapMessage>
+    public partial class SurPickViewModel : CharaSelectViewModelBase
     {
         private readonly IFrontService _frontService;
-        public string PlayerName => SharedDataService.CurrentGame.SurPlayerList[Index].Member.Name;
+        public Player ThisPlayer => SharedDataService.CurrentGame.SurPlayerList[Index];
 
         public SurPickViewModel(ISharedDataService sharedDataService, IFrontService frontService, int index = 0) :
             base(sharedDataService, index)
         {
             _frontService = frontService;
             CharaList = sharedDataService.SurCharaList;
+            sharedDataService.CurrentGameChanged += (_, _) =>
+            {
+                ThisPlayer.PropertyChanged -= OnThisPlayerPropertyChanged;
+                OnPropertyChanged(nameof(ThisPlayer));
+                ThisPlayer.PropertyChanged += OnThisPlayerPropertyChanged;
+            };
+            sharedDataService.TeamSwapped += (_, _) => OnPropertyChanged(nameof(ThisPlayer));
+            ThisPlayer.PropertyChanged += OnThisPlayerPropertyChanged;
+        }
+
+        private void OnThisPlayerPropertyChanged(object? sender, PropertyChangedEventArgs args)
+        {
+            if (args.PropertyName == nameof(ThisPlayer.Character)) 
+                ReverseSyncChara();
         }
 
         public override async Task SyncCharaAsync()
         {
             _frontService.FadeOutAnimation(FrontWindowType.BpWindow, "SurPick", Index, string.Empty);
             await Task.Delay(250);
-            SharedDataService.CurrentGame.SurPlayerList[Index].Character = SelectedChara;
+            ThisPlayer.Character = SelectedChara;
             _frontService.FadeInAnimation(FrontWindowType.BpWindow, "SurPick", Index, string.Empty);
-            PreviewImage = SharedDataService.CurrentGame.SurPlayerList[Index].Character?.HeaderImage;
-        }
-
-        private void RevertSyncChara()
-        {
-            SelectedChara = SharedDataService.CurrentGame.SurPlayerList[Index].Character;
-            PreviewImage = SharedDataService.CurrentGame.SurPlayerList[Index].Character?.HeaderImage;
+            PreviewImage = ThisPlayer.Character?.HeaderImage;
         }
 
         [RelayCommand]
@@ -182,52 +186,23 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             _frontService.FadeOutAnimation(FrontWindowType.BpWindow, "SurPick", parameter.Source, string.Empty);
             _frontService.FadeOutAnimation(FrontWindowType.BpWindow, "SurPick", parameter.Target, string.Empty);
             await Task.Delay(250);
-            (SharedDataService.CurrentGame.SurPlayerList[parameter.Target].Character,
-                    SharedDataService.CurrentGame.SurPlayerList[parameter.Source].Character) =
-                (SharedDataService.CurrentGame.SurPlayerList[parameter.Source].Character,
-                    SharedDataService.CurrentGame.SurPlayerList[parameter.Target].Character);
+            SharedDataService.CurrentGame.SwapCharactersInPlayers(parameter.Source, parameter.Target);
             _frontService.FadeInAnimation(FrontWindowType.BpWindow, "SurPick", parameter.Source, string.Empty);
             _frontService.FadeInAnimation(FrontWindowType.BpWindow, "SurPick", parameter.Target, string.Empty);
-            WeakReferenceMessenger.Default.Send(new CharacterSwappedMessage(this));
-            OnPropertyChanged();
         }
 
-        public void Receive(CharacterSwappedMessage message)
+        private void ReverseSyncChara()
         {
-            RevertSyncChara();
+            SelectedChara = SharedDataService.CurrentGame.SurPlayerList[Index].Character;
+            PreviewImage = SharedDataService.CurrentGame.SurPlayerList[Index].Character?.HeaderImage;
         }
 
-        protected override void SyncIsEnabled()
-        {
-            throw new NotImplementedException();
-        }
+        protected override void SyncIsEnabled() => throw new NotImplementedException();
 
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickSur;
-
-        public void Receive(PlayerSwappedMessage message)
-        {
-            OnPropertyChanged(nameof(PlayerName));
-        }
-
-        public void Receive(MemberPropertyChangedMessage message)
-        {
-            OnPropertyChanged(nameof(PlayerName));
-        }
-
-        public void Receive(SwapMessage message)
-        {
-            if (message.IsSwapped)
-                OnPropertyChanged(nameof(PlayerName));
-        }
-
-        public override void Receive(NewGameMessage message)
-        {
-            base.Receive(message);
-            OnPropertyChanged(nameof(PlayerName));
-        }
     }
 
-    public class HunPickViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+    public class HunPickViewModel : CharaSelectViewModelBase
     {
         private readonly IFrontService _frontService;
 
@@ -255,7 +230,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickHun;
     }
 
-    public class MainSurGlobalBanRecordViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+    public class MainSurGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;
 
@@ -285,7 +260,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         protected override bool IsActionNameCorrect(GameAction? action) => false;
     }
 
-    public class MainHunGlobalBanRecordViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+    public class MainHunGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;
 
@@ -312,7 +287,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         protected override bool IsActionNameCorrect(GameAction? action) => false;
     }
 
-    public class AwaySurGlobalBanRecordViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+    public class AwaySurGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;
 
@@ -339,7 +314,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         protected override bool IsActionNameCorrect(GameAction? action) => false;
     }
 
-    public class AwayHunGlobalBanRecordViewModel : Abstractions.ViewModels.CharaSelectViewModelBase
+    public class AwayHunGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;
 

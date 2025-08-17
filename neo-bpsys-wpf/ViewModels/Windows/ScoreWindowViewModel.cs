@@ -1,29 +1,25 @@
-﻿using System.Windows;
-using System.Windows.Media;
+﻿using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
-using neo_bpsys_wpf.Abstractions.Services;
-using neo_bpsys_wpf.Abstractions.ViewModels;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Helpers;
-using neo_bpsys_wpf.Messages;
-using neo_bpsys_wpf.Models;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Messages;
+using neo_bpsys_wpf.Core.Models;
+using Game = neo_bpsys_wpf.Core.Models.Game;
+using Team = neo_bpsys_wpf.Core.Models.Team;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
 public partial class ScoreWindowViewModel :
     ViewModelBase,
-    IRecipient<NewGameMessage>,
     IRecipient<DesignModeChangedMessage>,
-    IRecipient<PropertyChangedMessage<int>>,
-    IRecipient<SettingsChangedMessage>,
-    IRecipient<PropertyChangedMessage<bool>>
+    IRecipient<PropertyChangedMessage<int>>
 {
-#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     public ScoreWindowViewModel()
-#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -35,7 +31,14 @@ public partial class ScoreWindowViewModel :
     {
         _sharedDataService = sharedDataService;
         _settingsHostService = settingsHostService;
-        IsBo3Mode = _sharedDataService.IsBo3Mode;
+        sharedDataService.CurrentGameChanged += (_, _) => OnPropertyChanged(nameof(CurrentGame));
+        sharedDataService.IsBo3ModeChanged += (_, _) => OnPropertyChanged(nameof(IsBo3Mode));
+        settingsHostService.SettingsChanged += (_, _) => OnPropertyChanged(nameof(Settings));
+        settingsHostService.Settings.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(settingsHostService.Settings.ScoreWindowSettings))
+                OnPropertyChanged(nameof(Settings));
+        };
     }
 
     [ObservableProperty] private bool _isDesignMode;
@@ -44,19 +47,15 @@ public partial class ScoreWindowViewModel :
 
     [ObservableProperty] private int _totalAwayMinorPoint;
 
-    [ObservableProperty] private bool _isBo3Mode;
-
-    public void Receive(NewGameMessage message)
-    {
-        if (message.IsNewGameCreated)
-        {
-            OnPropertyChanged(nameof(CurrentGame));
-        }
-    }
+    public bool IsBo3Mode => _sharedDataService.IsBo3Mode;
 
     public void Receive(DesignModeChangedMessage message)
     {
-        if (IsDesignMode != message.IsDesignMode)
+        if (message.FrontWindowType is FrontWindowType.ScoreGlobalWindow 
+                or FrontWindowType.ScoreHunWindow 
+                or FrontWindowType.ScoreSurWindow
+                or FrontWindowType.ScoreWindow
+            && IsDesignMode != message.IsDesignMode)
             IsDesignMode = message.IsDesignMode;
     }
 
@@ -79,35 +78,4 @@ public partial class ScoreWindowViewModel :
     public Team AwayTeam => _sharedDataService.AwayTeam;
 
     public ScoreWindowSettings Settings => _settingsHostService.Settings.ScoreWindowSettings;
-
-    public ImageSource? ScoreGlobalImage =>
-        IsBo3Mode
-            ? Settings.GlobalScoreBgImageUri == null
-                ? ImageHelper.GetUiImageSource("scoreGlobal")
-                : new BitmapImage(new Uri(Settings.GlobalScoreBgImageUri))
-            : Settings.GlobalScoreBgImageUriBo3 == null
-                ? ImageHelper.GetUiImageSource("scoreGlobal_Bo3")
-                : new BitmapImage(new Uri(Settings.GlobalScoreBgImageUriBo3));
-
-    public ImageSource? ScoreSurImage => Settings.SurScoreBgImageUri == null
-        ? ImageHelper.GetUiImageSource("scoreSur")
-        : new BitmapImage(new Uri(Settings.SurScoreBgImageUri));
-
-    public ImageSource? ScoreHunImage => Settings.HunScoreBgImageUri == null
-        ? ImageHelper.GetUiImageSource("scoreHun")
-        : new BitmapImage(new Uri(Settings.HunScoreBgImageUri));
-
-    public void Receive(SettingsChangedMessage message)
-    {
-        if (message.WindowType == FrontWindowType.ScoreGlobalWindow)
-            OnPropertyChanged(nameof(Settings));
-    }
-
-    public void Receive(PropertyChangedMessage<bool> message)
-    {
-        if (message.PropertyName == nameof(ISharedDataService.IsBo3Mode))
-        {
-            IsBo3Mode = message.NewValue;
-        }
-    }
 }

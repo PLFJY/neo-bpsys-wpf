@@ -5,7 +5,7 @@
     xmlns:cc="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:enum="clr-namespace:neo_bpsys_wpf.Enums"
+    xmlns:enum="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -240,7 +240,7 @@
                 </Grid>
             </Grid>
         </Border>
-        <Border Style="{StaticResource Card}" Visibility="{Binding IsDebugContentVisible, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneTime}">
+        <Border Style="{StaticResource Card}" Visibility="{Binding IsDebugContentVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
             <Border.Resources>
                 <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
             </Border.Resources>

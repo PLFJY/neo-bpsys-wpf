@@ -1,19 +1,16 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Abstractions.Services;
-using neo_bpsys_wpf.Abstractions.ViewModels;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Messages;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Views.Windows;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class FrontManagePageViewModel : ViewModelBase
 {
-#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     public FrontManagePageViewModel()
-#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -54,20 +51,21 @@ public partial class FrontManagePageViewModel : ViewModelBase
         _frontService.HideWindow(windowType);
     }
 
-    //前台设计器模式
-    private bool _isDesignMode;
+    #region 设计者模式
 
-    public bool IsDesignMode
+    /// <summary>
+    /// 切换前台设计模式
+    /// </summary>
+    /// <param name="param">[0]参数: 开关信息<br/>[1]参数: 窗口类型</param>
+    [RelayCommand]
+    private void ChangeDesignMode(object?[] param)
     {
-        get => _isDesignMode;
-        set => SetPropertyWithAction(ref _isDesignMode, value, _ =>
+        if (param[0] is not bool isDesignMode || param[1] is not FrontWindowType frontWindowType) return;
+        WeakReferenceMessenger.Default.Send(new DesignModeChangedMessage(this, isDesignMode, frontWindowType));
+        if (!isDesignMode)
         {
-            WeakReferenceMessenger.Default.Send(new DesignModeChangedMessage(this, value));
-            if (!value)
-            {
-                _frontService.SaveAllWindowElementsPosition();
-            }
-        });
+            _frontService.SaveWindowElementsPosition(frontWindowType);
+        }
     }
 
     /// <summary>
@@ -131,9 +129,14 @@ public partial class FrontManagePageViewModel : ViewModelBase
         _frontService.RestoreInitialPositions(FrontWindowType.WidgetsWindow, canvasName);
     }
 
+    /// <summary>
+    /// 重置<see cref="GameDataWindow"/>的配置
+    /// </summary>
     [RelayCommand]
     private void ResetGameDataWindowElementsPosition()
     {
         _frontService.RestoreInitialPositions(FrontWindowType.GameDataWindow);
     }
+
+    #endregion
 }

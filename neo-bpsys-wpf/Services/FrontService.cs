@@ -1,10 +1,7 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
-using neo_bpsys_wpf.Abstractions.Services;
 using neo_bpsys_wpf.AttachedBehaviors;
 using neo_bpsys_wpf.Controls;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Views.Windows;
 using System.IO;
 using System.Text.Json;
@@ -13,10 +10,10 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using neo_bpsys_wpf.Messages;
-using neo_bpsys_wpf.Models;
-using Path = System.IO.Path;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -25,16 +22,27 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public class FrontService : IFrontService
 {
-    private readonly Dictionary<FrontWindowType, Window> _frontWindows = [];
-    private readonly Dictionary<FrontWindowType, bool> _frontWindowStates = [];
+    /// <summary>
+    /// 前台窗口列表
+    /// </summary>
+    public Dictionary<FrontWindowType, Window> FrontWindows { get; private set; } = [];
 
-    private readonly List<(FrontWindowType, string)> _frontCanvas = []; //List<string>是Canvas（们）的名称
+    /// <summary>
+    /// 前台窗口状态列表
+    /// </summary>
+    public Dictionary<FrontWindowType, bool> FrontWindowStates { get; private set; } = [];
+
+    /// <summary>
+    /// 前台画布列表
+    /// </summary>
+    public List<(FrontWindowType, string)> FrontCanvas { get; private set; } = []; //List<string>是Canvas（们）的名称
 
     private static readonly Dictionary<GameProgress, FrameworkElement> MainGlobalScoreControls = [];
     private static readonly Dictionary<GameProgress, FrameworkElement> AwayGlobalScoreControls = [];
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
     private readonly IMessageBoxService _messageBoxService;
+    private readonly ISharedDataService _sharedDataService;
     private readonly ISettingsHostService _settingsHostService;
 
     public FrontService(
@@ -51,10 +59,9 @@ public class FrontService : IFrontService
     )
     {
         _messageBoxService = messageBoxService;
+        _sharedDataService = sharedDataService;
         _settingsHostService = settingsHostService;
-        var savePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "neo-bpsys-wpf");
-        if (!Directory.Exists(savePath)) Directory.CreateDirectory(savePath);
+        if (!Directory.Exists(AppConstants.AppDataPath)) Directory.CreateDirectory(AppConstants.AppDataPath);
         // 注册窗口和画布
         RegisterFrontWindowAndCanvas(FrontWindowType.BpWindow, bpWindow);
         RegisterFrontWindowAndCanvas(FrontWindowType.CutSceneWindow, cutSceneWindow);
@@ -71,42 +78,32 @@ public class FrontService : IFrontService
 
 #if DEBUG
         //记录初始位置
-        foreach (var i in _frontCanvas)
+        foreach (var i in FrontCanvas)
         {
             RecordInitialPositions(i.Item1, i.Item2);
         }
 #endif
 
         //从文件加载位置信息
-        _ = LoadDefaultPosition();
+        _ = LoadElementsPositionOnStartup();
 
         //分数统计部分的消息订阅和部分参数
         _isBo3Mode = sharedDataService.IsBo3Mode;
         _globalScoreTotalMargin = sharedDataService.GlobalScoreTotalMargin;
-        WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>>(this, BoolPropertyChangedRecipient);
-        WeakReferenceMessenger.Default.Register<PropertyChangedMessage<double>>(this,
-            DoublePropertyChangedRecipient);
-        OnBo3ModeChanged();
-    }
-
-    private async Task LoadDefaultPosition()
-    {
-        foreach (var i in _frontCanvas)
-        {
-            await LoadWindowElementsPositionOnStartupAsync(i.Item1, i.Item2);
-        }
+        sharedDataService.GlobalScoreTotalMarginChanged += OnGlobalScoreTotalMarginChanged;
+        sharedDataService.IsBo3ModeChanged += OnBo3ModeChanged;
+        OnBo3ModeChanged(this, EventArgs.Empty);
     }
 
     /// <summary>
-    /// 接收GlobalScoreTotalMargin变更的消息
+    /// 从文件加载位置信息
     /// </summary>
-    /// <param name="recipient"></param>
-    /// <param name="message"></param>
-    private void DoublePropertyChangedRecipient(object recipient, PropertyChangedMessage<double> message)
+    /// <returns></returns>
+    private async Task LoadElementsPositionOnStartup()
     {
-        if (message.PropertyName == nameof(ISharedDataService.GlobalScoreTotalMargin))
+        foreach (var i in FrontCanvas)
         {
-            _globalScoreTotalMargin = message.NewValue;
+            await LoadWindowElementsPositionOnStartupAsync(i.Item1, i.Item2);
         }
     }
 
@@ -116,26 +113,32 @@ public class FrontService : IFrontService
     /// <param name="windowType">窗口类型</param>
     /// <param name="window"></param>
     /// <param name="canvasName"></param>
-    private void RegisterFrontWindowAndCanvas(FrontWindowType windowType, Window window,
+    public void RegisterFrontWindowAndCanvas(FrontWindowType windowType, Window window,
         string canvasName = "BaseCanvas")
     {
-        if (_frontWindows.TryAdd(windowType, window))
+        if (FrontWindows.TryAdd(windowType, window))
         {
-            _frontWindowStates[windowType] = false;
+            FrontWindowStates[windowType] = false;
         }
 
-        if (!_frontCanvas.Contains((windowType, canvasName)))
-            _frontCanvas.Add((windowType, canvasName));
+        if (!FrontCanvas.Contains((windowType, canvasName)))
+            FrontCanvas.Add((windowType, canvasName));
+    }
+
+    public string? GetWindowName(FrontWindowType windowType)
+    {
+        FrontWindows.TryGetValue(windowType, out var window);
+        return window?.GetType().Name;
     }
 
     #region 窗口显示/隐藏管理
 
     public void AllWindowShow()
     {
-        foreach (var window in _frontWindows.Where(pair => !_frontWindowStates[pair.Key]))
+        foreach (var window in FrontWindows.Where(pair => !FrontWindowStates[pair.Key]))
         {
             window.Value.Show();
-            _frontWindowStates[window.Key] = true;
+            FrontWindowStates[window.Key] = true;
         }
 
         Thread.Sleep(250);
@@ -144,22 +147,26 @@ public class FrontService : IFrontService
 
     public void AllWindowHide()
     {
-        foreach (var window in _frontWindows.Where(pair => _frontWindowStates[pair.Key]))
+        foreach (var window in FrontWindows.Where(pair => FrontWindowStates[pair.Key]))
         {
             window.Value.Hide();
-            _frontWindowStates[window.Key] = false;
+            FrontWindowStates[window.Key] = false;
         }
     }
-
+    
+    /// <summary>
+    /// 显示窗口
+    /// </summary>
+    /// <param name="windowType"></param>
     public void ShowWindow(FrontWindowType windowType)
     {
-        if (!_frontWindows.TryGetValue(windowType, out var window))
+        if (!FrontWindows.TryGetValue(windowType, out var window))
         {
             _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "窗口启动错误");
             return;
         }
 
-        if (_frontWindowStates[windowType])
+        if (FrontWindowStates[windowType])
         {
             window.Activate();
             return;
@@ -167,24 +174,28 @@ public class FrontService : IFrontService
         else
         {
             window.Show();
-            _frontWindowStates[windowType] = true;
+            FrontWindowStates[windowType] = true;
         }
 
         Thread.Sleep(250);
         Application.Current.MainWindow?.Activate();
     }
-
+    
+    /// <summary>
+    /// 隐藏窗口
+    /// </summary>
+    /// <param name="windowType"></param>
     public void HideWindow(FrontWindowType windowType)
     {
-        if (!_frontWindows.TryGetValue(windowType, out var window))
+        if (!FrontWindows.TryGetValue(windowType, out var window))
         {
             _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "窗口关闭错误");
             return;
         }
 
-        if (!_frontWindowStates[windowType]) return;
+        if (!FrontWindowStates[windowType]) return;
         window.Hide();
-        _frontWindowStates[windowType] = false;
+        FrontWindowStates[windowType] = false;
     }
 
     #endregion
@@ -256,9 +267,8 @@ public class FrontService : IFrontService
     /// <param name="canvasName">画布名称</param>
     private void RecordInitialPositions(FrontWindowType windowType, string canvasName = "BaseCanvas")
     {
-        if (!_frontWindows.TryGetValue(windowType, out var window)) return;
-        var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.default.json");
+        if (!FrontWindows.TryGetValue(windowType, out var window)) return;
+        var path = Path.Combine(AppConstants.AppDataPath, $"{window.GetType().Name}Config-{canvasName}.default.json");
 
         if (File.Exists(path)) return;
 
@@ -303,13 +313,13 @@ public class FrontService : IFrontService
     }
 
     /// <summary>
-    /// 保存窗口中元素的位置信息
+    /// 保存指定窗口的指定Canvas中元素的位置信息
     /// </summary>
     /// <param name="windowType">窗口类型</param>
     /// <param name="canvasName">画布名称</param>
-    public void SaveWindowElementsPosition(FrontWindowType windowType, string canvasName = "BaseCanvas")
+    public void SaveWindowCanvasElementsPosition(FrontWindowType windowType, string canvasName = "BaseCanvas")
     {
-        if (!_frontWindows.TryGetValue(windowType, out var window))
+        if (!FrontWindows.TryGetValue(windowType, out var window))
         {
             _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "配置文件保存错误");
             return;
@@ -320,8 +330,7 @@ public class FrontService : IFrontService
         var positions = GetElementsPositions(window, canvasName);
         if (positions == null) return;
 
-        var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
+        var path = Path.Combine(AppConstants.AppDataPath, $"{window.GetType().Name}Config-{canvasName}.json");
         try
         {
             var jsonContent = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
@@ -334,13 +343,33 @@ public class FrontService : IFrontService
     }
 
     /// <summary>
+    /// 保存指定窗口的元素位置信息
+    /// </summary>
+    /// <param name="windowType">窗口类型</param>
+    public void SaveWindowElementsPosition(FrontWindowType windowType)
+    {
+        if (windowType == FrontWindowType.ScoreWindow)
+        {
+            SaveWindowElementsPosition(FrontWindowType.ScoreSurWindow);
+            SaveWindowElementsPosition(FrontWindowType.ScoreHunWindow);
+            SaveWindowElementsPosition(FrontWindowType.ScoreGlobalWindow);
+        }
+
+        foreach (var tuple in FrontCanvas.Where(x =>
+                     x.Item1 == windowType))
+        {
+            SaveWindowCanvasElementsPosition(tuple.Item1, tuple.Item2);
+        }
+    }
+
+    /// <summary>
     /// 批量保存所有窗口中元素位置信息
     /// </summary>
     public void SaveAllWindowElementsPosition()
     {
-        foreach (var i in _frontCanvas)
+        foreach (var i in FrontCanvas)
         {
-            SaveWindowElementsPosition(i.Item1, i.Item2);
+            SaveWindowCanvasElementsPosition(i.Item1, i.Item2);
         }
     }
 
@@ -352,14 +381,13 @@ public class FrontService : IFrontService
     private async Task LoadWindowElementsPositionOnStartupAsync(FrontWindowType windowType,
         string canvasName = "BaseCanvas")
     {
-        if (!_frontWindows.TryGetValue(windowType, out var window))
+        if (!FrontWindows.TryGetValue(windowType, out var window))
         {
             await _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "配置文件加载错误");
             return;
         }
 
-        var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
+        var path = Path.Combine(AppConstants.AppDataPath, $"{window.GetType().Name}Config-{canvasName}.json");
         if (!File.Exists(path)) return;
 
         try
@@ -409,7 +437,7 @@ public class FrontService : IFrontService
     /// <param name="canvasName">画布名称</param>
     public async Task RestoreInitialPositions(FrontWindowType windowType, string canvasName = "BaseCanvas")
     {
-        if (!_frontWindows.TryGetValue(windowType, out var window))
+        if (!FrontWindows.TryGetValue(windowType, out var window))
         {
             await _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "前台默认配置恢复错误");
             return;
@@ -426,15 +454,12 @@ public class FrontService : IFrontService
             var json = await File.ReadAllTextAsync(path);
             LoadElementsPositions(canvasName, json, window);
 
-            var customFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "neo-bpsys-wpf", $"{window.GetType().Name}Config-{canvasName}.json");
+            var customFilePath = Path.Combine(AppConstants.AppDataPath, $"{window.GetType().Name}Config-{canvasName}.json");
 
             if (File.Exists(customFilePath))
                 File.Move(customFilePath, customFilePath + ".disabled", true);
 
-            if (File.Exists(path) && Directory.Exists(Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "neo-bpsys-wpf")))
+            if (File.Exists(path) && Directory.Exists(AppConstants.AppDataPath))
                 File.Copy(path, customFilePath, true);
         }
         catch (Exception ex)
@@ -470,7 +495,7 @@ public class FrontService : IFrontService
     /// </summary>
     private void GlobalScoreControlsReg()
     {
-        if (_frontWindows[FrontWindowType.ScoreGlobalWindow].FindName("BaseCanvas") is not Canvas canvas) return;
+        if (FrontWindows[FrontWindowType.ScoreGlobalWindow].FindName("BaseCanvas") is not Canvas canvas) return;
         //主队
         foreach (var progress in Enum.GetValues<GameProgress>())
         {
@@ -591,25 +616,20 @@ public class FrontService : IFrontService
 
     private double _lastMove;
 
-    /// <summary>
-    /// 接收到切换赛制的消息
-    /// </summary>
-    /// <param name="recipient"></param>
-    /// <param name="message"></param>
-    private void BoolPropertyChangedRecipient(object recipient, PropertyChangedMessage<bool> message)
-    {
-        if (message.PropertyName != nameof(ISharedDataService.IsBo3Mode)) return;
-        _isBo3Mode = message.NewValue;
-        OnBo3ModeChanged();
-    }
 
-    private void OnBo3ModeChanged()
+    /// <summary>
+    /// 赛制切换
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="args"></param>
+    private void OnBo3ModeChanged(object? sender, EventArgs args)
     {
-        if (_frontWindows[FrontWindowType.ScoreGlobalWindow] is not ScoreGlobalWindow scoreWindow) return;
+        _isBo3Mode = _sharedDataService.IsBo3Mode;
+        if (FrontWindows[FrontWindowType.ScoreGlobalWindow] is not ScoreGlobalWindow scoreWindow) return;
         if (_isBo3Mode)
         {
-            scoreWindow.BaseCanvas.Background = ImageHelper.GetUiImageBrush(
-                _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageUriBo3 ?? "scoreGlobal_Bo3");
+            scoreWindow.BaseCanvas.Background =
+                new ImageBrush(_settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageBo3);
             foreach (var item in
                      MainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
             {
@@ -630,8 +650,8 @@ public class FrontService : IFrontService
         }
         else
         {
-            scoreWindow.BaseCanvas.Background = ImageHelper.GetUiImageBrush(
-                _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageUri ?? "scoreGlobal");
+            scoreWindow.BaseCanvas.Background =
+                new ImageBrush(_settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImage);
             foreach (var item in
                      MainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3ExtraSecondHalf))
             {
@@ -649,6 +669,18 @@ public class FrontService : IFrontService
         }
     }
 
+
+    /// <summary>
+    /// 接收GlobalScoreTotalMargin变更
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="args"></param>
+    private void OnGlobalScoreTotalMarginChanged(object? sender, EventArgs args)
+    {
+        _globalScoreTotalMargin = _sharedDataService.GlobalScoreTotalMargin;
+        _globalScoreTotalMargin = _sharedDataService.GlobalScoreTotalMargin;
+    }
+
     #endregion
 
     #region 动画
@@ -664,7 +696,7 @@ public class FrontService : IFrontService
         string controlNameFooter)
     {
         var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
-        if (!_frontWindows.TryGetValue(windowType, out var window)) return;
+        if (!FrontWindows.TryGetValue(windowType, out var window)) return;
 
         if (window.FindName(ctrName) is FrameworkElement element)
         {
@@ -684,7 +716,7 @@ public class FrontService : IFrontService
         string controlNameFooter)
     {
         var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
-        if (!_frontWindows.TryGetValue(windowType, out var window)) return;
+        if (!FrontWindows.TryGetValue(windowType, out var window)) return;
         if (window.FindName(ctrName) is FrameworkElement element)
         {
             element.BeginAnimation(UIElement.OpacityProperty,
@@ -703,7 +735,7 @@ public class FrontService : IFrontService
         string controlNameFooter)
     {
         var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
-        if (!_frontWindows.TryGetValue(windowType, out var window)) return;
+        if (!FrontWindows.TryGetValue(windowType, out var window)) return;
         if (window.FindName(ctrName) is not FrameworkElement element) return;
 
         element.Opacity = 0;
@@ -744,7 +776,7 @@ public class FrontService : IFrontService
         string controlNameFooter)
     {
         var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
-        if (!_frontWindows.TryGetValue(windowType, out var window)) return;
+        if (!FrontWindows.TryGetValue(windowType, out var window)) return;
         if (window.FindName(ctrName) is not FrameworkElement element) return;
         if (element.Tag is not Storyboard storyboard) return;
 

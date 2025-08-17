@@ -1,6 +1,6 @@
-﻿using neo_bpsys_wpf.Models;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
+using Player = neo_bpsys_wpf.Core.Models.Player;
 
 namespace neo_bpsys_wpf.Controls;
 

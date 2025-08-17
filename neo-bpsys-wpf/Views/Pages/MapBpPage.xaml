@@ -5,7 +5,6 @@
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:enum="clr-namespace:neo_bpsys_wpf.Enums"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -76,12 +75,12 @@
                     Margin="0,10,0,0"
                     HorizontalAlignment="Left"
                     ItemsSource="{Binding PickedMapSelections}"
-                    SelectedIndex="{Binding SelectedIndex, Mode=OneWay}"
+                    SelectedIndex="{Binding PickedMapIndex, Mode=OneWay}"
                     SelectedValue="{Binding PickedMap}"
-                    SelectedValuePath="Map">
+                    SelectedValuePath="Map.MapName">
                     <ComboBox.ItemContainerStyle>
                         <Style BasedOn="{StaticResource {x:Type ComboBoxItem}}" TargetType="ComboBoxItem">
-                            <Setter Property="IsEnabled" Value="{Binding CanPickInvoke}" />
+                            <Setter Property="IsEnabled" Value="{Binding Map.CanBePicked}" />
                         </Style>
                     </ComboBox.ItemContainerStyle>
                     <ComboBox.ItemTemplate>
@@ -95,7 +94,7 @@
                                     Margin="20,0,0,0"
                                     VerticalAlignment="Center"
                                     FontSize="16"
-                                    Text="{Binding Map}" />
+                                    Text="{Binding Map.MapName}" />
                             </StackPanel>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
@@ -159,9 +158,9 @@
                             <ToggleButton
                                 Margin="0,0,10,10"
                                 Command="{Binding DataContext.BanMapCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                CommandParameter="{Binding Map}"
-                                IsChecked="{Binding IsBanned, Mode=TwoWay}"
-                                IsEnabled="{Binding CanBanInvoke}">
+                                CommandParameter="{Binding Map.MapName}"
+                                IsChecked="{Binding Map.IsBanned}"
+                                IsEnabled="{Binding Map.CanBeBanned}">
                                 <StackPanel IsEnabled="{TemplateBinding IsEnabled}">
                                     <Image
                                         Width="276"
@@ -174,7 +173,7 @@
                                         HorizontalAlignment="Center"
                                         Focusable="False"
                                         FontSize="14"
-                                        Text="{Binding Map}">
+                                        Text="{Binding Map.MapName}">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Style.Triggers>

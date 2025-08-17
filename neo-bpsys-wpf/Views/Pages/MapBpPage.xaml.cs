@@ -11,4 +11,9 @@ public partial class MapBpPage : Page
     {
         InitializeComponent();
     }
+
+    private void PickMapCombobox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+
+    }
 }

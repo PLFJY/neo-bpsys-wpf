@@ -65,6 +65,20 @@ begin
 Dependency_AddDotNet90Desktop;
 Result := True;
 end;
+//卸载时删除用户数据
+procedure CurUninstallStepChanged (CurUninstallStep: TUninstallStep);
+var
+    mres : integer;
+begin
+   case CurUninstallStep of
+     usUninstall:
+       begin
+         mres := MsgBox('是否删除用户数据？(包括日志、自定义UI、自定义设置)', mbConfirmation, MB_YESNO or MB_DEFBUTTON2)
+         if mres = IDYES then
+           DelTree(ExpandConstant('{userappdata}\neo-bpsys-wpf'), True, True, True);
+      end;
+  end;
+end;
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

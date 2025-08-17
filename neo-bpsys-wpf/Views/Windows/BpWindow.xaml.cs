@@ -1,9 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Helpers;
-using neo_bpsys_wpf.Messages;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
+using neo_bpsys_wpf.Core.Messages;
 
 namespace neo_bpsys_wpf.Views.Windows;
 

@@ -2,18 +2,22 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
-using neo_bpsys_wpf.Abstractions.Services;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Messages;
-using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Views.Pages;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
-using neo_bpsys_wpf.Abstractions.ViewModels;
+using neo_bpsys_wpf.Converters;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Messages;
+using neo_bpsys_wpf.Core.Models;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
+using Game = neo_bpsys_wpf.Core.Models.Game;
+using Team = neo_bpsys_wpf.Core.Models.Team;
+using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
@@ -23,9 +27,7 @@ public partial class MainWindowViewModel :
     IRecipient<PropertyChangedMessage<bool>>,
     IRecipient<HighlightMessage>
 {
-#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     public MainWindowViewModel()
-#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑添加 "required" 修饰符或声明为可为 null。
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -35,7 +37,10 @@ public partial class MainWindowViewModel :
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         WriteIndented = true,
-        Converters = { new JsonStringEnumConverter() },
+        Converters =
+        {
+            new JsonStringEnumConverter()
+        }
     };
 
     private readonly IMessageBoxService _messageBoxService;
@@ -104,7 +109,7 @@ public partial class MainWindowViewModel :
     {
         await Task.Delay(60);
         ApplicationThemeManager.Apply(ApplicationTheme);
-        _logger.LogInformation($"Theme changed to {ApplicationTheme}");
+        _logger.LogInformation("Theme changed to {ApplicationTheme1}", ApplicationTheme);
     }
 
     [RelayCommand]
@@ -127,28 +132,18 @@ public partial class MainWindowViewModel :
         var bannedMap = _sharedDataService.CurrentGame.BannedMap;
         var mapV2Dictionary = _sharedDataService.CurrentGame.MapV2Dictionary;
 
-        _sharedDataService.CurrentGame = new Game(surTeam, hunTeam, SelectedGameProgress, pickedMap, bannedMap, mapV2Dictionary);
-
-        //发送新对局已创建的消息
-        WeakReferenceMessenger.Default.Send(new NewGameMessage(this, true));
+        _sharedDataService.CurrentGame =
+            new Game(surTeam, hunTeam, SelectedGameProgress, pickedMap, bannedMap, mapV2Dictionary);
 
         OnPropertyChanged(nameof(CurrentGame));
         await _messageBoxService.ShowInfoAsync($"已成功创建新对局\n{CurrentGame.Guid}", "创建提示");
-        _logger.LogInformation($"New Game Created{CurrentGame.Guid}");
+        _logger.LogInformation("New Game Created{CurrentGameGuid}", CurrentGame.Guid);
     }
 
     [RelayCommand]
     private void Swap()
     {
-        //交换阵营
-        (CurrentGame.SurTeam.Camp, CurrentGame.HunTeam.Camp) =
-            (CurrentGame.HunTeam.Camp, CurrentGame.SurTeam.Camp);
-        //交换队伍
-        (CurrentGame.SurTeam, _sharedDataService.CurrentGame.HunTeam) =
-            (CurrentGame.HunTeam, _sharedDataService.CurrentGame.SurTeam);
-
-        WeakReferenceMessenger.Default.Send(new MemberOnFieldChangedMessage(this));
-        WeakReferenceMessenger.Default.Send(new SwapMessage(this, true));
+        _sharedDataService.CurrentGame.Swap();
         _logger.LogInformation("Team swapped");
         OnPropertyChanged();
     }
@@ -159,23 +154,18 @@ public partial class MainWindowViewModel :
         try
         {
             var json = JsonSerializer.Serialize(CurrentGame, _jsonSerializerOptions);
-            var path = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "neo-bpsys-wpf",
-            "GameInfoOutput"
-        );
+            var path = Path.Combine(AppConstants.AppOutputPath, "GameInfoOutput");
             var fullPath = Path.Combine(path, $"{CurrentGame.StartTime:yyyy-MM-dd-HH-mm-ss}.json");
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
             await File.WriteAllTextAsync(fullPath, json);
             await _messageBoxService.ShowInfoAsync($"已成功保存到\n{fullPath}", "保存提示");
-            _logger.LogInformation($"Save game {CurrentGame.Guid} info successfully");
-
+            _logger.LogInformation("Save game {CurrentGameGuid} info successfully", CurrentGame.Guid);
         }
         catch (Exception ex)
         {
             await _messageBoxService.ShowInfoAsync($"保存失败\n{ex.Message}", "保存提示");
-            _logger.LogError($"Save game {CurrentGame.Guid} info failed\n{ex.Message}");
+            _logger.LogError("Save game {CurrentGameGuid} info failed\n{ExMessage}", CurrentGame.Guid, ex.Message);
         }
     }
 
@@ -185,7 +175,7 @@ public partial class MainWindowViewModel :
     {
         if (int.TryParse(TimerTime, out var time))
         {
-            _logger.LogInformation($"Calling timer started with {time} seconds");
+            _logger.LogInformation("Calling timer started with {Result} seconds", time);
             _sharedDataService.TimerStart(time);
         }
         else
@@ -210,7 +200,7 @@ public partial class MainWindowViewModel :
         if (string.IsNullOrEmpty(result)) return;
         ActionName = result;
         IsGuidanceStarted = true;
-        _logger.LogInformation($"Accepted current step: {result}");
+        _logger.LogInformation("Accepted current step: {Result}", result);
     }
 
     [RelayCommand]
@@ -228,7 +218,7 @@ public partial class MainWindowViewModel :
     {
         _logger.LogInformation("Calling navigating to the next step");
         ActionName = await _gameGuidanceService.NextStepAsync();
-        _logger.LogInformation($"Accepted current step: {ActionName}");
+        _logger.LogInformation("Accepted current step: {S}", ActionName);
         await Task.Delay(250);
     }
 
@@ -237,7 +227,7 @@ public partial class MainWindowViewModel :
     {
         _logger.LogInformation("Calling navigating to the previous step");
         ActionName = await _gameGuidanceService.PrevStepAsync();
-        _logger.LogInformation($"Accepted current step: {ActionName}");
+        _logger.LogInformation("Accepted current step: {S}", ActionName);
         await Task.Delay(250);
     }
 
@@ -258,7 +248,7 @@ public partial class MainWindowViewModel :
             case nameof(IGameGuidanceService.IsGuidanceStarted)
                 when message.NewValue != IsGuidanceStarted:
                 IsGuidanceStarted = message.NewValue;
-                _logger.LogInformation($"Accepted IsGuidanceStarted value: {message.NewValue}");
+                _logger.LogInformation("Accepted IsGuidanceStarted value: {MessageNewValue}", message.NewValue);
                 break;
         }
     }
@@ -273,7 +263,7 @@ public partial class MainWindowViewModel :
             SetProperty(ref _isBo3Mode, value);
             _sharedDataService.IsBo3Mode = _isBo3Mode;
             GameList = !IsBo3Mode ? GameListBo5 : GameListBo3;
-            _logger.LogInformation($"Accepted IsBo3Mode value: {value}");
+            _logger.LogInformation("Accepted IsBo3Mode value: {Value}", value);
         }
     }
 
@@ -285,7 +275,7 @@ public partial class MainWindowViewModel :
     {
         IsSwapHighlighted = message.GameAction == GameAction.PickCamp;
         IsEndGuidanceHighlighted = message.GameAction == GameAction.EndGuidance;
-        _logger.LogInformation($"Accepted highlight message: {message.GameAction}");
+        _logger.LogInformation("Accepted highlight message: {MessageGameAction}", message.GameAction);
     }
 
     public string TimerTime { get; set; } = "30";

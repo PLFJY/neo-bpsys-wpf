@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0-windows7.0</TargetFramework>
+        <RootNamespace>neo_bpsys_wpf.Core</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <UseWpf>true</UseWpf>
+		<CETCompat>false</CETCompat>
+	</PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+      <PackageReference Include="hyjiacan.pinyin4net" Version="4.1.1" />
+      <PackageReference Include="WPF-UI" Version="4.0.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Page Update="Styles\Card.xaml">
+        <Generator>MSBuild:Compile</Generator>
+        <XamlRuntime>Wpf</XamlRuntime>
+        <SubType>Designer</SubType>
+      </Page>
+    </ItemGroup>
+
+</Project>

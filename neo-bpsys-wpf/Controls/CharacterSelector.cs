@@ -1,4 +1,4 @@
-﻿using neo_bpsys_wpf.Models;
+﻿using neo_bpsys_wpf.Core.Models;
 using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
@@ -77,7 +77,7 @@ public class CharacterSelector : Control
         set => SetValue(SelectedIndexProperty, value);
     }
 
-    // Using a DependencyProperty as the backing store for SelectedIndex.  This enables animation, styling, binding, etc...
+    // Using a DependencyProperty as the backing store for PickedMapIndex.  This enables animation, styling, binding, etc...
     public static readonly DependencyProperty SelectedIndexProperty =
         DependencyProperty.Register(nameof(SelectedIndex), typeof(int), typeof(CharacterSelector), new FrameworkPropertyMetadata(-1, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 

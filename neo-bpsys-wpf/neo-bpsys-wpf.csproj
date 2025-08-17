@@ -10,6 +10,7 @@
     <Deterministic>False</Deterministic>
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<CETCompat>false</CETCompat>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
@@ -108,9 +109,7 @@
     <Resource Include="Assets\闪现.png" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Downloader" Version="3.3.4" />
-    <PackageReference Include="hyjiacan.pinyin4net" Version="4.1.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.7" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.7" />
@@ -125,13 +124,14 @@
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
-    <PackageReference Include="WPF-UI" Version="4.0.3" />
     <PackageReference Include="WPF-UI.DependencyInjection" Version="4.0.3" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Remove="Messages\**" />
+    <None Remove="Enums\**" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Assets\bp_noAuthor.png" />
@@ -159,5 +159,20 @@
     <None Update="Resources\队伍信息导入示例.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Messages\**" />
+    <Compile Remove="Enums\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="Messages\**" />
+    <EmbeddedResource Remove="Enums\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Remove="Messages\**" />
+    <Page Remove="Enums\**" />
   </ItemGroup>
 </Project>

@@ -1,14 +1,6 @@
-﻿using neo_bpsys_wpf.Abstractions.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using Wpf.Ui.Extensions;
-using System.Diagnostics;
-using neo_bpsys_wpf.Enums;
+﻿using System.Windows.Controls;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
 
 namespace neo_bpsys_wpf.Services;
 

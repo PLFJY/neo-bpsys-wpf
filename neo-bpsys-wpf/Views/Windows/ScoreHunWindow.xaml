@@ -21,7 +21,7 @@
         Width="480"
         Height="152">
         <Canvas.Background>
-            <ImageBrush d:ImageSource="/Assets/scoreHun.png" ImageSource="{Binding ScoreHunImage}" />
+            <ImageBrush d:ImageSource="/Assets/scoreHun.png" ImageSource="{Binding Settings.HunScoreBgImage}" />
         </Canvas.Background>
         <Canvas.Resources>
             <Style TargetType="TextBlock">
@@ -32,18 +32,24 @@
                 <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.TeamName.FontFamily}" />
                 <Setter Property="Foreground" Value="{Binding Settings.TextSettings.TeamName.Foreground}" />
                 <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.TeamName.FontWeight}" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
             <Style x:Key="MinorPoints" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MinorPoints.FontSize}" />
                 <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MinorPoints.FontFamily}" />
                 <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MinorPoints.Foreground}" />
                 <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MinorPoints.FontWeight}" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
             <Style x:Key="MajorPoints" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MajorPoints.FontSize}" />
                 <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MajorPoints.FontFamily}" />
                 <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MajorPoints.Foreground}" />
                 <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MajorPoints.FontWeight}" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
         </Canvas.Resources>
         <ui:Image

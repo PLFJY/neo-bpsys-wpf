@@ -32,11 +32,11 @@ public partial class CustomTitleBar : UserControl
         if (window is FluentWindow fluentWindow)
         {
             // 绑定窗口状态变化
-            window.StateChanged += (s, args) => UpdateMaximizeButtonIcon(window);
+            window.StateChanged += (_, _) => UpdateMaximizeButtonIcon(window);
         }
 
         // 事件绑定
-        TitleBar.MouseDown += (s, e) =>
+        TitleBar.MouseDown += (_, e) =>
         {
             if (e.ClickCount == 2 && e.ChangedButton == MouseButton.Left && IsMaximizeVisible)
                 ToggleWindowState(window);
@@ -50,9 +50,9 @@ public partial class CustomTitleBar : UserControl
             }
         };
 
-        MaximizeButton.Click += (s, e) => ToggleWindowState(window);
-        MinimizeButton.Click += (s, e) => window.WindowState = WindowState.Minimized;
-        ExitButton.Click += (s, e) => ConfirmExit(window);
+        MaximizeButton.Click += (_, _) => ToggleWindowState(window);
+        MinimizeButton.Click += (_, _) => window.WindowState = WindowState.Minimized;
+        ExitButton.Click += (_, _) => ConfirmExit(window);
     }
 
     private static void DragMoveWindow(Window window)

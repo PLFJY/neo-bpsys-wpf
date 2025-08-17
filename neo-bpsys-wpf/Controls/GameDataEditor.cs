@@ -1,6 +1,6 @@
-﻿using neo_bpsys_wpf.Models;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
+using PlayerData = neo_bpsys_wpf.Core.Models.PlayerData;
 
 namespace neo_bpsys_wpf.Controls;
 

@@ -1,9 +1,12 @@
-﻿using neo_bpsys_wpf.Enums;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Windows.Data;
+using neo_bpsys_wpf.Core.Enums;
 
 namespace neo_bpsys_wpf.Converters;
 
+/// <summary>
+/// 阵营枚举转换成中文，用于TeamInfoPage
+/// </summary>
 public class CampToStringConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

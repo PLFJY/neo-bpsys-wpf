@@ -4,6 +4,9 @@ using System.Windows;
 
 namespace neo_bpsys_wpf.Converters;
 
+/// <summary>
+/// 字体权重的Json转换器
+/// </summary>
 public class FontWeightJsonConverter : JsonConverter<FontWeight>
 {
     private static readonly Dictionary<int, FontWeight> NumberMap = new Dictionary<int, FontWeight>

@@ -121,7 +121,7 @@ public class CanvasAdorner : Adorner
         _rectangle.MouseLeftButtonUp += RectangleMouseLeftButtonUp;
         _rectangle.MouseMove += RectangleMouseMove;
         ShowControlName(adornedElement);
-        Unloaded += (sender, e) =>
+        Unloaded += (_, _) =>
         {
             HideControlName(adornedElement);
         };

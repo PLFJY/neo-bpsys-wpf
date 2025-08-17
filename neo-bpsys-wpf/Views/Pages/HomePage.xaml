@@ -9,9 +9,10 @@
     Title="HomePage"
     d:DesignHeight="750"
     d:DesignWidth="685"
+    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
     mc:Ignorable="d">
 
-    <Grid>
+    <StackPanel>
         <Border VerticalAlignment="Top" CornerRadius="4">
             <Grid>
                 <Image Source="/Assets/HomePageHeader.png" />
@@ -34,13 +35,13 @@
                                 <ui:SymbolIcon
                                     Margin="0,0,0,0"
                                     FontSize="20"
-                                    Foreground="DarkGray"
+                                    Foreground="LightGray"
                                     Symbol="Link24" />
                                 <TextBlock
                                     Margin="5,0,0,0"
                                     VerticalAlignment="Center"
                                     FontSize="12"
-                                    Foreground="DarkGray"
+                                    Foreground="LightGray"
                                     Text="前往官网" />
                             </StackPanel>
                         </ui:HyperlinkButton>
@@ -49,13 +50,13 @@
                                 <ui:SymbolIcon
                                     Margin="0,0,0,0"
                                     FontSize="20"
-                                    Foreground="DarkGray"
+                                    Foreground="LightGray"
                                     Symbol="Link24" />
                                 <TextBlock
                                     Margin="5,0,0,0"
                                     VerticalAlignment="Center"
                                     FontSize="12"
-                                    Foreground="DarkGray"
+                                    Foreground="LightGray"
                                     Text="查看文档" />
                             </StackPanel>
                         </ui:HyperlinkButton>
@@ -63,5 +64,10 @@
                 </StackPanel>
             </Grid>
         </Border>
-    </Grid>
+        <TextBlock
+            Margin="10"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Text="提示：软件安装目录下有无作者名字版本的前台UI" />
+    </StackPanel>
 </Page>

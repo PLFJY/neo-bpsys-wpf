@@ -6,7 +6,6 @@
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:enums="clr-namespace:neo_bpsys_wpf.Enums"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -37,7 +36,7 @@
                     Height="554"
                     HorizontalAlignment="Left">
                     <Canvas.Background>
-                        <ImageBrush d:ImageSource="/Assets/mapBp.png" ImageSource="{Binding MapBpImage}" />
+                        <ImageBrush d:ImageSource="/Assets/mapBp.png" ImageSource="{Binding Settings.MapBpBgImage}" />
                     </Canvas.Background>
                     <Canvas.Resources>
                         <Style BasedOn="{StaticResource {x:Type ui:Image}}" TargetType="ui:Image">
@@ -219,7 +218,7 @@
                 <Border BorderBrush="Black" BorderThickness="1">
                     <Canvas Name="BpOverViewCanvas">
                         <Canvas.Background>
-                            <ImageBrush d:ImageSource="/Assets/bpOverview.png" ImageSource="{Binding BpOverViewBgImage}" />
+                            <ImageBrush d:ImageSource="/Assets/bpOverview.png" ImageSource="{Binding Settings.BpOverviewBgImage}" />
                         </Canvas.Background>
                         <Canvas.Resources>
                             <cv:GameProgressToStringConverter x:Key="GameProgressToStringConverter" />
@@ -334,7 +333,7 @@
                             Width="{Binding ElementName=HunBanCurrent0, Path=ActualWidth}"
                             Height="{Binding ElementName=HunBanCurrent0, Path=ActualHeight}"
                             Panel.ZIndex="1"
-                            Source="{Binding CurrentBanLockImage}"
+                            Source="{Binding Settings.CurrentBanLockImage}"
                             Visibility="{Binding CanCurrentHunBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                         <Image
                             Name="HunBanCurrentLock1"
@@ -343,7 +342,7 @@
                             Width="{Binding ElementName=HunBanCurrent1, Path=ActualWidth}"
                             Height="{Binding ElementName=HunBanCurrent1, Path=ActualHeight}"
                             Panel.ZIndex="1"
-                            Source="{Binding CurrentBanLockImage}"
+                            Source="{Binding Settings.CurrentBanLockImage}"
                             Visibility="{Binding CanCurrentHunBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                         <!--  Sur Current Ban  -->
                         <Border
@@ -386,7 +385,7 @@
                             Width="{Binding ElementName=SurBanCurrent0, Path=ActualWidth}"
                             Height="{Binding ElementName=SurBanCurrent0, Path=ActualHeight}"
                             Panel.ZIndex="1"
-                            Source="{Binding CurrentBanLockImage}"
+                            Source="{Binding Settings.CurrentBanLockImage}"
                             Visibility="{Binding CanCurrentSurBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                         <Image
                             Name="SurBanCurrentLock1"
@@ -395,7 +394,7 @@
                             Width="{Binding ElementName=SurBanCurrent1, Path=ActualWidth}"
                             Height="{Binding ElementName=SurBanCurrent1, Path=ActualHeight}"
                             Panel.ZIndex="1"
-                            Source="{Binding CurrentBanLockImage}"
+                            Source="{Binding Settings.CurrentBanLockImage}"
                             Visibility="{Binding CanCurrentSurBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                         <Image
                             Name="SurBanCurrentLock2"
@@ -404,7 +403,7 @@
                             Width="{Binding ElementName=SurBanCurrent2, Path=ActualWidth}"
                             Height="{Binding ElementName=SurBanCurrent2, Path=ActualHeight}"
                             Panel.ZIndex="1"
-                            Source="{Binding CurrentBanLockImage}"
+                            Source="{Binding Settings.CurrentBanLockImage}"
                             Visibility="{Binding CanCurrentSurBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                         <Image
                             Name="SurBanCurrentLock3"
@@ -413,7 +412,7 @@
                             Width="{Binding ElementName=SurBanCurrent3, Path=ActualWidth}"
                             Height="{Binding ElementName=SurBanCurrent3, Path=ActualHeight}"
                             Panel.ZIndex="1"
-                            Source="{Binding CurrentBanLockImage}"
+                            Source="{Binding Settings.CurrentBanLockImage}"
                             Visibility="{Binding CanCurrentSurBanned[3], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                         <!--  Sur Pick  -->
                         <Border
@@ -565,7 +564,7 @@
                 Width="1440"
                 Height="160">
                 <Canvas.Background>
-                    <ImageBrush d:ImageSource="/Assets/mapBpV2.png" ImageSource="{Binding MapBpV2Image}" />
+                    <ImageBrush d:ImageSource="/Assets/mapBpV2.png" ImageSource="{Binding Settings.MapBpV2BgImage}" />
                 </Canvas.Background>
                 <Canvas.Resources>
                     <Style x:Key="MapV2Presenter" TargetType="controls:MapV2Presenter">
@@ -581,7 +580,7 @@
                         <Setter Property="CampNameFontSize" Value="{Binding Settings.TextSettings.MapBpV2_CampWords.FontSize}" />
                         <Setter Property="CampNameFontFamily" Value="{Binding Settings.TextSettings.MapBpV2_CampWords.FontFamily}" />
                         <Setter Property="CampNameFontWeight" Value="{Binding Settings.TextSettings.MapBpV2_CampWords.FontWeight}" />
-                        <Setter Property="PickingBorderImage" Value="{Binding MapBpV2PickingBorderSource}" />
+                        <Setter Property="PickingBorderImage" Value="{Binding Settings.MapBpV2PickBorderImage}" />
                         <Setter Property="PickingBorderBrush" Value="{Binding Settings.MapBpV2_PickingBorderBrush}" />
                     </Style>
                 </Canvas.Resources>

@@ -1,13 +1,14 @@
 ﻿using Downloader;
-using neo_bpsys_wpf.Abstractions.Services;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Windows;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -19,7 +20,8 @@ public class UpdaterService : IUpdaterService
     public string NewVersion { get; set; } = string.Empty;
     public ReleaseInfo NewVersionInfo { get; set; } = new();
     public bool IsFindPreRelease { get; set; } = false;
-    public DownloadService Downloader { get; }
+    private readonly DownloadService _downloader;
+    public object Downloader => _downloader;
 
     private const string Owner = "plfjy";
     private const string Repo = "neo-bpsys-wpf";
@@ -36,7 +38,7 @@ public class UpdaterService : IUpdaterService
             BaseAddress = new Uri(GitHubApiBaseUrl)
         };
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-        _httpClient.DefaultRequestHeaders.Add("User-Agent", "neo-bpsys-wpf");
+        _httpClient.DefaultRequestHeaders.Add("User-Agent", AppConstants.AppName);
         _messageBoxService = messageBoxService;
         _infoBarService = infoBarService;
         var downloadOpt = new DownloadConfiguration()
@@ -47,8 +49,8 @@ public class UpdaterService : IUpdaterService
             ParallelCount = 6,
         };
 
-        Downloader = new DownloadService(downloadOpt);
-        Downloader.DownloadFileCompleted += OnDownloadFileCompletedAsync;
+        _downloader = new DownloadService(downloadOpt);
+        _downloader.DownloadFileCompleted += OnDownloadFileCompletedAsync;
 
         var fileName = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf_Installer.exe");
         if (!File.Exists(fileName)) return;
@@ -71,7 +73,7 @@ public class UpdaterService : IUpdaterService
         var downloadUrl = NewVersionInfo.Assets.First(a => a.Name == InstallerFileName).BrowserDownloadUrl;
         try
         {
-            await Downloader.DownloadFileTaskAsync(mirror + downloadUrl, fileName);
+            await _downloader.DownloadFileTaskAsync(mirror + downloadUrl, fileName);
         }
         catch (Exception ex)
         {
@@ -193,23 +195,5 @@ public class UpdaterService : IUpdaterService
         p.StartInfo.Arguments = "/silent";
         p.Start();
         Application.Current.Shutdown();
-    }
-
-    public class ReleaseInfo
-    {
-        [JsonPropertyName("tag_name")]
-        public string TagName { get; init; } = string.Empty;
-        [JsonPropertyName("body")]
-        public string Body { get; init; } = string.Empty;
-        [JsonPropertyName("assets")]
-        public AssetsInfo[] Assets { get; init; } = [];
-    }
-
-    public class AssetsInfo
-    {
-        [JsonPropertyName("name")]
-        public string Name { get; set; } = string.Empty;
-        [JsonPropertyName("browser_download_url")]
-        public string BrowserDownloadUrl { get; set; } = string.Empty;
     }
 }

@@ -1,11 +1,12 @@
-﻿using neo_bpsys_wpf.Abstractions.Services;
-using neo_bpsys_wpf.Converters;
-using neo_bpsys_wpf.Enums;
-using neo_bpsys_wpf.Models;
-using neo_bpsys_wpf.Views.Windows;
+﻿using neo_bpsys_wpf.Converters;
+using neo_bpsys_wpf.Core.Models;
 using System.IO;
 using System.Text.Json;
-using System.Windows;
+using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
+using BpWindowSettings = neo_bpsys_wpf.Core.Models.BpWindowSettings;
+using WidgetsWindowSettings = neo_bpsys_wpf.Core.Models.WidgetsWindowSettings;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -14,11 +15,20 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public class SettingsHostService : ISettingsHostService
 {
-    public Settings Settings { get; set; } = new();
+    private Settings _settings = new();
+
+    public Settings Settings
+    {
+        get => _settings;
+        set
+        {
+            if (_settings == value) return;
+            _settings = value;
+            SettingsChanged?.Invoke(this, value);
+        }
+    }
+
     private readonly IMessageBoxService _messageBoxService;
-    private const string SettingFileName = "Config.json";
-    private readonly string _settingFilePath;
-    private readonly string _settingFileDirectory;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -31,10 +41,6 @@ public class SettingsHostService : ISettingsHostService
     public SettingsHostService(IMessageBoxService messageBoxService)
     {
         _messageBoxService = messageBoxService;
-        _settingFileDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "neo-bpsys-wpf");
-        _settingFilePath = Path.Combine(_settingFileDirectory, SettingFileName);
         LoadConfig();
     }
 
@@ -43,11 +49,14 @@ public class SettingsHostService : ISettingsHostService
     /// </summary>
     public void SaveConfig()
     {
-        if (!Directory.Exists(_settingFileDirectory))
-            Directory.CreateDirectory(_settingFileDirectory);
+        if (!Directory.Exists(AppConstants.AppDataPath))
+            Directory.CreateDirectory(AppConstants.AppDataPath);
         try
         {
-            File.WriteAllText(_settingFilePath, JsonSerializer.Serialize(Settings, _jsonSerializerOptions));
+            var jsonStr = JsonSerializer.Serialize(Settings, _jsonSerializerOptions);
+            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Replace(@"\",@"\\");
+            jsonStr = jsonStr.Replace(appDataPath, "%APPDATA%");
+            File.WriteAllText(AppConstants.ConfigFilePath, jsonStr);
         }
         catch (Exception e)
         {
@@ -60,9 +69,9 @@ public class SettingsHostService : ISettingsHostService
     /// </summary>
     public void LoadConfig()
     {
-        if (!File.Exists(_settingFilePath))
+        if (!File.Exists(AppConstants.ConfigFilePath))
             ResetConfig();
-        var json = File.ReadAllText(_settingFilePath);
+        var json = File.ReadAllText(AppConstants.ConfigFilePath);
         try
         {
             var settings = JsonSerializer.Deserialize<Settings>(json, _jsonSerializerOptions);
@@ -90,8 +99,8 @@ public class SettingsHostService : ISettingsHostService
     {
         try
         {
-            if (!Directory.Exists(_settingFileDirectory))
-                Directory.CreateDirectory(_settingFileDirectory);
+            if (!Directory.Exists(AppConstants.AppDataPath))
+                Directory.CreateDirectory(AppConstants.AppDataPath);
 
             Settings = new Settings();
             SaveConfig();
@@ -112,24 +121,94 @@ public class SettingsHostService : ISettingsHostService
     {
         try
         {
-            if (!Directory.Exists(_settingFileDirectory))
-                Directory.CreateDirectory(_settingFileDirectory);
+            if (!Directory.Exists(AppConstants.AppDataPath))
+                Directory.CreateDirectory(AppConstants.AppDataPath);
 
             switch (windowType)
             {
                 case FrontWindowType.BpWindow:
+                    try
+                    {
+                        if (Settings.BpWindowSettings.BgImageUri != null)
+                            File.Delete(Settings.BpWindowSettings.BgImageUri);
+                        if (Settings.BpWindowSettings.PickingBorderImageUri != null)
+                            File.Delete(Settings.BpWindowSettings.PickingBorderImageUri);
+                        if (Settings.BpWindowSettings.GlobalBanLockImageUri != null)
+                            File.Delete(Settings.BpWindowSettings.GlobalBanLockImageUri);
+                        if (Settings.BpWindowSettings.CurrentBanLockImageUri != null)
+                            File.Delete(Settings.BpWindowSettings.CurrentBanLockImageUri);
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
+
                     Settings.BpWindowSettings = new BpWindowSettings();
                     break;
                 case FrontWindowType.CutSceneWindow:
+                    try
+                    {
+                        if (Settings.CutSceneWindowSettings.BgUri != null)
+                            File.Delete(Settings.CutSceneWindowSettings.BgUri);
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
+
                     Settings.CutSceneWindowSettings = new CutSceneWindowSettings();
                     break;
                 case FrontWindowType.ScoreGlobalWindow:
+                case FrontWindowType.ScoreSurWindow:
+                case FrontWindowType.ScoreHunWindow:
+                    try
+                    {
+                        if (Settings.ScoreWindowSettings.SurScoreBgImageUri != null)
+                            File.Delete(Settings.ScoreWindowSettings.SurScoreBgImageUri);
+                        if (Settings.ScoreWindowSettings.HunScoreBgImageUri != null)
+                            File.Delete(Settings.ScoreWindowSettings.HunScoreBgImageUri);
+                        if (Settings.ScoreWindowSettings.GlobalScoreBgImageUri != null)
+                            File.Delete(Settings.ScoreWindowSettings.GlobalScoreBgImageUri);
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
+
                     Settings.ScoreWindowSettings = new ScoreWindowSettings();
                     break;
                 case FrontWindowType.GameDataWindow:
+                    try
+                    {
+                        if (Settings.GameDataWindowSettings.BgImageUri != null)
+                            File.Delete(Settings.GameDataWindowSettings.BgImageUri);
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
                     Settings.GameDataWindowSettings = new GameDataWindowSettings();
                     break;
                 case FrontWindowType.WidgetsWindow:
+                    try
+                    {
+                        if (Settings.WidgetsWindowSettings.MapBpBgUri != null)
+                            File.Delete(Settings.WidgetsWindowSettings.MapBpBgUri);
+                        if (Settings.WidgetsWindowSettings.MapBpV2BgUri != null)
+                            File.Delete(Settings.WidgetsWindowSettings.MapBpV2BgUri);
+                        if (Settings.WidgetsWindowSettings.MapBpV2PickingBorderImageUri != null)
+                            File.Delete(Settings.WidgetsWindowSettings.MapBpV2PickingBorderImageUri);
+                        if (Settings.WidgetsWindowSettings.BpOverviewBgUri != null)
+                            File.Delete(Settings.WidgetsWindowSettings.BpOverviewBgUri);
+                        if(Settings.WidgetsWindowSettings.CurrentBanLockImageUri != null)
+                            File.Delete(Settings.WidgetsWindowSettings.CurrentBanLockImageUri);
+                        if (Settings.WidgetsWindowSettings.GlobalBanLockImageUri != null)
+                            File.Delete(Settings.WidgetsWindowSettings.GlobalBanLockImageUri);
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
                     Settings.WidgetsWindowSettings = new WidgetsWindowSettings();
                     break;
                 default:
@@ -144,4 +223,9 @@ public class SettingsHostService : ISettingsHostService
             throw;
         }
     }
+
+    /// <summary>
+    /// 配置文件改变事件
+    /// </summary>
+    public event EventHandler<Settings>? SettingsChanged;
 }

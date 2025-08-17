@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using Wpf.Ui.Controls;
+﻿using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Views.Windows;
 

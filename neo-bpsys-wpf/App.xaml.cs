@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using neo_bpsys_wpf.Abstractions.Services;
-using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Themes;
 using neo_bpsys_wpf.ViewModels.Pages;
@@ -10,16 +8,16 @@ using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
 using Serilog;
-using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Helpers;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
-using Wpf.Ui.Controls;
 using Wpf.Ui.DependencyInjection;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace neo_bpsys_wpf;
 
@@ -29,19 +27,15 @@ namespace neo_bpsys_wpf;
 public partial class App : Application
 {
     private static readonly IHost _host = Host.CreateDefaultBuilder()
-        .UseSerilog((hostingContext, loggerConfiguration) =>
+        .UseSerilog((_, loggerConfiguration) =>
         {
-            var loggingDir = Path.Combine(Environment.GetFolderPath
-                    (Environment.SpecialFolder.ApplicationData),
-                "neo-bpsys-wpf",
-                "Log");
-            if (!Directory.Exists(loggingDir))
-                Directory.CreateDirectory(loggingDir);
+            if (!Directory.Exists(AppConstants.LogPath))
+                Directory.CreateDirectory(AppConstants.LogPath);
 
             loggerConfiguration
                 .WriteTo.Console()
                 .WriteTo.File(
-                    path: Path.Combine(loggingDir, "log-.txt"), // 使用日期滚动的文件名格式
+                    path: Path.Combine(AppConstants.LogPath, "log-.txt"), // 使用日期滚动的文件名格式
                     rollingInterval: RollingInterval.Day, // 每天创建一个新文件
                     retainedFileCountLimit: 3, // 只保留最近3天的日志文件
                     outputTemplate:
@@ -221,13 +215,28 @@ public partial class App : Application
     /// </summary>
     public static IServiceProvider Services => _host.Services;
 
+    /// <summary>
+    /// 互斥锁
+    /// </summary>
+    private static Mutex _mutex = null;
+
+    bool createdNew;
+
     protected override async void OnStartup(StartupEventArgs e)
     {
+        _mutex = new Mutex(true, AppConstants.AppName, out createdNew);
+
+        if (!createdNew)
+        {
+            MessageBox.Show("程序已运行", "警告");
+            Current.Shutdown();
+        }
+
         base.OnStartup(e);
         Timeline.DesiredFrameRateProperty.OverrideMetadata(
-               typeof(Timeline),
-               new FrameworkPropertyMetadata { DefaultValue = 100 }
-               );
+            typeof(Timeline),
+            new FrameworkPropertyMetadata { DefaultValue = 100 }
+        );
         await _host.StartAsync();
         var _logger = _host.Services.GetRequiredService<ILogger<App>>();
         _logger.LogInformation("Application Started");
@@ -250,7 +259,7 @@ public partial class App : Application
                                                                             \_|   \_____/\_| \____/  \_/   
                                ==============================================================================
                                """);
-        
+
         var settingsHostService = _host.Services.GetRequiredService<ISettingsHostService>();
         settingsHostService.LoadConfig();
         Current.Resources["scoreGlobal_surIcon"] = ImageHelper.GetUiImageSource(
@@ -269,7 +278,7 @@ public partial class App : Application
             settingsHostService.Settings.ScoreWindowSettings.IsCampIconBlackVerEnabled
                 ? "hunIcon_black"
                 : "hunIcon");
-        ApplicationThemeManager.Changed += (currentApplicationTheme, systemAccent) =>
+        ApplicationThemeManager.Changed += (currentApplicationTheme, _) =>
         {
             foreach (var dict in Current.Resources.MergedDictionaries)
             {
@@ -295,6 +304,18 @@ public partial class App : Application
     }
 
     /// <summary>
+    /// 重启程序
+    /// </summary>
+    public static void Restart()
+    {
+        // 释放互斥锁
+        _mutex.Close();
+        // 重启应用程序
+        System.Diagnostics.Process.Start(ResourceAssembly.Location.Replace(".dll", ".exe"));
+        Current.Shutdown();
+    }
+
+    /// <summary>
     /// Occurs when an exception is thrown by an application but not handled.
     /// </summary>
     private void OnDispatcherUnhandledException(
@@ -302,8 +323,11 @@ public partial class App : Application
         DispatcherUnhandledExceptionEventArgs e
     )
     {
-        var _logger = _host.Services.GetRequiredService<ILogger<App>>();
-        _logger.LogError("Application crashed unexpectedly");
+        var logger = _host.Services.GetRequiredService<ILogger<App>>();
+        logger.LogError("Application crashed unexpectedly");
+#if !DEBUG
+        MessageBox.Show($"出现了些在意料之外的错误，请带着\n{AppConstants.LogPath}\n处的日志文件联系开发者解决", "错误");
+#endif
         // For more info see https://docs.microsoft.com/en-us/dotnet/api/system.windows.application.dispatcherunhandledexception?view=windowsdesktop-6.0
     }
 }
