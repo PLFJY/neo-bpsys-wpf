@@ -131,7 +131,7 @@ public partial class Team : ViewModelBase
     /// <summary>
     /// 队伍比分
     /// </summary>
-    public Score Score { get; private set; } = new();
+    public Score Score { get; } = new();
 
     /// <summary>
     /// 队伍目前场上的求生者数量
@@ -296,5 +296,5 @@ public partial class Team : ViewModelBase
     /// <summary>
     /// 重置比分
     /// </summary>
-    public void ResetScore() => Score = new Score();
+    public void ResetScore() => Score.Reset();
 }
