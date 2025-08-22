@@ -42,4 +42,11 @@ public partial class Score : ViewModelBase
     /// 后台显示的格式化的比分
     /// </summary>
     [JsonIgnore] public string ScorePreviewOnBack => $"W:{Win} D:{Tie} 小比分:{MinorPoints}";
+
+    internal void Reset()
+    {
+        Win = 0;
+        Tie = 0;
+        MinorPoints = 0;
+    }
 }
