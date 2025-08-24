@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using neo_bpsys_wpf.AttachedBehaviors;
 
 namespace neo_bpsys_wpf.Controls;
 
@@ -15,14 +16,23 @@ public class CanvasAdorner : Adorner
 {
     //4条边
     private readonly Thumb _leftThumb, _topThumb, _rightThumb, _bottomThumb;
+
     //4个角
     private readonly Thumb _lefTopThumb, _rightTopThumb, _rightBottomThumb, _leftbottomThumb;
+
     //中间移动区域
-    private readonly Rectangle _rectangle;
+    private readonly Border _outLine;
+
     private readonly TextBlock _textBlock;
+
     //布局容器，如果不使用布局容器，则需要给上述8个控件布局，实现和Grid布局定位是一样的，会比较繁琐且意义不大。
     private readonly Grid _grid;
     private readonly FrameworkElement _adornedElement;
+
+    /// <summary>
+    /// 创建一个CanvasAdorner
+    /// </summary>
+    /// <param name="adornedElement">要添加Adorner的控件</param>
     public CanvasAdorner(FrameworkElement adornedElement) : base(adornedElement)
     {
         _adornedElement = adornedElement;
@@ -75,11 +85,12 @@ public class CanvasAdorner : Adorner
             VerticalAlignment = VerticalAlignment.Bottom,
             Cursor = Cursors.SizeNESW
         };
-        _rectangle = new Rectangle
+        _outLine = new Border
         {
-            Fill = Brushes.Red,
-            Opacity = 0.15,
-            Cursor = Cursors.SizeAll
+            Background = Brushes.Transparent,
+            Cursor = Cursors.SizeAll,
+            BorderThickness = new Thickness(1),
+            BorderBrush = Brushes.Red
         };
         _textBlock = new TextBlock
         {
@@ -92,6 +103,7 @@ public class CanvasAdorner : Adorner
             HorizontalAlignment = HorizontalAlignment.Center,
         };
         _grid = new Grid();
+        //将thumbs添加到一个grid里面给grid布局
         _grid.Children.Add(_leftThumb);
         _grid.Children.Add(_topThumb);
         _grid.Children.Add(_rightThumb);
@@ -101,12 +113,12 @@ public class CanvasAdorner : Adorner
         _grid.Children.Add(_rightBottomThumb);
         _grid.Children.Add(_leftbottomThumb);
         AddVisualChild(_grid);
+        //修改thumb的样式
         foreach (Thumb thumb in _grid.Children)
         {
-            thumb.Width = 10;
-            thumb.Height = 10;
+            thumb.Width = 5;
+            thumb.Height = 5;
             thumb.Background = Brushes.White;
-            thumb.Opacity = 0.5;
             thumb.Template = new ControlTemplate(typeof(Thumb))
             {
                 VisualTree = GetFactory(new SolidColorBrush(Colors.White))
@@ -115,18 +127,19 @@ public class CanvasAdorner : Adorner
             Panel.SetZIndex(thumb, 2);
         }
 
-        _grid.Children.Add(_rectangle);
-        Panel.SetZIndex(_rectangle, 1);
-        _rectangle.MouseLeftButtonDown += RectangleMouseLeftButtonDown;
-        _rectangle.MouseLeftButtonUp += RectangleMouseLeftButtonUp;
-        _rectangle.MouseMove += RectangleMouseMove;
+        _grid.Children.Add(_outLine);
+        Panel.SetZIndex(_outLine, 1);
+        _outLine.MouseLeftButtonDown += OutLineMouseLeftButtonDown;
+        _outLine.MouseLeftButtonUp += OutLineMouseLeftButtonUp;
+        _outLine.MouseMove += OutLineMouseMove;
         ShowControlName(adornedElement);
-        Unloaded += (_, _) =>
-        {
-            HideControlName(adornedElement);
-        };
+        Unloaded += (_, _) => { HideControlName(adornedElement); };
     }
 
+    /// <summary>
+    /// 显示控件名称
+    /// </summary>
+    /// <param name="element">要显示控件名称的控件</param>
     private void ShowControlName(FrameworkElement element)
     {
         if (string.IsNullOrEmpty(element.Name)) return;
@@ -138,6 +151,10 @@ public class CanvasAdorner : Adorner
         element.SetValue(TagProperty, _textBlock);
     }
 
+    /// <summary>
+    /// 隐藏控件名称
+    /// </summary>
+    /// <param name="element">要隐藏控件名称的控件</param>
     private static void HideControlName(FrameworkElement element)
     {
         var canvas = GetParentCanvas(element);
@@ -147,6 +164,11 @@ public class CanvasAdorner : Adorner
         element.ClearValue(TagProperty);
     }
 
+    /// <summary>
+    /// 获取父Canvas
+    /// </summary>
+    /// <param name="element">要获取的元素</param>
+    /// <returns>父Canvas</returns>
     private static Canvas? GetParentCanvas(FrameworkElement element)
     {
         var parent = VisualTreeHelper.GetParent(element);
@@ -158,6 +180,10 @@ public class CanvasAdorner : Adorner
         return parent as Canvas;
     }
 
+    /// <summary>
+    /// 移动控件名称
+    /// </summary>
+    /// <param name="element">要移动的控件</param>
     private static void MoveControlName(FrameworkElement element)
     {
         var canvas = GetParentCanvas(element);
@@ -169,52 +195,148 @@ public class CanvasAdorner : Adorner
 
     //鼠标是否按下
     private bool _isMouseDown;
+
     //鼠标按下的位置
     private Point _mouseDownPosition;
+
     //鼠标按下控件的位置
     private Point _mouseDownControlPosition;
-    private void RectangleMouseMove(object sender, MouseEventArgs e)
+
+    /// <summary>
+    /// 鼠标移动事件
+    /// </summary>
+    /// <param name="sender">事件发送者（控件）</param>
+    /// <param name="e">鼠标事件参数</param>
+    private void OutLineMouseMove(object sender, MouseEventArgs e)
     {
         if (!_isMouseDown) return;
-        if (sender is not Rectangle rectangle) return;
+        if (sender is not Border) return;
+
         var pos = e.GetPosition(null);
         var dp = pos - _mouseDownPosition;
-        Canvas.SetLeft(_adornedElement, _mouseDownControlPosition.X + dp.X);
-        Canvas.SetTop(_adornedElement, _mouseDownControlPosition.Y + dp.Y);
+        var newLeft = _mouseDownControlPosition.X + dp.X;
+        var newTop = _mouseDownControlPosition.Y + dp.Y;
+
+        // 检查Shift键状态
+        var isShiftPressed = (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift;
+
+        // 执行对齐检查
+        if (!isShiftPressed) // 仅当未按住Shift时执行吸附
+        {
+            SnapToNearestControl(ref newLeft, ref newTop);
+        }
+
+        Canvas.SetLeft(_adornedElement, newLeft);
+        Canvas.SetTop(_adornedElement, newTop);
         MoveControlName(_adornedElement);
     }
 
-    private void RectangleMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    // 吸附距离阈值
+    private const double SnapDistance = 10.0;
+
+    /// <summary>
+    /// 移动时吸附
+    /// </summary>
+    /// <param name="newLeft">新的左边位置</param>
+    /// <param name="newTop">新的顶部位置</param>
+    private void SnapToNearestControl(ref double newLeft, ref double newTop)
     {
-        if (sender is not Rectangle rectangle) return;
-        _isMouseDown = false;
-        rectangle.ReleaseMouseCapture();
+        if (_adornedElement.Parent is not Canvas parentCanvas) return;
+
+        foreach (var child in parentCanvas.Children)
+        {
+            if (child is not FrameworkElement element || element == _adornedElement) continue;
+
+            if (!DesignBehavior.GetIsDesignMode(element)) continue;
+
+            var otherLeft = Canvas.GetLeft(element);
+            var otherTop = Canvas.GetTop(element);
+
+            // 水平方向对齐
+            if (Math.Abs(newLeft - otherLeft) <= SnapDistance) // 左边对齐
+            {
+                newLeft = otherLeft;
+            }
+            else if (Math.Abs(newLeft + _adornedElement.ActualWidth -
+                              (otherLeft + element.ActualWidth)) <= SnapDistance) // 右边对齐
+            {
+                newLeft = otherLeft + element.ActualWidth - _adornedElement.ActualWidth;
+            }
+
+            // 垂直方向对齐
+            if (Math.Abs(newTop - otherTop) <= SnapDistance) // 顶部对齐
+            {
+                newTop = otherTop;
+            }
+            else if (Math.Abs(newTop + _adornedElement.ActualHeight -
+                              (otherTop + element.ActualHeight)) <= SnapDistance) // 底部对齐
+            {
+                newTop = otherTop + element.ActualHeight - _adornedElement.ActualHeight;
+            }
+        }
     }
 
-    private void RectangleMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    /// <summary>
+    /// 鼠标抬起事件
+    /// </summary>
+    /// <param name="sender">事件发送者（控件）</param>
+    /// <param name="e">鼠标事件参数</param>
+    private void OutLineMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        if (sender is not Rectangle rectangle) return;
+        if (sender is not Border border) return;
+        _isMouseDown = false;
+        border.ReleaseMouseCapture();
+    }
+
+    /// <summary>
+    /// 鼠标按下事件
+    /// </summary>
+    /// <param name="sender">事件发送者（控件）</param>
+    /// <param name="e">鼠标事件参数</param>
+    private void OutLineMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not Border border) return;
         _isMouseDown = true;
         _mouseDownPosition = e.GetPosition(null);
         _mouseDownControlPosition = new Point(
             double.IsNaN(Canvas.GetLeft(_adornedElement)) ? 0 : Canvas.GetLeft(_adornedElement),
             double.IsNaN(Canvas.GetTop(_adornedElement)) ? 0 : Canvas.GetTop(_adornedElement));
-        rectangle.CaptureMouse();
+        border.CaptureMouse();
     }
 
+    /// <summary>
+    /// 获取子控件
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     protected override Visual GetVisualChild(int index)
     {
         return _grid;
     }
+
+    /// <summary>
+    /// 获取子控件数量
+    /// </summary>
     protected override int VisualChildrenCount => 1;
 
+    /// <summary>
+    /// 调整大小
+    /// </summary>
+    /// <param name="finalSize">最终大小</param>
+    /// <returns>最终大小</returns>
     protected override Size ArrangeOverride(Size finalSize)
     {
         //直接给grid布局，grid内部的thumb会自动布局。
-        _grid.Arrange(new Rect(new Point(-_leftThumb.Width / 2, -_leftThumb.Height / 2), new Size(finalSize.Width + _leftThumb.Width, finalSize.Height + _leftThumb.Height)));
+        _grid.Arrange(new Rect(new Point(-_leftThumb.Width / 2, -_leftThumb.Height / 2),
+            new Size(finalSize.Width + _leftThumb.Width, finalSize.Height + _leftThumb.Height)));
         return finalSize;
     }
-    //调整大小逻辑
+
+    /// <summary>
+    /// 拖拽调整大小
+    /// </summary>
+    /// <param name="sender">拖拽的控件</param>
+    /// <param name="e">拖拽事件参数</param>
     private void Thumb_DragDelta(object sender, DragDeltaEventArgs e)
     {
         var thumb = sender as FrameworkElement;
@@ -225,7 +347,9 @@ public class CanvasAdorner : Adorner
 
         if (thumb?.HorizontalAlignment == HorizontalAlignment.Left)
         {
-            left = double.IsNaN(Canvas.GetLeft(_adornedElement)) ? 0 : Canvas.GetLeft(_adornedElement) + e.HorizontalChange;
+            left = double.IsNaN(Canvas.GetLeft(_adornedElement))
+                ? 0
+                : Canvas.GetLeft(_adornedElement) + e.HorizontalChange;
             width = actualWidth - e.HorizontalChange;
         }
         else
@@ -236,7 +360,9 @@ public class CanvasAdorner : Adorner
 
         if (thumb?.VerticalAlignment == VerticalAlignment.Top)
         {
-            top = double.IsNaN(Canvas.GetTop(_adornedElement)) ? 0 : Canvas.GetTop(_adornedElement) + e.VerticalChange;
+            top = double.IsNaN(Canvas.GetTop(_adornedElement))
+                ? 0
+                : Canvas.GetTop(_adornedElement) + e.VerticalChange;
             height = actualHeight - e.VerticalChange;
         }
         else
@@ -244,6 +370,14 @@ public class CanvasAdorner : Adorner
             top = Canvas.GetTop(_adornedElement);
             height = actualHeight + e.VerticalChange;
         }
+
+        var isShiftPressed = (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift;
+
+        // if (!isShiftPressed)
+        // {
+        //     AdjustSizeToNearestControl(ref width, ref height, ref top, ref left, thumb, e);
+        // }
+
 
         if (thumb?.HorizontalAlignment != HorizontalAlignment.Center)
         {
@@ -262,9 +396,71 @@ public class CanvasAdorner : Adorner
                 _adornedElement.Height = height;
             }
         }
+
+        MoveControlName(_adornedElement);
     }
 
-    //thumb的样式
+    private const double SnapSizeDistance = 200;
+
+    private void AdjustSizeToNearestControl(
+        ref double height, ref double width,
+        ref double top, ref double left,
+        FrameworkElement thumb, DragDeltaEventArgs e)
+    {
+        if (_adornedElement.Parent is not Canvas parentCanvas) return;
+
+        var minDistance = double.MaxValue;
+        FrameworkElement? closestElement = null;
+
+        // 先找到最近的控件
+        foreach (var child in parentCanvas.Children)
+        {
+            if (child is not FrameworkElement otherElement || otherElement == _adornedElement) continue;
+            if (!DesignBehavior.GetIsDesignMode(otherElement)) continue;
+
+            var otherLeft = Canvas.GetLeft(otherElement);
+            var otherTop = Canvas.GetTop(otherElement);
+
+            var distance = Distance(new Point(left, top), new Point(otherLeft, otherTop));
+
+            if (distance <= SnapSizeDistance && distance < minDistance)
+            {
+                minDistance = distance;
+                closestElement = otherElement;
+            }
+            
+        }
+
+        // 如果找到最近的控件，执行对齐逻辑
+        if (closestElement != null)
+        {
+            var originalLeft = Canvas.GetLeft(_adornedElement);
+            var originalTop = Canvas.GetTop(_adornedElement);
+            var originalWidth = width;
+            var originalHeight = height;
+
+            var otherWidth = closestElement.ActualWidth;
+            var otherHeight = closestElement.ActualHeight;
+
+            if (thumb.HorizontalAlignment == HorizontalAlignment.Left)
+            {
+                if (Math.Abs(_adornedElement.ActualWidth - otherWidth) <= SnapDistance)
+                {
+                    width = otherWidth;
+                    var change = width - originalWidth;
+                }
+            }
+        }
+    }
+
+    private static double Distance(Point p1, Point p2) =>
+        Math.Sqrt(Math.Pow(p1.X - p2.X, 2) + Math.Pow(p1.Y - p2.Y, 2));
+
+    /// <summary>
+    /// Thumbs样式工厂方法
+    /// </summary>
+    /// <param name="back">背景颜色</param>
+    /// <returns>Thumb样式工厂</returns>
     private static FrameworkElementFactory GetFactory(Brush back)
     {
         var fef = new FrameworkElementFactory(typeof(Rectangle));
