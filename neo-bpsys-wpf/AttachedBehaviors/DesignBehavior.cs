@@ -22,22 +22,20 @@ public static class DesignBehavior
 
     private static void OnIsDesignModeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is FrameworkElement element)
+        if (d is not FrameworkElement element) return;
+        if ((bool)e.NewValue)
         {
-            if ((bool)e.NewValue)
+            var myAdornerLayer = AdornerLayer.GetAdornerLayer(element);
+            myAdornerLayer?.Add(new CanvasAdorner(element));
+        }
+        else
+        {
+            var adornerLayer = AdornerLayer.GetAdornerLayer(element);
+            var adorners = adornerLayer?.GetAdorners(element);
+            if (adorners == null) return;
+            foreach (var adorner in adorners)
             {
-                var myAdornerLayer = AdornerLayer.GetAdornerLayer(element);
-                myAdornerLayer?.Add(new CanvasAdorner(element));
-            }
-            else
-            {
-                var adornerLayer = AdornerLayer.GetAdornerLayer(element);
-                var adorners = adornerLayer?.GetAdorners(element);
-                if (adorners == null) return;
-                foreach (var adorner in adorners)
-                {
-                    adornerLayer?.Remove(adorner);
-                }
+                adornerLayer?.Remove(adorner);
             }
         }
     }
