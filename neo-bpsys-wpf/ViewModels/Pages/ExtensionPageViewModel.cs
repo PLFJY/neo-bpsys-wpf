@@ -1,5 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows.Controls;
+using System.Windows.Input;
+using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Extensions;
 
@@ -7,13 +9,46 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public class ExtensionPageViewModel : ViewModelBase
 {
-    public string LoadedExtensionsCount => 
-        $"{ExtensionManager.Instance().ReadOnlyExtensions.Count} 个扩展已加载";
+
+    public ExtensionPageViewModel()
+    {
+        ExtensionManager.Instance().ExtensionsChanged += (sender, args) =>
+        {
+            OnPropertyChanged(nameof(LoadedExtensionsCount));
+            OnPropertyChanged(nameof(EnabledExtensionsCount));
+            OnPropertyChanged(nameof(Extensions));
+        };
+        ExtensionManager.Instance().ExtensionUIsUpdatedEvent += (sender, args) =>
+        {
+            OnPropertyChanged(nameof(ExtensionUIs));
+        };
+        
+        EnableExtensionCommand = new RelayCommand<KeyValuePair<IExtension, bool>>(EnableExtension);
+        DisableExtensionCommand = new RelayCommand<KeyValuePair<IExtension, bool>>(DisableExtension);
+    }
+
+    public int LoadedExtensionsCount => ExtensionManager.Instance().ReadOnlyExtensions.Count;
     
     // 计算已启用的扩展数量
+
+    public int EnabledExtensionsCount => ExtensionManager.Instance().ReadOnlyExtensions.Count(ext => ext.Value);
     
-    public string EnabledExtensionsCount => 
-        $"{ExtensionManager.Instance().ReadOnlyExtensions.Count(kv => kv.Value)} 个扩展已启用";
+    public ReadOnlyDictionary<IExtension, bool> Extensions => ExtensionManager.Instance().ReadOnlyExtensions;
     public ObservableCollection<Border> ExtensionUIs => 
         ExtensionManager.Instance().ExtensionUIs;
+    
+    
+    public ICommand EnableExtensionCommand { get; private set; }
+
+    private void EnableExtension(KeyValuePair<IExtension, bool> extension)
+    {
+        ExtensionManager.Instance().EnableExtension(extension.Key);
+    }
+    
+    public ICommand DisableExtensionCommand { get; private set; }
+
+    private void DisableExtension(KeyValuePair<IExtension, bool> extension)
+    {
+        ExtensionManager.Instance().DisableExtension(extension.Key);
+    }
 }

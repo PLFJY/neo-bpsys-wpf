@@ -21,6 +21,11 @@ public class ExtensionManager
 
     public ISharedDataService SharedDataService;
 
+    /// <summary>
+    /// 当 Extensions (即ReadOnlyExtensions) 更改时触发此事件。
+    /// </summary>
+    public event EventHandler ExtensionsChanged;
+    
     private Dictionary<IExtension, bool> Extensions { get; } = new();
     
     public ReadOnlyDictionary<IExtension, bool> ReadOnlyExtensions => new(Extensions);
@@ -106,6 +111,7 @@ public class ExtensionManager
             if (!Extensions.Keys.Contains(extension))
             {
                 Extensions.Add(extension, false);
+                ExtensionsChanged?.Invoke(this, EventArgs.Empty);
                 extension.Initialize(); // 初始化插件
                 EnableExtension(extension); // 启用该插件
             }
@@ -124,6 +130,7 @@ public class ExtensionManager
             DisableExtension(extension); // 以防插件没有被禁用，禁用它
             extension.Uninitialize(); // 卸载插件
             Extensions.Remove(extension);
+            ExtensionsChanged?.Invoke(this, EventArgs.Empty);
         }
     }
     /// <summary>
@@ -143,9 +150,11 @@ public class ExtensionManager
                     return; // 插件已经启用
                 }
                 Extensions[extension] = true; // 标记插件为已启用
+                ExtensionsChanged?.Invoke(this, EventArgs.Empty);
                 // 触发插件启用事件
                 extension.OnEnable();
                 FlushExtensionUIs();
+                Logger.LogInformation("Extension {Name} has been enabled.", extension.ExtensionManifest.ExtensionName);
             }
         }
     }
@@ -164,10 +173,11 @@ public class ExtensionManager
             {
                 if (!Extensions[extension]) return; // 插件未启用
                 Extensions[extension] = false; // 标记插件为未启用
+                ExtensionsChanged?.Invoke(this, EventArgs.Empty);
                 // 触发插件禁用事件
                 extension.OnDisable();
                 FlushExtensionUIs();
-                Logger.LogInformation("扩展 {Name} 已经禁用", extension.ExtensionManifest.ExtensionName);
+                Logger.LogInformation("Extension {Name} has been disabled.", extension.ExtensionManifest.ExtensionName);
             }
         }
     }
@@ -272,13 +282,14 @@ public class ExtensionManager
                 this.UnregisterExtension(extension);
             }
             Extensions.Clear();
+            ExtensionsChanged?.Invoke(this, EventArgs.Empty);
             _extensionUis.Clear();
+            ExtensionUIsUpdatedEvent?.Invoke(this, EventArgs.Empty);
         }
     }
 
-    public void FlushExtensionUIs()
+    private void FlushExtensionUIs()
     {
-        var _ = ExtensionUIs;
         ExtensionUIsUpdatedEvent?.Invoke(this, EventArgs.Empty);
     }
 }

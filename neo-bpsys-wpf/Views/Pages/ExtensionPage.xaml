@@ -7,6 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    xmlns:converters="clr-namespace:neo_bpsys_wpf.Converters"
     Title="ExtensionPage"
     d:DataContext="{d:DesignInstance Type=vm:ExtensionPageViewModel,
                                      IsDesignTimeCreatable=True}"
@@ -15,13 +16,53 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
+    
+    <Page.Resources>
+        <converters:BooleanToTextConverter x:Key="BooleanToIsEnabledConverter"/>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+    </Page.Resources>
 
     
     <WrapPanel Orientation="Vertical">
         <Border Style="{StaticResource Card}">
             <StackPanel>
-                <TextBlock Text="{Binding LoadedExtensionsCount, Mode=OneWay}" />
-                <TextBlock Text="{Binding EnabledExtensionsCount, Mode=OneWay}" />
+                <TextBlock>
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0}个扩展已加载 - {1}个扩展已启用">
+                            <Binding Path="LoadedExtensionsCount"/>
+                            <Binding Path="EnabledExtensionsCount"/>
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+                <Separator Margin="5" Background="{DynamicResource ControlStrokeColorDefaultBrush}"/>
+                <ItemsControl ItemsSource="{Binding Extensions}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Margin="5,0" VerticalAlignment="Center">
+                                    <TextBlock.Text>
+                                        <MultiBinding StringFormat="{}{0} [{1}] By {2} - {3}">
+                                            <Binding Path="Key.ExtensionManifest.ExtensionName"/>
+                                            <Binding Path="Key.ExtensionManifest.ExtensionVersion"/>
+                                            <Binding Path="Key.ExtensionManifest.ExtensionAuthor"/>
+                                            <Binding Path="Value" Converter="{StaticResource BooleanToIsEnabledConverter}"/>
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                                <Button Content="启用"
+                                        IsEnabled="{Binding Value, Converter={StaticResource InverseBooleanConverter}}"
+                                        Command="{Binding DataContext.EnableExtensionCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"
+                                        Margin="5,0"/>
+                                <Button Content="禁用"
+                                        IsEnabled="{Binding Value}"
+                                        Command="{Binding DataContext.DisableExtensionCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"
+                                        Margin="5,0"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </StackPanel>
         </Border>
         <ItemsControl ItemsSource="{Binding ExtensionUIs}">
