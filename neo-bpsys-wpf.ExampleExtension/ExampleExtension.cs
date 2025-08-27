@@ -1,5 +1,6 @@
 using neo_bpsys_wpf.Core.Extensions;
 using neo_bpsys_wpf.ExampleExtension.UI;
+using neo_bpsys_wpf.ExampleExtension.UI.View;
 
 namespace neo_bpsys_wpf.ExampleExtension;
 
@@ -10,19 +11,19 @@ public class ExampleExtension : IExtension
     public ExtensionManifest ExtensionManifest { get; } = new(
         "ExampleExtension",
         "示例扩展",
-        "1.0.0",
+        "1.1.0",
         1,
         "天启",
         "这是一个示例扩展，用于演示如何创建和使用扩展。");
 
     public void Initialize()
-    {
+    {// 扩展被注册(Register)时调用
         Instance = this;
         ExtensionManager.Instance().RegisterUI(this, new ExampleUI().ExampleBorder);
     }
 
     public void Uninitialize()
-    {
+    {// 扩展被注销(Unregister)时调用
         ExtensionManager.Instance().UnregisterUI(this, new ExampleUI().ExampleBorder);
     }
 }

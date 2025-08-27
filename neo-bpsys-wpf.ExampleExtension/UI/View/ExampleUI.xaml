@@ -1,19 +1,22 @@
-<Page x:Class="neo_bpsys_wpf.ExampleExtension.UI.ExampleUI"
+<Page x:Class="neo_bpsys_wpf.ExampleExtension.UI.View.ExampleUI"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:vm="clr-namespace:neo_bpsys_wpf.ExampleExtension.UI.ViewModel"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-      xmlns:local="clr-namespace:neo_bpsys_wpf.ExampleExtension.UI"
+      xmlns:local="clr-namespace:neo_bpsys_wpf.ExampleExtension.UI.View"
       ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
       mc:Ignorable="d">
+    <Page.DataContext><vm:ExampleUIViewModel/></Page.DataContext>
     <Border Name="ExampleBorder" Style="{StaticResource Card}">
         <StackPanel Orientation="Horizontal">
-            <TextBlock Text="{Binding ExtensionName}" Margin="20 0 20 0" />
+            <TextBlock Text="{Binding Extension.ExtensionManifest.ExtensionName}" Margin="20 0 20 0" />
             <TextBlock>Hello, Example Extension! </TextBlock>
-            <Button Margin="20 0 0 0" Content="MainTeam 小分+1" Click="ButtonBase_OnClick"/>
-            <Button Margin="20 0 0 0" Content="禁用我" Click="ButtonBase_OnClick2"/>
+            <TextBlock Text="{Binding MainTeamMinorPoints}"/>
+            <Button Margin="20 0 0 0" Content="MainTeam 小分+1" Command="{Binding AddMainTeamMinorPointsCommand}"/>
+            <Button Margin="20 0 0 0" Content="禁用我" Command="{Binding DisableSelfCommand}"/>
         </StackPanel>
     </Border>
 </Page>
