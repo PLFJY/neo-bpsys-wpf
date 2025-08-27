@@ -12,7 +12,7 @@ public class ExampleExtension : IExtension
         "ExampleExtension",
         "示例扩展",
         "1.1.0",
-        1,
+        2,
         "天启",
         "这是一个示例扩展，用于演示如何创建和使用扩展。");
 
