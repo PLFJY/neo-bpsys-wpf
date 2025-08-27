@@ -859,6 +859,8 @@ public partial class SettingPageViewModel : ViewModelBase
 
             //拷贝自定义UI图片
             var customUiFiles = Directory.GetFiles(CustomUiTempPath);
+            if(!Directory.Exists(AppConstants.CustomUiPath))
+                Directory.CreateDirectory(AppConstants.CustomUiPath);
             foreach (var customUiFile in customUiFiles)
             {
                 File.Copy(customUiFile, Path.Combine(AppConstants.CustomUiPath, Path.GetFileName(customUiFile)), true);
