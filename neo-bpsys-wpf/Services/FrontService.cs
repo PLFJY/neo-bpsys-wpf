@@ -14,6 +14,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.ViewModels.Windows;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -196,64 +197,6 @@ public class FrontService : IFrontService
         if (!FrontWindowStates[windowType]) return;
         window.Hide();
         FrontWindowStates[windowType] = false;
-    }
-
-    #endregion
-
-    #region 前台动态控件添加
-
-    /// <summary>
-    /// 将控件添加到 Canvas 并设置位置
-    /// </summary>
-    private static void AddControlToCanvas(FrameworkElement control, Canvas canvas, GameProgress progress, int top)
-    {
-        // 设置控件位置
-        var left = CalculateLeftPosition(progress);
-
-        Canvas.SetLeft(control, left);
-        Canvas.SetTop(control, top);
-
-        //创建控件绑定
-        var binding = new Binding("IsDesignMode")
-        {
-            Source = canvas.DataContext,
-            Mode = BindingMode.TwoWay,
-            UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
-        };
-        DesignBehavior.SetIsDesignMode(control, true); // 触发绑定
-        BindingOperations.SetBinding(control, DesignBehavior.IsDesignModeProperty, binding);
-
-        canvas.Children.Add(control);
-    }
-
-    /// <summary>
-    /// 计算控件左侧距离
-    /// </summary>
-    /// <param name="progress"></param>
-    /// <returns></returns>
-    private static double CalculateLeftPosition(GameProgress progress) => 170 + ((int)progress) * 98; // 每个控件间隔 100 像素
-
-    /// <summary>
-    /// 注册控件
-    /// </summary>
-    /// <param name="nameHeader">控件名头</param>
-    /// <param name="key">控件序号 (在字典中查找用的Key)</param>
-    /// <param name="elementDict">控件所在的字典</param>
-    /// <param name="control">控件</param>
-    /// <param name="isOverride">是否覆盖(当Key值相同的情况下)</param>
-    /// <typeparam name="T">控件的Key类型</typeparam>
-    /// <exception cref="ArgumentException">添加控件时，Key值已经存在</exception>
-    private static void RegisterControl<T>(string nameHeader, T key,
-        Dictionary<T, FrameworkElement> elementDict, FrameworkElement control, bool isOverride = true)
-        where T : notnull
-    {
-        var name = nameHeader + key.ToString();
-        control.Name = name;
-        if (elementDict.TryAdd(key, control)) return;
-        if (!isOverride)
-            throw new ArgumentException(
-                $"Control with key '{key}' already exists. Set isOverride to true to replace.");
-        elementDict[key] = control;
     }
 
     #endregion
@@ -679,6 +622,86 @@ public class FrontService : IFrontService
     {
         _globalScoreTotalMargin = _sharedDataService.GlobalScoreTotalMargin;
         _globalScoreTotalMargin = _sharedDataService.GlobalScoreTotalMargin;
+    }
+
+    /// <summary>
+    /// 将控件添加到 Canvas 并设置位置
+    /// </summary>
+    private static void AddControlToCanvas(FrameworkElement control, Canvas canvas, GameProgress progress, int top)
+    {
+        // 设置控件位置
+        var left = CalculateLeftPosition(progress);
+
+        Canvas.SetLeft(control, left);
+        Canvas.SetTop(control, top);
+
+        //创建绑定
+
+        //设计者模式
+        var designModeBinding =
+            new Binding(nameof(ScoreWindowViewModel.IsDesignMode))
+            {
+                Source = canvas.DataContext,
+            };
+        //文本设置
+        var fontFamilyBinding =
+            new Binding("Settings.TextSettings.ScoreGlobal_Data.FontFamily")
+            {
+                Source = canvas.DataContext,
+            };
+        var fontSizeBinding =
+            new Binding("Settings.TextSettings.ScoreGlobal_Data.FontSize")
+            {
+                Source = canvas.DataContext,
+            };
+        var fontWeightBinding =
+            new Binding("Settings.TextSettings.ScoreGlobal_Data.FontWeight")
+            {
+                Source = canvas.DataContext,
+            };
+        var foregroundBinding =
+            new Binding("Settings.TextSettings.ScoreGlobal_Data.Foreground")
+            {
+                Source = canvas.DataContext,
+            };
+
+        BindingOperations.SetBinding(control, DesignBehavior.IsDesignModeProperty, designModeBinding);
+        BindingOperations.SetBinding(control, Control.FontFamilyProperty, fontFamilyBinding);
+        BindingOperations.SetBinding(control, Control.FontSizeProperty, fontSizeBinding);
+        BindingOperations.SetBinding(control, Control.FontWeightProperty, fontWeightBinding);
+        BindingOperations.SetBinding(control, Control.ForegroundProperty, foregroundBinding);
+
+        canvas.Children.Add(control);
+    }
+
+    /// <summary>
+    /// 计算控件左侧距离
+    /// </summary>
+    /// <param name="progress"></param>
+    /// <returns></returns>
+    private static double CalculateLeftPosition(GameProgress progress) => 170 + ((int)progress) * 98; // 每个控件间隔 100 像素
+
+    /// <summary>
+    /// 注册控件
+    /// </summary>
+    /// <param name="nameHeader">控件名头</param>
+    /// <param name="key">控件序号 (在字典中查找用的Key)</param>
+    /// <param name="elementDict">控件所在的字典</param>
+    /// <param name="control">控件</param>
+    /// <param name="isOverride">是否覆盖(当Key值相同的情况下)</param>
+    /// <typeparam name="T">控件的Key类型</typeparam>
+    /// <exception cref="ArgumentException">添加控件时，Key值已经存在</exception>
+    private static void RegisterControl<T>(string nameHeader, T key,
+        Dictionary<T, FrameworkElement> elementDict, FrameworkElement control, bool isOverride = true)
+        where T : notnull
+    {
+        var name = nameHeader + key.ToString();
+        control.Name = name;
+        if (elementDict.TryAdd(key, control)) return;
+        if (!isOverride)
+            throw new ArgumentException(
+                $"Control with key '{key}' already exists. Set isOverride to true to replace.");
+        elementDict[key] = control;
     }
 
     #endregion

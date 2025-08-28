@@ -250,7 +250,7 @@ public class ScoreWindowTextSettings
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 18);
 
     public TextSettings ScoreGlobal_Data { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 16);
+        new("#FFFFFFFF", "Arial", 24, FontWeights.Bold);
 
     public TextSettings ScoreGlobal_Total { get; set; } =
         new TextSettings("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 48, FontWeights.Bold);
