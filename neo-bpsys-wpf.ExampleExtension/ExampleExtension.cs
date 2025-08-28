@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.Core.Extensions;
+using neo_bpsys_wpf.Core.Services;
 using neo_bpsys_wpf.ExampleExtension.UI;
 using neo_bpsys_wpf.ExampleExtension.UI.View;
 

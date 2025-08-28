@@ -4,6 +4,7 @@ using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Extensions;
+using neo_bpsys_wpf.Core.Services;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 

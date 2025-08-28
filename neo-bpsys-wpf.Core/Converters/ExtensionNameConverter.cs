@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Windows.Data;
 using neo_bpsys_wpf.Core.Extensions;
+using neo_bpsys_wpf.Core.Services;
 
 namespace neo_bpsys_wpf.Core.Converters
 {

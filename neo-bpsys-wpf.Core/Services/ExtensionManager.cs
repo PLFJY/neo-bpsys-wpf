@@ -1,12 +1,12 @@
-using System.CodeDom;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Reflection;
 using System.Windows.Controls;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Extensions;
 
-namespace neo_bpsys_wpf.Core.Extensions;
+namespace neo_bpsys_wpf.Core.Services;
 
 /// <summary>
 /// 一个用于管理扩展的单例类，通过单例的方式确保全局只有一个实例。
