@@ -5,7 +5,8 @@ namespace neo_bpsys_wpf.Core.Extensions;
 /// 该类包含扩展的数据文件夹路径、名称、版本、版本代码、作者和描述等属性。
 /// 这些信息可以用于扩展的管理和显示。
 /// </summary>
-public class ExtensionManifest
+[AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+public class ExtensionManifest : Attribute
 {
     /// <summary>
     /// 扩展数据文件夹名称，相关配置文件都理应存放在此文件夹下。

@@ -1,0 +1,30 @@
+using System.Globalization;
+using System.Windows.Data;
+using neo_bpsys_wpf.Core.Extensions;
+
+namespace neo_bpsys_wpf.Core.Converters
+{
+    public class ExtensionNameConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null) return "#名称获取失败#";
+            
+            try
+            {
+                var extensionType = value.GetType();
+                var manifest = ExtensionManager.Instance().GetExtensionManifest(extensionType);
+                return manifest?.ExtensionName ?? "#名称获取失败#";
+            }
+            catch
+            {
+                return "#名称获取失败#";
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}

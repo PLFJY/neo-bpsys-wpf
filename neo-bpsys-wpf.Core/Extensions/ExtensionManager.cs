@@ -1,3 +1,4 @@
+using System.CodeDom;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Reflection;
@@ -154,7 +155,7 @@ public class ExtensionManager
                 // 触发插件启用事件
                 extension.OnEnable();
                 FlushExtensionUIs();
-                Logger.LogInformation("Extension {Name} has been enabled.", extension.ExtensionManifest.ExtensionName);
+                Logger.LogInformation("Extension {Name} has been enabled.", GetExtensionManifest(extension.GetType()).ExtensionName);
             }
         }
     }
@@ -177,7 +178,7 @@ public class ExtensionManager
                 // 触发插件禁用事件
                 extension.OnDisable();
                 FlushExtensionUIs();
-                Logger.LogInformation("Extension {Name} has been disabled.", extension.ExtensionManifest.ExtensionName);
+                Logger.LogInformation("Extension {Name} has been disabled.", GetExtensionManifest(extension.GetType()).ExtensionName);
             }
         }
     }
@@ -230,6 +231,36 @@ public class ExtensionManager
         }
     }
 
+    /// <summary>
+    /// 以反射方式获取某 Extension 的信息。
+    /// 可以以此避免将未知风险的 Extension 实例化。
+    /// </summary>
+    /// <param name="extensionType"></param>
+    /// <exception cref="ArgumentException"><paramref name="extensionType"/> 没有实现 IExtension 接口。</exception>
+    /// <exception cref="InvalidOperationException"><paramref name="extensionType"/> 没有提供 [ExtensionManifest] 特性。</exception>
+    public ExtensionManifest GetExtensionManifest(Type extensionType)
+    {
+        if (extensionType == null)
+        {
+            throw new ArgumentNullException(nameof(extensionType));
+        }
+        if (!typeof(IExtension).IsAssignableFrom(extensionType))
+        {
+            throw new ArgumentException(
+                $"Type {extensionType.Name} has not implemented interface IExtension. ");
+        }
+        
+        var extensionManifest = extensionType.GetCustomAttribute<ExtensionManifest>();
+        
+        if (extensionManifest == null)
+        {
+            throw new InvalidOperationException(
+                $"Class {extensionType.Name} is not decorated with [ExtensionManifest] attribute. ");
+        }
+
+        return extensionManifest;
+    }
+    
     public void LoadExtensions(string extensionsDirectory)
     {
         var extensions = new List<IExtension>();
@@ -255,11 +286,35 @@ public class ExtensionManager
                 #endif
                 foreach (var type in types)
                 {
-                    Logger.LogInformation("Registering extension from file: {File}", extensionFile);
-                    if (Activator.CreateInstance(type) is IExtension extension)
+                    try
                     {
-                        this.RegisterExtension(extension);
-                        Logger.LogInformation("Extension {Name} registered successfully from file {File}", extension.ExtensionManifest.ExtensionName, extensionFile);
+                        var extensionManifest = GetExtensionManifest(type);
+                        Logger.LogInformation(
+                            "Registering extension {Name} [{Version}({VersionCode})] By {Author} from file: {File}",
+                            extensionManifest.ExtensionName, extensionManifest.ExtensionVersion,
+                            extensionManifest.ExtensionVersionCode, extensionManifest.ExtensionAuthor, extensionFile);
+                        if (Activator.CreateInstance(type)
+                            is IExtension
+                            extension) // 已经通过筛选 types 与使用 GetExtensionManifest 方法两次确定 type 为 IExtension 的实现，但顺便在创建实例的时候再次确认
+                        {
+                            RegisterExtension(extension);
+                            Logger.LogInformation("Extension {Name} registered successfully from file {File}",
+                                GetExtensionManifest(extension.GetType()).ExtensionName, extensionFile);
+                        }
+                    }
+                    catch (ArgumentException e)
+                    {
+#if DEBUG
+                        Logger.LogWarning(e, "{Message}", e.Message);
+#endif
+                    }
+                    catch (InvalidOperationException e)
+                    {
+                        Logger.LogError(e, "An error occurred when loading an extension: {Message}", e.Message);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.LogError(e, "An error occurred when loading an extension: {Message}", e.Message);
                     }
                 }
             }
@@ -269,7 +324,7 @@ public class ExtensionManager
             }
             catch (Exception e)
             {
-                Logger.LogError(e,"An error occured when loading an extension: {Message}", e.Message);
+                Logger.LogError(e,"An error occured when loading extensions: {Message}", e.Message);
             }
         }
     }

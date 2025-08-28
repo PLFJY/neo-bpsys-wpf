@@ -6,13 +6,17 @@
       xmlns:vm="clr-namespace:neo_bpsys_wpf.ExampleExtension.UI.ViewModel"
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       xmlns:local="clr-namespace:neo_bpsys_wpf.ExampleExtension.UI.View"
+      xmlns:coreConverters="clr-namespace:neo_bpsys_wpf.Core.Converters;assembly=neo-bpsys-wpf.Core"
       ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
       Foreground="{DynamicResource TextFillColorPrimaryBrush}"
       mc:Ignorable="d">
     <Page.DataContext><vm:ExampleUIViewModel/></Page.DataContext>
+    <Page.Resources>
+        <coreConverters:ExtensionNameConverter x:Key="ExtensionNameConverter"/>
+    </Page.Resources>
     <Border Name="ExampleBorder" Style="{StaticResource Card}">
         <StackPanel Orientation="Horizontal">
-            <TextBlock Text="{Binding Extension.ExtensionManifest.ExtensionName}" Margin="20 0 20 0" />
+            <TextBlock Text="{Binding Extension, Converter={StaticResource ExtensionNameConverter}}" Margin="20 0 20 0" />
             <TextBlock>Hello, Example Extension! </TextBlock>
             <TextBlock Text="{Binding MainTeamMinorPoints}"/>
             <Button Margin="20 0 0 0" Content="MainTeam 小分+1" Command="{Binding AddMainTeamMinorPointsCommand}"/>

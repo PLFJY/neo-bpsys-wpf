@@ -8,6 +8,7 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     xmlns:converters="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:coreConverters="clr-namespace:neo_bpsys_wpf.Core.Converters;assembly=neo-bpsys-wpf.Core"
     Title="ExtensionPage"
     d:DataContext="{d:DesignInstance Type=vm:ExtensionPageViewModel,
                                      IsDesignTimeCreatable=True}"
@@ -20,6 +21,9 @@
     <Page.Resources>
         <converters:BooleanToTextConverter x:Key="BooleanToIsEnabledConverter"/>
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+        <coreConverters:ExtensionNameConverter x:Key="ExtensionNameConverter"/>
+        <coreConverters:ExtensionVersionConverter x:Key="ExtensionVersionConverter"/>
+        <coreConverters:ExtensionAuthorConverter x:Key="ExtensionAuthorConverter"/>
     </Page.Resources>
 
     
@@ -42,9 +46,9 @@
                                 <TextBlock Margin="5,0" VerticalAlignment="Center">
                                     <TextBlock.Text>
                                         <MultiBinding StringFormat="{}{0} [{1}] By {2} - {3}">
-                                            <Binding Path="Key.ExtensionManifest.ExtensionName"/>
-                                            <Binding Path="Key.ExtensionManifest.ExtensionVersion"/>
-                                            <Binding Path="Key.ExtensionManifest.ExtensionAuthor"/>
+                                            <Binding Path="Key" Converter="{StaticResource ExtensionNameConverter}"/>
+                                            <Binding Path="Key" Converter="{StaticResource ExtensionVersionConverter}"/>
+                                            <Binding Path="Key" Converter="{StaticResource ExtensionAuthorConverter}"/>
                                             <Binding Path="Value" Converter="{StaticResource BooleanToIsEnabledConverter}"/>
                                         </MultiBinding>
                                     </TextBlock.Text>
