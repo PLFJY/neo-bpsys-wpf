@@ -248,9 +248,10 @@ public class ExtensionManager
                 Logger.LogInformation("Loading extension from file: {File}", extensionFile);
                 var assembly = Assembly.LoadFrom(extensionFile);
                 var types = assembly.GetTypes()
-                    .Where(t => typeof(IExtension).IsAssignableFrom(t) && !t.IsAbstract);
+                    .Where(t => typeof(IExtension).IsAssignableFrom(t) && !t.IsAbstract)
+                    .ToList(); // 修复“可能多次枚举”
                 #if DEBUG
-                Logger.LogInformation("Found {Count} types implementing IExtension in {File}", types.Count(), extensionFile);
+                Logger.LogInformation("Found {Count} types implementing IExtension in {File}", types.Count, extensionFile);
                 #endif
                 foreach (var type in types)
                 {
