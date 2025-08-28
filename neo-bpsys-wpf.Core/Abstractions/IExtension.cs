@@ -1,4 +1,6 @@
-namespace neo_bpsys_wpf.Core.Extensions;
+using neo_bpsys_wpf.Core.Models;
+
+namespace neo_bpsys_wpf.Core.Abstractions;
 
 /// <summary>
 /// 所有扩展应当包含一个实现 IExtension 的类，以作为扩展的入口。

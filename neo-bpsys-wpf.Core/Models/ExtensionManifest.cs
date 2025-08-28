@@ -1,4 +1,4 @@
-namespace neo_bpsys_wpf.Core.Extensions;
+namespace neo_bpsys_wpf.Core.Models;
 
 /// <summary>
 /// ExtensionInfo 类用于存储扩展的基本信息。
