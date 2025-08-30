@@ -39,7 +39,8 @@ public partial class App : Application
                     rollingInterval: RollingInterval.Day, // 每天创建一个新文件
                     retainedFileCountLimit: 3, // 只保留最近3天的日志文件
                     outputTemplate:
-                    "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
+                    "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                    encoding: Encoding.UTF8
                 )
                 .Enrich.FromLogContext()
                 .MinimumLevel.Debug();
@@ -224,6 +225,7 @@ public partial class App : Application
 
     protected override async void OnStartup(StartupEventArgs e)
     {
+        Console.OutputEncoding=Encoding.UTF8;
         _mutex = new Mutex(true, AppConstants.AppName, out createdNew);
 
         if (!createdNew)
