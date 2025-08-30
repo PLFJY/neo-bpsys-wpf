@@ -6,68 +6,68 @@
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="HomePage"
     d:DesignHeight="750"
     d:DesignWidth="685"
+    d:DataContext="{d:DesignInstance Type=vm:HomePageViewModel, IsDesignTimeCreatable=True}"
     Foreground="{DynamicResource TextFillColorTertiaryBrush}"
     mc:Ignorable="d">
 
-    <StackPanel>
-        <Border VerticalAlignment="Top" CornerRadius="4">
-            <Grid>
-                <Image Source="/Assets/HomePageHeader.png" />
-                <StackPanel
-                    Margin="35,0,0,35"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Bottom">
-                    <TextBlock
-                        FontSize="25"
-                        Foreground="White"
-                        Text="neo-bpsys-wpf" />
-                    <TextBlock
-                        Margin="0,10,0,0"
-                        FontSize="15"
-                        Foreground="White"
-                        Text="新一代的的第五人格BP展示软件" />
-                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                        <ui:HyperlinkButton NavigateUri="https://bpsys.plfjy.top/">
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon
-                                    Margin="0,0,0,0"
-                                    FontSize="20"
-                                    Foreground="LightGray"
-                                    Symbol="Link24" />
-                                <TextBlock
-                                    Margin="5,0,0,0"
-                                    VerticalAlignment="Center"
-                                    FontSize="12"
-                                    Foreground="LightGray"
-                                    Text="前往官网" />
-                            </StackPanel>
-                        </ui:HyperlinkButton>
-                        <ui:HyperlinkButton NavigateUri="https://docs.bpsys.plfjy.top/">
-                            <StackPanel Orientation="Horizontal">
-                                <ui:SymbolIcon
-                                    Margin="0,0,0,0"
-                                    FontSize="20"
-                                    Foreground="LightGray"
-                                    Symbol="Link24" />
-                                <TextBlock
-                                    Margin="5,0,0,0"
-                                    VerticalAlignment="Center"
-                                    FontSize="12"
-                                    Foreground="LightGray"
-                                    Text="查看文档" />
-                            </StackPanel>
-                        </ui:HyperlinkButton>
+    <Grid>
+        <ui:SnackbarPresenter x:Name="SnbPre" Loaded="SnbPre_OnLoaded" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+        <StackPanel>
+            <Border VerticalAlignment="Top" CornerRadius="4">
+                <Grid>
+                    <Image Source="/Assets/HomePageHeader.png" />
+                    <StackPanel
+                        Margin="35,0,0,35"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Bottom">
+                        <TextBlock
+                            FontSize="25"
+                            Foreground="White"
+                            Text="neo-bpsys-wpf" />
+                        <TextBlock
+                            Margin="0,10,0,0"
+                            FontSize="15"
+                            Foreground="White"
+                            Text="新一代的的第五人格BP展示软件" />
+                        <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                            <ui:HyperlinkButton NavigateUri="https://bpsys.plfjy.top/">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon
+                                        Margin="0,0,0,0"
+                                        FontSize="20"
+                                        Foreground="LightGray"
+                                        Symbol="Link24" />
+                                    <TextBlock
+                                        Margin="5,0,0,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        Foreground="LightGray"
+                                        Text="前往官网" />
+                                </StackPanel>
+                            </ui:HyperlinkButton>
+                            <ui:HyperlinkButton NavigateUri="https://docs.bpsys.plfjy.top/">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon
+                                        Margin="0,0,0,0"
+                                        FontSize="20"
+                                        Foreground="LightGray"
+                                        Symbol="Link24" />
+                                    <TextBlock
+                                        Margin="5,0,0,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        Foreground="LightGray"
+                                        Text="查看文档" />
+                                </StackPanel>
+                            </ui:HyperlinkButton>
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
-            </Grid>
-        </Border>
-        <TextBlock
-            Margin="10"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Text="提示：软件安装目录下有无作者名字版本的前台UI" />
-    </StackPanel>
+                </Grid>
+            </Border>
+        </StackPanel>
+    </Grid>
 </Page>
