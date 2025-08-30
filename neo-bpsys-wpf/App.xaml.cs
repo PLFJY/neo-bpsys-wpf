@@ -9,6 +9,7 @@ using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
 using Serilog;
 using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
@@ -91,6 +92,7 @@ public partial class App : Application
             services.AddSingleton<IFilePickerService, FilePickerService>();
             services.AddSingleton<IMessageBoxService, MessageBoxService>();
             services.AddSingleton<IInfoBarService, InfoBarService>();
+            services.AddSingleton<SnackbarService>();
 
             //Additional Feature Services
             services.AddSingleton<IGameGuidanceService, GameGuidanceService>();
@@ -140,7 +142,12 @@ public partial class App : Application
             services.AddSingleton<ScoreManualWindowViewModel>();
 
             //Page
-            services.AddTransient<HomePage>();
+            services.AddTransient<HomePage>(sp => new HomePage()
+            {
+                DataContext = sp.GetRequiredService<HomePageViewModel>(),
+                SnbService = sp.GetRequiredService<SnackbarService>()
+            });
+            services.AddSingleton<HomePageViewModel>();
 
             services.AddSingleton<TeamInfoPage>(sp => new TeamInfoPage()
             {
