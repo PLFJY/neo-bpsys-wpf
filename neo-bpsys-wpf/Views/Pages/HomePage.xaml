@@ -6,16 +6,16 @@
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="HomePage"
     d:DesignHeight="750"
     d:DesignWidth="685"
-    d:DataContext="{d:DesignInstance Type=vm:HomePageViewModel, IsDesignTimeCreatable=True}"
     Foreground="{DynamicResource TextFillColorTertiaryBrush}"
     mc:Ignorable="d">
-
     <Grid>
-        <ui:SnackbarPresenter x:Name="SnbPre" Loaded="SnbPre_OnLoaded" VerticalAlignment="Bottom" HorizontalAlignment="Right"/>
+        <ui:SnackbarPresenter
+            x:Name="SnbPre"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom" />
         <StackPanel>
             <Border VerticalAlignment="Top" CornerRadius="4">
                 <Grid>
