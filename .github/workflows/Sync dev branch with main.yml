@@ -6,15 +6,18 @@ on:
       - main
     types:
       - closed
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
   sync-dev-branch:
-    runs-on: windows-latest  # 或 windows-11-arm 以支持Arm架构
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4  # 升级到v4
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
