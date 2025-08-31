@@ -1,12 +1,9 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Core.Messages;
-using neo_bpsys_wpf.ViewModels.Pages;
-using System.Security.Cryptography.X509Certificates;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using Wpf.Ui;
+using neo_bpsys_wpf.Controls;
+using neo_bpsys_wpf.Services;
 using Wpf.Ui.Controls;
-using Wpf.Ui.Extensions;
 
 namespace neo_bpsys_wpf.Views.Pages;
 
@@ -21,12 +18,19 @@ public partial class HomePage : Page
         snackbarService.SetSnackbarPresenter(SnbPre);
         Loaded += async (s, e) =>
         {
-            await Task.Delay(1500);
+            await Task.Delay(3200);
             snackbarService.Show("提示", 
-                "软件安装目录下有无作者名字版本的前台UI", 
+                new HyperLinkSnackbarMessage()
+                {
+                    HyperLinkUri = new Uri(Path.Combine(Environment.CurrentDirectory, "Resources")).ToString(),
+                }, 
                 ControlAppearance.Secondary, 
-                new SymbolIcon(SymbolRegular.Info24),
-                TimeSpan.FromSeconds(10)
+                new SymbolIcon(SymbolRegular.Info24, 24D)
+                {
+                    Margin = new Thickness(0,0,5,0)
+                },
+                TimeSpan.FromSeconds(10),
+                false
                 );
         };
     }

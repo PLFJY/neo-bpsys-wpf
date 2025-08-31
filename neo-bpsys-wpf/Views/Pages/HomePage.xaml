@@ -12,10 +12,6 @@
     Foreground="{DynamicResource TextFillColorTertiaryBrush}"
     mc:Ignorable="d">
     <Grid>
-        <ui:SnackbarPresenter
-            x:Name="SnbPre"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Bottom" />
         <StackPanel>
             <Border VerticalAlignment="Top" CornerRadius="4">
                 <Grid>
@@ -69,5 +65,9 @@
                 </Grid>
             </Border>
         </StackPanel>
+        <ui:SnackbarPresenter
+            x:Name="SnbPre"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom" />
     </Grid>
 </Page>

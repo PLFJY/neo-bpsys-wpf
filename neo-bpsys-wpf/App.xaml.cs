@@ -19,6 +19,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.DependencyInjection;
+using SnackbarService = neo_bpsys_wpf.Services.SnackbarService;
 
 namespace neo_bpsys_wpf;
 
