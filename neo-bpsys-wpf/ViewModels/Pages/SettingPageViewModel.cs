@@ -200,10 +200,14 @@ public partial class SettingPageViewModel : ViewModelBase
 
     public ObservableCollection<string> MirrorList { get; } =
     [
-        "https://ghproxy.net/",
-        "https://gh.plfjy.top/",
-        "https://ghfast.top/",
-        ""
+        @"https://gh-proxy.com/",
+        @"https://ghproxy.net/",
+        @"https://ghfast.top/",
+        @"https://hk.gh-proxy.com/",
+        @"https://cdn.gh-proxy.com/",
+        @"https://edgeone.gh-proxy.com/",
+        @"https://gh.plfjy.top/",
+        @""
     ];
 
     #endregion
