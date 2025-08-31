@@ -142,12 +142,7 @@ public partial class App : Application
             services.AddSingleton<ScoreManualWindowViewModel>();
 
             //Page
-            services.AddTransient<HomePage>(sp => new HomePage()
-            {
-                DataContext = sp.GetRequiredService<HomePageViewModel>(),
-                SnbService = sp.GetRequiredService<SnackbarService>()
-            });
-            services.AddSingleton<HomePageViewModel>();
+            services.AddSingleton<HomePage>();
 
             services.AddSingleton<TeamInfoPage>(sp => new TeamInfoPage()
             {
@@ -226,7 +221,7 @@ public partial class App : Application
     /// <summary>
     /// 互斥锁
     /// </summary>
-    private static Mutex _mutex = null;
+    private static Mutex? _mutex = null;
 
     bool createdNew;
 
