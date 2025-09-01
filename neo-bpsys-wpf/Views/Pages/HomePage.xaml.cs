@@ -19,15 +19,16 @@ public partial class HomePage : Page
         Loaded += async (s, e) =>
         {
             await Task.Delay(3200);
-            snackbarService.Show("提示", 
-                new HyperLinkSnackbarMessage()
+            snackbarService.Show("提示",
+                new HyperLinkSnackbarContent()
                 {
-                    HyperLinkUri = new Uri(Path.Combine(Environment.CurrentDirectory, "Resources")).ToString(),
-                }, 
-                ControlAppearance.Secondary, 
+                    NavigateUri = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "bpui"),
+                    Text = "软件安装目录下有无作者名字版本的前台UI awa"
+                },
+                ControlAppearance.Secondary,
                 new SymbolIcon(SymbolRegular.Info24, 24D)
                 {
-                    Margin = new Thickness(0,0,5,0)
+                    Margin = new Thickness(0, 0, 5, 0)
                 },
                 TimeSpan.FromSeconds(10),
                 false

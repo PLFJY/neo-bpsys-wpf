@@ -314,7 +314,7 @@ public partial class App : Application
     public static void Restart()
     {
         // 释放互斥锁
-        _mutex.Close();
+        _mutex?.Close();
         // 重启应用程序
         System.Diagnostics.Process.Start(ResourceAssembly.Location.Replace(".dll", ".exe"));
         Current.Shutdown();
