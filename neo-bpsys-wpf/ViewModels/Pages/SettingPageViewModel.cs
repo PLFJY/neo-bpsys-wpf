@@ -259,10 +259,22 @@ public partial class SettingPageViewModel : ViewModelBase
     /// 切换全局分数调试开启状态
     /// </summary>
     [RelayCommand]
-    private static void SwitchDebugGlobalScore()
+    private void SwitchDebugGlobalScore()
     {
         App.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible =
             !App.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible;
+        _messageBoxService.ShowInfoAsync($"ScorePageViewModel.IsDebugContentVisible 已设置为 {App.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible}");
+    }
+
+    /// <summary>
+    /// 打开启动提示
+    /// </summary>
+    [RelayCommand]
+    private void OpenTip()
+    {
+        _settingsHostService.Settings.ShowTip = true;
+        _settingsHostService.SaveConfig();
+        _messageBoxService.ShowInfoAsync("Settings.ShowTip 已设置为 true");
     }
 
     #endregion

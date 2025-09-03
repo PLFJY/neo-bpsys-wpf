@@ -169,9 +169,10 @@
                             Icon="{ui:SymbolIcon Symbol=Stop24}"
                             Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     </StackPanel>
-                    <TextBlock Text="贴图素材来自:" 
+                    <TextBlock
                         Margin="0,20,0,0"
-                        FontWeight="DemiBold"/>
+                        FontWeight="DemiBold"
+                        Text="贴图素材来自:" />
                     <WrapPanel Margin="0,10,0,0" Orientation="Horizontal">
                         <WrapPanel.Resources>
                             <Style BasedOn="{StaticResource {x:Type ui:HyperlinkButton}}" TargetType="ui:HyperlinkButton">
@@ -179,8 +180,14 @@
                                 <Setter Property="PressedForeground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
                             </Style>
                         </WrapPanel.Resources>
-                        <ui:HyperlinkButton Margin="0,0,10,10" Content="第五人格BWiki" NavigateUri="https://wiki.biligame.com/" />
-                        <ui:HyperlinkButton Margin="0,0,10,10" Content="Fandom Identity V Wiki" NavigateUri="https://id5.fandom.com/wiki/Identity_V_Wiki/" />
+                        <ui:HyperlinkButton
+                            Margin="0,0,10,10"
+                            Content="第五人格BWiki"
+                            NavigateUri="https://wiki.biligame.com/" />
+                        <ui:HyperlinkButton
+                            Margin="0,0,10,10"
+                            Content="Fandom Identity V Wiki"
+                            NavigateUri="https://id5.fandom.com/wiki/Identity_V_Wiki/" />
                     </WrapPanel>
                     <TextBlock
                         Margin="0,10,0,0"
@@ -712,6 +719,10 @@
                     Margin="0,0,10,10"
                     Command="{Binding SwitchDebugGlobalScoreCommand}"
                     Content="切换分数统计调试表格" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding OpenTipCommand}"
+                    Content="打开启动时无作者UI提示" />
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding HopToLogDirCommand}"

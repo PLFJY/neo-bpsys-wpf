@@ -20,6 +20,7 @@ using Wpf.Ui;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.DependencyInjection;
 using SnackbarService = neo_bpsys_wpf.Services.SnackbarService;
+using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
 
 namespace neo_bpsys_wpf;
 
@@ -93,7 +94,7 @@ public partial class App : Application
             services.AddSingleton<IFilePickerService, FilePickerService>();
             services.AddSingleton<IMessageBoxService, MessageBoxService>();
             services.AddSingleton<IInfoBarService, InfoBarService>();
-            services.AddSingleton<SnackbarService>();
+            services.AddSingleton<ISnackbarService, SnackbarService>();
 
             //Additional Feature Services
             services.AddSingleton<IGameGuidanceService, GameGuidanceService>();
