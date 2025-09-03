@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -21,7 +22,7 @@ public class SnackbarService : ISnackbarService
     /// <param name="contentPresenter"><see cref="SnackbarPresenter"/>控件</param>
     public void SetSnackbarPresenter(SnackbarPresenter contentPresenter)
     {
-        this._presenter = contentPresenter;
+        _presenter = contentPresenter;
 
     }
 
@@ -43,16 +44,26 @@ public class SnackbarService : ISnackbarService
         TimeSpan timeout,
         bool isCloseButtonEnabled)
     {
-        if (this._presenter == null)
+        if (_presenter == null)
             throw new InvalidOperationException("The SnackbarPresenter was never set");
-        this._snackbar ??= new Snackbar(this._presenter);
-        this._snackbar.SetCurrentValue(Snackbar.TitleProperty, (object)title);
-        this._snackbar.SetCurrentValue(ContentControl.ContentProperty, (object)content);
-        this._snackbar.SetCurrentValue(Snackbar.AppearanceProperty, (object)appearance);
+        _snackbar ??= new Snackbar(_presenter);
+        _snackbar.SetCurrentValue(Snackbar.TitleProperty, (object)title);
+        _snackbar.SetCurrentValue(ContentControl.ContentProperty, (object)content);
+        _snackbar.SetCurrentValue(Snackbar.AppearanceProperty, (object)appearance);
         if(icon != null)
-            this._snackbar.SetCurrentValue(Snackbar.IconProperty, (object)icon);
-        this._snackbar.SetCurrentValue(Snackbar.TimeoutProperty, (object)(timeout.TotalSeconds == 0.0 ? this.DefaultTimeOut : timeout));
-        this._snackbar.SetCurrentValue(Snackbar.IsCloseButtonEnabledProperty, (object)isCloseButtonEnabled);
-        this._snackbar.Show(true);
+            _snackbar.SetCurrentValue(Snackbar.IconProperty, (object)icon);
+        _snackbar.SetCurrentValue(Snackbar.TimeoutProperty, (object)(timeout.TotalSeconds == 0.0 ? DefaultTimeOut : timeout));
+        _snackbar.SetCurrentValue(Snackbar.IsCloseButtonEnabledProperty, (object)isCloseButtonEnabled);
+        _snackbar.Show(true);
+    }
+
+    /// <summary>
+    /// 隐藏 <see cref="SnackbarPresenter"/>
+    /// </summary>
+    public void Hide()
+    {
+        if (_snackbar == null) return;
+        var hideMethod = typeof(Snackbar).GetMethod("Hide", BindingFlags.NonPublic | BindingFlags.Instance);
+        hideMethod?.Invoke(_snackbar, null);
     }
 }

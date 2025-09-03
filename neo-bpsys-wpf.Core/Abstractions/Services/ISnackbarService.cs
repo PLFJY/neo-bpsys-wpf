@@ -12,6 +12,11 @@ public interface ISnackbarService
     TimeSpan DefaultTimeOut { get; set; }
 
     /// <summary>
+    /// 隐藏 <see cref="SnackbarPresenter"/>
+    /// </summary>
+    void Hide();
+
+    /// <summary>
     /// 设置<see cref="SnackbarPresenter"/>控件
     /// </summary>
     /// <param name="contentPresenter"><see cref="SnackbarPresenter"/>控件</param>

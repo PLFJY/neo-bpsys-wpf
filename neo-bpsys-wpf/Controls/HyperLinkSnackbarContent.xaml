@@ -16,24 +16,17 @@
             Margin="0,5,5,5"
             FontSize="14"
             Text="{Binding Text}" />
-        <ui:HyperlinkButton
-            x:Name="HlButton"
-            HorizontalAlignment="Right"
-            NavigateUri="{Binding HyperLinkUri}">
-            <StackPanel Orientation="Horizontal">
-                <ui:SymbolIcon
-                    Margin="0,0,0,0"
-                    FontSize="14"
-                    Foreground="DodgerBlue"
-                    Symbol="ArrowCircleRight12" />
-                <TextBlock
-                    x:Name="TxbHyperLink"
-                    Margin="5,0,0,1"
-                    VerticalAlignment="Center"
-                    FontSize="14"
-                    Foreground="DodgerBlue"
-                    Text="前往" />
-            </StackPanel>
-        </ui:HyperlinkButton>
+        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+            <ui:HyperlinkButton
+                Command="{Binding NoLogerDisplayedCommand}"
+                Content="不再提示"
+                Icon="{ui:SymbolIcon Symbol=AlertOff24}" />
+            <ui:HyperlinkButton
+                Margin="5,0,0,0"
+                Content="前往"
+                Icon="{ui:SymbolIcon Symbol=ArrowCircleRight12}"
+                NavigateUri="{Binding NavigateUri}">
+            </ui:HyperlinkButton>
+        </StackPanel>
     </StackPanel>
 </UserControl>
