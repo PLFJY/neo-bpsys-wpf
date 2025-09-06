@@ -1,11 +1,15 @@
 ﻿using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Controls;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Services;
 using System.ComponentModel;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
-using neo_bpsys_wpf.Core.Abstractions.Services;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
+using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
 using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
 
@@ -20,8 +24,9 @@ public partial class MainWindow : FluentWindow, INavigationWindow
 
     public MainWindow(
         INavigationService navigationService,
-        IMessageBoxService messageBoxService,
         IInfoBarService infoBarService,
+        ISnackbarService snackbarService,
+        ISettingsHostService settingsHostService,
         ILogger<MainWindow> logger
     )
     {
@@ -29,6 +34,29 @@ public partial class MainWindow : FluentWindow, INavigationWindow
         InitializeComponent();
         navigationService.SetNavigationControl(RootNavigation);
         infoBarService.SetInfoBarControl(InfoBar);
+        snackbarService.SetSnackbarPresenter(SnbPre);
+        if (settingsHostService.Settings.ShowTip)
+            Loaded += async (s, e) =>
+            {
+                await Task.Delay(5500);
+                snackbarService.Show("提示",
+                    new HyperLinkSnackbarContent(
+                        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "bpui"),
+                        "软件安装目录下有无作者名字版本的前台UI awa",
+                        () =>
+                        {
+                            settingsHostService.Settings.ShowTip = false;
+                            settingsHostService.SaveConfig();
+                            snackbarService.Hide();
+                        }
+                    ),
+                    ControlAppearance.Secondary,
+                    new SymbolIcon(SymbolRegular.Info24, 24D)
+                    {
+                        Margin = new Thickness(0, 0, 5, 0)
+                    }, TimeSpan.FromSeconds(10), true
+                );
+            };
     }
 
     protected override void OnClosing(CancelEventArgs e)
@@ -67,8 +95,7 @@ public partial class MainWindow : FluentWindow, INavigationWindow
     private void MaximizeButton_Click(object sender, RoutedEventArgs e)
     {
         WindowState =
-            WindowState == WindowState.Normal ?
-                WindowState.Maximized : WindowState.Normal;
+            WindowState == WindowState.Normal ? WindowState.Maximized : WindowState.Normal;
     }
 
     private void MinimizeButton_Click(object sender, RoutedEventArgs e)
