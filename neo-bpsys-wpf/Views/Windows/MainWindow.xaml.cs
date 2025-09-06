@@ -54,7 +54,7 @@ public partial class MainWindow : FluentWindow, INavigationWindow
                     new SymbolIcon(SymbolRegular.Info24, 24D)
                     {
                         Margin = new Thickness(0, 0, 5, 0)
-                    }, TimeSpan.FromSeconds(10), true
+                    }, TimeSpan.FromSeconds(5), true
                 );
             };
     }
