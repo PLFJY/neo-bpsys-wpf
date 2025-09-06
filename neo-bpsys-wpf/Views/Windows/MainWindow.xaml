@@ -104,6 +104,12 @@
                 <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource StartupLoading}" />
             </i:EventTrigger>
         </i:Interaction.Triggers>
+        <!--  Snackbar  -->
+        <ui:SnackbarPresenter
+            x:Name="SnbPre"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Panel.ZIndex="2" />
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />

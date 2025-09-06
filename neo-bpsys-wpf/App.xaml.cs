@@ -78,8 +78,9 @@ public partial class App : Application
             // MainTeam window with navigation
             services.AddSingleton<INavigationWindow, MainWindow>(sp => new MainWindow(
                 sp.GetRequiredService<INavigationService>(),
-                sp.GetRequiredService<IMessageBoxService>(),
                 sp.GetRequiredService<IInfoBarService>(),
+                sp.GetRequiredService<ISnackbarService>(),
+                sp.GetRequiredService<ISettingsHostService>(),
                 sp.GetRequiredService<ILogger<MainWindow>>()
             )
             {

@@ -65,9 +65,5 @@
                 </Grid>
             </Border>
         </StackPanel>
-        <ui:SnackbarPresenter
-            x:Name="SnbPre"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Bottom" />
     </Grid>
 </Page>
