@@ -20,6 +20,7 @@ using Wpf.Ui;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.DependencyInjection;
 using SnackbarService = neo_bpsys_wpf.Services.SnackbarService;
+using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
 
 namespace neo_bpsys_wpf;
 
@@ -77,8 +78,9 @@ public partial class App : Application
             // MainTeam window with navigation
             services.AddSingleton<INavigationWindow, MainWindow>(sp => new MainWindow(
                 sp.GetRequiredService<INavigationService>(),
-                sp.GetRequiredService<IMessageBoxService>(),
                 sp.GetRequiredService<IInfoBarService>(),
+                sp.GetRequiredService<ISnackbarService>(),
+                sp.GetRequiredService<ISettingsHostService>(),
                 sp.GetRequiredService<ILogger<MainWindow>>()
             )
             {
@@ -93,7 +95,7 @@ public partial class App : Application
             services.AddSingleton<IFilePickerService, FilePickerService>();
             services.AddSingleton<IMessageBoxService, MessageBoxService>();
             services.AddSingleton<IInfoBarService, InfoBarService>();
-            services.AddSingleton<SnackbarService>();
+            services.AddSingleton<ISnackbarService, SnackbarService>();
 
             //Additional Feature Services
             services.AddSingleton<IGameGuidanceService, GameGuidanceService>();
@@ -314,7 +316,7 @@ public partial class App : Application
     public static void Restart()
     {
         // 释放互斥锁
-        _mutex.Close();
+        _mutex?.Close();
         // 重启应用程序
         System.Diagnostics.Process.Start(ResourceAssembly.Location.Replace(".dll", ".exe"));
         Current.Shutdown();

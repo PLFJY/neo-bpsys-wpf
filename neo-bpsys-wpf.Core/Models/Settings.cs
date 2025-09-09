@@ -13,6 +13,7 @@ namespace neo_bpsys_wpf.Core.Models;
 /// </summary>
 public partial class Settings : ViewModelBase
 {
+    public bool ShowTip { get; set; } = true;
     [ObservableProperty] private BpWindowSettings _bpWindowSettings = new();
     [ObservableProperty] private CutSceneWindowSettings _cutSceneWindowSettings = new();
     [ObservableProperty] private ScoreWindowSettings _scoreWindowSettings = new();

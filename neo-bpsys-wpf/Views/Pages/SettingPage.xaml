@@ -172,6 +172,26 @@
                     <TextBlock
                         Margin="0,20,0,0"
                         FontWeight="DemiBold"
+                        Text="贴图素材来自:" />
+                    <WrapPanel Margin="0,10,0,0" Orientation="Horizontal">
+                        <WrapPanel.Resources>
+                            <Style BasedOn="{StaticResource {x:Type ui:HyperlinkButton}}" TargetType="ui:HyperlinkButton">
+                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <Setter Property="PressedForeground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                            </Style>
+                        </WrapPanel.Resources>
+                        <ui:HyperlinkButton
+                            Margin="0,0,10,10"
+                            Content="第五人格BWiki"
+                            NavigateUri="https://wiki.biligame.com/" />
+                        <ui:HyperlinkButton
+                            Margin="0,0,10,10"
+                            Content="Fandom Identity V Wiki"
+                            NavigateUri="https://id5.fandom.com/wiki/Identity_V_Wiki/" />
+                    </WrapPanel>
+                    <TextBlock
+                        Margin="0,10,0,0"
+                        FontWeight="DemiBold"
                         Text="以下是本软件使用的开源代码库:" />
                     <Grid Margin="0,10,0,0">
                         <Grid.Resources>
@@ -186,19 +206,19 @@
                             <ColumnDefinition Width="1*" />
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0">
-                            <ui:HyperlinkButton Content=".Net Runtime" NavigateUri="https://github.com/dotnet/runtime" />
-                            <ui:HyperlinkButton Content="CommunityToolkit.Mvvm" NavigateUri="https://github.com/CommunityToolkit/dotnet" />
-                            <ui:HyperlinkButton Content="Downloader" NavigateUri="https://github.com/bezzad/Downloader" />
+                            <ui:HyperlinkButton Content=".Net Runtime" NavigateUri="https://github.com/dotnet/runtime/" />
+                            <ui:HyperlinkButton Content="CommunityToolkit.Mvvm" NavigateUri="https://github.com/CommunityToolkit/dotnet/" />
+                            <ui:HyperlinkButton Content="Downloader" NavigateUri="https://github.com/bezzad/Downloader/" />
                         </StackPanel>
                         <StackPanel Grid.Column="1">
-                            <ui:HyperlinkButton Content="hyjiacan.pinyin4net" NavigateUri="https://gitee.com/hyjiacan/Pinyin4Net" />
-                            <ui:HyperlinkButton Content="PixiEditor.ColorPicker" NavigateUri="https://github.com/PixiEditor/ColorPicker" />
-                            <ui:HyperlinkButton Content="Windows Presentation Foundation (WPF)" NavigateUri="https://github.com/dotnet/wpf" />
+                            <ui:HyperlinkButton Content="hyjiacan.pinyin4net" NavigateUri="https://gitee.com/hyjiacan/Pinyin4Net/" />
+                            <ui:HyperlinkButton Content="PixiEditor.ColorPicker" NavigateUri="https://github.com/PixiEditor/ColorPicker/" />
+                            <ui:HyperlinkButton Content="Windows Presentation Foundation (WPF)" NavigateUri="https://github.com/dotnet/wpf/" />
                         </StackPanel>
                         <StackPanel Grid.Column="2">
-                            <ui:HyperlinkButton Content="WPF UI" NavigateUri="https://github.com/lepoco/wpfui" />
-                            <ui:HyperlinkButton Content="WpfGorgeousThemeSwitch" NavigateUri="https://github.com/SunnyDesignor/WpfGorgeousThemeSwitch" />
-                            <ui:HyperlinkButton Content="XamlBehaviors for WPF" NavigateUri="https://github.com/microsoft/XamlBehaviorsWpf" />
+                            <ui:HyperlinkButton Content="WPF UI" NavigateUri="https://github.com/lepoco/wpfui/" />
+                            <ui:HyperlinkButton Content="WpfGorgeousThemeSwitch" NavigateUri="https://github.com/SunnyDesignor/WpfGorgeousThemeSwitch/" />
+                            <ui:HyperlinkButton Content="XamlBehaviors for WPF" NavigateUri="https://github.com/microsoft/XamlBehaviorsWpf/" />
                         </StackPanel>
                     </Grid>
                 </StackPanel>
@@ -699,6 +719,10 @@
                     Margin="0,0,10,10"
                     Command="{Binding SwitchDebugGlobalScoreCommand}"
                     Content="切换分数统计调试表格" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding OpenTipCommand}"
+                    Content="打开启动时无作者UI提示" />
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding HopToLogDirCommand}"

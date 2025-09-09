@@ -1,0 +1,32 @@
+<UserControl
+    x:Class="neo_bpsys_wpf.Controls.HyperLinkSnackbarContent"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    d:DataContext="{d:DesignInstance Type=local:HyperLinkSnackbarContent}"
+    d:DesignHeight="300"
+    d:DesignWidth="300"
+    mc:Ignorable="d">
+    <StackPanel>
+        <TextBlock
+            x:Name="TxbMessage"
+            Margin="0,5,5,5"
+            FontSize="14"
+            Text="{Binding Text}" />
+        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+            <ui:HyperlinkButton
+                Command="{Binding NoLogerDisplayedCommand}"
+                Content="不再提示"
+                Icon="{ui:SymbolIcon Symbol=AlertOff24}" />
+            <ui:HyperlinkButton
+                Margin="5,0,0,0"
+                Content="前往"
+                Icon="{ui:SymbolIcon Symbol=ArrowCircleRight12}"
+                NavigateUri="{Binding NavigateUri}">
+            </ui:HyperlinkButton>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

@@ -7,33 +7,34 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 public interface ISnackbarService
 {
     /// <summary>
-    /// Gets or sets a time for which the <see cref="Snackbar"/> should be visible. (By default 2 seconds)
+    /// 默认关闭时间
     /// </summary>
     TimeSpan DefaultTimeOut { get; set; }
 
     /// <summary>
-    /// Sets the <see cref="SnackbarPresenter"/>
+    /// 隐藏 <see cref="SnackbarPresenter"/>
     /// </summary>
-    /// <param name="contentPresenter"><see cref="ContentPresenter"/> inside of which the snackbar will be placed. The new <see cref="Snackbar"/> will replace the current <see cref="ContentPresenter.Content"/>.</param>
+    void Hide();
+
+    /// <summary>
+    /// 设置<see cref="SnackbarPresenter"/>控件
+    /// </summary>
+    /// <param name="contentPresenter"><see cref="SnackbarPresenter"/>控件</param>
     void SetSnackbarPresenter(SnackbarPresenter contentPresenter);
 
     /// <summary>
-    /// Provides direct access to the <see cref="ContentPresenter"/>
+    /// 显示
     /// </summary>
-    /// <returns><see cref="Snackbar"/> currently in use.</returns>
-    SnackbarPresenter? GetSnackbarPresenter();
-
-    /// <summary>
-    /// Shows the snackbar. If it is already visible, firstly hides it for a moment, changes its content, and then shows it again.
-    /// </summary>
-    /// <param name="title">Name displayed on top of snackbar.</param>
-    /// <param name="message">Message inside the snackbar.</param>
-    /// <param name="appearance">Display style.</param>
-    /// <param name="icon">Additional icon on the left.</param>
-    /// <param name="timeout">The time after which the snackbar should disappear.</param>
+    /// <param name="title">标题</param>
+    /// <param name="content">显示内容</param>
+    /// <param name="appearance"><see cref="SnackbarPresenter"/>类型</param>
+    /// <param name="icon">图标</param>
+    /// <param name="timeout">超时自动隐藏时间</param>
+    /// <param name="isCloseButtonEnabled">关闭按钮是否可用</param>
+    /// <exception cref="InvalidOperationException">未设置SnackbarControl</exception>
     void Show(
         string title,
-        DependencyObject message,
+        DependencyObject content,
         ControlAppearance appearance,
         IconElement? icon,
         TimeSpan timeout,
