@@ -200,10 +200,14 @@ public partial class SettingPageViewModel : ViewModelBase
 
     public ObservableCollection<string> MirrorList { get; } =
     [
-        "https://ghproxy.net/",
-        "https://gh.plfjy.top/",
-        "https://ghfast.top/",
-        ""
+        @"https://gh-proxy.com/",
+        @"https://ghproxy.net/",
+        @"https://ghfast.top/",
+        @"https://hk.gh-proxy.com/",
+        @"https://cdn.gh-proxy.com/",
+        @"https://edgeone.gh-proxy.com/",
+        @"https://gh.plfjy.top/",
+        @""
     ];
 
     #endregion
@@ -255,10 +259,22 @@ public partial class SettingPageViewModel : ViewModelBase
     /// 切换全局分数调试开启状态
     /// </summary>
     [RelayCommand]
-    private static void SwitchDebugGlobalScore()
+    private void SwitchDebugGlobalScore()
     {
         App.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible =
             !App.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible;
+        _messageBoxService.ShowInfoAsync($"ScorePageViewModel.IsDebugContentVisible 已设置为 {App.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible}");
+    }
+
+    /// <summary>
+    /// 打开启动提示
+    /// </summary>
+    [RelayCommand]
+    private void OpenTip()
+    {
+        _settingsHostService.Settings.ShowTip = true;
+        _settingsHostService.SaveConfig();
+        _messageBoxService.ShowInfoAsync("Settings.ShowTip 已设置为 true");
     }
 
     #endregion
@@ -859,6 +875,8 @@ public partial class SettingPageViewModel : ViewModelBase
 
             //拷贝自定义UI图片
             var customUiFiles = Directory.GetFiles(CustomUiTempPath);
+            if(!Directory.Exists(AppConstants.CustomUiPath))
+                Directory.CreateDirectory(AppConstants.CustomUiPath);
             foreach (var customUiFile in customUiFiles)
             {
                 File.Copy(customUiFile, Path.Combine(AppConstants.CustomUiPath, Path.GetFileName(customUiFile)), true);

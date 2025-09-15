@@ -9,6 +9,7 @@ using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
 using Serilog;
 using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
@@ -19,6 +20,8 @@ using neo_bpsys_wpf.Core.Services;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.DependencyInjection;
+using SnackbarService = neo_bpsys_wpf.Services.SnackbarService;
+using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
 
 namespace neo_bpsys_wpf;
 
@@ -40,7 +43,8 @@ public partial class App : Application
                     rollingInterval: RollingInterval.Day, // 每天创建一个新文件
                     retainedFileCountLimit: 3, // 只保留最近3天的日志文件
                     outputTemplate:
-                    "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
+                    "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                    encoding: Encoding.UTF8
                 )
                 .Enrich.FromLogContext()
                 .MinimumLevel.Debug();
@@ -75,8 +79,9 @@ public partial class App : Application
             // MainTeam window with navigation
             services.AddSingleton<INavigationWindow, MainWindow>(sp => new MainWindow(
                 sp.GetRequiredService<INavigationService>(),
-                sp.GetRequiredService<IMessageBoxService>(),
                 sp.GetRequiredService<IInfoBarService>(),
+                sp.GetRequiredService<ISnackbarService>(),
+                sp.GetRequiredService<ISettingsHostService>(),
                 sp.GetRequiredService<ILogger<MainWindow>>()
             )
             {
@@ -91,6 +96,7 @@ public partial class App : Application
             services.AddSingleton<IFilePickerService, FilePickerService>();
             services.AddSingleton<IMessageBoxService, MessageBoxService>();
             services.AddSingleton<IInfoBarService, InfoBarService>();
+            services.AddSingleton<ISnackbarService, SnackbarService>();
 
             //Additional Feature Services
             services.AddSingleton<IGameGuidanceService, GameGuidanceService>();
@@ -140,7 +146,7 @@ public partial class App : Application
             services.AddSingleton<ScoreManualWindowViewModel>();
 
             //Page
-            services.AddTransient<HomePage>();
+            services.AddSingleton<HomePage>();
 
             services.AddSingleton<TeamInfoPage>(sp => new TeamInfoPage()
             {
@@ -219,12 +225,13 @@ public partial class App : Application
     /// <summary>
     /// 互斥锁
     /// </summary>
-    private static Mutex _mutex = null;
+    private static Mutex? _mutex = null;
 
     bool createdNew;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
+        Console.OutputEncoding=Encoding.UTF8;
         _mutex = new Mutex(true, AppConstants.AppName, out createdNew);
 
         if (!createdNew)
@@ -327,7 +334,7 @@ public partial class App : Application
     public static void Restart()
     {
         // 释放互斥锁
-        _mutex.Close();
+        _mutex?.Close();
         // 重启应用程序
         System.Diagnostics.Process.Start(ResourceAssembly.Location.Replace(".dll", ".exe"));
         Current.Shutdown();
