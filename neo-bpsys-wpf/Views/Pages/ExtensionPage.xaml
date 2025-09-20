@@ -8,7 +8,6 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     xmlns:converters="clr-namespace:neo_bpsys_wpf.Converters"
-    xmlns:coreConverters="clr-namespace:neo_bpsys_wpf.Core.Converters;assembly=neo-bpsys-wpf.Core"
     Title="ExtensionPage"
     d:DataContext="{d:DesignInstance Type=vm:ExtensionPageViewModel,
                                      IsDesignTimeCreatable=True}"
@@ -21,9 +20,9 @@
     <Page.Resources>
         <converters:BooleanToTextConverter x:Key="BooleanToIsEnabledConverter"/>
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
-        <coreConverters:ExtensionNameConverter x:Key="ExtensionNameConverter"/>
-        <coreConverters:ExtensionVersionConverter x:Key="ExtensionVersionConverter"/>
-        <coreConverters:ExtensionAuthorConverter x:Key="ExtensionAuthorConverter"/>
+        <converters:ExtensionNameConverter x:Key="ExtensionNameConverter"/>
+        <converters:ExtensionVersionConverter x:Key="ExtensionVersionConverter"/>
+        <converters:ExtensionAuthorConverter x:Key="ExtensionAuthorConverter"/>
     </Page.Resources>
 
     

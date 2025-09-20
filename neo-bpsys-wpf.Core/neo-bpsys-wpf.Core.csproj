@@ -25,7 +25,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Extensions\" />
+      <Folder Include="Converters\" />
     </ItemGroup>
 
 </Project>

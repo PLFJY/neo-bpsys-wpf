@@ -7,21 +7,20 @@ using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
 
-namespace neo_bpsys_wpf.Core.Services;
+namespace neo_bpsys_wpf.Services;
 
 /// <summary>
 /// 一个用于管理扩展的单例类，通过单例的方式确保全局只有一个实例。
 /// 该类提供了注册和注销扩展的方法，并且可以设置共享数据服务
 /// </summary>
-public class ExtensionManager
+public class ExtensionService : IExtensionService
 {
-    private static ExtensionManager _instance;
     private static readonly object Lock = new();
-    public ILogger<ExtensionManager> Logger { get; set; }
+    public ILogger<IExtensionService> Logger { get; set; }
 
     public const string ExtensionsSuffix = ".dll";
 
-    public ISharedDataService SharedDataService;
+    public ISharedDataService SharedDataService { get; set; }
 
     /// <summary>
     /// 当 Extensions (即ReadOnlyExtensions) 更改时触发此事件。
@@ -58,26 +57,22 @@ public class ExtensionManager
             return _uiCollection;
         }
     }
-
-    private ExtensionManager()
-    {
-    }
     
     /// <summary>
-    /// 获取 ExtensionManager 的单例实例。
-    /// 该方法应在 ExtensionManager 已经被初始化后调用。
+    /// 获取 ExtensionService 的单例实例。
+    /// 该方法应在 ExtensionService 已经被初始化后调用。
     /// </summary>
     /// <returns></returns>
-    public static ExtensionManager Instance()
-    {
-        lock (Lock)
-        {
-            return _instance ??= new ExtensionManager();
-        }
-    }
+    // public static ExtensionService Instance()
+    // {
+    //     lock (Lock)
+    //     {
+    //         return (ExtensionService)(_instance ??= new ExtensionService());
+    //     }
+    // }
     
     /// <summary>
-    /// 若 sharedDataService 发生变化，可以通过此方法更新 ExtensionManager 中的 SharedDataService。
+    /// 若 sharedDataService 发生变化，可以通过此方法更新 ExtensionService 中的 SharedDataService。
     /// </summary>
     /// <param name="sharedDataService"></param>
     public void SetSharedDataService(ISharedDataService sharedDataService)
@@ -87,12 +82,20 @@ public class ExtensionManager
             SharedDataService = sharedDataService;
         }
     }
-    
+
+    public void SetLogger(ILogger<IExtensionService> logger)
+    {
+        lock (Lock)
+        {
+            Logger = logger;
+        }
+    }
+
     /// <summary>
     /// 若主服务的 Logger 发生变化，设置
     /// </summary>
     /// <param name="logger"></param>
-    public void SetLogger(ILogger<ExtensionManager> logger)
+    public void SetLogger(ILogger<ExtensionService> logger)
     {
         lock (Lock)
         {
@@ -112,6 +115,7 @@ public class ExtensionManager
         {
             if (!Extensions.Keys.Contains(extension))
             {
+                extension.ExtensionService = this;
                 Extensions.Add(extension, false);
                 ExtensionsChanged?.Invoke(this, EventArgs.Empty);
                 extension.Initialize(); // 初始化插件

@@ -16,7 +16,6 @@ using System.Windows.Threading;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Core.Services;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.DependencyInjection;
@@ -102,7 +101,16 @@ public partial class App : Application
             services.AddSingleton<IGameGuidanceService, GameGuidanceService>();
             services.AddSingleton<ISettingsHostService, SettingsHostService>();
             services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
-
+            
+            // Extension Services
+            services.AddSingleton<IExtensionService, ExtensionService>(sp =>
+            {
+                var service = new ExtensionService();
+                service.SetLogger(sp.GetRequiredService<ILogger<ExtensionService>>());
+                service.SetSharedDataService(sp.GetRequiredService<ISharedDataService>());
+                return service;
+            });
+            
             //Views and ViewModels
             //Window
             services.AddSingleton<BpWindow>(sp => new BpWindow()
@@ -256,13 +264,13 @@ public partial class App : Application
             Directory.CreateDirectory(ExtensionsDirectory);
         }
 
-        _logger.LogInformation("Initializing ExtensionManager...");
-        ExtensionManager.Instance().SetSharedDataService(Services.GetRequiredService<ISharedDataService>());
-        ExtensionManager.Instance().SetLogger(Services.GetRequiredService<ILogger<ExtensionManager>>());
-        _logger.LogInformation("ExtensionManager initialized. Initializing Extensions (At: {ExtensionsPath})...", ExtensionsDirectory);
-        ExtensionManager.Instance().LoadExtensions(ExtensionsDirectory);
+        _logger.LogInformation("Initializing ExtensionService...");
+        Services.GetRequiredService<IExtensionService>().SetSharedDataService(Services.GetRequiredService<ISharedDataService>());
+        Services.GetRequiredService<IExtensionService>().SetLogger(Services.GetRequiredService<ILogger<ExtensionService>>());
+        _logger.LogInformation("ExtensionService initialized. Initializing Extensions (At: {ExtensionsPath})...", ExtensionsDirectory);
+        Services.GetRequiredService<IExtensionService>().LoadExtensions(ExtensionsDirectory);
         _logger.LogInformation("{ExtensionCount} extensions has been initialized. ",
-            ExtensionManager.Instance().ReadOnlyExtensions.Count);
+            Services.GetRequiredService<IExtensionService>().ReadOnlyExtensions.Count);
         
         _logger.LogInformation("Application Started");
         _logger.LogInformation("""

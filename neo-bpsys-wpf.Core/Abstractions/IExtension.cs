@@ -1,3 +1,4 @@
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
 
 namespace neo_bpsys_wpf.Core.Abstractions;
@@ -8,6 +9,8 @@ namespace neo_bpsys_wpf.Core.Abstractions;
 /// </summary>
 public interface IExtension
 {
+    public IExtensionService ExtensionService { get; set; }
+    
     /// <summary>
     /// 当插件被注册时调用，用于初始化插件的相关资源或状态。
     /// 可以在此方法中进行插件的必要设置，例如设置插件信息、注册插件UI等。

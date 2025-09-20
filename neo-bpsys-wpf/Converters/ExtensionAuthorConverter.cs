@@ -1,10 +1,12 @@
 using System.Globalization;
+using System.Windows;
 using System.Windows.Data;
-using neo_bpsys_wpf.Core.Services;
+using Microsoft.Extensions.DependencyInjection;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 
-namespace neo_bpsys_wpf.Core.Converters
+namespace neo_bpsys_wpf.Converters
 {
-    public class ExtensionAuthorConverter : IValueConverter
+    public class ExtensionAuthorConverter : DependencyObject, IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -12,13 +14,14 @@ namespace neo_bpsys_wpf.Core.Converters
             
             try
             {
+                var extensionService = App.Services.GetRequiredService<IExtensionService>();
                 var extensionType = value.GetType();
-                var manifest = ExtensionManager.Instance().GetExtensionManifest(extensionType);
+                var manifest = extensionService.GetExtensionManifest(extensionType);
                 return manifest?.ExtensionAuthor ?? "#作者获取失败#";
             }
-            catch
+            catch(Exception e)
             {
-                return "#作者获取失败#";
+                return "#作者获取失败#" + e.Message;
             }
         }
 

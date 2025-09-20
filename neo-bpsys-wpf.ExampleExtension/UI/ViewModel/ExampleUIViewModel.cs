@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Models;
-using neo_bpsys_wpf.Core.Services;
 
 namespace neo_bpsys_wpf.ExampleExtension.UI.ViewModel;
 
@@ -14,7 +13,7 @@ public class ExampleUIViewModel : ViewModelBase
     {
         AddMainTeamMinorPointsCommand = new RelayCommand(AddMainTeamMinorPoints);
         DisableSelfCommand = new RelayCommand(DisableSelf);
-        ExtensionManager.Instance().SharedDataService.MainTeam.Score.PropertyChanged += (sender, args) =>
+        ExampleExtension.Instance.ExtensionService.SharedDataService.MainTeam.Score.PropertyChanged += (sender, args) =>
         {
             if (args.PropertyName.Equals(nameof(Score.MinorPoints)))
             {
@@ -25,17 +24,17 @@ public class ExampleUIViewModel : ViewModelBase
     
     public ExampleExtension Extension => ExampleExtension.Instance;
     
-    public int MainTeamMinorPoints => ExtensionManager.Instance().SharedDataService.MainTeam.Score.MinorPoints;
+    public int MainTeamMinorPoints => ExampleExtension.Instance.ExtensionService.SharedDataService.MainTeam.Score.MinorPoints;
 
     public ICommand AddMainTeamMinorPointsCommand { get; private set; }
     private void AddMainTeamMinorPoints()
     {
-        ExtensionManager.Instance().SharedDataService.MainTeam.Score.MinorPoints++;
+        ExampleExtension.Instance.ExtensionService.SharedDataService.MainTeam.Score.MinorPoints++;
     }
     
     public ICommand DisableSelfCommand { get; private set; }
     private void DisableSelf()
     {
-        ExtensionManager.Instance().DisableExtension(ExampleExtension.Instance);
+        ExampleExtension.Instance.ExtensionService.DisableExtension(ExampleExtension.Instance);
     }
 }
