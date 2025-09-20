@@ -8,24 +8,27 @@ namespace neo_bpsys_wpf.ExampleExtension;
 
 [ExtensionManifest("ExampleExtension",
     "示例扩展",
-    "1.2.0",
+    "1.3.0",
     3,
     "天启",
     "这是一个示例扩展，用于演示如何创建和使用扩展。")]
 public class ExampleExtension : IExtension
 {
-    public static ExampleExtension Instance { get; internal set; }
+    public ExampleExtension()
+    {
+        Instance = this;
+    }
+    public static ExampleExtension Instance { get; private set; }
 
     public IExtensionService ExtensionService { get; set; }
 
     public void Initialize()
     {// 扩展被注册(Register)时调用
-        Instance = this;
-        ExtensionService.RegisterUI(this, new ExampleUI().ExampleBorder);
+        ExtensionService.RegisterUi(this, new ExampleUI().ExampleBorder);
     }
 
     public void Uninitialize()
     {// 扩展被注销(Unregister)时调用
-        ExtensionService.UnregisterUI(this, new ExampleUI().ExampleBorder);
+        ExtensionService.UnregisterUi(this, new ExampleUI().ExampleBorder);
     }
 }
