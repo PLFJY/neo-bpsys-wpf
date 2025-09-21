@@ -37,9 +37,9 @@ neo-bpsys-wpf 是一个基于 .NET WPF 开发的第五人格直播BP软件，其
 
 ## :white_check_mark: To Do
 
-- [ ] 2025IVL夏季赛新地图BP规则
 - [ ] OCR识别自动填充赛后数据
 - [ ] OCR识别实现全自动BP
+- [ ] 全局禁选根据对局进度联动
 
 ## :computer: 构建
 
