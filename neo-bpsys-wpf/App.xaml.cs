@@ -103,13 +103,7 @@ public partial class App : Application
             services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
             
             // Extension Services
-            services.AddSingleton<IExtensionService, ExtensionService>(sp =>
-            {
-                var service = new ExtensionService();
-                service.SetLogger(sp.GetRequiredService<ILogger<ExtensionService>>());
-                service.SetSharedDataService(sp.GetRequiredService<ISharedDataService>());
-                return service;
-            });
+            services.AddSingleton<IExtensionService, ExtensionService>();
             
             //Views and ViewModels
             //Window
@@ -255,23 +249,6 @@ public partial class App : Application
         );
         await _host.StartAsync();
         var _logger = _host.Services.GetRequiredService<ILogger<App>>();
-        
-        // Extensions Startup
-        string ExtensionsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "neo-bpsys-wpf", "Extensions");
-        if (!Directory.Exists(ExtensionsDirectory))
-        {
-            Directory.CreateDirectory(ExtensionsDirectory);
-        }
-
-        _logger.LogInformation("Initializing ExtensionService...");
-        Services.GetRequiredService<IExtensionService>().SetSharedDataService(Services.GetRequiredService<ISharedDataService>());
-        Services.GetRequiredService<IExtensionService>().SetLogger(Services.GetRequiredService<ILogger<ExtensionService>>());
-        _logger.LogInformation("ExtensionService initialized. Initializing Extensions (At: {ExtensionsPath})...", ExtensionsDirectory);
-        Services.GetRequiredService<IExtensionService>().LoadExtensions(ExtensionsDirectory);
-        _logger.LogInformation("{ExtensionCount} extensions has been initialized. ",
-            Services.GetRequiredService<IExtensionService>().ReadOnlyExtensions.Count);
-        
         _logger.LogInformation("Application Started");
         _logger.LogInformation("""
 

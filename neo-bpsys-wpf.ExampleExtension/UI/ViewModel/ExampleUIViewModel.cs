@@ -15,7 +15,7 @@ public class ExampleUIViewModel : ViewModelBase
         DisableSelfCommand = new RelayCommand(DisableSelf);
         ExampleExtension.Instance.ExtensionService.SharedDataService.MainTeam.Score.PropertyChanged += (sender, args) =>
         {
-            if (args.PropertyName.Equals(nameof(Score.MinorPoints)))
+            if (args.PropertyName is nameof(Score.MinorPoints))
             {
                 OnPropertyChanged(nameof(MainTeamMinorPoints));
             }

@@ -15,91 +15,64 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public class ExtensionService : IExtensionService
 {
-    private static readonly object Lock = new();
-    public ILogger<IExtensionService> Logger { get; set; }
+    private static readonly Lock Lock = new();
+    private readonly ILogger<IExtensionService> _logger;
 
-    public const string ExtensionsSuffix = ".dll";
+    private const string ExtensionsSuffix = ".dll";
 
     public ISharedDataService SharedDataService { get; set; }
 
     /// <summary>
     /// 当 Extensions (即ReadOnlyExtensions) 更改时触发此事件。
     /// </summary>
-    public event EventHandler ExtensionsChanged;
+    public event EventHandler? ExtensionsChanged;
     
-    private Dictionary<IExtension, bool> Extensions { get; } = new();
+    private Dictionary<IExtension, bool> Extensions { get; } = [];
     
     public ReadOnlyDictionary<IExtension, bool> ReadOnlyExtensions => new(Extensions);
     
-    private Dictionary<IExtension, ObservableCollection<Border>> _extensionUis { get; } = new();
+    private Dictionary<IExtension, ObservableCollection<Border>> ExtensionUis { get; } = [];
 
-    private ObservableCollection<Border> _uiCollection { get; } = new();
+    private ObservableCollection<Border> UiCollection { get; } = [];
+
+    public ExtensionService(ILogger<ExtensionService> logger, ISharedDataService sharedDataService)
+    {
+        _logger = logger;
+        SharedDataService = sharedDataService;
+        // Extensions Startup
+        _logger.LogInformation("Initializing ExtensionService...");
+        
+        var extensionsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "neo-bpsys-wpf", "Extensions");
+        if (!Directory.Exists(extensionsDirectory))
+        {
+            Directory.CreateDirectory(extensionsDirectory);
+        }
+        _logger.LogInformation("ExtensionService initialized. Initializing Extensions (At: {ExtensionsPath})...", extensionsDirectory);
+        _logger.LogInformation("{ExtensionCount} extensions has been initialized. ", ReadOnlyExtensions.Count);
+        LoadExtensions(extensionsDirectory);
+    }
 
     public ObservableCollection<Border> ExtensionUIs
     {
         get
         {
             // 对_extensionUis 进行筛选，返回一个 ObservableCollection<Border>，只包含已启用的扩展的 UI
-            _uiCollection.Clear();
-            foreach (var ui in _extensionUis)
+            UiCollection.Clear();
+            foreach (var ui in ExtensionUis)
             {
-                if (Extensions.ContainsKey(ui.Key) && Extensions[ui.Key])
+                if (Extensions.TryGetValue(ui.Key, out bool value) && value)
                 {
                     foreach (var border in ui.Value)
                     {
-                        if (!_uiCollection.Contains(border))
+                        if (!UiCollection.Contains(border))
                         {
-                            _uiCollection.Add(border);
+                            UiCollection.Add(border);
                         }
                     }
                 }
             }
-            return _uiCollection;
-        }
-    }
-    
-    /// <summary>
-    /// 获取 ExtensionService 的单例实例。
-    /// 该方法应在 ExtensionService 已经被初始化后调用。
-    /// </summary>
-    /// <returns></returns>
-    // public static ExtensionService Instance()
-    // {
-    //     lock (Lock)
-    //     {
-    //         return (ExtensionService)(_instance ??= new ExtensionService());
-    //     }
-    // }
-    
-    /// <summary>
-    /// 若 sharedDataService 发生变化，可以通过此方法更新 ExtensionService 中的 SharedDataService。
-    /// </summary>
-    /// <param name="sharedDataService"></param>
-    public void SetSharedDataService(ISharedDataService sharedDataService)
-    {
-        lock (Lock)
-        {
-            SharedDataService = sharedDataService;
-        }
-    }
-
-    public void SetLogger(ILogger<IExtensionService> logger)
-    {
-        lock (Lock)
-        {
-            Logger = logger;
-        }
-    }
-
-    /// <summary>
-    /// 若主服务的 Logger 发生变化，设置
-    /// </summary>
-    /// <param name="logger"></param>
-    public void SetLogger(ILogger<ExtensionService> logger)
-    {
-        lock (Lock)
-        {
-            Logger = logger;
+            return UiCollection;
         }
     }
 
@@ -113,10 +86,9 @@ public class ExtensionService : IExtensionService
         
         lock (Lock)
         {
-            if (!Extensions.Keys.Contains(extension))
+            if (Extensions.TryAdd(extension, false))
             {
                 extension.ExtensionService = this;
-                Extensions.Add(extension, false);
                 ExtensionsChanged?.Invoke(this, EventArgs.Empty);
                 extension.Initialize(); // 初始化插件
                 EnableExtension(extension); // 启用该插件
@@ -160,7 +132,7 @@ public class ExtensionService : IExtensionService
                 // 触发插件启用事件
                 extension.OnEnable();
                 FlushExtensionUIs();
-                Logger.LogInformation("Extension {Name} has been enabled.", GetExtensionManifest(extension.GetType()).ExtensionName);
+                _logger.LogInformation("Extension {Name} has been enabled.", GetExtensionManifest(extension.GetType()).ExtensionName);
             }
         }
     }
@@ -175,7 +147,7 @@ public class ExtensionService : IExtensionService
 
         lock (Lock)
         {
-            if (Extensions.Keys.Contains(extension))
+            if (Extensions.ContainsKey(extension))
             {
                 if (!Extensions[extension]) return; // 插件未启用
                 Extensions[extension] = false; // 标记插件为未启用
@@ -183,7 +155,7 @@ public class ExtensionService : IExtensionService
                 // 触发插件禁用事件
                 extension.OnDisable();
                 FlushExtensionUIs();
-                Logger.LogInformation("Extension {Name} has been disabled.", GetExtensionManifest(extension.GetType()).ExtensionName);
+                _logger.LogInformation("Extension {Name} has been disabled.", GetExtensionManifest(extension.GetType()).ExtensionName);
             }
         }
     }
@@ -191,13 +163,14 @@ public class ExtensionService : IExtensionService
     /// <summary>
     /// 当有插件成功注册或注销用户界面时会触发该事件。
     /// </summary>
-    public event EventHandler ExtensionUIsUpdatedEvent;
-    
+    public event EventHandler? ExtensionUIsUpdatedEvent;
+
     /// <summary>
     /// 用于向用户界面更新一个新的UI。
     /// </summary>
-    /// <param name="ui"></param>
-    public void RegisterUI(IExtension extension, Border ui)
+    /// <param name="extension">要注册的插件</param>
+    /// <param name="ui">要注册的UI</param>
+    public void RegisterUi(IExtension extension, Border ui)
     {
         ArgumentNullException.ThrowIfNull(ui);
         
@@ -205,31 +178,32 @@ public class ExtensionService : IExtensionService
         {
             if (Extensions.ContainsKey(extension))
             {
-                if(!_extensionUis.ContainsKey(extension))
+                if (!ExtensionUis.TryGetValue(extension, out var value))
                 {
-                    _extensionUis[extension] = new ObservableCollection<Border>();
+                    value = [];
+                    ExtensionUis[extension] = value;
                 }
-                if (!_extensionUis[extension].Contains(ui))
-                {
-                    _extensionUis[extension].Add(ui);
-                    ExtensionUIsUpdatedEvent?.Invoke(this, EventArgs.Empty);
-                }
+
+                if (value.Contains(ui)) return;
+                value.Add(ui);
+                ExtensionUIsUpdatedEvent?.Invoke(this, EventArgs.Empty);
             }
         }
     }
-    
+
     /// <summary>
     /// 用于向用户界面注销一个UI。
     /// </summary>
-    /// <param name="ui"></param>
-    public void UnregisterUI(IExtension extension, Border ui)
+    /// <param name="extension">要注销的插件</param>
+    /// <param name="ui">要注销的UI</param>
+    public void UnregisterUi(IExtension extension, Border ui)
     {
         ArgumentNullException.ThrowIfNull(ui);
         
         lock (Lock)
         {
             if (!Extensions.ContainsKey(extension)) return;
-            if (_extensionUis[extension].Remove(ui))
+            if (ExtensionUis[extension].Remove(ui))
             {
                 ExtensionUIsUpdatedEvent?.Invoke(this, EventArgs.Empty);
             }
@@ -245,10 +219,7 @@ public class ExtensionService : IExtensionService
     /// <exception cref="InvalidOperationException"><paramref name="extensionType"/> 没有提供 [ExtensionManifest] 特性。</exception>
     public ExtensionManifest GetExtensionManifest(Type extensionType)
     {
-        if (extensionType == null)
-        {
-            throw new ArgumentNullException(nameof(extensionType));
-        }
+        ArgumentNullException.ThrowIfNull(extensionType);
         if (!typeof(IExtension).IsAssignableFrom(extensionType))
         {
             throw new ArgumentException(
@@ -271,7 +242,7 @@ public class ExtensionService : IExtensionService
         var extensions = new List<IExtension>();
         if (!Directory.Exists(extensionsDirectory))
         {
-            Logger.LogWarning("Extensions directory does not exist: {Directory}", extensionsDirectory);
+            _logger.LogWarning("Extensions directory does not exist: {Directory}", extensionsDirectory);
             return;
         }
         
@@ -281,20 +252,20 @@ public class ExtensionService : IExtensionService
         {
             try
             {
-                Logger.LogInformation("Loading extension from file: {File}", extensionFile);
+                _logger.LogInformation("Loading extension from file: {File}", extensionFile);
                 var assembly = Assembly.LoadFrom(extensionFile);
                 var types = assembly.GetTypes()
                     .Where(t => typeof(IExtension).IsAssignableFrom(t) && !t.IsAbstract)
                     .ToList(); // 修复“可能多次枚举”
                 #if DEBUG
-                Logger.LogInformation("Found {Count} types implementing IExtension in {File}", types.Count, extensionFile);
+                _logger.LogInformation("Found {Count} types implementing IExtension in {File}", types.Count, extensionFile);
                 #endif
                 foreach (var type in types)
                 {
                     try
                     {
                         var extensionManifest = GetExtensionManifest(type);
-                        Logger.LogInformation(
+                        _logger.LogInformation(
                             "Registering extension {Name} [{Version}({VersionCode})] By {Author} from file: {File}",
                             extensionManifest.ExtensionName, extensionManifest.ExtensionVersion,
                             extensionManifest.ExtensionVersionCode, extensionManifest.ExtensionAuthor, extensionFile);
@@ -303,33 +274,33 @@ public class ExtensionService : IExtensionService
                             extension) // 已经通过筛选 types 与使用 GetExtensionManifest 方法两次确定 type 为 IExtension 的实现，但顺便在创建实例的时候再次确认
                         {
                             RegisterExtension(extension);
-                            Logger.LogInformation("Extension {Name} registered successfully from file {File}",
+                            _logger.LogInformation("Extension {Name} registered successfully from file {File}",
                                 GetExtensionManifest(extension.GetType()).ExtensionName, extensionFile);
                         }
                     }
                     catch (ArgumentException e)
                     {
 #if DEBUG
-                        Logger.LogWarning(e, "{Message}", e.Message);
+                        _logger.LogWarning(e, "{Message}", e.Message);
 #endif
                     }
                     catch (InvalidOperationException e)
                     {
-                        Logger.LogError(e, "An error occurred when loading an extension: {Message}", e.Message);
+                        _logger.LogError(e, "An error occurred when loading an extension: {Message}", e.Message);
                     }
                     catch (Exception e)
                     {
-                        Logger.LogError(e, "An error occurred when loading an extension: {Message}", e.Message);
+                        _logger.LogError(e, "An error occurred when loading an extension: {Message}", e.Message);
                     }
                 }
             }
             catch (ReflectionTypeLoadException e)
             {
-                Logger.LogError(e, "Failed to load an extension from {File}: {Message}", extensionFile, e.Message);
+                _logger.LogError(e, "Failed to load an extension from {File}: {Message}", extensionFile, e.Message);
             }
             catch (Exception e)
             {
-                Logger.LogError(e,"An error occured when loading extensions: {Message}", e.Message);
+                _logger.LogError(e,"An error occured when loading extensions: {Message}", e.Message);
             }
         }
     }
@@ -344,7 +315,7 @@ public class ExtensionService : IExtensionService
             }
             Extensions.Clear();
             ExtensionsChanged?.Invoke(this, EventArgs.Empty);
-            _extensionUis.Clear();
+            ExtensionUis.Clear();
             ExtensionUIsUpdatedEvent?.Invoke(this, EventArgs.Empty);
         }
     }
