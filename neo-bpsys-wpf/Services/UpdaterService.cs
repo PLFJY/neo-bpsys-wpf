@@ -45,7 +45,7 @@ public class UpdaterService : IUpdaterService
         {
             ChunkCount = 8,
             ParallelDownload = true,
-            MaxTryAgainOnFailover = 5,
+            MaxTryAgainOnFailure = 5,
             ParallelCount = 6,
         };
 
