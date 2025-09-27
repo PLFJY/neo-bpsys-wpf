@@ -61,7 +61,25 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 Ban Number Control 的本地化字符串。
+        ///   查找类似 About 的本地化字符串。
+        /// </summary>
+        public static string About {
+            get {
+                return ResourceManager.GetString("About", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Made by Zero_PLFJY | Auther&apos;s QQ: 3424127335 | Software feedback group(QQ): 175741665 的本地化字符串。
+        /// </summary>
+        public static string AutherDetails {
+            get {
+                return ResourceManager.GetString("AutherDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Ban number control 的本地化字符串。
         /// </summary>
         public static string BanNumberControl {
             get {
@@ -70,7 +88,25 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 Current Ban 的本地化字符串。
+        ///   查找类似 BP background 的本地化字符串。
+        /// </summary>
+        public static string BPWindowImages {
+            get {
+                return ResourceManager.GetString("BPWindowImages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Check for updates 的本地化字符串。
+        /// </summary>
+        public static string CheckForUpdates {
+            get {
+                return ResourceManager.GetString("CheckForUpdates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Current ban 的本地化字符串。
         /// </summary>
         public static string CurrentBan {
             get {
@@ -79,11 +115,92 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 Global Ban 的本地化字符串。
+        ///   查找类似 Current ban lock 的本地化字符串。
+        /// </summary>
+        public static string CurrentBanLock {
+            get {
+                return ResourceManager.GetString("CurrentBanLock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Download preview version? 的本地化字符串。
+        /// </summary>
+        public static string DownloadPreviewVersion {
+            get {
+                return ResourceManager.GetString("DownloadPreviewVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Download source:  的本地化字符串。
+        /// </summary>
+        public static string DownloadSource {
+            get {
+                return ResourceManager.GetString("DownloadSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Edit image 的本地化字符串。
+        /// </summary>
+        public static string EditImage {
+            get {
+                return ResourceManager.GetString("EditImage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Export UI configuration 的本地化字符串。
+        /// </summary>
+        public static string ExportUIConfig {
+            get {
+                return ResourceManager.GetString("ExportUIConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Global ban 的本地化字符串。
         /// </summary>
         public static string GlobalBan {
             get {
                 return ResourceManager.GetString("GlobalBan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Global ban lock 的本地化字符串。
+        /// </summary>
+        public static string GlobalBanLock {
+            get {
+                return ResourceManager.GetString("GlobalBanLock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Import UI configuration 的本地化字符串。
+        /// </summary>
+        public static string ImportUIConfig {
+            get {
+                return ResourceManager.GetString("ImportUIConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Install 的本地化字符串。
+        /// </summary>
+        public static string Install {
+            get {
+                return ResourceManager.GetString("Install", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Language setting 的本地化字符串。
+        /// </summary>
+        public static string LanguageSetting {
+            get {
+                return ResourceManager.GetString("LanguageSetting", resourceCulture);
             }
         }
         
@@ -93,6 +210,105 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string Number {
             get {
                 return ResourceManager.GetString("Number", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Open the frontend config file directory 的本地化字符串。
+        /// </summary>
+        public static string OpenFrontendDirectory {
+            get {
+                return ResourceManager.GetString("OpenFrontendDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Open the game file output directory 的本地化字符串。
+        /// </summary>
+        public static string OpenGameFileDirectory {
+            get {
+                return ResourceManager.GetString("OpenGameFileDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Open source repositories used by our project:  的本地化字符串。
+        /// </summary>
+        public static string OpenSourceRepositoryUsed {
+            get {
+                return ResourceManager.GetString("OpenSourceRepositoryUsed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 BP window personalization 的本地化字符串。
+        /// </summary>
+        public static string PersonalizeBPWindow {
+            get {
+                return ResourceManager.GetString("PersonalizeBPWindow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Frontend UI personalization 的本地化字符串。
+        /// </summary>
+        public static string PersonalizeFrontendUI {
+            get {
+                return ResourceManager.GetString("PersonalizeFrontendUI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Picking Border Image 的本地化字符串。
+        /// </summary>
+        public static string PickingBorderImage {
+            get {
+                return ResourceManager.GetString("PickingBorderImage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Project repository:  的本地化字符串。
+        /// </summary>
+        public static string ProjectRepository {
+            get {
+                return ResourceManager.GetString("ProjectRepository", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Quick access 的本地化字符串。
+        /// </summary>
+        public static string QuickAccess {
+            get {
+                return ResourceManager.GetString("QuickAccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Software updates 的本地化字符串。
+        /// </summary>
+        public static string SoftwareUpdates {
+            get {
+                return ResourceManager.GetString("SoftwareUpdates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Source of image resources:  的本地化字符串。
+        /// </summary>
+        public static string SourceOfImageResources {
+            get {
+                return ResourceManager.GetString("SourceOfImageResources", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Stop 的本地化字符串。
+        /// </summary>
+        public static string Stop {
+            get {
+                return ResourceManager.GetString("Stop", resourceCulture);
             }
         }
     }

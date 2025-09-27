@@ -212,6 +212,15 @@ public partial class SettingPageViewModel : ViewModelBase
 
     #endregion
 
+    #region 语言设置
+    [ObservableProperty] private string _language = "简体中文";public ObservableCollection<string> LanguageList { get; } = new()
+    {
+        "跟随系统",
+        "简体中文",
+        "English"
+    };
+    #endregion
+
     #region 快捷入口
 
     /// <summary>

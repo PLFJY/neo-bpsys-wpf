@@ -10,6 +10,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    xmlns:lang="clr-namespace:neo_bpsys_wpf.Assets.Locales"
     Title="SettingPage"
     d:DataContext="{d:DesignInstance Type=vm:SettingPageViewModel,
                                      IsDesignTimeCreatable=True}"
@@ -29,7 +30,7 @@
         <TextBlock
             Margin="0,10,0,0"
             Style="{StaticResource Title}"
-            Text="关于" />
+            Text="{I18N {x:Static lang:LangKeys.About}}" />
         <StackPanel Margin="0,10,0,0">
             <ui:CardExpander
                 Margin="0,0,0,12"
@@ -54,7 +55,7 @@
                                 Margin="0,5,0,0"
                                 VerticalAlignment="Center"
                                 FontSize="12"
-                                Text="Made By 零风PLFJY 作者QQ : 3424127335 软件反馈群 : 175741665" />
+                                Text="{I18N {x:Static lang:LangKeys.AutherDetails}}" />
                         </Grid>
                         <ui:TextBlock
                             Grid.Row="1"
@@ -103,7 +104,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="项目仓库:" />
+                        <TextBlock Grid.Column="0" Text="{I18N {x:Static lang:LangKeys.ProjectRepository}}" />
                         <ui:HyperlinkButton
                             Grid.Column="1"
                             Content="https://github.com/PLFJY/neo-bpsys-wpf"
@@ -114,9 +115,9 @@
                         <TextBlock
                             FontSize="16"
                             FontWeight="Bold"
-                            Text="应用更新:" />
+                            Text="{I18N {x:Static lang:LangKeys.SoftwareUpdates}}" />
                         <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                            <TextBlock VerticalAlignment="Center" Text="下载源：" />
+                            <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.DownloadSource}}" />
                             <ComboBox
                                 Margin="10,0,0,0"
                                 ItemsSource="{Binding MirrorList}"
@@ -125,18 +126,18 @@
                             <TextBlock
                                 Margin="10,0,0,0"
                                 VerticalAlignment="Center"
-                                Text="下载预览版？" />
+                                Text="{I18N {x:Static lang:LangKeys.DownloadPreviewVersion}}" />
                             <ui:ToggleSwitch Margin="10,0,0,0" IsChecked="{Binding UpdaterService.IsFindPreRelease}" />
                         </StackPanel>
                         <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                             <ui:Button
                                 Command="{Binding UpdateCheckCommand}"
-                                Content="检查更新"
+                                Content="{I18N {x:Static lang:LangKeys.CheckForUpdates}}"
                                 Icon="{ui:SymbolIcon ArrowSync24}" />
                             <ui:Button
                                 Margin="10,0,0,0"
                                 Command="{Binding InstallUpdateCommand}"
-                                Content="安装"
+                                Content="{I18N {x:Static lang:LangKeys.Install}}"
                                 Icon="{ui:SymbolIcon Symbol=DrawerArrowDownload24}" />
                             <StackPanel Orientation="Horizontal" Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <TextBlock
@@ -165,14 +166,25 @@
                             Margin="520,10,0,0"
                             HorizontalAlignment="Left"
                             Command="{Binding CancelDownloadCommand}"
-                            Content="停止"
+                            Content="{I18N {x:Static lang:LangKeys.Stop}}"
                             Icon="{ui:SymbolIcon Symbol=Stop24}"
                             Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     </StackPanel>
                     <TextBlock
                         Margin="0,20,0,0"
                         FontWeight="DemiBold"
-                        Text="贴图素材来自:" />
+                        Text="{I18N {x:Static lang:LangKeys.LanguageSetting}}" />
+                    <ComboBox x:Name="LanguageComboBox"
+                      Margin="0,10,0,0"
+                      ItemsSource="{Binding Languages}"
+                      SelectedItem="{Binding SelectedLanguage}"
+                      DisplayMemberPath="Name"
+                      Width="200"
+                      HorizontalAlignment="Left"/>
+                    <TextBlock
+                        Margin="0,20,0,0"
+                        FontWeight="DemiBold"
+                        Text="{I18N {x:Static lang:LangKeys.SourceOfImageResources}}" />
                     <WrapPanel Margin="0,10,0,0" Orientation="Horizontal">
                         <WrapPanel.Resources>
                             <Style BasedOn="{StaticResource {x:Type ui:HyperlinkButton}}" TargetType="ui:HyperlinkButton">
@@ -192,7 +204,7 @@
                     <TextBlock
                         Margin="0,10,0,0"
                         FontWeight="DemiBold"
-                        Text="以下是本软件使用的开源代码库:" />
+                        Text="{I18N {x:Static lang:LangKeys.OpenSourceRepositoryUsed}}" />
                     <Grid Margin="0,10,0,0">
                         <Grid.Resources>
                             <Style BasedOn="{StaticResource {x:Type ui:HyperlinkButton}}" TargetType="ui:HyperlinkButton">
@@ -209,6 +221,7 @@
                             <ui:HyperlinkButton Content=".Net Runtime" NavigateUri="https://github.com/dotnet/runtime/" />
                             <ui:HyperlinkButton Content="CommunityToolkit.Mvvm" NavigateUri="https://github.com/CommunityToolkit/dotnet/" />
                             <ui:HyperlinkButton Content="Downloader" NavigateUri="https://github.com/bezzad/Downloader/" />
+                            <ui:HyperlinkButton Content="Antelcat.I18N" NavigateUri="https://github.com/Antelcat/I18N" />
                         </StackPanel>
                         <StackPanel Grid.Column="1">
                             <ui:HyperlinkButton Content="hyjiacan.pinyin4net" NavigateUri="https://gitee.com/hyjiacan/Pinyin4Net/" />
@@ -227,7 +240,7 @@
         <TextBlock
             Margin="0,10,0,0"
             Style="{StaticResource Title}"
-            Text="快捷入口" />
+            Text="{I18N {x:Static lang:LangKeys.QuickAccess}}" />
         <Border
             Margin="0,10,0,0"
             Padding="10,10,0,0"
@@ -236,30 +249,30 @@
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding HopToConfigDirCommand}"
-                    Content="打开前台配置文件所在目录"
+                    Content="{I18N {x:Static lang:LangKeys.OpenFrontendDirectory}}"
                     Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding HopToGameOutputDirCommand}"
-                    Content="打开对局文件输出目录"
+                    Content="{I18N {x:Static lang:LangKeys.OpenGameFileDirectory}}"
                     Icon="{ui:SymbolIcon Symbol=Games24}" />
             </WrapPanel>
         </Border>
         <TextBlock
             Margin="0,10,0,10"
             Style="{StaticResource Title}"
-            Text="前台UI个性化" />
+            Text="{I18N {x:Static lang:LangKeys.PersonalizeFrontendUI}}" />
         <Border Style="{StaticResource Card}">
             <Grid>
                 <StackPanel Orientation="Horizontal">
                     <ui:Button
                         Command="{Binding ExportUiConfigCommand}"
-                        Content="导出当前UI配置"
+                        Content="{I18N {x:Static lang:LangKeys.ExportUIConfig}}"
                         Icon="{ui:SymbolIcon Symbol=ArrowExportLtr24}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ImportUiConfigCommand}"
-                        Content="导入UI配置"
+                        Content="{I18N {x:Static lang:LangKeys.ImportUIConfig}}"
                         Icon="{ui:SymbolIcon Symbol=ArrowImport24}" />
                 </StackPanel>
             </Grid>
@@ -285,29 +298,29 @@
                             VerticalAlignment="Center"
                             FontSize="16"
                             FontWeight="Bold"
-                            Text="BP前台窗口自定义" />
+                            Text="{I18N {x:Static lang:LangKeys.PersonalizeBPWindow}}" />
                     </ui:CardExpander.Header>
                     <ui:CardExpander.Content>
                         <StackPanel>
-                            <ui:DropDownButton Content="修改图片" Icon="{ui:SymbolIcon Symbol=ImageEdit24}">
+                            <ui:DropDownButton Content="{I18N {x:Static lang:LangKeys.EditImage}}" Icon="{ui:SymbolIcon Symbol=ImageEdit24}">
                                 <ui:DropDownButton.Flyout>
                                     <ContextMenu>
                                         <MenuItem
                                             Command="{Binding EditBpWindowImagesCommand}"
                                             CommandParameter="BgImageUri"
-                                            Header="BP背景" />
+                                            Header="{I18N {x:Static lang:LangKeys.BPWindowImages}}" />
                                         <MenuItem
                                             Command="{Binding EditBpWindowImagesCommand}"
                                             CommandParameter="CurrentBanLockImageUri"
-                                            Header="当局禁用锁" />
+                                            Header="{I18N {x:Static lang:LangKeys.CurrentBanLock}}" />
                                         <MenuItem
                                             Command="{Binding EditBpWindowImagesCommand}"
                                             CommandParameter="GlobalBanLockImageUri"
-                                            Header="全局禁用锁" />
+                                            Header="{I18N {x:Static lang:LangKeys.GlobalBanLock}}" />
                                         <MenuItem
                                             Command="{Binding EditBpWindowImagesCommand}"
                                             CommandParameter="PickingBorderImageUri"
-                                            Header="待选闪烁框" />
+                                            Header="{I18N {x:Static lang:LangKeys.PickingBorderImage}}" />
                                     </ContextMenu>
                                 </ui:DropDownButton.Flyout>
                             </ui:DropDownButton>

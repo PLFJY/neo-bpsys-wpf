@@ -118,15 +118,87 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="BanNumberControl" xml:space="preserve">
-    <value>Ban Number Control</value>
+    <value>Ban number control</value>
   </data>
   <data name="CurrentBan" xml:space="preserve">
-    <value>Current Ban</value>
+    <value>Current ban</value>
   </data>
   <data name="GlobalBan" xml:space="preserve">
-    <value>Global Ban</value>
+    <value>Global ban</value>
   </data>
   <data name="Number" xml:space="preserve">
     <value> st/rd/nd/th</value>
+  </data>
+  <data name="ProjectRepository" xml:space="preserve">
+    <value>Project repository: </value>
+  </data>
+  <data name="SoftwareUpdates" xml:space="preserve">
+    <value>Software updates</value>
+  </data>
+  <data name="DownloadSource" xml:space="preserve">
+    <value>Download source</value>
+  </data>
+  <data name="DownloadPreviewVersion" xml:space="preserve">
+    <value>Download preview version?</value>
+  </data>
+  <data name="About" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="Install" xml:space="preserve">
+    <value>Install</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="LanguageSetting" xml:space="preserve">
+    <value>Language setting</value>
+  </data>
+  <data name="SourceOfImageResources" xml:space="preserve">
+    <value>Source of image resources: </value>
+  </data>
+  <data name="OpenSourceRepositoryUsed" xml:space="preserve">
+    <value>Open source repositories used by our project: </value>
+  </data>
+  <data name="QuickAccess" xml:space="preserve">
+    <value>Quick access</value>
+  </data>
+  <data name="OpenFrontendDirectory" xml:space="preserve">
+    <value>Open the frontend config file directory</value>
+  </data>
+  <data name="OpenGameFileDirectory" xml:space="preserve">
+    <value>Open the game file output directory</value>
+  </data>
+  <data name="PersonalizeFrontendUI" xml:space="preserve">
+    <value>Frontend UI personalization</value>
+  </data>
+  <data name="ExportUIConfig" xml:space="preserve">
+    <value>Export UI configuration</value>
+  </data>
+  <data name="ImportUIConfig" xml:space="preserve">
+    <value>Import UI configuration</value>
+  </data>
+  <data name="PersonalizeBPWindow" xml:space="preserve">
+    <value>BP window personalization</value>
+  </data>
+  <data name="EditImage" xml:space="preserve">
+    <value>Edit image</value>
+  </data>
+  <data name="AutherDetails" xml:space="preserve">
+    <value>Made by Zero_PLFJY | Auther's QQ: 3424127335 | Software feedback group(QQ): 175741665</value>
+  </data>
+  <data name="BPWindowImages" xml:space="preserve">
+    <value>BP background</value>
+  </data>
+  <data name="CurrentBanLock" xml:space="preserve">
+    <value>Current ban lock</value>
+  </data>
+  <data name="GlobalBanLock" xml:space="preserve">
+    <value>Global ban lock</value>
+  </data>
+  <data name="PickingBorderImage" xml:space="preserve">
+    <value>Picking Border Image</value>
   </data>
 </root>

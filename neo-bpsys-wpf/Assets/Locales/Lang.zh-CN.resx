@@ -129,4 +129,76 @@
   <data name="Number" xml:space="preserve">
     <value> 号位</value>
   </data>
+  <data name="ProjectRepository" xml:space="preserve">
+    <value>项目仓库：</value>
+  </data>
+  <data name="SoftwareUpdates" xml:space="preserve">
+    <value>应用更新</value>
+  </data>
+  <data name="DownloadSource" xml:space="preserve">
+    <value>下载源：</value>
+  </data>
+  <data name="DownloadPreviewVersion" xml:space="preserve">
+    <value>下载预览版？</value>
+  </data>
+  <data name="About" xml:space="preserve">
+    <value>关于</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>检查更新</value>
+  </data>
+  <data name="Install" xml:space="preserve">
+    <value>安装</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="LanguageSetting" xml:space="preserve">
+    <value>语言设置</value>
+  </data>
+  <data name="SourceOfImageResources" xml:space="preserve">
+    <value>贴图素材来自：</value>
+  </data>
+  <data name="OpenSourceRepositoryUsed" xml:space="preserve">
+    <value>以下是本软件使用的开源代码库：</value>
+  </data>
+  <data name="QuickAccess" xml:space="preserve">
+    <value>快捷入口</value>
+  </data>
+  <data name="OpenFrontendDirectory" xml:space="preserve">
+    <value>打开前台配置文件目录</value>
+  </data>
+  <data name="OpenGameFileDirectory" xml:space="preserve">
+    <value>打开对局文件输出目录</value>
+  </data>
+  <data name="PersonalizeFrontendUI" xml:space="preserve">
+    <value>前台UI个性化</value>
+  </data>
+  <data name="ExportUIConfig" xml:space="preserve">
+    <value>导出UI配置</value>
+  </data>
+  <data name="ImportUIConfig" xml:space="preserve">
+    <value>导入UI配置</value>
+  </data>
+  <data name="PersonalizeBPWindow" xml:space="preserve">
+    <value>BP窗口自定义</value>
+  </data>
+  <data name="EditImage" xml:space="preserve">
+    <value>修改图片</value>
+  </data>
+  <data name="AutherDetails" xml:space="preserve">
+    <value>软件作者：零风PLFJY | 作者QQ：3424127335 | 软件反馈群: 175741665</value>
+  </data>
+  <data name="BPWindowImages" xml:space="preserve">
+    <value>BP背景</value>
+  </data>
+  <data name="CurrentBanLock" xml:space="preserve">
+    <value>当局禁用锁</value>
+  </data>
+  <data name="GlobalBanLock" xml:space="preserve">
+    <value>全局禁用锁</value>
+  </data>
+  <data name="PickingBorderImage" xml:space="preserve">
+    <value>待选框</value>
+  </data>
 </root>

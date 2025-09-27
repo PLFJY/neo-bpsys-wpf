@@ -392,3 +392,12 @@ public class WidgetsWindowTextSettings
     public TextSettings BpOverview_MinorPoints { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 50);
 }
+
+/// <summary>
+/// 语言设置
+/// </summary>
+
+public class LanguageSettings
+{
+
+}
