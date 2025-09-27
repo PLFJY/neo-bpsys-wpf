@@ -133,7 +133,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Remove="Messages\**" />
-    <None Remove="Enums\**" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Assets\bp_noAuthor.png" />
@@ -167,15 +166,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Messages\**" />
-    <Compile Remove="Enums\**" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Remove="Messages\**" />
-    <EmbeddedResource Remove="Enums\**" />
   </ItemGroup>
   <ItemGroup>
     <Page Remove="Messages\**" />
-    <Page Remove="Enums\**" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Assets\Locales\lang.Designer.cs">

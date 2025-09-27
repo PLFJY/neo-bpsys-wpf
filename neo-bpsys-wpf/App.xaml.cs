@@ -1,6 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Themes;
 using neo_bpsys_wpf.ViewModels.Pages;
@@ -8,19 +12,19 @@ using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
 using Serilog;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
-using neo_bpsys_wpf.Core;
-using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Helpers;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.DependencyInjection;
-using SnackbarService = neo_bpsys_wpf.Services.SnackbarService;
 using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
+using SnackbarService = neo_bpsys_wpf.Services.SnackbarService;
 
 namespace neo_bpsys_wpf;
 
@@ -230,9 +234,10 @@ public partial class App : Application
 
     protected override async void OnStartup(StartupEventArgs e)
     {
-        Console.OutputEncoding=Encoding.UTF8;
+        //Log编码修正
+        Console.OutputEncoding = Encoding.UTF8;
+        //保证只运行一个实例
         _mutex = new Mutex(true, AppConstants.AppName, out createdNew);
-
         if (!createdNew)
         {
             MessageBox.Show("程序已运行", "警告");
@@ -240,11 +245,14 @@ public partial class App : Application
         }
 
         base.OnStartup(e);
+        //设置动画帧率
         Timeline.DesiredFrameRateProperty.OverrideMetadata(
             typeof(Timeline),
             new FrameworkPropertyMetadata { DefaultValue = 100 }
         );
+        //启动host
         await _host.StartAsync();
+        //启动初始化log
         var _logger = _host.Services.GetRequiredService<ILogger<App>>();
         _logger.LogInformation("Application Started");
         _logger.LogInformation("""
@@ -267,8 +275,10 @@ public partial class App : Application
                                ==============================================================================
                                """);
 
+        //读取设置
         var settingsHostService = _host.Services.GetRequiredService<ISettingsHostService>();
         settingsHostService.LoadConfig();
+        //添加不同颜色的icon到resources里面
         Current.Resources["scoreGlobal_surIcon"] = ImageHelper.GetUiImageSource(
             settingsHostService.Settings.ScoreWindowSettings.IsCampIconBlackVerEnabled
                 ? "surIcon_black"
@@ -285,6 +295,7 @@ public partial class App : Application
             settingsHostService.Settings.ScoreWindowSettings.IsCampIconBlackVerEnabled
                 ? "hunIcon_black"
                 : "hunIcon");
+        //设置图标切换跟随主题
         ApplicationThemeManager.Changed += (currentApplicationTheme, _) =>
         {
             foreach (var dict in Current.Resources.MergedDictionaries)
@@ -294,11 +305,27 @@ public partial class App : Application
                 break;
             }
         };
+        //主题初始化为深色
         ApplicationThemeManager.Apply(ApplicationTheme.Dark);
 #if !DEBUG
             _logger.LogInformation("Update checking on start up");
             await _host.Services.GetRequiredService<IUpdaterService>().UpdateCheck(true);
 #endif
+        //设置语言
+        var _settingService = _host.Services.GetRequiredService<ISettingsHostService>();
+        if (_settingService.Settings.Language == LanguageKey.System)
+        {
+            CultureInfo systemCulture = CultureInfo.InstalledUICulture;
+            string systemLanguage = systemCulture.Name;
+            I18NExtension.Culture = new CultureInfo(LanguageKey.en_US.ToString().Replace('_', '-'));
+            _logger.LogInformation("System language detected: {systemLanguage}, set language to {appLanguage}",
+            systemLanguage, systemLanguage);
+        }
+        else
+        {
+            I18NExtension.Culture = new CultureInfo(_settingService.Settings.Language.ToString().Replace('_', '-'));
+            _logger.LogInformation("Set language to {appLanguage}", _settingService.Settings.Language.ToString());
+        }
     }
 
     protected override async void OnExit(ExitEventArgs e)

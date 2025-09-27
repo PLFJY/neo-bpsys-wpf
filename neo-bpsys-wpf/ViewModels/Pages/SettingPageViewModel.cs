@@ -1,16 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using System.Windows;
-using System.Windows.Media;
 using CommunityToolkit.Mvvm.Messaging;
 using Downloader;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core;
@@ -18,8 +11,17 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Messages;
+using neo_bpsys_wpf.Core.Models;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.IO.Compression;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Windows;
+using System.Windows.Media;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -36,6 +38,7 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly IFrontService _frontService;
     private readonly IFilePickerService _filePickerService;
     private readonly ISharedDataService _sharedDataService;
+    private readonly ILogger<SettingPageViewModel> _logger;
     private readonly IMessageBoxService _messageBoxService;
     public IUpdaterService UpdaterService { get; }
     private readonly DownloadService? _downloader;
@@ -43,7 +46,7 @@ public partial class SettingPageViewModel : ViewModelBase
     public SettingPageViewModel(IUpdaterService updaterService, ISettingsHostService settingsHostService,
         ITextSettingsNavigationService textSettingsNavigationService, IFrontService frontService,
         IFilePickerService filePickerService, IMessageBoxService messageBoxService,
-        ISharedDataService sharedDataService)
+        ISharedDataService sharedDataService, ILogger<SettingPageViewModel> logger)
     {
         AppVersion = "版本 v" + Application.ResourceAssembly.GetName().Version!;
         UpdaterService = updaterService;
@@ -52,7 +55,9 @@ public partial class SettingPageViewModel : ViewModelBase
         _frontService = frontService;
         _filePickerService = filePickerService;
         _sharedDataService = sharedDataService;
+        _logger = logger;
         _messageBoxService = messageBoxService;
+
         if (updaterService.Downloader is Downloader.DownloadService downloader)
         {
             _downloader = downloader;
@@ -129,16 +134,21 @@ public partial class SettingPageViewModel : ViewModelBase
 
         GlobalScoreTotalMargin = _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreTotalMargin;
         _sharedDataService.GlobalScoreTotalMargin = GlobalScoreTotalMargin;
+
+        //读取设置语言
+        SelectedLanguage = _settingsHostService.Settings.Language;
     }
 
     #region 自动更新
 
     [ObservableProperty] private string _appVersion = string.Empty;
 
-    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(UpdateCheckCommand))]
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(UpdateCheckCommand))]
     private bool _isDownloading;
 
-    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(InstallUpdateCommand))]
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(InstallUpdateCommand))]
     private bool _isDownloadFinished;
 
     [ObservableProperty] private string _downloadProgressText = string.Empty;
@@ -213,11 +223,35 @@ public partial class SettingPageViewModel : ViewModelBase
     #endregion
 
     #region 语言设置
-    [ObservableProperty] private string _language = "简体中文";public ObservableCollection<string> LanguageList { get; } = new()
+    private LanguageKey _selectedLanguage = LanguageKey.System;
+
+    public LanguageKey SelectedLanguage
     {
-        "跟随系统",
-        "简体中文",
-        "English"
+        get => _selectedLanguage;
+        set => SetPropertyWithAction(ref _selectedLanguage, value, _ =>
+        {
+            _settingsHostService.Settings.Language = value;
+            _settingsHostService.SaveConfig();
+            if (LanguageKey.System == value)
+            {
+                CultureInfo systemCulture = CultureInfo.InstalledUICulture;
+                string systemLanguage = systemCulture.Name;
+                I18NExtension.Culture = new CultureInfo(systemLanguage);
+                _logger.LogInformation("System language detected: {systemLanguage}, set language to {appLanguage}", systemLanguage, systemLanguage);
+                return;
+            }
+
+            I18NExtension.Culture = new CultureInfo(value.ToString().Replace('_', '-'));
+            _logger.LogInformation("Set language to {appLanguage}", value.ToString());
+        });
+    }
+
+    public Dictionary<string, LanguageKey> LanguageList { get; } = new()
+    {
+        {"跟随系统", LanguageKey.System},
+        {"简体中文" , LanguageKey.zh_CN},
+        {"English" , LanguageKey.en_US},
+        //{"日本語" , LanguageKey.ja_JP }
     };
     #endregion
 
@@ -884,26 +918,26 @@ public partial class SettingPageViewModel : ViewModelBase
 
             //拷贝自定义UI图片
             var customUiFiles = Directory.GetFiles(CustomUiTempPath);
-            if(!Directory.Exists(AppConstants.CustomUiPath))
+            if (!Directory.Exists(AppConstants.CustomUiPath))
                 Directory.CreateDirectory(AppConstants.CustomUiPath);
             foreach (var customUiFile in customUiFiles)
             {
                 File.Copy(customUiFile, Path.Combine(AppConstants.CustomUiPath, Path.GetFileName(customUiFile)), true);
             }
-            
+
             //拷贝前台位置配置文件
             var frontElementConfigures = Directory.GetFiles(FrontElementsConfigTempPath);
             foreach (var frontElementConfigure in frontElementConfigures)
             {
                 File.Copy(frontElementConfigure, Path.Combine(AppConstants.AppDataPath, Path.GetFileName(frontElementConfigure)), true);
             }
-            
+
             //清理作案痕迹
             Directory.Delete(TempPath, true);
 
             //告诉用户已经导入完了
             await _messageBoxService.ShowInfoAsync("UI导入完成，应用将自动重启", "UI 导入提示");
-            
+
             //重启应用程序
             App.Restart();
         }

@@ -14,6 +14,7 @@ namespace neo_bpsys_wpf.Core.Models;
 public partial class Settings : ViewModelBase
 {
     public bool ShowTip { get; set; } = true;
+    public LanguageKey Language { get; set; } = LanguageKey.System;
     [ObservableProperty] private BpWindowSettings _bpWindowSettings = new();
     [ObservableProperty] private CutSceneWindowSettings _cutSceneWindowSettings = new();
     [ObservableProperty] private ScoreWindowSettings _scoreWindowSettings = new();

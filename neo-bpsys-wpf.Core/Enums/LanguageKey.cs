@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace neo_bpsys_wpf.Core.Enums
 {
-    internal class Languages
+    public enum LanguageKey
     {
+        System,
+        zh_CN,
+        en_US,
+        ja_JP
     }
 }
