@@ -110,8 +110,8 @@ public partial class Game : ViewModelBase
         LoadMembers();
 
         //新建角色禁用列表
-        CurrentHunBannedList = [.. Enumerable.Range(0, 2).Select(_ => new Character(Camp.Hun))];
-        CurrentSurBannedList = [.. Enumerable.Range(0, 4).Select(_ => new Character(Camp.Sur))];
+        CurrentHunBannedList = [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(_ => new Character(Camp.Hun))];
+        CurrentSurBannedList = [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(_ => new Character(Camp.Sur))];
 
         //初始化地图信息
         if (pickedMap != null) PickedMap = pickedMap;

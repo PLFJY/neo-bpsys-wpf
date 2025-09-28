@@ -21,6 +21,10 @@
   <ItemGroup>
     <Resource Include="Assets\bp.png" />
     <Resource Include="Assets\bp_noAuthor.png" />
+    <Resource Include="Assets\Contributors\plfjy.png" />
+    <Resource Include="Assets\Contributors\tianqi.jpg" />
+    <Resource Include="Assets\Contributors\zack.jpg" />
+    <Resource Include="Assets\Contributors\zhangzhilv.jpg" />
     <Resource Include="Assets\CurrentBanLock.png" />
     <Resource Include="Assets\donate_QR_code.png" />
     <Resource Include="Assets\Fonts\Essay-Text-W01-Italic.ttf" />
@@ -104,7 +108,6 @@
     <Resource Include="Assets\厂长.png" />
     <Resource Include="Assets\小丑.png" />
     <Resource Include="Assets\幸运儿.png" />
-    <Resource Include="Assets\新版头像.jpg" />
     <Resource Include="Assets\梦之女巫.png" />
     <Resource Include="Assets\闪现.png" />
   </ItemGroup>
@@ -135,6 +138,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="Assets\bp_noAuthor.png" />
+    <None Remove="Assets\Contributors\plfjy.png" />
+    <None Remove="Assets\Contributors\tianqi.jpg" />
+    <None Remove="Assets\Contributors\zack.jpg" />
+    <None Remove="Assets\Contributors\zhangzhilv.jpg" />
     <None Remove="Assets\CurrentBanLock.png" />
     <None Remove="Assets\donate_QR_code.JPG" />
     <None Remove="Assets\donate_QR_code.png" />

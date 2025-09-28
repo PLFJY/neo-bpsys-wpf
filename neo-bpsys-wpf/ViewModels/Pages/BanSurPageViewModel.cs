@@ -1,9 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
-using System.Collections.ObjectModel;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Messages;
+using System.Collections.ObjectModel;
 using CharaSelectViewModelBase = neo_bpsys_wpf.Core.Abstractions.ViewModels.CharaSelectViewModelBase;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
@@ -22,8 +23,8 @@ public partial class BanSurPageViewModel : ViewModelBase
     public BanSurPageViewModel(ISharedDataService sharedDataService)
     {
         _sharedDataService = sharedDataService;
-        BanSurCurrentViewModelList = [.. Enumerable.Range(0, 4).Select(i => new BanSurCurrentViewModel(_sharedDataService, i))];
-        BanSurGlobalViewModelList = [.. Enumerable.Range(0, 9).Select(i => new BanSurGlobalViewModel(_sharedDataService, i))];
+        BanSurCurrentViewModelList = [.. Enumerable.Range(0, AppConstants.CurrentBanSurCount).Select(i => new BanSurCurrentViewModel(_sharedDataService, i))];
+        BanSurGlobalViewModelList = [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(i => new BanSurGlobalViewModel(_sharedDataService, i))];
         sharedDataService.TeamSwapped += (_, _) =>
         {
             for (int i = 0; i < _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray.Length; i++)

@@ -15,6 +15,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Messages;
 using Game = neo_bpsys_wpf.Core.Models.Game;
 using Team = neo_bpsys_wpf.Core.Models.Team;
+using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -36,7 +37,7 @@ public partial class SharedDataService : ISharedDataService
         _currentGame = new Game(MainTeam, AwayTeam, GameProgress.Free);
 
         var charaListFilePath =
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "CharacterList.json");
+            Path.Combine(AppConstants.ResourcesPath, "CharacterList.json");
         ReadCharaListFromFile(charaListFilePath);
 
         SurCharaList = SurCharaList
@@ -46,10 +47,10 @@ public partial class SharedDataService : ISharedDataService
             ?.OrderBy(pair => pair.Key)
             .ToDictionary(pair => pair.Key, pair => pair.Value)!;
 
-        CanCurrentSurBannedList = [.. Enumerable.Repeat(true, 4)];
-        CanCurrentHunBannedList = [.. Enumerable.Repeat(true, 2)];
-        CanGlobalSurBannedList = [.. Enumerable.Repeat(false, 9)];
-        CanGlobalHunBannedList = [.. Enumerable.Repeat(false, 3)];
+        CanCurrentSurBannedList = [.. Enumerable.Repeat(true, AppConstants.CurrentBanSurCount)];
+        CanCurrentHunBannedList = [.. Enumerable.Repeat(true, AppConstants.CurrentBanHunCount)];
+        CanGlobalSurBannedList = [.. Enumerable.Repeat(false, AppConstants.GlobalBanSurCount)];
+        CanGlobalHunBannedList = [.. Enumerable.Repeat(false, AppConstants.GlobalBanHunCount)];
 
         CanCurrentSurBannedList.CollectionChanged += (_, e) =>
             HandleBanCollectionChanged(BanListName.CanCurrentSurBanned, e);
