@@ -24,7 +24,7 @@ public static class ImageHelper
             new BitmapImage(
                 new Uri(
                     Path.Combine(
-                        AppDomain.CurrentDomain.BaseDirectory, "Resources", nameof(ImageSourceKey.bpui),
+                        AppConstants.ResourcesPath, nameof(ImageSourceKey.bpui),
                         key + ".png"
                     )
                 )
@@ -42,7 +42,7 @@ public static class ImageHelper
         return new BitmapImage(
             new Uri(
                 Path.Combine(
-                    AppDomain.CurrentDomain.BaseDirectory, "Resources", nameof(ImageSourceKey.bpui), key + ".png"
+                    AppConstants.ResourcesPath, nameof(ImageSourceKey.bpui), key + ".png"
                 )
             )
         );
@@ -58,7 +58,7 @@ public static class ImageHelper
     {
         if (string.IsNullOrEmpty(fileName)) return null;
 
-        var fileFullName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", key.ToString(), fileName);
+        var fileFullName = Path.Combine(AppConstants.ResourcesPath, key.ToString(), fileName);
 
         return !File.Exists(fileFullName) ? null : new BitmapImage(new Uri(fileFullName));
     }
@@ -73,7 +73,7 @@ public static class ImageHelper
     {
         if (string.IsNullOrEmpty(name)) return null;
 
-        var fileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", key.ToString(), name + ".png");
+        var fileName = Path.Combine(AppConstants.ResourcesPath, key.ToString(), name + ".png");
 
         return !File.Exists(fileName) ? null : new BitmapImage(new Uri(fileName));
     }
@@ -90,8 +90,7 @@ public static class ImageHelper
         if (string.IsNullOrEmpty(name)) return null;
 
         var fileName = Path.Combine(
-            AppDomain.CurrentDomain.BaseDirectory,
-            "Resources",
+            AppConstants.ResourcesPath,
             nameof(ImageSourceKey.talent),
             camp.ToString().ToLower(),
             isBlackVerEnable ? "black" : "white",
@@ -112,8 +111,7 @@ public static class ImageHelper
         if (trait == null) return null;
         
         var fileName = Path.Combine(
-            AppDomain.CurrentDomain.BaseDirectory,
-            "Resources",
+            AppConstants.ResourcesPath,
             nameof(ImageSourceKey.trait),
             (isBlackTalentAndTraitEnable ? "black" : "white"),
             trait + ".png"

@@ -6,6 +6,9 @@ on:
       - main
     types:
       - closed
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
