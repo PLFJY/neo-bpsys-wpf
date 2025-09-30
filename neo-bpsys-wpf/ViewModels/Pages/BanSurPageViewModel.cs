@@ -24,7 +24,7 @@ public partial class BanSurPageViewModel : ViewModelBase
     {
         _sharedDataService = sharedDataService;
         BanSurCurrentViewModelList = [.. Enumerable.Range(0, AppConstants.CurrentBanSurCount).Select(i => new BanSurCurrentViewModel(_sharedDataService, i))];
-        BanSurGlobalViewModelList = [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(i => new BanSurGlobalViewModel(_sharedDataService, i))];
+        BanSurGlobalViewModelList = [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(i => new BanSurGlobalViewModel(_sharedDataService, i))];
         sharedDataService.TeamSwapped += (_, _) =>
         {
             for (int i = 0; i < _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray.Length; i++)
