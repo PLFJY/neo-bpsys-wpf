@@ -12,6 +12,7 @@ using neo_bpsys_wpf.Core.Messages;
 using CharaSelectViewModelBase = neo_bpsys_wpf.Core.Abstractions.ViewModels.CharaSelectViewModelBase;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 using System.Windows.Media.Imaging;
+using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -33,13 +34,13 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             [.. Enumerable.Range(0, 4).Select(i => new SurPickViewModel(sharedDataService, frontService, i))];
         HunPickVm = new HunPickViewModel(sharedDataService, frontService);
         MainSurGlobalBanRecordViewModelList =
-            [.. Enumerable.Range(0, 9).Select(i => new MainSurGlobalBanRecordViewModel(sharedDataService, i))];
+            [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(i => new MainSurGlobalBanRecordViewModel(sharedDataService, i))];
         MainHunGlobalBanRecordViewModelList =
-            [.. Enumerable.Range(0, 3).Select(i => new MainHunGlobalBanRecordViewModel(sharedDataService, i))];
+            [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(i => new MainHunGlobalBanRecordViewModel(sharedDataService, i))];
         AwaySurGlobalBanRecordViewModelList =
-            [.. Enumerable.Range(0, 9).Select(i => new AwaySurGlobalBanRecordViewModel(sharedDataService, i))];
+            [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(i => new AwaySurGlobalBanRecordViewModel(sharedDataService, i))];
         AwayHunGlobalBanRecordViewModelList =
-            [.. Enumerable.Range(0, 3).Select(i => new AwayHunGlobalBanRecordViewModel(sharedDataService, i))];
+            [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(i => new AwayHunGlobalBanRecordViewModel(sharedDataService, i))];
     }
 
     [RelayCommand]
