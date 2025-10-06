@@ -677,6 +677,60 @@
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </StackPanel>
         </Border>
+        <ui:CardExpander Margin="0,10,0,0" Icon="{ui:SymbolIcon Symbol=Star24}">
+            <ui:CardExpander.Header>
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="18"
+                    FontWeight="Bold"
+                    Text="项目贡献者" />
+            </ui:CardExpander.Header>
+            <StackPanel
+                Margin="0,0,0,0"
+                HorizontalAlignment="Left"
+                Orientation="Vertical">
+                <StackPanel.Resources>
+                    <Style BasedOn="{StaticResource {x:Type ui:Image}}" TargetType="ui:Image">
+                        <Setter Property="Height" Value="50" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="Margin" Value="0,0,5,0" />
+                    </Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="HorizontalAlignment" Value="Center" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="Margin" Value="3" />
+                    </Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Margin" Value="5" />
+                        <Setter Property="Orientation" Value="Horizontal" />
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                    </Style>
+                </StackPanel.Resources>
+                <StackPanel>
+                    <ui:Image Source="/Assets/Contributors/plfjy.png" />
+                    <TextBlock Text="零风PLFJY" />
+                    <TextBlock Text="软件作者" />
+                </StackPanel>
+                <StackPanel>
+                    <ui:Image Source="/Assets/Contributors/zack.jpg" />
+                    <TextBlock Text="Zack" />
+                    <TextBlock Text="测试" />
+                    <TextBlock Text="对局引导" />
+                    <TextBlock Text="多语言" />
+                    <TextBlock Text="使用文档" />
+                </StackPanel>
+                <StackPanel>
+                    <ui:Image Source="/Assets/Contributors/tianqi.jpg" />
+                    <TextBlock Text="天启" />
+                    <TextBlock Text="插件系统" />
+                </StackPanel>
+                <StackPanel>
+                    <ui:Image Source="/Assets/Contributors/zhangzhilv.jpg" />
+                    <TextBlock Text="张之律" />
+                    <TextBlock Text="提供了2025秋季赛规则的UI" />
+                </StackPanel>
+            </StackPanel>
+        </ui:CardExpander>
         <ui:CardExpander Margin="0,10,0,0" Icon="{ui:SymbolIcon Symbol=Heart24}">
             <ui:CardExpander.Header>
                 <TextBlock

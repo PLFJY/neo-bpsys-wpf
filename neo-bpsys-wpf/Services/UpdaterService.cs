@@ -45,7 +45,7 @@ public class UpdaterService : IUpdaterService
         {
             ChunkCount = 8,
             ParallelDownload = true,
-            MaxTryAgainOnFailure = 5, // 修正属性名为 MaxTryAgainOnFailure
+            MaxTryAgainOnFailure = 5,
             ParallelCount = 6,
         };
 

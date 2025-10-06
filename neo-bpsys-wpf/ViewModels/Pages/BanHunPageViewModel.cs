@@ -1,9 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
-using System.Collections.ObjectModel;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Messages;
+using System.Collections.ObjectModel;
 using CharaSelectViewModelBase = neo_bpsys_wpf.Core.Abstractions.ViewModels.CharaSelectViewModelBase;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
@@ -22,8 +23,8 @@ public partial class BanHunPageViewModel : ViewModelBase
     public BanHunPageViewModel(ISharedDataService sharedDataService)
     {
         _sharedDataService = sharedDataService;
-        BanHunCurrentViewModelList = [.. Enumerable.Range(0, 2).Select(i => new BanHunCurrentViewModel(_sharedDataService, i))];
-        BanHunGlobalViewModelList = [.. Enumerable.Range(0, 3).Select(i => new BanHunGlobalViewModel(_sharedDataService, i))];
+        BanHunCurrentViewModelList = [.. Enumerable.Range(0, AppConstants.CurrentBanHunCount).Select(i => new BanHunCurrentViewModel(_sharedDataService, i))];
+        BanHunGlobalViewModelList = [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(i => new BanHunGlobalViewModel(_sharedDataService, i))];
         sharedDataService.TeamSwapped += (_, _) =>
         {
             for (var i = 0; i < _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunRecordArray.Length; i++)

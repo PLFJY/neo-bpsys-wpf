@@ -152,16 +152,16 @@ public partial class Team : ViewModelBase
 
         Camp = camp;
 
-        GlobalBannedHunList = [.. Enumerable.Range(0, 3).Select(_ => new Character(Camp.Hun))];
-        GlobalBannedSurList = [.. Enumerable.Range(0, 9).Select(_ => new Character(Camp.Sur))];
+        GlobalBannedHunList = [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(_ => new Character(Camp.Hun))];
+        GlobalBannedSurList = [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(_ => new Character(Camp.Sur))];
 
         _surMemberOnFieldPrivateCollection = [.. Enumerable.Range(0, 4).Select<int, Member?>(_ => null)];
         _surMemberOnFieldCollection = new ReadOnlyObservableCollection<Member?>(_surMemberOnFieldPrivateCollection);
         OnPropertyChanged(nameof(SurMemberOnFieldCollection));
         HunMemberOnField = null;
 
-        GlobalBannedSurRecordArray = [.. Enumerable.Range(0, 9).Select<int, Character?>(_ => null)];
-        GlobalBannedHunRecordArray = [.. Enumerable.Range(0, 3).Select<int, Character?>(_ => null)];
+        GlobalBannedHunRecordArray = [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select<int, Character?>(_ => null)];
+        GlobalBannedSurRecordArray = [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select<int, Character?>(_ => null)];
     }
 
     /// <summary>

@@ -42,4 +42,29 @@ public static class AppConstants
     /// 日志路径
     /// </summary>
     public static readonly string LogPath = Path.Combine(AppOutputPath, "Log");
+
+    /// <summary>
+    /// 资源文件路径
+    /// </summary>
+    public static readonly string ResourcesPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources");
+
+    /// <summary>
+    /// 当局求生者Ban位数量
+    /// </summary>
+    public const int CurrentBanSurCount = 4;
+
+    /// <summary>
+    /// 当局监管者Ban位数量
+    /// </summary>
+    public const int CurrentBanHunCount = 2;
+
+    /// <summary>
+    /// 全局求生者Ban位数量
+    /// </summary>
+    public const int GlobalBanSurCount = 12;
+
+    /// <summary>
+    /// 全局监管者Ban位数量
+    /// </summary>
+    public const int GlobalBanHunCount = 3;
 }
