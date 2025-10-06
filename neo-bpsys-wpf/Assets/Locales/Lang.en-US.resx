@@ -189,9 +189,6 @@
   <data name="AutherDetails" xml:space="preserve">
     <value>Made by Zero_PLFJY | Auther's QQ: 3424127335 | Software feedback group(QQ): 175741665</value>
   </data>
-  <data name="BPWindowImages" xml:space="preserve">
-    <value>BP background</value>
-  </data>
   <data name="CurrentBanLock" xml:space="preserve">
     <value>Current ban lock</value>
   </data>
@@ -199,6 +196,45 @@
     <value>Global ban lock</value>
   </data>
   <data name="PickingBorderImage" xml:space="preserve">
-    <value>Picking Border Image</value>
+    <value>Picking border image</value>
+  </data>
+  <data name="DownloadProgress" xml:space="preserve">
+    <value>Download progress</value>
+  </data>
+  <data name="PickingBorderImageColor" xml:space="preserve">
+    <value>Picking border image color(It will cover the color of picking border itself)</value>
+  </data>
+  <data name="BPWindowImages" xml:space="preserve">
+    <value>BP background</value>
+  </data>
+  <data name="SaveAndApply" xml:space="preserve">
+    <value>Save and apply</value>
+  </data>
+  <data name="EditTextProperty" xml:space="preserve">
+    <value>Edit text property</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="ResetAllPersonalizationSettingsOfTheWindow" xml:space="preserve">
+    <value>Reset all personalization settings of the window</value>
+  </data>
+  <data name="CustomizeCutSceneWindow" xml:space="preserve">
+    <value>Customize cut scene window</value>
+  </data>
+  <data name="EditCutSceneWindowBackgroundImage" xml:space="preserve">
+    <value>Edit cut scene window background image</value>
+  </data>
+  <data name="ColorOfTalentAndTraitIcon" xml:space="preserve">
+    <value>Color of talent and trait icon</value>
+  </data>
+  <data name="Black" xml:space="preserve">
+    <value>Black</value>
+  </data>
+  <data name="White" xml:space="preserve">
+    <value>White</value>
+  </data>
+  <data name="CustomizeScoreWindow" xml:space="preserve">
+    <value>Customize score window</value>
   </data>
 </root>

@@ -213,10 +213,6 @@
     <value>Made by Zero_PLFJY | Auther's QQ: 3424127335 | Software feedback group(QQ): 175741665</value>
     <comment>作者相关信息</comment>
   </data>
-  <data name="BPWindowImages" xml:space="preserve">
-    <value>BP background</value>
-    <comment>BP背景</comment>
-  </data>
   <data name="CurrentBanLock" xml:space="preserve">
     <value>Current ban lock</value>
     <comment>当局禁用锁图案</comment>
@@ -226,7 +222,55 @@
     <comment>全局禁用锁图案</comment>
   </data>
   <data name="PickingBorderImage" xml:space="preserve">
-    <value>Picking Border Image</value>
+    <value>Picking border image</value>
     <comment>待选框</comment>
+  </data>
+  <data name="DownloadProgress" xml:space="preserve">
+    <value>Download progress: </value>
+    <comment>下载进度</comment>
+  </data>
+  <data name="PickingBorderImageColor" xml:space="preserve">
+    <value>Picking border image color(It will cover the color of picking border itself)</value>
+    <comment>待选框边缘颜色</comment>
+  </data>
+  <data name="BPWindowImages" xml:space="preserve">
+    <value>BP background</value>
+    <comment>BP背景</comment>
+  </data>
+  <data name="SaveAndApply" xml:space="preserve">
+    <value>Save and apply</value>
+    <comment>保存并应用</comment>
+  </data>
+  <data name="EditTextProperty" xml:space="preserve">
+    <value>Edit text property</value>
+    <comment>编辑文字属性</comment>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+    <comment>编辑</comment>
+  </data>
+  <data name="ResetAllPersonalizationSettingsOfTheWindow" xml:space="preserve">
+    <value>Reset all personalization settings of the window</value>
+    <comment>重置该窗口全部个性化设置</comment>
+  </data>
+  <data name="CustomizeCutSceneWindow" xml:space="preserve">
+    <value>Customize cut scene window</value>
+    <comment>个性化过场画面</comment>
+  </data>
+  <data name="EditCutSceneWindowBackgroundImage" xml:space="preserve">
+    <value>Edit cut scene window background window image</value>
+    <comment>修改过场背景图片</comment>
+  </data>
+  <data name="ColorOfTalentAndTraitIcon" xml:space="preserve">
+    <value>Color of talent and trait icon</value>
+  </data>
+  <data name="Black" xml:space="preserve">
+    <value>Black</value>
+  </data>
+  <data name="White" xml:space="preserve">
+    <value>White</value>
+  </data>
+  <data name="CustomizeScoreWindow" xml:space="preserve">
+    <value>Customize score window</value>
   </data>
 </root>

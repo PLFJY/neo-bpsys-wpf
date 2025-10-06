@@ -317,7 +317,7 @@ public partial class App : Application
         {
             CultureInfo systemCulture = CultureInfo.InstalledUICulture;
             string systemLanguage = systemCulture.Name;
-            I18NExtension.Culture = new CultureInfo(LanguageKey.en_US.ToString().Replace('_', '-'));
+            I18NExtension.Culture = new CultureInfo(systemLanguage);
             _logger.LogInformation("System language detected: {systemLanguage}, set language to {appLanguage}",
             systemLanguage, systemLanguage);
         }

@@ -88,6 +88,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Black 的本地化字符串。
+        /// </summary>
+        public static string Black {
+            get {
+                return ResourceManager.GetString("Black", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 BP background 的本地化字符串。
         /// </summary>
         public static string BPWindowImages {
@@ -102,6 +111,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string CheckForUpdates {
             get {
                 return ResourceManager.GetString("CheckForUpdates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Color of talent and trait icon 的本地化字符串。
+        /// </summary>
+        public static string ColorOfTalentAndTraitIcon {
+            get {
+                return ResourceManager.GetString("ColorOfTalentAndTraitIcon", resourceCulture);
             }
         }
         
@@ -124,11 +142,38 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Customize cut scene window 的本地化字符串。
+        /// </summary>
+        public static string CustomizeCutSceneWindow {
+            get {
+                return ResourceManager.GetString("CustomizeCutSceneWindow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Customize score window 的本地化字符串。
+        /// </summary>
+        public static string CustomizeScoreWindow {
+            get {
+                return ResourceManager.GetString("CustomizeScoreWindow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Download preview version? 的本地化字符串。
         /// </summary>
         public static string DownloadPreviewVersion {
             get {
                 return ResourceManager.GetString("DownloadPreviewVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Download progress:  的本地化字符串。
+        /// </summary>
+        public static string DownloadProgress {
+            get {
+                return ResourceManager.GetString("DownloadProgress", resourceCulture);
             }
         }
         
@@ -142,11 +187,38 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Edit 的本地化字符串。
+        /// </summary>
+        public static string Edit {
+            get {
+                return ResourceManager.GetString("Edit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Edit cut scene window background window image 的本地化字符串。
+        /// </summary>
+        public static string EditCutSceneWindowBackgroundImage {
+            get {
+                return ResourceManager.GetString("EditCutSceneWindowBackgroundImage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Edit image 的本地化字符串。
         /// </summary>
         public static string EditImage {
             get {
                 return ResourceManager.GetString("EditImage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Edit text property 的本地化字符串。
+        /// </summary>
+        public static string EditTextProperty {
+            get {
+                return ResourceManager.GetString("EditTextProperty", resourceCulture);
             }
         }
         
@@ -259,11 +331,20 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 Picking Border Image 的本地化字符串。
+        ///   查找类似 Picking border image 的本地化字符串。
         /// </summary>
         public static string PickingBorderImage {
             get {
                 return ResourceManager.GetString("PickingBorderImage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Picking border image color(It will cover the color of picking border itself) 的本地化字符串。
+        /// </summary>
+        public static string PickingBorderImageColor {
+            get {
+                return ResourceManager.GetString("PickingBorderImageColor", resourceCulture);
             }
         }
         
@@ -282,6 +363,24 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string QuickAccess {
             get {
                 return ResourceManager.GetString("QuickAccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Reset all personalization settings of the window 的本地化字符串。
+        /// </summary>
+        public static string ResetAllPersonalizationSettingsOfTheWindow {
+            get {
+                return ResourceManager.GetString("ResetAllPersonalizationSettingsOfTheWindow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Save and apply 的本地化字符串。
+        /// </summary>
+        public static string SaveAndApply {
+            get {
+                return ResourceManager.GetString("SaveAndApply", resourceCulture);
             }
         }
         
@@ -309,6 +408,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string Stop {
             get {
                 return ResourceManager.GetString("Stop", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 White 的本地化字符串。
+        /// </summary>
+        public static string White {
+            get {
+                return ResourceManager.GetString("White", resourceCulture);
             }
         }
     }

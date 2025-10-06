@@ -189,9 +189,6 @@
   <data name="AutherDetails" xml:space="preserve">
     <value>软件作者：零风PLFJY | 作者QQ：3424127335 | 软件反馈群: 175741665</value>
   </data>
-  <data name="BPWindowImages" xml:space="preserve">
-    <value>BP背景</value>
-  </data>
   <data name="CurrentBanLock" xml:space="preserve">
     <value>当局禁用锁</value>
   </data>
@@ -200,5 +197,44 @@
   </data>
   <data name="PickingBorderImage" xml:space="preserve">
     <value>待选框</value>
+  </data>
+  <data name="DownloadProgress" xml:space="preserve">
+    <value>下载进度：</value>
+  </data>
+  <data name="PickingBorderImageColor" xml:space="preserve">
+    <value>待选框边缘颜色（覆盖贴图颜色）</value>
+  </data>
+  <data name="BPWindowImages" xml:space="preserve">
+    <value>BP背景</value>
+  </data>
+  <data name="SaveAndApply" xml:space="preserve">
+    <value>保存并应用</value>
+  </data>
+  <data name="EditTextProperty" xml:space="preserve">
+    <value>编辑文字属性</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>编辑</value>
+  </data>
+  <data name="ResetAllPersonalizationSettingsOfTheWindow" xml:space="preserve">
+    <value>重置该窗口赚不个性化设置</value>
+  </data>
+  <data name="CustomizeCutSceneWindow" xml:space="preserve">
+    <value>自定义过场画面</value>
+  </data>
+  <data name="EditCutSceneWindowBackgroundImage" xml:space="preserve">
+    <value>修改过场画面背景图片</value>
+  </data>
+  <data name="ColorOfTalentAndTraitIcon" xml:space="preserve">
+    <value>天赋与辅助特质图标颜色</value>
+  </data>
+  <data name="Black" xml:space="preserve">
+    <value>黑色</value>
+  </data>
+  <data name="White" xml:space="preserve">
+    <value>白色</value>
+  </data>
+  <data name="CustomizeScoreWindow" xml:space="preserve">
+    <value>自定义比分窗口</value>
   </data>
 </root>

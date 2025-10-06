@@ -158,7 +158,7 @@
                                 <TextBlock
                                     Margin="10,0,0,0"
                                     VerticalAlignment="Center"
-                                    Text="下载进度：" />
+                                    Text="{I18N {x:Static lang:LangKeys.DownloadProgress}}" />
                                 <ProgressBar
                                     Width="175"
                                     Height="20"
@@ -329,7 +329,7 @@
                                 </ui:DropDownButton.Flyout>
                             </ui:DropDownButton>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="待选框边缘颜色（染色，会覆盖你的待选框贴图本身的颜色）:" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.PickingBorderImageColor}}" />
                                 <colorpicker:PortableColorPicker
                                     Width="60"
                                     Height="30"
@@ -339,7 +339,7 @@
                                 <ui:Button
                                     Margin="10,0,0,0"
                                     Command="{Binding SaveBpWindowPickingBorderColorCommand}"
-                                    Content="保存并应用"
+                                    Content="{I18N {x:Static lang:LangKeys.SaveAndApply}}"
                                     Icon="{ui:SymbolIcon Symbol=Save24}" />
                             </StackPanel>
                             <Grid Margin="0,10,0,0">
@@ -348,7 +348,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Style="{StaticResource Title}" Text="修改文字属性" />
+                                    <TextBlock Style="{StaticResource Title}" Text="{I18N {x:Static lang:LangKeys.EditTextProperty}}" />
                                     <ComboBox
                                         Width="250"
                                         Margin="0,10,0,0"
@@ -360,13 +360,13 @@
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
                                         CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
-                                        Content="编辑"
+                                        Content="{I18N {x:Static lang:LangKeys.Edit}}"
                                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding ResetCommand}"
                                         CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
-                                        Content="重置该窗口的全部个性化设置"
+                                        Content="{I18N {x:Static lang:LangKeys.ResetAllPersonalizationSettingsOfTheWindow}}"
                                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </StackPanel>
                                 <Frame x:Name="BpWindowTextSettingFrame" Grid.Column="1" />
@@ -380,23 +380,23 @@
                             VerticalAlignment="Center"
                             FontSize="16"
                             FontWeight="Bold"
-                            Text="过场画面窗口自定义" />
+                            Text="{I18N {x:Static lang:LangKeys.CustomizeCutSceneWindow}}" />
                     </ui:CardExpander.Header>
                     <ui:CardExpander.Content>
                         <StackPanel>
                             <ui:Button
                                 Command="{Binding EditCutSceneWindowImagesCommand}"
-                                Content="修改过场背景图片"
+                                Content="{I18N {x:Static lang:LangKeys.EditCutSceneWindowBackgroundImage}}"
                                 Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="天赋和辅助特质图标颜色" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.ColorOfTalentAndTraitIcon}}" />
                                 <RadioButton
                                     Margin="10,0,0,0"
-                                    Content="白色"
+                                    Content="{I18N {x:Static lang:LangKeys.White}}"
                                     IsChecked="True" />
                                 <RadioButton
                                     Margin="10,0,0,0"
-                                    Content="黑色"
+                                    Content="{I18N {x:Static lang:LangKeys.Black}}"
                                     IsChecked="{Binding IsTalentAndTraitBlackVerEnable}" />
                             </StackPanel>
                             <Grid Margin="0,10,0,0">
@@ -405,7 +405,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Style="{StaticResource Title}" Text="修改文字属性" />
+                                    <TextBlock Style="{StaticResource Title}" Text="{I18N {x:Static lang:LangKeys.EditTextProperty}}" />
                                     <ComboBox
                                         Width="250"
                                         Margin="0,10,0,0"
@@ -417,13 +417,13 @@
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
                                         CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
-                                        Content="编辑"
+                                        Content="{I18N {x:Static lang:LangKeys.Edit}}"
                                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding ResetCommand}"
                                         CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
-                                        Content="重置该窗口的全部个性化设置"
+                                        Content="{I18N {x:Static lang:LangKeys.ResetAllPersonalizationSettingsOfTheWindow}}"
                                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </StackPanel>
                                 <Frame x:Name="CutSceneWindowTextSettingFrame" Grid.Column="1" />
@@ -437,11 +437,11 @@
                             VerticalAlignment="Center"
                             FontSize="16"
                             FontWeight="Bold"
-                            Text="比分窗口自定义" />
+                            Text="{I18N {x:Static lang:LangKeys.CustomizeScoreWindow}}" />
                     </ui:CardExpander.Header>
                     <ui:CardExpander.Content>
                         <StackPanel>
-                            <ui:DropDownButton Content="修改图片" Icon="{ui:SymbolIcon Symbol=ImageEdit24}">
+                            <ui:DropDownButton Content="{I18N {x:Static lang:LangKeys.EditImage}}" Icon="{ui:SymbolIcon Symbol=ImageEdit24}">
                                 <ui:DropDownButton.Flyout>
                                     <ContextMenu>
                                         <MenuItem
