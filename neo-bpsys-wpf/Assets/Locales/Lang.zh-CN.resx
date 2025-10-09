@@ -237,4 +237,13 @@
   <data name="CustomizeScoreWindow" xml:space="preserve">
     <value>自定义比分窗口</value>
   </data>
+  <data name="SurvivorScoreInGame" xml:space="preserve">
+    <value>游戏内求生者比分</value>
+  </data>
+  <data name="HunterScoreInGame" xml:space="preserve">
+    <value>游戏内监管者比分</value>
+  </data>
+  <data name="ScoreStatistics" xml:space="preserve">
+    <value>分数统计</value>
+  </data>
 </root>

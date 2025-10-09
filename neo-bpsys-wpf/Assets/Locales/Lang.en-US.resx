@@ -237,4 +237,13 @@
   <data name="CustomizeScoreWindow" xml:space="preserve">
     <value>Customize score window</value>
   </data>
+  <data name="SurvivorScoreInGame" xml:space="preserve">
+    <value>Survivor score in game</value>
+  </data>
+  <data name="HunterScoreInGame" xml:space="preserve">
+    <value>Hunter score in game</value>
+  </data>
+  <data name="ScoreStatistics" xml:space="preserve">
+    <value>Score statistics</value>
+  </data>
 </root>

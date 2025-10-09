@@ -112,6 +112,7 @@
     <Resource Include="Assets\闪现.png" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Antelcat.I18N.WPF" Version="1.1.0" />
     <PackageReference Include="Downloader" Version="4.0.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.9" />

@@ -447,15 +447,15 @@
                                         <MenuItem
                                             Command="{Binding EditScoreWindowImagesCommand}"
                                             CommandParameter="SurScoreBgImageUri"
-                                            Header="游戏内求生者比分" />
+                                            Header="{I18N lang:LangKeys.SurvivorScoreInGame}" />
                                         <MenuItem
                                             Command="{Binding EditScoreWindowImagesCommand}"
                                             CommandParameter="HunScoreBgImageUri"
-                                            Header="游戏内监管者比分" />
+                                            Header="{I18N {x:Static lang:LangKeys.CustomizeScoreWindow}}" />
                                         <MenuItem
                                             Command="{Binding EditScoreWindowImagesCommand}"
                                             CommandParameter="GlobalScoreBgImageUri"
-                                            Header="分数统计" />
+                                            Header="{I18N {x:Static lang:LangKeys.ScoreStatistics}}" />
                                         <MenuItem
                                             Command="{Binding EditScoreWindowImagesCommand}"
                                             CommandParameter="GlobalScoreBgImageUriBo3"
