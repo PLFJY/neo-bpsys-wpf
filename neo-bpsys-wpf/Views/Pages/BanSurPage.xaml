@@ -5,6 +5,7 @@
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lang="clr-namespace:neo_bpsys_wpf.Assets.Locales"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -31,7 +32,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="当局禁用" />
+                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.CurrentBan}}" />
                 <ItemsControl
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -67,7 +68,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="全局禁用" />
+                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.GlobalBan}}" />
                 <ItemsControl
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -106,11 +107,11 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="禁用数量控制" />
+                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.BanNumberControl}}" />
                 <TextBlock
                     Grid.Row="1"
                     Margin="0,10,0,0"
-                    Text="当局禁用" />
+                    Text="{I18N {x:Static lang:LangKeys.CurrentBan}}" />
                 <ItemsControl
                     Grid.Row="2"
                     Margin="0,10,0,0"
@@ -128,7 +129,7 @@
                                     Margin="10,0,0,0"
                                     VerticalAlignment="Center"
                                     Text="{Binding Index, Converter={StaticResource IntPlusOneConverter}}" />
-                                <TextBlock VerticalAlignment="Center" Text=" 号位" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.Number}}" />
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -136,7 +137,7 @@
                 <TextBlock
                     Grid.Row="3"
                     Margin="0,10,0,0"
-                    Text="全局禁用" />
+                    Text="{I18N {x:Static lang:LangKeys.GlobalBan}}" />
                 <ItemsControl
                     Grid.Row="4"
                     Margin="0,10,0,0"
@@ -154,7 +155,7 @@
                                     Margin="10,0,0,0"
                                     VerticalAlignment="Center"
                                     Text="{Binding Index, Converter={StaticResource IntPlusOneConverter}}" />
-                                <TextBlock VerticalAlignment="Center" Text=" 号位" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.Number}}" />
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

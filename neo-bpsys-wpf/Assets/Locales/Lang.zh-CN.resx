@@ -171,17 +171,11 @@
   <data name="OpenGameFileDirectory" xml:space="preserve">
     <value>打开对局文件输出目录</value>
   </data>
-  <data name="PersonalizeFrontendUI" xml:space="preserve">
-    <value>前台UI个性化</value>
-  </data>
   <data name="ExportUIConfig" xml:space="preserve">
     <value>导出UI配置</value>
   </data>
   <data name="ImportUIConfig" xml:space="preserve">
     <value>导入UI配置</value>
-  </data>
-  <data name="PersonalizeBPWindow" xml:space="preserve">
-    <value>BP窗口自定义</value>
   </data>
   <data name="EditImage" xml:space="preserve">
     <value>修改图片</value>
@@ -217,13 +211,10 @@
     <value>编辑</value>
   </data>
   <data name="ResetAllPersonalizationSettingsOfTheWindow" xml:space="preserve">
-    <value>重置该窗口赚不个性化设置</value>
+    <value>重置该窗口全部个性化设置</value>
   </data>
-  <data name="CustomizeCutSceneWindow" xml:space="preserve">
-    <value>自定义过场画面</value>
-  </data>
-  <data name="EditCutSceneWindowBackgroundImage" xml:space="preserve">
-    <value>修改过场画面背景图片</value>
+  <data name="CustomizeIntercludeWindow" xml:space="preserve">
+    <value>自定义过场画面窗口</value>
   </data>
   <data name="ColorOfTalentAndTraitIcon" xml:space="preserve">
     <value>天赋与辅助特质图标颜色</value>
@@ -243,7 +234,94 @@
   <data name="HunterScoreInGame" xml:space="preserve">
     <value>游戏内监管者比分</value>
   </data>
-  <data name="ScoreStatistics" xml:space="preserve">
-    <value>分数统计</value>
+  <data name="ScoreStatisticsBO5" xml:space="preserve">
+    <value>分数统计（BO5）</value>
+  </data>
+  <data name="ScoreStatisticsBO3" xml:space="preserve">
+    <value>分数统计（BO3）</value>
+  </data>
+  <data name="Distance" xml:space="preserve">
+    <value>单位距离</value>
+  </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>确认</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="CampIconColorInScoreStatistics" xml:space="preserve">
+    <value>分数统计的阵营图标颜色</value>
+  </data>
+  <data name="ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode" xml:space="preserve">
+    <value>BO3 和 BO5 模式切换时总分组件平移距离</value>
+  </data>
+  <data name="CustomizeGameDataWindow" xml:space="preserve">
+    <value>自定义赛后数据窗口</value>
+  </data>
+  <data name="EditIntercludeBackgroundImage" xml:space="preserve">
+    <value>修改过场画面背景图片</value>
+  </data>
+  <data name="CustomizeFrontendUI" xml:space="preserve">
+    <value>自定义前台UI</value>
+  </data>
+  <data name="CustomizeBPWindow" xml:space="preserve">
+    <value>自定义BP窗口</value>
+  </data>
+  <data name="EditGameDataBackgroundImage" xml:space="preserve">
+    <value>修改赛后数据背景图片</value>
+  </data>
+  <data name="CustomizeWidgetWindow" xml:space="preserve">
+    <value>自定义小组件窗口</value>
+  </data>
+  <data name="MapBP" xml:space="preserve">
+    <value>地图BP</value>
+  </data>
+  <data name="MapBPBackground" xml:space="preserve">
+    <value>地图BP背景</value>
+  </data>
+  <data name="MapBPV2Background" xml:space="preserve">
+    <value>地图BPV2背景</value>
+  </data>
+  <data name="PickingBorderOfMapBPV2" xml:space="preserve">
+    <value>待选框（地图BP V2）</value>
+  </data>
+  <data name="SurvivorIconOfMapBPV2" xml:space="preserve">
+    <value>求生者图标（地图BP V2）</value>
+  </data>
+  <data name="HunterIconOfMapBPV2" xml:space="preserve">
+    <value>监管者图标（地图BP V2）</value>
+  </data>
+  <data name="BPOverview" xml:space="preserve">
+    <value>BP overview</value>
+  </data>
+  <data name="CurrentBanLockOfBPOverview" xml:space="preserve">
+    <value>当局禁用锁（BP总览）</value>
+  </data>
+  <data name="GlobalBanLockOfBPOverview" xml:space="preserve">
+    <value>全局禁用锁（BP总览）</value>
+  </data>
+  <data name="CampIconColorOfMapBPV2" xml:space="preserve">
+    <value>阵营图标颜色（地图BPV2）</value>
+  </data>
+  <data name="PickingBorderColorOfMapBPV2" xml:space="preserve">
+    <value>待选框颜色（地图BP V2）</value>
+  </data>
+  <data name="ResetAllPersonalizationSettings" xml:space="preserve">
+    <value>重置全部个性化设置</value>
+  </data>
+  <data name="ContributorList" xml:space="preserve">
+    <value>贡献者名单</value>
+  </data>
+  <data name="Sponsor" xml:space="preserve">
+    <value>赞助渠道</value>
+  </data>
+  <data name="DebugOptions" xml:space="preserve">
+    <value>调试选项</value>
+  </data>
+  <data name="TriggerGCCollectionManually" xml:space="preserve">
+    <value>手动触发GC回收</value>
+  </data>
+  <data name="OpenLogDirectory" xml:space="preserve">
+    <value>打开日志目录</value>
   </data>
 </root>

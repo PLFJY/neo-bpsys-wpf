@@ -171,17 +171,11 @@
   <data name="OpenGameFileDirectory" xml:space="preserve">
     <value>Open the game file output directory</value>
   </data>
-  <data name="PersonalizeFrontendUI" xml:space="preserve">
-    <value>Frontend UI personalization</value>
-  </data>
   <data name="ExportUIConfig" xml:space="preserve">
     <value>Export UI configuration</value>
   </data>
   <data name="ImportUIConfig" xml:space="preserve">
     <value>Import UI configuration</value>
-  </data>
-  <data name="PersonalizeBPWindow" xml:space="preserve">
-    <value>BP window personalization</value>
   </data>
   <data name="EditImage" xml:space="preserve">
     <value>Edit image</value>
@@ -219,11 +213,8 @@
   <data name="ResetAllPersonalizationSettingsOfTheWindow" xml:space="preserve">
     <value>Reset all personalization settings of the window</value>
   </data>
-  <data name="CustomizeCutSceneWindow" xml:space="preserve">
-    <value>Customize cut scene window</value>
-  </data>
-  <data name="EditCutSceneWindowBackgroundImage" xml:space="preserve">
-    <value>Edit cut scene window background image</value>
+  <data name="CustomizeIntercludeWindow" xml:space="preserve">
+    <value>Customize interclude window</value>
   </data>
   <data name="ColorOfTalentAndTraitIcon" xml:space="preserve">
     <value>Color of talent and trait icon</value>
@@ -243,7 +234,94 @@
   <data name="HunterScoreInGame" xml:space="preserve">
     <value>Hunter score in game</value>
   </data>
-  <data name="ScoreStatistics" xml:space="preserve">
-    <value>Score statistics</value>
+  <data name="ScoreStatisticsBO5" xml:space="preserve">
+    <value>Score statistics(BO5 mode)</value>
+  </data>
+  <data name="ScoreStatisticsBO3" xml:space="preserve">
+    <value>Score statistics(BO3 mode)</value>
+  </data>
+  <data name="Distance" xml:space="preserve">
+    <value>Distance</value>
+  </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>Confirm</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="CampIconColorInScoreStatistics" xml:space="preserve">
+    <value>Camp icon color in score statistics</value>
+  </data>
+  <data name="ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode" xml:space="preserve">
+    <value>Shift distance of total score when </value>
+  </data>
+  <data name="CustomizeGameDataWindow" xml:space="preserve">
+    <value>Customize game data window</value>
+  </data>
+  <data name="EditIntercludeBackgroundImage" xml:space="preserve">
+    <value>Edit interclude background image</value>
+  </data>
+  <data name="CustomizeFrontendUI" xml:space="preserve">
+    <value>Customize frontend UI</value>
+  </data>
+  <data name="CustomizeBPWindow" xml:space="preserve">
+    <value>Customize BP window</value>
+  </data>
+  <data name="EditGameDataBackgroundImage" xml:space="preserve">
+    <value>Edit game data background image</value>
+  </data>
+  <data name="CustomizeWidgetWindow" xml:space="preserve">
+    <value>Cutsomize widget window</value>
+  </data>
+  <data name="MapBP" xml:space="preserve">
+    <value>Map BP</value>
+  </data>
+  <data name="MapBPBackground" xml:space="preserve">
+    <value>Map BP background</value>
+  </data>
+  <data name="MapBPV2Background" xml:space="preserve">
+    <value>Map Bp V2 background</value>
+  </data>
+  <data name="PickingBorderOfMapBPV2" xml:space="preserve">
+    <value>Picking border(Map BP V2)</value>
+  </data>
+  <data name="SurvivorIconOfMapBPV2" xml:space="preserve">
+    <value>Survivor icon(Map BP V2)</value>
+  </data>
+  <data name="HunterIconOfMapBPV2" xml:space="preserve">
+    <value>Hunter icon(Map BP V2)</value>
+  </data>
+  <data name="BPOverview" xml:space="preserve">
+    <value>BP overview</value>
+  </data>
+  <data name="CurrentBanLockOfBPOverview" xml:space="preserve">
+    <value>Current ban lock(BP overview)</value>
+  </data>
+  <data name="GlobalBanLockOfBPOverview" xml:space="preserve">
+    <value>Global ban lock(BP overview)</value>
+  </data>
+  <data name="CampIconColorOfMapBPV2" xml:space="preserve">
+    <value>Camp icon color(MapBPV2)</value>
+  </data>
+  <data name="PickingBorderColorOfMapBPV2" xml:space="preserve">
+    <value>Picking border color(MapBPV2)</value>
+  </data>
+  <data name="ResetAllPersonalizationSettings" xml:space="preserve">
+    <value>Reset all personalization settings</value>
+  </data>
+  <data name="ContributorList" xml:space="preserve">
+    <value>Contributor list</value>
+  </data>
+  <data name="Sponsor" xml:space="preserve">
+    <value>Sponsor</value>
+  </data>
+  <data name="DebugOptions" xml:space="preserve">
+    <value>Debug options</value>
+  </data>
+  <data name="TriggerGCCollectionManually" xml:space="preserve">
+    <value>Trigger GC collection manually</value>
+  </data>
+  <data name="OpenLogDirectory" xml:space="preserve">
+    <value>Open log directory</value>
   </data>
 </root>

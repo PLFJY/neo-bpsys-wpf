@@ -265,7 +265,7 @@
         <TextBlock
             Margin="0,10,0,10"
             Style="{StaticResource Title}"
-            Text="{I18N {x:Static lang:LangKeys.PersonalizeFrontendUI}}" />
+            Text="{I18N {x:Static lang:LangKeys.CustomizeFrontendUI}}" />
         <Border Style="{StaticResource Card}">
             <Grid>
                 <StackPanel Orientation="Horizontal">
@@ -302,7 +302,7 @@
                             VerticalAlignment="Center"
                             FontSize="16"
                             FontWeight="Bold"
-                            Text="{I18N {x:Static lang:LangKeys.PersonalizeBPWindow}}" />
+                            Text="{I18N {x:Static lang:LangKeys.CustomizeBPWindow}}" />
                     </ui:CardExpander.Header>
                     <ui:CardExpander.Content>
                         <StackPanel>
@@ -380,13 +380,13 @@
                             VerticalAlignment="Center"
                             FontSize="16"
                             FontWeight="Bold"
-                            Text="{I18N {x:Static lang:LangKeys.CustomizeCutSceneWindow}}" />
+                            Text="{I18N {x:Static lang:LangKeys.CustomizeIntercludeWindow}}" />
                     </ui:CardExpander.Header>
                     <ui:CardExpander.Content>
                         <StackPanel>
                             <ui:Button
                                 Command="{Binding EditCutSceneWindowImagesCommand}"
-                                Content="{I18N {x:Static lang:LangKeys.EditCutSceneWindowBackgroundImage}}"
+                                Content="{I18N {x:Static lang:LangKeys.EditIntercludeBackgroundImage}}"
                                 Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                                 <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.ColorOfTalentAndTraitIcon}}" />
@@ -447,44 +447,44 @@
                                         <MenuItem
                                             Command="{Binding EditScoreWindowImagesCommand}"
                                             CommandParameter="SurScoreBgImageUri"
-                                            Header="{I18N lang:LangKeys.SurvivorScoreInGame}" />
+                                            Header="{I18N {x:Static lang:LangKeys.SurvivorScoreInGame}}" />
                                         <MenuItem
                                             Command="{Binding EditScoreWindowImagesCommand}"
                                             CommandParameter="HunScoreBgImageUri"
-                                            Header="{I18N {x:Static lang:LangKeys.CustomizeScoreWindow}}" />
+                                            Header="{I18N {x:Static lang:LangKeys.HunterScoreInGame}}" />
                                         <MenuItem
                                             Command="{Binding EditScoreWindowImagesCommand}"
                                             CommandParameter="GlobalScoreBgImageUri"
-                                            Header="{I18N {x:Static lang:LangKeys.ScoreStatistics}}" />
+                                            Header="{I18N {x:Static lang:LangKeys.ScoreStatisticsBO5}}" />
                                         <MenuItem
                                             Command="{Binding EditScoreWindowImagesCommand}"
                                             CommandParameter="GlobalScoreBgImageUriBo3"
-                                            Header="分数统计-BO3" />
+                                            Header="{I18N {x:Static lang:LangKeys.ScoreStatisticsBO3}}" />
                                     </ContextMenu>
                                 </ui:DropDownButton.Flyout>
                             </ui:DropDownButton>
-                            <TextBlock Margin="0,10,0,0" Text="BO3 和 BO5模式切换之间&quot;Total&quot;&#10;相差的距离 (下一次切换到BO3生效): " />
+                            <TextBlock Margin="0,10,0,0" Text="{I18N {x:Static lang:LangKeys.ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode}}" />
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                                 <ui:TextBox
                                     Width="200"
                                     HorizontalAlignment="Left"
-                                    PlaceholderText="单位距离"
+                                    PlaceholderText="{I18N {x:Static lang:LangKeys.Distance}}"
                                     Text="{Binding GlobalScoreTotalMargin, Converter={StaticResource StringToDoubleConverter}}" />
                                 <ui:Button
                                     Margin="10,0,0,0"
                                     Command="{Binding SaveGlobalScoreTotalMarginCommand}"
-                                    Content="保存"
+                                    Content="{I18N {x:Static lang:LangKeys.Save}}"
                                     Icon="{ui:SymbolIcon Symbol=Save24}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="分数统计的阵营图标颜色" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.CampIconColorInScoreStatistics}}" />
                                 <RadioButton
                                     Margin="10,0,0,0"
-                                    Content="白色"
+                                    Content="{I18N {x:Static lang:LangKeys.White}}"
                                     IsChecked="True" />
                                 <RadioButton
                                     Margin="10,0,0,0"
-                                    Content="黑色"
+                                    Content="{I18N {x:Static lang:LangKeys.Black}}"
                                     IsChecked="{Binding IsScoreGlobalCampIconBlackVerEnable}" />
                             </StackPanel>
                             <Grid Margin="0,10,0,0">
@@ -493,7 +493,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Style="{StaticResource Title}" Text="修改文字属性" />
+                                    <TextBlock Style="{StaticResource Title}" Text="{I18N {x:Static lang:LangKeys.EditTextProperty}}" />
                                     <ComboBox
                                         Width="250"
                                         Margin="0,10,0,0"
@@ -505,13 +505,13 @@
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
                                         CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
-                                        Content="编辑"
+                                        Content="{I18N {x:Static lang:LangKeys.Edit}}"
                                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding ResetCommand}"
                                         CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
-                                        Content="重置该窗口的全部个性化设置"
+                                        Content="{I18N {x:Static lang:LangKeys.ResetAllPersonalizationSettingsOfTheWindow}}"
                                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </StackPanel>
                                 <Frame x:Name="ScoreWindowTextSettingFrame" Grid.Column="1" />
@@ -525,13 +525,13 @@
                             VerticalAlignment="Center"
                             FontSize="16"
                             FontWeight="Bold"
-                            Text="赛后数据窗口自定义" />
+                            Text="{I18N {x:Static lang:LangKeys.CustomizeGameDataWindow}}" />
                     </ui:CardExpander.Header>
                     <ui:CardExpander.Content>
                         <StackPanel>
                             <ui:Button
                                 Command="{Binding EditGameDataWindowImagesCommand}"
-                                Content="修改过场背景图片"
+                                Content="{I18N {x:Static lang:LangKeys.EditGameDataBackgroundImage}}"
                                 Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
                             <Grid Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>
@@ -539,7 +539,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Style="{StaticResource Title}" Text="修改文字属性" />
+                                    <TextBlock Style="{StaticResource Title}" Text="{I18N {x:Static lang:LangKeys.EditTextProperty}}" />
                                     <ComboBox
                                         Width="250"
                                         Margin="0,10,0,0"
@@ -551,13 +551,13 @@
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
                                         CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
-                                        Content="编辑"
+                                        Content="{I18N {x:Static lang:LangKeys.Edit}}"
                                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding ResetCommand}"
                                         CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
-                                        Content="重置该窗口的全部个性化设置"
+                                        Content="{I18N {x:Static lang:LangKeys.ResetAllPersonalizationSettingsOfTheWindow}}"
                                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </StackPanel>
                                 <Frame x:Name="GameDataWindowTextSettingFrame" Grid.Column="1" />
@@ -571,61 +571,61 @@
                             VerticalAlignment="Center"
                             FontSize="16"
                             FontWeight="Bold"
-                            Text="其它小组件窗口自定义" />
+                            Text="{I18N {x:Static lang:LangKeys.CustomizeWidgetWindow}}" />
                     </ui:CardExpander.Header>
                     <ui:CardExpander.Content>
                         <StackPanel>
-                            <ui:DropDownButton Content="修改图片" Icon="{ui:SymbolIcon Symbol=ImageEdit24}">
+                            <ui:DropDownButton Content="{I18N {x:Static lang:LangKeys.EditImage}}" Icon="{ui:SymbolIcon Symbol=ImageEdit24}">
                                 <ui:DropDownButton.Flyout>
                                     <ContextMenu>
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="MapBpBgUri"
-                                            Header="地图BP" />
+                                            Header="{I18N {x:Static lang:LangKeys.MapBPBackground}}" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="MapBpV2BgUri"
-                                            Header="地图BpV2背景" />
+                                            Header="{I18N {x:Static lang:LangKeys.MapBPV2Background}}" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="MapBpV2PickingBorderImageUri"
-                                            Header="地图BpV2待选闪烁框" />
+                                            Header="{I18N {x:Static lang:LangKeys.PickingBorderOfMapBPV2}}" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="MapBpV2SurIconUri"
-                                            Header="地图BpV2求生者图标" />
+                                            Header="{I18N {x:Static lang:LangKeys.SurvivorIconOfMapBPV2}}" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="MapBpV2HunIconUri"
-                                            Header="地图BpV2监管者图标" />
+                                            Header="{I18N {x:Static lang:LangKeys.HunterIconOfMapBPV2}}" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="MapBpBgUri"
-                                            Header="BP总览" />
+                                            Header="{I18N {x:Static lang:LangKeys.BPOverview}}" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="CurrentBanLockImageUri"
-                                            Header="BP总览-当局禁用锁" />
+                                            Header="{I18N {x:Static lang:LangKeys.CurrentBanLockOfBPOverview}}" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="GlobalBanLockImageUri"
-                                            Header="BP总览-全局禁用锁" />
+                                            Header="{I18N {x:Static lang:LangKeys.GlobalBanLockOfBPOverview}}" />
                                     </ContextMenu>
                                 </ui:DropDownButton.Flyout>
                             </ui:DropDownButton>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="地图BpV2 阵营图标颜色" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.CampIconColorOfMapBPV2}}" />
                                 <RadioButton
                                     Margin="10,0,0,0"
-                                    Content="白色"
+                                    Content="{I18N {x:Static lang:LangKeys.White}}"
                                     IsChecked="True" />
                                 <RadioButton
                                     Margin="10,0,0,0"
-                                    Content="黑色"
+                                    Content="{I18N {x:Static lang:LangKeys.Black}}"
                                     IsChecked="{Binding IsMapBpV2CampIconBlackVerEnable}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="地图BpV2 待选框边缘颜色（染色，会覆盖你的待选框贴图本身的颜色）:" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.PickingBorderColorOfMapBPV2}}" />
                                 <colorpicker:PortableColorPicker
                                     Width="60"
                                     Height="30"
@@ -635,7 +635,7 @@
                                 <ui:Button
                                     Margin="10,0,0,0"
                                     Command="{Binding SaveMapBpV2PickingBorderColorCommand}"
-                                    Content="保存并应用"
+                                    Content="{I18N {x:Static lang:LangKeys.SaveAndApply}}"
                                     Icon="{ui:SymbolIcon Symbol=Save24}" />
                             </StackPanel>
                             <Grid Margin="0,10,0,0">
@@ -644,7 +644,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Style="{StaticResource Title}" Text="修改文字属性" />
+                                    <TextBlock Style="{StaticResource Title}" Text="{I18N {x:Static lang:LangKeys.EditTextProperty}}" />
                                     <ComboBox
                                         Width="250"
                                         Margin="0,10,0,0"
@@ -656,13 +656,13 @@
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
                                         CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
-                                        Content="编辑"
+                                        Content="{I18N {x:Static lang:LangKeys.Edit}}"
                                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding ResetCommand}"
                                         CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
-                                        Content="重置该窗口的全部个性化设置"
+                                        Content="{I18N {x:Static lang:LangKeys.ResetAllPersonalizationSettingsOfTheWindow}}"
                                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </StackPanel>
                                 <Frame x:Name="WidgetsWindowTextSettingFrame" Grid.Column="1" />
@@ -673,7 +673,7 @@
                 <ui:Button
                     Margin="0,10,0,0"
                     Command="{Binding ResetAllCommand}"
-                    Content="重置全部个性化设置"
+                    Content="{I18N {x:Static lang:LangKeys.ResetAllPersonalizationSettings}}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </StackPanel>
         </Border>
@@ -683,7 +683,7 @@
                     VerticalAlignment="Center"
                     FontSize="18"
                     FontWeight="Bold"
-                    Text="项目贡献者" />
+                    Text="{I18N {x:Static lang:LangKeys.ContributorList}}" />
             </ui:CardExpander.Header>
             <StackPanel
                 Margin="0,0,0,0"
@@ -737,7 +737,7 @@
                     VerticalAlignment="Center"
                     FontSize="18"
                     FontWeight="Bold"
-                    Text="赞助渠道" />
+                    Text="{I18N {x:Static lang:LangKeys.Sponsor}}" />
             </ui:CardExpander.Header>
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -776,7 +776,7 @@
         <TextBlock
             Margin="0,10,0,0"
             Style="{StaticResource Title}"
-            Text="调试选项" />
+            Text="{I18N {x:Static lang:LangKeys.DebugOptions}}" />
         <Border
             Margin="0,10,0,0"
             Padding="10,10,0,0"
@@ -785,7 +785,7 @@
                 <Button
                     Margin="0,0,10,10"
                     Command="{Binding ManualGcCommand}"
-                    Content="手动触发GC回收" />
+                    Content="{I18N {x:Static lang:LangKeys.TriggerGCCollectionManually}}" />
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding SwitchDebugGlobalScoreCommand}"
@@ -797,7 +797,7 @@
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding HopToLogDirCommand}"
-                    Content="打开日志目录"
+                    Content="{I18N {x:Static lang:LangKeys.OpenLogDirectory}}"
                     Icon="{ui:SymbolIcon Symbol=DocumentText24}" />
             </WrapPanel>
         </Border>

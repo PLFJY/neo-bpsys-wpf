@@ -97,11 +97,38 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 BP overview 的本地化字符串。
+        /// </summary>
+        public static string BPOverview {
+            get {
+                return ResourceManager.GetString("BPOverview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 BP background 的本地化字符串。
         /// </summary>
         public static string BPWindowImages {
             get {
                 return ResourceManager.GetString("BPWindowImages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Camp color in score statistics 的本地化字符串。
+        /// </summary>
+        public static string CampIconColorInScoreStatistics {
+            get {
+                return ResourceManager.GetString("CampIconColorInScoreStatistics", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Camp icon color(MapBPV2) 的本地化字符串。
+        /// </summary>
+        public static string CampIconColorOfMapBPV2 {
+            get {
+                return ResourceManager.GetString("CampIconColorOfMapBPV2", resourceCulture);
             }
         }
         
@@ -124,6 +151,24 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Confirm 的本地化字符串。
+        /// </summary>
+        public static string Confirm {
+            get {
+                return ResourceManager.GetString("Confirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Contributor list 的本地化字符串。
+        /// </summary>
+        public static string ContributorList {
+            get {
+                return ResourceManager.GetString("ContributorList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Current ban 的本地化字符串。
         /// </summary>
         public static string CurrentBan {
@@ -142,11 +187,47 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 Customize cut scene window 的本地化字符串。
+        ///   查找类似 Current ban lock(BP overview) 的本地化字符串。
         /// </summary>
-        public static string CustomizeCutSceneWindow {
+        public static string CurrentBanLockOfBPOverview {
             get {
-                return ResourceManager.GetString("CustomizeCutSceneWindow", resourceCulture);
+                return ResourceManager.GetString("CurrentBanLockOfBPOverview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Customize BP window 的本地化字符串。
+        /// </summary>
+        public static string CustomizeBPWindow {
+            get {
+                return ResourceManager.GetString("CustomizeBPWindow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Customize frontend UI 的本地化字符串。
+        /// </summary>
+        public static string CustomizeFrontendUI {
+            get {
+                return ResourceManager.GetString("CustomizeFrontendUI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Customize game data window 的本地化字符串。
+        /// </summary>
+        public static string CustomizeGameDataWindow {
+            get {
+                return ResourceManager.GetString("CustomizeGameDataWindow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Customize interclude window 的本地化字符串。
+        /// </summary>
+        public static string CustomizeIntercludeWindow {
+            get {
+                return ResourceManager.GetString("CustomizeIntercludeWindow", resourceCulture);
             }
         }
         
@@ -156,6 +237,33 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string CustomizeScoreWindow {
             get {
                 return ResourceManager.GetString("CustomizeScoreWindow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 CustomizeWidgetWindow 的本地化字符串。
+        /// </summary>
+        public static string CustomizeWidgetWindow {
+            get {
+                return ResourceManager.GetString("CustomizeWidgetWindow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Debug options 的本地化字符串。
+        /// </summary>
+        public static string DebugOptions {
+            get {
+                return ResourceManager.GetString("DebugOptions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Distance 的本地化字符串。
+        /// </summary>
+        public static string Distance {
+            get {
+                return ResourceManager.GetString("Distance", resourceCulture);
             }
         }
         
@@ -196,11 +304,11 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 Edit cut scene window background window image 的本地化字符串。
+        ///   查找类似 Edit game data background image 的本地化字符串。
         /// </summary>
-        public static string EditCutSceneWindowBackgroundImage {
+        public static string EditGameDataBackgroundImage {
             get {
-                return ResourceManager.GetString("EditCutSceneWindowBackgroundImage", resourceCulture);
+                return ResourceManager.GetString("EditGameDataBackgroundImage", resourceCulture);
             }
         }
         
@@ -210,6 +318,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string EditImage {
             get {
                 return ResourceManager.GetString("EditImage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Edit interclude background image 的本地化字符串。
+        /// </summary>
+        public static string EditIntercludeBackgroundImage {
+            get {
+                return ResourceManager.GetString("EditIntercludeBackgroundImage", resourceCulture);
             }
         }
         
@@ -250,6 +367,33 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Global ban lock(BP Overview) 的本地化字符串。
+        /// </summary>
+        public static string GlobalBanLockOfBPOverview {
+            get {
+                return ResourceManager.GetString("GlobalBanLockOfBPOverview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Hunter icon(Map BP V2) 的本地化字符串。
+        /// </summary>
+        public static string HunterIconOfMapBPV2 {
+            get {
+                return ResourceManager.GetString("HunterIconOfMapBPV2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Hunter score in game 的本地化字符串。
+        /// </summary>
+        public static string HunterScoreInGame {
+            get {
+                return ResourceManager.GetString("HunterScoreInGame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Import UI configuration 的本地化字符串。
         /// </summary>
         public static string ImportUIConfig {
@@ -273,6 +417,33 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string LanguageSetting {
             get {
                 return ResourceManager.GetString("LanguageSetting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Map BP 的本地化字符串。
+        /// </summary>
+        public static string MapBP {
+            get {
+                return ResourceManager.GetString("MapBP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Map BP background 的本地化字符串。
+        /// </summary>
+        public static string MapBPBackground {
+            get {
+                return ResourceManager.GetString("MapBPBackground", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Map BP V2 background 的本地化字符串。
+        /// </summary>
+        public static string MapBPV2Background {
+            get {
+                return ResourceManager.GetString("MapBPV2Background", resourceCulture);
             }
         }
         
@@ -304,6 +475,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Open log directory 的本地化字符串。
+        /// </summary>
+        public static string OpenLogDirectory {
+            get {
+                return ResourceManager.GetString("OpenLogDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Open source repositories used by our project:  的本地化字符串。
         /// </summary>
         public static string OpenSourceRepositoryUsed {
@@ -313,20 +493,11 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 BP window personalization 的本地化字符串。
+        ///   查找类似 Picking border color(MapBPV2) 的本地化字符串。
         /// </summary>
-        public static string PersonalizeBPWindow {
+        public static string PickingBorderColorOfMapBPV2 {
             get {
-                return ResourceManager.GetString("PersonalizeBPWindow", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Frontend UI personalization 的本地化字符串。
-        /// </summary>
-        public static string PersonalizeFrontendUI {
-            get {
-                return ResourceManager.GetString("PersonalizeFrontendUI", resourceCulture);
+                return ResourceManager.GetString("PickingBorderColorOfMapBPV2", resourceCulture);
             }
         }
         
@@ -349,6 +520,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Picking border(Map BP V2) 的本地化字符串。
+        /// </summary>
+        public static string PickingBorderOfMapBPV2 {
+            get {
+                return ResourceManager.GetString("PickingBorderOfMapBPV2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Project repository:  的本地化字符串。
         /// </summary>
         public static string ProjectRepository {
@@ -367,6 +547,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Reset all personalization settings 的本地化字符串。
+        /// </summary>
+        public static string ResetAllPersonalizationSettings {
+            get {
+                return ResourceManager.GetString("ResetAllPersonalizationSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Reset all personalization settings of the window 的本地化字符串。
         /// </summary>
         public static string ResetAllPersonalizationSettingsOfTheWindow {
@@ -376,11 +565,47 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Save 的本地化字符串。
+        /// </summary>
+        public static string Save {
+            get {
+                return ResourceManager.GetString("Save", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Save and apply 的本地化字符串。
         /// </summary>
         public static string SaveAndApply {
             get {
                 return ResourceManager.GetString("SaveAndApply", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Score statistics(BO3 mode) 的本地化字符串。
+        /// </summary>
+        public static string ScoreStatisticsBO3 {
+            get {
+                return ResourceManager.GetString("ScoreStatisticsBO3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Score statistics(BO5 mode) 的本地化字符串。
+        /// </summary>
+        public static string ScoreStatisticsBO5 {
+            get {
+                return ResourceManager.GetString("ScoreStatisticsBO5", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Shift distance of total score when switching between BO3 and BO5 mode 的本地化字符串。
+        /// </summary>
+        public static string ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode {
+            get {
+                return ResourceManager.GetString("ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode", resourceCulture);
             }
         }
         
@@ -403,11 +628,47 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Sponsor 的本地化字符串。
+        /// </summary>
+        public static string Sponsor {
+            get {
+                return ResourceManager.GetString("Sponsor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Stop 的本地化字符串。
         /// </summary>
         public static string Stop {
             get {
                 return ResourceManager.GetString("Stop", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Survivor icon(Map BP V2) 的本地化字符串。
+        /// </summary>
+        public static string SurvivorIconOfMapBPV2 {
+            get {
+                return ResourceManager.GetString("SurvivorIconOfMapBPV2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Survivor score in game 的本地化字符串。
+        /// </summary>
+        public static string SurvivorScoreInGame {
+            get {
+                return ResourceManager.GetString("SurvivorScoreInGame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Trigger GC collection manually 的本地化字符串。
+        /// </summary>
+        public static string TriggerGCCollectionManually {
+            get {
+                return ResourceManager.GetString("TriggerGCCollectionManually", resourceCulture);
             }
         }
         
