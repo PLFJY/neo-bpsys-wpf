@@ -5,6 +5,7 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:enums="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
+    xmlns:lang="clr-namespace:neo_bpsys_wpf.Assets.Locales"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -31,7 +32,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="所有前台画面" />
+                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.AllFrontendWindows}}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -40,12 +41,12 @@
                     <ui:Button
                         Height="50"
                         Command="{Binding ShowAllWindowsCommand}"
-                        Content="全部启动" />
+                        Content="{I18N {x:Static lang:LangKeys.OpenAll}}" />
                     <ui:Button
                         Height="50"
                         Margin="10,0,0,0"
                         Command="{Binding HideAllWindowsCommand}"
-                        Content="全部关闭" />
+                        Content="{I18N {x:Static lang:LangKeys.CloseAll}}" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -58,7 +59,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="BP画面" />
+                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.BPWindow}}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -66,12 +67,12 @@
                     <ui:Button
                         Command="{Binding ShowWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
-                        Content="启动" />
+                        Content="{I18N {x:Static lang:LangKeys.Open}}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
-                        Content="关闭" />
+                        Content="{I18N {x:Static lang:LangKeys.Close}}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Row="2"
@@ -86,14 +87,14 @@
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                        <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.DesignMode}}" />
                     </StackPanel>
                 </ui:ToggleSwitch>
                 <ui:Button
                     Grid.Row="3"
                     Margin="0,10,0,0"
                     Command="{Binding ResetBpWindowElementsPositionCommand}"
-                    Content="重置布局"
+                    Content="{I18N {x:Static lang:LangKeys.ResetLayout}}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
@@ -106,7 +107,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="过场画面" />
+                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.IntercludeWindow}}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -114,12 +115,12 @@
                     <ui:Button
                         Command="{Binding ShowWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
-                        Content="启动" />
+                        Content="{I18N {x:Static lang:LangKeys.Open}}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
-                        Content="关闭" />
+                        Content="{I18N {x:Static lang:LangKeys.Close}}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Row="2"
@@ -134,14 +135,14 @@
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                        <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.DesignMode}}" />
                     </StackPanel>
                 </ui:ToggleSwitch>
                 <ui:Button
                     Grid.Row="3"
                     Margin="0,10,0,0"
                     Command="{Binding ResetCutSceneWindowElementsPositionCommand}"
-                    Content="重置布局"
+                    Content="{I18N {x:Static lang:LangKeys.ResetLayout}}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
@@ -161,54 +162,54 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="比分组件" />
+                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.ScoreConponent}}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="游戏内比分求生者" />
+                    <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.SurvivorScoreInGame}}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ShowWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.ScoreSurWindow}"
-                        Content="启动" />
+                        Content="{I18N {x:Static lang:LangKeys.Open}}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.ScoreSurWindow}"
-                        Content="关闭" />
+                        Content="{I18N {x:Static lang:LangKeys.Close}}" />
                 </StackPanel>
                 <StackPanel
                     Grid.Row="2"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="游戏内比分监管者" />
+                    <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.HunterScoreInGame}}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ShowWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.ScoreHunWindow}"
-                        Content="启动" />
+                        Content="{I18N {x:Static lang:LangKeys.Open}}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.ScoreHunWindow}"
-                        Content="关闭" />
+                        Content="{I18N {x:Static lang:LangKeys.Close}}" />
                 </StackPanel>
                 <StackPanel
                     Grid.Row="3"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="分数统计" />
+                    <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.ScoreStatistics}}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ShowWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
-                        Content="启动" />
+                        Content="{I18N {x:Static lang:LangKeys.Open}}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
-                        Content="关闭" />
+                        Content="{I18N {x:Static lang:LangKeys.Close}}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Row="4"
@@ -223,31 +224,31 @@
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                        <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.DesignMode}}" />
                     </StackPanel>
                 </ui:ToggleSwitch>
                 <TextBlock
                     Grid.Row="5"
                     Margin="0,10,0,0"
-                    Text="备注：分数统计界面BO3时不保存"
+                    Text="{I18N {x:Static lang:LangKeys.NoteScoreStatisticsNotSaveInBO3Mode}}"
                     TextWrapping="WrapWithOverflow" />
                 <ui:Button
                     Grid.Row="6"
                     Margin="0,10,0,0"
                     Command="{Binding ResetScoreSurWindowElementsPositionCommand}"
-                    Content="重置求生者游戏内比分布局"
+                    Content="{I18N {x:Static lang:LangKeys.ResetSurvivorScoreLayoutInGame}}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
                     Grid.Row="7"
                     Margin="0,10,0,0"
                     Command="{Binding ResetScoreHunWindowElementsPositionCommand}"
-                    Content="重置监管者游戏内比分布局"
+                    Content="{I18N {x:Static lang:LangKeys.ResetHunterScoreLayoutInGame}}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
                     Grid.Row="8"
                     Margin="0,10,0,0"
                     Command="{Binding ResetScoreGlobalWindowElementsPositionCommand}"
-                    Content="重置分数统计布局"
+                    Content="{I18N {x:Static lang:LangKeys.ResetScoreStatisticsLayout}}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
@@ -260,7 +261,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="赛后数据画面" />
+                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.GameStatisticsWindow}}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -268,12 +269,12 @@
                     <ui:Button
                         Command="{Binding ShowWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
-                        Content="启动" />
+                        Content="{I18N {x:Static lang:LangKeys.Open}}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
-                        Content="关闭" />
+                        Content="{I18N {x:Static lang:LangKeys.Close}}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Row="2"
@@ -288,14 +289,14 @@
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                        <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.DesignMode}}" />
                     </StackPanel>
                 </ui:ToggleSwitch>
                 <ui:Button
                     Grid.Row="3"
                     Margin="0,10,0,0"
                     Command="{Binding ResetGameDataWindowElementsPositionCommand}"
-                    Content="重置布局"
+                    Content="{I18N {x:Static lang:LangKeys.ResetLayout}}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
@@ -311,7 +312,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="其它小组件 (地图BP等)" />
+                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.Widgets}}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -319,12 +320,12 @@
                     <ui:Button
                         Command="{Binding ShowWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
-                        Content="启动" />
+                        Content="{I18N {x:Static lang:LangKeys.Open}}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
-                        Content="关闭" />
+                        Content="{I18N {x:Static lang:LangKeys.Close}}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Row="3"
@@ -339,7 +340,7 @@
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                        <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.DesignMode}}" />
                     </StackPanel>
                 </ui:ToggleSwitch>
                 <ui:Button
@@ -347,21 +348,21 @@
                     Margin="0,10,0,0"
                     Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
                     CommandParameter="MapBpCanvas"
-                    Content="重置地图BP布局"
+                    Content="{I18N {x:Static lang:LangKeys.ResetMapBPLayout}}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
                     Grid.Row="5"
                     Margin="0,10,0,0"
                     Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
                     CommandParameter="BpOverViewCanvas"
-                    Content="重置BP总览布局"
+                    Content="{I18N {x:Static lang:LangKeys.ResetBPOverviewLayout}}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
                     Grid.Row="6"
                     Margin="0,10,0,0"
                     Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
                     CommandParameter="MapV2Canvas"
-                    Content="重置地图BpV2布局"
+                    Content="{I18N {x:Static lang:LangKeys.ResetMapBPV2Layout}}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>

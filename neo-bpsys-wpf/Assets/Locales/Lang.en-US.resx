@@ -324,4 +324,82 @@
   <data name="OpenLogDirectory" xml:space="preserve">
     <value>Open log directory</value>
   </data>
+  <data name="AllFrontendWindows" xml:space="preserve">
+    <value>All frontend windows</value>
+  </data>
+  <data name="OpenAll" xml:space="preserve">
+    <value>Open all</value>
+  </data>
+  <data name="CloseAll" xml:space="preserve">
+    <value>Close all</value>
+  </data>
+  <data name="BPWindow" xml:space="preserve">
+    <value>BP window</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="DesignMode" xml:space="preserve">
+    <value>Design mode</value>
+  </data>
+  <data name="ResetLayout" xml:space="preserve">
+    <value>Reset layout</value>
+  </data>
+  <data name="IntercludeWindow" xml:space="preserve">
+    <value>Interclude window</value>
+  </data>
+  <data name="ScoreConponent" xml:space="preserve">
+    <value>Score conponent</value>
+  </data>
+  <data name="ScoreStatistics" xml:space="preserve">
+    <value>Score statistics</value>
+  </data>
+  <data name="NoteScoreStatisticsNotSaveInBO3Mode" xml:space="preserve">
+    <value>Note: All layout changes of score statistics will NOT be saved in BO3 mode</value>
+  </data>
+  <data name="ResetSurvivorScoreLayoutInGame" xml:space="preserve">
+    <value>Reset survivor score layout in game</value>
+  </data>
+  <data name="ResetHunterScoreLayoutInGame" xml:space="preserve">
+    <value>Reset hunter score layout in game</value>
+  </data>
+  <data name="ResetScoreStatisticsLayout" xml:space="preserve">
+    <value>Reset score statistics layout</value>
+  </data>
+  <data name="GameStatisticsWindow" xml:space="preserve">
+    <value>Game statistics window</value>
+  </data>
+  <data name="Widgets" xml:space="preserve">
+    <value>Widgets(e.g. map BP)</value>
+  </data>
+  <data name="ResetMapBPLayout" xml:space="preserve">
+    <value>Reset map BP layout</value>
+  </data>
+  <data name="ResetBPOverviewLayout" xml:space="preserve">
+    <value>Reset BP Overview Layout</value>
+  </data>
+  <data name="ResetMapBPV2Layout" xml:space="preserve">
+    <value>Reset map BP V2 layout</value>
+  </data>
+  <data name="Survivor" xml:space="preserve">
+    <value>Survivor</value>
+  </data>
+  <data name="CharacterName" xml:space="preserve">
+    <value>Character name</value>
+  </data>
+  <data name="Hunter" xml:space="preserve">
+    <value>Hunter</value>
+  </data>
+  <data name="AModernIdentityVBPSoftware" xml:space="preserve">
+    <value>A modern IdentityV BP Software</value>
+  </data>
+  <data name="OfficialWebsite" xml:space="preserve">
+    <value>Official website</value>
+  </data>
+  <data name="Documentations" xml:space="preserve">
+    <value>Documentations</value>
+  </data>
 </root>

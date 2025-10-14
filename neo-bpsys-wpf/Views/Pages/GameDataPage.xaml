@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lang="clr-namespace:neo_bpsys_wpf.Assets.Locales"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -23,7 +24,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0" Text="求生者" />
+        <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.Survivor}}" />
         <WrapPanel Grid.Row="1" Margin="0,10,0,0">
             <Border Style="{StaticResource Card}">
                 <Grid>
@@ -34,7 +35,7 @@
                     <ui:TextBox
                         Grid.Row="0"
                         IsReadOnly="True"
-                        PlaceholderText="角色名称"
+                        PlaceholderText="{I18N {x:Static lang:LangKeys.CharacterName}}"
                         Text="{Binding SurPlayerList[0].Character.Name, Mode=OneWay}" />
                     <controls:GameDataEditor
                         Grid.Row="1"
@@ -51,7 +52,7 @@
                     <ui:TextBox
                         Grid.Row="0"
                         IsReadOnly="True"
-                        PlaceholderText="角色名称"
+                        PlaceholderText="{I18N {x:Static lang:LangKeys.CharacterName}}"
                         Text="{Binding SurPlayerList[1].Character.Name, Mode=OneWay}" />
                     <controls:GameDataEditor
                         Grid.Row="1"
@@ -68,7 +69,7 @@
                     <ui:TextBox
                         Grid.Row="0"
                         IsReadOnly="True"
-                        PlaceholderText="角色名称"
+                        PlaceholderText="{I18N {x:Static lang:LangKeys.CharacterName}}"
                         Text="{Binding SurPlayerList[2].Character.Name, Mode=OneWay}" />
                     <controls:GameDataEditor
                         Grid.Row="1"
@@ -85,7 +86,7 @@
                     <ui:TextBox
                         Grid.Row="0"
                         IsReadOnly="True"
-                        PlaceholderText="角色名称"
+                        PlaceholderText="{I18N {x:Static lang:LangKeys.CharacterName}}"
                         Text="{Binding SurPlayerList[3].Character.Name, Mode=OneWay}" />
                     <controls:GameDataEditor
                         Grid.Row="1"
@@ -94,7 +95,7 @@
                 </Grid>
             </Border>
         </WrapPanel>
-        <TextBlock Grid.Row="2" Text="监管者" />
+        <TextBlock Grid.Row="2" Text="{I18N {x:Static lang:LangKeys.Hunter}}" />
         <Border
             Grid.Row="3"
             HorizontalAlignment="Left"
@@ -107,7 +108,7 @@
                 </Grid.RowDefinitions>
                 <ui:TextBox
                     Grid.Row="0"
-                    PlaceholderText="角色名称"
+                    PlaceholderText="{I18N {x:Static lang:LangKeys.CharacterName}}"
                     Text="{Binding HunPlayer.Character.Name, Mode=OneWay}" />
                 <controls:GameDataEditor
                     Grid.Row="1"

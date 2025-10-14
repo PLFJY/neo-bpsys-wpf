@@ -324,4 +324,82 @@
   <data name="OpenLogDirectory" xml:space="preserve">
     <value>打开日志目录</value>
   </data>
+  <data name="AllFrontendWindows" xml:space="preserve">
+    <value>所有前台窗口</value>
+  </data>
+  <data name="OpenAll" xml:space="preserve">
+    <value>全部启动</value>
+  </data>
+  <data name="CloseAll" xml:space="preserve">
+    <value>全部关闭</value>
+  </data>
+  <data name="BPWindow" xml:space="preserve">
+    <value>BP窗口</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>启动</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="DesignMode" xml:space="preserve">
+    <value>设计模式</value>
+  </data>
+  <data name="ResetLayout" xml:space="preserve">
+    <value>重置布局</value>
+  </data>
+  <data name="IntercludeWindow" xml:space="preserve">
+    <value>过场画面</value>
+  </data>
+  <data name="ScoreConponent" xml:space="preserve">
+    <value>比分组件</value>
+  </data>
+  <data name="ScoreStatistics" xml:space="preserve">
+    <value>分数统计</value>
+  </data>
+  <data name="NoteScoreStatisticsNotSaveInBO3Mode" xml:space="preserve">
+    <value>备注：在 BO3 模式下，所有分数统计的布局修改将【不会】被保存</value>
+  </data>
+  <data name="ResetSurvivorScoreLayoutInGame" xml:space="preserve">
+    <value>重置游戏内求生者比分布局</value>
+  </data>
+  <data name="ResetHunterScoreLayoutInGame" xml:space="preserve">
+    <value>重置游戏内监管者比分布局</value>
+  </data>
+  <data name="ResetScoreStatisticsLayout" xml:space="preserve">
+    <value>重置分数统计布局</value>
+  </data>
+  <data name="GameStatisticsWindow" xml:space="preserve">
+    <value>赛后数据窗口</value>
+  </data>
+  <data name="Widgets" xml:space="preserve">
+    <value>小组件（地图BP等）</value>
+  </data>
+  <data name="ResetMapBPLayout" xml:space="preserve">
+    <value>重置地图BP布局</value>
+  </data>
+  <data name="ResetBPOverviewLayout" xml:space="preserve">
+    <value>重置BP总览布局</value>
+  </data>
+  <data name="ResetMapBPV2Layout" xml:space="preserve">
+    <value>重置地图BP V2布局</value>
+  </data>
+  <data name="Survivor" xml:space="preserve">
+    <value>求生者</value>
+  </data>
+  <data name="CharacterName" xml:space="preserve">
+    <value>角色名称</value>
+  </data>
+  <data name="Hunter" xml:space="preserve">
+    <value>监管者</value>
+  </data>
+  <data name="AModernIdentityVBPSoftware" xml:space="preserve">
+    <value>新一代的第五人格BP软件</value>
+  </data>
+  <data name="OfficialWebsite" xml:space="preserve">
+    <value>前往官网</value>
+  </data>
+  <data name="Documentations" xml:space="preserve">
+    <value>查看文档</value>
+  </data>
 </root>
