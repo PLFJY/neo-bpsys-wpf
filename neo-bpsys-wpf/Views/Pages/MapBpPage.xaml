@@ -6,6 +6,7 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:lang="clr-namespace:neo_bpsys_wpf.Assets.Locales"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -24,15 +25,15 @@
     <StackPanel>
         <Border Style="{StaticResource Card}">
             <StackPanel Orientation="Horizontal">
-                <ui:ToggleSwitch Content="待选框呼吸灯开关" IsChecked="{Binding IsBreathing}" />
+                <ui:ToggleSwitch Content="{I18N {x:Static lang:LangKeys.ShowPickingBorder}}" IsChecked="{Binding IsBreathing}" />
                 <ui:ToggleSwitch
                     Margin="10,0,0,0"
-                    Content="阵营选择结果展示开关"
+                    Content="{I18N {x:Static lang:LangKeys.ShowCamp}}"
                     IsChecked="{Binding IsCampVisible}" />
                 <ui:Button
                     Margin="10,0,0,0"
                     Command="{Binding ResetMapBpCommand}"
-                    Content="重置地图BP"
+                    Content="{I18N {x:Static lang:LangKeys.ResetMapBP}}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </StackPanel>
         </Border>
@@ -43,9 +44,9 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0">
-                    <TextBlock VerticalAlignment="Center" Text="地图选择" />
+                    <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.MapSelection}}" />
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" Text="操作队伍：" />
+                        <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.OperateTeam}}" />
                         <ComboBox
                             ItemsSource="{Binding MapSelectTeamsList}"
                             SelectedIndex="0"
@@ -119,9 +120,9 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0">
-                    <TextBlock VerticalAlignment="Center" Text="地图禁用" />
+                    <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.MapBan}}" />
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" Text="操作队伍：" />
+                        <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.OperateTeam}}" />
                         <ComboBox
                             ItemsSource="{Binding MapSelectTeamsList}"
                             SelectedIndex="0"

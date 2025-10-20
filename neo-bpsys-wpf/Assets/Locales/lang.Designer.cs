@@ -520,6 +520,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Map ban 的本地化字符串。
+        /// </summary>
+        public static string MapBan {
+            get {
+                return ResourceManager.GetString("MapBan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Map BP 的本地化字符串。
         /// </summary>
         public static string MapBP {
@@ -543,6 +552,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string MapBPV2Background {
             get {
                 return ResourceManager.GetString("MapBPV2Background", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Map selection 的本地化字符串。
+        /// </summary>
+        public static string MapSelection {
+            get {
+                return ResourceManager.GetString("MapSelection", resourceCulture);
             }
         }
         
@@ -628,6 +646,24 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Operate team:  的本地化字符串。
+        /// </summary>
+        public static string OperateTeam {
+            get {
+                return ResourceManager.GetString("OperateTeam", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Pick hunter 的本地化字符串。
+        /// </summary>
+        public static string PickHunter {
+            get {
+                return ResourceManager.GetString("PickHunter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Picking border color(MapBPV2) 的本地化字符串。
         /// </summary>
         public static string PickingBorderColorOfMapBPV2 {
@@ -660,6 +696,24 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string PickingBorderOfMapBPV2 {
             get {
                 return ResourceManager.GetString("PickingBorderOfMapBPV2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Pick survivor 的本地化字符串。
+        /// </summary>
+        public static string PickSurvivor {
+            get {
+                return ResourceManager.GetString("PickSurvivor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Player name 的本地化字符串。
+        /// </summary>
+        public static string PlayerName {
+            get {
+                return ResourceManager.GetString("PlayerName", resourceCulture);
             }
         }
         
@@ -723,6 +777,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string ResetLayout {
             get {
                 return ResourceManager.GetString("ResetLayout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Reset map BP 的本地化字符串。
+        /// </summary>
+        public static string ResetMapBP {
+            get {
+                return ResourceManager.GetString("ResetMapBP", resourceCulture);
             }
         }
         
@@ -822,6 +885,24 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode {
             get {
                 return ResourceManager.GetString("ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Show camp 的本地化字符串。
+        /// </summary>
+        public static string ShowCamp {
+            get {
+                return ResourceManager.GetString("ShowCamp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Show picking border 的本地化字符串。
+        /// </summary>
+        public static string ShowPickingBorder {
+            get {
+                return ResourceManager.GetString("ShowPickingBorder", resourceCulture);
             }
         }
         

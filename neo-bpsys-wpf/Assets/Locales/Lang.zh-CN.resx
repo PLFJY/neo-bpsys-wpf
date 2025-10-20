@@ -402,4 +402,31 @@
   <data name="Documentations" xml:space="preserve">
     <value>查看文档</value>
   </data>
+  <data name="ShowPickingBorder" xml:space="preserve">
+    <value>待选框开关</value>
+  </data>
+  <data name="ShowCamp" xml:space="preserve">
+    <value>显示阵营</value>
+  </data>
+  <data name="ResetMapBP" xml:space="preserve">
+    <value>重置地图BP</value>
+  </data>
+  <data name="MapSelection" xml:space="preserve">
+    <value>地图选择</value>
+  </data>
+  <data name="OperateTeam" xml:space="preserve">
+    <value>操作队伍：</value>
+  </data>
+  <data name="MapBan" xml:space="preserve">
+    <value>地图禁用</value>
+  </data>
+  <data name="PlayerName" xml:space="preserve">
+    <value>选手名称</value>
+  </data>
+  <data name="PickSurvivor" xml:space="preserve">
+    <value>选择求生者</value>
+  </data>
+  <data name="PickHunter" xml:space="preserve">
+    <value>选择监管者</value>
+  </data>
 </root>

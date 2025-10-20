@@ -402,4 +402,31 @@
   <data name="Documentations" xml:space="preserve">
     <value>Documentations</value>
   </data>
+  <data name="ShowPickingBorder" xml:space="preserve">
+    <value>Show picking border</value>
+  </data>
+  <data name="ShowCamp" xml:space="preserve">
+    <value>Show camp</value>
+  </data>
+  <data name="ResetMapBP" xml:space="preserve">
+    <value>Reset map BP</value>
+  </data>
+  <data name="MapSelection" xml:space="preserve">
+    <value>Map selection</value>
+  </data>
+  <data name="OperateTeam" xml:space="preserve">
+    <value>Operate team: </value>
+  </data>
+  <data name="MapBan" xml:space="preserve">
+    <value>Map ban</value>
+  </data>
+  <data name="PlayerName" xml:space="preserve">
+    <value>Player name</value>
+  </data>
+  <data name="PickSurvivor" xml:space="preserve">
+    <value>Pick survivor</value>
+  </data>
+  <data name="PickHunter" xml:space="preserve">
+    <value>Pick hunter</value>
+  </data>
 </root>
