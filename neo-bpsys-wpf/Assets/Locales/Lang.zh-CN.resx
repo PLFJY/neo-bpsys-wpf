@@ -429,4 +429,52 @@
   <data name="PickHunter" xml:space="preserve">
     <value>选择监管者</value>
   </data>
+  <data name="OpenPickingBorder" xml:space="preserve">
+    <value>启用待选框 | </value>
+  </data>
+  <data name="ControlFirst2PickingBorderSeparately" xml:space="preserve">
+    <value>分别控制前两个待选框</value>
+  </data>
+  <data name="SurvivorPickingBorder1" xml:space="preserve">
+    <value>求生者待选框1</value>
+  </data>
+  <data name="SurvivorPickingBorder2" xml:space="preserve">
+    <value>求生者待选框2</value>
+  </data>
+  <data name="SurvivorPickingBorder1and2" xml:space="preserve">
+    <value>求生者待选框1 &amp; 2</value>
+  </data>
+  <data name="SurvivorPickingBorder3" xml:space="preserve">
+    <value>求生者待选框3</value>
+  </data>
+  <data name="SurvivorPickingBorder4" xml:space="preserve">
+    <value>求生者待选框4</value>
+  </data>
+  <data name="HunterPickingBorder" xml:space="preserve">
+    <value>监管者待选框</value>
+  </data>
+  <data name="GlobalBanRecord" xml:space="preserve">
+    <value>全局禁选记录</value>
+  </data>
+  <data name="HomeTeamColon" xml:space="preserve">
+    <value>主队：</value>
+  </data>
+  <data name="GlobalBanSurvivor" xml:space="preserve">
+    <value>全局禁用求生者</value>
+  </data>
+  <data name="GlobalBanHunter" xml:space="preserve">
+    <value>全局禁用监管者</value>
+  </data>
+  <data name="AwayTeamColon" xml:space="preserve">
+    <value>客队：</value>
+  </data>
+  <data name="ScoreInBPWindowAndGame" xml:space="preserve">
+    <value>BP界面及游戏内比分</value>
+  </data>
+  <data name="FourEscape" xml:space="preserve">
+    <value>4跑</value>
+  </data>
+  <data name="ThreeEscape" xml:space="preserve">
+    <value>3跑</value>
+  </data>
 </root>

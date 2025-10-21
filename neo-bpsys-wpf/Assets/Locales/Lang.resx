@@ -465,4 +465,55 @@
   <data name="PickHunter" xml:space="preserve">
     <value>Pick hunter</value>
   </data>
+  <data name="OpenPickingBorder" xml:space="preserve">
+    <value>Open picking border | </value>
+  </data>
+  <data name="ControlFirst2PickingBorderSeparately" xml:space="preserve">
+    <value>Control first 2 picking border separately</value>
+  </data>
+  <data name="SurvivorPickingBorder1" xml:space="preserve">
+    <value>Survivor picking border 1</value>
+  </data>
+  <data name="SurvivorPickingBorder2" xml:space="preserve">
+    <value>Survivor picking border 2</value>
+  </data>
+  <data name="SurvivorPickingBorder1and2" xml:space="preserve">
+    <value>Survivor picking border 1 &amp; 2</value>
+  </data>
+  <data name="SurvivorPickingBorder3" xml:space="preserve">
+    <value>Survivor picking border 3</value>
+  </data>
+  <data name="SurvivorPickingBorder4" xml:space="preserve">
+    <value>Survivor picking border 4</value>
+  </data>
+  <data name="HunterPickingBorder" xml:space="preserve">
+    <value>Hunter picking border</value>
+  </data>
+  <data name="GlobalBanRecord" xml:space="preserve">
+    <value>Global ban record</value>
+  </data>
+  <data name="HomeTeamColon" xml:space="preserve">
+    <value>Home team: </value>
+  </data>
+  <data name="GlobalBanSurvivor" xml:space="preserve">
+    <value>Global ban survivor</value>
+  </data>
+  <data name="GlobalBanHunter" xml:space="preserve">
+    <value>Global ban hunter</value>
+  </data>
+  <data name="AwayTeamColon" xml:space="preserve">
+    <value>Away team: </value>
+  </data>
+  <data name="ScoreInBPWindowAndGame" xml:space="preserve">
+    <value>Score in BP window and game</value>
+  </data>
+  <data name="FourEscape" xml:space="preserve">
+    <value>4 escape</value>
+  </data>
+  <data name="ThreeEscape" xml:space="preserve">
+    <value>3 escape</value>
+  </data>
+  <data name="Draw" xml:space="preserve">
+    <value>Draw</value>
+  </data>
 </root>

@@ -97,6 +97,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Away team:  的本地化字符串。
+        /// </summary>
+        public static string AwayTeamColon {
+            get {
+                return ResourceManager.GetString("AwayTeamColon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Ban number control 的本地化字符串。
         /// </summary>
         public static string BanNumberControl {
@@ -219,6 +228,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string ContributorList {
             get {
                 return ResourceManager.GetString("ContributorList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Control first 2 picking border separately 的本地化字符串。
+        /// </summary>
+        public static string ControlFirst2PickingBorderSeparately {
+            get {
+                return ResourceManager.GetString("ControlFirst2PickingBorderSeparately", resourceCulture);
             }
         }
         
@@ -367,6 +385,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Draw 的本地化字符串。
+        /// </summary>
+        public static string Draw {
+            get {
+                return ResourceManager.GetString("Draw", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Edit 的本地化字符串。
         /// </summary>
         public static string Edit {
@@ -421,6 +448,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 4 escape 的本地化字符串。
+        /// </summary>
+        public static string FourEscape {
+            get {
+                return ResourceManager.GetString("FourEscape", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Game statistics window 的本地化字符串。
         /// </summary>
         public static string GameStatisticsWindow {
@@ -435,6 +471,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string GlobalBan {
             get {
                 return ResourceManager.GetString("GlobalBan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Global ban hunter 的本地化字符串。
+        /// </summary>
+        public static string GlobalBanHunter {
+            get {
+                return ResourceManager.GetString("GlobalBanHunter", resourceCulture);
             }
         }
         
@@ -457,6 +502,33 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Global ban record 的本地化字符串。
+        /// </summary>
+        public static string GlobalBanRecord {
+            get {
+                return ResourceManager.GetString("GlobalBanRecord", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Global ban survivor 的本地化字符串。
+        /// </summary>
+        public static string GlobalBanSurvivor {
+            get {
+                return ResourceManager.GetString("GlobalBanSurvivor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Home team:  的本地化字符串。
+        /// </summary>
+        public static string HomeTeamColon {
+            get {
+                return ResourceManager.GetString("HomeTeamColon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Hunter 的本地化字符串。
         /// </summary>
         public static string Hunter {
@@ -471,6 +543,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string HunterIconOfMapBPV2 {
             get {
                 return ResourceManager.GetString("HunterIconOfMapBPV2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Hunter picking border 的本地化字符串。
+        /// </summary>
+        public static string HunterPickingBorder {
+            get {
+                return ResourceManager.GetString("HunterPickingBorder", resourceCulture);
             }
         }
         
@@ -633,6 +714,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string OpenLogDirectory {
             get {
                 return ResourceManager.GetString("OpenLogDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Open picking border |  的本地化字符串。
+        /// </summary>
+        public static string OpenPickingBorder {
+            get {
+                return ResourceManager.GetString("OpenPickingBorder", resourceCulture);
             }
         }
         
@@ -853,6 +943,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Score in BP window and game 的本地化字符串。
+        /// </summary>
+        public static string ScoreInBPWindowAndGame {
+            get {
+                return ResourceManager.GetString("ScoreInBPWindowAndGame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Score statistics 的本地化字符串。
         /// </summary>
         public static string ScoreStatistics {
@@ -961,11 +1060,65 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Survivor picking border 1 的本地化字符串。
+        /// </summary>
+        public static string SurvivorPickingBorder1 {
+            get {
+                return ResourceManager.GetString("SurvivorPickingBorder1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Survivor picking border 1 &amp; 2 的本地化字符串。
+        /// </summary>
+        public static string SurvivorPickingBorder1and2 {
+            get {
+                return ResourceManager.GetString("SurvivorPickingBorder1and2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Survivor picking border 2 的本地化字符串。
+        /// </summary>
+        public static string SurvivorPickingBorder2 {
+            get {
+                return ResourceManager.GetString("SurvivorPickingBorder2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Survivor picking border 3 的本地化字符串。
+        /// </summary>
+        public static string SurvivorPickingBorder3 {
+            get {
+                return ResourceManager.GetString("SurvivorPickingBorder3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Survivor picking border 4 的本地化字符串。
+        /// </summary>
+        public static string SurvivorPickingBorder4 {
+            get {
+                return ResourceManager.GetString("SurvivorPickingBorder4", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Survivor score in game 的本地化字符串。
         /// </summary>
         public static string SurvivorScoreInGame {
             get {
                 return ResourceManager.GetString("SurvivorScoreInGame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 3 escape 的本地化字符串。
+        /// </summary>
+        public static string ThreeEscape {
+            get {
+                return ResourceManager.GetString("ThreeEscape", resourceCulture);
             }
         }
         

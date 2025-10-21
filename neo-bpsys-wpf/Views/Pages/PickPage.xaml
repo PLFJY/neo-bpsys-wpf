@@ -27,7 +27,7 @@
         </Style>
         <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="ui:TextBox">
             <Setter Property="IsReadOnly" Value="True" />
-            <Setter Property="PlaceholderText" Value="{I18N {x:Static lang:LangKeys.PlayerName}}" />
+            <Setter Property="PlaceholderText" Value="选手名称" />
         </Style>
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
@@ -95,9 +95,9 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0" Orientation="Horizontal">
-                    <TextBlock Grid.Row="0" Text="待选择边框开关  | " />
+                    <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.OpenPickingBorder}}" />
                     <ui:ToggleSwitch x:Name="IsSingleControlEnabled" Margin="10,0,0,0" />
-                    <TextBlock Margin="10,0,0,0" Text="1 &amp; 2 分别控制" />
+                    <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.ControlFirst2PickingBorderSeparately}}" />
                 </StackPanel>
                 <StackPanel Grid.Row="1">
                     <StackPanel
@@ -109,7 +109,7 @@
                             Command="{Binding PickingBorderSwitchCommand}"
                             CommandParameter="0"
                             IsChecked="{Binding SurPickingBorderList[0]}" />
-                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 1" />
+                        <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.SurvivorPickingBorder1}}" />
                     </StackPanel>
                     <StackPanel
                         Margin="0,10,0,0"
@@ -120,7 +120,7 @@
                             Command="{Binding PickingBorderSwitchCommand}"
                             CommandParameter="1"
                             IsChecked="{Binding SurPickingBorderList[1]}" />
-                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 2" />
+                        <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.SurvivorPickingBorder2}}" />
                     </StackPanel>
                     <StackPanel
                         Margin="0,10,0,0"
@@ -134,28 +134,28 @@
                                 </MultiBinding>
                             </ui:ToggleSwitch.IsChecked>
                         </ui:ToggleSwitch>
-                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 1 &amp; 2" />
+                        <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.SurvivorPickingBorder1and2}}" />
                     </StackPanel>
                     <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                         <ui:ToggleSwitch
                             Command="{Binding PickingBorderSwitchCommand}"
                             CommandParameter="2"
                             IsChecked="{Binding SurPickingBorderList[2]}" />
-                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 3" />
+                        <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.SurvivorPickingBorder3}}" />
                     </StackPanel>
                     <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                         <ui:ToggleSwitch
                             Command="{Binding PickingBorderSwitchCommand}"
                             CommandParameter="3"
                             IsChecked="{Binding SurPickingBorderList[3]}" />
-                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 4" />
+                        <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.SurvivorPickingBorder4}}" />
                     </StackPanel>
                     <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                         <ui:ToggleSwitch
                             Command="{Binding PickingBorderSwitchCommand}"
                             CommandParameter="Hun"
                             IsChecked="{Binding HunPickingBorder}" />
-                        <TextBlock Margin="10,0,0,0" Text="监管者选择框" />
+                        <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.HunterPickingBorder}}" />
                     </StackPanel>
                 </StackPanel>
             </Grid>
@@ -167,7 +167,7 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="全局禁选记录" />
+                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.GlobalBanRecord}}" />
                 <Grid Grid.Row="1" Margin="0,10,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -178,12 +178,12 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0">
-                        <Run Text="主队：" /><Run Text="{Binding MainTeam.Name}" />
+                        <Run Text="{I18N {x:Static lang:LangKeys.HomeTeamColon}}" /><Run Text="{Binding MainTeam.Name}" />
                     </TextBlock>
                     <TextBlock
                         Grid.Row="1"
                         Margin="0,10,0,0"
-                        Text="全局禁用求生者" />
+                        Text="{I18N {x:Static lang:LangKeys.GlobalBanSurvivor}}" />
                     <ItemsControl
                         Grid.Row="2"
                         Margin="0,10,0,0"
@@ -206,7 +206,7 @@
                     <TextBlock
                         Grid.Row="4"
                         Margin="0,10,0,0"
-                        Text="全局禁用监管者" />
+                        Text="{I18N {x:Static lang:LangKeys.GlobalBanHunter}}" />
                     <ItemsControl
                         Grid.Row="5"
                         Margin="0,10,0,0"
@@ -237,12 +237,12 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0">
-                        <Run Text="客队：" /><Run Text="{Binding AwayTeam.Name}" />
+                        <Run Text="{I18N {x:Static lang:LangKeys.AwayTeamColon}}" /><Run Text="{Binding AwayTeam.Name}" />
                     </TextBlock>
                     <TextBlock
                         Grid.Row="1"
                         Margin="0,10,0,0"
-                        Text="全局禁用求生者" />
+                        Text="{I18N {x:Static lang:LangKeys.GlobalBanSurvivor}}" />
                     <ItemsControl
                         Grid.Row="2"
                         Margin="0,10,0,0"
@@ -265,7 +265,7 @@
                     <TextBlock
                         Grid.Row="4"
                         Margin="0,10,0,0"
-                        Text="全局禁用监管者" />
+                        Text="{I18N {x:Static lang:LangKeys.GlobalBanHunter}}" />
                     <ItemsControl
                         Grid.Row="5"
                         Margin="0,10,0,0"
