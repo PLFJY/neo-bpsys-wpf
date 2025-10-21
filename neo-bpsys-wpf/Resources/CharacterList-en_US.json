@@ -195,6 +195,10 @@
     "Camp": "Sur",
     "ImageFileName": "逃脱大师.png"
   },
+  "Lanternist": {
+    "Camp": "Sur",
+    "ImageFileName": "幻灯师.png"
+  }
   "Guard 26": {
     "Camp": "Hun",
     "ImageFileName": "26号守卫.png"
