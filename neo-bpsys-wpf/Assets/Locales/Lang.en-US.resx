@@ -480,4 +480,46 @@
   <data name="Draw" xml:space="preserve">
     <value>Draw</value>
   </data>
+  <data name="FourEliminate" xml:space="preserve">
+    <value>4 eliminate</value>
+  </data>
+  <data name="ThreeEliminate" xml:space="preserve">
+    <value>3 eliminate</value>
+  </data>
+  <data name="ResetAllScores" xml:space="preserve">
+    <value>Reset all scores</value>
+  </data>
+  <data name="ResetGameScores" xml:space="preserve">
+    <value>Reset game scores</value>
+  </data>
+  <data name="ControlManually" xml:space="preserve">
+    <value>Control manually</value>
+  </data>
+  <data name="HomeTeamName" xml:space="preserve">
+    <value>Home team name</value>
+  </data>
+  <data name="GameSelection" xml:space="preserve">
+    <value>Game selection</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="IsGameFinished" xml:space="preserve">
+    <value>Is game finished</value>
+  </data>
+  <data name="SynchronizeToFrontend" xml:space="preserve">
+    <value>Synchronize to frontend</value>
+  </data>
+  <data name="CampOfHomeTeam" xml:space="preserve">
+    <value>Camp of home team</value>
+  </data>
+  <data name="CampOfAwayTeam" xml:space="preserve">
+    <value>Camp of away team</value>
+  </data>
+  <data name="GameResult" xml:space="preserve">
+    <value>Game result</value>
+  </data>
+  <data name="ScoreSettlement" xml:space="preserve">
+    <value>Score settlement</value>
+  </data>
 </root>

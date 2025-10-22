@@ -477,4 +477,49 @@
   <data name="ThreeEscape" xml:space="preserve">
     <value>3跑</value>
   </data>
+  <data name="Draw" xml:space="preserve">
+    <value>平局</value>
+  </data>
+  <data name="FourEliminate" xml:space="preserve">
+    <value>4抓</value>
+  </data>
+  <data name="ThreeEliminate" xml:space="preserve">
+    <value>3抓</value>
+  </data>
+  <data name="ResetAllScores" xml:space="preserve">
+    <value>总清零</value>
+  </data>
+  <data name="ResetGameScores" xml:space="preserve">
+    <value>小比分清零</value>
+  </data>
+  <data name="ControlManually" xml:space="preserve">
+    <value>手动控制</value>
+  </data>
+  <data name="HomeTeamName" xml:space="preserve">
+    <value>主队名称</value>
+  </data>
+  <data name="GameSelection" xml:space="preserve">
+    <value>场次选择</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>下一局</value>
+  </data>
+  <data name="IsGameFinished" xml:space="preserve">
+    <value>对局已完成</value>
+  </data>
+  <data name="SynchronizeToFrontend" xml:space="preserve">
+    <value>同步至前台</value>
+  </data>
+  <data name="CampOfHomeTeam" xml:space="preserve">
+    <value>主场队伍阵营</value>
+  </data>
+  <data name="CampOfAwayTeam" xml:space="preserve">
+    <value>客场队伍阵营</value>
+  </data>
+  <data name="GameResult" xml:space="preserve">
+    <value>对局结果</value>
+  </data>
+  <data name="ScoreSettlement" xml:space="preserve">
+    <value>大比分结算</value>
+  </data>
 </root>

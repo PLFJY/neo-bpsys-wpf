@@ -169,6 +169,24 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Camp of away team 的本地化字符串。
+        /// </summary>
+        public static string CampOfAwayTeam {
+            get {
+                return ResourceManager.GetString("CampOfAwayTeam", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Camp of home team 的本地化字符串。
+        /// </summary>
+        public static string CampOfHomeTeam {
+            get {
+                return ResourceManager.GetString("CampOfHomeTeam", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Character name 的本地化字符串。
         /// </summary>
         public static string CharacterName {
@@ -237,6 +255,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string ControlFirst2PickingBorderSeparately {
             get {
                 return ResourceManager.GetString("ControlFirst2PickingBorderSeparately", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Control manually 的本地化字符串。
+        /// </summary>
+        public static string ControlManually {
+            get {
+                return ResourceManager.GetString("ControlManually", resourceCulture);
             }
         }
         
@@ -448,11 +475,38 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 4 Eliminate 的本地化字符串。
+        /// </summary>
+        public static string FourEliminate {
+            get {
+                return ResourceManager.GetString("FourEliminate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 4 escape 的本地化字符串。
         /// </summary>
         public static string FourEscape {
             get {
                 return ResourceManager.GetString("FourEscape", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Game result 的本地化字符串。
+        /// </summary>
+        public static string GameResult {
+            get {
+                return ResourceManager.GetString("GameResult", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Game selection 的本地化字符串。
+        /// </summary>
+        public static string GameSelection {
+            get {
+                return ResourceManager.GetString("GameSelection", resourceCulture);
             }
         }
         
@@ -529,6 +583,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Home team name 的本地化字符串。
+        /// </summary>
+        public static string HomeTeamName {
+            get {
+                return ResourceManager.GetString("HomeTeamName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Hunter 的本地化字符串。
         /// </summary>
         public static string Hunter {
@@ -592,6 +655,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Is game finished 的本地化字符串。
+        /// </summary>
+        public static string IsGameFinished {
+            get {
+                return ResourceManager.GetString("IsGameFinished", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Language setting 的本地化字符串。
         /// </summary>
         public static string LanguageSetting {
@@ -642,6 +714,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string MapSelection {
             get {
                 return ResourceManager.GetString("MapSelection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Next 的本地化字符串。
+        /// </summary>
+        public static string Next {
+            get {
+                return ResourceManager.GetString("Next", resourceCulture);
             }
         }
         
@@ -844,11 +925,29 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Reset all scores 的本地化字符串。
+        /// </summary>
+        public static string ResetAllScores {
+            get {
+                return ResourceManager.GetString("ResetAllScores", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Reset BP overview layout 的本地化字符串。
         /// </summary>
         public static string ResetBPOverviewLayout {
             get {
                 return ResourceManager.GetString("ResetBPOverviewLayout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Reset game scores 的本地化字符串。
+        /// </summary>
+        public static string ResetGameScores {
+            get {
+                return ResourceManager.GetString("ResetGameScores", resourceCulture);
             }
         }
         
@@ -948,6 +1047,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string ScoreInBPWindowAndGame {
             get {
                 return ResourceManager.GetString("ScoreInBPWindowAndGame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Score settlement 的本地化字符串。
+        /// </summary>
+        public static string ScoreSettlement {
+            get {
+                return ResourceManager.GetString("ScoreSettlement", resourceCulture);
             }
         }
         
@@ -1110,6 +1218,24 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string SurvivorScoreInGame {
             get {
                 return ResourceManager.GetString("SurvivorScoreInGame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Synchronize to frontend 的本地化字符串。
+        /// </summary>
+        public static string SynchronizeToFrontend {
+            get {
+                return ResourceManager.GetString("SynchronizeToFrontend", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 3 eliminate 的本地化字符串。
+        /// </summary>
+        public static string ThreeEliminate {
+            get {
+                return ResourceManager.GetString("ThreeEliminate", resourceCulture);
             }
         }
         
