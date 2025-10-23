@@ -446,7 +446,7 @@
             CornerRadius="8">
             <Border.Resources>
                 <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="ui:TextBox">
-                    <Setter Property="PlaceholderText" Value="选手名称" />
+                    <!--<Setter Property="PlaceholderText" Value="选手名称" /> -->
                     <Setter Property="MinWidth" Value="250" />
                     <Setter Property="IsReadOnly" Value="True" />
                     <Setter Property="HorizontalAlignment" Value="Left" />
@@ -463,7 +463,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
-                                <ui:TextBox Text="{Binding ThisPlayer.Member.Name}" />
+                                <ui:TextBox Text="{Binding ThisPlayer.Member.Name}" PlaceholderText="{I18N {x:Static lang:LangKeys.PlayerName}}"/>
                                 <cc:CharacterChanger Command="{Binding SwapMembersInPlayersCommand}" Index="{Binding Index}" />
                             </StackPanel>
                         </DataTemplate>
@@ -471,7 +471,7 @@
                 </ItemsControl>
 
                 <TextBlock Margin="0,10,0,10" Text="{I18N {x:Static lang:LangKeys.Hunter}}" />
-                <ui:TextBox Text="{Binding OnFieldHunPlayerVm.ThisPlayer.Member.Name}" />
+                <ui:TextBox Text="{Binding OnFieldHunPlayerVm.ThisPlayer.Member.Name}" PlaceholderText="{I18N {x:Static lang:LangKeys.PlayerName}}" />
             </StackPanel>
         </Border>
     </WrapPanel>
