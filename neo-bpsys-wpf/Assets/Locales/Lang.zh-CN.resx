@@ -522,4 +522,52 @@
   <data name="ScoreSettlement" xml:space="preserve">
     <value>大比分结算</value>
   </data>
+  <data name="HomeTeamInformation" xml:space="preserve">
+    <value>主场队伍信息</value>
+  </data>
+  <data name="ImportFromJsonFile" xml:space="preserve">
+    <value>从json文件导入</value>
+  </data>
+  <data name="JsonImportTip" xml:space="preserve">
+    <value>这是用于快速导入队伍信息使用的，示例文件是软件目录下的neo-bpsys-wpf\Resources\队伍信息导入示例-xxx.json，有其它问题请查阅文档</value>
+  </data>
+  <data name="TeamName" xml:space="preserve">
+    <value>队伍名称</value>
+  </data>
+  <data name="SetTeamLogo" xml:space="preserve">
+    <value>设置队伍logo</value>
+  </data>
+  <data name="CurrentStatusColon" xml:space="preserve">
+    <value>当前状态：</value>
+  </data>
+  <data name="SurvivorPlayer" xml:space="preserve">
+    <value>求生者选手</value>
+  </data>
+  <data name="SetPhoto" xml:space="preserve">
+    <value>设置定妆照</value>
+  </data>
+  <data name="RemovePhoto" xml:space="preserve">
+    <value>清除定妆照</value>
+  </data>
+  <data name="Enter" xml:space="preserve">
+    <value>上场</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>下场</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="AddPlayer" xml:space="preserve">
+    <value>添加选手</value>
+  </data>
+  <data name="HunterPlayer" xml:space="preserve">
+    <value>监管者选手</value>
+  </data>
+  <data name="AwayTeamInformation" xml:space="preserve">
+    <value>客场队伍信息</value>
+  </data>
+  <data name="CurrentPlayerOnStage" xml:space="preserve">
+    <value>当前上场选手</value>
+  </data>
 </root>

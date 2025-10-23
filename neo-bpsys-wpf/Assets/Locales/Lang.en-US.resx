@@ -522,4 +522,52 @@
   <data name="ScoreSettlement" xml:space="preserve">
     <value>Score settlement</value>
   </data>
+  <data name="HomeTeamInformation" xml:space="preserve">
+    <value>Home team information</value>
+  </data>
+  <data name="ImportFromJsonFile" xml:space="preserve">
+    <value>Import from json file</value>
+  </data>
+  <data name="JsonImportTip" xml:space="preserve">
+    <value>This is used for fast import. The example files are  neo-bpsys-wpf\Resources\队伍信息导入示例-xxx.json. Check the documentations for more details. </value>
+  </data>
+  <data name="TeamName" xml:space="preserve">
+    <value>Team name</value>
+  </data>
+  <data name="SetTeamLogo" xml:space="preserve">
+    <value>Set team logo</value>
+  </data>
+  <data name="CurrentStatusColon" xml:space="preserve">
+    <value>Current status: </value>
+  </data>
+  <data name="SurvivorPlayer" xml:space="preserve">
+    <value>Survivor player</value>
+  </data>
+  <data name="SetPhoto" xml:space="preserve">
+    <value>Set photo</value>
+  </data>
+  <data name="RemovePhoto" xml:space="preserve">
+    <value>Remove photo</value>
+  </data>
+  <data name="Enter" xml:space="preserve">
+    <value>Enter</value>
+  </data>
+  <data name="Exit" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="AddPlayer" xml:space="preserve">
+    <value>Add player</value>
+  </data>
+  <data name="HunterPlayer" xml:space="preserve">
+    <value>Hunter player</value>
+  </data>
+  <data name="AwayTeamInformation" xml:space="preserve">
+    <value>Away team information</value>
+  </data>
+  <data name="CurrentPlayerOnStage" xml:space="preserve">
+    <value>Current player on stage</value>
+  </data>
 </root>

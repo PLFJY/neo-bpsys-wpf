@@ -6,6 +6,7 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:lang="clr-namespace:neo_bpsys_wpf.Assets.Locales"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -29,33 +30,33 @@
             <!--  basic info  -->
             <StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="主场队伍信息" />
+                    <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.HomeTeamInformation}}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ImportInfoFromJsonCommand}"
-                        Content="从Json文件导入"
+                        Content="{I18N {x:Static lang:LangKeys.ImportFromJsonFile}}"
                         Icon="{ui:SymbolIcon Symbol=ArrowImport24}"
                         ToolTipService.InitialShowDelay="100"
                         ToolTipService.Placement="MousePoint"
-                        ToolTipService.ToolTip="这是用于快速导入队伍信息使用的，示例文件是软件目录下的'Team_Info_Example.json'，有其它问题请查阅文档" />
+                        ToolTipService.ToolTip="{I18N {x:Static lang:LangKeys.JsonImportTip}}" />
                 </StackPanel>
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                     <ui:TextBox
                         Width="250"
-                        PlaceholderText="队伍名称"
+                        PlaceholderText="{I18N {x:Static lang:LangKeys.TeamName}}"
                         Text="{Binding TeamName}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ConfirmTeamNameCommand}"
-                        Content="确认"
+                        Content="{I18N {x:Static lang:LangKeys.Confirm}}"
                         Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal">
                     <ui:Button
                         Command="{Binding SetTeamLogoCommand}"
-                        Content="设置队伍LOGO"
+                        Content="{I18N {x:Static lang:LangKeys.SetTeamLogo}}"
                         Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
                     <ui:Image
                         Width="70"
@@ -68,7 +69,7 @@
                         Width="150"
                         Margin="20,0,0,0"
                         VerticalAlignment="Center">
-                        <Run Text="当前状态：" /><Run d:Text="求生者" Text="{Binding CurrentTeam.Camp, Converter={StaticResource CampToStringConverter}}" />
+                        <Run Text="{I18N {x:Static lang:LangKeys.CurrentStatusColon}}" /><Run d:Text="求生者" Text="{Binding CurrentTeam.Camp, Converter={StaticResource CampToStringConverter}}" />
                     </TextBlock>
 
                 </StackPanel>
@@ -77,7 +78,7 @@
 
                 <!--  sur  -->
                 <StackPanel>
-                    <TextBlock Text="求生者选手" />
+                    <TextBlock Text="{I18N {x:Static lang:LangKeys.SurvivorPlayer}}" />
                     <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding CurrentTeam.SurMemberList}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -85,19 +86,19 @@
                                     <ui:TextBox
                                         MinWidth="250"
                                         Margin="10,0,0,0"
-                                        PlaceholderText="选手名称"
+                                        PlaceholderText="{I18N {x:Static lang:LangKeys.PlayerName}}"
                                         Text="{Binding Name}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SetMemberImageCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="设置定妆照"
+                                        Content="{I18N {x:Static lang:LangKeys.SetPhoto}}"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMemberImageCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="清除定妆照"
+                                        Content="{I18N {x:Static lang:LangKeys.RemovePhoto}}"
                                         Icon="{ui:SymbolIcon Symbol=ImageOff24}"
                                         Visibility="{Binding IsImageValid, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
@@ -115,7 +116,7 @@
                                                     <Setter.Value>
                                                         <StackPanel Orientation="Horizontal">
                                                             <ui:SymbolIcon Symbol="ArrowUpload24" />
-                                                            <TextBlock Margin="10,0,0,0" Text="上场" />
+                                                            <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.Enter}}" />
                                                         </StackPanel>
                                                     </Setter.Value>
                                                 </Setter>
@@ -126,7 +127,7 @@
                                                             <Setter.Value>
                                                                 <StackPanel Orientation="Horizontal">
                                                                     <ui:SymbolIcon Symbol="ArrowDownload24" />
-                                                                    <TextBlock Margin="10,0,0,0" Text="下场" />
+                                                                    <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.Exit}}" />
                                                                 </StackPanel>
                                                             </Setter.Value>
                                                         </Setter>
@@ -140,7 +141,7 @@
                                         Background="PaleVioletRed"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.RemoveSurMemberCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="删除"
+                                        Content="{I18N {x:Static lang:LangKeys.Delete}}"
                                         Icon="{ui:SymbolIcon Symbol=Delete24}" />
                                 </StackPanel>
                             </DataTemplate>
@@ -148,31 +149,31 @@
                     </ItemsControl>
                     <ui:Button
                         Command="{Binding AddSurMemberCommand}"
-                        Content="添加选手"
+                        Content="{I18N {x:Static lang:LangKeys.AddPlayer}}"
                         Icon="{ui:SymbolIcon Symbol=Add24}" />
                 </StackPanel>
                 <!--  hun  -->
                 <StackPanel Margin="0,10,0,0">
-                    <TextBlock Text="监管者选手" />
+                    <TextBlock Text="{I18N {x:Static lang:LangKeys.HunterPlayer}}" />
                     <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding CurrentTeam.HunMemberList}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Margin="10,0,0,10" Orientation="Horizontal">
                                     <ui:TextBox
                                         MinWidth="250"
-                                        PlaceholderText="选手名称"
+                                        PlaceholderText="{I18N {x:Static lang:LangKeys.PlayerName}}"
                                         Text="{Binding Name}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SetMemberImageCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="设置定妆照"
+                                        Content="{I18N {x:Static lang:LangKeys.SetPhoto}}"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMemberImageCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="清除定妆照"
+                                        Content="{I18N {x:Static lang:LangKeys.RemovePhoto}}"
                                         Icon="{ui:SymbolIcon Symbol=ImageOff24}"
                                         Visibility="{Binding IsImageValid, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                     <ToggleButton
@@ -189,7 +190,7 @@
                                                     <Setter.Value>
                                                         <StackPanel Orientation="Horizontal">
                                                             <ui:SymbolIcon Symbol="ArrowUpload24" />
-                                                            <TextBlock Margin="10,0,0,0" Text="上场" />
+                                                            <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.Enter}}" />
                                                         </StackPanel>
                                                     </Setter.Value>
                                                 </Setter>
@@ -200,7 +201,7 @@
                                                             <Setter.Value>
                                                                 <StackPanel Orientation="Horizontal">
                                                                     <ui:SymbolIcon Symbol="ArrowDownload24" />
-                                                                    <TextBlock Margin="10,0,0,0" Text="下场" />
+                                                                    <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.Exit}}" />
                                                                 </StackPanel>
                                                             </Setter.Value>
                                                         </Setter>
@@ -214,7 +215,7 @@
                                         Background="PaleVioletRed"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.RemoveHunMemberCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="删除"
+                                        Content="{I18N {x:Static lang:LangKeys.Delete}}"
                                         Icon="{ui:SymbolIcon Symbol=Delete24}" />
                                 </StackPanel>
                             </DataTemplate>
@@ -222,7 +223,7 @@
                     </ItemsControl>
                     <ui:Button
                         Command="{Binding AddHunMemberCommand}"
-                        Content="添加选手"
+                        Content="{I18N {x:Static lang:LangKeys.AddPlayer}}"
                         Icon="{ui:SymbolIcon Symbol=Add24}" />
                 </StackPanel>
             </StackPanel>
@@ -233,33 +234,33 @@
             <!--  basic info  -->
             <StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="客队伍信息" />
+                    <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.AwayTeamInformation}}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ImportInfoFromJsonCommand}"
-                        Content="从Json文件导入"
+                        Content="{I18N {x:Static lang:LangKeys.ImportFromJsonFile}}"
                         Icon="{ui:SymbolIcon Symbol=ArrowImport24}"
                         ToolTipService.InitialShowDelay="100"
                         ToolTipService.Placement="MousePoint"
-                        ToolTipService.ToolTip="这是用于快速导入队伍信息使用的，示例文件是软件目录下的'Team_Info_Example.json'，有其它问题请查阅文档" />
+                        ToolTipService.ToolTip="{I18N {x:Static lang:LangKeys.JsonImportTip}}" />
                 </StackPanel>
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                     <ui:TextBox
                         Width="250"
-                        PlaceholderText="队伍名称"
+                        PlaceholderText="{I18N {x:Static lang:LangKeys.TeamName}}"
                         Text="{Binding TeamName}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ConfirmTeamNameCommand}"
-                        Content="确认"
+                        Content="{I18N {x:Static lang:LangKeys.Confirm}}"
                         Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal">
                     <ui:Button
                         Command="{Binding SetTeamLogoCommand}"
-                        Content="设置队伍LOGO"
+                        Content="{I18N {x:Static lang:LangKeys.SetTeamLogo}}"
                         Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
                     <ui:Image
                         Width="70"
@@ -272,7 +273,7 @@
                         Width="150"
                         Margin="20,0,0,0"
                         VerticalAlignment="Center">
-                        <Run Text="当前状态：" /><Run d:Text="监管者" Text="{Binding CurrentTeam.Camp, Converter={StaticResource CampToStringConverter}}" />
+                        <Run Text="{I18N {x:Static lang:LangKeys.CurrentStatusColon}}" /><Run d:Text="监管者" Text="{Binding CurrentTeam.Camp, Converter={StaticResource CampToStringConverter}}" />
                     </TextBlock>
                 </StackPanel>
 
@@ -280,7 +281,7 @@
 
                 <!--  sur  -->
                 <StackPanel>
-                    <TextBlock Text="求生者选手" />
+                    <TextBlock Text="{I18N {x:Static lang:LangKeys.SurvivorPlayer}}" />
                     <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding CurrentTeam.SurMemberList}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -288,19 +289,19 @@
                                     <ui:TextBox
                                         MinWidth="250"
                                         Margin="10,0,0,0"
-                                        PlaceholderText="选手名称"
+                                        PlaceholderText="{I18N {x:Static lang:LangKeys.PlayerName}}"
                                         Text="{Binding Name}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SetMemberImageCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="设置定妆照"
+                                        Content="{I18N {x:Static lang:LangKeys.SetPhoto}}"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMemberImageCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="清除定妆照"
+                                        Content="{I18N {x:Static lang:LangKeys.RemovePhoto}}"
                                         Icon="{ui:SymbolIcon Symbol=ImageOff24}"
                                         Visibility="{Binding IsImageValid, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                     <ToggleButton
@@ -317,7 +318,7 @@
                                                     <Setter.Value>
                                                         <StackPanel Orientation="Horizontal">
                                                             <ui:SymbolIcon Symbol="ArrowUpload24" />
-                                                            <TextBlock Margin="10,0,0,0" Text="上场" />
+                                                            <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.Enter}}" />
                                                         </StackPanel>
                                                     </Setter.Value>
                                                 </Setter>
@@ -328,7 +329,7 @@
                                                             <Setter.Value>
                                                                 <StackPanel Orientation="Horizontal">
                                                                     <ui:SymbolIcon Symbol="ArrowDownload24" />
-                                                                    <TextBlock Margin="10,0,0,0" Text="下场" />
+                                                                    <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.Exit}}" />
                                                                 </StackPanel>
                                                             </Setter.Value>
                                                         </Setter>
@@ -342,7 +343,7 @@
                                         Background="PaleVioletRed"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.RemoveSurMemberCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="删除"
+                                        Content="{I18N {x:Static lang:LangKeys.Delete}}"
                                         Icon="{ui:SymbolIcon Symbol=Delete24}" />
                                 </StackPanel>
                             </DataTemplate>
@@ -351,13 +352,13 @@
                     <StackPanel Orientation="Horizontal">
                         <ui:Button
                             Command="{Binding AddSurMemberCommand}"
-                            Content="添加选手"
+                            Content="{I18N {x:Static lang:LangKeys.AddPlayer}}"
                             Icon="{ui:SymbolIcon Symbol=Add24}" />
                     </StackPanel>
                 </StackPanel>
                 <!--  hun  -->
                 <StackPanel Margin="0,10,0,0">
-                    <TextBlock Text="监管者选手" />
+                    <TextBlock Text="{I18N {x:Static lang:LangKeys.HunterPlayer}}" />
                     <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding CurrentTeam.HunMemberList}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -367,19 +368,19 @@
                                     Orientation="Horizontal">
                                     <ui:TextBox
                                         MinWidth="250"
-                                        PlaceholderText="选手名称"
+                                        PlaceholderText="{I18N {x:Static lang:LangKeys.PlayerName}}"
                                         Text="{Binding Name}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SetMemberImageCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="设置定妆照"
+                                        Content="{I18N {x:Static lang:LangKeys.SetPhoto}}"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMemberImageCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="清除定妆照"
+                                        Content="{I18N {x:Static lang:LangKeys.RemovePhoto}}"
                                         Icon="{ui:SymbolIcon Symbol=ImageOff24}"
                                         Visibility="{Binding IsImageValid, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                     <ToggleButton
@@ -396,7 +397,7 @@
                                                     <Setter.Value>
                                                         <StackPanel Orientation="Horizontal">
                                                             <ui:SymbolIcon Symbol="ArrowUpload24" />
-                                                            <TextBlock Margin="10,0,0,0" Text="上场" />
+                                                            <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.Enter}}" />
                                                         </StackPanel>
                                                     </Setter.Value>
                                                 </Setter>
@@ -407,7 +408,7 @@
                                                             <Setter.Value>
                                                                 <StackPanel Orientation="Horizontal">
                                                                     <ui:SymbolIcon Symbol="ArrowDownload24" />
-                                                                    <TextBlock Margin="10,0,0,0" Text="下场" />
+                                                                    <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.Exit}}" />
                                                                 </StackPanel>
                                                             </Setter.Value>
                                                         </Setter>
@@ -421,7 +422,7 @@
                                         Background="PaleVioletRed"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.RemoveHunMemberCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="删除"
+                                        Content="{I18N {x:Static lang:LangKeys.Delete}}"
                                         Icon="{ui:SymbolIcon Symbol=Delete24}" />
                                 </StackPanel>
                             </DataTemplate>
@@ -429,7 +430,7 @@
                     </ItemsControl>
                     <ui:Button
                         Command="{Binding AddHunMemberCommand}"
-                        Content="添加选手"
+                        Content="{I18N {x:Static lang:LangKeys.AddPlayer}}"
                         Icon="{ui:SymbolIcon Symbol=Add24}" />
                 </StackPanel>
             </StackPanel>
@@ -456,8 +457,8 @@
                 </Style>
             </Border.Resources>
             <StackPanel>
-                <TextBlock Text="当前上场选手" />
-                <TextBlock Margin="0,10,0,0" Text="求生者" />
+                <TextBlock Text="{I18N {x:Static lang:LangKeys.CurrentPlayerOnStage}}" />
+                <TextBlock Margin="0,10,0,0" Text="{I18N {x:Static lang:LangKeys.Survivor}}" />
                 <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding OnFieldSurPlayerViewModels}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -469,7 +470,7 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <TextBlock Margin="0,10,0,10" Text="监管者" />
+                <TextBlock Margin="0,10,0,10" Text="{I18N {x:Static lang:LangKeys.Hunter}}" />
                 <ui:TextBox Text="{Binding OnFieldHunPlayerVm.ThisPlayer.Member.Name}" />
             </StackPanel>
         </Border>

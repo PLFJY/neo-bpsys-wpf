@@ -70,6 +70,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Add player 的本地化字符串。
+        /// </summary>
+        public static string AddPlayer {
+            get {
+                return ResourceManager.GetString("AddPlayer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 All frontend windows 的本地化字符串。
         /// </summary>
         public static string AllFrontendWindows {
@@ -102,6 +111,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string AwayTeamColon {
             get {
                 return ResourceManager.GetString("AwayTeamColon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Away team information 的本地化字符串。
+        /// </summary>
+        public static string AwayTeamInformation {
+            get {
+                return ResourceManager.GetString("AwayTeamInformation", resourceCulture);
             }
         }
         
@@ -295,6 +313,24 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Current player on stage 的本地化字符串。
+        /// </summary>
+        public static string CurrentPlayerOnStage {
+            get {
+                return ResourceManager.GetString("CurrentPlayerOnStage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Current status:  的本地化字符串。
+        /// </summary>
+        public static string CurrentStatusColon {
+            get {
+                return ResourceManager.GetString("CurrentStatusColon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Customize BP window 的本地化字符串。
         /// </summary>
         public static string CustomizeBPWindow {
@@ -354,6 +390,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string DebugOptions {
             get {
                 return ResourceManager.GetString("DebugOptions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Delete 的本地化字符串。
+        /// </summary>
+        public static string Delete {
+            get {
+                return ResourceManager.GetString("Delete", resourceCulture);
             }
         }
         
@@ -462,6 +507,24 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string EditTextProperty {
             get {
                 return ResourceManager.GetString("EditTextProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Enter 的本地化字符串。
+        /// </summary>
+        public static string Enter {
+            get {
+                return ResourceManager.GetString("Enter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Exit 的本地化字符串。
+        /// </summary>
+        public static string Exit {
+            get {
+                return ResourceManager.GetString("Exit", resourceCulture);
             }
         }
         
@@ -583,6 +646,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Home team information 的本地化字符串。
+        /// </summary>
+        public static string HomeTeamInformation {
+            get {
+                return ResourceManager.GetString("HomeTeamInformation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Home team name 的本地化字符串。
         /// </summary>
         public static string HomeTeamName {
@@ -619,11 +691,29 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Hunter player 的本地化字符串。
+        /// </summary>
+        public static string HunterPlayer {
+            get {
+                return ResourceManager.GetString("HunterPlayer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Hunter score in game 的本地化字符串。
         /// </summary>
         public static string HunterScoreInGame {
             get {
                 return ResourceManager.GetString("HunterScoreInGame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Import from json file 的本地化字符串。
+        /// </summary>
+        public static string ImportFromJsonFile {
+            get {
+                return ResourceManager.GetString("ImportFromJsonFile", resourceCulture);
             }
         }
         
@@ -660,6 +750,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string IsGameFinished {
             get {
                 return ResourceManager.GetString("IsGameFinished", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 This is used for fast import. The example files are  neo-bpsys-wpf\Resources\队伍信息导入示例-xxx.json. Check the documentations for more details.  的本地化字符串。
+        /// </summary>
+        public static string JsonImportTip {
+            get {
+                return ResourceManager.GetString("JsonImportTip", resourceCulture);
             }
         }
         
@@ -907,6 +1006,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Remove photo 的本地化字符串。
+        /// </summary>
+        public static string RemovePhoto {
+            get {
+                return ResourceManager.GetString("RemovePhoto", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Reset all personalization settings 的本地化字符串。
         /// </summary>
         public static string ResetAllPersonalizationSettings {
@@ -1087,6 +1195,24 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Set photo 的本地化字符串。
+        /// </summary>
+        public static string SetPhoto {
+            get {
+                return ResourceManager.GetString("SetPhoto", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Set team logo 的本地化字符串。
+        /// </summary>
+        public static string SetTeamLogo {
+            get {
+                return ResourceManager.GetString("SetTeamLogo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Shift distance of total score when switching between BO3 and BO5 mode 的本地化字符串。
         /// </summary>
         public static string ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode {
@@ -1213,6 +1339,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Survivor player 的本地化字符串。
+        /// </summary>
+        public static string SurvivorPlayer {
+            get {
+                return ResourceManager.GetString("SurvivorPlayer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Survivor score in game 的本地化字符串。
         /// </summary>
         public static string SurvivorScoreInGame {
@@ -1227,6 +1362,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string SynchronizeToFrontend {
             get {
                 return ResourceManager.GetString("SynchronizeToFrontend", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Team name 的本地化字符串。
+        /// </summary>
+        public static string TeamName {
+            get {
+                return ResourceManager.GetString("TeamName", resourceCulture);
             }
         }
         
