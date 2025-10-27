@@ -1,4 +1,4 @@
-﻿
+
 using System.IO;
 
 namespace neo_bpsys_wpf.Core;
@@ -24,7 +24,7 @@ public static class AppConstants
     public static readonly string AppOutputPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), AppName);
     
     /// <summary>
-    /// 应用程序输出路径
+    /// 配置文件路径
     /// </summary>
     public static readonly string ConfigFilePath = Path.Combine(AppDataPath, "Config.json");
     
@@ -41,7 +41,7 @@ public static class AppConstants
     /// <summary>
     /// 日志路径
     /// </summary>
-    public static readonly string LogPath = Path.Combine(AppOutputPath, "Log");
+    public static readonly string LogPath = Path.Combine(AppDataPath, "Log");
 
     /// <summary>
     /// 资源文件路径
