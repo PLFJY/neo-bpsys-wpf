@@ -28,7 +28,7 @@
     </Page.Resources>
     <StackPanel Margin="10,0,10,0">
         <TextBlock
-            d:Text="{I18N {x:Static lang:LangKeys.LanguageSetting}}"
+            d:Text="语言设置"
             Style="{StaticResource Title}"
             Text="{I18N {x:Static lang:LangKeys.LanguageSetting}}" />
         <Border Margin="0,10,0,0" Style="{StaticResource Card}">

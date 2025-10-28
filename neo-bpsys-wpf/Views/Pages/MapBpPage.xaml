@@ -44,7 +44,7 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0">
-                    <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.MapSelection}}" />
+                    <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.MapPick}}" />
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                         <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.OperateTeam}}" />
                         <ComboBox

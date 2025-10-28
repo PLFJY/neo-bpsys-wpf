@@ -447,8 +447,8 @@
   <data name="ResetMapBP" xml:space="preserve">
     <value>Reset map BP</value>
   </data>
-  <data name="MapSelection" xml:space="preserve">
-    <value>Map selection</value>
+  <data name="MapPick" xml:space="preserve">
+    <value>Map pick</value>
   </data>
   <data name="OperateTeam" xml:space="preserve">
     <value>Operate team: </value>
@@ -605,5 +605,170 @@
   </data>
   <data name="CurrentPlayerOnStage" xml:space="preserve">
     <value>Current player on stage</value>
+  </data>
+  <data name="SurvivorTalent" xml:space="preserve">
+    <value>Survivor talent</value>
+  </data>
+  <data name="HunterTalent" xml:space="preserve">
+    <value>Hunter talent</value>
+  </data>
+  <data name="HunterTrait" xml:space="preserve">
+    <value>Hunter trait</value>
+  </data>
+  <data name="IsVisible" xml:space="preserve">
+    <value>Is visible</value>
+  </data>
+  <data name="Listen" xml:space="preserve">
+    <value>Listen</value>
+  </data>
+  <data name="Abnormal" xml:space="preserve">
+    <value>Abnormal</value>
+  </data>
+  <data name="Excitement" xml:space="preserve">
+    <value>Excitement</value>
+  </data>
+  <data name="Patroller" xml:space="preserve">
+    <value>Patroller</value>
+  </data>
+  <data name="Teleport" xml:space="preserve">
+    <value>Teleport</value>
+  </data>
+  <data name="Peeper" xml:space="preserve">
+    <value>Peeper</value>
+  </data>
+  <data name="Blink" xml:space="preserve">
+    <value>Blink</value>
+  </data>
+  <data name="Warp" xml:space="preserve">
+    <value>Warp</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="BackendManagement" xml:space="preserve">
+    <value>Backend management</value>
+  </data>
+  <data name="CurrentSurvivorTeamColon" xml:space="preserve">
+    <value>Current survivor team: </value>
+  </data>
+  <data name="ExchangeCamp" xml:space="preserve">
+    <value>Exchange camp</value>
+  </data>
+  <data name="CurrentHunterTeamColon" xml:space="preserve">
+    <value>Current hunter team:   </value>
+  </data>
+  <data name="CountDown" xml:space="preserve">
+    <value>Count down</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="PreviewColon" xml:space="preserve">
+    <value>Preview: </value>
+  </data>
+  <data name="SaveGameInformation" xml:space="preserve">
+    <value>Save game information</value>
+  </data>
+  <data name="NewGame" xml:space="preserve">
+    <value>New game</value>
+  </data>
+  <data name="FormatColon" xml:space="preserve">
+    <value>Format: </value>
+  </data>
+  <data name="GameProgressColon" xml:space="preserve">
+    <value>Game progress: </value>
+  </data>
+  <data name="StartGameGuidance" xml:space="preserve">
+    <value>Start game guidance</value>
+  </data>
+  <data name="LastStep" xml:space="preserve">
+    <value>Last step</value>
+  </data>
+  <data name="NextStep" xml:space="preserve">
+    <value>Next step</value>
+  </data>
+  <data name="EndGameGuidance" xml:space="preserve">
+    <value>End game guidance</value>
+  </data>
+  <data name="MadeByZeroPLFJY" xml:space="preserve">
+    <value>Made by Zero_PLFJY</value>
+  </data>
+  <data name="HomePage" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="TeamInfo" xml:space="preserve">
+    <value>Team Information</value>
+  </data>
+  <data name="BanHun" xml:space="preserve">
+    <value>Ban Hunter</value>
+  </data>
+  <data name="BanSur" xml:space="preserve">
+    <value>Ban Survivor</value>
+  </data>
+  <data name="Pick" xml:space="preserve">
+    <value>Character Selection</value>
+  </data>
+  <data name="Talent" xml:space="preserve">
+    <value>Talents &amp; Traits</value>
+  </data>
+  <data name="Score" xml:space="preserve">
+    <value>Score Control</value>
+  </data>
+  <data name="GameData" xml:space="preserve">
+    <value>Game Data</value>
+  </data>
+  <data name="FrontManage" xml:space="preserve">
+    <value>Frontend Management</value>
+  </data>
+  <data name="Extension" xml:space="preserve">
+    <value>Extensions</value>
+  </data>
+  <data name="Setting" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="FreeGame" xml:space="preserve">
+    <value>Free Game</value>
+  </data>
+  <data name="Game1FirstHalf" xml:space="preserve">
+    <value>Game 1 First Half</value>
+  </data>
+  <data name="Game1SecondHalf" xml:space="preserve">
+    <value>Game 1 Second Half</value>
+  </data>
+  <data name="Game2FirstHalf" xml:space="preserve">
+    <value>Game 2 First Half</value>
+  </data>
+  <data name="Game2SecondHalf" xml:space="preserve">
+    <value>Game 2 Second Half</value>
+  </data>
+  <data name="Game3FirstHalf" xml:space="preserve">
+    <value>Game 3 First Half</value>
+  </data>
+  <data name="Game3SecondHalf" xml:space="preserve">
+    <value>Game 3 Second Half</value>
+  </data>
+  <data name="Game3ExtraFirstHalf" xml:space="preserve">
+    <value>Game 3 Extra First Half</value>
+  </data>
+  <data name="Game3ExtraSecondHalf" xml:space="preserve">
+    <value>Game 3 Extra Second Half</value>
+  </data>
+  <data name="Game4FirstHalf" xml:space="preserve">
+    <value>Game 4 First Half</value>
+  </data>
+  <data name="Game4SecondHalf" xml:space="preserve">
+    <value>Game 4 Second Half</value>
+  </data>
+  <data name="Game5FirstHalf" xml:space="preserve">
+    <value>Game 5 First Half</value>
+  </data>
+  <data name="Game5SecondHalf" xml:space="preserve">
+    <value>Game 5 Second Half</value>
+  </data>
+  <data name="Game5ExtraFirstHalf" xml:space="preserve">
+    <value>Game 5 Extra First Half</value>
+  </data>
+  <data name="Game5ExtraSecondHalf" xml:space="preserve">
+    <value>Game 5 Extra Second Half</value>
   </data>
 </root>

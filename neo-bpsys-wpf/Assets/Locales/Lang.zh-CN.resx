@@ -274,7 +274,7 @@
     <value>自定义小组件窗口</value>
   </data>
   <data name="MapBP" xml:space="preserve">
-    <value>地图BP</value>
+    <value>地图禁选</value>
   </data>
   <data name="MapBPBackground" xml:space="preserve">
     <value>地图BP背景</value>
@@ -411,7 +411,7 @@
   <data name="ResetMapBP" xml:space="preserve">
     <value>重置地图BP</value>
   </data>
-  <data name="MapSelection" xml:space="preserve">
+  <data name="MapPick" xml:space="preserve">
     <value>地图选择</value>
   </data>
   <data name="OperateTeam" xml:space="preserve">
@@ -569,5 +569,170 @@
   </data>
   <data name="CurrentPlayerOnStage" xml:space="preserve">
     <value>当前上场选手</value>
+  </data>
+  <data name="SurvivorTalent" xml:space="preserve">
+    <value>求生者天赋</value>
+  </data>
+  <data name="HunterTalent" xml:space="preserve">
+    <value>监管者天赋</value>
+  </data>
+  <data name="HunterTrait" xml:space="preserve">
+    <value>监管者辅助特质</value>
+  </data>
+  <data name="IsVisible" xml:space="preserve">
+    <value>是否显示</value>
+  </data>
+  <data name="Listen" xml:space="preserve">
+    <value>聆听</value>
+  </data>
+  <data name="Abnormal" xml:space="preserve">
+    <value>失常</value>
+  </data>
+  <data name="Excitement" xml:space="preserve">
+    <value>兴奋</value>
+  </data>
+  <data name="Patroller" xml:space="preserve">
+    <value>巡视者</value>
+  </data>
+  <data name="Teleport" xml:space="preserve">
+    <value>传送</value>
+  </data>
+  <data name="Peeper" xml:space="preserve">
+    <value>窥视者</value>
+  </data>
+  <data name="Blink" xml:space="preserve">
+    <value>闪现</value>
+  </data>
+  <data name="Warp" xml:space="preserve">
+    <value>移形</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>启用</value>
+  </data>
+  <data name="BackendManagement" xml:space="preserve">
+    <value>后台管理</value>
+  </data>
+  <data name="CurrentSurvivorTeamColon" xml:space="preserve">
+    <value>当前求生者队伍：</value>
+  </data>
+  <data name="ExchangeCamp" xml:space="preserve">
+    <value>换边</value>
+  </data>
+  <data name="CurrentHunterTeamColon" xml:space="preserve">
+    <value>当前监管者队伍：</value>
+  </data>
+  <data name="CountDown" xml:space="preserve">
+    <value>倒计时</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>开始</value>
+  </data>
+  <data name="PreviewColon" xml:space="preserve">
+    <value>预览：</value>
+  </data>
+  <data name="SaveGameInformation" xml:space="preserve">
+    <value>保存当前对局进度</value>
+  </data>
+  <data name="NewGame" xml:space="preserve">
+    <value>新对局</value>
+  </data>
+  <data name="FormatColon" xml:space="preserve">
+    <value>赛制：</value>
+  </data>
+  <data name="GameProgressColon" xml:space="preserve">
+    <value>对局进度：</value>
+  </data>
+  <data name="StartGameGuidance" xml:space="preserve">
+    <value>开始对局引导</value>
+  </data>
+  <data name="LastStep" xml:space="preserve">
+    <value>上一步</value>
+  </data>
+  <data name="NextStep" xml:space="preserve">
+    <value>下一步</value>
+  </data>
+  <data name="EndGameGuidance" xml:space="preserve">
+    <value>结束对局引导</value>
+  </data>
+  <data name="MadeByZeroPLFJY" xml:space="preserve">
+    <value>Made by 零风PLFJY</value>
+  </data>
+  <data name="HomePage" xml:space="preserve">
+    <value>启动页</value>
+  </data>
+  <data name="TeamInfo" xml:space="preserve">
+    <value>队伍信息</value>
+  </data>
+  <data name="BanHun" xml:space="preserve">
+    <value>禁用监管者</value>
+  </data>
+  <data name="BanSur" xml:space="preserve">
+    <value>禁用求生者</value>
+  </data>
+  <data name="Pick" xml:space="preserve">
+    <value>选择角色</value>
+  </data>
+  <data name="Talent" xml:space="preserve">
+    <value>天赋特质</value>
+  </data>
+  <data name="Score" xml:space="preserve">
+    <value>比分控制</value>
+  </data>
+  <data name="GameData" xml:space="preserve">
+    <value>赛后数据</value>
+  </data>
+  <data name="FrontManage" xml:space="preserve">
+    <value>前台管理</value>
+  </data>
+  <data name="Extension" xml:space="preserve">
+    <value>扩展功能</value>
+  </data>
+  <data name="Setting" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="FreeGame" xml:space="preserve">
+    <value>自由对局</value>
+  </data>
+  <data name="Game1FirstHalf" xml:space="preserve">
+    <value>第1局上半</value>
+  </data>
+  <data name="Game1SecondHalf" xml:space="preserve">
+    <value>第1局下半</value>
+  </data>
+  <data name="Game2FirstHalf" xml:space="preserve">
+    <value>第2局上半</value>
+  </data>
+  <data name="Game2SecondHalf" xml:space="preserve">
+    <value>第2局下半</value>
+  </data>
+  <data name="Game3FirstHalf" xml:space="preserve">
+    <value>第3局上半</value>
+  </data>
+  <data name="Game3SecondHalf" xml:space="preserve">
+    <value>第3局下半</value>
+  </data>
+  <data name="Game3ExtraFirstHalf" xml:space="preserve">
+    <value>第3局加赛上半</value>
+  </data>
+  <data name="Game3ExtraSecondHalf" xml:space="preserve">
+    <value>第3局加赛下半</value>
+  </data>
+  <data name="Game4FirstHalf" xml:space="preserve">
+    <value>第4局上半</value>
+  </data>
+  <data name="Game4SecondHalf" xml:space="preserve">
+    <value>第4局下半</value>
+  </data>
+  <data name="Game5FirstHalf" xml:space="preserve">
+    <value>第5局上半</value>
+  </data>
+  <data name="Game5SecondHalf" xml:space="preserve">
+    <value>第5局下半</value>
+  </data>
+  <data name="Game5ExtraFirstHalf" xml:space="preserve">
+    <value>第5局加赛上半</value>
+  </data>
+  <data name="Game5ExtraSecondHalf" xml:space="preserve">
+    <value>第5局加赛下半</value>
   </data>
 </root>

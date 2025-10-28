@@ -7,11 +7,12 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:lang="clr-namespace:neo_bpsys_wpf.Assets.Locales"
     xmlns:local="clr-namespace:neo_bpsys_wpf"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
-    Title="后台控制"
+    Title="{I18N {x:Static lang:LangKeys.BackendManagement}}"
     Width="910"
     Height="780"
     d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel,
@@ -138,7 +139,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Orientation="Horizontal">
-                            <TextBlock Text="当前求生者队伍:" />
+                            <TextBlock Text="{I18N {x:Static lang:LangKeys.CurrentSurvivorTeamColon}}" />
                             <TextBlock Margin="20,0,0,0" Text="{Binding CurrentGame.SurTeam.Name}" />
                         </StackPanel>
                         <ui:Button
@@ -146,7 +147,7 @@
                             Margin="0,10,0,10"
                             HorizontalAlignment="Center"
                             Command="{Binding SwapCommand}"
-                            Content="换边"
+                            Content="{I18N {x:Static lang:LangKeys.ExchangeCamp}}"
                             Icon="{ui:SymbolIcon Symbol=ArrowSort24}">
                             <i:Interaction.Triggers>
                                 <i:DataTrigger Binding="{Binding IsSwapHighlighted}" Value="true">
@@ -158,7 +159,7 @@
                             </i:Interaction.Triggers>
                         </ui:Button>
                         <StackPanel Grid.Row="2" Orientation="Horizontal">
-                            <TextBlock Text="当前监管者队伍:" />
+                            <TextBlock Text="{I18N {x:Static lang:LangKeys.CurrentHunterTeamColon}}" />
                             <TextBlock Margin="20,0,0,0" Text="{Binding CurrentGame.HunTeam.Name}" />
                         </StackPanel>
                     </Grid>
@@ -170,7 +171,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text="倒计时（单位：秒 ; 可自定义, 下拉框给出的是预设）" />
+                        <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.CountDown}}" />
                         <StackPanel
                             Grid.Row="1"
                             Margin="0,10,0,0"
@@ -188,18 +189,18 @@
                             <ui:Button
                                 Margin="10,0,0,0"
                                 Command="{Binding TimerStartCommand}"
-                                Content="开始"
+                                Content="{I18N {x:Static lang:LangKeys.Start}}"
                                 Icon="{ui:SymbolIcon Symbol=Play24}" />
                             <ui:Button
                                 Margin="10,0,0,0"
                                 Command="{Binding TimerStopCommand}"
-                                Content="停止 (恢复 VS)"
+                                Content="{I18N {x:Static lang:LangKeys.Stop}}"
                                 Icon="{ui:SymbolIcon Symbol=Stop24}" />
                             <TextBlock
-                                Width="35"
+                                Width="60"
                                 Margin="10,0,0,0"
                                 VerticalAlignment="Center"
-                                Text="预览：" />
+                                Text="{I18N {x:Static lang:LangKeys.PreviewColon}}" />
                             <TextBlock
                                 Width="25"
                                 Margin="10,0,0,0"
@@ -213,19 +214,19 @@
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding SaveGameInfoCommand}"
-                    Content="保存当前对局信息到本地"
+                    Content="{I18N {x:Static lang:LangKeys.SaveGameInformation}}"
                     Icon="{ui:SymbolIcon Symbol=Save24}" />
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding NewGameCommand}"
-                    Content="新对局 (重置)"
+                    Content="{I18N {x:Static lang:LangKeys.NewGame}}"
                     Icon="{ui:SymbolIcon Symbol=Add24}" />
                 <Border Margin="0,0,10,10" Style="{StaticResource Card}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock
                             Grid.Row="0"
                             VerticalAlignment="Center"
-                            Text="赛制:" />
+                            Text="{I18N {x:Static lang:LangKeys.FormatColon}}" />
                         <RadioButton
                             Margin="10,0,0,0"
                             Content="BO5"
@@ -242,7 +243,7 @@
                 <TextBlock
                     Margin="0,0,10,10"
                     VerticalAlignment="Center"
-                    Text="对局进度：" />
+                    Text="{I18N {x:Static lang:LangKeys.GameProgressColon}}" />
                 <ComboBox
                     Width="150"
                     Margin="0,0,10,10"
@@ -256,22 +257,22 @@
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding StartNavigationCommand}"
-                    Content="开始对局引导"
+                    Content="{I18N {x:Static lang:LangKeys.StartGameGuidance}}"
                     Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding NavigateToPreviousStepCommand}"
-                    Content="上一步"
+                    Content="{I18N {x:Static lang:LangKeys.LastStep}}"
                     Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding NavigateToNextStepCommand}"
-                    Content="下一步"
+                    Content="{I18N {x:Static lang:LangKeys.NextStep}}"
                     Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding StopNavigationCommand}"
-                    Content="结束对局引导"
+                    Content="{I18N {x:Static lang:LangKeys.EndGameGuidance}}"
                     Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}">
                     <i:Interaction.Triggers>
                         <i:DataTrigger Binding="{Binding IsEndGuidanceHighlighted}" Value="true">
@@ -341,7 +342,7 @@
                     HorizontalAlignment="Center"
                     FontFamily="{StaticResource SourceHan}"
                     FontSize="16"
-                    Text="一个第五人格直播BP展示工具" />
+                    Text="{I18N {x:Static lang:LangKeys.AModernIdentityVBPSoftware}}" />
                 <ProgressBar
                     Name="loadingProgress"
                     Width="500"
@@ -358,7 +359,7 @@
                 VerticalAlignment="Bottom"
                 FontFamily="{StaticResource SourceHan}"
                 FontSize="14"
-                Text="Made By 零风PLFJY" />
+                Text="{I18N {x:Static lang:LangKeys.MadeByZeroPLFJY}}" />
         </Grid>
     </Grid>
 </ui:FluentWindow>

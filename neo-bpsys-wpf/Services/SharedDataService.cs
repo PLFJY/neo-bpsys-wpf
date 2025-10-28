@@ -274,7 +274,7 @@ public partial class SharedDataService : ISharedDataService
 
     public void TimerStop()
     {
-        _remainingSeconds = 0;
+        _remainingSeconds = -1;
         _timer.Stop();
         CountDownValueChanged?.Invoke(this, EventArgs.Empty);
         _logger.LogInformation("Timer stopped");
