@@ -735,4 +735,34 @@
   <data name="Game5ExtraSecondHalf" xml:space="preserve">
     <value>Game 5 Extra Second Half</value>
   </data>
+  <data name="DecodingProgress" xml:space="preserve">
+    <value>Decoding progress</value>
+  </data>
+  <data name="PalletStrikes" xml:space="preserve">
+    <value>Pallet strikes</value>
+  </data>
+  <data name="Rescues" xml:space="preserve">
+    <value>Rescues</value>
+  </data>
+  <data name="Heals" xml:space="preserve">
+    <value>Heals</value>
+  </data>
+  <data name="ContainmentTime" xml:space="preserve">
+    <value>Containment time</value>
+  </data>
+  <data name="RemainingCiphers" xml:space="preserve">
+    <value>Remaining ciphers</value>
+  </data>
+  <data name="PalletDestroyed" xml:space="preserve">
+    <value>Pallet destroyed</value>
+  </data>
+  <data name="SurvivorHits" xml:space="preserve">
+    <value>Survivor hits</value>
+  </data>
+  <data name="TerrorShocks" xml:space="preserve">
+    <value>Terror shocks</value>
+  </data>
+  <data name="Knockdowns" xml:space="preserve">
+    <value>Knockdowns</value>
+  </data>
 </root>

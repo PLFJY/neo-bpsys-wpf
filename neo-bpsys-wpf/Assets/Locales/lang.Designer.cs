@@ -304,6 +304,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Containment time 的本地化字符串。
+        /// </summary>
+        public static string ContainmentTime {
+            get {
+                return ResourceManager.GetString("ContainmentTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Contributor list 的本地化字符串。
         /// </summary>
         public static string ContributorList {
@@ -462,6 +471,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string DebugOptions {
             get {
                 return ResourceManager.GetString("DebugOptions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Decoding progress 的本地化字符串。
+        /// </summary>
+        public static string DecodingProgress {
+            get {
+                return ResourceManager.GetString("DecodingProgress", resourceCulture);
             }
         }
         
@@ -925,6 +943,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Heals 的本地化字符串。
+        /// </summary>
+        public static string Heals {
+            get {
+                return ResourceManager.GetString("Heals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Home 的本地化字符串。
         /// </summary>
         public static string HomePage {
@@ -1083,6 +1110,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string JsonImportTip {
             get {
                 return ResourceManager.GetString("JsonImportTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Knockdowns 的本地化字符串。
+        /// </summary>
+        public static string Knockdowns {
+            get {
+                return ResourceManager.GetString("Knockdowns", resourceCulture);
             }
         }
         
@@ -1294,6 +1330,24 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Pallet destroyed 的本地化字符串。
+        /// </summary>
+        public static string PalletDestroyed {
+            get {
+                return ResourceManager.GetString("PalletDestroyed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Pallet strikes 的本地化字符串。
+        /// </summary>
+        public static string PalletStrikes {
+            get {
+                return ResourceManager.GetString("PalletStrikes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Patroller 的本地化字符串。
         /// </summary>
         public static string Patroller {
@@ -1411,11 +1465,29 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Remaining ciphers 的本地化字符串。
+        /// </summary>
+        public static string RemainingCiphers {
+            get {
+                return ResourceManager.GetString("RemainingCiphers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Remove photo 的本地化字符串。
         /// </summary>
         public static string RemovePhoto {
             get {
                 return ResourceManager.GetString("RemovePhoto", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Rescues 的本地化字符串。
+        /// </summary>
+        public static string Rescues {
+            get {
+                return ResourceManager.GetString("Rescues", resourceCulture);
             }
         }
         
@@ -1735,6 +1807,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Survivor hits 的本地化字符串。
+        /// </summary>
+        public static string SurvivorHits {
+            get {
+                return ResourceManager.GetString("SurvivorHits", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Survivor icon(Map BP V2) 的本地化字符串。
         /// </summary>
         public static string SurvivorIconOfMapBPV2 {
@@ -1857,6 +1938,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string Teleport {
             get {
                 return ResourceManager.GetString("Teleport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Terror shocks 的本地化字符串。
+        /// </summary>
+        public static string TerrorShocks {
+            get {
+                return ResourceManager.GetString("TerrorShocks", resourceCulture);
             }
         }
         

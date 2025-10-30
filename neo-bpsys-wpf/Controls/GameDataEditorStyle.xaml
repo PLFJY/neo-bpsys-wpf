@@ -3,6 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:lang="clr-namespace:neo_bpsys_wpf.Assets.Locales"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
@@ -14,86 +15,86 @@
                         <!--  Sur  -->
                         <StackPanel Visibility="{TemplateBinding IsHunMode, Converter={StaticResource BooleanToReverseVisibilityConverter}}">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="破译进度" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.DecodingProgress}}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="破译进度"
+                                    PlaceholderText="{I18N {x:Static lang:LangKeys.DecodingProgress}}"
                                     Text="{Binding PlayerData.MachineDecoded, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="砸板命中次数" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.PalletStrikes}}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="砸板命中次数"
+                                    PlaceholderText="{I18N {x:Static lang:LangKeys.PalletStrikes}}"
                                     Text="{Binding PlayerData.PalletStunTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="救人次数" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.Rescues}}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="救人次数"
+                                    PlaceholderText="{I18N {x:Static lang:LangKeys.Rescues}}"
                                     Text="{Binding PlayerData.RescueTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="治疗次数" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.Heals}}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="治疗次数"
+                                    PlaceholderText="{I18N {x:Static lang:LangKeys.Heals}}"
                                     Text="{Binding PlayerData.HealedTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="牵制时间" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.ContainmentTime}}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="牵制时间"
+                                    PlaceholderText="{I18N {x:Static lang:LangKeys.ContainmentTime}}"
                                     Text="{Binding PlayerData.KiteTime, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                         </StackPanel>
                         <!--  Hun  -->
                         <StackPanel Visibility="{TemplateBinding IsHunMode, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="剩余密码机数量" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.RemainingCiphers}}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="剩余密码机数量"
+                                    PlaceholderText="{I18N {x:Static lang:LangKeys.RemainingCiphers}}"
                                     Text="{Binding PlayerData.MachineLeft, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="破坏板子数" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.PalletDestroyed}}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="破坏板子数"
+                                    PlaceholderText="{I18N {x:Static lang:LangKeys.PalletDestroyed}}"
                                     Text="{Binding PlayerData.PalletBroken, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="命中求生者次数" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.SurvivorHits}}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="命中求生者次数"
+                                    PlaceholderText="{I18N {x:Static lang:LangKeys.SurvivorHits}}"
                                     Text="{Binding PlayerData.HitTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="恐惧震慑次数" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.TerrorShocks}}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="恐惧震慑次数"
+                                    PlaceholderText="{I18N {x:Static lang:LangKeys.TerrorShocks}}"
                                     Text="{Binding PlayerData.TerrorShockTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="击倒次数" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.Knockdowns}}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="击倒次数"
+                                    PlaceholderText="Knockdowns"
                                     Text="{Binding PlayerData.DownTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                         </StackPanel>

@@ -735,4 +735,31 @@
   <data name="Game5ExtraSecondHalf" xml:space="preserve">
     <value>第5局加赛下半</value>
   </data>
+  <data name="DecodingProgress" xml:space="preserve">
+    <value>破译进度</value>
+  </data>
+  <data name="PalletStrikes" xml:space="preserve">
+    <value>砸板命中次数</value>
+  </data>
+  <data name="Rescues" xml:space="preserve">
+    <value>救人次数</value>
+  </data>
+  <data name="Heals" xml:space="preserve">
+    <value>治疗次数</value>
+  </data>
+  <data name="ContainmentTime" xml:space="preserve">
+    <value>牵制时长</value>
+  </data>
+  <data name="RemainingCiphers" xml:space="preserve">
+    <value>剩余密码机数量</value>
+  </data>
+  <data name="PalletDestroyed" xml:space="preserve">
+    <value>破坏板子数</value>
+  </data>
+  <data name="SurvivorHits" xml:space="preserve">
+    <value>命中求生者次数</value>
+  </data>
+  <data name="TerrorShocks" xml:space="preserve">
+    <value>恐惧震慑次数</value>
+  </data>
 </root>
