@@ -753,8 +753,8 @@
   <data name="RemainingCiphers" xml:space="preserve">
     <value>Remaining ciphers</value>
   </data>
-  <data name="PalletDestroyed" xml:space="preserve">
-    <value>Pallet destroyed</value>
+  <data name="PalletsDestroyed" xml:space="preserve">
+    <value>Pallets destroyed</value>
   </data>
   <data name="SurvivorHits" xml:space="preserve">
     <value>Survivor hits</value>

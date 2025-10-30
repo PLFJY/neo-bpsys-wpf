@@ -399,7 +399,7 @@
                     d:Foreground="White"
                     d:Text="25"
                     Style="{StaticResource SurData}"
-                    Text="{Binding CurrentGame.SurPlayerList[0].Data.MachineDecoded}" />
+                    Text="{Binding CurrentGame.SurPlayerList[0].Data.DecodingProgress}" />
                 <TextBlock
                     d:FontFamily="{StaticResource POP1W5}"
                     d:FontSize="22"
@@ -424,7 +424,7 @@
                     d:Foreground="White"
                     d:Text="25"
                     Style="{StaticResource SurData}"
-                    Text="{Binding CurrentGame.SurPlayerList[1].Data.MachineDecoded}" />
+                    Text="{Binding CurrentGame.SurPlayerList[1].Data.DecodingProgress}" />
                 <TextBlock
                     d:FontFamily="{StaticResource POP1W5}"
                     d:FontSize="22"
@@ -449,7 +449,7 @@
                     d:Foreground="White"
                     d:Text="25"
                     Style="{StaticResource SurData}"
-                    Text="{Binding CurrentGame.SurPlayerList[2].Data.MachineDecoded}" />
+                    Text="{Binding CurrentGame.SurPlayerList[2].Data.DecodingProgress}" />
                 <TextBlock
                     d:FontFamily="{StaticResource POP1W5}"
                     d:FontSize="22"
@@ -474,7 +474,7 @@
                     d:Foreground="White"
                     d:Text="25"
                     Style="{StaticResource SurData}"
-                    Text="{Binding CurrentGame.SurPlayerList[3].Data.MachineDecoded}" />
+                    Text="{Binding CurrentGame.SurPlayerList[3].Data.DecodingProgress}" />
                 <TextBlock
                     d:FontFamily="{StaticResource POP1W5}"
                     d:FontSize="22"
@@ -496,7 +496,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
-                Text="{Binding CurrentGame.SurPlayerList[0].Data.PalletStunTimes}" />
+                Text="{Binding CurrentGame.SurPlayerList[0].Data.PalletStrikes}" />
         </Border>
         <Border
             Name="Sur1PalletStunTimes"
@@ -510,7 +510,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
-                Text="{Binding CurrentGame.SurPlayerList[1].Data.PalletStunTimes}" />
+                Text="{Binding CurrentGame.SurPlayerList[1].Data.PalletStrikes}" />
         </Border>
         <Border
             Name="Sur2PalletStunTimes"
@@ -524,7 +524,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
-                Text="{Binding CurrentGame.SurPlayerList[2].Data.PalletStunTimes}" />
+                Text="{Binding CurrentGame.SurPlayerList[2].Data.PalletStrikes}" />
         </Border>
         <Border
             Name="Sur3PalletStunTimes"
@@ -538,7 +538,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
-                Text="{Binding CurrentGame.SurPlayerList[3].Data.PalletStunTimes}" />
+                Text="{Binding CurrentGame.SurPlayerList[3].Data.PalletStrikes}" />
         </Border>
         <!--  救人次数  -->
         <Border
@@ -553,7 +553,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
-                Text="{Binding CurrentGame.SurPlayerList[0].Data.RescueTimes}" />
+                Text="{Binding CurrentGame.SurPlayerList[0].Data.Rescues}" />
         </Border>
         <Border
             Name="Sur1RescueTimes"
@@ -567,7 +567,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
-                Text="{Binding CurrentGame.SurPlayerList[1].Data.RescueTimes}" />
+                Text="{Binding CurrentGame.SurPlayerList[1].Data.Rescues}" />
         </Border>
         <Border
             Name="Sur2RescueTimes"
@@ -581,7 +581,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
-                Text="{Binding CurrentGame.SurPlayerList[2].Data.RescueTimes}" />
+                Text="{Binding CurrentGame.SurPlayerList[2].Data.Rescues}" />
         </Border>
         <Border
             Name="Sur3RescueTimes"
@@ -595,7 +595,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
-                Text="{Binding CurrentGame.SurPlayerList[3].Data.RescueTimes}" />
+                Text="{Binding CurrentGame.SurPlayerList[3].Data.Rescues}" />
         </Border>
         <!--  治疗次数  -->
         <Border
@@ -610,7 +610,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
-                Text="{Binding CurrentGame.SurPlayerList[0].Data.HealedTimes}" />
+                Text="{Binding CurrentGame.SurPlayerList[0].Data.Heals}" />
         </Border>
         <Border
             Name="Sur1HealedTimes"
@@ -624,7 +624,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
-                Text="{Binding CurrentGame.SurPlayerList[1].Data.HealedTimes}" />
+                Text="{Binding CurrentGame.SurPlayerList[1].Data.Heals}" />
         </Border>
         <Border
             Name="Sur2HealedTimes"
@@ -638,7 +638,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
-                Text="{Binding CurrentGame.SurPlayerList[2].Data.HealedTimes}" />
+                Text="{Binding CurrentGame.SurPlayerList[2].Data.Heals}" />
         </Border>
         <Border
             Name="Sur3HealedTimes"
@@ -652,7 +652,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
-                Text="{Binding CurrentGame.SurPlayerList[3].Data.HealedTimes}" />
+                Text="{Binding CurrentGame.SurPlayerList[3].Data.Heals}" />
         </Border>
         <!--  牵制时间  -->
         <Border
@@ -667,7 +667,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
-                Text="{Binding CurrentGame.SurPlayerList[0].Data.KiteTime}" />
+                Text="{Binding CurrentGame.SurPlayerList[0].Data.ContainmentTime}" />
         </Border>
         <Border
             Name="Sur1KiteTime"
@@ -681,7 +681,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
-                Text="{Binding CurrentGame.SurPlayerList[1].Data.KiteTime}" />
+                Text="{Binding CurrentGame.SurPlayerList[1].Data.ContainmentTime}" />
         </Border>
         <Border
             Name="Sur2KiteTime"
@@ -695,7 +695,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
-                Text="{Binding CurrentGame.SurPlayerList[2].Data.KiteTime}" />
+                Text="{Binding CurrentGame.SurPlayerList[2].Data.ContainmentTime}" />
         </Border>
         <Border
             Name="Sur3KiteTime"
@@ -709,7 +709,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource SurData}"
-                Text="{Binding CurrentGame.SurPlayerList[3].Data.KiteTime}" />
+                Text="{Binding CurrentGame.SurPlayerList[3].Data.ContainmentTime}" />
         </Border>
         <Border
             Name="HunImage"
@@ -753,7 +753,7 @@
                 d:Foreground="White"
                 d:Text="1"
                 Style="{StaticResource HunData}"
-                Text="{Binding CurrentGame.HunPlayer.Data.MachineLeft}" />
+                Text="{Binding CurrentGame.HunPlayer.Data.RemainingCipher}" />
         </Border>
         <!--  破坏板子数  -->
         <Border
@@ -768,7 +768,7 @@
                 d:Foreground="White"
                 d:Text="8"
                 Style="{StaticResource HunData}"
-                Text="{Binding CurrentGame.HunPlayer.Data.PalletBroken}" />
+                Text="{Binding CurrentGame.HunPlayer.Data.PalletsDestroyed}" />
         </Border>
         <!--  命中求生者次数  -->
         <Border
@@ -783,7 +783,7 @@
                 d:Foreground="White"
                 d:Text="16"
                 Style="{StaticResource HunData}"
-                Text="{Binding CurrentGame.HunPlayer.Data.HitTimes}" />
+                Text="{Binding CurrentGame.HunPlayer.Data.SurvivorHits}" />
         </Border>
         <!--  恐惧震慑次数  -->
         <Border
@@ -798,7 +798,7 @@
                 d:Foreground="White"
                 d:Text="0"
                 Style="{StaticResource HunData}"
-                Text="{Binding CurrentGame.HunPlayer.Data.TerrorShockTimes}" />
+                Text="{Binding CurrentGame.HunPlayer.Data.TerrorShocks}" />
         </Border>
         <!--  击倒次数  -->
         <Border
@@ -813,7 +813,7 @@
                 d:Foreground="White"
                 d:Text="0"
                 Style="{StaticResource HunData}"
-                Text="{Binding CurrentGame.HunPlayer.Data.DownTimes}" />
+                Text="{Binding CurrentGame.HunPlayer.Data.Knockdowns}" />
         </Border>
     </Canvas>
 </Window>

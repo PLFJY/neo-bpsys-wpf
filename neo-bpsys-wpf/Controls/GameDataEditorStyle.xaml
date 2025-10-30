@@ -20,7 +20,7 @@
                                     Width="150"
                                     Margin="10,0,0,0"
                                     PlaceholderText="{I18N {x:Static lang:LangKeys.DecodingProgress}}"
-                                    Text="{Binding PlayerData.MachineDecoded, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    Text="{Binding PlayerData.DecodingProgress, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                                 <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.PalletStrikes}}" />
@@ -28,7 +28,7 @@
                                     Width="150"
                                     Margin="10,0,0,0"
                                     PlaceholderText="{I18N {x:Static lang:LangKeys.PalletStrikes}}"
-                                    Text="{Binding PlayerData.PalletStunTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    Text="{Binding PlayerData.PalletStrikes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                                 <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.Rescues}}" />
@@ -36,7 +36,7 @@
                                     Width="150"
                                     Margin="10,0,0,0"
                                     PlaceholderText="{I18N {x:Static lang:LangKeys.Rescues}}"
-                                    Text="{Binding PlayerData.RescueTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    Text="{Binding PlayerData.Rescues, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                                 <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.Heals}}" />
@@ -44,7 +44,7 @@
                                     Width="150"
                                     Margin="10,0,0,0"
                                     PlaceholderText="{I18N {x:Static lang:LangKeys.Heals}}"
-                                    Text="{Binding PlayerData.HealedTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    Text="{Binding PlayerData.Heals, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                                 <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.ContainmentTime}}" />
@@ -52,7 +52,7 @@
                                     Width="150"
                                     Margin="10,0,0,0"
                                     PlaceholderText="{I18N {x:Static lang:LangKeys.ContainmentTime}}"
-                                    Text="{Binding PlayerData.KiteTime, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    Text="{Binding PlayerData.ContainmentTime, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                         </StackPanel>
                         <!--  Hun  -->
@@ -63,15 +63,15 @@
                                     Width="150"
                                     Margin="10,0,0,0"
                                     PlaceholderText="{I18N {x:Static lang:LangKeys.RemainingCiphers}}"
-                                    Text="{Binding PlayerData.MachineLeft, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    Text="{Binding PlayerData.RemainingCipher, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.PalletDestroyed}}" />
+                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.PalletsDestroyed}}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="{I18N {x:Static lang:LangKeys.PalletDestroyed}}"
-                                    Text="{Binding PlayerData.PalletBroken, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    PlaceholderText="{I18N {x:Static lang:LangKeys.PalletsDestroyed}}"
+                                    Text="{Binding PlayerData.PalletsDestroyed, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                                 <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.SurvivorHits}}" />
@@ -79,7 +79,7 @@
                                     Width="150"
                                     Margin="10,0,0,0"
                                     PlaceholderText="{I18N {x:Static lang:LangKeys.SurvivorHits}}"
-                                    Text="{Binding PlayerData.HitTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    Text="{Binding PlayerData.SurvivorHits, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                                 <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.TerrorShocks}}" />
@@ -87,15 +87,15 @@
                                     Width="150"
                                     Margin="10,0,0,0"
                                     PlaceholderText="{I18N {x:Static lang:LangKeys.TerrorShocks}}"
-                                    Text="{Binding PlayerData.TerrorShockTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    Text="{Binding PlayerData.TerrorShocks, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                                 <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.Knockdowns}}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="Knockdowns"
-                                    Text="{Binding PlayerData.DownTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    PlaceholderText="{I18N {x:Static lang:LangKeys.Knockdowns}}"
+                                    Text="{Binding PlayerData.Knockdowns, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                         </StackPanel>
                     </Grid>

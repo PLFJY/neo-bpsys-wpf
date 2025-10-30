@@ -753,7 +753,7 @@
   <data name="RemainingCiphers" xml:space="preserve">
     <value>剩余密码机数量</value>
   </data>
-  <data name="PalletDestroyed" xml:space="preserve">
+  <data name="PalletsDestroyed" xml:space="preserve">
     <value>破坏板子数</value>
   </data>
   <data name="SurvivorHits" xml:space="preserve">
@@ -761,5 +761,8 @@
   </data>
   <data name="TerrorShocks" xml:space="preserve">
     <value>恐惧震慑次数</value>
+  </data>
+  <data name="Knockdowns" xml:space="preserve">
+    <value>击倒次数</value>
   </data>
 </root>

@@ -1330,11 +1330,11 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 Pallet destroyed 的本地化字符串。
+        ///   查找类似 Pallets destroyed 的本地化字符串。
         /// </summary>
-        public static string PalletDestroyed {
+        public static string PalletsDestroyed {
             get {
-                return ResourceManager.GetString("PalletDestroyed", resourceCulture);
+                return ResourceManager.GetString("PalletsDestroyed", resourceCulture);
             }
         }
         

@@ -13,31 +13,31 @@ public partial class PlayerData : ViewModelBase
     /// 破译进度
     /// </summary>
     [ObservableProperty]
-    private string _machineDecoded = string.Empty; // 破译进度
+    private string _decodingProgress = string.Empty; // 破译进度
 
     /// <summary>
     /// 砸板命中次数
     /// </summary>
     [ObservableProperty]
-    private string _palletStunTimes = string.Empty; // 砸板命中次数
+    private string _palletStrikes = string.Empty; // 砸板命中次数
 
     /// <summary>
     /// 救人次数
     /// </summary>
     [ObservableProperty]
-    private string _rescueTimes = string.Empty; // 救人次数
+    private string _rescues = string.Empty; // 救人次数
 
     /// <summary>
     /// 治疗次数
     /// </summary>
     [ObservableProperty]
-    private string _healedTimes = string.Empty; // 治疗次数
+    private string _heals = string.Empty; // 治疗次数
 
     /// <summary>
     /// 牵制时间
     /// </summary>
     [ObservableProperty]
-    private string _kiteTime = string.Empty; // 牵制时间
+    private string _containmentTime = string.Empty; // 牵制时间
 
     #endregion
     #region Hun
@@ -45,31 +45,31 @@ public partial class PlayerData : ViewModelBase
     /// 剩余密码机数量
     /// </summary>
     [ObservableProperty]
-    private string _machineLeft = string.Empty; // 剩余密码机数量
+    private string _remainingCipher = string.Empty; // 剩余密码机数量
 
     /// <summary>
     /// 破坏板子数
     /// </summary>
     [ObservableProperty]
-    private string _palletBroken = string.Empty; // 破坏板子数
+    private string _palletsDestroyed = string.Empty; // 破坏板子数
 
     /// <summary>
     /// 命中求生者次数
     /// </summary>
     [ObservableProperty]
-    private string _hitTimes = string.Empty; // 命中求生者次数
+    private string _survivorHits = string.Empty; // 命中求生者次数
 
     /// <summary>
     /// 恐惧震慑次数
     /// </summary>
     [ObservableProperty]
-    private string _terrorShockTimes = string.Empty; // 恐惧震慑次数
+    private string _terrorShocks = string.Empty; // 恐惧震慑次数
 
     /// <summary>
     /// 击倒次数
     /// </summary>
     [ObservableProperty]
-    private string _downTimes = string.Empty; // 击倒次数
+    private string _knockdowns = string.Empty; // 击倒次数
     
     #endregion
 }
