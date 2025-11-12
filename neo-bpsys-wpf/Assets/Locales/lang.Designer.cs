@@ -144,9 +144,9 @@ namespace neo_bpsys_wpf.Assets.Locales {
         /// <summary>
         ///   查找类似 Ban Hunter 的本地化字符串。
         /// </summary>
-        public static string BanHun {
+        public static string BanHunter {
             get {
-                return ResourceManager.GetString("BanHun", resourceCulture);
+                return ResourceManager.GetString("BanHunter", resourceCulture);
             }
         }
         
@@ -162,9 +162,9 @@ namespace neo_bpsys_wpf.Assets.Locales {
         /// <summary>
         ///   查找类似 Ban Survivor 的本地化字符串。
         /// </summary>
-        public static string BanSur {
+        public static string BanSurvivor {
             get {
-                return ResourceManager.GetString("BanSur", resourceCulture);
+                return ResourceManager.GetString("BanSurvivor", resourceCulture);
             }
         }
         
@@ -666,9 +666,9 @@ namespace neo_bpsys_wpf.Assets.Locales {
         /// <summary>
         ///   查找类似 Extensions 的本地化字符串。
         /// </summary>
-        public static string Extension {
+        public static string Extensions {
             get {
-                return ResourceManager.GetString("Extension", resourceCulture);
+                return ResourceManager.GetString("Extensions", resourceCulture);
             }
         }
         
@@ -711,9 +711,9 @@ namespace neo_bpsys_wpf.Assets.Locales {
         /// <summary>
         ///   查找类似 Frontend Management 的本地化字符串。
         /// </summary>
-        public static string FrontManage {
+        public static string FrontendManagement {
             get {
-                return ResourceManager.GetString("FrontManage", resourceCulture);
+                return ResourceManager.GetString("FrontendManagement", resourceCulture);
             }
         }
         
@@ -1366,11 +1366,11 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 Character Selection 的本地化字符串。
+        ///   查找类似 Pick Character 的本地化字符串。
         /// </summary>
-        public static string Pick {
+        public static string PickCharacter {
             get {
-                return ResourceManager.GetString("Pick", resourceCulture);
+                return ResourceManager.GetString("PickCharacter", resourceCulture);
             }
         }
         
@@ -1627,20 +1627,20 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 Score Control 的本地化字符串。
-        /// </summary>
-        public static string Score {
-            get {
-                return ResourceManager.GetString("Score", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Score conponent 的本地化字符串。
         /// </summary>
         public static string ScoreConponent {
             get {
                 return ResourceManager.GetString("ScoreConponent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Score Control 的本地化字符串。
+        /// </summary>
+        public static string ScoreControl {
+            get {
+                return ResourceManager.GetString("ScoreControl", resourceCulture);
             }
         }
         
@@ -1710,9 +1710,9 @@ namespace neo_bpsys_wpf.Assets.Locales {
         /// <summary>
         ///   查找类似 Settings 的本地化字符串。
         /// </summary>
-        public static string Setting {
+        public static string Settings {
             get {
-                return ResourceManager.GetString("Setting", resourceCulture);
+                return ResourceManager.GetString("Settings", resourceCulture);
             }
         }
         
@@ -1906,11 +1906,11 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 Talents &amp; Traits 的本地化字符串。
+        ///   查找类似 Talent &amp; Trait 的本地化字符串。
         /// </summary>
-        public static string Talent {
+        public static string TalentAndTrait {
             get {
-                return ResourceManager.GetString("Talent", resourceCulture);
+                return ResourceManager.GetString("TalentAndTrait", resourceCulture);
             }
         }
         

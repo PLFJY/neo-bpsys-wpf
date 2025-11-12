@@ -663,31 +663,31 @@
   <data name="TeamInfo" xml:space="preserve">
     <value>队伍信息</value>
   </data>
-  <data name="BanHun" xml:space="preserve">
+  <data name="BanHunter" xml:space="preserve">
     <value>禁用监管者</value>
   </data>
-  <data name="BanSur" xml:space="preserve">
+  <data name="BanSurvivor" xml:space="preserve">
     <value>禁用求生者</value>
   </data>
-  <data name="Pick" xml:space="preserve">
+  <data name="PickCharacter" xml:space="preserve">
     <value>选择角色</value>
   </data>
-  <data name="Talent" xml:space="preserve">
+  <data name="TalentAndTrait" xml:space="preserve">
     <value>天赋特质</value>
   </data>
-  <data name="Score" xml:space="preserve">
+  <data name="ScoreControl" xml:space="preserve">
     <value>比分控制</value>
   </data>
   <data name="GameData" xml:space="preserve">
     <value>赛后数据</value>
   </data>
-  <data name="FrontManage" xml:space="preserve">
+  <data name="FrontendManagement" xml:space="preserve">
     <value>前台管理</value>
   </data>
-  <data name="Extension" xml:space="preserve">
+  <data name="Extensions" xml:space="preserve">
     <value>扩展功能</value>
   </data>
-  <data name="Setting" xml:space="preserve">
+  <data name="Settings" xml:space="preserve">
     <value>设置</value>
   </data>
   <data name="FreeGame" xml:space="preserve">
