@@ -63,7 +63,6 @@ public class SnackbarService : ISnackbarService
     public void Hide()
     {
         if (_snackbar == null) return;
-        var hideMethod = typeof(Snackbar).GetMethod("Hide", BindingFlags.NonPublic | BindingFlags.Instance);
-        hideMethod?.Invoke(_snackbar, null);
+        _presenter?.HideCurrent();
     }
 }

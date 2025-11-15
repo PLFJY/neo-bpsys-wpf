@@ -1,4 +1,4 @@
-﻿;汉化:MonKeyDu 
+;汉化:MonKeyDu 
 ;由 Inno Setup 脚本向导 生成的脚本,有关创建 INNO SETUP 脚本文件的详细信息，请参阅文档！!
 
 #include "CodeDependencies.iss"
@@ -6,7 +6,7 @@
 ; Extract File Version from EXE
 #define MyAppVersion GetFileVersion("..\build\neo-bpsys-wpf\neo-bpsys-wpf.exe")
 #define MyAppPublisher "PLFJY"
-#define MyAppURL "https://plfjy.top/"
+#define MyAppURL "https://bpsys.plfjy.top/"
 #define MyAppExeName "neo-bpsys-wpf.exe"
 
 [Setup]
