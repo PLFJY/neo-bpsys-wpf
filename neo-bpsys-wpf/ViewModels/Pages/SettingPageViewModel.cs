@@ -84,7 +84,8 @@ public partial class SettingPageViewModel : ViewModelBase
         {
             { "队伍名称", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.TeamName },
             { "大比分", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.MajorPoints },
-            { "玩家ID", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.SurPlayerId },
+            { "求生者玩家ID", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.SurPlayerId },
+            { "监管者玩家ID", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.HunPlayerId },
             { "地图名称", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.MapName },
             { "对局进度", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.GameProgress }
         };
