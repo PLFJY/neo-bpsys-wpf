@@ -609,14 +609,14 @@
   <data name="Enable" xml:space="preserve">
     <value>启用</value>
   </data>
-  <data name="BackendManagement" xml:space="preserve">
+  <data name="Backend" xml:space="preserve">
     <value>后台管理</value>
   </data>
   <data name="CurrentSurvivorTeamColon" xml:space="preserve">
     <value>当前求生者队伍：</value>
   </data>
-  <data name="ExchangeCamp" xml:space="preserve">
-    <value>换边</value>
+  <data name="Swap" xml:space="preserve">
+    <value>Swap</value>
   </data>
   <data name="CurrentHunterTeamColon" xml:space="preserve">
     <value>当前监管者队伍：</value>

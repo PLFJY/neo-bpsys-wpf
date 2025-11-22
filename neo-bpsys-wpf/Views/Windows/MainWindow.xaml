@@ -12,7 +12,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
-    Title="{I18N {x:Static lang:LangKeys.BackendManagement}}"
+    Title="{I18N {x:Static lang:LangKeys.Backend}}"
     Width="910"
     Height="780"
     d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel,
@@ -147,7 +147,7 @@
                             Margin="0,10,0,10"
                             HorizontalAlignment="Center"
                             Command="{Binding SwapCommand}"
-                            Content="{I18N {x:Static lang:LangKeys.ExchangeCamp}}"
+                            Content="{I18N {x:Static lang:LangKeys.Swap}}"
                             Icon="{ui:SymbolIcon Symbol=ArrowSort24}">
                             <i:Interaction.Triggers>
                                 <i:DataTrigger Binding="{Binding IsSwapHighlighted}" Value="true">

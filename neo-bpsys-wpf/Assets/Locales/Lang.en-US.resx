@@ -609,14 +609,14 @@
   <data name="Enable" xml:space="preserve">
     <value>Enable</value>
   </data>
-  <data name="BackendManagement" xml:space="preserve">
-    <value>Backend management</value>
+  <data name="Backend" xml:space="preserve">
+    <value>Backend</value>
   </data>
   <data name="CurrentSurvivorTeamColon" xml:space="preserve">
     <value>Current survivor team: </value>
   </data>
-  <data name="ExchangeCamp" xml:space="preserve">
-    <value>Exchange camp</value>
+  <data name="Swap" xml:space="preserve">
+    <value>Swap</value>
   </data>
   <data name="CurrentHunterTeamColon" xml:space="preserve">
     <value>Current hunter team:   </value>

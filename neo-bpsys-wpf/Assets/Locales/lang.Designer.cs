@@ -133,11 +133,11 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 Backend management 的本地化字符串。
+        ///   查找类似 Backend 的本地化字符串。
         /// </summary>
-        public static string BackendManagement {
+        public static string Backend {
             get {
-                return ResourceManager.GetString("BackendManagement", resourceCulture);
+                return ResourceManager.GetString("Backend", resourceCulture);
             }
         }
         
@@ -624,15 +624,6 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string Enter {
             get {
                 return ResourceManager.GetString("Enter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Exchange camp 的本地化字符串。
-        /// </summary>
-        public static string ExchangeCamp {
-            get {
-                return ResourceManager.GetString("ExchangeCamp", resourceCulture);
             }
         }
         
@@ -1893,6 +1884,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string SurvivorTalent {
             get {
                 return ResourceManager.GetString("SurvivorTalent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Swap 的本地化字符串。
+        /// </summary>
+        public static string Swap {
+            get {
+                return ResourceManager.GetString("Swap", resourceCulture);
             }
         }
         

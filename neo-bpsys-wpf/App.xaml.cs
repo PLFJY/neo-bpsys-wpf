@@ -15,6 +15,7 @@ using Serilog;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using System.Text.Json;
 using System.Windows;
@@ -250,8 +251,7 @@ public partial class App : Application
             typeof(Timeline),
             new FrameworkPropertyMetadata { DefaultValue = 100 }
         );
-        //启动host
-        await _host.StartAsync();
+
         //启动初始化log
         var _logger = _host.Services.GetRequiredService<ILogger<App>>();
         _logger.LogInformation("Application Started");
@@ -307,10 +307,7 @@ public partial class App : Application
         };
         //主题初始化为深色
         ApplicationThemeManager.Apply(ApplicationTheme.Dark);
-#if !DEBUG
-            _logger.LogInformation("Update checking on start up");
-            await _host.Services.GetRequiredService<IUpdaterService>().UpdateCheck(true);
-#endif
+
         //设置语言
         var _settingService = _host.Services.GetRequiredService<ISettingsHostService>();
         if (_settingService.Settings.Language == LanguageKey.System)
@@ -326,7 +323,15 @@ public partial class App : Application
             I18NExtension.Culture = new CultureInfo(_settingService.Settings.Language.ToString().Replace('_', '-'));
             _logger.LogInformation("Set language to {appLanguage}", _settingService.Settings.Language.ToString());
         }
+        //启动host
+        await _host.StartAsync();
+#if !DEBUG
+            _logger.LogInformation("Update checking on start up");
+            await _host.Services.GetRequiredService<IUpdaterService>().UpdateCheck(true);
+#endif
     }
+
+
 
     protected override async void OnExit(ExitEventArgs e)
     {
