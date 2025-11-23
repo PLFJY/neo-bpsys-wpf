@@ -771,4 +771,10 @@
   <data name="AreYouSureYouWantToExit" xml:space="preserve">
     <value>是否退出</value>
   </data>
+  <data name="Yes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>否</value>
+  </data>
 </root>

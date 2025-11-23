@@ -18,6 +18,7 @@ using Wpf.Ui.Controls;
 using Game = neo_bpsys_wpf.Core.Models.Game;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 using Lang = neo_bpsys_wpf.Assets.Locales.Lang;
+using LangKeys = neo_bpsys_wpf.Assets.Locales.LangKeys;
 using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
@@ -287,32 +288,32 @@ public partial class MainWindowViewModel :
 
     private static Dictionary<GameProgress, string> GameListBo5 => new()
     {
-        { GameProgress.Free, Lang.FreeGame },
-        { GameProgress.Game1FirstHalf, Lang.Game1FirstHalf },
-        { GameProgress.Game1SecondHalf, Lang.Game1SecondHalf },
-        { GameProgress.Game2FirstHalf, Lang.Game2FirstHalf },
-        { GameProgress.Game2SecondHalf, Lang.Game2SecondHalf },
-        { GameProgress.Game3FirstHalf, Lang.Game3FirstHalf },
-        { GameProgress.Game3SecondHalf, Lang.Game3SecondHalf },
-        { GameProgress.Game4FirstHalf, Lang.Game4FirstHalf },
-        { GameProgress.Game4SecondHalf, Lang.Game4SecondHalf },
-        { GameProgress.Game5FirstHalf, Lang.Game5FirstHalf },
-        { GameProgress.Game5SecondHalf, Lang.Game5SecondHalf },
-        { GameProgress.Game5ExtraFirstHalf, Lang.Game5ExtraFirstHalf },
-        { GameProgress.Game5ExtraSecondHalf, Lang.Game5ExtraSecondHalf }
+        { GameProgress.Free, LangKeys.FreeGame },
+        { GameProgress.Game1FirstHalf, LangKeys.Game1FirstHalf },
+        { GameProgress.Game1SecondHalf, LangKeys.Game1SecondHalf },
+        { GameProgress.Game2FirstHalf, LangKeys.Game2FirstHalf },
+        { GameProgress.Game2SecondHalf, LangKeys.Game2SecondHalf },
+        { GameProgress.Game3FirstHalf, LangKeys.Game3FirstHalf },
+        { GameProgress.Game3SecondHalf, LangKeys.Game3SecondHalf },
+        { GameProgress.Game4FirstHalf, LangKeys.Game4FirstHalf },
+        { GameProgress.Game4SecondHalf, LangKeys.Game4SecondHalf },
+        { GameProgress.Game5FirstHalf, LangKeys.Game5FirstHalf },
+        { GameProgress.Game5SecondHalf, LangKeys.Game5SecondHalf },
+        { GameProgress.Game5ExtraFirstHalf, LangKeys.Game5ExtraFirstHalf },
+        { GameProgress.Game5ExtraSecondHalf, LangKeys.Game5ExtraSecondHalf }
     };
 
     private static Dictionary<GameProgress, string> GameListBo3 => new()
     {
-        { GameProgress.Free, Lang.FreeGame },
-        { GameProgress.Game1FirstHalf, Lang.Game1FirstHalf },
-        { GameProgress.Game1SecondHalf, Lang.Game1SecondHalf },
-        { GameProgress.Game2FirstHalf, Lang.Game2FirstHalf },
-        { GameProgress.Game2SecondHalf, Lang.Game2SecondHalf },
-        { GameProgress.Game3FirstHalf, Lang.Game3FirstHalf },
-        { GameProgress.Game3SecondHalf, Lang.Game3SecondHalf },
-        { GameProgress.Game3ExtraFirstHalf, Lang.Game3ExtraFirstHalf },
-        { GameProgress.Game3ExtraSecondHalf, Lang.Game3ExtraSecondHalf }
+        { GameProgress.Free, LangKeys.FreeGame },
+        { GameProgress.Game1FirstHalf, LangKeys.Game1FirstHalf },
+        { GameProgress.Game1SecondHalf, LangKeys.Game1SecondHalf },
+        { GameProgress.Game2FirstHalf, LangKeys.Game2FirstHalf },
+        { GameProgress.Game2SecondHalf, LangKeys.Game2SecondHalf },
+        { GameProgress.Game3FirstHalf, LangKeys.Game3FirstHalf },
+        { GameProgress.Game3SecondHalf, LangKeys.Game3SecondHalf },
+        { GameProgress.Game3ExtraFirstHalf, LangKeys.Game3ExtraFirstHalf },
+        { GameProgress.Game3ExtraSecondHalf, LangKeys.Game3ExtraSecondHalf }
     };
 
     public List<NavigationViewItem> MenuItems { get; } =

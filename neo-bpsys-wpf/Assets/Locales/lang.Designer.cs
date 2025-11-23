@@ -1249,6 +1249,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 No 的本地化字符串。
+        /// </summary>
+        public static string No {
+            get {
+                return ResourceManager.GetString("No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Note: All layout changes of score statistics will NOT be saved in BO3 mode 的本地化字符串。
         /// </summary>
         public static string NoteScoreStatisticsNotSaveInBO3Mode {
@@ -2028,6 +2037,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string Widgets {
             get {
                 return ResourceManager.GetString("Widgets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Yes 的本地化字符串。
+        /// </summary>
+        public static string Yes {
+            get {
+                return ResourceManager.GetString("Yes", resourceCulture);
             }
         }
     }
