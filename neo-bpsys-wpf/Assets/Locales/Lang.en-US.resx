@@ -765,4 +765,13 @@
   <data name="Knockdowns" xml:space="preserve">
     <value>Knockdowns</value>
   </data>
+  <data name="ExitConfirmation" xml:space="preserve">
+    <value>Exit confirmation</value>
+  </data>
+  <data name="AreYouSureYouWantToExit" xml:space="preserve">
+    <value>Are you sure you want to exit?</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
 </root>

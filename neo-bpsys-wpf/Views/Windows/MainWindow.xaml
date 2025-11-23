@@ -303,7 +303,7 @@
                     IsBackButtonVisible="Collapsed"
                     IsPaneToggleVisible="False"
                     MenuItemsSource="{Binding MenuItems}"
-                    OpenPaneLength="130" />
+                    OpenPaneLength="205" />
             </Grid>
         </Grid>
         <!--  主题切换相关的东西  -->

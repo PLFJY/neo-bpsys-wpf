@@ -17,6 +17,7 @@ using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using Game = neo_bpsys_wpf.Core.Models.Game;
 using Team = neo_bpsys_wpf.Core.Models.Team;
+using Lang = neo_bpsys_wpf.Assets.Locales.Lang;
 using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
@@ -286,51 +287,51 @@ public partial class MainWindowViewModel :
 
     private static Dictionary<GameProgress, string> GameListBo5 => new()
     {
-        { GameProgress.Free, "自由对局" },
-        { GameProgress.Game1FirstHalf, "第1局上半" },
-        { GameProgress.Game1SecondHalf, "第1局下半" },
-        { GameProgress.Game2FirstHalf, "第2局上半" },
-        { GameProgress.Game2SecondHalf, "第2局下半" },
-        { GameProgress.Game3FirstHalf, "第3局上半" },
-        { GameProgress.Game3SecondHalf, "第3局下半" },
-        { GameProgress.Game4FirstHalf, "第4局上半" },
-        { GameProgress.Game4SecondHalf, "第4局下半" },
-        { GameProgress.Game5FirstHalf, "第5局上半" },
-        { GameProgress.Game5SecondHalf, "第5局下半" },
-        { GameProgress.Game5ExtraFirstHalf, "第5局加赛上半" },
-        { GameProgress.Game5ExtraSecondHalf, "第5局加赛下半" }
+        { GameProgress.Free, Lang.FreeGame },
+        { GameProgress.Game1FirstHalf, Lang.Game1FirstHalf },
+        { GameProgress.Game1SecondHalf, Lang.Game1SecondHalf },
+        { GameProgress.Game2FirstHalf, Lang.Game2FirstHalf },
+        { GameProgress.Game2SecondHalf, Lang.Game2SecondHalf },
+        { GameProgress.Game3FirstHalf, Lang.Game3FirstHalf },
+        { GameProgress.Game3SecondHalf, Lang.Game3SecondHalf },
+        { GameProgress.Game4FirstHalf, Lang.Game4FirstHalf },
+        { GameProgress.Game4SecondHalf, Lang.Game4SecondHalf },
+        { GameProgress.Game5FirstHalf, Lang.Game5FirstHalf },
+        { GameProgress.Game5SecondHalf, Lang.Game5SecondHalf },
+        { GameProgress.Game5ExtraFirstHalf, Lang.Game5ExtraFirstHalf },
+        { GameProgress.Game5ExtraSecondHalf, Lang.Game5ExtraSecondHalf }
     };
 
     private static Dictionary<GameProgress, string> GameListBo3 => new()
     {
-        { GameProgress.Free, "自由对局" },
-        { GameProgress.Game1FirstHalf, "第1局上半" },
-        { GameProgress.Game1SecondHalf, "第1局下半" },
-        { GameProgress.Game2FirstHalf, "第2局上半" },
-        { GameProgress.Game2SecondHalf, "第2局下半" },
-        { GameProgress.Game3FirstHalf, "第3局上半" },
-        { GameProgress.Game3SecondHalf, "第3局下半" },
-        { GameProgress.Game3ExtraFirstHalf, "第3局加赛上半" },
-        { GameProgress.Game3ExtraSecondHalf, "第3局加赛下半" }
+        { GameProgress.Free, Lang.FreeGame },
+        { GameProgress.Game1FirstHalf, Lang.Game1FirstHalf },
+        { GameProgress.Game1SecondHalf, Lang.Game1SecondHalf },
+        { GameProgress.Game2FirstHalf, Lang.Game2FirstHalf },
+        { GameProgress.Game2SecondHalf, Lang.Game2SecondHalf },
+        { GameProgress.Game3FirstHalf, Lang.Game3FirstHalf },
+        { GameProgress.Game3SecondHalf, Lang.Game3SecondHalf },
+        { GameProgress.Game3ExtraFirstHalf, Lang.Game3ExtraFirstHalf },
+        { GameProgress.Game3ExtraSecondHalf, Lang.Game3ExtraSecondHalf }
     };
 
     public List<NavigationViewItem> MenuItems { get; } =
     [
-        new("启动页", SymbolRegular.Home24, typeof(HomePage)),
-        new("队伍信息", SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
-        new("地图禁选", SymbolRegular.Map24, typeof(MapBpPage)),
-        new("禁用监管者", SymbolRegular.PresenterOff24, typeof(BanHunPage)),
-        new("禁用求生者", SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
-        new("选择角色", SymbolRegular.PersonAdd24, typeof(PickPage)),
-        new("天赋特质", SymbolRegular.PersonWalking24, typeof(TalentPage)),
-        new("比分控制", SymbolRegular.NumberRow24, typeof(ScorePage)),
-        new("赛后数据", SymbolRegular.TextNumberListLtr24, typeof(GameDataPage)),
+        new(Lang.HomePage, SymbolRegular.Home24, typeof(HomePage)),
+        new(Lang.TeamInfo, SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
+        new(Lang.MapBP, SymbolRegular.Map24, typeof(MapBpPage)),
+        new(Lang.BanHunter, SymbolRegular.PresenterOff24, typeof(BanHunPage)),
+        new(Lang.BanSurvivor, SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
+        new(Lang.PickCharacter, SymbolRegular.PersonAdd24, typeof(PickPage)),
+        new(Lang.TalentAndTrait, SymbolRegular.PersonWalking24, typeof(TalentPage)),
+        new(Lang.ScoreControl, SymbolRegular.NumberRow24, typeof(ScorePage)),
+        new(Lang.GameData, SymbolRegular.TextNumberListLtr24, typeof(GameDataPage)),
     ];
 
     public List<NavigationViewItem> FooterMenuItems { get; } =
     [
-        new("前台管理", SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
-        new("扩展功能", SymbolRegular.AppsAddIn24, typeof(ExtensionPage)),
-        new("设置", SymbolRegular.Settings24, typeof(SettingPage)),
+        new(Lang.FrontendManagement, SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
+        new(Lang.Extensions, SymbolRegular.AppsAddIn24, typeof(ExtensionPage)),
+        new(Lang.Settings, SymbolRegular.Settings24, typeof(SettingPage)),
     ];
 }

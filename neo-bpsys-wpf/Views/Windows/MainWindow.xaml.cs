@@ -12,6 +12,7 @@ using Wpf.Ui.Controls;
 using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
 using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
+using Lang = neo_bpsys_wpf.Assets.Locales.Lang;
 
 namespace neo_bpsys_wpf.Views.Windows;
 
@@ -75,12 +76,12 @@ public partial class MainWindow : FluentWindow, INavigationWindow
     {
         var messageBox = new MessageBox()
         {
-            Title = "退出确认",
-            Content = "是否退出",
-            PrimaryButtonText = "退出",
+            Title = Lang.ExitConfirmation,
+            Content = Lang.AreYouSureYouWantToExit,
+            PrimaryButtonText = Lang.Exit,
             PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.ArrowExit20 },
             CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
-            CloseButtonText = "取消",
+            CloseButtonText = Lang.Cancel,
             Owner = App.Current.MainWindow,
         };
         var result = await messageBox.ShowDialogAsync();

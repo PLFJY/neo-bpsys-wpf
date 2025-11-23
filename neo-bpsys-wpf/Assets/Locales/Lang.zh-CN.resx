@@ -616,7 +616,7 @@
     <value>当前求生者队伍：</value>
   </data>
   <data name="Swap" xml:space="preserve">
-    <value>Swap</value>
+    <value>交换阵营</value>
   </data>
   <data name="CurrentHunterTeamColon" xml:space="preserve">
     <value>当前监管者队伍：</value>
@@ -764,5 +764,11 @@
   </data>
   <data name="Knockdowns" xml:space="preserve">
     <value>击倒次数</value>
+  </data>
+  <data name="ExitConfirmation" xml:space="preserve">
+    <value>退出确认</value>
+  </data>
+  <data name="AreYouSureYouWantToExit" xml:space="preserve">
+    <value>是否退出</value>
   </data>
 </root>

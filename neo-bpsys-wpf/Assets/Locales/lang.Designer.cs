@@ -106,6 +106,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Are you sure you want to exit? 的本地化字符串。
+        /// </summary>
+        public static string AreYouSureYouWantToExit {
+            get {
+                return ResourceManager.GetString("AreYouSureYouWantToExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Made by Zero_PLFJY | Auther&apos;s QQ: 3424127335 | Software feedback group(QQ): 175741665 的本地化字符串。
         /// </summary>
         public static string AutherDetails {
@@ -246,6 +255,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string CampOfHomeTeam {
             get {
                 return ResourceManager.GetString("CampOfHomeTeam", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Cancel 的本地化字符串。
+        /// </summary>
+        public static string Cancel {
+            get {
+                return ResourceManager.GetString("Cancel", resourceCulture);
             }
         }
         
@@ -642,6 +660,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string Exit {
             get {
                 return ResourceManager.GetString("Exit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Exit confirmation 的本地化字符串。
+        /// </summary>
+        public static string ExitConfirmation {
+            get {
+                return ResourceManager.GetString("ExitConfirmation", resourceCulture);
             }
         }
         
