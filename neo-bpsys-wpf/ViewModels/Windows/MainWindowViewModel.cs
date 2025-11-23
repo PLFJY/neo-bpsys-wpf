@@ -318,21 +318,21 @@ public partial class MainWindowViewModel :
 
     public List<NavigationViewItem> MenuItems { get; } =
     [
-        new(Lang.HomePage, SymbolRegular.Home24, typeof(HomePage)),
-        new(Lang.TeamInfo, SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
-        new(Lang.MapBP, SymbolRegular.Map24, typeof(MapBpPage)),
-        new(Lang.BanHunter, SymbolRegular.PresenterOff24, typeof(BanHunPage)),
-        new(Lang.BanSurvivor, SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
-        new(Lang.PickCharacter, SymbolRegular.PersonAdd24, typeof(PickPage)),
-        new(Lang.TalentAndTrait, SymbolRegular.PersonWalking24, typeof(TalentPage)),
-        new(Lang.ScoreControl, SymbolRegular.NumberRow24, typeof(ScorePage)),
-        new(Lang.GameData, SymbolRegular.TextNumberListLtr24, typeof(GameDataPage)),
+        new(LangKeys.HomePage, SymbolRegular.Home24, typeof(HomePage)),
+        new(LangKeys.TeamInfo, SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
+        new(LangKeys.MapBP, SymbolRegular.Map24, typeof(MapBpPage)),
+        new(LangKeys.BanHunter, SymbolRegular.PresenterOff24, typeof(BanHunPage)),
+        new(LangKeys.BanSurvivor, SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
+        new(LangKeys.PickCharacter, SymbolRegular.PersonAdd24, typeof(PickPage)),
+        new(LangKeys.TalentAndTrait, SymbolRegular.PersonWalking24, typeof(TalentPage)),
+        new(LangKeys.ScoreControl, SymbolRegular.NumberRow24, typeof(ScorePage)),
+        new(LangKeys.GameData, SymbolRegular.TextNumberListLtr24, typeof(GameDataPage)),
     ];
 
     public List<NavigationViewItem> FooterMenuItems { get; } =
     [
-        new(Lang.FrontendManagement, SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
-        new(Lang.Extensions, SymbolRegular.AppsAddIn24, typeof(ExtensionPage)),
-        new(Lang.Settings, SymbolRegular.Settings24, typeof(SettingPage)),
+        new(LangKeys.FrontendManagement, SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
+        new(LangKeys.Extensions, SymbolRegular.AppsAddIn24, typeof(ExtensionPage)),
+        new(LangKeys.Settings, SymbolRegular.Settings24, typeof(SettingPage)),
     ];
 }

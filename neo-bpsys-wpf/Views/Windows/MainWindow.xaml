@@ -14,7 +14,7 @@
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="{I18N {x:Static lang:LangKeys.Backend}}"
     Width="910"
-    Height="780"
+    Height="830"
     d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel,
                                      IsDesignTimeCreatable=True}"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
@@ -252,10 +252,10 @@
                     MaxDropDownHeight="190"
                     SelectedIndex="0"
                     SelectedValue="{Binding SelectedGameProgress}"
-                    SelectedValuePath="Key" >
+                    SelectedValuePath="Key">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{I18N {Binding Value}}"/>
+                            <TextBlock Text="{I18N {Binding Value}}" />
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
@@ -306,9 +306,80 @@
                     x:Name="RootNavigation"
                     FooterMenuItemsSource="{Binding FooterMenuItems}"
                     IsBackButtonVisible="Collapsed"
-                    IsPaneToggleVisible="False"
+                    IsPaneOpen="True"
+                    IsPaneToggleVisible="True"
                     MenuItemsSource="{Binding MenuItems}"
-                    OpenPaneLength="205" />
+                    OpenPaneLength="200">
+                    <ui:NavigationView.ItemTemplate>
+                        <ControlTemplate TargetType="{x:Type ui:NavigationViewItem}">
+                            <Border
+                                x:Name="MainBorder"
+                                Height="40"
+                                HorizontalAlignment="Stretch"
+                                Background="Transparent"
+                                BorderThickness="{DynamicResource NavigationViewItemThickness}"
+                                CornerRadius="4">
+                                <Grid Margin="0,0,0,0" HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" MinWidth="180" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Rectangle
+                                        x:Name="ActiveRectangle"
+                                        Grid.Column="0"
+                                        Width="3"
+                                        Height="16"
+                                        Margin="0"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center"
+                                        Fill="{DynamicResource NavigationViewSelectionIndicatorForeground}"
+                                        Opacity="0.0"
+                                        RadiusX="2"
+                                        RadiusY="2" />
+
+                                    <ContentPresenter
+                                        x:Name="IconContentPresenter"
+                                        Grid.Column="1"
+                                        Margin="6,0,3,0"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Content="{TemplateBinding Icon}"
+                                        Focusable="False"
+                                        TextElement.FontSize="18"
+                                        TextElement.Foreground="{DynamicResource NavigationViewItemForeground}"
+                                        Visibility="{TemplateBinding Icon,
+                                                                     Converter={StaticResource NullToVisibilityConverter}}" />
+                                    <ContentPresenter
+                                        x:Name="ElementContentPresenter"
+                                        Grid.Column="2"
+                                        Margin="10,0,0,0"
+                                        HorizontalAlignment="Stretch"
+                                        VerticalAlignment="Center"
+                                        Content="{I18N {Binding Path=Content, RelativeSource={RelativeSource TemplatedParent}}}"
+                                        ContentTemplate="{TemplateBinding ContentTemplate}"
+                                        TextElement.FontSize="14"
+                                        TextElement.Foreground="{TemplateBinding Foreground}" />
+                                    <ContentPresenter Grid.Column="3" Content="{TemplateBinding InfoBadge}" />
+                                </Grid>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsActive" Value="True">
+                                    <Setter TargetName="ActiveRectangle" Property="Opacity" Value="1.0" />
+                                    <Setter TargetName="MainBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundSelected}" />
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="MainBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundPointerOver}" />
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="MainBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundPressed}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </ui:NavigationView.ItemTemplate>
+                </ui:NavigationView>
             </Grid>
         </Grid>
         <!--  主题切换相关的东西  -->
