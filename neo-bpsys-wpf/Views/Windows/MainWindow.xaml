@@ -14,7 +14,7 @@
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="{I18N {x:Static lang:LangKeys.Backend}}"
     Width="910"
-    Height="830"
+    Height="760"
     d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel,
                                      IsDesignTimeCreatable=True}"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"

@@ -97,7 +97,7 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 A modern IdentityV BP software 的本地化字符串。
+        ///   查找类似 A modern Identity V BP software 的本地化字符串。
         /// </summary>
         public static string AModernIdentityVBPSoftware {
             get {
@@ -673,7 +673,7 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 EversleepingTown 的本地化字符串。
+        ///   查找类似 Eversleeping Town 的本地化字符串。
         /// </summary>
         public static string EversleepingTown {
             get {
@@ -696,15 +696,6 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string Exit {
             get {
                 return ResourceManager.GetString("Exit", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Exit confirmation 的本地化字符串。
-        /// </summary>
-        public static string ExitConfirmation {
-            get {
-                return ResourceManager.GetString("ExitConfirmation", resourceCulture);
             }
         }
         
@@ -2113,6 +2104,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Warning 的本地化字符串。
+        /// </summary>
+        public static string Warning {
+            get {
+                return ResourceManager.GetString("Warning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Warp 的本地化字符串。
         /// </summary>
         public static string Warp {
@@ -2136,15 +2136,6 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string Widgets {
             get {
                 return ResourceManager.GetString("Widgets", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 Yes 的本地化字符串。
-        /// </summary>
-        public static string Yes {
-            get {
-                return ResourceManager.GetString("Yes", resourceCulture);
             }
         }
     }

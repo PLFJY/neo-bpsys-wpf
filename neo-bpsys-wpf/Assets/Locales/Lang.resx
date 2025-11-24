@@ -430,7 +430,7 @@
     <value>Hunter</value>
   </data>
   <data name="AModernIdentityVBPSoftware" xml:space="preserve">
-    <value>A modern IdentityV BP software</value>
+    <value>A modern Identity V BP software</value>
   </data>
   <data name="OfficialWebsite" xml:space="preserve">
     <value>Official website</value>
@@ -801,17 +801,14 @@
   <data name="Knockdowns" xml:space="preserve">
     <value>Knockdowns</value>
   </data>
-  <data name="ExitConfirmation" xml:space="preserve">
-    <value>Exit confirmation</value>
+  <data name="Warning" xml:space="preserve">
+    <value>Warning</value>
   </data>
   <data name="AreYouSureYouWantToExit" xml:space="preserve">
     <value>Are you sure you want to exit?</value>
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
-  </data>
-  <data name="Yes" xml:space="preserve">
-    <value>Yes</value>
   </data>
   <data name="No" xml:space="preserve">
     <value>No</value>
@@ -838,7 +835,7 @@
     <value>Lakeside Village</value>
   </data>
   <data name="EversleepingTown" xml:space="preserve">
-    <value>EversleepingTown</value>
+    <value>Eversleeping Town</value>
   </data>
   <data name="ChinaTown" xml:space="preserve">
     <value>ChinaTown</value>

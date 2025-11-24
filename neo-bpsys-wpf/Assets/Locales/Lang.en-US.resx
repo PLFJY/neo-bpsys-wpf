@@ -181,7 +181,7 @@
     <value>Edit image</value>
   </data>
   <data name="AutherDetails" xml:space="preserve">
-    <value>Made by Zero_PLFJY | Auther's QQ: 3424127335 | Software feedback group(QQ): 175741665</value>
+    <value>Made by Zero PLFJY | Author's QQ: 3424127335 | Software feedback group(QQ): 175741665</value>
   </data>
   <data name="CurrentBanLock" xml:space="preserve">
     <value>Current ban lock</value>
@@ -394,7 +394,7 @@
     <value>Hunter</value>
   </data>
   <data name="AModernIdentityVBPSoftware" xml:space="preserve">
-    <value>A modern IdentityV BP Software</value>
+    <value>A modern Identity V BP Software</value>
   </data>
   <data name="OfficialWebsite" xml:space="preserve">
     <value>Official website</value>
@@ -655,7 +655,7 @@
     <value>End game guidance</value>
   </data>
   <data name="MadeByZeroPLFJY" xml:space="preserve">
-    <value>Made by Zero_PLFJY</value>
+    <value>Made by Zero PLFJY</value>
   </data>
   <data name="HomePage" xml:space="preserve">
     <value>Home</value>
@@ -765,17 +765,14 @@
   <data name="Knockdowns" xml:space="preserve">
     <value>Knockdowns</value>
   </data>
-  <data name="ExitConfirmation" xml:space="preserve">
-    <value>Exit confirmation</value>
+  <data name="Warning" xml:space="preserve">
+    <value>Warning</value>
   </data>
   <data name="AreYouSureYouWantToExit" xml:space="preserve">
     <value>Are you sure you want to exit?</value>
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
-  </data>
-  <data name="Yes" xml:space="preserve">
-    <value>Yes</value>
   </data>
   <data name="No" xml:space="preserve">
     <value>No</value>
@@ -802,7 +799,7 @@
     <value>Lakeside Village</value>
   </data>
   <data name="EversleepingTown" xml:space="preserve">
-    <value>EversleepingTown</value>
+    <value>Eversleeping Town</value>
   </data>
   <data name="ChinaTown" xml:space="preserve">
     <value>China Town</value>

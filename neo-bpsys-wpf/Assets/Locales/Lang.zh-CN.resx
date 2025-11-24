@@ -765,17 +765,14 @@
   <data name="Knockdowns" xml:space="preserve">
     <value>击倒次数</value>
   </data>
-  <data name="ExitConfirmation" xml:space="preserve">
-    <value>退出确认</value>
+  <data name="Warning" xml:space="preserve">
+    <value>警告</value>
   </data>
   <data name="AreYouSureYouWantToExit" xml:space="preserve">
-    <value>是否退出</value>
+    <value>是否确认退出</value>
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>取消</value>
-  </data>
-  <data name="Yes" xml:space="preserve">
-    <value>是</value>
   </data>
   <data name="No" xml:space="preserve">
     <value>否</value>

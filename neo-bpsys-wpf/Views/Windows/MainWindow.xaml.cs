@@ -76,9 +76,9 @@ public partial class MainWindow : FluentWindow, INavigationWindow
     {
         var messageBox = new MessageBox()
         {
-            Title = Lang.ExitConfirmation,
+            Title = Lang.Warning,
             Content = Lang.AreYouSureYouWantToExit,
-            PrimaryButtonText = Lang.Yes,
+            PrimaryButtonText = Lang.Confirm,
             PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.ArrowExit20 },
             CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
             CloseButtonText = Lang.Cancel,

@@ -21,6 +21,7 @@
     mc:Ignorable="d">
     <Page.Resources>
         <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
+        <cv:EnumToStringConverter x:Key="EnumToStringConverter" />
     </Page.Resources>
     <StackPanel>
         <Border Style="{StaticResource Card}">
@@ -95,7 +96,7 @@
                                     Margin="20,0,0,0"
                                     VerticalAlignment="Center"
                                     FontSize="16"
-                                    Text="{Binding Map.MapName}" />
+                                    Text="{I18N {Binding Map.MapName, Converter={StaticResource EnumToStringConverter}}}" />
                             </StackPanel>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
@@ -174,7 +175,7 @@
                                         HorizontalAlignment="Center"
                                         Focusable="False"
                                         FontSize="14"
-                                        Text="{Binding Map.MapName}">
+                                        Text="{I18N {Binding Map.MapName, Converter={StaticResource EnumToStringConverter}}}">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Style.Triggers>
