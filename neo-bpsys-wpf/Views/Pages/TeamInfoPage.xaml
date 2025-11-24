@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="neo_bpsys_wpf.Views.Pages.TeamInfoPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -24,6 +24,52 @@
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Text="第五人格赛事统一平台接口对接" />
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <ui:TextBox Width="180" PlaceholderText="邮箱" Text="{Binding Email}" />
+                    <ui:TextBox Width="160" Margin="10,0,0,0" PlaceholderText="密码" Text="{Binding Password}" />
+                    <ui:Button Margin="10,0,0,0" Content="登录" Icon="{ui:SymbolIcon Symbol=ArrowImport24}" Command="{Binding LoginCommand}" />
+                    <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Text="已登录" Visibility="{Binding IsLoggedIn, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <ui:TextBox Width="300" PlaceholderText="搜索赛事关键词" Text="{Binding EventQuery}" />
+                    <ui:Button Margin="10,0,0,0" Content="搜索赛事" Icon="{ui:SymbolIcon Symbol=Search24}" Command="{Binding SearchEventsCommand}" />
+                    <ui:Button Margin="10,0,0,0" Content="加载赛程" Icon="{ui:SymbolIcon Symbol=ArrowSort24}" Command="{Binding LoadMatchesCommand}" />
+                    <ui:Button Margin="10,0,0,0" Content="导入选中赛程两队信息" Icon="{ui:SymbolIcon Symbol=ArrowImport24}" Command="{Binding ImportSelectedMatchTeamsCommand}" />
+                </StackPanel>
+
+                <Grid Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="3*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="赛事搜索结果" />
+                        <ListBox ItemsSource="{Binding EventResults}" SelectedItem="{Binding SelectedEvent}" DisplayMemberPath="Name" MinHeight="120" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                        <TextBlock Text="赛程列表" />
+                        <ListBox ItemsSource="{Binding MatchResults}" SelectedItem="{Binding SelectedMatch}" MinHeight="120">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="主队：" />
+                                        <TextBlock Text="{Binding HomeTeamName}" />
+                                        <TextBlock Margin="10,0,0,0" Text="客队：" />
+                                        <TextBlock Text="{Binding AwayTeamName}" />
+                                        <TextBlock Margin="10,0,0,0" Text=" | 赛事：" />
+                                        <TextBlock Text="{Binding EventName}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
         <!--  main team  -->
         <Border DataContext="{Binding MainTeamInfoViewModel}" Style="{StaticResource Card}">
             <!--  basic info  -->
