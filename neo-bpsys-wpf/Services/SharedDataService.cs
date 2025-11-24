@@ -31,7 +31,7 @@ public partial class SharedDataService : ISharedDataService
     public SharedDataService(ILogger<SharedDataService> logger)
     {
         _logger = logger;
-        MainTeam = new Team(Camp.Sur, TeamType.MainTeam);
+        MainTeam = new Team(Camp.Sur, TeamType.HomeTeam);
         AwayTeam = new Team(Camp.Hun, TeamType.AwayTeam);
 
         _currentGame = new Game(MainTeam, AwayTeam, GameProgress.Free);

@@ -592,7 +592,7 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                    Map="{Binding CurrentGame.MapV2Dictionary[军工厂]}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[ArmsFactory]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="The_Red_Church"
@@ -602,7 +602,7 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
                     ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                    Map="{Binding CurrentGame.MapV2Dictionary[红教堂]}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[TheRedChurch]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Sacred_Heart_Hospital"
@@ -612,7 +612,7 @@
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                    Map="{Binding CurrentGame.MapV2Dictionary[圣心医院]}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[SacredHeartHospital]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Leo_s_Memory"
@@ -622,7 +622,7 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
                     ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                    Map="{Binding CurrentGame.MapV2Dictionary[里奥的回忆]}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[LeosMemory]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Moonlit_River_Park"
@@ -632,7 +632,7 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Top"
                     ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                    Map="{Binding CurrentGame.MapV2Dictionary[月亮河公园]}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[MoonlitRiverPark]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Lakeside_Village"
@@ -642,7 +642,7 @@
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                    Map="{Binding CurrentGame.MapV2Dictionary[湖景村]}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[LakesideVillage]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Eversleeping_Town"
@@ -652,7 +652,7 @@
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                    Map="{Binding CurrentGame.MapV2Dictionary[永眠镇]}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[EversleepingTown]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Chinatown"
@@ -662,7 +662,7 @@
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                    Map="{Binding CurrentGame.MapV2Dictionary[唐人街]}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[ChinaTown]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Darkwoods"
@@ -672,7 +672,7 @@
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                    Map="{Binding CurrentGame.MapV2Dictionary[不归林]}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[Darkwoods]}"
                     Style="{StaticResource MapV2Presenter}" />
             </Canvas>
         </Border>

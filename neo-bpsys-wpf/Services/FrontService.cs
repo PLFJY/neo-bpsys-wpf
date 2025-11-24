@@ -444,7 +444,7 @@ public class FrontService : IFrontService
         {
             if (progress == GameProgress.Free) continue;
             var control = new GlobalScorePresenter();
-            RegisterControl("MainTeam", progress, MainGlobalScoreControls, control);
+            RegisterControl(TeamType.HomeTeam.ToString(), progress, MainGlobalScoreControls, control);
         }
 
         //客队
@@ -452,7 +452,7 @@ public class FrontService : IFrontService
         {
             if (progress == GameProgress.Free) continue;
             var control = new GlobalScorePresenter();
-            RegisterControl("Away", progress, AwayGlobalScoreControls, control);
+            RegisterControl(TeamType.AwayTeam.ToString(), progress, AwayGlobalScoreControls, control);
         }
 
         //添加控件到 Canvas 并设置位置
@@ -496,7 +496,7 @@ public class FrontService : IFrontService
     {
         GlobalScorePresenter presenter = new();
 
-        if (team == TeamType.MainTeam)
+        if (team == TeamType.HomeTeam)
         {
             if (MainGlobalScoreControls[gameProgress] is GlobalScorePresenter item)
                 presenter = item;
@@ -516,7 +516,7 @@ public class FrontService : IFrontService
     {
         GlobalScorePresenter presenter = new();
 
-        if (team == TeamType.MainTeam)
+        if (team == TeamType.HomeTeam)
         {
             if (MainGlobalScoreControls[gameProgress] is GlobalScorePresenter item)
                 presenter = item;
@@ -541,7 +541,7 @@ public class FrontService : IFrontService
         {
             if (progress != GameProgress.Free)
             {
-                SetGlobalScoreToBar(TeamType.MainTeam, progress);
+                SetGlobalScoreToBar(TeamType.HomeTeam, progress);
             }
         }
 

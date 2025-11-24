@@ -12,6 +12,8 @@ using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models;
 using static neo_bpsys_wpf.Core.Enums.GameAction;
 using Team = neo_bpsys_wpf.Core.Models.Team;
+using Lang = neo_bpsys_wpf.Assets.Locales.Lang;
+using LangKeys = neo_bpsys_wpf.Assets.Locales.LangKeys;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -33,13 +35,13 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         _messageBoxService = messageBoxService;
         MapSelectTeamsList =
         [
-            new MapSelectTeam(_sharedDataService.MainTeam, TeamType.MainTeam),
+            new MapSelectTeam(_sharedDataService.MainTeam, TeamType.HomeTeam),
             new MapSelectTeam(_sharedDataService.AwayTeam, TeamType.AwayTeam)
         ];
         PickMapTeam = MapSelectTeamsList[0];
         BanMapTeam = MapSelectTeamsList[1];
         PickedMapSelections.Add(new MapSelection());
-        foreach (var mapV2 in sharedDataService.CurrentGame.MapV2Dictionary.Values.Where(x => x.MapName != Map.无禁用))
+        foreach (var mapV2 in sharedDataService.CurrentGame.MapV2Dictionary.Values.Where(x => x.MapName != Map.NoBans))
         {
             PickedMapSelections.Add(new MapSelection(mapV2));
         }
@@ -137,13 +139,13 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         {
             case GameAction.PickMap:
                 PickMapTeam = MapSelectTeamsList.First(x =>
-                    x.TeamType == (message.Index?[0] == 0 ? TeamType.MainTeam : TeamType.AwayTeam));
+                    x.TeamType == (message.Index?[0] == 0 ? TeamType.HomeTeam : TeamType.AwayTeam));
                 IsBreathing = true;
                 IsCampVisible = false;
                 break;
             case GameAction.BanMap:
                 BanMapTeam = MapSelectTeamsList.First(x =>
-                    x.TeamType == (message.Index?[0] == 0 ? TeamType.MainTeam : TeamType.AwayTeam));
+                    x.TeamType == (message.Index?[0] == 0 ? TeamType.HomeTeam : TeamType.AwayTeam));
                 IsBreathing = true;
                 IsCampVisible = false;
                 break;
@@ -165,7 +167,7 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     {
         public Team Team { get; } = team;
         public TeamType TeamType { get; } = teamType;
-        public string DisplayedTeamType { get; } = teamType == TeamType.MainTeam ? "主队" : "客队";
+        public string DisplayedTeamType { get; } = teamType == TeamType.HomeTeam ? "主队" : "客队";
     }
 
     public class MapSelection(MapV2? map = null)

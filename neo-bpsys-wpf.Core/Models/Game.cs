@@ -30,7 +30,7 @@ public partial class Game : ViewModelBase
     /// </summary>
     public DateTime StartTime { get; }
 
-    private Team _surTeam = new(Camp.Sur, TeamType.MainTeam);
+    private Team _surTeam = new(Camp.Sur, TeamType.HomeTeam);
 
     /// <summary>
     /// 求生者队伍

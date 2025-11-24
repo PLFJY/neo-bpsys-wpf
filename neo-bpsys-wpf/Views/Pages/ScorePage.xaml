@@ -48,7 +48,7 @@
                         <Button Command="{Binding Escape3Command}" Content="{I18N {x:Static lang:LangKeys.ThreeEscape}}" Width="100" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0,30,0,0">
-                        <Button Command="{Binding TieCommand}" Content="{I18N {x:Static lang:LangKeys.Draw}}" Width="140" />
+                        <Button Command="{Binding TieCommand}" Content="{I18N {x:Static lang:LangKeys.Tie}}" Width="140" />
                         <Button
                             Width="140"
                             Command="{Binding CalculateMajorPointCommand}"
@@ -221,7 +221,7 @@
                                 </StackPanel>
                                 <RadioButton
                                     Grid.Column="1"
-                                    Content="{I18N {x:Static lang:LangKeys.Draw}}"
+                                    Content="{I18N {x:Static lang:LangKeys.Tie}}"
                                     GroupName="GameResult"
                                     IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Tie}, Mode=TwoWay}" />
                                 <StackPanel Grid.Column="2">

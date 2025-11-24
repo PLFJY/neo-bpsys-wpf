@@ -115,6 +115,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Arms Factory 的本地化字符串。
+        /// </summary>
+        public static string ArmsFactory {
+            get {
+                return ResourceManager.GetString("ArmsFactory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Made by Zero_PLFJY | Auther&apos;s QQ: 3424127335 | Software feedback group(QQ): 175741665 的本地化字符串。
         /// </summary>
         public static string AutherDetails {
@@ -286,6 +295,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 ChinaTown 的本地化字符串。
+        /// </summary>
+        public static string ChinaTown {
+            get {
+                return ResourceManager.GetString("ChinaTown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Close 的本地化字符串。
         /// </summary>
         public static string Close {
@@ -309,6 +327,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string ColorOfTalentAndTraitIcon {
             get {
                 return ResourceManager.GetString("ColorOfTalentAndTraitIcon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 How about we explore the area ahead of us later~ 的本地化字符串。
+        /// </summary>
+        public static string CommingSoon {
+            get {
+                return ResourceManager.GetString("CommingSoon", resourceCulture);
             }
         }
         
@@ -484,6 +511,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Darkwoods 的本地化字符串。
+        /// </summary>
+        public static string Darkwoods {
+            get {
+                return ResourceManager.GetString("Darkwoods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Debug options 的本地化字符串。
         /// </summary>
         public static string DebugOptions {
@@ -565,15 +601,6 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 Draw 的本地化字符串。
-        /// </summary>
-        public static string Draw {
-            get {
-                return ResourceManager.GetString("Draw", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 Edit 的本地化字符串。
         /// </summary>
         public static string Edit {
@@ -642,6 +669,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string Enter {
             get {
                 return ResourceManager.GetString("Enter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 EversleepingTown 的本地化字符串。
+        /// </summary>
+        public static string EversleepingTown {
+            get {
+                return ResourceManager.GetString("EversleepingTown", resourceCulture);
             }
         }
         
@@ -1141,6 +1177,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Lakeside Village 的本地化字符串。
+        /// </summary>
+        public static string LakesideVillage {
+            get {
+                return ResourceManager.GetString("LakesideVillage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Language setting 的本地化字符串。
         /// </summary>
         public static string LanguageSetting {
@@ -1155,6 +1200,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string LastStep {
             get {
                 return ResourceManager.GetString("LastStep", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Leo&apos;s Memory 的本地化字符串。
+        /// </summary>
+        public static string LeosMemory {
+            get {
+                return ResourceManager.GetString("LeosMemory", resourceCulture);
             }
         }
         
@@ -1222,6 +1276,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Moonlit River Park 的本地化字符串。
+        /// </summary>
+        public static string MoonlitRiverPark {
+            get {
+                return ResourceManager.GetString("MoonlitRiverPark", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 New game 的本地化字符串。
         /// </summary>
         public static string NewGame {
@@ -1254,6 +1317,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string No {
             get {
                 return ResourceManager.GetString("No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 No Bans 的本地化字符串。
+        /// </summary>
+        public static string NoBans {
+            get {
+                return ResourceManager.GetString("NoBans", resourceCulture);
             }
         }
         
@@ -1627,6 +1699,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Sacred Heart Hospital 的本地化字符串。
+        /// </summary>
+        public static string SacredHeartHospital {
+            get {
+                return ResourceManager.GetString("SacredHeartHospital", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Save 的本地化字符串。
         /// </summary>
         public static string Save {
@@ -1987,6 +2068,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 The Red Church 的本地化字符串。
+        /// </summary>
+        public static string TheRedChurch {
+            get {
+                return ResourceManager.GetString("TheRedChurch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 3 eliminate 的本地化字符串。
         /// </summary>
         public static string ThreeEliminate {
@@ -2001,6 +2091,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string ThreeEscape {
             get {
                 return ResourceManager.GetString("ThreeEscape", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Tie 的本地化字符串。
+        /// </summary>
+        public static string Tie {
+            get {
+                return ResourceManager.GetString("Tie", resourceCulture);
             }
         }
         

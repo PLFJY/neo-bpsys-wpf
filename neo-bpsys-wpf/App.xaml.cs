@@ -80,7 +80,7 @@ public partial class App : Application
             //_sharedDataService
             services.AddSingleton<ISharedDataService, SharedDataService>();
 
-            // MainTeam window with navigation
+            // HomeTeam window with navigation
             services.AddSingleton<INavigationWindow, MainWindow>(sp => new MainWindow(
                 sp.GetRequiredService<INavigationService>(),
                 sp.GetRequiredService<IInfoBarService>(),

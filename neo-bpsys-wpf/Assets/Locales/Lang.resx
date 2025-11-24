@@ -513,8 +513,8 @@
   <data name="ThreeEscape" xml:space="preserve">
     <value>3 escape</value>
   </data>
-  <data name="Draw" xml:space="preserve">
-    <value>Draw</value>
+  <data name="Tie" xml:space="preserve">
+    <value>Tie</value>
   </data>
   <data name="FourEliminate" xml:space="preserve">
     <value>4 Eliminate</value>
@@ -815,5 +815,39 @@
   </data>
   <data name="No" xml:space="preserve">
     <value>No</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>No Bans</value>
+  </data>
+  <data name="ArmsFactory" xml:space="preserve">
+    <value>Arms Factory</value>
+  </data>
+  <data name="TheRedChurch" xml:space="preserve">
+    <value>The Red Church</value>
+  </data>
+  <data name="SacredHeartHospital" xml:space="preserve">
+    <value>Sacred Heart Hospital</value>
+  </data>
+  <data name="LeosMemory" xml:space="preserve">
+    <value>Leo's Memory</value>
+  </data>
+  <data name="MoonlitRiverPark" xml:space="preserve">
+    <value>Moonlit River Park</value>
+  </data>
+  <data name="LakesideVillage" xml:space="preserve">
+    <value>Lakeside Village</value>
+  </data>
+  <data name="EversleepingTown" xml:space="preserve">
+    <value>EversleepingTown</value>
+  </data>
+  <data name="ChinaTown" xml:space="preserve">
+    <value>ChinaTown</value>
+  </data>
+  <data name="Darkwoods" xml:space="preserve">
+    <value>Darkwoods</value>
+  </data>
+  <data name="CommingSoon" xml:space="preserve">
+    <value>How about we explore the area ahead of us later~</value>
+    <comment>前面的区域以后再来探索吧~</comment>
   </data>
 </root>

@@ -477,7 +477,7 @@
   <data name="ThreeEscape" xml:space="preserve">
     <value>3跑</value>
   </data>
-  <data name="Draw" xml:space="preserve">
+  <data name="Tie" xml:space="preserve">
     <value>平局</value>
   </data>
   <data name="FourEliminate" xml:space="preserve">
@@ -779,5 +779,38 @@
   </data>
   <data name="No" xml:space="preserve">
     <value>否</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>无禁用</value>
+  </data>
+  <data name="ArmsFactory" xml:space="preserve">
+    <value>军工厂</value>
+  </data>
+  <data name="TheRedChurch" xml:space="preserve">
+    <value>红教堂</value>
+  </data>
+  <data name="SacredHeartHospital" xml:space="preserve">
+    <value>圣心医院</value>
+  </data>
+  <data name="LeosMemory" xml:space="preserve">
+    <value>里奥的回忆</value>
+  </data>
+  <data name="MoonlitRiverPark" xml:space="preserve">
+    <value>月亮河公园</value>
+  </data>
+  <data name="LakesideVillage" xml:space="preserve">
+    <value>湖景村</value>
+  </data>
+  <data name="EversleepingTown" xml:space="preserve">
+    <value>永眠镇</value>
+  </data>
+  <data name="ChinaTown" xml:space="preserve">
+    <value>唐人街</value>
+  </data>
+  <data name="Darkwoods" xml:space="preserve">
+    <value>不归林</value>
+  </data>
+  <data name="CommingSoon" xml:space="preserve">
+    <value>前面的区域以后再来探索吧~</value>
   </data>
 </root>

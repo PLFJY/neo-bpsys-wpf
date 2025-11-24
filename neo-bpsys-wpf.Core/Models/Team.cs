@@ -33,7 +33,7 @@ public partial class Team : ViewModelBase
 #if DEBUG
             return TeamType switch
             {
-                TeamType.MainTeam => string.IsNullOrEmpty(_name) ? "主队" : _name,
+                TeamType.HomeTeam => string.IsNullOrEmpty(_name) ? "主队" : _name,
                 TeamType.AwayTeam => string.IsNullOrEmpty(_name) ? "客队" : _name,
                 _ => _name
             };

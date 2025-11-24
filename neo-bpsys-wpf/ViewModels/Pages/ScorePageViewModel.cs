@@ -169,7 +169,7 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
         GameGlobalInfoRecord[SelectedGameProgress].IsGameFinished = IsGameFinished;
         if (!IsGameFinished)
         {
-            _frontService.SetGlobalScoreToBar(TeamType.MainTeam, SelectedGameProgress);
+            _frontService.SetGlobalScoreToBar(TeamType.HomeTeam, SelectedGameProgress);
             _frontService.SetGlobalScoreToBar(TeamType.AwayTeam, SelectedGameProgress);
             UpdateTotalMinorPoint();
             return;
@@ -191,7 +191,7 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     {
         if (!IsGameFinished)
         {
-            _frontService.SetGlobalScoreToBar(TeamType.MainTeam, SelectedGameProgress);
+            _frontService.SetGlobalScoreToBar(TeamType.HomeTeam, SelectedGameProgress);
             _frontService.SetGlobalScoreToBar(TeamType.AwayTeam, SelectedGameProgress);
             return;
         }
@@ -227,13 +227,13 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
         switch (MainTeamCamp)
         {
             case Camp.Sur:
-                _frontService.SetGlobalScore(TeamType.MainTeam, SelectedGameProgress, Camp.Sur,
+                _frontService.SetGlobalScore(TeamType.HomeTeam, SelectedGameProgress, Camp.Sur,
                     surScore);
                 _frontService.SetGlobalScore(TeamType.AwayTeam, SelectedGameProgress, Camp.Hun,
                     hunScore);
                 break;
             case Camp.Hun:
-                _frontService.SetGlobalScore(TeamType.MainTeam, SelectedGameProgress, Camp.Hun,
+                _frontService.SetGlobalScore(TeamType.HomeTeam, SelectedGameProgress, Camp.Hun,
                     hunScore);
                 _frontService.SetGlobalScore(TeamType.AwayTeam, SelectedGameProgress, Camp.Sur,
                     surScore);

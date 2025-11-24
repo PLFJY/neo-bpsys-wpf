@@ -5,6 +5,6 @@ namespace neo_bpsys_wpf.Core.Enums;
 /// </summary>
 public enum TeamType
 {
-    MainTeam,
+    HomeTeam,
     AwayTeam
 }
