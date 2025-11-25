@@ -235,7 +235,7 @@ public partial class SettingPageViewModel : ViewModelBase
             _settingsHostService.SaveConfig();
             if (LanguageKey.System == value)
             {
-                CultureInfo systemCulture = CultureInfo.InstalledUICulture;
+                CultureInfo systemCulture = CultureInfo.CurrentUICulture;
                 string systemLanguage = systemCulture.Name;
                 I18NExtension.Culture = new CultureInfo(systemLanguage);
                 _logger.LogInformation("System language detected: {systemLanguage}, set language to {appLanguage}", systemLanguage, systemLanguage);
@@ -249,7 +249,7 @@ public partial class SettingPageViewModel : ViewModelBase
 
     public Dictionary<string, LanguageKey> LanguageList { get; } = new()
     {
-        {"跟随系统", LanguageKey.System},
+        {Assets.Locales.LangKeys.FollowSystem, LanguageKey.System},
         {"简体中文" , LanguageKey.zh_CN},
         {"English" , LanguageKey.en_US},
         //{"日本語" , LanguageKey.ja_JP }

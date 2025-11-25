@@ -858,4 +858,7 @@
   <data name="HomeTeam" xml:space="preserve">
     <value>Home Team</value>
   </data>
+  <data name="FollowSystem" xml:space="preserve">
+    <value>Follow system</value>
+  </data>
 </root>

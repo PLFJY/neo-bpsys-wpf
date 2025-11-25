@@ -772,6 +772,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Follow system 的本地化字符串。
+        /// </summary>
+        public static string FollowSystem {
+            get {
+                return ResourceManager.GetString("FollowSystem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Format:  的本地化字符串。
         /// </summary>
         public static string FormatColon {

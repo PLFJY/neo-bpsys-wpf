@@ -312,7 +312,7 @@ public partial class App : Application
         var _settingService = _host.Services.GetRequiredService<ISettingsHostService>();
         if (_settingService.Settings.Language == LanguageKey.System)
         {
-            CultureInfo systemCulture = CultureInfo.InstalledUICulture;
+            CultureInfo systemCulture = CultureInfo.CurrentUICulture;
             string systemLanguage = systemCulture.Name;
             I18NExtension.Culture = new CultureInfo(systemLanguage);
             _logger.LogInformation("System language detected: {systemLanguage}, set language to {appLanguage}",

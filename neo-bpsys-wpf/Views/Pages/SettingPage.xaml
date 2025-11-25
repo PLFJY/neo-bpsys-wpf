@@ -37,10 +37,15 @@
                 Width="200"
                 Margin="0,10,0,0"
                 HorizontalAlignment="Left"
-                DisplayMemberPath="Key"
                 ItemsSource="{Binding LanguageList}"
                 SelectedValue="{Binding SelectedLanguage}"
-                SelectedValuePath="Value" />
+                SelectedValuePath="Value">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{I18N {Binding Key}}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
         </Border>
         <TextBlock
             Margin="0,10,0,0"
