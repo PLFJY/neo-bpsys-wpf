@@ -8,7 +8,6 @@
     xmlns:enums="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
     xmlns:lang="clr-namespace:neo_bpsys_wpf.Locales"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
-    
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
@@ -297,7 +296,13 @@
                     BasedOn="{StaticResource {x:Type ComboBox}}"
                     TargetType="ComboBox">
                     <Setter Property="SelectedValuePath" Value="Value" />
-                    <Setter Property="DisplayMemberPath" Value="Key" />
+                    <Setter Property="ItemTemplate">
+                        <Setter.Value>
+                            <DataTemplate>
+                                <TextBlock Text="{I18N {Binding Key}}" />
+                            </DataTemplate>
+                        </Setter.Value>
+                    </Setter>
                 </Style>
                 <cv:StringToDoubleConverter x:Key="StringToDoubleConverter" />
             </Border.Resources>
