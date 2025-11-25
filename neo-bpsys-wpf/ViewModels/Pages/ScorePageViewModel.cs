@@ -3,14 +3,17 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
-using neo_bpsys_wpf.ViewModels.Windows;
-using neo_bpsys_wpf.Views.Windows;
-using System.ComponentModel;
+using neo_bpsys_wpf.Assets.Locales;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.ViewModels.Windows;
+using neo_bpsys_wpf.Views.Windows;
+using System.ComponentModel;
 using Score = neo_bpsys_wpf.Core.Models.Score;
 using Team = neo_bpsys_wpf.Core.Models.Team;
+using LangKeys = neo_bpsys_wpf.Assets.Locales.LangKeys;
+using Lang = neo_bpsys_wpf.Assets.Locales.Lang;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -372,30 +375,30 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
 
     private static OrderedDictionary<GameProgress, string> GameListBo5 => new()
     {
-        { GameProgress.Game1FirstHalf, "第1局上半" },
-        { GameProgress.Game1SecondHalf, "第1局下半" },
-        { GameProgress.Game2FirstHalf, "第2局上半" },
-        { GameProgress.Game2SecondHalf, "第2局下半" },
-        { GameProgress.Game3FirstHalf, "第3局上半" },
-        { GameProgress.Game3SecondHalf, "第3局下半" },
-        { GameProgress.Game4FirstHalf, "第4局上半" },
-        { GameProgress.Game4SecondHalf, "第4局下半" },
-        { GameProgress.Game5FirstHalf, "第5局上半" },
-        { GameProgress.Game5SecondHalf, "第5局下半" },
-        { GameProgress.Game5ExtraFirstHalf, "第5局加赛上半" },
-        { GameProgress.Game5ExtraSecondHalf, "第5局加赛下半" }
+        { GameProgress.Game1FirstHalf, LangKeys.Game1FirstHalf },
+        { GameProgress.Game1SecondHalf, LangKeys.Game1SecondHalf },
+        { GameProgress.Game2FirstHalf, LangKeys.Game2FirstHalf },
+        { GameProgress.Game2SecondHalf, LangKeys.Game2SecondHalf },
+        { GameProgress.Game3FirstHalf, LangKeys.Game3FirstHalf },
+        { GameProgress.Game3SecondHalf, LangKeys.Game3SecondHalf },
+        { GameProgress.Game4FirstHalf, LangKeys.Game4FirstHalf },
+        { GameProgress.Game4SecondHalf, LangKeys.Game4SecondHalf },
+        { GameProgress.Game5FirstHalf, LangKeys.Game5FirstHalf },
+        { GameProgress.Game5SecondHalf, LangKeys.Game5SecondHalf },
+        { GameProgress.Game5ExtraFirstHalf, LangKeys.Game5ExtraFirstHalf },
+        { GameProgress.Game5ExtraSecondHalf, LangKeys.Game5ExtraSecondHalf }
     };
 
     private static OrderedDictionary<GameProgress, string> GameListBo3 => new()
     {
-        { GameProgress.Game1FirstHalf, "第1局上半" },
-        { GameProgress.Game1SecondHalf, "第1局下半" },
-        { GameProgress.Game2FirstHalf, "第2局上半" },
-        { GameProgress.Game2SecondHalf, "第2局下半" },
-        { GameProgress.Game3FirstHalf, "第3局上半" },
-        { GameProgress.Game3SecondHalf, "第3局下半" },
-        { GameProgress.Game3ExtraFirstHalf, "第3局加赛上半" },
-        { GameProgress.Game3ExtraSecondHalf, "第3局加赛下半" }
+        { GameProgress.Game1FirstHalf, LangKeys.Game1FirstHalf },
+        { GameProgress.Game1SecondHalf, LangKeys.Game1SecondHalf },
+        { GameProgress.Game2FirstHalf, LangKeys.Game2FirstHalf },
+        { GameProgress.Game2SecondHalf, LangKeys.Game2SecondHalf },
+        { GameProgress.Game3FirstHalf, LangKeys.Game3FirstHalf },
+        { GameProgress.Game3SecondHalf, LangKeys.Game3SecondHalf },
+        { GameProgress.Game3ExtraFirstHalf, LangKeys.Game3ExtraFirstHalf },
+        { GameProgress.Game3ExtraSecondHalf, LangKeys.Game3ExtraSecondHalf }
     };
 
     public partial class GameGlobalInfo() : ObservableObject

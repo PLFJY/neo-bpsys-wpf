@@ -152,11 +152,16 @@
                         <ComboBox
                             Width="150"
                             Margin="10,0,0,0"
-                            DisplayMemberPath="Value"
                             ItemsSource="{Binding GameList}"
                             SelectedIndex="{Binding SelectedIndex, Mode=OneWay}"
                             SelectedValue="{Binding SelectedGameProgress}"
-                            SelectedValuePath="Key" />
+                            SelectedValuePath="Key" >
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{I18N {Binding Path=Value}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                         <ui:Button
                             Margin="10,0,0,0"
                             Command="{Binding NextGameCommand}"

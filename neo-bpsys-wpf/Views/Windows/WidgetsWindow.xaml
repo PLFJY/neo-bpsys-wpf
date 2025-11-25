@@ -11,7 +11,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
-    Title="前台-小组件"
+    Title="{I18N {x:Static lang:LangKeys.FrontendWidgets}}"
     Width="1440"
     Height="716"
     d:DataContext="{d:DesignInstance Type=vm:WidgetsWindowViewModel,
