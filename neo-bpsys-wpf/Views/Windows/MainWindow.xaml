@@ -255,7 +255,7 @@
                     SelectedValuePath="Key">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{I18N {Binding Value}}" />
+                            <TextBlock Text="{I18N {Binding Path=Value}}" />
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>

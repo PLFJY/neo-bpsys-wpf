@@ -49,7 +49,10 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Margin="0,0,10,10">
-                                <ui:TextBox IsReadOnly="True" Text="{Binding ThisPlayer.Member.Name, Mode=OneWay}" PlaceholderText="{I18N {x:Static lang:LangKeys.PlayerName}}"/>
+                                <ui:TextBox
+                                    IsReadOnly="True"
+                                    PlaceholderText="{I18N {x:Static lang:LangKeys.PlayerName}}"
+                                    Text="{Binding ThisPlayer.Member.Name, Mode=OneWay}" />
                                 <cc:CharacterSelector
                                     Margin="0,10,0,0"
                                     Command="{Binding ConfirmCommand}"
@@ -176,8 +179,16 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0">
-                        <Run Text="{I18N {x:Static lang:LangKeys.HomeTeamColon}}" /><Run Text="{Binding MainTeam.Name}" />
+                    <TextBlock
+                        Grid.Row="0"
+                        d:Text="主队: 主队名称"
+                        Tag="{I18N {x:Static lang:LangKeys.HomeTeam}}">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0}: {1}">
+                                <Binding Path="Tag" RelativeSource="{RelativeSource Self}" />
+                                <Binding Path="MainTeam.Name" />
+                            </MultiBinding>
+                        </TextBlock.Text>
                     </TextBlock>
                     <TextBlock
                         Grid.Row="1"
@@ -235,8 +246,16 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0">
-                        <Run Text="{I18N {x:Static lang:LangKeys.AwayTeamColon}}" /><Run Text="{Binding AwayTeam.Name}" />
+                    <TextBlock
+                        Grid.Row="0"
+                        d:Text="客队: 主队名称"
+                        Tag="{I18N {x:Static lang:LangKeys.AwayTeam}}">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0}: {1}">
+                                <Binding Path="Tag" RelativeSource="{RelativeSource Self}" />
+                                <Binding Path="AwayTeam.Name" />
+                            </MultiBinding>
+                        </TextBlock.Text>
                     </TextBlock>
                     <TextBlock
                         Grid.Row="1"

@@ -167,7 +167,6 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     {
         public Team Team { get; } = team;
         public TeamType TeamType { get; } = teamType;
-        public string DisplayedTeamType { get; } = teamType == TeamType.HomeTeam ? "主队" : "客队";
     }
 
     public class MapSelection(MapV2? map = null)

@@ -135,9 +135,9 @@ namespace neo_bpsys_wpf.Assets.Locales {
         /// <summary>
         ///   查找类似 Away team:  的本地化字符串。
         /// </summary>
-        public static string AwayTeamColon {
+        public static string AwayTeam {
             get {
-                return ResourceManager.GetString("AwayTeamColon", resourceCulture);
+                return ResourceManager.GetString("AwayTeam", resourceCulture);
             }
         }
         
@@ -801,9 +801,9 @@ namespace neo_bpsys_wpf.Assets.Locales {
         /// <summary>
         ///   查找类似 Free Game 的本地化字符串。
         /// </summary>
-        public static string FreeGame {
+        public static string Free {
             get {
-                return ResourceManager.GetString("FreeGame", resourceCulture);
+                return ResourceManager.GetString("Free", resourceCulture);
             }
         }
         
@@ -1096,11 +1096,11 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 Home team:  的本地化字符串。
+        ///   查找类似 Home Team 的本地化字符串。
         /// </summary>
-        public static string HomeTeamColon {
+        public static string HomeTeam {
             get {
-                return ResourceManager.GetString("HomeTeamColon", resourceCulture);
+                return ResourceManager.GetString("HomeTeam", resourceCulture);
             }
         }
         

@@ -56,7 +56,7 @@
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock>
-                                            <Run Text="{Binding DisplayedTeamType, Mode=OneTime}" /><Run Text=" - " />
+                                            <Run Text="{I18N {Binding TeamType, Converter={StaticResource EnumToStringConverter}}}" /><Run Text=" - " />
                                         </TextBlock>
                                         <TextBlock Text="{Binding Team.Name}" />
                                     </StackPanel>
@@ -132,7 +132,7 @@
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock>
-                                            <Run Text="{Binding DisplayedTeamType, Mode=OneTime}" /><Run Text=" - " />
+                                            <Run Text="{I18N {Binding TeamType, Converter={StaticResource EnumToStringConverter}}}" /><Run Text=" - " />
                                         </TextBlock>
                                         <TextBlock Text="{Binding Team.Name}" />
                                     </StackPanel>

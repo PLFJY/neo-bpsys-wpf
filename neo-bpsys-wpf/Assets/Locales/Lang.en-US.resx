@@ -456,17 +456,14 @@
   <data name="GlobalBanRecord" xml:space="preserve">
     <value>Global ban record</value>
   </data>
-  <data name="HomeTeamColon" xml:space="preserve">
-    <value>Home team: </value>
-  </data>
   <data name="GlobalBanSurvivor" xml:space="preserve">
     <value>Global ban survivor</value>
   </data>
   <data name="GlobalBanHunter" xml:space="preserve">
     <value>Global ban hunter</value>
   </data>
-  <data name="AwayTeamColon" xml:space="preserve">
-    <value>Away team: </value>
+  <data name="AwayTeam" xml:space="preserve">
+    <value>Away team</value>
   </data>
   <data name="ScoreInBPWindowAndGame" xml:space="preserve">
     <value>Score in BP window and game</value>
@@ -690,7 +687,7 @@
   <data name="Settings" xml:space="preserve">
     <value>Settings</value>
   </data>
-  <data name="FreeGame" xml:space="preserve">
+  <data name="Free" xml:space="preserve">
     <value>Free Game</value>
   </data>
   <data name="Game1FirstHalf" xml:space="preserve">
@@ -857,5 +854,8 @@
   </data>
   <data name="FrontendWidgets" xml:space="preserve">
     <value>Frontend - Widgets</value>
+  </data>
+  <data name="HomeTeam" xml:space="preserve">
+    <value>Home Team</value>
   </data>
 </root>

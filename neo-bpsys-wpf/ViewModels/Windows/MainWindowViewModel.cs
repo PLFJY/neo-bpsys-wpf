@@ -74,11 +74,11 @@ public partial class MainWindowViewModel :
     public GameProgress SelectedGameProgress
     {
         get => _selectedGameProgress;
-        set
+        set => SetPropertyWithAction(ref _selectedGameProgress, value, _ =>
         {
             _selectedGameProgress = value;
             CurrentGame.GameProgress = _selectedGameProgress;
-        }
+        });
     }
 
     [ObservableProperty] private string _actionName = string.Empty;
@@ -104,7 +104,6 @@ public partial class MainWindowViewModel :
         GameList = GameListBo5;
         IsBo3Mode = _sharedDataService.IsBo3Mode;
     }
-
 
     [RelayCommand]
     private async Task ThemeSwitchAsync()
@@ -260,13 +259,16 @@ public partial class MainWindowViewModel :
     public bool IsBo3Mode
     {
         get => _isBo3Mode;
-        set
+        set => SetPropertyWithAction(ref _isBo3Mode, value, _ =>
         {
-            SetProperty(ref _isBo3Mode, value);
             _sharedDataService.IsBo3Mode = _isBo3Mode;
+            if (SelectedGameProgress > GameProgress.Game3SecondHalf)
+            {
+                SelectedGameProgress = GameProgress.Free;
+            }
             GameList = !IsBo3Mode ? GameListBo5 : GameListBo3;
             _logger.LogInformation("Accepted IsBo3Mode value: {Value}", value);
-        }
+        });
     }
 
     [ObservableProperty] private bool _isSwapHighlighted;
@@ -288,7 +290,7 @@ public partial class MainWindowViewModel :
 
     private static Dictionary<GameProgress, string> GameListBo5 => new()
     {
-        { GameProgress.Free, LangKeys.FreeGame },
+        { GameProgress.Free, LangKeys.Free },
         { GameProgress.Game1FirstHalf, LangKeys.Game1FirstHalf },
         { GameProgress.Game1SecondHalf, LangKeys.Game1SecondHalf },
         { GameProgress.Game2FirstHalf, LangKeys.Game2FirstHalf },
@@ -305,7 +307,7 @@ public partial class MainWindowViewModel :
 
     private static Dictionary<GameProgress, string> GameListBo3 => new()
     {
-        { GameProgress.Free, LangKeys.FreeGame },
+        { GameProgress.Free, LangKeys.Free },
         { GameProgress.Game1FirstHalf, LangKeys.Game1FirstHalf },
         { GameProgress.Game1SecondHalf, LangKeys.Game1SecondHalf },
         { GameProgress.Game2FirstHalf, LangKeys.Game2FirstHalf },
