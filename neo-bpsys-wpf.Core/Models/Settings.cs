@@ -376,7 +376,7 @@ public class WidgetsWindowTextSettings
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 22);
 
     public TextSettings MapBpV2_MapName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 16);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 14);
 
     public TextSettings MapBpV2_TeamName { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 18);

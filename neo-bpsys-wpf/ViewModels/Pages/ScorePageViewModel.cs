@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
-using neo_bpsys_wpf.Assets.Locales;
+using neo_bpsys_wpf.Locales;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
@@ -12,8 +12,8 @@ using neo_bpsys_wpf.Views.Windows;
 using System.ComponentModel;
 using Score = neo_bpsys_wpf.Core.Models.Score;
 using Team = neo_bpsys_wpf.Core.Models.Team;
-using LangKeys = neo_bpsys_wpf.Assets.Locales.LangKeys;
-using Lang = neo_bpsys_wpf.Assets.Locales.Lang;
+using LangKeys = neo_bpsys_wpf.Locales.LangKeys;
+using Lang = neo_bpsys_wpf.Locales.Lang;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 

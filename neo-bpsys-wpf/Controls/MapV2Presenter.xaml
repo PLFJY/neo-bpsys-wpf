@@ -19,6 +19,7 @@
         <cv:CampHunToVisibilityConverter x:Key="CampHunToVisibilityConverter" />
         <cv:NullObjectToVisibilityConverter x:Key="NullObjectToVisibilityConverter" />
         <cv:NullObjectToReverseVisibilityConverter x:Key="NullObjectToReverseVisibilityConverter" />
+        <cv:EnumToStringConverter x:Key="EnumToStringConverter" />
         <Storyboard
             x:Key="BreathAnimation"
             AutoReverse="True"
@@ -141,12 +142,12 @@
                     d:FontFamily="{StaticResource Hanyi}"
                     d:FontSize="14"
                     d:Foreground="White"
-                    d:Text="军工厂"
+                    d:Text="Sacred Heart Hospital"
                     FontFamily="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontFamily}"
                     FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontSize}"
                     FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontWeight}"
                     Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameForeground}"
-                    Text="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.MapName}" />
+                    Text="{I18N {Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.MapName, Converter={StaticResource EnumToStringConverter}}}" />
             </Border>
         </Border>
 
