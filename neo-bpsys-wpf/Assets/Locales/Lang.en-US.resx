@@ -855,4 +855,7 @@
   <data name="FrontendWidgets" xml:space="preserve">
     <value>Frontend - Widgets</value>
   </data>
+  <data name="GameScores" xml:space="preserve">
+    <value>Game scores</value>
+  </data>
 </root>

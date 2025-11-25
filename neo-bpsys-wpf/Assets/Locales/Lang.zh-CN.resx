@@ -810,6 +810,9 @@
   <data name="CommingSoon" xml:space="preserve">
     <value>前面的区域以后再来探索吧~</value>
   </data>
+  <data name="GameScores" xml:space="preserve">
+    <value>小比分</value>
+  </data>
   <data name="FrontendBP" xml:space="preserve">
     <value>前台-BP</value>
   </data>

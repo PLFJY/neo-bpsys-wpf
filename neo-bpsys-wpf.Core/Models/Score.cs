@@ -14,7 +14,6 @@ public partial class Score : ViewModelBase
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
-    [NotifyPropertyChangedFor(nameof(ScorePreviewOnBack))]
     private int _win;
     
     /// <summary>
@@ -22,7 +21,6 @@ public partial class Score : ViewModelBase
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
-    [NotifyPropertyChangedFor(nameof(ScorePreviewOnBack))]
     private int _tie;
     
     /// <summary>
@@ -30,18 +28,12 @@ public partial class Score : ViewModelBase
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
-    [NotifyPropertyChangedFor(nameof(ScorePreviewOnBack))]
     private int _minorPoints;
     
     /// <summary>
     /// 前台显示的格式化的大比分
     /// </summary>
     [JsonIgnore] public string MajorPointsOnFront => $"W{Win}  D{Tie}";
-    
-    /// <summary>
-    /// 后台显示的格式化的比分
-    /// </summary>
-    [JsonIgnore] public string ScorePreviewOnBack => $"W:{Win} D:{Tie} 小比分:{MinorPoints}";
 
     internal void Reset()
     {

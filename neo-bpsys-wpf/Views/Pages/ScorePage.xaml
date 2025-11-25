@@ -15,7 +15,7 @@
     d:DataContext="{d:DesignInstance Type=vm:ScorePageViewModel,
                                      IsDesignTimeCreatable=True}"
     d:DesignHeight="1500"
-    d:DesignWidth="685"
+    d:DesignWidth="900"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
@@ -44,51 +44,82 @@
                         </Style>
                     </Grid.Resources>
                     <StackPanel Grid.Column="0">
-                        <Button Command="{Binding Escape4Command}" Content="{I18N {x:Static lang:LangKeys.FourEscape}}" Width="100" />
-                        <Button Command="{Binding Escape3Command}" Content="{I18N {x:Static lang:LangKeys.ThreeEscape}}" Width="100" />
+                        <Button
+                            Width="100"
+                            Command="{Binding Escape4Command}"
+                            Content="{I18N {x:Static lang:LangKeys.FourEscape}}" />
+                        <Button
+                            Width="100"
+                            Command="{Binding Escape3Command}"
+                            Content="{I18N {x:Static lang:LangKeys.ThreeEscape}}" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0,30,0,0">
-                        <Button Command="{Binding TieCommand}" Content="{I18N {x:Static lang:LangKeys.Tie}}" Width="140" />
+                        <Button
+                            Width="140"
+                            Command="{Binding TieCommand}"
+                            Content="{I18N {x:Static lang:LangKeys.Tie}}" />
                         <Button
                             Width="140"
                             Command="{Binding CalculateMajorPointCommand}"
                             Content="{I18N {x:Static lang:LangKeys.ScoreSettlement}}" />
                     </StackPanel>
                     <StackPanel Grid.Column="2">
-                        <Button Command="{Binding Out4Command}" Content="{I18N {x:Static lang:LangKeys.FourEliminate}}" Width="100" />
-                        <Button Command="{Binding Out3Command}" Content="{I18N {x:Static lang:LangKeys.ThreeEliminate}}" Width="102" />
+                        <Button
+                            Width="100"
+                            Command="{Binding Out4Command}"
+                            Content="{I18N {x:Static lang:LangKeys.FourEliminate}}" />
+                        <Button
+                            Width="102"
+                            Command="{Binding Out3Command}"
+                            Content="{I18N {x:Static lang:LangKeys.ThreeEliminate}}" />
                     </StackPanel>
                     <StackPanel Grid.Column="3">
-                        <Button Command="{Binding ResetCommand}" Content="{I18N {x:Static lang:LangKeys.ResetAllScores}}" Width="150" />
+                        <Button
+                            Width="150"
+                            Command="{Binding ResetCommand}"
+                            Content="{I18N {x:Static lang:LangKeys.ResetAllScores}}" />
                         <Button
                             Width="150"
                             Command="{Binding ResetMinorPointCommand}"
-                            Content="{I18N {x:Static lang:LangKeys.ResetGameScores}}"/>
-                        <Button Command="{Binding ManualControlCommand}" Content="{I18N {x:Static lang:LangKeys.ControlManually}}" Width="150"/>
+                            Content="{I18N {x:Static lang:LangKeys.ResetGameScores}}" />
+                        <Button
+                            Width="150"
+                            Command="{Binding ManualControlCommand}"
+                            Content="{I18N {x:Static lang:LangKeys.ControlManually}}" />
                     </StackPanel>
-                    <StackPanel Grid.Column="4" Margin="0,20,0,0">
-                        <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
-                            <TextBlock
-                                VerticalAlignment="Center"
-                                d:Text="主队名称"
-                                Text="{Binding MainTeam.Name}" />
-                            <TextBlock
-                                Margin="10"
-                                HorizontalAlignment="Left"
-                                d:Text="W:0 D:0 小比分:0"
-                                Text="{Binding MainTeam.Score.ScorePreviewOnBack}" />
-                        </StackPanel>
-                        <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
-                            <TextBlock
-                                VerticalAlignment="Center"
-                                d:Text="客队名称"
-                                Text="{Binding AwayTeam.Name}" />
-                            <TextBlock
-                                Margin="10"
-                                HorizontalAlignment="Left"
-                                d:Text="W:0 D:0 小比分:0"
-                                Text="{Binding AwayTeam.Score.ScorePreviewOnBack}" />
-                        </StackPanel>
+                    <StackPanel
+                        Grid.Column="4"
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Center">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            d:Text="主队名称  W:0 D:0  小比分:0"
+                            Tag="{I18N {x:Static lang:LangKeys.GameScores}}">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0}  W:{1} D:{2}  {3}:{4}">
+                                    <Binding Path="MainTeam.Name" />
+                                    <Binding Path="MainTeam.Score.Win" />
+                                    <Binding Path="MainTeam.Score.Tie" />
+                                    <Binding Path="Tag" RelativeSource="{RelativeSource Self}" />
+                                    <Binding Path="MainTeam.Score.MinorPoints" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                        <TextBlock
+                            Margin="0,10,0,0"
+                            VerticalAlignment="Center"
+                            d:Text="客队名称  W:0 D:0  小比分:0"
+                            Tag="{I18N {x:Static lang:LangKeys.GameScores}}">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0}  W:{1} D:{2}  {3}:{4}">
+                                    <Binding Path="AwayTeam.Name" />
+                                    <Binding Path="AwayTeam.Score.Win" />
+                                    <Binding Path="AwayTeam.Score.Tie" />
+                                    <Binding Path="Tag" RelativeSource="{RelativeSource Self}" />
+                                    <Binding Path="AwayTeam.Score.MinorPoints" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
                     </StackPanel>
                 </Grid>
             </Grid>

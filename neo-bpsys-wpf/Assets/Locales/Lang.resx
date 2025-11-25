@@ -847,6 +847,9 @@
     <value>How about we explore the area ahead of us later~</value>
     <comment>前面的区域以后再来探索吧~</comment>
   </data>
+  <data name="GameScores" xml:space="preserve">
+    <value>Game scores</value>
+  </data>
   <data name="FrontendBP" xml:space="preserve">
     <value>Frontend - BP</value>
   </data>

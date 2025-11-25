@@ -997,6 +997,15 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Game scores 的本地化字符串。
+        /// </summary>
+        public static string GameScores {
+            get {
+                return ResourceManager.GetString("GameScores", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Game selection 的本地化字符串。
         /// </summary>
         public static string GameSelection {
