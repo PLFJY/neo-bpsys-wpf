@@ -4,7 +4,8 @@
     xmlns:cc="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-    xmlns:lang="clr-namespace:neo_bpsys_wpf.Assets.Locales"
+    xmlns:lang="clr-namespace:neo_bpsys_wpf.Locales"
+    
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
     <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
     <Style TargetType="{x:Type cc:CharacterSelector}">

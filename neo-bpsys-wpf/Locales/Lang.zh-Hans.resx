@@ -126,9 +126,6 @@
   <data name="GlobalBan" xml:space="preserve">
     <value>全局禁用</value>
   </data>
-  <data name="Number" xml:space="preserve">
-    <value> 号位</value>
-  </data>
   <data name="ProjectRepository" xml:space="preserve">
     <value>项目仓库：</value>
   </data>
@@ -292,7 +289,7 @@
     <value>监管者图标（地图BP V2）</value>
   </data>
   <data name="BPOverview" xml:space="preserve">
-    <value>BP overview</value>
+    <value>BP总览</value>
   </data>
   <data name="CurrentBanLockOfBPOverview" xml:space="preserve">
     <value>当局禁用锁（BP总览）</value>
@@ -860,5 +857,11 @@
   </data>
   <data name="FollowSystem" xml:space="preserve">
     <value>跟随系统</value>
+  </data>
+  <data name="ScorePreview" xml:space="preserve">
+    <value>{0}{1}{2}{3}</value>
+  </data>
+  <data name="IndexFormat" xml:space="preserve">
+    <value> {0} 号位</value>
   </data>
 </root>

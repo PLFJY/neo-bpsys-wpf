@@ -17,8 +17,8 @@ using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using Game = neo_bpsys_wpf.Core.Models.Game;
 using Team = neo_bpsys_wpf.Core.Models.Team;
-using Lang = neo_bpsys_wpf.Assets.Locales.Lang;
-using LangKeys = neo_bpsys_wpf.Assets.Locales.LangKeys;
+using Lang = neo_bpsys_wpf.Locales.Lang;
+using LangKeys = neo_bpsys_wpf.Locales.LangKeys;
 using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;

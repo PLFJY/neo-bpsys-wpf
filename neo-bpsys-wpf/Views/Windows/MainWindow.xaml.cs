@@ -12,7 +12,7 @@ using Wpf.Ui.Controls;
 using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
 using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
-using Lang = neo_bpsys_wpf.Assets.Locales.Lang;
+using Lang = neo_bpsys_wpf.Locales.Lang;
 
 namespace neo_bpsys_wpf.Views.Windows;
 

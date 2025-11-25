@@ -5,11 +5,11 @@
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lang="clr-namespace:neo_bpsys_wpf.Locales"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
-    xmlns:lang="clr-namespace:neo_bpsys_wpf.Assets.Locales"
     Title="BanHunPage"
     d:DataContext="{d:DesignInstance Type=vm:BanHunPageViewModel,
                                      IsDesignTimeCreatable=True}"
@@ -20,6 +20,7 @@
     mc:Ignorable="d">
     <Page.Resources>
         <cv:IntPlusOneConverter x:Key="IntPlusOneConverter" />
+        <cv:IndexFormatConverter x:Key="IndexFormatConverter" />
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
         <Border
@@ -128,8 +129,14 @@
                                 <TextBlock
                                     Margin="10,0,0,0"
                                     VerticalAlignment="Center"
-                                    Text="{Binding Index, Converter={StaticResource IntPlusOneConverter}}" />
-                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.Number}}" />
+                                    Tag="{I18N {x:Static lang:LangKeys.IndexFormat}}">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource IndexFormatConverter}">
+                                            <Binding Converter="{StaticResource IntPlusOneConverter}" Path="Index" />
+                                            <Binding Path="Tag" RelativeSource="{RelativeSource Self}" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -154,8 +161,14 @@
                                 <TextBlock
                                     Margin="10,0,0,0"
                                     VerticalAlignment="Center"
-                                    Text="{Binding Index, Converter={StaticResource IntPlusOneConverter}}" />
-                                <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.Number}}" />
+                                    Tag="{I18N {x:Static lang:LangKeys.IndexFormat}}">
+                                    <TextBlock.Text>
+                                        <MultiBinding Converter="{StaticResource IndexFormatConverter}">
+                                            <Binding Converter="{StaticResource IntPlusOneConverter}" Path="Index" />
+                                            <Binding Path="Tag" RelativeSource="{RelativeSource Self}" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

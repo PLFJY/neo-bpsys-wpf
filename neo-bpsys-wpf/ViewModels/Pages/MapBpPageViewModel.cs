@@ -12,8 +12,8 @@ using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models;
 using static neo_bpsys_wpf.Core.Enums.GameAction;
 using Team = neo_bpsys_wpf.Core.Models.Team;
-using Lang = neo_bpsys_wpf.Assets.Locales.Lang;
-using LangKeys = neo_bpsys_wpf.Assets.Locales.LangKeys;
+using Lang = neo_bpsys_wpf.Locales.Lang;
+using LangKeys = neo_bpsys_wpf.Locales.LangKeys;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 

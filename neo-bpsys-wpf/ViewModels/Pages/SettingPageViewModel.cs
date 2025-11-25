@@ -22,6 +22,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Media;
+using neo_bpsys_wpf.Locales;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -249,8 +250,8 @@ public partial class SettingPageViewModel : ViewModelBase
 
     public Dictionary<string, LanguageKey> LanguageList { get; } = new()
     {
-        {Assets.Locales.LangKeys.FollowSystem, LanguageKey.System},
-        {"简体中文" , LanguageKey.zh_CN},
+        {LangKeys.FollowSystem, LanguageKey.System},
+        {"简体中文" , LanguageKey.zh_Hans},
         {"English" , LanguageKey.en_US},
         //{"日本語" , LanguageKey.ja_JP }
     };

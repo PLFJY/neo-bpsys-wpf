@@ -126,9 +126,6 @@
   <data name="GlobalBan" xml:space="preserve">
     <value>Global ban</value>
   </data>
-  <data name="Number" xml:space="preserve">
-    <value> st/rd/nd/th</value>
-  </data>
   <data name="ProjectRepository" xml:space="preserve">
     <value>Project repository: </value>
   </data>
@@ -436,19 +433,19 @@
     <value>Control first 2 picking border separately</value>
   </data>
   <data name="SurvivorPickingBorder1" xml:space="preserve">
-    <value>Survivor picking border 1</value>
+    <value>Survivor picking border 1st</value>
   </data>
   <data name="SurvivorPickingBorder2" xml:space="preserve">
-    <value>Survivor picking border 2</value>
+    <value>Survivor picking border 2nd</value>
   </data>
   <data name="SurvivorPickingBorder1and2" xml:space="preserve">
-    <value>Survivor picking border 1 &amp; 2</value>
+    <value>Survivor picking border 1st &amp; 2nd</value>
   </data>
   <data name="SurvivorPickingBorder3" xml:space="preserve">
-    <value>Survivor picking border 3</value>
+    <value>Survivor picking border 3rd</value>
   </data>
   <data name="SurvivorPickingBorder4" xml:space="preserve">
-    <value>Survivor picking border 4</value>
+    <value>Survivor picking border 4th</value>
   </data>
   <data name="HunterPickingBorder" xml:space="preserve">
     <value>Hunter picking border</value>
@@ -860,5 +857,11 @@
   </data>
   <data name="FollowSystem" xml:space="preserve">
     <value>Follow system</value>
+  </data>
+  <data name="ScorePreview" xml:space="preserve">
+    <value>{0}{1}{2}{3}</value>
+  </data>
+  <data name="IndexFormat" xml:space="preserve">
+    <value> {0}{1}</value>
   </data>
 </root>
