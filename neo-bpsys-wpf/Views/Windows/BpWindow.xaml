@@ -6,11 +6,12 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:lang="clr-namespace:neo_bpsys_wpf.Assets.Locales"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
-    Title="前台-BP"
+    Title="{I18N {x:Static lang:LangKeys.FrontendBP}}"
     Width="1440"
     Height="810"
     d:DataContext="{d:DesignInstance Type=vm:BpWindowViewModel,
@@ -21,6 +22,7 @@
     <Window.Resources>
         <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
         <cv:GameProgressToStringConverter x:Key="GameProgressToStringConverter" />
+        <cv:EnumToStringConverter x:Key="EnumToStringConverter" />
     </Window.Resources>
     <Canvas
         Name="BaseCanvas"
@@ -481,7 +483,7 @@
                 FontSize="{Binding Settings.TextSettings.MapName.FontSize}"
                 FontWeight="{Binding Settings.TextSettings.MapName.FontWeight}"
                 Foreground="{Binding Settings.TextSettings.MapName.Foreground}"
-                Text="{Binding CurrentGame.PickedMap}" />
+                Text="{I18N {Binding CurrentGame.PickedMap, Converter={StaticResource EnumToStringConverter}}}" />
         </Border>
         <Border
             Name="GameProgress"

@@ -6,6 +6,7 @@
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lang="clr-namespace:neo_bpsys_wpf.Assets.Locales"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -19,6 +20,9 @@
     Style="{StaticResource FrontWindow}"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
+    <Window.Resources>
+        <cv:EnumToStringConverter x:Key="EnumToStringConverter" />
+    </Window.Resources>
     <Grid Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}" Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -97,7 +101,7 @@
                             d:Foreground="White"
                             d:Text="唐人街"
                             Style="{StaticResource MapBp_MapName}"
-                            Text="{Binding CurrentGame.PickedMap}" />
+                            Text="{I18N {Binding CurrentGame.PickedMap, Converter={StaticResource EnumToStringConverter}}}" />
                     </Border>
                     <Border
                         Name="PickWord"
@@ -189,7 +193,7 @@
                             d:Foreground="White"
                             d:Text="红教堂"
                             Style="{StaticResource MapBp_MapName}"
-                            Text="{Binding CurrentGame.BannedMap}" />
+                            Text="{I18N {Binding CurrentGame.BannedMap, Converter={StaticResource EnumToStringConverter}}}" />
                     </Border>
                     <Border
                         Name="BanWord"

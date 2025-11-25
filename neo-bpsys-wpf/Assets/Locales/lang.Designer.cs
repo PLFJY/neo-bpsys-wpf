@@ -142,11 +142,65 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Away team game score-1 的本地化字符串。
+        /// </summary>
+        public static string AwayTeamGameScoreMinus1 {
+            get {
+                return ResourceManager.GetString("AwayTeamGameScoreMinus1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Away team game score+1 的本地化字符串。
+        /// </summary>
+        public static string AwayTeamGameScorePlus1 {
+            get {
+                return ResourceManager.GetString("AwayTeamGameScorePlus1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Away team information 的本地化字符串。
         /// </summary>
         public static string AwayTeamInformation {
             get {
                 return ResourceManager.GetString("AwayTeamInformation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Away team tie-1 的本地化字符串。
+        /// </summary>
+        public static string AwayTeamTieMinus1 {
+            get {
+                return ResourceManager.GetString("AwayTeamTieMinus1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Away team tie+1 的本地化字符串。
+        /// </summary>
+        public static string AwayTeamTiePlus1 {
+            get {
+                return ResourceManager.GetString("AwayTeamTiePlus1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 AwayTeamWinMinus1 的本地化字符串。
+        /// </summary>
+        public static string AwayTeamWinMinus1 {
+            get {
+                return ResourceManager.GetString("AwayTeamWinMinus1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Away team win+1 的本地化字符串。
+        /// </summary>
+        public static string AwayTeamWinPlus1 {
+            get {
+                return ResourceManager.GetString("AwayTeamWinPlus1", resourceCulture);
             }
         }
         
@@ -754,11 +808,38 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Frontend - BP 的本地化字符串。
+        /// </summary>
+        public static string FrontendBP {
+            get {
+                return ResourceManager.GetString("FrontendBP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Frontend - CutScene Window 的本地化字符串。
+        /// </summary>
+        public static string FrontendCutScene {
+            get {
+                return ResourceManager.GetString("FrontendCutScene", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Frontend Management 的本地化字符串。
         /// </summary>
         public static string FrontendManagement {
             get {
                 return ResourceManager.GetString("FrontendManagement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Frontend-Widgets 的本地化字符串。
+        /// </summary>
+        public static string FrontendWidgets {
+            get {
+                return ResourceManager.GetString("FrontendWidgets", resourceCulture);
             }
         }
         
@@ -1015,6 +1096,24 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Home team game score-1 的本地化字符串。
+        /// </summary>
+        public static string HomeTeamGameScoreMinus1 {
+            get {
+                return ResourceManager.GetString("HomeTeamGameScoreMinus1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Home team game score+1 的本地化字符串。
+        /// </summary>
+        public static string HomeTeamGameScorePlus1 {
+            get {
+                return ResourceManager.GetString("HomeTeamGameScorePlus1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Home team information 的本地化字符串。
         /// </summary>
         public static string HomeTeamInformation {
@@ -1029,6 +1128,42 @@ namespace neo_bpsys_wpf.Assets.Locales {
         public static string HomeTeamName {
             get {
                 return ResourceManager.GetString("HomeTeamName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Home team tie-1 的本地化字符串。
+        /// </summary>
+        public static string HomeTeamTieMinus1 {
+            get {
+                return ResourceManager.GetString("HomeTeamTieMinus1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Home team tie+1 的本地化字符串。
+        /// </summary>
+        public static string HomeTeamTiePlus1 {
+            get {
+                return ResourceManager.GetString("HomeTeamTiePlus1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Home team win-1 的本地化字符串。
+        /// </summary>
+        public static string HomeTeamWinMinus1 {
+            get {
+                return ResourceManager.GetString("HomeTeamWinMinus1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Home team win+1 的本地化字符串。
+        /// </summary>
+        public static string HomeTeamWinPlus1 {
+            get {
+                return ResourceManager.GetString("HomeTeamWinPlus1", resourceCulture);
             }
         }
         
@@ -1123,7 +1258,7 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 Interclude window 的本地化字符串。
+        ///   查找类似 CutScene window 的本地化字符串。
         /// </summary>
         public static string IntercludeWindow {
             get {

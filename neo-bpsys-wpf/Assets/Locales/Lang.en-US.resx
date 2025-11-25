@@ -349,7 +349,7 @@
     <value>Reset layout</value>
   </data>
   <data name="IntercludeWindow" xml:space="preserve">
-    <value>Interclude window</value>
+    <value>CutScene window</value>
   </data>
   <data name="ScoreConponent" xml:space="preserve">
     <value>Score conponent</value>
@@ -809,5 +809,50 @@
   </data>
   <data name="CommingSoon" xml:space="preserve">
     <value>How about we explore the area ahead of us later~</value>
+  </data>
+  <data name="FrontendBP" xml:space="preserve">
+    <value>Frontend - BP</value>
+  </data>
+  <data name="FrontendCutScene" xml:space="preserve">
+    <value>Frontend - CutScene Window</value>
+  </data>
+  <data name="HomeTeamWinPlus1" xml:space="preserve">
+    <value>Home team win+1</value>
+  </data>
+  <data name="HomeTeamTiePlus1" xml:space="preserve">
+    <value>Home team tie+1</value>
+  </data>
+  <data name="HomeTeamGameScorePlus1" xml:space="preserve">
+    <value>Home team game score+1</value>
+  </data>
+  <data name="HomeTeamWinMinus1" xml:space="preserve">
+    <value>Home team win-1</value>
+  </data>
+  <data name="HomeTeamTieMinus1" xml:space="preserve">
+    <value>Home team tie-1</value>
+  </data>
+  <data name="HomeTeamGameScoreMinus1" xml:space="preserve">
+    <value>Home team game score-1</value>
+  </data>
+  <data name="AwayTeamWinPlus1" xml:space="preserve">
+    <value>Away team win+1</value>
+  </data>
+  <data name="AwayTeamTiePlus1" xml:space="preserve">
+    <value>Away team tie+1</value>
+  </data>
+  <data name="AwayTeamGameScorePlus1" xml:space="preserve">
+    <value>Away team game score+1</value>
+  </data>
+  <data name="AwayTeamWinMinus1" xml:space="preserve">
+    <value>Away team win-1</value>
+  </data>
+  <data name="AwayTeamTieMinus1" xml:space="preserve">
+    <value>Away team tie-1</value>
+  </data>
+  <data name="AwayTeamGameScoreMinus1" xml:space="preserve">
+    <value>Away team game score-1</value>
+  </data>
+  <data name="FrontendWidgets" xml:space="preserve">
+    <value>Frontend - Widgets</value>
   </data>
 </root>
