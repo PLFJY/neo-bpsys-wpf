@@ -864,4 +864,10 @@
   <data name="IndexFormat" xml:space="preserve">
     <value> {0} 号位</value>
   </data>
+  <data name="Pick" xml:space="preserve">
+    <value>选择</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>禁用</value>
+  </data>
 </root>

@@ -864,4 +864,10 @@
   <data name="IndexFormat" xml:space="preserve">
     <value> {0}{1}</value>
   </data>
+  <data name="Pick" xml:space="preserve">
+    <value>Pick</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>Ban</value>
+  </data>
 </root>

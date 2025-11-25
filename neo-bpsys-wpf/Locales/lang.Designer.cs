@@ -213,6 +213,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ban.
+        /// </summary>
+        public static string Ban {
+            get {
+                return ResourceManager.GetString("Ban", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ban Hunter.
         /// </summary>
         public static string BanHunter {
@@ -1604,6 +1613,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string Peeper {
             get {
                 return ResourceManager.GetString("Peeper", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pick.
+        /// </summary>
+        public static string Pick {
+            get {
+                return ResourceManager.GetString("Pick", resourceCulture);
             }
         }
         

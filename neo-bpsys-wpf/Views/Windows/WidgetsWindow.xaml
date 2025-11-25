@@ -118,7 +118,7 @@
                             d:FontSize="22"
                             d:Foreground="White"
                             Style="{StaticResource MapBp_PickWord}"
-                            Text="选择" />
+                            Text="{I18N {x:Static lang:LangKeys.Pick}}" />
                     </Border>
                     <!--  Team info  -->
                     <Border
@@ -210,7 +210,7 @@
                             d:FontSize="22"
                             d:Foreground="White"
                             Style="{StaticResource MapBp_BanWord}"
-                            Text="禁用" />
+                            Text="{I18N {x:Static lang:LangKeys.Ban}}" />
                     </Border>
                 </Canvas>
             </Border>
