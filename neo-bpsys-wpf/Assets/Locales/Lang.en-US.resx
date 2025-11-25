@@ -472,19 +472,19 @@
     <value>Score in BP window and game</value>
   </data>
   <data name="FourEscape" xml:space="preserve">
-    <value>4 escape</value>
+    <value>4 Escape</value>
   </data>
   <data name="ThreeEscape" xml:space="preserve">
-    <value>3 escape</value>
+    <value>3 Escape</value>
   </data>
   <data name="Tie" xml:space="preserve">
     <value>Tie</value>
   </data>
   <data name="FourEliminate" xml:space="preserve">
-    <value>4 eliminate</value>
+    <value>4 Eliminate</value>
   </data>
   <data name="ThreeEliminate" xml:space="preserve">
-    <value>3 eliminate</value>
+    <value>3 Eliminate</value>
   </data>
   <data name="ResetAllScores" xml:space="preserve">
     <value>Reset all scores</value>
@@ -810,6 +810,9 @@
   <data name="CommingSoon" xml:space="preserve">
     <value>How about we explore the area ahead of us later~</value>
   </data>
+  <data name="GameScores" xml:space="preserve">
+    <value>Game scores</value>
+  </data>
   <data name="FrontendBP" xml:space="preserve">
     <value>Frontend - BP</value>
   </data>
@@ -854,8 +857,5 @@
   </data>
   <data name="FrontendWidgets" xml:space="preserve">
     <value>Frontend - Widgets</value>
-  </data>
-  <data name="GameScores" xml:space="preserve">
-    <value>Game scores</value>
   </data>
 </root>

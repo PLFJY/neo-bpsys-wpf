@@ -790,7 +790,7 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 4 escape 的本地化字符串。
+        ///   查找类似 4 Escape 的本地化字符串。
         /// </summary>
         public static string FourEscape {
             get {
@@ -2212,7 +2212,7 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 3 eliminate 的本地化字符串。
+        ///   查找类似 3 Eliminate 的本地化字符串。
         /// </summary>
         public static string ThreeEliminate {
             get {
@@ -2221,7 +2221,7 @@ namespace neo_bpsys_wpf.Assets.Locales {
         }
         
         /// <summary>
-        ///   查找类似 3 escape 的本地化字符串。
+        ///   查找类似 3 Escape 的本地化字符串。
         /// </summary>
         public static string ThreeEscape {
             get {

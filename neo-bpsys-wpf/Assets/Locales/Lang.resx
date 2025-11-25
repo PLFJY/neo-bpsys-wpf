@@ -508,10 +508,10 @@
     <value>Score in BP window and game</value>
   </data>
   <data name="FourEscape" xml:space="preserve">
-    <value>4 escape</value>
+    <value>4 Escape</value>
   </data>
   <data name="ThreeEscape" xml:space="preserve">
-    <value>3 escape</value>
+    <value>3 Escape</value>
   </data>
   <data name="Tie" xml:space="preserve">
     <value>Tie</value>
@@ -520,7 +520,7 @@
     <value>4 Eliminate</value>
   </data>
   <data name="ThreeEliminate" xml:space="preserve">
-    <value>3 eliminate</value>
+    <value>3 Eliminate</value>
   </data>
   <data name="ResetAllScores" xml:space="preserve">
     <value>Reset all scores</value>
