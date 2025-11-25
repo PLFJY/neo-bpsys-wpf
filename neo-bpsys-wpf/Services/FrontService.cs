@@ -759,6 +759,16 @@ public class FrontService : IFrontService
     {
         var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
         if (!FrontWindows.TryGetValue(windowType, out var window)) return;
+
+        var isPickingBorder = controlNameHeader is "SurPickingBorder" or "HunPickingBorder";
+        var hasLottie = _settingsHostService.Settings.BpWindowSettings.PickingBorderLottieFile != null;
+        if (isPickingBorder && !hasLottie)
+        {
+            ctrName = controlNameHeader == "SurPickingBorder"
+                ? $"SurPickingBorderFallback{controlIndex}"
+                : "HunPickingBorderFallback";
+        }
+
         if (window.FindName(ctrName) is not FrameworkElement element) return;
 
         element.Opacity = 0;
@@ -766,6 +776,12 @@ public class FrontService : IFrontService
         element.BeginAnimation(UIElement.OpacityProperty,
             new DoubleAnimation(0, 1, new Duration(TimeSpan.FromSeconds(0.25))));
         await Task.Delay(250);
+
+        if (isPickingBorder && !hasLottie)
+        {
+            element.Tag = null;
+            return;
+        }
 
         // 如果已有动画，先停止
         await BreathingStop(windowType, controlNameHeader, controlIndex, controlNameFooter);
@@ -785,7 +801,7 @@ public class FrontService : IFrontService
         var storyboard = new Storyboard();
         storyboard.Children.Add(animation);
         storyboard.Begin(element);
-        element.Tag = storyboard; // 用于后续停止动画
+        element.Tag = storyboard;
     }
 
     /// <summary>
@@ -800,7 +816,27 @@ public class FrontService : IFrontService
     {
         var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
         if (!FrontWindows.TryGetValue(windowType, out var window)) return;
+
+        var isPickingBorder = controlNameHeader is "SurPickingBorder" or "HunPickingBorder";
+        var hasLottie = _settingsHostService.Settings.BpWindowSettings.PickingBorderLottieFile != null;
+        if (isPickingBorder && !hasLottie)
+        {
+            ctrName = controlNameHeader == "SurPickingBorder"
+                ? $"SurPickingBorderFallback{controlIndex}"
+                : "HunPickingBorderFallback";
+        }
+
         if (window.FindName(ctrName) is not FrameworkElement element) return;
+        if (isPickingBorder && !hasLottie)
+        {
+            element.BeginAnimation(UIElement.OpacityProperty,
+                new DoubleAnimation(1, 0, new Duration(TimeSpan.FromSeconds(0.25))));
+            await Task.Delay(250);
+            element.Opacity = 0;
+            element.Visibility = Visibility.Hidden;
+            element.Tag = null;
+            return;
+        }
         if (element.Tag is not Storyboard storyboard) return;
 
         storyboard.Stop();
@@ -808,7 +844,7 @@ public class FrontService : IFrontService
             new DoubleAnimation(1, 0, new Duration(TimeSpan.FromSeconds(0.25))));
         await Task.Delay(250);
 
-        element.Opacity = 0; // 恢复初始状态
+        element.Opacity = 0;
         element.Tag = null;
         element.Visibility = Visibility.Hidden;
     }

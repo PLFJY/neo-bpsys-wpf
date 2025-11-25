@@ -36,6 +36,7 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly IFrontService _frontService;
     private readonly IFilePickerService _filePickerService;
     private readonly ISharedDataService _sharedDataService;
+    private readonly IASGService _asgService;
     private readonly IMessageBoxService _messageBoxService;
     public IUpdaterService UpdaterService { get; }
     private readonly DownloadService? _downloader;
@@ -43,7 +44,7 @@ public partial class SettingPageViewModel : ViewModelBase
     public SettingPageViewModel(IUpdaterService updaterService, ISettingsHostService settingsHostService,
         ITextSettingsNavigationService textSettingsNavigationService, IFrontService frontService,
         IFilePickerService filePickerService, IMessageBoxService messageBoxService,
-        ISharedDataService sharedDataService)
+        ISharedDataService sharedDataService, IASGService asgService)
     {
         AppVersion = "版本 v" + Application.ResourceAssembly.GetName().Version!;
         UpdaterService = updaterService;
@@ -53,6 +54,7 @@ public partial class SettingPageViewModel : ViewModelBase
         _filePickerService = filePickerService;
         _sharedDataService = sharedDataService;
         _messageBoxService = messageBoxService;
+        _asgService = asgService;
         if (updaterService.Downloader is Downloader.DownloadService downloader)
         {
             _downloader = downloader;
@@ -130,6 +132,8 @@ public partial class SettingPageViewModel : ViewModelBase
 
         GlobalScoreTotalMargin = _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreTotalMargin;
         _sharedDataService.GlobalScoreTotalMargin = GlobalScoreTotalMargin;
+        AsgEmail = _settingsHostService.Settings.AsgEmail ?? string.Empty;
+        AsgPassword = _settingsHostService.Settings.AsgPassword ?? string.Empty;
     }
 
     #region 自动更新
@@ -320,6 +324,39 @@ public partial class SettingPageViewModel : ViewModelBase
         }
     }
 
+    private void SetUiJson(Action<string?> setAction, string? originalFileName = null)
+    {
+        var fileName = _filePickerService.PickJsonFile();
+        if (fileName == null) return;
+
+        var destFileName = Path.Combine(AppConstants.CustomUiPath, Path.GetFileName(fileName));
+
+        if (!Directory.Exists(AppConstants.CustomUiPath))
+            Directory.CreateDirectory(AppConstants.CustomUiPath);
+
+        try
+        {
+            File.Copy(fileName, destFileName, true);
+        }
+        catch (Exception e)
+        {
+            _messageBoxService.ShowErrorAsync($"应用Lottie失败\n{e}");
+            return;
+        }
+
+        setAction.Invoke(destFileName);
+        _settingsHostService.SaveConfig();
+        if (originalFileName == null) return;
+        try
+        {
+            File.Delete(originalFileName);
+        }
+        catch
+        {
+            // ignored
+        }
+    }
+
     [RelayCommand]
     private void EditBpWindowImages(string arg)
     {
@@ -344,6 +381,19 @@ public partial class SettingPageViewModel : ViewModelBase
 
         if (!propertyMap.TryGetValue(arg, out var valueTuple)) return;
         SetUiImage(valueTuple.Item1, valueTuple.Item2);
+    }
+
+    [RelayCommand]
+    private void EditBpWindowLottie(string arg)
+    {
+        var settings = _settingsHostService.Settings.BpWindowSettings;
+        var propertyMap = new Dictionary<string, (Action<string?>, string?)>
+        {
+            { "PickingBorderLottieUri", (value => settings.PickingBorderLottieUri = value, settings.PickingBorderLottieUri) }
+        };
+
+        if (!propertyMap.TryGetValue(arg, out var valueTuple)) return;
+        SetUiJson(valueTuple.Item1, valueTuple.Item2);
     }
 
     [RelayCommand]
@@ -412,6 +462,20 @@ public partial class SettingPageViewModel : ViewModelBase
     {
         get => _settingsHostService.Settings.ScoreWindowSettings.IsCampIconBlackVerEnabled;
         set => _ = SetScoreGlobalCampIconBlackVerAsync(value);
+    }
+
+
+    [ObservableProperty] private string _asgEmail = string.Empty;
+    [ObservableProperty] private string _asgPassword = string.Empty;
+
+    [RelayCommand]
+    private async Task SaveAsgAccountAndLogin()
+    {
+        _settingsHostService.Settings.AsgEmail = AsgEmail;
+        _settingsHostService.Settings.AsgPassword = AsgPassword;
+        _settingsHostService.SaveConfig();
+        var ok = await _asgService.LoginAsync(AsgEmail, AsgPassword);
+        await _messageBoxService.ShowInfoAsync(ok ? "登录成功" : "登录失败");
     }
 
     private async Task SetScoreGlobalCampIconBlackVerAsync(bool isBlackVer)

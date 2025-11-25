@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
@@ -24,6 +24,11 @@ public interface ISharedDataService
     /// 当前对局
     /// </summary>
     Game CurrentGame { get; set; }
+
+    /// <summary>
+    /// 选定赛程ID
+    /// </summary>
+    Guid? SelectedMatchId { get; set; }
 
     /// <summary>
     /// 角色列表总表
@@ -112,6 +117,11 @@ public interface ISharedDataService
     /// 当前对局改变事件
     /// </summary>
     event EventHandler? CurrentGameChanged;
+
+    /// <summary>
+    /// 选定赛程改变事件
+    /// </summary>
+    event EventHandler? SelectedMatchChanged;
 
     /// <summary>
     /// 分数统计界面 BO3 和 BO5之间"Total"相差的距离改变事件

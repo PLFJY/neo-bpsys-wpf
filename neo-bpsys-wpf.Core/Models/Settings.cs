@@ -14,6 +14,9 @@ namespace neo_bpsys_wpf.Core.Models;
 public partial class Settings : ViewModelBase
 {
     public bool ShowTip { get; set; } = true;
+    
+    public string? AsgEmail { get; set; } = string.Empty;
+    public string? AsgPassword { get; set; } = string.Empty;
     [ObservableProperty] private BpWindowSettings _bpWindowSettings = new();
     [ObservableProperty] private CutSceneWindowSettings _cutSceneWindowSettings = new();
     [ObservableProperty] private ScoreWindowSettings _scoreWindowSettings = new();
@@ -106,6 +109,9 @@ public partial class BpWindowSettings : ViewModelBase
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(PickingBorderImage))]
     private string? _pickingBorderImageUri;
 
+    [ObservableProperty] [NotifyPropertyChangedFor(nameof(PickingBorderLottieFile))]
+    private string? _pickingBorderLottieUri;
+
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(PickingBorderBrush))]
     private string? _pickingBorderColor = Colors.White.ToString();
 
@@ -129,6 +135,9 @@ public partial class BpWindowSettings : ViewModelBase
 
     [JsonIgnore]
     public ImageSource? PickingBorderImage => ImageHelper.GetUiImageFromSetting(PickingBorderImageUri, "pickingBorder");
+
+    [JsonIgnore]
+    public string? PickingBorderLottieFile => ImageHelper.GetUiJsonPathFromSetting(PickingBorderLottieUri, "pickingBorder");
 }
 
 /// <summary>

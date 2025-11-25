@@ -246,6 +246,17 @@
             </WrapPanel>
         </Border>
         <TextBlock
+            Margin="0,10,0,0"
+            Style="{StaticResource Title}"
+            Text="统一平台账户" />
+        <Border Style="{StaticResource Card}" Margin="0,10,0,0" Padding="10,10,10,10">
+            <StackPanel Orientation="Horizontal">
+                <ui:TextBox Width="240" PlaceholderText="邮箱" Text="{Binding AsgEmail}" />
+                <ui:TextBox Width="180" Margin="10,0,0,0" PlaceholderText="密码" Text="{Binding AsgPassword}" />
+                <ui:Button Margin="10,0,0,0" Content="保存并登录" Icon="{ui:SymbolIcon Symbol=ArrowImport24}" Command="{Binding SaveAsgAccountAndLoginCommand}" />
+            </StackPanel>
+        </Border>
+        <TextBlock
             Margin="0,10,0,10"
             Style="{StaticResource Title}"
             Text="前台UI个性化" />
@@ -308,6 +319,10 @@
                                             Command="{Binding EditBpWindowImagesCommand}"
                                             CommandParameter="PickingBorderImageUri"
                                             Header="待选闪烁框" />
+                                        <MenuItem
+                                            Command="{Binding EditBpWindowLottieCommand}"
+                                            CommandParameter="PickingBorderLottieUri"
+                                            Header="待选Lottie动画" />
                                     </ContextMenu>
                                 </ui:DropDownButton.Flyout>
                             </ui:DropDownButton>

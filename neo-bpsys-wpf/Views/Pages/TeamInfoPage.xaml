@@ -27,12 +27,7 @@
         <Border Style="{StaticResource Card}">
             <StackPanel>
                 <TextBlock Text="第五人格赛事统一平台接口对接" />
-                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <ui:TextBox Width="180" PlaceholderText="邮箱" Text="{Binding Email}" />
-                    <ui:TextBox Width="160" Margin="10,0,0,0" PlaceholderText="密码" Text="{Binding Password}" />
-                    <ui:Button Margin="10,0,0,0" Content="登录" Icon="{ui:SymbolIcon Symbol=ArrowImport24}" Command="{Binding LoginCommand}" />
-                    <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Text="已登录" Visibility="{Binding IsLoggedIn, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                </StackPanel>
+                
 
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                     <ui:TextBox Width="300" PlaceholderText="搜索赛事关键词" Text="{Binding EventQuery}" />
@@ -51,8 +46,28 @@
                         <ListBox ItemsSource="{Binding EventResults}" SelectedItem="{Binding SelectedEvent}" DisplayMemberPath="Name" MinHeight="120" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="10,0,0,0">
-                        <TextBlock Text="赛程列表" />
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="赛程列表" />
+                            <StackPanel Orientation="Horizontal" Margin="10,0,0,0" Visibility="{Binding IsMatchResultsNotEmpty, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <ui:TextBox Width="60" Margin="0,0,0,0" PlaceholderText="页码" Text="{Binding MatchesPage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <ui:TextBox Width="60" Margin="10,0,0,0" PlaceholderText="每页" Text="{Binding MatchesPageSize, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <ui:Button Margin="10,0,0,0" Command="{Binding PrevMatchesPageCommand}" ToolTip="上一页">
+                                    <ui:SymbolIcon Symbol="ArrowLeft24" />
+                                </ui:Button>
+                                <ui:Button Margin="5,0,0,0" Command="{Binding NextMatchesPageCommand}" ToolTip="下一页">
+                                    <ui:SymbolIcon Symbol="ArrowRight24" />
+                                </ui:Button>
+                                <ui:Button Margin="5,0,0,0" Command="{Binding RefreshMatchesCommand}" ToolTip="刷新">
+                                    <ui:SymbolIcon Symbol="ArrowClockwise24" />
+                                </ui:Button>
+                            </StackPanel>
+                        </StackPanel>
                         <ListBox ItemsSource="{Binding MatchResults}" SelectedItem="{Binding SelectedMatch}" MinHeight="120">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="SelectionChanged">
+                                    <i:InvokeCommandAction Command="{Binding ImportSelectedMatchTeamsCommand}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">

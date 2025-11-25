@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Services;
@@ -6,6 +7,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Controls;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
@@ -57,6 +59,66 @@ public partial class MainWindow : FluentWindow, INavigationWindow
                     }, TimeSpan.FromSeconds(5), true
                 );
             };
+
+        Loaded += async (s, e) =>
+        {
+            await Task.Delay(800);
+            var asgService = App.Services.GetRequiredService<IASGService>();
+            var settings = settingsHostService.Settings;
+            if (!asgService.IsLoggedIn)
+            {
+                if (!string.IsNullOrWhiteSpace(settings.AsgEmail) && !string.IsNullOrWhiteSpace(settings.AsgPassword))
+                {
+                    var ok = await asgService.LoginAsync(settings.AsgEmail!, settings.AsgPassword!);
+                    if (ok) return;
+                }
+
+                var emailTextBox = new Wpf.Ui.Controls.TextBox
+                {
+                    Width = 240,
+                    PlaceholderText = "邮箱",
+                    Text = settings.AsgEmail ?? string.Empty
+                };
+                var passwordTextBox = new Wpf.Ui.Controls.TextBox
+                {
+                    Width = 180,
+                    Margin = new Thickness(10, 0, 0, 0),
+                    PlaceholderText = "密码",
+                    Text = settings.AsgPassword ?? string.Empty
+                };
+                var stackPanel = new System.Windows.Controls.StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal };
+                stackPanel.Children.Add(emailTextBox);
+                stackPanel.Children.Add(passwordTextBox);
+
+                var messageBox = new MessageBox()
+                {
+                    Title = "登录提示",
+                    Content = stackPanel,
+                    PrimaryButtonText = "登录",
+                    PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.ArrowImport24 },
+                    CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Dismiss24 },
+                    CloseButtonText = "取消",
+                    Owner = App.Current.MainWindow,
+                };
+                var result = await messageBox.ShowDialogAsync();
+                if (result == MessageBoxResult.Primary)
+                {
+                    var ok = await asgService.LoginAsync(emailTextBox.Text, passwordTextBox.Text);
+                    if (ok)
+                    {
+                        settings.AsgEmail = emailTextBox.Text;
+                        settings.AsgPassword = passwordTextBox.Text;
+                        settingsHostService.SaveConfig();
+                    }
+                    else
+                    {
+                        await App.Services.GetRequiredService<IMessageBoxService>()
+                            .ShowErrorAsync("登录失败，请稍后在设置中重试", "提示");
+                    }
+                }
+            }
+        };
+
     }
 
     protected override void OnClosing(CancelEventArgs e)

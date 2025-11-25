@@ -157,4 +157,11 @@ public static class ImageHelper
     {
         return string.IsNullOrEmpty(uriStr) ? GetUiImageSource(defaultKey) : GetImageFromUriStr(uriStr);
     }
+
+    public static string? GetUiJsonPathFromSetting(string? uriStr, string defaultKey)
+    {
+        if (!string.IsNullOrEmpty(uriStr)) return Environment.ExpandEnvironmentVariables(uriStr);
+        var defaultPath = Path.Combine(AppConstants.ResourcesPath, nameof(ImageSourceKey.bpui), defaultKey + ".json");
+        return File.Exists(defaultPath) ? defaultPath : null;
+    }
 }

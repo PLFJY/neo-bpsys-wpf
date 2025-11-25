@@ -52,15 +52,6 @@ public partial class TeamInfoPageViewModel : ViewModelBase
     
 
     [ObservableProperty]
-    private string _email = string.Empty;
-
-    [ObservableProperty]
-    private string _password = string.Empty;
-
-    [ObservableProperty]
-    private bool _isLoggedIn;
-
-    [ObservableProperty]
     private string _eventQuery = string.Empty;
 
     [ObservableProperty]
@@ -75,12 +66,20 @@ public partial class TeamInfoPageViewModel : ViewModelBase
     [ObservableProperty]
     private AsgMatchDto? _selectedMatch;
 
-    [RelayCommand]
-    private async Task LoginAsync()
-    {
-        var ok = await _asgService.LoginAsync(Email, Password);
-        IsLoggedIn = ok && _asgService.IsLoggedIn;
-    }
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(PrevMatchesPageCommand))]
+    private int _matchesPage = 1;
+
+    [ObservableProperty]
+    private int _matchesPageSize = 10;
+
+    [ObservableProperty]
+    private bool _hasMoreMatches;
+
+    [ObservableProperty]
+    private bool _isMatchResultsNotEmpty;
+
+    
 
     [RelayCommand]
     private async Task SearchEventsAsync()
@@ -94,8 +93,10 @@ public partial class TeamInfoPageViewModel : ViewModelBase
     {
         if (SelectedEvent == null) return;
         if (!Guid.TryParse(SelectedEvent.Id, out var eventId)) return;
-        var list = await _asgService.GetMatchesByEventAsync(eventId);
+        var list = await _asgService.GetMatchesByEventAsync(eventId, MatchesPage, MatchesPageSize);
         MatchResults = new ObservableCollection<AsgMatchDto>(list ?? Array.Empty<AsgMatchDto>());
+        HasMoreMatches = (list?.Count ?? 0) >= MatchesPageSize;
+        IsMatchResultsNotEmpty = (list?.Count ?? 0) > 0;
     }
 
     [RelayCommand]
@@ -113,6 +114,56 @@ public partial class TeamInfoPageViewModel : ViewModelBase
         _sharedDataService.AwayTeam.ImportTeamInfo(awayTeam);
         MainTeamInfoViewModel.TeamName = _sharedDataService.MainTeam.Name;
         AwayTeamInfoViewModel.TeamName = _sharedDataService.AwayTeam.Name;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanPrevMatchesPageExecute))]
+    private async Task PrevMatchesPage()
+    {
+        if (MatchesPage <= 1) return;
+        MatchesPage -= 1;
+        await LoadMatchesAsync();
+    }
+
+    private bool CanPrevMatchesPageExecute() => MatchesPage > 1;
+
+    [RelayCommand]
+    private async Task NextMatchesPage()
+    {
+        MatchesPage += 1;
+        await LoadMatchesAsync();
+        if (!HasMoreMatches)
+        {
+            MatchesPage -= 1;
+        }
+    }
+
+    [RelayCommand]
+    private async Task RefreshMatches()
+    {
+        MatchesPage = Math.Max(1, MatchesPage);
+        await LoadMatchesAsync();
+    }
+
+    partial void OnSelectedEventChanged(AsgEventDto? value)
+    {
+        MatchesPage = 1;
+        MatchResults.Clear();
+        IsMatchResultsNotEmpty = false;
+    }
+
+    partial void OnSelectedMatchChanged(AsgMatchDto? value)
+    {
+        if (value == null)
+        {
+            _sharedDataService.SelectedMatchId = null;
+            return;
+        }
+
+        if (Guid.TryParse(value.Id, out var matchId))
+        {
+            _sharedDataService.SelectedMatchId = matchId;
+            _ = ImportSelectedMatchTeamsAsync();
+        }
     }
 
     private static Core.Models.Team ConvertFromAsgTeam(AsgTeamDto t, Core.Enums.Camp camp)

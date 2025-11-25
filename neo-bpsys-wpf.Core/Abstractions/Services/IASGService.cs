@@ -15,5 +15,5 @@ public interface IASGService
     Task<AsgEventDtoPagedResult?> SearchEventsAsync(string query, int page = 1, int pageSize = 12);
     Task<IReadOnlyList<AsgMatchDto>?> GetMatchesByEventAsync(Guid eventId, int page = 1, int pageSize = 50, int? groupIndex = null, string? groupLabel = null);
     Task<AsgTeamDto?> GetTeamAsync(Guid teamId);
+    Task<bool> UpdateMatchScoresAsync(Guid matchId, AsgMatchScoresUpdateDto payload);
 }
-

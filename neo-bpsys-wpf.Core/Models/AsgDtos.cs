@@ -43,3 +43,14 @@ public class AsgPlayerDto
     [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
 }
 
+public class AsgMatchScoresUpdateDto
+{
+    [JsonPropertyName("bestOf")] public int BestOf { get; set; }
+    [JsonPropertyName("games")] public AsgGameScoreDto[] Games { get; set; } = Array.Empty<AsgGameScoreDto>();
+}
+
+public class AsgGameScoreDto
+{
+    [JsonPropertyName("home")] public int Home { get; set; }
+    [JsonPropertyName("away")] public int Away { get; set; }
+}

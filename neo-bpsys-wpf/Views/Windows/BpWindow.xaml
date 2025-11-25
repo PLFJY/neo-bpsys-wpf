@@ -9,6 +9,7 @@
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:lottie="clr-namespace:LottieSharp.WPF;assembly=LottieSharp"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="前台-BP"
     Width="1440"
@@ -21,6 +22,8 @@
     <Window.Resources>
         <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
         <cv:GameProgressToStringConverter x:Key="GameProgressToStringConverter" />
+        <cv:NullObjectToVisibilityConverter x:Key="NullObjectToVisibilityConverter" />
+        <cv:NullObjectToReverseVisibilityConverter x:Key="NullObjectToReverseVisibilityConverter" />
     </Window.Resources>
     <Canvas
         Name="BaseCanvas"
@@ -68,9 +71,20 @@
                 <Setter Property="VerticalAlignment" Value="Center" />
                 <Setter Property="Foreground" Value="{Binding Settings.TextSettings.PlayerId.Foreground}" />
             </Style>
-            <Style x:Key="GlowBorderStyle" TargetType="Rectangle">
-                <Setter Property="Fill" Value="{Binding Settings.PickingBorderBrush}" />
+            <Style x:Key="GlowBorderStyle" TargetType="FrameworkElement">
                 <Setter Property="Panel.ZIndex" Value="2" />
+            </Style>
+            <Style x:Key="PickingLottieStyle" TargetType="lottie:LottieAnimationView" BasedOn="{StaticResource GlowBorderStyle}">
+                <Setter Property="RepeatCount" Value="-1" />
+                <Setter Property="AutoPlay" Value="False" />
+                <Setter Property="IsHitTestVisible" Value="False" />
+                <Setter Property="Visibility" Value="Hidden" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Settings.PickingBorderLottieFile, Converter={StaticResource NullObjectToVisibilityConverter}}" Value="Visible">
+                        <Setter Property="FileName" Value="{Binding Settings.PickingBorderLottieFile}" />
+                        <Setter Property="AutoPlay" Value="True" />
+                    </DataTrigger>
+                </Style.Triggers>
             </Style>
         </Canvas.Resources>
         <!--  Top bar  -->
@@ -379,69 +393,93 @@
             <Image d:Source="/Assets/医生.png" Source="{Binding CurrentGame.SurPlayerList[3].PictureShown}" />
         </Border>
         <!--  Sur Picking Border  -->
-        <Rectangle
+        <lottie:LottieAnimationView
             Name="SurPickingBorder0"
             Canvas.Left="{Binding ElementName=SurPick0, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurPick0, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurPick0, Path=ActualWidth}"
             Height="{Binding ElementName=SurPick0, Path=ActualHeight}"
             d:Visibility="Visible"
-            Style="{StaticResource GlowBorderStyle}"
+            Style="{StaticResource PickingLottieStyle}"
             Tag="nv"
+            Visibility="Hidden" />
+        <Rectangle
+            Name="SurPickingBorderFallback0"
+            Canvas.Left="{Binding ElementName=SurPick0, Path=(Canvas.Left)}"
+            Canvas.Top="{Binding ElementName=SurPick0, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurPick0, Path=ActualWidth}"
+            Height="{Binding ElementName=SurPick0, Path=ActualHeight}"
+            Fill="{Binding Settings.PickingBorderBrush}"
+            Panel.ZIndex="2"
             Visibility="Hidden">
             <Rectangle.OpacityMask>
-                <ImageBrush
-                    d:ImageSource="/Assets/pickingBorder.png"
-                    ImageSource="{Binding Settings.PickingBorderImage}"
-                    Stretch="Fill" />
+                <ImageBrush d:ImageSource="/Assets/pickingBorder.png" ImageSource="{Binding Settings.PickingBorderImage}" Stretch="Fill" />
             </Rectangle.OpacityMask>
         </Rectangle>
-        <Rectangle
+        <lottie:LottieAnimationView
             Name="SurPickingBorder1"
             Canvas.Left="{Binding ElementName=SurPick1, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurPick1, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurPick1, Path=ActualWidth}"
             Height="{Binding ElementName=SurPick1, Path=ActualHeight}"
-            Style="{StaticResource GlowBorderStyle}"
+            Style="{StaticResource PickingLottieStyle}"
             Tag="nv"
+            Visibility="Hidden" />
+        <Rectangle
+            Name="SurPickingBorderFallback1"
+            Canvas.Left="{Binding ElementName=SurPick1, Path=(Canvas.Left)}"
+            Canvas.Top="{Binding ElementName=SurPick1, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurPick1, Path=ActualWidth}"
+            Height="{Binding ElementName=SurPick1, Path=ActualHeight}"
+            Fill="{Binding Settings.PickingBorderBrush}"
+            Panel.ZIndex="2"
             Visibility="Hidden">
             <Rectangle.OpacityMask>
-                <ImageBrush
-                    d:ImageSource="/Assets/pickingBorder.png"
-                    ImageSource="{Binding Settings.PickingBorderImage}"
-                    Stretch="Fill" />
+                <ImageBrush d:ImageSource="/Assets/pickingBorder.png" ImageSource="{Binding Settings.PickingBorderImage}" Stretch="Fill" />
             </Rectangle.OpacityMask>
         </Rectangle>
-        <Rectangle
+        <lottie:LottieAnimationView
             Name="SurPickingBorder2"
             Canvas.Left="{Binding ElementName=SurPick2, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurPick2, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurPick2, Path=ActualWidth}"
             Height="{Binding ElementName=SurPick2, Path=ActualHeight}"
-            Style="{StaticResource GlowBorderStyle}"
+            Style="{StaticResource PickingLottieStyle}"
             Tag="nv"
+            Visibility="Hidden" />
+        <Rectangle
+            Name="SurPickingBorderFallback2"
+            Canvas.Left="{Binding ElementName=SurPick2, Path=(Canvas.Left)}"
+            Canvas.Top="{Binding ElementName=SurPick2, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurPick2, Path=ActualWidth}"
+            Height="{Binding ElementName=SurPick2, Path=ActualHeight}"
+            Fill="{Binding Settings.PickingBorderBrush}"
+            Panel.ZIndex="2"
             Visibility="Hidden">
             <Rectangle.OpacityMask>
-                <ImageBrush
-                    d:ImageSource="/Assets/pickingBorder.png"
-                    ImageSource="{Binding Settings.PickingBorderImage}"
-                    Stretch="Fill" />
+                <ImageBrush d:ImageSource="/Assets/pickingBorder.png" ImageSource="{Binding Settings.PickingBorderImage}" Stretch="Fill" />
             </Rectangle.OpacityMask>
         </Rectangle>
-        <Rectangle
+        <lottie:LottieAnimationView
             Name="SurPickingBorder3"
             Canvas.Left="{Binding ElementName=SurPick3, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurPick3, Path=(Canvas.Top)}"
             Width="{Binding ElementName=SurPick3, Path=ActualWidth}"
             Height="{Binding ElementName=SurPick3, Path=ActualHeight}"
-            Style="{StaticResource GlowBorderStyle}"
+            Style="{StaticResource PickingLottieStyle}"
             Tag="nv"
+            Visibility="Hidden" />
+        <Rectangle
+            Name="SurPickingBorderFallback3"
+            Canvas.Left="{Binding ElementName=SurPick3, Path=(Canvas.Left)}"
+            Canvas.Top="{Binding ElementName=SurPick3, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=SurPick3, Path=ActualWidth}"
+            Height="{Binding ElementName=SurPick3, Path=ActualHeight}"
+            Fill="{Binding Settings.PickingBorderBrush}"
+            Panel.ZIndex="2"
             Visibility="Hidden">
             <Rectangle.OpacityMask>
-                <ImageBrush
-                    d:ImageSource="/Assets/pickingBorder.png"
-                    ImageSource="{Binding Settings.PickingBorderImage}"
-                    Stretch="Fill" />
+                <ImageBrush d:ImageSource="/Assets/pickingBorder.png" ImageSource="{Binding Settings.PickingBorderImage}" Stretch="Fill" />
             </Rectangle.OpacityMask>
         </Rectangle>
         <!--  Middle  -->
@@ -819,20 +857,26 @@
             <Image d:Source="/Assets/小丑.png" Source="{Binding CurrentGame.HunPlayer.PictureShown}" />
         </Border>
         <!--  Hun Picking Border  -->
-        <Rectangle
+        <lottie:LottieAnimationView
             Name="HunPickingBorder"
             Canvas.Left="{Binding ElementName=HunPick, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=HunPick, Path=(Canvas.Top)}"
             Width="{Binding ElementName=HunPick, Path=ActualWidth}"
             Height="{Binding ElementName=HunPick, Path=ActualHeight}"
-            Style="{StaticResource GlowBorderStyle}"
+            Style="{StaticResource PickingLottieStyle}"
             Tag="nv"
+            Visibility="Hidden" />
+        <Rectangle
+            Name="HunPickingBorderFallback"
+            Canvas.Left="{Binding ElementName=HunPick, Path=(Canvas.Left)}"
+            Canvas.Top="{Binding ElementName=HunPick, Path=(Canvas.Top)}"
+            Width="{Binding ElementName=HunPick, Path=ActualWidth}"
+            Height="{Binding ElementName=HunPick, Path=ActualHeight}"
+            Fill="{Binding Settings.PickingBorderBrush}"
+            Panel.ZIndex="2"
             Visibility="Hidden">
             <Rectangle.OpacityMask>
-                <ImageBrush
-                    d:ImageSource="/Assets/pickingBorder.png"
-                    ImageSource="{Binding Settings.PickingBorderImage}"
-                    Stretch="Fill" />
+                <ImageBrush d:ImageSource="/Assets/pickingBorder.png" ImageSource="{Binding Settings.PickingBorderImage}" Stretch="Fill" />
             </Rectangle.OpacityMask>
         </Rectangle>
         <!--  Player ID  -->

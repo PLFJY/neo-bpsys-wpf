@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
@@ -9,6 +9,7 @@ using System.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Models;
 using Score = neo_bpsys_wpf.Core.Models.Score;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 
@@ -23,11 +24,15 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
 
     private readonly ISharedDataService _sharedDataService;
     private readonly IFrontService _frontService;
+    private readonly IASGService _asgService;
+    private readonly IMessageBoxService _messageBoxService;
 
-    public ScorePageViewModel(ISharedDataService sharedDataService, IFrontService frontService)
+    public ScorePageViewModel(ISharedDataService sharedDataService, IFrontService frontService, IASGService asgService, IMessageBoxService messageBoxService)
     {
         _sharedDataService = sharedDataService;
         _frontService = frontService;
+        _asgService = asgService;
+        _messageBoxService = messageBoxService;
         _isBo3Mode = _sharedDataService.IsBo3Mode;
 #if DEBUG
         IsDebugContentVisible = true;
@@ -164,7 +169,7 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     }
 
     [RelayCommand]
-    private void GlobalScoreUpdateToFront()
+    private async Task GlobalScoreUpdateToFront()
     {
         GameGlobalInfoRecord[SelectedGameProgress].IsGameFinished = IsGameFinished;
         if (!IsGameFinished)
@@ -177,7 +182,7 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
 
         GameGlobalInfoRecord[SelectedGameProgress].MainTeamCamp = MainTeamCamp;
         GameGlobalInfoRecord[SelectedGameProgress].GameResult = SelectedGameResult;
-        UpdateGlobalScore();
+        await UpdateGlobalScore();
         UpdateTotalMinorPoint();
     }
 
@@ -187,7 +192,7 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
 
     [ObservableProperty] private GameResult? _selectedGameResult;
 
-    private void UpdateGlobalScore()
+    private async Task UpdateGlobalScore()
     {
         if (!IsGameFinished)
         {
@@ -243,6 +248,8 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
             default:
                 throw new InvalidEnumArgumentException();
         }
+
+        await TrySyncScoresAsync();
     }
 
     public void Receive(PropertyChangedMessage<bool> message)
@@ -405,5 +412,134 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
         [ObservableProperty] private GameResult? _gameResult;
     }
 
+    private static (GameProgress first, GameProgress second) GetPairKeys(GameProgress progress)
+    {
+        var idx = (int)progress;
+        if (idx < 0) return (GameProgress.Game1FirstHalf, GameProgress.Game1SecondHalf);
+        var first = (GameProgress)(idx % 2 == 0 ? idx : idx - 1);
+        var second = (GameProgress)(idx % 2 == 0 ? idx + 1 : idx);
+        return (first, second);
+    }
+
+    private AsgGameScoreDto[] BuildCurrentPairScores()
+    {
+        var (firstKey, secondKey) = GetPairKeys(SelectedGameProgress);
+        var infos = new[] { GameGlobalInfoRecord[firstKey], GameGlobalInfoRecord[secondKey] };
+        var result = new List<AsgGameScoreDto>(2);
+
+        foreach (var info in infos)
+        {
+            var surScore = 0;
+            var hunScore = 0;
+            if (info.IsGameFinished && info.MainTeamCamp != null && info.GameResult != null)
+            {
+                switch (info.GameResult)
+                {
+                    case GameResult.Escape4:
+                        surScore = 5; hunScore = 0; break;
+                    case GameResult.Escape3:
+                        surScore = 3; hunScore = 1; break;
+                    case GameResult.Tie:
+                        surScore = 2; hunScore = 2; break;
+                    case GameResult.Out3:
+                        surScore = 1; hunScore = 3; break;
+                    case GameResult.Out4:
+                        surScore = 0; hunScore = 5; break;
+                }
+            }
+
+            int home = 0, away = 0;
+            switch (info.MainTeamCamp)
+            {
+                case Camp.Sur:
+                    home = surScore; away = hunScore; break;
+                case Camp.Hun:
+                    home = hunScore; away = surScore; break;
+                default:
+                    home = 0; away = 0; break;
+            }
+
+            result.Add(new AsgGameScoreDto { Home = home, Away = away });
+        }
+
+        return result.ToArray();
+    }
+
+    private AsgGameScoreDto[] BuildCumulativeScores()
+    {
+        var maxGames = _sharedDataService.IsBo3Mode ? 3 : 5;
+        var keys = new List<GameProgress>();
+        for (var i = 1; i <= maxGames; i++)
+        {
+            keys.Add((GameProgress)Enum.Parse(typeof(GameProgress), $"Game{i}FirstHalf"));
+            keys.Add((GameProgress)Enum.Parse(typeof(GameProgress), $"Game{i}SecondHalf"));
+        }
+
+        var result = new List<AsgGameScoreDto>(keys.Count);
+        foreach (var key in keys)
+        {
+            var info = GameGlobalInfoRecord[key];
+            var surScore = 0;
+            var hunScore = 0;
+            if (info.IsGameFinished && info.MainTeamCamp != null && info.GameResult != null)
+            {
+                switch (info.GameResult)
+                {
+                    case GameResult.Escape4:
+                        surScore = 5; hunScore = 0; break;
+                    case GameResult.Escape3:
+                        surScore = 3; hunScore = 1; break;
+                    case GameResult.Tie:
+                        surScore = 2; hunScore = 2; break;
+                    case GameResult.Out3:
+                        surScore = 1; hunScore = 3; break;
+                    case GameResult.Out4:
+                        surScore = 0; hunScore = 5; break;
+                }
+            }
+
+            int home = 0, away = 0;
+            switch (info.MainTeamCamp)
+            {
+                case Camp.Sur:
+                    home = surScore; away = hunScore; break;
+                case Camp.Hun:
+                    home = hunScore; away = surScore; break;
+                default:
+                    home = 0; away = 0; break;
+            }
+
+            result.Add(new AsgGameScoreDto { Home = home, Away = away });
+        }
+
+        return result.ToArray();
+    }
+
+    private async Task TrySyncScoresAsync()
+    {
+        var matchId = _sharedDataService.SelectedMatchId;
+        if (matchId == null)
+        {
+            await _messageBoxService.ShowErrorAsync("尚未选定赛程，请在队伍信息页选择赛程");
+            return;
+        }
+
+        var gamesAll = BuildCumulativeScores();
+        var payload = new AsgMatchScoresUpdateDto
+        {
+            BestOf = gamesAll.Length,
+            Games = gamesAll
+        };
+
+        var ok = await _asgService.UpdateMatchScoresAsync(matchId.Value, payload);
+        if (!ok)
+        {
+            await _messageBoxService.ShowErrorAsync("比分同步失败，请检查登录或网络");
+        }
+        else
+        {
+            await _messageBoxService.ShowInfoAsync("比分已同步到选定赛程");
+        }
+    }
     #endregion
 }

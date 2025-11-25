@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Core.Models;
 using System.Collections.ObjectModel;
@@ -136,6 +136,23 @@ public partial class SharedDataService : ISharedDataService
             _currentGame = value;
             CurrentGame.TeamSwapped += OnTeamSwapped;
             CurrentGameChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private Guid? _selectedMatchId;
+
+    /// <summary>
+    /// 选定赛程ID
+    /// </summary>
+    public Guid? SelectedMatchId
+    {
+        get => _selectedMatchId;
+        set
+        {
+            if (_selectedMatchId == value) return;
+            _selectedMatchId = value;
+            SelectedMatchChanged?.Invoke(this, EventArgs.Empty);
+            _logger.LogInformation("SelectedMatchId changed to {MatchId}", value);
         }
     }
 
@@ -391,6 +408,11 @@ public partial class SharedDataService : ISharedDataService
     /// 当前对局改变事件
     /// </summary>
     public event EventHandler? CurrentGameChanged;
+
+    /// <summary>
+    /// 选定赛程改变事件
+    /// </summary>
+    public event EventHandler? SelectedMatchChanged;
 
     /// <summary>
     /// 分数统计界面 BO3 和 BO5之间"Total"相差的距离改变事件

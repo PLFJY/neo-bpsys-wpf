@@ -1,4 +1,4 @@
-﻿using neo_bpsys_wpf.Converters;
+using neo_bpsys_wpf.Converters;
 using neo_bpsys_wpf.Core.Models;
 using System.IO;
 using System.Text.Json;
@@ -133,6 +133,8 @@ public class SettingsHostService : ISettingsHostService
                             File.Delete(Settings.BpWindowSettings.BgImageUri);
                         if (Settings.BpWindowSettings.PickingBorderImageUri != null)
                             File.Delete(Settings.BpWindowSettings.PickingBorderImageUri);
+                        if (Settings.BpWindowSettings.PickingBorderLottieUri != null)
+                            File.Delete(Settings.BpWindowSettings.PickingBorderLottieUri);
                         if (Settings.BpWindowSettings.GlobalBanLockImageUri != null)
                             File.Delete(Settings.BpWindowSettings.GlobalBanLockImageUri);
                         if (Settings.BpWindowSettings.CurrentBanLockImageUri != null)
