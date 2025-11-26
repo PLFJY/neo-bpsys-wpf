@@ -179,13 +179,10 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock
-                        Grid.Row="0"
-                        d:Text="主队: 主队名称"
-                        Tag="{lex:Loc HomeTeam}">
+                    <TextBlock Grid.Row="0" d:Text="主队: 主队名称">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0}: {1}">
-                                <Binding Path="Tag" RelativeSource="{RelativeSource Self}" />
+                                <lex:BLoc Key="HomeTeam" />
                                 <Binding Path="MainTeam.Name" />
                             </MultiBinding>
                         </TextBlock.Text>
@@ -246,13 +243,10 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock
-                        Grid.Row="0"
-                        d:Text="客队: 主队名称"
-                        Tag="{lex:Loc AwayTeam}">
+                    <TextBlock Grid.Row="0" d:Text="客队: 主队名称">
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0}: {1}">
-                                <Binding Path="Tag" RelativeSource="{RelativeSource Self}" />
+                                <lex:BLoc Key="AwayTeam" />
                                 <Binding Path="AwayTeam.Name" />
                             </MultiBinding>
                         </TextBlock.Text>

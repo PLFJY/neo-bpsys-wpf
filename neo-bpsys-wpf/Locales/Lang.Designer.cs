@@ -2085,7 +2085,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0}{1}{2}{3}.
+        ///   Looks up a localized string similar to {0}  W:{1} D:{2}  Game score: {3}.
         /// </summary>
         public static string ScorePreview {
             get {

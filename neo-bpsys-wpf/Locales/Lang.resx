@@ -895,7 +895,7 @@
     <value>Follow system</value>
   </data>
   <data name="ScorePreview" xml:space="preserve">
-    <value>{0}{1}{2}{3}</value>
+    <value>{0}  W:{1} D:{2}  Game score: {3}</value>
   </data>
   <data name="IndexFormat" xml:space="preserve">
     <value> {0}{1}</value>

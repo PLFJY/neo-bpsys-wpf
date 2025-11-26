@@ -100,22 +100,22 @@
                         Orientation="Horizontal">
                         <TextBlock Margin="0,0,20,10" d:Text="主队名称  W:0 D:0  小比分: 0">
                             <TextBlock.Text>
-                                <MultiBinding StringFormat="{}{0}  W:{1} D:{2}  {3}: {4}">
+                                <MultiBinding Converter="{lex:StringFormatConverter}">
+                                    <lex:BLoc Key="ScorePreview" />
                                     <Binding Path="MainTeam.Name" />
                                     <Binding Path="MainTeam.Score.Win" />
                                     <Binding Path="MainTeam.Score.Tie" />
-                                    <lex:BLoc Key="GameScores" />
                                     <Binding Path="MainTeam.Score.MinorPoints" />
                                 </MultiBinding>
                             </TextBlock.Text>
                         </TextBlock>
                         <TextBlock d:Text="客队名称  W:0 D:0  小比分: 0">
                             <TextBlock.Text>
-                                <MultiBinding StringFormat="{}{0}  W:{1} D:{2}  {3}: {4}">
+                                <MultiBinding Converter="{lex:StringFormatConverter}">
+                                    <lex:BLoc Key="ScorePreview" />
                                     <Binding Path="AwayTeam.Name" />
                                     <Binding Path="AwayTeam.Score.Win" />
                                     <Binding Path="AwayTeam.Score.Tie" />
-                                    <lex:BLoc Key="GameScores" />
                                     <Binding Path="AwayTeam.Score.MinorPoints" />
                                 </MultiBinding>
                             </TextBlock.Text>

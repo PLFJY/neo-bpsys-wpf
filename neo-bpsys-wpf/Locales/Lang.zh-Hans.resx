@@ -859,7 +859,7 @@
     <value>跟随系统</value>
   </data>
   <data name="ScorePreview" xml:space="preserve">
-    <value>{0}{1}{2}{3}</value>
+    <value>{0}  W:{1} D:{2}  小比分: {3}</value>
   </data>
   <data name="IndexFormat" xml:space="preserve">
     <value> {0} 号位</value>
