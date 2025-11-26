@@ -99,6 +99,7 @@ public partial class MainWindowViewModel :
         };
         GameList = GameListBo5;
         IsBo3Mode = _sharedDataService.IsBo3Mode;
+        sharedDataService.CountDownValueChanged += (_, _) => OnPropertyChanged(nameof(RemainingSeconds));
     }
 
     [RelayCommand]
