@@ -24,7 +24,7 @@ public partial class MapV2Presenter : UserControl
 
     // Using a DependencyProperty as the backing store for Map.  This enables animation, styling, binding, etc...
     public static readonly DependencyProperty MapProperty =
-        DependencyProperty.Register(nameof(Map), typeof(MapV2), typeof(MapV2Presenter), new PropertyMetadata(null));
+        DependencyProperty.Register(nameof(Map), typeof(MapV2), typeof(MapV2Presenter), new PropertyMetadata(new MapV2(Core.Enums.Map.ArmsFactory)));
 
     public Brush MapNameForeground
     {
@@ -54,7 +54,7 @@ public partial class MapV2Presenter : UserControl
 
     // Using a DependencyProperty as the backing store for MapNameFontSize.  This enables animation, styling, binding, etc...
     public static readonly DependencyProperty MapNameFontSizeProperty =
-        DependencyProperty.Register(nameof(MapNameFontSize), typeof(double), typeof(MapV2Presenter), new PropertyMetadata(16.0));
+        DependencyProperty.Register(nameof(MapNameFontSize), typeof(double), typeof(MapV2Presenter), new PropertyMetadata(14.0));
 
     public FontWeight MapNameFontWeight
     {

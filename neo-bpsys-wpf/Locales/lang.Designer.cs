@@ -215,6 +215,7 @@ namespace neo_bpsys_wpf.Locales {
         
         /// <summary>
         ///   查找类似 Ban 的本地化字符串。
+        ///   Looks up a localized string similar to Ban.
         /// </summary>
         public static string Ban {
             get {
@@ -224,6 +225,7 @@ namespace neo_bpsys_wpf.Locales {
         
         /// <summary>
         ///   查找类似 Ban Hunter 的本地化字符串。
+        ///   Looks up a localized string similar to Ban Hunter.
         /// </summary>
         public static string BanHunter {
             get {
@@ -1745,6 +1747,7 @@ namespace neo_bpsys_wpf.Locales {
         
         /// <summary>
         ///   查找类似 Pick 的本地化字符串。
+        ///   Looks up a localized string similar to Pick.
         /// </summary>
         public static string Pick {
             get {
@@ -1754,6 +1757,7 @@ namespace neo_bpsys_wpf.Locales {
         
         /// <summary>
         ///   查找类似 Pick Character 的本地化字符串。
+        ///   Looks up a localized string similar to Pick Character.
         /// </summary>
         public static string PickCharacter {
             get {

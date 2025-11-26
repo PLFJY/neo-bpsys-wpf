@@ -987,4 +987,10 @@
     <value>Hunter</value>
     <comment>简写</comment>
   </data>
+  <data name="Pick" xml:space="preserve">
+    <value>Pick</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>Ban</value>
+  </data>
 </root>
