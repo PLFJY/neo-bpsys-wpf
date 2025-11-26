@@ -1,10 +1,10 @@
 ﻿using neo_bpsys_wpf.Converters;
-using neo_bpsys_wpf.Core.Models;
-using System.IO;
-using System.Text.Json;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Models;
+using System.IO;
+using System.Text.Json;
 using BpWindowSettings = neo_bpsys_wpf.Core.Models.BpWindowSettings;
 using WidgetsWindowSettings = neo_bpsys_wpf.Core.Models.WidgetsWindowSettings;
 
@@ -54,7 +54,7 @@ public class SettingsHostService : ISettingsHostService
         try
         {
             var jsonStr = JsonSerializer.Serialize(Settings, _jsonSerializerOptions);
-            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Replace(@"\",@"\\");
+            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Replace(@"\", @"\\");
             jsonStr = jsonStr.Replace(appDataPath, "%APPDATA%");
             File.WriteAllText(AppConstants.ConfigFilePath, jsonStr);
         }
@@ -200,7 +200,7 @@ public class SettingsHostService : ISettingsHostService
                             File.Delete(Settings.WidgetsWindowSettings.MapBpV2PickingBorderImageUri);
                         if (Settings.WidgetsWindowSettings.BpOverviewBgUri != null)
                             File.Delete(Settings.WidgetsWindowSettings.BpOverviewBgUri);
-                        if(Settings.WidgetsWindowSettings.CurrentBanLockImageUri != null)
+                        if (Settings.WidgetsWindowSettings.CurrentBanLockImageUri != null)
                             File.Delete(Settings.WidgetsWindowSettings.CurrentBanLockImageUri);
                         if (Settings.WidgetsWindowSettings.GlobalBanLockImageUri != null)
                             File.Delete(Settings.WidgetsWindowSettings.GlobalBanLockImageUri);

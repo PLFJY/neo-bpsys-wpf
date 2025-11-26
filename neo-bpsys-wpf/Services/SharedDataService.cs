@@ -1,21 +1,18 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows.Threading;
-using Microsoft.Extensions.Logging;
-using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Messages;
 using Game = neo_bpsys_wpf.Core.Models.Game;
 using Team = neo_bpsys_wpf.Core.Models.Team;
-using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -369,7 +366,7 @@ public partial class SharedDataService : ISharedDataService
         get => _isMapV2CampVisible;
         set
         {
-            if(_isMapV2CampVisible == value) return;
+            if (_isMapV2CampVisible == value) return;
             _isMapV2CampVisible = value;
             IsMapV2CampVisibleChanged?.Invoke(this, EventArgs.Empty);
             foreach (var mapValue in CurrentGame.MapV2Dictionary.Values)

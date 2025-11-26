@@ -5,6 +5,7 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="clr-namespace:neo_bpsys_wpf.Core.Models;assembly=neo-bpsys-wpf.Core"
@@ -147,7 +148,7 @@
                     FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontSize}"
                     FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontWeight}"
                     Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameForeground}"
-                    Text="{I18N {Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.MapName, Converter={StaticResource EnumToStringConverter}}}" />
+                    Text="{lex:Loc {Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.MapName}}" />
             </Border>
         </Border>
 
@@ -166,7 +167,7 @@
                 FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=CampNameFontSize}"
                 FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=CampNameFontWeight}"
                 Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=CampNameForeground}"
-                Text="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.OperationTeam.Camp, Converter={StaticResource CampToStringConverter}}" />
+                Text="{lex:Loc {Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.OperationTeam.Camp}}" />
             <Grid HorizontalAlignment="Right" VerticalAlignment="Center">
                 <Image
                     Width="30"

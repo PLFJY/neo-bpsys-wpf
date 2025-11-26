@@ -1,13 +1,13 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Exceptions;
 using neo_bpsys_wpf.Views.Pages;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Messages;
 using Wpf.Ui;
 
 namespace neo_bpsys_wpf.Services;
@@ -227,14 +227,14 @@ public class GameGuidanceService(
         if (_currentGameProperty == null) return returnValue;
         var thisStep = _currentGameProperty.WorkFlow[newStepIndex];
         _currentStep = newStepIndex;
-        
+
         //切换页面
         if (thisStep.Action != GameAction.PickCamp)
             _navigationService.Navigate(_actionToPage[thisStep.Action]);
         //设置计时器
         _sharedDataService.TimerStart(thisStep.Time);
         //等待待选框动画就位
-        await Task.Delay(250); 
+        await Task.Delay(250);
         //广播高亮消息
         WeakReferenceMessenger.Default.Send(new HighlightMessage(thisStep.Action, thisStep.Index));
         returnValue += ActionName[thisStep.Action];

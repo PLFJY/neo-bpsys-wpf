@@ -5,6 +5,7 @@
     xmlns:ab="clr-namespace:neo_bpsys_wpf.AttachedBehaviors"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -200,7 +201,7 @@
                 FontSize="{Binding Settings.TextSettings.MapName.FontSize}"
                 FontWeight="{Binding Settings.TextSettings.MapName.FontWeight}"
                 Foreground="{Binding Settings.TextSettings.MapName.Foreground}"
-                Text="{I18N {Binding CurrentGame.PickedMap, Converter={StaticResource EnumToStringConverter}}}" />
+                Text="{lex:Loc {Binding CurrentGame.PickedMap, Converter={StaticResource EnumToStringConverter}}}" />
         </Border>
         <Border
             Name="GameProgress"

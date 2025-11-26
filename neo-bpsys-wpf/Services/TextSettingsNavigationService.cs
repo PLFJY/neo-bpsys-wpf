@@ -1,6 +1,6 @@
-﻿using System.Windows.Controls;
-using neo_bpsys_wpf.Core.Abstractions.Services;
+﻿using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using System.Windows.Controls;
 
 namespace neo_bpsys_wpf.Services;
 

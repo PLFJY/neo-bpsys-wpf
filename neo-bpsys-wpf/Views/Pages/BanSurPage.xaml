@@ -5,7 +5,7 @@
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:lang="clr-namespace:neo_bpsys_wpf.Locales"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -33,7 +33,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.CurrentBan}}" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc CurrentBan}" />
                 <ItemsControl
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -69,7 +69,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.GlobalBan}}" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc GlobalBan}" />
                 <ItemsControl
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -108,11 +108,11 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.BanNumberControl}}" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc BanNumberControl}" />
                 <TextBlock
                     Grid.Row="1"
                     Margin="0,10,0,0"
-                    Text="{I18N {x:Static lang:LangKeys.CurrentBan}}" />
+                    Text="{lex:Loc CurrentBan}" />
                 <ItemsControl
                     Grid.Row="2"
                     Margin="0,10,0,0"
@@ -126,14 +126,11 @@
                         <DataTemplate>
                             <StackPanel Margin="0,0,10,10" Orientation="Horizontal">
                                 <ui:ToggleSwitch IsChecked="{Binding IsEnabled}" />
-                                <TextBlock
-                                    Margin="10,0,0,0"
-                                    VerticalAlignment="Center"
-                                    Tag="{I18N {x:Static lang:LangKeys.IndexFormat}}">
+                                <TextBlock Margin="10,0,0,0" VerticalAlignment="Center">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{StaticResource IndexFormatConverter}">
+                                            <lex:BLoc Key="IndexFormat" />
                                             <Binding Converter="{StaticResource IntPlusOneConverter}" Path="Index" />
-                                            <Binding Path="Tag" RelativeSource="{RelativeSource Self}" />
                                         </MultiBinding>
                                     </TextBlock.Text>
                                 </TextBlock>
@@ -144,7 +141,7 @@
                 <TextBlock
                     Grid.Row="3"
                     Margin="0,10,0,0"
-                    Text="{I18N {x:Static lang:LangKeys.GlobalBan}}" />
+                    Text="{lex:Loc GlobalBan}" />
                 <ItemsControl
                     Grid.Row="4"
                     Margin="0,10,0,0"
@@ -158,14 +155,11 @@
                         <DataTemplate>
                             <StackPanel Margin="0,0,10,10" Orientation="Horizontal">
                                 <ui:ToggleSwitch IsChecked="{Binding IsEnabled}" />
-                                <TextBlock
-                                    Margin="10,0,0,0"
-                                    VerticalAlignment="Center"
-                                    Tag="{I18N {x:Static lang:LangKeys.IndexFormat}}">
+                                <TextBlock Margin="10,0,0,0" VerticalAlignment="Center">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{StaticResource IndexFormatConverter}">
+                                            <lex:BLoc Key="IndexFormat" />
                                             <Binding Converter="{StaticResource IntPlusOneConverter}" Path="Index" />
-                                            <Binding Path="Tag" RelativeSource="{RelativeSource Self}" />
                                         </MultiBinding>
                                     </TextBlock.Text>
                                 </TextBlock>

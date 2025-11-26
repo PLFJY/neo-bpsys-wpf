@@ -1,7 +1,7 @@
-﻿using System.Windows;
+﻿using neo_bpsys_wpf.Core.Helpers;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using neo_bpsys_wpf.Core.Helpers;
 using MapV2 = neo_bpsys_wpf.Core.Models.MapV2;
 
 namespace neo_bpsys_wpf.Controls;
@@ -16,7 +16,7 @@ public partial class MapV2Presenter : UserControl
         InitializeComponent();
     }
 
-    public MapV2 Map
+    public MapV2? Map
     {
         get => (MapV2)GetValue(MapProperty);
         set => SetValue(MapProperty, value);
@@ -24,7 +24,7 @@ public partial class MapV2Presenter : UserControl
 
     // Using a DependencyProperty as the backing store for Map.  This enables animation, styling, binding, etc...
     public static readonly DependencyProperty MapProperty =
-        DependencyProperty.Register(nameof(Map), typeof(MapV2), typeof(MapV2Presenter), new PropertyMetadata(new MapV2(Core.Enums.Map.ArmsFactory)));
+        DependencyProperty.Register(nameof(Map), typeof(MapV2), typeof(MapV2Presenter), new PropertyMetadata(null));
 
     public Brush MapNameForeground
     {

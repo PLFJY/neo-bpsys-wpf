@@ -6,9 +6,8 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-    xmlns:lang="clr-namespace:neo_bpsys_wpf.Locales"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
-    
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
@@ -31,33 +30,33 @@
             <!--  basic info  -->
             <StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.HomeTeamInformation}}" />
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc HomeTeamInformation}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ImportInfoFromJsonCommand}"
-                        Content="{I18N {x:Static lang:LangKeys.ImportFromJsonFile}}"
+                        Content="{lex:Loc ImportFromJsonFile}"
                         Icon="{ui:SymbolIcon Symbol=ArrowImport24}"
                         ToolTipService.InitialShowDelay="100"
                         ToolTipService.Placement="MousePoint"
-                        ToolTipService.ToolTip="{I18N {x:Static lang:LangKeys.JsonImportTip}}" />
+                        ToolTipService.ToolTip="{lex:Loc JsonImportTip}" />
                 </StackPanel>
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                     <ui:TextBox
                         Width="250"
-                        PlaceholderText="{I18N {x:Static lang:LangKeys.TeamName}}"
+                        PlaceholderText="{lex:Loc TeamName}"
                         Text="{Binding TeamName}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ConfirmTeamNameCommand}"
-                        Content="{I18N {x:Static lang:LangKeys.Confirm}}"
+                        Content="{lex:Loc Confirm}"
                         Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal">
                     <ui:Button
                         Command="{Binding SetTeamLogoCommand}"
-                        Content="{I18N {x:Static lang:LangKeys.SetTeamLogo}}"
+                        Content="{lex:Loc SetTeamLogo}"
                         Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
                     <ui:Image
                         Width="70"
@@ -70,7 +69,7 @@
                         Width="150"
                         Margin="20,0,0,0"
                         VerticalAlignment="Center">
-                        <Run Text="{I18N {x:Static lang:LangKeys.CurrentStatusColon}}" /><Run d:Text="求生者" Text="{Binding CurrentTeam.Camp, Converter={StaticResource CampToStringConverter}}" />
+                        <Run Text="{lex:Loc CurrentStatusColon}" /><Run d:Text="求生者" Text="{lex:Loc {Binding CurrentTeam.Camp}}" />
                     </TextBlock>
 
                 </StackPanel>
@@ -79,7 +78,7 @@
 
                 <!--  sur  -->
                 <StackPanel>
-                    <TextBlock Text="{I18N {x:Static lang:LangKeys.SurvivorPlayer}}" />
+                    <TextBlock Text="{lex:Loc SurvivorPlayer}" />
                     <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding CurrentTeam.SurMemberList}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -87,19 +86,19 @@
                                     <ui:TextBox
                                         MinWidth="250"
                                         Margin="10,0,0,0"
-                                        PlaceholderText="{I18N {x:Static lang:LangKeys.PlayerName}}"
+                                        PlaceholderText="{lex:Loc PlayerName}"
                                         Text="{Binding Name}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SetMemberImageCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="{I18N {x:Static lang:LangKeys.SetPhoto}}"
+                                        Content="{lex:Loc SetPhoto}"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMemberImageCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="{I18N {x:Static lang:LangKeys.RemovePhoto}}"
+                                        Content="{lex:Loc RemovePhoto}"
                                         Icon="{ui:SymbolIcon Symbol=ImageOff24}"
                                         Visibility="{Binding IsImageValid, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
@@ -117,7 +116,7 @@
                                                     <Setter.Value>
                                                         <StackPanel Orientation="Horizontal">
                                                             <ui:SymbolIcon Symbol="ArrowUpload24" />
-                                                            <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.Enter}}" />
+                                                            <TextBlock Margin="10,0,0,0" Text="{lex:Loc Enter}" />
                                                         </StackPanel>
                                                     </Setter.Value>
                                                 </Setter>
@@ -128,7 +127,7 @@
                                                             <Setter.Value>
                                                                 <StackPanel Orientation="Horizontal">
                                                                     <ui:SymbolIcon Symbol="ArrowDownload24" />
-                                                                    <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.Exit}}" />
+                                                                    <TextBlock Margin="10,0,0,0" Text="{lex:Loc Exit}" />
                                                                 </StackPanel>
                                                             </Setter.Value>
                                                         </Setter>
@@ -142,7 +141,7 @@
                                         Background="PaleVioletRed"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.RemoveSurMemberCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="{I18N {x:Static lang:LangKeys.Delete}}"
+                                        Content="{lex:Loc Delete}"
                                         Icon="{ui:SymbolIcon Symbol=Delete24}" />
                                 </StackPanel>
                             </DataTemplate>
@@ -150,31 +149,31 @@
                     </ItemsControl>
                     <ui:Button
                         Command="{Binding AddSurMemberCommand}"
-                        Content="{I18N {x:Static lang:LangKeys.AddPlayer}}"
+                        Content="{lex:Loc AddPlayer}"
                         Icon="{ui:SymbolIcon Symbol=Add24}" />
                 </StackPanel>
                 <!--  hun  -->
                 <StackPanel Margin="0,10,0,0">
-                    <TextBlock Text="{I18N {x:Static lang:LangKeys.HunterPlayer}}" />
+                    <TextBlock Text="{lex:Loc HunterPlayer}" />
                     <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding CurrentTeam.HunMemberList}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Margin="10,0,0,10" Orientation="Horizontal">
                                     <ui:TextBox
                                         MinWidth="250"
-                                        PlaceholderText="{I18N {x:Static lang:LangKeys.PlayerName}}"
+                                        PlaceholderText="{lex:Loc PlayerName}"
                                         Text="{Binding Name}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SetMemberImageCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="{I18N {x:Static lang:LangKeys.SetPhoto}}"
+                                        Content="{lex:Loc SetPhoto}"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMemberImageCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="{I18N {x:Static lang:LangKeys.RemovePhoto}}"
+                                        Content="{lex:Loc RemovePhoto}"
                                         Icon="{ui:SymbolIcon Symbol=ImageOff24}"
                                         Visibility="{Binding IsImageValid, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                     <ToggleButton
@@ -191,7 +190,7 @@
                                                     <Setter.Value>
                                                         <StackPanel Orientation="Horizontal">
                                                             <ui:SymbolIcon Symbol="ArrowUpload24" />
-                                                            <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.Enter}}" />
+                                                            <TextBlock Margin="10,0,0,0" Text="{lex:Loc Enter}" />
                                                         </StackPanel>
                                                     </Setter.Value>
                                                 </Setter>
@@ -202,7 +201,7 @@
                                                             <Setter.Value>
                                                                 <StackPanel Orientation="Horizontal">
                                                                     <ui:SymbolIcon Symbol="ArrowDownload24" />
-                                                                    <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.Exit}}" />
+                                                                    <TextBlock Margin="10,0,0,0" Text="{lex:Loc Exit}" />
                                                                 </StackPanel>
                                                             </Setter.Value>
                                                         </Setter>
@@ -216,7 +215,7 @@
                                         Background="PaleVioletRed"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.RemoveHunMemberCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="{I18N {x:Static lang:LangKeys.Delete}}"
+                                        Content="{lex:Loc Delete}"
                                         Icon="{ui:SymbolIcon Symbol=Delete24}" />
                                 </StackPanel>
                             </DataTemplate>
@@ -224,7 +223,7 @@
                     </ItemsControl>
                     <ui:Button
                         Command="{Binding AddHunMemberCommand}"
-                        Content="{I18N {x:Static lang:LangKeys.AddPlayer}}"
+                        Content="{lex:Loc AddPlayer}"
                         Icon="{ui:SymbolIcon Symbol=Add24}" />
                 </StackPanel>
             </StackPanel>
@@ -235,33 +234,33 @@
             <!--  basic info  -->
             <StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.AwayTeamInformation}}" />
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc AwayTeamInformation}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ImportInfoFromJsonCommand}"
-                        Content="{I18N {x:Static lang:LangKeys.ImportFromJsonFile}}"
+                        Content="{lex:Loc ImportFromJsonFile}"
                         Icon="{ui:SymbolIcon Symbol=ArrowImport24}"
                         ToolTipService.InitialShowDelay="100"
                         ToolTipService.Placement="MousePoint"
-                        ToolTipService.ToolTip="{I18N {x:Static lang:LangKeys.JsonImportTip}}" />
+                        ToolTipService.ToolTip="{lex:Loc JsonImportTip}" />
                 </StackPanel>
 
                 <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                     <ui:TextBox
                         Width="250"
-                        PlaceholderText="{I18N {x:Static lang:LangKeys.TeamName}}"
+                        PlaceholderText="{lex:Loc TeamName}"
                         Text="{Binding TeamName}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ConfirmTeamNameCommand}"
-                        Content="{I18N {x:Static lang:LangKeys.Confirm}}"
+                        Content="{lex:Loc Confirm}"
                         Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal">
                     <ui:Button
                         Command="{Binding SetTeamLogoCommand}"
-                        Content="{I18N {x:Static lang:LangKeys.SetTeamLogo}}"
+                        Content="{lex:Loc SetTeamLogo}"
                         Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
                     <ui:Image
                         Width="70"
@@ -274,7 +273,7 @@
                         Width="150"
                         Margin="20,0,0,0"
                         VerticalAlignment="Center">
-                        <Run Text="{I18N {x:Static lang:LangKeys.CurrentStatusColon}}" /><Run d:Text="监管者" Text="{Binding CurrentTeam.Camp, Converter={StaticResource CampToStringConverter}}" />
+                        <Run Text="{lex:Loc CurrentStatusColon}" /><Run d:Text="监管者" Text="{lex:Loc {Binding CurrentTeam.Camp}}" />
                     </TextBlock>
                 </StackPanel>
 
@@ -282,7 +281,7 @@
 
                 <!--  sur  -->
                 <StackPanel>
-                    <TextBlock Text="{I18N {x:Static lang:LangKeys.SurvivorPlayer}}" />
+                    <TextBlock Text="{lex:Loc SurvivorPlayer}" />
                     <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding CurrentTeam.SurMemberList}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -290,19 +289,19 @@
                                     <ui:TextBox
                                         MinWidth="250"
                                         Margin="10,0,0,0"
-                                        PlaceholderText="{I18N {x:Static lang:LangKeys.PlayerName}}"
+                                        PlaceholderText="{lex:Loc PlayerName}"
                                         Text="{Binding Name}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SetMemberImageCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="{I18N {x:Static lang:LangKeys.SetPhoto}}"
+                                        Content="{lex:Loc SetPhoto}"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMemberImageCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="{I18N {x:Static lang:LangKeys.RemovePhoto}}"
+                                        Content="{lex:Loc RemovePhoto}"
                                         Icon="{ui:SymbolIcon Symbol=ImageOff24}"
                                         Visibility="{Binding IsImageValid, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                     <ToggleButton
@@ -319,7 +318,7 @@
                                                     <Setter.Value>
                                                         <StackPanel Orientation="Horizontal">
                                                             <ui:SymbolIcon Symbol="ArrowUpload24" />
-                                                            <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.Enter}}" />
+                                                            <TextBlock Margin="10,0,0,0" Text="{lex:Loc Enter}" />
                                                         </StackPanel>
                                                     </Setter.Value>
                                                 </Setter>
@@ -330,7 +329,7 @@
                                                             <Setter.Value>
                                                                 <StackPanel Orientation="Horizontal">
                                                                     <ui:SymbolIcon Symbol="ArrowDownload24" />
-                                                                    <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.Exit}}" />
+                                                                    <TextBlock Margin="10,0,0,0" Text="{lex:Loc Exit}" />
                                                                 </StackPanel>
                                                             </Setter.Value>
                                                         </Setter>
@@ -344,7 +343,7 @@
                                         Background="PaleVioletRed"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.RemoveSurMemberCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="{I18N {x:Static lang:LangKeys.Delete}}"
+                                        Content="{lex:Loc Delete}"
                                         Icon="{ui:SymbolIcon Symbol=Delete24}" />
                                 </StackPanel>
                             </DataTemplate>
@@ -353,13 +352,13 @@
                     <StackPanel Orientation="Horizontal">
                         <ui:Button
                             Command="{Binding AddSurMemberCommand}"
-                            Content="{I18N {x:Static lang:LangKeys.AddPlayer}}"
+                            Content="{lex:Loc AddPlayer}"
                             Icon="{ui:SymbolIcon Symbol=Add24}" />
                     </StackPanel>
                 </StackPanel>
                 <!--  hun  -->
                 <StackPanel Margin="0,10,0,0">
-                    <TextBlock Text="{I18N {x:Static lang:LangKeys.HunterPlayer}}" />
+                    <TextBlock Text="{lex:Loc HunterPlayer}" />
                     <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding CurrentTeam.HunMemberList}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -369,19 +368,19 @@
                                     Orientation="Horizontal">
                                     <ui:TextBox
                                         MinWidth="250"
-                                        PlaceholderText="{I18N {x:Static lang:LangKeys.PlayerName}}"
+                                        PlaceholderText="{lex:Loc PlayerName}"
                                         Text="{Binding Name}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.SetMemberImageCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="{I18N {x:Static lang:LangKeys.SetPhoto}}"
+                                        Content="{lex:Loc SetPhoto}"
                                         Icon="{ui:SymbolIcon Symbol=ImageAdd24}" />
                                     <ui:Button
                                         Margin="10,0,0,0"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.ClearMemberImageCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="{I18N {x:Static lang:LangKeys.RemovePhoto}}"
+                                        Content="{lex:Loc RemovePhoto}"
                                         Icon="{ui:SymbolIcon Symbol=ImageOff24}"
                                         Visibility="{Binding IsImageValid, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                     <ToggleButton
@@ -398,7 +397,7 @@
                                                     <Setter.Value>
                                                         <StackPanel Orientation="Horizontal">
                                                             <ui:SymbolIcon Symbol="ArrowUpload24" />
-                                                            <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.Enter}}" />
+                                                            <TextBlock Margin="10,0,0,0" Text="{lex:Loc Enter}" />
                                                         </StackPanel>
                                                     </Setter.Value>
                                                 </Setter>
@@ -409,7 +408,7 @@
                                                             <Setter.Value>
                                                                 <StackPanel Orientation="Horizontal">
                                                                     <ui:SymbolIcon Symbol="ArrowDownload24" />
-                                                                    <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.Exit}}" />
+                                                                    <TextBlock Margin="10,0,0,0" Text="{lex:Loc Exit}" />
                                                                 </StackPanel>
                                                             </Setter.Value>
                                                         </Setter>
@@ -423,7 +422,7 @@
                                         Background="PaleVioletRed"
                                         Command="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=DataContext.RemoveHunMemberCommand}"
                                         CommandParameter="{Binding}"
-                                        Content="{I18N {x:Static lang:LangKeys.Delete}}"
+                                        Content="{lex:Loc Delete}"
                                         Icon="{ui:SymbolIcon Symbol=Delete24}" />
                                 </StackPanel>
                             </DataTemplate>
@@ -431,7 +430,7 @@
                     </ItemsControl>
                     <ui:Button
                         Command="{Binding AddHunMemberCommand}"
-                        Content="{I18N {x:Static lang:LangKeys.AddPlayer}}"
+                        Content="{lex:Loc AddPlayer}"
                         Icon="{ui:SymbolIcon Symbol=Add24}" />
                 </StackPanel>
             </StackPanel>
@@ -458,21 +457,21 @@
                 </Style>
             </Border.Resources>
             <StackPanel>
-                <TextBlock Text="{I18N {x:Static lang:LangKeys.CurrentPlayerOnStage}}" />
-                <TextBlock Margin="0,10,0,0" Text="{I18N {x:Static lang:LangKeys.Survivor}}" />
+                <TextBlock Text="{lex:Loc CurrentPlayerOnStage}" />
+                <TextBlock Margin="0,10,0,0" Text="{lex:Loc Survivor}" />
                 <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding OnFieldSurPlayerViewModels}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
-                                <ui:TextBox PlaceholderText="{I18N {x:Static lang:LangKeys.PlayerName}}" Text="{Binding ThisPlayer.Member.Name}" />
+                                <ui:TextBox PlaceholderText="{lex:Loc PlayerName}" Text="{Binding ThisPlayer.Member.Name}" />
                                 <cc:CharacterChanger Command="{Binding SwapMembersInPlayersCommand}" Index="{Binding Index}" />
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <TextBlock Margin="0,10,0,10" Text="{I18N {x:Static lang:LangKeys.Hunter}}" />
-                <ui:TextBox PlaceholderText="{I18N {x:Static lang:LangKeys.PlayerName}}" Text="{Binding OnFieldHunPlayerVm.ThisPlayer.Member.Name}" />
+                <TextBlock Margin="0,10,0,10" Text="{lex:Loc Hunter}" />
+                <ui:TextBox PlaceholderText="{lex:Loc PlayerName}" Text="{Binding OnFieldHunPlayerVm.ThisPlayer.Member.Name}" />
             </StackPanel>
         </Border>
     </WrapPanel>

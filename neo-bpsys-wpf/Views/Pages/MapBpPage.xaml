@@ -6,9 +6,8 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-    xmlns:lang="clr-namespace:neo_bpsys_wpf.Locales"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
-    
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
@@ -27,15 +26,15 @@
     <StackPanel>
         <Border Style="{StaticResource Card}">
             <StackPanel Orientation="Horizontal">
-                <ui:ToggleSwitch Content="{I18N {x:Static lang:LangKeys.ShowPickingBorder}}" IsChecked="{Binding IsBreathing}" />
+                <ui:ToggleSwitch Content="{lex:Loc ShowPickingBorder}" IsChecked="{Binding IsBreathing}" />
                 <ui:ToggleSwitch
                     Margin="10,0,0,0"
-                    Content="{I18N {x:Static lang:LangKeys.ShowCamp}}"
+                    Content="{lex:Loc ShowCamp}"
                     IsChecked="{Binding IsCampVisible}" />
                 <ui:Button
                     Margin="10,0,0,0"
                     Command="{Binding ResetMapBpCommand}"
-                    Content="{I18N {x:Static lang:LangKeys.ResetMapBP}}"
+                    Content="{lex:Loc ResetMapBP}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </StackPanel>
         </Border>
@@ -46,9 +45,9 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0">
-                    <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.MapPick}}" />
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc MapPick}" />
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.OperateTeam}}" />
+                        <TextBlock VerticalAlignment="Center" Text="{lex:Loc OperateTeam}" />
                         <ComboBox
                             ItemsSource="{Binding MapSelectTeamsList}"
                             SelectedIndex="0"
@@ -57,7 +56,7 @@
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock>
-                                            <Run Text="{I18N {Binding TeamType, Converter={StaticResource EnumToStringConverter}}}" /><Run Text=" - " />
+                                            <Run Text="{lex:Loc {Binding TeamType}}" /><Run Text=" - " />
                                         </TextBlock>
                                         <TextBlock Text="{Binding Team.Name}" />
                                     </StackPanel>
@@ -97,7 +96,7 @@
                                     Margin="20,0,0,0"
                                     VerticalAlignment="Center"
                                     FontSize="16"
-                                    Text="{I18N {Binding Map.MapName, Converter={StaticResource EnumToStringConverter}}}" />
+                                    Text="{lex:Loc {Binding Map.MapName}}" />
                             </StackPanel>
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
@@ -122,9 +121,9 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0">
-                    <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.MapBan}}" />
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc MapBan}" />
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.OperateTeam}}" />
+                        <TextBlock VerticalAlignment="Center" Text="{lex:Loc OperateTeam}" />
                         <ComboBox
                             ItemsSource="{Binding MapSelectTeamsList}"
                             SelectedIndex="0"
@@ -133,7 +132,7 @@
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock>
-                                            <Run Text="{I18N {Binding TeamType, Converter={StaticResource EnumToStringConverter}}}" /><Run Text=" - " />
+                                            <Run Text="{lex:Loc {Binding TeamType}}" /><Run Text=" - " />
                                         </TextBlock>
                                         <TextBlock Text="{Binding Team.Name}" />
                                     </StackPanel>
@@ -176,7 +175,7 @@
                                         HorizontalAlignment="Center"
                                         Focusable="False"
                                         FontSize="14"
-                                        Text="{I18N {Binding Map.MapName, Converter={StaticResource EnumToStringConverter}}}">
+                                        Text="{lex:Loc {Binding Map.MapName}}">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Style.Triggers>

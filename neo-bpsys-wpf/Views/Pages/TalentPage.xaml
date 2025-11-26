@@ -7,9 +7,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:enums="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-    xmlns:lang="clr-namespace:neo_bpsys_wpf.Locales"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
-    
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
@@ -29,7 +28,7 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.SurvivorTalent}}" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc SurvivorTalent}" />
                 <WrapPanel Grid.Row="1" Orientation="Horizontal">
                     <controls:TalentPicker
                         Margin="0,0,10,10"
@@ -60,7 +59,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.HunterTalent}}" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc HunterTalent}" />
                 <controls:TalentPicker
                     Grid.Row="1"
                     Margin="0,0,20,10"
@@ -90,12 +89,12 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0" Orientation="Horizontal">
-                    <TextBlock Text="{I18N {x:Static lang:LangKeys.HunterTrait}}" />
+                    <TextBlock Text="{lex:Loc HunterTrait}" />
                     <ui:ToggleSwitch
                         x:Name="IsTraitVisible"
                         Margin="20,0,0,0"
                         d:IsChecked="True"
-                        Content="{I18N {x:Static lang:LangKeys.Enable}}"
+                        Content="{lex:Loc Enable}"
                         IsChecked="{Binding IsTraitVisible}" />
                 </StackPanel>
                 <WrapPanel
@@ -106,35 +105,35 @@
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Listen}"
                         IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.聆听}}"
-                        TagName="{I18N {x:Static lang:LangKeys.Listen}}" />
+                        TagName="{lex:Loc Listen}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Abnormal}"
                         IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.失常}}"
-                        TagName="{I18N {x:Static lang:LangKeys.Abnormal}}" />
+                        TagName="{lex:Loc Abnormal}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Excitement}"
                         IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.兴奋}}"
-                        TagName="{I18N {x:Static lang:LangKeys.Excitement}}" />
+                        TagName="{lex:Loc Excitement}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Patroller}"
                         IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.巡视者}}"
-                        TagName="{I18N {x:Static lang:LangKeys.Patroller}}" />
+                        TagName="{lex:Loc Patroller}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Teleport}"
                         IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.传送}}"
-                        TagName="{I18N {x:Static lang:LangKeys.Teleport}}" />
+                        TagName="{lex:Loc Teleport}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Peeper}"
                         IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.窥视者}}"
-                        TagName="{I18N {x:Static lang:LangKeys.Peeper}}" />
+                        TagName="{lex:Loc Peeper}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Blink}"
                         IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.闪现}}"
-                        TagName="{I18N {x:Static lang:LangKeys.Blink}}" />
+                        TagName="{lex:Loc Blink}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Warp}"
                         IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.移形}}"
-                        TagName="{I18N {x:Static lang:LangKeys.Warp}}" />
+                        TagName="{lex:Loc Warp}" />
                     <i:Interaction.Triggers>
                         <i:DataTrigger Binding="{Binding IsHunTalentHighlighted}" Value="true">
                             <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedWrapPanel}" />

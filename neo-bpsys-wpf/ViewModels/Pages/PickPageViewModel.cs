@@ -2,17 +2,16 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Controls;
-using neo_bpsys_wpf.Core.Models;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Messages;
+using neo_bpsys_wpf.Core.Models;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using CharaSelectViewModelBase = neo_bpsys_wpf.Core.Abstractions.ViewModels.CharaSelectViewModelBase;
 using Team = neo_bpsys_wpf.Core.Models.Team;
-using System.Windows.Media.Imaging;
-using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -168,7 +167,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
 
         private void OnThisPlayerPropertyChanged(object? sender, PropertyChangedEventArgs args)
         {
-            if (args.PropertyName == nameof(ThisPlayer.Character)) 
+            if (args.PropertyName == nameof(ThisPlayer.Character))
                 ReverseSyncChara();
         }
 

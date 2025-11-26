@@ -1,15 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.IO;
-using System.Text.Json;
-using System.Windows.Media.Imaging;
-using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Converters;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Messages;
-using neo_bpsys_wpf.Core.Models;
+using System.IO;
+using System.Text.Json;
+using System.Windows.Media.Imaging;
 using Member = neo_bpsys_wpf.Core.Models.Member;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 

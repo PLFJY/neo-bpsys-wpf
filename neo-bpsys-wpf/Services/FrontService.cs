@@ -1,7 +1,9 @@
-using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.AttachedBehaviors;
 using neo_bpsys_wpf.Controls;
+using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Windows;
 using System.IO;
 using System.Text.Json;
@@ -10,11 +12,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Core;
-using neo_bpsys_wpf.ViewModels.Windows;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -154,7 +151,7 @@ public class FrontService : IFrontService
             FrontWindowStates[window.Key] = false;
         }
     }
-    
+
     /// <summary>
     /// 显示窗口
     /// </summary>
@@ -181,7 +178,7 @@ public class FrontService : IFrontService
         Thread.Sleep(250);
         Application.Current.MainWindow?.Activate();
     }
-    
+
     /// <summary>
     /// 隐藏窗口
     /// </summary>

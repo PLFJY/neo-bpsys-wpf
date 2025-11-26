@@ -40,19 +40,19 @@ public class FontWeightJsonConverter : JsonConverter<FontWeight>
             case JsonTokenType.Null:
                 return FontWeights.Normal;
             case JsonTokenType.String:
-            {
-                var value = reader.GetString()!;
-                if (StringMap.TryGetValue(value, out var fw))
-                    return fw;
-                throw new JsonException($"无效的字体权重字符串: {value}");
-            }
+                {
+                    var value = reader.GetString()!;
+                    if (StringMap.TryGetValue(value, out var fw))
+                        return fw;
+                    throw new JsonException($"无效的字体权重字符串: {value}");
+                }
             case JsonTokenType.Number:
-            {
-                var value = reader.GetInt32();
-                if (NumberMap.TryGetValue(value, out var fw))
-                    return fw;
-                throw new JsonException($"无效的字体权重数值: {value}");
-            }
+                {
+                    var value = reader.GetInt32();
+                    if (NumberMap.TryGetValue(value, out var fw))
+                        return fw;
+                    throw new JsonException($"无效的字体权重数值: {value}");
+                }
             default:
                 throw new JsonException($"不支持的JSON token类型: {reader.TokenType}");
         }
@@ -60,7 +60,7 @@ public class FontWeightJsonConverter : JsonConverter<FontWeight>
 
     public override void Write(Utf8JsonWriter writer, FontWeight value, JsonSerializerOptions options)
     {
-        var name = StringMap.FirstOrDefault(kvp => kvp.Value == value).Key 
+        var name = StringMap.FirstOrDefault(kvp => kvp.Value == value).Key
                    ?? throw new JsonException($"不支持的FontWeight值: {value}");
         writer.WriteStringValue(name);
     }

@@ -6,12 +6,12 @@
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:lang="clr-namespace:neo_bpsys_wpf.Locales"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
-    Title="{I18N {x:Static lang:LangKeys.FrontendWidgets}}"
+    Title="{lex:Loc FrontendWidgets}"
     Width="1440"
     Height="716"
     d:DataContext="{d:DesignInstance Type=vm:WidgetsWindowViewModel,
@@ -20,9 +20,6 @@
     Style="{StaticResource FrontWindow}"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
-    <Window.Resources>
-        <cv:EnumToStringConverter x:Key="EnumToStringConverter" />
-    </Window.Resources>
     <Grid Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}" Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -101,7 +98,7 @@
                             d:Foreground="White"
                             d:Text="唐人街"
                             Style="{StaticResource MapBp_MapName}"
-                            Text="{I18N {Binding CurrentGame.PickedMap, Converter={StaticResource EnumToStringConverter}}}" />
+                            Text="{lex:Loc {Binding CurrentGame.PickedMap}}" />
                     </Border>
                     <Border
                         Name="PickWord"
@@ -119,7 +116,7 @@
                             d:Foreground="White"
                             d:Text="选择"
                             Style="{StaticResource MapBp_PickWord}"
-                            Text="{I18N {x:Static lang:LangKeys.Pick}}" />
+                            Text="{lex:Loc Pick}" />
                     </Border>
                     <!--  Team info  -->
                     <Border
@@ -194,7 +191,7 @@
                             d:Foreground="White"
                             d:Text="红教堂"
                             Style="{StaticResource MapBp_MapName}"
-                            Text="{I18N {Binding CurrentGame.BannedMap, Converter={StaticResource EnumToStringConverter}}}" />
+                            Text="{lex:Loc {Binding CurrentGame.BannedMap}}" />
                     </Border>
                     <Border
                         Name="BanWord"
@@ -212,7 +209,7 @@
                             d:Foreground="White"
                             d:Text="禁用"
                             Style="{StaticResource MapBp_BanWord}"
-                            Text="{I18N {x:Static lang:LangKeys.Ban}}" />
+                            Text="{lex:Loc Ban}" />
                     </Border>
                 </Canvas>
             </Border>

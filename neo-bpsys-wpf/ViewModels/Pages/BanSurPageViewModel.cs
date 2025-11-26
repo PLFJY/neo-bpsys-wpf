@@ -1,9 +1,7 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Core;
+﻿using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Messages;
 using System.Collections.ObjectModel;
 using CharaSelectViewModelBase = neo_bpsys_wpf.Core.Abstractions.ViewModels.CharaSelectViewModelBase;
 

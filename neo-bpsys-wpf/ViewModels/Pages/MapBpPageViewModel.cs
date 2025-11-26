@@ -1,19 +1,15 @@
-﻿using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
-using System.Windows.Media;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models;
-using static neo_bpsys_wpf.Core.Enums.GameAction;
+using System.Collections.ObjectModel;
+using System.Windows.Media;
 using Team = neo_bpsys_wpf.Core.Models.Team;
-using Lang = neo_bpsys_wpf.Locales.Lang;
-using LangKeys = neo_bpsys_wpf.Locales.LangKeys;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 

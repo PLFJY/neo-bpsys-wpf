@@ -7,17 +7,19 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-    xmlns:lang="clr-namespace:neo_bpsys_wpf.Locales"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf"
-    
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
-    Title="{I18N {x:Static lang:LangKeys.Backend}}"
+    Title="{lex:Loc Backend}"
     Width="930"
     Height="760"
     d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel,
                                      IsDesignTimeCreatable=True}"
+    lex:LocalizeDictionary.DesignCulture="zh-Hans"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Lang"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     RenderOptions.BitmapScalingMode="HighQuality"
@@ -140,7 +142,7 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <StackPanel Grid.Row="0" Orientation="Horizontal">
-                            <TextBlock Text="{I18N {x:Static lang:LangKeys.CurrentSurvivorTeamColon}}" />
+                            <TextBlock Text="{lex:Loc CurrentSurvivorTeamColon}" />
                             <TextBlock Margin="20,0,0,0" Text="{Binding CurrentGame.SurTeam.Name}" />
                         </StackPanel>
                         <ui:Button
@@ -148,7 +150,7 @@
                             Margin="0,10,0,10"
                             HorizontalAlignment="Center"
                             Command="{Binding SwapCommand}"
-                            Content="{I18N {x:Static lang:LangKeys.Swap}}"
+                            Content="{lex:Loc Swap}"
                             Icon="{ui:SymbolIcon Symbol=ArrowSort24}">
                             <i:Interaction.Triggers>
                                 <i:DataTrigger Binding="{Binding IsSwapHighlighted}" Value="true">
@@ -160,19 +162,19 @@
                             </i:Interaction.Triggers>
                         </ui:Button>
                         <StackPanel Grid.Row="2" Orientation="Horizontal">
-                            <TextBlock Text="{I18N {x:Static lang:LangKeys.CurrentHunterTeamColon}}" />
+                            <TextBlock Text="{lex:Loc CurrentHunterTeamColon}" />
                             <TextBlock Margin="20,0,0,0" Text="{Binding CurrentGame.HunTeam.Name}" />
                         </StackPanel>
                     </Grid>
                 </Border>
                 <!--  timer  -->
-                <Border Width="440" Style="{StaticResource Card}">
+                <Border Width="390" Style="{StaticResource Card}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.CountDown}}" />
+                        <TextBlock Grid.Row="0" Text="{lex:Loc CountDown}" />
                         <StackPanel
                             Grid.Row="1"
                             Margin="0,10,0,0"
@@ -190,18 +192,18 @@
                             <ui:Button
                                 Margin="10,0,0,0"
                                 Command="{Binding TimerStartCommand}"
-                                Content="{I18N {x:Static lang:LangKeys.Start}}"
+                                Content="{lex:Loc Start}"
                                 Icon="{ui:SymbolIcon Symbol=Play24}" />
                             <ui:Button
                                 Margin="10,0,0,0"
                                 Command="{Binding TimerStopCommand}"
-                                Content="{I18N {x:Static lang:LangKeys.Stop}}"
+                                Content="{lex:Loc Stop}"
                                 Icon="{ui:SymbolIcon Symbol=Stop24}" />
                             <TextBlock
                                 Width="60"
                                 Margin="10,0,0,0"
                                 VerticalAlignment="Center"
-                                Text="{I18N {x:Static lang:LangKeys.PreviewColon}}" />
+                                Text="{lex:Loc PreviewColon}" />
                             <TextBlock
                                 Width="25"
                                 Margin="10,0,0,0"
@@ -215,19 +217,19 @@
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding SaveGameInfoCommand}"
-                    Content="{I18N {x:Static lang:LangKeys.SaveGameInformation}}"
+                    Content="{lex:Loc SaveGameInformation}"
                     Icon="{ui:SymbolIcon Symbol=Save24}" />
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding NewGameCommand}"
-                    Content="{I18N {x:Static lang:LangKeys.NewGame}}"
+                    Content="{lex:Loc NewGame}"
                     Icon="{ui:SymbolIcon Symbol=Add24}" />
                 <Border Margin="0,0,10,10" Style="{StaticResource Card}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock
                             Grid.Row="0"
                             VerticalAlignment="Center"
-                            Text="{I18N {x:Static lang:LangKeys.FormatColon}}" />
+                            Text="{lex:Loc FormatColon}" />
                         <RadioButton
                             Margin="10,0,0,0"
                             Content="BO5"
@@ -244,9 +246,9 @@
                 <TextBlock
                     Margin="0,0,10,10"
                     VerticalAlignment="Center"
-                    Text="{I18N {x:Static lang:LangKeys.GameProgressColon}}" />
+                    Text="{lex:Loc GameProgressColon}" />
                 <ComboBox
-                    Width="150"
+                    Width="215"
                     Margin="0,0,10,10"
                     IsEnabled="{Binding CanGameProgressChange}"
                     ItemsSource="{Binding GameList}"
@@ -256,29 +258,29 @@
                     SelectedValuePath="Key">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{I18N {Binding Path=Value}}" />
+                            <TextBlock Text="{lex:Loc {Binding Path=Value}}" />
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding StartNavigationCommand}"
-                    Content="{I18N {x:Static lang:LangKeys.StartGameGuidance}}"
+                    Content="{lex:Loc StartGameGuidance}"
                     Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding NavigateToPreviousStepCommand}"
-                    Content="{I18N {x:Static lang:LangKeys.LastStep}}"
+                    Content="{lex:Loc LastStep}"
                     Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding NavigateToNextStepCommand}"
-                    Content="{I18N {x:Static lang:LangKeys.NextStep}}"
+                    Content="{lex:Loc NextStep}"
                     Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding StopNavigationCommand}"
-                    Content="{I18N {x:Static lang:LangKeys.EndGameGuidance}}"
+                    Content="{lex:Loc EndGameGuidance}"
                     Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}">
                     <i:Interaction.Triggers>
                         <i:DataTrigger Binding="{Binding IsEndGuidanceHighlighted}" Value="true">
@@ -359,7 +361,7 @@
                                         Margin="10,0,0,0"
                                         HorizontalAlignment="Stretch"
                                         VerticalAlignment="Center"
-                                        Content="{I18N {Binding Path=Content, RelativeSource={RelativeSource TemplatedParent}}}"
+                                        Content="{lex:Loc {Binding Path=Content, RelativeSource={RelativeSource TemplatedParent}}}"
                                         ContentTemplate="{TemplateBinding ContentTemplate}"
                                         TextElement.FontSize="14"
                                         TextElement.Foreground="{TemplateBinding Foreground}" />
@@ -419,7 +421,7 @@
                     HorizontalAlignment="Center"
                     FontFamily="{StaticResource SourceHan}"
                     FontSize="16"
-                    Text="{I18N {x:Static lang:LangKeys.AModernIdentityVBPSoftware}}" />
+                    Text="{lex:Loc AModernIdentityVBPSoftware}" />
                 <ProgressBar
                     Name="loadingProgress"
                     Width="500"
@@ -436,7 +438,7 @@
                 VerticalAlignment="Bottom"
                 FontFamily="{StaticResource SourceHan}"
                 FontSize="14"
-                Text="{I18N {x:Static lang:LangKeys.MadeByZeroPLFJY}}" />
+                Text="{lex:Loc MadeByZeroPLFJY}" />
         </Grid>
     </Grid>
 </ui:FluentWindow>

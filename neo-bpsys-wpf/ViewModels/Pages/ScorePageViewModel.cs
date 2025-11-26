@@ -1,19 +1,15 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
-using neo_bpsys_wpf.Locales;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Windows;
 using System.ComponentModel;
-using Score = neo_bpsys_wpf.Core.Models.Score;
 using Team = neo_bpsys_wpf.Core.Models.Team;
-using LangKeys = neo_bpsys_wpf.Locales.LangKeys;
-using Lang = neo_bpsys_wpf.Locales.Lang;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -80,7 +76,7 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     [RelayCommand]
     private void Reset()
     {
-        _sharedDataService.MainTeam.ResetScore(); 
+        _sharedDataService.MainTeam.ResetScore();
         _sharedDataService.AwayTeam.ResetScore();
     }
 
@@ -375,33 +371,33 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
 
     private static OrderedDictionary<GameProgress, string> GameListBo5 => new()
     {
-        { GameProgress.Game1FirstHalf, LangKeys.Game1FirstHalf },
-        { GameProgress.Game1SecondHalf, LangKeys.Game1SecondHalf },
-        { GameProgress.Game2FirstHalf, LangKeys.Game2FirstHalf },
-        { GameProgress.Game2SecondHalf, LangKeys.Game2SecondHalf },
-        { GameProgress.Game3FirstHalf, LangKeys.Game3FirstHalf },
-        { GameProgress.Game3SecondHalf, LangKeys.Game3SecondHalf },
-        { GameProgress.Game4FirstHalf, LangKeys.Game4FirstHalf },
-        { GameProgress.Game4SecondHalf, LangKeys.Game4SecondHalf },
-        { GameProgress.Game5FirstHalf, LangKeys.Game5FirstHalf },
-        { GameProgress.Game5SecondHalf, LangKeys.Game5SecondHalf },
-        { GameProgress.Game5ExtraFirstHalf, LangKeys.Game5ExtraFirstHalf },
-        { GameProgress.Game5ExtraSecondHalf, LangKeys.Game5ExtraSecondHalf }
+        { GameProgress.Game1FirstHalf, "Game1FirstHalf" },
+        { GameProgress.Game1SecondHalf, "Game1SecondHalf" },
+        { GameProgress.Game2FirstHalf, "Game2FirstHalf" },
+        { GameProgress.Game2SecondHalf, "Game2SecondHalf" },
+        { GameProgress.Game3FirstHalf, "Game3FirstHalf" },
+        { GameProgress.Game3SecondHalf, "Game3SecondHalf" },
+        { GameProgress.Game4FirstHalf, "Game4FirstHalf" },
+        { GameProgress.Game4SecondHalf, "Game4SecondHalf" },
+        { GameProgress.Game5FirstHalf, "Game5FirstHalf" },
+        { GameProgress.Game5SecondHalf, "Game5SecondHalf" },
+        { GameProgress.Game5ExtraFirstHalf, "Game5ExtraFirstHalf" },
+        { GameProgress.Game5ExtraSecondHalf, "Game5ExtraSecondHalf" }
     };
 
     private static OrderedDictionary<GameProgress, string> GameListBo3 => new()
     {
-        { GameProgress.Game1FirstHalf, LangKeys.Game1FirstHalf },
-        { GameProgress.Game1SecondHalf, LangKeys.Game1SecondHalf },
-        { GameProgress.Game2FirstHalf, LangKeys.Game2FirstHalf },
-        { GameProgress.Game2SecondHalf, LangKeys.Game2SecondHalf },
-        { GameProgress.Game3FirstHalf, LangKeys.Game3FirstHalf },
-        { GameProgress.Game3SecondHalf, LangKeys.Game3SecondHalf },
-        { GameProgress.Game3ExtraFirstHalf, LangKeys.Game3ExtraFirstHalf },
-        { GameProgress.Game3ExtraSecondHalf, LangKeys.Game3ExtraSecondHalf }
+        { GameProgress.Game1FirstHalf, "Game1FirstHalf" },
+        { GameProgress.Game1SecondHalf, "Game1SecondHalf" },
+        { GameProgress.Game2FirstHalf, "Game2FirstHalf" },
+        { GameProgress.Game2SecondHalf, "Game2SecondHalf" },
+        { GameProgress.Game3FirstHalf, "Game3FirstHalf" },
+        { GameProgress.Game3SecondHalf, "Game3SecondHalf" },
+        { GameProgress.Game3ExtraFirstHalf, "Game3ExtraFirstHalf" },
+        { GameProgress.Game3ExtraSecondHalf, "Game3ExtraSecondHalf" }
     };
 
-    public partial class GameGlobalInfo() : ObservableObject
+    public partial class GameGlobalInfo : ObservableObject
     {
         [ObservableProperty] private bool _isGameFinished;
         [ObservableProperty] private Camp? _mainTeamCamp;

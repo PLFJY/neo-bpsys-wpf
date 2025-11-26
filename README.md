@@ -51,6 +51,7 @@ Release有提前编译好的安装包可以直接下载并安装
 git clone https://github.com/PLFJY/neo-bpsys-wpf.git
 
 cd neo-bpsys-wpf
+git submodule update --init --recursive
 mkdir build
 
 dotnet publish ".\neo-bpsys-wpf\neo-bpsys-wpf.csproj" -c Release -o ".\build\neo-bpsys-wpf"

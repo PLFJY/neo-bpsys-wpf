@@ -1,25 +1,21 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
-using neo_bpsys_wpf.Views.Pages;
-using System.IO;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
-using neo_bpsys_wpf.Converters;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Messages;
-using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Views.Pages;
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using Game = neo_bpsys_wpf.Core.Models.Game;
 using Team = neo_bpsys_wpf.Core.Models.Team;
-using Lang = neo_bpsys_wpf.Locales.Lang;
-using LangKeys = neo_bpsys_wpf.Locales.LangKeys;
-using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
@@ -290,51 +286,51 @@ public partial class MainWindowViewModel :
 
     private static Dictionary<GameProgress, string> GameListBo5 => new()
     {
-        { GameProgress.Free, LangKeys.Free },
-        { GameProgress.Game1FirstHalf, LangKeys.Game1FirstHalf },
-        { GameProgress.Game1SecondHalf, LangKeys.Game1SecondHalf },
-        { GameProgress.Game2FirstHalf, LangKeys.Game2FirstHalf },
-        { GameProgress.Game2SecondHalf, LangKeys.Game2SecondHalf },
-        { GameProgress.Game3FirstHalf, LangKeys.Game3FirstHalf },
-        { GameProgress.Game3SecondHalf, LangKeys.Game3SecondHalf },
-        { GameProgress.Game4FirstHalf, LangKeys.Game4FirstHalf },
-        { GameProgress.Game4SecondHalf, LangKeys.Game4SecondHalf },
-        { GameProgress.Game5FirstHalf, LangKeys.Game5FirstHalf },
-        { GameProgress.Game5SecondHalf, LangKeys.Game5SecondHalf },
-        { GameProgress.Game5ExtraFirstHalf, LangKeys.Game5ExtraFirstHalf },
-        { GameProgress.Game5ExtraSecondHalf, LangKeys.Game5ExtraSecondHalf }
+        { GameProgress.Free, "Free" },
+        { GameProgress.Game1FirstHalf, "Game1FirstHalf" },
+        { GameProgress.Game1SecondHalf, "Game1SecondHalf" },
+        { GameProgress.Game2FirstHalf, "Game2FirstHalf" },
+        { GameProgress.Game2SecondHalf, "Game2SecondHalf" },
+        { GameProgress.Game3FirstHalf, "Game3FirstHalf" },
+        { GameProgress.Game3SecondHalf, "Game3SecondHalf" },
+        { GameProgress.Game4FirstHalf, "Game4FirstHalf" },
+        { GameProgress.Game4SecondHalf, "Game4SecondHalf" },
+        { GameProgress.Game5FirstHalf, "Game5FirstHalf" },
+        { GameProgress.Game5SecondHalf, "Game5SecondHalf" },
+        { GameProgress.Game5ExtraFirstHalf, "Game5ExtraFirstHalf" },
+        { GameProgress.Game5ExtraSecondHalf, "Game5ExtraSecondHalf" }
     };
 
     private static Dictionary<GameProgress, string> GameListBo3 => new()
     {
-        { GameProgress.Free, LangKeys.Free },
-        { GameProgress.Game1FirstHalf, LangKeys.Game1FirstHalf },
-        { GameProgress.Game1SecondHalf, LangKeys.Game1SecondHalf },
-        { GameProgress.Game2FirstHalf, LangKeys.Game2FirstHalf },
-        { GameProgress.Game2SecondHalf, LangKeys.Game2SecondHalf },
-        { GameProgress.Game3FirstHalf, LangKeys.Game3FirstHalf },
-        { GameProgress.Game3SecondHalf, LangKeys.Game3SecondHalf },
-        { GameProgress.Game3ExtraFirstHalf, LangKeys.Game3ExtraFirstHalf },
-        { GameProgress.Game3ExtraSecondHalf, LangKeys.Game3ExtraSecondHalf }
+        { GameProgress.Free, "Free" },
+        { GameProgress.Game1FirstHalf, "Game1FirstHalf" },
+        { GameProgress.Game1SecondHalf, "Game1SecondHalf" },
+        { GameProgress.Game2FirstHalf, "Game2FirstHalf" },
+        { GameProgress.Game2SecondHalf, "Game2SecondHalf" },
+        { GameProgress.Game3FirstHalf, "Game3FirstHalf" },
+        { GameProgress.Game3SecondHalf, "Game3SecondHalf" },
+        { GameProgress.Game3ExtraFirstHalf, "Game3ExtraFirstHalf" },
+        { GameProgress.Game3ExtraSecondHalf, "Game3ExtraSecondHalf" }
     };
 
     public List<NavigationViewItem> MenuItems { get; } =
     [
-        new(LangKeys.HomePage, SymbolRegular.Home24, typeof(HomePage)),
-        new(LangKeys.TeamInfo, SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
-        new(LangKeys.MapBP, SymbolRegular.Map24, typeof(MapBpPage)),
-        new(LangKeys.BanHunter, SymbolRegular.PresenterOff24, typeof(BanHunPage)),
-        new(LangKeys.BanSurvivor, SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
-        new(LangKeys.PickCharacter, SymbolRegular.PersonAdd24, typeof(PickPage)),
-        new(LangKeys.TalentAndTrait, SymbolRegular.PersonWalking24, typeof(TalentPage)),
-        new(LangKeys.ScoreControl, SymbolRegular.NumberRow24, typeof(ScorePage)),
-        new(LangKeys.GameData, SymbolRegular.TextNumberListLtr24, typeof(GameDataPage)),
+        new("HomePage", SymbolRegular.Home24, typeof(HomePage)),
+        new("TeamInfo", SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
+        new("MapBP", SymbolRegular.Map24, typeof(MapBpPage)),
+        new("BanHunter", SymbolRegular.PresenterOff24, typeof(BanHunPage)),
+        new("BanSurvivor", SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
+        new("PickCharacter", SymbolRegular.PersonAdd24, typeof(PickPage)),
+        new("TalentAndTrait", SymbolRegular.PersonWalking24, typeof(TalentPage)),
+        new("ScoreControl", SymbolRegular.NumberRow24, typeof(ScorePage)),
+        new("GameData", SymbolRegular.TextNumberListLtr24, typeof(GameDataPage)),
     ];
 
     public List<NavigationViewItem> FooterMenuItems { get; } =
     [
-        new(LangKeys.FrontendManagement, SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
-        new(LangKeys.Extensions, SymbolRegular.AppsAddIn24, typeof(ExtensionPage)),
-        new(LangKeys.Settings, SymbolRegular.Settings24, typeof(SettingPage)),
+        new("FrontendManagement", SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
+        new("Extensions", SymbolRegular.AppsAddIn24, typeof(ExtensionPage)),
+        new("Settings", SymbolRegular.Settings24, typeof(SettingPage)),
     ];
 }

@@ -3,8 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:control="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
-    xmlns:lang="clr-namespace:neo_bpsys_wpf.Locales"
-    
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
@@ -26,7 +25,7 @@
                         <ui:TextBox
                             Margin="0,10,0,10"
                             IsReadOnly="True"
-                            PlaceholderText="{I18N {x:Static lang:LangKeys.CharacterName}}"
+                            PlaceholderText="{lex:Loc CharacterName}"
                             Text="{TemplateBinding CharacterName}" />
                         <Grid Row="1">
                             <!--  Sur  -->

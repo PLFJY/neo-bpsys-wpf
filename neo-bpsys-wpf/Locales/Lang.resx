@@ -836,7 +836,7 @@
   <data name="Darkwoods" xml:space="preserve">
     <value>Darkwoods</value>
   </data>
-  <data name="CommingSoon" xml:space="preserve">
+  <data name="ComingSoon" xml:space="preserve">
     <value>How about we explore the area ahead of us later~</value>
     <comment>前面的区域以后再来探索吧~</comment>
   </data>
@@ -992,5 +992,14 @@
   </data>
   <data name="Ban" xml:space="preserve">
     <value>Ban</value>
+  </data>
+  <data name="zh_Hans" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="en_US" xml:space="preserve">
+    <value>English (Unitied States)</value>
+  </data>
+  <data name="ja_JP" xml:space="preserve">
+    <value>日本語</value>
   </data>
 </root>

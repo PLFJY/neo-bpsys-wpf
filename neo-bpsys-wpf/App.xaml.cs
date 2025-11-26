@@ -12,18 +12,16 @@ using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
 using Serilog;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Runtime.InteropServices.JavaScript;
 using System.Text;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.DependencyInjection;
+using WPFLocalizeExtension.Engine;
 using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
 using SnackbarService = neo_bpsys_wpf.Services.SnackbarService;
 
@@ -231,15 +229,15 @@ public partial class App : Application
     /// </summary>
     private static Mutex? _mutex = null;
 
-    bool createdNew;
+    private bool _createdNew;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
         //Log编码修正
         Console.OutputEncoding = Encoding.UTF8;
         //保证只运行一个实例
-        _mutex = new Mutex(true, AppConstants.AppName, out createdNew);
-        if (!createdNew)
+        _mutex = new Mutex(true, AppConstants.AppName, out _createdNew);
+        if (!_createdNew)
         {
             MessageBox.Show("程序已运行", "警告");
             Current.Shutdown();
@@ -253,9 +251,9 @@ public partial class App : Application
         );
 
         //启动初始化log
-        var _logger = _host.Services.GetRequiredService<ILogger<App>>();
-        _logger.LogInformation("Application Started");
-        _logger.LogInformation("""
+        var logger = _host.Services.GetRequiredService<ILogger<App>>();
+        logger.LogInformation("Application Started");
+        logger.LogInformation("""
 
                                ==============================================================================
                                                        _                                                __ 
@@ -309,20 +307,21 @@ public partial class App : Application
         ApplicationThemeManager.Apply(ApplicationTheme.Dark);
 
         //设置语言
-        var _settingService = _host.Services.GetRequiredService<ISettingsHostService>();
-        if (_settingService.Settings.Language == LanguageKey.System)
+        var settingService = _host.Services.GetRequiredService<ISettingsHostService>();
+        if (settingService.Settings.Language == LanguageKey.System)
         {
-            CultureInfo systemCulture = CultureInfo.CurrentUICulture;
-            string systemLanguage = systemCulture.Name;
-            I18NExtension.Culture = new CultureInfo(systemLanguage);
-            _logger.LogInformation("System language detected: {systemLanguage}, set language to {appLanguage}",
+            var systemCulture = CultureInfo.CurrentUICulture;
+            var systemLanguage = systemCulture.Name;
+            LocalizeDictionary.Instance.Culture = CultureInfo.GetCultureInfo(systemLanguage);
+            logger.LogInformation("System language detected: {systemLanguage}, set language to {appLanguage}",
             systemLanguage, systemLanguage);
         }
         else
         {
-            I18NExtension.Culture = new CultureInfo(_settingService.Settings.Language.ToString().Replace('_', '-'));
-            _logger.LogInformation("Set language to {appLanguage}", _settingService.Settings.Language.ToString());
+            LocalizeDictionary.Instance.Culture = CultureInfo.GetCultureInfo(settingService.Settings.Language.ToString().Replace('_', '-'));
+            logger.LogInformation("Set language to {appLanguage}", settingService.Settings.Language.ToString().Replace('_', '-'));
         }
+
         //启动host
         await _host.StartAsync();
 #if !DEBUG
@@ -336,8 +335,8 @@ public partial class App : Application
     protected override async void OnExit(ExitEventArgs e)
     {
         base.OnExit(e);
-        var _logger = _host.Services.GetRequiredService<ILogger<App>>();
-        _logger.LogInformation("Application Closed");
+        var logger = _host.Services.GetRequiredService<ILogger<App>>();
+        logger.LogInformation("Application Closed");
         await _host.StopAsync();
         _host.Dispose();
     }

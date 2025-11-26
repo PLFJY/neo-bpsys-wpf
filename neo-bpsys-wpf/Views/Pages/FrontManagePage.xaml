@@ -5,9 +5,8 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:enums="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
-    xmlns:lang="clr-namespace:neo_bpsys_wpf.Locales"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
-    
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
@@ -33,7 +32,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.AllFrontendWindows}}" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc AllFrontendWindows}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -42,12 +41,12 @@
                     <ui:Button
                         Height="50"
                         Command="{Binding ShowAllWindowsCommand}"
-                        Content="{I18N {x:Static lang:LangKeys.OpenAll}}" />
+                        Content="{lex:Loc OpenAll}" />
                     <ui:Button
                         Height="50"
                         Margin="10,0,0,0"
                         Command="{Binding HideAllWindowsCommand}"
-                        Content="{I18N {x:Static lang:LangKeys.CloseAll}}" />
+                        Content="{lex:Loc CloseAll}" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -60,7 +59,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.BPWindow}}" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc BPWindow}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -68,12 +67,12 @@
                     <ui:Button
                         Command="{Binding ShowWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
-                        Content="{I18N {x:Static lang:LangKeys.Open}}" />
+                        Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
-                        Content="{I18N {x:Static lang:LangKeys.Close}}" />
+                        Content="{lex:Loc Close}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Row="2"
@@ -88,14 +87,14 @@
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.DesignMode}}" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignMode}" />
                     </StackPanel>
                 </ui:ToggleSwitch>
                 <ui:Button
                     Grid.Row="3"
                     Margin="0,10,0,0"
                     Command="{Binding ResetBpWindowElementsPositionCommand}"
-                    Content="{I18N {x:Static lang:LangKeys.ResetLayout}}"
+                    Content="{lex:Loc ResetLayout}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
@@ -108,7 +107,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.IntercludeWindow}}" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc IntercludeWindow}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -116,12 +115,12 @@
                     <ui:Button
                         Command="{Binding ShowWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
-                        Content="{I18N {x:Static lang:LangKeys.Open}}" />
+                        Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
-                        Content="{I18N {x:Static lang:LangKeys.Close}}" />
+                        Content="{lex:Loc Close}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Row="2"
@@ -136,14 +135,14 @@
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.DesignMode}}" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignMode}" />
                     </StackPanel>
                 </ui:ToggleSwitch>
                 <ui:Button
                     Grid.Row="3"
                     Margin="0,10,0,0"
                     Command="{Binding ResetCutSceneWindowElementsPositionCommand}"
-                    Content="{I18N {x:Static lang:LangKeys.ResetLayout}}"
+                    Content="{lex:Loc ResetLayout}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
@@ -163,54 +162,54 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.ScoreComponent}}" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc ScoreComponent}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.SurvivorScoreInGame}}" />
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc SurvivorScoreInGame}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ShowWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.ScoreSurWindow}"
-                        Content="{I18N {x:Static lang:LangKeys.Open}}" />
+                        Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.ScoreSurWindow}"
-                        Content="{I18N {x:Static lang:LangKeys.Close}}" />
+                        Content="{lex:Loc Close}" />
                 </StackPanel>
                 <StackPanel
                     Grid.Row="2"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.HunterScoreInGame}}" />
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc HunterScoreInGame}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ShowWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.ScoreHunWindow}"
-                        Content="{I18N {x:Static lang:LangKeys.Open}}" />
+                        Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.ScoreHunWindow}"
-                        Content="{I18N {x:Static lang:LangKeys.Close}}" />
+                        Content="{lex:Loc Close}" />
                 </StackPanel>
                 <StackPanel
                     Grid.Row="3"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="{I18N {x:Static lang:LangKeys.ScoreStatistics}}" />
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc ScoreStatistics}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ShowWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
-                        Content="{I18N {x:Static lang:LangKeys.Open}}" />
+                        Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
-                        Content="{I18N {x:Static lang:LangKeys.Close}}" />
+                        Content="{lex:Loc Close}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Row="4"
@@ -225,31 +224,31 @@
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.DesignMode}}" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignMode}" />
                     </StackPanel>
                 </ui:ToggleSwitch>
                 <TextBlock
                     Grid.Row="5"
                     Margin="0,10,0,0"
-                    Text="{I18N {x:Static lang:LangKeys.NoteScoreStatisticsNotSaveInBO3Mode}}"
+                    Text="{lex:Loc NoteScoreStatisticsNotSaveInBO3Mode}"
                     TextWrapping="WrapWithOverflow" />
                 <ui:Button
                     Grid.Row="6"
                     Margin="0,10,0,0"
                     Command="{Binding ResetScoreSurWindowElementsPositionCommand}"
-                    Content="{I18N {x:Static lang:LangKeys.ResetSurvivorScoreLayoutInGame}}"
+                    Content="{lex:Loc ResetSurvivorScoreLayoutInGame}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
                     Grid.Row="7"
                     Margin="0,10,0,0"
                     Command="{Binding ResetScoreHunWindowElementsPositionCommand}"
-                    Content="{I18N {x:Static lang:LangKeys.ResetHunterScoreLayoutInGame}}"
+                    Content="{lex:Loc ResetHunterScoreLayoutInGame}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
                     Grid.Row="8"
                     Margin="0,10,0,0"
                     Command="{Binding ResetScoreGlobalWindowElementsPositionCommand}"
-                    Content="{I18N {x:Static lang:LangKeys.ResetScoreStatisticsLayout}}"
+                    Content="{lex:Loc ResetScoreStatisticsLayout}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
@@ -262,7 +261,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.GameStatisticsWindow}}" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc GameStatisticsWindow}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -270,12 +269,12 @@
                     <ui:Button
                         Command="{Binding ShowWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
-                        Content="{I18N {x:Static lang:LangKeys.Open}}" />
+                        Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
-                        Content="{I18N {x:Static lang:LangKeys.Close}}" />
+                        Content="{lex:Loc Close}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Row="2"
@@ -290,14 +289,14 @@
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.DesignMode}}" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignMode}" />
                     </StackPanel>
                 </ui:ToggleSwitch>
                 <ui:Button
                     Grid.Row="3"
                     Margin="0,10,0,0"
                     Command="{Binding ResetGameDataWindowElementsPositionCommand}"
-                    Content="{I18N {x:Static lang:LangKeys.ResetLayout}}"
+                    Content="{lex:Loc ResetLayout}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
@@ -313,7 +312,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.Widgets}}" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc Widgets}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -321,12 +320,12 @@
                     <ui:Button
                         Command="{Binding ShowWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
-                        Content="{I18N {x:Static lang:LangKeys.Open}}" />
+                        Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
                         CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
-                        Content="{I18N {x:Static lang:LangKeys.Close}}" />
+                        Content="{lex:Loc Close}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Row="3"
@@ -341,7 +340,7 @@
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="{I18N {x:Static lang:LangKeys.DesignMode}}" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignMode}" />
                     </StackPanel>
                 </ui:ToggleSwitch>
                 <ui:Button
@@ -349,21 +348,21 @@
                     Margin="0,10,0,0"
                     Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
                     CommandParameter="MapBpCanvas"
-                    Content="{I18N {x:Static lang:LangKeys.ResetMapBPLayout}}"
+                    Content="{lex:Loc ResetMapBPLayout}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
                     Grid.Row="5"
                     Margin="0,10,0,0"
                     Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
                     CommandParameter="BpOverViewCanvas"
-                    Content="{I18N {x:Static lang:LangKeys.ResetBPOverviewLayout}}"
+                    Content="{lex:Loc ResetBPOverviewLayout}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
                     Grid.Row="6"
                     Margin="0,10,0,0"
                     Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
                     CommandParameter="MapV2Canvas"
-                    Content="{I18N {x:Static lang:LangKeys.ResetMapBPV2Layout}}"
+                    Content="{lex:Loc ResetMapBPV2Layout}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>

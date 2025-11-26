@@ -1,4 +1,7 @@
 ﻿using Downloader;
+using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Models;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -6,9 +9,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Windows;
-using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Models;
-using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.Services;
 

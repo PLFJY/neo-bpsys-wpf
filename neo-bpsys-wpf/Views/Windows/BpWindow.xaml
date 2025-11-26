@@ -6,13 +6,12 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-    xmlns:lang="clr-namespace:neo_bpsys_wpf.Locales"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
-    
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
-    Title="{I18N {x:Static lang:LangKeys.FrontendBP}}"
+    Title="{lex:Loc FrontendBP}"
     Width="1440"
     Height="810"
     d:DataContext="{d:DesignInstance Type=vm:BpWindowViewModel,
@@ -484,7 +483,7 @@
                 FontSize="{Binding Settings.TextSettings.MapName.FontSize}"
                 FontWeight="{Binding Settings.TextSettings.MapName.FontWeight}"
                 Foreground="{Binding Settings.TextSettings.MapName.Foreground}"
-                Text="{I18N {Binding CurrentGame.PickedMap, Converter={StaticResource EnumToStringConverter}}}" />
+                Text="{lex:Loc {Binding CurrentGame.PickedMap}}" />
         </Border>
         <Border
             Name="GameProgress"

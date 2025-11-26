@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using Downloader;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -11,7 +10,6 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -22,8 +20,6 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Media;
-using neo_bpsys_wpf.Locales;
-using LangKeys = neo_bpsys_wpf.Locales.LangKeys;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -60,7 +56,7 @@ public partial class SettingPageViewModel : ViewModelBase
         _logger = logger;
         _messageBoxService = messageBoxService;
 
-        if (updaterService.Downloader is Downloader.DownloadService downloader)
+        if (updaterService.Downloader is DownloadService downloader)
         {
             _downloader = downloader;
             _downloader.DownloadProgressChanged += Downloader_DownloadProgressChanged;
@@ -73,62 +69,62 @@ public partial class SettingPageViewModel : ViewModelBase
         //设置项列表初始化
         BpWindowTextSettings = new Dictionary<string, TextSettings>
         {
-            { LangKeys.Timer, _settingsHostService.Settings.BpWindowSettings.TextSettings.Timer },
-            { LangKeys.TeamName, _settingsHostService.Settings.BpWindowSettings.TextSettings.TeamName },
-            { LangKeys.GameScores, _settingsHostService.Settings.BpWindowSettings.TextSettings.MinorPoints },
-            { LangKeys.MatchScores, _settingsHostService.Settings.BpWindowSettings.TextSettings.MajorPoints },
-            { LangKeys.PlayerID, _settingsHostService.Settings.BpWindowSettings.TextSettings.PlayerId },
-            { LangKeys.MapName, _settingsHostService.Settings.BpWindowSettings.TextSettings.MapName },
-            { LangKeys.GameProgress, _settingsHostService.Settings.BpWindowSettings.TextSettings.GameProgress }
+            { "Timer", _settingsHostService.Settings.BpWindowSettings.TextSettings.Timer },
+            { "TeamName", _settingsHostService.Settings.BpWindowSettings.TextSettings.TeamName },
+            { "GameScores", _settingsHostService.Settings.BpWindowSettings.TextSettings.MinorPoints },
+            { "MatchScores", _settingsHostService.Settings.BpWindowSettings.TextSettings.MajorPoints },
+            { "PlayerID", _settingsHostService.Settings.BpWindowSettings.TextSettings.PlayerId },
+            { "MapName", _settingsHostService.Settings.BpWindowSettings.TextSettings.MapName },
+            { "GameProgress", _settingsHostService.Settings.BpWindowSettings.TextSettings.GameProgress }
         };
 
         CutSceneWindowTextSettings = new Dictionary<string, TextSettings>
         {
-            { LangKeys.TeamName, _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.TeamName },
-            { LangKeys.MatchScores, _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.MajorPoints },
-            { LangKeys.SurvivorPlayerID, _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.SurPlayerId },
-            { LangKeys.HunterPlayerID, _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.HunPlayerId },
-            { LangKeys.MapName, _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.MapName },
-            { LangKeys.GameProgress, _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.GameProgress }
+            { "TeamName", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.TeamName },
+            { "MatchScores", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.MajorPoints },
+            { "SurvivorPlayerID", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.SurPlayerId },
+            { "HunterPlayerID", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.HunPlayerId },
+            { "MapName", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.MapName },
+            { "GameProgress", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.GameProgress }
         };
 
         ScoreWindowTextSettings = new Dictionary<string, TextSettings>
         {
-            { LangKeys.GameScores, _settingsHostService.Settings.ScoreWindowSettings.TextSettings.MinorPoints },
-            { LangKeys.MatchScore, _settingsHostService.Settings.ScoreWindowSettings.TextSettings.MajorPoints },
-            { LangKeys.TeamName, _settingsHostService.Settings.ScoreWindowSettings.TextSettings.TeamName },
-            { LangKeys.TeamNameInScoreStatistics, _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_TeamName },
-            { LangKeys.GameScoresInScoreStatistics, _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_Data },
-            { LangKeys.TotalGameScoresInScoreStatistics, _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_Total }
+            { "GameScores", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.MinorPoints },
+            { "MatchScore", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.MajorPoints },
+            { "TeamName", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.TeamName },
+            { "TeamNameInScoreStatistics", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_TeamName },
+            { "GameScoresInScoreStatistics", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_Data },
+            { "TotalGameScoresInScoreStatistics", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_Total }
         };
 
         GameDataWindowTextSettings = new Dictionary<string, TextSettings>
         {
-            { LangKeys.TeamName, _settingsHostService.Settings.GameDataWindowSettings.TextSettings.TeamName },
-            { LangKeys.GameScores, _settingsHostService.Settings.GameDataWindowSettings.TextSettings.MinorPoints },
-            { LangKeys.MatchScores, _settingsHostService.Settings.GameDataWindowSettings.TextSettings.MajorPoints },
-            { LangKeys.PlayerID, _settingsHostService.Settings.GameDataWindowSettings.TextSettings.PlayerId },
-            { LangKeys.MapName, _settingsHostService.Settings.GameDataWindowSettings.TextSettings.MapName },
-            { LangKeys.GameProgress, _settingsHostService.Settings.GameDataWindowSettings.TextSettings.GameProgress },
-            { LangKeys.SurvivorData, _settingsHostService.Settings.GameDataWindowSettings.TextSettings.SurData },
-            { LangKeys.HunterData, _settingsHostService.Settings.GameDataWindowSettings.TextSettings.HunData }
+            { "TeamName", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.TeamName },
+            { "GameScores", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.MinorPoints },
+            { "MatchScores", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.MajorPoints },
+            { "PlayerID", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.PlayerId },
+            { "MapName", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.MapName },
+            { "GameProgress", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.GameProgress },
+            { "SurvivorData", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.SurData },
+            { "HunterData", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.HunData }
         };
 
         WidgetsWindowTextSettings = new Dictionary<string, TextSettings>
         {
-            { LangKeys.MapNameInMapBP, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBp_MapName },
-            { LangKeys.PickWordInMapBP, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBp_PickWord },
-            { LangKeys.BanWordInMapBP, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBp_BanWord },
-            { LangKeys.TeamNameInMapBP, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBp_TeamName },
-            { LangKeys.MapNameInMapBPV2, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBpV2_MapName },
-            { LangKeys.TeamNameInMapBPV2, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBpV2_TeamName },
-            { LangKeys.CampNameInMapBPV2, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBpV2_CampWords },
-            { LangKeys.TeamNameInBPOverview, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_TeamName },
+            { "MapNameInMapBP", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBp_MapName },
+            { "PickWordInMapBP", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBp_PickWord },
+            { "BanWordInMapBP", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBp_BanWord },
+            { "TeamNameInMapBP", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBp_TeamName },
+            { "MapNameInMapBPV2", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBpV2_MapName },
+            { "TeamNameInMapBPV2", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBpV2_TeamName },
+            { "CampNameInMapBPV2", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBpV2_CampWords },
+            { "TeamNameInBPOverview", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_TeamName },
             {
-                LangKeys.GameProgressInBPOverview,
+                "GameProgressInBPOverview",
                 _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_GameProgress
             },
-            { LangKeys.GameScoresInBPOverview, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_MinorPoints }
+            { "GameScoresInBPOverview", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_MinorPoints }
         };
 
         BpWindowPickingColorSettings = _settingsHostService.Settings.BpWindowSettings.PickingBorderColor.ToColor();
@@ -237,24 +233,24 @@ public partial class SettingPageViewModel : ViewModelBase
             _settingsHostService.SaveConfig();
             if (LanguageKey.System == value)
             {
-                CultureInfo systemCulture = CultureInfo.CurrentUICulture;
-                string systemLanguage = systemCulture.Name;
-                I18NExtension.Culture = new CultureInfo(systemLanguage);
+                var systemCulture = CultureInfo.CurrentUICulture;
+                var systemLanguage = systemCulture.Name;
+                WPFLocalizeExtension.Engine.LocalizeDictionary.Instance.Culture = CultureInfo.GetCultureInfo(systemLanguage);
                 _logger.LogInformation("System language detected: {systemLanguage}, set language to {appLanguage}", systemLanguage, systemLanguage);
                 return;
             }
 
-            I18NExtension.Culture = new CultureInfo(value.ToString().Replace('_', '-'));
-            _logger.LogInformation("Set language to {appLanguage}", value.ToString());
+            WPFLocalizeExtension.Engine.LocalizeDictionary.Instance.Culture = CultureInfo.GetCultureInfo(value.ToString().Replace('_', '-'));
+            _logger.LogInformation("Set language to {appLanguage}", value.ToString().Replace('_', '-'));
         });
     }
 
     public Dictionary<string, LanguageKey> LanguageList { get; } = new()
     {
-        {LangKeys.FollowSystem, LanguageKey.System},
-        {"简体中文" , LanguageKey.zh_Hans},
-        {"English" , LanguageKey.en_US},
-        //{"日本語" , LanguageKey.ja_JP }
+        {"FollowSystem", LanguageKey.System},
+        {"zh_Hans" , LanguageKey.zh_Hans},
+        {"en_US" , LanguageKey.en_US},
+        //{"ja_JP" , LanguageKey.ja_JP }
     };
     #endregion
 
