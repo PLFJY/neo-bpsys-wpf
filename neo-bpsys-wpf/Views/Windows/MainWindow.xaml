@@ -17,7 +17,6 @@
     Height="760"
     d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel,
                                      IsDesignTimeCreatable=True}"
-    lex:LocalizeDictionary.DesignCulture="zh-Hans"
     lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
     lex:ResxLocalizationProvider.DefaultDictionary="Locales.Lang"
     ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"

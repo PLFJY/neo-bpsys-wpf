@@ -948,4 +948,7 @@
   <data name="Hun" xml:space="preserve">
     <value>Hunter</value>
   </data>
+  <data name="en_US" xml:space="preserve">
+    <value>English (United States)</value>
+  </data>
 </root>
