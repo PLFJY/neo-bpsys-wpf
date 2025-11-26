@@ -11,6 +11,7 @@ using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Locales;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -20,6 +21,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Media;
+using WPFLocalizeExtension.Engine;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -233,14 +235,12 @@ public partial class SettingPageViewModel : ViewModelBase
             _settingsHostService.SaveConfig();
             if (LanguageKey.System == value)
             {
-                var systemCulture = CultureInfo.CurrentUICulture;
-                var systemLanguage = systemCulture.Name;
-                WPFLocalizeExtension.Engine.LocalizeDictionary.Instance.Culture = CultureInfo.GetCultureInfo(systemLanguage);
-                _logger.LogInformation("System language detected: {systemLanguage}, set language to {appLanguage}", systemLanguage, systemLanguage);
+                var systemCulture = CultureHelper.SetCultureFollowSystem();
+                _logger.LogInformation("Set language to {appLanguage}", systemCulture);
                 return;
             }
 
-            WPFLocalizeExtension.Engine.LocalizeDictionary.Instance.Culture = CultureInfo.GetCultureInfo(value.ToString().Replace('_', '-'));
+            CultureHelper.SetCulture(value);
             _logger.LogInformation("Set language to {appLanguage}", value.ToString().Replace('_', '-'));
         });
     }

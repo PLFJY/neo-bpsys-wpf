@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Locales;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Themes;
 using neo_bpsys_wpf.ViewModels.Pages;
@@ -308,19 +309,7 @@ public partial class App : Application
 
         //设置语言
         var settingService = _host.Services.GetRequiredService<ISettingsHostService>();
-        if (settingService.Settings.Language == LanguageKey.System)
-        {
-            var systemCulture = CultureInfo.CurrentUICulture;
-            var systemLanguage = systemCulture.Name;
-            LocalizeDictionary.Instance.Culture = CultureInfo.GetCultureInfo(systemLanguage);
-            logger.LogInformation("System language detected: {systemLanguage}, set language to {appLanguage}",
-            systemLanguage, systemLanguage);
-        }
-        else
-        {
-            LocalizeDictionary.Instance.Culture = CultureInfo.GetCultureInfo(settingService.Settings.Language.ToString().Replace('_', '-'));
-            logger.LogInformation("Set language to {appLanguage}", settingService.Settings.Language.ToString().Replace('_', '-'));
-        }
+        CultureHelper.SetCulture(settingService.Settings.Language);
 
         //启动host
         await _host.StartAsync();
