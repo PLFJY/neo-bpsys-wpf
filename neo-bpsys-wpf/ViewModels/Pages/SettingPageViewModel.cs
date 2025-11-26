@@ -23,6 +23,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Media;
 using neo_bpsys_wpf.Locales;
+using LangKeys = neo_bpsys_wpf.Locales.LangKeys;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -72,62 +73,62 @@ public partial class SettingPageViewModel : ViewModelBase
         //设置项列表初始化
         BpWindowTextSettings = new Dictionary<string, TextSettings>
         {
-            { "计时器", _settingsHostService.Settings.BpWindowSettings.TextSettings.Timer },
-            { "队伍名称", _settingsHostService.Settings.BpWindowSettings.TextSettings.TeamName },
-            { "小比分", _settingsHostService.Settings.BpWindowSettings.TextSettings.MinorPoints },
-            { "大比分", _settingsHostService.Settings.BpWindowSettings.TextSettings.MajorPoints },
-            { "玩家ID", _settingsHostService.Settings.BpWindowSettings.TextSettings.PlayerId },
-            { "地图名称", _settingsHostService.Settings.BpWindowSettings.TextSettings.MapName },
-            { "对局进度", _settingsHostService.Settings.BpWindowSettings.TextSettings.GameProgress }
+            { LangKeys.Timer, _settingsHostService.Settings.BpWindowSettings.TextSettings.Timer },
+            { LangKeys.TeamName, _settingsHostService.Settings.BpWindowSettings.TextSettings.TeamName },
+            { LangKeys.GameScores, _settingsHostService.Settings.BpWindowSettings.TextSettings.MinorPoints },
+            { LangKeys.MatchScores, _settingsHostService.Settings.BpWindowSettings.TextSettings.MajorPoints },
+            { LangKeys.PlayerID, _settingsHostService.Settings.BpWindowSettings.TextSettings.PlayerId },
+            { LangKeys.MapName, _settingsHostService.Settings.BpWindowSettings.TextSettings.MapName },
+            { LangKeys.GameProgress, _settingsHostService.Settings.BpWindowSettings.TextSettings.GameProgress }
         };
 
         CutSceneWindowTextSettings = new Dictionary<string, TextSettings>
         {
-            { "队伍名称", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.TeamName },
-            { "大比分", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.MajorPoints },
-            { "求生者玩家ID", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.SurPlayerId },
-            { "监管者玩家ID", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.HunPlayerId },
-            { "地图名称", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.MapName },
-            { "对局进度", _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.GameProgress }
+            { LangKeys.TeamName, _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.TeamName },
+            { LangKeys.MatchScores, _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.MajorPoints },
+            { LangKeys.SurvivorPlayerID, _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.SurPlayerId },
+            { LangKeys.HunterPlayerID, _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.HunPlayerId },
+            { LangKeys.MapName, _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.MapName },
+            { LangKeys.GameProgress, _settingsHostService.Settings.CutSceneWindowSettings.TextSettings.GameProgress }
         };
 
         ScoreWindowTextSettings = new Dictionary<string, TextSettings>
         {
-            { "小比分", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.MinorPoints },
-            { "大比分", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.MajorPoints },
-            { "队伍名称", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.TeamName },
-            { "分数统计_队伍名称", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_TeamName },
-            { "分数统计_分数", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_Data },
-            { "分数统计_总小比分", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_Total }
+            { LangKeys.GameScores, _settingsHostService.Settings.ScoreWindowSettings.TextSettings.MinorPoints },
+            { LangKeys.MatchScore, _settingsHostService.Settings.ScoreWindowSettings.TextSettings.MajorPoints },
+            { LangKeys.TeamName, _settingsHostService.Settings.ScoreWindowSettings.TextSettings.TeamName },
+            { LangKeys.TeamNameInScoreStatistics, _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_TeamName },
+            { LangKeys.GameScoresInScoreStatistics, _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_Data },
+            { LangKeys.TotalGameScoresInScoreStatistics, _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_Total }
         };
 
         GameDataWindowTextSettings = new Dictionary<string, TextSettings>
         {
-            { "队伍名称", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.TeamName },
-            { "小比分", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.MinorPoints },
-            { "大比分", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.MajorPoints },
-            { "玩家ID", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.PlayerId },
-            { "地图名称", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.MapName },
-            { "对局进度", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.GameProgress },
-            { "求生者数据", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.SurData },
-            { "监管者数据", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.HunData }
+            { LangKeys.TeamName, _settingsHostService.Settings.GameDataWindowSettings.TextSettings.TeamName },
+            { LangKeys.GameScores, _settingsHostService.Settings.GameDataWindowSettings.TextSettings.MinorPoints },
+            { LangKeys.MatchScores, _settingsHostService.Settings.GameDataWindowSettings.TextSettings.MajorPoints },
+            { LangKeys.PlayerID, _settingsHostService.Settings.GameDataWindowSettings.TextSettings.PlayerId },
+            { LangKeys.MapName, _settingsHostService.Settings.GameDataWindowSettings.TextSettings.MapName },
+            { LangKeys.GameProgress, _settingsHostService.Settings.GameDataWindowSettings.TextSettings.GameProgress },
+            { LangKeys.SurvivorData, _settingsHostService.Settings.GameDataWindowSettings.TextSettings.SurData },
+            { LangKeys.HunterData, _settingsHostService.Settings.GameDataWindowSettings.TextSettings.HunData }
         };
 
         WidgetsWindowTextSettings = new Dictionary<string, TextSettings>
         {
-            { "地图BP-地图名称", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBp_MapName },
-            { "地图BP-\"选用\"文字", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBp_PickWord },
-            { "地图BP-\"禁用\"文字", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBp_BanWord },
-            { "地图BP-队伍名称", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBp_TeamName },
-            { "地图BPV2-地图名称", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBpV2_MapName },
-            { "地图BPV2-队伍名称", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBpV2_TeamName },
-            { "地图BPV2-阵营文字", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBpV2_CampWords },
-            { "BP概览-队伍名称", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_TeamName },
+            { LangKeys.MapNameInMapBP, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBp_MapName },
+            { LangKeys.PickWordInMapBP, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBp_PickWord },
+            { LangKeys.BanWordInMapBP, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBp_BanWord },
+            { LangKeys.TeamNameInMapBP, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBp_TeamName },
+            { LangKeys.MapNameInMapBPV2, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBpV2_MapName },
+            { LangKeys.TeamNameInMapBPV2, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBpV2_TeamName },
+            { LangKeys.CampNameInMapBPV2, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBpV2_CampWords },
+            { LangKeys.TeamNameInBPOverview, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_TeamName },
             {
-                "BP概览-对局进度",
+                LangKeys.GameProgressInBPOverview,
                 _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_GameProgress
             },
-            { "BP概览-小比分", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_MinorPoints }
+            { LangKeys.GameScoresInBPOverview, _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_MinorPoints }
         };
 
         BpWindowPickingColorSettings = _settingsHostService.Settings.BpWindowSettings.PickingBorderColor.ToColor();

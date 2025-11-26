@@ -163,7 +163,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.ScoreConponent}}" />
+                <TextBlock Grid.Row="0" Text="{I18N {x:Static lang:LangKeys.ScoreComponent}}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"

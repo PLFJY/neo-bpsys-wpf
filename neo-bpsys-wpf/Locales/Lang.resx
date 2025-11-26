@@ -383,7 +383,7 @@
   <data name="IntercludeWindow" xml:space="preserve">
     <value>CutScene window</value>
   </data>
-  <data name="ScoreConponent" xml:space="preserve">
+  <data name="ScoreComponent" xml:space="preserve">
     <value>Score conponent</value>
   </data>
   <data name="ScoreStatistics" xml:space="preserve">
@@ -899,5 +899,92 @@
   </data>
   <data name="IndexFormat" xml:space="preserve">
     <value> {0}{1}</value>
+    <comment>此处报错是正常现象</comment>
+  </data>
+  <data name="Timer" xml:space="preserve">
+    <value>Timer</value>
+  </data>
+  <data name="MatchScore" xml:space="preserve">
+    <value>Match score</value>
+  </data>
+  <data name="PlayerID" xml:space="preserve">
+    <value>Player ID</value>
+  </data>
+  <data name="MapName" xml:space="preserve">
+    <value>MapName</value>
+  </data>
+  <data name="GameProgress" xml:space="preserve">
+    <value>Game progress</value>
+  </data>
+  <data name="SurvivorPlayerID" xml:space="preserve">
+    <value>Survivor player ID</value>
+  </data>
+  <data name="HunterPlayerID" xml:space="preserve">
+    <value>Hunter player ID</value>
+  </data>
+  <data name="MatchScores" xml:space="preserve">
+    <value>Match scores</value>
+  </data>
+  <data name="TeamNameInScoreStatistics" xml:space="preserve">
+    <value>Team name(Score Statistics)</value>
+  </data>
+  <data name="ScoresInScoreStatistics" xml:space="preserve">
+    <value>Scores(Score Statistics)</value>
+  </data>
+  <data name="GameScoresInScoreStatistics" xml:space="preserve">
+    <value>Game score(Score Statistics)</value>
+  </data>
+  <data name="TotalGameScoresInScoreStatistics" xml:space="preserve">
+    <value>Total game scores(Score Statistics)</value>
+  </data>
+  <data name="SurvivorData" xml:space="preserve">
+    <value>Survivor data</value>
+  </data>
+  <data name="HunterData" xml:space="preserve">
+    <value>Hunter data</value>
+  </data>
+  <data name="MapNameInMapBP" xml:space="preserve">
+    <value>Map name(Map BP)</value>
+  </data>
+  <data name="PickWordInMapBP" xml:space="preserve">
+    <value>The "Pick" word(Map BP)</value>
+  </data>
+  <data name="BanWordInMapBP" xml:space="preserve">
+    <value>The "Ban" word(Map BP)</value>
+  </data>
+  <data name="TeamNameInMapBP" xml:space="preserve">
+    <value>Team name(Map BP)</value>
+  </data>
+  <data name="TeamNameInMapBPV2" xml:space="preserve">
+    <value>Team name(Map BP V2)</value>
+  </data>
+  <data name="MapNameInMapBPV2" xml:space="preserve">
+    <value>Map name(Map BP V2)</value>
+  </data>
+  <data name="CampNameInMapBPV2" xml:space="preserve">
+    <value>Camp name(Map BP V2)</value>
+  </data>
+  <data name="TeamNameInBPOverview" xml:space="preserve">
+    <value>Team name(BP Overview)</value>
+  </data>
+  <data name="GameProgressInBPOverview" xml:space="preserve">
+    <value>Game progress(Bp Overview)</value>
+  </data>
+  <data name="GameScoresInBPOverview" xml:space="preserve">
+    <value>Game scores(BP Overview)</value>
+  </data>
+  <data name="Pick" xml:space="preserve">
+    <value>Pick</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>Ban</value>
+  </data>
+  <data name="Sur" xml:space="preserve">
+    <value>Survivor</value>
+    <comment>简写</comment>
+  </data>
+  <data name="Hun" xml:space="preserve">
+    <value>Hunter</value>
+    <comment>简写</comment>
   </data>
 </root>

@@ -348,7 +348,7 @@
   <data name="IntercludeWindow" xml:space="preserve">
     <value>过场画面</value>
   </data>
-  <data name="ScoreConponent" xml:space="preserve">
+  <data name="ScoreComponent" xml:space="preserve">
     <value>比分组件</value>
   </data>
   <data name="ScoreStatistics" xml:space="preserve">
@@ -863,5 +863,86 @@
   </data>
   <data name="IndexFormat" xml:space="preserve">
     <value> {0} 号位</value>
+  </data>
+  <data name="Timer" xml:space="preserve">
+    <value>计时器</value>
+  </data>
+  <data name="MatchScore" xml:space="preserve">
+    <value>大比分</value>
+  </data>
+  <data name="PlayerID" xml:space="preserve">
+    <value>选手ID</value>
+  </data>
+  <data name="MapName" xml:space="preserve">
+    <value>地图名称</value>
+  </data>
+  <data name="GameProgress" xml:space="preserve">
+    <value>对局进度</value>
+  </data>
+  <data name="SurvivorPlayerID" xml:space="preserve">
+    <value>求生者选手ID</value>
+  </data>
+  <data name="HunterPlayerID" xml:space="preserve">
+    <value>监管者选手ID</value>
+  </data>
+  <data name="MatchScores" xml:space="preserve">
+    <value>大比分</value>
+  </data>
+  <data name="TeamNameInScoreStatistics" xml:space="preserve">
+    <value>队伍名称（分数统计）</value>
+  </data>
+  <data name="ScoresInScoreStatistics" xml:space="preserve">
+    <value>分数（分数统计）</value>
+  </data>
+  <data name="GameScoresInScoreStatistics" xml:space="preserve">
+    <value>小比分（分数统计）</value>
+  </data>
+  <data name="TotalGameScoresInScoreStatistics" xml:space="preserve">
+    <value>总小比分（分数统计）</value>
+  </data>
+  <data name="SurvivorData" xml:space="preserve">
+    <value>求生者数据</value>
+  </data>
+  <data name="HunterData" xml:space="preserve">
+    <value>监管者数据</value>
+  </data>
+  <data name="MapNameInMapBP" xml:space="preserve">
+    <value>地图名称（地图BP）</value>
+  </data>
+  <data name="PickWordInMapBP" xml:space="preserve">
+    <value>“选用”文字（地图BP）</value>
+  </data>
+  <data name="BanWordInMapBP" xml:space="preserve">
+    <value>“禁用”文字（地图BP）</value>
+  </data>
+  <data name="TeamNameInMapBP" xml:space="preserve">
+    <value>队伍名称（地图BP）</value>
+  </data>
+  <data name="TeamNameInMapBPV2" xml:space="preserve">
+    <value>队伍名称（地图BP V2）</value>
+  </data>
+  <data name="MapNameInMapBPV2" xml:space="preserve">
+    <value>地图名称（地图BP V2）</value>
+  </data>
+  <data name="CampNameInMapBPV2" xml:space="preserve">
+    <value>阵营名称（地图BP V2）</value>
+  </data>
+  <data name="TeamNameInBPOverview" xml:space="preserve">
+    <value>队伍名称（BP概览）</value>
+  </data>
+  <data name="GameProgressInBPOverview" xml:space="preserve">
+    <value>对局进度（BP总览）</value>
+  </data>
+  <data name="GameScoresInBPOverview" xml:space="preserve">
+    <value>小比分（BP总览）</value>
+  </data>
+  <data name="Pick" xml:space="preserve">
+    <value>选择</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>禁用</value>
+  </data>
+  <data name="Sur" xml:space="preserve">
+    <value>求生者</value>
   </data>
 </root>
