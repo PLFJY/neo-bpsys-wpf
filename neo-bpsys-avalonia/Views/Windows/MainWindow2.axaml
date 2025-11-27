@@ -1,0 +1,9 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="neo_bpsys_avalonia.Views.Windows.MainWindow2"
+        Title="主控制台"
+        Width="1200" Height="800">
+  <Grid>
+    <TextBlock Margin="10" Text="主控制台窗口"/>
+  </Grid>
+</Window>

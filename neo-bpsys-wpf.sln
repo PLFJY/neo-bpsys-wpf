@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35707.178
@@ -6,6 +6,10 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "neo-bpsys-wpf", "neo-bpsys-wpf\neo-bpsys-wpf.csproj", "{DAEAEC78-0C04-4C12-B444-152557720345}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "neo-bpsys-wpf.Core", "neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj", "{59F7308F-5FFF-44A6-B708-90AFE4A72AED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "neo-bpsys-avalonia", "neo-bpsys-avalonia\neo-bpsys-avalonia.csproj", "{B1B9C7AA-8E6B-4E4B-9C1C-3B8A5E4B5E7F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "neo-bpsys.Core", "neo-bpsys.Core\neo-bpsys.Core.csproj", "{E2260E58-12E0-4F63-8C53-5C8FF5A6C1F8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{59F7308F-5FFF-44A6-B708-90AFE4A72AED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{59F7308F-5FFF-44A6-B708-90AFE4A72AED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{59F7308F-5FFF-44A6-B708-90AFE4A72AED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2260E58-12E0-4F63-8C53-5C8FF5A6C1F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2260E58-12E0-4F63-8C53-5C8FF5A6C1F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2260E58-12E0-4F63-8C53-5C8FF5A6C1F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2260E58-12E0-4F63-8C53-5C8FF5A6C1F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1B9C7AA-8E6B-4E4B-9C1C-3B8A5E4B5E7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1B9C7AA-8E6B-4E4B-9C1C-3B8A5E4B5E7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1B9C7AA-8E6B-4E4B-9C1C-3B8A5E4B5E7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1B9C7AA-8E6B-4E4B-9C1C-3B8A5E4B5E7F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

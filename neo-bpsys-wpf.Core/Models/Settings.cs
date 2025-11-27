@@ -138,6 +138,10 @@ public partial class BpWindowSettings : ViewModelBase
 
     [JsonIgnore]
     public string? PickingBorderLottieFile => ImageHelper.GetUiJsonPathFromSetting(PickingBorderLottieUri, "pickingBorder");
+
+    [JsonIgnore]
+    public List<Int32Rect> PickOcrRegions { get; set; } =
+        [ new Int32Rect(0,0,0,0), new Int32Rect(0,0,0,0), new Int32Rect(0,0,0,0), new Int32Rect(0,0,0,0), new Int32Rect(0,0,0,0) ];
 }
 
 /// <summary>

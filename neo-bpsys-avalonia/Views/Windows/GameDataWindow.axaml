@@ -1,0 +1,9 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="neo_bpsys_avalonia.Views.Windows.GameDataWindow"
+        Title="前台-赛后数据"
+        Width="1440" Height="716">
+  <Grid>
+    <TextBlock Margin="10" Text="赛后数据窗口"/>
+  </Grid>
+</Window>

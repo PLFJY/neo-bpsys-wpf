@@ -1,0 +1,9 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="neo_bpsys_avalonia.Views.Windows.ScoreHunWindow"
+        Title="前台-监管者比分"
+        Width="1440" Height="195">
+  <Canvas>
+    <TextBlock Text="监管者比分" Canvas.Left="20" Canvas.Top="20"/>
+  </Canvas>
+</Window>

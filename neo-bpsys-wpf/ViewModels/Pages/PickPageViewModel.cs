@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Controls;
@@ -13,6 +13,13 @@ using CharaSelectViewModelBase = neo_bpsys_wpf.Core.Abstractions.ViewModels.Char
 using Team = neo_bpsys_wpf.Core.Models.Team;
 using System.Windows.Media.Imaging;
 using neo_bpsys_wpf.Core;
+using System.Windows;
+using System.Windows.Threading;
+using OpenCvSharp;
+using OpenCvSharp.Extensions;
+using Sdcb.PaddleOCR;
+using Sdcb.PaddleOCR.Models.Local;
+using Sdcb.PaddleInference;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -25,11 +32,16 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
 
     private readonly ISharedDataService _sharedDataService;
     private readonly IFrontService _frontService;
+    private readonly ISettingsHostService _settingsHostService;
+    private DispatcherTimer? _ocrTimer;
+    private PaddleOcrAll? _ocrAll;
+    [ObservableProperty] private bool _isOcrRecognizing;
 
-    public PickPageViewModel(ISharedDataService sharedDataService, IFrontService frontService)
+    public PickPageViewModel(ISharedDataService sharedDataService, IFrontService frontService, ISettingsHostService settingsHostService)
     {
         _sharedDataService = sharedDataService;
         _frontService = frontService;
+        _settingsHostService = settingsHostService;
         SurPickViewModelList =
             [.. Enumerable.Range(0, 4).Select(i => new SurPickViewModel(sharedDataService, frontService, i))];
         HunPickVm = new HunPickViewModel(sharedDataService, frontService);
@@ -41,6 +53,175 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(i => new AwaySurGlobalBanRecordViewModel(sharedDataService, i))];
         AwayHunGlobalBanRecordViewModelList =
             [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(i => new AwayHunGlobalBanRecordViewModel(sharedDataService, i))];
+    }
+
+    [RelayCommand]
+    private void SelectOcrRegions()
+    {
+        var win = new neo_bpsys_wpf.Views.Windows.RegionSelectorWindow
+        {
+            Owner = Application.Current.MainWindow,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+        win.ShowDialog();
+        var regions = win.Regions;
+        if (regions.Count == 5)
+        {
+            _settingsHostService.Settings.BpWindowSettings.PickOcrRegions = [.. regions];
+            if (IsOcrRecognizing) StartOcrTimer();
+        }
+    }
+
+    private void StartOcrTimer()
+    {
+        _ocrTimer?.Stop();
+        _ocrTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(4)
+        };
+        _ocrTimer.Tick += async (_, _) =>
+        {
+            if (_ocrAll == null)
+            {
+                var model = LocalFullModels.ChineseV3;
+                _ocrAll = new PaddleOcrAll(model, PaddleDevice.Mkldnn())
+                {
+                    AllowRotateDetection = true,
+                    Enable180Classification = false
+                };
+            }
+
+            var rects = _settingsHostService.Settings.BpWindowSettings.PickOcrRegions;
+            if (rects == null || rects.Count != 5) return;
+
+            for (var i = 0; i < 4; i++)
+            {
+                var text = Recognize(rects[i]);
+                if (string.IsNullOrWhiteSpace(text)) continue;
+                var ch = FindBestCharacterFuzzy(text, SurPickViewModelList[i].CharaList);
+                if (ch != null)
+                {
+                    SurPickViewModelList[i].SelectedChara = ch;
+                    await SurPickViewModelList[i].SyncCharaAsync();
+                }
+            }
+
+            {
+                var text = Recognize(rects[4]);
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    var ch = FindBestCharacterFuzzy(text, HunPickVm.CharaList);
+                    if (ch != null)
+                    {
+                        HunPickVm.SelectedChara = ch;
+                        await HunPickVm.SyncCharaAsync();
+                    }
+                }
+            }
+        };
+        _ocrTimer.Start();
+    }
+
+    private void StopOcrTimer()
+    {
+        _ocrTimer?.Stop();
+        _ocrTimer = null;
+    }
+
+    partial void OnIsOcrRecognizingChanged(bool value)
+    {
+        if (value)
+        {
+            var rects = _settingsHostService.Settings.BpWindowSettings.PickOcrRegions;
+            if (rects == null || rects.Count != 5)
+                return;
+            StartOcrTimer();
+        }
+        else
+        {
+            StopOcrTimer();
+        }
+    }
+
+    private string Recognize(Int32Rect rect)
+    {
+        if (_ocrAll == null || rect.Width <= 0 || rect.Height <= 0) return string.Empty;
+        using var bmp = new System.Drawing.Bitmap(rect.Width, rect.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+        using (var g = System.Drawing.Graphics.FromImage(bmp))
+        {
+            g.CopyFromScreen(rect.X, rect.Y, 0, 0, new System.Drawing.Size(rect.Width, rect.Height));
+        }
+        using var mat = BitmapConverter.ToMat(bmp);
+        var result = _ocrAll.Run(mat);
+        return result.Text?.Trim() ?? string.Empty;
+    }
+
+    private Character? FindBestCharacterFuzzy(string text, Dictionary<string, Character> dict)
+    {
+        var t = Normalize(text);
+        Character? best = null;
+        double bestScore = 0.0;
+        foreach (var kv in dict)
+        {
+            var key = Normalize(kv.Key);
+            var name = Normalize(kv.Value.Name ?? string.Empty);
+            var s1 = Similarity(t, key);
+            var s2 = string.IsNullOrEmpty(name) ? 0.0 : Similarity(t, name);
+            var s = Math.Max(s1, s2);
+            if (ContainsLoose(t, key) || (!string.IsNullOrEmpty(name) && ContainsLoose(t, name)))
+                s = Math.Max(s, 0.95);
+            if (s > bestScore)
+            {
+                bestScore = s;
+                best = kv.Value;
+            }
+        }
+        return bestScore >= 0.5 ? best : null;
+    }
+
+    private static string Normalize(string s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return string.Empty;
+        var t = s.Replace("\r", " ").Replace("\n", " ");
+        t = new string(t.Where(ch => !char.IsWhiteSpace(ch) && !char.IsPunctuation(ch)).ToArray());
+        return t.ToLowerInvariant();
+    }
+
+    private static bool ContainsLoose(string a, string b)
+    {
+        if (string.IsNullOrEmpty(a) || string.IsNullOrEmpty(b)) return false;
+        return a.Contains(b, StringComparison.OrdinalIgnoreCase) || b.Contains(a, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static double Similarity(string a, string b)
+    {
+        if (string.IsNullOrEmpty(a) || string.IsNullOrEmpty(b)) return 0.0;
+        if (a == b) return 1.0;
+        var dist = LevenshteinDistance(a, b);
+        var maxLen = Math.Max(a.Length, b.Length);
+        return maxLen == 0 ? 0.0 : 1.0 - (double)dist / maxLen;
+    }
+
+    private static int LevenshteinDistance(string s, string t)
+    {
+        var n = s.Length;
+        var m = t.Length;
+        if (n == 0) return m;
+        if (m == 0) return n;
+        var d = new int[n + 1, m + 1];
+        for (int i = 0; i <= n; i++) d[i, 0] = i;
+        for (int j = 0; j <= m; j++) d[0, j] = j;
+        for (int i = 1; i <= n; i++)
+        {
+            for (int j = 1; j <= m; j++)
+            {
+                var cost = s[i - 1] == t[j - 1] ? 0 : 1;
+                d[i, j] = Math.Min(
+                    Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
+                    d[i - 1, j - 1] + cost);
+            }
+        }
+        return d[n, m];
     }
 
     [RelayCommand]

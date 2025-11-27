@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:neo_bpsys_avalonia.Converters"
+             x:Class="neo_bpsys_avalonia.Views.Pages.TeamInfoPage">
+  <UserControl.Resources>
+    <conv:PathToBitmapConverter x:Key="PathToBitmap"/>
+  </UserControl.Resources>
+  <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,Auto,Auto">
+    <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Margin="10" Text="队伍信息"/>
+    <TextBlock Grid.Row="1" Grid.Column="0" Margin="10" Text="求生者队名"/>
+    <TextBox Grid.Row="1" Grid.Column="1" Width="220" Margin="10" Text="{Binding SurTeamName}"/>
+    <Image Grid.Row="1" Grid.Column="2" Width="120" Height="80" Source="{Binding SurLogoPath, Converter={StaticResource PathToBitmap}}"/>
+    <Button Grid.Row="1" Grid.Column="2" HorizontalAlignment="Right" Margin="10" Content="选择Logo" Command="{Binding PickSurLogoCommand}"/>
+
+    <TextBlock Grid.Row="2" Grid.Column="0" Margin="10" Text="监管者队名"/>
+    <TextBox Grid.Row="2" Grid.Column="1" Width="220" Margin="10" Text="{Binding HunTeamName}"/>
+    <Image Grid.Row="2" Grid.Column="2" Width="120" Height="80" Source="{Binding HunLogoPath, Converter={StaticResource PathToBitmap}}"/>
+    <Button Grid.Row="2" Grid.Column="2" HorizontalAlignment="Right" Margin="10" Content="选择Logo" Command="{Binding PickHunLogoCommand}"/>
+
+    <Button Grid.Row="3" Grid.Column="1" Margin="10" Content="保存" Command="{Binding SaveCommand}"/>
+  </Grid>
+</UserControl>
