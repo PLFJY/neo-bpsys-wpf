@@ -1,9 +1,9 @@
 ﻿using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
 using System.Collections.ObjectModel;
-using CharaSelectViewModelBase = neo_bpsys_wpf.Core.Abstractions.ViewModels.CharaSelectViewModelBase;
+using CharaSelectViewModelBase = neo_bpsys_wpf.ViewModels.CharaSelectViewModelBase;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -21,13 +21,22 @@ public partial class BanSurPageViewModel : ViewModelBase
     public BanSurPageViewModel(ISharedDataService sharedDataService)
     {
         _sharedDataService = sharedDataService;
-        BanSurCurrentViewModelList = [.. Enumerable.Range(0, AppConstants.CurrentBanSurCount).Select(i => new BanSurCurrentViewModel(_sharedDataService, i))];
-        BanSurGlobalViewModelList = [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(i => new BanSurGlobalViewModel(_sharedDataService, i))];
+        BanSurCurrentViewModelList =
+        [
+            .. Enumerable.Range(0, AppConstants.CurrentBanSurCount)
+                .Select(i => new BanSurCurrentViewModel(_sharedDataService, i))
+        ];
+        BanSurGlobalViewModelList =
+        [
+            .. Enumerable.Range(0, AppConstants.GlobalBanSurCount)
+                .Select(i => new BanSurGlobalViewModel(_sharedDataService, i))
+        ];
         sharedDataService.TeamSwapped += (_, _) =>
         {
             for (int i = 0; i < _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray.Length; i++)
             {
-                BanSurGlobalViewModelList[i].SelectedChara = _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray[i];
+                BanSurGlobalViewModelList[i].SelectedChara =
+                    _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray[i];
                 BanSurGlobalViewModelList[i].SyncCharaAsync();
             }
         };
@@ -39,9 +48,10 @@ public partial class BanSurPageViewModel : ViewModelBase
     //基于模板基类的VM实现
     public class BanSurCurrentViewModel : CharaSelectViewModelBase
     {
-        public BanSurCurrentViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
+        public BanSurCurrentViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService,
+            Camp.Sur, index)
         {
-            CharaList = sharedDataService.SurCharaList;
+            CharaDict = sharedDataService.SurCharaDict;
             IsEnabled = sharedDataService.CanCurrentSurBannedList[index];
             SharedDataService.BanCountChanged += OnBanCountChanged;
         }
@@ -71,9 +81,11 @@ public partial class BanSurPageViewModel : ViewModelBase
 
     public class BanSurGlobalViewModel : CharaSelectViewModelBase
     {
-        public BanSurGlobalViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
+        public BanSurGlobalViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService,
+            Camp.Sur,
+            index)
         {
-            CharaList = sharedDataService.SurCharaList;
+            CharaDict = sharedDataService.SurCharaDict;
             IsEnabled = sharedDataService.CanGlobalSurBannedList[index];
             SharedDataService.BanCountChanged += OnBanCountChanged;
         }

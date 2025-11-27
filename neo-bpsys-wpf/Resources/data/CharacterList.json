@@ -1,7 +1,8 @@
 {
     "调香师": {
         "Camp": "Sur",
-        "ImageFileName": "调香师.png"
+        "ImageFileName": "调香师.png",
+        "Abbrev": "txs"
     },
     "画家": {
         "Camp": "Sur",
@@ -157,7 +158,8 @@
     },
     "调酒师": {
         "Camp": "Sur",
-        "ImageFileName": "调酒师.png"
+        "ImageFileName": "调酒师.png",
+        "Abbrev": "tjs"
     },
     "古董商": {
         "Camp": "Sur",
@@ -201,7 +203,8 @@
     },
     "26号守卫": {
         "Camp": "Hun",
-        "ImageFileName": "26号守卫.png"
+        "ImageFileName": "26号守卫.png",
+        "Abbrev": "bb"
     },
     "爱哭鬼": {
         "Camp": "Hun",

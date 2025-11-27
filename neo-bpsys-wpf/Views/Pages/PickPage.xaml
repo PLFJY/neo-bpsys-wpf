@@ -58,7 +58,7 @@
                                     Command="{Binding ConfirmCommand}"
                                     ImageSource="{Binding PreviewImage}"
                                     IsHighlighted="{Binding IsHighlighted}"
-                                    ItemsSource="{Binding CharaList}"
+                                    ItemsSource="{Binding CharaDict}"
                                     SelectedValue="{Binding SelectedChara}" />
                                 <cc:CharacterChanger
                                     Command="{Binding SwapCharacterInPlayersCommand}"
@@ -83,7 +83,7 @@
                     Command="{Binding HunPickVm.ConfirmCommand}"
                     ImageSource="{Binding HunPickVm.PreviewImage}"
                     IsHighlighted="{Binding HunPickVm.IsHighlighted}"
-                    ItemsSource="{Binding HunPickVm.CharaList}"
+                    ItemsSource="{Binding HunPickVm.CharaDict}"
                     SelectedValue="{Binding HunPickVm.SelectedChara}" />
             </Grid>
         </Border>
@@ -205,7 +205,7 @@
                                 <cc:CharacterSelector
                                     Margin="0,0,10,10"
                                     IsSimpleModeEnabled="True"
-                                    ItemsSource="{Binding CharaList}"
+                                    ItemsSource="{Binding CharaDict}"
                                     SelectedValue="{Binding RecordedChara}" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -228,7 +228,7 @@
                                 <cc:CharacterSelector
                                     Margin="0,0,10,10"
                                     IsSimpleModeEnabled="True"
-                                    ItemsSource="{Binding CharaList}"
+                                    ItemsSource="{Binding CharaDict}"
                                     SelectedValue="{Binding RecordedChara}" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -269,7 +269,7 @@
                                 <cc:CharacterSelector
                                     Margin="0,0,10,10"
                                     IsSimpleModeEnabled="True"
-                                    ItemsSource="{Binding CharaList}"
+                                    ItemsSource="{Binding CharaDict}"
                                     SelectedValue="{Binding RecordedChara}" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -292,7 +292,7 @@
                                 <cc:CharacterSelector
                                     Margin="0,0,10,10"
                                     IsSimpleModeEnabled="True"
-                                    ItemsSource="{Binding CharaList}"
+                                    ItemsSource="{Binding CharaDict}"
                                     SelectedValue="{Binding RecordedChara}" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

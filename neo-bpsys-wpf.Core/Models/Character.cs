@@ -93,14 +93,15 @@ public class Character
     /// 角色名称简拼
     /// </summary>
     public string Abbrev { get; } = string.Empty;
-    
+
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="name"></param>
     /// <param name="camp"></param>
     /// <param name="imageFileName"></param>
-    public Character(string name, Camp camp, string imageFileName)
+    /// <param name="abbrev"></param>
+    public Character(string name, Camp camp, string imageFileName, string? abbrev = null)
     {
         Name = name;
         Camp = camp;
@@ -111,23 +112,13 @@ public class Character
 
         var pinyin = Pinyin4Net.GetPinyin(name, format);
 
-        var parts = pinyin.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
-
-        if (name.StartsWith("调"))
-            parts[0] = "tiao";
+        var parts = pinyin.Split([" "], StringSplitOptions.RemoveEmptyEntries);
 
         //full pinyin without space
         FullSpell = string.Concat(parts);
 
-        //special case
-        if (name.Equals("26号守卫"))
-        {
-            Abbrev = "bb";
-        }
-        else
-        {
-            Abbrev = string.Concat(Enumerable.Select<string, char>(parts, p => p[0]));
-        }
+        //Abbreviation
+        Abbrev = abbrev ?? string.Concat(Enumerable.Select<string, char>(parts, p => p[0]));
     }
     
     /// <summary>

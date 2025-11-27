@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Controls;
+using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using System.Collections.ObjectModel;
 using Player = neo_bpsys_wpf.Core.Models.Player;
 

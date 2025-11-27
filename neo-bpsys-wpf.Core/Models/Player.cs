@@ -1,9 +1,7 @@
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
-using neo_bpsys_wpf.Core.Messages;
+using neo_bpsys_wpf.Core.Abstractions;
 
 namespace neo_bpsys_wpf.Core.Models;
 

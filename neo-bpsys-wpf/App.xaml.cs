@@ -3,9 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Locales;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Themes;
 using neo_bpsys_wpf.ViewModels.Pages;
@@ -13,7 +11,6 @@ using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
 using Serilog;
-using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -309,7 +306,7 @@ public partial class App : Application
 
         //设置语言
         var settingService = _host.Services.GetRequiredService<ISettingsHostService>();
-        CultureHelper.SetCulture(settingService.Settings.Language);
+        LocalizeDictionary.Instance.Culture = settingService.Settings.CultureInfo;
 
         //启动host
         await _host.StartAsync();

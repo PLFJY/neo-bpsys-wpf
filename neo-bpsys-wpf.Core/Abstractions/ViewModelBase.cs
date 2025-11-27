@@ -1,15 +1,12 @@
 ﻿using System.Runtime.CompilerServices;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace neo_bpsys_wpf.Core.Abstractions.ViewModels;
+namespace neo_bpsys_wpf.Core.Abstractions;
 
 public abstract partial class ViewModelBase : ObservableRecipient
 {
-    public ViewModelBase()
-    {
-        IsActive = true;
-    }
-    
+    public ViewModelBase() => IsActive = true;
+
     /// <summary>
     /// 设置属性并执行回调
     /// </summary>

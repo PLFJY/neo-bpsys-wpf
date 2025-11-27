@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 

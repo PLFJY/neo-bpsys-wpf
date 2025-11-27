@@ -3,14 +3,14 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using CharaSelectViewModelBase = neo_bpsys_wpf.Core.Abstractions.ViewModels.CharaSelectViewModelBase;
+using CharaSelectViewModelBase = neo_bpsys_wpf.ViewModels.CharaSelectViewModelBase;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
@@ -33,13 +33,25 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             [.. Enumerable.Range(0, 4).Select(i => new SurPickViewModel(sharedDataService, frontService, i))];
         HunPickVm = new HunPickViewModel(sharedDataService, frontService);
         MainSurGlobalBanRecordViewModelList =
-            [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(i => new MainSurGlobalBanRecordViewModel(sharedDataService, i))];
+        [
+            .. Enumerable.Range(0, AppConstants.GlobalBanSurCount)
+                .Select(i => new MainSurGlobalBanRecordViewModel(sharedDataService, i))
+        ];
         MainHunGlobalBanRecordViewModelList =
-            [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(i => new MainHunGlobalBanRecordViewModel(sharedDataService, i))];
+        [
+            .. Enumerable.Range(0, AppConstants.GlobalBanHunCount)
+                .Select(i => new MainHunGlobalBanRecordViewModel(sharedDataService, i))
+        ];
         AwaySurGlobalBanRecordViewModelList =
-            [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(i => new AwaySurGlobalBanRecordViewModel(sharedDataService, i))];
+        [
+            .. Enumerable.Range(0, AppConstants.GlobalBanSurCount)
+                .Select(i => new AwaySurGlobalBanRecordViewModel(sharedDataService, i))
+        ];
         AwayHunGlobalBanRecordViewModelList =
-            [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(i => new AwayHunGlobalBanRecordViewModel(sharedDataService, i))];
+        [
+            .. Enumerable.Range(0, AppConstants.GlobalBanHunCount)
+                .Select(i => new AwayHunGlobalBanRecordViewModel(sharedDataService, i))
+        ];
     }
 
     [RelayCommand]
@@ -151,10 +163,10 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         public Player ThisPlayer => SharedDataService.CurrentGame.SurPlayerList[Index];
 
         public SurPickViewModel(ISharedDataService sharedDataService, IFrontService frontService, int index = 0) :
-            base(sharedDataService, index)
+            base(sharedDataService, Camp.Sur, index)
         {
             _frontService = frontService;
-            CharaList = sharedDataService.SurCharaList;
+            CharaDict = sharedDataService.SurCharaDict;
             sharedDataService.CurrentGameChanged += (_, _) =>
             {
                 ThisPlayer.PropertyChanged -= OnThisPlayerPropertyChanged;
@@ -207,10 +219,10 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         private readonly IFrontService _frontService;
 
         public HunPickViewModel(ISharedDataService sharedDataService, IFrontService frontService) : base(
-            sharedDataService)
+            sharedDataService, Camp.Hun)
         {
             _frontService = frontService;
-            CharaList = sharedDataService.HunCharaList;
+            CharaDict = sharedDataService.HunCharaDict;
         }
 
         public override async Task SyncCharaAsync()
@@ -245,9 +257,9 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         }
 
         public MainSurGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
-            sharedDataService, index)
+            sharedDataService, Camp.Sur, index)
         {
-            CharaList = sharedDataService.SurCharaList;
+            CharaDict = sharedDataService.SurCharaDict;
         }
 
         public override Task SyncCharaAsync() => throw new NotImplementedException();
@@ -275,9 +287,9 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         }
 
         public MainHunGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
-            sharedDataService, index)
+            sharedDataService, Camp.Hun, index)
         {
-            CharaList = sharedDataService.HunCharaList;
+            CharaDict = sharedDataService.HunCharaDict;
         }
 
         public override Task SyncCharaAsync() => throw new NotImplementedException();
@@ -302,9 +314,9 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         }
 
         public AwaySurGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
-            sharedDataService, index)
+            sharedDataService, Camp.Sur, index)
         {
-            CharaList = sharedDataService.SurCharaList;
+            CharaDict = sharedDataService.SurCharaDict;
         }
 
         public override Task SyncCharaAsync() => throw new NotImplementedException();
@@ -329,9 +341,9 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         }
 
         public AwayHunGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
-            sharedDataService, index)
+            sharedDataService, Camp.Hun, index)
         {
-            CharaList = sharedDataService.HunCharaList;
+            CharaDict = sharedDataService.HunCharaDict;
         }
 
         public override Task SyncCharaAsync() => throw new NotImplementedException();

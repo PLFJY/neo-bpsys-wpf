@@ -5,6 +5,8 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using System.IO;
 using System.Text.Json;
+using System.ComponentModel;
+using neo_bpsys_wpf.Core.Events;
 using BpWindowSettings = neo_bpsys_wpf.Core.Models.BpWindowSettings;
 using WidgetsWindowSettings = neo_bpsys_wpf.Core.Models.WidgetsWindowSettings;
 
@@ -23,7 +25,11 @@ public class SettingsHostService : ISettingsHostService
         set
         {
             if (_settings == value) return;
+            if (_settings != null)
+                _settings.PropertyChanged -= OnSettingsPropertyChanged;
             _settings = value;
+            if (_settings != null)
+                _settings.PropertyChanged += OnSettingsPropertyChanged;
             SettingsChanged?.Invoke(this, value);
         }
     }
@@ -224,8 +230,20 @@ public class SettingsHostService : ISettingsHostService
         }
     }
 
+    private void OnSettingsPropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (string.IsNullOrEmpty(args.PropertyName)
+            || args.PropertyName == nameof(_settings.CultureInfo)
+            || args.PropertyName == nameof(_settings.Language))
+        {
+            LanguageSettingChanged?.Invoke(this, new LanguageChangedEventArgs(_settings.CultureInfo));
+        }
+    }
+
     /// <summary>
     /// 配置文件改变事件
     /// </summary>
     public event EventHandler<Settings>? SettingsChanged;
+
+    public event EventHandler<LanguageChangedEventArgs>? LanguageSettingChanged;
 }

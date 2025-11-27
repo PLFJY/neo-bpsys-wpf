@@ -52,7 +52,7 @@
                                 ImageSource="{Binding PreviewImage}"
                                 IsEnabled="{Binding IsEnabled}"
                                 IsHighlighted="{Binding IsHighlighted}"
-                                ItemsSource="{Binding CharaList}"
+                                ItemsSource="{Binding CharaDict}"
                                 SelectedValue="{Binding SelectedChara}" />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -88,7 +88,7 @@
                                 ImageSource="{Binding PreviewImage}"
                                 IsEnabled="{Binding IsEnabled}"
                                 IsHighlighted="{Binding IsHighlighted}"
-                                ItemsSource="{Binding CharaList}"
+                                ItemsSource="{Binding CharaDict}"
                                 SelectedValue="{Binding SelectedChara}" />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

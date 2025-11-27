@@ -1,10 +1,11 @@
+using System.Globalization;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Abstractions;
 
 namespace neo_bpsys_wpf.Core.Models;
 
@@ -13,13 +14,38 @@ namespace neo_bpsys_wpf.Core.Models;
 /// </summary>
 public partial class Settings : ViewModelBase
 {
+    private static readonly CultureInfo SystemCulture = CultureInfo.CurrentUICulture;
     public bool ShowTip { get; set; } = true;
-    public LanguageKey Language { get; set; } = LanguageKey.System;
+
+    private LanguageKey _language = LanguageKey.System;
+    
+    public LanguageKey Language
+    {
+        get => _language;
+        set => SetPropertyWithAction(ref _language, value, _ =>
+        {
+            if (value == LanguageKey.System)
+            {
+                CultureInfo = SystemCulture;
+                return;
+            }
+            CultureInfo = CultureInfo.GetCultureInfo(value.ToString().Replace("_", "-"));
+        });
+    }
+
+    [JsonIgnore]
+    public CultureInfo CultureInfo
+    {
+        get => _cultureInfo;
+        private set => SetProperty(ref _cultureInfo, value);
+    }
+
     [ObservableProperty] private BpWindowSettings _bpWindowSettings = new();
     [ObservableProperty] private CutSceneWindowSettings _cutSceneWindowSettings = new();
     [ObservableProperty] private ScoreWindowSettings _scoreWindowSettings = new();
     [ObservableProperty] private GameDataWindowSettings _gameDataWindowSettings = new();
     [ObservableProperty] private WidgetsWindowSettings _widgetsWindowSettings = new();
+    private CultureInfo _cultureInfo = SystemCulture;
 }
 
 /// <summary>

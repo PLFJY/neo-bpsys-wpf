@@ -1,4 +1,5 @@
 ﻿using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
@@ -33,4 +34,9 @@ public interface ISettingsHostService
     /// 配置项改变事件
     /// </summary>
     event EventHandler<Settings> SettingsChanged;
+
+    /// <summary>
+    /// 语言改变事件
+    /// </summary>
+    event EventHandler<LanguageChangedEventArgs> LanguageSettingChanged;
 }
