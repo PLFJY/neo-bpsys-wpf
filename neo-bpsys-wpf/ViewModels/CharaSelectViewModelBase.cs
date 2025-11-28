@@ -13,12 +13,11 @@ namespace neo_bpsys_wpf.ViewModels;
 /// <summary>
 /// 用于选择角色的角色选择器行为的基类
 /// 需要派生类所做的是: <br/>
-/// 1.设置 <see cref="CharaDict"/><br/>
-/// 2.实现 <see cref="CharaDict"/> 更新的行为<br/>
-/// 3.设置 <see cref="IsEnabled"/> 同步 <see cref="ISharedDataService"/> 的哪一个 CanCurrentBannedList 的值，通常需要搭配订阅 Ban 位数量变动的事件<br/>
-/// 4.实现 <see cref="SyncCharaAsync"/> 将角色同步到前台的行为
-/// 5.实现 <see cref="SyncIsEnabled"/> 通过toggle button设置后同步状态到对应的 <see cref="ISharedDataService"/> 中 CanCurrentBannedList 的值的行为
-/// 6.实现 <see cref="IsActionNameCorrect"/> 判断当前步骤引导的步骤是否符合当前控件的行为
+/// 1.实现 <see cref="CharaDict"/> 更新的行为<br/>
+/// 2.设置 <see cref="IsEnabled"/> 同步 <see cref="ISharedDataService"/> 的哪一个 CanCurrentBannedList 的值，通常需要搭配订阅 Ban 位数量变动的事件<br/>
+/// 3.实现 <see cref="SyncCharaAsync"/> 将角色同步到前台的行为
+/// 4.实现 <see cref="SyncIsEnabled"/> 通过toggle button设置后同步状态到对应的 <see cref="ISharedDataService"/> 中 CanCurrentBannedList 的值的行为
+/// 5.实现 <see cref="IsActionNameCorrect"/> 判断当前步骤引导的步骤是否符合当前控件的行为
 /// </summary>
 public abstract partial class CharaSelectViewModelBase :
     ViewModelBase,

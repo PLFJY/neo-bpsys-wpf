@@ -54,7 +54,6 @@ public partial class BanHunPageViewModel : ViewModelBase
             Camp.Hun, index)
         {
             _sharedDataService = sharedDataService;
-            CharaDict = sharedDataService.HunCharaDict;
             IsEnabled = sharedDataService.CanCurrentHunBannedList[index];
             SharedDataService.BanCountChanged += OnBanCountChanged;
         }
@@ -91,7 +90,6 @@ public partial class BanHunPageViewModel : ViewModelBase
             index)
         {
             _sharedDataService = sharedDataService;
-            CharaDict = sharedDataService.HunCharaDict;
             IsEnabled = sharedDataService.CanGlobalHunBannedList[index];
             SharedDataService.BanCountChanged += OnBanCountChanged;
         }

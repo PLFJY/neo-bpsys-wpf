@@ -166,7 +166,6 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             base(sharedDataService, Camp.Sur, index)
         {
             _frontService = frontService;
-            CharaDict = sharedDataService.SurCharaDict;
             sharedDataService.CurrentGameChanged += (_, _) =>
             {
                 ThisPlayer.PropertyChanged -= OnThisPlayerPropertyChanged;
@@ -222,7 +221,6 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             sharedDataService, Camp.Hun)
         {
             _frontService = frontService;
-            CharaDict = sharedDataService.HunCharaDict;
         }
 
         public override async Task SyncCharaAsync()
@@ -259,7 +257,6 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         public MainSurGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
             sharedDataService, Camp.Sur, index)
         {
-            CharaDict = sharedDataService.SurCharaDict;
         }
 
         public override Task SyncCharaAsync() => throw new NotImplementedException();
@@ -289,7 +286,6 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         public MainHunGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
             sharedDataService, Camp.Hun, index)
         {
-            CharaDict = sharedDataService.HunCharaDict;
         }
 
         public override Task SyncCharaAsync() => throw new NotImplementedException();
@@ -316,7 +312,6 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         public AwaySurGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
             sharedDataService, Camp.Sur, index)
         {
-            CharaDict = sharedDataService.SurCharaDict;
         }
 
         public override Task SyncCharaAsync() => throw new NotImplementedException();
@@ -343,7 +338,6 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         public AwayHunGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
             sharedDataService, Camp.Hun, index)
         {
-            CharaDict = sharedDataService.HunCharaDict;
         }
 
         public override Task SyncCharaAsync() => throw new NotImplementedException();

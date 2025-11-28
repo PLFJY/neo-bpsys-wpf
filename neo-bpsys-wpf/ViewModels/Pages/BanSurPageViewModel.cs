@@ -51,7 +51,6 @@ public partial class BanSurPageViewModel : ViewModelBase
         public BanSurCurrentViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService,
             Camp.Sur, index)
         {
-            CharaDict = sharedDataService.SurCharaDict;
             IsEnabled = sharedDataService.CanCurrentSurBannedList[index];
             SharedDataService.BanCountChanged += OnBanCountChanged;
         }
@@ -85,7 +84,6 @@ public partial class BanSurPageViewModel : ViewModelBase
             Camp.Sur,
             index)
         {
-            CharaDict = sharedDataService.SurCharaDict;
             IsEnabled = sharedDataService.CanGlobalSurBannedList[index];
             SharedDataService.BanCountChanged += OnBanCountChanged;
         }
