@@ -11,7 +11,7 @@ public static class AppConstants
     /// <summary>
     /// 应用程序名称
     /// </summary>
-    public const string AppName = "neo-bpsys-wpf";
+    public const string AppName = "bpsys-wpf-idvevent";
 
     /// <summary>
     /// 应用程序数据路径

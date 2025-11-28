@@ -17,4 +17,4 @@ public partial class Game : ObservableObject
     [ObservableProperty] private GameProgress _progress;
 }
 
-佣兵   机械师   盲女   舞女   爱哭鬼
+佣兵   机械师   盲女   机械师   破伦   爱哭鬼

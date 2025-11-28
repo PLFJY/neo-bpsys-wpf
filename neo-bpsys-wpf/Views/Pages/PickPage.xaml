@@ -98,8 +98,15 @@
                     <ui:ToggleSwitch x:Name="IsSingleControlEnabled" Margin="10,0,0,0" />
                     <TextBlock Margin="10,0,0,0" Text="1 &amp; 2 分别控制" />
                     <ui:Button Margin="20,0,0,0" Command="{Binding SelectOcrRegionsCommand}" Content="框选识别区域" />
+                    <ui:Button Margin="10,0,0,0" Command="{Binding SelectOcrRowRegionsCommand}" Content="框选一排求生+监管者" />
+                    <ui:ToggleSwitch Margin="10,0,0,0" IsChecked="{Binding IsRowModeEnabled}" />
+                    <TextBlock Margin="10,0,0,0" Text="求生一排模式" />
                     <ui:ToggleSwitch Margin="20,0,0,0" IsChecked="{Binding IsOcrRecognizing}" />
                     <TextBlock Margin="10,0,0,0" Text="开始/停止识别" />
+                    <StackPanel Orientation="Horizontal" Visibility="{Binding IsOcrModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="20,0,0,0">
+                        <TextBlock VerticalAlignment="Center" Text="正在下载OCR模型..." />
+                        <ui:ProgressRing Margin="10,0,0,0" IsIndeterminate="True" />
+                    </StackPanel>
                 </StackPanel>
                 <StackPanel Grid.Row="1">
                     <StackPanel

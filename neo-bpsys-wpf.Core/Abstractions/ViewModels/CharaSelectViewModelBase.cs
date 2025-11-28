@@ -1,4 +1,4 @@
-﻿using System.Windows.Media;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -18,7 +18,8 @@ namespace neo_bpsys_wpf.Core.Abstractions.ViewModels;
 /// </summary>
 public abstract partial class CharaSelectViewModelBase :
     ViewModelBase,
-    IRecipient<HighlightMessage>
+    IRecipient<HighlightMessage>,
+    IDisposable
 {
     protected readonly ISharedDataService SharedDataService;
 
@@ -129,5 +130,15 @@ public abstract partial class CharaSelectViewModelBase :
         }
 
         IsCharaChangerHighlighted = message.GameAction == GameAction.DistributeChara;
+    }
+
+    public void Dispose()
+    {
+        SharedDataService.CurrentGameChanged -= OnCurrentGameChanged;
+    }
+
+    ~CharaSelectViewModelBase()
+    {
+        Dispose();
     }
 }

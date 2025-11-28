@@ -104,6 +104,7 @@ public partial class App : Application
             services.AddSingleton<IGameGuidanceService, GameGuidanceService>();
             services.AddSingleton<ISettingsHostService, SettingsHostService>();
             services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
+            services.AddSingleton<IOcrModelService, OcrModelService>();
 
             //Views and ViewModels
             //Window
@@ -216,6 +217,12 @@ public partial class App : Application
                     DataContext = sp.GetRequiredService<SettingPageViewModel>()
                 });
             services.AddSingleton<SettingPageViewModel>();
+
+            services.AddSingleton<OcrHelperPage>(sp => new OcrHelperPage()
+            {
+                DataContext = sp.GetRequiredService<OcrHelperPageViewModel>(),
+            });
+            services.AddSingleton<OcrHelperPageViewModel>();
         })
         .Build();
 

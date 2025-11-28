@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="neo_bpsys_wpf.Views.Pages.BanHunPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -19,6 +19,7 @@
     mc:Ignorable="d">
     <Page.Resources>
         <cv:IntPlusOneConverter x:Key="IntPlusOneConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
         <Border
@@ -29,14 +30,15 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="当局禁用" />
+                <TextBlock Grid.Row="0" Text="全局禁用" />
                 <ItemsControl
-                    Grid.Row="1"
+                    Grid.Row="2"
                     Margin="0,10,0,0"
                     Focusable="False"
-                    ItemsSource="{Binding BanHunCurrentViewModelList}">
+                    ItemsSource="{Binding BanHunGlobalViewModelList}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel Orientation="Horizontal" />
@@ -65,14 +67,24 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="全局禁用" />
+                <TextBlock Grid.Row="0" Text="当局禁用" />
+                <StackPanel Grid.Row="1" Orientation="Horizontal">
+                    <ui:Button Margin="0,10,0,0" Command="{Binding SelectBanOcrRowRegionCommand}" Content="框选Ban一排" />
+                    <ui:ToggleSwitch Margin="10,10,0,0" IsChecked="{Binding IsBanOcrRecognizing}" />
+                    <TextBlock Margin="10,14,0,0" VerticalAlignment="Top" Text="开始/停止识别" />
+                    <StackPanel Orientation="Horizontal" Margin="20,10,0,0" Visibility="{Binding IsOcrModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock VerticalAlignment="Center" Text="正在下载OCR模型..." />
+                        <ui:ProgressRing Margin="10,0,0,0" IsIndeterminate="True" />
+                    </StackPanel>
+                </StackPanel>
                 <ItemsControl
-                    Grid.Row="1"
+                    Grid.Row="2"
                     Margin="0,10,0,0"
                     Focusable="False"
-                    ItemsSource="{Binding BanHunGlobalViewModelList}">
+                    ItemsSource="{Binding BanHunCurrentViewModelList}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel Orientation="Horizontal" />

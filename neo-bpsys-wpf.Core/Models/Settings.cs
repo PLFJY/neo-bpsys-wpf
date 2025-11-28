@@ -22,6 +22,7 @@ public partial class Settings : ViewModelBase
     [ObservableProperty] private ScoreWindowSettings _scoreWindowSettings = new();
     [ObservableProperty] private GameDataWindowSettings _gameDataWindowSettings = new();
     [ObservableProperty] private WidgetsWindowSettings _widgetsWindowSettings = new();
+    [ObservableProperty] private OcrSettings _ocrSettings = new();
 }
 
 /// <summary>
@@ -142,6 +143,29 @@ public partial class BpWindowSettings : ViewModelBase
     [JsonIgnore]
     public List<Int32Rect> PickOcrRegions { get; set; } =
         [ new Int32Rect(0,0,0,0), new Int32Rect(0,0,0,0), new Int32Rect(0,0,0,0), new Int32Rect(0,0,0,0), new Int32Rect(0,0,0,0) ];
+
+    public bool PickOcrRowMode { get; set; } = false;
+
+    [JsonIgnore]
+    public List<Int32Rect> PickOcrRowRegions { get; set; } =
+        [ new Int32Rect(0,0,0,0), new Int32Rect(0,0,0,0) ];
+
+    public bool BanOcrRowMode { get; set; } = false;
+
+    [JsonIgnore]
+    public Int32Rect BanOcrRowRegion { get; set; } = new Int32Rect(0,0,0,0);
+
+    [JsonIgnore]
+    public Int32Rect BanSurOcrRowRegion { get; set; } = new Int32Rect(0,0,0,0);
+
+    [JsonIgnore]
+    public Int32Rect BanHunOcrRowRegion { get; set; } = new Int32Rect(0,0,0,0);
+}
+
+public partial class OcrSettings : ViewModelBase
+{
+    public string ModelSpec { get; set; } = "ChineseV3";
+    public string Mirror { get; set; } = "";
 }
 
 /// <summary>

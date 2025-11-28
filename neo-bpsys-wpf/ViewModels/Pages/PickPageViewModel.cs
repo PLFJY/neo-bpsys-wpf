@@ -18,12 +18,12 @@ using System.Windows.Threading;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using Sdcb.PaddleOCR;
-using Sdcb.PaddleOCR.Models.Local;
+using Sdcb.PaddleOCR.Models;
 using Sdcb.PaddleInference;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
-public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMessage>
+public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMessage>, IDisposable
 {
     public PickPageViewModel()
     {
@@ -33,15 +33,24 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
     private readonly ISharedDataService _sharedDataService;
     private readonly IFrontService _frontService;
     private readonly ISettingsHostService _settingsHostService;
+    private readonly IOcrModelService _ocrModelService;
     private DispatcherTimer? _ocrTimer;
     private PaddleOcrAll? _ocrAll;
+    private bool _isOcrRunning;
+    private bool _preferMkldnn = true;
+    private int _ocrRunCounter;
+    private const int OcrRecycleThreshold = 60;
     [ObservableProperty] private bool _isOcrRecognizing;
+    [ObservableProperty] private bool _isOcrModelDownloading;
+    private CancellationTokenSource? _ocrDownloadCts;
+    [ObservableProperty] private bool _isRowModeEnabled;
 
-    public PickPageViewModel(ISharedDataService sharedDataService, IFrontService frontService, ISettingsHostService settingsHostService)
+    public PickPageViewModel(ISharedDataService sharedDataService, IFrontService frontService, ISettingsHostService settingsHostService, IOcrModelService ocrModelService)
     {
         _sharedDataService = sharedDataService;
         _frontService = frontService;
         _settingsHostService = settingsHostService;
+        _ocrModelService = ocrModelService;
         SurPickViewModelList =
             [.. Enumerable.Range(0, 4).Select(i => new SurPickViewModel(sharedDataService, frontService, i))];
         HunPickVm = new HunPickViewModel(sharedDataService, frontService);
@@ -72,6 +81,26 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         }
     }
 
+    [RelayCommand]
+    private void SelectOcrRowRegions()
+    {
+        var labels = new[] { "框选求生者一排", "框选监管者" };
+        var win = new neo_bpsys_wpf.Views.Windows.RegionSelectorWindow(labels)
+        {
+            Owner = Application.Current.MainWindow,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+        win.ShowDialog();
+        var regions = win.Regions;
+        if (regions.Count == 2)
+        {
+            _settingsHostService.Settings.BpWindowSettings.PickOcrRowRegions = [.. regions];
+            _settingsHostService.Settings.BpWindowSettings.PickOcrRowMode = true;
+            IsRowModeEnabled = true;
+            if (IsOcrRecognizing) StartOcrTimer();
+        }
+    }
+
     private void StartOcrTimer()
     {
         _ocrTimer?.Stop();
@@ -81,66 +110,168 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         };
         _ocrTimer.Tick += async (_, _) =>
         {
-            if (_ocrAll == null)
+            try
             {
-                var model = LocalFullModels.ChineseV3;
-                _ocrAll = new PaddleOcrAll(model, PaddleDevice.Mkldnn())
+                if (_ocrAll == null)
                 {
-                    AllowRotateDetection = true,
-                    Enable180Classification = false
-                };
-            }
-
-            var rects = _settingsHostService.Settings.BpWindowSettings.PickOcrRegions;
-            if (rects == null || rects.Count != 5) return;
-
-            for (var i = 0; i < 4; i++)
-            {
-                var text = Recognize(rects[i]);
-                if (string.IsNullOrWhiteSpace(text)) continue;
-                var ch = FindBestCharacterFuzzy(text, SurPickViewModelList[i].CharaList);
-                if (ch != null)
-                {
-                    SurPickViewModelList[i].SelectedChara = ch;
-                    await SurPickViewModelList[i].SyncCharaAsync();
-                }
-            }
-
-            {
-                var text = Recognize(rects[4]);
-                if (!string.IsNullOrWhiteSpace(text))
-                {
-                    var ch = FindBestCharacterFuzzy(text, HunPickVm.CharaList);
-                    if (ch != null)
+                    IsOcrModelDownloading = true;
+                    _ocrDownloadCts = new CancellationTokenSource();
+                    try
                     {
-                        HunPickVm.SelectedChara = ch;
-                        await HunPickVm.SyncCharaAsync();
+                        var spec = _settingsHostService.Settings.OcrSettings.ModelSpec;
+                        var mirror = _settingsHostService.Settings.OcrSettings.Mirror;
+                        var model = await _ocrModelService.EnsureAsync(spec, mirror, _ocrDownloadCts.Token);
+                        _ocrAll = new PaddleOcrAll(model, _preferMkldnn ? PaddleDevice.Mkldnn() : PaddleDevice.Openblas())
+                        {
+                            AllowRotateDetection = false,
+                            Enable180Classification = false
+                        };
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return;
+                    }
+                    finally
+                    {
+                        IsOcrModelDownloading = false;
                     }
                 }
+
+                var bp = _settingsHostService.Settings.BpWindowSettings;
+
+                if (_isOcrRunning) return;
+                _isOcrRunning = true;
+
+                if (bp.PickOcrRowMode && bp.PickOcrRowRegions is { Count: 2 })
+                {
+                    var res = await Task.Run(() => RecognizeResult(bp.PickOcrRowRegions[0]));
+                    var tokens = ExtractRowTokens(res);
+                    for (var i = 0; i < Math.Min(4, tokens.Count); i++)
+                    {
+                        var ch = FindBestCharacterFuzzy(tokens[i], SurPickViewModelList[i].CharaList);
+                        if (ch != null)
+                        {
+                            SurPickViewModelList[i].SelectedChara = ch;
+                            await SurPickViewModelList[i].SyncCharaAsync();
+                        }
+                    }
+
+                    var hunText = await Task.Run(() => Recognize(bp.PickOcrRowRegions[1]));
+                    if (!string.IsNullOrWhiteSpace(hunText))
+                    {
+                        var chHun = FindBestCharacterFuzzy(hunText, HunPickVm.CharaList);
+                        if (chHun != null)
+                        {
+                            HunPickVm.SelectedChara = chHun;
+                            await HunPickVm.SyncCharaAsync();
+                        }
+                    }
+                }
+                else
+                {
+                    var rects = bp.PickOcrRegions;
+                    if (rects == null || rects.Count != 5) return;
+
+                    for (var i = 0; i < 4; i++)
+                    {
+                        var text = await Task.Run(() => Recognize(rects[i]));
+                        if (string.IsNullOrWhiteSpace(text)) continue;
+                        var ch = FindBestCharacterFuzzy(text, SurPickViewModelList[i].CharaList);
+                        if (ch != null)
+                        {
+                            SurPickViewModelList[i].SelectedChara = ch;
+                            await SurPickViewModelList[i].SyncCharaAsync();
+                        }
+                    }
+
+                    var textHun = await Task.Run(() => Recognize(rects[4]));
+                    if (!string.IsNullOrWhiteSpace(textHun))
+                    {
+                        var ch = FindBestCharacterFuzzy(textHun, HunPickVm.CharaList);
+                        if (ch != null)
+                        {
+                            HunPickVm.SelectedChara = ch;
+                            await HunPickVm.SyncCharaAsync();
+                        }
+                    }
+                }
+                if (_ocrRunCounter >= OcrRecycleThreshold)
+                {
+                    _ocrAll?.Dispose();
+                    _ocrAll = null;
+                    _ocrRunCounter = 0;
+                    CompactGc();
+                }
+            }
+            finally
+            {
+                _isOcrRunning = false;
             }
         };
         _ocrTimer.Start();
+    }
+
+    private static void CompactGc()
+    {
+        System.Runtime.GCSettings.LargeObjectHeapCompactionMode = System.Runtime.GCLargeObjectHeapCompactionMode.CompactOnce;
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, false, true);
     }
 
     private void StopOcrTimer()
     {
         _ocrTimer?.Stop();
         _ocrTimer = null;
+        _ocrDownloadCts?.Cancel();
+        _ocrDownloadCts?.Dispose();
+        _ocrDownloadCts = null;
     }
 
     partial void OnIsOcrRecognizingChanged(bool value)
     {
         if (value)
         {
-            var rects = _settingsHostService.Settings.BpWindowSettings.PickOcrRegions;
-            if (rects == null || rects.Count != 5)
-                return;
+            var bp = _settingsHostService.Settings.BpWindowSettings;
+            if (bp.PickOcrRowMode)
+            {
+                var rects2 = bp.PickOcrRowRegions;
+                if (rects2 == null || rects2.Count != 2) return;
+            }
+            else
+            {
+                var rects = bp.PickOcrRegions;
+                if (rects == null || rects.Count != 5) return;
+            }
             StartOcrTimer();
         }
         else
         {
             StopOcrTimer();
         }
+    }
+
+    partial void OnIsRowModeEnabledChanged(bool value)
+    {
+        _settingsHostService.Settings.BpWindowSettings.PickOcrRowMode = value;
+        if (!IsOcrRecognizing) return;
+        var bp = _settingsHostService.Settings.BpWindowSettings;
+        if (value)
+        {
+            if (bp.PickOcrRowRegions == null || bp.PickOcrRowRegions.Count != 2)
+            {
+                SelectOcrRowRegions();
+                return;
+            }
+        }
+        else
+        {
+            if (bp.PickOcrRegions == null || bp.PickOcrRegions.Count != 5)
+            {
+                SelectOcrRegions();
+                return;
+            }
+        }
+        StopOcrTimer();
+        StartOcrTimer();
     }
 
     private string Recognize(Int32Rect rect)
@@ -151,9 +282,97 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         {
             g.CopyFromScreen(rect.X, rect.Y, 0, 0, new System.Drawing.Size(rect.Width, rect.Height));
         }
-        using var mat = BitmapConverter.ToMat(bmp);
-        var result = _ocrAll.Run(mat);
-        return result.Text?.Trim() ?? string.Empty;
+        using var mat = bmp.ToMat();
+        var use = EnsureMatSize(mat);
+        try
+        {
+            var result = _ocrAll.Run(use);
+            _ocrRunCounter++;
+            return result.Text?.Trim() ?? string.Empty;
+        }
+        catch
+        {
+            _preferMkldnn = false;
+            try { _ocrAll?.Dispose(); } catch { }
+            _ocrAll = null;
+            return string.Empty;
+        }
+        finally
+        {
+            if (!ReferenceEquals(use, mat)) use.Dispose();
+        }
+    }
+
+    private PaddleOcrResult? RecognizeResult(Int32Rect rect)
+    {
+        if (_ocrAll == null || rect.Width <= 0 || rect.Height <= 0) return null;
+        using var bmp = new System.Drawing.Bitmap(rect.Width, rect.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+        using (var g = System.Drawing.Graphics.FromImage(bmp))
+        {
+            g.CopyFromScreen(rect.X, rect.Y, 0, 0, new System.Drawing.Size(rect.Width, rect.Height));
+        }
+        using var mat = bmp.ToMat();
+        var use = EnsureMatSize(mat);
+        try
+        {
+            var r = _ocrAll.Run(use);
+            _ocrRunCounter++;
+            return r;
+        }
+        catch
+        {
+            _preferMkldnn = false;
+            try { _ocrAll?.Dispose(); } catch { }
+            _ocrAll = null;
+            return null;
+        }
+        finally
+        {
+            if (!ReferenceEquals(use, mat)) use.Dispose();
+        }
+    }
+
+    private List<string> ExtractRowTokens(PaddleOcrResult? result)
+    {
+        var list = new List<string>();
+        var regions = result?.Regions;
+        if (regions != null && regions.Any())
+        {
+            foreach (var r in regions.OrderBy(r => r.Rect.Center.X))
+            {
+                if (!string.IsNullOrWhiteSpace(r.Text)) list.Add(r.Text.Trim());
+            }
+        }
+        if (list.Count == 0 && result != null && !string.IsNullOrWhiteSpace(result.Text))
+        {
+            var t = result.Text.Replace("\r", " ").Replace("\n", " ");
+            list = t.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+        }
+        if (list.Count > 4) list = list.Take(4).ToList();
+        return list;
+    }
+
+    private static Mat EnsureMatSize(Mat src)
+    {
+        var maxPixels = 2000000;
+        var pixels = src.Rows * src.Cols;
+        if (pixels <= maxPixels) return src;
+        var scale = Math.Sqrt((double)maxPixels / pixels);
+        var dst = new Mat();
+        Cv2.Resize(src, dst, new OpenCvSharp.Size((int)(src.Cols * scale), (int)(src.Rows * scale)), 0, 0, InterpolationFlags.Area);
+        return dst;
+    }
+
+    public void Dispose()
+    {
+        StopOcrTimer();
+        _ocrAll?.Dispose();
+        _ocrAll = null;
+    }
+
+    ~PickPageViewModel()
+    {
+        Dispose();
     }
 
     private Character? FindBestCharacterFuzzy(string text, Dictionary<string, Character> dict)

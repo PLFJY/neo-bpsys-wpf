@@ -319,6 +319,7 @@ public partial class MainWindowViewModel :
         new("启动页", SymbolRegular.Home24, typeof(HomePage)),
         new("队伍信息", SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
         new("地图禁选", SymbolRegular.Map24, typeof(MapBpPage)),
+        new("识别助手", SymbolRegular.TextBulletListSquareEdit24, typeof(OcrHelperPage)),
         new("禁用监管者", SymbolRegular.PresenterOff24, typeof(BanHunPage)),
         new("禁用求生者", SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
         new("选择角色", SymbolRegular.PersonAdd24, typeof(PickPage)),

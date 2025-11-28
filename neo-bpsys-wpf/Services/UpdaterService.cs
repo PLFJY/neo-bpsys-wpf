@@ -23,7 +23,7 @@ public class UpdaterService : IUpdaterService
     private readonly DownloadService _downloader;
     public object Downloader => _downloader;
 
-    private const string Owner = "plfjy";
+    private const string Owner = "luolangaga";
     private const string Repo = "neo-bpsys-wpf";
     private const string GitHubApiBaseUrl = "https://api.github.com";
     private const string InstallerFileName = "neo-bpsys-wpf_Installer.exe";

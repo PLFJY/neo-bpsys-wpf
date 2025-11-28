@@ -13,14 +13,24 @@ public partial class RegionSelectorWindow : Window
     private bool _isSelecting;
     private readonly List<Int32Rect> _regions = new();
     private int _stepIndex;
+    private readonly IReadOnlyList<string> _labels;
 
-    public RegionSelectorWindow()
+    public RegionSelectorWindow() : this([
+        "框选求生者1",
+        "框选求生者2",
+        "框选求生者3",
+        "框选求生者4",
+        "框选监管者"
+    ]) { }
+
+    public RegionSelectorWindow(IReadOnlyList<string> labels)
     {
         InitializeComponent();
+        _labels = labels;
         MouseLeftButtonDown += OnMouseDown;
         MouseMove += OnMouseMove;
         MouseLeftButtonUp += OnMouseUp;
-        StepText.Text = "框选求生者1";
+        StepText.Text = _labels.Count > 0 ? _labels[0] : string.Empty;
     }
 
     public IReadOnlyList<Int32Rect> Regions => _regions;
@@ -65,10 +75,11 @@ public partial class RegionSelectorWindow : Window
         var rect = new Int32Rect((int)(left * scaleX), (int)(top * scaleY), (int)(w * scaleX), (int)(h * scaleY));
         _regions.Add(rect);
         _stepIndex++;
-        if (_stepIndex == 1) StepText.Text = "框选求生者2";
-        else if (_stepIndex == 2) StepText.Text = "框选求生者3";
-        else if (_stepIndex == 3) StepText.Text = "框选求生者4";
-        else if (_stepIndex == 4) StepText.Text = "框选监管者";
-        else Close();
+        if (_stepIndex >= _labels.Count)
+        {
+            Close();
+            return;
+        }
+        StepText.Text = _labels[_stepIndex];
     }
 }

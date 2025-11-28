@@ -20,6 +20,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Messages;
+using neo_bpsys_wpf.Services;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -40,11 +41,13 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly IMessageBoxService _messageBoxService;
     public IUpdaterService UpdaterService { get; }
     private readonly DownloadService? _downloader;
+    private readonly IOcrModelService _ocrModelService;
+    private CancellationTokenSource? _ocrCts;
 
     public SettingPageViewModel(IUpdaterService updaterService, ISettingsHostService settingsHostService,
         ITextSettingsNavigationService textSettingsNavigationService, IFrontService frontService,
         IFilePickerService filePickerService, IMessageBoxService messageBoxService,
-        ISharedDataService sharedDataService, IASGService asgService)
+        ISharedDataService sharedDataService, IASGService asgService, IOcrModelService ocrModelService)
     {
         AppVersion = "版本 v" + Application.ResourceAssembly.GetName().Version!;
         UpdaterService = updaterService;
@@ -55,6 +58,7 @@ public partial class SettingPageViewModel : ViewModelBase
         _sharedDataService = sharedDataService;
         _messageBoxService = messageBoxService;
         _asgService = asgService;
+        _ocrModelService = ocrModelService;
         if (updaterService.Downloader is Downloader.DownloadService downloader)
         {
             _downloader = downloader;
@@ -62,6 +66,8 @@ public partial class SettingPageViewModel : ViewModelBase
             _downloader.DownloadFileCompleted += Downloader_DownloadFileCompleted;
             _downloader.DownloadStarted += Downloader_DownloadStarted;
         }
+
+        _ocrModelService.ProgressChanged += OcrModelService_ProgressChanged;
 
         _systemFonts = FontsHelper.GetSystemFonts();
 
@@ -214,6 +220,67 @@ public partial class SettingPageViewModel : ViewModelBase
         @"https://gh.plfjy.top/",
         @""
     ];
+
+    #endregion
+
+    #region OCR模型下载
+
+    [ObservableProperty] private bool _isOcrModelDownloading;
+    [ObservableProperty] private double _ocrDownloadProgress;
+    [ObservableProperty] private string _ocrDownloadProgressText = string.Empty;
+    [ObservableProperty] private string _ocrMbPerSecondSpeed = string.Empty;
+    [ObservableProperty] private string _ocrRemainingTimeText = string.Empty;
+    public ObservableCollection<string> OcrModelSpecList { get; } = ["ChineseV3", "ChineseV4", "EnglishV3", "EnglishV4"];
+
+    [ObservableProperty] private string _ocrModelSpec = "ChineseV3";
+    [ObservableProperty] private string _ocrMirror = string.Empty;
+
+    private void OcrModelService_ProgressChanged(object? sender, OcrDownloadProgressEventArgs e)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            IsOcrModelDownloading = true;
+            OcrDownloadProgress = e.ProgressPercentage;
+            OcrDownloadProgressText = e.ProgressPercentage.ToString("0.00") + "%";
+            OcrMbPerSecondSpeed = (e.BytesPerSecondSpeed / 1024 / 1024).ToString("0.00") + " MB/s";
+            OcrRemainingTimeText = e.EstimatedRemaining == null ? "--" : e.EstimatedRemaining.Value.ToString();
+        });
+    }
+
+    [RelayCommand]
+    private async Task DownloadOcrModel()
+    {
+        IsOcrModelDownloading = true;
+        var spec = OcrModelSpec;
+        var mirror = OcrMirror;
+        _ocrCts = new CancellationTokenSource();
+        try
+        {
+            await _ocrModelService.EnsureAsync(spec, mirror, _ocrCts.Token);
+        }
+        finally
+        {
+            Application.Current.Dispatcher.Invoke(() => { IsOcrModelDownloading = false; });
+            _ocrCts?.Dispose();
+            _ocrCts = null;
+        }
+    }
+
+    [RelayCommand]
+    private void CancelOcrDownload()
+    {
+        _ocrCts?.Cancel();
+    }
+
+    partial void OnOcrModelSpecChanged(string value)
+    {
+        _settingsHostService.Settings.OcrSettings.ModelSpec = value;
+    }
+
+    partial void OnOcrMirrorChanged(string value)
+    {
+        _settingsHostService.Settings.OcrSettings.Mirror = value;
+    }
 
     #endregion
 
