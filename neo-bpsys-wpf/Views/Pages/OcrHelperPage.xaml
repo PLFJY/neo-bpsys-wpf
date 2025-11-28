@@ -1,0 +1,52 @@
+<Page
+    x:Class="neo_bpsys_wpf.Views.Pages.OcrHelperPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    mc:Ignorable="d"
+    d:DesignWidth="1200" d:DesignHeight="800">
+
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <cv:IntPlusOneConverter x:Key="IntPlusOneConverter" />
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock VerticalAlignment="Center" Text="选角识别 | " />
+            <ui:Button Margin="10,0,0,0" Command="{Binding SelectPickOcrRowRegionsCommand}" Content="框选选角一排（求生+监管）" />
+            <ui:ToggleSwitch Margin="10,0,0,0" IsChecked="{Binding IsPickRowModeEnabled}" />
+            <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Text="启用选角一排模式" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock VerticalAlignment="Center" Text="禁用识别 | " />
+            <ui:Button Margin="10,0,0,0" Command="{Binding SelectBanSurOcrRowRegionCommand}" Content="框选禁用求生一排" />
+            <ui:Button Margin="10,0,0,0" Command="{Binding SelectBanHunOcrRowRegionCommand}" Content="框选禁用监管一排" />
+            <ui:ToggleSwitch Margin="10,0,0,0" IsChecked="{Binding IsBanRowModeEnabled}" />
+            <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Text="启用禁用一排模式" />
+            <ui:ToggleSwitch Margin="20,0,0,0" IsChecked="{Binding IsOcrRecognizing}" />
+            <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Text="开始/停止识别" />
+            <StackPanel Orientation="Horizontal" Margin="20,0,0,0" Visibility="{Binding IsOcrModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <TextBlock VerticalAlignment="Center" Text="正在下载OCR模型..." />
+                <ui:ProgressRing Margin="10,0,0,0" IsIndeterminate="True" />
+            </StackPanel>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="2">
+            <StackPanel>
+                <TextBlock Margin="0,0,0,8" Text="识别提示：请在游戏BP界面框选完整的一排角色名字区域，保持画面清晰。" />
+                <ui:InfoBar Title="使用说明" Message="选角与禁用识别已合并到本页面，支持模糊匹配自动填充。" Severity="Informational" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

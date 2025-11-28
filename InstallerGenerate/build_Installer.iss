@@ -2,7 +2,7 @@
 ;由 Inno Setup 脚本向导 生成的脚本,有关创建 INNO SETUP 脚本文件的详细信息，请参阅文档！!
 
 #include "CodeDependencies.iss"
-#define MyAppName "neo-bpsys-wpf"
+#define MyAppName "bpsys-wpf-idvevent"
 ; Extract File Version from EXE
 #define MyAppVersion GetFileVersion("..\build\neo-bpsys-wpf\neo-bpsys-wpf.exe")
 #define MyAppPublisher "PLFJY"
