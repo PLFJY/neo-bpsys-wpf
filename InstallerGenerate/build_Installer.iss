@@ -12,7 +12,7 @@
 [Setup]
 ;注意:AppId 的值唯一标识此应用程序。请勿在安装程序中对其他应用程序使用相同的 AppId 值。
 ;（若要生成新的 GUID，请单击“工具”|”在 IDE 中生成 GUID）。
-AppId={{842859C0-E6A4-4997-BA10-0933EC09444F}
+AppId={{980E3856-4BEE-470D-A73D-6507CA035EF8}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName}-v{#MyAppVersion}
