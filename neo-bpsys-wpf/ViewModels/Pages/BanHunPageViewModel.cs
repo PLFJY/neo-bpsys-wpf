@@ -103,7 +103,7 @@ public partial class BanHunPageViewModel : ViewModelBase, IDisposable
                         var spec = _settingsHostService.Settings.OcrSettings.ModelSpec;
                         var mirror = _settingsHostService.Settings.OcrSettings.Mirror;
                         var model = await _ocrModelService.EnsureAsync(spec, mirror, _ocrDownloadCts.Token);
-                        _ocrAll = new PaddleOcrAll(model, _preferMkldnn ? PaddleDevice.Mkldnn() : PaddleDevice.Openblas())
+                        _ocrAll = new PaddleOcrAll(model, _preferMkldnn ? PaddleDevice.Mkldnn() : PaddleDevice.Blas())
                         {
                             AllowRotateDetection = false,
                             Enable180Classification = false

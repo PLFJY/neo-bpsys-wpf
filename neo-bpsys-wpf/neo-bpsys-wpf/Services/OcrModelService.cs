@@ -10,6 +10,7 @@ namespace neo_bpsys_wpf.Services;
 public class OcrModelService : IOcrModelService
 {
     private FullOcrModel? _model;
+    private string? _currentSpec;
     public bool IsDownloading { get; private set; }
     public event EventHandler<OcrDownloadProgressEventArgs>? ProgressChanged;
 
@@ -23,15 +24,17 @@ public class OcrModelService : IOcrModelService
 
     public async Task<FullOcrModel> EnsureAsync(string modelSpec, string? mirror = null, CancellationToken cancellationToken = default)
     {
-        if (_model != null) return _model;
+        if (_model != null && string.Equals(_currentSpec, modelSpec, StringComparison.Ordinal)) return _model;
         IsDownloading = true;
+        _currentSpec = modelSpec;
         var sw = Stopwatch.StartNew();
         var size = ModelSizeBytes.TryGetValue(modelSpec, out var v) ? v : 105L * 1024 * 1024;
         double lastReported = 0;
         using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(500));
+        using var internalCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var progressTask = Task.Run(async () =>
         {
-            while (await timer.WaitForNextTickAsync(cancellationToken))
+            while (await timer.WaitForNextTickAsync(internalCts.Token))
             {
                 var elapsed = sw.Elapsed.TotalSeconds;
                 var speed = Math.Max(4.0, Math.Min(20.0, elapsed < 2 ? 6.0 : 12.0)); // MB/s 估算
@@ -47,7 +50,7 @@ public class OcrModelService : IOcrModelService
                     EstimatedRemaining = remainingSec is null ? null : TimeSpan.FromSeconds(remainingSec.Value)
                 });
             }
-        }, cancellationToken);
+        }, internalCts.Token);
 
         try
         {
@@ -64,6 +67,7 @@ public class OcrModelService : IOcrModelService
         {
             IsDownloading = false;
             sw.Stop();
+            try { internalCts.Cancel(); } catch { }
         }
     }
 

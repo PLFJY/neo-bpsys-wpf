@@ -26,10 +26,13 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class SettingPageViewModel : ViewModelBase
 {
+#pragma warning disable CS8618
     public SettingPageViewModel()
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+        _systemFonts = new List<FontFamily>();
     }
+#pragma warning restore CS8618
 
     private readonly List<FontFamily> _systemFonts;
     private readonly ISettingsHostService _settingsHostService;
@@ -257,6 +260,15 @@ public partial class SettingPageViewModel : ViewModelBase
         try
         {
             await _ocrModelService.EnsureAsync(spec, mirror, _ocrCts.Token);
+            await _messageBoxService.ShowInfoAsync("OCR模型下载完成");
+        }
+        catch (OperationCanceledException)
+        {
+            await _messageBoxService.ShowInfoAsync("已取消 OCR 模型下载");
+        }
+        catch (Exception e)
+        {
+            await _messageBoxService.ShowErrorAsync($"OCR模型下载失败\n{e.Message}");
         }
         finally
         {
