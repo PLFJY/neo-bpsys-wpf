@@ -108,6 +108,7 @@
                 </Grid.RowDefinitions>
                 <ui:TextBox
                     Grid.Row="0"
+                    IsReadOnly="True"
                     PlaceholderText="{lex:Loc CharacterName}"
                     Text="{Binding HunPlayer.Character.Name, Mode=OneWay}" />
                 <controls:GameDataEditor
