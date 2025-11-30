@@ -23,7 +23,6 @@ public partial class MapV2(Map? mapName, string mapBorderNormal = "#2B483B", str
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ImageSource))]
     [NotifyPropertyChangedFor(nameof(MapBorderBrush))]
-    [NotifyPropertyChangedFor(nameof(IsBreathing))]
     [NotifyPropertyChangedFor(nameof(CanBePicked))]
     [NotifyPropertyChangedFor(nameof(CanBeBanned))]
     private bool _isPicked;
@@ -51,7 +50,8 @@ public partial class MapV2(Map? mapName, string mapBorderNormal = "#2B483B", str
     /// <summary>
     /// 执行地图操作的队伍
     /// </summary>
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(IsCampVisible))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsCampVisible))]
     private Team? _operationTeam;
 
     /// <summary>
@@ -97,7 +97,7 @@ public partial class MapV2(Map? mapName, string mapBorderNormal = "#2B483B", str
     /// 地图图片（正常）
     /// </summary>
     private ImageSource? _imageSourceNormal;
-    
+
     /// <summary>
     /// 地图图片（最终输出）
     /// </summary>
@@ -112,7 +112,7 @@ public partial class MapV2(Map? mapName, string mapBorderNormal = "#2B483B", str
             return IsBanned ? _imageSourceBanned : _imageSourceNormal;
         }
     }
-    
+
     /// <summary>
     /// 地图边框颜色（正常）
     /// </summary>
@@ -121,12 +121,12 @@ public partial class MapV2(Map? mapName, string mapBorderNormal = "#2B483B", str
     /// 地图边框颜色（ban）
     /// </summary>
     private readonly Brush _mapBorderBannedBrush = ColorHelper.HexToBrush(mapBorderBanned);
-    
+
     /// <summary>
     /// 地图边框颜色
     /// </summary>
     [JsonIgnore] public Brush MapBorderBrush => IsBanned ? _mapBorderBannedBrush : _mapBorderNormalBrush;
-    
+
     /// <summary>
     /// 从Ban中恢复刷新呼吸灯动画
     /// </summary>

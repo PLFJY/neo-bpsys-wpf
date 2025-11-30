@@ -22,7 +22,6 @@
     <Window.Resources>
         <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
         <cv:GameProgressToStringConverter x:Key="GameProgressToStringConverter" />
-        <cv:EnumToStringConverter x:Key="EnumToStringConverter" />
     </Window.Resources>
     <Canvas
         Name="BaseCanvas"
@@ -464,12 +463,12 @@
         </Border>
         <Border
             Name="MapName"
-            Canvas.Left="564"
+            Canvas.Left="570"
             Canvas.Top="770"
-            Width="119"
+            Width="113"
             Height="30"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
             Panel.ZIndex="1"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
             <TextBlock
@@ -483,7 +482,7 @@
                 FontSize="{Binding Settings.TextSettings.MapName.FontSize}"
                 FontWeight="{Binding Settings.TextSettings.MapName.FontWeight}"
                 Foreground="{Binding Settings.TextSettings.MapName.Foreground}"
-                Text="{lex:Loc {Binding CurrentGame.PickedMap}}" />
+                Text="{lex:Loc {Binding CurrentGame.PickedMap, TargetNullValue=null}}" />
         </Border>
         <Border
             Name="GameProgress"

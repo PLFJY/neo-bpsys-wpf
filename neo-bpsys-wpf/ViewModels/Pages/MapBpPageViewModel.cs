@@ -68,8 +68,8 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
             (_) => { _sharedDataService.IsMapV2CampVisible = value; });
     }
 
-    public int PickedMapIndex =>
-        PickedMapSelections.IndexOf(PickedMapSelections.First(x => x.Map.MapName == PickedMap));
+    //public int PickedMapIndex =>
+    //    PickedMapSelections.IndexOf(PickedMapSelections.First(x => x.Map.MapName == PickedMap));
 
     private Map? _pickedMap;
 
@@ -79,11 +79,10 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         set => SetPropertyWithAction(ref _pickedMap, value, (oldValue) =>
         {
             _sharedDataService.CurrentGame.PickedMap = _pickedMap;
-            OnPropertyChanged(nameof(PickedMapIndex));
+            PickMap(_pickedMap);
         });
     }
 
-    [RelayCommand]
     private void PickMap(Map? map)
     {
         _sharedDataService.CurrentGame.PickMap(map, PickMapTeam.Team);

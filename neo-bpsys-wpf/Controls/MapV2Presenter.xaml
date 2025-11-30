@@ -20,7 +20,6 @@
         <cv:CampHunToVisibilityConverter x:Key="CampHunToVisibilityConverter" />
         <cv:NullObjectToVisibilityConverter x:Key="NullObjectToVisibilityConverter" />
         <cv:NullObjectToReverseVisibilityConverter x:Key="NullObjectToReverseVisibilityConverter" />
-        <cv:EnumToStringConverter x:Key="EnumToStringConverter" />
         <Storyboard
             x:Key="BreathAnimation"
             AutoReverse="True"
@@ -148,7 +147,7 @@
                     FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontSize}"
                     FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontWeight}"
                     Foreground="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameForeground}"
-                    Text="{lex:Loc {Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.MapName}}" />
+                    Text="{lex:Loc {Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.MapName, TargetNullValue=null}}" />
             </Border>
         </Border>
 

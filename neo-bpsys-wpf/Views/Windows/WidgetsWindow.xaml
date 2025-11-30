@@ -98,7 +98,7 @@
                             d:Foreground="White"
                             d:Text="唐人街"
                             Style="{StaticResource MapBp_MapName}"
-                            Text="{lex:Loc {Binding CurrentGame.PickedMap}}" />
+                            Text="{lex:Loc {Binding CurrentGame.PickedMap, TargetNullValue=null}}" />
                     </Border>
                     <Border
                         Name="PickWord"
@@ -191,7 +191,7 @@
                             d:Foreground="White"
                             d:Text="红教堂"
                             Style="{StaticResource MapBp_MapName}"
-                            Text="{lex:Loc {Binding CurrentGame.BannedMap}}" />
+                            Text="{lex:Loc {Binding CurrentGame.BannedMap, TargetNullValue=null}}" />
                     </Border>
                     <Border
                         Name="BanWord"

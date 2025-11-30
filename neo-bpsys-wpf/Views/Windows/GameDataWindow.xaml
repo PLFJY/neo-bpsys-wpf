@@ -20,7 +20,6 @@
     mc:Ignorable="d">
     <Window.Resources>
         <cv:GameProgressToStringConverter x:Key="GameProgressToStringConverter" />
-        <cv:EnumToStringConverter x:Key="EnumToStringConverter" />
     </Window.Resources>
     <Canvas
         Name="BaseCanvas"
@@ -201,7 +200,7 @@
                 FontSize="{Binding Settings.TextSettings.MapName.FontSize}"
                 FontWeight="{Binding Settings.TextSettings.MapName.FontWeight}"
                 Foreground="{Binding Settings.TextSettings.MapName.Foreground}"
-                Text="{lex:Loc {Binding CurrentGame.PickedMap, Converter={StaticResource EnumToStringConverter}}}" />
+                Text="{lex:Loc {Binding CurrentGame.PickedMap, TargetNullValue=null}}" />
         </Border>
         <Border
             Name="GameProgress"

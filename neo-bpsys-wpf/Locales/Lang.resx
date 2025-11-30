@@ -962,4 +962,8 @@
     <value>日本語</value>
     <comment>en-US栏空着为正常现象</comment>
   </data>
+  <data name="null" xml:space="preserve">
+    <value />
+    <comment>空着，这个是给地图显示的FallBack的值</comment>
+  </data>
 </root>
