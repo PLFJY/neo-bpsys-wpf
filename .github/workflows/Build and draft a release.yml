@@ -49,12 +49,28 @@ jobs:
       shell: pwsh
       run: |
         choco install wixtoolset -y
+    
+    - name: Locate WiX bin
+      shell: pwsh
+      run: |
+        $candidates = @(
+          'C:\Program Files (x86)\WiX Toolset v3.11\bin',
+          'C:\Program Files (x86)\WiX Toolset v3.14\bin',
+          'C:\Program Files\WiX Toolset v3.14\bin'
+        )
+        $wixBin = $null
+        foreach ($c in $candidates) { if (Test-Path $c) { $wixBin = $c; break } }
+        if (-not $wixBin) {
+          $cmd = Get-Command heat.exe -ErrorAction SilentlyContinue
+          if ($cmd) { $wixBin = Split-Path $cmd.Path }
+        }
+        if (-not $wixBin) { throw 'WiX bin path not found' }
+        echo "WIX_BIN=$wixBin" >> $env:GITHUB_ENV
 
     - name: Pack MSI (WiX)
       shell: pwsh
       run: |
-        $wixBin = "C:\Program Files (x86)\WiX Toolset v3.11\bin"
-        & "$wixBin\heat.exe" dir "${{ env.BUILD_PATH }}" -cg FilesGroup -dr INSTALLDIR -sreg -srd -var var.SourceDir -o harvest.wxs
+        & "$env:WIX_BIN\heat.exe" dir "${{ env.BUILD_PATH }}" -cg FilesGroup -dr INSTALLDIR -sreg -srd -var var.SourceDir -o harvest.wxs
         $productWxs = @"
         <?xml version="1.0" encoding="UTF-8"?>
         <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
@@ -69,15 +85,32 @@ jobs:
             <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
           </Product>
           <Fragment>
-            <Directory Id="ProgramFiles64Folder">
-              <Directory Id="INSTALLDIR" Name="bpsys-wpf-idvevent" />
+            <Directory Id="TARGETDIR" Name="SourceDir">
+              <Directory Id="ProgramFiles64Folder">
+                <Directory Id="INSTALLDIR" Name="bpsys-wpf-idvevent" />
+              </Directory>
             </Directory>
           </Fragment>
         </Wix>
         "@
         Set-Content -Path product.wxs -Value $productWxs -Encoding UTF8
-        & "$wixBin\candle.exe" -dSourceDir="${{ env.BUILD_PATH }}" harvest.wxs product.wxs
-        & "$wixBin\light.exe" harvest.wixobj product.wixobj -ext WixUIExtension -out "${{ env.INSTALLER_OUTPUT }}"
+        & "$env:WIX_BIN\candle.exe" -dSourceDir="${{ env.BUILD_PATH }}" harvest.wxs product.wxs
+        & "$env:WIX_BIN\light.exe" harvest.wixobj product.wixobj -ext WixUIExtension -out "${{ env.INSTALLER_OUTPUT }}"
+
+    - name: Verify MSI exists
+      shell: pwsh
+      run: |
+        if (-not (Test-Path "${{ env.INSTALLER_OUTPUT }}")) {
+          Write-Error "MSI not generated at ${{ env.INSTALLER_OUTPUT }}"
+        }
+        Get-Item "${{ env.INSTALLER_OUTPUT }}" | Format-List Name,Length,LastWriteTime
+
+    - name: Upload MSI artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: neo-bpsys-wpf_Installer
+        path: ${{ env.INSTALLER_OUTPUT }}
+        if-no-files-found: error
 
     - name: Draft Release
       uses: softprops/action-gh-release@v2
