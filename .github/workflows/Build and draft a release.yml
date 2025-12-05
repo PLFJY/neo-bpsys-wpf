@@ -70,11 +70,11 @@ jobs:
     - name: Pack MSI (WiX)
       shell: pwsh
       run: |
-        & "$env:WIX_BIN\heat.exe" dir "${{ env.BUILD_PATH }}" -cg FilesGroup -dr INSTALLDIR -sreg -srd -var var.SourceDir -o harvest.wxs
+        & "$env:WIX_BIN\heat.exe" dir "${{ env.BUILD_PATH }}" -cg FilesGroup -dr INSTALLDIR -sreg -srd -gg -var var.SourceDir -o harvest.wxs
         $productWxs = @"
         <?xml version="1.0" encoding="UTF-8"?>
         <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-          <Product Id="*" Name="bpsys-wpf-idvevent" Manufacturer="PLFJY" Version="${{ env.VERSION }}" UpgradeCode="{980E3856-4BEE-470D-A73D-6507CA035EF8}">
+          <Product Id="*" Name="bpsys-wpf-idvevent" Manufacturer="PLFJY" Version="${{ env.VERSION }}" Language="1033" UpgradeCode="{980E3856-4BEE-470D-A73D-6507CA035EF8}">
             <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" />
             <MajorUpgrade DowngradeErrorMessage="已存在更高版本，无法降级安装。" />
             <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
