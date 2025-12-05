@@ -1,7 +1,0 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="neo_bpsys_avalonia.Views.Pages.GameDataPage">
-  <Grid>
-    <TextBlock Margin="10" Text="赛后数据"/>
-  </Grid>
-</UserControl>

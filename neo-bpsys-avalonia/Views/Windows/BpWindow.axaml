@@ -1,9 +1,0 @@
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="neo_bpsys_avalonia.Views.Windows.BpWindow"
-        Title="前台-BP过程"
-        Width="1440" Height="716">
-  <Grid>
-    <TextBlock Margin="10" Text="BP 窗口"/>
-  </Grid>
-</Window>

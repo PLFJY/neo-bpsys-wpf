@@ -7,8 +7,7 @@ jobs:
     env:
       BUILD_PATH: ./build/neo-bpsys-wpf
       PROJ_PATH: ./neo-bpsys-wpf/neo-bpsys-wpf.csproj
-      INSTALLER_GENERATE_DIR: ./InstallerGenerate
-      INSTALLER_OUTPUT: ./build/neo-bpsys-wpf_Installer.exe
+      INSTALLER_OUTPUT: ./build/neo-bpsys-wpf_Installer.msi
 
     runs-on: windows-latest
 
@@ -28,17 +27,57 @@ jobs:
         mkdir .\build
         dotnet publish ${{ env.PROJ_PATH }} -c Release -o ${{ env.BUILD_PATH }}
 
-    - name: Pack Installer
-      shell: cmd
-      run : |
-        "${{ env.INSTALLER_GENERATE_DIR }}/Inno Setup 6/ISCC.exe" "${{ env.INSTALLER_GENERATE_DIR }}/build_Installer.iss"
-
-    - name: Get Version
+    - name: Compute Version (Assembly + run number)
       shell: pwsh
-      run : |
-        $file = "${{ env.INSTALLER_OUTPUT }}"
-        $version = (Get-Item $file).VersionInfo.ProductVersion.Trim()
+      run: |
+        $asmFile = Join-Path (Split-Path -Path $env:PROJ_PATH -Parent) 'AssemblyInfo.cs'
+        $match = Select-String -Path $asmFile -Pattern '\[assembly:\s*AssemblyVersion\("([0-9]+(?:\.[0-9]+){2})\.\*"\)\]'
+        if ($match) {
+          $base = $match.Matches[0].Groups[1].Value
+        } else {
+          $base = '1.0.0'
+        }
+        $parts = $base.Split('.')
+        $major = [int]$parts[0]
+        $minor = [int]$parts[1]
+        $patch = [int]$parts[2]
+        $build = $patch * 1000 + [int]$env:GITHUB_RUN_NUMBER
+        $version = "$major.$minor.$build"
         echo "VERSION=$version" >> $env:GITHUB_ENV
+
+    - name: Install WiX Toolset 3.11
+      shell: pwsh
+      run: |
+        choco install wixtoolset -y
+
+    - name: Pack MSI (WiX)
+      shell: pwsh
+      run: |
+        $wixBin = "C:\Program Files (x86)\WiX Toolset v3.11\bin"
+        & "$wixBin\heat.exe" dir "${{ env.BUILD_PATH }}" -cg FilesGroup -dr INSTALLDIR -sreg -srd -var var.SourceDir -o harvest.wxs
+        $productWxs = @"
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+          <Product Id="*" Name="bpsys-wpf-idvevent" Manufacturer="PLFJY" Version="${{ env.VERSION }}" UpgradeCode="{980E3856-4BEE-470D-A73D-6507CA035EF8}">
+            <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" />
+            <MajorUpgrade DowngradeErrorMessage="已存在更高版本，无法降级安装。" />
+            <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+            <Feature Id="MainFeature" Title="bpsys-wpf-idvevent" Level="1">
+              <ComponentGroupRef Id="FilesGroup" />
+            </Feature>
+            <UIRef Id="WixUI_InstallDir" />
+            <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+          </Product>
+          <Fragment>
+            <Directory Id="ProgramFiles64Folder">
+              <Directory Id="INSTALLDIR" Name="bpsys-wpf-idvevent" />
+            </Directory>
+          </Fragment>
+        </Wix>
+        "@
+        Set-Content -Path product.wxs -Value $productWxs -Encoding UTF8
+        & "$wixBin\candle.exe" -dSourceDir="${{ env.BUILD_PATH }}" harvest.wxs product.wxs
+        & "$wixBin\light.exe" harvest.wixobj product.wixobj -ext WixUIExtension -out "${{ env.INSTALLER_OUTPUT }}"
 
     - name: Draft Release
       uses: softprops/action-gh-release@v2
