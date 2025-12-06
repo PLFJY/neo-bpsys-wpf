@@ -330,5 +330,9 @@
     "台球手": {
         "Camp": "Hun",
         "ImageFileName": "台球手.png"
+    },
+    "女王蜂": {
+        "Camp": "Hun",
+        "ImageFileName": "女王蜂.png"
     }
 }
