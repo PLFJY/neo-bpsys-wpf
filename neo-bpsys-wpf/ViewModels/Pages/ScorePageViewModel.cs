@@ -159,7 +159,10 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     private void NextGame()
     {
         var index = GameList.IndexOf(SelectedGameProgress);
-        SelectedGameProgress = GameList.ElementAt(index + 1).Key;
+        if (index < 7 && IsBo3Mode || index < 11 && !IsBo3Mode) // 防止在加赛下半场时点下一步会崩
+        {
+            SelectedGameProgress = GameList.ElementAt(index + 1).Key;
+        };
     }
 
     [RelayCommand]
