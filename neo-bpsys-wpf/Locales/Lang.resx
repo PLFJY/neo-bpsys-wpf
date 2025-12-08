@@ -969,4 +969,16 @@
   <data name="DistributeCharacters" xml:space="preserve">
     <value>分配角色</value>
   </data>
+  <data name="PickCamp" xml:space="preserve">
+    <value>选择阵营</value>
+  </data>
+  <data name="PickSurTalent" xml:space="preserve">
+    <value>选择求生者天赋</value>
+  </data>
+  <data name="PickHunTalent" xml:space="preserve">
+    <value>选择监管者天赋</value>
+  </data>
+  <data name="CurrentStepFormat" xml:space="preserve">
+    <value>当前步骤：{0}</value>
+  </data>
 </root>

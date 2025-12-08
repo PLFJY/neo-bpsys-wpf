@@ -293,8 +293,14 @@
                 <TextBlock
                     Margin="0,0,10,10"
                     VerticalAlignment="Center"
-                    Text="{Binding ActionName}"
-                    Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{lex:StringFormatConverter}">
+                            <lex:BLoc Key="CurrentStepFormat" />
+                            <Binding Path="ActionName" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
             </WrapPanel>
 
             <!--  navigation  -->

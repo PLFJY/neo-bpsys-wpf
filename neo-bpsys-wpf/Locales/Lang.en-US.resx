@@ -414,6 +414,9 @@
   <data name="OperateTeam" xml:space="preserve">
     <value>Operate team: </value>
   </data>
+  <data name="BanMap" xml:space="preserve">
+    <value>Ban map</value>
+  </data>
   <data name="PlayerName" xml:space="preserve">
     <value>Player name</value>
   </data>
@@ -951,7 +954,16 @@
   <data name="DistributeCharacters" xml:space="preserve">
     <value>Distribute Characters</value>
   </data>
-  <data name="BanMap" xml:space="preserve">
-    <value>Ban map</value>
+  <data name="PickCamp" xml:space="preserve">
+    <value>Pick camp</value>
+  </data>
+  <data name="PickSurTalent" xml:space="preserve">
+    <value>Pick survivor talent</value>
+  </data>
+  <data name="PickHunTalent" xml:space="preserve">
+    <value>Pick hunter talent</value>
+  </data>
+  <data name="CurrentStepFormat" xml:space="preserve">
+    <value>Current step: {0}</value>
   </data>
 </root>

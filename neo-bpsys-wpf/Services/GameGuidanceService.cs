@@ -6,9 +6,11 @@ using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Exceptions;
 using neo_bpsys_wpf.Views.Pages;
 using System.IO;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Wpf.Ui;
+using WPFLocalizeExtension.Engine;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -53,18 +55,26 @@ public class GameGuidanceService(
         { GameAction.PickHunTalent, typeof(TalentPage) }
     };
 
-    private Dictionary<GameAction, string> ActionName { get; } = new()
+    private static string GetLocalizedString(string key) =>
+        LocalizeDictionary.Instance.GetLocalizedObject(
+                "neo-bpsys-wpf",
+                "Locales.Lang",
+                key,
+                LocalizeDictionary.CurrentCulture)?
+            .ToString() ?? string.Empty;
+
+    private Dictionary<GameAction, Func<string>> ActionName { get; } = new()
     {
-        { GameAction.BanMap, "禁用地图" },
-        { GameAction.PickMap, "选择地图" },
-        { GameAction.PickCamp, "选择阵营" },
-        { GameAction.BanSur, "禁用求生者" },
-        { GameAction.BanHun, "禁用监管者" },
-        { GameAction.PickSur, "选择求生者" },
-        { GameAction.DistributeChara, "分配角色" },
-        { GameAction.PickHun, "选择监管者" },
-        { GameAction.PickSurTalent, "选择求生者天赋" },
-        { GameAction.PickHunTalent, "选择监管者天赋" }
+        { GameAction.BanMap, () => GetLocalizedString("BanMap") },
+        { GameAction.PickMap, () => GetLocalizedString("PickMap") },
+        { GameAction.PickCamp, () => GetLocalizedString("PickCamp") },
+        { GameAction.BanSur, () => GetLocalizedString("BanSurvivor") },
+        { GameAction.BanHun, () => GetLocalizedString("BanHunter") },
+        { GameAction.PickSur, () => GetLocalizedString("PickSurvivor") },
+        { GameAction.DistributeChara, () => GetLocalizedString("DistributeCharacters") },
+        { GameAction.PickHun, () => GetLocalizedString("PickHunter") },
+        { GameAction.PickSurTalent, () => GetLocalizedString("PickSurTalent") },
+        { GameAction.PickHunTalent, () => GetLocalizedString("PickHunTalent") }
     };
 
     private int _currentStep = -1;
@@ -78,7 +88,8 @@ public class GameGuidanceService(
         {
             var oldValue = _isGuidanceStarted;
             _isGuidanceStarted = value;
-            WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsGuidanceStarted), oldValue, value));
+            WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsGuidanceStarted),
+                oldValue, value));
         }
     }
 
@@ -111,7 +122,6 @@ public class GameGuidanceService(
 
     public async Task<string?> StartGuidance()
     {
-        var returnValue = "当前步骤: ";
         if (IsGuidanceStarted)
         {
             _infoBarService.ShowWarningInfoBar("对局已开始");
@@ -140,12 +150,13 @@ public class GameGuidanceService(
             _sharedDataService.SetBanCount(BanListName.CanGlobalSurBanned, _currentGameProperty.SurGlobalBan);
             _sharedDataService.SetBanCount(BanListName.CanGlobalHunBanned, _currentGameProperty.HunGlobalBan);
             IsGuidanceStarted = true;
-            returnValue = await NextStepAsync();
+            var nextStepResult = await NextStepAsync();
+            return nextStepResult;
         }
-        else
-            await _messageBoxService.ShowErrorAsync("对局规则文件状态异常");
 
-        return returnValue;
+        await _messageBoxService.ShowErrorAsync("对局规则文件状态异常");
+
+        return null;
     }
 
     public void StopGuidance()
@@ -162,14 +173,12 @@ public class GameGuidanceService(
         IsGuidanceStarted = false;
     }
 
-    public async Task<string> NextStepAsync()
+    public async Task<string?> NextStepAsync()
     {
-        var returnValue = "当前步骤: ";
         if (!IsGuidanceStarted)
         {
             _infoBarService.ShowWarningInfoBar("请先开始对局");
-            returnValue += "无禁用";
-            return returnValue;
+            return null;
         }
 
         if (_currentGameProperty != null)
@@ -187,19 +196,15 @@ public class GameGuidanceService(
             await _messageBoxService.ShowErrorAsync("对局信息状态异常");
         }
 
-        returnValue += "无禁用";
-
-        return returnValue;
+        return null;
     }
 
-    public async Task<string> PrevStepAsync()
+    public async Task<string?> PrevStepAsync()
     {
-        var returnValue = "当前步骤: ";
         if (!IsGuidanceStarted)
         {
             _infoBarService.ShowWarningInfoBar("请先开始对局");
-            returnValue += "无禁用";
-            return returnValue;
+            return null;
         }
 
         if (_currentGameProperty != null)
@@ -216,15 +221,12 @@ public class GameGuidanceService(
             await _messageBoxService.ShowErrorAsync("对局信息状态异常");
         }
 
-        returnValue += "无禁用";
-
-        return returnValue;
+        return null;
     }
 
     private async Task<string> HandleStepChange(int newStepIndex)
     {
-        var returnValue = "当前步骤: ";
-        if (_currentGameProperty == null) return returnValue;
+        if (_currentGameProperty == null) return "N/A";
         var thisStep = _currentGameProperty.WorkFlow[newStepIndex];
         _currentStep = newStepIndex;
 
@@ -237,9 +239,8 @@ public class GameGuidanceService(
         await Task.Delay(250);
         //广播高亮消息
         WeakReferenceMessenger.Default.Send(new HighlightMessage(thisStep.Action, thisStep.Index));
-        returnValue += ActionName[thisStep.Action];
 
-        return returnValue;
+        return ActionName[thisStep.Action].Invoke();
     }
 
     public class GameProperty
