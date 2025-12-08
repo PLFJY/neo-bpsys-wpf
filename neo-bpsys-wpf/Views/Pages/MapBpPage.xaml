@@ -44,7 +44,7 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0">
-                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc MapPick}" />
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc PickMap}" />
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                         <TextBlock VerticalAlignment="Center" Text="{lex:Loc OperateTeam}" />
                         <ComboBox
@@ -116,7 +116,7 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0">
-                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc MapBan}" />
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc BanMap}" />
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                         <TextBlock VerticalAlignment="Center" Text="{lex:Loc OperateTeam}" />
                         <ComboBox

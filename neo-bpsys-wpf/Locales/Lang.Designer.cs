@@ -241,6 +241,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 地图禁用 的本地化字符串。
+        /// </summary>
+        public static string BanMap {
+            get {
+                return ResourceManager.GetString("BanMap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 禁用数量控制 的本地化字符串。
         /// </summary>
         public static string BanNumberControl {
@@ -651,6 +660,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string Distance {
             get {
                 return ResourceManager.GetString("Distance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 分配角色 的本地化字符串。
+        /// </summary>
+        public static string DistributeCharacters {
+            get {
+                return ResourceManager.GetString("DistributeCharacters", resourceCulture);
             }
         }
         
@@ -1501,15 +1519,6 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 地图禁用 的本地化字符串。
-        /// </summary>
-        public static string MapBan {
-            get {
-                return ResourceManager.GetString("MapBan", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 地图禁选 的本地化字符串。
         /// </summary>
         public static string MapBP {
@@ -1566,9 +1575,9 @@ namespace neo_bpsys_wpf.Locales {
         /// <summary>
         ///   查找类似 地图选择 的本地化字符串。
         /// </summary>
-        public static string MapPick {
+        public static string PickMap {
             get {
-                return ResourceManager.GetString("MapPick", resourceCulture);
+                return ResourceManager.GetString("PickMap", resourceCulture);
             }
         }
         

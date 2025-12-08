@@ -408,13 +408,13 @@
   <data name="ResetMapBP" xml:space="preserve">
     <value>重置地图BP</value>
   </data>
-  <data name="MapPick" xml:space="preserve">
+  <data name="PickMap" xml:space="preserve">
     <value>地图选择</value>
   </data>
   <data name="OperateTeam" xml:space="preserve">
     <value>操作队伍：</value>
   </data>
-  <data name="MapBan" xml:space="preserve">
+  <data name="BanMap" xml:space="preserve">
     <value>地图禁用</value>
   </data>
   <data name="PlayerName" xml:space="preserve">
@@ -965,5 +965,8 @@
   <data name="null" xml:space="preserve">
     <value />
     <comment>空着，这个是给地图显示的FallBack的值</comment>
+  </data>
+  <data name="DistributeCharacters" xml:space="preserve">
+    <value>分配角色</value>
   </data>
 </root>

@@ -408,14 +408,11 @@
   <data name="ResetMapBP" xml:space="preserve">
     <value>Reset map BP</value>
   </data>
-  <data name="MapPick" xml:space="preserve">
-    <value>Map pick</value>
+  <data name="PickMap" xml:space="preserve">
+    <value>Pick map</value>
   </data>
   <data name="OperateTeam" xml:space="preserve">
     <value>Operate team: </value>
-  </data>
-  <data name="MapBan" xml:space="preserve">
-    <value>Map ban</value>
   </data>
   <data name="PlayerName" xml:space="preserve">
     <value>Player name</value>
@@ -950,5 +947,11 @@
   </data>
   <data name="en_US" xml:space="preserve">
     <value>English (United States)</value>
+  </data>
+  <data name="DistributeCharacters" xml:space="preserve">
+    <value>Distribute Characters</value>
+  </data>
+  <data name="BanMap" xml:space="preserve">
+    <value>Ban map</value>
   </data>
 </root>
