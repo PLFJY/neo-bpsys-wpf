@@ -987,4 +987,7 @@
   <data name="GameInfoError" xml:space="preserve">
     <value>Game information error</value>
   </data>
+  <data name="AlreadyFirstStep" xml:space="preserve">
+    <value>It's already the first step</value>
+  </data>
 </root>
