@@ -981,4 +981,28 @@
   <data name="CurrentStepFormat" xml:space="preserve">
     <value>当前步骤：{0}</value>
   </data>
+  <data name="GameRuleFileNotFound" xml:space="preserve">
+    <value>对局规则文件不存在</value>
+  </data>
+  <data name="GameAlreadyStarted" xml:space="preserve">
+    <value>对局已开始</value>
+  </data>
+  <data name="GuidanceNotAvailableInFree" xml:space="preserve">
+    <value>自由对局不支持引导</value>
+  </data>
+  <data name="GameRuleFileError" xml:space="preserve">
+    <value>对局规则文件异常</value>
+  </data>
+  <data name="PleaseStartGameFirst" xml:space="preserve">
+    <value>请先开始对局</value>
+  </data>
+  <data name="AlreadyLastStep" xml:space="preserve">
+    <value>已经是最后一步</value>
+  </data>
+  <data name="GameInfoError" xml:space="preserve">
+    <value>对局信息状态异常</value>
+  </data>
+  <data name="AlreadyFirstStep" xml:space="preserve">
+    <value>已经是第一步</value>
+  </data>
 </root>

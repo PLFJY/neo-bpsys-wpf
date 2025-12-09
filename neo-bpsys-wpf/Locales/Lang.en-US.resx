@@ -966,4 +966,25 @@
   <data name="CurrentStepFormat" xml:space="preserve">
     <value>Current step: {0}</value>
   </data>
+  <data name="GameRuleFileNotFound" xml:space="preserve">
+    <value>Game rule file not found</value>
+  </data>
+  <data name="GameAlreadyStarted" xml:space="preserve">
+    <value>Game already started</value>
+  </data>
+  <data name="GuidanceNotAvailableInFree" xml:space="preserve">
+    <value>Guidance not available in free game</value>
+  </data>
+  <data name="GameRuleFileError" xml:space="preserve">
+    <value>Game rule file error</value>
+  </data>
+  <data name="PleaseStartGameFirst" xml:space="preserve">
+    <value>Please start the game first</value>
+  </data>
+  <data name="AlreadyLastStep" xml:space="preserve">
+    <value>It's already the last step</value>
+  </data>
+  <data name="GameInfoError" xml:space="preserve">
+    <value>Game information error</value>
+  </data>
 </root>

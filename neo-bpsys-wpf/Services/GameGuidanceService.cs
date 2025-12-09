@@ -104,7 +104,7 @@ public class GameGuidanceService(
     {
         if (!File.Exists(_guidanceFilePath))
         {
-            _messageBoxService.ShowErrorAsync("对局规则文件不存在");
+            _messageBoxService.ShowErrorAsync(GetLocalizedString("GameRuleFileNotFound"));
             throw new FileNotFoundException();
         }
 
@@ -124,7 +124,7 @@ public class GameGuidanceService(
     {
         if (IsGuidanceStarted)
         {
-            _infoBarService.ShowWarningInfoBar("对局已开始");
+            _infoBarService.ShowWarningInfoBar(GetLocalizedString("GameRuleFileNotFound"));
         }
 
         try
@@ -133,12 +133,12 @@ public class GameGuidanceService(
         }
         catch (GuidanceNotSupportedException)
         {
-            _infoBarService.ShowWarningInfoBar("自由对局不支持引导");
+            _infoBarService.ShowWarningInfoBar(GetLocalizedString("GuidanceNotAvailableInFree"));
             return null;
         }
         catch (Exception ex)
         {
-            await _messageBoxService.ShowErrorAsync($"对局规则文件状态异常\n{ex}");
+            await _messageBoxService.ShowErrorAsync(GetLocalizedString("GameRuleFileError") + $"\n{ex}");
             return null;
         }
 
@@ -154,7 +154,7 @@ public class GameGuidanceService(
             return nextStepResult;
         }
 
-        await _messageBoxService.ShowErrorAsync("对局规则文件状态异常");
+        await _messageBoxService.ShowErrorAsync(GetLocalizedString("GameRuleFileError"));
 
         return null;
     }
@@ -163,7 +163,7 @@ public class GameGuidanceService(
     {
         if (!IsGuidanceStarted)
         {
-            _infoBarService.ShowWarningInfoBar("请先开始对局");
+            _infoBarService.ShowWarningInfoBar(GetLocalizedString("PleaseStartGameFirst"));
             return;
         }
 
@@ -177,7 +177,7 @@ public class GameGuidanceService(
     {
         if (!IsGuidanceStarted)
         {
-            _infoBarService.ShowWarningInfoBar("请先开始对局");
+            _infoBarService.ShowWarningInfoBar(GetLocalizedString("PleaseStartGameFirst"));
             return null;
         }
 
@@ -188,12 +188,12 @@ public class GameGuidanceService(
                 return await HandleStepChange(_currentStep + 1);
             }
 
-            _infoBarService.ShowWarningInfoBar("已经是最后一步");
+            _infoBarService.ShowWarningInfoBar(GetLocalizedString("AlreadyLastStep"));
             WeakReferenceMessenger.Default.Send(new HighlightMessage(GameAction.EndGuidance, null));
         }
         else
         {
-            await _messageBoxService.ShowErrorAsync("对局信息状态异常");
+            await _messageBoxService.ShowErrorAsync(GetLocalizedString("GameInfoError"));
         }
 
         return null;
@@ -203,7 +203,7 @@ public class GameGuidanceService(
     {
         if (!IsGuidanceStarted)
         {
-            _infoBarService.ShowWarningInfoBar("请先开始对局");
+            _infoBarService.ShowWarningInfoBar(GetLocalizedString("PleaseStartGameFirst"));
             return null;
         }
 
@@ -214,11 +214,11 @@ public class GameGuidanceService(
                 return await HandleStepChange(_currentStep - 1);
             }
 
-            _infoBarService.ShowWarningInfoBar("已经是第一步");
+            _infoBarService.ShowWarningInfoBar(GetLocalizedString("AlreadyFirstStep"));
         }
         else
         {
-            await _messageBoxService.ShowErrorAsync("对局信息状态异常");
+            await _messageBoxService.ShowErrorAsync(GetLocalizedString("GameInfoError"));
         }
 
         return null;
