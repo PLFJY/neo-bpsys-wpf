@@ -70,7 +70,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 失常 的本地化字符串。
+        ///   查找类似 Abnormal 的本地化字符串。
         /// </summary>
         public static string Abnormal {
             get {
@@ -304,7 +304,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 闪现 的本地化字符串。
+        ///   查找类似 Blink 的本地化字符串。
         /// </summary>
         public static string Blink {
             get {
@@ -871,7 +871,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 兴奋 的本地化字符串。
+        ///   查找类似 Excitement 的本地化字符串。
         /// </summary>
         public static string Excitement {
             get {
@@ -1618,7 +1618,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 聆听 的本地化字符串。
+        ///   查找类似 Listen 的本地化字符串。
         /// </summary>
         public static string Listen {
             get {
@@ -1888,7 +1888,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 巡视者 的本地化字符串。
+        ///   查找类似 Patroller 的本地化字符串。
         /// </summary>
         public static string Patroller {
             get {
@@ -1897,7 +1897,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 窥视者 的本地化字符串。
+        ///   查找类似 Peeper 的本地化字符串。
         /// </summary>
         public static string Peeper {
             get {
@@ -2644,7 +2644,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 传送 的本地化字符串。
+        ///   查找类似 Teleport 的本地化字符串。
         /// </summary>
         public static string Teleport {
             get {
@@ -2752,7 +2752,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 移形 的本地化字符串。
+        ///   查找类似 Warp 的本地化字符串。
         /// </summary>
         public static string Warp {
             get {

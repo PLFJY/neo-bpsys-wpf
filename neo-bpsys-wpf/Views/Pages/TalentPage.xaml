@@ -104,35 +104,35 @@
                     Visibility="{Binding ElementName=IsTraitVisible, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}, Mode=TwoWay}">
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Listen}"
-                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.聆听}}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Listen}}"
                         TagName="{lex:Loc Listen}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Abnormal}"
-                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.失常}}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Abnormal}}"
                         TagName="{lex:Loc Abnormal}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Excitement}"
-                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.兴奋}}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Excitement}}"
                         TagName="{lex:Loc Excitement}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Patroller}"
-                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.巡视者}}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Patroller}}"
                         TagName="{lex:Loc Patroller}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Teleport}"
-                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.传送}}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Teleport}}"
                         TagName="{lex:Loc Teleport}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Peeper}"
-                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.窥视者}}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Peeper}}"
                         TagName="{lex:Loc Peeper}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Blink}"
-                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.闪现}}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Blink}}"
                         TagName="{lex:Loc Blink}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Warp}"
-                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.移形}}"
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Warp}}"
                         TagName="{lex:Loc Warp}" />
                     <i:Interaction.Triggers>
                         <i:DataTrigger Binding="{Binding IsHunTalentHighlighted}" Value="true">

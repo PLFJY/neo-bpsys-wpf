@@ -75,25 +75,6 @@
     <Resource Include="Assets\logo_net.jpg" />
     <Resource Include="Assets\mapBp.png" />
     <Resource Include="Assets\mapBpV2.png" />
-    <Resource Include="Assets\map\不归林.png" />
-    <Resource Include="Assets\map\军工厂.png" />
-    <Resource Include="Assets\map\唐人街.png" />
-    <Resource Include="Assets\map\圣心医院.png" />
-    <Resource Include="Assets\map\月亮河公园.png" />
-    <Resource Include="Assets\map\永眠镇.png" />
-    <Resource Include="Assets\map\湖景村.png" />
-    <Resource Include="Assets\map\红教堂.png" />
-    <Resource Include="Assets\map\里奥的回忆.png" />
-    <Resource Include="Assets\map_singleColor\不归林.png" />
-    <Resource Include="Assets\map_singleColor\军工厂.png" />
-    <Resource Include="Assets\map_singleColor\唐人街.png" />
-    <Resource Include="Assets\map_singleColor\圣心医院.png" />
-    <Resource Include="Assets\map_singleColor\无禁用.png" />
-    <Resource Include="Assets\map_singleColor\月亮河公园.png" />
-    <Resource Include="Assets\map_singleColor\永眠镇.png" />
-    <Resource Include="Assets\map_singleColor\湖景村.png" />
-    <Resource Include="Assets\map_singleColor\红教堂.png" />
-    <Resource Include="Assets\map_singleColor\里奥的回忆.png" />
     <Resource Include="Assets\pickingBorder.png" />
     <Resource Include="Assets\scoreGlobal.png" />
     <Resource Include="Assets\scoreGlobal_Bo3.png" />
@@ -104,12 +85,13 @@
     <Resource Include="Assets\testLogo.jpg" />
     <Resource Include="Assets\wpfui.png" />
     <Resource Include="Assets\先知.png" />
+    <Resource Include="Assets\医生 - 复制.png" />
     <Resource Include="Assets\医生.png" />
     <Resource Include="Assets\厂长.png" />
     <Resource Include="Assets\小丑.png" />
     <Resource Include="Assets\幸运儿.png" />
     <Resource Include="Assets\梦之女巫.png" />
-    <Resource Include="Assets\闪现.png" />
+    <Resource Include="Assets\Blink.png" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Downloader" Version="4.0.3" />

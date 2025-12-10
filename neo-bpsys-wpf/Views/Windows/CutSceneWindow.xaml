@@ -187,7 +187,7 @@
             Height="108"
             Panel.ZIndex="-1"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
-            <Image d:Source="/Assets/map/唐人街.png" Source="{Binding CurrentGame.PickedMapImage}" />
+            <Image d:Source="/Assets/ChinaTown.png" Source="{Binding CurrentGame.PickedMapImage}" />
         </Border>
         <Rectangle
             Name="MapMask"
@@ -542,7 +542,7 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Top"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-            d:Source="/Assets/闪现.png"
+            d:Source="/Assets/Blink.png"
             Source="{Binding CurrentGame.HunPlayer.Trait.Image}"
             Visibility="{Binding IsTraitVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
     </Canvas>

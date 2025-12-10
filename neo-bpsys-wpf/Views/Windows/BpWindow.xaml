@@ -457,7 +457,7 @@
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
             <Image
                 HorizontalAlignment="Center"
-                d:Source="/Assets/map/唐人街.png"
+                d:Source="/Assets/ChinaTown.png"
                 Source="{Binding CurrentGame.PickedMapImage}"
                 Stretch="UniformToFill" />
         </Border>

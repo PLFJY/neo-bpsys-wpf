@@ -166,7 +166,7 @@
             Panel.ZIndex="-1"
             ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}">
             <Image
-                d:Source="/Assets/map/唐人街.png"
+                d:Source="/Assets/ChinaTown.png"
                 Source="{Binding CurrentGame.PickedMapImage}"
                 Stretch="UniformToFill" />
         </Border>

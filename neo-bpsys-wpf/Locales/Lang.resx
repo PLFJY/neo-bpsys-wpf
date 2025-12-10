@@ -577,28 +577,28 @@
     <value>是否显示</value>
   </data>
   <data name="Listen" xml:space="preserve">
-    <value>聆听</value>
+    <value>Listen</value>
   </data>
   <data name="Abnormal" xml:space="preserve">
-    <value>失常</value>
+    <value>Abnormal</value>
   </data>
   <data name="Excitement" xml:space="preserve">
-    <value>兴奋</value>
+    <value>Excitement</value>
   </data>
   <data name="Patroller" xml:space="preserve">
-    <value>巡视者</value>
+    <value>Patroller</value>
   </data>
   <data name="Teleport" xml:space="preserve">
-    <value>传送</value>
+    <value>Teleport</value>
   </data>
   <data name="Peeper" xml:space="preserve">
-    <value>窥视者</value>
+    <value>Peeper</value>
   </data>
   <data name="Blink" xml:space="preserve">
-    <value>闪现</value>
+    <value>Blink</value>
   </data>
   <data name="Warp" xml:space="preserve">
-    <value>移形</value>
+    <value>Warp</value>
   </data>
   <data name="Enable" xml:space="preserve">
     <value>启用</value>

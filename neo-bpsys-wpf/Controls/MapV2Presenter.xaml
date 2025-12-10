@@ -127,7 +127,7 @@
             CornerRadius="8">
             <Border.Background>
                 <ImageBrush
-                    d:ImageSource="/Assets/map/军工厂.png"
+                    d:ImageSource="/Assets/ChinaTown.png"
                     ImageSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.ImageSource}"
                     Stretch="UniformToFill" />
             </Border.Background>
@@ -142,7 +142,7 @@
                     d:FontFamily="{StaticResource Hanyi}"
                     d:FontSize="14"
                     d:Foreground="White"
-                    d:Text="Sacred Heart Hospital"
+                    d:Text="China Town"
                     FontFamily="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontFamily}"
                     FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontSize}"
                     FontWeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=MapNameFontWeight}"

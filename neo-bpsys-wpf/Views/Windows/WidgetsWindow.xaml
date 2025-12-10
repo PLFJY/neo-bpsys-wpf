@@ -80,7 +80,7 @@
                         Canvas.Left="9"
                         Canvas.Top="54"
                         ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                        d:Source="/Assets/map/唐人街.png"
+                        d:Source="/Assets/ChinaTown.png"
                         Source="{Binding CurrentGame.PickedMapImage}" />
                     <Border
                         Name="PickedMapName"
@@ -173,7 +173,7 @@
                         Canvas.Left="9"
                         Canvas.Top="375"
                         ab:DesignBehavior.IsDesignMode="{Binding IsDesignMode}"
-                        d:Source="/Assets/map_singleColor/红教堂.png"
+                        d:Source="/Assets/ArmsFactory.png"
                         Source="{Binding CurrentGame.BannedMapImage}" />
                     <Border
                         Name="BannedMapName"
@@ -189,7 +189,7 @@
                             d:FontFamily="{StaticResource Hanyi}"
                             d:FontSize="22"
                             d:Foreground="White"
-                            d:Text="红教堂"
+                            d:Text="军工厂"
                             Style="{StaticResource MapBp_MapName}"
                             Text="{lex:Loc {Binding CurrentGame.BannedMap, TargetNullValue=null}}" />
                     </Border>
