@@ -46,7 +46,7 @@ public partial class SettingPageViewModel : ViewModelBase
         IFilePickerService filePickerService, IMessageBoxService messageBoxService,
         ISharedDataService sharedDataService, ILogger<SettingPageViewModel> logger)
     {
-        AppVersion = "版本 v" + Application.ResourceAssembly.GetName().Version!;
+        AppVersion = "v" + Application.ResourceAssembly.GetName().Version!;
         UpdaterService = updaterService;
         _settingsHostService = settingsHostService;
         _textSettingsNavigationService = textSettingsNavigationService;

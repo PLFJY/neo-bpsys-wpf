@@ -13,6 +13,7 @@ using WPFLocalizeExtension.Engine;
 using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
 using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
+using I18nHelper = neo_bpsys_wpf.Helpers.I18nHelper;
 
 namespace neo_bpsys_wpf.Views.Windows;
 
@@ -60,14 +61,6 @@ public partial class MainWindow : FluentWindow, INavigationWindow
             };
     }
 
-    private static string GetLocalizedString(string key) =>
-    LocalizeDictionary.Instance.GetLocalizedObject(
-            "neo-bpsys-wpf",
-            "Locales.Lang",
-            key,
-            LocalizeDictionary.CurrentCulture)?
-        .ToString() ?? string.Empty;
-
     protected override void OnClosing(CancelEventArgs e)
     {
         base.OnClosing(e);
@@ -84,12 +77,12 @@ public partial class MainWindow : FluentWindow, INavigationWindow
     {
         var messageBox = new MessageBox()
         {
-            Title = GetLocalizedString("GameRuleFileNotFound"),
-            Content = GetLocalizedString("AreYouSureYouWantToExit"),
-            PrimaryButtonText = GetLocalizedString("Confirm"),
+            Title = I18nHelper.GetLocalizedString("GameRuleFileNotFound"),
+            Content = I18nHelper.GetLocalizedString("AreYouSureYouWantToExit"),
+            PrimaryButtonText = I18nHelper.GetLocalizedString("Confirm"),
             PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.ArrowExit20 },
             CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
-            CloseButtonText = GetLocalizedString("Cancel"),
+            CloseButtonText = I18nHelper.GetLocalizedString("Cancel"),
             Owner = App.Current.MainWindow,
         };
         var result = await messageBox.ShowDialogAsync();

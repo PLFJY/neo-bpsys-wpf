@@ -412,6 +412,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 检查更新失败 的本地化字符串。
+        /// </summary>
+        public static string CheckForUpdatesFailed {
+            get {
+                return ResourceManager.GetString("CheckForUpdatesFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 唐人街 的本地化字符串。
         /// </summary>
         public static string ChinaTown {
@@ -709,6 +718,24 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 下载失败 的本地化字符串。
+        /// </summary>
+        public static string DownloadFails {
+            get {
+                return ResourceManager.GetString("DownloadFails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 下载完成 的本地化字符串。
+        /// </summary>
+        public static string DownloadFinished {
+            get {
+                return ResourceManager.GetString("DownloadFinished", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 下载预览版？ 的本地化字符串。
         /// </summary>
         public static string DownloadPreviewVersion {
@@ -732,6 +759,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string DownloadSource {
             get {
                 return ResourceManager.GetString("DownloadSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 下载提示 的本地化字符串。
+        /// </summary>
+        public static string DownloadTip {
+            get {
+                return ResourceManager.GetString("DownloadTip", resourceCulture);
             }
         }
         
@@ -813,6 +849,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string Enter {
             get {
                 return ResourceManager.GetString("Enter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 清理更新残留异常 的本地化字符串。
+        /// </summary>
+        public static string ErrorWhenCleanUpResidualUpdateFiles {
+            get {
+                return ResourceManager.GetString("ErrorWhenCleanUpResidualUpdateFiles", resourceCulture);
             }
         }
         
@@ -1681,6 +1726,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 检测到新版本 的本地化字符串。
+        /// </summary>
+        public static string NewUpdateFound {
+            get {
+                return ResourceManager.GetString("NewUpdateFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 下一局 的本地化字符串。
         /// </summary>
         public static string Next {
@@ -1722,6 +1776,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string NoteScoreStatisticsNotSaveInBO3Mode {
             get {
                 return ResourceManager.GetString("NoteScoreStatisticsNotSaveInBO3Mode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 无更新可用 的本地化字符串。
+        /// </summary>
+        public static string NoUpdatesAvailable {
+            get {
+                return ResourceManager.GetString("NoUpdatesAvailable", resourceCulture);
             }
         }
         
@@ -2644,6 +2707,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 提示 的本地化字符串。
+        /// </summary>
+        public static string Tip {
+            get {
+                return ResourceManager.GetString("Tip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 总小比分（分数统计） 的本地化字符串。
         /// </summary>
         public static string TotalGameScoresInScoreStatistics {
@@ -2658,6 +2730,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string TriggerGCCollectionManually {
             get {
                 return ResourceManager.GetString("TriggerGCCollectionManually", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 更新 的本地化字符串。
+        /// </summary>
+        public static string Update {
+            get {
+                return ResourceManager.GetString("Update", resourceCulture);
             }
         }
         

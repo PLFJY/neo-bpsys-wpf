@@ -1,7 +1,9 @@
 ﻿using Downloader;
+using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Views.Windows;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -9,6 +11,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Windows;
+using I18nHelper = neo_bpsys_wpf.Helpers.I18nHelper;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -17,6 +20,7 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public class UpdaterService : IUpdaterService
 {
+    private readonly ILogger<MainWindow> _logger;
     public string NewVersion { get; set; } = string.Empty;
     public ReleaseInfo NewVersionInfo { get; set; } = new();
     public bool IsFindPreRelease { get; set; } = false;
@@ -31,7 +35,7 @@ public class UpdaterService : IUpdaterService
     private readonly IMessageBoxService _messageBoxService;
     private readonly IInfoBarService _infoBarService;
 
-    public UpdaterService(IMessageBoxService messageBoxService, IInfoBarService infoBarService)
+    public UpdaterService(IMessageBoxService messageBoxService, IInfoBarService infoBarService, ILogger<UpdaterService> logger)
     {
         _httpClient = new HttpClient
         {
@@ -60,7 +64,7 @@ public class UpdaterService : IUpdaterService
         }
         catch (Exception ex)
         {
-            _messageBoxService.ShowErrorAsync(ex.Message, "清理更新残留异常");
+            _messageBoxService.ShowErrorAsync(ex.Message, I18nHelper.GetLocalizedString("ErrorWhenCleanUpResidualUpdateFiles"));
         }
     }
 
@@ -77,7 +81,7 @@ public class UpdaterService : IUpdaterService
         }
         catch (Exception ex)
         {
-            await _messageBoxService.ShowErrorAsync($"下载失败: {ex.Message}");
+            await _messageBoxService.ShowErrorAsync(I18nHelper.GetLocalizedString("DownloadFails") + $": {ex.Message}");
         }
     }
 
@@ -87,14 +91,14 @@ public class UpdaterService : IUpdaterService
         {
             await Application.Current.Dispatcher.InvokeAsync(async () =>
             {
-                await _messageBoxService.ShowErrorAsync($"下载失败：{e.Error.Message}");
+                await _messageBoxService.ShowErrorAsync(I18nHelper.GetLocalizedString("DownloadFails") + $"：{e.Error.Message}");
             });
             return;
         }
 
         await Application.Current.Dispatcher.InvokeAsync(async () =>
         {
-            if (await _messageBoxService.ShowConfirmAsync("下载提示", "下载完成", "安装"))
+            if (await _messageBoxService.ShowConfirmAsync(I18nHelper.GetLocalizedString("DownloadTip"), I18nHelper.GetLocalizedString("DownloadFinished"), I18nHelper.GetLocalizedString("Install")))
             {
                 InstallUpdate();
             }
@@ -110,26 +114,26 @@ public class UpdaterService : IUpdaterService
         await GetNewVersionInfoAsync();
         if (string.IsNullOrEmpty(NewVersionInfo.TagName))
         {
-            await _messageBoxService.ShowErrorAsync("获取更新错误");
+            await _messageBoxService.ShowErrorAsync(I18nHelper.GetLocalizedString("CheckForUpdatesFailed"));
             return false;
         }
         if (NewVersionInfo.TagName != "v" + Application.ResourceAssembly.GetName().Version!.ToString())
         {
             if (!isInitial)
             {
-                var result = await _messageBoxService.ShowConfirmAsync("更新检查", $"检测到新版本{NewVersionInfo.TagName}，是否更新？", "更新");
+                var result = await _messageBoxService.ShowConfirmAsync(I18nHelper.GetLocalizedString("CheckForUpdates"), I18nHelper.GetLocalizedString("NewUpdateFound") + ": " + NewVersionInfo.TagName, I18nHelper.GetLocalizedString("Update"), I18nHelper.GetLocalizedString("Cancel"));
                 if (result)
                     await DownloadUpdate(mirror);
             }
             else
             {
-                _infoBarService.ShowSuccessInfoBar($"检测到新版本{NewVersionInfo.TagName}，前往设置页进行更新");
+                _infoBarService.ShowSuccessInfoBar(I18nHelper.GetLocalizedString("NewUpdateFound")+ "：" + NewVersionInfo.TagName);
             }
             return true;
         }
         if (!isInitial)
         {
-            await _messageBoxService.ShowInfoAsync("当前已是最新版本", "更新检查");
+            await _messageBoxService.ShowInfoAsync(I18nHelper.GetLocalizedString("NoUpdatesAvailable"), I18nHelper.GetLocalizedString("CheckForUpdates"));
         }
         return false;
     }
@@ -166,18 +170,18 @@ public class UpdaterService : IUpdaterService
         }
         catch (HttpRequestException ex)
         {
-            Debug.WriteLine($"HTTP请求错误: {ex.Message}");
-            await _messageBoxService.ShowErrorAsync($"HTTP请求错误: {ex.Message}");
+            _logger.LogError($"HTTP request error: {ex.Message}");
+            await _messageBoxService.ShowErrorAsync($"HTTP request error: {ex.Message}");
         }
         catch (JsonException ex)
         {
-            Console.WriteLine($"JSON解析错误: {ex.Message}");
-            await _messageBoxService.ShowErrorAsync($"JSON解析错误: {ex.Message}");
+            _logger.LogError($"JSON parsing error: {ex.Message}");
+            await _messageBoxService.ShowErrorAsync($"JSON parsing error: {ex.Message}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"发生未知错误: {ex.Message}");
-            await _messageBoxService.ShowErrorAsync($"发生未知错误: {ex.Message}");
+            _logger.LogError($"Unknown error: {ex.Message}");
+            await _messageBoxService.ShowErrorAsync($"Unknown error: {ex.Message}");
         }
     }
 

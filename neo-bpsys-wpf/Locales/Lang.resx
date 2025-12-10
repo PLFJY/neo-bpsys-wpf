@@ -1005,4 +1005,31 @@
   <data name="AlreadyFirstStep" xml:space="preserve">
     <value>已经是第一步</value>
   </data>
+  <data name="ErrorWhenCleanUpResidualUpdateFiles" xml:space="preserve">
+    <value>清理更新残留异常</value>
+  </data>
+  <data name="DownloadFails" xml:space="preserve">
+    <value>下载失败</value>
+  </data>
+  <data name="DownloadTip" xml:space="preserve">
+    <value>下载提示</value>
+  </data>
+  <data name="DownloadFinished" xml:space="preserve">
+    <value>下载完成</value>
+  </data>
+  <data name="CheckForUpdatesFailed" xml:space="preserve">
+    <value>检查更新失败</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="NewUpdateFound" xml:space="preserve">
+    <value>检测到新版本</value>
+  </data>
+  <data name="NoUpdatesAvailable" xml:space="preserve">
+    <value>无更新可用</value>
+  </data>
+  <data name="Tip" xml:space="preserve">
+    <value>提示</value>
+  </data>
 </root>

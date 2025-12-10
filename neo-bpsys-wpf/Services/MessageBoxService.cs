@@ -1,6 +1,6 @@
 ﻿using neo_bpsys_wpf.Core.Abstractions.Services;
 using Wpf.Ui.Controls;
-
+using I18nHelper = neo_bpsys_wpf.Helpers.I18nHelper;
 namespace neo_bpsys_wpf.Services;
 
 /// <summary>

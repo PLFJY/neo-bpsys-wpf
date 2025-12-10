@@ -990,4 +990,31 @@
   <data name="AlreadyFirstStep" xml:space="preserve">
     <value>It's already the first step</value>
   </data>
+  <data name="ErrorWhenCleanUpResidualUpdateFiles" xml:space="preserve">
+    <value>Error when clean up residual update files</value>
+  </data>
+  <data name="DownloadFails" xml:space="preserve">
+    <value>Download fails</value>
+  </data>
+  <data name="DownloadTip" xml:space="preserve">
+    <value>Download tip</value>
+  </data>
+  <data name="DownloadFinished" xml:space="preserve">
+    <value>Download finished</value>
+  </data>
+  <data name="CheckForUpdatesFailed" xml:space="preserve">
+    <value>Check for updates failed</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="NewUpdateFound" xml:space="preserve">
+    <value>New update found</value>
+  </data>
+  <data name="NoUpdatesAvailable" xml:space="preserve">
+    <value>No updates available</value>
+  </data>
+  <data name="Tip" xml:space="preserve">
+    <value>Tip</value>
+  </data>
 </root>
