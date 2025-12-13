@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Collections.Generic;
 using neo_bpsys_wpf.AttachedBehaviors;
 
 namespace neo_bpsys_wpf.Controls;
@@ -28,6 +29,15 @@ public class CanvasAdorner : Adorner
     //布局容器，如果不使用布局容器，则需要给上述8个控件布局，实现和Grid布局定位是一样的，会比较繁琐且意义不大。
     private readonly Grid _grid;
     private readonly FrameworkElement _adornedElement;
+
+    private static readonly HashSet<FrameworkElement> SelectedElements = new();
+    private Dictionary<FrameworkElement, Point>? _selectedStartPositions;
+    private bool _hasDragged;
+    private const double DragStartThreshold = 2.0;
+    private Line? _hGuideLine;
+    private Line? _vGuideLine;
+    private TextBlock? _hDistanceText;
+    private TextBlock? _vDistanceText;
 
     /// <summary>
     /// 创建一个CanvasAdorner
@@ -133,7 +143,8 @@ public class CanvasAdorner : Adorner
         _outLine.MouseLeftButtonUp += OutLineMouseLeftButtonUp;
         _outLine.MouseMove += OutLineMouseMove;
         ShowControlName(adornedElement);
-        Unloaded += (_, _) => { HideControlName(adornedElement); };
+        Unloaded += (_, _) => { HideControlName(adornedElement); HideDistanceGuides(); };
+        UpdateSelectionVisual();
     }
 
     /// <summary>
@@ -214,21 +225,39 @@ public class CanvasAdorner : Adorner
 
         var pos = e.GetPosition(null);
         var dp = pos - _mouseDownPosition;
-        var newLeft = _mouseDownControlPosition.X + dp.X;
-        var newTop = _mouseDownControlPosition.Y + dp.Y;
+        var dx = dp.X;
+        var dy = dp.Y;
 
-        // 检查Shift键状态
         var isShiftPressed = (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift;
 
-        // 执行对齐检查
-        if (!isShiftPressed) // 仅当未按住Shift时执行吸附
+        if (Math.Abs(dx) + Math.Abs(dy) > DragStartThreshold) _hasDragged = true;
+
+        if (!isShiftPressed)
         {
-            SnapToNearestControl(ref newLeft, ref newTop);
+            AdjustDeltaWithSnap(ref dx, ref dy);
         }
 
-        Canvas.SetLeft(_adornedElement, newLeft);
-        Canvas.SetTop(_adornedElement, newTop);
-        MoveControlName(_adornedElement);
+        if (_selectedStartPositions == null || _selectedStartPositions.Count == 0)
+        {
+            _selectedStartPositions = new();
+            var left = double.IsNaN(Canvas.GetLeft(_adornedElement)) ? 0 : Canvas.GetLeft(_adornedElement);
+            var top = double.IsNaN(Canvas.GetTop(_adornedElement)) ? 0 : Canvas.GetTop(_adornedElement);
+            _selectedStartPositions[_adornedElement] = new Point(left, top);
+        }
+
+        foreach (var kv in _selectedStartPositions)
+        {
+            var element = kv.Key;
+            var start = kv.Value;
+            Canvas.SetLeft(element, start.X + dx);
+            Canvas.SetTop(element, start.Y + dy);
+            MoveControlName(element);
+        }
+
+        if (_selectedStartPositions.TryGetValue(_adornedElement, out var startPos))
+        {
+            UpdateDistanceGuides(startPos.X + dx, startPos.Y + dy);
+        }
     }
 
     // 吸附距离阈值
@@ -286,6 +315,15 @@ public class CanvasAdorner : Adorner
         if (sender is not Border border) return;
         _isMouseDown = false;
         border.ReleaseMouseCapture();
+        _selectedStartPositions = null;
+
+        var isCtrlPressed = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
+        if (isCtrlPressed && !_hasDragged)
+        {
+            if (!SelectedElements.Add(_adornedElement)) SelectedElements.Remove(_adornedElement);
+            if (_adornedElement.Parent is Canvas c) RefreshSelectionVisuals(c);
+        }
+        HideDistanceGuides();
     }
 
     /// <summary>
@@ -301,6 +339,28 @@ public class CanvasAdorner : Adorner
         _mouseDownControlPosition = new Point(
             double.IsNaN(Canvas.GetLeft(_adornedElement)) ? 0 : Canvas.GetLeft(_adornedElement),
             double.IsNaN(Canvas.GetTop(_adornedElement)) ? 0 : Canvas.GetTop(_adornedElement));
+        _hasDragged = false;
+        var isCtrlPressed = (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
+        if (!isCtrlPressed)
+        {
+            SelectedElements.Clear();
+            SelectedElements.Add(_adornedElement);
+            UpdateSelectionVisual();
+            if (_adornedElement.Parent is Canvas c) RefreshSelectionVisuals(c);
+        }
+        _selectedStartPositions = new();
+        if (_adornedElement.Parent is Canvas parentCanvas)
+        {
+            foreach (var child in parentCanvas.Children)
+            {
+                if (child is FrameworkElement fe && SelectedElements.Contains(fe))
+                {
+                    var left = double.IsNaN(Canvas.GetLeft(fe)) ? 0 : Canvas.GetLeft(fe);
+                    var top = double.IsNaN(Canvas.GetTop(fe)) ? 0 : Canvas.GetTop(fe);
+                    _selectedStartPositions[fe] = new Point(left, top);
+                }
+            }
+        }
         border.CaptureMouse();
     }
 
@@ -373,10 +433,10 @@ public class CanvasAdorner : Adorner
 
         var isShiftPressed = (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift;
 
-        // if (!isShiftPressed)
-        // {
-        //     AdjustSizeToNearestControl(ref width, ref height, ref top, ref left, thumb, e);
-        // }
+        if (!isShiftPressed)
+        {
+            SnapResizeToNearest(ref left, ref top, ref width, ref height, thumb);
+        }
 
 
         if (thumb?.HorizontalAlignment != HorizontalAlignment.Center)
@@ -398,6 +458,282 @@ public class CanvasAdorner : Adorner
         }
 
         MoveControlName(_adornedElement);
+        UpdateDistanceGuides(left, top);
+    }
+
+    private void UpdateSelectionVisual()
+    {
+        _outLine.BorderBrush = SelectedElements.Contains(_adornedElement) ? Brushes.DeepSkyBlue : Brushes.Red;
+    }
+
+    private static void RefreshSelectionVisuals(Canvas canvas)
+    {
+        foreach (var child in canvas.Children)
+        {
+            if (child is FrameworkElement fe)
+            {
+                var layer = AdornerLayer.GetAdornerLayer(fe);
+                var adorners = layer?.GetAdorners(fe);
+                if (adorners == null) continue;
+                foreach (var adorner in adorners)
+                {
+                    if (adorner is CanvasAdorner ca) ca.UpdateSelectionVisual();
+                }
+            }
+        }
+    }
+
+    private void EnsureGuideElements(Canvas canvas)
+    {
+        if (_hGuideLine == null)
+        {
+            _hGuideLine = new Line
+            {
+                Stroke = Brushes.DeepSkyBlue,
+                StrokeThickness = 1,
+                StrokeDashArray = new DoubleCollection { 4, 4 },
+                IsHitTestVisible = false
+            };
+            Canvas.SetLeft(_hGuideLine, 0);
+            Canvas.SetTop(_hGuideLine, 0);
+            Panel.SetZIndex(_hGuideLine, 999);
+            canvas.Children.Add(_hGuideLine);
+        }
+        if (_vGuideLine == null)
+        {
+            _vGuideLine = new Line
+            {
+                Stroke = Brushes.DeepSkyBlue,
+                StrokeThickness = 1,
+                StrokeDashArray = new DoubleCollection { 4, 4 },
+                IsHitTestVisible = false
+            };
+            Canvas.SetLeft(_vGuideLine, 0);
+            Canvas.SetTop(_vGuideLine, 0);
+            Panel.SetZIndex(_vGuideLine, 999);
+            canvas.Children.Add(_vGuideLine);
+        }
+        if (_hDistanceText == null)
+        {
+            _hDistanceText = new TextBlock
+            {
+                Background = Brushes.LightGray,
+                Foreground = Brushes.Black,
+                Opacity = 0.8,
+                Padding = new Thickness(2),
+                IsHitTestVisible = false,
+                FontSize = 12
+            };
+            Panel.SetZIndex(_hDistanceText, 1000);
+            canvas.Children.Add(_hDistanceText);
+        }
+        if (_vDistanceText == null)
+        {
+            _vDistanceText = new TextBlock
+            {
+                Background = Brushes.LightGray,
+                Foreground = Brushes.Black,
+                Opacity = 0.8,
+                Padding = new Thickness(2),
+                IsHitTestVisible = false,
+                FontSize = 12
+            };
+            Panel.SetZIndex(_vDistanceText, 1000);
+            canvas.Children.Add(_vDistanceText);
+        }
+    }
+
+    private static double Clamp(double value, double min, double max)
+    {
+        if (value < min) return min;
+        if (value > max) return max;
+        return value;
+    }
+
+    private void UpdateDistanceGuides(double left, double top)
+    {
+        var canvas = GetParentCanvas(_adornedElement);
+        if (canvas == null) return;
+        EnsureGuideElements(canvas);
+
+        var width = _adornedElement.ActualWidth;
+        var height = _adornedElement.ActualHeight;
+        var r1Left = left;
+        var r1Top = top;
+        var r1Right = r1Left + width;
+        var r1Bottom = r1Top + height;
+
+        FrameworkElement? nearest = null;
+        double bestDist = double.MaxValue;
+        double bestHGap = 0;
+        double bestVGap = 0;
+        Point h1 = new Point();
+        Point h2 = new Point();
+        Point v1 = new Point();
+        Point v2 = new Point();
+
+        foreach (var child in canvas.Children)
+        {
+            if (child is not FrameworkElement other || other == _adornedElement) continue;
+            if (!DesignBehavior.GetIsDesignMode(other)) continue;
+
+            var oLeft = Canvas.GetLeft(other);
+            var oTop = Canvas.GetTop(other);
+            var oRight = oLeft + other.ActualWidth;
+            var oBottom = oTop + other.ActualHeight;
+
+            double hGap;
+            Point hx1, hx2;
+            var overlapVTop = Math.Max(r1Top, oTop);
+            var overlapVBottom = Math.Min(r1Bottom, oBottom);
+            var midY = (r1Top + r1Bottom) / 2;
+
+            if (r1Left >= oRight)
+            {
+                hGap = r1Left - oRight;
+                var y = Clamp(midY, oTop, oBottom);
+                hx1 = new Point(oRight, y);
+                hx2 = new Point(r1Left, y);
+            }
+            else if (oLeft >= r1Right)
+            {
+                hGap = oLeft - r1Right;
+                var y = Clamp(midY, oTop, oBottom);
+                hx1 = new Point(r1Right, y);
+                hx2 = new Point(oLeft, y);
+            }
+            else
+            {
+                hGap = 0;
+                var y = overlapVTop <= overlapVBottom ? (overlapVTop + overlapVBottom) / 2 : midY;
+                hx1 = new Point(r1Right, y);
+                hx2 = new Point(r1Right, y);
+            }
+
+            double vGap;
+            Point vx1, vx2;
+            var overlapHLeft = Math.Max(r1Left, oLeft);
+            var overlapHRight = Math.Min(r1Right, oRight);
+            var midX = (r1Left + r1Right) / 2;
+
+            if (r1Top >= oBottom)
+            {
+                vGap = r1Top - oBottom;
+                var x = Clamp(midX, oLeft, oRight);
+                vx1 = new Point(x, oBottom);
+                vx2 = new Point(x, r1Top);
+            }
+            else if (oTop >= r1Bottom)
+            {
+                vGap = oTop - r1Bottom;
+                var x = Clamp(midX, oLeft, oRight);
+                vx1 = new Point(x, r1Bottom);
+                vx2 = new Point(x, oTop);
+            }
+            else
+            {
+                vGap = 0;
+                var x = overlapHLeft <= overlapHRight ? (overlapHLeft + overlapHRight) / 2 : midX;
+                vx1 = new Point(x, r1Bottom);
+                vx2 = new Point(x, r1Bottom);
+            }
+
+            var dist = Math.Sqrt(hGap * hGap + vGap * vGap);
+            if (dist < bestDist)
+            {
+                bestDist = dist;
+                nearest = other;
+                bestHGap = hGap;
+                bestVGap = vGap;
+                h1 = hx1;
+                h2 = hx2;
+                v1 = vx1;
+                v2 = vx2;
+            }
+        }
+
+        if (nearest == null)
+        {
+            HideDistanceGuides();
+            return;
+        }
+
+        var showH = bestHGap > 0;
+        var showV = bestVGap > 0;
+
+        if (_hGuideLine != null)
+        {
+            if (showH)
+            {
+                _hGuideLine.X1 = h1.X;
+                _hGuideLine.Y1 = h1.Y;
+                _hGuideLine.X2 = h2.X;
+                _hGuideLine.Y2 = h2.Y;
+                _hGuideLine.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                _hGuideLine.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        if (_vGuideLine != null)
+        {
+            if (showV)
+            {
+                _vGuideLine.X1 = v1.X;
+                _vGuideLine.Y1 = v1.Y;
+                _vGuideLine.X2 = v2.X;
+                _vGuideLine.Y2 = v2.Y;
+                _vGuideLine.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                _vGuideLine.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        if (_hDistanceText != null)
+        {
+            if (showH)
+            {
+                _hDistanceText.Text = Math.Round(bestHGap).ToString() + " px";
+                var hxMidX = (h1.X + h2.X) / 2;
+                var hxMidY = (h1.Y + h2.Y) / 2;
+                Canvas.SetLeft(_hDistanceText, hxMidX - 20);
+                Canvas.SetTop(_hDistanceText, hxMidY - 18);
+                _hDistanceText.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                _hDistanceText.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        if (_vDistanceText != null)
+        {
+            if (showV)
+            {
+                _vDistanceText.Text = Math.Round(bestVGap).ToString() + " px";
+                var vxMidX = (v1.X + v2.X) / 2;
+                var vxMidY = (v1.Y + v2.Y) / 2;
+                Canvas.SetLeft(_vDistanceText, vxMidX + 4);
+                Canvas.SetTop(_vDistanceText, vxMidY - 10);
+                _vDistanceText.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                _vDistanceText.Visibility = Visibility.Collapsed;
+            }
+        }
+    }
+
+    private void HideDistanceGuides()
+    {
+        if (_hGuideLine != null) _hGuideLine.Visibility = Visibility.Collapsed;
+        if (_vGuideLine != null) _vGuideLine.Visibility = Visibility.Collapsed;
+        if (_hDistanceText != null) _hDistanceText.Visibility = Visibility.Collapsed;
+        if (_vDistanceText != null) _vDistanceText.Visibility = Visibility.Collapsed;
     }
 
     private const double SnapSizeDistance = 200;
@@ -451,6 +787,142 @@ public class CanvasAdorner : Adorner
                 }
             }
         }
+    }
+
+    private void SnapResizeToNearest(ref double left, ref double top, ref double width, ref double height, FrameworkElement? thumb)
+    {
+        if (_adornedElement.Parent is not Canvas parentCanvas) return;
+        var originalLeft = double.IsNaN(Canvas.GetLeft(_adornedElement)) ? 0 : Canvas.GetLeft(_adornedElement);
+        var originalTop = double.IsNaN(Canvas.GetTop(_adornedElement)) ? 0 : Canvas.GetTop(_adornedElement);
+        var originalRight = originalLeft + _adornedElement.ActualWidth;
+        var originalBottom = originalTop + _adornedElement.ActualHeight;
+
+        double? snapX = null;
+        double? snapY = null;
+
+        foreach (var child in parentCanvas.Children)
+        {
+            if (child is not FrameworkElement element || element == _adornedElement) continue;
+            if (!DesignBehavior.GetIsDesignMode(element)) continue;
+
+            var otherLeft = Canvas.GetLeft(element);
+            var otherTop = Canvas.GetTop(element);
+            var otherRight = otherLeft + element.ActualWidth;
+            var otherBottom = otherTop + element.ActualHeight;
+
+            if (thumb?.HorizontalAlignment == HorizontalAlignment.Left)
+            {
+                var d1 = otherLeft - left;
+                var d2 = otherRight - left;
+                if (Math.Abs(d1) <= SnapDistance && (snapX == null || Math.Abs(d1) < Math.Abs(snapX.Value))) snapX = d1;
+                if (Math.Abs(d2) <= SnapDistance && (snapX == null || Math.Abs(d2) < Math.Abs(snapX.Value))) snapX = d2;
+            }
+            else if (thumb?.HorizontalAlignment == HorizontalAlignment.Right)
+            {
+                var right = left + width;
+                var d1 = otherLeft - right;
+                var d2 = otherRight - right;
+                if (Math.Abs(d1) <= SnapDistance && (snapX == null || Math.Abs(d1) < Math.Abs(snapX.Value))) snapX = d1;
+                if (Math.Abs(d2) <= SnapDistance && (snapX == null || Math.Abs(d2) < Math.Abs(snapX.Value))) snapX = d2;
+            }
+
+            if (thumb?.VerticalAlignment == VerticalAlignment.Top)
+            {
+                var d1 = otherTop - top;
+                var d2 = otherBottom - top;
+                if (Math.Abs(d1) <= SnapDistance && (snapY == null || Math.Abs(d1) < Math.Abs(snapY.Value))) snapY = d1;
+                if (Math.Abs(d2) <= SnapDistance && (snapY == null || Math.Abs(d2) < Math.Abs(snapY.Value))) snapY = d2;
+            }
+            else if (thumb?.VerticalAlignment == VerticalAlignment.Bottom)
+            {
+                var bottom = top + height;
+                var d1 = otherTop - bottom;
+                var d2 = otherBottom - bottom;
+                if (Math.Abs(d1) <= SnapDistance && (snapY == null || Math.Abs(d1) < Math.Abs(snapY.Value))) snapY = d1;
+                if (Math.Abs(d2) <= SnapDistance && (snapY == null || Math.Abs(d2) < Math.Abs(snapY.Value))) snapY = d2;
+            }
+        }
+
+        if (snapX.HasValue)
+        {
+            if (thumb?.HorizontalAlignment == HorizontalAlignment.Left)
+            {
+                left += snapX.Value;
+                width = originalRight - left;
+            }
+            else if (thumb?.HorizontalAlignment == HorizontalAlignment.Right)
+            {
+                var right = left + width + snapX.Value;
+                width = right - left;
+            }
+        }
+
+        if (snapY.HasValue)
+        {
+            if (thumb?.VerticalAlignment == VerticalAlignment.Top)
+            {
+                top += snapY.Value;
+                height = originalBottom - top;
+            }
+            else if (thumb?.VerticalAlignment == VerticalAlignment.Bottom)
+            {
+                var bottom = top + height + snapY.Value;
+                height = bottom - top;
+            }
+        }
+    }
+
+    private void AdjustDeltaWithSnap(ref double dx, ref double dy)
+    {
+        if (_adornedElement.Parent is not Canvas parentCanvas) return;
+        if (_selectedStartPositions == null || _selectedStartPositions.Count == 0) return;
+
+        double groupLeft = double.MaxValue;
+        double groupTop = double.MaxValue;
+        double groupRight = double.MinValue;
+        double groupBottom = double.MinValue;
+
+        foreach (var kv in _selectedStartPositions)
+        {
+            var el = kv.Key;
+            var start = kv.Value;
+            var left = start.X;
+            var top = start.Y;
+            var right = left + el.ActualWidth;
+            var bottom = top + el.ActualHeight;
+            if (left < groupLeft) groupLeft = left;
+            if (top < groupTop) groupTop = top;
+            if (right > groupRight) groupRight = right;
+            if (bottom > groupBottom) groupBottom = bottom;
+        }
+
+        double? snapDx = null;
+        double? snapDy = null;
+
+        foreach (var child in parentCanvas.Children)
+        {
+            if (child is not FrameworkElement element) continue;
+            if (_selectedStartPositions.ContainsKey(element)) continue;
+            if (!DesignBehavior.GetIsDesignMode(element)) continue;
+
+            var otherLeft = Canvas.GetLeft(element);
+            var otherTop = Canvas.GetTop(element);
+            var otherRight = otherLeft + element.ActualWidth;
+            var otherBottom = otherTop + element.ActualHeight;
+
+            var dLeft = otherLeft - (groupLeft + dx);
+            var dRight = otherRight - (groupRight + dx);
+            var dTop = otherTop - (groupTop + dy);
+            var dBottom = otherBottom - (groupBottom + dy);
+
+            if (Math.Abs(dLeft) <= SnapDistance && (snapDx == null || Math.Abs(dLeft) < Math.Abs(snapDx.Value))) snapDx = dLeft;
+            if (Math.Abs(dRight) <= SnapDistance && (snapDx == null || Math.Abs(dRight) < Math.Abs(snapDx.Value))) snapDx = dRight;
+            if (Math.Abs(dTop) <= SnapDistance && (snapDy == null || Math.Abs(dTop) < Math.Abs(snapDy.Value))) snapDy = dTop;
+            if (Math.Abs(dBottom) <= SnapDistance && (snapDy == null || Math.Abs(dBottom) < Math.Abs(snapDy.Value))) snapDy = dBottom;
+        }
+
+        if (snapDx.HasValue) dx += snapDx.Value;
+        if (snapDy.HasValue) dy += snapDy.Value;
     }
 
     private static double Distance(Point p1, Point p2) =>
