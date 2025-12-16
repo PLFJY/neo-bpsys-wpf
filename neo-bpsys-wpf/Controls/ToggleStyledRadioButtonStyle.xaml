@@ -3,6 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     <Style BasedOn="{StaticResource {x:Type RadioButton}}" TargetType="{x:Type controls:ToggleStyledRadioButton}">
@@ -24,7 +25,7 @@
                                 HorizontalAlignment="Center"
                                 Focusable="False"
                                 FontSize="{TemplateBinding TagNameFontSize}"
-                                Text="{TemplateBinding TagName}">
+                                Text="{Binding TagName, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
                                         <Style.Triggers>

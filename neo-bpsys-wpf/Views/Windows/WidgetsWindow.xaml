@@ -248,11 +248,11 @@
                                 <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.BpOverview_TeamName.FontWeight}" />
                                 <Setter Property="Foreground" Value="{Binding Settings.TextSettings.BpOverview_TeamName.Foreground}" />
                             </Style>
-                            <Style x:Key="BpOverview_MinorPoints" TargetType="TextBlock">
-                                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.BpOverview_MinorPoints.FontSize}" />
-                                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.BpOverview_MinorPoints.FontFamily}" />
-                                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.BpOverview_MinorPoints.FontWeight}" />
-                                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.BpOverview_MinorPoints.Foreground}" />
+                            <Style x:Key="BpOverview_GameScores" TargetType="TextBlock">
+                                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.BpOverview_GameScores.FontSize}" />
+                                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.BpOverview_GameScores.FontFamily}" />
+                                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.BpOverview_GameScores.FontWeight}" />
+                                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.BpOverview_GameScores.Foreground}" />
                             </Style>
                         </Canvas.Resources>
                         <ui:Image
@@ -495,7 +495,7 @@
                             </TextBlock>
                         </Border>
                         <TextBlock
-                            Name="MinorPointsSur"
+                            Name="GameScoresSur"
                             Canvas.Left="495"
                             Canvas.Top="94"
                             Width="52"
@@ -506,8 +506,8 @@
                             d:FontWeight="Bold"
                             d:Foreground="White"
                             d:Text="0"
-                            Style="{StaticResource BpOverview_MinorPoints}"
-                            Text="{Binding CurrentGame.SurTeam.Score.MinorPoints}"
+                            Style="{StaticResource BpOverview_GameScores}"
+                            Text="{Binding CurrentGame.SurTeam.Score.GameScores}"
                             TextAlignment="Center" />
                         <TextBlock
                             Name="RatioChar"
@@ -520,11 +520,11 @@
                             d:FontSize="50"
                             d:FontWeight="Bold"
                             d:Foreground="White"
-                            Style="{StaticResource BpOverview_MinorPoints}"
+                            Style="{StaticResource BpOverview_GameScores}"
                             Text=":"
                             TextAlignment="Center" />
                         <TextBlock
-                            Name="MinorPointsHun"
+                            Name="GameScoresHun"
                             Canvas.Left="583"
                             Canvas.Top="94"
                             Width="52"
@@ -535,8 +535,8 @@
                             d:FontWeight="Bold"
                             d:Foreground="White"
                             d:Text="0"
-                            Style="{StaticResource BpOverview_MinorPoints}"
-                            Text="{Binding CurrentGame.HunTeam.Score.MinorPoints}"
+                            Style="{StaticResource BpOverview_GameScores}"
+                            Text="{Binding CurrentGame.HunTeam.Score.GameScores}"
                             TextAlignment="Center" />
 
                         <!--  Hun Pick  -->

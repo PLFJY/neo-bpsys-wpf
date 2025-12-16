@@ -40,9 +40,9 @@ public partial class ScoreWindowViewModel :
 
     [ObservableProperty] private bool _isDesignMode;
 
-    [ObservableProperty] private int _totalMainMinorPoint;
+    [ObservableProperty] private int _totalMainGameScore;
 
-    [ObservableProperty] private int _totalAwayMinorPoint;
+    [ObservableProperty] private int _totalAwayGameScore;
 
     public bool IsBo3Mode => _sharedDataService.IsBo3Mode;
 
@@ -60,11 +60,11 @@ public partial class ScoreWindowViewModel :
     {
         switch (message.PropertyName)
         {
-            case nameof(TotalMainMinorPoint):
-                TotalMainMinorPoint = message.NewValue;
+            case nameof(TotalMainGameScore):
+                TotalMainGameScore = message.NewValue;
                 break;
-            case nameof(TotalAwayMinorPoint):
-                TotalAwayMinorPoint = message.NewValue;
+            case nameof(TotalAwayGameScore):
+                TotalAwayGameScore = message.NewValue;
                 break;
         }
     }

@@ -80,7 +80,7 @@
                     Width="210"
                     Margin="0,30,0,0"
                     d:Content="主场小比分+1"
-                    Command="{Binding EditMainMinorPointsCommand}"
+                    Command="{Binding EditMainGameScoresCommand}"
                     Content="{lex:Loc HomeTeamGameScorePlus1}">
                     <Button.CommandParameter>
                         <sys:Int32>1</sys:Int32>
@@ -117,7 +117,7 @@
                     Width="210"
                     Margin="0,30,0,0"
                     d:Content="主场小比分-1"
-                    Command="{Binding EditMainMinorPointsCommand}"
+                    Command="{Binding EditMainGameScoresCommand}"
                     Content="{lex:Loc HomeTeamGameScoreMinus1}">
                     <Button.CommandParameter>
                         <sys:Int32>-1</sys:Int32>
@@ -154,7 +154,7 @@
                     Width="210"
                     Margin="0,30,0,0"
                     d:Content="客场小比分+1"
-                    Command="{Binding EditAwayMinorPointsCommand}"
+                    Command="{Binding EditAwayGameScoresCommand}"
                     Content="{lex:Loc AwayTeamGameScorePlus1}">
                     <Button.CommandParameter>
                         <sys:Int32>1</sys:Int32>
@@ -191,7 +191,7 @@
                     Width="210"
                     Margin="0,30,0,0"
                     d:Content="客场小比分-1"
-                    Command="{Binding EditAwayMinorPointsCommand}"
+                    Command="{Binding EditAwayGameScoresCommand}"
                     Content="{lex:Loc AwayTeamGameScoreMinus1}">
                     <Button.CommandParameter>
                         <sys:Int32>-1</sys:Int32>
@@ -204,7 +204,7 @@
                 Width="150"
                 Height="50"
                 Margin="15,0,0,0"
-                Command="{Binding ClearMinorPointsCommand}"
+                Command="{Binding ClearGameScoresCommand}"
                 Content="{lex:Loc ResetGameScores}" />
         </StackPanel>
     </Grid>

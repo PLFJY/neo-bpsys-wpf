@@ -32,11 +32,11 @@
             <Style TargetType="TextBlock">
                 <Setter Property="Foreground" Value="White" />
             </Style>
-            <Style x:Key="MinorPoints" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MinorPoints.FontSize}" />
-                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MinorPoints.FontFamily}" />
-                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MinorPoints.FontWeight}" />
-                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MinorPoints.Foreground}" />
+            <Style x:Key="GameScores" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.GameScores.FontSize}" />
+                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.GameScores.FontFamily}" />
+                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.GameScores.FontWeight}" />
+                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.GameScores.Foreground}" />
                 <Setter Property="HorizontalAlignment" Value="Center" />
                 <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
@@ -141,7 +141,7 @@
             TextAlignment="Center"
             TextWrapping="WrapWithOverflow" />
         <TextBlock
-            Name="MinorPointsSur"
+            Name="GameScoresSur"
             Canvas.Left="476"
             Canvas.Top="182"
             Width="52"
@@ -154,8 +154,8 @@
             d:FontWeight="Bold"
             d:Foreground="White"
             d:Text="0"
-            Style="{StaticResource MinorPoints}"
-            Text="{Binding CurrentGame.SurTeam.Score.MinorPoints}"
+            Style="{StaticResource GameScores}"
+            Text="{Binding CurrentGame.SurTeam.Score.GameScores}"
             TextAlignment="Center" />
         <Border
             Name="Map"
@@ -235,7 +235,7 @@
         </Border>
 
         <TextBlock
-            Name="MinorPointsHun"
+            Name="GameScoresHun"
             Canvas.Left="919"
             Canvas.Top="182"
             Width="52"
@@ -248,8 +248,8 @@
             d:FontWeight="Bold"
             d:Foreground="White"
             d:Text="0"
-            Style="{StaticResource MinorPoints}"
-            Text="{Binding CurrentGame.HunTeam.Score.MinorPoints}"
+            Style="{StaticResource GameScores}"
+            Text="{Binding CurrentGame.HunTeam.Score.GameScores}"
             TextAlignment="Center" />
         <TextBlock
             Name="HunTeamName"

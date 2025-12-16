@@ -71,7 +71,7 @@ public partial class SettingPageViewModel : ViewModelBase
         {
             { "Timer", _settingsHostService.Settings.BpWindowSettings.TextSettings.Timer },
             { "TeamName", _settingsHostService.Settings.BpWindowSettings.TextSettings.TeamName },
-            { "GameScores", _settingsHostService.Settings.BpWindowSettings.TextSettings.MinorPoints },
+            { "GameScores", _settingsHostService.Settings.BpWindowSettings.TextSettings.GameScores },
             { "MatchScores", _settingsHostService.Settings.BpWindowSettings.TextSettings.MajorPoints },
             { "PlayerID", _settingsHostService.Settings.BpWindowSettings.TextSettings.PlayerId },
             { "MapName", _settingsHostService.Settings.BpWindowSettings.TextSettings.MapName },
@@ -90,7 +90,7 @@ public partial class SettingPageViewModel : ViewModelBase
 
         ScoreWindowTextSettings = new Dictionary<string, TextSettings>
         {
-            { "GameScores", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.MinorPoints },
+            { "GameScores", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.GameScores },
             { "MatchScore", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.MajorPoints },
             { "TeamName", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.TeamName },
             { "TeamNameInScoreStatistics", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_TeamName },
@@ -101,7 +101,7 @@ public partial class SettingPageViewModel : ViewModelBase
         GameDataWindowTextSettings = new Dictionary<string, TextSettings>
         {
             { "TeamName", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.TeamName },
-            { "GameScores", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.MinorPoints },
+            { "GameScores", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.GameScores },
             { "MatchScores", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.MajorPoints },
             { "PlayerID", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.PlayerId },
             { "MapName", _settingsHostService.Settings.GameDataWindowSettings.TextSettings.MapName },
@@ -124,7 +124,7 @@ public partial class SettingPageViewModel : ViewModelBase
                 "GameProgressInBPOverview",
                 _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_GameProgress
             },
-            { "GameScoresInBPOverview", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_MinorPoints }
+            { "GameScoresInBPOverview", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_GameScores }
         };
 
         BpWindowPickingColorSettings = _settingsHostService.Settings.BpWindowSettings.PickingBorderColor.ToColor();

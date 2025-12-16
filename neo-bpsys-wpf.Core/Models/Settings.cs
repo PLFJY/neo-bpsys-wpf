@@ -169,7 +169,7 @@ public class BpWindowTextSettings
     public TextSettings TeamName { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 28);
 
-    public TextSettings MinorPoints { get; set; } =
+    public TextSettings GameScores { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 50, FontWeights.Bold);
 
     public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 28, FontWeights.Bold);
@@ -265,7 +265,7 @@ public partial class ScoreWindowSettings : ViewModelBase
 /// </summary>
 public class ScoreWindowTextSettings
 {
-    public TextSettings MinorPoints { get; set; } =
+    public TextSettings GameScores { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 100);
 
     public TextSettings MajorPoints { get; set; } =
@@ -307,7 +307,7 @@ public class GameDataWindowTextSettings
     public TextSettings TeamName { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 32);
 
-    public TextSettings MinorPoints { get; set; } =
+    public TextSettings GameScores { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 80, FontWeights.Bold);
 
     public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 30, FontWeights.Bold);
@@ -416,7 +416,7 @@ public class WidgetsWindowTextSettings
     public TextSettings BpOverview_GameProgress { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
 
-    public TextSettings BpOverview_MinorPoints { get; set; } =
+    public TextSettings BpOverview_GameScores { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 50);
 }
 

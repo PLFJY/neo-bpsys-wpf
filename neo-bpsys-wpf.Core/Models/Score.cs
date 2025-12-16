@@ -28,7 +28,7 @@ public partial class Score : ViewModelBase
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
-    private int _minorPoints;
+    private int _gameScores;
     
     /// <summary>
     /// 前台显示的格式化的大比分
@@ -39,6 +39,6 @@ public partial class Score : ViewModelBase
     {
         Win = 0;
         Tie = 0;
-        MinorPoints = 0;
+        GameScores = 0;
     }
 }

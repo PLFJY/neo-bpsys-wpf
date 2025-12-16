@@ -17,7 +17,7 @@
     "Left": 297,
     "Top": 32
   },
-  "MinorPointsSur": {
+  "GameScoresSur": {
     "Width": 52,
     "Height": 62,
     "Left": 541,
@@ -29,7 +29,7 @@
     "Left": 671,
     "Top": 23
   },
-  "MinorPointsHun": {
+  "GameScoresHun": {
     "Width": 52,
     "Height": 62,
     "Left": 852,

@@ -35,11 +35,11 @@
                 <Setter Property="HorizontalAlignment" Value="Center" />
                 <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
-            <Style x:Key="MinorPoints" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MinorPoints.FontSize}" />
-                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MinorPoints.FontFamily}" />
-                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MinorPoints.Foreground}" />
-                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MinorPoints.FontWeight}" />
+            <Style x:Key="GameScores" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.GameScores.FontSize}" />
+                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.GameScores.FontFamily}" />
+                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.GameScores.Foreground}" />
+                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.GameScores.FontWeight}" />
                 <Setter Property="HorizontalAlignment" Value="Center" />
                 <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
@@ -96,7 +96,7 @@
             Text="{Binding CurrentGame.HunTeam.Score.MajorPointsOnFront}"
             TextAlignment="Center" />
         <Border
-            Name="MinorPointsHun"
+            Name="GameScoresHun"
             Canvas.Left="21"
             Canvas.Top="10"
             Width="64"
@@ -111,8 +111,8 @@
                 d:FontSize="100"
                 d:Foreground="White"
                 d:Text="0"
-                Style="{StaticResource MinorPoints}"
-                Text="{Binding CurrentGame.HunTeam.Score.MinorPoints}"
+                Style="{StaticResource GameScores}"
+                Text="{Binding CurrentGame.HunTeam.Score.GameScores}"
                 TextAlignment="Center" />
         </Border>
     </Canvas>

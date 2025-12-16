@@ -90,7 +90,7 @@
                 d:Foreground="White"
                 d:Text="0"
                 Style="{StaticResource ScoreGlobal_Total}"
-                Text="{Binding TotalMainMinorPoint}" />
+                Text="{Binding TotalMainGameScore}" />
         </Border>
         <Border
             Name="AwayScoreTotal"
@@ -108,7 +108,7 @@
                 d:Foreground="White"
                 d:Text="0"
                 Style="{StaticResource ScoreGlobal_Total}"
-                Text="{Binding TotalAwayMinorPoint}" />
+                Text="{Binding TotalAwayGameScore}" />
         </Border>
     </Canvas>
 </Window>

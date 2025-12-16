@@ -43,34 +43,34 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     [RelayCommand]
     private void Escape4()
     {
-        _sharedDataService.CurrentGame.SurTeam.Score.MinorPoints += 5;
+        _sharedDataService.CurrentGame.SurTeam.Score.GameScores += 5;
     }
 
     [RelayCommand]
     private void Escape3()
     {
-        _sharedDataService.CurrentGame.SurTeam.Score.MinorPoints += 3;
-        _sharedDataService.CurrentGame.HunTeam.Score.MinorPoints += 1;
+        _sharedDataService.CurrentGame.SurTeam.Score.GameScores += 3;
+        _sharedDataService.CurrentGame.HunTeam.Score.GameScores += 1;
     }
 
     [RelayCommand]
     private void Tie()
     {
-        _sharedDataService.CurrentGame.SurTeam.Score.MinorPoints += 2;
-        _sharedDataService.CurrentGame.HunTeam.Score.MinorPoints += 2;
+        _sharedDataService.CurrentGame.SurTeam.Score.GameScores += 2;
+        _sharedDataService.CurrentGame.HunTeam.Score.GameScores += 2;
     }
 
     [RelayCommand]
     private void Out3()
     {
-        _sharedDataService.CurrentGame.SurTeam.Score.MinorPoints += 1;
-        _sharedDataService.CurrentGame.HunTeam.Score.MinorPoints += 3;
+        _sharedDataService.CurrentGame.SurTeam.Score.GameScores += 1;
+        _sharedDataService.CurrentGame.HunTeam.Score.GameScores += 3;
     }
 
     [RelayCommand]
     private void Out4()
     {
-        _sharedDataService.CurrentGame.HunTeam.Score.MinorPoints += 5;
+        _sharedDataService.CurrentGame.HunTeam.Score.GameScores += 5;
     }
 
     [RelayCommand]
@@ -81,21 +81,21 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     }
 
     [RelayCommand]
-    private void ResetMinorPoint()
+    private void ResetGameScore()
     {
-        _sharedDataService.MainTeam.Score.MinorPoints = 0;
-        _sharedDataService.AwayTeam.Score.MinorPoints = 0;
+        _sharedDataService.MainTeam.Score.GameScores = 0;
+        _sharedDataService.AwayTeam.Score.GameScores = 0;
     }
 
     [RelayCommand]
     private void CalculateMajorPoint()
     {
-        if (_sharedDataService.MainTeam.Score.MinorPoints == _sharedDataService.AwayTeam.Score.MinorPoints)
+        if (_sharedDataService.MainTeam.Score.GameScores == _sharedDataService.AwayTeam.Score.GameScores)
         {
             _sharedDataService.MainTeam.Score.Tie++;
             _sharedDataService.AwayTeam.Score.Tie++;
         }
-        else if (_sharedDataService.MainTeam.Score.MinorPoints > _sharedDataService.AwayTeam.Score.MinorPoints)
+        else if (_sharedDataService.MainTeam.Score.GameScores > _sharedDataService.AwayTeam.Score.GameScores)
         {
             _sharedDataService.MainTeam.Score.Win++;
         }
@@ -104,8 +104,8 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
             _sharedDataService.AwayTeam.Score.Win++;
         }
 
-        _sharedDataService.MainTeam.Score.MinorPoints = 0;
-        _sharedDataService.AwayTeam.Score.MinorPoints = 0;
+        _sharedDataService.MainTeam.Score.GameScores = 0;
+        _sharedDataService.AwayTeam.Score.GameScores = 0;
         OnPropertyChanged(string.Empty);
     }
 
@@ -130,7 +130,7 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
             OnPropertyChanged(nameof(IsGameFinished));
             OnPropertyChanged(nameof(MainTeamCamp));
             OnPropertyChanged(nameof(SelectedGameResult));
-            UpdateTotalMinorPoint();
+            UpdateTotalGameScore();
         });
     }
 
@@ -173,14 +173,14 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
         {
             _frontService.SetGlobalScoreToBar(TeamType.HomeTeam, SelectedGameProgress);
             _frontService.SetGlobalScoreToBar(TeamType.AwayTeam, SelectedGameProgress);
-            UpdateTotalMinorPoint();
+            UpdateTotalGameScore();
             return;
         }
 
         GameGlobalInfoRecord[SelectedGameProgress].MainTeamCamp = MainTeamCamp;
         GameGlobalInfoRecord[SelectedGameProgress].GameResult = SelectedGameResult;
         UpdateGlobalScore();
-        UpdateTotalMinorPoint();
+        UpdateTotalGameScore();
     }
 
     [ObservableProperty] private bool _isGameFinished;
@@ -255,10 +255,10 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
         }
     }
 
-    private void UpdateTotalMinorPoint()
+    private void UpdateTotalGameScore()
     {
-        var _totalMainMinorPoint = 0;
-        var _totalAwayMinorPoint = 0;
+        var _totalMainGameScore = 0;
+        var _totalAwayGameScore = 0;
         foreach (var i in GameGlobalInfoRecord.Where(i => i.Value.IsGameFinished)
                      .TakeWhile(i => !IsBo3Mode || i.Key <= GameProgress.Game4SecondHalf))
         {
@@ -267,14 +267,14 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
                 case GameResult.Escape4:
                     if (i.Value.MainTeamCamp == Camp.Sur)
                     {
-                        _totalMainMinorPoint += 5;
-                        _totalAwayMinorPoint += 0;
+                        _totalMainGameScore += 5;
+                        _totalAwayGameScore += 0;
                     }
 
                     if (i.Value.MainTeamCamp == Camp.Hun)
                     {
-                        _totalMainMinorPoint += 0;
-                        _totalAwayMinorPoint += 5;
+                        _totalMainGameScore += 0;
+                        _totalAwayGameScore += 5;
                     }
 
                     break;
@@ -282,30 +282,30 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
                     switch (i.Value.MainTeamCamp)
                     {
                         case Camp.Sur:
-                            _totalMainMinorPoint += 3;
-                            _totalAwayMinorPoint += 1;
+                            _totalMainGameScore += 3;
+                            _totalAwayGameScore += 1;
                             break;
                         case Camp.Hun:
-                            _totalMainMinorPoint += 1;
-                            _totalAwayMinorPoint += 3;
+                            _totalMainGameScore += 1;
+                            _totalAwayGameScore += 3;
                             break;
                     }
 
                     break;
                 case GameResult.Tie:
-                    _totalMainMinorPoint += 2;
-                    _totalAwayMinorPoint += 2;
+                    _totalMainGameScore += 2;
+                    _totalAwayGameScore += 2;
                     break;
                 case GameResult.Out3:
                     switch (i.Value.MainTeamCamp)
                     {
                         case Camp.Sur:
-                            _totalMainMinorPoint += 1;
-                            _totalAwayMinorPoint += 3;
+                            _totalMainGameScore += 1;
+                            _totalAwayGameScore += 3;
                             break;
                         case Camp.Hun:
-                            _totalMainMinorPoint += 3;
-                            _totalAwayMinorPoint += 1;
+                            _totalMainGameScore += 3;
+                            _totalAwayGameScore += 1;
                             break;
                         case null:
                             break;
@@ -318,12 +318,12 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
                     switch (i.Value.MainTeamCamp)
                     {
                         case Camp.Sur:
-                            _totalMainMinorPoint += 0;
-                            _totalAwayMinorPoint += 5;
+                            _totalMainGameScore += 0;
+                            _totalAwayGameScore += 5;
                             break;
                         case Camp.Hun:
-                            _totalMainMinorPoint += 5;
-                            _totalAwayMinorPoint += 0;
+                            _totalMainGameScore += 5;
+                            _totalAwayGameScore += 0;
                             break;
                         case null:
                             break;
@@ -340,9 +340,9 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
         }
 
         WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<int>(this,
-            nameof(ScoreWindowViewModel.TotalMainMinorPoint), 0, _totalMainMinorPoint));
+            nameof(ScoreWindowViewModel.TotalMainGameScore), 0, _totalMainGameScore));
         WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<int>(this,
-            nameof(ScoreWindowViewModel.TotalAwayMinorPoint), 0, _totalAwayMinorPoint));
+            nameof(ScoreWindowViewModel.TotalAwayGameScore), 0, _totalAwayGameScore));
     }
 
     public Dictionary<GameProgress, GameGlobalInfo> GameGlobalInfoRecord { get; } = new()

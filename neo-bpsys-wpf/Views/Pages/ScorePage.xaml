@@ -85,7 +85,7 @@
                                 Content="{lex:Loc ResetAllScores}" />
                             <Button
                                 Width="150"
-                                Command="{Binding ResetMinorPointCommand}"
+                                Command="{Binding ResetGameScoreCommand}"
                                 Content="{lex:Loc ResetGameScores}" />
                             <Button
                                 Width="150"
@@ -105,7 +105,7 @@
                                     <Binding Path="MainTeam.Name" />
                                     <Binding Path="MainTeam.Score.Win" />
                                     <Binding Path="MainTeam.Score.Tie" />
-                                    <Binding Path="MainTeam.Score.MinorPoints" />
+                                    <Binding Path="MainTeam.Score.GameScores" />
                                 </MultiBinding>
                             </TextBlock.Text>
                         </TextBlock>
@@ -116,7 +116,7 @@
                                     <Binding Path="AwayTeam.Name" />
                                     <Binding Path="AwayTeam.Score.Win" />
                                     <Binding Path="AwayTeam.Score.Tie" />
-                                    <Binding Path="AwayTeam.Score.MinorPoints" />
+                                    <Binding Path="AwayTeam.Score.GameScores" />
                                 </MultiBinding>
                             </TextBlock.Text>
                         </TextBlock>
