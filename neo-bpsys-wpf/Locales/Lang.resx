@@ -615,7 +615,7 @@
   <data name="CurrentHunterTeamColon" xml:space="preserve">
     <value>当前监管者队伍：</value>
   </data>
-  <data name="CountDown" xml:space="preserve">
+  <data name="Countdown" xml:space="preserve">
     <value>倒计时</value>
   </data>
   <data name="Start" xml:space="preserve">

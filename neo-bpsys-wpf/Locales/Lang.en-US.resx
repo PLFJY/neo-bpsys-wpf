@@ -615,8 +615,8 @@
   <data name="CurrentHunterTeamColon" xml:space="preserve">
     <value>Current hunter team:   </value>
   </data>
-  <data name="CountDown" xml:space="preserve">
-    <value>Count down</value>
+  <data name="Countdown" xml:space="preserve">
+    <value>Countdown</value>
   </data>
   <data name="Start" xml:space="preserve">
     <value>Start</value>

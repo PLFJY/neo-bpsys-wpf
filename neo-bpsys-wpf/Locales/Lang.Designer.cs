@@ -513,9 +513,9 @@ namespace neo_bpsys_wpf.Locales {
         /// <summary>
         ///   查找类似 倒计时 的本地化字符串。
         /// </summary>
-        public static string CountDown {
+        public static string Countdown {
             get {
-                return ResourceManager.GetString("CountDown", resourceCulture);
+                return ResourceManager.GetString("Countdown", resourceCulture);
             }
         }
         
