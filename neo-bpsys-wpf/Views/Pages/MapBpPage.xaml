@@ -61,11 +61,6 @@
                                     </StackPanel>
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
-                            <i:Interaction.Triggers>
-                                <i:EventTrigger EventName="SelectionChanged">
-                                    <i:InvokeCommandAction Command="{Binding PickMapCommand}" CommandParameter="{Binding ElementName=PickMapCombobox, Path=SelectedValue}" />
-                                </i:EventTrigger>
-                            </i:Interaction.Triggers>
                         </ComboBox>
                     </StackPanel>
                 </Grid>
