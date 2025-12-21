@@ -150,20 +150,23 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
             OnPropertyChanged(nameof(MainTeamCamp));
             OnPropertyChanged(nameof(SelectedGameResult));
             OnPropertyChanged(nameof(SelectedIndex));
+            NextGameCommand.NotifyCanExecuteChanged();
         });
     }
 
     public int SelectedIndex => GameList.IndexOf(SelectedGameProgress);
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanNextGameExcute))]
     private void NextGame()
     {
         var index = GameList.IndexOf(SelectedGameProgress);
         if (index < 7 && IsBo3Mode || index < 11 && !IsBo3Mode) // 防止在加赛下半场时点下一步会崩
         {
             SelectedGameProgress = GameList.ElementAt(index + 1).Key;
-        };
+        }
     }
+
+    private bool CanNextGameExcute() => GameList.IndexOf(SelectedGameProgress) + 1 < 7 && IsBo3Mode || GameList.IndexOf(SelectedGameProgress) + 1 < 11 && !IsBo3Mode;
 
     [RelayCommand]
     private void GlobalScoreUpdateToFront()
