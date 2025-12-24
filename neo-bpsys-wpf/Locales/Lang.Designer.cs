@@ -970,11 +970,29 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 前台-监管者游戏内比分 的本地化字符串。
+        /// </summary>
+        public static string FrontendHunterScoreInGame {
+            get {
+                return ResourceManager.GetString("FrontendHunterScoreInGame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 前台管理 的本地化字符串。
         /// </summary>
         public static string FrontendManagement {
             get {
                 return ResourceManager.GetString("FrontendManagement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 前台-求生者游戏内比分 的本地化字符串。
+        /// </summary>
+        public static string FrontendSurvivorScoreInGame {
+            get {
+                return ResourceManager.GetString("FrontendSurvivorScoreInGame", resourceCulture);
             }
         }
         

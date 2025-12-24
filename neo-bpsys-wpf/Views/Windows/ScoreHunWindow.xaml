@@ -4,11 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:ab="clr-namespace:neo_bpsys_wpf.AttachedBehaviors"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
-    Title="前台-监管者游戏内比分"
+    Title="{lex:Loc FrontendHunterScoreInGame}"
     Width="480"
     Height="152"
     d:DataContext="{d:DesignInstance Type=vm:ScoreWindowViewModel,

@@ -1032,4 +1032,10 @@
   <data name="Tip" xml:space="preserve">
     <value>提示</value>
   </data>
+  <data name="FrontendSurvivorScoreInGame" xml:space="preserve">
+    <value>前台-求生者游戏内比分</value>
+  </data>
+  <data name="FrontendHunterScoreInGame" xml:space="preserve">
+    <value>前台-监管者游戏内比分</value>
+  </data>
 </root>

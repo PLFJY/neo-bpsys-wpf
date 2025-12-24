@@ -1017,4 +1017,10 @@
   <data name="Tip" xml:space="preserve">
     <value>Tip</value>
   </data>
+  <data name="FrontendSurvivorScoreInGame" xml:space="preserve">
+    <value>Frontend - Survivor Score in Game</value>
+  </data>
+  <data name="FrontendHunterScoreInGame" xml:space="preserve">
+    <value>Frontend - Hunter Score in Game</value>
+  </data>
 </root>
