@@ -1,9 +1,11 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Plugins;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 
 namespace neo_bpsys_wpf.Plugins;
 
@@ -255,6 +257,14 @@ public class PluginService : IPluginService
         try
         {
             await plugin.StartAsync();
+            
+            // 如果是UI插件，注册页面到导航系统
+            if (plugin is IUIPlugin uiPlugin)
+            {
+                var navService = _serviceProvider.GetService<IPluginNavigationService>();
+                navService?.RegisterPluginPages(uiPlugin);
+            }
+            
             UpdatePluginState(metadata, metadata.State, PluginState.Running);
             _logger.LogInformation("Successfully started plugin: {PluginId}", pluginId);
             return true;
@@ -292,6 +302,13 @@ public class PluginService : IPluginService
 
         try
         {
+            // 如果是UI插件，从导航系统注销页面
+            if (plugin is IUIPlugin)
+            {
+                var navService = _serviceProvider.GetService<IPluginNavigationService>();
+                navService?.UnregisterPluginPages(pluginId);
+            }
+            
             await plugin.StopAsync();
             UpdatePluginState(metadata, metadata.State, PluginState.Stopped);
             _logger.LogInformation("Successfully stopped plugin: {PluginId}", pluginId);

@@ -106,6 +106,7 @@ public partial class App : Application
 
             //Plugin System
             services.AddSingleton<IPluginService, PluginService>();
+            services.AddSingleton<IPluginNavigationService, PluginNavigationService>();
 
             //Views and ViewModels
             //Window
