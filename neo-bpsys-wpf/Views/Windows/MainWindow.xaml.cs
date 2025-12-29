@@ -37,6 +37,7 @@ public partial class MainWindow : FluentWindow, INavigationWindow
         navigationService.SetNavigationControl(RootNavigation);
         infoBarService.SetInfoBarControl(InfoBar);
         snackbarService.SetSnackbarPresenter(SnbPre);
+        
         if (settingsHostService.Settings.ShowTip)
             Loaded += async (s, e) =>
             {

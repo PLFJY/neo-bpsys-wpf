@@ -7,8 +7,14 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Messages;
+using neo_bpsys_wpf.Core.Plugins.Services;
+using neo_bpsys_wpf.Core.Plugins.UI;
 using neo_bpsys_wpf.Views.Pages;
+using System;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
+using System.Windows;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using neo_bpsys_wpf.Core.Abstractions;
@@ -25,6 +31,8 @@ public partial class MainWindowViewModel :
     IRecipient<PropertyChangedMessage<bool>>,
     IRecipient<HighlightMessage>
 {
+    public sealed record PluginNavigationTag(string ExtensionId, INavigationPageExtension Extension);
+
     public MainWindowViewModel()
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
@@ -44,6 +52,7 @@ public partial class MainWindowViewModel :
     private readonly IMessageBoxService _messageBoxService;
     private readonly IGameGuidanceService _gameGuidanceService;
     private readonly IInfoBarService _infoBarService;
+    private readonly IUIExtensionService? _uiExtensionService;
     private readonly ILogger<MainWindowViewModel> _logger;
     [ObservableProperty] private ApplicationTheme _applicationTheme = ApplicationTheme.Dark;
 
@@ -84,12 +93,14 @@ public partial class MainWindowViewModel :
         IMessageBoxService messageBoxService,
         IGameGuidanceService gameGuidanceService,
         IInfoBarService infoBarService,
+        IUIExtensionService uiExtensionService,
         ILogger<MainWindowViewModel> logger)
     {
         _sharedDataService = sharedDataService;
         _messageBoxService = messageBoxService;
         _gameGuidanceService = gameGuidanceService;
         _infoBarService = infoBarService;
+        _uiExtensionService = uiExtensionService;
         _logger = logger;
         _isGuidanceStarted = false;
         _jsonSerializerOptions = new JsonSerializerOptions()
@@ -100,6 +111,70 @@ public partial class MainWindowViewModel :
         GameList = GameListBo5;
         IsBo3Mode = _sharedDataService.IsBo3Mode;
         sharedDataService.CountDownValueChanged += (_, _) => OnPropertyChanged(nameof(RemainingSeconds));
+
+        _uiExtensionService.ExtensionChanged += OnUiExtensionChanged;
+        SyncNavigationMenuExtensions();
+    }
+
+    private void OnUiExtensionChanged(object? sender, UIExtensionChangedEventArgs e)
+    {
+        if (e.Extension.Location != ExtensionPointLocation.NavigationMenu)
+            return;
+
+        RunOnUiThread(SyncNavigationMenuExtensions);
+    }
+
+    private void RunOnUiThread(Action action)
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher is null || dispatcher.CheckAccess())
+        {
+            action();
+            return;
+        }
+
+        dispatcher.InvokeAsync(action);
+    }
+
+    private void SyncNavigationMenuExtensions()
+    {
+        if (_uiExtensionService is null)
+            return;
+
+        // Remove all plugin-provided navigation items first.
+        for (var i = MenuItems.Count - 1; i >= 0; i--)
+        {
+            if (MenuItems[i].Tag is PluginNavigationTag)
+                MenuItems.RemoveAt(i);
+        }
+
+        var extensions = _uiExtensionService
+            .GetExtensions(ExtensionPointLocation.NavigationMenu)
+            .OfType<INavigationPageExtension>()
+            .Where(x => x.ShowInNavigation)
+            .OrderBy(x => x.Priority)
+            .ThenBy(x => x.Title, StringComparer.CurrentCulture);
+
+        foreach (var extension in extensions)
+            MenuItems.Add(CreateNavigationViewItem(extension));
+    }
+
+    private static NavigationViewItem CreateNavigationViewItem(INavigationPageExtension extension)
+    {
+        var item = new NavigationViewItem
+        {
+            Content = extension.Title,
+            TargetPageType = extension.PageType,
+            ToolTip = extension.Description,
+            Tag = new PluginNavigationTag(extension.Id, extension)
+        };
+
+        if (extension.Icon is SymbolRegular symbol)
+            item.Icon = new SymbolIcon(symbol);
+        else if (extension.Icon is IconElement iconElement)
+            item.Icon = iconElement;
+
+        return item;
     }
 
     [RelayCommand]
@@ -315,23 +390,25 @@ public partial class MainWindowViewModel :
         { GameProgress.Game3ExtraSecondHalf, "Game3ExtraSecondHalf" }
     };
 
-    public List<NavigationViewItem> MenuItems { get; } =
-    [
-        new("HomePage", SymbolRegular.Home24, typeof(HomePage)),
-        new("TeamInfo", SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
-        new("MapBP", SymbolRegular.Map24, typeof(MapBpPage)),
-        new("BanHunter", SymbolRegular.PresenterOff24, typeof(BanHunPage)),
-        new("BanSurvivor", SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
-        new("PickCharacter", SymbolRegular.PersonAdd24, typeof(PickPage)),
-        new("TalentAndTrait", SymbolRegular.PersonWalking24, typeof(TalentPage)),
-        new("ScoreControl", SymbolRegular.NumberRow24, typeof(ScorePage)),
-        new("GameData", SymbolRegular.TextNumberListLtr24, typeof(GameDataPage)),
-    ];
+    public ObservableCollection<NavigationViewItem> MenuItems { get; } =
+        new()
+        {
+            new("HomePage", SymbolRegular.Home24, typeof(HomePage)),
+            new("TeamInfo", SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
+            new("MapBP", SymbolRegular.Map24, typeof(MapBpPage)),
+            new("BanHunter", SymbolRegular.PresenterOff24, typeof(BanHunPage)),
+            new("BanSurvivor", SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
+            new("PickCharacter", SymbolRegular.PersonAdd24, typeof(PickPage)),
+            new("TalentAndTrait", SymbolRegular.PersonWalking24, typeof(TalentPage)),
+            new("ScoreControl", SymbolRegular.NumberRow24, typeof(ScorePage)),
+            new("GameData", SymbolRegular.TextNumberListLtr24, typeof(GameDataPage)),
+        };
 
-    public List<NavigationViewItem> FooterMenuItems { get; } =
-    [
-        new("FrontendManagement", SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
-        new("Extensions", SymbolRegular.AppsAddIn24, typeof(ExtensionPage)),
-        new("Settings", SymbolRegular.Settings24, typeof(SettingPage)),
-    ];
+    public ObservableCollection<NavigationViewItem> FooterMenuItems { get; } =
+        new()
+        {
+            new("FrontendManagement", SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
+            new("Extensions", SymbolRegular.AppsAddIn24, typeof(ExtensionPage)),
+            new("Settings", SymbolRegular.Settings24, typeof(SettingPage)),
+        };
 }

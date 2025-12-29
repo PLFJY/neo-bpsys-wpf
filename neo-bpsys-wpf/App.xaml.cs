@@ -4,6 +4,8 @@ using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Plugins.Services;
+using neo_bpsys_wpf.Plugins.Hosting;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Themes;
 using neo_bpsys_wpf.ViewModels.Pages;
@@ -56,10 +58,21 @@ public partial class App : Application
         })
         .ConfigureServices(services =>
         {
-            services.AddNavigationViewPageProvider();
+            // 注册自定义的 PageService 以支持插件页面
+            services.AddSingleton<Wpf.Ui.Abstractions.INavigationViewPageProvider, PluginAwarePageService>();
 
             //App Host
             services.AddHostedService<ApplicationHostService>();
+
+            // Plugin System - 插件系统
+            services.AddPluginSystem(options =>
+            {
+                options.PluginsDirectory = Path.Combine(AppConstants.AppDataPath, "Plugins");
+                options.PluginDataDirectory = Path.Combine(AppConstants.AppDataPath, "PluginData");
+                options.AutoLoadPlugins = true;
+            });
+            services.AddHostedService<PluginHostedService>();
+            services.AddSingleton<IHostApplicationService, HostApplicationService>();
 
             // Theme manipulation
             services.AddSingleton<IThemeService, ThemeService>();

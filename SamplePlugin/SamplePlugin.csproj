@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0-windows7.0</TargetFramework>
+        <RootNamespace>SamplePlugin</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <UseWpf>true</UseWpf>
+        <CETCompat>false</CETCompat>
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- 插件只需引用 Core 项目，包含所有插件开发所需的接口和抽象 -->
+        <ProjectReference Include="..\neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj">
+            <Private>false</Private>
+            <ExcludeAssets>runtime</ExcludeAssets>
+        </ProjectReference>
+    </ItemGroup>
+
+    <!-- 构建后复制到 AppData Plugins 目录，供运行时加载 -->
+    <Target Name="CopyToPluginsFolder" AfterTargets="Build">
+        <PropertyGroup>
+            <AppDataPluginsDir>$(APPDATA)\neo-bpsys-wpf\Plugins\SamplePlugin\</AppDataPluginsDir>
+        </PropertyGroup>
+        <MakeDir Directories="$(AppDataPluginsDir)" />
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(AppDataPluginsDir)" />
+        <Copy SourceFiles="$(TargetDir)$(TargetName).deps.json" DestinationFolder="$(AppDataPluginsDir)" Condition="Exists('$(TargetDir)$(TargetName).deps.json')" />
+        <Copy SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFolder="$(AppDataPluginsDir)" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+    </Target>
+
+</Project>

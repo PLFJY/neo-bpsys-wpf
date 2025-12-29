@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "neo-bpsys-wpf", "neo-bpsys-
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "neo-bpsys-wpf.Core", "neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj", "{59F7308F-5FFF-44A6-B708-90AFE4A72AED}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SamplePlugin", "SamplePlugin\SamplePlugin.csproj", "{C3D4E5F6-A7B8-9012-CDEF-123456789ABC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{59F7308F-5FFF-44A6-B708-90AFE4A72AED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{59F7308F-5FFF-44A6-B708-90AFE4A72AED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{59F7308F-5FFF-44A6-B708-90AFE4A72AED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3D4E5F6-A7B8-9012-CDEF-123456789ABC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3D4E5F6-A7B8-9012-CDEF-123456789ABC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3D4E5F6-A7B8-9012-CDEF-123456789ABC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3D4E5F6-A7B8-9012-CDEF-123456789ABC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
