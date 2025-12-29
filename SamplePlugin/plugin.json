@@ -1,0 +1,12 @@
+{
+  "Id": "com.example.sampleplugin",
+  "Name": "示例插件",
+  "Description": "这是一个演示如何创建插件的示例插件，包含一个简单的UI页面。",
+  "Version": "1.0.0",
+  "Author": "Plugin Developer",
+  "AssemblyFile": "SamplePlugin.dll",
+  "TypeFullName": "SamplePlugin.SamplePlugin",
+  "Dependencies": [],
+  "MinAppVersion": "1.0.0",
+  "Tags": ["sample", "example", "demo"]
+}

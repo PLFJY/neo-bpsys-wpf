@@ -330,6 +330,7 @@ public partial class MainWindowViewModel :
     public List<NavigationViewItem> FooterMenuItems { get; } =
     [
         new("前台管理", SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
+        new("插件管理", SymbolRegular.Apps24, typeof(PluginManagePage)),
         new("扩展功能", SymbolRegular.AppsAddIn24, typeof(ExtensionPage)),
         new("设置", SymbolRegular.Settings24, typeof(SettingPage)),
     ];

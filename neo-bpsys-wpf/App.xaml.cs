@@ -15,7 +15,9 @@ using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Abstractions.Plugins;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Plugins;
 using Wpf.Ui;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.DependencyInjection;
@@ -101,6 +103,10 @@ public partial class App : Application
             services.AddSingleton<IGameGuidanceService, GameGuidanceService>();
             services.AddSingleton<ISettingsHostService, SettingsHostService>();
             services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
+
+            //Plugin System
+            services.AddSingleton<IPluginService, PluginService>();
+            services.AddSingleton<IPluginNavigationService, PluginNavigationService>();
 
             //Views and ViewModels
             //Window
@@ -206,6 +212,12 @@ public partial class App : Application
                 DataContext = sp.GetRequiredService<ExtensionPageViewModel>(),
             });
             services.AddSingleton<ExtensionPageViewModel>();
+
+            services.AddSingleton<PluginManagePage>(sp => new PluginManagePage()
+            {
+                DataContext = sp.GetRequiredService<PluginManagePageViewModel>(),
+            });
+            services.AddSingleton<PluginManagePageViewModel>();
 
             services.AddSingleton<SettingPage>(sp =>
                 new SettingPage(sp.GetRequiredService<ITextSettingsNavigationService>())
