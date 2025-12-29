@@ -367,3 +367,11 @@ build/
 
 #Jetbrains Rider
 .idea/
+
+# Plugin System - User-installed plugins directory
+# (Exclude runtime plugin installations)
+neo-bpsys-wpf/bin/*/Plugins/
+neo-bpsys-wpf/obj/*/Plugins/
+
+# Keep sample plugin in source control
+!SamplePlugin/
