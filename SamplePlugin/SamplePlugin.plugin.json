@@ -1,0 +1,31 @@
+{
+  "id": "com.example.sampleplugin",
+  "name": "示例插件",
+  "version": "1.0.0",
+  "description": "这是一个示例插件，展示了插件系统的基本功能。通过这个插件，开发者可以学习如何创建、注册 UI 组件、命令、事件处理以及插件设置。",
+  "author": "Plugin Developer",
+  "authorEmail": "dev@example.com",
+  "website": "https://example.com",
+  "license": "MIT",
+  "features": [
+    "计数器演示：动态维护计数器状态",
+    "UI 组件注册：展示导航页面和工具栏按钮的注册方式",
+    "命令扩展：演示如何注册和响应应用级命令",
+    "事件总线：订阅主题变更和应用关闭事件",
+    "插件设置：展示持久化设置的加载和保存"
+  ],
+  "keywords": [
+    "示例",
+    "教程",
+    "插件系统",
+    "MVVM"
+  ],
+  "minEngineVersion": "1.0.0",
+  "dependencies": [],
+  "permissions": [
+    "ui.extension",
+    "commands.register",
+    "events.subscribe",
+    "settings.persist"
+  ]
+}

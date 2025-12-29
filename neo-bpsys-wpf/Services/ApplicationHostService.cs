@@ -29,22 +29,27 @@ public class ApplicationHostService(IServiceProvider serviceProvider) : IHostedS
     {
         await Task.CompletedTask;
 
-        if (!Application.Current.Windows.OfType<MainWindow>().Any())
+        // 在 UI 线程上执行窗口操作
+        Application.Current.Dispatcher.Invoke(() =>
         {
-            _navigationWindow = serviceProvider.GetRequiredService<INavigationWindow>();
-            _navigationWindow.ShowWindow();
+            if (!Application.Current.Windows.OfType<MainWindow>().Any())
+            {
+                _navigationWindow = serviceProvider.GetRequiredService<INavigationWindow>();
+                _navigationWindow.ShowWindow();
 
-            //提前加载调用了CharaSelector的页面，避免使用过程中卡顿
-            await Task.Delay(250);
-            _ = _navigationWindow.Navigate(typeof(PickPage));
-            await Task.Delay(750);
-            _ = _navigationWindow.Navigate(typeof(BanSurPage));
-            await Task.Delay(550);
-            _ = _navigationWindow.Navigate(typeof(BanHunPage));
-            await Task.Delay(250);
+                //提前加载调用了CharaSelector的页面，避免使用过程中卡顿
+                Task.Delay(250).Wait();
+                _ = _navigationWindow.Navigate(typeof(PickPage));
+                Task.Delay(750).Wait();
+                _ = _navigationWindow.Navigate(typeof(BanSurPage));
+                Task.Delay(550).Wait();
+                _ = _navigationWindow.Navigate(typeof(BanHunPage));
+                Task.Delay(250).Wait();
 
-            _ = _navigationWindow.Navigate(typeof(HomePage));
-        }
+                _ = _navigationWindow.Navigate(typeof(HomePage));
+            }
+        });
+
         await Task.CompletedTask;
     }
 }
