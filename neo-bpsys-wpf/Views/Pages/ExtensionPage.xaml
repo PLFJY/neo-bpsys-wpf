@@ -18,8 +18,75 @@
     mc:Ignorable="d">
 
     <WrapPanel Orientation="Horizontal">
-        <Border Style="{StaticResource Card}">
-            <TextBlock Text="{lex:Loc ComingSoon}" />
+        <Border Style="{StaticResource Card}" MinWidth="620">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" FontSize="16" FontWeight="SemiBold" Text="插件管理器" />
+
+                <StackPanel Grid.Row="1" Margin="0,10,0,0" Orientation="Vertical">
+                    <TextBlock Text="插件目录" />
+                    <TextBlock Opacity="0.8" TextWrapping="Wrap" Text="{Binding PluginsDirectory}" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="2" Margin="0,10,0,0" Orientation="Horizontal">
+                    <ui:Button Command="{Binding RefreshCommand}" Content="刷新" />
+                    <ui:Button Margin="10,0,0,0" Command="{Binding OpenPluginsDirectoryCommand}" Content="打开插件目录" />
+                </StackPanel>
+
+                <DataGrid
+                    Grid.Row="3"
+                    Margin="0,10,0,0"
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    CanUserDeleteRows="False"
+                    HeadersVisibility="Column"
+                    IsReadOnly="True"
+                    ItemsSource="{Binding Plugins}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Width="2*" Binding="{Binding Name}" Header="名称" />
+                        <DataGridTextColumn Width="2*" Binding="{Binding Id}" Header="ID" />
+                        <DataGridTextColumn Width="*" Binding="{Binding Version}" Header="版本" />
+                        <DataGridTextColumn Width="*" Binding="{Binding State}" Header="状态" />
+                        <DataGridTemplateColumn Width="2*" Header="操作">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:Button
+                                            Command="{Binding DataContext.EnablePluginCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                            CommandParameter="{Binding}"
+                                            Content="启用"
+                                            IsEnabled="{Binding CanEnable}" />
+                                        <ui:Button
+                                            Margin="10,0,0,0"
+                                            Command="{Binding DataContext.DisablePluginCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                            CommandParameter="{Binding}"
+                                            Content="禁用"
+                                            IsEnabled="{Binding CanDisable}" />
+                                        <ui:Button
+                                            Margin="10,0,0,0"
+                                            Command="{Binding DataContext.ReloadPluginCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                            CommandParameter="{Binding}"
+                                            Content="重载"
+                                            IsEnabled="{Binding CanReload}" />
+                                        <ui:Button
+                                            Margin="10,0,0,0"
+                                            Command="{Binding DataContext.UnloadPluginCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                            CommandParameter="{Binding}"
+                                            Content="卸载"
+                                            IsEnabled="{Binding CanUnload}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
         </Border>
     </WrapPanel>
 </Page>

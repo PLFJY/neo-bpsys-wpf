@@ -11,9 +11,4 @@ public partial class ExtensionPage : Page
     {
         InitializeComponent();
     }
-
-    private void Border_ManipulationInertiaStarting(object sender, System.Windows.Input.ManipulationInertiaStartingEventArgs e)
-    {
-
-    }
 }
