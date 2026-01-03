@@ -39,10 +39,10 @@ public partial class MainWindow : FluentWindow, INavigationWindow
             Loaded += async (s, e) =>
             {
                 await Task.Delay(5500);
-                snackbarService.Show("提示",
+                snackbarService.Show(Lang.Notification,
                     new HyperLinkSnackbarContent(
                         Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "bpui"),
-                        "软件安装目录下有无作者名字版本的前台UI awa",
+                        Lang.NoAuthorUiInfo,
                         () =>
                         {
                             settingsHostService.Settings.ShowTip = false;

@@ -12,11 +12,12 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using neo_bpsys_wpf.Core.Helpers;
 
 namespace neo_bpsys_wpf.Services;
 
 /// <summary>
-/// 对局引导服务, 实现了 <see cref="IFrontService"/> 接口，负责与前台窗口进行交互
+/// 前台窗口服务, 实现了 <see cref="IFrontService"/> 接口，负责与前台窗口进行交互
 /// </summary>
 public class FrontService : IFrontService
 {
@@ -39,7 +40,6 @@ public class FrontService : IFrontService
     private static readonly Dictionary<GameProgress, FrameworkElement> AwayGlobalScoreControls = [];
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
-    private readonly IMessageBoxService _messageBoxService;
     private readonly ISharedDataService _sharedDataService;
     private readonly ISettingsHostService _settingsHostService;
 
@@ -51,12 +51,10 @@ public class FrontService : IFrontService
         ScoreHunWindow scoreHunWindow,
         ScoreGlobalWindow scoreGlobalWindow,
         WidgetsWindow widgetsWindow,
-        IMessageBoxService messageBoxService,
         ISharedDataService sharedDataService,
         ISettingsHostService settingsHostService
     )
     {
-        _messageBoxService = messageBoxService;
         _sharedDataService = sharedDataService;
         _settingsHostService = settingsHostService;
         if (!Directory.Exists(AppConstants.AppDataPath)) Directory.CreateDirectory(AppConstants.AppDataPath);
@@ -160,7 +158,7 @@ public class FrontService : IFrontService
     {
         if (!FrontWindows.TryGetValue(windowType, out var window))
         {
-            _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "窗口启动错误");
+            _ = MessageBoxHelper.ShowErrorAsync($"未注册的窗口类型：{windowType}", "窗口启动错误");
             return;
         }
 
@@ -187,7 +185,7 @@ public class FrontService : IFrontService
     {
         if (!FrontWindows.TryGetValue(windowType, out var window))
         {
-            _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "窗口关闭错误");
+            _ = MessageBoxHelper.ShowErrorAsync($"未注册的窗口类型：{windowType}", "窗口关闭错误");
             return;
         }
 
@@ -221,7 +219,7 @@ public class FrontService : IFrontService
         }
         catch (Exception ex)
         {
-            _messageBoxService.ShowErrorAsync(ex.Message, "生成默认前台配置文件发生错误");
+            _ = MessageBoxHelper.ShowErrorAsync(ex.Message, "生成默认前台配置文件发生错误");
         }
     }
 
@@ -261,7 +259,7 @@ public class FrontService : IFrontService
     {
         if (!FrontWindows.TryGetValue(windowType, out var window))
         {
-            _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "配置文件保存错误");
+            _ = MessageBoxHelper.ShowErrorAsync($"未注册的窗口类型：{windowType}", "配置文件保存错误");
             return;
         }
 
@@ -278,7 +276,7 @@ public class FrontService : IFrontService
         }
         catch (Exception ex)
         {
-            _messageBoxService.ShowInfoAsync($"保存前台配置文件失败\n{ex.Message}", "保存提示");
+            _ = MessageBoxHelper.ShowInfoAsync($"保存前台配置文件失败\n{ex.Message}", "保存提示");
         }
     }
 
@@ -323,7 +321,7 @@ public class FrontService : IFrontService
     {
         if (!FrontWindows.TryGetValue(windowType, out var window))
         {
-            await _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "配置文件加载错误");
+            await MessageBoxHelper.ShowErrorAsync($"未注册的窗口类型：{windowType}", "配置文件加载错误");
             return;
         }
 
@@ -338,7 +336,7 @@ public class FrontService : IFrontService
         catch (Exception ex)
         {
             File.Move(path, path + ".disabled", true);
-            await _messageBoxService.ShowErrorAsync(ex.Message);
+            await MessageBoxHelper.ShowErrorAsync(ex.Message);
         }
     }
 
@@ -379,11 +377,11 @@ public class FrontService : IFrontService
     {
         if (!FrontWindows.TryGetValue(windowType, out var window))
         {
-            await _messageBoxService.ShowErrorAsync($"未注册的窗口类型：{windowType}", "前台默认配置恢复错误");
+            await MessageBoxHelper.ShowErrorAsync($"未注册的窗口类型：{windowType}", "前台默认配置恢复错误");
             return;
         }
 
-        if (!await _messageBoxService.ShowConfirmAsync("重置提示", $"确认重置{window.GetType().Name}-{canvasName}的配置吗？"))
+        if (!await MessageBoxHelper.ShowConfirmAsync("重置提示", $"确认重置{window.GetType().Name}-{canvasName}的配置吗？"))
             return;
 
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
@@ -404,7 +402,7 @@ public class FrontService : IFrontService
         }
         catch (Exception ex)
         {
-            await _messageBoxService.ShowErrorAsync(ex.Message, "读取前台默认配置错误");
+            await MessageBoxHelper.ShowErrorAsync(ex.Message, "读取前台默认配置错误");
         }
     }
 

@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -12,6 +13,9 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using neo_bpsys_wpf.Core.Abstractions;
+using neo_bpsys_wpf.Core.Attributes;
+using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Services.Registry;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using Game = neo_bpsys_wpf.Core.Models.Game;
@@ -41,7 +45,6 @@ public partial class MainWindowViewModel :
         }
     };
 
-    private readonly IMessageBoxService _messageBoxService;
     private readonly IGameGuidanceService _gameGuidanceService;
     private readonly IInfoBarService _infoBarService;
     private readonly ILogger<MainWindowViewModel> _logger;
@@ -81,13 +84,11 @@ public partial class MainWindowViewModel :
 
     public MainWindowViewModel(
         ISharedDataService sharedDataService,
-        IMessageBoxService messageBoxService,
         IGameGuidanceService gameGuidanceService,
         IInfoBarService infoBarService,
         ILogger<MainWindowViewModel> logger)
     {
         _sharedDataService = sharedDataService;
-        _messageBoxService = messageBoxService;
         _gameGuidanceService = gameGuidanceService;
         _infoBarService = infoBarService;
         _logger = logger;
@@ -99,7 +100,27 @@ public partial class MainWindowViewModel :
         };
         GameList = GameListBo5;
         IsBo3Mode = _sharedDataService.IsBo3Mode;
+        BuildNavigationMenuItems();
         sharedDataService.CountDownValueChanged += (_, _) => OnPropertyChanged(nameof(RemainingSeconds));
+    }
+
+    private void BuildNavigationMenuItems()
+    {
+        foreach (var info in BackendPagesRegistryService.Registered)
+        {
+            if (info.PageType == null) continue;
+            switch (info.Category)
+            {
+                case BackendPageCategory.Internal:
+                    MenuItems.Add(new NavigationViewItem(info.Name, info.Icon, info.PageType));
+                    break;
+                case BackendPageCategory.External:
+                    FooterMenuItems.Insert(0, new NavigationViewItem(info.Name, info.Icon, info.PageType));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
     }
 
     [RelayCommand]
@@ -134,7 +155,7 @@ public partial class MainWindowViewModel :
             new Game(surTeam, hunTeam, SelectedGameProgress, pickedMap, bannedMap, mapV2Dictionary);
 
         OnPropertyChanged(nameof(CurrentGame));
-        await _messageBoxService.ShowInfoAsync($"已成功创建新对局\n{CurrentGame.Guid}", "创建提示");
+        await MessageBoxHelper.ShowInfoAsync($"已成功创建新对局\n{CurrentGame.Guid}", "创建提示");
         _logger.LogInformation("New Game Created{CurrentGameGuid}", CurrentGame.Guid);
     }
 
@@ -157,12 +178,12 @@ public partial class MainWindowViewModel :
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
             await File.WriteAllTextAsync(fullPath, json);
-            await _messageBoxService.ShowInfoAsync($"已成功保存到\n{fullPath}", "保存提示");
+            await MessageBoxHelper.ShowInfoAsync($"已成功保存到\n{fullPath}", "保存提示");
             _logger.LogInformation("Save game {CurrentGameGuid} info successfully", CurrentGame.Guid);
         }
         catch (Exception ex)
         {
-            await _messageBoxService.ShowInfoAsync($"保存失败\n{ex.Message}", "保存提示");
+            await MessageBoxHelper.ShowInfoAsync($"保存失败\n{ex.Message}", "保存提示");
             _logger.LogError("Save game {CurrentGameGuid} info failed\n{ExMessage}", CurrentGame.Guid, ex.Message);
         }
     }
@@ -178,7 +199,7 @@ public partial class MainWindowViewModel :
         }
         else
         {
-            _messageBoxService.ShowErrorAsync("输入不合法");
+            _ = MessageBoxHelper.ShowErrorAsync("输入不合法");
             _logger.LogError("Timer input is not valid");
         }
     }
@@ -315,7 +336,7 @@ public partial class MainWindowViewModel :
         { GameProgress.Game3ExtraSecondHalf, "Game3ExtraSecondHalf" }
     };
 
-    public List<NavigationViewItem> MenuItems { get; } =
+    public ObservableCollection<NavigationViewItem> MenuItems { get; } =
     [
         new("HomePage", SymbolRegular.Home24, typeof(HomePage)),
         new("TeamInfo", SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
@@ -328,10 +349,10 @@ public partial class MainWindowViewModel :
         new("GameData", SymbolRegular.TextNumberListLtr24, typeof(GameDataPage)),
     ];
 
-    public List<NavigationViewItem> FooterMenuItems { get; } =
+    public ObservableCollection<NavigationViewItem> FooterMenuItems { get; } =
     [
         new("FrontendManagement", SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
-        new("Extensions", SymbolRegular.AppsAddIn24, typeof(ExtensionPage)),
+        new("Plugins", SymbolRegular.AppsAddIn24, typeof(PluginPage)),
         new("Settings", SymbolRegular.Settings24, typeof(SettingPage)),
     ];
 }

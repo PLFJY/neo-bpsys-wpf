@@ -37,16 +37,15 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly IFilePickerService _filePickerService;
     private readonly ISharedDataService _sharedDataService;
     private readonly ILogger<SettingPageViewModel> _logger;
-    private readonly IMessageBoxService _messageBoxService;
     public IUpdaterService UpdaterService { get; }
     private readonly DownloadService? _downloader;
 
     public SettingPageViewModel(IUpdaterService updaterService, ISettingsHostService settingsHostService,
         ITextSettingsNavigationService textSettingsNavigationService, IFrontService frontService,
-        IFilePickerService filePickerService, IMessageBoxService messageBoxService,
-        ISharedDataService sharedDataService, ILogger<SettingPageViewModel> logger)
+        IFilePickerService filePickerService, ISharedDataService sharedDataService, 
+        ILogger<SettingPageViewModel> logger)
     {
-        AppVersion = "版本 v" + Application.ResourceAssembly.GetName().Version!;
+        AppVersion = AppConstants.AppVersion;
         UpdaterService = updaterService;
         _settingsHostService = settingsHostService;
         _textSettingsNavigationService = textSettingsNavigationService;
@@ -54,7 +53,6 @@ public partial class SettingPageViewModel : ViewModelBase
         _filePickerService = filePickerService;
         _sharedDataService = sharedDataService;
         _logger = logger;
-        _messageBoxService = messageBoxService;
 
         if (updaterService.Downloader is DownloadService downloader)
         {
@@ -93,9 +91,18 @@ public partial class SettingPageViewModel : ViewModelBase
             { "GameScores", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.MinorPoints },
             { "MatchScore", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.MajorPoints },
             { "TeamName", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.TeamName },
-            { "TeamNameInScoreStatistics", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_TeamName },
-            { "GameScoresInScoreStatistics", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_Data },
-            { "TotalGameScoresInScoreStatistics", _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_Total }
+            {
+                "TeamNameInScoreStatistics",
+                _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_TeamName
+            },
+            {
+                "GameScoresInScoreStatistics",
+                _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_Data
+            },
+            {
+                "TotalGameScoresInScoreStatistics",
+                _settingsHostService.Settings.ScoreWindowSettings.TextSettings.ScoreGlobal_Total
+            }
         };
 
         GameDataWindowTextSettings = new Dictionary<string, TextSettings>
@@ -119,12 +126,18 @@ public partial class SettingPageViewModel : ViewModelBase
             { "MapNameInMapBPV2", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBpV2_MapName },
             { "TeamNameInMapBPV2", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBpV2_TeamName },
             { "CampNameInMapBPV2", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.MapBpV2_CampWords },
-            { "TeamNameInBPOverview", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_TeamName },
+            {
+                "TeamNameInBPOverview",
+                _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_TeamName
+            },
             {
                 "GameProgressInBPOverview",
                 _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_GameProgress
             },
-            { "GameScoresInBPOverview", _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_MinorPoints }
+            {
+                "GameScoresInBPOverview",
+                _settingsHostService.Settings.WidgetsWindowSettings.TextSettings.BpOverview_MinorPoints
+            }
         };
 
         BpWindowPickingColorSettings = _settingsHostService.Settings.BpWindowSettings.PickingBorderColor.ToColor();
@@ -142,12 +155,10 @@ public partial class SettingPageViewModel : ViewModelBase
 
     [ObservableProperty] private string _appVersion = string.Empty;
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(UpdateCheckCommand))]
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(UpdateCheckCommand))]
     private bool _isDownloading;
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(InstallUpdateCommand))]
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(InstallUpdateCommand))]
     private bool _isDownloadFinished;
 
     [ObservableProperty] private string _downloadProgressText = string.Empty;
@@ -222,6 +233,7 @@ public partial class SettingPageViewModel : ViewModelBase
     #endregion
 
     #region 语言设置
+
     private LanguageKey _selectedLanguage = LanguageKey.System;
 
     public LanguageKey SelectedLanguage
@@ -238,11 +250,12 @@ public partial class SettingPageViewModel : ViewModelBase
 
     public Dictionary<string, LanguageKey> LanguageList { get; } = new()
     {
-        {"FollowSystem", LanguageKey.System},
-        {"zh_Hans" , LanguageKey.zh_Hans},
-        {"en_US" , LanguageKey.en_US},
+        { "FollowSystem", LanguageKey.System },
+        { "zh_Hans", LanguageKey.zh_Hans },
+        { "en_US", LanguageKey.en_US },
         //{"ja_JP" , LanguageKey.ja_JP }
     };
+
     #endregion
 
     #region 快捷入口
@@ -294,9 +307,10 @@ public partial class SettingPageViewModel : ViewModelBase
     [RelayCommand]
     private void SwitchDebugGlobalScore()
     {
-        App.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible =
-            !App.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible;
-        _messageBoxService.ShowInfoAsync($"ScorePageViewModel.IsDebugContentVisible 已设置为 {App.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible}");
+        IAppHost.Host.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible =
+            !IAppHost.Host.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible;
+        _ = MessageBoxHelper.ShowInfoAsync(
+            $"ScorePageViewModel.IsDebugContentVisible 已设置为 {IAppHost.Host.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible}");
     }
 
     /// <summary>
@@ -307,7 +321,7 @@ public partial class SettingPageViewModel : ViewModelBase
     {
         _settingsHostService.Settings.ShowTip = true;
         _settingsHostService.SaveConfig();
-        _messageBoxService.ShowInfoAsync("Settings.ShowTip 已设置为 true");
+        _ = MessageBoxHelper.ShowInfoAsync("Settings.ShowTip 已设置为 true");
     }
 
     #endregion
@@ -335,7 +349,7 @@ public partial class SettingPageViewModel : ViewModelBase
         }
         catch (Exception e)
         {
-            _messageBoxService.ShowErrorAsync($"应用图片失败\n{e}");
+            _ = MessageBoxHelper.ShowErrorAsync($"应用图片失败\n{e}");
             return;
         }
 
@@ -393,11 +407,11 @@ public partial class SettingPageViewModel : ViewModelBase
 
     private async Task SetTalentAndTraitBlackVerAsync(bool isBlackVer)
     {
-        if (await _messageBoxService.ShowConfirmAsync("确认提示", $"是否切换天赋和辅助特质为{(isBlackVer ? "黑色" : "白色")}图标？"))
+        if (await MessageBoxHelper.ShowConfirmAsync("确认提示", $"是否切换天赋和辅助特质为{(isBlackVer ? "黑色" : "白色")}图标？"))
         {
             _settingsHostService.Settings.CutSceneWindowSettings.IsBlackTalentAndTraitEnable = isBlackVer;
             _settingsHostService.SaveConfig();
-            _ = _messageBoxService.ShowInfoAsync("重启后生效");
+            _ = MessageBoxHelper.ShowInfoAsync("重启后生效");
         }
 
         OnPropertyChanged(nameof(IsTalentAndTraitBlackVerEnable));
@@ -432,7 +446,7 @@ public partial class SettingPageViewModel : ViewModelBase
     [RelayCommand]
     private async Task SaveGlobalScoreTotalMargin()
     {
-        if (await _messageBoxService.ShowConfirmAsync("确认提示", "是否保存 BO3 和 BO5模式切换之间\"Total\"相差的距离(下一次切换生效)"))
+        if (await MessageBoxHelper.ShowConfirmAsync("确认提示", "是否保存 BO3 和 BO5模式切换之间\"Total\"相差的距离(下一次切换生效)"))
         {
             _sharedDataService.GlobalScoreTotalMargin = GlobalScoreTotalMargin;
             _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreTotalMargin = GlobalScoreTotalMargin;
@@ -448,11 +462,11 @@ public partial class SettingPageViewModel : ViewModelBase
 
     private async Task SetScoreGlobalCampIconBlackVerAsync(bool isBlackVer)
     {
-        if (await _messageBoxService.ShowConfirmAsync("确认提示", $"是否切换阵营图标为{(isBlackVer ? "黑色" : "白色")}？"))
+        if (await MessageBoxHelper.ShowConfirmAsync("确认提示", $"是否切换阵营图标为{(isBlackVer ? "黑色" : "白色")}？"))
         {
             _settingsHostService.Settings.ScoreWindowSettings.IsCampIconBlackVerEnabled = isBlackVer;
             _settingsHostService.SaveConfig();
-            _ = _messageBoxService.ShowInfoAsync("重启后生效");
+            _ = MessageBoxHelper.ShowInfoAsync("重启后生效");
         }
 
         OnPropertyChanged(nameof(IsScoreGlobalCampIconBlackVerEnable));
@@ -474,11 +488,11 @@ public partial class SettingPageViewModel : ViewModelBase
 
     private async Task SetMapBpV2CampIconBlackVerAsync(bool isBlackVer)
     {
-        if (await _messageBoxService.ShowConfirmAsync("确认提示", $"是否切换MapBpV2的阵营图标为{(isBlackVer ? "黑色" : "白色")}？"))
+        if (await MessageBoxHelper.ShowConfirmAsync("确认提示", $"是否切换MapBpV2的阵营图标为{(isBlackVer ? "黑色" : "白色")}？"))
         {
             _settingsHostService.Settings.WidgetsWindowSettings.IsCampIconBlackVerEnabled = isBlackVer;
             _settingsHostService.SaveConfig();
-            _ = _messageBoxService.ShowInfoAsync("重启后生效");
+            _ = MessageBoxHelper.ShowInfoAsync("重启后生效");
         }
 
         OnPropertyChanged(nameof(IsMapBpV2CampIconBlackVerEnable));
@@ -555,17 +569,17 @@ public partial class SettingPageViewModel : ViewModelBase
     [RelayCommand]
     private async Task ResetAsync(FrontWindowType windowType)
     {
-        if (!await _messageBoxService.ShowConfirmAsync("重置提示", $"是否重置{windowType}的个性化设置")) return;
+        if (!await MessageBoxHelper.ShowConfirmAsync("重置提示", $"是否重置{windowType}的个性化设置")) return;
         _settingsHostService.ResetConfig(windowType);
-        _ = _messageBoxService.ShowInfoAsync("部分设置重启后生效");
+        _ = MessageBoxHelper.ShowInfoAsync("部分设置重启后生效");
     }
 
     [RelayCommand]
     private async Task ResetAllAsync()
     {
-        if (!await _messageBoxService.ShowConfirmAsync("重置提示", $"是否重置所有前台窗口的个性化设置")) return;
+        if (!await MessageBoxHelper.ShowConfirmAsync("重置提示", $"是否重置所有前台窗口的个性化设置")) return;
         _settingsHostService.ResetConfig();
-        _ = _messageBoxService.ShowInfoAsync("部分设置重启后生效");
+        _ = MessageBoxHelper.ShowInfoAsync("部分设置重启后生效");
     }
 
     public Color BpWindowPickingColorSettings { get; set; }
@@ -673,7 +687,7 @@ public partial class SettingPageViewModel : ViewModelBase
             if (File.Exists(zipPath)) File.Delete(zipPath);
             ZipFile.CreateFromDirectory(TempPath, zipPath);
             //保存
-            if (await _messageBoxService.ShowConfirmAsync("覆盖提示", $"{savePath}已存在，是否覆盖"))
+            if (await MessageBoxHelper.ShowConfirmAsync("覆盖提示", $"{savePath}已存在，是否覆盖"))
                 File.Delete(savePath);
             else
             {
@@ -688,11 +702,11 @@ public partial class SettingPageViewModel : ViewModelBase
             Directory.Delete(TempPath, true);
             File.Delete(zipPath);
             //提示用户已完成
-            await _messageBoxService.ShowInfoAsync($"UI 配置已被保存为{savePath}");
+            await MessageBoxHelper.ShowInfoAsync($"UI 配置已被保存为{savePath}");
         }
         catch (Exception e)
         {
-            await _messageBoxService.ShowErrorAsync(e.Message, "打包UI错误");
+            await MessageBoxHelper.ShowErrorAsync(e.Message, "打包UI错误");
         }
     }
 
@@ -919,21 +933,22 @@ public partial class SettingPageViewModel : ViewModelBase
             var frontElementConfigures = Directory.GetFiles(FrontElementsConfigTempPath);
             foreach (var frontElementConfigure in frontElementConfigures)
             {
-                File.Copy(frontElementConfigure, Path.Combine(AppConstants.AppDataPath, Path.GetFileName(frontElementConfigure)), true);
+                File.Copy(frontElementConfigure,
+                    Path.Combine(AppConstants.AppDataPath, Path.GetFileName(frontElementConfigure)), true);
             }
 
             //清理作案痕迹
             Directory.Delete(TempPath, true);
 
             //告诉用户已经导入完了
-            await _messageBoxService.ShowInfoAsync("UI导入完成，应用将自动重启", "UI 导入提示");
+            await MessageBoxHelper.ShowInfoAsync("UI导入完成，应用将自动重启", "UI 导入提示");
 
             //重启应用程序
             App.Restart();
         }
         catch (Exception e)
         {
-            await _messageBoxService.ShowErrorAsync(e.Message, "加载UI包失败");
+            await MessageBoxHelper.ShowErrorAsync(e.Message, "加载UI包失败");
         }
     }
 

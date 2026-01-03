@@ -5,7 +5,9 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using System.IO;
 using System.Text.Json;
+using System.Windows;
 using System.Windows.Media.Imaging;
+using neo_bpsys_wpf.Core.Helpers;
 using Member = neo_bpsys_wpf.Core.Models.Member;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 
@@ -22,13 +24,11 @@ public partial class TeamInfoPageViewModel
 
         public Team CurrentTeam { get; private set; }
         private readonly IFilePickerService _filePickerService;
-        private readonly IMessageBoxService _messageBoxService;
 
-        public TeamInfoViewModel(Team team, IFilePickerService filePickerService, IMessageBoxService messageBoxService)
+        public TeamInfoViewModel(Team team, IFilePickerService filePickerService)
         {
             CurrentTeam = team;
             _filePickerService = filePickerService;
-            _messageBoxService = messageBoxService;
         }
 
         [ObservableProperty]
@@ -53,7 +53,7 @@ public partial class TeamInfoPageViewModel
             }
             catch
             {
-                _messageBoxService.ShowErrorAsync($"图片文件可能损坏或格式不受支持");
+                _ = MessageBoxHelper.ShowErrorAsync($"图片文件可能损坏或格式不受支持");
             }
         }
 
@@ -84,11 +84,11 @@ public partial class TeamInfoPageViewModel
             }
             catch (JsonException ex)
             {
-                _messageBoxService.ShowErrorAsync($"Json文件格式错误\n{ex.Message}");
+                _ = MessageBoxHelper.ShowErrorAsync($"Json文件格式错误\n{ex.Message}");
             }
             catch
             {
-                _messageBoxService.ShowErrorAsync($"图片文件可能损坏或格式不受支持");
+                _ = MessageBoxHelper.ShowErrorAsync($"图片文件可能损坏或格式不受支持");
             }
         }
 
@@ -131,7 +131,7 @@ public partial class TeamInfoPageViewModel
                 ? string.Empty
                 : $" \"{member.Name}\" ";
 
-            if (await _messageBoxService.ShowDeleteConfirmAsync("删除确认", $"确定删除{memberName}吗？"))
+            if (await MessageBoxHelper.ShowDeleteConfirmAsync("删除确认", $"确定删除{memberName}吗？"))
             {
                 CurrentTeam.MemberOffField(member);
                 if (member.Camp == Camp.Sur)
@@ -198,14 +198,14 @@ public partial class TeamInfoPageViewModel
             }
             catch
             {
-                _messageBoxService.ShowErrorAsync($"图片文件可能损坏或格式不受支持");
+                _ = MessageBoxHelper.ShowErrorAsync($"图片文件可能损坏或格式不受支持");
             }
         }
 
         [RelayCommand]
         private async Task ClearMemberImageAsync(Member member)
         {
-            if (await _messageBoxService.ShowConfirmAsync("清除提示", $"是否清除选手{(string.IsNullOrEmpty(member.Name) ? string.Empty : member.Name)}的定妆照"))
+            if (await MessageBoxHelper.ShowConfirmAsync("清除提示", $"是否清除选手{(string.IsNullOrEmpty(member.Name) ? string.Empty : member.Name)}的定妆照"))
                 member.Image = null;
         }
     }

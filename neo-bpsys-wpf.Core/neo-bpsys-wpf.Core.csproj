@@ -6,21 +6,28 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <UseWpf>true</UseWpf>
-		<CETCompat>false</CETCompat>
-	</PropertyGroup>
+        <CETCompat>false</CETCompat>
+    </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-      <PackageReference Include="hyjiacan.pinyin4net" Version="4.1.1" />
-      <PackageReference Include="WPF-UI" Version="4.1.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+        <PackageReference Include="hyjiacan.pinyin4net" Version="4.1.1" />
+        <PackageReference Include="WPF-UI" Version="4.1.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <Page Update="Styles\Card.xaml">
-        <Generator>MSBuild:Compile</Generator>
-        <XamlRuntime>Wpf</XamlRuntime>
-        <SubType>Designer</SubType>
-      </Page>
+        <Page Update="Styles\Card.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <XamlRuntime>Wpf</XamlRuntime>
+            <SubType>Designer</SubType>
+        </Page>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <InternalsVisibleTo Include="neo-bpsys-wpf" />
     </ItemGroup>
 
 </Project>

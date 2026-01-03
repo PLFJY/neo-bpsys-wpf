@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -678,8 +678,8 @@
   <data name="FrontendManagement" xml:space="preserve">
     <value>前台管理</value>
   </data>
-  <data name="Extensions" xml:space="preserve">
-    <value>扩展功能</value>
+  <data name="Plugins" xml:space="preserve">
+    <value>插件</value>
   </data>
   <data name="Settings" xml:space="preserve">
     <value>设置</value>
@@ -965,5 +965,50 @@
   <data name="null" xml:space="preserve">
     <value />
     <comment>空着，这个是给地图显示的FallBack的值</comment>
+  </data>
+  <data name="PluginManagement" xml:space="preserve">
+    <value>插件管理</value>
+  </data>
+  <data name="Installed" xml:space="preserve">
+    <value>已安装</value>
+  </data>
+  <data name="PluginMarket" xml:space="preserve">
+    <value>插件市场</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>启用</value>
+  </data>
+  <data name="RestartToApplyChanges" xml:space="preserve">
+    <value>重启以应用更改</value>
+  </data>
+  <data name="Uninstall" xml:space="preserve">
+    <value>卸载</value>
+  </data>
+  <data name="CancelUninstall" xml:space="preserve">
+    <value>取消卸载</value>
+  </data>
+  <data name="Notification" xml:space="preserve">
+    <value>提示</value>
+  </data>
+  <data name="NoAuthorUiInfo" xml:space="preserve">
+    <value>软件安装目录下有无作者名字版本的前台UI ^_^</value>
+  </data>
+  <data name="DontShowThisAgain" xml:space="preserve">
+    <value>不再提示</value>
+  </data>
+  <data name="GoToFolder" xml:space="preserve">
+    <value>前往目录</value>
+  </data>
+  <data name="ClickToRestart" xml:space="preserve">
+    <value>点击重启</value>
+  </data>
+  <data name="ProjectUrl" xml:space="preserve">
+    <value>项目URL：</value>
+  </data>
+  <data name="RestartNeeded" xml:space="preserve">
+    <value>需要重启</value>
+  </data>
+  <data name="SomeSettingsRequireRestartingTheApplication" xml:space="preserve">
+    <value>部分设置需要重新启动应用</value>
   </data>
 </root>

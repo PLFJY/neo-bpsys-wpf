@@ -14,14 +14,13 @@ public partial class TeamInfoPageViewModel : ViewModelBase
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
 
-    public TeamInfoPageViewModel(ISharedDataService sharedDataService, IFilePickerService filePickerService,
-        IMessageBoxService messageBoxService)
+    public TeamInfoPageViewModel(ISharedDataService sharedDataService, IFilePickerService filePickerService)
     {
         var sharedDataService1 = sharedDataService;
         MainTeamInfoViewModel =
-            new TeamInfoViewModel(sharedDataService1.MainTeam, filePickerService, messageBoxService);
+            new TeamInfoViewModel(sharedDataService1.MainTeam, filePickerService);
         AwayTeamInfoViewModel =
-            new TeamInfoViewModel(sharedDataService1.AwayTeam, filePickerService, messageBoxService);
+            new TeamInfoViewModel(sharedDataService1.AwayTeam, filePickerService);
         OnFieldSurPlayerViewModels =
             [.. Enumerable.Range(0, 4).Select(i => new OnFieldSurPlayerViewModel(sharedDataService1, i))];
         OnFieldHunPlayerVm = new OnFieldHunPlayerViewModel(sharedDataService1);

@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Windows;
+using neo_bpsys_wpf.Core.Helpers;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -28,10 +29,9 @@ public class UpdaterService : IUpdaterService
     private const string GitHubApiBaseUrl = "https://api.github.com";
     private const string InstallerFileName = "neo-bpsys-wpf_Installer.exe";
     private readonly HttpClient _httpClient;
-    private readonly IMessageBoxService _messageBoxService;
     private readonly IInfoBarService _infoBarService;
 
-    public UpdaterService(IMessageBoxService messageBoxService, IInfoBarService infoBarService)
+    public UpdaterService(IInfoBarService infoBarService)
     {
         _httpClient = new HttpClient
         {
@@ -39,7 +39,6 @@ public class UpdaterService : IUpdaterService
         };
         _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
         _httpClient.DefaultRequestHeaders.Add("User-Agent", AppConstants.AppName);
-        _messageBoxService = messageBoxService;
         _infoBarService = infoBarService;
         var downloadOpt = new DownloadConfiguration()
         {
@@ -60,7 +59,7 @@ public class UpdaterService : IUpdaterService
         }
         catch (Exception ex)
         {
-            _messageBoxService.ShowErrorAsync(ex.Message, "清理更新残留异常");
+            MessageBoxHelper.ShowErrorAsync(ex.Message, "清理更新残留异常");
         }
     }
 
@@ -77,7 +76,7 @@ public class UpdaterService : IUpdaterService
         }
         catch (Exception ex)
         {
-            await _messageBoxService.ShowErrorAsync($"下载失败: {ex.Message}");
+            await MessageBoxHelper.ShowErrorAsync($"下载失败: {ex.Message}");
         }
     }
 
@@ -87,14 +86,14 @@ public class UpdaterService : IUpdaterService
         {
             await Application.Current.Dispatcher.InvokeAsync(async () =>
             {
-                await _messageBoxService.ShowErrorAsync($"下载失败：{e.Error.Message}");
+                await MessageBoxHelper.ShowErrorAsync($"下载失败：{e.Error.Message}");
             });
             return;
         }
 
         await Application.Current.Dispatcher.InvokeAsync(async () =>
         {
-            if (await _messageBoxService.ShowConfirmAsync("下载提示", "下载完成", "安装"))
+            if (await MessageBoxHelper.ShowConfirmAsync("下载提示", "下载完成", "安装"))
             {
                 InstallUpdate();
             }
@@ -110,14 +109,14 @@ public class UpdaterService : IUpdaterService
         await GetNewVersionInfoAsync();
         if (string.IsNullOrEmpty(NewVersionInfo.TagName))
         {
-            await _messageBoxService.ShowErrorAsync("获取更新错误");
+            await MessageBoxHelper.ShowErrorAsync("获取更新错误");
             return false;
         }
-        if (NewVersionInfo.TagName != "v" + Application.ResourceAssembly.GetName().Version!.ToString())
+        if (NewVersionInfo.TagName != AppConstants.AppVersion)
         {
             if (!isInitial)
             {
-                var result = await _messageBoxService.ShowConfirmAsync("更新检查", $"检测到新版本{NewVersionInfo.TagName}，是否更新？", "更新");
+                var result = await MessageBoxHelper.ShowConfirmAsync("更新检查", $"检测到新版本{NewVersionInfo.TagName}，是否更新？", "更新");
                 if (result)
                     await DownloadUpdate(mirror);
             }
@@ -129,7 +128,7 @@ public class UpdaterService : IUpdaterService
         }
         if (!isInitial)
         {
-            await _messageBoxService.ShowInfoAsync("当前已是最新版本", "更新检查");
+            await MessageBoxHelper.ShowInfoAsync("当前已是最新版本", "更新检查");
         }
         return false;
     }
@@ -167,17 +166,17 @@ public class UpdaterService : IUpdaterService
         catch (HttpRequestException ex)
         {
             Debug.WriteLine($"HTTP请求错误: {ex.Message}");
-            await _messageBoxService.ShowErrorAsync($"HTTP请求错误: {ex.Message}");
+            await MessageBoxHelper.ShowErrorAsync($"HTTP请求错误: {ex.Message}");
         }
         catch (JsonException ex)
         {
             Console.WriteLine($"JSON解析错误: {ex.Message}");
-            await _messageBoxService.ShowErrorAsync($"JSON解析错误: {ex.Message}");
+            await MessageBoxHelper.ShowErrorAsync($"JSON解析错误: {ex.Message}");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"发生未知错误: {ex.Message}");
-            await _messageBoxService.ShowErrorAsync($"发生未知错误: {ex.Message}");
+            await MessageBoxHelper.ShowErrorAsync($"发生未知错误: {ex.Message}");
         }
     }
 

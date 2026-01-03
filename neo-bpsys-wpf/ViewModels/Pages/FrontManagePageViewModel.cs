@@ -16,14 +16,11 @@ public partial class FrontManagePageViewModel : ViewModelBase
     }
 
     private readonly IFrontService _frontService;
-    private readonly IMessageBoxService _messageBoxService;
     private readonly ISharedDataService _sharedDataService;
 
-    public FrontManagePageViewModel(IFrontService frontService, IMessageBoxService messageBoxService,
-        ISharedDataService sharedDataService)
+    public FrontManagePageViewModel(IFrontService frontService, ISharedDataService sharedDataService)
     {
         _frontService = frontService;
-        _messageBoxService = messageBoxService;
         _sharedDataService = sharedDataService;
     }
 

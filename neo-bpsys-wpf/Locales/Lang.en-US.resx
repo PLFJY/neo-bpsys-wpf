@@ -678,8 +678,8 @@
   <data name="FrontendManagement" xml:space="preserve">
     <value>Frontend Management</value>
   </data>
-  <data name="Extensions" xml:space="preserve">
-    <value>Extensions</value>
+  <data name="Plugins" xml:space="preserve">
+    <value>Plugins</value>
   </data>
   <data name="Settings" xml:space="preserve">
     <value>Settings</value>
@@ -950,5 +950,47 @@
   </data>
   <data name="en_US" xml:space="preserve">
     <value>English (United States)</value>
+  </data>
+  <data name="PluginManagement" xml:space="preserve">
+    <value>Plugin Management</value>
+  </data>
+  <data name="Notification" xml:space="preserve">
+    <value>Notification</value>
+  </data>
+  <data name="NoAuthorUiInfo" xml:space="preserve">
+    <value>There are fronted UIs without author's name in the installation directory ^_^</value>
+  </data>
+  <data name="DontShowThisAgain" xml:space="preserve">
+    <value>Don't show this again</value>
+  </data>
+  <data name="GoToFolder" xml:space="preserve">
+    <value>Go to folder</value>
+  </data>
+  <data name="RestartToApplyChanges" xml:space="preserve">
+    <value>Restart to apply changes</value>
+  </data>
+  <data name="ClickToRestart" xml:space="preserve">
+    <value>Click to restart</value>
+  </data>
+  <data name="Installed" xml:space="preserve">
+    <value>Installed</value>
+  </data>
+  <data name="PluginMarket" xml:space="preserve">
+    <value>Plugin Market</value>
+  </data>
+  <data name="CancelUninstall" xml:space="preserve">
+    <value>Cancel Uninstall</value>
+  </data>
+  <data name="Uninstall" xml:space="preserve">
+    <value>Uninstall</value>
+  </data>
+  <data name="ProjectUrl" xml:space="preserve">
+    <value>Project URL:</value>
+  </data>
+  <data name="RestartNeeded" xml:space="preserve">
+    <value>Restart Needed</value>
+  </data>
+  <data name="SomeSettingsRequireRestartingTheApplication" xml:space="preserve">
+    <value>Some settings require restarting the application</value>
   </data>
 </root>

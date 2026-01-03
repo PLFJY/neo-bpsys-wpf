@@ -16,7 +16,6 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMessage>
 {
     private readonly ISharedDataService _sharedDataService;
-    private readonly IMessageBoxService _messageBoxService;
 
 
     public MapBpPageViewModel()
@@ -25,10 +24,9 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
 
-    public MapBpPageViewModel(ISharedDataService sharedDataService, IMessageBoxService messageBoxService)
+    public MapBpPageViewModel(ISharedDataService sharedDataService)
     {
         _sharedDataService = sharedDataService;
-        _messageBoxService = messageBoxService;
         MapSelectTeamsList =
         [
             new MapSelectTeam(_sharedDataService.MainTeam, TeamType.HomeTeam),
@@ -117,7 +115,7 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     [RelayCommand]
     private async Task ResetMapBpAsync()
     {
-        if (!await _messageBoxService.ShowConfirmAsync("确认提示", "是否要重置地图BP")) return;
+        if (!await MessageBoxHelper.ShowConfirmAsync("确认提示", "是否要重置地图BP")) return;
         _sharedDataService.CurrentGame.ResetMapBp();
         PickedMap = null;
     }

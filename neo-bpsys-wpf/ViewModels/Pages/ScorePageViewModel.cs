@@ -9,6 +9,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Windows;
 using System.ComponentModel;
+using neo_bpsys_wpf.Core;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
@@ -112,7 +113,7 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     [RelayCommand]
     private static void ManualControl()
     {
-        App.Services.GetRequiredService<ScoreManualWindow>().ShowDialog();
+        IAppHost.Host.Services.GetRequiredService<ScoreManualWindow>().ShowDialog();
     }
 
     #endregion

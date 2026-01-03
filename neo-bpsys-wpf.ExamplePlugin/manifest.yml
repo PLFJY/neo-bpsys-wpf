@@ -1,0 +1,9 @@
+﻿id: plfjy.ExamplePlugin
+name: ExamplePlugin
+description: 示例插件。
+entranceAssembly: "neo-bpsys-wpf.ExamplePlugin.dll"
+url: https://github.com/PLFJY/neo-bpsys-wpf
+version: 1.0.0.0
+apiVersion: 2.0.0.0
+author: 零风PLFJY
+icon: icon.png

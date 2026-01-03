@@ -8,26 +8,24 @@ using neo_bpsys_wpf.Views.Pages;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using neo_bpsys_wpf.Core.Helpers;
 using Wpf.Ui;
 
 namespace neo_bpsys_wpf.Services;
 
 /// <summary>
-/// 前台窗口服务, 实现了 <see cref="IGameGuidanceService"/> 接口，负责对局引导功能
+/// 对局引导服务, 实现了 <see cref="IGameGuidanceService"/> 接口，负责对局引导功能
 /// </summary>
 /// <param name="sharedDataService"></param>
 /// <param name="navigationService"></param>
-/// <param name="messageBoxService"></param>
 /// <param name="infoBarService"></param>
 public class GameGuidanceService(
     ISharedDataService sharedDataService,
     INavigationService navigationService,
-    IMessageBoxService messageBoxService,
     IInfoBarService infoBarService) : IGameGuidanceService
 {
     private readonly ISharedDataService _sharedDataService = sharedDataService;
     private readonly INavigationService _navigationService = navigationService;
-    private readonly IMessageBoxService _messageBoxService = messageBoxService;
     private readonly IInfoBarService _infoBarService = infoBarService;
 
     private readonly string _guidanceFilePath =
@@ -93,7 +91,7 @@ public class GameGuidanceService(
     {
         if (!File.Exists(_guidanceFilePath))
         {
-            _messageBoxService.ShowErrorAsync("对局规则文件不存在");
+            _ = MessageBoxHelper.ShowErrorAsync("对局规则文件不存在");
             throw new FileNotFoundException();
         }
 
@@ -128,7 +126,7 @@ public class GameGuidanceService(
         }
         catch (Exception ex)
         {
-            await _messageBoxService.ShowErrorAsync($"对局规则文件状态异常\n{ex}");
+            await MessageBoxHelper.ShowErrorAsync($"对局规则文件状态异常\n{ex}");
             return null;
         }
 
@@ -143,7 +141,7 @@ public class GameGuidanceService(
             returnValue = await NextStepAsync();
         }
         else
-            await _messageBoxService.ShowErrorAsync("对局规则文件状态异常");
+            await MessageBoxHelper.ShowErrorAsync("对局规则文件状态异常");
 
         return returnValue;
     }
@@ -184,7 +182,7 @@ public class GameGuidanceService(
         }
         else
         {
-            await _messageBoxService.ShowErrorAsync("对局信息状态异常");
+            await MessageBoxHelper.ShowErrorAsync("对局信息状态异常");
         }
 
         returnValue += "无禁用";
@@ -213,7 +211,7 @@ public class GameGuidanceService(
         }
         else
         {
-            await _messageBoxService.ShowErrorAsync("对局信息状态异常");
+            await MessageBoxHelper.ShowErrorAsync("对局信息状态异常");
         }
 
         returnValue += "无禁用";

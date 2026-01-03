@@ -30,198 +30,6 @@ namespace neo_bpsys_wpf;
 /// </summary>
 public partial class App : Application
 {
-    private static readonly IHost _host = Host.CreateDefaultBuilder()
-        .UseSerilog((_, loggerConfiguration) =>
-        {
-            if (!Directory.Exists(AppConstants.LogPath))
-                Directory.CreateDirectory(AppConstants.LogPath);
-
-            loggerConfiguration
-                .WriteTo.Console()
-                .WriteTo.File(
-                    path: Path.Combine(AppConstants.LogPath, "log-.txt"), // 使用日期滚动的文件名格式
-                    rollingInterval: RollingInterval.Day, // 每天创建一个新文件
-                    retainedFileCountLimit: 3, // 只保留最近3天的日志文件
-                    outputTemplate:
-                    "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
-                    encoding: Encoding.UTF8
-                )
-                .Enrich.FromLogContext()
-                .MinimumLevel.Debug();
-        })
-        .ConfigureLogging(loggingBuilder =>
-        {
-            loggingBuilder.ClearProviders();
-            loggingBuilder.AddSerilog(dispose: true);
-        })
-        .ConfigureServices(services =>
-        {
-            services.AddNavigationViewPageProvider();
-
-            //App Host
-            services.AddHostedService<ApplicationHostService>();
-
-            // Theme manipulation
-            services.AddSingleton<IThemeService, ThemeService>();
-
-            // TaskBar manipulation
-            services.AddSingleton<ITaskBarService, TaskBarService>();
-
-            //UpdaterService
-            services.AddSingleton<IUpdaterService, UpdaterService>();
-
-            // Service containing navigation, same as INavigationWindow... but without window
-            services.AddSingleton<INavigationService, NavigationService>();
-
-            //_sharedDataService
-            services.AddSingleton<ISharedDataService, SharedDataService>();
-
-            // HomeTeam window with navigation
-            services.AddSingleton<INavigationWindow, MainWindow>(sp => new MainWindow(
-                sp.GetRequiredService<INavigationService>(),
-                sp.GetRequiredService<IInfoBarService>(),
-                sp.GetRequiredService<ISnackbarService>(),
-                sp.GetRequiredService<ISettingsHostService>(),
-                sp.GetRequiredService<ILogger<MainWindow>>()
-            )
-            {
-                DataContext = sp.GetRequiredService<MainWindowViewModel>(),
-            });
-            services.AddSingleton<MainWindowViewModel>();
-
-            //FrontService
-            services.AddSingleton<IFrontService, FrontService>();
-
-            //Tool Services
-            services.AddSingleton<IFilePickerService, FilePickerService>();
-            services.AddSingleton<IMessageBoxService, MessageBoxService>();
-            services.AddSingleton<IInfoBarService, InfoBarService>();
-            services.AddSingleton<ISnackbarService, SnackbarService>();
-
-            //Additional Feature Services
-            services.AddSingleton<IGameGuidanceService, GameGuidanceService>();
-            services.AddSingleton<ISettingsHostService, SettingsHostService>();
-            services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
-
-            //Views and ViewModels
-            //Window
-            services.AddSingleton<BpWindow>(sp => new BpWindow()
-            {
-                DataContext = sp.GetRequiredService<BpWindowViewModel>(),
-            });
-            services.AddSingleton<BpWindowViewModel>();
-            services.AddSingleton<CutSceneWindow>(sp => new CutSceneWindow()
-            {
-                DataContext = sp.GetRequiredService<CutSceneWindowViewModel>(),
-            });
-            services.AddSingleton<CutSceneWindowViewModel>();
-            services.AddSingleton<ScoreGlobalWindow>(sp => new ScoreGlobalWindow()
-            {
-                DataContext = sp.GetRequiredService<ScoreWindowViewModel>(),
-            });
-            services.AddSingleton<ScoreSurWindow>(sp => new ScoreSurWindow()
-            {
-                DataContext = sp.GetRequiredService<ScoreWindowViewModel>(),
-            });
-            services.AddSingleton<ScoreHunWindow>(sp => new ScoreHunWindow()
-            {
-                DataContext = sp.GetRequiredService<ScoreWindowViewModel>(),
-            });
-            services.AddSingleton<ScoreWindowViewModel>();
-            services.AddSingleton<GameDataWindow>(sp => new GameDataWindow()
-            {
-                DataContext = sp.GetRequiredService<GameDataWindowViewModel>(),
-            });
-            services.AddSingleton<GameDataWindowViewModel>();
-            services.AddSingleton<WidgetsWindow>(sp => new WidgetsWindow()
-            {
-                DataContext = sp.GetRequiredService<WidgetsWindowViewModel>(),
-            });
-            services.AddSingleton<WidgetsWindowViewModel>();
-            services.AddTransient<ScoreManualWindow>(sp => new ScoreManualWindow()
-            {
-                DataContext = sp.GetRequiredService<ScoreManualWindowViewModel>(),
-                Owner = Current.MainWindow
-            });
-            services.AddSingleton<ScoreManualWindowViewModel>();
-
-            //Page
-            services.AddSingleton<HomePage>();
-
-            services.AddSingleton<TeamInfoPage>(sp => new TeamInfoPage()
-            {
-                DataContext = sp.GetRequiredService<TeamInfoPageViewModel>(),
-            });
-            services.AddSingleton<TeamInfoPageViewModel>();
-
-            services.AddSingleton<MapBpPage>(sp => new MapBpPage()
-            {
-                DataContext = sp.GetRequiredService<MapBpPageViewModel>(),
-            });
-            services.AddSingleton<MapBpPageViewModel>();
-
-            services.AddSingleton<BanHunPage>(sp => new BanHunPage()
-            {
-                DataContext = sp.GetRequiredService<BanHunPageViewModel>(),
-            });
-            services.AddSingleton<BanHunPageViewModel>();
-
-            services.AddSingleton<BanSurPage>(sp => new BanSurPage()
-            {
-                DataContext = sp.GetRequiredService<BanSurPageViewModel>(),
-            });
-            services.AddSingleton<BanSurPageViewModel>();
-
-            services.AddSingleton<PickPage>(sp => new PickPage()
-            {
-                DataContext = sp.GetRequiredService<PickPageViewModel>(),
-            });
-            services.AddSingleton<PickPageViewModel>();
-
-            services.AddSingleton<TalentPage>(sp => new TalentPage()
-            {
-                DataContext = sp.GetRequiredService<TalentPageViewModel>(),
-            });
-            services.AddSingleton<TalentPageViewModel>();
-
-            services.AddSingleton<ScorePage>(sp => new ScorePage()
-            {
-                DataContext = sp.GetRequiredService<ScorePageViewModel>(),
-            });
-            services.AddSingleton<ScorePageViewModel>();
-
-            services.AddSingleton<GameDataPage>(sp => new GameDataPage()
-            {
-                DataContext = sp.GetRequiredService<GameDataPageViewModel>(),
-            });
-            services.AddSingleton<GameDataPageViewModel>();
-
-            services.AddSingleton<FrontManagePage>(sp => new FrontManagePage()
-            {
-                DataContext = sp.GetRequiredService<FrontManagePageViewModel>(),
-            });
-            services.AddSingleton<FrontManagePageViewModel>();
-
-            services.AddSingleton<ExtensionPage>(sp => new ExtensionPage()
-            {
-                DataContext = sp.GetRequiredService<ExtensionPageViewModel>(),
-            });
-            services.AddSingleton<ExtensionPageViewModel>();
-
-            services.AddSingleton<SettingPage>(sp =>
-                new SettingPage(sp.GetRequiredService<ITextSettingsNavigationService>())
-                {
-                    DataContext = sp.GetRequiredService<SettingPageViewModel>()
-                });
-            services.AddSingleton<SettingPageViewModel>();
-        })
-        .Build();
-
-    /// <summary>
-    /// Gets services.
-    /// </summary>
-    public static IServiceProvider Services => _host.Services;
-
     /// <summary>
     /// 互斥锁
     /// </summary>
@@ -237,9 +45,37 @@ public partial class App : Application
         _mutex = new Mutex(true, AppConstants.AppName, out _createdNew);
         if (!_createdNew)
         {
-            MessageBox.Show("程序已运行", "警告");
+            _ = MessageBoxHelper.ShowInfoAsync("程序已运行", "警告");
             Current.Shutdown();
         }
+        
+        IAppHost.Host = Host
+            .CreateDefaultBuilder()
+            .UseSerilog((_, loggerConfiguration) =>
+            {
+                if (!Directory.Exists(AppConstants.LogPath))
+                    Directory.CreateDirectory(AppConstants.LogPath);
+
+                loggerConfiguration
+                    .WriteTo.Console()
+                    .WriteTo.File(
+                        path: Path.Combine(AppConstants.LogPath, "log-.txt"), // 使用日期滚动的文件名格式
+                        rollingInterval: RollingInterval.Day, // 每天创建一个新文件
+                        retainedFileCountLimit: 3, // 只保留最近3天的日志文件
+                        outputTemplate:
+                        "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                        encoding: Encoding.UTF8
+                    )
+                    .Enrich.FromLogContext()
+                    .MinimumLevel.Debug();
+            })
+            .ConfigureLogging(loggingBuilder =>
+            {
+                loggingBuilder.ClearProviders();
+                loggingBuilder.AddSerilog(dispose: true);
+            })
+            .ConfigureServices(ConfigureServices)
+            .Build();
 
         base.OnStartup(e);
         //设置动画帧率
@@ -249,30 +85,11 @@ public partial class App : Application
         );
 
         //启动初始化log
-        var logger = _host.Services.GetRequiredService<ILogger<App>>();
+        var logger = IAppHost.Host.Services.GetRequiredService<ILogger<App>>();
         logger.LogInformation("Application Started");
-        logger.LogInformation("""
-
-                               ==============================================================================
-                                                       _                                                __ 
-                                                      | |                                              / _|
-                                _ __   ___  ___ ______| |__  _ __  ___ _   _ ___ ________      ___ __ | |_ 
-                               | '_ \ / _ \/ _ \______| '_ \| '_ \/ __| | | / __|______\ \ /\ / / '_ \|  _|
-                               | | | |  __/ (_) |     | |_) | |_) \__ \ |_| \__ \       \ V  V /| |_) | |  
-                               |_| |_|\___|\___/      |_.__/| .__/|___/\__, |___/        \_/\_/ | .__/|_|  
-                                                            | |         __/ |                   | |        
-                                                            |_|        |___/                    |_|        
-                                                                            ______ _     ______ _____   __ 
-                                                                            | ___ \ |    |  ___|_  \ \ / / 
-                                                               ______ ______| |_/ / |    | |_    | |\ V /  
-                                                              |______|______|  __/| |    |  _|   | | \ /   
-                                                                            | |   | |____| | /\__/ / | |   
-                                                                            \_|   \_____/\_| \____/  \_/   
-                               ==============================================================================
-                               """);
-
+        
         //读取设置
-        var settingsHostService = _host.Services.GetRequiredService<ISettingsHostService>();
+        var settingsHostService = IAppHost.Host.Services.GetRequiredService<ISettingsHostService>();
         settingsHostService.LoadConfig();
         //添加不同颜色的icon到resources里面
         Current.Resources["scoreGlobal_surIcon"] = ImageHelper.GetUiImageSource(
@@ -305,14 +122,15 @@ public partial class App : Application
         ApplicationThemeManager.Apply(ApplicationTheme.Dark);
 
         //设置语言
-        var settingService = _host.Services.GetRequiredService<ISettingsHostService>();
+        var settingService = IAppHost.Host.Services.GetRequiredService<ISettingsHostService>();
         LocalizeDictionary.Instance.Culture = settingService.Settings.CultureInfo;
 
         //启动host
-        await _host.StartAsync();
+        await IAppHost.Host.StartAsync();
+
 #if !DEBUG
-            _logger.LogInformation("Update checking on start up");
-            await _host.Services.GetRequiredService<IUpdaterService>().UpdateCheck(true);
+        logger.LogInformation("Update checking on start up");
+        await _host.Services.GetRequiredService<IUpdaterService>().UpdateCheck(true);
 #endif
     }
 
@@ -321,10 +139,10 @@ public partial class App : Application
     protected override async void OnExit(ExitEventArgs e)
     {
         base.OnExit(e);
-        var logger = _host.Services.GetRequiredService<ILogger<App>>();
+        var logger = IAppHost.Host.Services.GetRequiredService<ILogger<App>>();
         logger.LogInformation("Application Closed");
-        await _host.StopAsync();
-        _host.Dispose();
+        await IAppHost.Host.StopAsync();
+        IAppHost.Host.Dispose();
     }
 
     /// <summary>
@@ -347,7 +165,7 @@ public partial class App : Application
         DispatcherUnhandledExceptionEventArgs e
     )
     {
-        var logger = _host.Services.GetRequiredService<ILogger<App>>();
+        var logger = IAppHost.Host.Services.GetRequiredService<ILogger<App>>();
         logger.LogError("Application crashed unexpectedly");
 #if !DEBUG
         MessageBox.Show($"出现了些在意料之外的错误，请带着\n{AppConstants.LogPath}\n处的日志文件联系开发者解决", "错误");

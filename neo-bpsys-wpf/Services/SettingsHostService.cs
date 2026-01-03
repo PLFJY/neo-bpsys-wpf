@@ -7,6 +7,7 @@ using System.IO;
 using System.Text.Json;
 using System.ComponentModel;
 using neo_bpsys_wpf.Core.Events;
+using neo_bpsys_wpf.Core.Helpers;
 using BpWindowSettings = neo_bpsys_wpf.Core.Models.BpWindowSettings;
 using WidgetsWindowSettings = neo_bpsys_wpf.Core.Models.WidgetsWindowSettings;
 
@@ -34,8 +35,6 @@ public class SettingsHostService : ISettingsHostService
         }
     }
 
-    private readonly IMessageBoxService _messageBoxService;
-
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -44,9 +43,8 @@ public class SettingsHostService : ISettingsHostService
         Converters = { new FontWeightJsonConverter() }
     };
 
-    public SettingsHostService(IMessageBoxService messageBoxService)
+    public SettingsHostService()
     {
-        _messageBoxService = messageBoxService;
         LoadConfig();
     }
 
@@ -66,7 +64,7 @@ public class SettingsHostService : ISettingsHostService
         }
         catch (Exception e)
         {
-            _messageBoxService.ShowErrorAsync($"配置文件存储错误\n{e.Message}");
+            MessageBoxHelper.ShowErrorAsync($"配置文件存储错误\n{e.Message}");
         }
     }
 
@@ -87,13 +85,13 @@ public class SettingsHostService : ISettingsHostService
             }
             else
             {
-                _messageBoxService.ShowErrorAsync("配置文件为空");
+                MessageBoxHelper.ShowErrorAsync("配置文件为空");
                 ResetConfig();
             }
         }
         catch (Exception e)
         {
-            _messageBoxService.ShowErrorAsync($"读取配置文件错误\n{e.Message}");
+            MessageBoxHelper.ShowErrorAsync($"读取配置文件错误\n{e.Message}");
             ResetConfig();
         }
     }
@@ -114,7 +112,7 @@ public class SettingsHostService : ISettingsHostService
         }
         catch (Exception e)
         {
-            _messageBoxService.ShowErrorAsync($"重置配置文件错误\n{e.Message}");
+            MessageBoxHelper.ShowErrorAsync($"重置配置文件错误\n{e.Message}");
             throw;
         }
     }
@@ -225,7 +223,7 @@ public class SettingsHostService : ISettingsHostService
         }
         catch (Exception e)
         {
-            _messageBoxService.ShowErrorAsync($"重置配置文件错误\n{e.Message}");
+            MessageBoxHelper.ShowErrorAsync($"重置配置文件错误\n{e.Message}");
             throw;
         }
     }
