@@ -3,6 +3,7 @@ using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using System.Collections.ObjectModel;
+using neo_bpsys_wpf.Core.Events;
 using CharaSelectViewModelBase = neo_bpsys_wpf.ViewModels.CharaSelectViewModelBase;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;

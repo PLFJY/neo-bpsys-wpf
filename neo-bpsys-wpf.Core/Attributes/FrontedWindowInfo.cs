@@ -3,18 +3,60 @@
 /// <summary>
 /// 前台窗口信息
 /// </summary>
-/// <param name="id">id</param>
-/// <param name="name">名称</param>
-/// <param name="canvas">画布集合(可选，默认只包含 BaseCanvas)</param>
 [AttributeUsage(AttributeTargets.Class)]
-public class FrontedWindowInfo(string id, string name, string[]? canvas = null) : Attribute
+public class FrontedWindowInfo : Attribute
 {
-
-    public string Name { get; } = name;
+    /// <summary>
+    /// 前台窗口信息
+    /// </summary>
+    /// <param name="id">id</param>
+    /// <param name="name">名称</param>
+    /// <param name="canvas">画布集合(默认只包含 BaseCanvas)</param>
+    /// <param name="isBuiltIn">是否是内置窗口 (强烈建议插件不要设置它为 true，因为这会影响进入前台窗口管理)</param>
+    public FrontedWindowInfo(string id, string name, string[]? canvas = null, bool isBuiltIn = false)
+    {
+        Name = name;
+        Canvas = canvas?? ["BaseCanvas"];
+        Id = id;
+        IsBuiltIn = isBuiltIn;
+    }
     
-    public string[] Canvas { get; } = canvas?? ["BaseCanvas"];
+    /// <summary>
+    /// 前台窗口信息
+    /// </summary>
+    /// <param name="id">id</param>
+    /// <param name="name">名称</param>
+    /// <param name="isBuiltIn">是否是内置窗口 (强烈建议插件不要设置它为 true，因为这会影响进入前台窗口管理)</param>
+    public FrontedWindowInfo(string id, string name, bool isBuiltIn)
+    {
+        Name = name;
+        Canvas = ["BaseCanvas"];
+        Id = id;
+        IsBuiltIn = isBuiltIn;
+    }
+    
+    /// <summary>
+    /// 前台窗口信息
+    /// </summary>
+    /// <param name="id">id</param>
+    /// <param name="name">名称</param>
+    public FrontedWindowInfo(string id, string name)
+    {
+        Name = name;
+        Canvas = ["BaseCanvas"];
+        Id = id;
+    }
 
-    public string Id { get; } = id;
+    public string Name { get; }
+
+    public string[] Canvas { get; }
+
+    public string Id { get; }
 
     public Type? WindowType { get; internal set; }
+
+    /// <summary>
+    /// 是否是内置窗口
+    /// </summary>
+    public bool IsBuiltIn { get; }
 }

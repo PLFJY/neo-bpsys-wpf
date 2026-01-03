@@ -12,6 +12,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows.Threading;
+using neo_bpsys_wpf.Core.Events;
 using Game = neo_bpsys_wpf.Core.Models.Game;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 using neo_bpsys_wpf.Core.Messages;

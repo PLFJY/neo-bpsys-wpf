@@ -1,6 +1,6 @@
 ﻿using neo_bpsys_wpf.Core.Enums;
 
-namespace neo_bpsys_wpf.Core.Abstractions.Services;
+namespace neo_bpsys_wpf.Core.Events;
 
 /// <summary>
 /// Ban位数量改变事件参数

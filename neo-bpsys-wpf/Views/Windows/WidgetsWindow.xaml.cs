@@ -3,12 +3,15 @@ using neo_bpsys_wpf.Core.Messages;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
+using neo_bpsys_wpf.Core.Attributes;
 
 namespace neo_bpsys_wpf.Views.Windows;
 
 /// <summary>
 /// WidgetsWindow.xaml 的交互逻辑
 /// </summary>
+[FrontedWindowInfo("712D2E21-B8DF-4220-8E3D-8AD0003DD079", "WidgetsWindow",
+    ["MapBpCanvas", "BpOverViewCanvas", "MapV2Canvas"], true)]
 public partial class WidgetsWindow : Window
 {
     public WidgetsWindow()

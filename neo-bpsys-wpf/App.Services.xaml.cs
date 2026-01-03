@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Extensions.Registry;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
@@ -68,39 +69,13 @@ public partial class App
 
         //Views and ViewModels
         //Window
-        services.AddSingleton<BpWindow>(sp => new BpWindow()
-        {
-            DataContext = sp.GetRequiredService<BpWindowViewModel>(),
-        });
-        services.AddSingleton<BpWindowViewModel>();
-        services.AddSingleton<CutSceneWindow>(sp => new CutSceneWindow()
-        {
-            DataContext = sp.GetRequiredService<CutSceneWindowViewModel>(),
-        });
-        services.AddSingleton<CutSceneWindowViewModel>();
-        services.AddSingleton<ScoreGlobalWindow>(sp => new ScoreGlobalWindow()
-        {
-            DataContext = sp.GetRequiredService<ScoreWindowViewModel>(),
-        });
-        services.AddSingleton<ScoreSurWindow>(sp => new ScoreSurWindow()
-        {
-            DataContext = sp.GetRequiredService<ScoreWindowViewModel>(),
-        });
-        services.AddSingleton<ScoreHunWindow>(sp => new ScoreHunWindow()
-        {
-            DataContext = sp.GetRequiredService<ScoreWindowViewModel>(),
-        });
-        services.AddSingleton<ScoreWindowViewModel>();
-        services.AddSingleton<GameDataWindow>(sp => new GameDataWindow()
-        {
-            DataContext = sp.GetRequiredService<GameDataWindowViewModel>(),
-        });
-        services.AddSingleton<GameDataWindowViewModel>();
-        services.AddSingleton<WidgetsWindow>(sp => new WidgetsWindow()
-        {
-            DataContext = sp.GetRequiredService<WidgetsWindowViewModel>(),
-        });
-        services.AddSingleton<WidgetsWindowViewModel>();
+        services.AddFrontedWindow<BpWindow, BpWindowViewModel>();
+        services.AddFrontedWindow<CutSceneWindow, CutSceneWindowViewModel>();
+        services.AddFrontedWindow<ScoreGlobalWindow, ScoreWindowViewModel>();
+        services.AddFrontedWindow<ScoreSurWindow, ScoreWindowViewModel>();
+        services.AddFrontedWindow<ScoreHunWindow, ScoreWindowViewModel>();
+        services.AddFrontedWindow<GameDataWindow, GameDataWindowViewModel>();
+        services.AddFrontedWindow<WidgetsWindow, WidgetsWindowViewModel>();
         services.AddTransient<ScoreManualWindow>(sp => new ScoreManualWindow()
         {
             DataContext = sp.GetRequiredService<ScoreManualWindowViewModel>(),
