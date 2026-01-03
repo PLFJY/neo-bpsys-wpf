@@ -15,37 +15,37 @@ public partial class FrontManagePageViewModel : ViewModelBase
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
 
-    private readonly IFrontService _frontService;
+    private readonly IFrontedWindowService _frontedWindowService;
     private readonly ISharedDataService _sharedDataService;
 
-    public FrontManagePageViewModel(IFrontService frontService, ISharedDataService sharedDataService)
+    public FrontManagePageViewModel(IFrontedWindowService frontedWindowService, ISharedDataService sharedDataService)
     {
-        _frontService = frontService;
+        _frontedWindowService = frontedWindowService;
         _sharedDataService = sharedDataService;
     }
 
     [RelayCommand]
     private void ShowAllWindows()
     {
-        _frontService.AllWindowShow();
+        _frontedWindowService.AllWindowShow();
     }
 
     [RelayCommand]
     private void HideAllWindows()
     {
-        _frontService.AllWindowHide();
+        _frontedWindowService.AllWindowHide();
     }
 
     [RelayCommand]
-    private void ShowWindow(FrontWindowType windowType)
+    private void ShowWindow(FrontedWindowType windowType)
     {
-        _frontService.ShowWindow(windowType);
+        _frontedWindowService.ShowWindow(windowType);
     }
 
     [RelayCommand]
-    private void HideWindow(FrontWindowType windowType)
+    private void HideWindow(FrontedWindowType windowType)
     {
-        _frontService.HideWindow(windowType);
+        _frontedWindowService.HideWindow(windowType);
     }
 
     #region 设计者模式
@@ -57,11 +57,11 @@ public partial class FrontManagePageViewModel : ViewModelBase
     [RelayCommand]
     private void ChangeDesignMode(object?[] param)
     {
-        if (param[0] is not bool isDesignMode || param[1] is not FrontWindowType frontWindowType) return;
+        if (param[0] is not bool isDesignMode || param[1] is not FrontedWindowType frontWindowType) return;
         WeakReferenceMessenger.Default.Send(new DesignModeChangedMessage(this, isDesignMode, frontWindowType));
         if (!isDesignMode)
         {
-            _frontService.SaveWindowElementsPosition(frontWindowType);
+            _frontedWindowService.SaveWindowElementsPosition(frontWindowType);
         }
     }
 
@@ -72,7 +72,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
     [RelayCommand]
     private void ResetBpWindowElementsPosition()
     {
-        _frontService.RestoreInitialPositions(FrontWindowType.BpWindow);
+        _frontedWindowService.RestoreInitialPositions(FrontedWindowType.BpWindow);
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
     [RelayCommand]
     private void ResetCutSceneWindowElementsPosition()
     {
-        _frontService.RestoreInitialPositions(FrontWindowType.CutSceneWindow);
+        _frontedWindowService.RestoreInitialPositions(FrontedWindowType.CutSceneWindow);
     }
 
     /// <summary>
@@ -92,7 +92,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
     [RelayCommand]
     private void ResetScoreGlobalWindowElementsPosition()
     {
-        _frontService.RestoreInitialPositions(FrontWindowType.ScoreGlobalWindow);
+        _frontedWindowService.RestoreInitialPositions(FrontedWindowType.ScoreGlobalWindow);
     }
 
     /// <summary>
@@ -102,7 +102,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
     [RelayCommand]
     private void ResetScoreSurWindowElementsPosition()
     {
-        _frontService.RestoreInitialPositions(FrontWindowType.ScoreSurWindow);
+        _frontedWindowService.RestoreInitialPositions(FrontedWindowType.ScoreSurWindow);
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
     [RelayCommand]
     private void ResetScoreHunWindowElementsPosition()
     {
-        _frontService.RestoreInitialPositions(FrontWindowType.ScoreHunWindow);
+        _frontedWindowService.RestoreInitialPositions(FrontedWindowType.ScoreHunWindow);
     }
 
     /// <summary>
@@ -123,7 +123,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
     [RelayCommand]
     private void ResetWidgetsWindowElementsPosition(string canvasName)
     {
-        _frontService.RestoreInitialPositions(FrontWindowType.WidgetsWindow, canvasName);
+        _frontedWindowService.RestoreInitialPositions(FrontedWindowType.WidgetsWindow, canvasName);
     }
 
     /// <summary>
@@ -132,7 +132,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
     [RelayCommand]
     private void ResetGameDataWindowElementsPosition()
     {
-        _frontService.RestoreInitialPositions(FrontWindowType.GameDataWindow);
+        _frontedWindowService.RestoreInitialPositions(FrontedWindowType.GameDataWindow);
     }
 
     #endregion

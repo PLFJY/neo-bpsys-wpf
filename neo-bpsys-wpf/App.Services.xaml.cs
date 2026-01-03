@@ -52,8 +52,8 @@ public partial class App
         });
         services.AddSingleton<MainWindowViewModel>();
 
-        //FrontService
-        services.AddSingleton<IFrontService, FrontService>();
+        //FrontedWindowService
+        services.AddSingleton<IFrontedWindowService, FrontedWindowService>();
 
         //Tool Services
         services.AddSingleton<IFilePickerService, FilePickerService>();

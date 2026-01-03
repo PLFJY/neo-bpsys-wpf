@@ -44,7 +44,7 @@ public partial class BpWindowViewModel :
 
     public void Receive(DesignModeChangedMessage message)
     {
-        if (message.FrontWindowType == FrontWindowType.BpWindow && IsDesignMode != message.IsDesignMode)
+        if (message.FrontWindowType == FrontedWindowType.BpWindow && IsDesignMode != message.IsDesignMode)
             IsDesignMode = message.IsDesignMode;
     }
 

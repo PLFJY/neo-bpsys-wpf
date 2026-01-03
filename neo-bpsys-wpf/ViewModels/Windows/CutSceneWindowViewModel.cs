@@ -42,7 +42,7 @@ public partial class CutSceneWindowViewModel :
 
     public void Receive(DesignModeChangedMessage message)
     {
-        if (message.FrontWindowType == FrontWindowType.CutSceneWindow && IsDesignMode != message.IsDesignMode)
+        if (message.FrontWindowType == FrontedWindowType.CutSceneWindow && IsDesignMode != message.IsDesignMode)
             IsDesignMode = message.IsDesignMode;
     }
 

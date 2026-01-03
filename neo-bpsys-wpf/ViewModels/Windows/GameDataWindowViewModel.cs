@@ -41,7 +41,7 @@ public partial class GameDataWindowViewModel :
 
     public void Receive(DesignModeChangedMessage message)
     {
-        if (message.FrontWindowType == FrontWindowType.GameDataWindow && IsDesignMode != message.IsDesignMode)
+        if (message.FrontWindowType == FrontedWindowType.GameDataWindow && IsDesignMode != message.IsDesignMode)
             IsDesignMode = message.IsDesignMode;
     }
 

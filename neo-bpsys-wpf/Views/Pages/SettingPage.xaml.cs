@@ -12,12 +12,12 @@ public partial class SettingPage : Page
     public SettingPage(ITextSettingsNavigationService textSettingsNavigationService)
     {
         InitializeComponent();
-        textSettingsNavigationService.SetFrameControl(FrontWindowType.BpWindow, BpWindowTextSettingFrame);
-        textSettingsNavigationService.SetFrameControl(FrontWindowType.CutSceneWindow,
+        textSettingsNavigationService.SetFrameControl(FrontedWindowType.BpWindow, BpWindowTextSettingFrame);
+        textSettingsNavigationService.SetFrameControl(FrontedWindowType.CutSceneWindow,
             CutSceneWindowTextSettingFrame);
-        textSettingsNavigationService.SetFrameControl(FrontWindowType.ScoreGlobalWindow, ScoreWindowTextSettingFrame);
-        textSettingsNavigationService.SetFrameControl(FrontWindowType.GameDataWindow,
+        textSettingsNavigationService.SetFrameControl(FrontedWindowType.ScoreGlobalWindow, ScoreWindowTextSettingFrame);
+        textSettingsNavigationService.SetFrameControl(FrontedWindowType.GameDataWindow,
             GameDataWindowTextSettingFrame);
-        textSettingsNavigationService.SetFrameControl(FrontWindowType.WidgetsWindow, WidgetsWindowTextSettingFrame);
+        textSettingsNavigationService.SetFrameControl(FrontedWindowType.WidgetsWindow, WidgetsWindowTextSettingFrame);
     }
 }

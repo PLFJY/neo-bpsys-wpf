@@ -48,10 +48,10 @@ public partial class ScoreWindowViewModel :
 
     public void Receive(DesignModeChangedMessage message)
     {
-        if (message.FrontWindowType is FrontWindowType.ScoreGlobalWindow
-                or FrontWindowType.ScoreHunWindow
-                or FrontWindowType.ScoreSurWindow
-                or FrontWindowType.ScoreWindow
+        if (message.FrontWindowType is FrontedWindowType.ScoreGlobalWindow
+                or FrontedWindowType.ScoreHunWindow
+                or FrontedWindowType.ScoreSurWindow
+                or FrontedWindowType.ScoreWindow
             && IsDesignMode != message.IsDesignMode)
             IsDesignMode = message.IsDesignMode;
     }

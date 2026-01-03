@@ -33,7 +33,7 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly List<FontFamily> _systemFonts;
     private readonly ISettingsHostService _settingsHostService;
     private readonly ITextSettingsNavigationService _textSettingsNavigationService;
-    private readonly IFrontService _frontService;
+    private readonly IFrontedWindowService _frontedWindowService;
     private readonly IFilePickerService _filePickerService;
     private readonly ISharedDataService _sharedDataService;
     private readonly ILogger<SettingPageViewModel> _logger;
@@ -41,7 +41,7 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly DownloadService? _downloader;
 
     public SettingPageViewModel(IUpdaterService updaterService, ISettingsHostService settingsHostService,
-        ITextSettingsNavigationService textSettingsNavigationService, IFrontService frontService,
+        ITextSettingsNavigationService textSettingsNavigationService, IFrontedWindowService frontedWindowService,
         IFilePickerService filePickerService, ISharedDataService sharedDataService, 
         ILogger<SettingPageViewModel> logger)
     {
@@ -49,7 +49,7 @@ public partial class SettingPageViewModel : ViewModelBase
         UpdaterService = updaterService;
         _settingsHostService = settingsHostService;
         _textSettingsNavigationService = textSettingsNavigationService;
-        _frontService = frontService;
+        _frontedWindowService = frontedWindowService;
         _filePickerService = filePickerService;
         _sharedDataService = sharedDataService;
         _logger = logger;
@@ -528,15 +528,15 @@ public partial class SettingPageViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void EditTextSettings(FrontWindowType type)
+    private void EditTextSettings(FrontedWindowType type)
     {
-        var settingsMap = new Dictionary<FrontWindowType, TextSettings?>
+        var settingsMap = new Dictionary<FrontedWindowType, TextSettings?>
         {
-            { FrontWindowType.BpWindow, SelectedBpWindowTextSettings },
-            { FrontWindowType.CutSceneWindow, SelectedCutSceneWindowTextSettings },
-            { FrontWindowType.ScoreGlobalWindow, SelectedScoreWindowTextSettings },
-            { FrontWindowType.GameDataWindow, SelectedGameDataWindowTextSettings },
-            { FrontWindowType.WidgetsWindow, SelectedWidgetsWindowTextSettings }
+            { FrontedWindowType.BpWindow, SelectedBpWindowTextSettings },
+            { FrontedWindowType.CutSceneWindow, SelectedCutSceneWindowTextSettings },
+            { FrontedWindowType.ScoreGlobalWindow, SelectedScoreWindowTextSettings },
+            { FrontedWindowType.GameDataWindow, SelectedGameDataWindowTextSettings },
+            { FrontedWindowType.WidgetsWindow, SelectedWidgetsWindowTextSettings }
         };
 
         if (!settingsMap.TryGetValue(type, out var settings) || settings == null) return;
@@ -567,7 +567,7 @@ public partial class SettingPageViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task ResetAsync(FrontWindowType windowType)
+    private async Task ResetAsync(FrontedWindowType windowType)
     {
         if (!await MessageBoxHelper.ShowConfirmAsync("重置提示", $"是否重置{windowType}的个性化设置")) return;
         _settingsHostService.ResetConfig(windowType);
@@ -675,9 +675,9 @@ public partial class SettingPageViewModel : ViewModelBase
             //复制自定义UI
             CopyCustomUiToTemp(_settingsHostService.Settings, CustomUiTempPath);
             //复制前台配置文件
-            foreach (var valueTuple in _frontService.FrontCanvas)
+            foreach (var valueTuple in _frontedWindowService.FrontedCanvas)
             {
-                var windowName = _frontService.GetWindowName(valueTuple.Item1);
+                var windowName = _frontedWindowService.GetWindowName(valueTuple.Item1);
                 if (windowName == null) continue;
                 CopyFrontElementsPositionFileToTemp(windowName, valueTuple.Item2);
             }

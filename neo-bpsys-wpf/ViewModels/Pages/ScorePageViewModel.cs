@@ -22,12 +22,12 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     }
 
     private readonly ISharedDataService _sharedDataService;
-    private readonly IFrontService _frontService;
+    private readonly IFrontedWindowService _frontedWindowService;
 
-    public ScorePageViewModel(ISharedDataService sharedDataService, IFrontService frontService)
+    public ScorePageViewModel(ISharedDataService sharedDataService, IFrontedWindowService frontedWindowService)
     {
         _sharedDataService = sharedDataService;
-        _frontService = frontService;
+        _frontedWindowService = frontedWindowService;
         _isBo3Mode = _sharedDataService.IsBo3Mode;
 #if DEBUG
         IsDebugContentVisible = true;
@@ -169,8 +169,8 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
         GameGlobalInfoRecord[SelectedGameProgress].IsGameFinished = IsGameFinished;
         if (!IsGameFinished)
         {
-            _frontService.SetGlobalScoreToBar(TeamType.HomeTeam, SelectedGameProgress);
-            _frontService.SetGlobalScoreToBar(TeamType.AwayTeam, SelectedGameProgress);
+            _frontedWindowService.SetGlobalScoreToBar(TeamType.HomeTeam, SelectedGameProgress);
+            _frontedWindowService.SetGlobalScoreToBar(TeamType.AwayTeam, SelectedGameProgress);
             UpdateTotalMinorPoint();
             return;
         }
@@ -191,8 +191,8 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     {
         if (!IsGameFinished)
         {
-            _frontService.SetGlobalScoreToBar(TeamType.HomeTeam, SelectedGameProgress);
-            _frontService.SetGlobalScoreToBar(TeamType.AwayTeam, SelectedGameProgress);
+            _frontedWindowService.SetGlobalScoreToBar(TeamType.HomeTeam, SelectedGameProgress);
+            _frontedWindowService.SetGlobalScoreToBar(TeamType.AwayTeam, SelectedGameProgress);
             return;
         }
 
@@ -227,15 +227,15 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
         switch (MainTeamCamp)
         {
             case Camp.Sur:
-                _frontService.SetGlobalScore(TeamType.HomeTeam, SelectedGameProgress, Camp.Sur,
+                _frontedWindowService.SetGlobalScore(TeamType.HomeTeam, SelectedGameProgress, Camp.Sur,
                     surScore);
-                _frontService.SetGlobalScore(TeamType.AwayTeam, SelectedGameProgress, Camp.Hun,
+                _frontedWindowService.SetGlobalScore(TeamType.AwayTeam, SelectedGameProgress, Camp.Hun,
                     hunScore);
                 break;
             case Camp.Hun:
-                _frontService.SetGlobalScore(TeamType.HomeTeam, SelectedGameProgress, Camp.Hun,
+                _frontedWindowService.SetGlobalScore(TeamType.HomeTeam, SelectedGameProgress, Camp.Hun,
                     hunScore);
-                _frontService.SetGlobalScore(TeamType.AwayTeam, SelectedGameProgress, Camp.Sur,
+                _frontedWindowService.SetGlobalScore(TeamType.AwayTeam, SelectedGameProgress, Camp.Sur,
                     surScore);
                 break;
             case null:

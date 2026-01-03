@@ -121,7 +121,7 @@ public class SettingsHostService : ISettingsHostService
     /// 重置指定窗口的设置
     /// </summary>
     /// <param name="windowType">窗口类型</param>
-    public void ResetConfig(FrontWindowType windowType)
+    public void ResetConfig(FrontedWindowType windowType)
     {
         try
         {
@@ -130,7 +130,7 @@ public class SettingsHostService : ISettingsHostService
 
             switch (windowType)
             {
-                case FrontWindowType.BpWindow:
+                case FrontedWindowType.BpWindow:
                     try
                     {
                         if (Settings.BpWindowSettings.BgImageUri != null)
@@ -149,7 +149,7 @@ public class SettingsHostService : ISettingsHostService
 
                     Settings.BpWindowSettings = new BpWindowSettings();
                     break;
-                case FrontWindowType.CutSceneWindow:
+                case FrontedWindowType.CutSceneWindow:
                     try
                     {
                         if (Settings.CutSceneWindowSettings.BgUri != null)
@@ -162,9 +162,9 @@ public class SettingsHostService : ISettingsHostService
 
                     Settings.CutSceneWindowSettings = new CutSceneWindowSettings();
                     break;
-                case FrontWindowType.ScoreGlobalWindow:
-                case FrontWindowType.ScoreSurWindow:
-                case FrontWindowType.ScoreHunWindow:
+                case FrontedWindowType.ScoreGlobalWindow:
+                case FrontedWindowType.ScoreSurWindow:
+                case FrontedWindowType.ScoreHunWindow:
                     try
                     {
                         if (Settings.ScoreWindowSettings.SurScoreBgImageUri != null)
@@ -181,7 +181,7 @@ public class SettingsHostService : ISettingsHostService
 
                     Settings.ScoreWindowSettings = new ScoreWindowSettings();
                     break;
-                case FrontWindowType.GameDataWindow:
+                case FrontedWindowType.GameDataWindow:
                     try
                     {
                         if (Settings.GameDataWindowSettings.BgImageUri != null)
@@ -193,7 +193,7 @@ public class SettingsHostService : ISettingsHostService
                     }
                     Settings.GameDataWindowSettings = new GameDataWindowSettings();
                     break;
-                case FrontWindowType.WidgetsWindow:
+                case FrontedWindowType.WidgetsWindow:
                     try
                     {
                         if (Settings.WidgetsWindowSettings.MapBpBgUri != null)

@@ -39,7 +39,7 @@ public partial class WidgetsWindowViewModel :
     }
     public void Receive(DesignModeChangedMessage message)
     {
-        if (message.FrontWindowType == FrontWindowType.WidgetsWindow && IsDesignMode != message.IsDesignMode)
+        if (message.FrontWindowType == FrontedWindowType.WidgetsWindow && IsDesignMode != message.IsDesignMode)
             IsDesignMode = message.IsDesignMode;
     }
 

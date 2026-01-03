@@ -29,7 +29,7 @@ public interface ISettingsHostService
     /// 重置指定窗口的配置
     /// </summary>
     /// <param name="windowType">窗口类型</param>
-    void ResetConfig(FrontWindowType windowType);
+    void ResetConfig(FrontedWindowType windowType);
     /// <summary>
     /// 配置项改变事件
     /// </summary>

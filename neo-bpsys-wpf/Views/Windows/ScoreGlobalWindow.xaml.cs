@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Core.Messages;
 using System.ComponentModel;
 using System.Windows;

@@ -23,15 +23,15 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
     }
 
     private readonly ISharedDataService _sharedDataService;
-    private readonly IFrontService _frontService;
+    private readonly IFrontedWindowService _frontedWindowService;
 
-    public PickPageViewModel(ISharedDataService sharedDataService, IFrontService frontService)
+    public PickPageViewModel(ISharedDataService sharedDataService, IFrontedWindowService frontedWindowService)
     {
         _sharedDataService = sharedDataService;
-        _frontService = frontService;
+        _frontedWindowService = frontedWindowService;
         SurPickViewModelList =
-            [.. Enumerable.Range(0, 4).Select(i => new SurPickViewModel(sharedDataService, frontService, i))];
-        HunPickVm = new HunPickViewModel(sharedDataService, frontService);
+            [.. Enumerable.Range(0, 4).Select(i => new SurPickViewModel(sharedDataService, frontedWindowService, i))];
+        HunPickVm = new HunPickViewModel(sharedDataService, frontedWindowService);
         MainSurGlobalBanRecordViewModelList =
         [
             .. Enumerable.Range(0, AppConstants.GlobalBanSurCount)
@@ -60,9 +60,9 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         if (arg == "Hun")
         {
             if (HunPickingBorder)
-                await _frontService.BreathingStart(FrontWindowType.BpWindow, "HunPickingBorder", -1, string.Empty);
+                await _frontedWindowService.BreathingStart(FrontedWindowType.BpWindow, "HunPickingBorder", -1, string.Empty);
             else
-                await _frontService.BreathingStop(FrontWindowType.BpWindow, "HunPickingBorder", -1, string.Empty);
+                await _frontedWindowService.BreathingStop(FrontedWindowType.BpWindow, "HunPickingBorder", -1, string.Empty);
             return;
         }
 
@@ -82,12 +82,12 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             {
                 if (i == argsMapSur[arg].Length - 1)
                 {
-                    await _frontService.BreathingStart(FrontWindowType.BpWindow, "SurPickingBorder", index,
+                    await _frontedWindowService.BreathingStart(FrontedWindowType.BpWindow, "SurPickingBorder", index,
                         string.Empty);
                 }
                 else
                 {
-                    _ = _frontService.BreathingStart(FrontWindowType.BpWindow, "SurPickingBorder", index,
+                    _ = _frontedWindowService.BreathingStart(FrontedWindowType.BpWindow, "SurPickingBorder", index,
                         string.Empty);
                 }
             }
@@ -95,12 +95,12 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             {
                 if (i == argsMapSur[arg].Length - 1)
                 {
-                    await _frontService.BreathingStop(FrontWindowType.BpWindow, "SurPickingBorder", index,
+                    await _frontedWindowService.BreathingStop(FrontedWindowType.BpWindow, "SurPickingBorder", index,
                         string.Empty);
                 }
                 else
                 {
-                    _ = _frontService.BreathingStop(FrontWindowType.BpWindow, "SurPickingBorder", index,
+                    _ = _frontedWindowService.BreathingStop(FrontedWindowType.BpWindow, "SurPickingBorder", index,
                         string.Empty);
                 }
             }
@@ -159,13 +159,13 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
     //基于模板基类的VM实现
     public partial class SurPickViewModel : CharaSelectViewModelBase
     {
-        private readonly IFrontService _frontService;
+        private readonly IFrontedWindowService _frontedWindowService;
         public Player ThisPlayer => SharedDataService.CurrentGame.SurPlayerList[Index];
 
-        public SurPickViewModel(ISharedDataService sharedDataService, IFrontService frontService, int index = 0) :
+        public SurPickViewModel(ISharedDataService sharedDataService, IFrontedWindowService frontedWindowService, int index = 0) :
             base(sharedDataService, Camp.Sur, index)
         {
-            _frontService = frontService;
+            _frontedWindowService = frontedWindowService;
             sharedDataService.CurrentGameChanged += (_, _) =>
             {
                 ThisPlayer.PropertyChanged -= OnThisPlayerPropertyChanged;
@@ -184,22 +184,22 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
 
         public override async Task SyncCharaAsync()
         {
-            _frontService.FadeOutAnimation(FrontWindowType.BpWindow, "SurPick", Index, string.Empty);
+            _frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", Index, string.Empty);
             await Task.Delay(250);
             ThisPlayer.Character = SelectedChara;
-            _frontService.FadeInAnimation(FrontWindowType.BpWindow, "SurPick", Index, string.Empty);
+            _frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", Index, string.Empty);
             PreviewImage = ThisPlayer.Character?.HeaderImage;
         }
 
         [RelayCommand]
         private async Task SwapCharacterInPlayersAsync(CharacterChangerCommandParameter parameter)
         {
-            _frontService.FadeOutAnimation(FrontWindowType.BpWindow, "SurPick", parameter.Source, string.Empty);
-            _frontService.FadeOutAnimation(FrontWindowType.BpWindow, "SurPick", parameter.Target, string.Empty);
+            _frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", parameter.Source, string.Empty);
+            _frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", parameter.Target, string.Empty);
             await Task.Delay(250);
             SharedDataService.CurrentGame.SwapCharactersInPlayers(parameter.Source, parameter.Target);
-            _frontService.FadeInAnimation(FrontWindowType.BpWindow, "SurPick", parameter.Source, string.Empty);
-            _frontService.FadeInAnimation(FrontWindowType.BpWindow, "SurPick", parameter.Target, string.Empty);
+            _frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", parameter.Source, string.Empty);
+            _frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", parameter.Target, string.Empty);
         }
 
         private void ReverseSyncChara()
@@ -215,20 +215,20 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
 
     public class HunPickViewModel : CharaSelectViewModelBase
     {
-        private readonly IFrontService _frontService;
+        private readonly IFrontedWindowService _frontedWindowService;
 
-        public HunPickViewModel(ISharedDataService sharedDataService, IFrontService frontService) : base(
+        public HunPickViewModel(ISharedDataService sharedDataService, IFrontedWindowService frontedWindowService) : base(
             sharedDataService, Camp.Hun)
         {
-            _frontService = frontService;
+            _frontedWindowService = frontedWindowService;
         }
 
         public override async Task SyncCharaAsync()
         {
-            _frontService.FadeOutAnimation(FrontWindowType.BpWindow, "HunPick", -1, string.Empty);
+            _frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, "HunPick", -1, string.Empty);
             await Task.Delay(250);
             SharedDataService.CurrentGame.HunPlayer.Character = SelectedChara;
-            _frontService.FadeInAnimation(FrontWindowType.BpWindow, "HunPick", -1, string.Empty);
+            _frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, "HunPick", -1, string.Empty);
             PreviewImage = SharedDataService.CurrentGame.HunPlayer.Character?.HeaderImage;
         }
 

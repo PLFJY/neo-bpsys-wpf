@@ -66,12 +66,12 @@
                     Orientation="Horizontal">
                     <ui:Button
                         Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
+                        CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}"
                         Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
+                        CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}"
                         Content="{lex:Loc Close}" />
                 </StackPanel>
                 <ui:ToggleSwitch
@@ -82,7 +82,7 @@
                     <ui:ToggleSwitch.CommandParameter>
                         <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
                             <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
-                            <Binding Source="{x:Static enums:FrontWindowType.BpWindow}" />
+                            <Binding Source="{x:Static enums:FrontedWindowType.BpWindow}" />
                         </MultiBinding>
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
@@ -114,12 +114,12 @@
                     Orientation="Horizontal">
                     <ui:Button
                         Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
+                        CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}"
                         Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
+                        CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}"
                         Content="{lex:Loc Close}" />
                 </StackPanel>
                 <ui:ToggleSwitch
@@ -130,7 +130,7 @@
                     <ui:ToggleSwitch.CommandParameter>
                         <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
                             <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
-                            <Binding Source="{x:Static enums:FrontWindowType.CutSceneWindow}" />
+                            <Binding Source="{x:Static enums:FrontedWindowType.CutSceneWindow}" />
                         </MultiBinding>
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
@@ -171,12 +171,12 @@
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.ScoreSurWindow}"
+                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreSurWindow}"
                         Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.ScoreSurWindow}"
+                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreSurWindow}"
                         Content="{lex:Loc Close}" />
                 </StackPanel>
                 <StackPanel
@@ -187,12 +187,12 @@
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.ScoreHunWindow}"
+                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreHunWindow}"
                         Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.ScoreHunWindow}"
+                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreHunWindow}"
                         Content="{lex:Loc Close}" />
                 </StackPanel>
                 <StackPanel
@@ -203,12 +203,12 @@
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
+                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}"
                         Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
+                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}"
                         Content="{lex:Loc Close}" />
                 </StackPanel>
                 <ui:ToggleSwitch
@@ -219,7 +219,7 @@
                     <ui:ToggleSwitch.CommandParameter>
                         <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
                             <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
-                            <Binding Source="{x:Static enums:FrontWindowType.ScoreWindow}" />
+                            <Binding Source="{x:Static enums:FrontedWindowType.ScoreWindow}" />
                         </MultiBinding>
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
@@ -268,12 +268,12 @@
                     Orientation="Horizontal">
                     <ui:Button
                         Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
+                        CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}"
                         Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
+                        CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}"
                         Content="{lex:Loc Close}" />
                 </StackPanel>
                 <ui:ToggleSwitch
@@ -284,7 +284,7 @@
                     <ui:ToggleSwitch.CommandParameter>
                         <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
                             <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
-                            <Binding Source="{x:Static enums:FrontWindowType.GameDataWindow}" />
+                            <Binding Source="{x:Static enums:FrontedWindowType.GameDataWindow}" />
                         </MultiBinding>
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
@@ -319,12 +319,12 @@
                     Orientation="Horizontal">
                     <ui:Button
                         Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
+                        CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}"
                         Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
+                        CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}"
                         Content="{lex:Loc Close}" />
                 </StackPanel>
                 <ui:ToggleSwitch
@@ -335,7 +335,7 @@
                     <ui:ToggleSwitch.CommandParameter>
                         <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
                             <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
-                            <Binding Source="{x:Static enums:FrontWindowType.WidgetsWindow}" />
+                            <Binding Source="{x:Static enums:FrontedWindowType.WidgetsWindow}" />
                         </MultiBinding>
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">

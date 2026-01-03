@@ -15,6 +15,7 @@ namespace neo_bpsys_wpf.ExamplePlugin
         public override void Initialize(HostBuilderContext context, IServiceCollection services)
         {
             services.AddBackendPage<MainPage, MainPageViewModel>();
+            services.AddFrontedWindow<MainWindow, MainWindowViewModel>();
         }
     }
 

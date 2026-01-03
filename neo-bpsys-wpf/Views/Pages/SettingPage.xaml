@@ -369,13 +369,13 @@
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}"
                                         Content="{lex:Loc Edit}"
                                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding ResetCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}"
                                         Content="{lex:Loc ResetAllPersonalizationSettingsOfTheWindow}"
                                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </StackPanel>
@@ -426,13 +426,13 @@
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}"
                                         Content="{lex:Loc Edit}"
                                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding ResetCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}"
                                         Content="{lex:Loc ResetAllPersonalizationSettingsOfTheWindow}"
                                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </StackPanel>
@@ -514,13 +514,13 @@
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}"
                                         Content="{lex:Loc Edit}"
                                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding ResetCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}"
                                         Content="{lex:Loc ResetAllPersonalizationSettingsOfTheWindow}"
                                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </StackPanel>
@@ -560,13 +560,13 @@
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}"
                                         Content="{lex:Loc Edit}"
                                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding ResetCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}"
                                         Content="{lex:Loc ResetAllPersonalizationSettingsOfTheWindow}"
                                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </StackPanel>
@@ -665,13 +665,13 @@
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}"
                                         Content="{lex:Loc Edit}"
                                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding ResetCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}"
                                         Content="{lex:Loc ResetAllPersonalizationSettingsOfTheWindow}"
                                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </StackPanel>
