@@ -70,4 +70,4 @@ jobs:
         tag_name: ${{ env.VERSION }}
         files: ${{ env.INSTALLER_OUTPUT }}
         name: Release-${{ env.VERSION }}
-        body: release_body.md
+        body_path: release_body.md
