@@ -1,4 +1,4 @@
-name: Build and draft a release
+name: Build and draft a beta
 
 on: workflow_dispatch
 
