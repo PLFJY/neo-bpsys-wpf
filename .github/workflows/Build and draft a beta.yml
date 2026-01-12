@@ -21,7 +21,7 @@ jobs:
       with:
         dotnet-version: 9.0.x
 
-    - name: And Pack Installer
+    - name: Build And Pack Installer
       shell: pwsh
       run: .\build_beta.ps1
 
@@ -70,5 +70,5 @@ jobs:
         tag_name: ${{ env.VERSION }}
         files: ${{ env.INSTALLER_OUTPUT }}
         name: Beta-${{ env.VERSION }}
-        body: release_body.md
+        body_path: release_body.md
         prerelease: true
