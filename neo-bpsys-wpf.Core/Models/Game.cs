@@ -1,22 +1,17 @@
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Text.Json.Serialization;
-using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Core.Messages;
 
 namespace neo_bpsys_wpf.Core.Models;
 
 /// <summary>
 /// 对局类, 创建需要导入 <see cref="Core.Models.Game.SurTeam"/> 和 <see cref="Core.Models.Game.HunTeam"/> 两支队伍以及对局进度
 /// </summary>
-public partial class Game : ViewModelBase
+public partial class Game : ObservableObjectBase
 {
     #region 对局基本信息
 
@@ -30,7 +25,7 @@ public partial class Game : ViewModelBase
     /// </summary>
     public DateTime StartTime { get; }
 
-    private Team _surTeam = new(Camp.Sur, TeamType.MainTeam);
+    private Team _surTeam = new(Camp.Sur, TeamType.HomeTeam);
 
     /// <summary>
     /// 求生者队伍
@@ -162,7 +157,11 @@ public partial class Game : ViewModelBase
     {
         get => _pickedMap;
         set => SetPropertyWithAction(ref _pickedMap, value, 
-            _ => PickedMapImage = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, _pickedMap.ToString()));
+            _ =>
+            {
+                PickedMapImage = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, _pickedMap.ToString());
+                PickedMapImageLarge = ImageHelper.GetImageSourceFromName(ImageSourceKey.map_square, _pickedMap.ToString());
+            });
     }
 
     private Map? _bannedMap;
@@ -182,6 +181,12 @@ public partial class Game : ViewModelBase
     /// </summary>
     [ObservableProperty] [property: JsonIgnore]
     private ImageSource? _pickedMapImage;
+    
+    /// <summary>
+    /// 选择的地图的图片
+    /// </summary>
+    [ObservableProperty] [property: JsonIgnore]
+    private ImageSource? _pickedMapImageLarge;
 
     /// <summary>
     /// Ban掉的地图的图片

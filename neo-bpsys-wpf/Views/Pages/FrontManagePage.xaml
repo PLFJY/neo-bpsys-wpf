@@ -5,6 +5,7 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:enums="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -31,7 +32,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="所有前台画面" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc AllFrontendWindows}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -40,12 +41,12 @@
                     <ui:Button
                         Height="50"
                         Command="{Binding ShowAllWindowsCommand}"
-                        Content="全部启动" />
+                        Content="{lex:Loc OpenAll}" />
                     <ui:Button
                         Height="50"
                         Margin="10,0,0,0"
                         Command="{Binding HideAllWindowsCommand}"
-                        Content="全部关闭" />
+                        Content="{lex:Loc CloseAll}" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -58,42 +59,42 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="BP画面" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc BPWindow}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
                     <ui:Button
                         Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
-                        Content="启动" />
+                        CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}"
+                        Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
-                        Content="关闭" />
+                        CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}"
+                        Content="{lex:Loc Close}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Row="2"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
-                    Command="{Binding ChangeDesignModeCommand}">
+                    Command="{Binding ChangeDesignerModeCommand}">
                     <ui:ToggleSwitch.CommandParameter>
                         <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
                             <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
-                            <Binding Source="{x:Static enums:FrontWindowType.BpWindow}" />
+                            <Binding Source="{x:Static enums:FrontedWindowType.BpWindow}" />
                         </MultiBinding>
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
                     </StackPanel>
                 </ui:ToggleSwitch>
                 <ui:Button
                     Grid.Row="3"
                     Margin="0,10,0,0"
                     Command="{Binding ResetBpWindowElementsPositionCommand}"
-                    Content="重置布局"
+                    Content="{lex:Loc ResetLayout}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
@@ -106,42 +107,42 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="过场画面" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc CutSceneWindow}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
                     <ui:Button
                         Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
-                        Content="启动" />
+                        CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}"
+                        Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
-                        Content="关闭" />
+                        CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}"
+                        Content="{lex:Loc Close}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Row="2"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
-                    Command="{Binding ChangeDesignModeCommand}">
+                    Command="{Binding ChangeDesignerModeCommand}">
                     <ui:ToggleSwitch.CommandParameter>
                         <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
                             <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
-                            <Binding Source="{x:Static enums:FrontWindowType.CutSceneWindow}" />
+                            <Binding Source="{x:Static enums:FrontedWindowType.CutSceneWindow}" />
                         </MultiBinding>
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
                     </StackPanel>
                 </ui:ToggleSwitch>
                 <ui:Button
                     Grid.Row="3"
                     Margin="0,10,0,0"
                     Command="{Binding ResetCutSceneWindowElementsPositionCommand}"
-                    Content="重置布局"
+                    Content="{lex:Loc ResetLayout}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
@@ -161,93 +162,93 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="比分组件" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc ScoreComponent}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="游戏内比分求生者" />
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc SurvivorScoreInGame}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.ScoreSurWindow}"
-                        Content="启动" />
+                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreSurWindow}"
+                        Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.ScoreSurWindow}"
-                        Content="关闭" />
+                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreSurWindow}"
+                        Content="{lex:Loc Close}" />
                 </StackPanel>
                 <StackPanel
                     Grid.Row="2"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="游戏内比分监管者" />
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc HunterScoreInGame}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.ScoreHunWindow}"
-                        Content="启动" />
+                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreHunWindow}"
+                        Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.ScoreHunWindow}"
-                        Content="关闭" />
+                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreHunWindow}"
+                        Content="{lex:Loc Close}" />
                 </StackPanel>
                 <StackPanel
                     Grid.Row="3"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="分数统计" />
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc ScoreStatistics}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
-                        Content="启动" />
+                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}"
+                        Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
-                        Content="关闭" />
+                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}"
+                        Content="{lex:Loc Close}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Row="4"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
-                    Command="{Binding ChangeDesignModeCommand}">
+                    Command="{Binding ChangeDesignerModeCommand}">
                     <ui:ToggleSwitch.CommandParameter>
                         <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
                             <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
-                            <Binding Source="{x:Static enums:FrontWindowType.ScoreWindow}" />
+                            <Binding Source="{x:Static enums:FrontedWindowType.ScoreWindow}" />
                         </MultiBinding>
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
                     </StackPanel>
                 </ui:ToggleSwitch>
                 <TextBlock
                     Grid.Row="5"
                     Margin="0,10,0,0"
-                    Text="备注：分数统计界面BO3时不保存"
+                    Text="{lex:Loc NoteScoreStatisticsNotSaveInBO3Mode}"
                     TextWrapping="WrapWithOverflow" />
                 <ui:Button
                     Grid.Row="6"
                     Margin="0,10,0,0"
                     Command="{Binding ResetScoreSurWindowElementsPositionCommand}"
-                    Content="重置求生者游戏内比分布局"
+                    Content="{lex:Loc ResetSurvivorScoreLayoutInGame}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
                     Grid.Row="7"
                     Margin="0,10,0,0"
                     Command="{Binding ResetScoreHunWindowElementsPositionCommand}"
-                    Content="重置监管者游戏内比分布局"
+                    Content="{lex:Loc ResetHunterScoreLayoutInGame}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
                     Grid.Row="8"
                     Margin="0,10,0,0"
                     Command="{Binding ResetScoreGlobalWindowElementsPositionCommand}"
-                    Content="重置分数统计布局"
+                    Content="{lex:Loc ResetScoreStatisticsLayout}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
@@ -260,42 +261,42 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="赛后数据画面" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc GameStatisticsWindow}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
                     <ui:Button
                         Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
-                        Content="启动" />
+                        CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}"
+                        Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
-                        Content="关闭" />
+                        CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}"
+                        Content="{lex:Loc Close}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Row="2"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
-                    Command="{Binding ChangeDesignModeCommand}">
+                    Command="{Binding ChangeDesignerModeCommand}">
                     <ui:ToggleSwitch.CommandParameter>
                         <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
                             <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
-                            <Binding Source="{x:Static enums:FrontWindowType.GameDataWindow}" />
+                            <Binding Source="{x:Static enums:FrontedWindowType.GameDataWindow}" />
                         </MultiBinding>
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
                     </StackPanel>
                 </ui:ToggleSwitch>
                 <ui:Button
                     Grid.Row="3"
                     Margin="0,10,0,0"
                     Command="{Binding ResetGameDataWindowElementsPositionCommand}"
-                    Content="重置布局"
+                    Content="{lex:Loc ResetLayout}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
@@ -311,35 +312,35 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="其它小组件 (地图BP等)" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc Widgets}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
                     <ui:Button
                         Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
-                        Content="启动" />
+                        CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}"
+                        Content="{lex:Loc Open}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
-                        Content="关闭" />
+                        CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}"
+                        Content="{lex:Loc Close}" />
                 </StackPanel>
                 <ui:ToggleSwitch
                     Grid.Row="3"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
-                    Command="{Binding ChangeDesignModeCommand}">
+                    Command="{Binding ChangeDesignerModeCommand}">
                     <ui:ToggleSwitch.CommandParameter>
                         <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
                             <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
-                            <Binding Source="{x:Static enums:FrontWindowType.WidgetsWindow}" />
+                            <Binding Source="{x:Static enums:FrontedWindowType.WidgetsWindow}" />
                         </MultiBinding>
                     </ui:ToggleSwitch.CommandParameter>
                     <StackPanel Orientation="Horizontal">
                         <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="设计模式" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
                     </StackPanel>
                 </ui:ToggleSwitch>
                 <ui:Button
@@ -347,23 +348,96 @@
                     Margin="0,10,0,0"
                     Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
                     CommandParameter="MapBpCanvas"
-                    Content="重置地图BP布局"
+                    Content="{lex:Loc ResetMapBPLayout}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
                     Grid.Row="5"
                     Margin="0,10,0,0"
                     Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
                     CommandParameter="BpOverViewCanvas"
-                    Content="重置BP总览布局"
+                    Content="{lex:Loc ResetBPOverviewLayout}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                 <ui:Button
                     Grid.Row="6"
                     Margin="0,10,0,0"
                     Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
                     CommandParameter="MapV2Canvas"
-                    Content="重置地图BpV2布局"
+                    Content="{lex:Loc ResetMapBPV2Layout}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
+        <ItemsControl ItemsSource="{Binding ExternalFrontedWindows}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Style="{StaticResource Card}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="{Binding Name}" />
+                            <StackPanel
+                                Grid.Row="1"
+                                Margin="0,10,0,0"
+                                Orientation="Horizontal">
+                                <ui:Button
+                                    Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.ShowWindowCommand}"
+                                    CommandParameter="{Binding Id}"
+                                    Content="{lex:Loc Open}" />
+                                <ui:Button
+                                    Margin="10,0,0,0"
+                                    Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.HideWindowCommand}"
+                                    CommandParameter="{Binding Id}"
+                                    Content="{lex:Loc Close}" />
+                            </StackPanel>
+                            <ui:ToggleSwitch
+                                Grid.Row="2"
+                                Margin="0,10,0,0"
+                                HorizontalAlignment="Center"
+                                Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.ChangeDesignerModeCommand}">
+                                <ui:ToggleSwitch.CommandParameter>
+                                    <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
+                                        <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
+                                        <Binding Path="Id" />
+                                    </MultiBinding>
+                                </ui:ToggleSwitch.CommandParameter>
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Edit24" />
+                                    <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
+                                </StackPanel>
+                            </ui:ToggleSwitch>
+                            <ItemsControl Grid.Row="3" ItemsSource="{Binding Canvas}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <ui:Button
+                                            Margin="0,10,0,0"
+                                            Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl, AncestorLevel=2}, Path=DataContext.ResetCanvasElementsPositionCommand}"
+                                            Icon="{ui:SymbolIcon Symbol=ArrowReset24}">
+                                            <ui:Button.CommandParameter>
+                                                <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
+                                                    <Binding Path="DataContext.Id" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                                    <Binding Path="Name" />
+                                                </MultiBinding>
+                                            </ui:Button.CommandParameter>
+                                            <MultiBinding Converter="{lex:StringFormatConverter}">
+                                                <lex:BLoc Key="ResetLayoutFormat" />
+                                                <Binding Path="DisplayName" />
+                                            </MultiBinding>
+                                        </ui:Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
     </WrapPanel>
 </Page>

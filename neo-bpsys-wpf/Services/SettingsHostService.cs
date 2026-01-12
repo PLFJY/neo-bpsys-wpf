@@ -1,10 +1,16 @@
-﻿using neo_bpsys_wpf.Converters;
-using neo_bpsys_wpf.Core.Models;
-using System.IO;
-using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Converters;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Events;
+using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models;
+using System.ComponentModel;
+using System.IO;
+using System.Text.Json;
+using System.Windows;
+using neo_bpsys_wpf.Helpers;
 using BpWindowSettings = neo_bpsys_wpf.Core.Models.BpWindowSettings;
 using WidgetsWindowSettings = neo_bpsys_wpf.Core.Models.WidgetsWindowSettings;
 
@@ -15,6 +21,7 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public class SettingsHostService : ISettingsHostService
 {
+    private readonly ILogger<SettingsHostService> _logger;
     private Settings _settings = new();
 
     public Settings Settings
@@ -23,12 +30,14 @@ public class SettingsHostService : ISettingsHostService
         set
         {
             if (_settings == value) return;
+
+            _settings.PropertyChanged -= OnSettingsPropertyChanged;
             _settings = value;
+            _settings.PropertyChanged += OnSettingsPropertyChanged;
+
             SettingsChanged?.Invoke(this, value);
         }
     }
-
-    private readonly IMessageBoxService _messageBoxService;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -38,10 +47,10 @@ public class SettingsHostService : ISettingsHostService
         Converters = { new FontWeightJsonConverter() }
     };
 
-    public SettingsHostService(IMessageBoxService messageBoxService)
+    public SettingsHostService(ILogger<SettingsHostService> logger)
     {
-        _messageBoxService = messageBoxService;
-        LoadConfig();
+        _logger = logger;
+        _ = LoadConfig();
     }
 
     /// <summary>
@@ -54,24 +63,25 @@ public class SettingsHostService : ISettingsHostService
         try
         {
             var jsonStr = JsonSerializer.Serialize(Settings, _jsonSerializerOptions);
-            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Replace(@"\",@"\\");
+            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Replace(@"\", @"\\");
             jsonStr = jsonStr.Replace(appDataPath, "%APPDATA%");
             File.WriteAllText(AppConstants.ConfigFilePath, jsonStr);
         }
         catch (Exception e)
         {
-            _messageBoxService.ShowErrorAsync($"配置文件存储错误\n{e.Message}");
+            _logger.LogError(e, "Configuration file save error");
+            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("ConfigurationFileSaveError") }\n{e.Message}");
         }
     }
 
     /// <summary>
     /// 加载设置
     /// </summary>
-    public void LoadConfig()
+    public async Task LoadConfig()
     {
         if (!File.Exists(AppConstants.ConfigFilePath))
             ResetConfig();
-        var json = File.ReadAllText(AppConstants.ConfigFilePath);
+        var json = await File.ReadAllTextAsync(AppConstants.ConfigFilePath);
         try
         {
             var settings = JsonSerializer.Deserialize<Settings>(json, _jsonSerializerOptions);
@@ -81,14 +91,23 @@ public class SettingsHostService : ISettingsHostService
             }
             else
             {
-                _messageBoxService.ShowErrorAsync("配置文件为空");
+                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("ConfigurationFileEmpty"));
                 ResetConfig();
             }
         }
         catch (Exception e)
         {
-            _messageBoxService.ShowErrorAsync($"读取配置文件错误\n{e.Message}");
-            ResetConfig();
+            _logger.LogError(e, "Reading configuration file error");
+
+            if (await MessageBoxHelper.ShowConfirmAsync($"{I18nHelper.GetLocalizedString("ResetConfigurationFileToSolveTheProblem")}?",
+                    I18nHelper.GetLocalizedString("FailedToReadConfigurationFile"), I18nHelper.GetLocalizedString("Confirm"), I18nHelper.GetLocalizedString("Cancel")))
+            {
+                ResetConfig();
+            }
+            else
+            {
+                Application.Current.Shutdown();
+            }
         }
     }
 
@@ -104,12 +123,13 @@ public class SettingsHostService : ISettingsHostService
 
             Settings = new Settings();
             SaveConfig();
-            LoadConfig();
+            _ = LoadConfig();
         }
         catch (Exception e)
         {
-            _messageBoxService.ShowErrorAsync($"重置配置文件错误\n{e.Message}");
-            throw;
+            _logger.LogError(e, "Reset configuration file error");
+            _ = MessageBoxHelper.ShowErrorAsync(
+                $"{I18nHelper.GetLocalizedString("ResetConfigurationFileError")}\n{e.Message}");
         }
     }
 
@@ -117,7 +137,7 @@ public class SettingsHostService : ISettingsHostService
     /// 重置指定窗口的设置
     /// </summary>
     /// <param name="windowType">窗口类型</param>
-    public void ResetConfig(FrontWindowType windowType)
+    public void ResetConfig(FrontedWindowType windowType)
     {
         try
         {
@@ -126,7 +146,7 @@ public class SettingsHostService : ISettingsHostService
 
             switch (windowType)
             {
-                case FrontWindowType.BpWindow:
+                case FrontedWindowType.BpWindow:
                     try
                     {
                         if (Settings.BpWindowSettings.BgImageUri != null)
@@ -138,29 +158,29 @@ public class SettingsHostService : ISettingsHostService
                         if (Settings.BpWindowSettings.CurrentBanLockImageUri != null)
                             File.Delete(Settings.BpWindowSettings.CurrentBanLockImageUri);
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // ignored
+                        _logger.LogWarning(ex, "Error when deleting pictures about BpWindow settings");
                     }
 
                     Settings.BpWindowSettings = new BpWindowSettings();
                     break;
-                case FrontWindowType.CutSceneWindow:
+                case FrontedWindowType.CutSceneWindow:
                     try
                     {
                         if (Settings.CutSceneWindowSettings.BgUri != null)
                             File.Delete(Settings.CutSceneWindowSettings.BgUri);
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // ignored
+                        _logger.LogWarning(ex, "Error when deleting pictures about CutSceneWindow");
                     }
 
                     Settings.CutSceneWindowSettings = new CutSceneWindowSettings();
                     break;
-                case FrontWindowType.ScoreGlobalWindow:
-                case FrontWindowType.ScoreSurWindow:
-                case FrontWindowType.ScoreHunWindow:
+                case FrontedWindowType.ScoreGlobalWindow:
+                case FrontedWindowType.ScoreSurWindow:
+                case FrontedWindowType.ScoreHunWindow:
                     try
                     {
                         if (Settings.ScoreWindowSettings.SurScoreBgImageUri != null)
@@ -170,26 +190,27 @@ public class SettingsHostService : ISettingsHostService
                         if (Settings.ScoreWindowSettings.GlobalScoreBgImageUri != null)
                             File.Delete(Settings.ScoreWindowSettings.GlobalScoreBgImageUri);
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // ignored
+                        _logger.LogWarning(ex, "Error when deleting pictures about ScoreWindow settings");
                     }
 
                     Settings.ScoreWindowSettings = new ScoreWindowSettings();
                     break;
-                case FrontWindowType.GameDataWindow:
+                case FrontedWindowType.GameDataWindow:
                     try
                     {
                         if (Settings.GameDataWindowSettings.BgImageUri != null)
                             File.Delete(Settings.GameDataWindowSettings.BgImageUri);
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // ignored
+                        _logger.LogWarning(ex, "Error when deleting pictures about GameDataWindow settings");
                     }
+
                     Settings.GameDataWindowSettings = new GameDataWindowSettings();
                     break;
-                case FrontWindowType.WidgetsWindow:
+                case FrontedWindowType.WidgetsWindow:
                     try
                     {
                         if (Settings.WidgetsWindowSettings.MapBpBgUri != null)
@@ -200,15 +221,16 @@ public class SettingsHostService : ISettingsHostService
                             File.Delete(Settings.WidgetsWindowSettings.MapBpV2PickingBorderImageUri);
                         if (Settings.WidgetsWindowSettings.BpOverviewBgUri != null)
                             File.Delete(Settings.WidgetsWindowSettings.BpOverviewBgUri);
-                        if(Settings.WidgetsWindowSettings.CurrentBanLockImageUri != null)
+                        if (Settings.WidgetsWindowSettings.CurrentBanLockImageUri != null)
                             File.Delete(Settings.WidgetsWindowSettings.CurrentBanLockImageUri);
                         if (Settings.WidgetsWindowSettings.GlobalBanLockImageUri != null)
                             File.Delete(Settings.WidgetsWindowSettings.GlobalBanLockImageUri);
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // ignored
+                        _logger.LogWarning(ex, "Error when deleting pictures about WidgetsWindow settings");
                     }
+
                     Settings.WidgetsWindowSettings = new WidgetsWindowSettings();
                     break;
                 default:
@@ -219,8 +241,20 @@ public class SettingsHostService : ISettingsHostService
         }
         catch (Exception e)
         {
-            _messageBoxService.ShowErrorAsync($"重置配置文件错误\n{e.Message}");
+            _logger.LogError(e, "Reset Configuration file error");
+            _ = MessageBoxHelper.ShowErrorAsync(
+                $"{I18nHelper.GetLocalizedString("ResetConfigurationFileError")}\n{e.Message}");
             throw;
+        }
+    }
+
+    private void OnSettingsPropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (string.IsNullOrEmpty(args.PropertyName)
+            || args.PropertyName == nameof(_settings.CultureInfo)
+            || args.PropertyName == nameof(_settings.Language))
+        {
+            LanguageSettingChanged?.Invoke(this, new LanguageChangedEventArgs(_settings.CultureInfo));
         }
     }
 
@@ -228,4 +262,6 @@ public class SettingsHostService : ISettingsHostService
     /// 配置文件改变事件
     /// </summary>
     public event EventHandler<Settings>? SettingsChanged;
+
+    public event EventHandler<LanguageChangedEventArgs>? LanguageSettingChanged;
 }

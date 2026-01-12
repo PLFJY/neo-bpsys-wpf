@@ -1,0 +1,9 @@
+﻿id: top.plfjy.bpsys.TeamJsonMaker
+name: TeamJsonMaker
+description: 队伍 JSON 文件制作工具
+entranceAssembly: neo-bpsys-wpf.TeamJsonMaker.dll
+url: https://github.com/PLFJY/neo-bpsys-wpf/
+version: 1.0.0.0
+apiVersion: 2.0.0.0
+author: Zero PLFJY
+icon: icon.png

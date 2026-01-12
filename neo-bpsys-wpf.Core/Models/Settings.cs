@@ -1,30 +1,57 @@
+using System.Globalization;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Abstractions;
 
 namespace neo_bpsys_wpf.Core.Models;
 
 /// <summary>
 /// 设置
 /// </summary>
-public partial class Settings : ViewModelBase
+public partial class Settings : ObservableObjectBase
 {
+    private static readonly CultureInfo SystemCulture = CultureInfo.CurrentUICulture;
     public bool ShowTip { get; set; } = true;
+
+    private LanguageKey _language = LanguageKey.System;
+    
+    public LanguageKey Language
+    {
+        get => _language;
+        set => SetPropertyWithAction(ref _language, value, _ =>
+        {
+            if (value == LanguageKey.System)
+            {
+                CultureInfo = SystemCulture;
+                return;
+            }
+            CultureInfo = CultureInfo.GetCultureInfo(value.ToString().Replace("_", "-"));
+        });
+    }
+
+    [JsonIgnore]
+    public CultureInfo CultureInfo
+    {
+        get => _cultureInfo;
+        private set => SetProperty(ref _cultureInfo, value);
+    }
+
     [ObservableProperty] private BpWindowSettings _bpWindowSettings = new();
     [ObservableProperty] private CutSceneWindowSettings _cutSceneWindowSettings = new();
     [ObservableProperty] private ScoreWindowSettings _scoreWindowSettings = new();
     [ObservableProperty] private GameDataWindowSettings _gameDataWindowSettings = new();
     [ObservableProperty] private WidgetsWindowSettings _widgetsWindowSettings = new();
+    private CultureInfo _cultureInfo = SystemCulture;
 }
 
 /// <summary>
 /// 文本设置
 /// </summary>
-public partial class TextSettings : ViewModelBase
+public partial class TextSettings : ObservableObjectBase
 {
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(Foreground))]
     private string? _color;
@@ -50,9 +77,9 @@ public partial class TextSettings : ViewModelBase
         {
             if (string.IsNullOrEmpty(FontFamilySite)) return new FontFamily("Arial");
 
-            return FontFamilySite.StartsWith("pack://application:,,,/")
+            return FontFamilySite.StartsWith("pack://application:,,,/Assets/Fonts/")
                 ? new FontFamily(new Uri(FontFamilySite[..FontFamilySite.IndexOf('#')]),
-                    "./" + FontFamilySite[FontFamilySite.IndexOf('#')..])
+                   "./" + FontFamilySite[FontFamilySite.IndexOf('#')..])
                 : new FontFamily(FontFamilySite);
         }
         set
@@ -90,7 +117,7 @@ public partial class TextSettings : ViewModelBase
 /// <summary>
 /// BP窗口设置
 /// </summary>
-public partial class BpWindowSettings : ViewModelBase
+public partial class BpWindowSettings : ObservableObjectBase
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
 
@@ -140,15 +167,15 @@ public class BpWindowTextSettings
         "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 58, FontWeights.Bold);
 
     public TextSettings TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 28);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 16);
 
-    public TextSettings MinorPoints { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 50, FontWeights.Bold);
+    public TextSettings GameScores { get; set; } =
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 26, FontWeights.Bold);
 
-    public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 28, FontWeights.Bold);
+    public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 20, FontWeights.Medium);
 
     public TextSettings PlayerId { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 16);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 16);
 
     public TextSettings MapName { get; set; } = new("#FFFFFFFF",
         "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 20);
@@ -160,7 +187,7 @@ public class BpWindowTextSettings
 /// <summary>
 /// 过场窗口设置
 /// </summary>
-public partial class CutSceneWindowSettings : ViewModelBase
+public partial class CutSceneWindowSettings : ObservableObjectBase
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
     public bool IsBlackTalentAndTraitEnable { get; set; } = false;
@@ -179,27 +206,27 @@ public partial class CutSceneWindowSettings : ViewModelBase
 public class CutSceneWindowTextSettings
 {
     public TextSettings TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 28);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 28, FontWeights.Bold);
 
     public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 28, FontWeights.Bold);
 
     public TextSettings SurPlayerId { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 18);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 18);
 
     public TextSettings HunPlayerId { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 24);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 30);
 
     public TextSettings MapName { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 28);
+        "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 24);
 
     public TextSettings GameProgress { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 24);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
 }
 
 /// <summary>
 /// 比分窗口设置
 /// </summary>
-public partial class ScoreWindowSettings : ViewModelBase
+public partial class ScoreWindowSettings : ObservableObjectBase
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
 
@@ -238,7 +265,7 @@ public partial class ScoreWindowSettings : ViewModelBase
 /// </summary>
 public class ScoreWindowTextSettings
 {
-    public TextSettings MinorPoints { get; set; } =
+    public TextSettings GameScores { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 100);
 
     public TextSettings MajorPoints { get; set; } =
@@ -248,19 +275,19 @@ public class ScoreWindowTextSettings
         "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 32);
 
     public TextSettings ScoreGlobal_TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 18);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 24);
 
     public TextSettings ScoreGlobal_Data { get; set; } =
         new("#FFFFFFFF", "Arial", 24, FontWeights.Bold);
 
     public TextSettings ScoreGlobal_Total { get; set; } =
-        new TextSettings("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 48, FontWeights.Bold);
+        new TextSettings("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 40, FontWeights.Bold);
 }
 
 /// <summary>
 /// 赛后数据窗口设置
 /// </summary>
-public partial class GameDataWindowSettings : ViewModelBase
+public partial class GameDataWindowSettings : ObservableObjectBase
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
 
@@ -278,22 +305,28 @@ public partial class GameDataWindowSettings : ViewModelBase
 public class GameDataWindowTextSettings
 {
     public TextSettings TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 32);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 32);
 
-    public TextSettings MinorPoints { get; set; } =
+    public TextSettings GameScores { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 80, FontWeights.Bold);
 
     public TextSettings MajorPoints { get; set; } = new("#FFFFFFFF", "Arial", 30, FontWeights.Bold);
 
     public TextSettings PlayerId { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 22);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 22);
 
     public TextSettings MapName { get; set; } = new("#FFFFFFFF",
-        "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 18);
+        "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 22);
 
     public TextSettings GameProgress { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 16);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 20);
 
+    public TextSettings SurDataHeader { get; set; } = new("#FFFFFFFF",
+        "pack://application:,,,/Assets/Fonts/#Noto Sans", 16);
+    
+    public TextSettings HunDataHeader { get; set; } = new("#FFFFFFFF",
+        "pack://application:,,,/Assets/Fonts/#Noto Sans", 16);
+    
     public TextSettings SurData { get; set; } = new("#FFFFFFFF",
         "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
 
@@ -304,7 +337,7 @@ public class GameDataWindowTextSettings
 /// <summary>
 /// 小组件窗口设置
 /// </summary>
-public partial class WidgetsWindowSettings : ViewModelBase
+public partial class WidgetsWindowSettings : ObservableObjectBase
 {
     [ObservableProperty] [NotifyPropertyChangedFor(nameof(MapBpBgImage))]
     private string? _mapBpBgUri;
@@ -375,20 +408,29 @@ public class WidgetsWindowTextSettings
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 22);
 
     public TextSettings MapBpV2_MapName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 16);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 14);
 
     public TextSettings MapBpV2_TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 18);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 18);
 
     public TextSettings MapBpV2_CampWords { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 20);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 20);
 
     public TextSettings BpOverview_TeamName { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Source Han Sans HW SC VF", 22);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#Noto Sans", 22);
 
     public TextSettings BpOverview_GameProgress { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
 
-    public TextSettings BpOverview_MinorPoints { get; set; } =
+    public TextSettings BpOverview_GameScores { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 50);
+}
+
+/// <summary>
+/// 语言设置
+/// </summary>
+
+public class LanguageSettings
+{
+
 }

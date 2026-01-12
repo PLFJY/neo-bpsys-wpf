@@ -5,6 +5,7 @@
     xmlns:cc="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -26,7 +27,6 @@
         </Style>
         <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="ui:TextBox">
             <Setter Property="IsReadOnly" Value="True" />
-            <Setter Property="PlaceholderText" Value="选手名称" />
         </Style>
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
@@ -36,7 +36,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="选择求生者" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc PickSurvivor}" />
                 <ItemsControl
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -49,13 +49,16 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Margin="0,0,10,10">
-                                <ui:TextBox IsReadOnly="True" Text="{Binding ThisPlayer.Member.Name, Mode=OneWay}" />
+                                <ui:TextBox
+                                    IsReadOnly="True"
+                                    PlaceholderText="{lex:Loc PlayerName}"
+                                    Text="{Binding ThisPlayer.Member.Name, Mode=OneWay}" />
                                 <cc:CharacterSelector
                                     Margin="0,10,0,0"
                                     Command="{Binding ConfirmCommand}"
                                     ImageSource="{Binding PreviewImage}"
                                     IsHighlighted="{Binding IsHighlighted}"
-                                    ItemsSource="{Binding CharaList}"
+                                    ItemsSource="{Binding CharaDict}"
                                     SelectedValue="{Binding SelectedChara}" />
                                 <cc:CharacterChanger
                                     Command="{Binding SwapCharacterInPlayersCommand}"
@@ -73,14 +76,14 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="选择监管者" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc PickHunter}" />
                 <cc:CharacterSelector
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Command="{Binding HunPickVm.ConfirmCommand}"
                     ImageSource="{Binding HunPickVm.PreviewImage}"
                     IsHighlighted="{Binding HunPickVm.IsHighlighted}"
-                    ItemsSource="{Binding HunPickVm.CharaList}"
+                    ItemsSource="{Binding HunPickVm.CharaDict}"
                     SelectedValue="{Binding HunPickVm.SelectedChara}" />
             </Grid>
         </Border>
@@ -94,9 +97,9 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0" Orientation="Horizontal">
-                    <TextBlock Grid.Row="0" Text="待选择边框开关  | " />
+                    <TextBlock Grid.Row="0" Text="{lex:Loc OpenPickingBorder}" />
                     <ui:ToggleSwitch x:Name="IsSingleControlEnabled" Margin="10,0,0,0" />
-                    <TextBlock Margin="10,0,0,0" Text="1 &amp; 2 分别控制" />
+                    <TextBlock Margin="10,0,0,0" Text="{lex:Loc ControlFirst2PickingBorderSeparately}" />
                 </StackPanel>
                 <StackPanel Grid.Row="1">
                     <StackPanel
@@ -108,7 +111,7 @@
                             Command="{Binding PickingBorderSwitchCommand}"
                             CommandParameter="0"
                             IsChecked="{Binding SurPickingBorderList[0]}" />
-                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 1" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc SurvivorPickingBorder1}" />
                     </StackPanel>
                     <StackPanel
                         Margin="0,10,0,0"
@@ -119,7 +122,7 @@
                             Command="{Binding PickingBorderSwitchCommand}"
                             CommandParameter="1"
                             IsChecked="{Binding SurPickingBorderList[1]}" />
-                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 2" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc SurvivorPickingBorder2}" />
                     </StackPanel>
                     <StackPanel
                         Margin="0,10,0,0"
@@ -133,28 +136,28 @@
                                 </MultiBinding>
                             </ui:ToggleSwitch.IsChecked>
                         </ui:ToggleSwitch>
-                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 1 &amp; 2" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc SurvivorPickingBorder1and2}" />
                     </StackPanel>
                     <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                         <ui:ToggleSwitch
                             Command="{Binding PickingBorderSwitchCommand}"
                             CommandParameter="2"
                             IsChecked="{Binding SurPickingBorderList[2]}" />
-                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 3" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc SurvivorPickingBorder3}" />
                     </StackPanel>
                     <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                         <ui:ToggleSwitch
                             Command="{Binding PickingBorderSwitchCommand}"
                             CommandParameter="3"
                             IsChecked="{Binding SurPickingBorderList[3]}" />
-                        <TextBlock Margin="10,0,0,0" Text="求生者选择框 4" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc SurvivorPickingBorder4}" />
                     </StackPanel>
                     <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                         <ui:ToggleSwitch
                             Command="{Binding PickingBorderSwitchCommand}"
                             CommandParameter="Hun"
                             IsChecked="{Binding HunPickingBorder}" />
-                        <TextBlock Margin="10,0,0,0" Text="监管者选择框" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc HunterPickingBorder}" />
                     </StackPanel>
                 </StackPanel>
             </Grid>
@@ -166,7 +169,7 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="全局禁选记录" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc GlobalBanRecord}" />
                 <Grid Grid.Row="1" Margin="0,10,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -176,13 +179,18 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0">
-                        <Run Text="主队：" /><Run Text="{Binding MainTeam.Name}" />
+                    <TextBlock Grid.Row="0" d:Text="主队: 主队名称">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0}: {1}">
+                                <lex:BLoc Key="HomeTeam" />
+                                <Binding Path="MainTeam.Name" />
+                            </MultiBinding>
+                        </TextBlock.Text>
                     </TextBlock>
                     <TextBlock
                         Grid.Row="1"
                         Margin="0,10,0,0"
-                        Text="全局禁用求生者" />
+                        Text="{lex:Loc GlobalBanSurvivor}" />
                     <ItemsControl
                         Grid.Row="2"
                         Margin="0,10,0,0"
@@ -197,7 +205,7 @@
                                 <cc:CharacterSelector
                                     Margin="0,0,10,10"
                                     IsSimpleModeEnabled="True"
-                                    ItemsSource="{Binding CharaList}"
+                                    ItemsSource="{Binding CharaDict}"
                                     SelectedValue="{Binding RecordedChara}" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -205,7 +213,7 @@
                     <TextBlock
                         Grid.Row="4"
                         Margin="0,10,0,0"
-                        Text="全局禁用监管者" />
+                        Text="{lex:Loc GlobalBanHunter}" />
                     <ItemsControl
                         Grid.Row="5"
                         Margin="0,10,0,0"
@@ -220,7 +228,7 @@
                                 <cc:CharacterSelector
                                     Margin="0,0,10,10"
                                     IsSimpleModeEnabled="True"
-                                    ItemsSource="{Binding CharaList}"
+                                    ItemsSource="{Binding CharaDict}"
                                     SelectedValue="{Binding RecordedChara}" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -235,13 +243,18 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0">
-                        <Run Text="客队：" /><Run Text="{Binding AwayTeam.Name}" />
+                    <TextBlock Grid.Row="0" d:Text="客队: 主队名称">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="{}{0}: {1}">
+                                <lex:BLoc Key="AwayTeam" />
+                                <Binding Path="AwayTeam.Name" />
+                            </MultiBinding>
+                        </TextBlock.Text>
                     </TextBlock>
                     <TextBlock
                         Grid.Row="1"
                         Margin="0,10,0,0"
-                        Text="全局禁用求生者" />
+                        Text="{lex:Loc GlobalBanSurvivor}" />
                     <ItemsControl
                         Grid.Row="2"
                         Margin="0,10,0,0"
@@ -256,7 +269,7 @@
                                 <cc:CharacterSelector
                                     Margin="0,0,10,10"
                                     IsSimpleModeEnabled="True"
-                                    ItemsSource="{Binding CharaList}"
+                                    ItemsSource="{Binding CharaDict}"
                                     SelectedValue="{Binding RecordedChara}" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -264,7 +277,7 @@
                     <TextBlock
                         Grid.Row="4"
                         Margin="0,10,0,0"
-                        Text="全局禁用监管者" />
+                        Text="{lex:Loc GlobalBanHunter}" />
                     <ItemsControl
                         Grid.Row="5"
                         Margin="0,10,0,0"
@@ -279,7 +292,7 @@
                                 <cc:CharacterSelector
                                     Margin="0,0,10,10"
                                     IsSimpleModeEnabled="True"
-                                    ItemsSource="{Binding CharaList}"
+                                    ItemsSource="{Binding CharaDict}"
                                     SelectedValue="{Binding RecordedChara}" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

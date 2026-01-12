@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0-windows</TargetFramework>
+        <RootNamespace>neo_bpsys_wpf.PluginSdk</RootNamespace>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+		<Version>0.1.2</Version>
+    </PropertyGroup>
+
+    <PropertyGroup>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Title>neo-bpsys-wpf Plugin SDK</Title>
+		<PackageIcon>icon.png</PackageIcon>
+		<PackageProjectUrl>https://bpsys.plfjy.top/</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/PLFJY/neo-bpsys-wpf/</RepositoryUrl>
+		<PackageId>neo-bpsys-wpf.PluginSdk</PackageId>
+		<Authors>Zero PLFJY</Authors>
+        <PackageTags>neo-bpsys-wpf;plugin;addin;wpf;identityv</PackageTags>
+        <Description>用于开发应用 neo-bpsys-wpf 插件的 SDK。</Description>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="" />
+		<None Include="..\LICENSE" Pack="true" PackagePath="" />
+		<None Include="..\icon.png" Pack="true" PackagePath="" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj">
+			<Private>false</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
+    </ItemGroup>
+
+	<ItemGroup>
+		<None Include=".\neo-bpsys-wpf.PluginSdk.targets" Pack="true" />
+	</ItemGroup>
+</Project>

@@ -1,9 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using neo_bpsys_wpf.Core.Helpers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using neo_bpsys_wpf.Core.Helpers;
 using TextSettings = neo_bpsys_wpf.Core.Models.TextSettings;
 
 namespace neo_bpsys_wpf.Controls;
@@ -37,16 +37,16 @@ public partial class TextSettingsEditControl : UserControl
     }
 
     public List<FontFamily> FontList { get; }
-    
+
     [ObservableProperty]
     private Color _selectedColor = Color.FromArgb(255, 255, 255, 255);
-    
+
     [ObservableProperty]
     private FontFamily _selectedFontFamily = new("Arial");
-    
+
     [ObservableProperty]
     private string _selectedFontSize = "16.0";
-    
+
     [ObservableProperty]
     private FontWeight _selectedFontWeight = FontWeights.Normal;
 

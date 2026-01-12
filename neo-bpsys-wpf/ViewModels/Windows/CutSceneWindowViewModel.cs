@@ -1,21 +1,19 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
-using neo_bpsys_wpf.Core.Models;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
+using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
+using neo_bpsys_wpf.Core.Models;
+using System.Windows.Media;
 using Game = neo_bpsys_wpf.Core.Models.Game;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
 public partial class CutSceneWindowViewModel :
     ViewModelBase,
-    IRecipient<DesignModeChangedMessage>
+    IRecipient<DesignerModeChangedMessage>
 {
     public CutSceneWindowViewModel()
     {
@@ -25,7 +23,7 @@ public partial class CutSceneWindowViewModel :
     private readonly ISharedDataService _sharedDataService;
     private readonly ISettingsHostService _settingsHostService;
 
-    [ObservableProperty] private bool _isDesignMode;
+    [ObservableProperty] private bool _isDesignerMode;
 
     public CutSceneWindowViewModel(ISharedDataService sharedDataService, ISettingsHostService settingsHostService)
     {
@@ -42,10 +40,10 @@ public partial class CutSceneWindowViewModel :
         };
     }
 
-    public void Receive(DesignModeChangedMessage message)
+    public void Receive(DesignerModeChangedMessage message)
     {
-        if (message.FrontWindowType == FrontWindowType.CutSceneWindow && IsDesignMode != message.IsDesignMode)
-            IsDesignMode = message.IsDesignMode;
+        if (message.FrontedWindowId == FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.CutSceneWindow) && IsDesignerMode != message.IsDesignerMode)
+            IsDesignerMode = message.IsDesignerMode;
     }
 
     public bool IsBo3Mode => _sharedDataService.IsBo3Mode;

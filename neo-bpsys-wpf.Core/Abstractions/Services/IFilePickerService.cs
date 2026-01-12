@@ -15,4 +15,10 @@ public interface IFilePickerService
     /// </summary>
     /// <returns>文件路径</returns>
     public string? PickJsonFile();
+
+    /// <summary>
+    /// 选择Zip文件
+    /// </summary>
+    /// <returns>文件路径</returns>
+    public string? PickZipFile();
 }

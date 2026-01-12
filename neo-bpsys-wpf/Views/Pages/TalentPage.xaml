@@ -1,24 +1,25 @@
 ﻿<Page
-    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-    Title="TalentPage"
-    d:DataContext="{d:DesignInstance Type=vm:TalentPageViewModel,
-                                     IsDesignTimeCreatable=True}"
-    d:DesignHeight="1500"
-    d:DesignWidth="685"
-    mc:Ignorable="d"
-    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     x:Class="neo_bpsys_wpf.Views.Pages.TalentPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:enums="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    Title="TalentPage"
+    d:DataContext="{d:DesignInstance Type=vm:TalentPageViewModel,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="1500"
+    d:DesignWidth="685"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    mc:Ignorable="d">
     <WrapPanel Orientation="Horizontal">
         <Border Style="{StaticResource Card}">
             <Grid>
@@ -27,27 +28,27 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="求生者天赋" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc SurvivorTalent}" />
                 <WrapPanel Grid.Row="1" Orientation="Horizontal">
                     <controls:TalentPicker
+                        Margin="0,0,10,10"
                         CharacterName="{Binding CurrentGame.SurPlayerList[0].Character.Name, Mode=OneWay}"
                         IsHighlighted="{Binding IsSurTalentHighlighted}"
-                        Margin="0,0,10,10"
                         Player="{Binding CurrentGame.SurPlayerList[0]}" />
                     <controls:TalentPicker
+                        Margin="0,0,10,10"
                         CharacterName="{Binding CurrentGame.SurPlayerList[1].Character.Name, Mode=OneWay}"
                         IsHighlighted="{Binding IsSurTalentHighlighted}"
-                        Margin="0,0,10,10"
                         Player="{Binding CurrentGame.SurPlayerList[1]}" />
                     <controls:TalentPicker
+                        Margin="0,0,10,10"
                         CharacterName="{Binding CurrentGame.SurPlayerList[2].Character.Name, Mode=OneWay}"
                         IsHighlighted="{Binding IsSurTalentHighlighted}"
-                        Margin="0,0,10,10"
                         Player="{Binding CurrentGame.SurPlayerList[2]}" />
                     <controls:TalentPicker
+                        Margin="0,0,10,10"
                         CharacterName="{Binding CurrentGame.SurPlayerList[3].Character.Name, Mode=OneWay}"
                         IsHighlighted="{Binding IsSurTalentHighlighted}"
-                        Margin="0,0,10,10"
                         Player="{Binding CurrentGame.SurPlayerList[3]}" />
                 </WrapPanel>
             </Grid>
@@ -58,14 +59,14 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="监管者天赋" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc HunterTalent}" />
                 <controls:TalentPicker
-                    CharacterName="{Binding CurrentGame.HunPlayer.Character.Name, Mode=OneWay}"
                     Grid.Row="1"
+                    Margin="0,0,20,10"
                     HorizontalAlignment="Left"
+                    CharacterName="{Binding CurrentGame.HunPlayer.Character.Name, Mode=OneWay}"
                     IsHighlighted="{Binding IsHunTalentHighlighted}"
                     IsTypeHun="True"
-                    Margin="0,0,20,10"
                     Player="{Binding CurrentGame.HunPlayer}" />
             </Grid>
         </Border>
@@ -88,13 +89,13 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0" Orientation="Horizontal">
-                    <TextBlock Text="监管者辅助特质" />
+                    <TextBlock Text="{lex:Loc HunterTrait}" />
                     <ui:ToggleSwitch
-                        Content="是否显示"
-                        IsChecked="{Binding IsTraitVisible}"
+                        x:Name="IsTraitVisible"
                         Margin="20,0,0,0"
                         d:IsChecked="True"
-                        x:Name="IsTraitVisible" />
+                        Content="{lex:Loc Enable}"
+                        IsChecked="{Binding IsTraitVisible}" />
                 </StackPanel>
                 <WrapPanel
                     Grid.Row="1"
@@ -103,36 +104,36 @@
                     Visibility="{Binding ElementName=IsTraitVisible, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}, Mode=TwoWay}">
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Listen}"
-                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.聆听}}"
-                        TagName="聆听" />
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Listen}}"
+                        TagName="{lex:Loc Listen}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Abnormal}"
-                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.失常}}"
-                        TagName="失常" />
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Abnormal}}"
+                        TagName="{lex:Loc Abnormal}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Excitement}"
-                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.兴奋}}"
-                        TagName="兴奋" />
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Excitement}}"
+                        TagName="{lex:Loc Excitement}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Patroller}"
-                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.巡视者}}"
-                        TagName="巡视者" />
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Patroller}}"
+                        TagName="{lex:Loc Patroller}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Teleport}"
-                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.传送}}"
-                        TagName="传送" />
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Teleport}}"
+                        TagName="{lex:Loc Teleport}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Peeper}"
-                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.窥视者}}"
-                        TagName="窥视者" />
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Peeper}}"
+                        TagName="{lex:Loc Peeper}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Blink}"
-                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.闪现}}"
-                        TagName="闪现" />
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Blink}}"
+                        TagName="{lex:Loc Blink}" />
                     <controls:ToggleStyledRadioButton
                         ImageSource="{DynamicResource Warp}"
-                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.移形}}"
-                        TagName="移形" />
+                        IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Warp}}"
+                        TagName="{lex:Loc Warp}" />
                     <i:Interaction.Triggers>
                         <i:DataTrigger Binding="{Binding IsHunTalentHighlighted}" Value="true">
                             <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedWrapPanel}" />

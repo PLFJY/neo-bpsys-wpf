@@ -1,14 +1,16 @@
 ﻿using Downloader;
+using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Windows;
-using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Models;
-using neo_bpsys_wpf.Core;
+using I18nHelper = neo_bpsys_wpf.Helpers.I18nHelper;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -19,28 +21,27 @@ public class UpdaterService : IUpdaterService
 {
     public string NewVersion { get; set; } = string.Empty;
     public ReleaseInfo NewVersionInfo { get; set; } = new();
-    public bool IsFindPreRelease { get; set; } = false;
+    public bool IsFindPreRelease { get; set; } =
+#if BETA
+        true;
+#else
+        false;
+#endif
     private readonly DownloadService _downloader;
     public object Downloader => _downloader;
 
-    private const string Owner = "plfjy";
-    private const string Repo = "neo-bpsys-wpf";
-    private const string GitHubApiBaseUrl = "https://api.github.com";
+    private const string ApiUrl = "https://gh-releases.plfjy.top/?repo=PLFJY/neo-bpsys-wpf&ua=neo-bpsys-wpf";
     private const string InstallerFileName = "neo-bpsys-wpf_Installer.exe";
     private readonly HttpClient _httpClient;
-    private readonly IMessageBoxService _messageBoxService;
     private readonly IInfoBarService _infoBarService;
+    private readonly ILogger<UpdaterService> _logger;
 
-    public UpdaterService(IMessageBoxService messageBoxService, IInfoBarService infoBarService)
+    public UpdaterService(IInfoBarService infoBarService, ILogger<UpdaterService> logger)
     {
-        _httpClient = new HttpClient
-        {
-            BaseAddress = new Uri(GitHubApiBaseUrl)
-        };
-        _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+        _httpClient = new HttpClient();
         _httpClient.DefaultRequestHeaders.Add("User-Agent", AppConstants.AppName);
-        _messageBoxService = messageBoxService;
         _infoBarService = infoBarService;
+        _logger = logger;
         var downloadOpt = new DownloadConfiguration()
         {
             ChunkCount = 8,
@@ -60,7 +61,7 @@ public class UpdaterService : IUpdaterService
         }
         catch (Exception ex)
         {
-            _messageBoxService.ShowErrorAsync(ex.Message, "清理更新残留异常");
+            _ = MessageBoxHelper.ShowErrorAsync(ex.Message, I18nHelper.GetLocalizedString("ErrorWhenCleanUpResidualUpdateFiles"));
         }
     }
 
@@ -77,7 +78,7 @@ public class UpdaterService : IUpdaterService
         }
         catch (Exception ex)
         {
-            await _messageBoxService.ShowErrorAsync($"下载失败: {ex.Message}");
+            await MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("DownloadFails")}: {ex.Message}");
         }
     }
 
@@ -87,16 +88,22 @@ public class UpdaterService : IUpdaterService
         {
             await Application.Current.Dispatcher.InvokeAsync(async () =>
             {
-                await _messageBoxService.ShowErrorAsync($"下载失败：{e.Error.Message}");
+                await MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("DownloadFails")}: {e.Error.Message}");
             });
             return;
         }
 
         await Application.Current.Dispatcher.InvokeAsync(async () =>
         {
-            if (await _messageBoxService.ShowConfirmAsync("下载提示", "下载完成", "安装"))
+            if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("DownloadFinished"), I18nHelper.GetLocalizedString("DownloadTip"), I18nHelper.GetLocalizedString("Install")))
             {
-                InstallUpdate();
+                if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("DownloadFinished"),
+                        I18nHelper.GetLocalizedString("DownloadTip"),
+                        I18nHelper.GetLocalizedString("Install"),
+                        I18nHelper.GetLocalizedString("Cancel")))
+                {
+                    InstallUpdate();
+                }
             }
         });
     }
@@ -110,27 +117,32 @@ public class UpdaterService : IUpdaterService
         await GetNewVersionInfoAsync();
         if (string.IsNullOrEmpty(NewVersionInfo.TagName))
         {
-            await _messageBoxService.ShowErrorAsync("获取更新错误");
+            await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("CheckForUpdatesFailed"));
             return false;
         }
-        if (NewVersionInfo.TagName != "v" + Application.ResourceAssembly.GetName().Version!.ToString())
+
+        if (NewVersionInfo.TagName != AppConstants.AppVersion)
         {
             if (!isInitial)
             {
-                var result = await _messageBoxService.ShowConfirmAsync("更新检查", $"检测到新版本{NewVersionInfo.TagName}，是否更新？", "更新");
+                var result = await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("CheckForUpdates"), $"{I18nHelper.GetLocalizedString("NewUpdateFound")}: {NewVersionInfo.TagName}", I18nHelper.GetLocalizedString("Update"), I18nHelper.GetLocalizedString("Cancel"));
                 if (result)
                     await DownloadUpdate(mirror);
             }
             else
             {
-                _infoBarService.ShowSuccessInfoBar($"检测到新版本{NewVersionInfo.TagName}，前往设置页进行更新");
+                _infoBarService.ShowSuccessInfoBar(
+                    $"{I18nHelper.GetLocalizedString("NewUpdateFound")}：{NewVersionInfo.TagName}");
             }
+
             return true;
         }
+
         if (!isInitial)
         {
-            await _messageBoxService.ShowInfoAsync("当前已是最新版本", "更新检查");
+            await MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("NoUpdatesAvailable"), I18nHelper.GetLocalizedString("CheckForUpdates"));
         }
+
         return false;
     }
 
@@ -143,7 +155,9 @@ public class UpdaterService : IUpdaterService
         NewVersionInfo = new ReleaseInfo();
         try
         {
-            var response = await _httpClient.GetAsync($"repos/{Owner}/{Repo}/releases{(IsFindPreRelease ? string.Empty : "/latest")}");
+            var response =
+                await _httpClient.GetAsync(
+                    $"{ApiUrl}{(IsFindPreRelease ? string.Empty : "&latest=true")}");
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
             if (string.IsNullOrEmpty(content)) return;
@@ -166,18 +180,18 @@ public class UpdaterService : IUpdaterService
         }
         catch (HttpRequestException ex)
         {
-            Debug.WriteLine($"HTTP请求错误: {ex.Message}");
-            await _messageBoxService.ShowErrorAsync($"HTTP请求错误: {ex.Message}");
+            _logger.LogError($"HTTP request error: {ex.Message}");
+            await MessageBoxHelper.ShowErrorAsync($"HTTP request error: {ex.Message}");
         }
         catch (JsonException ex)
         {
-            Console.WriteLine($"JSON解析错误: {ex.Message}");
-            await _messageBoxService.ShowErrorAsync($"JSON解析错误: {ex.Message}");
+            _logger.LogError($"JSON parsing error: {ex.Message}");
+            await MessageBoxHelper.ShowErrorAsync($"JSON parsing error: {ex.Message}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"发生未知错误: {ex.Message}");
-            await _messageBoxService.ShowErrorAsync($"发生未知错误: {ex.Message}");
+            _logger.LogError($"Unknown error: {ex.Message}");
+            await MessageBoxHelper.ShowErrorAsync($"Unknown error: {ex.Message}");
         }
     }
 

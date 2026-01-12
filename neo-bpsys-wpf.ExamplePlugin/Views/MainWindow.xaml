@@ -1,0 +1,29 @@
+﻿<controls:FrontedWindowBase
+    Height="450"
+    Title="MainWindow"
+    Width="800"
+    d:DataContext="{d:DesignInstance Type=viewModels:MainWindowViewModel}"
+    mc:Ignorable="d"
+    x:Class="neo_bpsys_wpf.ExamplePlugin.Views.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:ab="clr-namespace:neo_bpsys_wpf.Core.AttachedBehaviors;assembly=neo-bpsys-wpf.Core"
+    xmlns:controls="clr-namespace:neo_bpsys_wpf.Core.Controls;assembly=neo-bpsys-wpf.Core"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.ExamplePlugin"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModels="clr-namespace:neo_bpsys_wpf.ExamplePlugin.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Canvas
+        Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}"
+        Name="BaseCanvas"
+        Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}">
+        <TextBlock
+            Canvas.Left="348"
+            Canvas.Top="204"
+            FontSize="28"
+            HorizontalAlignment="Left"
+            Name="HelloWorld"
+            Text="Hello World"
+            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}" />
+    </Canvas>
+</controls:FrontedWindowBase>

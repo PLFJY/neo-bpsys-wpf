@@ -1,16 +1,15 @@
-﻿using System.Collections.ObjectModel;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
-using System.Windows.Media;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging.Messages;
+using CommunityToolkit.Mvvm.Messaging;
+using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models;
-using static neo_bpsys_wpf.Core.Enums.GameAction;
+using System.Collections.ObjectModel;
+using System.Windows.Media;
+using neo_bpsys_wpf.Helpers;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
@@ -18,7 +17,6 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMessage>
 {
     private readonly ISharedDataService _sharedDataService;
-    private readonly IMessageBoxService _messageBoxService;
 
 
     public MapBpPageViewModel()
@@ -27,19 +25,18 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
 
-    public MapBpPageViewModel(ISharedDataService sharedDataService, IMessageBoxService messageBoxService)
+    public MapBpPageViewModel(ISharedDataService sharedDataService)
     {
         _sharedDataService = sharedDataService;
-        _messageBoxService = messageBoxService;
         MapSelectTeamsList =
         [
-            new MapSelectTeam(_sharedDataService.MainTeam, TeamType.MainTeam),
+            new MapSelectTeam(_sharedDataService.MainTeam, TeamType.HomeTeam),
             new MapSelectTeam(_sharedDataService.AwayTeam, TeamType.AwayTeam)
         ];
         PickMapTeam = MapSelectTeamsList[0];
         BanMapTeam = MapSelectTeamsList[1];
         PickedMapSelections.Add(new MapSelection());
-        foreach (var mapV2 in sharedDataService.CurrentGame.MapV2Dictionary.Values.Where(x => x.MapName != Map.无禁用))
+        foreach (var mapV2 in sharedDataService.CurrentGame.MapV2Dictionary.Values.Where(x => x.MapName != Map.NoBans))
         {
             PickedMapSelections.Add(new MapSelection(mapV2));
         }
@@ -70,8 +67,8 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
             (_) => { _sharedDataService.IsMapV2CampVisible = value; });
     }
 
-    public int PickedMapIndex =>
-        PickedMapSelections.IndexOf(PickedMapSelections.First(x => x.Map.MapName == PickedMap));
+    //public int PickedMapIndex =>
+    //    PickedMapSelections.IndexOf(PickedMapSelections.First(x => x.Map.MapName == PickedMap));
 
     private Map? _pickedMap;
 
@@ -81,11 +78,10 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         set => SetPropertyWithAction(ref _pickedMap, value, (oldValue) =>
         {
             _sharedDataService.CurrentGame.PickedMap = _pickedMap;
-            OnPropertyChanged(nameof(PickedMapIndex));
+            PickMap(_pickedMap);
         });
     }
 
-    [RelayCommand]
     private void PickMap(Map? map)
     {
         _sharedDataService.CurrentGame.PickMap(map, PickMapTeam.Team);
@@ -120,7 +116,10 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     [RelayCommand]
     private async Task ResetMapBpAsync()
     {
-        if (!await _messageBoxService.ShowConfirmAsync("确认提示", "是否要重置地图BP")) return;
+        if (!await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("AreYouSureToResetMapBP"),
+                I18nHelper.GetLocalizedString("Tips"),
+                I18nHelper.GetLocalizedString("Confirm"),
+                I18nHelper.GetLocalizedString("Cancel"))) return;
         _sharedDataService.CurrentGame.ResetMapBp();
         PickedMap = null;
     }
@@ -137,13 +136,13 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         {
             case GameAction.PickMap:
                 PickMapTeam = MapSelectTeamsList.First(x =>
-                    x.TeamType == (message.Index?[0] == 0 ? TeamType.MainTeam : TeamType.AwayTeam));
+                    x.TeamType == (message.Index?[0] == 0 ? TeamType.HomeTeam : TeamType.AwayTeam));
                 IsBreathing = true;
                 IsCampVisible = false;
                 break;
             case GameAction.BanMap:
                 BanMapTeam = MapSelectTeamsList.First(x =>
-                    x.TeamType == (message.Index?[0] == 0 ? TeamType.MainTeam : TeamType.AwayTeam));
+                    x.TeamType == (message.Index?[0] == 0 ? TeamType.HomeTeam : TeamType.AwayTeam));
                 IsBreathing = true;
                 IsCampVisible = false;
                 break;
@@ -165,7 +164,6 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     {
         public Team Team { get; } = team;
         public TeamType TeamType { get; } = teamType;
-        public string DisplayedTeamType { get; } = teamType == TeamType.MainTeam ? "主队" : "客队";
     }
 
     public class MapSelection(MapV2? map = null)

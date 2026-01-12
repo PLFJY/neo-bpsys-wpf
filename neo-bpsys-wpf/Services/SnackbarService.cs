@@ -1,7 +1,6 @@
-using System.Reflection;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using System.Windows;
 using System.Windows.Controls;
-using neo_bpsys_wpf.Core.Abstractions.Services;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Services;
@@ -50,7 +49,7 @@ public class SnackbarService : ISnackbarService
         _snackbar.SetCurrentValue(Snackbar.TitleProperty, (object)title);
         _snackbar.SetCurrentValue(ContentControl.ContentProperty, (object)content);
         _snackbar.SetCurrentValue(Snackbar.AppearanceProperty, (object)appearance);
-        if(icon != null)
+        if (icon != null)
             _snackbar.SetCurrentValue(Snackbar.IconProperty, (object)icon);
         _snackbar.SetCurrentValue(Snackbar.TimeoutProperty, (object)(timeout.TotalSeconds == 0.0 ? DefaultTimeOut : timeout));
         _snackbar.SetCurrentValue(Snackbar.IsCloseButtonEnabledProperty, (object)isCloseButtonEnabled);

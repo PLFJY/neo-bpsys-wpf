@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
@@ -26,19 +26,14 @@ public interface ISharedDataService
     Game CurrentGame { get; set; }
 
     /// <summary>
-    /// 角色列表总表
+    /// 求生者角色字典
     /// </summary>
-    Dictionary<string, Character> CharacterDict { get; }
+    SortedDictionary<string, Character> SurCharaDict { get; set; }
 
     /// <summary>
-    /// 求生者列表
+    /// 监管者角色字典
     /// </summary>
-    Dictionary<string, Character> SurCharaList { get; }
-
-    /// <summary>
-    /// 监管者列表
-    /// </summary>
-    Dictionary<string, Character> HunCharaList { get; }
+    SortedDictionary<string, Character> HunCharaDict { get; set; }
 
     /// <summary>
     /// 求生者 (当局禁用) 是否可禁用

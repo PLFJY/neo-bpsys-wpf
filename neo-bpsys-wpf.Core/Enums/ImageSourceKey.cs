@@ -12,6 +12,7 @@ public enum ImageSourceKey
     hunHeader_singleColor,
     map,
     map_singleColor,
+    map_square,
     surBig,
     surHalf,
     surHeader,

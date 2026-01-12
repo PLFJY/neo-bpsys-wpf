@@ -1,11 +1,8 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Controls;
-using System.Collections.ObjectModel;
+using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
-using neo_bpsys_wpf.Core.Messages;
+using System.Collections.ObjectModel;
 using Player = neo_bpsys_wpf.Core.Models.Player;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
@@ -17,14 +14,13 @@ public partial class TeamInfoPageViewModel : ViewModelBase
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
 
-    public TeamInfoPageViewModel(ISharedDataService sharedDataService, IFilePickerService filePickerService,
-        IMessageBoxService messageBoxService)
+    public TeamInfoPageViewModel(ISharedDataService sharedDataService, IFilePickerService filePickerService)
     {
         var sharedDataService1 = sharedDataService;
         MainTeamInfoViewModel =
-            new TeamInfoViewModel(sharedDataService1.MainTeam, filePickerService, messageBoxService);
+            new TeamInfoViewModel(sharedDataService1.MainTeam, filePickerService);
         AwayTeamInfoViewModel =
-            new TeamInfoViewModel(sharedDataService1.AwayTeam, filePickerService, messageBoxService);
+            new TeamInfoViewModel(sharedDataService1.AwayTeam, filePickerService);
         OnFieldSurPlayerViewModels =
             [.. Enumerable.Range(0, 4).Select(i => new OnFieldSurPlayerViewModel(sharedDataService1, i))];
         OnFieldHunPlayerVm = new OnFieldHunPlayerViewModel(sharedDataService1);
@@ -37,7 +33,7 @@ public partial class TeamInfoPageViewModel : ViewModelBase
     public ObservableCollection<OnFieldSurPlayerViewModel> OnFieldSurPlayerViewModels { get; }
     public OnFieldHunPlayerViewModel OnFieldHunPlayerVm { get; }
 
-    public partial class OnFieldSurPlayerViewModel : ViewModelBase
+    public partial class OnFieldSurPlayerViewModel : ObservableObjectBase
     {
         private readonly ISharedDataService _sharedDataService;
 
@@ -60,7 +56,7 @@ public partial class TeamInfoPageViewModel : ViewModelBase
         }
     }
 
-    public class OnFieldHunPlayerViewModel : ViewModelBase
+    public class OnFieldHunPlayerViewModel : ObservableObjectBase
     {
         private readonly ISharedDataService _sharedDataService;
 

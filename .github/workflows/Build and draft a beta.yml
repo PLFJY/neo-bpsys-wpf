@@ -1,0 +1,74 @@
+name: Build and draft a release
+
+on: workflow_dispatch
+
+jobs:
+  build_and_draft_release:
+    env:
+      PROJ_PATH: ./neo-bpsys-wpf/neo-bpsys-wpf.csproj
+      INSTALLER_OUTPUT: ./build/neo-bpsys-wpf_Installer.exe
+
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+      
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: And Pack Installer
+      shell: pwsh
+      run: .\build_beta.ps1
+
+    - name: Get Version
+      shell: pwsh
+      run : |
+        $file = "${{ env.INSTALLER_OUTPUT }}"
+        $version = (Get-Item $file).VersionInfo.ProductVersion.Trim()
+        echo "VERSION=$version" >> $env:GITHUB_ENV
+
+    - name: Compute installer SHA256
+      shell: pwsh
+      run: |
+        $file = "${{ env.INSTALLER_OUTPUT }}"
+        $hash = (Get-FileHash -Path $file -Algorithm SHA256).Hash.ToLower()
+        echo "INSTALLER_SHA256=$hash" >> $env:GITHUB_ENV
+
+    - name: Generate release body
+      shell: pwsh
+      run: |
+        $out = "release_body.md"
+
+        $lines = @(
+          "## ✨ New Feature",
+          "",
+          "## 🔧 Bug Fix and Improvement",
+          "",
+          "## ✅ To-do",
+          "",
+          "---",
+          "",
+          "## 📦 Build Artifact Hash",
+          "",
+          "| Artifact | SHA-256 |",
+          "|----------|---------|",
+          "| neo-bpsys-wpf_Installer.exe | `${{ env.INSTALLER_SHA256 }}` |"
+        )
+        $lines | Out-File -FilePath $out -Encoding utf8 -Force
+
+    - name: Draft Release
+      uses: softprops/action-gh-release@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        draft: true
+        tag_name: ${{ env.VERSION }}
+        files: ${{ env.INSTALLER_OUTPUT }}
+        name: Beta-${{ env.VERSION }}
+        body: release_body.md
+        prerelease: true

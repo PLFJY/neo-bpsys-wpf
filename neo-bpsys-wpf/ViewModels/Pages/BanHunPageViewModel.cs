@@ -1,11 +1,9 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Core;
+﻿using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Messages;
+using neo_bpsys_wpf.Core.Events;
 using System.Collections.ObjectModel;
-using CharaSelectViewModelBase = neo_bpsys_wpf.Core.Abstractions.ViewModels.CharaSelectViewModelBase;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -23,13 +21,22 @@ public partial class BanHunPageViewModel : ViewModelBase
     public BanHunPageViewModel(ISharedDataService sharedDataService)
     {
         _sharedDataService = sharedDataService;
-        BanHunCurrentViewModelList = [.. Enumerable.Range(0, AppConstants.CurrentBanHunCount).Select(i => new BanHunCurrentViewModel(_sharedDataService, i))];
-        BanHunGlobalViewModelList = [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(i => new BanHunGlobalViewModel(_sharedDataService, i))];
+        BanHunCurrentViewModelList =
+        [
+            .. Enumerable.Range(0, AppConstants.CurrentBanHunCount)
+                .Select(i => new BanHunCurrentViewModel(_sharedDataService, i))
+        ];
+        BanHunGlobalViewModelList =
+        [
+            .. Enumerable.Range(0, AppConstants.GlobalBanHunCount)
+                .Select(i => new BanHunGlobalViewModel(_sharedDataService, i))
+        ];
         sharedDataService.TeamSwapped += (_, _) =>
         {
             for (var i = 0; i < _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunRecordArray.Length; i++)
             {
-                BanHunGlobalViewModelList[i].SelectedChara = _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunRecordArray[i];
+                BanHunGlobalViewModelList[i].SelectedChara =
+                    _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunRecordArray[i];
                 BanHunGlobalViewModelList[i].SyncCharaAsync();
             }
         };
@@ -41,9 +48,12 @@ public partial class BanHunPageViewModel : ViewModelBase
     //基于模板基类的VM实现
     public class BanHunCurrentViewModel : CharaSelectViewModelBase
     {
-        public BanHunCurrentViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
+        private readonly ISharedDataService _sharedDataService;
+
+        public BanHunCurrentViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService,
+            Camp.Hun, index)
         {
-            CharaList = sharedDataService.HunCharaList;
+            _sharedDataService = sharedDataService;
             IsEnabled = sharedDataService.CanCurrentHunBannedList[index];
             SharedDataService.BanCountChanged += OnBanCountChanged;
         }
@@ -73,13 +83,17 @@ public partial class BanHunPageViewModel : ViewModelBase
 
     public class BanHunGlobalViewModel : CharaSelectViewModelBase
     {
-        public BanHunGlobalViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, index)
+        private readonly ISharedDataService _sharedDataService;
+
+        public BanHunGlobalViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService,
+            Camp.Hun,
+            index)
         {
-            CharaList = sharedDataService.HunCharaList;
+            _sharedDataService = sharedDataService;
             IsEnabled = sharedDataService.CanGlobalHunBannedList[index];
             SharedDataService.BanCountChanged += OnBanCountChanged;
         }
-        
+
         private void OnBanCountChanged(object? sender, BanCountChangedEventArgs e)
         {
             if (e.BanListName == BanListName.CanGlobalHunBanned)

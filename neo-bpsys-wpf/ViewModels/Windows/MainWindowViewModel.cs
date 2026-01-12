@@ -1,23 +1,25 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Messages;
+using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.Views.Pages;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Logging;
-using neo_bpsys_wpf.Converters;
-using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
-using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Messages;
-using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Helpers;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using Game = neo_bpsys_wpf.Core.Models.Game;
 using Team = neo_bpsys_wpf.Core.Models.Team;
-using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
@@ -43,7 +45,6 @@ public partial class MainWindowViewModel :
         }
     };
 
-    private readonly IMessageBoxService _messageBoxService;
     private readonly IGameGuidanceService _gameGuidanceService;
     private readonly IInfoBarService _infoBarService;
     private readonly ILogger<MainWindowViewModel> _logger;
@@ -72,24 +73,22 @@ public partial class MainWindowViewModel :
     public GameProgress SelectedGameProgress
     {
         get => _selectedGameProgress;
-        set
+        set => SetPropertyWithAction(ref _selectedGameProgress, value, _ =>
         {
             _selectedGameProgress = value;
             CurrentGame.GameProgress = _selectedGameProgress;
-        }
+        });
     }
 
     [ObservableProperty] private string _actionName = string.Empty;
 
     public MainWindowViewModel(
         ISharedDataService sharedDataService,
-        IMessageBoxService messageBoxService,
         IGameGuidanceService gameGuidanceService,
         IInfoBarService infoBarService,
         ILogger<MainWindowViewModel> logger)
     {
         _sharedDataService = sharedDataService;
-        _messageBoxService = messageBoxService;
         _gameGuidanceService = gameGuidanceService;
         _infoBarService = infoBarService;
         _logger = logger;
@@ -101,8 +100,28 @@ public partial class MainWindowViewModel :
         };
         GameList = GameListBo5;
         IsBo3Mode = _sharedDataService.IsBo3Mode;
+        BuildNavigationMenuItems();
+        sharedDataService.CountDownValueChanged += (_, _) => OnPropertyChanged(nameof(RemainingSeconds));
     }
 
+    private void BuildNavigationMenuItems()
+    {
+        foreach (var info in BackendPagesRegistryService.Registered)
+        {
+            if (info.PageType == null) continue;
+            switch (info.Category)
+            {
+                case BackendPageCategory.Internal:
+                    MenuItems.Add(new NavigationViewItem(info.Name, info.Icon, info.PageType));
+                    break;
+                case BackendPageCategory.External:
+                    FooterMenuItems.Insert(0, new NavigationViewItem(info.Name, info.Icon, info.PageType));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+    }
 
     [RelayCommand]
     private async Task ThemeSwitchAsync()
@@ -136,7 +155,7 @@ public partial class MainWindowViewModel :
             new Game(surTeam, hunTeam, SelectedGameProgress, pickedMap, bannedMap, mapV2Dictionary);
 
         OnPropertyChanged(nameof(CurrentGame));
-        await _messageBoxService.ShowInfoAsync($"已成功创建新对局\n{CurrentGame.Guid}", "创建提示");
+        await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("NewGameHasBeenCreated")}\n{CurrentGame.Guid}", I18nHelper.GetLocalizedString("CreateTip"), I18nHelper.GetLocalizedString("Cancel"));
         _logger.LogInformation("New Game Created{CurrentGameGuid}", CurrentGame.Guid);
     }
 
@@ -159,12 +178,12 @@ public partial class MainWindowViewModel :
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
             await File.WriteAllTextAsync(fullPath, json);
-            await _messageBoxService.ShowInfoAsync($"已成功保存到\n{fullPath}", "保存提示");
+            await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("SaveSuccessfullyTo")}\n{fullPath}", I18nHelper.GetLocalizedString("SaveInfo"));
             _logger.LogInformation("Save game {CurrentGameGuid} info successfully", CurrentGame.Guid);
         }
         catch (Exception ex)
         {
-            await _messageBoxService.ShowInfoAsync($"保存失败\n{ex.Message}", "保存提示");
+            await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("SaveFailed")}\n{ex.Message}", I18nHelper.GetLocalizedString("SaveInfo"));
             _logger.LogError("Save game {CurrentGameGuid} info failed\n{ExMessage}", CurrentGame.Guid, ex.Message);
         }
     }
@@ -180,7 +199,7 @@ public partial class MainWindowViewModel :
         }
         else
         {
-            _messageBoxService.ShowErrorAsync("输入不合法");
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("InvalidInput"));
             _logger.LogError("Timer input is not valid");
         }
     }
@@ -258,13 +277,16 @@ public partial class MainWindowViewModel :
     public bool IsBo3Mode
     {
         get => _isBo3Mode;
-        set
+        set => SetPropertyWithAction(ref _isBo3Mode, value, _ =>
         {
-            SetProperty(ref _isBo3Mode, value);
             _sharedDataService.IsBo3Mode = _isBo3Mode;
+            if (SelectedGameProgress > GameProgress.Game3SecondHalf)
+            {
+                SelectedGameProgress = GameProgress.Free;
+            }
             GameList = !IsBo3Mode ? GameListBo5 : GameListBo3;
             _logger.LogInformation("Accepted IsBo3Mode value: {Value}", value);
-        }
+        });
     }
 
     [ObservableProperty] private bool _isSwapHighlighted;
@@ -282,55 +304,55 @@ public partial class MainWindowViewModel :
 
     public List<int> RecommendTimerList { get; } = [30, 45, 60, 90, 120, 150, 180];
 
-    [ObservableProperty] private Dictionary<GameProgress, string> _gameList;
+    [ObservableProperty] private List<GameProgress> _gameList;
 
-    private static Dictionary<GameProgress, string> GameListBo5 => new()
-    {
-        { GameProgress.Free, "自由对局" },
-        { GameProgress.Game1FirstHalf, "第1局上半" },
-        { GameProgress.Game1SecondHalf, "第1局下半" },
-        { GameProgress.Game2FirstHalf, "第2局上半" },
-        { GameProgress.Game2SecondHalf, "第2局下半" },
-        { GameProgress.Game3FirstHalf, "第3局上半" },
-        { GameProgress.Game3SecondHalf, "第3局下半" },
-        { GameProgress.Game4FirstHalf, "第4局上半" },
-        { GameProgress.Game4SecondHalf, "第4局下半" },
-        { GameProgress.Game5FirstHalf, "第5局上半" },
-        { GameProgress.Game5SecondHalf, "第5局下半" },
-        { GameProgress.Game5ExtraFirstHalf, "第5局加赛上半" },
-        { GameProgress.Game5ExtraSecondHalf, "第5局加赛下半" }
-    };
-
-    private static Dictionary<GameProgress, string> GameListBo3 => new()
-    {
-        { GameProgress.Free, "自由对局" },
-        { GameProgress.Game1FirstHalf, "第1局上半" },
-        { GameProgress.Game1SecondHalf, "第1局下半" },
-        { GameProgress.Game2FirstHalf, "第2局上半" },
-        { GameProgress.Game2SecondHalf, "第2局下半" },
-        { GameProgress.Game3FirstHalf, "第3局上半" },
-        { GameProgress.Game3SecondHalf, "第3局下半" },
-        { GameProgress.Game3ExtraFirstHalf, "第3局加赛上半" },
-        { GameProgress.Game3ExtraSecondHalf, "第3局加赛下半" }
-    };
-
-    public List<NavigationViewItem> MenuItems { get; } =
+    private static List<GameProgress> GameListBo5 =>
     [
-        new("启动页", SymbolRegular.Home24, typeof(HomePage)),
-        new("队伍信息", SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
-        new("地图禁选", SymbolRegular.Map24, typeof(MapBpPage)),
-        new("禁用监管者", SymbolRegular.PresenterOff24, typeof(BanHunPage)),
-        new("禁用求生者", SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
-        new("选择角色", SymbolRegular.PersonAdd24, typeof(PickPage)),
-        new("天赋特质", SymbolRegular.PersonWalking24, typeof(TalentPage)),
-        new("比分控制", SymbolRegular.NumberRow24, typeof(ScorePage)),
-        new("赛后数据", SymbolRegular.TextNumberListLtr24, typeof(GameDataPage)),
+        GameProgress.Free,
+        GameProgress.Game1FirstHalf,
+        GameProgress.Game1SecondHalf,
+        GameProgress.Game2FirstHalf,
+        GameProgress.Game2SecondHalf,
+        GameProgress.Game3FirstHalf,
+        GameProgress.Game3SecondHalf,
+        GameProgress.Game4FirstHalf,
+        GameProgress.Game4SecondHalf,
+        GameProgress.Game5FirstHalf,
+        GameProgress.Game5SecondHalf,
+        GameProgress.Game5OvertimeFirstHalf,
+        GameProgress.Game5OvertimeSecondHalf
     ];
 
-    public List<NavigationViewItem> FooterMenuItems { get; } =
+    private static List<GameProgress> GameListBo3 =>
     [
-        new("前台管理", SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
-        new("扩展功能", SymbolRegular.AppsAddIn24, typeof(ExtensionPage)),
-        new("设置", SymbolRegular.Settings24, typeof(SettingPage)),
+        GameProgress.Free,
+        GameProgress.Game1FirstHalf,
+        GameProgress.Game1SecondHalf,
+        GameProgress.Game2FirstHalf,
+        GameProgress.Game2SecondHalf,
+        GameProgress.Game3FirstHalf,
+        GameProgress.Game3SecondHalf,
+        GameProgress.Game3OvertimeFirstHalf,
+        GameProgress.Game3OvertimeSecondHalf,
+    ];
+
+    public ObservableCollection<NavigationViewItem> MenuItems { get; } =
+    [
+        new("HomePage", SymbolRegular.Home24, typeof(HomePage)),
+        new("TeamInfo", SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
+        new("MapBP", SymbolRegular.Map24, typeof(MapBpPage)),
+        new("BanHunter", SymbolRegular.PresenterOff24, typeof(BanHunPage)),
+        new("BanSurvivor", SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
+        new("PickCharacter", SymbolRegular.PersonAdd24, typeof(PickPage)),
+        new("TalentAndTrait", SymbolRegular.PersonWalking24, typeof(TalentPage)),
+        new("ScoreControl", SymbolRegular.NumberRow24, typeof(ScorePage)),
+        new("GameData", SymbolRegular.TextNumberListLtr24, typeof(GameDataPage)),
+    ];
+
+    public ObservableCollection<NavigationViewItem> FooterMenuItems { get; } =
+    [
+        new("FrontendManagement", SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
+        new("Plugins", SymbolRegular.AppsAddIn24, typeof(PluginPage)),
+        new("Settings", SymbolRegular.Settings24, typeof(SettingPage)),
     ];
 }

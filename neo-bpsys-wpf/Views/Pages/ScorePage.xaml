@@ -6,6 +6,7 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:enum="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -14,7 +15,7 @@
     d:DataContext="{d:DesignInstance Type=vm:ScorePageViewModel,
                                      IsDesignTimeCreatable=True}"
     d:DesignHeight="1500"
-    d:DesignWidth="685"
+    d:DesignWidth="900"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
@@ -25,69 +26,100 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="BP界面及游戏内比分" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc ScoreInBPWindowAndGame}" />
                 <Grid Grid.Row="1" Margin="0,20,0,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="350" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.Resources>
-                        <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
-                            <Setter Property="Width" Value="80" />
-                            <Setter Property="Height" Value="40" />
-                            <Setter Property="Margin" Value="10" />
-                            <Setter Property="HorizontalAlignment" Value="Center" />
-                        </Style>
-                    </Grid.Resources>
-                    <StackPanel Grid.Column="0">
-                        <Button Command="{Binding Escape4Command}" Content="四跑" />
-                        <Button Command="{Binding Escape3Command}" Content="三跑" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Margin="0,30,0,0">
-                        <Button Command="{Binding TieCommand}" Content="平局" />
-                        <Button
-                            Width="100"
-                            Command="{Binding CalculateMajorPointCommand}"
-                            Content="大比分结算" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="2">
-                        <Button Command="{Binding Out4Command}" Content="四抓" />
-                        <Button Command="{Binding Out3Command}" Content="三抓" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="3">
-                        <Button Command="{Binding ResetCommand}" Content="总清零" />
-                        <Button
-                            Width="100"
-                            Command="{Binding ResetMinorPointCommand}"
-                            Content="小比分清零" />
-                        <Button Command="{Binding ManualControlCommand}" Content="手动控制" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="4" Margin="0,20,0,0">
-                        <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
-                            <TextBlock
-                                VerticalAlignment="Center"
-                                d:Text="主队名称"
-                                Text="{Binding MainTeam.Name}" />
-                            <TextBlock
-                                Margin="10"
-                                HorizontalAlignment="Left"
-                                d:Text="W:0 D:0 小比分:0"
-                                Text="{Binding MainTeam.Score.ScorePreviewOnBack}" />
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="350" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.Resources>
+                            <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
+                                <Setter Property="Width" Value="80" />
+                                <Setter Property="Height" Value="40" />
+                                <Setter Property="Margin" Value="10" />
+                                <Setter Property="HorizontalAlignment" Value="Center" />
+                            </Style>
+                        </Grid.Resources>
+                        <StackPanel Grid.Column="0">
+                            <Button
+                                Width="100"
+                                Command="{Binding Escape4Command}"
+                                Content="{lex:Loc FourEscape}" />
+                            <Button
+                                Width="100"
+                                Command="{Binding Escape3Command}"
+                                Content="{lex:Loc ThreeEscape}" />
                         </StackPanel>
-                        <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
-                            <TextBlock
-                                VerticalAlignment="Center"
-                                d:Text="客队名称"
-                                Text="{Binding AwayTeam.Name}" />
-                            <TextBlock
-                                Margin="10"
-                                HorizontalAlignment="Left"
-                                d:Text="W:0 D:0 小比分:0"
-                                Text="{Binding AwayTeam.Score.ScorePreviewOnBack}" />
+                        <StackPanel Grid.Column="1" Margin="0,30,0,0">
+                            <Button
+                                Width="140"
+                                Command="{Binding TieCommand}"
+                                Content="{lex:Loc Tie}" />
+                            <Button
+                                Width="140"
+                                Command="{Binding CalculateMajorPointCommand}"
+                                Content="{lex:Loc ScoreSettlement}" />
                         </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <Button
+                                Width="100"
+                                Command="{Binding Out4Command}"
+                                Content="{lex:Loc FourEliminate}" />
+                            <Button
+                                Width="102"
+                                Command="{Binding Out3Command}"
+                                Content="{lex:Loc ThreeEliminate}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="3">
+                            <Button
+                                Width="150"
+                                Command="{Binding ResetCommand}"
+                                Content="{lex:Loc ResetAllScores}" />
+                            <Button
+                                Width="150"
+                                Command="{Binding ResetGameScoreCommand}"
+                                Content="{lex:Loc ResetGameScores}" />
+                            <Button
+                                Width="150"
+                                Command="{Binding ManualControlCommand}"
+                                Content="{lex:Loc ControlManually}" />
+                        </StackPanel>
+                    </Grid>
+                    <StackPanel
+                        Grid.Row="1"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal">
+                        <TextBlock Margin="0,0,20,10" d:Text="主队名称  W:0 D:0  小比分: 0">
+                            <TextBlock.Text>
+                                <MultiBinding Converter="{lex:StringFormatConverter}">
+                                    <lex:BLoc Key="ScorePreview" />
+                                    <Binding Path="MainTeam.Name" />
+                                    <Binding Path="MainTeam.Score.Win" />
+                                    <Binding Path="MainTeam.Score.Tie" />
+                                    <Binding Path="MainTeam.Score.GameScores" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                        <TextBlock d:Text="客队名称  W:0 D:0  小比分: 0">
+                            <TextBlock.Text>
+                                <MultiBinding Converter="{lex:StringFormatConverter}">
+                                    <lex:BLoc Key="ScorePreview" />
+                                    <Binding Path="AwayTeam.Name" />
+                                    <Binding Path="AwayTeam.Score.Win" />
+                                    <Binding Path="AwayTeam.Score.Tie" />
+                                    <Binding Path="AwayTeam.Score.GameScores" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
                     </StackPanel>
                 </Grid>
             </Grid>
@@ -101,7 +133,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="分数统计" />
+                <TextBlock Grid.Row="0" Text="{lex:Loc ScoreStatistics}" />
                 <Grid Grid.Row="1" Margin="0,10,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition />
@@ -113,32 +145,37 @@
                         Grid.Row="1"
                         Margin="0,10,0,0"
                         Orientation="Horizontal">
-                        <TextBlock VerticalAlignment="Center" Text="场次选择" />
+                        <TextBlock VerticalAlignment="Center" Text="{lex:Loc GameSelection}" />
                         <ComboBox
-                            Width="150"
+                            Width="215"
                             Margin="10,0,0,0"
-                            DisplayMemberPath="Value"
                             ItemsSource="{Binding GameList}"
                             SelectedIndex="{Binding SelectedIndex, Mode=OneWay}"
                             SelectedValue="{Binding SelectedGameProgress}"
-                            SelectedValuePath="Key" />
+                            SelectedValuePath="Key">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{lex:Loc {Binding}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                         <ui:Button
                             Margin="10,0,0,0"
                             Command="{Binding NextGameCommand}"
-                            Content="下一局"
+                            Content="{lex:Loc Next}"
                             Icon="{ui:SymbolIcon Symbol=ArrowNext24}" />
                     </StackPanel>
                     <Grid Grid.Row="2" Margin="0,10,0,0">
                         <CheckBox
                             x:Name="IsGameComplted"
                             HorizontalAlignment="Left"
-                            Content="对局已完成"
+                            Content="{lex:Loc IsGameFinished}"
                             IsChecked="{Binding IsGameFinished}" />
                         <ui:Button
                             Grid.Row="4"
                             HorizontalAlignment="Right"
                             Command="{Binding GlobalScoreUpdateToFrontCommand}"
-                            Content="同步至前台"
+                            Content="{lex:Loc SynchronizeToFrontend}"
                             Icon="{ui:SymbolIcon Symbol=ArrowUpload24}" />
                     </Grid>
                     <Grid
@@ -159,18 +196,18 @@
                                 Padding="5"
                                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                                 BorderThickness="0"
-                                Header="主场队伍阵营">
+                                Header="{lex:Loc CampOfHomeTeam}">
                                 <StackPanel>
                                     <RadioButton
                                         Name="MainSurRadioButton"
                                         Width="20"
                                         Height="30"
-                                        Content="求生者"
+                                        Content="{lex:Loc Survivor}"
                                         IsChecked="{Binding MainTeamCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Camp.Sur}, Mode=TwoWay}" />
                                     <RadioButton
                                         Name="MainHunRadioButton"
                                         Margin="0,10,0,0"
-                                        Content="监管者"
+                                        Content="{lex:Loc Hunter}"
                                         IsChecked="{Binding MainTeamCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Camp.Hun}, Mode=TwoWay}" />
                                 </StackPanel>
                             </GroupBox>
@@ -180,16 +217,16 @@
                                 Padding="5"
                                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                                 BorderThickness="0"
-                                Header="客场队伍阵营">
+                                Header="{lex:Loc CampOfAwayTeam}">
                                 <StackPanel>
                                     <RadioButton
                                         Name="AwaySurRadioButton"
-                                        Content="求生者"
+                                        Content="{lex:Loc Survivor}"
                                         IsChecked="{Binding ElementName=MainHunRadioButton, Path=IsChecked, Mode=TwoWay}" />
                                     <RadioButton
                                         Name="AwayHunRadioButton"
                                         Margin="0,10,0,0"
-                                        Content="监管者"
+                                        Content="{lex:Loc Hunter}"
                                         IsChecked="{Binding ElementName=MainSurRadioButton, Path=IsChecked, Mode=TwoWay}" />
                                 </StackPanel>
                             </GroupBox>
@@ -200,7 +237,7 @@
                             Padding="5"
                             Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                             BorderThickness="0"
-                            Header="对局结果">
+                            Header="{lex:Loc GameResult}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition />
@@ -209,28 +246,28 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
                                     <RadioButton
-                                        Content="四跑"
+                                        Content="{lex:Loc FourEscape}"
                                         GroupName="GameResult"
                                         IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Escape4}, Mode=TwoWay}" />
                                     <RadioButton
                                         Margin="0,30,0,0"
-                                        Content="三跑"
+                                        Content="{lex:Loc ThreeEscape}"
                                         GroupName="GameResult"
                                         IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Escape3}, Mode=TwoWay}" />
                                 </StackPanel>
                                 <RadioButton
                                     Grid.Column="1"
-                                    Content="平局"
+                                    Content="{lex:Loc Tie}"
                                     GroupName="GameResult"
                                     IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Tie}, Mode=TwoWay}" />
                                 <StackPanel Grid.Column="2">
                                     <RadioButton
-                                        Content="四抓"
+                                        Content="{lex:Loc FourEliminate}"
                                         GroupName="GameResult"
                                         IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Out4}, Mode=TwoWay}" />
                                     <RadioButton
                                         Margin="0,30,0,0"
-                                        Content="三抓"
+                                        Content="{lex:Loc ThreeEliminate}"
                                         GroupName="GameResult"
                                         IsChecked="{Binding SelectedGameResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:GameResult.Out3}, Mode=TwoWay}" />
                                 </StackPanel>

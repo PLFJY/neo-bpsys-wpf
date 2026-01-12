@@ -1,6 +1,6 @@
-﻿using System.Globalization;
+﻿using neo_bpsys_wpf.Core.Enums;
+using System.Globalization;
 using System.Windows.Data;
-using neo_bpsys_wpf.Core.Enums;
 
 namespace neo_bpsys_wpf.Converters;
 
@@ -21,36 +21,36 @@ public class GameProgressToStringConverter : IMultiValueConverter
         return para == "endl"
             ? gameProgress switch
             {
-                GameProgress.Free => "自由对局",
-                GameProgress.Game1FirstHalf => "GAME1\nFIRST HALF",
-                GameProgress.Game1SecondHalf => "GAME1\nSECOND HALF",
-                GameProgress.Game2FirstHalf => "GAME2\nFIRST HALF",
-                GameProgress.Game2SecondHalf => "GAME2\nSECOND HALF",
-                GameProgress.Game3FirstHalf => "GAME3\nFIRST HALF",
-                GameProgress.Game3SecondHalf => "GAME3\nSECOND HALF",
-                GameProgress.Game4FirstHalf => isBo3Mode ? "GAME3 EXTRA\nFIRST HALF" : "GAME4\nFIRST HALF",
-                GameProgress.Game4SecondHalf => isBo3Mode ? "GAME3 EXTRA\nSECOND HALF" : "GAME4\nSECOND HALF",
-                GameProgress.Game5FirstHalf => "GAME5\nFIRST HALF",
-                GameProgress.Game5SecondHalf => "GAME5\nSECOND HALF",
-                GameProgress.Game5ExtraFirstHalf => "GAME5 EXTRA\nFIRST HALF",
-                GameProgress.Game5ExtraSecondHalf => "GAME5 EXTRA\nSECOND HALF",
+                GameProgress.Free => "FREE GAME",
+                GameProgress.Game1FirstHalf => "GAME 1\nFIRST HALF",
+                GameProgress.Game1SecondHalf => "GAME 1\nSECOND HALF",
+                GameProgress.Game2FirstHalf => "GAME 2\nFIRST HALF",
+                GameProgress.Game2SecondHalf => "GAME 2\nSECOND HALF",
+                GameProgress.Game3FirstHalf => "GAME 3\nFIRST HALF",
+                GameProgress.Game3SecondHalf => "GAME 3\nSECOND HALF",
+                GameProgress.Game4FirstHalf => isBo3Mode ? "GAME 3 OVERTIME\nFIRST HALF" : "GAME 4\nFIRST HALF",
+                GameProgress.Game4SecondHalf => isBo3Mode ? "GAME 3 OVERTIME\nSECOND HALF" : "GAME 4\nSECOND HALF",
+                GameProgress.Game5FirstHalf => "GAME 5\nFIRST HALF",
+                GameProgress.Game5SecondHalf => "GAME 5\nSECOND HALF",
+                GameProgress.Game5OvertimeFirstHalf => "GAME 5 OVERTIME\nFIRST HALF",
+                GameProgress.Game5OvertimeSecondHalf => "GAME 5 OVERTIME\nSECOND HALF",
                 _ => Binding.DoNothing,
             }
             : gameProgress switch
             {
-                GameProgress.Free => "自由对局",
-                GameProgress.Game1FirstHalf => "GAME1 FIRST HALF",
-                GameProgress.Game1SecondHalf => "GAME1 SECOND HALF",
-                GameProgress.Game2FirstHalf => "GAME2 FIRST HALF",
-                GameProgress.Game2SecondHalf => "GAME2 SECOND HALF",
-                GameProgress.Game3FirstHalf => "GAME3 FIRST HALF",
-                GameProgress.Game3SecondHalf => "GAME3 SECOND HALF",
-                GameProgress.Game4FirstHalf => isBo3Mode ? "GAME3 EXTRA FIRST HALF" : "GAME4 FIRST HALF",
-                GameProgress.Game4SecondHalf => isBo3Mode ? "GAME3 EXTRA SECOND HALF" : "GAME4 SECOND HALF",
-                GameProgress.Game5FirstHalf => "GAME5 FIRST HALF",
-                GameProgress.Game5SecondHalf => "GAME5 SECOND HALF",
-                GameProgress.Game5ExtraFirstHalf => "GAME5 EXTRA FIRST HALF",
-                GameProgress.Game5ExtraSecondHalf => "GAME5 EXTRA SECOND HALF",
+                GameProgress.Free => "FREE GAME",
+                GameProgress.Game1FirstHalf => "GAME 1 FIRST HALF",
+                GameProgress.Game1SecondHalf => "GAME 1 SECOND HALF",
+                GameProgress.Game2FirstHalf => "GAME 2 FIRST HALF",
+                GameProgress.Game2SecondHalf => "GAME 2 SECOND HALF",
+                GameProgress.Game3FirstHalf => "GAME 3 FIRST HALF",
+                GameProgress.Game3SecondHalf => "GAME 3 SECOND HALF",
+                GameProgress.Game4FirstHalf => isBo3Mode ? "GAME 3 OVERTIME FIRST HALF" : "GAME 4 FIRST HALF",
+                GameProgress.Game4SecondHalf => isBo3Mode ? "GAME 3 OVERTIME SECOND HALF" : "GAME 4 SECOND HALF",
+                GameProgress.Game5FirstHalf => "GAME 5 FIRST HALF",
+                GameProgress.Game5SecondHalf => "GAME 5 SECOND HALF",
+                GameProgress.Game5OvertimeFirstHalf => "GAME 5 OVERTIME FIRST HALF",
+                GameProgress.Game5OvertimeSecondHalf => "GAME 5 OVERTIME SECOND HALF",
                 _ => Binding.DoNothing,
             };
     }
