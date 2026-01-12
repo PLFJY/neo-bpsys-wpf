@@ -123,7 +123,7 @@ public class CharacterSelector : Control
         if (e.OriginalSource is TextBox textBox && (textBox.Parent is ComboBoxItem || textBox.TemplatedParent is ComboBox))
         {
             //press space to search
-            if (Text.Contains(' '))
+            if (Text.Length > 0 && Text.Last() == ' ')
             {
                 var currentText = Text[..^1];
                 var findedIndex = FindIndex(currentText);

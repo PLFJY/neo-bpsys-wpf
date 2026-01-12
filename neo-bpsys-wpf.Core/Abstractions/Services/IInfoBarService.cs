@@ -1,6 +1,4 @@
-﻿using Wpf.Ui.Controls;
-
-namespace neo_bpsys_wpf.Core.Abstractions.Services;
+﻿namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
 /// 信息框服务接口

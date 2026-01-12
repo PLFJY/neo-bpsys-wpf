@@ -41,7 +41,7 @@ public class BooleanToEnumConverter : IValueConverter
         {
             return parameter;
         }
-        
+
         // 如果RadioButton未被选中，则返回UnsetValue，表示不更新源属性
         // 这可以防止取消选中其他RadioButton时将null值写回源属性
         return null;

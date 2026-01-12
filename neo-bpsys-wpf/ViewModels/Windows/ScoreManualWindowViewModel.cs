@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
@@ -31,9 +31,9 @@ public partial class ScoreManualWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void EditMainMinorPoints(int diff)
+    private void EditMainGameScores(int diff)
     {
-        _sharedDataService.MainTeam.Score.MinorPoints += diff;
+        _sharedDataService.MainTeam.Score.GameScores += diff;
     }
 
     [RelayCommand]
@@ -49,15 +49,15 @@ public partial class ScoreManualWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void EditAwayMinorPoints(int diff)
+    private void EditAwayGameScores(int diff)
     {
-        _sharedDataService.AwayTeam.Score.MinorPoints += diff;
+        _sharedDataService.AwayTeam.Score.GameScores += diff;
     }
 
     [RelayCommand]
-    private void ClearMinorPoints()
+    private void ClearGameScores()
     {
-        _sharedDataService.MainTeam.Score.MinorPoints = 0;
-        _sharedDataService.AwayTeam.Score.MinorPoints = 0;
+        _sharedDataService.MainTeam.Score.GameScores = 0;
+        _sharedDataService.AwayTeam.Score.GameScores = 0;
     }
 }

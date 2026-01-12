@@ -3,6 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
@@ -14,87 +15,87 @@
                         <!--  Sur  -->
                         <StackPanel Visibility="{TemplateBinding IsHunMode, Converter={StaticResource BooleanToReverseVisibilityConverter}}">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="破译进度" />
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc DecodingProgress}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="破译进度"
-                                    Text="{Binding PlayerData.MachineDecoded, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    PlaceholderText="{lex:Loc DecodingProgress}"
+                                    Text="{Binding PlayerData.DecodingProgress, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="砸板命中次数" />
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc PalletStrikes}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="砸板命中次数"
-                                    Text="{Binding PlayerData.PalletStunTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    PlaceholderText="{lex:Loc PalletStrikes}"
+                                    Text="{Binding PlayerData.PalletStrikes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="救人次数" />
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc Rescues}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="救人次数"
-                                    Text="{Binding PlayerData.RescueTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    PlaceholderText="{lex:Loc Rescues}"
+                                    Text="{Binding PlayerData.Rescues, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="治疗次数" />
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc Heals}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="治疗次数"
-                                    Text="{Binding PlayerData.HealedTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    PlaceholderText="{lex:Loc Heals}"
+                                    Text="{Binding PlayerData.Heals, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="牵制时间" />
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc ContainmentTime}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="牵制时间"
-                                    Text="{Binding PlayerData.KiteTime, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    PlaceholderText="{lex:Loc ContainmentTime}"
+                                    Text="{Binding PlayerData.ContainmentTime, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                         </StackPanel>
                         <!--  Hun  -->
                         <StackPanel Visibility="{TemplateBinding IsHunMode, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="剩余密码机数量" />
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc RemainingCiphers}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="剩余密码机数量"
-                                    Text="{Binding PlayerData.MachineLeft, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    PlaceholderText="{lex:Loc RemainingCiphers}"
+                                    Text="{Binding PlayerData.RemainingCipher, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="破坏板子数" />
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc PalletsDestroyed}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="破坏板子数"
-                                    Text="{Binding PlayerData.PalletBroken, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    PlaceholderText="{lex:Loc PalletsDestroyed}"
+                                    Text="{Binding PlayerData.PalletsDestroyed, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="命中求生者次数" />
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc SurvivorHits}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="命中求生者次数"
-                                    Text="{Binding PlayerData.HitTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    PlaceholderText="{lex:Loc SurvivorHits}"
+                                    Text="{Binding PlayerData.SurvivorHits, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="恐惧震慑次数" />
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc TerrorShocks}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="恐惧震慑次数"
-                                    Text="{Binding PlayerData.TerrorShockTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    PlaceholderText="{lex:Loc TerrorShocks}"
+                                    Text="{Binding PlayerData.TerrorShocks, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="击倒次数" />
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc Knockdowns}" />
                                 <ui:TextBox
                                     Width="150"
                                     Margin="10,0,0,0"
-                                    PlaceholderText="击倒次数"
-                                    Text="{Binding PlayerData.DownTimes, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
+                                    PlaceholderText="{lex:Loc Knockdowns}"
+                                    Text="{Binding PlayerData.Knockdowns, RelativeSource={RelativeSource AncestorType={x:Type controls:GameDataEditor}}, Mode=TwoWay}" />
                             </StackPanel>
                         </StackPanel>
                     </Grid>

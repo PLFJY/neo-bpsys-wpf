@@ -1,20 +1,19 @@
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
+using neo_bpsys_wpf.Core.Abstractions;
 
 namespace neo_bpsys_wpf.Core.Models;
 
 /// <summary>
 /// 比分类, 用于展示比分
 /// </summary>
-public partial class Score : ViewModelBase
+public partial class Score : ObservableObjectBase
 {
     /// <summary>
     /// 大比分--胜
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
-    [NotifyPropertyChangedFor(nameof(ScorePreviewOnBack))]
     private int _win;
     
     /// <summary>
@@ -22,7 +21,6 @@ public partial class Score : ViewModelBase
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
-    [NotifyPropertyChangedFor(nameof(ScorePreviewOnBack))]
     private int _tie;
     
     /// <summary>
@@ -30,23 +28,17 @@ public partial class Score : ViewModelBase
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
-    [NotifyPropertyChangedFor(nameof(ScorePreviewOnBack))]
-    private int _minorPoints;
+    private int _gameScores;
     
     /// <summary>
     /// 前台显示的格式化的大比分
     /// </summary>
     [JsonIgnore] public string MajorPointsOnFront => $"W{Win}  D{Tie}";
-    
-    /// <summary>
-    /// 后台显示的格式化的比分
-    /// </summary>
-    [JsonIgnore] public string ScorePreviewOnBack => $"W:{Win} D:{Tie} 小比分:{MinorPoints}";
 
-    internal void Reset()
+    public void Reset()
     {
         Win = 0;
         Tie = 0;
-        MinorPoints = 0;
+        GameScores = 0;
     }
 }

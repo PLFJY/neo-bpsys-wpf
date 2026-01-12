@@ -1,10 +1,8 @@
-﻿using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
@@ -16,7 +14,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows;
 
 public partial class ScoreWindowViewModel :
     ViewModelBase,
-    IRecipient<DesignModeChangedMessage>,
+    IRecipient<DesignerModeChangedMessage>,
     IRecipient<PropertyChangedMessage<int>>
 {
     public ScoreWindowViewModel()
@@ -41,33 +39,33 @@ public partial class ScoreWindowViewModel :
         };
     }
 
-    [ObservableProperty] private bool _isDesignMode;
+    [ObservableProperty] private bool _isDesignerMode;
 
-    [ObservableProperty] private int _totalMainMinorPoint;
+    [ObservableProperty] private int _totalMainGameScore;
 
-    [ObservableProperty] private int _totalAwayMinorPoint;
+    [ObservableProperty] private int _totalAwayGameScore;
 
     public bool IsBo3Mode => _sharedDataService.IsBo3Mode;
 
-    public void Receive(DesignModeChangedMessage message)
+    public void Receive(DesignerModeChangedMessage message)
     {
-        if (message.FrontWindowType is FrontWindowType.ScoreGlobalWindow 
-                or FrontWindowType.ScoreHunWindow 
-                or FrontWindowType.ScoreSurWindow
-                or FrontWindowType.ScoreWindow
-            && IsDesignMode != message.IsDesignMode)
-            IsDesignMode = message.IsDesignMode;
+        if (message.FrontedWindowId == FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreGlobalWindow) ||
+            message.FrontedWindowId == FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreHunWindow) ||
+            message.FrontedWindowId == FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreSurWindow) ||
+            message.FrontedWindowId == FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreWindow)
+            && IsDesignerMode != message.IsDesignerMode)
+            IsDesignerMode = message.IsDesignerMode;
     }
 
     public void Receive(PropertyChangedMessage<int> message)
     {
         switch (message.PropertyName)
         {
-            case nameof(TotalMainMinorPoint):
-                TotalMainMinorPoint = message.NewValue;
+            case nameof(TotalMainGameScore):
+                TotalMainGameScore = message.NewValue;
                 break;
-            case nameof(TotalAwayMinorPoint):
-                TotalAwayMinorPoint = message.NewValue;
+            case nameof(TotalAwayGameScore):
+                TotalAwayGameScore = message.NewValue;
                 break;
         }
     }

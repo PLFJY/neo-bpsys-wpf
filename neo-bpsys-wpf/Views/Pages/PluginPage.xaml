@@ -1,0 +1,248 @@
+<Page
+    x:Class="neo_bpsys_wpf.Views.Pages.PluginPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:md="http://schemas.lepo.co/wpfui/2022/xaml/markdown"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    Title="PluginPage"
+    d:DataContext="{d:DesignInstance Type=vm:PluginPageViewModel,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="1500"
+    d:DesignWidth="685"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Page.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel
+            Grid.Row="0"
+            Margin="0,0,0,10"
+            Orientation="Horizontal">
+            <TextBlock
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                FontSize="28"
+                FontWeight="SemiBold"
+                Text="{lex:Loc PluginManagement}" />
+            <ui:Button
+                Margin="20,0,0,0"
+                VerticalAlignment="Center"
+                Background="{DynamicResource SystemAccentColorPrimaryBrush}"
+                Command="{Binding RestartAppCommand}"
+                Content="{lex:Loc ClickToRestart}"
+                Icon="{ui:SymbolIcon Symbol=ArrowClockwise24}"
+                MouseOverBackground="{DynamicResource SystemAccentColorSecondaryBrush}"
+                PressedBackground="{DynamicResource SystemAccentColorTertiaryBrush}"
+                Visibility="{Binding IsRestartNeeded, Converter={StaticResource BooleanToVisibilityConverter}}">
+            </ui:Button>
+        </StackPanel>
+
+        <TabControl Grid.Row="1">
+            <TabControl.ItemContainerStyle>
+                <Style BasedOn="{StaticResource {x:Type TabItem}}" TargetType="TabItem">
+                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Border
+                                    x:Name="Bd"
+                                    Padding="{TemplateBinding Padding}"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="6,6,0,0">
+                                    <ContentPresenter
+                                        x:Name="ct"
+                                        Margin="5,5,5,5"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        ContentSource="Header" />
+                                </Border>
+
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+                                    </Trigger>
+
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorTertiaryBrush}" />
+                                    </Trigger>
+
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Opacity" Value="0.5" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+                        </Trigger>
+
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorTertiaryBrush}" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </TabControl.ItemContainerStyle>
+
+            <TabItem Header="{lex:Loc Installed}">
+                <Grid Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel
+                        Grid.Row="0"
+                        Margin="0,10,10,0"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal">
+                        <ui:Button
+                            Command="{Binding InstallPluginFromFileCommand}"
+                            Content="{lex:Loc InstallPluginFromFile}"
+                            Icon="{ui:SymbolIcon Symbol=CubeArrowCurveDown20}" />
+                    </StackPanel>
+                    <ui:ListView
+                        Grid.Row="1"
+                        Margin="0,10,0,0"
+                        ItemsSource="{Binding PluginsCollection}">
+                        <ui:ListView.ItemTemplate>
+                            <DataTemplate>
+                                <ui:CardExpander>
+                                    <ui:CardExpander.Header>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <ui:Image
+                                                Grid.Column="0"
+                                                Width="64"
+                                                Height="64"
+                                                Margin="0,0,15,0"
+                                                CornerRadius="8"
+                                                Source="{Binding RealIconPath}" />
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock
+                                                    FontSize="18"
+                                                    FontWeight="SemiBold"
+                                                    Text="{Binding Manifest.Name}" />
+                                                <TextBlock
+                                                    Margin="0,5,0,0"
+                                                    FontSize="14"
+                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                    Text="{Binding Manifest.Description}"
+                                                    TextWrapping="Wrap" />
+                                                <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
+                                                    <TextBlock
+                                                        VerticalAlignment="Center"
+                                                        FontSize="12"
+                                                        Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                        Text="{Binding Manifest.Author, StringFormat='By {0}'}" />
+                                                    <TextBlock
+                                                        Margin="10,0,0,0"
+                                                        VerticalAlignment="Center"
+                                                        FontSize="12"
+                                                        Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                        Text="{Binding Manifest.Version, StringFormat='v{0}'}" />
+                                                    <TextBlock
+                                                        VerticalAlignment="Center"
+                                                        FontSize="12"
+                                                        Foreground="DarkOrange"
+                                                        Text="{Binding NewVersion, StringFormat=' -> v{0}'}"
+                                                        Visibility="{Binding IsNewVersionInstalled, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                </StackPanel>
+                                                <TextBlock
+                                                    Margin="0,5,0,0"
+                                                    Foreground="Orange"
+                                                    Text="{lex:Loc RestartToApplyChanges}"
+                                                    Visibility="{Binding IsRestartRequired, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                            </StackPanel>
+
+                                            <StackPanel
+                                                Grid.Column="2"
+                                                Margin="0,0,10,0"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+
+                                                <ui:ToggleSwitch
+                                                    Margin="0,0,10,0"
+                                                    Command="{Binding DataContext.ToggleEnableCommand, RelativeSource={RelativeSource AncestorType=ui:ListView}}"
+                                                    CommandParameter="{Binding}"
+                                                    Content="{lex:Loc Enable}"
+                                                    IsChecked="{Binding IsEnabled, Mode=OneWay}" />
+
+                                                <ui:Button
+                                                    Appearance="Danger"
+                                                    Command="{Binding DataContext.ToggleUninstallCommand, RelativeSource={RelativeSource AncestorType=ui:ListView}}"
+                                                    CommandParameter="{Binding}"
+                                                    Icon="{ui:SymbolIcon Delete24}">
+                                                    <TextBlock>
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Text" Value="{lex:Loc Uninstall}" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsUninstalling}" Value="True">
+                                                                        <Setter Property="Text" Value="{lex:Loc CancelUninstall}" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </ui:Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </ui:CardExpander.Header>
+                                    <StackPanel>
+                                        <Grid>
+                                            <TextBlock
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center"
+                                                Text="{lex:Loc ProjectUrl}" />
+                                            <ui:HyperlinkButton
+                                                HorizontalAlignment="Right"
+                                                Content="{Binding Manifest.Url}"
+                                                NavigateUri="{Binding Manifest.Url}" />
+                                        </Grid>
+                                        <TextBlock>
+                                            <Run Text="{lex:Loc PluginStatus}" />
+                                            <Run Text="{lex:Loc {Binding ExceptionText}, FallbackBehavior=Key}" />
+                                        </TextBlock>
+
+                                    </StackPanel>
+                                </ui:CardExpander>
+                            </DataTemplate>
+                        </ui:ListView.ItemTemplate>
+                    </ui:ListView>
+                </Grid>
+            </TabItem>
+            <TabItem Header="{lex:Loc PluginMarket}">
+                <Grid>
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontSize="18"
+                        Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                        Text="{lex:Loc ComingSoon}" />
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Page>

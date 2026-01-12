@@ -2,7 +2,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 
 namespace neo_bpsys_wpf.Core.Helpers;
@@ -153,8 +152,17 @@ public static class ImageHelper
         return null;
     }
 
+    /// <summary>
+    /// 获取Ui图片
+    /// </summary>
+    /// <param name="uriStr">图片uri</param>
+    /// <param name="defaultKey">默认图片key</param>
+    /// <returns></returns>
     public static ImageSource? GetUiImageFromSetting(string? uriStr, string defaultKey)
     {
         return string.IsNullOrEmpty(uriStr) ? GetUiImageSource(defaultKey) : GetImageFromUriStr(uriStr);
     }
+
+
+    
 }

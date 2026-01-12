@@ -1,10 +1,4 @@
-﻿using System.IO;
-using System.Windows;
-using System.Windows.Controls;
-using neo_bpsys_wpf.Controls;
-using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Services;
-using Wpf.Ui.Controls;
+﻿using System.Windows.Controls;
 
 namespace neo_bpsys_wpf.Views.Pages;
 

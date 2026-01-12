@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Services;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
@@ -9,6 +8,7 @@ using System.Windows.Input;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
+using I18nHelper = neo_bpsys_wpf.Helpers.I18nHelper;
 using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
 using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
@@ -35,28 +35,28 @@ public partial class MainWindow : FluentWindow, INavigationWindow
         navigationService.SetNavigationControl(RootNavigation);
         infoBarService.SetInfoBarControl(InfoBar);
         snackbarService.SetSnackbarPresenter(SnbPre);
-        if (settingsHostService.Settings.ShowTip)
-            Loaded += async (s, e) =>
-            {
-                await Task.Delay(5500);
-                snackbarService.Show("提示",
-                    new HyperLinkSnackbarContent(
-                        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "bpui"),
-                        "软件安装目录下有无作者名字版本的前台UI awa",
-                        () =>
-                        {
-                            settingsHostService.Settings.ShowTip = false;
-                            settingsHostService.SaveConfig();
-                            snackbarService.Hide();
-                        }
-                    ),
-                    ControlAppearance.Secondary,
-                    new SymbolIcon(SymbolRegular.Info24, 24D)
-                    {
-                        Margin = new Thickness(0, 0, 5, 0)
-                    }, TimeSpan.FromSeconds(5), true
-                );
-            };
+        // if (settingsHostService.Settings.ShowTip)
+        //     Loaded += async (s, e) =>
+        //     {
+        //         await Task.Delay(5500);
+        //         snackbarService.Show(I18nHelper.GetLocalizedString("Notification"),
+        //             new HyperLinkSnackbarContent(
+        //                 Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "bpui"),
+        //                 Lang.NoAuthorUiInfo,
+        //                 () =>
+        //                 {
+        //                     settingsHostService.Settings.ShowTip = false;
+        //                     settingsHostService.SaveConfig();
+        //                     snackbarService.Hide();
+        //                 }
+        //             ),
+        //             ControlAppearance.Secondary,
+        //             new SymbolIcon(SymbolRegular.Info24, 24D)
+        //             {
+        //                 Margin = new Thickness(0, 0, 5, 0)
+        //             }, TimeSpan.FromSeconds(5), true
+        //         );
+        //     };
     }
 
     protected override void OnClosing(CancelEventArgs e)
@@ -75,12 +75,12 @@ public partial class MainWindow : FluentWindow, INavigationWindow
     {
         var messageBox = new MessageBox()
         {
-            Title = "退出确认",
-            Content = "是否退出",
-            PrimaryButtonText = "退出",
+            Title = I18nHelper.GetLocalizedString("Warning"),
+            Content = I18nHelper.GetLocalizedString("AreYouSureYouWantToExit"),
+            PrimaryButtonText = I18nHelper.GetLocalizedString("Confirm"),
             PrimaryButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.ArrowExit20 },
             CloseButtonIcon = new SymbolIcon() { Symbol = SymbolRegular.Prohibited20 },
-            CloseButtonText = "取消",
+            CloseButtonText = I18nHelper.GetLocalizedString("Cancel"),
             Owner = App.Current.MainWindow,
         };
         var result = await messageBox.ShowDialogAsync();

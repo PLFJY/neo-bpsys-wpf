@@ -1,7 +1,7 @@
-﻿using System.Globalization;
+﻿using neo_bpsys_wpf.Core.Enums;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
-using neo_bpsys_wpf.Core.Enums;
 
 namespace neo_bpsys_wpf.Converters;
 

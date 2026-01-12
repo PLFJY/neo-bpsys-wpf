@@ -4,13 +4,14 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
-    Title="手动控制"
-    Width="650"
+    Title="{lex:Loc ControlManually}"
+    Width="1082"
     Height="250"
     d:DataContext="{d:DesignInstance Type=vm:ScoreManualWindowViewModel,
                                      IsDesignTimeCreatable=True}"
@@ -55,26 +56,32 @@
             <StackPanel Grid.Column="0" VerticalAlignment="Center">
                 <Button
                     Name="MainWinAdd"
+                    Width="210"
+                    d:Content="主场胜+1"
                     Command="{Binding EditMainWinCommand}"
-                    Content="主场胜+1">
+                    Content="{lex:Loc HomeTeamWinPlus1}">
                     <Button.CommandParameter>
                         <sys:Int32>1</sys:Int32>
                     </Button.CommandParameter>
                 </Button>
                 <Button
                     Name="MainTieAdd"
+                    Width="210"
                     Margin="0,30,0,0"
+                    d:Content="主场平+1"
                     Command="{Binding EditMainTieCommand}"
-                    Content="主场平+1">
+                    Content="{lex:Loc HomeTeamTiePlus1}">
                     <Button.CommandParameter>
                         <sys:Int32>1</sys:Int32>
                     </Button.CommandParameter>
                 </Button>
                 <Button
                     Name="MainSAdd"
+                    Width="210"
                     Margin="0,30,0,0"
-                    Command="{Binding EditMainMinorPointsCommand}"
-                    Content="主场小比分+1">
+                    d:Content="主场小比分+1"
+                    Command="{Binding EditMainGameScoresCommand}"
+                    Content="{lex:Loc HomeTeamGameScorePlus1}">
                     <Button.CommandParameter>
                         <sys:Int32>1</sys:Int32>
                     </Button.CommandParameter>
@@ -86,26 +93,32 @@
                 VerticalAlignment="Center">
                 <Button
                     Name="MainWinMinus"
+                    Width="210"
+                    d:Content="主场胜-1"
                     Command="{Binding EditMainWinCommand}"
-                    Content="主场胜-1">
+                    Content="{lex:Loc HomeTeamWinMinus1}">
                     <Button.CommandParameter>
                         <sys:Int32>-1</sys:Int32>
                     </Button.CommandParameter>
                 </Button>
                 <Button
                     Name="MainTieMinus"
+                    Width="210"
                     Margin="0,30,0,0"
+                    d:Content="主场平-1"
                     Command="{Binding EditMainTieCommand}"
-                    Content="主场平-1">
+                    Content="{lex:Loc HomeTeamTieMinus1}">
                     <Button.CommandParameter>
                         <sys:Int32>-1</sys:Int32>
                     </Button.CommandParameter>
                 </Button>
                 <Button
                     Name="MainSMinus"
+                    Width="210"
                     Margin="0,30,0,0"
-                    Command="{Binding EditMainMinorPointsCommand}"
-                    Content="主场小比分-1">
+                    d:Content="主场小比分-1"
+                    Command="{Binding EditMainGameScoresCommand}"
+                    Content="{lex:Loc HomeTeamGameScoreMinus1}">
                     <Button.CommandParameter>
                         <sys:Int32>-1</sys:Int32>
                     </Button.CommandParameter>
@@ -117,26 +130,32 @@
                 VerticalAlignment="Center">
                 <Button
                     Name="AwayWinAdd"
+                    Width="210"
+                    d:Content="客场胜+1"
                     Command="{Binding EditAwayWinCommand}"
-                    Content="客场胜+1">
+                    Content="{lex:Loc AwayTeamWinPlus1}">
                     <Button.CommandParameter>
                         <sys:Int32>1</sys:Int32>
                     </Button.CommandParameter>
                 </Button>
                 <Button
                     Name="AwayTieAdd"
+                    Width="210"
                     Margin="0,30,0,0"
+                    d:Content="客场平+1"
                     Command="{Binding EditAwayTieCommand}"
-                    Content="客场平+1">
+                    Content="{lex:Loc AwayTeamTiePlus1}">
                     <Button.CommandParameter>
                         <sys:Int32>1</sys:Int32>
                     </Button.CommandParameter>
                 </Button>
                 <Button
                     Name="AwaySAdd"
+                    Width="210"
                     Margin="0,30,0,0"
-                    Command="{Binding EditAwayMinorPointsCommand}"
-                    Content="客场小比分+1">
+                    d:Content="客场小比分+1"
+                    Command="{Binding EditAwayGameScoresCommand}"
+                    Content="{lex:Loc AwayTeamGameScorePlus1}">
                     <Button.CommandParameter>
                         <sys:Int32>1</sys:Int32>
                     </Button.CommandParameter>
@@ -148,26 +167,32 @@
                 VerticalAlignment="Center">
                 <Button
                     Name="AwayWinMinus"
+                    Width="210"
+                    d:Content="客场胜-1"
                     Command="{Binding EditAwayWinCommand}"
-                    Content="客场胜-1">
+                    Content="{lex:Loc AwayTeamWinMinus1}">
                     <Button.CommandParameter>
                         <sys:Int32>-1</sys:Int32>
                     </Button.CommandParameter>
                 </Button>
                 <Button
                     Name="AwayTieMinus"
+                    Width="210"
                     Margin="0,30,0,0"
+                    d:Content="客场平-1"
                     Command="{Binding EditAwayTieCommand}"
-                    Content="客场平-1">
+                    Content="{lex:Loc AwayTeamTieMinus1}">
                     <Button.CommandParameter>
                         <sys:Int32>-1</sys:Int32>
                     </Button.CommandParameter>
                 </Button>
                 <Button
                     Name="AwaySMinus"
+                    Width="210"
                     Margin="0,30,0,0"
-                    Command="{Binding EditAwayMinorPointsCommand}"
-                    Content="客场小比分-1">
+                    d:Content="客场小比分-1"
+                    Command="{Binding EditAwayGameScoresCommand}"
+                    Content="{lex:Loc AwayTeamGameScoreMinus1}">
                     <Button.CommandParameter>
                         <sys:Int32>-1</sys:Int32>
                     </Button.CommandParameter>
@@ -176,10 +201,11 @@
             <Button
                 Name="Clear"
                 Grid.Column="5"
+                Width="150"
                 Height="50"
                 Margin="15,0,0,0"
-                Command="{Binding ClearMinorPointsCommand}"
-                Content="小比分清零" />
+                Command="{Binding ClearGameScoresCommand}"
+                Content="{lex:Loc ResetGameScores}" />
         </StackPanel>
     </Grid>
 </ui:FluentWindow>

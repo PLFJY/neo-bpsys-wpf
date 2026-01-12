@@ -1,21 +1,21 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Events;
+using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.ComponentModel;
+using System.Globalization;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows.Threading;
-using Microsoft.Extensions.Logging;
-using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Messages;
 using Game = neo_bpsys_wpf.Core.Models.Game;
 using Team = neo_bpsys_wpf.Core.Models.Team;
-using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -24,28 +24,25 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public partial class SharedDataService : ISharedDataService
 {
+    private readonly ISettingsHostService _settingsHostService;
     private readonly ILogger<SharedDataService> _logger;
 
     #region 初始化
 
-    public SharedDataService(ILogger<SharedDataService> logger)
+    public SharedDataService(ISettingsHostService settingsHostService, ILogger<SharedDataService> logger)
     {
+        _settingsHostService = settingsHostService;
         _logger = logger;
-        MainTeam = new Team(Camp.Sur, TeamType.MainTeam);
+
+        MainTeam = new Team(Camp.Sur, TeamType.HomeTeam);
         AwayTeam = new Team(Camp.Hun, TeamType.AwayTeam);
 
         _currentGame = new Game(MainTeam, AwayTeam, GameProgress.Free);
 
-        var charaListFilePath =
-            Path.Combine(AppConstants.ResourcesPath, "CharacterList.json");
-        ReadCharaListFromFile(charaListFilePath);
-
-        SurCharaList = SurCharaList
-            ?.OrderBy(pair => pair.Key)
-            .ToDictionary(pair => pair.Key, pair => pair.Value)!;
-        HunCharaList = HunCharaList
-            ?.OrderBy(pair => pair.Key)
-            .ToDictionary(pair => pair.Key, pair => pair.Value)!;
+        var comparer = StringComparer.Create(_settingsHostService.Settings.CultureInfo, false);
+        SurCharaDict = new SortedDictionary<string, Character>(comparer);
+        HunCharaDict = new SortedDictionary<string, Character>(comparer);
+        ReadCharaListFromFile(_settingsHostService.Settings.CultureInfo);
 
         CanCurrentSurBannedList = [.. Enumerable.Repeat(true, AppConstants.CurrentBanSurCount)];
         CanCurrentHunBannedList = [.. Enumerable.Repeat(true, AppConstants.CurrentBanHunCount)];
@@ -61,46 +58,56 @@ public partial class SharedDataService : ISharedDataService
         CanGlobalHunBannedList.CollectionChanged += (_, e) =>
             HandleBanCollectionChanged(BanListName.CanGlobalHunBanned, e);
 
+        GlobalScoreTotalMargin = _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreTotalMargin;
+
 
         _timer.Interval = TimeSpan.FromSeconds(1);
         _timer.Tick += Timer_Tick;
         _logger.LogInformation("SharedDataService initialized");
 
         CurrentGame.TeamSwapped += OnTeamSwapped;
+        _settingsHostService.LanguageSettingChanged += (sender, args) => ReadCharaListFromFile(args.CultureInfo);
     }
 
-    /// <summary>
-    /// 从文件读取角色数据
-    /// </summary>
-    /// <param name="charaListFilePath"></param>
-    private void ReadCharaListFromFile(string charaListFilePath)
+    private void ReadCharaListFromFile(CultureInfo cultureInfo)
     {
-        if (!File.Exists(charaListFilePath))
+        var filePaths = new[]
+        {
+            Path.Combine(AppConstants.ResourcesPath, "data", $"CharacterList-{cultureInfo.Name}.json"),
+            Path.Combine(AppConstants.ResourcesPath, "data", "CharacterList.json")
+        };
+
+        var charaListFilePath = filePaths.FirstOrDefault(File.Exists);
+        if (charaListFilePath == null)
             return;
 
         // 加载角色数据
         var characterFileContent = File.ReadAllText(charaListFilePath);
 
+        JsonSerializerOptions options = new() { Converters = { new JsonStringEnumConverter() } };
         var characters = JsonSerializer.Deserialize<Dictionary<string, CharacterMini>>(
             characterFileContent,
-            new JsonSerializerOptions { Converters = { new JsonStringEnumConverter() } }
+            options
         );
 
         if (characters == null)
             return;
 
+        var comparer = StringComparer.Create(cultureInfo, false);
+
+        if (SurCharaDict.Count > 0) SurCharaDict = new SortedDictionary<string, Character>(comparer);
+        if (HunCharaDict.Count > 0) HunCharaDict = new SortedDictionary<string, Character>(comparer);
+
         foreach (var i in characters)
         {
-            CharacterDict.Add(
-                i.Key,
-                new Character(i.Key, i.Value.Camp, i.Value.ImageFileName)
-            );
-
+            var chara = new Character(i.Key, i.Value.Camp, i.Value.ImageFileName, i.Value.Abbrev);
             if (i.Value.Camp == Camp.Sur)
-                SurCharaList?.Add(i.Key, CharacterDict[i.Key]);
+                SurCharaDict?.Add(i.Key, chara);
             else
-                HunCharaList?.Add(i.Key, CharacterDict[i.Key]);
+                HunCharaDict?.Add(i.Key, chara);
         }
+
+        WeakReferenceMessenger.Default.Send(new CharacterDictChangedMessage(this));
 
         _logger.LogInformation("CharacterDict loaded");
     }
@@ -144,19 +151,14 @@ public partial class SharedDataService : ISharedDataService
     #region 角色字典
 
     /// <summary>
-    /// 所有角色
+    /// 求生者角色字典
     /// </summary>
-    public Dictionary<string, Character> CharacterDict { get; } = [];
+    public SortedDictionary<string, Character> SurCharaDict { get; set; }
 
     /// <summary>
-    /// 求生者角色列表
+    /// 监管者角色字典
     /// </summary>
-    public Dictionary<string, Character> SurCharaList { get; } = [];
-
-    /// <summary>
-    /// 监管者角色列表
-    /// </summary>
-    public Dictionary<string, Character> HunCharaList { get; } = [];
+    public SortedDictionary<string, Character> HunCharaDict { get; set; }
 
     #endregion
 
@@ -274,7 +276,7 @@ public partial class SharedDataService : ISharedDataService
 
     public void TimerStop()
     {
-        _remainingSeconds = 0;
+        _remainingSeconds = -1;
         _timer.Stop();
         CountDownValueChanged?.Invoke(this, EventArgs.Empty);
         _logger.LogInformation("Timer stopped");
@@ -323,7 +325,7 @@ public partial class SharedDataService : ISharedDataService
     /// <summary>
     /// 分数统计界面 BO3 和 BO5之间"Total"相差的距离
     /// </summary>
-    private double _globalScoreTotalMargin = 390;
+    private double _globalScoreTotalMargin = 365;
 
     public double GlobalScoreTotalMargin
     {
@@ -369,7 +371,7 @@ public partial class SharedDataService : ISharedDataService
         get => _isMapV2CampVisible;
         set
         {
-            if(_isMapV2CampVisible == value) return;
+            if (_isMapV2CampVisible == value) return;
             _isMapV2CampVisible = value;
             IsMapV2CampVisibleChanged?.Invoke(this, EventArgs.Empty);
             foreach (var mapValue in CurrentGame.MapV2Dictionary.Values)
@@ -383,6 +385,7 @@ public partial class SharedDataService : ISharedDataService
     {
         public Camp Camp { get; set; }
         public string ImageFileName { get; set; } = string.Empty;
+        public string? Abbrev { get; set; }
     }
 
     #region 事件

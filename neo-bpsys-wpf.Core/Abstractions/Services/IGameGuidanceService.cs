@@ -18,12 +18,12 @@ public interface IGameGuidanceService
     /// 下一步·
     /// </summary>
     /// <returns></returns>
-    Task<string> NextStepAsync();
+    Task<string?> NextStepAsync();
     /// <summary>
     /// 上一步
     /// </summary>
     /// <returns></returns>
-    Task<string> PrevStepAsync();
+    Task<string?> PrevStepAsync();
     /// <summary>
     /// 停止对局引导
     /// </summary>

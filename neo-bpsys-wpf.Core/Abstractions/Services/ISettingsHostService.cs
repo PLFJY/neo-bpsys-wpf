@@ -1,4 +1,5 @@
 ﻿using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
@@ -19,7 +20,7 @@ public interface ISettingsHostService
     /// <summary>
     /// 读取配置
     /// </summary>
-    void LoadConfig();
+    Task LoadConfig();
     /// <summary>
     /// 重置配置
     /// </summary>
@@ -28,9 +29,14 @@ public interface ISettingsHostService
     /// 重置指定窗口的配置
     /// </summary>
     /// <param name="windowType">窗口类型</param>
-    void ResetConfig(FrontWindowType windowType);
+    void ResetConfig(FrontedWindowType windowType);
     /// <summary>
     /// 配置项改变事件
     /// </summary>
     event EventHandler<Settings> SettingsChanged;
+
+    /// <summary>
+    /// 语言改变事件
+    /// </summary>
+    event EventHandler<LanguageChangedEventArgs> LanguageSettingChanged;
 }

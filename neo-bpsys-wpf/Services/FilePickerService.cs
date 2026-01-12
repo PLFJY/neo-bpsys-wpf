@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
-using System.IO;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using System.IO;
+using neo_bpsys_wpf.Helpers;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -19,22 +20,32 @@ public class FilePickerService : IFilePickerService
         OpenFileDialog openFileDialog = new()
         {
             Filter =
-                "图片文件 (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp",
+                $"{I18nHelper.GetLocalizedString("ImageFiles")} (*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp)|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico;*.tif;*.tiff;*.svg;*.webp",
         };
 
         return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
     }
 
     /// <summary>
-    /// 选择Json文件
+    /// 选择JSON文件
     /// </summary>
-    /// <returns>返回Json文件路径</returns>
+    /// <returns>返回JSON文件路径</returns>
     public string? PickJsonFile()
     {
         OpenFileDialog openFileDialog = new()
         {
-            Filter = "Json文件 (*.json) | *.json",
+            Filter = $"{I18nHelper.GetLocalizedString("JSONFiles")} (*.json) | *.json",
             DefaultDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources"),
+        };
+
+        return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
+    }
+
+    public string? PickZipFile()
+    {
+        OpenFileDialog openFileDialog = new()
+        {
+            Filter = $"{I18nHelper.GetLocalizedString("ZipFiles")} (*.zip) | *.zip",
         };
 
         return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;

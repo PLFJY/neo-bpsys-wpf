@@ -3,18 +3,16 @@ using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
+using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Abstractions.ViewModels;
 using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Messages;
 
 namespace neo_bpsys_wpf.Core.Models;
 
 /// <summary>
 /// 队伍类, <see cref="ISharedDataService"/> 中主队和客队对应的对象全场始终不变，信息导入依靠 <see cref="ImportTeamInfo(Team)"/> 方法
 /// </summary>
-public partial class Team : ViewModelBase
+public partial class Team : ObservableObjectBase
 {
     /// <summary>
     /// 队伍类型(主队/客队)
@@ -33,7 +31,7 @@ public partial class Team : ViewModelBase
 #if DEBUG
             return TeamType switch
             {
-                TeamType.MainTeam => string.IsNullOrEmpty(_name) ? "主队" : _name,
+                TeamType.HomeTeam => string.IsNullOrEmpty(_name) ? "主队" : _name,
                 TeamType.AwayTeam => string.IsNullOrEmpty(_name) ? "客队" : _name,
                 _ => _name
             };

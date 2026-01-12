@@ -6,6 +6,7 @@
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:enums="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -27,9 +28,29 @@
     </Page.Resources>
     <StackPanel Margin="10,0,10,0">
         <TextBlock
+            d:Text="语言设置"
+            Style="{StaticResource Title}"
+            Text="{lex:Loc LanguageSetting}" />
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
+            <ComboBox
+                x:Name="LanguageComboBox"
+                Width="200"
+                Margin="0,10,0,0"
+                HorizontalAlignment="Left"
+                ItemsSource="{Binding LanguageList}"
+                SelectedValue="{Binding SelectedLanguage}"
+                SelectedValuePath="Value">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{lex:Loc {Binding Key}}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+        </Border>
+        <TextBlock
             Margin="0,10,0,0"
             Style="{StaticResource Title}"
-            Text="关于" />
+            Text="{lex:Loc About}" />
         <StackPanel Margin="0,10,0,0">
             <ui:CardExpander
                 Margin="0,0,0,12"
@@ -54,10 +75,9 @@
                                 Margin="0,5,0,0"
                                 VerticalAlignment="Center"
                                 FontSize="12"
-                                Text="Made By 零风PLFJY 作者QQ : 3424127335 软件反馈群 : 175741665" />
+                                Text="{lex:Loc AuthorDetails}" />
                         </Grid>
                         <ui:TextBlock
-                            Grid.Row="1"
                             Margin="0,0,10,0"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center"
@@ -103,7 +123,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="项目仓库:" />
+                        <TextBlock Grid.Column="0" Text="{lex:Loc ProjectRepository}" />
                         <ui:HyperlinkButton
                             Grid.Column="1"
                             Content="https://github.com/PLFJY/neo-bpsys-wpf"
@@ -114,9 +134,9 @@
                         <TextBlock
                             FontSize="16"
                             FontWeight="Bold"
-                            Text="应用更新:" />
+                            Text="{lex:Loc SoftwareUpdates}" />
                         <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                            <TextBlock VerticalAlignment="Center" Text="下载源：" />
+                            <TextBlock VerticalAlignment="Center" Text="{lex:Loc DownloadSource}" />
                             <ComboBox
                                 Margin="10,0,0,0"
                                 ItemsSource="{Binding MirrorList}"
@@ -125,24 +145,24 @@
                             <TextBlock
                                 Margin="10,0,0,0"
                                 VerticalAlignment="Center"
-                                Text="下载预览版？" />
+                                Text="{lex:Loc DownloadPreviewVersion}" />
                             <ui:ToggleSwitch Margin="10,0,0,0" IsChecked="{Binding UpdaterService.IsFindPreRelease}" />
                         </StackPanel>
                         <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                             <ui:Button
                                 Command="{Binding UpdateCheckCommand}"
-                                Content="检查更新"
+                                Content="{lex:Loc CheckForUpdates}"
                                 Icon="{ui:SymbolIcon ArrowSync24}" />
                             <ui:Button
                                 Margin="10,0,0,0"
                                 Command="{Binding InstallUpdateCommand}"
-                                Content="安装"
+                                Content="{lex:Loc Install}"
                                 Icon="{ui:SymbolIcon Symbol=DrawerArrowDownload24}" />
                             <StackPanel Orientation="Horizontal" Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <TextBlock
                                     Margin="10,0,0,0"
                                     VerticalAlignment="Center"
-                                    Text="下载进度：" />
+                                    Text="{lex:Loc DownloadProgress}" />
                                 <ProgressBar
                                     Width="175"
                                     Height="20"
@@ -165,14 +185,14 @@
                             Margin="520,10,0,0"
                             HorizontalAlignment="Left"
                             Command="{Binding CancelDownloadCommand}"
-                            Content="停止"
+                            Content="{lex:Loc Stop}"
                             Icon="{ui:SymbolIcon Symbol=Stop24}"
                             Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     </StackPanel>
                     <TextBlock
                         Margin="0,20,0,0"
                         FontWeight="DemiBold"
-                        Text="贴图素材来自:" />
+                        Text="{lex:Loc SourceOfImageResources}" />
                     <WrapPanel Margin="0,10,0,0" Orientation="Horizontal">
                         <WrapPanel.Resources>
                             <Style BasedOn="{StaticResource {x:Type ui:HyperlinkButton}}" TargetType="ui:HyperlinkButton">
@@ -192,7 +212,7 @@
                     <TextBlock
                         Margin="0,10,0,0"
                         FontWeight="DemiBold"
-                        Text="以下是本软件使用的开源代码库:" />
+                        Text="{lex:Loc OpenSourceRepositoryUsed}" />
                     <Grid Margin="0,10,0,0">
                         <Grid.Resources>
                             <Style BasedOn="{StaticResource {x:Type ui:HyperlinkButton}}" TargetType="ui:HyperlinkButton">
@@ -209,6 +229,7 @@
                             <ui:HyperlinkButton Content=".Net Runtime" NavigateUri="https://github.com/dotnet/runtime/" />
                             <ui:HyperlinkButton Content="CommunityToolkit.Mvvm" NavigateUri="https://github.com/CommunityToolkit/dotnet/" />
                             <ui:HyperlinkButton Content="Downloader" NavigateUri="https://github.com/bezzad/Downloader/" />
+                            <ui:HyperlinkButton Content="WPFLocalizeExtension" NavigateUri="https://github.com/XAMLMarkupExtensions/WPFLocalizeExtension" />
                         </StackPanel>
                         <StackPanel Grid.Column="1">
                             <ui:HyperlinkButton Content="hyjiacan.pinyin4net" NavigateUri="https://gitee.com/hyjiacan/Pinyin4Net/" />
@@ -227,7 +248,7 @@
         <TextBlock
             Margin="0,10,0,0"
             Style="{StaticResource Title}"
-            Text="快捷入口" />
+            Text="{lex:Loc QuickAccess}" />
         <Border
             Margin="0,10,0,0"
             Padding="10,10,0,0"
@@ -236,30 +257,30 @@
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding HopToConfigDirCommand}"
-                    Content="打开前台配置文件所在目录"
+                    Content="{lex:Loc OpenFrontendDirectory}"
                     Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding HopToGameOutputDirCommand}"
-                    Content="打开对局文件输出目录"
+                    Content="{lex:Loc OpenGameFileDirectory}"
                     Icon="{ui:SymbolIcon Symbol=Games24}" />
             </WrapPanel>
         </Border>
         <TextBlock
             Margin="0,10,0,10"
             Style="{StaticResource Title}"
-            Text="前台UI个性化" />
+            Text="{lex:Loc CustomizeFrontendUI}" />
         <Border Style="{StaticResource Card}">
             <Grid>
                 <StackPanel Orientation="Horizontal">
                     <ui:Button
                         Command="{Binding ExportUiConfigCommand}"
-                        Content="导出当前UI配置"
+                        Content="{lex:Loc ExportUIConfig}"
                         Icon="{ui:SymbolIcon Symbol=ArrowExportLtr24}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ImportUiConfigCommand}"
-                        Content="导入UI配置"
+                        Content="{lex:Loc ImportUIConfig}"
                         Icon="{ui:SymbolIcon Symbol=ArrowImport24}" />
                 </StackPanel>
             </Grid>
@@ -274,7 +295,13 @@
                     BasedOn="{StaticResource {x:Type ComboBox}}"
                     TargetType="ComboBox">
                     <Setter Property="SelectedValuePath" Value="Value" />
-                    <Setter Property="DisplayMemberPath" Value="Key" />
+                    <Setter Property="ItemTemplate">
+                        <Setter.Value>
+                            <DataTemplate>
+                                <TextBlock Text="{lex:Loc {Binding Key}}" />
+                            </DataTemplate>
+                        </Setter.Value>
+                    </Setter>
                 </Style>
                 <cv:StringToDoubleConverter x:Key="StringToDoubleConverter" />
             </Border.Resources>
@@ -285,34 +312,34 @@
                             VerticalAlignment="Center"
                             FontSize="16"
                             FontWeight="Bold"
-                            Text="BP前台窗口自定义" />
+                            Text="{lex:Loc CustomizeBPWindow}" />
                     </ui:CardExpander.Header>
                     <ui:CardExpander.Content>
                         <StackPanel>
-                            <ui:DropDownButton Content="修改图片" Icon="{ui:SymbolIcon Symbol=ImageEdit24}">
+                            <ui:DropDownButton Content="{lex:Loc EditImage}" Icon="{ui:SymbolIcon Symbol=ImageEdit24}">
                                 <ui:DropDownButton.Flyout>
                                     <ContextMenu>
                                         <MenuItem
                                             Command="{Binding EditBpWindowImagesCommand}"
                                             CommandParameter="BgImageUri"
-                                            Header="BP背景" />
+                                            Header="{lex:Loc BPWindowImages}" />
                                         <MenuItem
                                             Command="{Binding EditBpWindowImagesCommand}"
                                             CommandParameter="CurrentBanLockImageUri"
-                                            Header="当局禁用锁" />
+                                            Header="{lex:Loc CurrentBanLock}" />
                                         <MenuItem
                                             Command="{Binding EditBpWindowImagesCommand}"
                                             CommandParameter="GlobalBanLockImageUri"
-                                            Header="全局禁用锁" />
+                                            Header="{lex:Loc GlobalBanLock}" />
                                         <MenuItem
                                             Command="{Binding EditBpWindowImagesCommand}"
                                             CommandParameter="PickingBorderImageUri"
-                                            Header="待选闪烁框" />
+                                            Header="{lex:Loc PickingBorderImage}" />
                                     </ContextMenu>
                                 </ui:DropDownButton.Flyout>
                             </ui:DropDownButton>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="待选框边缘颜色（染色，会覆盖你的待选框贴图本身的颜色）:" />
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc PickingBorderImageColor}" />
                                 <colorpicker:PortableColorPicker
                                     Width="60"
                                     Height="30"
@@ -322,7 +349,7 @@
                                 <ui:Button
                                     Margin="10,0,0,0"
                                     Command="{Binding SaveBpWindowPickingBorderColorCommand}"
-                                    Content="保存并应用"
+                                    Content="{lex:Loc SaveAndApply}"
                                     Icon="{ui:SymbolIcon Symbol=Save24}" />
                             </StackPanel>
                             <Grid Margin="0,10,0,0">
@@ -331,7 +358,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Style="{StaticResource Title}" Text="修改文字属性" />
+                                    <TextBlock Style="{StaticResource Title}" Text="{lex:Loc EditTextProperty}" />
                                     <ComboBox
                                         Width="250"
                                         Margin="0,10,0,0"
@@ -342,14 +369,14 @@
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
-                                        Content="编辑"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}"
+                                        Content="{lex:Loc Edit}"
                                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding ResetCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.BpWindow}"
-                                        Content="重置该窗口的全部个性化设置"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}"
+                                        Content="{lex:Loc ResetAllPersonalizationSettingsOfTheWindow}"
                                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </StackPanel>
                                 <Frame x:Name="BpWindowTextSettingFrame" Grid.Column="1" />
@@ -363,23 +390,23 @@
                             VerticalAlignment="Center"
                             FontSize="16"
                             FontWeight="Bold"
-                            Text="过场画面窗口自定义" />
+                            Text="{lex:Loc CustomizeIntercludeWindow}" />
                     </ui:CardExpander.Header>
                     <ui:CardExpander.Content>
                         <StackPanel>
                             <ui:Button
                                 Command="{Binding EditCutSceneWindowImagesCommand}"
-                                Content="修改过场背景图片"
+                                Content="{lex:Loc EditIntercludeBackgroundImage}"
                                 Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="天赋和辅助特质图标颜色" />
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc ColorOfTalentAndTraitIcon}" />
                                 <RadioButton
                                     Margin="10,0,0,0"
-                                    Content="白色"
+                                    Content="{lex:Loc White}"
                                     IsChecked="True" />
                                 <RadioButton
                                     Margin="10,0,0,0"
-                                    Content="黑色"
+                                    Content="{lex:Loc Black}"
                                     IsChecked="{Binding IsTalentAndTraitBlackVerEnable}" />
                             </StackPanel>
                             <Grid Margin="0,10,0,0">
@@ -388,7 +415,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Style="{StaticResource Title}" Text="修改文字属性" />
+                                    <TextBlock Style="{StaticResource Title}" Text="{lex:Loc EditTextProperty}" />
                                     <ComboBox
                                         Width="250"
                                         Margin="0,10,0,0"
@@ -399,14 +426,14 @@
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
-                                        Content="编辑"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}"
+                                        Content="{lex:Loc Edit}"
                                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding ResetCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.CutSceneWindow}"
-                                        Content="重置该窗口的全部个性化设置"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}"
+                                        Content="{lex:Loc ResetAllPersonalizationSettingsOfTheWindow}"
                                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </StackPanel>
                                 <Frame x:Name="CutSceneWindowTextSettingFrame" Grid.Column="1" />
@@ -420,54 +447,54 @@
                             VerticalAlignment="Center"
                             FontSize="16"
                             FontWeight="Bold"
-                            Text="比分窗口自定义" />
+                            Text="{lex:Loc CustomizeScoreWindow}" />
                     </ui:CardExpander.Header>
                     <ui:CardExpander.Content>
                         <StackPanel>
-                            <ui:DropDownButton Content="修改图片" Icon="{ui:SymbolIcon Symbol=ImageEdit24}">
+                            <ui:DropDownButton Content="{lex:Loc EditImage}" Icon="{ui:SymbolIcon Symbol=ImageEdit24}">
                                 <ui:DropDownButton.Flyout>
                                     <ContextMenu>
                                         <MenuItem
                                             Command="{Binding EditScoreWindowImagesCommand}"
                                             CommandParameter="SurScoreBgImageUri"
-                                            Header="游戏内求生者比分" />
+                                            Header="{lex:Loc SurvivorScoreInGame}" />
                                         <MenuItem
                                             Command="{Binding EditScoreWindowImagesCommand}"
                                             CommandParameter="HunScoreBgImageUri"
-                                            Header="游戏内监管者比分" />
+                                            Header="{lex:Loc HunterScoreInGame}" />
                                         <MenuItem
                                             Command="{Binding EditScoreWindowImagesCommand}"
                                             CommandParameter="GlobalScoreBgImageUri"
-                                            Header="分数统计" />
+                                            Header="{lex:Loc ScoreStatisticsBO5}" />
                                         <MenuItem
                                             Command="{Binding EditScoreWindowImagesCommand}"
                                             CommandParameter="GlobalScoreBgImageUriBo3"
-                                            Header="分数统计-BO3" />
+                                            Header="{lex:Loc ScoreStatisticsBO3}" />
                                     </ContextMenu>
                                 </ui:DropDownButton.Flyout>
                             </ui:DropDownButton>
-                            <TextBlock Margin="0,10,0,0" Text="BO3 和 BO5模式切换之间&quot;Total&quot;&#10;相差的距离 (下一次切换到BO3生效): " />
+                            <TextBlock Margin="0,10,0,0" Text="{lex:Loc ShiftDistanceOfTotalScoreWhenSwitchingBetweenBO3AndBO5Mode}" />
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                                 <ui:TextBox
                                     Width="200"
                                     HorizontalAlignment="Left"
-                                    PlaceholderText="单位距离"
+                                    PlaceholderText="{lex:Loc Distance}"
                                     Text="{Binding GlobalScoreTotalMargin, Converter={StaticResource StringToDoubleConverter}}" />
                                 <ui:Button
                                     Margin="10,0,0,0"
                                     Command="{Binding SaveGlobalScoreTotalMarginCommand}"
-                                    Content="保存"
+                                    Content="{lex:Loc Save}"
                                     Icon="{ui:SymbolIcon Symbol=Save24}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="分数统计的阵营图标颜色" />
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc CampIconColorInScoreStatistics}" />
                                 <RadioButton
                                     Margin="10,0,0,0"
-                                    Content="白色"
+                                    Content="{lex:Loc White}"
                                     IsChecked="True" />
                                 <RadioButton
                                     Margin="10,0,0,0"
-                                    Content="黑色"
+                                    Content="{lex:Loc Black}"
                                     IsChecked="{Binding IsScoreGlobalCampIconBlackVerEnable}" />
                             </StackPanel>
                             <Grid Margin="0,10,0,0">
@@ -476,7 +503,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Style="{StaticResource Title}" Text="修改文字属性" />
+                                    <TextBlock Style="{StaticResource Title}" Text="{lex:Loc EditTextProperty}" />
                                     <ComboBox
                                         Width="250"
                                         Margin="0,10,0,0"
@@ -487,14 +514,14 @@
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
-                                        Content="编辑"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}"
+                                        Content="{lex:Loc Edit}"
                                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding ResetCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.ScoreGlobalWindow}"
-                                        Content="重置该窗口的全部个性化设置"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}"
+                                        Content="{lex:Loc ResetAllPersonalizationSettingsOfTheWindow}"
                                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </StackPanel>
                                 <Frame x:Name="ScoreWindowTextSettingFrame" Grid.Column="1" />
@@ -508,13 +535,13 @@
                             VerticalAlignment="Center"
                             FontSize="16"
                             FontWeight="Bold"
-                            Text="赛后数据窗口自定义" />
+                            Text="{lex:Loc CustomizeGameDataWindow}" />
                     </ui:CardExpander.Header>
                     <ui:CardExpander.Content>
                         <StackPanel>
                             <ui:Button
                                 Command="{Binding EditGameDataWindowImagesCommand}"
-                                Content="修改过场背景图片"
+                                Content="{lex:Loc EditGameDataBackgroundImage}"
                                 Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
                             <Grid Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>
@@ -522,7 +549,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Style="{StaticResource Title}" Text="修改文字属性" />
+                                    <TextBlock Style="{StaticResource Title}" Text="{lex:Loc EditTextProperty}" />
                                     <ComboBox
                                         Width="250"
                                         Margin="0,10,0,0"
@@ -533,14 +560,14 @@
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
-                                        Content="编辑"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}"
+                                        Content="{lex:Loc Edit}"
                                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding ResetCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.GameDataWindow}"
-                                        Content="重置该窗口的全部个性化设置"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}"
+                                        Content="{lex:Loc ResetAllPersonalizationSettingsOfTheWindow}"
                                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </StackPanel>
                                 <Frame x:Name="GameDataWindowTextSettingFrame" Grid.Column="1" />
@@ -554,61 +581,61 @@
                             VerticalAlignment="Center"
                             FontSize="16"
                             FontWeight="Bold"
-                            Text="其它小组件窗口自定义" />
+                            Text="{lex:Loc CustomizeWidgetWindow}" />
                     </ui:CardExpander.Header>
                     <ui:CardExpander.Content>
                         <StackPanel>
-                            <ui:DropDownButton Content="修改图片" Icon="{ui:SymbolIcon Symbol=ImageEdit24}">
+                            <ui:DropDownButton Content="{lex:Loc EditImage}" Icon="{ui:SymbolIcon Symbol=ImageEdit24}">
                                 <ui:DropDownButton.Flyout>
                                     <ContextMenu>
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="MapBpBgUri"
-                                            Header="地图BP" />
+                                            Header="{lex:Loc MapBPBackground}" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="MapBpV2BgUri"
-                                            Header="地图BpV2背景" />
+                                            Header="{lex:Loc MapBPV2Background}" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="MapBpV2PickingBorderImageUri"
-                                            Header="地图BpV2待选闪烁框" />
+                                            Header="{lex:Loc PickingBorderOfMapBPV2}" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="MapBpV2SurIconUri"
-                                            Header="地图BpV2求生者图标" />
+                                            Header="{lex:Loc SurvivorIconOfMapBPV2}" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="MapBpV2HunIconUri"
-                                            Header="地图BpV2监管者图标" />
+                                            Header="{lex:Loc HunterIconOfMapBPV2}" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="MapBpBgUri"
-                                            Header="BP总览" />
+                                            Header="{lex:Loc BPOverview}" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="CurrentBanLockImageUri"
-                                            Header="BP总览-当局禁用锁" />
+                                            Header="{lex:Loc CurrentBanLockOfBPOverview}" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
                                             CommandParameter="GlobalBanLockImageUri"
-                                            Header="BP总览-全局禁用锁" />
+                                            Header="{lex:Loc GlobalBanLockOfBPOverview}" />
                                     </ContextMenu>
                                 </ui:DropDownButton.Flyout>
                             </ui:DropDownButton>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="地图BpV2 阵营图标颜色" />
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc CampIconColorOfMapBPV2}" />
                                 <RadioButton
                                     Margin="10,0,0,0"
-                                    Content="白色"
+                                    Content="{lex:Loc White}"
                                     IsChecked="True" />
                                 <RadioButton
                                     Margin="10,0,0,0"
-                                    Content="黑色"
+                                    Content="{lex:Loc Black}"
                                     IsChecked="{Binding IsMapBpV2CampIconBlackVerEnable}" />
                             </StackPanel>
                             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                                <TextBlock VerticalAlignment="Center" Text="地图BpV2 待选框边缘颜色（染色，会覆盖你的待选框贴图本身的颜色）:" />
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc PickingBorderColorOfMapBPV2}" />
                                 <colorpicker:PortableColorPicker
                                     Width="60"
                                     Height="30"
@@ -618,7 +645,7 @@
                                 <ui:Button
                                     Margin="10,0,0,0"
                                     Command="{Binding SaveMapBpV2PickingBorderColorCommand}"
-                                    Content="保存并应用"
+                                    Content="{lex:Loc SaveAndApply}"
                                     Icon="{ui:SymbolIcon Symbol=Save24}" />
                             </StackPanel>
                             <Grid Margin="0,10,0,0">
@@ -627,7 +654,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Style="{StaticResource Title}" Text="修改文字属性" />
+                                    <TextBlock Style="{StaticResource Title}" Text="{lex:Loc EditTextProperty}" />
                                     <ComboBox
                                         Width="250"
                                         Margin="0,10,0,0"
@@ -638,14 +665,14 @@
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding EditTextSettingsCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
-                                        Content="编辑"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}"
+                                        Content="{lex:Loc Edit}"
                                         Icon="{ui:SymbolIcon Symbol=Edit24}" />
                                     <ui:Button
                                         Margin="0,10,0,0"
                                         Command="{Binding ResetCommand}"
-                                        CommandParameter="{x:Static enums:FrontWindowType.WidgetsWindow}"
-                                        Content="重置该窗口的全部个性化设置"
+                                        CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}"
+                                        Content="{lex:Loc ResetAllPersonalizationSettingsOfTheWindow}"
                                         Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </StackPanel>
                                 <Frame x:Name="WidgetsWindowTextSettingFrame" Grid.Column="1" />
@@ -656,7 +683,7 @@
                 <ui:Button
                     Margin="0,10,0,0"
                     Command="{Binding ResetAllCommand}"
-                    Content="重置全部个性化设置"
+                    Content="{lex:Loc ResetAllPersonalizationSettings}"
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </StackPanel>
         </Border>
@@ -666,7 +693,7 @@
                     VerticalAlignment="Center"
                     FontSize="18"
                     FontWeight="Bold"
-                    Text="项目贡献者" />
+                    Text="{lex:Loc ContributorList}" />
             </ui:CardExpander.Header>
             <StackPanel
                 Margin="0,0,0,0"
@@ -720,7 +747,7 @@
                     VerticalAlignment="Center"
                     FontSize="18"
                     FontWeight="Bold"
-                    Text="赞助渠道" />
+                    Text="{lex:Loc Sponsor}" />
             </ui:CardExpander.Header>
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -759,7 +786,7 @@
         <TextBlock
             Margin="0,10,0,0"
             Style="{StaticResource Title}"
-            Text="调试选项" />
+            Text="{lex:Loc DebugOptions}" />
         <Border
             Margin="0,10,0,0"
             Padding="10,10,0,0"
@@ -768,7 +795,7 @@
                 <Button
                     Margin="0,0,10,10"
                     Command="{Binding ManualGcCommand}"
-                    Content="手动触发GC回收" />
+                    Content="{lex:Loc TriggerGCCollectionManually}" />
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding SwitchDebugGlobalScoreCommand}"
@@ -780,7 +807,7 @@
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding HopToLogDirCommand}"
-                    Content="打开日志目录"
+                    Content="{lex:Loc OpenLogDirectory}"
                     Icon="{ui:SymbolIcon Symbol=DocumentText24}" />
             </WrapPanel>
         </Border>

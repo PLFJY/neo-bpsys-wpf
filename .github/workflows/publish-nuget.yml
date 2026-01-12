@@ -1,0 +1,118 @@
+name: Publish NuGet (Core & PluginSdk)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions: write-all
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Core
+            csproj: src/neo-bpsys.wpf.Core/neo-bpsys.wpf.Core.csproj
+            packageId: neo-bpsys.wpf.Core
+          - name: PluginSdk
+            csproj: src/neo-bpsys.wpf.PluginSdk/neo-bpsys.wpf.PluginSdk.csproj
+            packageId: neo-bpsys.wpf.PluginSdk
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore
+        run: dotnet restore "${{ matrix.csproj }}"
+
+      - name: Read project Version from csproj
+        id: ver
+        shell: pwsh
+        run: |
+          $csproj = "${{ matrix.csproj }}"
+          [xml]$xml = Get-Content $csproj
+          # 支持多 PropertyGroup 的情况：找第一个非空 Version
+          $version = ($xml.Project.PropertyGroup | ForEach-Object { $_.Version } | Where-Object { $_ -and $_.Trim() -ne "" } | Select-Object -First 1)
+          if (-not $version) {
+            throw "No <Version> found in $csproj. Please set <Version> in csproj (recommended)."
+          }
+          $version = $version.Trim()
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "CSProj Version: $version"
+
+      - name: Get latest version on NuGet
+        id: nuget
+        shell: pwsh
+        run: |
+          $packageId = "${{ matrix.packageId }}"
+          $url = "https://api.nuget.org/v3-flatcontainer/$($packageId.ToLower())/index.json"
+          Write-Host "Query: $url"
+
+          try {
+            $resp = Invoke-RestMethod -Uri $url -Method Get -ErrorAction Stop
+            $versions = @($resp.versions)
+          } catch {
+            # 包不存在（第一次发布）也算需要发布
+            Write-Host "Package not found on NuGet (or API error). Will publish."
+            "latest=" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+            "exists=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+            exit 0
+          }
+
+          # 只取稳定版（不含 -xxx）
+          $stable = $versions | Where-Object { $_ -notmatch "-" }
+          $latest = if ($stable.Count -gt 0) { $stable[-1] } else { $versions[-1] }
+
+          "latest=$latest" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "exists=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "NuGet Latest: $latest"
+
+      - name: Decide whether to publish
+        id: decide
+        shell: pwsh
+        run: |
+          $local = "${{ steps.ver.outputs.version }}"
+          $latest = "${{ steps.nuget.outputs.latest }}"
+          $exists = "${{ steps.nuget.outputs.exists }}"
+
+          if ($exists -eq "true" -and $latest -eq $local) {
+            Write-Host "Same version ($local). Skip packing & publishing."
+            "publish=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          } else {
+            Write-Host "Will publish. Local=$local, NuGetLatest=$latest, Exists=$exists"
+            "publish=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          }
+
+      - name: Build
+        if: steps.decide.outputs.publish == 'true'
+        run: dotnet build "${{ matrix.csproj }}" -c Release --no-restore
+
+      - name: Pack
+        if: steps.decide.outputs.publish == 'true'
+        shell: pwsh
+        run: |
+          dotnet pack "${{ matrix.csproj }}" -c Release --no-build -o "$env:GITHUB_WORKSPACE\artifacts"
+          Get-ChildItem "$env:GITHUB_WORKSPACE\artifacts" -Filter *.nupkg | ForEach-Object { Write-Host "Packed: $($_.FullName)" }
+
+      - name: Publish to NuGet
+        if: steps.decide.outputs.publish == 'true'
+        shell: pwsh
+        run: |
+          $apiKey = "${{ secrets.NUGET_API_KEY }}"
+          if (-not $apiKey) { throw "Missing NUGET_API_KEY secret." }
+
+          $source = "https://api.nuget.org/v3/index.json"
+          $pkgs = Get-ChildItem "$env:GITHUB_WORKSPACE\artifacts" -Filter *.nupkg
+
+          foreach ($p in $pkgs) {
+            # --skip-duplicate 让重复推送不至于失败（但我们前面已经做了版本判断）
+            dotnet nuget push $p.FullName --api-key $apiKey --source $source --skip-duplicate
+          }

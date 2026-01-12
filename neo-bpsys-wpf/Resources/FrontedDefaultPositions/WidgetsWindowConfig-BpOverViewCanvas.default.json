@@ -1,0 +1,152 @@
+{
+  "SurTeamLogo": {
+    "Width": 85,
+    "Height": 85,
+    "Left": 42,
+    "Top": 30
+  },
+  "SurTeamNameInOverview": {
+    "Width": 166,
+    "Height": null,
+    "Left": 0,
+    "Top": 132
+  },
+  "HunTeamNameInOverview": {
+    "Width": 166,
+    "Height": null,
+    "Left": 960,
+    "Top": 132
+  },
+  "HunTeamLogo": {
+    "Width": 86,
+    "Height": 85,
+    "Left": 1000,
+    "Top": 30
+  },
+  "HunBanCurrent0": {
+    "Width": 145,
+    "Height": 35,
+    "Left": 644,
+    "Top": 5
+  },
+  "HunBanCurrent1": {
+    "Width": 141,
+    "Height": 35,
+    "Left": 794,
+    "Top": 5
+  },
+  "HunBanCurrentLock0": {
+    "Width": 0,
+    "Height": 0,
+    "Left": 644,
+    "Top": 5
+  },
+  "HunBanCurrentLock1": {
+    "Width": 0,
+    "Height": 0,
+    "Left": 794,
+    "Top": 5
+  },
+  "SurBanCurrent3": {
+    "Width": 68,
+    "Height": 35,
+    "Left": 416,
+    "Top": 5
+  },
+  "SurBanCurrent2": {
+    "Width": 71,
+    "Height": 35,
+    "Left": 340,
+    "Top": 5
+  },
+  "SurBanCurrent1": {
+    "Width": 71,
+    "Height": 35,
+    "Left": 265,
+    "Top": 5
+  },
+  "SurBanCurrent0": {
+    "Width": 68,
+    "Height": 35,
+    "Left": 193,
+    "Top": 5
+  },
+  "SurBanCurrentLock0": {
+    "Width": 0,
+    "Height": 0,
+    "Left": 193,
+    "Top": 5
+  },
+  "SurBanCurrentLock1": {
+    "Width": 0,
+    "Height": 0,
+    "Left": 265,
+    "Top": 5
+  },
+  "SurBanCurrentLock2": {
+    "Width": 0,
+    "Height": 0,
+    "Left": 340,
+    "Top": 5
+  },
+  "SurBanCurrentLock3": {
+    "Width": 0,
+    "Height": 0,
+    "Left": 416,
+    "Top": 5
+  },
+  "SurPick0": {
+    "Width": 68,
+    "Height": 130,
+    "Left": 193,
+    "Top": 45
+  },
+  "SurPick1": {
+    "Width": 71,
+    "Height": 130,
+    "Left": 265,
+    "Top": 45
+  },
+  "SurPick2": {
+    "Width": 71,
+    "Height": 130,
+    "Left": 340,
+    "Top": 45
+  },
+  "SurPick3": {
+    "Width": 68,
+    "Height": 130,
+    "Left": 416,
+    "Top": 45
+  },
+  "GameProgress": {
+    "Width": 178,
+    "Height": 50,
+    "Left": 471,
+    "Top": 0
+  },
+  "GameScoresSur": {
+    "Width": 52,
+    "Height": 62,
+    "Left": 495,
+    "Top": 94
+  },
+  "RatioChar": {
+    "Width": 25,
+    "Height": 62,
+    "Left": 552,
+    "Top": 89
+  },
+  "GameScoresHun": {
+    "Width": 52,
+    "Height": 62,
+    "Left": 583,
+    "Top": 94
+  },
+  "HunPick": {
+    "Width": 291,
+    "Height": 130,
+    "Left": 644,
+    "Top": 45
+  }
+}

@@ -16,23 +16,23 @@ public enum GameProgress
     Game3FirstHalf = 4,
     Game3SecondHalf = 5,
     /// <summary>
-    /// 代码上等价于<see cref="Game3ExtraFirstHalf"/>
+    /// 代码上等价于<see cref="Game3OvertimeFirstHalf"/>
     /// </summary>
     Game4FirstHalf = 6,
     /// <summary>
-    /// 代码上等价于<see cref="Game3ExtraSecondHalf"/>
+    /// 代码上等价于<see cref="Game3OvertimeSecondHalf"/>
     /// </summary>
     Game4SecondHalf = 7,
     /// <summary>
     /// 代码上等价于<see cref="Game4FirstHalf"/>
     /// </summary>
-    Game3ExtraFirstHalf = 6,
+    Game3OvertimeFirstHalf = 6,
     /// <summary>
     /// 代码上等价于<see cref="Game4SecondHalf"/>
     /// </summary>
-    Game3ExtraSecondHalf = 7,
+    Game3OvertimeSecondHalf = 7,
     Game5FirstHalf = 8,
     Game5SecondHalf = 9,
-    Game5ExtraFirstHalf = 10,
-    Game5ExtraSecondHalf = 11,
+    Game5OvertimeFirstHalf = 10,
+    Game5OvertimeSecondHalf = 11,
 }
