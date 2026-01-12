@@ -1,227 +1,244 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<OutputType>WinExe</OutputType>
-		<TargetFramework>net9.0-windows</TargetFramework>
-		<RootNamespace>neo_bpsys_wpf</RootNamespace>
-		<Nullable>enable</Nullable>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<UseWPF>true</UseWPF>
-		<ApplicationIcon>favicon.ico</ApplicationIcon>
-		<Deterministic>False</Deterministic>
-		<GenerateDocumentationFile>False</GenerateDocumentationFile>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<CETCompat>false</CETCompat>
-		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
-		<AssemblyVersion>2.0.0.0</AssemblyVersion>
-		
-		<VersionPrefix>2.0.0</VersionPrefix>
-		<VersionSuffix></VersionSuffix>
-		<Version>$(VersionPrefix)$(VersionSuffix)</Version>
-		<FileVersion>$(VersionPrefix).0</FileVersion>
-		<BuildMeta>local</BuildMeta>
-		<InformationalVersion>v$(Version)+$(BuildMeta)</InformationalVersion>
-		<Configurations>Debug;Release;Beta</Configurations>
-		<!--
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net9.0-windows</TargetFramework>
+        <RootNamespace>neo_bpsys_wpf</RootNamespace>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UseWPF>true</UseWPF>
+        <ApplicationIcon>favicon.ico</ApplicationIcon>
+        <Deterministic>False</Deterministic>
+        <GenerateDocumentationFile>False</GenerateDocumentationFile>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <CETCompat>false</CETCompat>
+        <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+
+        <VersionPrefix>2.0.0</VersionPrefix>
+        <VersionSuffix></VersionSuffix>
+        <Version>$(VersionPrefix)$(VersionSuffix)</Version>
+        <FileVersion>$(VersionPrefix).0</FileVersion>
+        <BuildMeta>local</BuildMeta>
+        <InformationalVersion>v$(Version)+$(BuildMeta)</InformationalVersion>
+        <Configurations>Debug;Release;Beta</Configurations>
+        <!--
         版本号迭代原则：
         首位在出现大型重构或又非常重大更改时（如官方规则改变、UI重构）跟进
         第二位出现重大的新Module更新/第三位满十跟进
         第三位是有新Feature就会跟进
         最后由Git gitAAAction 春如传入，没有本地构建为local
         -->
-	</PropertyGroup>
+    </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)'=='Beta'">
-		<Optimize>true</Optimize>
-		<DebugType>portable</DebugType>
-		<DebugSymbols>true</DebugSymbols>
-		<DefineConstants>$(DefineConstants);BETA</DefineConstants>
-		<VersionSuffix>-beta</VersionSuffix>
-		<Version>$(VersionPrefix)$(VersionSuffix)</Version>
-		<InformationalVersion>v$(Version)+$(BuildMeta)</InformationalVersion>
-	</PropertyGroup>
-	
-	<!-- Built-in plugins (list) -->
+    <PropertyGroup Condition="'$(Configuration)'=='Beta'">
+        <Optimize>true</Optimize>
+        <DebugType>portable</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <DefineConstants>$(DefineConstants);BETA</DefineConstants>
+        <VersionSuffix>-beta</VersionSuffix>
+        <Version>$(VersionPrefix)$(VersionSuffix)</Version>
+        <InformationalVersion>v$(Version)+$(BuildMeta)</InformationalVersion>
+    </PropertyGroup>
 
-	<ItemGroup>
-		<!-- Include = 插件 csproj 路径；FolderName = 复制到 Plugins\ 下的文件夹名 -->
-		<BuiltinPlugin Include="..\neo-bpsys-wpf.ExamplePlugin\neo-bpsys-wpf.ExamplePlugin.csproj">
-			<FolderName>plfjy.ExamplePlugin</FolderName>
-		</BuiltinPlugin>
-		<BuiltinPlugin Include="..\neo-bpsys-wpf.TeamJsonMaker\neo-bpsys-wpf.TeamJsonMaker.csproj">
-			<FolderName>top.plfjy.bpsys.TeamJsonMaker</FolderName>
-		</BuiltinPlugin>
-	</ItemGroup>
+    <!-- Built-in plugins (list) -->
 
-	<!-- 1) Build plugins before main Build -->
-	<Target Name="BuildBuiltinPlugins" BeforeTargets="Build" Condition="@(BuiltinPlugin) != ''">
-		<MSBuild Projects="@(BuiltinPlugin)" Targets="Build" BuildInParallel="true" Properties="Configuration=$(Configuration)" />
-	</Target>
+    <ItemGroup>
+        <!-- Include = 插件 csproj 路径；FolderName = 复制到 Plugins\ 下的文件夹名 -->
+        <BuiltinPlugin Include="..\neo-bpsys-wpf.ExamplePlugin\neo-bpsys-wpf.ExamplePlugin.csproj">
+            <FolderName>plfjy.ExamplePlugin</FolderName>
+        </BuiltinPlugin>
+        <BuiltinPlugin Include="..\neo-bpsys-wpf.TeamJsonMaker\neo-bpsys-wpf.TeamJsonMaker.csproj">
+            <FolderName>top.plfjy.bpsys.TeamJsonMaker</FolderName>
+        </BuiltinPlugin>
+    </ItemGroup>
 
-	<!-- 3) Copy plugin outputs into main output Plugins\{FolderName}\ -->
-	<Target Name="CopyBuiltinPluginsToOutput" AfterTargets="Build" Condition="@(BuiltinPlugin) != ''">
+    <!-- 1) Restore and build plugins before main Build -->
+    <Target Name="BuildBuiltinPlugins" BeforeTargets="Build" Condition="@(BuiltinPlugin) != ''">
+        <MSBuild Projects="@(BuiltinPlugin)" Targets="Restore;Build" BuildInParallel="true" Properties="Configuration=$(Configuration)"/>
+    </Target>
 
-		<!-- 目标根目录：主程序 Build 产物目录 -->
-		<PropertyGroup>
-			<PluginsOutDir>$(OutDir)Plugins\</PluginsOutDir>
-		</PropertyGroup>
+    <!-- Build: copy plugins into bin\<cfg>\<tfm>\Plugins\... -->
+    <Target Name="CopyBuiltinPluginsToOutput_Build" AfterTargets="Build" Condition="@(BuiltinPlugin) != ''">
+        <PropertyGroup>
+            <PluginsOutDir>$(TargetDir)Plugins\</PluginsOutDir>
+        </PropertyGroup>
 
-		<!-- 清理并创建每个插件的目标目录 -->
-		
-		<MakeDir Directories="@(BuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
+        <MakeDir Directories="@(BuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
 
-		<!-- 为每个插件收集要复制的文件：默认从 {PluginProjectDir}\bin\{Configuration}\{TargetFramework}\**\*.* -->
-		<ItemGroup>
-			<_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\$(TargetFramework)\**\*.*">
-				<FolderName>%(BuiltinPlugin.FolderName)</FolderName>
-			</_PluginFiles>
-		</ItemGroup>
+        <ItemGroup>
+            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\$(TargetFramework)\**\*.*">
+                <FolderName>%(BuiltinPlugin.FolderName)</FolderName>
+            </_PluginFiles>
+        </ItemGroup>
 
-		<Copy SourceFiles="@(_PluginFiles)" DestinationFiles="@(_PluginFiles->'$(PluginsOutDir)%(FolderName)\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
-	</Target>
+        <Copy SourceFiles="@(_PluginFiles)"
+              DestinationFiles="@(_PluginFiles->'$(PluginsOutDir)%(FolderName)\%(RecursiveDir)%(Filename)%(Extension)')"
+              SkipUnchangedFiles="true" />
+    </Target>
+
+    <!-- Publish: copy plugins into publish output Plugins\... -->
+    <Target Name="CopyBuiltinPluginsToOutput_Publish" AfterTargets="Publish" Condition="@(BuiltinPlugin) != ''">
+        <PropertyGroup>
+            <PluginsOutDir>$(PublishDir)Plugins\</PluginsOutDir>
+        </PropertyGroup>
+
+        <MakeDir Directories="@(BuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
+
+        <ItemGroup>
+            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\$(TargetFramework)\**\*.*">
+                <FolderName>%(BuiltinPlugin.FolderName)</FolderName>
+            </_PluginFiles>
+        </ItemGroup>
+
+        <Copy SourceFiles="@(_PluginFiles)"
+              DestinationFiles="@(_PluginFiles->'$(PluginsOutDir)%(FolderName)\%(RecursiveDir)%(Filename)%(Extension)')"
+              SkipUnchangedFiles="true" />
+    </Target>
 
 
-	<ItemGroup>
-		<Resource Include="Assets\Contributors\plfjy.png" />
-		<Resource Include="Assets\Contributors\tianqi.jpg" />
-		<Resource Include="Assets\Contributors\zack.jpg" />
-		<Resource Include="Assets\Contributors\zhangzhilv.jpg" />
-		<Resource Include="Assets\donate_QR_code.png" />
-		<Resource Include="Assets\Fonts\Essay-Text-W01-Italic.ttf" />
-		<Resource Include="Assets\Fonts\NotoSans-Black.ttf" />
-		<Resource Include="Assets\Fonts\NotoSans-Bold.ttf" />
-		<Resource Include="Assets\Fonts\NotoSans-ExtraBold.ttf" />
-		<Resource Include="Assets\Fonts\NotoSans-ExtraLight.ttf" />
-		<Resource Include="Assets\Fonts\NotoSans-Light.ttf" />
-		<Resource Include="Assets\Fonts\NotoSans-Medium.ttf" />
-		<Resource Include="Assets\Fonts\NotoSans-Regular.ttf" />
-		<Resource Include="Assets\Fonts\NotoSans-SemiBold.ttf" />
-		<Resource Include="Assets\Fonts\NotoSans-Thin.ttf" />
-		<Resource Include="Assets\Fonts\selawk.ttf" />
-		<Resource Include="Assets\Fonts\华康POP1体W5-简体.ttf" />
-		<Resource Include="Assets\Fonts\汉仪第五人格体.ttf" />
-		<Resource Include="Assets\HomePageHeader.png" />
-		<Resource Include="Assets\icon.png" />
-		<Resource Include="Assets\Icons\black\Abnormal.png" />
-		<Resource Include="Assets\Icons\black\Blink.png" />
-		<Resource Include="Assets\Icons\black\BorrowedTime.png" />
-		<Resource Include="Assets\Icons\black\ConfinedSpace.png" />
-		<Resource Include="Assets\Icons\black\Detention.png" />
-		<Resource Include="Assets\Icons\black\Excitement.png" />
-		<Resource Include="Assets\Icons\black\FlywheelEffect.png" />
-		<Resource Include="Assets\Icons\black\Insolence.png" />
-		<Resource Include="Assets\Icons\black\KneeJerkReflex.png" />
-		<Resource Include="Assets\Icons\black\Listen.png" />
-		<Resource Include="Assets\Icons\black\Patroller.png" />
-		<Resource Include="Assets\Icons\black\Peeper.png" />
-		<Resource Include="Assets\Icons\black\Teleport.png" />
-		<Resource Include="Assets\Icons\black\TideTurner.png" />
-		<Resource Include="Assets\Icons\black\TrumpCard.png" />
-		<Resource Include="Assets\Icons\black\Warp.png" />
-		<Resource Include="Assets\Icons\white\Abnormal.png" />
-		<Resource Include="Assets\Icons\white\Blink.png" />
-		<Resource Include="Assets\Icons\white\BorrowedTime.png" />
-		<Resource Include="Assets\Icons\white\ConfinedSpace.png" />
-		<Resource Include="Assets\Icons\white\Detention.png" />
-		<Resource Include="Assets\Icons\white\Excitement.png" />
-		<Resource Include="Assets\Icons\white\FlywheelEffect.png" />
-		<Resource Include="Assets\Icons\white\Insolence.png" />
-		<Resource Include="Assets\Icons\white\KneeJerkReflex.png" />
-		<Resource Include="Assets\Icons\white\Listen.png" />
-		<Resource Include="Assets\Icons\white\Patroller.png" />
-		<Resource Include="Assets\Icons\white\Peeper.png" />
-		<Resource Include="Assets\Icons\white\Teleport.png" />
-		<Resource Include="Assets\Icons\white\TideTurner.png" />
-		<Resource Include="Assets\Icons\white\TrumpCard.png" />
-		<Resource Include="Assets\Icons\white\Warp.png" />
-		<Resource Include="Assets\logo_net.jpg" />
-		<Resource Include="Assets\wpfui.png" />
-	</ItemGroup>
-	<ItemGroup>
-		<PackageReference Include="Downloader" Version="4.0.3" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.1" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
-		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
-		<PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2.2" />
-		<PackageReference Include="Serilog" Version="4.3.0" />
-		<PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
-		<PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
-		<PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
-		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-		<PackageReference Include="System.Net.Http" Version="4.3.4" />
-		<PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
-		<PackageReference Include="WPF-UI.DependencyInjection" Version="4.2.0" />
-		<PackageReference Include="WPFLocalizeExtension" Version="3.10.0" />
-		<PackageReference Include="YamlDotNet" Version="16.3.0" />
-	</ItemGroup>
 
-	<ItemGroup>
-		<None Include="Resources\**">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
+    <ItemGroup>
+        <Resource Include="Assets\Contributors\plfjy.png"/>
+        <Resource Include="Assets\Contributors\tianqi.jpg"/>
+        <Resource Include="Assets\Contributors\zack.jpg"/>
+        <Resource Include="Assets\Contributors\zhangzhilv.jpg"/>
+        <Resource Include="Assets\donate_QR_code.png"/>
+        <Resource Include="Assets\Fonts\Essay-Text-W01-Italic.ttf"/>
+        <Resource Include="Assets\Fonts\NotoSans-Black.ttf"/>
+        <Resource Include="Assets\Fonts\NotoSans-Bold.ttf"/>
+        <Resource Include="Assets\Fonts\NotoSans-ExtraBold.ttf"/>
+        <Resource Include="Assets\Fonts\NotoSans-ExtraLight.ttf"/>
+        <Resource Include="Assets\Fonts\NotoSans-Light.ttf"/>
+        <Resource Include="Assets\Fonts\NotoSans-Medium.ttf"/>
+        <Resource Include="Assets\Fonts\NotoSans-Regular.ttf"/>
+        <Resource Include="Assets\Fonts\NotoSans-SemiBold.ttf"/>
+        <Resource Include="Assets\Fonts\NotoSans-Thin.ttf"/>
+        <Resource Include="Assets\Fonts\selawk.ttf"/>
+        <Resource Include="Assets\Fonts\华康POP1体W5-简体.ttf"/>
+        <Resource Include="Assets\Fonts\汉仪第五人格体.ttf"/>
+        <Resource Include="Assets\HomePageHeader.png"/>
+        <Resource Include="Assets\icon.png"/>
+        <Resource Include="Assets\Icons\black\Abnormal.png"/>
+        <Resource Include="Assets\Icons\black\Blink.png"/>
+        <Resource Include="Assets\Icons\black\BorrowedTime.png"/>
+        <Resource Include="Assets\Icons\black\ConfinedSpace.png"/>
+        <Resource Include="Assets\Icons\black\Detention.png"/>
+        <Resource Include="Assets\Icons\black\Excitement.png"/>
+        <Resource Include="Assets\Icons\black\FlywheelEffect.png"/>
+        <Resource Include="Assets\Icons\black\Insolence.png"/>
+        <Resource Include="Assets\Icons\black\KneeJerkReflex.png"/>
+        <Resource Include="Assets\Icons\black\Listen.png"/>
+        <Resource Include="Assets\Icons\black\Patroller.png"/>
+        <Resource Include="Assets\Icons\black\Peeper.png"/>
+        <Resource Include="Assets\Icons\black\Teleport.png"/>
+        <Resource Include="Assets\Icons\black\TideTurner.png"/>
+        <Resource Include="Assets\Icons\black\TrumpCard.png"/>
+        <Resource Include="Assets\Icons\black\Warp.png"/>
+        <Resource Include="Assets\Icons\white\Abnormal.png"/>
+        <Resource Include="Assets\Icons\white\Blink.png"/>
+        <Resource Include="Assets\Icons\white\BorrowedTime.png"/>
+        <Resource Include="Assets\Icons\white\ConfinedSpace.png"/>
+        <Resource Include="Assets\Icons\white\Detention.png"/>
+        <Resource Include="Assets\Icons\white\Excitement.png"/>
+        <Resource Include="Assets\Icons\white\FlywheelEffect.png"/>
+        <Resource Include="Assets\Icons\white\Insolence.png"/>
+        <Resource Include="Assets\Icons\white\KneeJerkReflex.png"/>
+        <Resource Include="Assets\Icons\white\Listen.png"/>
+        <Resource Include="Assets\Icons\white\Patroller.png"/>
+        <Resource Include="Assets\Icons\white\Peeper.png"/>
+        <Resource Include="Assets\Icons\white\Teleport.png"/>
+        <Resource Include="Assets\Icons\white\TideTurner.png"/>
+        <Resource Include="Assets\Icons\white\TrumpCard.png"/>
+        <Resource Include="Assets\Icons\white\Warp.png"/>
+        <Resource Include="Assets\logo_net.jpg"/>
+        <Resource Include="Assets\wpfui.png"/>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Downloader" Version="4.0.3"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.1"/>
+        <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1"/>
+        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135"/>
+        <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2.2"/>
+        <PackageReference Include="Serilog" Version="4.3.0"/>
+        <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0"/>
+        <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1"/>
+        <PackageReference Include="Serilog.Sinks.File" Version="7.0.0"/>
+        <PackageReference Include="System.Net.Http" Version="4.3.4"/>
+        <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1"/>
+        <PackageReference Include="WPF-UI.DependencyInjection" Version="4.2.0"/>
+        <PackageReference Include="WPFLocalizeExtension" Version="3.10.0"/>
+        <PackageReference Include="YamlDotNet" Version="16.3.0"/>
+    </ItemGroup>
 
-	<ItemGroup>
-	  <None Remove="Assets\HomePageHeader.png" />
-	  <None Remove="Assets\Icons\black\Abnormal.png" />
-	  <None Remove="Assets\Icons\black\Blink.png" />
-	  <None Remove="Assets\Icons\black\BorrowedTime.png" />
-	  <None Remove="Assets\Icons\black\ConfinedSpace.png" />
-	  <None Remove="Assets\Icons\black\Detention.png" />
-	  <None Remove="Assets\Icons\black\Excitement.png" />
-	  <None Remove="Assets\Icons\black\FlywheelEffect.png" />
-	  <None Remove="Assets\Icons\black\Insolence.png" />
-	  <None Remove="Assets\Icons\black\KneeJerkReflex.png" />
-	  <None Remove="Assets\Icons\black\Listen.png" />
-	  <None Remove="Assets\Icons\black\Patroller.png" />
-	  <None Remove="Assets\Icons\black\Peeper.png" />
-	  <None Remove="Assets\Icons\black\Teleport.png" />
-	  <None Remove="Assets\Icons\black\TideTurner.png" />
-	  <None Remove="Assets\Icons\black\TrumpCard.png" />
-	  <None Remove="Assets\Icons\black\Warp.png" />
-	  <None Remove="Assets\Icons\white\Abnormal.png" />
-	  <None Remove="Assets\Icons\white\Blink.png" />
-	  <None Remove="Assets\Icons\white\BorrowedTime.png" />
-	  <None Remove="Assets\Icons\white\ConfinedSpace.png" />
-	  <None Remove="Assets\Icons\white\Detention.png" />
-	  <None Remove="Assets\Icons\white\Excitement.png" />
-	  <None Remove="Assets\Icons\white\FlywheelEffect.png" />
-	  <None Remove="Assets\Icons\white\Insolence.png" />
-	  <None Remove="Assets\Icons\white\KneeJerkReflex.png" />
-	  <None Remove="Assets\Icons\white\Listen.png" />
-	  <None Remove="Assets\Icons\white\Patroller.png" />
-	  <None Remove="Assets\Icons\white\Peeper.png" />
-	  <None Remove="Assets\Icons\white\Teleport.png" />
-	  <None Remove="Assets\Icons\white\TideTurner.png" />
-	  <None Remove="Assets\Icons\white\TrumpCard.png" />
-	  <None Remove="Assets\Icons\white\Warp.png" />
-	</ItemGroup>
+    <ItemGroup>
+        <None Include="Resources\**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 
-	<ItemGroup>
-		<Content Include="favicon.ico" />
-	</ItemGroup>
+    <ItemGroup>
+        <None Remove="Assets\HomePageHeader.png"/>
+        <None Remove="Assets\Icons\black\Abnormal.png"/>
+        <None Remove="Assets\Icons\black\Blink.png"/>
+        <None Remove="Assets\Icons\black\BorrowedTime.png"/>
+        <None Remove="Assets\Icons\black\ConfinedSpace.png"/>
+        <None Remove="Assets\Icons\black\Detention.png"/>
+        <None Remove="Assets\Icons\black\Excitement.png"/>
+        <None Remove="Assets\Icons\black\FlywheelEffect.png"/>
+        <None Remove="Assets\Icons\black\Insolence.png"/>
+        <None Remove="Assets\Icons\black\KneeJerkReflex.png"/>
+        <None Remove="Assets\Icons\black\Listen.png"/>
+        <None Remove="Assets\Icons\black\Patroller.png"/>
+        <None Remove="Assets\Icons\black\Peeper.png"/>
+        <None Remove="Assets\Icons\black\Teleport.png"/>
+        <None Remove="Assets\Icons\black\TideTurner.png"/>
+        <None Remove="Assets\Icons\black\TrumpCard.png"/>
+        <None Remove="Assets\Icons\black\Warp.png"/>
+        <None Remove="Assets\Icons\white\Abnormal.png"/>
+        <None Remove="Assets\Icons\white\Blink.png"/>
+        <None Remove="Assets\Icons\white\BorrowedTime.png"/>
+        <None Remove="Assets\Icons\white\ConfinedSpace.png"/>
+        <None Remove="Assets\Icons\white\Detention.png"/>
+        <None Remove="Assets\Icons\white\Excitement.png"/>
+        <None Remove="Assets\Icons\white\FlywheelEffect.png"/>
+        <None Remove="Assets\Icons\white\Insolence.png"/>
+        <None Remove="Assets\Icons\white\KneeJerkReflex.png"/>
+        <None Remove="Assets\Icons\white\Listen.png"/>
+        <None Remove="Assets\Icons\white\Patroller.png"/>
+        <None Remove="Assets\Icons\white\Peeper.png"/>
+        <None Remove="Assets\Icons\white\Teleport.png"/>
+        <None Remove="Assets\Icons\white\TideTurner.png"/>
+        <None Remove="Assets\Icons\white\TrumpCard.png"/>
+        <None Remove="Assets\Icons\white\Warp.png"/>
+    </ItemGroup>
 
-	<ItemGroup>
-		<None Update="GameRule.json">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
+    <ItemGroup>
+        <Content Include="favicon.ico"/>
+    </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj" />
-	</ItemGroup>
+    <ItemGroup>
+        <None Update="GameRule.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 
-	<ItemGroup>
-		<Compile Update="Locales\Lang.Designer.cs">
-			<DesignTime>True</DesignTime>
-			<AutoGen>True</AutoGen>
-			<DependentUpon>Lang.resx</DependentUpon>
-		</Compile>
-	</ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj"/>
+    </ItemGroup>
 
-	<ItemGroup>
-		<EmbeddedResource Update="Locales\Lang.resx">
-			<Generator>PublicResXFileCodeGenerator</Generator>
-			<LastGenOutput>Lang.Designer.cs</LastGenOutput>
-		</EmbeddedResource>
-	</ItemGroup>
+    <ItemGroup>
+        <Compile Update="Locales\Lang.Designer.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>Lang.resx</DependentUpon>
+        </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Update="Locales\Lang.resx">
+            <Generator>PublicResXFileCodeGenerator</Generator>
+            <LastGenOutput>Lang.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
+    </ItemGroup>
 </Project>
