@@ -159,9 +159,6 @@
   <data name="OpenSourceRepositoryUsed" xml:space="preserve">
     <value>Open source repositories used by our project: </value>
   </data>
-    <data name="Enable" xml:space="preserve">
-    <value>Enable</value>
-  </data>
   <data name="QuickAccess" xml:space="preserve">
     <value>Quick access</value>
   </data>
@@ -951,6 +948,69 @@
   <data name="en_US" xml:space="preserve">
     <value>English (United States)</value>
   </data>
+  <data name="DistributeCharacters" xml:space="preserve">
+    <value>Distribute Characters</value>
+  </data>
+  <data name="PickCamp" xml:space="preserve">
+    <value>Pick camp</value>
+  </data>
+  <data name="PickSurTalent" xml:space="preserve">
+    <value>Pick survivor talent</value>
+  </data>
+  <data name="PickHunTalent" xml:space="preserve">
+    <value>Pick hunter talent</value>
+  </data>
+  <data name="CurrentStepFormat" xml:space="preserve">
+    <value>Current step: {0}</value>
+  </data>
+  <data name="GameRuleFileNotFound" xml:space="preserve">
+    <value>Game rule file not found</value>
+  </data>
+  <data name="GameAlreadyStarted" xml:space="preserve">
+    <value>Game already started</value>
+  </data>
+  <data name="GuidanceNotAvailableInFree" xml:space="preserve">
+    <value>Guidance not available in free game</value>
+  </data>
+  <data name="GameRuleFileError" xml:space="preserve">
+    <value>Game rule file error</value>
+  </data>
+  <data name="PleaseStartGameFirst" xml:space="preserve">
+    <value>Please start game first</value>
+  </data>
+  <data name="AlreadyLastStep" xml:space="preserve">
+    <value>It's already the last step</value>
+  </data>
+  <data name="GameInfoError" xml:space="preserve">
+    <value>Game information error</value>
+  </data>
+  <data name="AlreadyFirstStep" xml:space="preserve">
+    <value>It's already the first step</value>
+  </data>
+  <data name="ErrorWhenCleanUpResidualUpdateFiles" xml:space="preserve">
+    <value>Error when clean up residual update files</value>
+  </data>
+  <data name="DownloadFails" xml:space="preserve">
+    <value>Download fails</value>
+  </data>
+  <data name="CheckForUpdatesFailed" xml:space="preserve">
+    <value>Check for updates failed</value>
+  </data>
+  <data name="NewUpdateFound" xml:space="preserve">
+    <value>New update found</value>
+  </data>
+  <data name="NoUpdatesAvailable" xml:space="preserve">
+    <value>No updates available</value>
+  </data>
+  <data name="Tip" xml:space="preserve">
+    <value>Tip</value>
+  </data>
+  <data name="FrontendSurvivorScoreInGame" xml:space="preserve">
+    <value>Frontend - Survivor Score in Game</value>
+  </data>
+  <data name="FrontendHunterScoreInGame" xml:space="preserve">
+    <value>Frontend - Hunter Score in Game</value>
+  </data>
   <data name="PluginManagement" xml:space="preserve">
     <value>Plugin Management</value>
   </data>
@@ -959,6 +1019,9 @@
   </data>
   <data name="PluginMarket" xml:space="preserve">
     <value>Plugin Market</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Enable</value>
   </data>
   <data name="RestartToApplyChanges" xml:space="preserve">
     <value>Restart to apply changes</value>
@@ -972,11 +1035,11 @@
   <data name="Notification" xml:space="preserve">
     <value>Notification</value>
   </data>
-  <data name="NoAuthorUiInfo" xml:space="preserve">
-    <value>There are fronted UIs without author's name in the installation directory ^_^</value>
+  <data name="AfterUpdateTip" xml:space="preserve">
+    <value>If the fronted windows become disordered, please reset the layout and custom settings.</value>
   </data>
-  <data name="DontShowThisAgain" xml:space="preserve">
-    <value>Don't show this again</value>
+  <data name="DontRemindMeAgainUntilTheNextUpdate" xml:space="preserve">
+    <value>Don’t remind me again until the next update</value>
   </data>
   <data name="GoToFolder" xml:space="preserve">
     <value>Go to folder</value>
@@ -1158,9 +1221,6 @@
   <data name="CurrentStep" xml:space="preserve">
     <value>Current step</value>
   </data>
-  <data name="PleaseStartGameFirst" xml:space="preserve">
-    <value>Please start game first</value>
-  </data>
   <data name="Tips" xml:space="preserve">
     <value>Tips</value>
   </data>
@@ -1226,66 +1286,6 @@
   </data>
   <data name="Disabled" xml:space="preserve">
     <value>Disabled</value>
-  </data>
-  <data name="DistributeCharacters" xml:space="preserve">
-    <value>Distribute Characters</value>
-  </data>
-  <data name="PickCamp" xml:space="preserve">
-    <value>Pick camp</value>
-  </data>
-  <data name="PickSurTalent" xml:space="preserve">
-    <value>Pick survivor talent</value>
-  </data>
-  <data name="PickHunTalent" xml:space="preserve">
-    <value>Pick hunter talent</value>
-  </data>
-  <data name="CurrentStepFormat" xml:space="preserve">
-    <value>Current step: {0}</value>
-  </data>
-  <data name="GameRuleFileNotFound" xml:space="preserve">
-    <value>Game rule file not found</value>
-  </data>
-  <data name="GameAlreadyStarted" xml:space="preserve">
-    <value>Game already started</value>
-  </data>
-  <data name="GuidanceNotAvailableInFree" xml:space="preserve">
-    <value>Guidance not available in free game</value>
-  </data>
-  <data name="GameRuleFileError" xml:space="preserve">
-    <value>Game rule file error</value>
-  </data>
-  <data name="AlreadyLastStep" xml:space="preserve">
-    <value>It's already the last step</value>
-  </data>
-  <data name="GameInfoError" xml:space="preserve">
-    <value>Game information error</value>
-  </data>
-  <data name="AlreadyFirstStep" xml:space="preserve">
-    <value>It's already the first step</value>
-  </data>
-  <data name="ErrorWhenCleanUpResidualUpdateFiles" xml:space="preserve">
-    <value>Error when clean up residual update files</value>
-  </data>
-  <data name="DownloadFails" xml:space="preserve">
-    <value>Download fails</value>
-  </data>
-  <data name="CheckForUpdatesFailed" xml:space="preserve">
-    <value>Check for updates failed</value>
-  </data>
-  <data name="NewUpdateFound" xml:space="preserve">
-    <value>New update found</value>
-  </data>
-  <data name="NoUpdatesAvailable" xml:space="preserve">
-    <value>No updates available</value>
-  </data>
-  <data name="Tip" xml:space="preserve">
-    <value>Tip</value>
-  </data>
-  <data name="FrontendSurvivorScoreInGame" xml:space="preserve">
-    <value>Frontend - Survivor Score in Game</value>
-  </data>
-  <data name="FrontendHunterScoreInGame" xml:space="preserve">
-    <value>Frontend - Hunter Score in Game</value>
   </data>
   <data name="LogoFileIsNotValid" xml:space="preserve">
     <value>Logo file is not valid</value>

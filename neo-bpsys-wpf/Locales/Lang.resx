@@ -1050,11 +1050,11 @@
   <data name="Notification" xml:space="preserve">
     <value>提示</value>
   </data>
-  <data name="NoAuthorUiInfo" xml:space="preserve">
-    <value>软件安装目录下有无作者名字版本的前台UI ^_^</value>
+  <data name="AfterUpdateTip" xml:space="preserve">
+    <value>如果遇到前台界面错乱，请重置布局和自定义设置</value>
   </data>
-  <data name="DontShowThisAgain" xml:space="preserve">
-    <value>不再提示</value>
+  <data name="DontRemindMeAgainUntilTheNextUpdate" xml:space="preserve">
+    <value>在下次更新前不再提醒我</value>
   </data>
   <data name="GoToFolder" xml:space="preserve">
     <value>前往目录</value>

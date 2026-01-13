@@ -20,14 +20,8 @@
         <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
             <ui:HyperlinkButton
                 Command="{Binding NoLogerDisplayedCommand}"
-                Content="{lex:Loc DontShowThisAgain}"
+                Content="{Binding NoLongerDisplayText}"
                 Icon="{ui:SymbolIcon Symbol=AlertOff24}" />
-            <ui:HyperlinkButton
-                Margin="5,0,0,0"
-                Content="{lex:Loc GoToFolder}"
-                Icon="{ui:SymbolIcon Symbol=ArrowCircleRight12}"
-                NavigateUri="{Binding NavigateUri}">
-            </ui:HyperlinkButton>
         </StackPanel>
     </StackPanel>
 </UserControl>

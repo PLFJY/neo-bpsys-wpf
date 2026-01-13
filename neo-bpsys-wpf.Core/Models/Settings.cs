@@ -15,7 +15,7 @@ namespace neo_bpsys_wpf.Core.Models;
 public partial class Settings : ObservableObjectBase
 {
     private static readonly CultureInfo SystemCulture = CultureInfo.CurrentUICulture;
-    public bool ShowTip { get; set; } = true;
+    public bool ShowAfterUpdateTip { get; set; } = true;
 
     private LanguageKey _language = LanguageKey.System;
     

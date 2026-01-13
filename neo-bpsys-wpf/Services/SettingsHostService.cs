@@ -56,7 +56,7 @@ public class SettingsHostService : ISettingsHostService
     /// <summary>
     /// 保存设置
     /// </summary>
-    public void SaveConfig()
+    public async Task SaveConfigAsync()
     {
         if (!Directory.Exists(AppConstants.AppDataPath))
             Directory.CreateDirectory(AppConstants.AppDataPath);
@@ -65,7 +65,7 @@ public class SettingsHostService : ISettingsHostService
             var jsonStr = JsonSerializer.Serialize(Settings, _jsonSerializerOptions);
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).Replace(@"\", @"\\");
             jsonStr = jsonStr.Replace(appDataPath, "%APPDATA%");
-            File.WriteAllText(AppConstants.ConfigFilePath, jsonStr);
+            await File.WriteAllTextAsync(AppConstants.ConfigFilePath, jsonStr);
         }
         catch (Exception e)
         {
@@ -80,7 +80,7 @@ public class SettingsHostService : ISettingsHostService
     public async Task LoadConfig()
     {
         if (!File.Exists(AppConstants.ConfigFilePath))
-            ResetConfig();
+            ResetConfigAsync();
         var json = await File.ReadAllTextAsync(AppConstants.ConfigFilePath);
         try
         {
@@ -92,7 +92,7 @@ public class SettingsHostService : ISettingsHostService
             else
             {
                 _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("ConfigurationFileEmpty"));
-                ResetConfig();
+                ResetConfigAsync();
             }
         }
         catch (Exception e)
@@ -102,7 +102,7 @@ public class SettingsHostService : ISettingsHostService
             if (await MessageBoxHelper.ShowConfirmAsync($"{I18nHelper.GetLocalizedString("ResetConfigurationFileToSolveTheProblem")}?",
                     I18nHelper.GetLocalizedString("FailedToReadConfigurationFile"), I18nHelper.GetLocalizedString("Confirm"), I18nHelper.GetLocalizedString("Cancel")))
             {
-                ResetConfig();
+                ResetConfigAsync();
             }
             else
             {
@@ -114,7 +114,7 @@ public class SettingsHostService : ISettingsHostService
     /// <summary>
     /// 重置设置
     /// </summary>
-    public void ResetConfig()
+    public async Task ResetConfigAsync()
     {
         try
         {
@@ -122,8 +122,8 @@ public class SettingsHostService : ISettingsHostService
                 Directory.CreateDirectory(AppConstants.AppDataPath);
 
             Settings = new Settings();
-            SaveConfig();
-            _ = LoadConfig();
+            await SaveConfigAsync();
+            await LoadConfig();
         }
         catch (Exception e)
         {
@@ -137,7 +137,7 @@ public class SettingsHostService : ISettingsHostService
     /// 重置指定窗口的设置
     /// </summary>
     /// <param name="windowType">窗口类型</param>
-    public void ResetConfig(FrontedWindowType windowType)
+    public async Task ResetConfigAsync(FrontedWindowType windowType)
     {
         try
         {
@@ -237,7 +237,7 @@ public class SettingsHostService : ISettingsHostService
                     throw new ArgumentOutOfRangeException(nameof(windowType), windowType, null);
             }
 
-            SaveConfig();
+            await SaveConfigAsync();
         }
         catch (Exception e)
         {

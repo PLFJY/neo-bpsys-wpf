@@ -14,6 +14,8 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows.Threading;
+using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Helpers;
 using Game = neo_bpsys_wpf.Core.Models.Game;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 
@@ -136,7 +138,7 @@ public partial class SharedDataService : ISharedDataService
     public Game CurrentGame
     {
         get => _currentGame;
-        set
+        private set
         {
             if (_currentGame == value) return;
             CurrentGame.TeamSwapped -= OnTeamSwapped;
@@ -144,6 +146,33 @@ public partial class SharedDataService : ISharedDataService
             CurrentGame.TeamSwapped += OnTeamSwapped;
             CurrentGameChanged?.Invoke(this, EventArgs.Empty);
         }
+    }
+
+    public void NewGame()
+    {
+        Team surTeam;
+        Team hunTeam;
+        if (MainTeam.Camp == Camp.Sur)
+        {
+            surTeam = MainTeam;
+            hunTeam = AwayTeam;
+        }
+        else
+        {
+            surTeam = AwayTeam;
+            hunTeam = MainTeam;
+        }
+
+        var pickedMap = CurrentGame.PickedMap;
+        var bannedMap = CurrentGame.BannedMap;
+        var mapV2Dictionary = CurrentGame.MapV2Dictionary;
+        var gameProgress = CurrentGame.GameProgress;
+
+        CurrentGame =
+            new Game(surTeam, hunTeam, gameProgress, pickedMap, bannedMap, mapV2Dictionary);
+
+        _ = MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("NewGameHasBeenCreated")}\n{CurrentGame.Guid}", I18nHelper.GetLocalizedString("CreateTip"), I18nHelper.GetLocalizedString("Cancel"));
+        _logger.LogInformation("New Game Created{CurrentGameGuid}", CurrentGame.Guid);
     }
 
     private void OnTeamSwapped(object? sender, EventArgs args) => TeamSwapped?.Invoke(this, EventArgs.Empty);

@@ -6,15 +6,15 @@ namespace neo_bpsys_wpf.Controls;
 
 public partial class HyperLinkSnackbarContent : UserControl
 {
-    public string NavigateUri { get; }
     public string Text { get; }
+    public string NoLongerDisplayText { get; }
     public ICommand NoLogerDisplayedCommand { get; }
 
-    public HyperLinkSnackbarContent(string navigateUri, string text, Action noLogerDisplayedAction)
+    public HyperLinkSnackbarContent(string text,string noLongerDisplayText, Action noLogerDisplayedAction)
     {
         InitializeComponent();
-        NavigateUri = navigateUri;
         Text = text;
+        NoLongerDisplayText = noLongerDisplayText;
         NoLogerDisplayedCommand = new RelayCommand(noLogerDisplayedAction, () => true);
         DataContext = this;
     }

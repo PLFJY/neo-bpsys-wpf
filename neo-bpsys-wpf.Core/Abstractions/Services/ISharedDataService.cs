@@ -12,18 +12,25 @@ public interface ISharedDataService
 {
     /// <summary>
     /// 主队
+    /// 该属性对象全场始终不变，信息导入依靠 <see cref="Team.ImportTeamInfo(Team)"/> 方法
     /// </summary>
-    Team MainTeam { get; set; }
+    Team MainTeam { get; }
 
     /// <summary>
     /// 客队
+    /// 该属性对象全场始终不变，信息导入依靠 <see cref="Team.ImportTeamInfo(Team)"/> 方法
     /// </summary>
-    Team AwayTeam { get; set; }
+    Team AwayTeam { get; }
 
     /// <summary>
     /// 当前对局
     /// </summary>
-    Game CurrentGame { get; set; }
+    Game CurrentGame { get; }
+
+    /// <summary>
+    /// 创建新对局
+    /// </summary>
+    void NewGame();
 
     /// <summary>
     /// 求生者角色字典

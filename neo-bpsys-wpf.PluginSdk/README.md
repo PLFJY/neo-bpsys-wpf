@@ -489,7 +489,7 @@ public class Plugin : PluginBase
 
 ### 访问共享数据
 
-插件可以通过 `ISharedDataService` 访问和修改主应用的共享数据。
+插件可以通过 `ISharedDataService` 访问和修改主应用的各种数据实例
 
 #### 获取服务实例
 
@@ -526,7 +526,8 @@ _sharedDataService.AwayTeam = newAwayTeam;
 ```csharp
 // 当前对局
 Game currentGame = _sharedDataService.CurrentGame;
-_sharedDataService.CurrentGame = newGame;
+// 新建对局
+_sharedDataService.NewGame();
 ```
 
 ##### 角色字典
@@ -606,7 +607,7 @@ private void OnCurrentGameChanged(object? sender, EventArgs e)
 ```
 
 > [!TIP]
-> 由于主应用使用数据绑定，当您修改 `ISharedDataService` 中的数据时，前台界面会自动同步更新！
+> 由于主应用使用数据绑定，当您修改 `ISharedDataService` 中的数据时，前台界面会自动同步更新！你无需担心数据变更的后续操作
 
 ---
 
@@ -655,7 +656,7 @@ private void OnCurrentGameChanged(object? sender, EventArgs e)
 dotnet build -p:PluginPack=true
 ```
 
-这会自动创建一个包含所有必需文件的插件包。
+这会自动创建一个包含所有必需文件的插件包，可以直接在插件页面导入它
 
 ### 手动打包
 
@@ -670,7 +671,7 @@ dotnet build -p:PluginPack=true
 
 ### 安装插件
 
-用户只需将插件文件夹放入主应用的 `Plugins` 目录即可。
+直接在插件页面从文件包导入插件即可
 
 ---
 

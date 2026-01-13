@@ -93,7 +93,7 @@ public partial class MainWindowViewModel :
         _infoBarService = infoBarService;
         _logger = logger;
         _isGuidanceStarted = false;
-        _jsonSerializerOptions = new JsonSerializerOptions()
+        _jsonSerializerOptions = new JsonSerializerOptions
         {
             WriteIndented = true,
             Converters = { new JsonStringEnumConverter() },
@@ -102,6 +102,7 @@ public partial class MainWindowViewModel :
         IsBo3Mode = _sharedDataService.IsBo3Mode;
         BuildNavigationMenuItems();
         sharedDataService.CountDownValueChanged += (_, _) => OnPropertyChanged(nameof(RemainingSeconds));
+        sharedDataService.CurrentGameChanged += (_, _) => OnPropertyChanged(nameof(CurrentGame));
     }
 
     private void BuildNavigationMenuItems()
@@ -132,31 +133,9 @@ public partial class MainWindowViewModel :
     }
 
     [RelayCommand]
-    private async Task NewGameAsync()
+    private void NewGame()
     {
-        Team surTeam;
-        Team hunTeam;
-        if (_sharedDataService.MainTeam.Camp == Camp.Sur)
-        {
-            surTeam = _sharedDataService.MainTeam;
-            hunTeam = _sharedDataService.AwayTeam;
-        }
-        else
-        {
-            surTeam = _sharedDataService.AwayTeam;
-            hunTeam = _sharedDataService.MainTeam;
-        }
-
-        var pickedMap = _sharedDataService.CurrentGame.PickedMap;
-        var bannedMap = _sharedDataService.CurrentGame.BannedMap;
-        var mapV2Dictionary = _sharedDataService.CurrentGame.MapV2Dictionary;
-
-        _sharedDataService.CurrentGame =
-            new Game(surTeam, hunTeam, SelectedGameProgress, pickedMap, bannedMap, mapV2Dictionary);
-
-        OnPropertyChanged(nameof(CurrentGame));
-        await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("NewGameHasBeenCreated")}\n{CurrentGame.Guid}", I18nHelper.GetLocalizedString("CreateTip"), I18nHelper.GetLocalizedString("Cancel"));
-        _logger.LogInformation("New Game Created{CurrentGameGuid}", CurrentGame.Guid);
+        _sharedDataService.NewGame();
     }
 
     [RelayCommand]

@@ -35,28 +35,28 @@ public partial class MainWindow : FluentWindow, INavigationWindow
         navigationService.SetNavigationControl(RootNavigation);
         infoBarService.SetInfoBarControl(InfoBar);
         snackbarService.SetSnackbarPresenter(SnbPre);
-        // if (settingsHostService.Settings.ShowTip)
-        //     Loaded += async (s, e) =>
-        //     {
-        //         await Task.Delay(5500);
-        //         snackbarService.Show(I18nHelper.GetLocalizedString("Notification"),
-        //             new HyperLinkSnackbarContent(
-        //                 Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "bpui"),
-        //                 Lang.NoAuthorUiInfo,
-        //                 () =>
-        //                 {
-        //                     settingsHostService.Settings.ShowTip = false;
-        //                     settingsHostService.SaveConfig();
-        //                     snackbarService.Hide();
-        //                 }
-        //             ),
-        //             ControlAppearance.Secondary,
-        //             new SymbolIcon(SymbolRegular.Info24, 24D)
-        //             {
-        //                 Margin = new Thickness(0, 0, 5, 0)
-        //             }, TimeSpan.FromSeconds(5), true
-        //         );
-        //     };
+        if (settingsHostService.Settings.ShowAfterUpdateTip)
+            Loaded += async (s, e) =>
+            {
+                await Task.Delay(5500);
+                snackbarService.Show(I18nHelper.GetLocalizedString("Notification"),
+                    new HyperLinkSnackbarContent(
+                        I18nHelper.GetLocalizedString("AfterUpdateTip"),
+                        I18nHelper.GetLocalizedString("DontRemindMeAgainUntilTheNextUpdate"),
+                        () =>
+                        {
+                            settingsHostService.Settings.ShowAfterUpdateTip = false;
+                            settingsHostService.SaveConfigAsync();
+                            snackbarService.Hide();
+                        }
+                    ),
+                    ControlAppearance.Secondary,
+                    new SymbolIcon(SymbolRegular.Info24, 24D)
+                    {
+                        Margin = new Thickness(0, 0, 5, 0)
+                    }, TimeSpan.FromSeconds(10), true
+                );
+            };
     }
 
     protected override void OnClosing(CancelEventArgs e)
