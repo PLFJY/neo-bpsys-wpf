@@ -16,7 +16,7 @@
     Height="195"
     d:DataContext="{d:DesignInstance Type=vm:ScoreWindowViewModel,
                                      IsDesignTimeCreatable=True}"
-    Background="Blue"
+    Background="Lime"
     mc:Ignorable="d">
     <Canvas
         Name="BaseCanvas"

@@ -33,10 +33,6 @@
             <Style BasedOn="{StaticResource {x:Type TextBlock}}" TargetType="TextBlock">
                 <Setter Property="Language" Value="zh-CN" />
             </Style>
-            <Style TargetType="bp:FrontedWindowBase">
-                <Setter Property="SizeToContent" Value="WidthAndHeight" />
-                <Setter Property="WindowStyle" Value="None" />
-            </Style>
             <!--  Images  -->
             <BitmapImage x:Key="surIcon" />
             <BitmapImage x:Key="hunIcon" />

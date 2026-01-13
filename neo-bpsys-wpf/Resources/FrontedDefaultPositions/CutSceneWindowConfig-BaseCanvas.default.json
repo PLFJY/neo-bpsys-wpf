@@ -54,33 +54,33 @@
     "Top": 82
   },
   "SurPick0": {
-    "Width": 356,
-    "Height": null,
+    "Width": 346,
+    "Height": 308.5,
     "Left": 1,
-    "Top": 114
+    "Top": 115
   },
   "SurPick1": {
-    "Width": 356,
-    "Height": null,
-    "Left": 364,
-    "Top": 114
+    "Width": 346,
+    "Height": 308.5,
+    "Left": 351,
+    "Top": 115
   },
   "SurPick2": {
-    "Width": 356,
-    "Height": null,
+    "Width": 346,
+    "Height": 306.5,
     "Left": 1,
     "Top": 465
   },
   "SurPick3": {
-    "Width": 356,
-    "Height": null,
-    "Left": 362,
+    "Width": 346,
+    "Height": 306.5,
+    "Left": 350,
     "Top": 465
   },
   "HunPick": {
-    "Width": 720,
-    "Height": 640,
-    "Left": 720,
+    "Width": 739,
+    "Height": 635,
+    "Left": 702,
     "Top": 114.5
   },
   "SurId0": {

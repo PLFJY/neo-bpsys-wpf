@@ -97,27 +97,27 @@
   },
   "SurPick0": {
     "Width": 68,
-    "Height": 130,
+    "Height": 110,
     "Left": 193,
-    "Top": 45
+    "Top": 65
   },
   "SurPick1": {
     "Width": 71,
-    "Height": 130,
+    "Height": 110,
     "Left": 265,
-    "Top": 45
+    "Top": 65
   },
   "SurPick2": {
-    "Width": 71,
-    "Height": 130,
+    "Width": 72,
+    "Height": 110,
     "Left": 340,
-    "Top": 45
+    "Top": 65
   },
   "SurPick3": {
     "Width": 68,
-    "Height": 130,
+    "Height": 110,
     "Left": 416,
-    "Top": 45
+    "Top": 65
   },
   "GameProgress": {
     "Width": 178,

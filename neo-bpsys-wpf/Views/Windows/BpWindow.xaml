@@ -17,6 +17,7 @@
     Height="810"
     d:DataContext="{d:DesignInstance Type=vm:BpWindowViewModel,
                                      IsDesignTimeCreatable=True}"
+    WindowStyle="None"
     mc:Ignorable="d">
     <controls:FrontedWindowBase.Resources>
         <cv:BooleanToReverseVisibilityConverter x:Key="BooleanToReverseVisibilityConverter" />
@@ -71,6 +72,11 @@
             <Style x:Key="GlowBorderStyle" TargetType="Rectangle">
                 <Setter Property="Fill" Value="{Binding Settings.PickingBorderBrush}" />
                 <Setter Property="Panel.ZIndex" Value="2" />
+            </Style>
+            <Style x:Key="PickImage" TargetType="Image">
+                <Setter Property="Stretch" Value="UniformToFill" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
             </Style>
         </Canvas.Resources>
         <!--  Top bar  -->
@@ -363,40 +369,50 @@
         <!--  Sur Pick  -->
         <Border
             Name="SurPick0"
-            Canvas.Top="619"
-            Width="140"
-            Height="159"
+            Canvas.Top="620"
+            Width="141"
+            Height="160"
             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
-            <Image d:Source="/Assets/医生.png" Source="{Binding CurrentGame.SurPlayerList[0].PictureShown}" />
+            <Image
+                d:Source="/Assets/医生.png"
+                Source="{Binding CurrentGame.SurPlayerList[0].PictureShown}"
+                Style="{StaticResource PickImage}" />
         </Border>
         <Border
             Name="SurPick1"
-            Canvas.Left="141"
-            Canvas.Top="619"
-            Width="140"
-            Height="159"
+            Canvas.Left="143"
+            Canvas.Top="620"
+            Width="141"
+            Height="160"
             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
-            <Image d:Source="/Assets/医生.png" Source="{Binding CurrentGame.SurPlayerList[1].PictureShown}" />
+            <Image
+                d:Source="/Assets/医生.png"
+                Source="{Binding CurrentGame.SurPlayerList[1].PictureShown}"
+                Style="{StaticResource PickImage}" />
         </Border>
         <Border
             Name="SurPick2"
-            Canvas.Left="284"
-            Canvas.Top="619"
-            Width="140"
-            Height="159"
+            Canvas.Left="286"
+            Canvas.Top="620"
+            Width="141"
+            Height="160"
             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
-            <Image d:Source="/Assets/医生.png" Source="{Binding CurrentGame.SurPlayerList[2].PictureShown}" />
+            <Image
+                d:Source="/Assets/医生.png"
+                Source="{Binding CurrentGame.SurPlayerList[2].PictureShown}"
+                Style="{StaticResource PickImage}" />
         </Border>
         <Border
             Name="SurPick3"
             Canvas.Left="428"
             Canvas.Top="619"
             Width="140"
-            Height="159"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Center"
+            Height="160"
             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
-            <Image d:Source="/Assets/医生.png" Source="{Binding CurrentGame.SurPlayerList[3].PictureShown}" />
+            <Image
+                d:Source="/Assets/医生.png"
+                Source="{Binding CurrentGame.SurPlayerList[3].PictureShown}"
+                Style="{StaticResource PickImage}" />
         </Border>
         <!--  Sur Picking Border  -->
         <Rectangle
@@ -410,10 +426,7 @@
             Tag="nv"
             Visibility="Hidden">
             <Rectangle.OpacityMask>
-                <ImageBrush
-                    d:ImageSource="/Assets/pickingBorder.png"
-                    ImageSource="{Binding Settings.PickingBorderImage}"
-                    Stretch="Fill" />
+                <ImageBrush ImageSource="{Binding Settings.PickingBorderImage}" Stretch="Fill" />
             </Rectangle.OpacityMask>
         </Rectangle>
         <Rectangle
@@ -426,10 +439,7 @@
             Tag="nv"
             Visibility="Hidden">
             <Rectangle.OpacityMask>
-                <ImageBrush
-                    d:ImageSource="/Assets/pickingBorder.png"
-                    ImageSource="{Binding Settings.PickingBorderImage}"
-                    Stretch="Fill" />
+                <ImageBrush ImageSource="{Binding Settings.PickingBorderImage}" Stretch="Fill" />
             </Rectangle.OpacityMask>
         </Rectangle>
         <Rectangle
@@ -442,10 +452,7 @@
             Tag="nv"
             Visibility="Hidden">
             <Rectangle.OpacityMask>
-                <ImageBrush
-                    d:ImageSource="/Assets/pickingBorder.png"
-                    ImageSource="{Binding Settings.PickingBorderImage}"
-                    Stretch="Fill" />
+                <ImageBrush ImageSource="{Binding Settings.PickingBorderImage}" Stretch="Fill" />
             </Rectangle.OpacityMask>
         </Rectangle>
         <Rectangle
@@ -458,10 +465,7 @@
             Tag="nv"
             Visibility="Hidden">
             <Rectangle.OpacityMask>
-                <ImageBrush
-                    d:ImageSource="/Assets/pickingBorder.png"
-                    ImageSource="{Binding Settings.PickingBorderImage}"
-                    Stretch="Fill" />
+                <ImageBrush ImageSource="{Binding Settings.PickingBorderImage}" Stretch="Fill" />
             </Rectangle.OpacityMask>
         </Rectangle>
         <!--  Middle  -->
@@ -841,7 +845,10 @@
             Width="568"
             Height="161"
             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
-            <Image d:Source="/Assets/小丑.png" Source="{Binding CurrentGame.HunPlayer.PictureShown}" />
+            <Image
+                d:Source="/Assets/小丑.png"
+                Source="{Binding CurrentGame.HunPlayer.PictureShown}"
+                Style="{StaticResource PickImage}" />
         </Border>
         <!--  Hun Picking Border  -->
         <Rectangle
@@ -854,10 +861,7 @@
             Tag="nv"
             Visibility="Hidden">
             <Rectangle.OpacityMask>
-                <ImageBrush
-                    d:ImageSource="/Assets/pickingBorder.png"
-                    ImageSource="{Binding Settings.PickingBorderImage}"
-                    Stretch="Fill" />
+                <ImageBrush ImageSource="{Binding Settings.PickingBorderImage}" Stretch="Fill" />
             </Rectangle.OpacityMask>
         </Rectangle>
         <!--  Player ID  -->
