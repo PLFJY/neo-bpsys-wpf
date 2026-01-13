@@ -1,27 +1,27 @@
 {
   "SurTeamLogo": {
-    "Width": 85,
+    "Width": 84,
     "Height": 85,
-    "Left": 42,
+    "Left": 52,
     "Top": 30
   },
   "SurTeamNameInOverview": {
-    "Width": 166,
+    "Width": 188,
     "Height": null,
     "Left": 0,
     "Top": 132
   },
   "HunTeamNameInOverview": {
-    "Width": 166,
+    "Width": 188,
     "Height": null,
-    "Left": 960,
+    "Left": 941,
     "Top": 132
   },
   "HunTeamLogo": {
     "Width": 86,
     "Height": 85,
-    "Left": 1000,
-    "Top": 30
+    "Left": 992,
+    "Top": 25
   },
   "HunBanCurrent0": {
     "Width": 145,

@@ -76,18 +76,15 @@
                     </Canvas.Resources>
                     <ui:Image
                         Name="PickedMap"
-                        Canvas.Left="9"
-                        Canvas.Top="43"
                         ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                         d:Source="/Assets/ChinaTown.png"
-                        Source="{Binding CurrentGame.PickedMapImage}" HorizontalAlignment="Center" VerticalAlignment="Top" />
+                        Source="{Binding CurrentGame.PickedMapImage}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="308" Height="144" />
                     <Border
                         Name="PickedMapName"
-                        Canvas.Left="38"
-                        Canvas.Top="149"
-                        Width="232"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
+                        Canvas.Top="117"
+                        Width="308"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
                         ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
                         <TextBlock
                             HorizontalAlignment="Center"
@@ -101,17 +98,16 @@
                     </Border>
                     <Border
                         Name="PickWord"
-                        Canvas.Left="38"
-                        Canvas.Top="215"
-                        Width="232"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
-                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
+                        Canvas.Top="144"
+                        Width="308"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}" Height="53">
                         <TextBlock
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
                             d:FontFamily="{StaticResource POP1W5}"
-                            d:FontSize="22"
+                            d:FontSize="32"
                             d:Foreground="White"
                             d:Text="选择"
                             Style="{StaticResource MapBp_PickWord}"
@@ -169,18 +165,16 @@
 
                     <ui:Image
                         Name="BannedMap"
-                        Canvas.Left="9"
-                        Canvas.Top="372"
+                        Canvas.Top="357"
                         ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                         d:Source="/Assets/ArmsFactory.png"
-                        Source="{Binding CurrentGame.BannedMapImage}" HorizontalAlignment="Center" VerticalAlignment="Top" />
+                        Source="{Binding CurrentGame.BannedMapImage}" HorizontalAlignment="Left" Height="140" VerticalAlignment="Center" Width="308" />
                     <Border
                         Name="BannedMapName"
-                        Canvas.Left="38"
-                        Canvas.Top="475"
-                        Width="232"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
+                        Canvas.Top="470"
+                        Width="308"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
                         ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
                         <TextBlock
                             HorizontalAlignment="Center"
@@ -194,17 +188,17 @@
                     </Border>
                     <Border
                         Name="BanWord"
-                        Canvas.Left="38"
-                        Canvas.Top="522"
-                        Width="232"
+                        Canvas.Left="1"
+                        Canvas.Top="497"
+                        Width="307"
                         HorizontalAlignment="Center"
-                        VerticalAlignment="Top"
-                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
+                        VerticalAlignment="Center"
+                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}" Height="56">
                         <TextBlock
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
                             d:FontFamily="{StaticResource POP1W5}"
-                            d:FontSize="22"
+                            d:FontSize="32"
                             d:Foreground="White"
                             d:Text="禁用"
                             Style="{StaticResource MapBp_BanWord}"
@@ -256,12 +250,12 @@
                         </Canvas.Resources>
                         <ui:Image
                             Name="SurTeamLogo"
-                            Canvas.Left="42"
+                            Canvas.Left="52"
                             Canvas.Top="30"
-                            Width="85"
+                            Width="84"
                             Height="85"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Top"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                             d:Source="/Assets/TestLogo.JPG"
                             CornerRadius="8"
@@ -270,9 +264,9 @@
                         <TextBlock
                             Name="SurTeamNameInOverview"
                             Canvas.Top="132"
-                            Width="166"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Top"
+                            Width="188"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                             d:FontFamily="{StaticResource NotoSans}"
                             d:FontSize="22"
@@ -284,9 +278,9 @@
                             TextWrapping="WrapWithOverflow" />
                         <TextBlock
                             Name="HunTeamNameInOverview"
-                            Canvas.Left="960"
+                            Canvas.Left="941"
                             Canvas.Top="132"
-                            Width="166"
+                            Width="188"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
@@ -300,15 +294,15 @@
                             TextWrapping="WrapWithOverflow" />
                         <ui:Image
                             Name="HunTeamLogo"
-                            Canvas.Left="1000"
-                            Canvas.Top="30"
+                            Canvas.Left="992"
+                            Canvas.Top="25"
                             Width="86"
                             Height="85"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                             d:Source="/Assets/TestLogo.JPG"
                             CornerRadius="8"
                             Source="{Binding CurrentGame.HunTeam.Logo}"
-                            Stretch="Fill" />
+                            Stretch="Fill" HorizontalAlignment="Center" VerticalAlignment="Top" />
                         <!--  Current Ban  -->
                         <!--  Hun Current Ban  -->
                         <Border
@@ -564,7 +558,7 @@
             <Canvas
                 Name="MapV2Canvas"
                 Width="1440"
-                Height="160">
+                Height="160" Margin="0,0,-2,0">
                 <Canvas.Background>
                     <ImageBrush d:ImageSource="/Resources/bpui/mapBpV2.png" ImageSource="{Binding Settings.MapBpV2BgImage}" />
                 </Canvas.Background>
@@ -588,9 +582,9 @@
                 </Canvas.Resources>
                 <controls:MapV2Presenter
                     x:Name="Arms_Factory"
-                    Canvas.Left="50"
-                    Width="147"
-                    Height="160"
+                    Canvas.Left="49"
+                    Width="151"
+                    Height="146"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
@@ -598,20 +592,20 @@
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="The_Red_Church"
-                    Canvas.Left="202"
-                    Width="149"
-                    Height="160"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
+                    Canvas.Left="204"
+                    Width="151"
+                    Height="146"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                     Map="{Binding CurrentGame.MapV2Dictionary[TheRedChurch]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Sacred_Heart_Hospital"
                     Canvas.Left="359"
-                    Width="149"
-                    Height="160"
-                    HorizontalAlignment="Left"
+                    Width="151"
+                    Height="146"
+                    HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                     Map="{Binding CurrentGame.MapV2Dictionary[SacredHeartHospital]}"
@@ -619,28 +613,28 @@
                 <controls:MapV2Presenter
                     x:Name="Leo_s_Memory"
                     Canvas.Left="514"
-                    Width="149"
-                    Height="160"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
+                    Width="151"
+                    Height="146"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                     Map="{Binding CurrentGame.MapV2Dictionary[LeosMemory]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Moonlit_River_Park"
                     Canvas.Left="670"
-                    Width="149"
-                    Height="160"
+                    Width="150"
+                    Height="146"
                     HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
+                    VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                     Map="{Binding CurrentGame.MapV2Dictionary[MoonlitRiverPark]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Lakeside_Village"
                     Canvas.Left="824"
-                    Width="150"
-                    Height="160"
+                    Width="151"
+                    Height="146"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
@@ -648,9 +642,9 @@
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Eversleeping_Town"
-                    Canvas.Left="980"
-                    Width="147"
-                    Height="160"
+                    Canvas.Left="979"
+                    Width="151"
+                    Height="146"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
@@ -659,19 +653,19 @@
                 <controls:MapV2Presenter
                     x:Name="Chinatown"
                     Canvas.Left="1134"
-                    Width="150"
-                    Height="160"
-                    HorizontalAlignment="Left"
+                    Width="151"
+                    Height="146"
+                    HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                     Map="{Binding CurrentGame.MapV2Dictionary[ChinaTown]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Darkwoods"
-                    Canvas.Left="1292"
-                    Width="148"
-                    Height="160"
-                    HorizontalAlignment="Left"
+                    Canvas.Left="1289"
+                    Width="150"
+                    Height="146"
+                    HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                     Map="{Binding CurrentGame.MapV2Dictionary[Darkwoods]}"

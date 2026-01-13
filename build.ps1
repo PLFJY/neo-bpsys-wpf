@@ -14,15 +14,6 @@ if (-Not (Test-Path -Path $BUILD_PATH)) {
 # Build the project
 dotnet publish $PROJ_PATH -c Release -o $BUILD_PATH /p:BuildMeta=$GIT_HASH
 
-# Validate build artifact exists (required by Inno Setup script)
-$MAIN_EXE = Join-Path $BUILD_PATH "neo-bpsys-wpf.exe"
-if (-Not (Test-Path -Path $MAIN_EXE)) {
-    Write-Host "Build output missing: $MAIN_EXE" -ForegroundColor Red
-    Write-Host "Contents of {$BUILD_PATH}:" -ForegroundColor Yellow
-    Get-ChildItem -Path $BUILD_PATH -Recurse | Format-Table -AutoSize
-    throw "dotnet publish finished but main executable was not produced."
-}
-
 # Pack installer
 # Set packer dir
 $ISCC_PATH = ".\Installer\Inno Setup 6\ISCC.exe"

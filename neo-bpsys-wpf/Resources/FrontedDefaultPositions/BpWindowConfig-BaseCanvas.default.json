@@ -97,27 +97,27 @@
   },
   "SurPick1": {
     "Width": 140,
-    "Height": 159,
-    "Left": 141,
+    "Height": 161,
+    "Left": 144,
     "Top": 619
   },
   "SurPick2": {
-    "Width": 140,
-    "Height": 159,
+    "Width": 143,
+    "Height": 161,
     "Left": 284,
     "Top": 619
   },
   "SurPick3": {
     "Width": 140,
-    "Height": 159,
+    "Height": 161,
     "Left": 428,
     "Top": 619
   },
   "Map": {
-    "Width": 297,
-    "Height": 194,
-    "Left": 572,
-    "Top": 616
+    "Width": 300,
+    "Height": 195,
+    "Left": 570,
+    "Top": 615
   },
   "MapName": {
     "Width": 296,

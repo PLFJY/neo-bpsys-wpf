@@ -1,56 +1,56 @@
 {
   "Arms_Factory": {
-    "Width": 147,
-    "Height": 160,
-    "Left": 50,
+    "Width": 151,
+    "Height": 146,
+    "Left": 49,
     "Top": 0
   },
   "The_Red_Church": {
-    "Width": 149,
-    "Height": 160,
-    "Left": 202,
+    "Width": 151,
+    "Height": 146,
+    "Left": 204,
     "Top": 0
   },
   "Sacred_Heart_Hospital": {
-    "Width": 149,
-    "Height": 160,
+    "Width": 151,
+    "Height": 146,
     "Left": 359,
     "Top": 0
   },
   "Leo_s_Memory": {
-    "Width": 149,
-    "Height": 160,
+    "Width": 151,
+    "Height": 146,
     "Left": 514,
     "Top": 0
   },
   "Moonlit_River_Park": {
-    "Width": 149,
-    "Height": 160,
+    "Width": 150,
+    "Height": 146,
     "Left": 670,
     "Top": 0
   },
   "Lakeside_Village": {
-    "Width": 150,
-    "Height": 160,
+    "Width": 151,
+    "Height": 146,
     "Left": 824,
     "Top": 0
   },
   "Eversleeping_Town": {
-    "Width": 147,
-    "Height": 160,
-    "Left": 980,
+    "Width": 151,
+    "Height": 146,
+    "Left": 979,
     "Top": 0
   },
   "Chinatown": {
-    "Width": 150,
-    "Height": 160,
+    "Width": 151,
+    "Height": 146,
     "Left": 1134,
     "Top": 0
   },
   "Darkwoods": {
-    "Width": 148,
-    "Height": 160,
-    "Left": 1292,
+    "Width": 150,
+    "Height": 146,
+    "Left": 1289,
     "Top": 0
   }
 }

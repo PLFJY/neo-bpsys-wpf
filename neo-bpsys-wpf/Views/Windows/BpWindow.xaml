@@ -371,20 +371,20 @@
         </Border>
         <Border
             Name="SurPick1"
-            Canvas.Left="141"
+            Canvas.Left="144"
             Canvas.Top="619"
             Width="140"
-            Height="159"
-            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
+            Height="161"
+            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}" HorizontalAlignment="Left" VerticalAlignment="Center">
             <Image d:Source="/Assets/医生.png" Source="{Binding CurrentGame.SurPlayerList[1].PictureShown}" />
         </Border>
         <Border
             Name="SurPick2"
             Canvas.Left="284"
             Canvas.Top="619"
-            Width="140"
-            Height="159"
-            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
+            Width="143"
+            Height="161"
+            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}" HorizontalAlignment="Center" VerticalAlignment="Top">
             <Image d:Source="/Assets/医生.png" Source="{Binding CurrentGame.SurPlayerList[2].PictureShown}" />
         </Border>
         <Border
@@ -392,19 +392,18 @@
             Canvas.Left="428"
             Canvas.Top="619"
             Width="140"
-            Height="159"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Center"
+            Height="161"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
             <Image d:Source="/Assets/医生.png" Source="{Binding CurrentGame.SurPlayerList[3].PictureShown}" />
         </Border>
         <!--  Sur Picking Border  -->
         <Rectangle
             Name="SurPickingBorder0"
-            Canvas.Left="{Binding ElementName=SurPick0, Path=(Canvas.Left)}"
             Canvas.Top="{Binding ElementName=SurPick0, Path=(Canvas.Top)}"
-            Width="{Binding ElementName=SurPick0, Path=ActualWidth}"
-            Height="{Binding ElementName=SurPick0, Path=ActualHeight}"
+            Width="142"
+            Height="161"
             d:Visibility="Visible"
             Style="{StaticResource GlowBorderStyle}"
             Tag="nv"
@@ -467,11 +466,11 @@
         <!--  Middle  -->
         <Border
             Name="Map"
-            Canvas.Left="572"
-            Canvas.Top="616"
-            Width="297"
-            Height="194"
-            HorizontalAlignment="Left"
+            Canvas.Left="570"
+            Canvas.Top="615"
+            Width="300"
+            Height="195"
+            HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Panel.ZIndex="-1"
             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">

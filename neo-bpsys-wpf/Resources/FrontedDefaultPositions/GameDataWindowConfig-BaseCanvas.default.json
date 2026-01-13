@@ -3,7 +3,7 @@
     "Width": 85,
     "Height": 85,
     "Left": 96,
-    "Top": 177
+    "Top": 172
   },
   "SurTeamMajorPoint": {
     "Width": null,
@@ -24,22 +24,28 @@
     "Top": 182
   },
   "Map": {
-    "Width": 328,
-    "Height": 132,
-    "Left": 556,
-    "Top": 151
+    "Width": 323,
+    "Height": 125,
+    "Left": 564,
+    "Top": 155
+  },
+  "MapMask": {
+    "Width": 336,
+    "Height": 23,
+    "Left": 551,
+    "Top": 257
   },
   "MapName": {
-    "Width": 328,
+    "Width": 110,
     "Height": 30,
-    "Left": 556,
-    "Top": 220
+    "Left": 767,
+    "Top": 254
   },
   "GameProgress": {
-    "Width": 328,
+    "Width": 182,
     "Height": 30,
-    "Left": 556,
-    "Top": 253
+    "Left": 559,
+    "Top": 254
   },
   "GameScoresHun": {
     "Width": 52,
@@ -51,229 +57,187 @@
     "Width": 302,
     "Height": null,
     "Left": 976,
-    "Top": 177
+    "Top": 176
   },
   "HunTeamMajorPoint": {
     "Width": null,
     "Height": null,
     "Left": 1081,
-    "Top": 236
+    "Top": 229
   },
   "HunTeamLogo": {
     "Width": 85,
-    "Height": 86,
-    "Left": 1278,
-    "Top": 176
-  },
-  "Header_Character": {
-    "Width": 80,
-    "Height": null,
-    "Left": 47,
-    "Top": 307
-  },
-  "Header_ID": {
-    "Width": 100,
-    "Height": null,
-    "Left": 154,
-    "Top": 307
-  },
-  "Header_DecodingProgress": {
-    "Width": 150,
-    "Height": null,
-    "Left": 331,
-    "Top": 307
-  },
-  "Header_PalletStrikes": {
-    "Width": 150,
-    "Height": null,
-    "Left": 485,
-    "Top": 307
-  },
-  "Header_Rescues": {
-    "Width": 120,
-    "Height": null,
-    "Left": 634,
-    "Top": 307
-  },
-  "Header_Heals": {
-    "Width": 120,
-    "Height": null,
-    "Left": 774,
-    "Top": 307
-  },
-  "Header_ContainmentTime": {
-    "Width": 176,
-    "Height": null,
-    "Left": 894,
-    "Top": 307
+    "Height": 85,
+    "Left": 1283,
+    "Top": 172
   },
   "Player0Header": {
     "Width": 50,
     "Height": 50,
-    "Left": 47,
-    "Top": 354
+    "Left": 53,
+    "Top": 349
   },
   "Player1Header": {
     "Width": 50,
     "Height": 50,
-    "Left": 47,
-    "Top": 414
+    "Left": 53,
+    "Top": 405
   },
   "Player2Header": {
     "Width": 50,
     "Height": 50,
-    "Left": 47,
-    "Top": 473
+    "Left": 53,
+    "Top": 461
   },
   "Player3Header": {
     "Width": 50,
     "Height": 50,
-    "Left": 47,
-    "Top": 534
+    "Left": 53,
+    "Top": 517
   },
   "SurId0": {
-    "Width": 200,
+    "Width": 194,
     "Height": 49,
-    "Left": 115,
-    "Top": 354
+    "Left": 128,
+    "Top": 350
   },
   "SurId1": {
-    "Width": 200,
+    "Width": 194,
     "Height": 49,
-    "Left": 115,
-    "Top": 414
+    "Left": 128,
+    "Top": 406
   },
   "SurId2": {
-    "Width": 200,
+    "Width": 194,
     "Height": 49,
-    "Left": 115,
-    "Top": 474
+    "Left": 128,
+    "Top": 460
   },
   "SurId3": {
-    "Width": 200,
+    "Width": 194,
     "Height": 49,
-    "Left": 115,
-    "Top": 534
+    "Left": 128,
+    "Top": 517
   },
   "Sur0MachineDecoded": {
     "Width": 55,
     "Height": 49,
-    "Left": 377,
-    "Top": 354
+    "Left": 357,
+    "Top": 350
   },
   "Sur1MachineDecoded": {
     "Width": 55,
     "Height": 49,
-    "Left": 377,
-    "Top": 414
+    "Left": 357,
+    "Top": 406
   },
   "Sur2MachineDecoded": {
     "Width": 55,
     "Height": 49,
-    "Left": 377,
-    "Top": 474
+    "Left": 357,
+    "Top": 462
   },
   "Sur3MachineDecoded": {
     "Width": 55,
     "Height": 49,
-    "Left": 377,
-    "Top": 534
+    "Left": 357,
+    "Top": 518
   },
   "Sur0PalletStunTimes": {
     "Width": 55,
     "Height": 49,
-    "Left": 531,
-    "Top": 354
+    "Left": 511,
+    "Top": 350
   },
   "Sur1PalletStunTimes": {
     "Width": 55,
     "Height": 49,
-    "Left": 531,
-    "Top": 413
+    "Left": 511,
+    "Top": 406
   },
   "Sur2PalletStunTimes": {
     "Width": 55,
     "Height": 49,
-    "Left": 531,
-    "Top": 474
+    "Left": 511,
+    "Top": 462
   },
   "Sur3PalletStunTimes": {
     "Width": 55,
     "Height": 49,
-    "Left": 531,
-    "Top": 534
+    "Left": 511,
+    "Top": 518
   },
   "Sur0RescueTimes": {
     "Width": 55,
     "Height": 49,
     "Left": 666,
-    "Top": 354
+    "Top": 350
   },
   "Sur1RescueTimes": {
     "Width": 55,
     "Height": 49,
     "Left": 666,
-    "Top": 414
+    "Top": 406
   },
   "Sur2RescueTimes": {
     "Width": 55,
     "Height": 49,
     "Left": 666,
-    "Top": 474
+    "Top": 462
   },
   "Sur3RescueTimes": {
     "Width": 55,
     "Height": 49,
     "Left": 666,
-    "Top": 534
+    "Top": 518
   },
   "Sur0HealedTimes": {
     "Width": 55,
     "Height": 49,
     "Left": 809,
-    "Top": 354
+    "Top": 350
   },
   "Sur1HealedTimes": {
     "Width": 55,
     "Height": 49,
     "Left": 809,
-    "Top": 414
+    "Top": 406
   },
   "Sur2HealedTimes": {
     "Width": 55,
     "Height": 49,
     "Left": 809,
-    "Top": 474
+    "Top": 462
   },
   "Sur3HealedTimes": {
     "Width": 55,
     "Height": 49,
     "Left": 809,
-    "Top": 534
+    "Top": 518
   },
   "Sur0KiteTime": {
     "Width": 55,
     "Height": 49,
     "Left": 963,
-    "Top": 354
+    "Top": 350
   },
   "Sur1KiteTime": {
     "Width": 55,
     "Height": 49,
     "Left": 963,
-    "Top": 413
+    "Top": 406
   },
   "Sur2KiteTime": {
     "Width": 55,
     "Height": 49,
     "Left": 963,
-    "Top": 474
+    "Top": 462
   },
   "Sur3KiteTime": {
     "Width": 55,
     "Height": 49,
     "Left": 963,
-    "Top": 534
+    "Top": 518
   },
   "HunImage": {
     "Width": 314,
@@ -282,69 +246,39 @@
     "Top": 295
   },
   "HunId": {
-    "Width": 200,
+    "Width": 194,
     "Height": 35,
     "Left": 1080,
     "Top": 357
   },
-  "Header_RemainingCiphers": {
-    "Width": 160,
-    "Height": null,
-    "Left": 1085,
-    "Top": 404
-  },
-  "Header_PalletsDestroyed": {
-    "Width": 160,
-    "Height": null,
-    "Left": 1085,
-    "Top": 440
-  },
-  "Header_SurvivorHits": {
-    "Width": 160,
-    "Height": null,
-    "Left": 1085,
-    "Top": 475
-  },
-  "Header_TerrorShocks": {
-    "Width": 160,
-    "Height": null,
-    "Left": 1085,
-    "Top": 511
-  },
-  "Header_Knockdowns": {
-    "Width": 160,
-    "Height": null,
-    "Left": 1085,
-    "Top": 548
-  },
   "HunMachineLeft": {
-    "Width": 100,
+    "Width": 145,
     "Height": 25,
-    "Left": 1280,
+    "Left": 1227,
     "Top": 405
   },
   "HunPalletBroken": {
-    "Width": 100,
+    "Width": 145,
     "Height": 25,
-    "Left": 1280,
-    "Top": 442
+    "Left": 1227,
+    "Top": 439
   },
   "HunHitTimes": {
-    "Width": 100,
+    "Width": 145,
     "Height": 25,
-    "Left": 1280,
-    "Top": 478
+    "Left": 1227,
+    "Top": 472
   },
   "HunTerrorShockTimes": {
-    "Width": 100,
+    "Width": 145,
     "Height": 25,
-    "Left": 1280,
-    "Top": 514
+    "Left": 1227,
+    "Top": 503
   },
   "HunDownTimes": {
-    "Width": 100,
+    "Width": 145,
     "Height": 25,
-    "Left": 1280,
-    "Top": 547
+    "Left": 1227,
+    "Top": 537
   }
 }
