@@ -399,10 +399,10 @@ public class WidgetsWindowTextSettings
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 22);
 
     public TextSettings MapBp_PickWord { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 32);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
 
     public TextSettings MapBp_BanWord { get; set; } =
-        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 32);
+        new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
 
     public TextSettings MapBp_TeamName { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简", 22);

@@ -1,21 +1,21 @@
 {
   "PickedMap": {
-    "Width": 308,
-    "Height": 144,
-    "Left": 0,
-    "Top": 0
+    "Width": 290,
+    "Height": 138,
+    "Left": 9,
+    "Top": 43
   },
   "PickedMapName": {
-    "Width": 308,
+    "Width": 232,
     "Height": null,
-    "Left": 0,
-    "Top": 117
+    "Left": 38,
+    "Top": 149
   },
   "PickWord": {
-    "Width": 308,
-    "Height": 53,
-    "Left": 0,
-    "Top": 144
+    "Width": 232,
+    "Height": null,
+    "Left": 38,
+    "Top": 215
   },
   "SurTeamName": {
     "Width": 137,
@@ -36,21 +36,21 @@
     "Top": 265
   },
   "BannedMap": {
-    "Width": 308,
-    "Height": 140,
-    "Left": 0,
-    "Top": 357
+    "Width": 290,
+    "Height": 138,
+    "Left": 9,
+    "Top": 372
   },
   "BannedMapName": {
-    "Width": 308,
+    "Width": 232,
     "Height": null,
-    "Left": 0,
-    "Top": 470
+    "Left": 38,
+    "Top": 475
   },
   "BanWord": {
-    "Width": 307,
-    "Height": 56,
-    "Left": 1,
-    "Top": 497
+    "Width": 232,
+    "Height": null,
+    "Left": 38,
+    "Top": 522
   }
 }

@@ -15,10 +15,10 @@ jobs:
       matrix:
         include:
           - name: Core
-            csproj: src/neo-bpsys.wpf.Core/neo-bpsys.wpf.Core.csproj
+            csproj: ./neo-bpsys.wpf.Core/neo-bpsys.wpf.Core.csproj
             packageId: neo-bpsys.wpf.Core
           - name: PluginSdk
-            csproj: src/neo-bpsys.wpf.PluginSdk/neo-bpsys.wpf.PluginSdk.csproj
+            csproj: ./neo-bpsys.wpf.PluginSdk/neo-bpsys.wpf.PluginSdk.csproj
             packageId: neo-bpsys.wpf.PluginSdk
 
     steps:
