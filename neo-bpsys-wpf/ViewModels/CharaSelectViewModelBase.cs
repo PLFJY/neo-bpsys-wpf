@@ -18,6 +18,7 @@ namespace neo_bpsys_wpf.ViewModels;
 /// 3.实现 <see cref="SyncCharaAsync"/> 将角色同步到前台的行为
 /// 4.实现 <see cref="SyncIsEnabled"/> 通过toggle button设置后同步状态到对应的 <see cref="ISharedDataService"/> 中 CanCurrentBannedList 的值的行为
 /// 5.实现 <see cref="IsActionNameCorrect"/> 判断当前步骤引导的步骤是否符合当前控件的行为
+/// 6.在 <see cref="OnCurrentGameChanged"/> 中更新 preview 的 image
 /// </summary>
 public abstract partial class CharaSelectViewModelBase :
     ViewModelBase,
@@ -140,7 +141,7 @@ public abstract partial class CharaSelectViewModelBase :
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="args"></param>
-    private void OnCurrentGameChanged(object? sender, EventArgs args)
+    protected virtual void OnCurrentGameChanged(object? sender, EventArgs args)
     {
         SelectedChara = null;
         PreviewImage = null;

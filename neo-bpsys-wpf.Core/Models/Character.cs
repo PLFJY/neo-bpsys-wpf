@@ -101,14 +101,15 @@ public class Character
     /// <param name="camp"></param>
     /// <param name="imageFileName"></param>
     /// <param name="abbrev"></param>
+    [JsonConstructor]
     public Character(string name, Camp camp, string imageFileName, string? abbrev = null)
     {
         Name = name;
         Camp = camp;
         ImageFileName = imageFileName;
         //拼音处理
-        var format = PinyinFormat.WITHOUT_TONE | PinyinFormat.LOWERCASE | PinyinFormat.WITH_U_AND_COLON |
-                     PinyinFormat.WITH_V;
+        const PinyinFormat format = PinyinFormat.WITHOUT_TONE | PinyinFormat.LOWERCASE | PinyinFormat.WITH_U_AND_COLON |
+                                    PinyinFormat.WITH_V;
 
         var pinyin = Pinyin4Net.GetPinyin(name, format);
 
@@ -118,9 +119,9 @@ public class Character
         FullSpell = string.Concat(parts);
 
         //Abbreviation
-        Abbrev = abbrev ?? string.Concat(Enumerable.Select<string, char>(parts, p => p[0]));
+        Abbrev = abbrev ?? string.Concat(parts.Select(p => p[0]));
     }
-    
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -129,7 +130,7 @@ public class Character
     {
         Camp = camp;
     }
-    
+
     /// <summary>
     /// 获取图片源
     /// </summary>

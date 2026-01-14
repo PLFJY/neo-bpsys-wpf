@@ -1314,4 +1314,16 @@
   <data name="FrontedGameStatistics" xml:space="preserve">
     <value>前台 - 赛后数据</value>
   </data>
+  <data name="ImportGameInformation" xml:space="preserve">
+    <value>导入对局信息</value>
+  </data>
+  <data name="ImportSuccessfullyFrom" xml:space="preserve">
+    <value>成功从以下路径导入：</value>
+  </data>
+  <data name="ImportInfo" xml:space="preserve">
+    <value>导入信息</value>
+  </data>
+  <data name="ImportFailed" xml:space="preserve">
+    <value>导入失败：</value>
+  </data>
 </root>

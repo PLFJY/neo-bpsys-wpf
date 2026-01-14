@@ -135,7 +135,6 @@ public partial class MainWindow : FluentWindow, INavigationWindow
 
     public bool Navigate(Type pageType)
     {
-        _logger.LogInformation("Navigate to {PageType}", pageType);
         return RootNavigation.Navigate(pageType);
     }
 

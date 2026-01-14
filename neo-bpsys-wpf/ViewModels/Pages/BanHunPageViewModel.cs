@@ -9,7 +9,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class BanHunPageViewModel : ViewModelBase
 {
+#pragma warning disable CS8618 
     public BanHunPageViewModel()
+#pragma warning restore CS8618 
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -79,17 +81,21 @@ public partial class BanHunPageViewModel : ViewModelBase
         }
 
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanHun;
+
+        protected override void OnCurrentGameChanged(object? sender, EventArgs args)
+        {
+            base.OnCurrentGameChanged(sender, args);
+            SelectedChara = SharedDataService.CurrentGame.CurrentHunBannedList[Index];
+            PreviewImage = SelectedChara?.HeaderImageSingleColor;
+        }
     }
 
     public class BanHunGlobalViewModel : CharaSelectViewModelBase
     {
-        private readonly ISharedDataService _sharedDataService;
-
         public BanHunGlobalViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService,
             Camp.Hun,
             index)
         {
-            _sharedDataService = sharedDataService;
             IsEnabled = sharedDataService.CanGlobalHunBannedList[index];
             SharedDataService.BanCountChanged += OnBanCountChanged;
         }

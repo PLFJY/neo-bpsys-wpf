@@ -209,6 +209,11 @@
                     Icon="{ui:SymbolIcon Symbol=Save24}" />
                 <ui:Button
                     Margin="0,0,10,10"
+                    Command="{Binding ImportGameInfoCommand}"
+                    Content="{lex:Loc ImportGameInformation}"
+                    Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
+                <ui:Button
+                    Margin="0,0,10,10"
                     Command="{Binding NewGameCommand}"
                     Content="{lex:Loc NewGame}"
                     Icon="{ui:SymbolIcon Symbol=Add24}" />

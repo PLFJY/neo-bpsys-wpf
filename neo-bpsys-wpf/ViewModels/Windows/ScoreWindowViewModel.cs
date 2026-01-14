@@ -17,7 +17,9 @@ public partial class ScoreWindowViewModel :
     IRecipient<DesignerModeChangedMessage>,
     IRecipient<PropertyChangedMessage<int>>
 {
+#pragma warning disable CS8618 
     public ScoreWindowViewModel()
+#pragma warning restore CS8618 
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }

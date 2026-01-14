@@ -29,6 +29,11 @@ public partial class SharedDataService : ISharedDataService
     private readonly ISettingsHostService _settingsHostService;
     private readonly ILogger<SharedDataService> _logger;
 
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        Converters = { new JsonStringEnumConverter() }
+    };
+
     #region 初始化
 
     public SharedDataService(ISettingsHostService settingsHostService, ILogger<SharedDataService> logger)
@@ -173,6 +178,44 @@ public partial class SharedDataService : ISharedDataService
 
         _ = MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("NewGameHasBeenCreated")}\n{CurrentGame.Guid}", I18nHelper.GetLocalizedString("CreateTip"), I18nHelper.GetLocalizedString("Cancel"));
         _logger.LogInformation("New Game Created{CurrentGameGuid}", CurrentGame.Guid);
+    }
+
+    public async Task ImportGameAsync(string filePath)
+    {
+        try
+        {
+            var json = await File.ReadAllTextAsync(filePath);
+            var importedGame = JsonSerializer.Deserialize<Game>(json, _jsonSerializerOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize game data.");
+
+            // 更新队伍信息
+            if (MainTeam.Camp == Camp.Sur)
+            {
+                MainTeam.ImportTeamInfo(importedGame.SurTeam);
+            }
+            else
+            {
+                AwayTeam.ImportTeamInfo(importedGame.SurTeam);
+            }
+
+            if (MainTeam.Camp == Camp.Hun)
+            {
+                MainTeam.ImportTeamInfo(importedGame.HunTeam);
+            }
+            else
+            {
+                AwayTeam.ImportTeamInfo(importedGame.HunTeam);
+            }
+
+            CurrentGame = importedGame;
+
+            _logger.LogInformation("Game imported successfully from {FilePath}", filePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to import game from {FilePath}", filePath);
+            throw;
+        }
     }
 
     private void OnTeamSwapped(object? sender, EventArgs args) => TeamSwapped?.Invoke(this, EventArgs.Empty);

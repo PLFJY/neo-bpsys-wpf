@@ -33,6 +33,12 @@ public interface ISharedDataService
     void NewGame();
 
     /// <summary>
+    /// 从文件导入对局
+    /// </summary>
+    /// <param name="filePath">对局文件路径</param>
+    Task ImportGameAsync(string filePath);
+
+    /// <summary>
     /// 求生者角色字典
     /// </summary>
     SortedDictionary<string, Character> SurCharaDict { get; set; }
@@ -134,12 +140,12 @@ public interface ISharedDataService
     /// Bo3模式改变事件
     /// </summary>
     event EventHandler? IsBo3ModeChanged;
-    
+
     /// <summary>
     /// 倒计时剩余秒数改变事件
     /// </summary>
     event EventHandler? CountDownValueChanged;
-    
+
     /// <summary>
     /// 队伍换边事件
     /// </summary>

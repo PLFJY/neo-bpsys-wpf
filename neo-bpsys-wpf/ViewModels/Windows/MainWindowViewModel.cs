@@ -13,6 +13,7 @@ using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.Views.Pages;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using neo_bpsys_wpf.Helpers;
@@ -29,12 +30,15 @@ public partial class MainWindowViewModel :
     IRecipient<PropertyChangedMessage<bool>>,
     IRecipient<HighlightMessage>
 {
+#pragma warning disable CS8618 
     public MainWindowViewModel()
+#pragma warning restore CS8618 
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
 
     private readonly ISharedDataService _sharedDataService;
+    private readonly IFilePickerService _filePickerService;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -86,11 +90,13 @@ public partial class MainWindowViewModel :
         ISharedDataService sharedDataService,
         IGameGuidanceService gameGuidanceService,
         IInfoBarService infoBarService,
+        IFilePickerService filePickerService,
         ILogger<MainWindowViewModel> logger)
     {
         _sharedDataService = sharedDataService;
         _gameGuidanceService = gameGuidanceService;
         _infoBarService = infoBarService;
+        _filePickerService = filePickerService;
         _logger = logger;
         _isGuidanceStarted = false;
         _jsonSerializerOptions = new JsonSerializerOptions
@@ -164,6 +170,32 @@ public partial class MainWindowViewModel :
         {
             await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("SaveFailed")}\n{ex.Message}", I18nHelper.GetLocalizedString("SaveInfo"));
             _logger.LogError("Save game {CurrentGameGuid} info failed\n{ExMessage}", CurrentGame.Guid, ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ImportGameInfoAsync()
+    {
+        var filePath = _filePickerService.PickJsonFile();
+
+        if (string.IsNullOrEmpty(filePath))
+            return;
+
+        try
+        {
+            await _sharedDataService.ImportGameAsync(filePath);
+            await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("ImportSuccessfullyFrom")}\n{filePath}", I18nHelper.GetLocalizedString("ImportInfo"));
+            _logger.LogInformation("Import game info successfully from {FilePath}", filePath);
+        }
+        catch (JsonException ex)
+        {
+            await MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("JsonFileFormatError")}\n{ex.Message}");
+            _logger.LogError("Import game info failed: JSON format error\n{ExMessage}", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            await MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("ImportFailed")}\n{ex.Message}");
+            _logger.LogError("Import game info failed from {FilePath}\n{ExMessage}", filePath, ex.Message);
         }
     }
 

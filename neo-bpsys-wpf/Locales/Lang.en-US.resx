@@ -1299,4 +1299,16 @@
   <data name="FrontedGameStatistics" xml:space="preserve">
     <value>Fronted - Game statistics</value>
   </data>
+  <data name="ImportGameInformation" xml:space="preserve">
+    <value>Import Game Information</value>
+  </data>
+  <data name="ImportSuccessfullyFrom" xml:space="preserve">
+    <value>Successfully imported from: </value>
+  </data>
+  <data name="ImportInfo" xml:space="preserve">
+    <value>Import Info</value>
+  </data>
+  <data name="ImportFailed" xml:space="preserve">
+    <value>Import Failed: </value>
+  </data>
 </root>

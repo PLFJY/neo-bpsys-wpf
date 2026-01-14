@@ -49,7 +49,8 @@ public partial class Team : ObservableObjectBase
     /// <summary>
     /// 队伍LOGO
     /// </summary>
-    [ObservableProperty] [property: JsonIgnore]
+    [ObservableProperty]
+    [property: JsonIgnore]
     private ImageSource? _logo;
 
     /// <summary>
@@ -170,13 +171,24 @@ public partial class Team : ObservableObjectBase
     /// <param name="surMemberList">求生者队员列表</param>
     /// <param name="hunMemberList">监管者队员列表</param>
     [JsonConstructor]
-    public Team(string name, string imageUri, ObservableCollection<Member> surMemberList,
-        ObservableCollection<Member> hunMemberList)
+    internal Team(string name, string imageUri, ObservableCollection<Member>? surMemberList,
+        ObservableCollection<Member>? hunMemberList)
     {
         Name = name;
         ImageUri = imageUri;
-        SurMemberList = surMemberList;
-        HunMemberList = hunMemberList;
+        SurMemberList = surMemberList ?? [];
+        HunMemberList = hunMemberList ?? [];
+
+        _surMemberOnFieldPrivateCollection = [.. Enumerable.Range(0, 4).Select<int, Member?>(_ => null)];
+        _surMemberOnFieldCollection = new ReadOnlyObservableCollection<Member?>(_surMemberOnFieldPrivateCollection);
+        OnPropertyChanged(nameof(SurMemberOnFieldCollection));
+        HunMemberOnField = null;
+        
+        GlobalBannedHunRecordArray = [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select<int, Character?>(_ => null)];
+        GlobalBannedSurRecordArray = [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select<int, Character?>(_ => null)];
+
+        GlobalBannedHunList = [];
+        GlobalBannedSurList = [];
     }
 
     /// <summary>
@@ -206,11 +218,24 @@ public partial class Team : ObservableObjectBase
         SurMemberList = newTeam.SurMemberList;
         HunMemberList = newTeam.HunMemberList;
 
+        GlobalBannedSurList = newTeam.GlobalBannedSurList;
+        GlobalBannedHunList = newTeam.GlobalBannedHunList;
+
         _surMemberOnFieldPrivateCollection = [.. Enumerable.Range(0, 4).Select<int, Member?>(_ => null)];
         SurMemberOnFieldCollection = new ReadOnlyObservableCollection<Member?>(_surMemberOnFieldPrivateCollection);
         HunMemberOnField = null;
 
         _onFieldSurPlayerCnt = 0;
+
+        foreach (var member in SurMemberList.Where(member => member.IsOnField))
+        {
+            MemberOnField(member);
+        }
+
+        foreach (var member in HunMemberList.Where(member => member.IsOnField))
+        {
+            MemberOnField(member);
+        }
     }
 
     #region 选手操作

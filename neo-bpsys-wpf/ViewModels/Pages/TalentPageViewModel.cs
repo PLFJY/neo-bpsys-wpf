@@ -12,7 +12,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class TalentPageViewModel : ViewModelBase, IRecipient<HighlightMessage>
 {
+#pragma warning disable CS8618 
     public TalentPageViewModel()
+#pragma warning restore CS8618 
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }

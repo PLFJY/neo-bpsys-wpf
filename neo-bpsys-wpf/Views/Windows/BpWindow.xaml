@@ -405,7 +405,7 @@
         <Border
             Name="SurPick3"
             Canvas.Left="428"
-            Canvas.Top="619"
+            Canvas.Top="620"
             Width="140"
             Height="160"
             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
@@ -841,13 +841,14 @@
         <Border
             Name="HunPick"
             Canvas.Left="872"
-            Canvas.Top="619"
+            Canvas.Top="620"
             Width="568"
             Height="161"
             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
             <Image
                 d:Source="/Assets/小丑.png"
                 Source="{Binding CurrentGame.HunPlayer.PictureShown}"
+                Stretch="Uniform"
                 Style="{StaticResource PickImage}" />
         </Border>
         <!--  Hun Picking Border  -->

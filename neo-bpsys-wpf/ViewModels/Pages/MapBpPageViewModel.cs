@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Windows.Media;
 using neo_bpsys_wpf.Helpers;
 using Team = neo_bpsys_wpf.Core.Models.Team;
@@ -19,7 +20,9 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
     private readonly ISharedDataService _sharedDataService;
 
 
+#pragma warning disable CS8618 
     public MapBpPageViewModel()
+#pragma warning restore CS8618 
 
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
@@ -42,9 +45,25 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         }
 
         BannedMap = [.. sharedDataService.CurrentGame.MapV2Dictionary.Values.Select(mapV2 => new BanMapInfo(mapV2))];
-        sharedDataService.CurrentGameChanged += (_, _) => OnPropertyChanged(nameof(CurrentGame));
+        sharedDataService.CurrentGameChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(CurrentGame));
+            sharedDataService.CurrentGame.PropertyChanged += OnCurrentGameSelectedMapChanged;
+            _pickedMap = CurrentGame.PickedMap;
+            OnPropertyChanged(nameof(PickedMap));
+        };
         sharedDataService.IsMapV2BreathingChanged += (_, _) => IsBreathing = sharedDataService.IsMapV2Breathing;
         sharedDataService.IsMapV2CampVisibleChanged += (_, _) => IsCampVisible = sharedDataService.IsMapV2CampVisible;
+        sharedDataService.CurrentGame.PropertyChanged += OnCurrentGameSelectedMapChanged;
+    }
+
+    private void OnCurrentGameSelectedMapChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName == nameof(Game.PickedMap))
+        {
+            _pickedMap = CurrentGame.PickedMap;
+            OnPropertyChanged(nameof(PickedMap));
+        }
     }
 
     public Game CurrentGame => _sharedDataService.CurrentGame;
@@ -66,9 +85,6 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         set => SetPropertyWithAction(ref _isCampVisible, value,
             (_) => { _sharedDataService.IsMapV2CampVisible = value; });
     }
-
-    //public int PickedMapIndex =>
-    //    PickedMapSelections.IndexOf(PickedMapSelections.First(x => x.Map.MapName == PickedMap));
 
     private Map? _pickedMap;
 

@@ -22,7 +22,9 @@ public partial class PluginPageViewModel : ViewModelBase
     private readonly IFilePickerService _filePickerService;
     private readonly ILogger<PluginPageViewModel> _logger;
 
+#pragma warning disable CS8618 
     public PluginPageViewModel()
+#pragma warning restore CS8618 
     {
 
     }

@@ -128,6 +128,15 @@ public partial class MapV2(Map? mapName, string mapBorderNormal = "#2B483B", str
     [JsonIgnore] public Brush MapBorderBrush => IsBanned ? _mapBorderBannedBrush : _mapBorderNormalBrush;
 
     /// <summary>
+    /// JSON 反序列化构造函数
+    /// </summary>
+    /// <param name="mapName"></param>
+    [JsonConstructor]
+    internal MapV2(Map? mapName) : this(mapName, "#2B483B", "#9C3E2F")
+    {
+    }
+
+    /// <summary>
     /// 从Ban中恢复刷新呼吸灯动画
     /// </summary>
     /// <param name="message"></param>

@@ -9,7 +9,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class TeamInfoPageViewModel : ViewModelBase
 {
+#pragma warning disable CS8618 
     public TeamInfoPageViewModel()
+#pragma warning restore CS8618 
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }

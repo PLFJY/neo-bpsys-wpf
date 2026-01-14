@@ -8,7 +8,9 @@ public partial class ScoreManualWindowViewModel : ViewModelBase
 {
     private readonly ISharedDataService _sharedDataService;
 
+#pragma warning disable CS8618 
     public ScoreManualWindowViewModel()
+#pragma warning restore CS8618 
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }

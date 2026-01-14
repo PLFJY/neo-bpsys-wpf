@@ -15,7 +15,9 @@ public partial class CutSceneWindowViewModel :
     ViewModelBase,
     IRecipient<DesignerModeChangedMessage>
 {
+#pragma warning disable CS8618 
     public CutSceneWindowViewModel()
+#pragma warning restore CS8618 
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }

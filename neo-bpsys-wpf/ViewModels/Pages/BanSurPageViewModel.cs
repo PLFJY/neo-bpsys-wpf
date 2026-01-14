@@ -9,7 +9,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class BanSurPageViewModel : ViewModelBase
 {
+#pragma warning disable CS8618 
     public BanSurPageViewModel()
+#pragma warning restore CS8618 
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -73,6 +75,13 @@ public partial class BanSurPageViewModel : ViewModelBase
         protected override void SyncIsEnabled()
         {
             SharedDataService.CanCurrentSurBannedList[Index] = IsEnabled;
+        }
+
+        protected override void OnCurrentGameChanged(object? sender, EventArgs args)
+        {
+            base.OnCurrentGameChanged(sender, args);
+            SelectedChara = SharedDataService.CurrentGame.CurrentSurBannedList[Index];
+            PreviewImage = SelectedChara?.HeaderImageSingleColor;
         }
 
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanSur;
