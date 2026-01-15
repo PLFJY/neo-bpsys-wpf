@@ -33,15 +33,6 @@ public partial class BanSurPageViewModel : ViewModelBase
             .. Enumerable.Range(0, AppConstants.GlobalBanSurCount)
                 .Select(i => new BanSurGlobalViewModel(_sharedDataService, i))
         ];
-        sharedDataService.TeamSwapped += (_, _) =>
-        {
-            for (int i = 0; i < _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray.Length; i++)
-            {
-                BanSurGlobalViewModelList[i].SelectedChara =
-                    _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray[i];
-                BanSurGlobalViewModelList[i].SyncCharaAsync();
-            }
-        };
     }
 
     public ObservableCollection<BanSurCurrentViewModel> BanSurCurrentViewModelList { get; set; }
@@ -65,23 +56,22 @@ public partial class BanSurPageViewModel : ViewModelBase
             }
         }
 
-        public override Task SyncCharaAsync()
+        protected override Task SyncCharaToSourceAsync()
         {
             SharedDataService.CurrentGame.CurrentSurBannedList[Index] = SelectedChara;
             PreviewImage = SharedDataService.CurrentGame.CurrentSurBannedList[Index]?.HeaderImageSingleColor;
             return Task.CompletedTask;
         }
 
+        protected override void SyncCharaFromSourceAsync()
+        {
+            SelectedChara = SharedDataService.CurrentGame.CurrentSurBannedList[Index];
+            PreviewImage = SelectedChara?.HeaderImageSingleColor;
+        }
+
         protected override void SyncIsEnabled()
         {
             SharedDataService.CanCurrentSurBannedList[Index] = IsEnabled;
-        }
-
-        protected override void OnCurrentGameChanged(object? sender, EventArgs args)
-        {
-            base.OnCurrentGameChanged(sender, args);
-            SelectedChara = SharedDataService.CurrentGame.CurrentSurBannedList[Index];
-            PreviewImage = SelectedChara?.HeaderImageSingleColor;
         }
 
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanSur;
@@ -105,11 +95,17 @@ public partial class BanSurPageViewModel : ViewModelBase
             }
         }
 
-        public override Task SyncCharaAsync()
+        protected override Task SyncCharaToSourceAsync()
         {
             SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index] = SelectedChara;
             PreviewImage = SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index]?.HeaderImageSingleColor;
             return Task.CompletedTask;
+        }
+
+        protected override void SyncCharaFromSourceAsync()
+        {
+            SelectedChara = SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index];
+            PreviewImage = SelectedChara?.HeaderImageSingleColor;
         }
 
         protected override void SyncIsEnabled()

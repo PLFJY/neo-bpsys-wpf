@@ -38,7 +38,7 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
 
     [ObservableProperty] private bool _isDebugContentVisible;
 
-    public Team MainTeam => _sharedDataService.MainTeam;
+    public Team MainTeam => _sharedDataService.HomeTeam;
     public Team AwayTeam => _sharedDataService.AwayTeam;
 
     #region 比分控制
@@ -79,35 +79,35 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     [RelayCommand]
     private void Reset()
     {
-        _sharedDataService.MainTeam.ResetScore();
+        _sharedDataService.HomeTeam.ResetScore();
         _sharedDataService.AwayTeam.ResetScore();
     }
 
     [RelayCommand]
     private void ResetGameScore()
     {
-        _sharedDataService.MainTeam.Score.GameScores = 0;
+        _sharedDataService.HomeTeam.Score.GameScores = 0;
         _sharedDataService.AwayTeam.Score.GameScores = 0;
     }
 
     [RelayCommand]
     private void CalculateMajorPoint()
     {
-        if (_sharedDataService.MainTeam.Score.GameScores == _sharedDataService.AwayTeam.Score.GameScores)
+        if (_sharedDataService.HomeTeam.Score.GameScores == _sharedDataService.AwayTeam.Score.GameScores)
         {
-            _sharedDataService.MainTeam.Score.Tie++;
+            _sharedDataService.HomeTeam.Score.Tie++;
             _sharedDataService.AwayTeam.Score.Tie++;
         }
-        else if (_sharedDataService.MainTeam.Score.GameScores > _sharedDataService.AwayTeam.Score.GameScores)
+        else if (_sharedDataService.HomeTeam.Score.GameScores > _sharedDataService.AwayTeam.Score.GameScores)
         {
-            _sharedDataService.MainTeam.Score.Win++;
+            _sharedDataService.HomeTeam.Score.Win++;
         }
         else
         {
             _sharedDataService.AwayTeam.Score.Win++;
         }
 
-        _sharedDataService.MainTeam.Score.GameScores = 0;
+        _sharedDataService.HomeTeam.Score.GameScores = 0;
         _sharedDataService.AwayTeam.Score.GameScores = 0;
         OnPropertyChanged(string.Empty);
     }

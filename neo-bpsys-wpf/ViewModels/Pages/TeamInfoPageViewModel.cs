@@ -20,7 +20,7 @@ public partial class TeamInfoPageViewModel : ViewModelBase
     {
         var sharedDataService1 = sharedDataService;
         MainTeamInfoViewModel =
-            new TeamInfoViewModel(sharedDataService1.MainTeam, filePickerService);
+            new TeamInfoViewModel(sharedDataService1.HomeTeam, filePickerService);
         AwayTeamInfoViewModel =
             new TeamInfoViewModel(sharedDataService1.AwayTeam, filePickerService);
         OnFieldSurPlayerViewModels =

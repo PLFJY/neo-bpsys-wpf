@@ -33,15 +33,6 @@ public partial class BanHunPageViewModel : ViewModelBase
             .. Enumerable.Range(0, AppConstants.GlobalBanHunCount)
                 .Select(i => new BanHunGlobalViewModel(_sharedDataService, i))
         ];
-        sharedDataService.TeamSwapped += (_, _) =>
-        {
-            for (var i = 0; i < _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunRecordArray.Length; i++)
-            {
-                BanHunGlobalViewModelList[i].SelectedChara =
-                    _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunRecordArray[i];
-                BanHunGlobalViewModelList[i].SyncCharaAsync();
-            }
-        };
     }
 
     public ObservableCollection<BanHunCurrentViewModel> BanHunCurrentViewModelList { get; set; }
@@ -68,11 +59,17 @@ public partial class BanHunPageViewModel : ViewModelBase
             }
         }
 
-        public override Task SyncCharaAsync()
+        protected override Task SyncCharaToSourceAsync()
         {
             SharedDataService.CurrentGame.CurrentHunBannedList[Index] = SelectedChara;
             PreviewImage = SharedDataService.CurrentGame.CurrentHunBannedList[Index]?.HeaderImageSingleColor;
             return Task.CompletedTask;
+        }
+
+        protected override void SyncCharaFromSourceAsync()
+        {
+            SelectedChara = SharedDataService.CurrentGame.CurrentHunBannedList[Index];
+            PreviewImage = SelectedChara?.HeaderImageSingleColor;
         }
 
         protected override void SyncIsEnabled()
@@ -81,13 +78,6 @@ public partial class BanHunPageViewModel : ViewModelBase
         }
 
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.BanHun;
-
-        protected override void OnCurrentGameChanged(object? sender, EventArgs args)
-        {
-            base.OnCurrentGameChanged(sender, args);
-            SelectedChara = SharedDataService.CurrentGame.CurrentHunBannedList[Index];
-            PreviewImage = SelectedChara?.HeaderImageSingleColor;
-        }
     }
 
     public class BanHunGlobalViewModel : CharaSelectViewModelBase
@@ -108,11 +98,17 @@ public partial class BanHunPageViewModel : ViewModelBase
             }
         }
 
-        public override Task SyncCharaAsync()
+        protected override Task SyncCharaToSourceAsync()
         {
             SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[Index] = SelectedChara;
             PreviewImage = SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[Index]?.HeaderImageSingleColor;
             return Task.CompletedTask;
+        }
+
+        protected override void SyncCharaFromSourceAsync()
+        {
+            SelectedChara = SharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[Index];
+            PreviewImage = SelectedChara?.HeaderImageSingleColor;
         }
 
         protected override void SyncIsEnabled()

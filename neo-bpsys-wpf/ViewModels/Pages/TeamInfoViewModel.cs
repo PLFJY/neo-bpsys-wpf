@@ -85,7 +85,8 @@ public partial class TeamInfoPageViewModel
                 teamInfo.Camp = CurrentTeam.Camp;
                 CurrentTeam.ImportTeamInfo(teamInfo);
                 TeamName = CurrentTeam.Name;
-                OnPropertyChanged();
+                RefreshCanMemberOnFieldState(Camp.Sur);
+                RefreshCanMemberOnFieldState(Camp.Hun);
             }
             catch (JsonException ex)
             {

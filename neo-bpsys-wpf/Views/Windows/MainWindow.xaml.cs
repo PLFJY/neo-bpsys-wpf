@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using System.ComponentModel;
@@ -12,6 +13,7 @@ using I18nHelper = neo_bpsys_wpf.Helpers.I18nHelper;
 using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
 using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
+using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.Views.Windows;
 
@@ -58,6 +60,26 @@ public partial class MainWindow : FluentWindow, INavigationWindow
                 );
             };
     }
+
+#if DEBUG
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        if (e.Key == Key.F12)
+        {
+            try
+            {
+                var service = IAppHost.Host!.Services.GetRequiredService<ISharedDataService>();
+                var win = new DebugSharedDataWindow(service);
+                win.Show();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(ex.ToString());
+            }
+        }
+    }
+#endif
 
     protected override void OnClosing(CancelEventArgs e)
     {

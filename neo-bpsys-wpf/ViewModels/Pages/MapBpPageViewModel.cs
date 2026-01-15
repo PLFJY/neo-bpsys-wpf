@@ -33,7 +33,7 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
         _sharedDataService = sharedDataService;
         MapSelectTeamsList =
         [
-            new MapSelectTeam(_sharedDataService.MainTeam, TeamType.HomeTeam),
+            new MapSelectTeam(_sharedDataService.HomeTeam, TeamType.HomeTeam),
             new MapSelectTeam(_sharedDataService.AwayTeam, TeamType.AwayTeam)
         ];
         PickMapTeam = MapSelectTeamsList[0];

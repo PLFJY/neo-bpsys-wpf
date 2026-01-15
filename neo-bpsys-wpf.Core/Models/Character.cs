@@ -87,11 +87,13 @@ public class Character
     /// <summary>
     /// 角色名称全拼
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWriting)]
     public string FullSpell { get; } = string.Empty;
 
     /// <summary>
     /// 角色名称简拼
     /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWriting)]
     public string Abbrev { get; } = string.Empty;
 
     /// <summary>

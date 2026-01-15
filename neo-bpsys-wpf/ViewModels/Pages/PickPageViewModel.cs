@@ -142,7 +142,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         }
     }
 
-    public Team MainTeam => _sharedDataService.MainTeam;
+    public Team MainTeam => _sharedDataService.HomeTeam;
     public Team AwayTeam => _sharedDataService.AwayTeam;
 
     public ObservableCollection<bool> SurPickingBorderList { get; set; } =
@@ -169,21 +169,34 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             _frontedWindowService = frontedWindowService;
             sharedDataService.TeamSwapped += (_, _) => OnPropertyChanged(nameof(ThisPlayer));
             ThisPlayer.PropertyChanged += OnThisPlayerPropertyChanged;
+            sharedDataService.CurrentGameChanged += (_, _) =>
+            {
+                ThisPlayer.PropertyChanged -= OnThisPlayerPropertyChanged;
+                OnPropertyChanged(nameof(ThisPlayer));
+                ThisPlayer.PropertyChanged += OnThisPlayerPropertyChanged;
+                SyncCharaFromSourceAsync();
+            };
         }
 
         private void OnThisPlayerPropertyChanged(object? sender, PropertyChangedEventArgs args)
         {
             if (args.PropertyName == nameof(ThisPlayer.Character))
-                ReverseSyncChara();
+                SyncCharaFromSourceAsync();
         }
 
-        public override async Task SyncCharaAsync()
+        protected override async Task SyncCharaToSourceAsync()
         {
             _frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", Index, string.Empty);
             await Task.Delay(250);
             ThisPlayer.Character = SelectedChara;
             _frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", Index, string.Empty);
             PreviewImage = ThisPlayer.Character?.HeaderImage;
+        }
+
+        protected override void SyncCharaFromSourceAsync()
+        {
+            SelectedChara = SharedDataService.CurrentGame.SurPlayerList[Index].Character;
+            PreviewImage = SelectedChara?.HeaderImage;
         }
 
         [RelayCommand]
@@ -197,21 +210,6 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             _frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", parameter.Target, string.Empty);
         }
 
-        private void ReverseSyncChara()
-        {
-            SelectedChara = SharedDataService.CurrentGame.SurPlayerList[Index].Character;
-            PreviewImage = SelectedChara?.HeaderImage;
-        }
-
-        protected override void OnCurrentGameChanged(object? sender, EventArgs args)
-        {
-            base.OnCurrentGameChanged(sender, args);
-            ThisPlayer.PropertyChanged -= OnThisPlayerPropertyChanged;
-            OnPropertyChanged(nameof(ThisPlayer));
-            ThisPlayer.PropertyChanged += OnThisPlayerPropertyChanged;
-            ReverseSyncChara();
-        }
-
         protected override void SyncIsEnabled() => throw new NotImplementedException();
 
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickSur;
@@ -220,7 +218,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
     public class HunPickViewModel(ISharedDataService sharedDataService, IFrontedWindowService frontedWindowService)
         : CharaSelectViewModelBase(sharedDataService, Camp.Hun)
     {
-        public override async Task SyncCharaAsync()
+        protected override async Task SyncCharaToSourceAsync()
         {
             frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, "HunPick", -1, string.Empty);
             await Task.Delay(250);
@@ -229,23 +227,17 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             PreviewImage = SharedDataService.CurrentGame.HunPlayer.Character?.HeaderImage;
         }
 
-        protected override void SyncIsEnabled()
-        {
-            throw new NotImplementedException();
-        }
-        
-        private void ReverseSyncChara()
+        protected override void SyncCharaFromSourceAsync()
         {
             SelectedChara = SharedDataService.CurrentGame.HunPlayer.Character;
             PreviewImage = SelectedChara?.HeaderImage;
         }
 
-        protected override void OnCurrentGameChanged(object? sender, EventArgs args)
+        protected override void SyncIsEnabled()
         {
-            base.OnCurrentGameChanged(sender, args);
-            ReverseSyncChara();
+            throw new NotImplementedException();
         }
-
+        
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickHun;
     }
 
@@ -260,11 +252,16 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             set
             {
                 _recordedChara = value;
-                SharedDataService.MainTeam.GlobalBannedSurRecordArray[Index] = _recordedChara;
+                SharedDataService.HomeTeam.GlobalBannedSurRecordArray[Index] = _recordedChara;
             }
         }
 
-        public override Task SyncCharaAsync() => throw new NotImplementedException();
+        protected override Task SyncCharaToSourceAsync() => throw new NotImplementedException();
+
+        protected override void SyncCharaFromSourceAsync()
+        {
+            
+        }
 
         protected override void SyncIsEnabled()
         {
@@ -285,11 +282,15 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             set
             {
                 _recordedChara = value;
-                SharedDataService.MainTeam.GlobalBannedHunRecordArray[Index] = _recordedChara;
+                SharedDataService.HomeTeam.GlobalBannedHunRecordArray[Index] = _recordedChara;
             }
         }
 
-        public override Task SyncCharaAsync() => throw new NotImplementedException();
+        protected override Task SyncCharaToSourceAsync() => throw new NotImplementedException();
+        protected override void SyncCharaFromSourceAsync()
+        {
+            
+        }
 
         protected override void SyncIsEnabled() => throw new NotImplementedException();
 
@@ -311,7 +312,11 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             }
         }
 
-        public override Task SyncCharaAsync() => throw new NotImplementedException();
+        protected override Task SyncCharaToSourceAsync() => throw new NotImplementedException();
+        protected override void SyncCharaFromSourceAsync()
+        {
+            
+        }
 
         protected override void SyncIsEnabled() => throw new NotImplementedException();
 
@@ -333,7 +338,11 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             }
         }
 
-        public override Task SyncCharaAsync() => throw new NotImplementedException();
+        protected override Task SyncCharaToSourceAsync() => throw new NotImplementedException();
+        protected override void SyncCharaFromSourceAsync()
+        {
+            SelectedChara = SharedDataService.AwayTeam.GlobalBannedHunRecordArray[Index];
+        }
 
         protected override void SyncIsEnabled() => throw new NotImplementedException();
 

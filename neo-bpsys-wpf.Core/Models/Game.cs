@@ -70,7 +70,7 @@ public partial class Game : ObservableObjectBase
     /// 当局求生者禁用列表
     /// </summary>
     [ObservableProperty] private ObservableCollection<Character?> _currentSurBannedList = [];
-    
+
     /// <summary>
     /// 当局监管者禁用列表
     /// </summary>
@@ -87,24 +87,30 @@ public partial class Game : ObservableObjectBase
     /// <param name="pickedMap">选择的地图</param>
     /// <param name="bannedMap">Ban掉的地图(V1)</param>
     /// <param name="mapV2Dictionary">地图V2字典</param>
+    /// <param name="guid">对局GUID(用于恢复记录)</param>
+    /// <param name="startTime">对局开始时间(用于恢复记录)</param>
     /// <param name="surPlayersData">求生者选手数据(用于恢复记录)</param>
     /// <param name="hunPlayerData">监管者选手数据(用于恢复记录)</param>
     /// <param name="currentSurBannedList">求生者禁用列表(用于恢复记录)</param>
     /// <param name="currentHunBannedList">监管者禁用列表(用于恢复记录)</param>
     [JsonConstructor]
-    public Game(Team surTeam, Team hunTeam, GameProgress gameProgress, Map? pickedMap = null, Map? bannedMap = null,
-        Dictionary<string, MapV2>? mapV2Dictionary = null, 
+    public Game(Team surTeam, Team hunTeam, 
+        GameProgress gameProgress, Map? pickedMap = null, Map? bannedMap = null,
+        Dictionary<string, MapV2>? mapV2Dictionary = null,
+        Guid guid = default, DateTime startTime = default, 
         ObservableCollection<Player>? surPlayersData = null,
         Player? hunPlayerData = null,
         ObservableCollection<Character?>? currentSurBannedList = null,
         ObservableCollection<Character?>? currentHunBannedList = null)
     {
         //基本信息初始化
-        Guid = Guid.NewGuid();
-        StartTime = DateTime.Now;
+        Guid = guid == Guid.Empty ? Guid.NewGuid() : guid;
+        StartTime = startTime == default ? DateTime.Now : startTime;
         //初始化队伍信息
         SurTeam = surTeam;
+        SurTeam.Camp = Camp.Sur;
         HunTeam = hunTeam;
+        HunTeam.Camp = Camp.Hun;
         //初始化对局进度
         GameProgress = gameProgress;
 
@@ -142,8 +148,14 @@ public partial class Game : ObservableObjectBase
         }
 
         //新建角色禁用列表
-        CurrentSurBannedList = currentSurBannedList?? [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(_ => new Character(Camp.Sur))];
-        CurrentHunBannedList = currentHunBannedList?? [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(_ => new Character(Camp.Hun))];
+        CurrentSurBannedList = currentSurBannedList ??
+        [
+            .. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(_ => new Character(Camp.Sur))
+        ];
+        CurrentHunBannedList = currentHunBannedList ??
+        [
+            .. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(_ => new Character(Camp.Hun))
+        ];
 
         //初始化地图信息
         if (pickedMap != null) PickedMap = pickedMap;
@@ -155,7 +167,6 @@ public partial class Game : ObservableObjectBase
         {
             MapV2Dictionary.Add(map.ToString(), new MapV2(map));
         }
-
     }
 
     #region 上场选手
@@ -184,6 +195,7 @@ public partial class Game : ObservableObjectBase
     }
 
     private void OnMemberOnFieldChanged(object? sender, EventArgs args) => LoadMembers();
+
     #endregion
 
     #region 地图BP
@@ -200,7 +212,8 @@ public partial class Game : ObservableObjectBase
             _ =>
             {
                 PickedMapImage = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, _pickedMap.ToString());
-                PickedMapImageLarge = ImageHelper.GetImageSourceFromName(ImageSourceKey.map_square, _pickedMap.ToString());
+                PickedMapImageLarge =
+                    ImageHelper.GetImageSourceFromName(ImageSourceKey.map_square, _pickedMap.ToString());
             });
     }
 
@@ -213,28 +226,26 @@ public partial class Game : ObservableObjectBase
     {
         get => _bannedMap;
         set => SetPropertyWithAction(ref _bannedMap, value,
-            _ => BannedMapImage = ImageHelper.GetImageSourceFromName(ImageSourceKey.map_singleColor, _bannedMap.ToString()));
+            _ => BannedMapImage =
+                ImageHelper.GetImageSourceFromName(ImageSourceKey.map_singleColor, _bannedMap.ToString()));
     }
 
     /// <summary>
     /// 选择的地图的图片
     /// </summary>
-    [ObservableProperty]
-    [property: JsonIgnore]
+    [ObservableProperty] [property: JsonIgnore]
     private ImageSource? _pickedMapImage;
 
     /// <summary>
     /// 选择的地图的图片
     /// </summary>
-    [ObservableProperty]
-    [property: JsonIgnore]
+    [ObservableProperty] [property: JsonIgnore]
     private ImageSource? _pickedMapImageLarge;
 
     /// <summary>
     /// Ban掉的地图的图片
     /// </summary>
-    [ObservableProperty]
-    [property: JsonIgnore]
+    [ObservableProperty] [property: JsonIgnore]
     private ImageSource? _bannedMapImage;
 
     /// <summary>

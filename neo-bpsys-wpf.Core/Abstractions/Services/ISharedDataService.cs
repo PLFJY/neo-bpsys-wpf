@@ -14,7 +14,7 @@ public interface ISharedDataService
     /// 主队
     /// 该属性对象全场始终不变，信息导入依靠 <see cref="Team.ImportTeamInfo(Team)"/> 方法
     /// </summary>
-    Team MainTeam { get; }
+    Team HomeTeam { get; }
 
     /// <summary>
     /// 客队

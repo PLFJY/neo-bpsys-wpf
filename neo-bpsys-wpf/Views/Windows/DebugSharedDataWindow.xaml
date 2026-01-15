@@ -1,0 +1,62 @@
+<Window
+    x:Class="neo_bpsys_wpf.Views.Windows.DebugSharedDataWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="Debug Shared Data Dump"
+    Width="800"
+    Height="600"
+    Background="{DynamicResource ApplicationBackgroundBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    KeyDown="Window_KeyDown"
+    mc:Ignorable="d">
+    <Window.Resources>
+        <HierarchicalDataTemplate x:Key="DebugNodeTemplate" ItemsSource="{Binding Children}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock FontWeight="Bold" Text="{Binding Name}" />
+                <TextBlock Text=": " />
+                <TextBlock
+                    Margin="5,0,0,0"
+                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                    Text="{Binding Value}" />
+                <TextBlock
+                    Margin="10,0,0,0"
+                    FontStyle="Italic"
+                    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                    Text="{Binding Type}" />
+            </StackPanel>
+        </HierarchicalDataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Margin="5" Orientation="Horizontal">
+            <Button
+                Margin="5"
+                Click="Refresh_Click"
+                Content="Refresh" />
+            <TextBlock
+                Margin="5"
+                VerticalAlignment="Center"
+                Text="Press F5 to Refresh" />
+        </StackPanel>
+
+        <TreeView
+            x:Name="DebugTree"
+            Grid.Row="1"
+            Margin="5"
+            ItemTemplate="{StaticResource DebugNodeTemplate}">
+            <TreeView.ItemContainerStyle>
+                <Style BasedOn="{StaticResource {x:Type TreeViewItem}}" TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                </Style>
+            </TreeView.ItemContainerStyle>
+        </TreeView>
+    </Grid>
+</Window>
