@@ -1,9 +1,8 @@
-using System.IO;
-using System.Text.Json.Serialization;
-using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Services;
+using System.IO;
+using System.Text.Json.Serialization;
 
 namespace neo_bpsys_wpf.Core.Models;
 
@@ -97,8 +96,8 @@ public class PluginInfo : ObservableObjectBase
 
     [JsonIgnore]
     public string ExceptionText => IsEnabled ?
-        (Exception != null ? Exception.ToString() 
-            : "Loaded") 
+        (Exception != null ? Exception.ToString()
+            : "Loaded")
         : "Disabled";
 
     /// <summary>

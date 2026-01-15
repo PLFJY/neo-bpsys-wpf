@@ -1,7 +1,7 @@
-﻿using System.Windows;
-using neo_bpsys_wpf.Core.Enums;
+﻿using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Services.Registry;
+using System.Windows;
 
 namespace neo_bpsys_wpf.Core.Helpers;
 

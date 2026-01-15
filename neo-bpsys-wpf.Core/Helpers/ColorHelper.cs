@@ -65,7 +65,7 @@ public static class ColorHelper
 
         return new SolidColorBrush(color);
     }
-    
+
     public static string ToArgbHexString(this Color color)
     {
         return $"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}";
@@ -74,7 +74,7 @@ public static class ColorHelper
     public static Color ToColor(this string? argb)
     {
         if (string.IsNullOrWhiteSpace(argb))
-            return Color.FromArgb(255,255,255,255);
+            return Color.FromArgb(255, 255, 255, 255);
 
         // 移除可能存在的#前缀
         if (argb.StartsWith("#"))

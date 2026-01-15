@@ -1,8 +1,8 @@
+using neo_bpsys_wpf.Core.Enums;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using neo_bpsys_wpf.Core.Enums;
 
 namespace neo_bpsys_wpf.Core.Helpers;
 
@@ -108,7 +108,7 @@ public static class ImageHelper
     public static ImageSource? GetTraitImageSource(TraitType? trait, bool isBlackTalentAndTraitEnable)
     {
         if (trait == null) return null;
-        
+
         var fileName = Path.Combine(
             AppConstants.ResourcesPath,
             nameof(ImageSourceKey.trait),
@@ -117,7 +117,7 @@ public static class ImageHelper
         );
         return !File.Exists(fileName) ? null : new BitmapImage(new Uri(fileName));
     }
-    
+
     /// <summary>
     /// 获取Ui图片
     /// </summary>
@@ -164,5 +164,5 @@ public static class ImageHelper
     }
 
 
-    
+
 }

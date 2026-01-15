@@ -1,6 +1,6 @@
-﻿using System.Windows;
+﻿using neo_bpsys_wpf.Core.Controls;
+using System.Windows;
 using System.Windows.Documents;
-using neo_bpsys_wpf.Core.Controls;
 
 namespace neo_bpsys_wpf.Core.AttachedBehaviors;
 

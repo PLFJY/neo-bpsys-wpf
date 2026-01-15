@@ -1,15 +1,14 @@
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using neo_bpsys_wpf.Core.Abstractions.Services;
 
 namespace neo_bpsys_wpf.Views.Windows;
 
@@ -44,7 +43,7 @@ public partial class DebugSharedDataWindow : Window
 
     private void Window_KeyDown(object sender, KeyEventArgs e)
     {
-        if(e.Key == Key.F10)
+        if (e.Key == Key.F10)
         {
             Topmost = !Topmost;
         }

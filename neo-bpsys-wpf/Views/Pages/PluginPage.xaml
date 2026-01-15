@@ -108,6 +108,10 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
+                    <TextBlock
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Center"
+                        Text="{lex:Loc PluginsThirdPartyWarning}" />
                     <StackPanel
                         Grid.Row="0"
                         Margin="0,10,10,0"
@@ -202,6 +206,9 @@
                                                                     <DataTrigger Binding="{Binding IsUninstalling}" Value="True">
                                                                         <Setter Property="Text" Value="{lex:Loc CancelUninstall}" />
                                                                     </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding IsBuiltIn}" Value="True">
+                                                                        <Setter Property="Text" Value="{lex:Loc BuiltInPluginCannotBeUninstalled}" />
+                                                                    </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
                                                         </TextBlock.Style>
@@ -221,11 +228,10 @@
                                                 Content="{Binding Manifest.Url}"
                                                 NavigateUri="{Binding Manifest.Url}" />
                                         </Grid>
-                                        <TextBlock>
+                                        <TextBlock TextWrapping="WrapWithOverflow">
                                             <Run Text="{lex:Loc PluginStatus}" />
                                             <Run Text="{lex:Loc {Binding ExceptionText}, FallbackBehavior=Key}" />
                                         </TextBlock>
-
                                     </StackPanel>
                                 </ui:CardExpander>
                             </DataTemplate>

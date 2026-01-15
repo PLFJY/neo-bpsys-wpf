@@ -1,5 +1,5 @@
-﻿using System.Runtime.CompilerServices;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace neo_bpsys_wpf.Core.Abstractions;
 

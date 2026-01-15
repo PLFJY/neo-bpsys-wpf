@@ -1,11 +1,11 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using neo_bpsys_wpf.Core.Abstractions;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using System.Globalization;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Media;
-using CommunityToolkit.Mvvm.ComponentModel;
-using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Abstractions;
 
 namespace neo_bpsys_wpf.Core.Models;
 
@@ -18,7 +18,7 @@ public partial class Settings : ObservableObjectBase
     public bool ShowAfterUpdateTip { get; set; } = true;
 
     private LanguageKey _language = LanguageKey.System;
-    
+
     public LanguageKey Language
     {
         get => _language;
@@ -53,7 +53,8 @@ public partial class Settings : ObservableObjectBase
 /// </summary>
 public partial class TextSettings : ObservableObjectBase
 {
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(Foreground))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Foreground))]
     private string? _color;
 
     /// <summary>
@@ -62,7 +63,8 @@ public partial class TextSettings : ObservableObjectBase
     [JsonIgnore]
     public Brush Foreground => ColorHelper.HexToBrush(string.IsNullOrEmpty(Color) ? "#FFFFFFFF" : Color);
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(FontFamily))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FontFamily))]
     private string? _fontFamilySite;
 
     private FontFamily? _fontFamily;
@@ -121,19 +123,24 @@ public partial class BpWindowSettings : ObservableObjectBase
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(BgImage))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BgImage))]
     private string? _bgImageUri;
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CurrentBanLockImage))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CurrentBanLockImage))]
     private string? _currentBanLockImageUri;
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(GlobalBanLockImage))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GlobalBanLockImage))]
     private string? _globalBanLockImageUri;
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(PickingBorderImage))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PickingBorderImage))]
     private string? _pickingBorderImageUri;
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(PickingBorderBrush))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PickingBorderBrush))]
     private string? _pickingBorderColor = Colors.White.ToString();
 
     /// <summary>
@@ -192,7 +199,8 @@ public partial class CutSceneWindowSettings : ObservableObjectBase
     public WindowResolution Resolution { get; set; } = new(1440, 810);
     public bool IsBlackTalentAndTraitEnable { get; set; } = false;
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(BgImage))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BgImage))]
     private string? _bgUri;
 
     [ObservableProperty] private CutSceneWindowTextSettings _textSettings = new();
@@ -230,16 +238,20 @@ public partial class ScoreWindowSettings : ObservableObjectBase
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(SurScoreBgImage))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SurScoreBgImage))]
     private string? _surScoreBgImageUri;
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(HunScoreBgImage))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HunScoreBgImage))]
     private string? _hunScoreBgImageUri;
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(GlobalScoreBgImage))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GlobalScoreBgImage))]
     private string? _globalScoreBgImageUri;
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(GlobalScoreBgImageBo3))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GlobalScoreBgImageBo3))]
     private string? _globalScoreBgImageUriBo3;
 
     public bool IsCampIconBlackVerEnabled { get; set; }
@@ -291,7 +303,8 @@ public partial class GameDataWindowSettings : ObservableObjectBase
 {
     public WindowResolution Resolution { get; set; } = new(1440, 810);
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(BgImage))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BgImage))]
     private string? _bgImageUri;
 
     [ObservableProperty] private GameDataWindowTextSettings _textSettings = new();
@@ -323,10 +336,10 @@ public class GameDataWindowTextSettings
 
     public TextSettings SurDataHeader { get; set; } = new("#FFFFFFFF",
         "pack://application:,,,/Assets/Fonts/#Noto Sans", 16);
-    
+
     public TextSettings HunDataHeader { get; set; } = new("#FFFFFFFF",
         "pack://application:,,,/Assets/Fonts/#Noto Sans", 16);
-    
+
     public TextSettings SurData { get; set; } = new("#FFFFFFFF",
         "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 22);
 
@@ -339,27 +352,34 @@ public class GameDataWindowTextSettings
 /// </summary>
 public partial class WidgetsWindowSettings : ObservableObjectBase
 {
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(MapBpBgImage))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MapBpBgImage))]
     private string? _mapBpBgUri;
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(MapBpV2BgImage))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MapBpV2BgImage))]
     private string? _mapBpV2BgUri;
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(MapBpV2PickBorderImage))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MapBpV2PickBorderImage))]
     private string? _mapBpV2PickingBorderImageUri;
 
     public bool IsCampIconBlackVerEnabled { get; set; }
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(BpOverviewBgImage))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BpOverviewBgImage))]
     private string? _bpOverviewBgUri;
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(CurrentBanLockImage))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CurrentBanLockImage))]
     private string? _currentBanLockImageUri;
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(GlobalBanLockImage))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GlobalBanLockImage))]
     private string? _globalBanLockImageUri;
 
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(MapBpV2_PickingBorderBrush))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MapBpV2_PickingBorderBrush))]
     private string? _mapBpV2_PickingBorderColor = Colors.DarkGreen.ToString();
 
     /// <summary>

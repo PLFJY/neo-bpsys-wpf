@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using neo_bpsys_wpf.Core.Attributes;
+﻿using neo_bpsys_wpf.Core.Attributes;
 
 namespace neo_bpsys_wpf.Core.Services.Registry;
 

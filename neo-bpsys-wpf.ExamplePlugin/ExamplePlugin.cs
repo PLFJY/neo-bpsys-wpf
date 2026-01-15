@@ -1,11 +1,6 @@
-using System.IO;
-using System.Windows;
-using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
-using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Extensions.Registry;
 using neo_bpsys_wpf.Core.Helpers;
@@ -13,6 +8,7 @@ using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.ExamplePlugin.Models;
 using neo_bpsys_wpf.ExamplePlugin.Services;
 using neo_bpsys_wpf.ExamplePlugin.Views;
+using System.IO;
 
 namespace neo_bpsys_wpf.ExamplePlugin;
 
@@ -24,13 +20,13 @@ public class ExamplePlugin : PluginBase
     {
         //注册后台页面
         services.AddBackendPage<MainPage, ViewModels.MainPageViewModel>();
-            
+
         //注册前台窗口
         services.AddFrontedWindow<MainWindow, ViewModels.MainWindowViewModel>();
-            
+
         //注册服务
         services.AddSingleton<IExampleService, ExampleService>();
-            
+
         //注册注入控件
         ExampleInjectedControl injectedControl = new();
         FrontedWindowHelper.InjectControlToFrontedWindow("D9AFD731-DB3C-408B-8368-D70E688CE7CB",

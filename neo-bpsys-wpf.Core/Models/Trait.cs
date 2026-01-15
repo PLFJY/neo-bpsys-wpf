@@ -1,6 +1,6 @@
+using neo_bpsys_wpf.Core.Helpers;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
-using neo_bpsys_wpf.Core.Helpers;
 
 namespace neo_bpsys_wpf.Core.Models;
 

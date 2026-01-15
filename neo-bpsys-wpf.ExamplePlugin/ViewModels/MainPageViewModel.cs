@@ -13,7 +13,7 @@ public partial class MainPageViewModel : ViewModelBase
 
     public MainPageViewModel()
     {
-        
+
     }
 
     public MainPageViewModel(IFrontedWindowService frontedWindowService)
@@ -22,7 +22,7 @@ public partial class MainPageViewModel : ViewModelBase
         //利用 GUID 获取注入的控件实例
         _injectedControl =
             frontedWindowService.GetInjectedControl("D9AFD731-DB3C-408B-8368-D70E688CE7CB") as ExampleInjectedControl;
-        
+
         EditedText = _injectedControl.TextBlock1.Text;
     }
 

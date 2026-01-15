@@ -1,6 +1,6 @@
+using neo_bpsys_wpf.Core.Models;
 using System.IO;
 using System.Text.Json;
-using neo_bpsys_wpf.Core.Models;
 
 namespace neo_bpsys_wpf.Core.Services;
 
@@ -37,7 +37,7 @@ public static class PluginStatusService
         {
             return enabled;
         }
-        
+
         // 默认情况下，内置插件不启用，外部插件启用
         return !isBuiltIn;
     }

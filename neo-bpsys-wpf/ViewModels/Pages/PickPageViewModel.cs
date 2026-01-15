@@ -237,7 +237,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         {
             throw new NotImplementedException();
         }
-        
+
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickHun;
     }
 
@@ -260,7 +260,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
 
         protected override void SyncCharaFromSourceAsync()
         {
-            
+
         }
 
         protected override void SyncIsEnabled()
@@ -289,7 +289,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         protected override Task SyncCharaToSourceAsync() => throw new NotImplementedException();
         protected override void SyncCharaFromSourceAsync()
         {
-            
+
         }
 
         protected override void SyncIsEnabled() => throw new NotImplementedException();
@@ -315,7 +315,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         protected override Task SyncCharaToSourceAsync() => throw new NotImplementedException();
         protected override void SyncCharaFromSourceAsync()
         {
-            
+
         }
 
         protected override void SyncIsEnabled() => throw new NotImplementedException();

@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Controls;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using System.ComponentModel;
-using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using Wpf.Ui;
@@ -13,7 +13,6 @@ using I18nHelper = neo_bpsys_wpf.Helpers.I18nHelper;
 using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
 using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
-using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.Views.Windows;
 
@@ -61,7 +60,7 @@ public partial class MainWindow : FluentWindow, INavigationWindow
             };
     }
 
-#if DEBUG
+#if !Release
     protected override void OnKeyDown(KeyEventArgs e)
     {
         base.OnKeyDown(e);

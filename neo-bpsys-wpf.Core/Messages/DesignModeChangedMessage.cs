@@ -1,6 +1,4 @@
-﻿using neo_bpsys_wpf.Core.Enums;
-
-namespace neo_bpsys_wpf.Core.Messages;
+﻿namespace neo_bpsys_wpf.Core.Messages;
 
 /// <summary>
 /// 設計モード変更メッセージ

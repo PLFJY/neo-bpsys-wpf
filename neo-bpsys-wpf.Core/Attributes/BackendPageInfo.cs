@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using neo_bpsys_wpf.Core.Enums;
+﻿using neo_bpsys_wpf.Core.Enums;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Core.Attributes;
