@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Messages;
 

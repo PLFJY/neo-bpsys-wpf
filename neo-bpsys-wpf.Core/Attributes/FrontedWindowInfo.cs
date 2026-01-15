@@ -61,8 +61,8 @@ public class FrontedWindowInfo : Attribute
             Canvas = [new CanvasName("BaseCanvas")];
         }
     }
-    
-    
+
+
     /// <summary>
     /// 前台窗口信息
     /// </summary>

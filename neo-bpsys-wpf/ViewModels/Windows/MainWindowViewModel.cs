@@ -10,17 +10,15 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Services.Registry;
+using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Views.Pages;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using neo_bpsys_wpf.Helpers;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
 using Game = neo_bpsys_wpf.Core.Models.Game;
-using Team = neo_bpsys_wpf.Core.Models.Team;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 

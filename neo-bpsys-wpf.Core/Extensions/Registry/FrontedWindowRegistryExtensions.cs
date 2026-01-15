@@ -1,8 +1,8 @@
-﻿using System.Windows;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Services.Registry;
+using System.Windows;
 
 namespace neo_bpsys_wpf.Core.Extensions.Registry;
 
@@ -23,14 +23,14 @@ public static class FrontedWindowRegistryExtensions
         }
 
         info.WindowType = type;
-        
+
         FrontedWindowRegistryService.RegisteredWindow.Add(info);
 
         services.AddSingleton<TViewModel>();
         services.AddSingleton<TView>(sp => new TView
-            {
-                DataContext = sp.GetRequiredService<TViewModel>()
-            }
+        {
+            DataContext = sp.GetRequiredService<TViewModel>()
+        }
         );
     }
 }

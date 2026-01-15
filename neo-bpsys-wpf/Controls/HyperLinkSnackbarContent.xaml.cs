@@ -10,7 +10,7 @@ public partial class HyperLinkSnackbarContent : UserControl
     public string NoLongerDisplayText { get; }
     public ICommand NoLogerDisplayedCommand { get; }
 
-    public HyperLinkSnackbarContent(string text,string noLongerDisplayText, Action noLogerDisplayedAction)
+    public HyperLinkSnackbarContent(string text, string noLongerDisplayText, Action noLogerDisplayedAction)
     {
         InitializeComponent();
         Text = text;

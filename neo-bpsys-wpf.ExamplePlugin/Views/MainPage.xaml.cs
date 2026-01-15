@@ -1,5 +1,5 @@
-﻿using System.Windows.Controls;
-using neo_bpsys_wpf.Core.Attributes;
+﻿using neo_bpsys_wpf.Core.Attributes;
+using System.Windows.Controls;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.ExamplePlugin.Views;

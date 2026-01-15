@@ -1,7 +1,5 @@
-using System.Windows;
-using System.Windows.Controls;
 using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Models;
+using System.Windows;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
@@ -11,7 +9,7 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 public interface IFrontedWindowService
 {
     #region Properties
-    
+
     /// <summary>
     /// 前台画布列表
     /// </summary>
@@ -28,9 +26,9 @@ public interface IFrontedWindowService
     Dictionary<string, bool> FrontedWindowStates { get; }
 
     #endregion
-    
+
     #region Window Management
-    
+
     /// <summary>
     /// 隐藏全部窗口
     /// </summary>
@@ -46,7 +44,7 @@ public interface IFrontedWindowService
     /// </summary>
     /// <param name="windowType">窗口类型</param>
     void HideWindow(FrontedWindowType windowType);
-    
+
     /// <summary>
     /// 隐藏窗口
     /// </summary>
@@ -58,7 +56,7 @@ public interface IFrontedWindowService
     /// </summary>
     /// <param name="windowType">窗口类型</param>
     void ShowWindow(FrontedWindowType windowType);
-    
+
     /// <summary>
     /// 显示窗口s
     /// </summary>
@@ -66,9 +64,9 @@ public interface IFrontedWindowService
     void ShowWindow(string windowId);
 
     #endregion
-    
+
     #region Animation Effects
-    
+
     /// <summary>
     /// 呼吸灯启动
     /// </summary>
@@ -155,9 +153,9 @@ public interface IFrontedWindowService
         string controlNameFooter);
 
     #endregion
-    
+
     #region Window Registration
-    
+
     /// <summary>
     /// 注册窗口和画布
     /// </summary>
@@ -167,9 +165,9 @@ public interface IFrontedWindowService
     void RegisterFrontedWindowAndCanvas(string windowId, Window window, string[] canvasNames);
 
     #endregion
-    
+
     #region Window Position Management
-    
+
     /// <summary>
     /// 恢复初始位置
     /// </summary>
@@ -177,7 +175,7 @@ public interface IFrontedWindowService
     /// <param name="canvasName"></param>
     /// <returns></returns>
     Task RestoreInitialPositions(FrontedWindowType windowType, string canvasName = "BaseCanvas");
-    
+
     /// <summary>
     /// 恢复初始位置
     /// </summary>
@@ -196,7 +194,7 @@ public interface IFrontedWindowService
     /// <param name="windowType">窗口类型</param>
     /// <param name="canvasName">画布名称</param>
     void SaveWindowCanvasElementsPosition(FrontedWindowType windowType, string canvasName = "BaseCanvas");
-    
+
     /// <summary>
     /// 保存指定窗口的指定Canvas中元素位置信息
     /// </summary>
@@ -209,7 +207,7 @@ public interface IFrontedWindowService
     /// </summary>
     /// <param name="windowType">窗口类型</param>
     public void SaveWindowElementsPosition(FrontedWindowType windowType);
-    
+
     /// <summary>
     /// 保存指定窗口的元素位置信息
     /// </summary>
@@ -217,16 +215,16 @@ public interface IFrontedWindowService
     public void SaveWindowElementsPosition(string windowId);
 
     #endregion
-    
+
     #region Window Information
-    
+
     /// <summary>
     /// 获取窗口名称
     /// </summary>
     /// <param name="windowType"></param>
     /// <returns></returns>
     string? GetWindowName(FrontedWindowType windowType);
-    
+
     /// <summary>
     /// 获取窗口名称
     /// </summary>
@@ -244,11 +242,11 @@ public interface IFrontedWindowService
     /// <param name="guid">控件 GUID</param>
     /// <returns>控件实例</returns>
     public FrameworkElement GetInjectedControl(string guid);
-    
+
     #endregion
-    
+
     #region Score Management
-    
+
     /// <summary>
     /// 重置全局分数
     /// </summary>

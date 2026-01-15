@@ -115,7 +115,7 @@
                                 Height="25"
                                 Margin="5,0,5,0"
                                 Source="/Assets/wpfui.png" />
-                            <TextBlock Text="WPF UI 4.0.3" />
+                            <TextBlock Text="WPF UI 4.2.0" />
                         </StackPanel>
                     </Grid>
                     <Grid Margin="0,10,0,0">
@@ -719,7 +719,7 @@
                 <StackPanel>
                     <ui:Image Source="/Assets/Contributors/plfjy.png" />
                     <TextBlock Text="零风PLFJY" />
-                    <TextBlock Text="软件作者" />
+                    <TextBlock Text="软件主要作者" />
                 </StackPanel>
                 <StackPanel>
                     <ui:Image Source="/Assets/Contributors/zack.jpg" />
@@ -737,7 +737,12 @@
                 <StackPanel>
                     <ui:Image Source="/Assets/Contributors/zhangzhilv.jpg" />
                     <TextBlock Text="张之律" />
-                    <TextBlock Text="提供了2025秋季赛规则的UI" />
+                    <TextBlock Text="提供了2025秋季赛规则软件 1.3 版本的UI" />
+                </StackPanel>
+                <StackPanel>
+                    <ui:Image Source="/Assets/Contributors/tp.jpg" />
+                    <TextBlock Text="tp" />
+                    <TextBlock Text="提供了 2.0 版本的默认 UI" />
                 </StackPanel>
             </StackPanel>
         </ui:CardExpander>

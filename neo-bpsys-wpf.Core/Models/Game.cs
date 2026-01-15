@@ -1,10 +1,10 @@
-using System.Collections.ObjectModel;
-using System.Text.Json.Serialization;
-using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using System.Collections.ObjectModel;
+using System.Text.Json.Serialization;
+using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Core.Models;
 
@@ -94,10 +94,10 @@ public partial class Game : ObservableObjectBase
     /// <param name="currentSurBannedList">求生者禁用列表(用于恢复记录)</param>
     /// <param name="currentHunBannedList">监管者禁用列表(用于恢复记录)</param>
     [JsonConstructor]
-    public Game(Team surTeam, Team hunTeam, 
+    public Game(Team surTeam, Team hunTeam,
         GameProgress gameProgress, Map? pickedMap = null, Map? bannedMap = null,
         Dictionary<string, MapV2>? mapV2Dictionary = null,
-        Guid guid = default, DateTime startTime = default, 
+        Guid guid = default, DateTime startTime = default,
         ObservableCollection<Player>? surPlayersData = null,
         Player? hunPlayerData = null,
         ObservableCollection<Character?>? currentSurBannedList = null,
@@ -233,19 +233,22 @@ public partial class Game : ObservableObjectBase
     /// <summary>
     /// 选择的地图的图片
     /// </summary>
-    [ObservableProperty] [property: JsonIgnore]
+    [ObservableProperty]
+    [property: JsonIgnore]
     private ImageSource? _pickedMapImage;
 
     /// <summary>
     /// 选择的地图的图片
     /// </summary>
-    [ObservableProperty] [property: JsonIgnore]
+    [ObservableProperty]
+    [property: JsonIgnore]
     private ImageSource? _pickedMapImageLarge;
 
     /// <summary>
     /// Ban掉的地图的图片
     /// </summary>
-    [ObservableProperty] [property: JsonIgnore]
+    [ObservableProperty]
+    [property: JsonIgnore]
     private ImageSource? _bannedMapImage;
 
     /// <summary>

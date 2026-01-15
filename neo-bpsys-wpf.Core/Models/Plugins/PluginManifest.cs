@@ -22,7 +22,7 @@ public record PluginManifest
     /// 插件描述。
     /// </summary>
     public string Description { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// 插件图标路径。默认为icon.png。
     /// </summary>
@@ -37,12 +37,12 @@ public record PluginManifest
     /// 插件版本
     /// </summary>
     public string Version { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// 插件目标主程序版本
     /// </summary>
     public string ApiVersion { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// 插件作者
     /// </summary>

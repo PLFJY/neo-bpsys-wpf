@@ -1,10 +1,6 @@
-﻿using System.Collections.ObjectModel;
-using System.Text.Json.Serialization;
-using System.Windows.Media;
-using CommunityToolkit.Mvvm.ComponentModel;
-using neo_bpsys_wpf.Core.Abstractions;
+﻿using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Models;
+using System.Collections.ObjectModel;
 
 namespace neo_bpsys_wpf.TeamJsonMaker;
 

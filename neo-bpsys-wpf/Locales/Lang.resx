@@ -1326,4 +1326,10 @@
   <data name="ImportFailed" xml:space="preserve">
     <value>导入失败：</value>
   </data>
+  <data name="BuiltInPluginCannotBeUninstalled" xml:space="preserve">
+    <value>内置插件无法卸载</value>
+  </data>
+  <data name="PluginsThirdPartyWarning" xml:space="preserve">
+    <value>插件由第三方提供，不保证其可用性和功能完整性</value>
+  </data>
 </root>

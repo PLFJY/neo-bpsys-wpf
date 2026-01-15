@@ -7,10 +7,10 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Helpers;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;
-using neo_bpsys_wpf.Helpers;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;

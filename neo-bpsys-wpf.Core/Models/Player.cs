@@ -1,7 +1,7 @@
-using System.Text.Json.Serialization;
-using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
+using System.Text.Json.Serialization;
+using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Core.Models;
 
@@ -23,28 +23,29 @@ public partial class Player : ObservableObjectBase
     /// 操控的选手
     /// </summary>
     [ObservableProperty][NotifyPropertyChangedFor(nameof(PictureShown))] private Member _member;
-    
+
     /// <summary>
     /// 选手所选的角色
     /// </summary>
-    [ObservableProperty] [NotifyPropertyChangedFor(nameof(PictureShown))]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PictureShown))]
     private Character? _character;
 
     /// <summary>
     /// 天赋
     /// </summary>
     [ObservableProperty] private Talent _talent = new();
-    
+
     /// <summary>
     /// 辅助特质
     /// </summary>
     [ObservableProperty] private Trait _trait = new(null);
-    
+
     /// <summary>
     /// 选手的数据
     /// </summary>
     [ObservableProperty] private PlayerData _data = new();
-    
+
     /// <summary>
     /// 显示的图片
     /// </summary>

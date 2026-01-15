@@ -1,9 +1,9 @@
-using System.Text.Json.Serialization;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Enums;
+using System.Text.Json.Serialization;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using static System.String;
 
 namespace neo_bpsys_wpf.Core.Models;
@@ -58,25 +58,26 @@ public partial class Member : ObservableObjectBase
             OnPropertyChanged(nameof(IsImageValid));
         });
     }
-    
+
     /// <summary>
     /// 选手定妆照的图片 Uri
     /// </summary>
     public string? ImageUri { get; set; }
-    
+
     /// <summary>
     /// 选手是否上场
     /// </summary>
     [ObservableProperty] private bool _isOnField;
-    
+
     /// <summary>
     /// 选手是否可上场
     /// </summary>
-    [ObservableProperty] [property: JsonIgnore]
+    [ObservableProperty]
+    [property: JsonIgnore]
     private bool _canOnFieldChange = true;
-    
+
     /// <summary>
     /// 选手定妆照是否有效
     /// </summary>
-    public bool IsImageValid => Image != null;
+    [JsonIgnore] public bool IsImageValid => Image != null;
 }

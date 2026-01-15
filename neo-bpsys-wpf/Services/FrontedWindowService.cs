@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Services.Registry;
+using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Windows;
 using System.IO;
@@ -17,7 +18,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using neo_bpsys_wpf.Helpers;
 using static neo_bpsys_wpf.Core.Helpers.FrontedWindowHelper;
 
 namespace neo_bpsys_wpf.Services;
@@ -260,7 +260,7 @@ public class FrontedWindowService : IFrontedWindowService
     {
         if (!FrontedWindows.TryGetValue(windowId, out var window))
         {
-            _ = MessageBoxHelper.ShowErrorAsync( $"{I18nHelper.GetLocalizedString("UnregisteredWindowType")}: {windowId}", I18nHelper.GetLocalizedString("WindowCloseError"));
+            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("UnregisteredWindowType")}: {windowId}", I18nHelper.GetLocalizedString("WindowCloseError"));
             return;
         }
 

@@ -1,7 +1,7 @@
-﻿using System.Collections.ObjectModel;
-using neo_bpsys_wpf.Core.Enums;
+﻿using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models;
+using System.Collections.ObjectModel;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 

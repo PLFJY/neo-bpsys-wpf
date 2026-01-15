@@ -1,14 +1,15 @@
-﻿using System.ComponentModel;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using neo_bpsys_wpf.Core.Messages;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
-using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Core.Messages;
 
 namespace neo_bpsys_wpf.Core.Controls;
 
 public abstract class FrontedWindowBase : Window
 {
-    public FrontedWindowBase() {
+    public FrontedWindowBase()
+    {
         WeakReferenceMessenger.Default.Register<DesignerModeChangedMessage>(this, OnDesignerModeChanged);
         MouseLeftButtonDown += OnMouseLeftButtonDown;
         ResizeMode = ResizeMode.NoResize;

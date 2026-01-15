@@ -1,3 +1,4 @@
+using neo_bpsys_wpf.Core.AttachedBehaviors;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -5,8 +6,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using System.Collections.Generic;
-using neo_bpsys_wpf.Core.AttachedBehaviors;
 
 namespace neo_bpsys_wpf.Core.Controls;
 
@@ -764,7 +763,7 @@ public class CanvasAdorner : Adorner
                 minDistance = distance;
                 closestElement = otherElement;
             }
-            
+
         }
 
         // 如果找到最近的控件，执行对齐逻辑

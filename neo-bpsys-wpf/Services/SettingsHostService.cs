@@ -6,11 +6,11 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Helpers;
 using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
-using neo_bpsys_wpf.Helpers;
 using BpWindowSettings = neo_bpsys_wpf.Core.Models.BpWindowSettings;
 using WidgetsWindowSettings = neo_bpsys_wpf.Core.Models.WidgetsWindowSettings;
 
@@ -70,7 +70,7 @@ public class SettingsHostService : ISettingsHostService
         catch (Exception e)
         {
             _logger.LogError(e, "Configuration file save error");
-            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("ConfigurationFileSaveError") }\n{e.Message}");
+            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("ConfigurationFileSaveError")}\n{e.Message}");
         }
     }
 

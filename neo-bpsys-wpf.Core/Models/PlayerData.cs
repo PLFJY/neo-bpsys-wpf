@@ -70,6 +70,6 @@ public partial class PlayerData : ObservableObjectBase
     /// </summary>
     [ObservableProperty]
     private string _knockdowns = string.Empty; // 击倒次数
-    
+
     #endregion
 }

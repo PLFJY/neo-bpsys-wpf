@@ -11,6 +11,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Helpers;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -19,7 +20,6 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Media;
-using neo_bpsys_wpf.Helpers;
 using WPFLocalizeExtension.Engine;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
@@ -164,10 +164,12 @@ public partial class SettingPageViewModel : ViewModelBase
 
     [ObservableProperty] private string _appVersion = string.Empty;
 
-    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(UpdateCheckCommand))]
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(UpdateCheckCommand))]
     private bool _isDownloading;
 
-    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(InstallUpdateCommand))]
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(InstallUpdateCommand))]
     private bool _isDownloadFinished;
 
     [ObservableProperty] private string _downloadProgressText = string.Empty;

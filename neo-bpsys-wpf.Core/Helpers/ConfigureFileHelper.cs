@@ -1,12 +1,11 @@
-﻿using System.Collections.ObjectModel;
-using System.IO;
+﻿using System.IO;
 using System.Text.Json;
 
 namespace neo_bpsys_wpf.Core.Helpers;
 
 public static class ConfigureFileHelper
 {
-    
+
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,

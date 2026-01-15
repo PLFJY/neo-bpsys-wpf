@@ -1,6 +1,5 @@
 using System.IO;
 using System.Reflection;
-using System.Windows;
 
 namespace neo_bpsys_wpf.Core;
 

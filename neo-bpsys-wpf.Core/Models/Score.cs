@@ -1,6 +1,6 @@
-using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
+using System.Text.Json.Serialization;
 
 namespace neo_bpsys_wpf.Core.Models;
 
@@ -15,21 +15,21 @@ public partial class Score : ObservableObjectBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
     private int _win;
-    
+
     /// <summary>
     /// 大比分--平
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
     private int _tie;
-    
+
     /// <summary>
     /// 小比分
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MajorPointsOnFront))]
     private int _gameScores;
-    
+
     /// <summary>
     /// 前台显示的格式化的大比分
     /// </summary>

@@ -1,22 +1,12 @@
-﻿using neo_bpsys_wpf.Core.Abstractions;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using neo_bpsys_wpf.Core;
-using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Core.Models;
-using neo_bpsys_wpf.TeamJsonMaker;
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.TeamJsonMaker;
