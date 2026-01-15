@@ -251,7 +251,7 @@ public partial class SettingPageViewModel : ViewModelBase
         set => SetPropertyWithAction(ref _selectedLanguage, value, _ =>
         {
             _settingsHostService.Settings.Language = value;
-            _settingsHostService.SaveConfig();
+            _settingsHostService.SaveConfigAsync();
             LocalizeDictionary.Instance.Culture = _settingsHostService.Settings.CultureInfo;
             _logger.LogInformation("Set language to {appLanguage}", _settingsHostService.Settings.CultureInfo.Name);
         });
@@ -328,8 +328,8 @@ public partial class SettingPageViewModel : ViewModelBase
     [RelayCommand]
     private void OpenTip()
     {
-        _settingsHostService.Settings.ShowTip = true;
-        _settingsHostService.SaveConfig();
+        _settingsHostService.Settings.ShowAfterUpdateTip = true;
+        _ = _settingsHostService.SaveConfigAsync();
         _ = MessageBoxHelper.ShowInfoAsync("Settings.ShowTip has been set to true");
     }
 
@@ -363,7 +363,7 @@ public partial class SettingPageViewModel : ViewModelBase
         }
 
         setAction.Invoke(destFileName);
-        _settingsHostService.SaveConfig();
+        _settingsHostService.SaveConfigAsync();
         if (originalFileName == null) return;
         try
         {
@@ -422,7 +422,7 @@ public partial class SettingPageViewModel : ViewModelBase
                 I18nHelper.GetLocalizedString("Cancel")))
         {
             _settingsHostService.Settings.CutSceneWindowSettings.IsBlackTalentAndTraitEnable = isBlackVer;
-            _settingsHostService.SaveConfig();
+            _settingsHostService.SaveConfigAsync();
             _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("RestartToApply"));
         }
 
@@ -465,7 +465,7 @@ public partial class SettingPageViewModel : ViewModelBase
         {
             _sharedDataService.GlobalScoreTotalMargin = GlobalScoreTotalMargin;
             _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreTotalMargin = GlobalScoreTotalMargin;
-            _settingsHostService.SaveConfig();
+            _settingsHostService.SaveConfigAsync();
         }
     }
 
@@ -483,7 +483,7 @@ public partial class SettingPageViewModel : ViewModelBase
                 I18nHelper.GetLocalizedString("Cancel")))
         {
             _settingsHostService.Settings.ScoreWindowSettings.IsCampIconBlackVerEnabled = isBlackVer;
-            _settingsHostService.SaveConfig();
+            _settingsHostService.SaveConfigAsync();
             _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("RestartToApply"));
         }
 
@@ -514,7 +514,7 @@ public partial class SettingPageViewModel : ViewModelBase
                 I18nHelper.GetLocalizedString("Cancel")))
         {
             _settingsHostService.Settings.WidgetsWindowSettings.IsCampIconBlackVerEnabled = isBlackVer;
-            _settingsHostService.SaveConfig();
+            _settingsHostService.SaveConfigAsync();
             _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("RestartToApply"));
         }
 
@@ -569,7 +569,7 @@ public partial class SettingPageViewModel : ViewModelBase
             new TextSettingsEditControl(_systemFonts,
                 settings,
                 () => { },
-                () => _settingsHostService.SaveConfig(),
+                () => _settingsHostService.SaveConfigAsync(),
                 () => _textSettingsNavigationService.Close(type)));
     }
 
@@ -578,7 +578,7 @@ public partial class SettingPageViewModel : ViewModelBase
     {
         _settingsHostService.Settings.BpWindowSettings.PickingBorderColor =
             BpWindowPickingColorSettings.ToArgbHexString();
-        _settingsHostService.SaveConfig();
+        _settingsHostService.SaveConfigAsync();
     }
 
     [RelayCommand]
@@ -586,7 +586,7 @@ public partial class SettingPageViewModel : ViewModelBase
     {
         _settingsHostService.Settings.WidgetsWindowSettings.MapBpV2_PickingBorderColor =
             MapBpV2PickingColorSettings.ToArgbHexString();
-        _settingsHostService.SaveConfig();
+        _settingsHostService.SaveConfigAsync();
     }
 
     [RelayCommand]
@@ -596,7 +596,7 @@ public partial class SettingPageViewModel : ViewModelBase
                 I18nHelper.GetLocalizedString("AreYouSureToResetAllPersonalSettingsOfThisWindow"),
                 I18nHelper.GetLocalizedString("ResetTip"), I18nHelper.GetLocalizedString("Confirm"),
                 I18nHelper.GetLocalizedString("Cancel"))) return;
-        _settingsHostService.ResetConfig(windowType);
+        _settingsHostService.ResetConfigAsync(windowType);
         if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("RestartToApply"),
                 I18nHelper.GetLocalizedString("RestartNeeded"), I18nHelper.GetLocalizedString("Restart"),
                 I18nHelper.GetLocalizedString("NotNow")))
@@ -612,7 +612,7 @@ public partial class SettingPageViewModel : ViewModelBase
                 I18nHelper.GetLocalizedString("AreYouSureToResetPersonalSettingsOfAllWindows"),
                 I18nHelper.GetLocalizedString("Tips"),
                 I18nHelper.GetLocalizedString("Confirm"), I18nHelper.GetLocalizedString("Cancel"))) return;
-        _settingsHostService.ResetConfig();
+        _settingsHostService.ResetConfigAsync();
         _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("RestartToApply"));
     }
 
@@ -695,7 +695,7 @@ public partial class SettingPageViewModel : ViewModelBase
         //准备一些路径
         var savePath = dialog.FileName;
         //先保存一遍配置保证地址格式已被转换
-        _settingsHostService.SaveConfig();
+        _settingsHostService.SaveConfigAsync();
         try
         {
             //创建临时文件夹

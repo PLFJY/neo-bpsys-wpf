@@ -15,7 +15,9 @@ public partial class BpWindowViewModel :
     ViewModelBase,
     IRecipient<DesignerModeChangedMessage>
 {
+#pragma warning disable CS8618 
     public BpWindowViewModel()
+#pragma warning restore CS8618 
 
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True

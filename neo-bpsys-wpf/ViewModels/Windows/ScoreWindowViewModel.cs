@@ -17,7 +17,9 @@ public partial class ScoreWindowViewModel :
     IRecipient<DesignerModeChangedMessage>,
     IRecipient<PropertyChangedMessage<int>>
 {
+#pragma warning disable CS8618 
     public ScoreWindowViewModel()
+#pragma warning restore CS8618 
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -72,7 +74,7 @@ public partial class ScoreWindowViewModel :
 
     public Game CurrentGame => _sharedDataService.CurrentGame;
 
-    public Team MainTeam => _sharedDataService.MainTeam;
+    public Team MainTeam => _sharedDataService.HomeTeam;
     public Team AwayTeam => _sharedDataService.AwayTeam;
 
     public ScoreWindowSettings Settings => _settingsHostService.Settings.ScoreWindowSettings;

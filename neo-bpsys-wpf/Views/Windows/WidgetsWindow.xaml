@@ -18,6 +18,7 @@
     d:DataContext="{d:DesignInstance Type=vm:WidgetsWindowViewModel,
                                      IsDesignTimeCreatable=True}"
     Background="Blue"
+    WindowStyle="None"
     mc:Ignorable="d">
     <Grid Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}" Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
         <Grid.RowDefinitions>
@@ -78,9 +79,11 @@
                         Name="PickedMap"
                         Canvas.Left="9"
                         Canvas.Top="43"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
                         ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                         d:Source="/Assets/ChinaTown.png"
-                        Source="{Binding CurrentGame.PickedMapImage}" HorizontalAlignment="Center" VerticalAlignment="Top" />
+                        Source="{Binding CurrentGame.PickedMapImage}" />
                     <Border
                         Name="PickedMapName"
                         Canvas.Left="38"
@@ -171,9 +174,11 @@
                         Name="BannedMap"
                         Canvas.Left="9"
                         Canvas.Top="372"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
                         ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                         d:Source="/Assets/ArmsFactory.png"
-                        Source="{Binding CurrentGame.BannedMapImage}" HorizontalAlignment="Center" VerticalAlignment="Top" />
+                        Source="{Binding CurrentGame.BannedMapImage}" />
                     <Border
                         Name="BannedMapName"
                         Canvas.Left="38"
@@ -234,7 +239,6 @@
                             <Style x:Key="SurPickImage" TargetType="Image">
                                 <Setter Property="HorizontalAlignment" Value="Center" />
                                 <Setter Property="Stretch" Value="UniformToFill" />
-                                <Setter Property="Width" Value="100" />
                             </Style>
                             <Style x:Key="SurPickImageBorder" TargetType="Border">
                                 <Setter Property="Width" Value="74" />
@@ -315,16 +319,24 @@
                             Name="HunBanCurrent0"
                             Canvas.Left="644"
                             Canvas.Top="5"
+                            Width="145"
+                            Height="35"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                            Style="{StaticResource CurrentBan}" HorizontalAlignment="Center" VerticalAlignment="Center" Height="35" Width="145">
+                            Style="{StaticResource CurrentBan}">
                             <Image d:Source="/Assets/厂长.png" Source="{Binding CurrentGame.CurrentHunBannedList[0].HeaderImageSingleColor}" />
                         </Border>
                         <Border
                             Name="HunBanCurrent1"
                             Canvas.Left="794"
                             Canvas.Top="5"
+                            Width="141"
+                            Height="35"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                            Style="{StaticResource CurrentBan}" HorizontalAlignment="Left" VerticalAlignment="Center" Height="35" Width="141">
+                            Style="{StaticResource CurrentBan}">
                             <Image d:Source="/Assets/厂长.png" Source="{Binding CurrentGame.CurrentHunBannedList[0].HeaderImageSingleColor}" />
                         </Border>
                         <!--  Hun Current Ban Lock  -->
@@ -351,32 +363,48 @@
                             Name="SurBanCurrent3"
                             Canvas.Left="416"
                             Canvas.Top="5"
+                            Width="68"
+                            Height="35"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                            Style="{StaticResource CurrentBan}" HorizontalAlignment="Left" Height="35" VerticalAlignment="Center" Width="68">
+                            Style="{StaticResource CurrentBan}">
                             <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.CurrentSurBannedList[3].HeaderImageSingleColor}" />
                         </Border>
                         <Border
                             Name="SurBanCurrent2"
                             Canvas.Left="340"
                             Canvas.Top="5"
+                            Width="71"
+                            Height="35"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                            Style="{StaticResource CurrentBan}" HorizontalAlignment="Center" Height="35" VerticalAlignment="Center" Width="71">
+                            Style="{StaticResource CurrentBan}">
                             <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.CurrentSurBannedList[2].HeaderImageSingleColor}" />
                         </Border>
                         <Border
                             Name="SurBanCurrent1"
                             Canvas.Left="265"
                             Canvas.Top="5"
+                            Width="71"
+                            Height="35"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                            Style="{StaticResource CurrentBan}" HorizontalAlignment="Center" Height="35" VerticalAlignment="Center" Width="71">
+                            Style="{StaticResource CurrentBan}">
                             <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.CurrentSurBannedList[1].HeaderImageSingleColor}" />
                         </Border>
                         <Border
                             Name="SurBanCurrent0"
                             Canvas.Left="193"
                             Canvas.Top="5"
+                            Width="68"
+                            Height="35"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                            Style="{StaticResource CurrentBan}" HorizontalAlignment="Center" Height="35" VerticalAlignment="Center" Width="68">
+                            Style="{StaticResource CurrentBan}">
                             <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.CurrentSurBannedList[0].HeaderImageSingleColor}" />
                         </Border>
                         <!--  Sur Current Ban Lock  -->
@@ -420,46 +448,56 @@
                         <Border
                             Name="SurPick0"
                             Canvas.Left="193"
-                            Canvas.Top="45"
+                            Canvas.Top="65"
+                            Width="68"
+                            Height="110"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                            Style="{StaticResource SurPickImageBorder}" HorizontalAlignment="Center" VerticalAlignment="Top" Width="68" Height="130">
+                            Style="{StaticResource SurPickImageBorder}">
                             <Image
                                 d:Source="/Assets/医生.png"
                                 Source="{Binding CurrentGame.SurPlayerList[3].Character.HalfImage}"
-                                Style="{StaticResource SurPickImage}" Width="NaN" Margin="-14,21,-14,-1" HorizontalAlignment="Stretch" />
+                                Style="{StaticResource SurPickImage}" />
                         </Border>
                         <Border
                             Name="SurPick1"
                             Canvas.Left="265"
-                            Canvas.Top="45"
+                            Canvas.Top="65"
+                            Width="71"
+                            Height="110"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                            Style="{StaticResource SurPickImageBorder}" HorizontalAlignment="Left" VerticalAlignment="Center" Width="71" Height="130">
+                            Style="{StaticResource SurPickImageBorder}">
                             <Image
                                 d:Source="/Assets/医生.png"
                                 Source="{Binding CurrentGame.SurPlayerList[3].Character.HalfImage}"
-                                Style="{StaticResource SurPickImage}" Width="NaN" Margin="-14,21,-14,-1" HorizontalAlignment="Stretch" />
+                                Style="{StaticResource SurPickImage}" />
                         </Border>
                         <Border
                             Name="SurPick2"
                             Canvas.Left="340"
-                            Canvas.Top="45"
+                            Canvas.Top="65"
+                            Width="72"
+                            Height="110"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                            Style="{StaticResource SurPickImageBorder}" HorizontalAlignment="Left" VerticalAlignment="Center" Width="71" Height="130">
+                            Style="{StaticResource SurPickImageBorder}">
                             <Image
                                 d:Source="/Assets/医生.png"
                                 Source="{Binding CurrentGame.SurPlayerList[3].Character.HalfImage}"
-                                Style="{StaticResource SurPickImage}" Width="NaN" Margin="-14,21,-14,-1" HorizontalAlignment="Stretch" />
+                                Style="{StaticResource SurPickImage}" />
                         </Border>
                         <Border
                             Name="SurPick3"
                             Canvas.Left="416"
-                            Canvas.Top="45"
+                            Canvas.Top="65"
+                            Width="68"
+                            Height="110"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                            Style="{StaticResource SurPickImageBorder}" HorizontalAlignment="Center" VerticalAlignment="Top" Width="68" Height="130">
+                            Style="{StaticResource SurPickImageBorder}">
                             <Image
                                 d:Source="/Assets/医生.png"
                                 Source="{Binding CurrentGame.SurPlayerList[3].Character.HalfImage}"
-                                Style="{StaticResource SurPickImage}" Width="NaN" Margin="-14,21,-14,-1" HorizontalAlignment="Stretch" />
+                                Style="{StaticResource SurPickImage}" />
                         </Border>
                         <!--  Middle  -->
                         <Border
@@ -546,12 +584,11 @@
                             Width="291"
                             Height="130"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                            Style="{StaticResource SurPickImageBorder}" HorizontalAlignment="Left" VerticalAlignment="Center">
+                            Style="{StaticResource SurPickImageBorder}">
                             <Image
-                                Width="NaN"
                                 d:Source="/Assets/小丑.png"
                                 Source="{Binding CurrentGame.HunPlayer.Character.HalfImage}"
-                                Style="{StaticResource SurPickImage}" HorizontalAlignment="Stretch" Margin="-60,1,-23,0" />
+                                Style="{StaticResource SurPickImage}" />
                         </Border>
                     </Canvas>
                 </Border>
@@ -588,91 +625,73 @@
                 </Canvas.Resources>
                 <controls:MapV2Presenter
                     x:Name="Arms_Factory"
-                    Canvas.Left="50"
-                    Width="147"
+                    Canvas.Left="50.5"
+                    Width="149"
                     Height="160"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                     Map="{Binding CurrentGame.MapV2Dictionary[ArmsFactory]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="The_Red_Church"
-                    Canvas.Left="202"
-                    Width="149"
+                    Canvas.Left="204"
+                    Width="151"
                     Height="160"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                     Map="{Binding CurrentGame.MapV2Dictionary[TheRedChurch]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Sacred_Heart_Hospital"
                     Canvas.Left="359"
-                    Width="149"
+                    Width="151"
                     Height="160"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                     Map="{Binding CurrentGame.MapV2Dictionary[SacredHeartHospital]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Leo_s_Memory"
                     Canvas.Left="514"
-                    Width="149"
+                    Width="151"
                     Height="160"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                     Map="{Binding CurrentGame.MapV2Dictionary[LeosMemory]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Moonlit_River_Park"
-                    Canvas.Left="670"
-                    Width="149"
+                    Canvas.Left="669"
+                    Width="151"
                     Height="160"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Top"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                     Map="{Binding CurrentGame.MapV2Dictionary[MoonlitRiverPark]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Lakeside_Village"
                     Canvas.Left="824"
-                    Width="150"
+                    Width="151"
                     Height="160"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                     Map="{Binding CurrentGame.MapV2Dictionary[LakesideVillage]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Eversleeping_Town"
-                    Canvas.Left="980"
-                    Width="147"
+                    Canvas.Left="979"
+                    Width="151"
                     Height="160"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                     Map="{Binding CurrentGame.MapV2Dictionary[EversleepingTown]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Chinatown"
                     Canvas.Left="1134"
-                    Width="150"
+                    Width="151"
                     Height="160"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                     Map="{Binding CurrentGame.MapV2Dictionary[ChinaTown]}"
                     Style="{StaticResource MapV2Presenter}" />
                 <controls:MapV2Presenter
                     x:Name="Darkwoods"
-                    Canvas.Left="1292"
-                    Width="148"
+                    Canvas.Left="1289"
+                    Width="151"
                     Height="160"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
                     ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                     Map="{Binding CurrentGame.MapV2Dictionary[Darkwoods]}"
                     Style="{StaticResource MapV2Presenter}" />

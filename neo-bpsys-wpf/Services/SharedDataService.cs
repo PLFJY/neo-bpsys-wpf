@@ -14,6 +14,9 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows.Threading;
+using neo_bpsys_wpf.Converters;
+using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Helpers;
 using Game = neo_bpsys_wpf.Core.Models.Game;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 
@@ -27,6 +30,11 @@ public partial class SharedDataService : ISharedDataService
     private readonly ISettingsHostService _settingsHostService;
     private readonly ILogger<SharedDataService> _logger;
 
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        Converters = { new JsonStringEnumConverter() }
+    };
+
     #region 初始化
 
     public SharedDataService(ISettingsHostService settingsHostService, ILogger<SharedDataService> logger)
@@ -34,10 +42,10 @@ public partial class SharedDataService : ISharedDataService
         _settingsHostService = settingsHostService;
         _logger = logger;
 
-        MainTeam = new Team(Camp.Sur, TeamType.HomeTeam);
+        HomeTeam = new Team(Camp.Sur, TeamType.HomeTeam);
         AwayTeam = new Team(Camp.Hun, TeamType.AwayTeam);
 
-        _currentGame = new Game(MainTeam, AwayTeam, GameProgress.Free);
+        _currentGame = new Game(HomeTeam, AwayTeam, GameProgress.Free);
 
         var comparer = StringComparer.Create(_settingsHostService.Settings.CultureInfo, false);
         SurCharaDict = new SortedDictionary<string, Character>(comparer);
@@ -85,7 +93,7 @@ public partial class SharedDataService : ISharedDataService
         var characterFileContent = File.ReadAllText(charaListFilePath);
 
         JsonSerializerOptions options = new() { Converters = { new JsonStringEnumConverter() } };
-        var characters = JsonSerializer.Deserialize<Dictionary<string, CharacterMini>>(
+        var characters = JsonSerializer.Deserialize<Dictionary<string, Character>>(
             characterFileContent,
             options
         );
@@ -119,7 +127,7 @@ public partial class SharedDataService : ISharedDataService
     /// <summary>
     /// 主队
     /// </summary>
-    public Team MainTeam { get; set; }
+    public Team HomeTeam { get; set; }
 
     /// <summary>
     /// 客队
@@ -136,13 +144,105 @@ public partial class SharedDataService : ISharedDataService
     public Game CurrentGame
     {
         get => _currentGame;
-        set
+        private set
         {
             if (_currentGame == value) return;
             CurrentGame.TeamSwapped -= OnTeamSwapped;
             _currentGame = value;
             CurrentGame.TeamSwapped += OnTeamSwapped;
             CurrentGameChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    public void NewGame()
+    {
+        Team surTeam;
+        Team hunTeam;
+        if (HomeTeam.Camp == Camp.Sur)
+        {
+            surTeam = HomeTeam;
+            hunTeam = AwayTeam;
+        }
+        else
+        {
+            surTeam = AwayTeam;
+            hunTeam = HomeTeam;
+        }
+
+        var pickedMap = CurrentGame.PickedMap;
+        var bannedMap = CurrentGame.BannedMap;
+        var mapV2Dictionary = CurrentGame.MapV2Dictionary;
+        var gameProgress = CurrentGame.GameProgress;
+
+        CurrentGame =
+            new Game(surTeam, hunTeam, gameProgress, pickedMap, bannedMap, mapV2Dictionary);
+
+        _ = MessageBoxHelper.ShowInfoAsync(
+            $"{I18nHelper.GetLocalizedString("NewGameHasBeenCreated")}\n{CurrentGame.Guid}",
+            I18nHelper.GetLocalizedString("CreateTip"), I18nHelper.GetLocalizedString("Cancel"));
+        _logger.LogInformation("New Game Created{CurrentGameGuid}", CurrentGame.Guid);
+    }
+
+    public async Task ImportGameAsync(string filePath)
+    {
+        try
+        {
+            var json = await File.ReadAllTextAsync(filePath);
+
+            // Use a custom converter to resolve Character instances to the global shared instances
+            var options = new JsonSerializerOptions(_jsonSerializerOptions);
+            options.Converters.Add(new CharacterIdentityJsonConverter(SurCharaDict, HunCharaDict));
+
+            var importedGame = JsonSerializer.Deserialize<Game>(json, options)
+                               ?? throw new InvalidOperationException("Failed to deserialize game data.");
+
+            // 更新队伍信息
+            if (importedGame.SurTeam.TeamType == TeamType.HomeTeam)
+            {
+                HomeTeam.ImportTeamInfo(importedGame.SurTeam);
+                AwayTeam.ImportTeamInfo(importedGame.HunTeam);
+            }
+            else
+            {
+                HomeTeam.ImportTeamInfo(importedGame.HunTeam);
+                AwayTeam.ImportTeamInfo(importedGame.SurTeam);
+            }
+
+            if (HomeTeam.Camp == AwayTeam.Camp) throw new OperationCanceledException("Invalid game record");
+
+            Team surTeam, hunTeam;
+            if (HomeTeam.Camp == Camp.Sur)
+            {
+                surTeam = HomeTeam;
+                hunTeam = AwayTeam;
+            }
+            else
+            {
+                surTeam = AwayTeam;
+                hunTeam = HomeTeam;
+            }
+
+            foreach (var pair in CurrentGame.MapV2Dictionary)
+            {
+                pair.Value.IsPicked = importedGame.MapV2Dictionary[pair.Key].IsPicked;
+                pair.Value.IsBanned = importedGame.MapV2Dictionary[pair.Key].IsBanned;
+                pair.Value.IsCampVisible = importedGame.MapV2Dictionary[pair.Key].IsCampVisible;
+                pair.Value.IsBreathing = importedGame.MapV2Dictionary[pair.Key].IsBreathing;
+                pair.Value.OperationTeam = importedGame.MapV2Dictionary[pair.Key].OperationTeam;
+            }
+
+            CurrentGame = new Game(surTeam, hunTeam, importedGame.GameProgress, importedGame.PickedMap,
+                importedGame.BannedMap,
+                CurrentGame.MapV2Dictionary, importedGame.Guid, importedGame.StartTime,
+                importedGame.SurPlayersData, importedGame.HunPlayerData,
+                importedGame.CurrentSurBannedList, importedGame.CurrentHunBannedList);
+
+            _logger.LogInformation("Game imported successfully from {FilePath}", filePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to import game from {FilePath}", filePath);
+            throw;
         }
     }
 
@@ -381,13 +481,6 @@ public partial class SharedDataService : ISharedDataService
         }
     }
 
-    private class CharacterMini
-    {
-        public Camp Camp { get; set; }
-        public string ImageFileName { get; set; } = string.Empty;
-        public string? Abbrev { get; set; }
-    }
-
     #region 事件
 
     /// <summary>
@@ -436,4 +529,75 @@ public partial class SharedDataService : ISharedDataService
     public event EventHandler? IsMapV2CampVisibleChanged;
 
     #endregion
+
+    private class CharacterIdentityJsonConverter : JsonConverter<Character>
+    {
+        private readonly IDictionary<string, Character> _surDict;
+        private readonly IDictionary<string, Character> _hunDict;
+
+        public CharacterIdentityJsonConverter(IDictionary<string, Character> surDict,
+            IDictionary<string, Character> hunDict)
+        {
+            _surDict = surDict;
+            _hunDict = hunDict;
+        }
+
+        public override Character? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            if (reader.TokenType == JsonTokenType.Null) return null;
+
+            using var jsonDoc = JsonDocument.ParseValue(ref reader);
+            var root = jsonDoc.RootElement;
+
+            if (root.TryGetProperty("Camp", out var campProp) &&
+                root.TryGetProperty("Name", out var nameProp))
+            {
+                var camp = campProp.Deserialize<Camp>(options);
+                var name = nameProp.GetString();
+
+                if (!string.IsNullOrEmpty(name))
+                {
+                    if (camp == Camp.Sur && _surDict.TryGetValue(name, out var surCharacter))
+                    {
+                        return surCharacter;
+                    }
+
+                    if (camp == Camp.Hun && _hunDict.TryGetValue(name, out var hunCharacter))
+                    {
+                        return hunCharacter;
+                    }
+                }
+            }
+
+            // Fallback: manually construct
+            var nameFallback = root.GetProperty("Name").GetString() ?? string.Empty;
+            var campFallback = root.GetProperty("Camp").Deserialize<Camp>(options);
+            var imageFileName = root.GetProperty("ImageFileName").GetString() ?? string.Empty;
+
+            string? abbrev = null;
+            if (root.TryGetProperty("Abbrev", out var abbrevProp))
+                abbrev = abbrevProp.GetString();
+
+            return new Character(nameFallback, campFallback, imageFileName, abbrev);
+        }
+
+        public override void Write(Utf8JsonWriter writer, Character value, JsonSerializerOptions options)
+        {
+            JsonSerializer.Serialize(writer, value, value.GetType(), FlattenOptions(options));
+        }
+
+        private JsonSerializerOptions FlattenOptions(JsonSerializerOptions options)
+        {
+            var newOptions = new JsonSerializerOptions(options);
+            for (var i = newOptions.Converters.Count - 1; i >= 0; i--)
+            {
+                if (newOptions.Converters[i] is CharacterIdentityJsonConverter)
+                {
+                    newOptions.Converters.RemoveAt(i);
+                }
+            }
+
+            return newOptions;
+        }
+    }
 }

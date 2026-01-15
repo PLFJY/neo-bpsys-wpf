@@ -16,7 +16,7 @@ public interface ISettingsHostService
     /// <summary>
     /// 保存配置
     /// </summary>
-    void SaveConfig();
+    Task SaveConfigAsync();
     /// <summary>
     /// 读取配置
     /// </summary>
@@ -24,12 +24,12 @@ public interface ISettingsHostService
     /// <summary>
     /// 重置配置
     /// </summary>
-    void ResetConfig();
+    Task ResetConfigAsync();
     /// <summary>
     /// 重置指定窗口的配置
     /// </summary>
     /// <param name="windowType">窗口类型</param>
-    void ResetConfig(FrontedWindowType windowType);
+    Task ResetConfigAsync(FrontedWindowType windowType);
     /// <summary>
     /// 配置项改变事件
     /// </summary>

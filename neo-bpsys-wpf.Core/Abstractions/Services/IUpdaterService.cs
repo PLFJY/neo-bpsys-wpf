@@ -32,7 +32,7 @@ public interface IUpdaterService
     /// <summary>
     /// 安装更新
     /// </summary> 
-    void InstallUpdate();
+    Task InstallUpdate();
     /// <summary>
     /// 检查更新
     /// </summary>

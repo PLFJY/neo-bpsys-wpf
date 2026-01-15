@@ -12,18 +12,31 @@ public interface ISharedDataService
 {
     /// <summary>
     /// 主队
+    /// 该属性对象全场始终不变，信息导入依靠 <see cref="Team.ImportTeamInfo(Team)"/> 方法
     /// </summary>
-    Team MainTeam { get; set; }
+    Team HomeTeam { get; }
 
     /// <summary>
     /// 客队
+    /// 该属性对象全场始终不变，信息导入依靠 <see cref="Team.ImportTeamInfo(Team)"/> 方法
     /// </summary>
-    Team AwayTeam { get; set; }
+    Team AwayTeam { get; }
 
     /// <summary>
     /// 当前对局
     /// </summary>
-    Game CurrentGame { get; set; }
+    Game CurrentGame { get; }
+
+    /// <summary>
+    /// 创建新对局
+    /// </summary>
+    void NewGame();
+
+    /// <summary>
+    /// 从文件导入对局
+    /// </summary>
+    /// <param name="filePath">对局文件路径</param>
+    Task ImportGameAsync(string filePath);
 
     /// <summary>
     /// 求生者角色字典
@@ -127,12 +140,12 @@ public interface ISharedDataService
     /// Bo3模式改变事件
     /// </summary>
     event EventHandler? IsBo3ModeChanged;
-    
+
     /// <summary>
     /// 倒计时剩余秒数改变事件
     /// </summary>
     event EventHandler? CountDownValueChanged;
-    
+
     /// <summary>
     /// 队伍换边事件
     /// </summary>

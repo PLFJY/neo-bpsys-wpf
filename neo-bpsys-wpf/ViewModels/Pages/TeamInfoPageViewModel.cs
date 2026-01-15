@@ -9,7 +9,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class TeamInfoPageViewModel : ViewModelBase
 {
+#pragma warning disable CS8618 
     public TeamInfoPageViewModel()
+#pragma warning restore CS8618 
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -18,7 +20,7 @@ public partial class TeamInfoPageViewModel : ViewModelBase
     {
         var sharedDataService1 = sharedDataService;
         MainTeamInfoViewModel =
-            new TeamInfoViewModel(sharedDataService1.MainTeam, filePickerService);
+            new TeamInfoViewModel(sharedDataService1.HomeTeam, filePickerService);
         AwayTeamInfoViewModel =
             new TeamInfoViewModel(sharedDataService1.AwayTeam, filePickerService);
         OnFieldSurPlayerViewModels =

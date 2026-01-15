@@ -6,7 +6,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public class GameDataPageViewModel : ViewModelBase
 {
+#pragma warning disable CS8618 
     public GameDataPageViewModel()
+#pragma warning restore CS8618 
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }

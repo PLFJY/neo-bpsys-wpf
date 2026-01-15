@@ -31,32 +31,20 @@
             <cv:ApplicationThemeToBooleanConverter x:Key="ApplicationThemeToBooleanConverter" />
             <!--  Theme Change Animation  -->
             <Storyboard x:Key="LightToDark">
-                <DoubleAnimation
-                    Storyboard.TargetName="themeMask"
-                    Storyboard.TargetProperty="(UIElement.Opacity)"
-                    From="1"
-                    To="0"
-                    Duration="00:00:0.6" />
                 <ColorAnimation
                     Storyboard.TargetName="themeMask"
                     Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
                     From="White"
                     To="#202020"
-                    Duration="00:00:0.6" />
+                    Duration="00:00:0.5" />
             </Storyboard>
             <Storyboard x:Key="DarkToLight">
-                <DoubleAnimation
-                    Storyboard.TargetName="themeMask"
-                    Storyboard.TargetProperty="(UIElement.Opacity)"
-                    From="1"
-                    To="0"
-                    Duration="600" />
                 <ColorAnimation
                     Storyboard.TargetName="themeMask"
                     Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
                     From="#202020"
                     To="White"
-                    Duration="00:00:0.6" />
+                    Duration="00:00:0.5" />
             </Storyboard>
             <Storyboard x:Key="StartupLoading">
                 <ObjectAnimationUsingKeyFrames Storyboard.TargetName="loading" Storyboard.TargetProperty="(UIElement.Visibility)">
@@ -87,10 +75,10 @@
         </ResourceDictionary>
     </ui:FluentWindow.Resources>
     <i:Interaction.Triggers>
-        <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="True">
+        <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="true">
             <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource LightToDark}" />
         </i:DataTrigger>
-        <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="False">
+        <i:DataTrigger Binding="{Binding ApplicationTheme, Converter={StaticResource ApplicationThemeToBooleanConverter}, Mode=TwoWay}" Value="false">
             <i:ControlStoryboardAction ControlStoryboardOption="Play" Storyboard="{StaticResource DarkToLight}" />
         </i:DataTrigger>
     </i:Interaction.Triggers>
@@ -219,6 +207,11 @@
                     Command="{Binding SaveGameInfoCommand}"
                     Content="{lex:Loc SaveGameInformation}"
                     Icon="{ui:SymbolIcon Symbol=Save24}" />
+                <ui:Button
+                    Margin="0,0,10,10"
+                    Command="{Binding ImportGameInfoCommand}"
+                    Content="{lex:Loc ImportGameInformation}"
+                    Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
                 <ui:Button
                     Margin="0,0,10,10"
                     Command="{Binding NewGameCommand}"
@@ -395,8 +388,7 @@
         <Border
             x:Name="themeMask"
             Panel.ZIndex="-1"
-            Background="White"
-            Opacity="0" />
+            Background="#202020" />
 
         <!--  Loading  -->
         <Grid

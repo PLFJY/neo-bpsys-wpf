@@ -15,9 +15,10 @@ namespace neo_bpsys_wpf.ViewModels;
 /// 需要派生类所做的是: <br/>
 /// 1.实现 <see cref="CharaDict"/> 更新的行为<br/>
 /// 2.设置 <see cref="IsEnabled"/> 同步 <see cref="ISharedDataService"/> 的哪一个 CanCurrentBannedList 的值，通常需要搭配订阅 Ban 位数量变动的事件<br/>
-/// 3.实现 <see cref="SyncCharaAsync"/> 将角色同步到前台的行为
+/// 3.实现 <see cref="SyncCharaToSourceAsync"/> 将角色同步到前台的行为
 /// 4.实现 <see cref="SyncIsEnabled"/> 通过toggle button设置后同步状态到对应的 <see cref="ISharedDataService"/> 中 CanCurrentBannedList 的值的行为
 /// 5.实现 <see cref="IsActionNameCorrect"/> 判断当前步骤引导的步骤是否符合当前控件的行为
+/// 6.在 <see cref="OnCurrentGameChanged"/> 中更新 preview 的 image
 /// </summary>
 public abstract partial class CharaSelectViewModelBase :
     ViewModelBase,
@@ -101,7 +102,7 @@ public abstract partial class CharaSelectViewModelBase :
     /// 确认命令
     /// </summary>
     [RelayCommand]
-    private async Task ConfirmAsync() => await SyncCharaAsync();
+    private async Task ConfirmAsync() => await SyncCharaToSourceAsync();
 
     #endregion
 
@@ -140,11 +141,7 @@ public abstract partial class CharaSelectViewModelBase :
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="args"></param>
-    private void OnCurrentGameChanged(object? sender, EventArgs args)
-    {
-        SelectedChara = null;
-        PreviewImage = null;
-    }
+    private void OnCurrentGameChanged(object? sender, EventArgs args) => SyncCharaFromSourceAsync();
 
     #endregion
 
@@ -160,10 +157,16 @@ public abstract partial class CharaSelectViewModelBase :
     #region Abstract Methods
 
     /// <summary>
-    /// 确认
+    /// 同步当前角色到源
     /// </summary>
     /// <returns></returns>
-    public abstract Task SyncCharaAsync();
+    protected abstract Task SyncCharaToSourceAsync();
+
+    /// <summary>
+    /// 从源同步当前角色
+    /// </summary>
+    /// <returns></returns>
+    protected abstract void SyncCharaFromSourceAsync();
 
     /// <summary>
     /// 同步当前角色选择器是否启用状态

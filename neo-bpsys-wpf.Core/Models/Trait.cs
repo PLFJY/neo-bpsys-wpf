@@ -33,7 +33,16 @@ public class Trait
             return _image;
         }
     }
-    
+
+    /// <summary>
+    /// JSON 反序列化构造函数
+    /// </summary>
+    /// <param name="traitName">天赋名称</param>
+    [JsonConstructor]
+    internal Trait(Enums.TraitType? traitName) : this(traitName, false)
+    {
+    }
+
     /// <summary>
     /// 构造函数
     /// </summary>

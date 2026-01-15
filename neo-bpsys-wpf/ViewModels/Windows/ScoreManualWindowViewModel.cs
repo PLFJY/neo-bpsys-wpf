@@ -8,7 +8,9 @@ public partial class ScoreManualWindowViewModel : ViewModelBase
 {
     private readonly ISharedDataService _sharedDataService;
 
+#pragma warning disable CS8618 
     public ScoreManualWindowViewModel()
+#pragma warning restore CS8618 
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -21,19 +23,19 @@ public partial class ScoreManualWindowViewModel : ViewModelBase
     [RelayCommand]
     private void EditMainWin(int diff)
     {
-        _sharedDataService.MainTeam.Score.Win += diff;
+        _sharedDataService.HomeTeam.Score.Win += diff;
     }
 
     [RelayCommand]
     private void EditMainTie(int diff)
     {
-        _sharedDataService.MainTeam.Score.Tie += diff;
+        _sharedDataService.HomeTeam.Score.Tie += diff;
     }
 
     [RelayCommand]
     private void EditMainGameScores(int diff)
     {
-        _sharedDataService.MainTeam.Score.GameScores += diff;
+        _sharedDataService.HomeTeam.Score.GameScores += diff;
     }
 
     [RelayCommand]
@@ -57,7 +59,7 @@ public partial class ScoreManualWindowViewModel : ViewModelBase
     [RelayCommand]
     private void ClearGameScores()
     {
-        _sharedDataService.MainTeam.Score.GameScores = 0;
+        _sharedDataService.HomeTeam.Score.GameScores = 0;
         _sharedDataService.AwayTeam.Score.GameScores = 0;
     }
 }

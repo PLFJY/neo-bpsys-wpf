@@ -55,7 +55,7 @@ public partial class App : AppBase
                     .WriteTo.Console()
                     .WriteTo.File(
                         path: Path.Combine(AppConstants.LogPath, "log-.txt"), // 使用日期滚动的文件名格式
-                        rollingInterval: RollingInterval.Day, // 每天创建一个新文件
+                        rollingInterval: RollingInterval.Hour, // 小时创建一个新文件
                         retainedFileCountLimit: 3, // 只保留最近3天的日志文件
                         outputTemplate:
                         "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}",

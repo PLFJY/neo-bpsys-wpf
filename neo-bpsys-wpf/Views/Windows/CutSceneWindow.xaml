@@ -65,13 +65,12 @@
                 <Setter Property="Width" Value="180" />
             </Style>
             <Style x:Key="SurPickImage" TargetType="Image">
-                <Setter Property="Width" Value="503" />
-                <Setter Property="Height" Value="304" />
+                <Setter Property="Width" Value="500" />
+                <Setter Property="VerticalAlignment" Value="Top" />
                 <Setter Property="HorizontalAlignment" Value="Center" />
                 <Setter Property="Stretch" Value="UniformToFill" />
             </Style>
             <Style x:Key="SurPickImageBorder" TargetType="Border">
-                <Setter Property="Width" Value="356" />
                 <Setter Property="ClipToBounds" Value="True" />
             </Style>
             <Style x:Key="TalentBorder" TargetType="Border">
@@ -255,27 +254,25 @@
         <Border
             Name="SurPick0"
             Canvas.Left="1"
-            Canvas.Top="114"
+            Canvas.Top="115"
+            Width="346"
+            Height="308.5"
             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
             Style="{StaticResource SurPickImageBorder}">
             <Image
-                Width="346"
-                Height="309"
-                HorizontalAlignment="Left"
                 d:Source="/Assets/先知.png"
                 Source="{Binding CurrentGame.SurPlayerList[0].Character.BigImage}"
                 Style="{StaticResource SurPickImage}" />
         </Border>
         <Border
             Name="SurPick1"
-            Canvas.Left="364"
-            Canvas.Top="114"
+            Canvas.Left="351"
+            Canvas.Top="115"
+            Width="346"
+            Height="308.5"
             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
             Style="{StaticResource SurPickImageBorder}">
             <Image
-                Width="346"
-                Margin="-14,0,0,0"
-                HorizontalAlignment="Left"
                 d:Source="/Assets/先知.png"
                 Source="{Binding CurrentGame.SurPlayerList[1].Character.BigImage}"
                 Style="{StaticResource SurPickImage}" />
@@ -284,25 +281,24 @@
             Name="SurPick2"
             Canvas.Left="1"
             Canvas.Top="465"
+            Width="346"
+            Height="306.5"
             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
             Style="{StaticResource SurPickImageBorder}">
             <Image
-                Width="346"
-                HorizontalAlignment="Left"
                 d:Source="/Assets/先知.png"
                 Source="{Binding CurrentGame.SurPlayerList[2].Character.BigImage}"
                 Style="{StaticResource SurPickImage}" />
         </Border>
         <Border
             Name="SurPick3"
-            Canvas.Left="362"
+            Canvas.Left="350"
             Canvas.Top="465"
+            Width="346"
+            Height="306.5"
             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
             Style="{StaticResource SurPickImageBorder}">
             <Image
-                Width="NaN"
-                Margin="-10,0,10,0"
-                HorizontalAlignment="Stretch"
                 d:Source="/Assets/先知.png"
                 Source="{Binding CurrentGame.SurPlayerList[3].Character.BigImage}"
                 Style="{StaticResource SurPickImage}" />
@@ -310,15 +306,18 @@
         <!--  Hun Pick  -->
         <Border
             Name="HunPick"
-            Canvas.Left="720"
+            Canvas.Left="702"
             Canvas.Top="114.5"
-            Width="720"
-            Height="640"
-            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
+            Width="739"
+            Height="635"
+            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+            ClipToBounds="True">
             <Image
-                Margin="-19,0,0,5"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
                 d:Source="/Assets/梦之女巫.png"
-                Source="{Binding CurrentGame.HunPlayer.Character.BigImage}" />
+                Source="{Binding CurrentGame.HunPlayer.Character.BigImage}"
+                Stretch="UniformToFill" />
         </Border>
         <!--  Player Id  -->
         <!--  Sur  -->

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using System.ComponentModel;
@@ -12,6 +13,7 @@ using I18nHelper = neo_bpsys_wpf.Helpers.I18nHelper;
 using ISnackbarService = neo_bpsys_wpf.Core.Abstractions.Services.ISnackbarService;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
 using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
+using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.Views.Windows;
 
@@ -35,29 +37,49 @@ public partial class MainWindow : FluentWindow, INavigationWindow
         navigationService.SetNavigationControl(RootNavigation);
         infoBarService.SetInfoBarControl(InfoBar);
         snackbarService.SetSnackbarPresenter(SnbPre);
-        // if (settingsHostService.Settings.ShowTip)
-        //     Loaded += async (s, e) =>
-        //     {
-        //         await Task.Delay(5500);
-        //         snackbarService.Show(I18nHelper.GetLocalizedString("Notification"),
-        //             new HyperLinkSnackbarContent(
-        //                 Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "bpui"),
-        //                 Lang.NoAuthorUiInfo,
-        //                 () =>
-        //                 {
-        //                     settingsHostService.Settings.ShowTip = false;
-        //                     settingsHostService.SaveConfig();
-        //                     snackbarService.Hide();
-        //                 }
-        //             ),
-        //             ControlAppearance.Secondary,
-        //             new SymbolIcon(SymbolRegular.Info24, 24D)
-        //             {
-        //                 Margin = new Thickness(0, 0, 5, 0)
-        //             }, TimeSpan.FromSeconds(5), true
-        //         );
-        //     };
+        if (settingsHostService.Settings.ShowAfterUpdateTip)
+            Loaded += async (s, e) =>
+            {
+                await Task.Delay(5500);
+                snackbarService.Show(I18nHelper.GetLocalizedString("Notification"),
+                    new HyperLinkSnackbarContent(
+                        I18nHelper.GetLocalizedString("AfterUpdateTip"),
+                        I18nHelper.GetLocalizedString("DontRemindMeAgainUntilTheNextUpdate"),
+                        () =>
+                        {
+                            settingsHostService.Settings.ShowAfterUpdateTip = false;
+                            settingsHostService.SaveConfigAsync();
+                            snackbarService.Hide();
+                        }
+                    ),
+                    ControlAppearance.Secondary,
+                    new SymbolIcon(SymbolRegular.Info24, 24D)
+                    {
+                        Margin = new Thickness(0, 0, 5, 0)
+                    }, TimeSpan.FromSeconds(10), true
+                );
+            };
     }
+
+#if DEBUG
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        if (e.Key == Key.F12)
+        {
+            try
+            {
+                var service = IAppHost.Host!.Services.GetRequiredService<ISharedDataService>();
+                var win = new DebugSharedDataWindow(service);
+                win.Show();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(ex.ToString());
+            }
+        }
+    }
+#endif
 
     protected override void OnClosing(CancelEventArgs e)
     {
@@ -135,7 +157,6 @@ public partial class MainWindow : FluentWindow, INavigationWindow
 
     public bool Navigate(Type pageType)
     {
-        _logger.LogInformation("Navigate to {PageType}", pageType);
         return RootNavigation.Navigate(pageType);
     }
 

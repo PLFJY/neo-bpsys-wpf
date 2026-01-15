@@ -9,7 +9,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class BanSurPageViewModel : ViewModelBase
 {
+#pragma warning disable CS8618 
     public BanSurPageViewModel()
+#pragma warning restore CS8618 
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -31,15 +33,6 @@ public partial class BanSurPageViewModel : ViewModelBase
             .. Enumerable.Range(0, AppConstants.GlobalBanSurCount)
                 .Select(i => new BanSurGlobalViewModel(_sharedDataService, i))
         ];
-        sharedDataService.TeamSwapped += (_, _) =>
-        {
-            for (int i = 0; i < _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray.Length; i++)
-            {
-                BanSurGlobalViewModelList[i].SelectedChara =
-                    _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordArray[i];
-                BanSurGlobalViewModelList[i].SyncCharaAsync();
-            }
-        };
     }
 
     public ObservableCollection<BanSurCurrentViewModel> BanSurCurrentViewModelList { get; set; }
@@ -63,11 +56,17 @@ public partial class BanSurPageViewModel : ViewModelBase
             }
         }
 
-        public override Task SyncCharaAsync()
+        protected override Task SyncCharaToSourceAsync()
         {
             SharedDataService.CurrentGame.CurrentSurBannedList[Index] = SelectedChara;
             PreviewImage = SharedDataService.CurrentGame.CurrentSurBannedList[Index]?.HeaderImageSingleColor;
             return Task.CompletedTask;
+        }
+
+        protected override void SyncCharaFromSourceAsync()
+        {
+            SelectedChara = SharedDataService.CurrentGame.CurrentSurBannedList[Index];
+            PreviewImage = SelectedChara?.HeaderImageSingleColor;
         }
 
         protected override void SyncIsEnabled()
@@ -96,11 +95,17 @@ public partial class BanSurPageViewModel : ViewModelBase
             }
         }
 
-        public override Task SyncCharaAsync()
+        protected override Task SyncCharaToSourceAsync()
         {
             SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index] = SelectedChara;
             PreviewImage = SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index]?.HeaderImageSingleColor;
             return Task.CompletedTask;
+        }
+
+        protected override void SyncCharaFromSourceAsync()
+        {
+            SelectedChara = SharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[Index];
+            PreviewImage = SelectedChara?.HeaderImageSingleColor;
         }
 
         protected override void SyncIsEnabled()

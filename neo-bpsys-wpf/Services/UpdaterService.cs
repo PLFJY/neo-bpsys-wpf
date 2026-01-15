@@ -35,13 +35,15 @@ public class UpdaterService : IUpdaterService
     private readonly HttpClient _httpClient;
     private readonly IInfoBarService _infoBarService;
     private readonly ILogger<UpdaterService> _logger;
+    private readonly ISettingsHostService _settingsHostService;
 
-    public UpdaterService(IInfoBarService infoBarService, ILogger<UpdaterService> logger)
+    public UpdaterService(IInfoBarService infoBarService, ILogger<UpdaterService> logger, ISettingsHostService settingsHostService)
     {
         _httpClient = new HttpClient();
         _httpClient.DefaultRequestHeaders.Add("User-Agent", AppConstants.AppName);
         _infoBarService = infoBarService;
         _logger = logger;
+        _settingsHostService = settingsHostService;
         var downloadOpt = new DownloadConfiguration()
         {
             ChunkCount = 8,
@@ -198,8 +200,10 @@ public class UpdaterService : IUpdaterService
     /// <summary>
     /// 安装更新
     /// </summary>
-    public void InstallUpdate()
+    public async Task InstallUpdate()
     {
+        _settingsHostService.Settings.ShowAfterUpdateTip = true;
+        await _settingsHostService.SaveConfigAsync();
         var fileName = Path.Combine(
             Path.GetTempPath(),
             NewVersionInfo.Assets.First(a => a.Name == InstallerFileName).Name
