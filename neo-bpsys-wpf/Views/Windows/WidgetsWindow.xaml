@@ -1,4 +1,4 @@
-﻿<controls1:FrontedWindowBase
+<controls1:FrontedWindowBase
     x:Class="neo_bpsys_wpf.Views.Windows.WidgetsWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -17,7 +17,7 @@
     Height="716"
     d:DataContext="{d:DesignInstance Type=vm:WidgetsWindowViewModel,
                                      IsDesignTimeCreatable=True}"
-    Background="Blue"
+    Background="#00FF00"
     WindowStyle="None"
     mc:Ignorable="d">
     <Grid Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}" Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
