@@ -337,7 +337,7 @@
                             VerticalAlignment="Center"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                             Style="{StaticResource CurrentBan}">
-                            <Image d:Source="/Assets/厂长.png" Source="{Binding CurrentGame.CurrentHunBannedList[0].HeaderImageSingleColor}" />
+                            <Image d:Source="/Assets/厂长.png" Source="{Binding CurrentGame.CurrentHunBannedList[1].HeaderImageSingleColor}" />
                         </Border>
                         <!--  Hun Current Ban Lock  -->
                         <Image
