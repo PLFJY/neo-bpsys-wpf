@@ -247,10 +247,11 @@
                     ItemsSource="{Binding GameList}"
                     MaxDropDownHeight="190"
                     SelectedIndex="0"
-                    SelectedValue="{Binding SelectedGameProgress}">
+                    SelectedValue="{Binding SelectedGameProgress}"
+                    SelectedValuePath="Key">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{lex:Loc {Binding}}" />
+                            <TextBlock Text="{lex:Loc {Binding Value}}" />
                         </DataTemplate>
                     </ComboBox.ItemTemplate>
                 </ComboBox>
