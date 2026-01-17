@@ -263,48 +263,6 @@ public class CanvasAdorner : Adorner
     private const double SnapDistance = 10.0;
 
     /// <summary>
-    /// 移动时吸附
-    /// </summary>
-    /// <param name="newLeft">新的左边位置</param>
-    /// <param name="newTop">新的顶部位置</param>
-    private void SnapToNearestControl(ref double newLeft, ref double newTop)
-    {
-        if (_adornedElement.Parent is not Canvas parentCanvas) return;
-
-        foreach (var child in parentCanvas.Children)
-        {
-            if (child is not FrameworkElement element || element == _adornedElement) continue;
-
-            if (!DesignBehavior.GetIsDesignerMode(element)) continue;
-
-            var otherLeft = Canvas.GetLeft(element);
-            var otherTop = Canvas.GetTop(element);
-
-            // 水平方向对齐
-            if (Math.Abs(newLeft - otherLeft) <= SnapDistance) // 左边对齐
-            {
-                newLeft = otherLeft;
-            }
-            else if (Math.Abs(newLeft + _adornedElement.ActualWidth -
-                              (otherLeft + element.ActualWidth)) <= SnapDistance) // 右边对齐
-            {
-                newLeft = otherLeft + element.ActualWidth - _adornedElement.ActualWidth;
-            }
-
-            // 垂直方向对齐
-            if (Math.Abs(newTop - otherTop) <= SnapDistance) // 顶部对齐
-            {
-                newTop = otherTop;
-            }
-            else if (Math.Abs(newTop + _adornedElement.ActualHeight -
-                              (otherTop + element.ActualHeight)) <= SnapDistance) // 底部对齐
-            {
-                newTop = otherTop + element.ActualHeight - _adornedElement.ActualHeight;
-            }
-        }
-    }
-
-    /// <summary>
     /// 鼠标抬起事件
     /// </summary>
     /// <param name="sender">事件发送者（控件）</param>

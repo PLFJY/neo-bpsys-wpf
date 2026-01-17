@@ -1,0 +1,16 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Beta" />
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+  </Configurations>
+  <Folder Name="/Built-inPlugins/">
+    <Project Path="Built-inPlugins/neo-bpsys-wpf.TeamJsonMaker/neo-bpsys-wpf.TeamJsonMaker.csproj" />
+  </Folder>
+  <Project Path="neo-bpsys-wpf.Core/neo-bpsys-wpf.Core.csproj" />
+  <Project Path="neo-bpsys-wpf.ExamplePlugin/neo-bpsys-wpf.ExamplePlugin.csproj" />
+  <Project Path="neo-bpsys-wpf.PluginSdk/neo-bpsys-wpf.PluginSdk.csproj">
+    <BuildType Solution="Beta|*" Project="Debug" />
+  </Project>
+  <Project Path="neo-bpsys-wpf/neo-bpsys-wpf.csproj" />
+</Solution>
