@@ -16,9 +16,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChangedMessage<bool>>
 {
-#pragma warning disable CS8618 
+#pragma warning disable CS8618
     public ScorePageViewModel()
-#pragma warning restore CS8618 
+#pragma warning restore CS8618
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -133,6 +133,7 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
             OnPropertyChanged(nameof(IsGameFinished));
             OnPropertyChanged(nameof(MainTeamCamp));
             OnPropertyChanged(nameof(SelectedGameResult));
+            NextGameCommand.NotifyCanExecuteChanged();
             UpdateTotalGameScore();
         });
     }
@@ -159,17 +160,18 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
 
     public int SelectedIndex => GameList.IndexOf(SelectedGameProgress);
 
-    [RelayCommand(CanExecute = nameof(CanNextGameExcute))]
+    [RelayCommand(CanExecute = nameof(CanNextGameExecute))]
     private void NextGame()
     {
         var index = GameList.IndexOf(SelectedGameProgress);
         if (index < 7 && IsBo3Mode || index < 11 && !IsBo3Mode) // 防止在加赛下半场时点下一步会崩
         {
-            SelectedGameProgress = GameList.ElementAt(index + 1);
+            SelectedGameProgress = GameList.GetAt(index + 1).Key;
         }
     }
 
-    private bool CanNextGameExcute() => GameList.IndexOf(SelectedGameProgress) + 1 < 7 && IsBo3Mode || GameList.IndexOf(SelectedGameProgress) + 1 < 11 && !IsBo3Mode;
+    private bool CanNextGameExecute() => GameList.IndexOf(SelectedGameProgress) < 7 && IsBo3Mode ||
+                                         GameList.IndexOf(SelectedGameProgress) < 11 && !IsBo3Mode;
 
     [RelayCommand]
     private void GlobalScoreUpdateToFront()
@@ -351,7 +353,7 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
             nameof(ScoreWindowViewModel.TotalAwayGameScore), 0, _totalAwayGameScore));
     }
 
-    public Dictionary<GameProgress, GameGlobalInfo> GameGlobalInfoRecord { get; } = new()
+    public OrderedDictionary<GameProgress, GameGlobalInfo> GameGlobalInfoRecord { get; } = new()
     {
         { GameProgress.Game1FirstHalf, new GameGlobalInfo() },
         { GameProgress.Game1SecondHalf, new GameGlobalInfo() },
@@ -367,41 +369,42 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
         { GameProgress.Game5OvertimeSecondHalf, new GameGlobalInfo() },
     };
 
-    private List<GameProgress> _gameList = GameListBo5;
+    private OrderedDictionary<GameProgress, string> _gameList = GameListBo5;
 
-    public List<GameProgress> GameList
+    public OrderedDictionary<GameProgress, string> GameList
     {
         get => _gameList;
-        private set => SetPropertyWithAction(ref _gameList, value, _ => { SelectedGameProgress = value.ElementAt(0); });
+        private set => SetPropertyWithAction(ref _gameList, value,
+            _ => { SelectedGameProgress = value.GetAt(0).Key; });
     }
 
-    private static List<GameProgress> GameListBo5 =>
-    [
-        GameProgress.Game1FirstHalf,
-        GameProgress.Game1SecondHalf,
-        GameProgress.Game2FirstHalf,
-        GameProgress.Game2SecondHalf,
-        GameProgress.Game3FirstHalf,
-        GameProgress.Game3SecondHalf,
-        GameProgress.Game4FirstHalf,
-        GameProgress.Game4SecondHalf,
-        GameProgress.Game5FirstHalf,
-        GameProgress.Game5SecondHalf,
-        GameProgress.Game5OvertimeFirstHalf,
-        GameProgress.Game5OvertimeSecondHalf
-    ];
+    private static OrderedDictionary<GameProgress, string> GameListBo5 => new()
+    {
+        { GameProgress.Game1FirstHalf, "Game1FirstHalf" },
+        { GameProgress.Game1SecondHalf, "Game1SecondHalf" },
+        { GameProgress.Game2FirstHalf, "Game2FirstHalf" },
+        { GameProgress.Game2SecondHalf, "Game2SecondHalf" },
+        { GameProgress.Game3FirstHalf, "Game3FirstHalf" },
+        { GameProgress.Game3SecondHalf, "Game3SecondHalf" },
+        { GameProgress.Game4FirstHalf, "Game4FirstHalf" },
+        { GameProgress.Game4SecondHalf, "Game4SecondHalf" },
+        { GameProgress.Game5FirstHalf, "Game5FirstHalf" },
+        { GameProgress.Game5SecondHalf, "Game5SecondHalf" },
+        { GameProgress.Game5OvertimeFirstHalf, "Game5OvertimeFirstHalf" },
+        { GameProgress.Game5OvertimeSecondHalf, "Game5OvertimeSecondHalf" }
+    };
 
-    private static List<GameProgress> GameListBo3 =>
-    [
-        GameProgress.Game1FirstHalf,
-        GameProgress.Game1SecondHalf,
-        GameProgress.Game2FirstHalf,
-        GameProgress.Game2SecondHalf,
-        GameProgress.Game3FirstHalf,
-        GameProgress.Game3SecondHalf,
-        GameProgress.Game3OvertimeFirstHalf,
-        GameProgress.Game3OvertimeSecondHalf
-    ];
+    private static OrderedDictionary<GameProgress, string> GameListBo3 => new()
+    {
+        { GameProgress.Game1FirstHalf, "Game1FirstHalf" },
+        { GameProgress.Game1SecondHalf, "Game1SecondHalf" },
+        { GameProgress.Game2FirstHalf, "Game2FirstHalf" },
+        { GameProgress.Game2SecondHalf, "Game2SecondHalf" },
+        { GameProgress.Game3FirstHalf, "Game3FirstHalf" },
+        { GameProgress.Game3SecondHalf, "Game3SecondHalf" },
+        { GameProgress.Game3OvertimeFirstHalf, "Game3OvertimeFirstHalf" },
+        { GameProgress.Game3OvertimeSecondHalf, "Game3OvertimeSecondHalf" }
+    };
 
     public partial class GameGlobalInfo : ObservableObject
     {

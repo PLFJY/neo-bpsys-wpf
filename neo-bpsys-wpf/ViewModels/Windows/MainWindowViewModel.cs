@@ -28,9 +28,9 @@ public partial class MainWindowViewModel :
     IRecipient<PropertyChangedMessage<bool>>,
     IRecipient<HighlightMessage>
 {
-#pragma warning disable CS8618 
+#pragma warning disable CS8618
     public MainWindowViewModel()
-#pragma warning restore CS8618 
+#pragma warning restore CS8618
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -161,12 +161,14 @@ public partial class MainWindowViewModel :
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
             await File.WriteAllTextAsync(fullPath, json);
-            await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("SaveSuccessfullyTo")}\n{fullPath}", I18nHelper.GetLocalizedString("SaveInfo"));
+            await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("SaveSuccessfullyTo")}\n{fullPath}",
+                I18nHelper.GetLocalizedString("SaveInfo"));
             _logger.LogInformation("Save game {CurrentGameGuid} info successfully", CurrentGame.Guid);
         }
         catch (Exception ex)
         {
-            await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("SaveFailed")}\n{ex.Message}", I18nHelper.GetLocalizedString("SaveInfo"));
+            await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("SaveFailed")}\n{ex.Message}",
+                I18nHelper.GetLocalizedString("SaveInfo"));
             _logger.LogError("Save game {CurrentGameGuid} info failed\n{ExMessage}", CurrentGame.Guid, ex.Message);
         }
     }
@@ -182,12 +184,15 @@ public partial class MainWindowViewModel :
         try
         {
             await _sharedDataService.ImportGameAsync(filePath);
-            await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("ImportSuccessfullyFrom")}\n{filePath}", I18nHelper.GetLocalizedString("ImportInfo"));
+            await MessageBoxHelper.ShowInfoAsync(
+                $"{I18nHelper.GetLocalizedString("ImportSuccessfullyFrom")}\n{filePath}",
+                I18nHelper.GetLocalizedString("ImportInfo"));
             _logger.LogInformation("Import game info successfully from {FilePath}", filePath);
         }
         catch (JsonException ex)
         {
-            await MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("JsonFileFormatError")}\n{ex.Message}");
+            await MessageBoxHelper.ShowErrorAsync(
+                $"{I18nHelper.GetLocalizedString("JsonFileFormatError")}\n{ex.Message}");
             _logger.LogError("Import game info failed: JSON format error\n{ExMessage}", ex.Message);
         }
         catch (Exception ex)
@@ -293,6 +298,7 @@ public partial class MainWindowViewModel :
             {
                 SelectedGameProgress = GameProgress.Free;
             }
+
             GameList = !IsBo3Mode ? GameListBo5 : GameListBo3;
             _logger.LogInformation("Accepted IsBo3Mode value: {Value}", value);
         });
@@ -313,37 +319,37 @@ public partial class MainWindowViewModel :
 
     public List<int> RecommendTimerList { get; } = [30, 45, 60, 90, 120, 150, 180];
 
-    [ObservableProperty] private List<GameProgress> _gameList;
+    [ObservableProperty] private OrderedDictionary<GameProgress, string> _gameList;
 
-    private static List<GameProgress> GameListBo5 =>
-    [
-        GameProgress.Free,
-        GameProgress.Game1FirstHalf,
-        GameProgress.Game1SecondHalf,
-        GameProgress.Game2FirstHalf,
-        GameProgress.Game2SecondHalf,
-        GameProgress.Game3FirstHalf,
-        GameProgress.Game3SecondHalf,
-        GameProgress.Game4FirstHalf,
-        GameProgress.Game4SecondHalf,
-        GameProgress.Game5FirstHalf,
-        GameProgress.Game5SecondHalf,
-        GameProgress.Game5OvertimeFirstHalf,
-        GameProgress.Game5OvertimeSecondHalf
-    ];
+    private static OrderedDictionary<GameProgress, string> GameListBo5 => new()
+    {
+        { GameProgress.Free, "Free" },
+        { GameProgress.Game1FirstHalf, "Game1FirstHalf" },
+        { GameProgress.Game1SecondHalf, "Game1SecondHalf" },
+        { GameProgress.Game2FirstHalf, "Game2FirstHalf" },
+        { GameProgress.Game2SecondHalf, "Game2SecondHalf" },
+        { GameProgress.Game3FirstHalf, "Game3FirstHalf" },
+        { GameProgress.Game3SecondHalf, "Game3SecondHalf" },
+        { GameProgress.Game4FirstHalf, "Game4FirstHalf" },
+        { GameProgress.Game4SecondHalf, "Game4SecondHalf" },
+        { GameProgress.Game5FirstHalf, "Game5FirstHalf" },
+        { GameProgress.Game5SecondHalf, "Game5SecondHalf" },
+        { GameProgress.Game5OvertimeFirstHalf, "Game5OvertimeFirstHalf" },
+        { GameProgress.Game5OvertimeSecondHalf, "Game5OvertimeSecondHalf" },
+    };
 
-    private static List<GameProgress> GameListBo3 =>
-    [
-        GameProgress.Free,
-        GameProgress.Game1FirstHalf,
-        GameProgress.Game1SecondHalf,
-        GameProgress.Game2FirstHalf,
-        GameProgress.Game2SecondHalf,
-        GameProgress.Game3FirstHalf,
-        GameProgress.Game3SecondHalf,
-        GameProgress.Game3OvertimeFirstHalf,
-        GameProgress.Game3OvertimeSecondHalf,
-    ];
+    private static OrderedDictionary<GameProgress, string> GameListBo3 => new()
+    {
+        { GameProgress.Free, "Free" },
+        { GameProgress.Game1FirstHalf, "Game1FirstHalf" },
+        { GameProgress.Game1SecondHalf, "Game1SecondHalf" },
+        { GameProgress.Game2FirstHalf, "Game2FirstHalf" },
+        { GameProgress.Game2SecondHalf, "Game2SecondHalf" },
+        { GameProgress.Game3FirstHalf, "Game3FirstHalf" },
+        { GameProgress.Game3SecondHalf, "Game3SecondHalf" },
+        { GameProgress.Game3OvertimeFirstHalf, "Game3OvertimeFirstHalf" },
+        { GameProgress.Game3OvertimeSecondHalf, "Game3OvertimeSecondHalf" }
+    };
 
     public ObservableCollection<NavigationViewItem> MenuItems { get; } =
     [

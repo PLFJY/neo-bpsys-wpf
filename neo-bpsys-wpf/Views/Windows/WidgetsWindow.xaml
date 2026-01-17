@@ -457,7 +457,7 @@
                             Style="{StaticResource SurPickImageBorder}">
                             <Image
                                 d:Source="/Assets/医生.png"
-                                Source="{Binding CurrentGame.SurPlayerList[3].Character.HalfImage}"
+                                Source="{Binding CurrentGame.SurPlayerList[0].Character.HalfImage}"
                                 Style="{StaticResource SurPickImage}" />
                         </Border>
                         <Border
@@ -470,7 +470,7 @@
                             Style="{StaticResource SurPickImageBorder}">
                             <Image
                                 d:Source="/Assets/医生.png"
-                                Source="{Binding CurrentGame.SurPlayerList[3].Character.HalfImage}"
+                                Source="{Binding CurrentGame.SurPlayerList[1].Character.HalfImage}"
                                 Style="{StaticResource SurPickImage}" />
                         </Border>
                         <Border
@@ -483,7 +483,7 @@
                             Style="{StaticResource SurPickImageBorder}">
                             <Image
                                 d:Source="/Assets/医生.png"
-                                Source="{Binding CurrentGame.SurPlayerList[3].Character.HalfImage}"
+                                Source="{Binding CurrentGame.SurPlayerList[2].Character.HalfImage}"
                                 Style="{StaticResource SurPickImage}" />
                         </Border>
                         <Border
