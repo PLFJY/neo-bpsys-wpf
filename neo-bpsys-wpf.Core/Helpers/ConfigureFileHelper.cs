@@ -19,7 +19,7 @@ public static class ConfigureFileHelper
         var field = typeof(JsonSerializerOptions)?.GetField("s_defaultOptions",
             System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
         field?.SetValue(null, JsonSerializerOptions);
-        if (Directory.Exists(AppConstants.PluginConfigsPath))
+        if (!Directory.Exists(AppConstants.PluginConfigsPath))
         {
             Directory.CreateDirectory(AppConstants.PluginConfigsPath);
         }
