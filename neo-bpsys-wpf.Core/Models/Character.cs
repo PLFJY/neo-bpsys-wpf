@@ -121,7 +121,7 @@ public class Character
         FullSpell = string.Concat(parts);
 
         //Abbreviation
-        Abbrev = abbrev ?? string.Concat(parts.Select(p => p[0]));
+        Abbrev = string.IsNullOrEmpty(abbrev) ? string.Concat(parts.Select(p => p[0])) : abbrev;
     }
 
     /// <summary>
