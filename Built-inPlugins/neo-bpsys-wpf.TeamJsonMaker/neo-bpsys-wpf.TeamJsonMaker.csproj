@@ -29,8 +29,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.csproj" Private="false" />
+		<ProjectReference Include="..\..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.csproj" Private="false" />
 	</ItemGroup>
 
-	<Import Project="..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.targets" />
+	<Import Project="..\..\neo-bpsys-wpf.PluginSdk\neo-bpsys-wpf.PluginSdk.targets" />
 </Project>

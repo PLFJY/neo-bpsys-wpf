@@ -65,7 +65,6 @@
                 <Setter Property="Width" Value="180" />
             </Style>
             <Style x:Key="SurPickImage" TargetType="Image">
-                <Setter Property="Width" Value="500" />
                 <Setter Property="VerticalAlignment" Value="Top" />
                 <Setter Property="HorizontalAlignment" Value="Center" />
                 <Setter Property="Stretch" Value="UniformToFill" />

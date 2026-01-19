@@ -580,7 +580,7 @@
     <value>Listen</value>
   </data>
   <data name="Abnormal" xml:space="preserve">
-    <value>Abnormal</value>
+    <value>失常</value>
   </data>
   <data name="Excitement" xml:space="preserve">
     <value>Excitement</value>
@@ -1331,5 +1331,11 @@
   </data>
   <data name="PluginsThirdPartyWarning" xml:space="preserve">
     <value>插件由第三方提供，不保证其可用性和功能完整性</value>
+  </data>
+  <data name="ReleaseNotes" xml:space="preserve">
+    <value>更新公告</value>
+  </data>
+  <data name="LoadingFailed" xml:space="preserve">
+    <value>加载失败</value>
   </data>
 </root>

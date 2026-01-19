@@ -126,12 +126,13 @@ public class CharacterSelector : Control
             if (Text.Length > 0 && Text.Last() == ' ')
             {
                 var currentText = Text[..^1];
-                var findedIndex = FindIndex(currentText);
-                SelectedIndex = findedIndex;
-                if (findedIndex == -1)
+                var foundIndex = FindIndex(currentText);
+                
+                SelectedIndex = foundIndex;
+                if (foundIndex == -1)
                     return;
-                if (ItemsSource is Dictionary<string, Character> itemSource)
-                    Text = itemSource.ElementAt(findedIndex).Key;
+                if (ItemsSource is SortedDictionary<string, Character> itemSource)
+                    Text = itemSource.ElementAt(foundIndex).Key;
             }
         }
     }
@@ -145,7 +146,7 @@ public class CharacterSelector : Control
     public int FindIndex(string inputText)
     {
         string inputLower = inputText.ToLowerInvariant();
-        if (ItemsSource is not Dictionary<string, Character> itemSource)
+        if (ItemsSource is not SortedDictionary<string, Character> itemSource)
             return -1;
 
         var index = 0;

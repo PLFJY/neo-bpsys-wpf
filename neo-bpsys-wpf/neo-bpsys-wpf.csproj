@@ -44,7 +44,7 @@
 
     <ItemGroup>
         <!-- Include = 插件 csproj 路径；FolderName = 复制到 Plugins\ 下的文件夹名 -->
-        <BuiltinPlugin Include="..\neo-bpsys-wpf.TeamJsonMaker\neo-bpsys-wpf.TeamJsonMaker.csproj">
+        <BuiltinPlugin Include="..\Built-inPlugins\neo-bpsys-wpf.TeamJsonMaker\neo-bpsys-wpf.TeamJsonMaker.csproj">
             <FolderName>top.plfjy.bpsys.TeamJsonMaker</FolderName>
         </BuiltinPlugin>
     </ItemGroup>
@@ -161,6 +161,7 @@
         <PackageReference Include="System.Net.Http" Version="4.3.4" />
         <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
         <PackageReference Include="WPF-UI.DependencyInjection" Version="4.2.0" />
+        <PackageReference Include="WPF-UI.Markdown" Version="3.0.5.4" />
         <PackageReference Include="WPFLocalizeExtension" Version="3.10.0" />
         <PackageReference Include="YamlDotNet" Version="16.3.0" />
     </ItemGroup>

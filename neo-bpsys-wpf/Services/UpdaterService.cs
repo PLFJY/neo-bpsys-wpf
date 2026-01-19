@@ -37,7 +37,8 @@ public class UpdaterService : IUpdaterService
     private readonly ILogger<UpdaterService> _logger;
     private readonly ISettingsHostService _settingsHostService;
 
-    public UpdaterService(IInfoBarService infoBarService, ILogger<UpdaterService> logger, ISettingsHostService settingsHostService)
+    public UpdaterService(IInfoBarService infoBarService, ILogger<UpdaterService> logger,
+        ISettingsHostService settingsHostService)
     {
         _httpClient = new HttpClient();
         _httpClient.DefaultRequestHeaders.Add("User-Agent", AppConstants.AppName);
@@ -63,7 +64,8 @@ public class UpdaterService : IUpdaterService
         }
         catch (Exception ex)
         {
-            _ = MessageBoxHelper.ShowErrorAsync(ex.Message, I18nHelper.GetLocalizedString("ErrorWhenCleanUpResidualUpdateFiles"));
+            _ = MessageBoxHelper.ShowErrorAsync(ex.Message,
+                I18nHelper.GetLocalizedString("ErrorWhenCleanUpResidualUpdateFiles"));
         }
     }
 
@@ -90,14 +92,16 @@ public class UpdaterService : IUpdaterService
         {
             await Application.Current.Dispatcher.InvokeAsync(async () =>
             {
-                await MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("DownloadFails")}: {e.Error.Message}");
+                await MessageBoxHelper.ShowErrorAsync(
+                    $"{I18nHelper.GetLocalizedString("DownloadFails")}: {e.Error.Message}");
             });
             return;
         }
 
         await Application.Current.Dispatcher.InvokeAsync(async () =>
         {
-            if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("DownloadFinished"), I18nHelper.GetLocalizedString("DownloadTip"), I18nHelper.GetLocalizedString("Install")))
+            if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("DownloadFinished"),
+                    I18nHelper.GetLocalizedString("DownloadTip"), I18nHelper.GetLocalizedString("Install")))
             {
                 if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("DownloadFinished"),
                         I18nHelper.GetLocalizedString("DownloadTip"),
@@ -127,7 +131,9 @@ public class UpdaterService : IUpdaterService
         {
             if (!isInitial)
             {
-                var result = await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("CheckForUpdates"), $"{I18nHelper.GetLocalizedString("NewUpdateFound")}: {NewVersionInfo.TagName}", I18nHelper.GetLocalizedString("Update"), I18nHelper.GetLocalizedString("Cancel"));
+                var result = await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("CheckForUpdates"),
+                    $"{I18nHelper.GetLocalizedString("NewUpdateFound")}: {NewVersionInfo.TagName}",
+                    I18nHelper.GetLocalizedString("Update"), I18nHelper.GetLocalizedString("Cancel"));
                 if (result)
                     await DownloadUpdate(mirror);
             }
@@ -137,16 +143,22 @@ public class UpdaterService : IUpdaterService
                     $"{I18nHelper.GetLocalizedString("NewUpdateFound")}：{NewVersionInfo.TagName}");
             }
 
+            NewVersionInfoChanged?.Invoke(this, EventArgs.Empty);
             return true;
         }
 
         if (!isInitial)
         {
-            await MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("NoUpdatesAvailable"), I18nHelper.GetLocalizedString("CheckForUpdates"));
+            await MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("NoUpdatesAvailable"),
+                I18nHelper.GetLocalizedString("CheckForUpdates"));
         }
 
+        NewVersionInfoChanged?.Invoke(this, EventArgs.Empty);
         return false;
     }
+
+    /// <inheritdoc/>
+    public event EventHandler? NewVersionInfoChanged;
 
     /// <summary>
     /// 获取新版本信息

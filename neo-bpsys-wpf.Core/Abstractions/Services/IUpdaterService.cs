@@ -40,4 +40,9 @@ public interface IUpdaterService
     /// <param name="mirror">ghproxy镜像链接</param>
     /// <returns>如果有新版本则返回true，反之为false</returns>
     Task<bool> UpdateCheck(bool isInitial = false, string mirror = "");
+
+    /// <summary>
+    /// 新版本信息变化事件
+    /// </summary>
+    event EventHandler? NewVersionInfoChanged;
 }

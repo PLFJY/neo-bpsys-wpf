@@ -6,8 +6,12 @@
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:md="http://schemas.lepo.co/wpfui/2022/xaml/markdown"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="HomePage"
+    d:DataContext="{d:DesignInstance Type=vm:HomePageViewModel,
+                                     IsDesignTimeCreatable=True}"
     d:DesignHeight="750"
     d:DesignWidth="685"
     Foreground="{DynamicResource TextFillColorTertiaryBrush}"
@@ -65,6 +69,15 @@
                     </StackPanel>
                 </Grid>
             </Border>
+            <ui:CardExpander Margin="10,10,10,0" IsExpanded="{Binding IsExpanded}">
+                <ui:CardExpander.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <ui:SymbolIcon FontSize="20" Symbol="SlideTextMultiple24" />
+                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc ReleaseNotes}" />
+                    </StackPanel>
+                </ui:CardExpander.Header>
+                <md:MarkdownViewer FontFamily="{StaticResource NotoSans}" Markdown="{Binding ReleaseNotes}" />
+            </ui:CardExpander>
         </StackPanel>
     </Grid>
 </Page>
