@@ -24,13 +24,16 @@ public partial class HomePageViewModel : ViewModelBase
         updaterService.NewVersionInfoChanged += (sender, args) =>
         {
             ReleaseInfo = updaterService.NewVersionInfo;
+            ReleaseNotes = $"# {ReleaseInfo.Name}\r\n\r\n" + ReleaseInfo.Body;
         };
-        ReleaseInfo = updaterService.NewVersionInfo;
         IsExpanded = settingsHostService.Settings.ShowAfterUpdateTip;
     }
 
     public bool IsExpanded { get; set; }
 
     [ObservableProperty]
-    private ReleaseInfo _releaseInfo;
+    private ReleaseInfo? _releaseInfo;
+
+    [ObservableProperty]
+    private string _releaseNotes = string.Empty;
 }

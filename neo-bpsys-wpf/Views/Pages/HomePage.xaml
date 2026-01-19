@@ -76,7 +76,7 @@
                         <TextBlock Margin="10,0,0,0" Text="{lex:Loc ReleaseNotes}" />
                     </StackPanel>
                 </ui:CardExpander.Header>
-                <md:MarkdownViewer FontFamily="{StaticResource NotoSans}" Markdown="{Binding ReleaseInfo.Body}" />
+                <md:MarkdownViewer FontFamily="{StaticResource NotoSans}" Markdown="{Binding ReleaseNotes}" />
             </ui:CardExpander>
         </StackPanel>
     </Grid>

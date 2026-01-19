@@ -10,4 +10,5 @@ public record ReleaseInfo
     [JsonPropertyName("tag_name")] public string TagName { get; init; } = string.Empty;
     [JsonPropertyName("body")] public string Body { get; init; } = string.Empty;
     [JsonPropertyName("assets")] public AssetsInfo[] Assets { get; init; } = [];
+    [JsonPropertyName("name")] public string Name { get; init; } = string.Empty;
 }
