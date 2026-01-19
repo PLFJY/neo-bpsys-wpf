@@ -1317,4 +1317,7 @@
   <data name="PluginsThirdPartyWarning" xml:space="preserve">
     <value>Plugins are privided by third-partys. Their availability and integrity are not guaranteed</value>
   </data>
+  <data name="ReleaseNotes" xml:space="preserve">
+    <value>Release Notes (Chinese Only)</value>
+  </data>
 </root>

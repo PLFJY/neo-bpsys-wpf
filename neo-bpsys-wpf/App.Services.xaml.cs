@@ -76,7 +76,7 @@ public partial class App
         services.AddFrontedWindow<ScoreHunWindow, ScoreWindowViewModel>();
         services.AddFrontedWindow<GameDataWindow, GameDataWindowViewModel>();
         services.AddFrontedWindow<WidgetsWindow, WidgetsWindowViewModel>();
-        services.AddTransient<ScoreManualWindow>(sp => new ScoreManualWindow()
+        services.AddTransient<ScoreManualWindow>(sp => new ScoreManualWindow
         {
             DataContext = sp.GetRequiredService<ScoreManualWindowViewModel>(),
             Owner = Current.MainWindow
@@ -84,63 +84,66 @@ public partial class App
         services.AddSingleton<ScoreManualWindowViewModel>();
 
         //Page
-        services.AddSingleton<HomePage>();
-
-        services.AddSingleton<TeamInfoPage>(sp => new TeamInfoPage()
+        services.AddSingleton<HomePage>(sp=> new HomePage
+        {
+            DataContext = sp.GetRequiredService<HomePageViewModel>(),
+        });
+        services.AddSingleton<HomePageViewModel>();
+        services.AddSingleton<TeamInfoPage>(sp => new TeamInfoPage
         {
             DataContext = sp.GetRequiredService<TeamInfoPageViewModel>(),
         });
         services.AddSingleton<TeamInfoPageViewModel>();
 
-        services.AddSingleton<MapBpPage>(sp => new MapBpPage()
+        services.AddSingleton<MapBpPage>(sp => new MapBpPage
         {
             DataContext = sp.GetRequiredService<MapBpPageViewModel>(),
         });
         services.AddSingleton<MapBpPageViewModel>();
 
-        services.AddSingleton<BanHunPage>(sp => new BanHunPage()
+        services.AddSingleton<BanHunPage>(sp => new BanHunPage
         {
             DataContext = sp.GetRequiredService<BanHunPageViewModel>(),
         });
         services.AddSingleton<BanHunPageViewModel>();
 
-        services.AddSingleton<BanSurPage>(sp => new BanSurPage()
+        services.AddSingleton<BanSurPage>(sp => new BanSurPage
         {
             DataContext = sp.GetRequiredService<BanSurPageViewModel>(),
         });
         services.AddSingleton<BanSurPageViewModel>();
 
-        services.AddSingleton<PickPage>(sp => new PickPage()
+        services.AddSingleton<PickPage>(sp => new PickPage
         {
             DataContext = sp.GetRequiredService<PickPageViewModel>(),
         });
         services.AddSingleton<PickPageViewModel>();
 
-        services.AddSingleton<TalentPage>(sp => new TalentPage()
+        services.AddSingleton<TalentPage>(sp => new TalentPage
         {
             DataContext = sp.GetRequiredService<TalentPageViewModel>(),
         });
         services.AddSingleton<TalentPageViewModel>();
 
-        services.AddSingleton<ScorePage>(sp => new ScorePage()
+        services.AddSingleton<ScorePage>(sp => new ScorePage
         {
             DataContext = sp.GetRequiredService<ScorePageViewModel>(),
         });
         services.AddSingleton<ScorePageViewModel>();
 
-        services.AddSingleton<GameDataPage>(sp => new GameDataPage()
+        services.AddSingleton<GameDataPage>(sp => new GameDataPage
         {
             DataContext = sp.GetRequiredService<GameDataPageViewModel>(),
         });
         services.AddSingleton<GameDataPageViewModel>();
 
-        services.AddSingleton<FrontManagePage>(sp => new FrontManagePage()
+        services.AddSingleton<FrontManagePage>(sp => new FrontManagePage
         {
             DataContext = sp.GetRequiredService<FrontManagePageViewModel>(),
         });
         services.AddSingleton<FrontManagePageViewModel>();
 
-        services.AddSingleton<PluginPage>(sp => new PluginPage()
+        services.AddSingleton<PluginPage>(sp => new PluginPage
         {
             DataContext = sp.GetRequiredService<PluginPageViewModel>(),
         });

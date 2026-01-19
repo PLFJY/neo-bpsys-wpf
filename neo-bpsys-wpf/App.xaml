@@ -5,6 +5,7 @@
     xmlns:bp="clr-namespace:neo_bpsys_wpf.Core.Controls;assembly=neo-bpsys-wpf.Core"
     xmlns:core="clr-namespace:neo_bpsys_wpf.Core;assembly=neo-bpsys-wpf.Core"
     xmlns:local="clr-namespace:neo_bpsys_wpf"
+    xmlns:md="http://schemas.lepo.co/wpfui/2022/xaml/markdown"
     xmlns:themes="clr-namespace:neo_bpsys_wpf.Themes"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     DispatcherUnhandledException="OnDispatcherUnhandledException"
@@ -14,6 +15,8 @@
             <ResourceDictionary.MergedDictionaries>
                 <ui:ThemesDictionary Theme="Dark" />
                 <ui:ControlsDictionary />
+                <md:ThemesDictionary />
+                <md:ControlsDictionary />
                 <themes:IconThemesDictionary Theme="Dark" />
                 <ResourceDictionary Source="/Controls/CustomControlsStyleDictionary.xaml" />
                 <!--  Styles  -->
