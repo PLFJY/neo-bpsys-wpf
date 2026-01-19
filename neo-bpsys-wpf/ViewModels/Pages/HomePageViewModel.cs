@@ -2,6 +2,7 @@
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services;
 using System;
 using System.Collections.Generic;
@@ -24,9 +25,11 @@ public partial class HomePageViewModel : ViewModelBase
         updaterService.NewVersionInfoChanged += (sender, args) =>
         {
             ReleaseInfo = updaterService.NewVersionInfo;
-            ReleaseNotes = $"# {ReleaseInfo.Name}\r\n\r\n" + ReleaseInfo.Body;
+            if (string.IsNullOrEmpty(ReleaseInfo.TagName)) ReleaseNotes = I18nHelper.GetLocalizedString("LoadingFailed");
+            else ReleaseNotes = $"# {ReleaseInfo.Name}\r\n\r\n" + ReleaseInfo.Body;
         };
         IsExpanded = settingsHostService.Settings.ShowAfterUpdateTip;
+        ReleaseNotes = I18nHelper.GetLocalizedString("LoadingFailed");
     }
 
     public bool IsExpanded { get; set; }

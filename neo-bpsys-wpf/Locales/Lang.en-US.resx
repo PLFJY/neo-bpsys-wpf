@@ -1320,4 +1320,7 @@
   <data name="ReleaseNotes" xml:space="preserve">
     <value>Release Notes (Chinese Only)</value>
   </data>
+  <data name="LoadingFailed" xml:space="preserve">
+    <value>Loading Failed</value>
+  </data>
 </root>

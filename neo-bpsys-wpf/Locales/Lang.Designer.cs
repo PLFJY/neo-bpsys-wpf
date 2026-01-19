@@ -2157,6 +2157,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 加载失败.
+        /// </summary>
+        public static string LoadingFailed {
+            get {
+                return ResourceManager.GetString("LoadingFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Logo 文件不合法.
         /// </summary>
         public static string LogoFileIsNotValid {
