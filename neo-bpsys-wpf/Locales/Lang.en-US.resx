@@ -1323,4 +1323,7 @@
   <data name="LoadingFailed" xml:space="preserve">
     <value>Loading Failed</value>
   </data>
+  <data name="BpuiFiles" xml:space="preserve">
+    <value>bpui Files</value>
+  </data>
 </root>

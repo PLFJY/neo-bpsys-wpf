@@ -682,8 +682,8 @@ public partial class SettingPageViewModel : ViewModelBase
         //打开通用对话框选择保存路径
         var dialog = new SaveFileDialog
         {
-            Filter = $"{I18nHelper.GetLocalizedString("ZipFiles")} (*.zip)|*.zip|所有文件(*.*)|*.*",
-            DefaultExt = ".zip",
+            Filter = $"{I18nHelper.GetLocalizedString("BpuiFiles")} (*.bpui)|*.bpui|All Files(*.*)|*.*",
+            DefaultExt = ".bpui",
             AddExtension = true,
             DefaultDirectory = AppConstants.AppOutputPath,
             Title = "保存为",
@@ -938,7 +938,7 @@ public partial class SettingPageViewModel : ViewModelBase
     private async Task ImportUiConfigAsync()
     {
         //准备ui文件路径
-        var uiFilePath = _filePickerService.PickZipFile();
+        var uiFilePath = _filePickerService.PickBpuiFile();
 
         if (uiFilePath == null) return;
 

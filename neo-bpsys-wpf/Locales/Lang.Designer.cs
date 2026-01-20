@@ -429,6 +429,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to bpui 文件.
+        /// </summary>
+        public static string BpuiFiles {
+            get {
+                return ResourceManager.GetString("BpuiFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to BP窗口.
         /// </summary>
         public static string BPWindow {

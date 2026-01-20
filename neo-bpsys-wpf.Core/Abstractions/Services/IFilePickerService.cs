@@ -6,6 +6,12 @@
 public interface IFilePickerService
 {
     /// <summary>
+    /// 选择 bpui 文件
+    /// </summary>
+    /// <returns></returns>
+    string? PickBpuiFile();
+
+    /// <summary>
     /// 选择图片
     /// </summary>
     /// <returns>文件路径</returns>

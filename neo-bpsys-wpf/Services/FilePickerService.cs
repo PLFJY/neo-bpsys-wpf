@@ -50,4 +50,14 @@ public class FilePickerService : IFilePickerService
 
         return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
     }
+
+    public string? PickBpuiFile()
+    {
+        OpenFileDialog openFileDialog = new()
+        {
+            Filter = $"{I18nHelper.GetLocalizedString("BpuiFiles")} (*.bpui) |*.bpui|{I18nHelper.GetLocalizedString("ZipFiles")} (*.zip) | *.zip|All Files(*.*)|*.*",
+        };
+
+        return openFileDialog.ShowDialog() != true ? null : openFileDialog.FileName;
+    }
 }

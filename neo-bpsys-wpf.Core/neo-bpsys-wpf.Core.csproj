@@ -8,7 +8,7 @@
         <UseWpf>true</UseWpf>
         <CETCompat>false</CETCompat>
         <Configurations>Debug;Release;Beta</Configurations>
-		<Version>2.0.0.5</Version>
+		<Version>2.0.0.6</Version>
     </PropertyGroup>
 
     <ItemGroup>
