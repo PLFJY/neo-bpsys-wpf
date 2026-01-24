@@ -101,15 +101,11 @@ public class UpdaterService : IUpdaterService
         await Application.Current.Dispatcher.InvokeAsync(async () =>
         {
             if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("DownloadFinished"),
-                    I18nHelper.GetLocalizedString("DownloadTip"), I18nHelper.GetLocalizedString("Install")))
+                    I18nHelper.GetLocalizedString("DownloadTip"),
+                    I18nHelper.GetLocalizedString("Install"),
+                    I18nHelper.GetLocalizedString("Cancel")))
             {
-                if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("DownloadFinished"),
-                        I18nHelper.GetLocalizedString("DownloadTip"),
-                        I18nHelper.GetLocalizedString("Install"),
-                        I18nHelper.GetLocalizedString("Cancel")))
-                {
-                    InstallUpdate();
-                }
+                _ = InstallUpdate();
             }
         });
     }
