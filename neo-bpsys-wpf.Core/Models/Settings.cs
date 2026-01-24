@@ -142,6 +142,10 @@ public partial class BpWindowSettings : ObservableObjectBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PickingBorderBrush))]
     private string? _pickingBorderColor = Colors.White.ToString();
+    
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BackgroundBrush))]
+    private string? _backgroundColor = "#00FF00";
 
     /// <summary>
     /// 文本颜色Brush
@@ -150,6 +154,16 @@ public partial class BpWindowSettings : ObservableObjectBase
     public Brush PickingBorderBrush => ColorHelper.HexToBrush(string.IsNullOrEmpty(PickingBorderColor)
         ? Colors.White.ToString()
         : PickingBorderColor);
+    
+    /// <summary>
+    /// 背景颜色Brush
+    /// </summary>
+    [JsonIgnore]
+    public Brush BackgroundBrush => AllowsWindowTransparency? new SolidColorBrush(Colors.Transparent) : ColorHelper.HexToBrush(string.IsNullOrEmpty(BackgroundColor)
+        ? "#00FF00"
+        : BackgroundColor);
+
+    [ObservableProperty] private bool _allowsWindowTransparency;
 
     [ObservableProperty] private BpWindowTextSettings _textSettings = new();
 

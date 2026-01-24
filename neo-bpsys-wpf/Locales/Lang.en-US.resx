@@ -1326,4 +1326,10 @@
   <data name="BpuiFiles" xml:space="preserve">
     <value>bpui Files</value>
   </data>
+  <data name="BackgroundColor" xml:space="preserve">
+    <value>Background Color</value>
+  </data>
+  <data name="AllowsWindowTransparency" xml:space="preserve">
+    <value>Allows window transparency</value>
+  </data>
 </root>

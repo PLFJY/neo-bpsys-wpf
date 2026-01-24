@@ -150,6 +150,7 @@ public partial class SettingPageViewModel : ViewModelBase
         };
 
         BpWindowPickingColorSettings = _settingsHostService.Settings.BpWindowSettings.PickingBorderColor.ToColor();
+        BpWindowBackgroundColorSettings = _settingsHostService.Settings.BpWindowSettings.BackgroundColor.ToColor();
         MapBpV2PickingColorSettings =
             _settingsHostService.Settings.WidgetsWindowSettings.MapBpV2_PickingBorderColor.ToColor();
 
@@ -164,12 +165,10 @@ public partial class SettingPageViewModel : ViewModelBase
 
     [ObservableProperty] private string _appVersion = string.Empty;
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(UpdateCheckCommand))]
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(UpdateCheckCommand))]
     private bool _isDownloading;
 
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(InstallUpdateCommand))]
+    [ObservableProperty] [NotifyCanExecuteChangedFor(nameof(InstallUpdateCommand))]
     private bool _isDownloadFinished;
 
     [ObservableProperty] private string _downloadProgressText = string.Empty;
@@ -318,7 +317,7 @@ public partial class SettingPageViewModel : ViewModelBase
     [RelayCommand]
     private void SwitchDebugGlobalScore()
     {
-        IAppHost.Host.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible =
+        IAppHost.Host!.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible =
             !IAppHost.Host.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible;
         _ = MessageBoxHelper.ShowInfoAsync(
             $"ScorePageViewModel.IsDebugContentVisible 已设置为 {IAppHost.Host.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible}");
@@ -424,7 +423,7 @@ public partial class SettingPageViewModel : ViewModelBase
                 I18nHelper.GetLocalizedString("Cancel")))
         {
             _settingsHostService.Settings.CutSceneWindowSettings.IsBlackTalentAndTraitEnable = isBlackVer;
-            _settingsHostService.SaveConfigAsync();
+            await _settingsHostService.SaveConfigAsync();
             _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("RestartToApply"));
         }
 
@@ -467,7 +466,7 @@ public partial class SettingPageViewModel : ViewModelBase
         {
             _sharedDataService.GlobalScoreTotalMargin = GlobalScoreTotalMargin;
             _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreTotalMargin = GlobalScoreTotalMargin;
-            _settingsHostService.SaveConfigAsync();
+            await _settingsHostService.SaveConfigAsync();
         }
     }
 
@@ -485,7 +484,7 @@ public partial class SettingPageViewModel : ViewModelBase
                 I18nHelper.GetLocalizedString("Cancel")))
         {
             _settingsHostService.Settings.ScoreWindowSettings.IsCampIconBlackVerEnabled = isBlackVer;
-            _settingsHostService.SaveConfigAsync();
+            await _settingsHostService.SaveConfigAsync();
             _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("RestartToApply"));
         }
 
@@ -516,7 +515,7 @@ public partial class SettingPageViewModel : ViewModelBase
                 I18nHelper.GetLocalizedString("Cancel")))
         {
             _settingsHostService.Settings.WidgetsWindowSettings.IsCampIconBlackVerEnabled = isBlackVer;
-            _settingsHostService.SaveConfigAsync();
+            await _settingsHostService.SaveConfigAsync();
             _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("RestartToApply"));
         }
 
@@ -584,6 +583,14 @@ public partial class SettingPageViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void SaveBpWindowBackgroundColor()
+    {
+        _settingsHostService.Settings.BpWindowSettings.BackgroundColor =
+            BpWindowBackgroundColorSettings.ToArgbHexString();
+        _settingsHostService.SaveConfigAsync();
+    }
+
+    [RelayCommand]
     private void SaveMapBpV2PickingBorderColor()
     {
         _settingsHostService.Settings.WidgetsWindowSettings.MapBpV2_PickingBorderColor =
@@ -598,7 +605,7 @@ public partial class SettingPageViewModel : ViewModelBase
                 I18nHelper.GetLocalizedString("AreYouSureToResetAllPersonalSettingsOfThisWindow"),
                 I18nHelper.GetLocalizedString("ResetTip"), I18nHelper.GetLocalizedString("Confirm"),
                 I18nHelper.GetLocalizedString("Cancel"))) return;
-        _settingsHostService.ResetConfigAsync(windowType);
+        await _settingsHostService.ResetConfigAsync(windowType);
         if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("RestartToApply"),
                 I18nHelper.GetLocalizedString("RestartNeeded"), I18nHelper.GetLocalizedString("Restart"),
                 I18nHelper.GetLocalizedString("NotNow")))
@@ -614,11 +621,33 @@ public partial class SettingPageViewModel : ViewModelBase
                 I18nHelper.GetLocalizedString("AreYouSureToResetPersonalSettingsOfAllWindows"),
                 I18nHelper.GetLocalizedString("Tips"),
                 I18nHelper.GetLocalizedString("Confirm"), I18nHelper.GetLocalizedString("Cancel"))) return;
-        _settingsHostService.ResetConfigAsync();
+        await _settingsHostService.ResetConfigAsync();
         _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("RestartToApply"));
     }
 
     public Color BpWindowPickingColorSettings { get; set; }
+    
+    [ObservableProperty] private Color _bpWindowBackgroundColorSettings;
+
+    public bool AllowsBpWindowTransparency
+    {
+        get => _settingsHostService.Settings.BpWindowSettings.AllowsWindowTransparency;
+        set => _ = SaveBpWindowTransparency(value);
+    }
+
+    private async Task SaveBpWindowTransparency(bool value)
+    {
+        _settingsHostService.Settings.BpWindowSettings.AllowsWindowTransparency = value;
+        _ = _settingsHostService.SaveConfigAsync();
+        OnPropertyChanged(nameof(AllowsBpWindowTransparency));
+        if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("RestartToApply"),
+                I18nHelper.GetLocalizedString("RestartNeeded"), I18nHelper.GetLocalizedString("Restart"),
+                I18nHelper.GetLocalizedString("NotNow")))
+        {
+            AppBase.Current.Restart();
+        }
+    }
+
     public Dictionary<string, TextSettings> BpWindowTextSettings { get; }
     public TextSettings? SelectedBpWindowTextSettings { get; set; }
 
@@ -641,7 +670,7 @@ public partial class SettingPageViewModel : ViewModelBase
 
     //==============================================================
     // UI 文件目录结构:
-    // *.zip/
+    // *.bpui/
     // ├── CustomUi/
     // ├── FrontElementsConfig/
     // └── Config.json
@@ -697,7 +726,7 @@ public partial class SettingPageViewModel : ViewModelBase
         //准备一些路径
         var savePath = dialog.FileName;
         //先保存一遍配置保证地址格式已被转换
-        _settingsHostService.SaveConfigAsync();
+        await _settingsHostService.SaveConfigAsync();
         try
         {
             //创建临时文件夹

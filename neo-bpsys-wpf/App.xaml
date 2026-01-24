@@ -32,9 +32,17 @@
             <FontFamily x:Key="EssayText">/neo-bpsys-wpf;Component/Assets/Fonts/#Essay Text</FontFamily>
             <FontFamily x:Key="Selawik">/neo-bpsys-wpf;Component/Assets/Fonts/#Selawik</FontFamily>
             <FontFamily x:Key="NotoSans">/neo-bpsys-wpf;Component/Assets/Fonts/#Noto Sans</FontFamily>
-            <!--  CJK Fix  -->
+
             <Style BasedOn="{StaticResource {x:Type TextBlock}}" TargetType="TextBlock">
+                <!--  CJK Fix  -->
                 <Setter Property="Language" Value="zh-CN" />
+                <!--  TextBlock disable  -->
+                <Style.Triggers>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Foreground" Value="Gray" />
+                        <Setter Property="Opacity" Value="0.6" />
+                    </Trigger>
+                </Style.Triggers>
             </Style>
             <!--  Images  -->
             <BitmapImage x:Key="surIcon" />

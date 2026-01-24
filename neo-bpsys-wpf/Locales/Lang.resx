@@ -577,25 +577,25 @@
     <value>是否显示</value>
   </data>
   <data name="Listen" xml:space="preserve">
-    <value>Listen</value>
+    <value>聆听</value>
   </data>
   <data name="Abnormal" xml:space="preserve">
     <value>失常</value>
   </data>
   <data name="Excitement" xml:space="preserve">
-    <value>Excitement</value>
+    <value>兴奋</value>
   </data>
   <data name="Patroller" xml:space="preserve">
-    <value>Patroller</value>
+    <value>巡视者</value>
   </data>
   <data name="Teleport" xml:space="preserve">
-    <value>Teleport</value>
+    <value>传送</value>
   </data>
   <data name="Peeper" xml:space="preserve">
-    <value>Peeper</value>
+    <value>窥视者</value>
   </data>
   <data name="Blink" xml:space="preserve">
-    <value>Blink</value>
+    <value>闪现</value>
   </data>
   <data name="Warp" xml:space="preserve">
     <value>移形</value>
@@ -1340,5 +1340,11 @@
   </data>
   <data name="BpuiFiles" xml:space="preserve">
     <value>bpui 文件</value>
+  </data>
+  <data name="BackgroundColor" xml:space="preserve">
+    <value>背景颜色</value>
+  </data>
+  <data name="AllowsWindowTransparency" xml:space="preserve">
+    <value>允许窗口透明</value>
   </data>
 </root>
