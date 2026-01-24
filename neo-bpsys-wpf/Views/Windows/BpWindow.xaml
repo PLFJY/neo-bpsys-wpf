@@ -95,10 +95,10 @@
             Stretch="Fill" />
         <Border
             Name="SurTeamMajorPoint"
-            Canvas.Left="609"
+            Canvas.Left="607"
             Canvas.Top="776"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Top"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
             <TextBlock
                 HorizontalAlignment="Center"
