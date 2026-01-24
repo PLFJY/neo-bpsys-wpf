@@ -1,33 +1,78 @@
-# Switch to the script's directory
-Set-Location -Path $PSScriptRoot
+#Requires -Version 5.1
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
 
-# Build csporj
-$BUILD_PATH = ".\build\neo-bpsys-wpf"
-$PROJ_PATH = ".\neo-bpsys-wpf\neo-bpsys-wpf.csproj"
-$GIT_HASH = (git rev-parse --short=7 HEAD).Trim()
+function Get-ScriptDirectory {
+    # Works in Windows PowerShell 5.1 and PowerShell 7+
+    if ($PSScriptRoot) { return $PSScriptRoot }
 
-# Check if output directory exists, if not, create it
-if (-Not (Test-Path -Path $BUILD_PATH)) {
-    New-Item -ItemType Directory -Path $BUILD_PATH
+    # Fallback when $PSScriptRoot is empty (e.g., pasted into console)
+    $path = $MyInvocation.MyCommand.Path
+    if ($path) { return (Split-Path -Parent $path) }
+
+    throw "Cannot determine script directory. Please run this as a .ps1 file."
 }
 
-# Build the project
-dotnet publish $PROJ_PATH -c Release -o $BUILD_PATH /p:BuildMeta=$GIT_HASH
+function Invoke-External {
+    param(
+        [Parameter(Mandatory)] [string] $FilePath,
+        [Parameter()] [string[]] $Arguments = @(),
+        [Parameter()] [string] $ErrorMessage = "External command failed."
+    )
+
+    & $FilePath @Arguments
+    if ($LASTEXITCODE -ne 0) {
+        throw "$ErrorMessage (ExitCode=$LASTEXITCODE): $FilePath $($Arguments -join ' ')"
+    }
+}
+
+# Switch to the script's directory
+$ScriptDir = Get-ScriptDirectory
+Set-Location -Path $ScriptDir
+
+# Paths
+$RepoRoot = $ScriptDir
+$BuildPath = Join-Path $RepoRoot "build\neo-bpsys-wpf"
+$ProjPath  = Join-Path $RepoRoot "neo-bpsys-wpf\neo-bpsys-wpf.csproj"
+
+# Ensure output directory exists
+if (-not (Test-Path -LiteralPath $BuildPath)) {
+    New-Item -ItemType Directory -Path $BuildPath | Out-Null
+}
+
+# Get git hash (fail fast if git not available / not a repo)
+$gitHashRaw = & git rev-parse --short=7 HEAD
+if ($LASTEXITCODE -ne 0 -or -not $gitHashRaw) {
+    throw "Failed to get git hash. Ensure git is installed and this is a git repository."
+}
+$GitHash = $gitHashRaw.Trim()
+
+# Build (dotnet publish)
+Invoke-External -FilePath "dotnet" -Arguments @(
+    "publish", $ProjPath,
+    "-c", "Release",
+    "-o", $BuildPath,
+    "/p:BuildMeta=$GitHash"
+) -ErrorMessage "dotnet publish failed"
 
 # Validate build artifact exists (required by Inno Setup script)
-$MAIN_EXE = Join-Path $BUILD_PATH "neo-bpsys-wpf.exe"
-if (-Not (Test-Path -Path $MAIN_EXE)) {
-    Write-Host "Build output missing: $MAIN_EXE" -ForegroundColor Red
-    Write-Host "Contents of {$BUILD_PATH}:" -ForegroundColor Yellow
-    Get-ChildItem -Path $BUILD_PATH -Recurse | Format-Table -AutoSize
+$MainExe = Join-Path $BuildPath "neo-bpsys-wpf.exe"
+if (-not (Test-Path -LiteralPath $MainExe)) {
+    Write-Host "Build output missing: $MainExe" -ForegroundColor Red
+    Write-Host "Contents of {$BuildPath}:" -ForegroundColor Yellow
+    Get-ChildItem -Path $BuildPath -Recurse | Format-Table -AutoSize
     throw "dotnet publish finished but main executable was not produced."
 }
 
 # Pack installer
-# Set packer dir
-$ISCC_PATH = ".\Installer\Inno Setup 6\ISCC.exe"
-# Set pack script dir
-$INSTALLER_PATH = ".\Installer\build_Installer.iss"
+$IsccPath      = Join-Path $RepoRoot "Installer\Inno Setup 6\ISCC.exe"
+$InstallerIss  = Join-Path $RepoRoot "Installer\build_Installer.iss"
 
-# Pack the installer
-& $ISCC_PATH $INSTALLER_PATH
+if (-not (Test-Path -LiteralPath $IsccPath)) {
+    throw "ISCC.exe not found at: $IsccPath"
+}
+if (-not (Test-Path -LiteralPath $InstallerIss)) {
+    throw ".iss script not found at: $InstallerIss"
+}
+
+Invoke-External -FilePath $IsccPath -Arguments @($InstallerIss) -ErrorMessage "Inno Setup packaging failed"
