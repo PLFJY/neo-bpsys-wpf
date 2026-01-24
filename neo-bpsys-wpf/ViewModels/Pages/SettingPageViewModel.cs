@@ -338,6 +338,8 @@ public partial class SettingPageViewModel : ViewModelBase
 
     #region 前台UI自定义
 
+    #region 共有逻辑
+
     /// <summary>
     /// 设置UI图片
     /// </summary>
@@ -376,6 +378,10 @@ public partial class SettingPageViewModel : ViewModelBase
         }
     }
 
+    #endregion
+
+    #region BP窗口设置
+
     [RelayCommand]
     private void EditBpWindowImages(string arg)
     {
@@ -401,6 +407,49 @@ public partial class SettingPageViewModel : ViewModelBase
         if (!propertyMap.TryGetValue(arg, out var valueTuple)) return;
         SetUiImage(valueTuple.Item1, valueTuple.Item2);
     }
+
+    [RelayCommand]
+    private void SaveBpWindowPickingBorderColor()
+    {
+        _settingsHostService.Settings.BpWindowSettings.PickingBorderColor =
+            BpWindowPickingColorSettings.ToArgbHexString();
+        _settingsHostService.SaveConfigAsync();
+    }
+
+    [RelayCommand]
+    private void SaveBpWindowBackgroundColor()
+    {
+        _settingsHostService.Settings.BpWindowSettings.BackgroundColor =
+            BpWindowBackgroundColorSettings.ToArgbHexString();
+        _settingsHostService.SaveConfigAsync();
+    }
+
+    public Color BpWindowPickingColorSettings { get; set; }
+
+    [ObservableProperty] private Color _bpWindowBackgroundColorSettings;
+
+    public bool AllowsBpWindowTransparency
+    {
+        get => _settingsHostService.Settings.BpWindowSettings.AllowsWindowTransparency;
+        set => _ = SaveBpWindowTransparency(value);
+    }
+
+    private async Task SaveBpWindowTransparency(bool value)
+    {
+        _settingsHostService.Settings.BpWindowSettings.AllowsWindowTransparency = value;
+        _ = _settingsHostService.SaveConfigAsync();
+        OnPropertyChanged(nameof(AllowsBpWindowTransparency));
+        if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("RestartToApply"),
+                I18nHelper.GetLocalizedString("RestartNeeded"), I18nHelper.GetLocalizedString("Restart"),
+                I18nHelper.GetLocalizedString("NotNow")))
+        {
+            AppBase.Current.Restart();
+        }
+    }
+
+    #endregion
+
+    #region 过场窗口设置
 
     [RelayCommand]
     private void EditCutSceneWindowImages()
@@ -429,6 +478,10 @@ public partial class SettingPageViewModel : ViewModelBase
 
         OnPropertyChanged(nameof(IsTalentAndTraitBlackVerEnable));
     }
+
+    #endregion
+
+    #region 计分板设置
 
     [RelayCommand]
     private void EditScoreWindowImages(string arg)
@@ -491,6 +544,10 @@ public partial class SettingPageViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsScoreGlobalCampIconBlackVerEnable));
     }
 
+    #endregion
+
+    #region 数据面板设置
+
     [RelayCommand]
     private void EditGameDataWindowImages()
     {
@@ -498,29 +555,9 @@ public partial class SettingPageViewModel : ViewModelBase
         SetUiImage(value => { settings.BgImageUri = value; }, settings.BgImageUri);
     }
 
+    #endregion
 
-    public bool IsMapBpV2CampIconBlackVerEnable
-    {
-        get => _settingsHostService.Settings.WidgetsWindowSettings.IsCampIconBlackVerEnabled;
-        set => _ = SetMapBpV2CampIconBlackVerAsync(value);
-    }
-
-    private async Task SetMapBpV2CampIconBlackVerAsync(bool isBlackVer)
-    {
-        if (await MessageBoxHelper.ShowConfirmAsync(
-                $"{I18nHelper.GetLocalizedString("AreYouSureToSetCampIconTo")} {(isBlackVer
-                    ? I18nHelper.GetLocalizedString("Black")
-                    : I18nHelper.GetLocalizedString("White"))}? ",
-                I18nHelper.GetLocalizedString("Tips"), I18nHelper.GetLocalizedString("Confirm"),
-                I18nHelper.GetLocalizedString("Cancel")))
-        {
-            _settingsHostService.Settings.WidgetsWindowSettings.IsCampIconBlackVerEnabled = isBlackVer;
-            await _settingsHostService.SaveConfigAsync();
-            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("RestartToApply"));
-        }
-
-        OnPropertyChanged(nameof(IsMapBpV2CampIconBlackVerEnable));
-    }
+    #region 小组件设置
 
     [RelayCommand]
     private void EditWidgetsWindowImages(string arg)
@@ -552,6 +589,43 @@ public partial class SettingPageViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void SaveMapBpV2PickingBorderColor()
+    {
+        _settingsHostService.Settings.WidgetsWindowSettings.MapBpV2_PickingBorderColor =
+            MapBpV2PickingColorSettings.ToArgbHexString();
+        _settingsHostService.SaveConfigAsync();
+    }
+
+    public bool IsMapBpV2CampIconBlackVerEnable
+    {
+        get => _settingsHostService.Settings.WidgetsWindowSettings.IsCampIconBlackVerEnabled;
+        set => _ = SetMapBpV2CampIconBlackVerAsync(value);
+    }
+
+    private async Task SetMapBpV2CampIconBlackVerAsync(bool isBlackVer)
+    {
+        if (await MessageBoxHelper.ShowConfirmAsync(
+                $"{I18nHelper.GetLocalizedString("AreYouSureToSetCampIconTo")} {(isBlackVer
+                    ? I18nHelper.GetLocalizedString("Black")
+                    : I18nHelper.GetLocalizedString("White"))}? ",
+                I18nHelper.GetLocalizedString("Tips"), I18nHelper.GetLocalizedString("Confirm"),
+                I18nHelper.GetLocalizedString("Cancel")))
+        {
+            _settingsHostService.Settings.WidgetsWindowSettings.IsCampIconBlackVerEnabled = isBlackVer;
+            await _settingsHostService.SaveConfigAsync();
+            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("RestartToApply"));
+        }
+
+        OnPropertyChanged(nameof(IsMapBpV2CampIconBlackVerEnable));
+    }
+
+    public Color MapBpV2PickingColorSettings { get; set; }
+
+    #endregion
+
+    #region 文字设置
+
+    [RelayCommand]
     private void EditTextSettings(FrontedWindowType type)
     {
         var settingsMap = new Dictionary<FrontedWindowType, TextSettings?>
@@ -574,29 +648,24 @@ public partial class SettingPageViewModel : ViewModelBase
                 () => _textSettingsNavigationService.Close(type)));
     }
 
-    [RelayCommand]
-    private void SaveBpWindowPickingBorderColor()
-    {
-        _settingsHostService.Settings.BpWindowSettings.PickingBorderColor =
-            BpWindowPickingColorSettings.ToArgbHexString();
-        _settingsHostService.SaveConfigAsync();
-    }
+    public Dictionary<string, TextSettings> BpWindowTextSettings { get; }
+    public TextSettings? SelectedBpWindowTextSettings { get; set; }
 
-    [RelayCommand]
-    private void SaveBpWindowBackgroundColor()
-    {
-        _settingsHostService.Settings.BpWindowSettings.BackgroundColor =
-            BpWindowBackgroundColorSettings.ToArgbHexString();
-        _settingsHostService.SaveConfigAsync();
-    }
+    public Dictionary<string, TextSettings> CutSceneWindowTextSettings { get; }
+    public TextSettings? SelectedCutSceneWindowTextSettings { get; set; }
 
-    [RelayCommand]
-    private void SaveMapBpV2PickingBorderColor()
-    {
-        _settingsHostService.Settings.WidgetsWindowSettings.MapBpV2_PickingBorderColor =
-            MapBpV2PickingColorSettings.ToArgbHexString();
-        _settingsHostService.SaveConfigAsync();
-    }
+    public Dictionary<string, TextSettings> ScoreWindowTextSettings { get; }
+    public TextSettings? SelectedScoreWindowTextSettings { get; set; }
+
+    public Dictionary<string, TextSettings> GameDataWindowTextSettings { get; }
+    public TextSettings? SelectedGameDataWindowTextSettings { get; set; }
+
+    public Dictionary<string, TextSettings> WidgetsWindowTextSettings { get; }
+    public TextSettings? SelectedWidgetsWindowTextSettings { get; set; }
+
+    #endregion
+
+    #region 重置设置
 
     [RelayCommand]
     private async Task ResetAsync(FrontedWindowType windowType)
@@ -625,44 +694,7 @@ public partial class SettingPageViewModel : ViewModelBase
         _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("RestartToApply"));
     }
 
-    public Color BpWindowPickingColorSettings { get; set; }
-    
-    [ObservableProperty] private Color _bpWindowBackgroundColorSettings;
-
-    public bool AllowsBpWindowTransparency
-    {
-        get => _settingsHostService.Settings.BpWindowSettings.AllowsWindowTransparency;
-        set => _ = SaveBpWindowTransparency(value);
-    }
-
-    private async Task SaveBpWindowTransparency(bool value)
-    {
-        _settingsHostService.Settings.BpWindowSettings.AllowsWindowTransparency = value;
-        _ = _settingsHostService.SaveConfigAsync();
-        OnPropertyChanged(nameof(AllowsBpWindowTransparency));
-        if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("RestartToApply"),
-                I18nHelper.GetLocalizedString("RestartNeeded"), I18nHelper.GetLocalizedString("Restart"),
-                I18nHelper.GetLocalizedString("NotNow")))
-        {
-            AppBase.Current.Restart();
-        }
-    }
-
-    public Dictionary<string, TextSettings> BpWindowTextSettings { get; }
-    public TextSettings? SelectedBpWindowTextSettings { get; set; }
-
-    public Dictionary<string, TextSettings> CutSceneWindowTextSettings { get; }
-    public TextSettings? SelectedCutSceneWindowTextSettings { get; set; }
-
-    public Dictionary<string, TextSettings> ScoreWindowTextSettings { get; }
-    public TextSettings? SelectedScoreWindowTextSettings { get; set; }
-
-    public Dictionary<string, TextSettings> GameDataWindowTextSettings { get; }
-    public TextSettings? SelectedGameDataWindowTextSettings { get; set; }
-
-    public Color MapBpV2PickingColorSettings { get; set; }
-    public Dictionary<string, TextSettings> WidgetsWindowTextSettings { get; }
-    public TextSettings? SelectedWidgetsWindowTextSettings { get; set; }
+    #endregion
 
     #endregion
 
