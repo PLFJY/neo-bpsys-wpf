@@ -73,4 +73,93 @@ public interface IAnimationService
     Task PlaySwapCharacterAnimationAsync(int sourceIndex, int targetIndex);
 
     #endregion
+
+    #region 动画预设
+
+    /// <summary>
+    /// 呼吸灯启动
+    /// </summary>
+    /// <param name="windowType">窗口类型</param>
+    /// <param name="controlNameHeader">控件名称头</param>
+    /// <param name="controlIndex">控件索引(-1表示没有)</param>
+    /// <param name="controlNameFooter">控件名称尾</param>
+    /// <returns></returns>
+    Task BreathingStart(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
+        string controlNameFooter);
+
+    /// <summary>
+    /// 呼吸灯启动
+    /// </summary>
+    /// <param name="windowId">窗口 GUID</param>
+    /// <param name="controlNameHeader">控件名称头</param>
+    /// <param name="controlIndex">控件索引(-1表示没有)</param>
+    /// <param name="controlNameFooter">控件名称尾</param>
+    /// <returns></returns>
+    Task BreathingStart(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter);
+
+    /// <summary>
+    /// 呼吸灯停止
+    /// </summary>
+    /// <param name="windowType">窗口类型</param>
+    /// <param name="controlNameHeader">控件名称头</param>
+    /// <param name="controlIndex">控件索引(-1表示没有)</param>
+    /// <param name="controlNameFooter">控件名称尾</param>
+    /// <returns></returns>
+    Task BreathingStop(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
+        string controlNameFooter);
+
+    /// <summary>
+    /// 呼吸灯停止
+    /// </summary>
+    /// <param name="windowId">窗口 GUID</param>
+    /// <param name="controlNameHeader">控件名称头</param>
+    /// <param name="controlIndex">控件索引(-1表示没有)</param>
+    /// <param name="controlNameFooter">控件名称尾</param>
+    /// <returns></returns>
+    Task BreathingStop(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter);
+
+    /// <summary>
+    /// 渐显动画
+    /// </summary>
+    /// <param name="windowType">窗口类型</param>
+    /// <param name="controlNameHeader">控件名称头</param>
+    /// <param name="controlIndex">控件索引(-1表示没有)</param>
+    /// <param name="controlNameFooter">控件名称尾</param>
+    /// <returns></returns>
+    void FadeInAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
+        string controlNameFooter);
+
+    /// <summary>
+    /// 渐显动画
+    /// </summary>
+    /// <param name="windowId">窗口 GUID</param>
+    /// <param name="controlNameHeader">控件名称头</param>
+    /// <param name="controlIndex">控件索引(-1表示没有)</param>
+    /// <param name="controlNameFooter">控件名称尾</param>
+    /// <returns></returns>
+    void FadeInAnimation(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter);
+
+    /// <summary>
+    /// 渐隐动画
+    /// </summary>
+    /// <param name="windowType">窗口类型</param>
+    /// <param name="controlNameHeader">控件名称头</param>
+    /// <param name="controlIndex">控件索引(-1表示没有)</param>
+    /// <param name="controlNameFooter">控件名称尾</param>
+    /// <returns></returns>
+    void FadeOutAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
+        string controlNameFooter);
+
+    /// <summary>
+    /// 渐隐动画
+    /// </summary>
+    /// <param name="windowId">窗口 GUID</param>
+    /// <param name="controlNameHeader">控件名称头</param>
+    /// <param name="controlIndex">控件索引(-1表示没有)</param>
+    /// <param name="controlNameFooter">控件名称尾</param>
+    /// <returns></returns>
+    void FadeOutAnimation(string windowId, string controlNameHeader, int controlIndex,
+        string controlNameFooter);
+
+    #endregion
 }

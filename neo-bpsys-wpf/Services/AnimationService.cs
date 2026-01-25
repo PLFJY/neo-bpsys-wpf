@@ -1,3 +1,5 @@
+using System.Windows;
+using System.Windows.Media.Animation;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using static neo_bpsys_wpf.Core.Helpers.FrontedWindowHelper;
@@ -10,6 +12,7 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public class AnimationService(IFrontedWindowService frontedWindowService) : IAnimationService
 {
+    private readonly IFrontedWindowService _frontedWindowService = frontedWindowService;
     private const int TransitionDelayMs = 250;
 
     #region 角色选择动画 (Pick)
@@ -28,9 +31,7 @@ public class AnimationService(IFrontedWindowService frontedWindowService) : IAni
         var controlNameHeader = GetPickControlName(camp);
         var controlIndex = camp == Camp.Hun ? -1 : index;
 
-#pragma warning disable CS0618 // 内部调用，已知过时
-        frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, controlNameHeader, controlIndex, string.Empty);
-#pragma warning restore CS0618
+        FadeInAnimation(FrontedWindowType.BpWindow, controlNameHeader, controlIndex, string.Empty);
     }
 
     /// <inheritdoc/>
@@ -39,9 +40,7 @@ public class AnimationService(IFrontedWindowService frontedWindowService) : IAni
         var controlNameHeader = GetPickControlName(camp);
         var controlIndex = camp == Camp.Hun ? -1 : index;
 
-#pragma warning disable CS0618 // 内部调用，已知过时
-            frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, controlNameHeader, controlIndex, string.Empty);
-#pragma warning restore CS0618
+        FadeOutAnimation(FrontedWindowType.BpWindow, controlNameHeader, controlIndex, string.Empty);
     }
 
     private static string GetPickControlName(Camp camp) => camp == Camp.Sur ? "SurPick" : "HunPick";
@@ -68,10 +67,7 @@ public class AnimationService(IFrontedWindowService frontedWindowService) : IAni
         var controlNameHeader = GetPickingBorderControlName(camp);
         var controlIndex = camp == Camp.Hun ? -1 : index;
 
-#pragma warning disable CS0618 // 内部调用，已知过时
-        await frontedWindowService.BreathingStart(FrontedWindowType.BpWindow, controlNameHeader, controlIndex,
-            string.Empty);
-#pragma warning restore CS0618
+        await BreathingStart(FrontedWindowType.BpWindow, controlNameHeader, controlIndex, string.Empty);
     }
 
     /// <inheritdoc/>
@@ -80,10 +76,7 @@ public class AnimationService(IFrontedWindowService frontedWindowService) : IAni
         var controlNameHeader = GetPickingBorderControlName(camp);
         var controlIndex = camp == Camp.Hun ? -1 : index;
 
-#pragma warning disable CS0618 // 内部调用，已知过时
-        await frontedWindowService.BreathingStop(FrontedWindowType.BpWindow, controlNameHeader, controlIndex,
-            string.Empty);
-#pragma warning restore CS0618
+        await BreathingStop(FrontedWindowType.BpWindow, controlNameHeader, controlIndex, string.Empty);
     }
 
     private static string GetPickingBorderControlName(Camp camp) =>
@@ -96,17 +89,150 @@ public class AnimationService(IFrontedWindowService frontedWindowService) : IAni
     /// <inheritdoc/>
     public async Task PlaySwapCharacterAnimationAsync(int sourceIndex, int targetIndex)
     {
-#pragma warning disable CS0618 // 内部调用，已知过时
         // 同时淡出两个角色
-        frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", sourceIndex, string.Empty);
-        frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", targetIndex, string.Empty);
+        FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", sourceIndex, string.Empty);
+        FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", targetIndex, string.Empty);
 
         await Task.Delay(TransitionDelayMs);
 
         // 同时淡入两个角色
-        frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", sourceIndex, string.Empty);
-        frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", targetIndex, string.Empty);
-#pragma warning restore CS0618
+        FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", sourceIndex, string.Empty);
+        FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", targetIndex, string.Empty);
+    }
+
+    #endregion
+
+    #region 动画预设
+
+    /// <summary>
+    /// 渐显动画
+    /// </summary>
+    /// <param name="windowType">窗体类型</param>
+    /// <param name="controlNameHeader">控件名称头</param>
+    /// <param name="controlIndex">控件索引(-1表示没有)</param>
+    /// <param name="controlNameFooter">控件名称尾</param>
+    public void FadeInAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
+        string controlNameFooter)
+    {
+        FadeInAnimation(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter);
+    }
+
+    /// <inheritdoc/>
+    public void FadeInAnimation(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter)
+    {
+        var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
+        if (!_frontedWindowService.FrontedWindows.TryGetValue(windowId, out var window)) return;
+
+        if (window.FindName(ctrName) is FrameworkElement element)
+        {
+            element.BeginAnimation(UIElement.OpacityProperty,
+                new DoubleAnimation(0, 1, new Duration(TimeSpan.FromSeconds(0.5))));
+        }
+    }
+
+    /// <summary>
+    /// 渐隐动画
+    /// </summary>
+    /// <param name="windowType">窗体类型</param>
+    /// <param name="controlNameHeader">控件名称头</param>
+    /// <param name="controlIndex">控件索引(-1表示没有)</param>
+    /// <param name="controlNameFooter">控件名称尾</param>
+    public void FadeOutAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
+        string controlNameFooter)
+    {
+        FadeOutAnimation(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter);
+    }
+
+    /// <inheritdoc/>
+    public void FadeOutAnimation(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter)
+    {
+        var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
+        if (!_frontedWindowService.FrontedWindows.TryGetValue(windowId, out var window)) return;
+        if (window.FindName(ctrName) is FrameworkElement element)
+        {
+            element.BeginAnimation(UIElement.OpacityProperty,
+                new DoubleAnimation(1, 0, new Duration(TimeSpan.FromSeconds(0.5))));
+        }
+    }
+
+    /// <summary>
+    /// 呼吸动画开始
+    /// </summary>
+    /// <param name="windowType">窗体类型</param>
+    /// <param name="controlNameHeader">控件名称头</param>
+    /// <param name="controlIndex">控件索引(-1表示没有)</param>
+    /// <param name="controlNameFooter">控件名称尾</param>
+    public async Task BreathingStart(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
+        string controlNameFooter)
+    {
+        await BreathingStart(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter);
+    }
+
+    /// <inheritdoc/>
+    public async Task BreathingStart(string windowId, string controlNameHeader, int controlIndex,
+        string controlNameFooter)
+    {
+        var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
+        if (!_frontedWindowService.FrontedWindows.TryGetValue(windowId, out var window)) return;
+        if (window.FindName(ctrName) is not FrameworkElement element) return;
+
+        element.Opacity = 0;
+        element.Visibility = Visibility.Visible;
+        element.BeginAnimation(UIElement.OpacityProperty,
+            new DoubleAnimation(0, 1, new Duration(TimeSpan.FromSeconds(0.25))));
+        await Task.Delay(250);
+
+        // 如果已有动画，先停止
+        await BreathingStop(windowId, controlNameHeader, controlIndex, controlNameFooter);
+
+        var animation = new DoubleAnimation
+        {
+            From = 1.0,
+            To = 0.25,
+            Duration = TimeSpan.FromSeconds(1),
+            AutoReverse = true,
+            RepeatBehavior = RepeatBehavior.Forever
+        };
+
+        Storyboard.SetTarget(animation, element);
+        Storyboard.SetTargetProperty(animation, new PropertyPath(UIElement.OpacityProperty));
+
+        var storyboard = new Storyboard();
+        storyboard.Children.Add(animation);
+        storyboard.Begin(element);
+        element.Tag = storyboard; // 用于后续停止动画
+    }
+
+    /// <summary>
+    /// 停止呼吸动画
+    /// </summary>
+    /// <param name="windowType">窗体类型</param>
+    /// <param name="controlNameHeader">控件名称头</param>
+    /// <param name="controlIndex">控件索引(-1表示没有)</param>
+    /// <param name="controlNameFooter">控件名称尾</param>
+    public async Task BreathingStop(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
+        string controlNameFooter)
+    {
+        await BreathingStop(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter);
+    }
+
+    /// <inheritdoc/>
+    public async Task BreathingStop(string windowId, string controlNameHeader, int controlIndex,
+        string controlNameFooter)
+    {
+        var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
+        if (!_frontedWindowService.FrontedWindows.TryGetValue(windowId, out var window)) return;
+        if (window.FindName(ctrName) is not FrameworkElement element) return;
+        if (element.Tag is not Storyboard storyboard) return;
+
+        storyboard.Stop();
+        element.BeginAnimation(UIElement.OpacityProperty,
+            new DoubleAnimation(1, 0, new Duration(TimeSpan.FromSeconds(0.25))));
+        await Task.Delay(250);
+
+        element.Opacity = 0; // 恢复初始状态
+        element.Tag = null;
+        element.Visibility = Visibility.Hidden;
     }
 
     #endregion
