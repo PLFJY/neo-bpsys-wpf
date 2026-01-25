@@ -107,7 +107,7 @@ public partial class SharedDataService : ISharedDataService
 
         foreach (var i in characters)
         {
-            var chara = new Character(i.Key, i.Value.Camp, i.Value.ImageFileName, i.Value.Abbrev);
+            var chara = new Character(i.Key, i.Value.Camp, i.Value.ImageFileName, i.Value.Abbrev, i.Value.FullSpell);
             if (i.Value.Camp == Camp.Sur)
                 SurCharaDict?.Add(i.Key, chara);
             else
@@ -577,7 +577,11 @@ public partial class SharedDataService : ISharedDataService
             if (root.TryGetProperty("Abbrev", out var abbrevProp))
                 abbrev = abbrevProp.GetString();
 
-            return new Character(nameFallback, campFallback, imageFileName, abbrev);
+            string? fullSpell = null;
+            if (root.TryGetProperty("FullSpell", out var fullSpellProp))
+                fullSpell = fullSpellProp.GetString();
+
+            return new Character(nameFallback, campFallback, imageFileName, abbrev, fullSpell);
         }
 
         public override void Write(Utf8JsonWriter writer, Character value, JsonSerializerOptions options)

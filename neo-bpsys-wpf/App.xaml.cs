@@ -10,6 +10,7 @@ using Serilog;
 using System.IO;
 using System.Text;
 using System.Windows;
+using System.Windows.Markup;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using Wpf.Ui.Appearance;
@@ -122,6 +123,7 @@ public partial class App : AppBase
         //设置语言
         var settingService = IAppHost.Host.Services.GetRequiredService<ISettingsHostService>();
         LocalizeDictionary.Instance.Culture = settingService.Settings.CultureInfo;
+        Application.Current.Resources["CurrentLanguage"] = XmlLanguage.GetLanguage(settingService.Settings.CultureInfo.Name);
 
         //启动host
         await IAppHost.Host.StartAsync();

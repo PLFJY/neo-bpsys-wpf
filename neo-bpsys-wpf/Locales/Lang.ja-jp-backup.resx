@@ -1,0 +1,143 @@
+﻿<root>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="Sur" xml:space="preserve">
+        <value>サバイバー</value>
+    </data>
+    <data name="Survivor" xml:space="preserve">
+        <value>サバイバー</value>
+    </data>
+    <data name="Hun" xml:space="preserve">
+        <value>ハンター</value>
+    </data>
+    <data name="Hunter" xml:space="preserve">
+        <value>ハンター</value>
+    </data>
+    <data name="ArmsFactory" xml:space="preserve">
+        <value>軍需工場</value>
+    </data>
+    <data name="TheRedChurch" xml:space="preserve">
+        <value>赤の教会</value>
+    </data>
+    <data name="SacredHeartHospital" xml:space="preserve">
+        <value>聖心病院</value>
+    </data>
+    <data name="LakesideVillage" xml:space="preserve">
+        <value>湖景村</value>
+    </data>
+    <data name="MoonlitRiverPark" xml:space="preserve">
+        <value>月の河公園</value>
+    </data>
+    <data name="LeosMemory" xml:space="preserve">
+        <value>レオの思い出</value>
+    </data>
+    <data name="EversleepingTown" xml:space="preserve">
+        <value>永眠町</value>
+    </data>
+    <data name="ChinaTown" xml:space="preserve">
+        <value>中華街</value>
+    </data>
+    <data name="Darkwoods" xml:space="preserve">
+        <value>罪の森</value>
+    </data>
+    <data name="TalentAndTrait" xml:space="preserve">
+        <value>人格と特質</value>
+    </data>
+    <data name="SurvivorTalent" xml:space="preserve">
+        <value>サバイバーの内在人格</value>
+    </data>
+    <data name="HunterTrait" xml:space="preserve">
+        <value>ハンターの補助特質</value>
+    </data>
+    <data name="Abnormal" xml:space="preserve">
+        <value>異常</value>
+    </data>
+    <data name="Listen" xml:space="preserve">
+        <value>リッスン</value>
+    </data>
+    <data name="Excitement" xml:space="preserve">
+        <value>興奮</value>
+    </data>
+    <data name="Patroller" xml:space="preserve">
+        <value>巡視者</value>
+    </data>
+    <data name="Peeper" xml:space="preserve">
+        <value>監視者</value>
+    </data>
+    <data name="Teleport" xml:space="preserve">
+        <value>瞬間移動</value>
+    </data>
+    <data name="Blink" xml:space="preserve">
+        <value>神出鬼没</value>
+    </data>
+    <data name="Warp" xml:space="preserve">
+        <value>移形</value>
+    </data>
+    <data name="FourEscape" xml:space="preserve">
+        <value>4逃げ</value>
+    </data>
+    <data name="ThreeEscape" xml:space="preserve">
+        <value>3逃げ</value>
+    </data>
+    <data name="ThreeEliminate" xml:space="preserve">
+        <value>3吊り</value>
+    </data>
+    <data name="Tie" xml:space="preserve">
+        <value>2逃げ</value>
+    </data>
+    <data name="Character" xml:space="preserve">
+        <value>キャラクター</value>
+    </data>
+    <data name="CharacterName" xml:space="preserve">
+        <value>キャラクター名</value>
+    </data>
+    <data name="PlayerID" xml:space="preserve">
+        <value>選手 ID</value>
+    </data>
+    <data name="PlayerName" xml:space="preserve">
+        <value>選手名</value>
+    </data>
+    <data name="DecodingProgress" xml:space="preserve">
+        <value>暗号解読進捗</value>
+    </data>
+    <data name="PalletStrikes" xml:space="preserve">
+        <value>板命中回数</value>
+    </data>
+    <data name="Rescues" xml:space="preserve">
+        <value>救助回数</value>
+    </data>
+    <data name="Heals" xml:space="preserve">
+        <value>治療回数</value>
+    </data>
+    <data name="ContainmentTime" xml:space="preserve">
+        <value>牽制時間（秒）</value>
+    </data>
+    <data name="RemainingCiphers" xml:space="preserve">
+        <value>残り暗号機数</value>
+    </data>
+    <data name="PalletsDestroyed" xml:space="preserve">
+        <value>板破壊数</value>
+    </data>
+    <data name="SurvivorHits" xml:space="preserve">
+        <value>命中回数</value>
+    </data>
+    <data name="TerrorShocks" xml:space="preserve">
+        <value>恐怖の一撃回数</value>
+    </data>
+    <data name="Knockdowns" xml:space="preserve">
+        <value>ダウン回数</value>
+    </data>
+    <data name="FourEliminate" xml:space="preserve">
+        <value>4吊り</value>
+    </data>
+</root>

@@ -109,9 +109,12 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <TextBlock
-                        Margin="10,0,0,0"
+                        Width="400"
+                        Margin="10,10,0,0"
+                        HorizontalAlignment="Left"
                         VerticalAlignment="Center"
-                        Text="{lex:Loc PluginsThirdPartyWarning}" />
+                        Text="{lex:Loc PluginsThirdPartyWarning}"
+                        TextWrapping="WrapWithOverflow" />
                     <StackPanel
                         Grid.Row="0"
                         Margin="0,10,10,0"

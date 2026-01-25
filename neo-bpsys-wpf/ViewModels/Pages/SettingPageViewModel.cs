@@ -19,6 +19,7 @@ using System.IO.Compression;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Markup;
 using System.Windows.Media;
 using WPFLocalizeExtension.Engine;
 
@@ -254,6 +255,7 @@ public partial class SettingPageViewModel : ViewModelBase
             _settingsHostService.Settings.Language = value;
             _settingsHostService.SaveConfigAsync();
             LocalizeDictionary.Instance.Culture = _settingsHostService.Settings.CultureInfo;
+            Application.Current.Resources["CurrentLanguage"] = XmlLanguage.GetLanguage(_settingsHostService.Settings.CultureInfo.Name);
             _logger.LogInformation("Set language to {appLanguage}", _settingsHostService.Settings.CultureInfo.Name);
         });
     }
@@ -263,7 +265,7 @@ public partial class SettingPageViewModel : ViewModelBase
         { "FollowSystem", LanguageKey.System },
         { "zh_Hans", LanguageKey.zh_Hans },
         { "en_US", LanguageKey.en_US },
-        //{"ja_JP" , LanguageKey.ja_JP }
+        { "ja_JP" , LanguageKey.ja_JP }
     };
 
     #endregion

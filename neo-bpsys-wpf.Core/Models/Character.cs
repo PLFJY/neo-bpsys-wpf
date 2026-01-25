@@ -104,7 +104,7 @@ public class Character
     /// <param name="imageFileName"></param>
     /// <param name="abbrev"></param>
     [JsonConstructor]
-    public Character(string name, Camp camp, string imageFileName, string? abbrev = null)
+    public Character(string name, Camp camp, string imageFileName, string? abbrev = null, string? fullSpell = null)
     {
         Name = name;
         Camp = camp;
@@ -118,7 +118,7 @@ public class Character
         var parts = pinyin.Split([" "], StringSplitOptions.RemoveEmptyEntries);
 
         //full pinyin without space
-        FullSpell = string.Concat(parts);
+        FullSpell = string.IsNullOrEmpty(fullSpell) ? string.Concat(parts) : fullSpell;
 
         //Abbreviation
         Abbrev = string.IsNullOrEmpty(abbrev) ? string.Concat(parts.Select(p => p[0])) : abbrev;

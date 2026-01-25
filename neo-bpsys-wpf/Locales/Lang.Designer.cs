@@ -2076,7 +2076,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 日本語.
+        ///   Looks up a localized string similar to 日本語（正確性は100%保証されません）.
         /// </summary>
         public static string ja_JP {
             get {

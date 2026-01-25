@@ -5,6 +5,7 @@
     xmlns:bp="clr-namespace:neo_bpsys_wpf.Core.Controls;assembly=neo-bpsys-wpf.Core"
     xmlns:core="clr-namespace:neo_bpsys_wpf.Core;assembly=neo-bpsys-wpf.Core"
     xmlns:local="clr-namespace:neo_bpsys_wpf"
+    xmlns:markup="clr-namespace:System.Windows.Markup;assembly=PresentationCore"
     xmlns:md="http://schemas.lepo.co/wpfui/2022/xaml/markdown"
     xmlns:themes="clr-namespace:neo_bpsys_wpf.Themes"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -33,10 +34,17 @@
             <FontFamily x:Key="Selawik">/neo-bpsys-wpf;Component/Assets/Fonts/#Selawik</FontFamily>
             <FontFamily x:Key="NotoSans">/neo-bpsys-wpf;Component/Assets/Fonts/#Noto Sans</FontFamily>
 
+            <markup:XmlLanguage x:Key="CurrentLanguage">zh-CN</markup:XmlLanguage>
+
+            <!--  CJK Fix  -->
+            <Style BasedOn="{StaticResource {x:Type Label}}" TargetType="Label">
+                <Setter Property="Language" Value="{DynamicResource CurrentLanguage}" />
+            </Style>
+
+            <!--  TextBlock disable  -->
             <Style BasedOn="{StaticResource {x:Type TextBlock}}" TargetType="TextBlock">
                 <!--  CJK Fix  -->
-                <Setter Property="Language" Value="zh-CN" />
-                <!--  TextBlock disable  -->
+                <Setter Property="Language" Value="{DynamicResource CurrentLanguage}" />
                 <Style.Triggers>
                     <Trigger Property="IsEnabled" Value="False">
                         <Setter Property="Foreground" Value="Gray" />

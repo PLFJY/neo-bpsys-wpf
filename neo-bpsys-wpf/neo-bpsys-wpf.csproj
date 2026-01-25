@@ -236,5 +236,8 @@
             <Generator>PublicResXFileCodeGenerator</Generator>
             <LastGenOutput>Lang.Designer.cs</LastGenOutput>
         </EmbeddedResource>
+        <EmbeddedResource Update="Locales\Lang.en-us.resx">
+          <DependentUpon>Lang.resx</DependentUpon>
+        </EmbeddedResource>
     </ItemGroup>
 </Project>
