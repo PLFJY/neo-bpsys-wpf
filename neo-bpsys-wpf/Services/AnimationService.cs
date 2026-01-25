@@ -15,37 +15,31 @@ public class AnimationService(IFrontedWindowService frontedWindowService) : IAni
     #region 角色选择动画 (Pick)
 
     /// <inheritdoc/>
-    public async Task PlayPickTransitionAsync(Camp camp, int index, string? windowId = null)
+    public async Task PlayPickTransitionAsync(Camp camp, int index)
     {
-        PlayPickFadeOut(camp, index, windowId);
+        PlayPickFadeOut(camp, index);
         await Task.Delay(TransitionDelayMs);
-        PlayPickFadeIn(camp, index, windowId);
+        PlayPickFadeIn(camp, index);
     }
 
     /// <inheritdoc/>
-    public void PlayPickFadeIn(Camp camp, int index, string? windowId = null)
+    public void PlayPickFadeIn(Camp camp, int index)
     {
         var controlNameHeader = GetPickControlName(camp);
         var controlIndex = camp == Camp.Hun ? -1 : index;
 
 #pragma warning disable CS0618 // 内部调用，已知过时
-        if (windowId != null)
-            frontedWindowService.FadeInAnimation(windowId, controlNameHeader, controlIndex, string.Empty);
-        else
-            frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, controlNameHeader, controlIndex, string.Empty);
+        frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, controlNameHeader, controlIndex, string.Empty);
 #pragma warning restore CS0618
     }
 
     /// <inheritdoc/>
-    public void PlayPickFadeOut(Camp camp, int index, string? windowId = null)
+    public void PlayPickFadeOut(Camp camp, int index)
     {
         var controlNameHeader = GetPickControlName(camp);
         var controlIndex = camp == Camp.Hun ? -1 : index;
 
 #pragma warning disable CS0618 // 内部调用，已知过时
-        if (windowId != null)
-            frontedWindowService.FadeOutAnimation(windowId, controlNameHeader, controlIndex, string.Empty);
-        else
             frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, controlNameHeader, controlIndex, string.Empty);
 #pragma warning restore CS0618
     }
@@ -57,7 +51,7 @@ public class AnimationService(IFrontedWindowService frontedWindowService) : IAni
     #region 角色禁用动画 (Ban)
 
     /// <inheritdoc/>
-    public Task PlayBanAnimationAsync(Camp camp, int index, BanType banType, string? windowId = null)
+    public Task PlayBanAnimationAsync(Camp camp, int index, BanType banType)
     {
         // 当前实现中 Ban 操作没有专门的动画效果
         // 此方法作为扩展点，供插件实现自定义效果
@@ -69,30 +63,26 @@ public class AnimationService(IFrontedWindowService frontedWindowService) : IAni
     #region 待选框呼吸灯动画 (Picking Border)
 
     /// <inheritdoc/>
-    public async Task StartPickingBorderBreathingAsync(Camp camp, int index, string? windowId = null)
+    public async Task StartPickingBorderBreathingAsync(Camp camp, int index)
     {
         var controlNameHeader = GetPickingBorderControlName(camp);
         var controlIndex = camp == Camp.Hun ? -1 : index;
 
 #pragma warning disable CS0618 // 内部调用，已知过时
-        if (windowId != null)
-            await frontedWindowService.BreathingStart(windowId, controlNameHeader, controlIndex, string.Empty);
-        else
-            await frontedWindowService.BreathingStart(FrontedWindowType.BpWindow, controlNameHeader, controlIndex, string.Empty);
+        await frontedWindowService.BreathingStart(FrontedWindowType.BpWindow, controlNameHeader, controlIndex,
+            string.Empty);
 #pragma warning restore CS0618
     }
 
     /// <inheritdoc/>
-    public async Task StopPickingBorderBreathingAsync(Camp camp, int index, string? windowId = null)
+    public async Task StopPickingBorderBreathingAsync(Camp camp, int index)
     {
         var controlNameHeader = GetPickingBorderControlName(camp);
         var controlIndex = camp == Camp.Hun ? -1 : index;
 
 #pragma warning disable CS0618 // 内部调用，已知过时
-        if (windowId != null)
-            await frontedWindowService.BreathingStop(windowId, controlNameHeader, controlIndex, string.Empty);
-        else
-            await frontedWindowService.BreathingStop(FrontedWindowType.BpWindow, controlNameHeader, controlIndex, string.Empty);
+        await frontedWindowService.BreathingStop(FrontedWindowType.BpWindow, controlNameHeader, controlIndex,
+            string.Empty);
 #pragma warning restore CS0618
     }
 
@@ -104,34 +94,18 @@ public class AnimationService(IFrontedWindowService frontedWindowService) : IAni
     #region 角色互换动画
 
     /// <inheritdoc/>
-    public async Task PlaySwapCharacterAnimationAsync(int sourceIndex, int targetIndex, string? windowId = null)
+    public async Task PlaySwapCharacterAnimationAsync(int sourceIndex, int targetIndex)
     {
 #pragma warning disable CS0618 // 内部调用，已知过时
         // 同时淡出两个角色
-        if (windowId != null)
-        {
-            frontedWindowService.FadeOutAnimation(windowId, "SurPick", sourceIndex, string.Empty);
-            frontedWindowService.FadeOutAnimation(windowId, "SurPick", targetIndex, string.Empty);
-        }
-        else
-        {
-            frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", sourceIndex, string.Empty);
-            frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", targetIndex, string.Empty);
-        }
+        frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", sourceIndex, string.Empty);
+        frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", targetIndex, string.Empty);
 
         await Task.Delay(TransitionDelayMs);
 
         // 同时淡入两个角色
-        if (windowId != null)
-        {
-            frontedWindowService.FadeInAnimation(windowId, "SurPick", sourceIndex, string.Empty);
-            frontedWindowService.FadeInAnimation(windowId, "SurPick", targetIndex, string.Empty);
-        }
-        else
-        {
-            frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", sourceIndex, string.Empty);
-            frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", targetIndex, string.Empty);
-        }
+        frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", sourceIndex, string.Empty);
+        frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", targetIndex, string.Empty);
 #pragma warning restore CS0618
     }
 

@@ -16,24 +16,21 @@ public interface IAnimationService
     /// </summary>
     /// <param name="camp">阵营（求生者/监管者）</param>
     /// <param name="index">角色索引，监管者为-1</param>
-    /// <param name="windowId">可选的窗口ID，为null时使用默认BP窗口</param>
-    Task PlayPickTransitionAsync(Camp camp, int index, string? windowId = null);
+    Task PlayPickTransitionAsync(Camp camp, int index);
 
     /// <summary>
     /// 播放角色选择渐显动画
     /// </summary>
     /// <param name="camp">阵营（求生者/监管者）</param>
     /// <param name="index">角色索引，监管者为-1</param>
-    /// <param name="windowId">可选的窗口ID，为null时使用默认BP窗口</param>
-    void PlayPickFadeIn(Camp camp, int index, string? windowId = null);
+    void PlayPickFadeIn(Camp camp, int index);
 
     /// <summary>
     /// 播放角色选择渐隐动画
     /// </summary>
     /// <param name="camp">阵营（求生者/监管者）</param>
     /// <param name="index">角色索引，监管者为-1</param>
-    /// <param name="windowId">可选的窗口ID，为null时使用默认BP窗口</param>
-    void PlayPickFadeOut(Camp camp, int index, string? windowId = null);
+    void PlayPickFadeOut(Camp camp, int index);
 
     #endregion
 
@@ -45,8 +42,7 @@ public interface IAnimationService
     /// <param name="camp">阵营</param>
     /// <param name="index">禁用位索引</param>
     /// <param name="banType">禁用类型（当前/全局）</param>
-    /// <param name="windowId">可选的窗口ID</param>
-    Task PlayBanAnimationAsync(Camp camp, int index, BanType banType, string? windowId = null);
+    Task PlayBanAnimationAsync(Camp camp, int index, BanType banType);
 
     #endregion
 
@@ -57,16 +53,14 @@ public interface IAnimationService
     /// </summary>
     /// <param name="camp">阵营</param>
     /// <param name="index">角色索引，监管者为-1</param>
-    /// <param name="windowId">可选的窗口ID</param>
-    Task StartPickingBorderBreathingAsync(Camp camp, int index, string? windowId = null);
+    Task StartPickingBorderBreathingAsync(Camp camp, int index);
 
     /// <summary>
     /// 停止待选框呼吸灯效果
     /// </summary>
     /// <param name="camp">阵营</param>
     /// <param name="index">角色索引，监管者为-1</param>
-    /// <param name="windowId">可选的窗口ID</param>
-    Task StopPickingBorderBreathingAsync(Camp camp, int index, string? windowId = null);
+    Task StopPickingBorderBreathingAsync(Camp camp, int index);
 
     #endregion
 
@@ -77,8 +71,7 @@ public interface IAnimationService
     /// </summary>
     /// <param name="sourceIndex">源角色索引</param>
     /// <param name="targetIndex">目标角色索引</param>
-    /// <param name="windowId">可选的窗口ID</param>
-    Task PlaySwapCharacterAnimationAsync(int sourceIndex, int targetIndex, string? windowId = null);
+    Task PlaySwapCharacterAnimationAsync(int sourceIndex, int targetIndex);
 
     #endregion
 }
