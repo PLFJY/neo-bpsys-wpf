@@ -35,9 +35,8 @@ public interface ICharacterSelectionService
     /// <param name="camp">阵营</param>
     /// <param name="index">禁用位索引</param>
     /// <param name="character">被禁用的角色</param>
-    /// <param name="banType">禁用类型</param>
     /// <param name="playAnimation">是否播放动画</param>
-    Task BanCharacterAsync(Camp camp, int index, Character? character, BanType banType, bool playAnimation = true);
+    Task BanCharacterAsync(Camp camp, int index, Character? character, bool playAnimation = true);
 
     /// <summary>
     /// 互换求生者角色

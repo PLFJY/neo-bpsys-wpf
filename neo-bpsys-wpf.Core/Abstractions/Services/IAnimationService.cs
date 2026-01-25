@@ -41,8 +41,7 @@ public interface IAnimationService
     /// </summary>
     /// <param name="camp">阵营</param>
     /// <param name="index">禁用位索引</param>
-    /// <param name="banType">禁用类型（当前/全局）</param>
-    Task PlayBanAnimationAsync(Camp camp, int index, BanType banType);
+    Task PlayBanAnimationAsync(Camp camp, int index);
 
     #endregion
 

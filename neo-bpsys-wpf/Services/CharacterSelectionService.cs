@@ -58,27 +58,17 @@ public class CharacterSelectionService : ICharacterSelectionService
     }
 
     /// <inheritdoc/>
-    public async Task BanCharacterAsync(Camp camp, int index, Character? character, BanType banType, bool playAnimation = true)
+    public async Task BanCharacterAsync(Camp camp, int index, Character? character, bool playAnimation = true)
     {
         // 更新数据
-        if (banType == BanType.Current)
-        {
-            if (camp == Camp.Sur)
-                _sharedDataService.CurrentGame.CurrentSurBannedList[index] = character;
-            else
-                _sharedDataService.CurrentGame.CurrentHunBannedList[index] = character;
-        }
+        if (camp == Camp.Sur)
+            _sharedDataService.CurrentGame.CurrentSurBannedList[index] = character;
         else
-        {
-            if (camp == Camp.Sur)
-                _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurList[index] = character;
-            else
-                _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunList[index] = character;
-        }
-
+            _sharedDataService.CurrentGame.CurrentHunBannedList[index] = character;
+        
         if (playAnimation)
         {
-            await AnimationService.PlayBanAnimationAsync(camp, index, banType);
+            await AnimationService.PlayBanAnimationAsync(camp, index);
         }
     }
 

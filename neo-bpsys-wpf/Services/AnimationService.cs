@@ -51,7 +51,7 @@ public class AnimationService(IFrontedWindowService frontedWindowService) : IAni
     #region 角色禁用动画 (Ban)
 
     /// <inheritdoc/>
-    public Task PlayBanAnimationAsync(Camp camp, int index, BanType banType)
+    public Task PlayBanAnimationAsync(Camp camp, int index)
     {
         // 当前实现中 Ban 操作没有专门的动画效果
         // 此方法作为扩展点，供插件实现自定义效果

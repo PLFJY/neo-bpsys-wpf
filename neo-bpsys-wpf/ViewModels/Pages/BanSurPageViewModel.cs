@@ -9,24 +9,26 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class BanSurPageViewModel : ViewModelBase
 {
-#pragma warning disable CS8618 
+#pragma warning disable CS8618
     public BanSurPageViewModel()
-#pragma warning restore CS8618 
+#pragma warning restore CS8618
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
 
     private readonly ISharedDataService _sharedDataService;
+    private readonly ICharacterSelectionService _characterSelectionService;
 
     public ObservableCollection<bool> CanCurrentHunBanned => _sharedDataService.CanCurrentSurBannedList;
 
-    public BanSurPageViewModel(ISharedDataService sharedDataService)
+    public BanSurPageViewModel(ISharedDataService sharedDataService,
+        ICharacterSelectionService characterSelectionService)
     {
         _sharedDataService = sharedDataService;
         BanSurCurrentViewModelList =
         [
             .. Enumerable.Range(0, AppConstants.CurrentBanSurCount)
-                .Select(i => new BanSurCurrentViewModel(_sharedDataService, i))
+                .Select(i => new BanSurCurrentViewModel(_sharedDataService, characterSelectionService, i))
         ];
         BanSurGlobalViewModelList =
         [
@@ -41,9 +43,13 @@ public partial class BanSurPageViewModel : ViewModelBase
     //基于模板基类的VM实现
     public class BanSurCurrentViewModel : CharaSelectViewModelBase
     {
-        public BanSurCurrentViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService,
-            Camp.Sur, index)
+        private readonly ICharacterSelectionService _characterSelectionService;
+
+        public BanSurCurrentViewModel(ISharedDataService sharedDataService,
+            ICharacterSelectionService characterSelectionService,
+            int index = 0) : base(sharedDataService, Camp.Sur, index)
         {
+            _characterSelectionService = characterSelectionService;
             IsEnabled = sharedDataService.CanCurrentSurBannedList[index];
             SharedDataService.BanCountChanged += OnBanCountChanged;
         }
@@ -56,11 +62,10 @@ public partial class BanSurPageViewModel : ViewModelBase
             }
         }
 
-        protected override Task SyncCharaToSourceAsync()
+        protected override async Task SyncCharaToSourceAsync()
         {
-            SharedDataService.CurrentGame.CurrentSurBannedList[Index] = SelectedChara;
+            await _characterSelectionService.BanCharacterAsync(Camp.Sur, Index, SelectedChara);
             PreviewImage = SharedDataService.CurrentGame.CurrentSurBannedList[Index]?.HeaderImageSingleColor;
-            return Task.CompletedTask;
         }
 
         protected override void SyncCharaFromSourceAsync()

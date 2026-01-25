@@ -16,30 +16,29 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMessage>
 {
-#pragma warning disable CS8618 
+#pragma warning disable CS8618
     public PickPageViewModel()
-#pragma warning restore CS8618 
+#pragma warning restore CS8618
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
 
     private readonly ISharedDataService _sharedDataService;
-    private readonly IFrontedWindowService _frontedWindowService;
-    private readonly ICharacterSelectionService _characterSelectionService;
     private readonly IAnimationService _animationService;
 
-    public PickPageViewModel(ISharedDataService sharedDataService, 
-        IFrontedWindowService frontedWindowService, 
+    public PickPageViewModel(ISharedDataService sharedDataService,
         ICharacterSelectionService characterSelectionService,
         IAnimationService animationService)
     {
         _sharedDataService = sharedDataService;
-        _frontedWindowService = frontedWindowService;
-        _characterSelectionService = characterSelectionService;
         _animationService = animationService;
         SurPickViewModelList =
-            [.. Enumerable.Range(0, 4).Select(i => new SurPickViewModel(sharedDataService, frontedWindowService, characterSelectionService, i))];
-        HunPickVm = new HunPickViewModel(sharedDataService, frontedWindowService);
+        [
+            .. Enumerable.Range(0, 4).Select(i =>
+                new SurPickViewModel(sharedDataService, characterSelectionService, i))
+        ];
+        HunPickVm = new HunPickViewModel(sharedDataService, characterSelectionService);
+
         MainSurGlobalBanRecordViewModelList =
         [
             .. Enumerable.Range(0, AppConstants.GlobalBanSurCount)
@@ -163,14 +162,13 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
     //基于模板基类的VM实现
     public partial class SurPickViewModel : CharaSelectViewModelBase
     {
-        private readonly IFrontedWindowService _frontedWindowService;
         private readonly ICharacterSelectionService _characterSelectionService;
         public Player ThisPlayer => SharedDataService.CurrentGame.SurPlayerList[Index];
 
-        public SurPickViewModel(ISharedDataService sharedDataService, IFrontedWindowService frontedWindowService, ICharacterSelectionService characterSelectionService, int index = 0) :
+        public SurPickViewModel(ISharedDataService sharedDataService,
+            ICharacterSelectionService characterSelectionService, int index = 0) :
             base(sharedDataService, Camp.Sur, index)
         {
-            _frontedWindowService = frontedWindowService;
             _characterSelectionService = characterSelectionService;
             sharedDataService.TeamSwapped += (_, _) => OnPropertyChanged(nameof(ThisPlayer));
             ThisPlayer.PropertyChanged += OnThisPlayerPropertyChanged;
@@ -204,12 +202,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         [RelayCommand]
         private async Task SwapCharacterInPlayersAsync(CharacterChangerCommandParameter parameter)
         {
-            _frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", parameter.Source, string.Empty);
-            _frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", parameter.Target, string.Empty);
-            await Task.Delay(250);
-            SharedDataService.CurrentGame.SwapCharactersInPlayers(parameter.Source, parameter.Target);
-            _frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", parameter.Source, string.Empty);
-            _frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", parameter.Target, string.Empty);
+            await _characterSelectionService.SwapSurvivorsAsync(parameter.Source, parameter.Target);
         }
 
         protected override void SyncIsEnabled() => throw new NotImplementedException();
@@ -217,15 +210,16 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickSur;
     }
 
-    public class HunPickViewModel(ISharedDataService sharedDataService, IFrontedWindowService frontedWindowService)
+    public class HunPickViewModel(
+        ISharedDataService sharedDataService,
+        ICharacterSelectionService characterSelectionService)
         : CharaSelectViewModelBase(sharedDataService, Camp.Hun)
     {
+        private readonly ICharacterSelectionService _characterSelectionService1 = characterSelectionService;
+
         protected override async Task SyncCharaToSourceAsync()
         {
-            frontedWindowService.FadeOutAnimation(FrontedWindowType.BpWindow, "HunPick", -1, string.Empty);
-            await Task.Delay(250);
-            SharedDataService.CurrentGame.HunPlayer.Character = SelectedChara;
-            frontedWindowService.FadeInAnimation(FrontedWindowType.BpWindow, "HunPick", -1, string.Empty);
+            await _characterSelectionService1.SelectHunterAsync(SelectedChara);
             PreviewImage = SharedDataService.CurrentGame.HunPlayer.Character?.HeaderImage;
         }
 
@@ -262,7 +256,6 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
 
         protected override void SyncCharaFromSourceAsync()
         {
-
         }
 
         protected override void SyncIsEnabled()
@@ -289,9 +282,9 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         }
 
         protected override Task SyncCharaToSourceAsync() => throw new NotImplementedException();
+
         protected override void SyncCharaFromSourceAsync()
         {
-
         }
 
         protected override void SyncIsEnabled() => throw new NotImplementedException();
@@ -315,9 +308,9 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         }
 
         protected override Task SyncCharaToSourceAsync() => throw new NotImplementedException();
+
         protected override void SyncCharaFromSourceAsync()
         {
-
         }
 
         protected override void SyncIsEnabled() => throw new NotImplementedException();
@@ -341,6 +334,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         }
 
         protected override Task SyncCharaToSourceAsync() => throw new NotImplementedException();
+
         protected override void SyncCharaFromSourceAsync()
         {
             SelectedChara = SharedDataService.AwayTeam.GlobalBannedHunRecordArray[Index];
