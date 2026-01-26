@@ -1326,7 +1326,7 @@
   <data name="ImportFailed" xml:space="preserve">
     <value>导入失败：</value>
   </data>
-  <data name="BuiltInPluginCannotBeUninstalled" xml:space="preserve">
+  <data name="PluginNotRemovable" xml:space="preserve">
     <value>内置插件无法卸载</value>
   </data>
   <data name="PluginsThirdPartyWarning" xml:space="preserve">

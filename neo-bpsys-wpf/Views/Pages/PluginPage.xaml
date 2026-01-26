@@ -210,7 +210,7 @@
                                                                         <Setter Property="Text" Value="{lex:Loc CancelUninstall}" />
                                                                     </DataTrigger>
                                                                     <DataTrigger Binding="{Binding IsBuiltIn}" Value="True">
-                                                                        <Setter Property="Text" Value="{lex:Loc BuiltInPluginCannotBeUninstalled}" />
+                                                                        <Setter Property="Text" Value="{lex:Loc PluginNotRemovable}" />
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>

@@ -1308,8 +1308,8 @@
   <data name="ImportFailed" xml:space="preserve">
     <value>Import Failed: </value>
   </data>
-  <data name="BuiltInPluginCannotBeUninstalled" xml:space="preserve">
-    <value>Built-in plugin can't be uninstalled</value>
+  <data name="PluginNotRemovable" xml:space="preserve">
+    <value>Not removable (built-in)</value>
   </data>
   <data name="PluginsThirdPartyWarning" xml:space="preserve">
     <value>Plugins are privided by third-partys. Their availability and integrity are not guaranteed</value>

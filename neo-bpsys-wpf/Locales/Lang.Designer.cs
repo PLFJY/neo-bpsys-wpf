@@ -474,15 +474,6 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 内置插件无法卸载.
-        /// </summary>
-        public static string BuiltInPluginCannotBeUninstalled {
-            get {
-                return ResourceManager.GetString("BuiltInPluginCannotBeUninstalled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to 分数统计的阵营图标颜色.
         /// </summary>
         public static string CampIconColorInScoreStatistics {
@@ -2693,6 +2684,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string PluginMarket {
             get {
                 return ResourceManager.GetString("PluginMarket", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 内置插件无法卸载.
+        /// </summary>
+        public static string PluginNotRemovable {
+            get {
+                return ResourceManager.GetString("PluginNotRemovable", resourceCulture);
             }
         }
         

@@ -1253,8 +1253,8 @@
   <data name="ImportFailed" xml:space="preserve">
     <value>インポート失敗：</value>
   </data>
-  <data name="BuiltInPluginCannotBeUninstalled" xml:space="preserve">
-    <value>組み込みプラグインはアンインストールできません</value>
+  <data name="PluginNotRemovable" xml:space="preserve">
+    <value>内蔵プラグインは削除不可</value>
   </data>
   <data name="PluginsThirdPartyWarning" xml:space="preserve">
     <value>プラグインはサードパーティによって提供されています。可用性と完全性は保証されません。</value>

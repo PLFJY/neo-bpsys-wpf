@@ -239,5 +239,8 @@
         <EmbeddedResource Update="Locales\Lang.en-us.resx">
           <DependentUpon>Lang.resx</DependentUpon>
         </EmbeddedResource>
+        <EmbeddedResource Update="Locales\Lang.ja-jp.resx">
+          <DependentUpon>Lang.resx</DependentUpon>
+        </EmbeddedResource>
     </ItemGroup>
 </Project>
