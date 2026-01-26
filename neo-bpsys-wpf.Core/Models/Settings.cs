@@ -401,7 +401,7 @@ public partial class WidgetsWindowSettings : ObservableObjectBase
     /// </summary>
     [JsonIgnore]
     public Brush MapBpV2_PickingBorderBrush => ColorHelper.HexToBrush(string.IsNullOrEmpty(MapBpV2_PickingBorderColor)
-        ? Colors.DarkGreen.ToString()
+        ? Colors.White.ToString()
         : MapBpV2_PickingBorderColor);
 
     [ObservableProperty] private WidgetsWindowTextSettings _textSettings = new();

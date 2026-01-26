@@ -154,7 +154,7 @@ public partial class MapV2Presenter : UserControl
 
     // Using a DependencyProperty as the backing store for PickingBorderBrush.  This enables animation, styling, binding, etc...
     public static readonly DependencyProperty PickingBorderBrushProperty =
-        DependencyProperty.Register(nameof(PickingBorderBrush), typeof(Brush), typeof(MapV2Presenter), new PropertyMetadata(new SolidColorBrush(Colors.DarkGreen)));
+        DependencyProperty.Register(nameof(PickingBorderBrush), typeof(Brush), typeof(MapV2Presenter), new PropertyMetadata(new SolidColorBrush(Colors.White)));
 
     public ImageSource PickingBorderImage
     {
