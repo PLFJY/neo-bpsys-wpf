@@ -38,5 +38,5 @@ public abstract class AppBase : Application, IAppHost
     /// <summary>
     /// 应用当前的主窗口
     /// </summary>
-    public Window? MainWindow { get; internal set; }
+    public new Window? MainWindow { get; internal set; } 
 }

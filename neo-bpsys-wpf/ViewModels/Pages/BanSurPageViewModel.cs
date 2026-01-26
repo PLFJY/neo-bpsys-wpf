@@ -17,7 +17,6 @@ public partial class BanSurPageViewModel : ViewModelBase
     }
 
     private readonly ISharedDataService _sharedDataService;
-    private readonly ICharacterSelectionService _characterSelectionService;
 
     public ObservableCollection<bool> CanCurrentHunBanned => _sharedDataService.CanCurrentSurBannedList;
 

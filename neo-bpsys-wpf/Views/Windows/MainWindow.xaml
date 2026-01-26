@@ -257,6 +257,11 @@
                 </ComboBox>
                 <ui:Button
                     Margin="0,0,10,10"
+                    Command="{Binding NextGameCommand}"
+                    Content="{lex:Loc Next}"
+                    Icon="{ui:SymbolIcon Symbol=ArrowNext24}" />
+                <ui:Button
+                    Margin="0,0,10,10"
                     Command="{Binding StartNavigationCommand}"
                     Content="{lex:Loc StartGameGuidance}"
                     Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />

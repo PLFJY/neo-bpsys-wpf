@@ -27,7 +27,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class SettingPageViewModel : ViewModelBase
 {
+#pragma warning disable CS8618
     public SettingPageViewModel()
+#pragma warning restore CS8618
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
