@@ -278,6 +278,11 @@
     "HunGlobalBan": 2,
     "WorkFlow": [
       {
+        "Action": "BanMap",
+        "Index": [ 0 ],
+        "Time": null
+      },
+      {
         "Action": "PickMap",
         "Index": [ 0 ],
         "Time": null
