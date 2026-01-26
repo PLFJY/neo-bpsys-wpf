@@ -12,6 +12,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Views.Windows;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -154,6 +155,7 @@ public partial class SettingPageViewModel : ViewModelBase
 
         BpWindowPickingColorSettings = _settingsHostService.Settings.BpWindowSettings.PickingBorderColor.ToColor();
         BpWindowBackgroundColorSettings = _settingsHostService.Settings.BpWindowSettings.BackgroundColor.ToColor();
+        WidgetsWindowBackgroundColorSettings = _settingsHostService.Settings.WidgetsWindowSettings.BackgroundColor.ToColor();
         MapBpV2PickingColorSettings =
             _settingsHostService.Settings.WidgetsWindowSettings.MapBpV2_PickingBorderColor.ToColor();
 
@@ -624,6 +626,35 @@ public partial class SettingPageViewModel : ViewModelBase
     }
 
     public Color MapBpV2PickingColorSettings { get; set; }
+
+    [RelayCommand]
+    private void SaveWidgetsWindowBackgroundColor()
+    {
+        _settingsHostService.Settings.WidgetsWindowSettings.BackgroundColor =
+            WidgetsWindowBackgroundColorSettings.ToArgbHexString();
+        _settingsHostService.SaveConfigAsync();
+    }
+
+    [ObservableProperty] private Color _widgetsWindowBackgroundColorSettings;
+
+    public bool AllowsWidgetsTransparency
+    {
+        get => _settingsHostService.Settings.WidgetsWindowSettings.AllowsWindowTransparency;
+        set => _ = SaveWidgetsWindowTransparency(value);
+    }
+
+    private async Task SaveWidgetsWindowTransparency(bool value)
+    {
+        _settingsHostService.Settings.WidgetsWindowSettings.AllowsWindowTransparency = value;
+        _ = _settingsHostService.SaveConfigAsync();
+        OnPropertyChanged(nameof(AllowsWidgetsTransparency));
+        if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("RestartToApply"),
+                I18nHelper.GetLocalizedString("RestartNeeded"), I18nHelper.GetLocalizedString("Restart"),
+                I18nHelper.GetLocalizedString("NotNow")))
+        {
+            AppBase.Current.Restart();
+        }
+    }
 
     #endregion
 

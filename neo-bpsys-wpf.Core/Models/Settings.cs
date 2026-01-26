@@ -403,6 +403,20 @@ public partial class WidgetsWindowSettings : ObservableObjectBase
     public Brush MapBpV2_PickingBorderBrush => ColorHelper.HexToBrush(string.IsNullOrEmpty(MapBpV2_PickingBorderColor)
         ? Colors.White.ToString()
         : MapBpV2_PickingBorderColor);
+    
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BackgroundBrush))]
+    private string? _backgroundColor = "#00FF00";
+    
+    /// <summary>
+    /// 背景颜色Brush
+    /// </summary>
+    [JsonIgnore]
+    public Brush BackgroundBrush => AllowsWindowTransparency? new SolidColorBrush(Colors.Transparent) : ColorHelper.HexToBrush(string.IsNullOrEmpty(BackgroundColor)
+        ? "#00FF00"
+        : BackgroundColor);
+    
+    [ObservableProperty] private bool _allowsWindowTransparency;
 
     [ObservableProperty] private WidgetsWindowTextSettings _textSettings = new();
 

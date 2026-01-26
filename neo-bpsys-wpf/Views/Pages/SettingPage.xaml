@@ -14,7 +14,7 @@
     Title="SettingPage"
     d:DataContext="{d:DesignInstance Type=vm:SettingPageViewModel,
                                      IsDesignTimeCreatable=True}"
-    d:DesignHeight="1500"
+    d:DesignHeight="2500"
     d:DesignWidth="685"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
@@ -672,6 +672,30 @@
                                     Command="{Binding SaveMapBpV2PickingBorderColorCommand}"
                                     Content="{lex:Loc SaveAndApply}"
                                     Icon="{ui:SymbolIcon Symbol=Save24}" />
+                            </StackPanel>
+                            <StackPanel
+                                Margin="0,10,0,0"
+                                IsEnabled="{Binding AllowsWidgetsTransparency, Converter={StaticResource InverseBooleanConverter}}"
+                                Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc BackgroundColor}" />
+                                <colorpicker:PortableColorPicker
+                                    Width="60"
+                                    Height="30"
+                                    Margin="10,0,0,0"
+                                    SelectedColor="{Binding WidgetsWindowBackgroundColorSettings, Mode=TwoWay}"
+                                    Style="{StaticResource DefaultColorPickerStyle}" />
+                                <ui:Button
+                                    Margin="10,0,0,0"
+                                    Command="{Binding SaveWidgetsWindowBackgroundColorCommand}"
+                                    Content="{lex:Loc SaveAndApply}"
+                                    Icon="{ui:SymbolIcon Symbol=Save24}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc AllowsWindowTransparency}" />
+                                <ui:ToggleSwitch
+                                    Margin="10,0,0,0"
+                                    VerticalAlignment="Center"
+                                    IsChecked="{Binding AllowsWidgetsTransparency}" />
                             </StackPanel>
                             <Grid Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>

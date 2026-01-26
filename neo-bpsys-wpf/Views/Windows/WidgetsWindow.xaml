@@ -17,7 +17,8 @@
     Height="716"
     d:DataContext="{d:DesignInstance Type=vm:WidgetsWindowViewModel,
                                      IsDesignTimeCreatable=True}"
-    Background="#00FF00"
+    AllowsTransparency="{Binding Settings.AllowsWindowTransparency, Mode=OneTime}"
+    Background="{Binding Settings.BackgroundBrush}"
     WindowStyle="None"
     mc:Ignorable="d">
     <Grid Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}" Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
