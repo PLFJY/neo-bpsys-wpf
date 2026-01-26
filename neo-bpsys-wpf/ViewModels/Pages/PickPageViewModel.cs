@@ -237,10 +237,14 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickHun;
     }
 
-    public class MainSurGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0)
-        : CharaSelectViewModelBase(sharedDataService, Camp.Sur, index)
+    public class MainSurGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;
+
+        public MainSurGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, Camp.Sur, index)
+        {
+            
+        }
 
         public Character? RecordedChara
         {
@@ -248,7 +252,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             set
             {
                 _recordedChara = value;
-                SharedDataService.HomeTeam.GlobalBannedSurRecordArray[Index] = _recordedChara;
+                SharedDataService.HomeTeam.GlobalBannedSurRecordList[Index] = _recordedChara;
             }
         }
 
@@ -277,7 +281,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             set
             {
                 _recordedChara = value;
-                SharedDataService.HomeTeam.GlobalBannedHunRecordArray[Index] = _recordedChara;
+                SharedDataService.HomeTeam.GlobalBannedHunRecordList[Index] = _recordedChara;
             }
         }
 
@@ -303,7 +307,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             set
             {
                 _recordedChara = value;
-                SharedDataService.AwayTeam.GlobalBannedSurRecordArray[Index] = _recordedChara;
+                SharedDataService.AwayTeam.GlobalBannedSurRecordList[Index] = _recordedChara;
             }
         }
 
@@ -329,7 +333,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
             set
             {
                 _recordedChara = value;
-                SharedDataService.AwayTeam.GlobalBannedHunRecordArray[Index] = _recordedChara;
+                SharedDataService.AwayTeam.GlobalBannedHunRecordList[Index] = _recordedChara;
             }
         }
 
@@ -337,7 +341,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
 
         protected override void SyncCharaFromSourceAsync()
         {
-            SelectedChara = SharedDataService.AwayTeam.GlobalBannedHunRecordArray[Index];
+            SelectedChara = SharedDataService.AwayTeam.GlobalBannedHunRecordList[Index];
         }
 
         protected override void SyncIsEnabled() => throw new NotImplementedException();

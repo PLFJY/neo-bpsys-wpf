@@ -874,14 +874,14 @@ public class FrontedWindowService : IFrontedWindowService
     /// <param name="controlNameHeader">控件名称头</param>
     /// <param name="controlIndex">控件索引(-1表示没有)</param>
     /// <param name="controlNameFooter">控件名称尾</param>
-    [Obsolete("请使用 IAnimationService.PlayPickFadeIn 替代。此方法将在未来版本中移除。")]
+    [Obsolete("请使用 IAnimationService.PlayPickFadeIn 替代。此方法将在 3.0.0 中移除。")]
     public void FadeInAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
         string controlNameFooter)
     {
         FadeInAnimation(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter);
     }
 
-    [Obsolete("请使用 IAnimationService.PlayPickFadeIn 替代。此方法将在未来版本中移除。")]
+    [Obsolete("请使用 IAnimationService.PlayPickFadeIn 替代。此方法将在 3.0.0 中移除。")]
     public void FadeInAnimation(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter)
     {
         var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;

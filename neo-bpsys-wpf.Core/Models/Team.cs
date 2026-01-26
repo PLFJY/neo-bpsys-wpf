@@ -100,30 +100,37 @@ public partial class Team : ObservableObjectBase
     /// <summary>
     /// 全局被禁用的求生者记录
     /// </summary>
-    public Character?[] GlobalBannedSurRecordArray { get; }
+    [Obsolete("此数组已弃用，将在3.0.0.0后删除，请迁移至 GlobalBannedSurRecordList")]
+    public Character?[] GlobalBannedSurRecordArray => GlobalBannedSurRecordList.ToArray();
 
     /// <summary>
     /// 全局被禁用的监管者记录
     /// </summary>
-    public Character?[] GlobalBannedHunRecordArray { get; }
+    [Obsolete("此数组已弃用，将在3.0.0.0后删除，请迁移至 GlobalBannedHunRecordList")]
+    public Character?[] GlobalBannedHunRecordArray => GlobalBannedHunRecordList.ToArray();
+
+    /// <summary>
+    /// 全局被禁用的求生者记录
+    /// </summary>
+    public ObservableCollection<Character?> GlobalBannedSurRecordList { get; }
+
+    /// <summary>
+    /// 全局被禁用的监管者记录
+    /// </summary>
+    public ObservableCollection<Character?> GlobalBannedHunRecordList { get; }
 
     private void UpdateGlobalBanFromRecord()
     {
-        if (GlobalBannedHunRecordArray != null)
+        for (var i = 0; i < GlobalBannedSurRecordList.Count; i++)
         {
-            for (var i = 0; i < GlobalBannedSurRecordArray.Length; i++)
-            {
-                if (GlobalBannedSurRecordArray[i] == null) continue;
-                GlobalBannedSurList[i] = GlobalBannedSurRecordArray[i];
-            }
+            if (GlobalBannedSurRecordList[i] == null) continue;
+            GlobalBannedSurList[i] = GlobalBannedSurRecordList[i];
         }
-        if (GlobalBannedHunRecordArray != null)
+
+        for (var i = 0; i < GlobalBannedHunRecordList.Count; i++)
         {
-            for (var i = 0; i < GlobalBannedHunRecordArray.Length; i++)
-            {
-                if (GlobalBannedHunRecordArray[i] == null) continue;
-                GlobalBannedHunList[i] = GlobalBannedHunRecordArray[i];
-            }
+            if (GlobalBannedHunRecordList[i] == null) continue;
+            GlobalBannedHunList[i] = GlobalBannedHunRecordList[i];
         }
     }
 
@@ -186,9 +193,9 @@ public partial class Team : ObservableObjectBase
         OnPropertyChanged(nameof(SurMemberOnFieldCollection));
         HunMemberOnField = null;
 
-        GlobalBannedHunRecordArray =
+        GlobalBannedHunRecordList =
             [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select<int, Character?>(_ => null)];
-        GlobalBannedSurRecordArray =
+        GlobalBannedSurRecordList =
             [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select<int, Character?>(_ => null)];
     }
 
@@ -226,9 +233,9 @@ public partial class Team : ObservableObjectBase
             .. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(_ => new Character(Camp.Sur))
         ];
 
-        GlobalBannedHunRecordArray =
+        GlobalBannedHunRecordList =
             [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select<int, Character?>(_ => null)];
-        GlobalBannedSurRecordArray =
+        GlobalBannedSurRecordList =
             [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select<int, Character?>(_ => null)];
 
         foreach (var m in SurMemberList.Where(m => m.IsOnField))
