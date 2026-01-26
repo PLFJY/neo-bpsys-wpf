@@ -39,15 +39,15 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         ];
         HunPickVm = new HunPickViewModel(sharedDataService, characterSelectionService);
 
-        MainSurGlobalBanRecordViewModelList =
+        HomeSurGlobalBanRecordViewModelList =
         [
             .. Enumerable.Range(0, AppConstants.GlobalBanSurCount)
-                .Select(i => new MainSurGlobalBanRecordViewModel(sharedDataService, i))
+                .Select(i => new HomeSurGlobalBanRecordViewModel(sharedDataService, i))
         ];
-        MainHunGlobalBanRecordViewModelList =
+        HomeHunGlobalBanRecordViewModelList =
         [
             .. Enumerable.Range(0, AppConstants.GlobalBanHunCount)
-                .Select(i => new MainHunGlobalBanRecordViewModel(sharedDataService, i))
+                .Select(i => new HomeHunGlobalBanRecordViewModel(sharedDataService, i))
         ];
         AwaySurGlobalBanRecordViewModelList =
         [
@@ -154,8 +154,8 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
 
     public ObservableCollection<SurPickViewModel> SurPickViewModelList { get; set; }
     public HunPickViewModel HunPickVm { get; set; }
-    public ObservableCollection<MainSurGlobalBanRecordViewModel> MainSurGlobalBanRecordViewModelList { get; set; }
-    public ObservableCollection<MainHunGlobalBanRecordViewModel> MainHunGlobalBanRecordViewModelList { get; set; }
+    public ObservableCollection<HomeSurGlobalBanRecordViewModel> HomeSurGlobalBanRecordViewModelList { get; set; }
+    public ObservableCollection<HomeHunGlobalBanRecordViewModel> HomeHunGlobalBanRecordViewModelList { get; set; }
     public ObservableCollection<AwaySurGlobalBanRecordViewModel> AwaySurGlobalBanRecordViewModelList { get; set; }
     public ObservableCollection<AwayHunGlobalBanRecordViewModel> AwayHunGlobalBanRecordViewModelList { get; set; }
 
@@ -237,30 +237,32 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         protected override bool IsActionNameCorrect(GameAction? action) => action == GameAction.PickHun;
     }
 
-    public class MainSurGlobalBanRecordViewModel : CharaSelectViewModelBase
+    public class HomeSurGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;
 
-        public MainSurGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService, Camp.Sur, index)
+        public HomeSurGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
+            sharedDataService, Camp.Sur, index)
         {
-            
+            SharedDataService.HomeTeam.GlobalBannedSurRecordList.CollectionChanged +=
+                (_, _) => SyncCharaFromSourceAsync();
         }
 
         public Character? RecordedChara
         {
             get => _recordedChara;
-            set
-            {
-                _recordedChara = value;
-                SharedDataService.HomeTeam.GlobalBannedSurRecordList[Index] = _recordedChara;
-            }
+            set => SetPropertyWithAction(ref _recordedChara, value,
+                _ =>
+                {
+                    if (SharedDataService.HomeTeam.GlobalBannedSurRecordList[Index] != value)
+                        SharedDataService.HomeTeam.GlobalBannedSurRecordList[Index] = value;
+                });
         }
 
         protected override Task SyncCharaToSourceAsync() => throw new NotImplementedException();
 
-        protected override void SyncCharaFromSourceAsync()
-        {
-        }
+        protected override void SyncCharaFromSourceAsync() =>
+            RecordedChara = SharedDataService.HomeTeam.GlobalBannedSurRecordList[Index];
 
         protected override void SyncIsEnabled()
         {
@@ -270,79 +272,96 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         protected override bool IsActionNameCorrect(GameAction? action) => false;
     }
 
-    public class MainHunGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0)
-        : CharaSelectViewModelBase(sharedDataService, Camp.Hun, index)
+    public class HomeHunGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;
+
+        public HomeHunGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
+            sharedDataService, Camp.Hun, index)
+        {
+            SharedDataService.HomeTeam.GlobalBannedHunRecordList.CollectionChanged +=
+                (_, _) => SyncCharaFromSourceAsync();
+        }
 
         public Character? RecordedChara
         {
             get => _recordedChara;
-            set
-            {
-                _recordedChara = value;
-                SharedDataService.HomeTeam.GlobalBannedHunRecordList[Index] = _recordedChara;
-            }
+            set => SetPropertyWithAction(ref _recordedChara, value,
+                _ =>
+                {
+                    if (SharedDataService.HomeTeam.GlobalBannedHunRecordList[Index] != value)
+                        SharedDataService.HomeTeam.GlobalBannedHunRecordList[Index] = value;
+                });
         }
 
         protected override Task SyncCharaToSourceAsync() => throw new NotImplementedException();
 
-        protected override void SyncCharaFromSourceAsync()
-        {
-        }
+        protected override void SyncCharaFromSourceAsync() =>
+            RecordedChara = SharedDataService.HomeTeam.GlobalBannedHunRecordList[Index];
 
         protected override void SyncIsEnabled() => throw new NotImplementedException();
 
         protected override bool IsActionNameCorrect(GameAction? action) => false;
     }
 
-    public class AwaySurGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0)
-        : CharaSelectViewModelBase(sharedDataService, Camp.Sur, index)
+    public class AwaySurGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;
+
+        public AwaySurGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
+            sharedDataService, Camp.Sur, index)
+        {
+            SharedDataService.AwayTeam.GlobalBannedSurRecordList.CollectionChanged +=
+                (_, _) => SyncCharaFromSourceAsync();
+        }
 
         public Character? RecordedChara
         {
             get => _recordedChara;
-            set
-            {
-                _recordedChara = value;
-                SharedDataService.AwayTeam.GlobalBannedSurRecordList[Index] = _recordedChara;
-            }
+            set => SetPropertyWithAction(ref _recordedChara, value,
+                _ =>
+                {
+                    if (SharedDataService.AwayTeam.GlobalBannedSurRecordList[Index] != value)
+                        SharedDataService.AwayTeam.GlobalBannedSurRecordList[Index] = value;
+                });
         }
 
         protected override Task SyncCharaToSourceAsync() => throw new NotImplementedException();
 
-        protected override void SyncCharaFromSourceAsync()
-        {
-        }
+        protected override void SyncCharaFromSourceAsync() =>
+            RecordedChara = SharedDataService.AwayTeam.GlobalBannedSurRecordList[Index];
 
         protected override void SyncIsEnabled() => throw new NotImplementedException();
 
         protected override bool IsActionNameCorrect(GameAction? action) => false;
     }
 
-    public class AwayHunGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0)
-        : CharaSelectViewModelBase(sharedDataService, Camp.Hun, index)
+    public class AwayHunGlobalBanRecordViewModel : CharaSelectViewModelBase
     {
         private Character? _recordedChara;
+
+        public AwayHunGlobalBanRecordViewModel(ISharedDataService sharedDataService, int index = 0) : base(
+            sharedDataService, Camp.Hun, index)
+        {
+            SharedDataService.AwayTeam.GlobalBannedHunRecordList.CollectionChanged +=
+                (_, _) => SyncCharaFromSourceAsync();
+        }
 
         public Character? RecordedChara
         {
             get => _recordedChara;
-            set
-            {
-                _recordedChara = value;
-                SharedDataService.AwayTeam.GlobalBannedHunRecordList[Index] = _recordedChara;
-            }
+            set => SetPropertyWithAction(ref _recordedChara, value,
+                _ =>
+                {
+                    if (SharedDataService.AwayTeam.GlobalBannedHunRecordList[Index] != value)
+                        SharedDataService.AwayTeam.GlobalBannedHunRecordList[Index] = value;
+                });
         }
 
         protected override Task SyncCharaToSourceAsync() => throw new NotImplementedException();
 
-        protected override void SyncCharaFromSourceAsync()
-        {
-            SelectedChara = SharedDataService.AwayTeam.GlobalBannedHunRecordList[Index];
-        }
+        protected override void SyncCharaFromSourceAsync() =>
+            RecordedChara = SharedDataService.AwayTeam.GlobalBannedHunRecordList[Index];
 
         protected override void SyncIsEnabled() => throw new NotImplementedException();
 

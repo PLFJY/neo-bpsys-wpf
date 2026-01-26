@@ -41,12 +41,12 @@ public partial class Team : ObservableObjectBase
         set => SetProperty(ref _name, value);
     }
 
-    private Camp _camp;
+    private Camp? _camp;
 
     /// <summary>
     /// 队伍阵营
     /// </summary>
-    public Camp Camp
+    public Camp? Camp
     {
         get => _camp;
         set => SetPropertyWithAction(ref _camp, value, _ => UpdateGlobalBanFromRecord());
@@ -101,13 +101,13 @@ public partial class Team : ObservableObjectBase
     /// 全局被禁用的求生者记录
     /// </summary>
     [Obsolete("此数组已弃用，将在3.0.0.0后删除，请迁移至 GlobalBannedSurRecordList")]
-    public Character?[] GlobalBannedSurRecordArray => GlobalBannedSurRecordList.ToArray();
+    public Character?[] GlobalBannedSurRecordArray => [.. GlobalBannedSurRecordList];
 
     /// <summary>
     /// 全局被禁用的监管者记录
     /// </summary>
     [Obsolete("此数组已弃用，将在3.0.0.0后删除，请迁移至 GlobalBannedHunRecordList")]
-    public Character?[] GlobalBannedHunRecordArray => GlobalBannedHunRecordList.ToArray();
+    public Character?[] GlobalBannedHunRecordArray => [.. GlobalBannedHunRecordList];
 
     /// <summary>
     /// 全局被禁用的求生者记录
@@ -178,25 +178,25 @@ public partial class Team : ObservableObjectBase
     public Team(Camp camp, TeamType teamType)
     {
         TeamType = teamType;
-        SurMemberList = [.. Enumerable.Range(0, 4).Select(_ => new Member(Camp.Sur))];
-        HunMemberList.Add(new Member(Camp.Hun));
-
-        Camp = camp;
-
-        GlobalBannedHunList =
-            [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(_ => new Character(Camp.Hun))];
-        GlobalBannedSurList =
-            [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(_ => new Character(Camp.Sur))];
-
-        _surMemberOnFieldPrivateCollection = [.. Enumerable.Range(0, 4).Select<int, Member?>(_ => null)];
-        _surMemberOnFieldCollection = new ReadOnlyObservableCollection<Member?>(_surMemberOnFieldPrivateCollection);
-        OnPropertyChanged(nameof(SurMemberOnFieldCollection));
-        HunMemberOnField = null;
+        SurMemberList = [.. Enumerable.Range(0, 4).Select(_ => new Member(Enums.Camp.Hun))];
+        HunMemberList.Add(new Member(Enums.Camp.Hun));
 
         GlobalBannedHunRecordList =
             [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select<int, Character?>(_ => null)];
         GlobalBannedSurRecordList =
             [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select<int, Character?>(_ => null)];
+
+        GlobalBannedHunList =
+            [.. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(_ => new Character(Enums.Camp.Hun))];
+        GlobalBannedSurList =
+            [.. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(_ => new Character(Enums.Camp.Hun))];
+        
+        _surMemberOnFieldPrivateCollection = [.. Enumerable.Range(0, 4).Select<int, Member?>(_ => null)];
+        _surMemberOnFieldCollection = new ReadOnlyObservableCollection<Member?>(_surMemberOnFieldPrivateCollection);
+        OnPropertyChanged(nameof(SurMemberOnFieldCollection));
+        HunMemberOnField = null;
+
+        Camp = camp;
     }
 
     /// <summary>
@@ -226,11 +226,11 @@ public partial class Team : ObservableObjectBase
 
         GlobalBannedHunList = globalBannedHunList ??
         [
-            .. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(_ => new Character(Camp.Hun))
+            .. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(_ => new Character(Enums.Camp.Hun))
         ];
         GlobalBannedSurList = globalBannedSurList ??
         [
-            .. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(_ => new Character(Camp.Sur))
+            .. Enumerable.Range(0, AppConstants.GlobalBanSurCount).Select(_ => new Character(Enums.Camp.Hun))
         ];
 
         GlobalBannedHunRecordList =
@@ -302,7 +302,7 @@ public partial class Team : ObservableObjectBase
     /// <returns>是否允许</returns>
     public bool CanMemberOnField(Camp camp)
     {
-        if (camp == Camp.Hun)
+        if (camp == Core.Enums.Camp.Hun)
         {
             return HunMemberOnField == null;
         }
@@ -320,7 +320,7 @@ public partial class Team : ObservableObjectBase
         if (!CanMemberOnField(member.Camp))
             return false;
 
-        if (member.Camp == Camp.Hun)
+        if (member.Camp == Enums.Camp.Hun)
         {
             HunMemberOnField = member;
         }
@@ -345,7 +345,7 @@ public partial class Team : ObservableObjectBase
     /// <param name="member">选手</param>
     public void MemberOffField(Member member)
     {
-        if (member.Camp == Camp.Hun)
+        if (member.Camp == Enums.Camp.Hun)
         {
             if (HunMemberOnField != member) return;
             HunMemberOnField = null;

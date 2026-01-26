@@ -33,6 +33,11 @@ public class CharacterSelectionService : ICharacterSelectionService
         }
 
         _sharedDataService.CurrentGame.SurPlayerList[playerIndex].Character = character;
+        if (_sharedDataService.CurrentGame.GameProgress is > GameProgress.Free and < GameProgress.Game4FirstHalf)
+        {
+            var targetIndex = (int)_sharedDataService.CurrentGame.GameProgress / 2 * 4 + playerIndex;
+            _sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordList[targetIndex] = character;
+        }
 
         if (playAnimation)
         {
@@ -50,6 +55,11 @@ public class CharacterSelectionService : ICharacterSelectionService
         }
 
         _sharedDataService.CurrentGame.HunPlayer.Character = character;
+        if (_sharedDataService.CurrentGame.GameProgress is > GameProgress.Free and < GameProgress.Game4FirstHalf)
+        {
+            var targetIndex = (int)_sharedDataService.CurrentGame.GameProgress / 2;
+            _sharedDataService.CurrentGame.HunTeam.GlobalBannedHunRecordList[targetIndex] = character;
+        }
 
         if (playAnimation)
         {
@@ -65,7 +75,7 @@ public class CharacterSelectionService : ICharacterSelectionService
             _sharedDataService.CurrentGame.CurrentSurBannedList[index] = character;
         else
             _sharedDataService.CurrentGame.CurrentHunBannedList[index] = character;
-        
+
         if (playAnimation)
         {
             await AnimationService.PlayBanAnimationAsync(camp, index);
