@@ -49,7 +49,8 @@ public partial class Team : ObservableObjectBase
     public Camp? Camp
     {
         get => _camp;
-        set => SetPropertyWithAction(ref _camp, value, _ => UpdateGlobalBanFromRecord());
+        set => SetPropertyWithAction(ref _camp, value, 
+            _ => UpdateGlobalBanFromRecord());
     }
 
     /// <summary>
@@ -119,7 +120,7 @@ public partial class Team : ObservableObjectBase
     /// </summary>
     public ObservableCollection<Character?> GlobalBannedHunRecordList { get; }
 
-    private void UpdateGlobalBanFromRecord()
+    public void UpdateGlobalBanFromRecord()
     {
         for (var i = 0; i < GlobalBannedSurRecordList.Count; i++)
         {
