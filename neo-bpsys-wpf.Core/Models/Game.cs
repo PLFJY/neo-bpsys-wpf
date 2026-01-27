@@ -177,10 +177,16 @@ public partial class Game : ObservableObjectBase
 
     [JsonInclude] internal ObservableCollection<Player> SurPlayersData { get; }
 
+    /// <summary>
+    /// 上场选手(求生者)
+    /// </summary>
     [JsonIgnore] public ReadOnlyObservableCollection<Player> SurPlayerList { get; }
 
     [JsonInclude] internal Player HunPlayerData => HunPlayer;
 
+    /// <summary>
+    /// 上场选手(监管者)
+    /// </summary>
     [JsonIgnore] public Player HunPlayer { get; }
 
     /// <summary>

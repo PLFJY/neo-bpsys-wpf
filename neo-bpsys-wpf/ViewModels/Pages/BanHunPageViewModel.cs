@@ -92,7 +92,7 @@ public partial class BanHunPageViewModel : ViewModelBase
         {
             IsEnabled = sharedDataService.CanGlobalHunBannedList[index];
             SharedDataService.BanCountChanged += OnBanCountChanged;
-            SharedDataService.TeamSwapped += (senter, args) =>
+            SharedDataService.TeamSwapped += (sender, args) =>
                 SyncCharaFromSourceAsync();
         }
 
