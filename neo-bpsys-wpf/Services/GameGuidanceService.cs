@@ -139,6 +139,7 @@ public class GameGuidanceService(
             _sharedDataService.SetBanCount(BanListName.CanGlobalSurBanned, _currentGameProperty.SurGlobalBan);
             _sharedDataService.SetBanCount(BanListName.CanGlobalHunBanned, _currentGameProperty.HunGlobalBan);
             _sharedDataService.CurrentGame.SurTeam.UpdateGlobalBanFromRecord();
+            _sharedDataService.CurrentGame.HunTeam.UpdateGlobalBanFromRecord();
             IsGuidanceStarted = true;
             var nextStepResult = await NextStepAsync();
             return nextStepResult;
