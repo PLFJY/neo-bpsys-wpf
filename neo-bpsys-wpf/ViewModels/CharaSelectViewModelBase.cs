@@ -15,7 +15,7 @@ namespace neo_bpsys_wpf.ViewModels;
 /// 需要派生类所做的是: <br/>
 /// 1.实现 <see cref="CharaDict"/> 更新的行为<br/>
 /// 2.设置 <see cref="IsEnabled"/> 同步 <see cref="ISharedDataService"/> 的哪一个 CanCurrentBannedList 的值，通常需要搭配订阅 Ban 位数量变动的事件<br/>
-/// 3.实现 <see cref="SyncCharaToSourceAsync"/> 将角色同步到前台的行为
+/// 3.实现 <see cref="SyncCharaToSourceAsync"/> 将角色同步到前台的行为，建议使用 <see cref="ICharacterSelectionService"/> 中的API，也可以选择手动实现
 /// 4.实现 <see cref="SyncIsEnabled"/> 通过toggle button设置后同步状态到对应的 <see cref="ISharedDataService"/> 中 CanCurrentBannedList 的值的行为
 /// 5.实现 <see cref="IsActionNameCorrect"/> 判断当前步骤引导的步骤是否符合当前控件的行为
 /// 6.在 <see cref="OnCurrentGameChanged"/> 中更新 preview 的 image

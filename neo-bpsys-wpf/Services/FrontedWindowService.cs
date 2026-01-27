@@ -874,12 +874,14 @@ public class FrontedWindowService : IFrontedWindowService
     /// <param name="controlNameHeader">控件名称头</param>
     /// <param name="controlIndex">控件索引(-1表示没有)</param>
     /// <param name="controlNameFooter">控件名称尾</param>
+    [Obsolete("请使用 IAnimationService.PlayPickFadeIn 替代。此方法将在 3.0.0 中移除。")]
     public void FadeInAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
         string controlNameFooter)
     {
         FadeInAnimation(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter);
     }
 
+    [Obsolete("请使用 IAnimationService.PlayPickFadeIn 替代。此方法将在 3.0.0 中移除。")]
     public void FadeInAnimation(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter)
     {
         var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
@@ -899,12 +901,14 @@ public class FrontedWindowService : IFrontedWindowService
     /// <param name="controlNameHeader">控件名称头</param>
     /// <param name="controlIndex">控件索引(-1表示没有)</param>
     /// <param name="controlNameFooter">控件名称尾</param>
+    [Obsolete("请使用 IAnimationService.PlayPickFadeOut 替代。此方法将在未来版本中移除。")]
     public void FadeOutAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
         string controlNameFooter)
     {
         FadeOutAnimation(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter);
     }
 
+    [Obsolete("请使用 IAnimationService.PlayPickFadeOut 替代。此方法将在未来版本中移除。")]
     public void FadeOutAnimation(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter)
     {
         var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
@@ -923,12 +927,14 @@ public class FrontedWindowService : IFrontedWindowService
     /// <param name="controlNameHeader">控件名称头</param>
     /// <param name="controlIndex">控件索引(-1表示没有)</param>
     /// <param name="controlNameFooter">控件名称尾</param>
+    [Obsolete("请使用 IAnimationService.StartPickingBorderBreathingAsync 替代。此方法将在未来版本中移除。")]
     public async Task BreathingStart(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
         string controlNameFooter)
     {
         await BreathingStart(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter);
     }
 
+    [Obsolete("请使用 IAnimationService.StartPickingBorderBreathingAsync 替代。此方法将在未来版本中移除。")]
     public async Task BreathingStart(string windowId, string controlNameHeader, int controlIndex,
         string controlNameFooter)
     {
@@ -970,12 +976,14 @@ public class FrontedWindowService : IFrontedWindowService
     /// <param name="controlNameHeader">控件名称头</param>
     /// <param name="controlIndex">控件索引(-1表示没有)</param>
     /// <param name="controlNameFooter">控件名称尾</param>
+    [Obsolete("请使用 IAnimationService.StopPickingBorderBreathingAsync 替代。此方法将在未来版本中移除。")]
     public async Task BreathingStop(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
         string controlNameFooter)
     {
         await BreathingStop(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter);
     }
 
+    [Obsolete("请使用 IAnimationService.StopPickingBorderBreathingAsync 替代。此方法将在未来版本中移除。")]
     public async Task BreathingStop(string windowId, string controlNameHeader, int controlIndex,
         string controlNameFooter)
     {

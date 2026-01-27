@@ -28,17 +28,12 @@ public partial class FrontManagePageViewModel : ViewModelBase
     {
         _frontedWindowService = frontedWindowService;
         _sharedDataService = sharedDataService;
-        InitializeExternalFrontedWindows();
-    }
-
-    private void InitializeExternalFrontedWindows()
-    {
         ExternalFrontedWindows = new ObservableCollection<FrontedWindowInfo>(FrontedWindowRegistryService.RegisteredWindow
             .Where(x => !x.IsBuiltIn)
             .ToList());
     }
 
-    public ObservableCollection<FrontedWindowInfo> ExternalFrontedWindows { get; set; }
+    public ObservableCollection<FrontedWindowInfo> ExternalFrontedWindows { get; } 
 
     [RelayCommand]
     private void ShowAllWindows()

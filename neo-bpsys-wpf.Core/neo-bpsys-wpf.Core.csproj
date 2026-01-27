@@ -8,7 +8,9 @@
         <UseWpf>true</UseWpf>
         <CETCompat>false</CETCompat>
         <Configurations>Debug;Release;Beta</Configurations>
-		<Version>2.0.0.5</Version>
+		<AssemblyVersion>2.0.0.0</AssemblyVersion>
+		<Version>2.0.2</Version>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>

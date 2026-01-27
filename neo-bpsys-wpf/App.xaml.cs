@@ -10,6 +10,7 @@ using Serilog;
 using System.IO;
 using System.Text;
 using System.Windows;
+using System.Windows.Markup;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using Wpf.Ui.Appearance;
@@ -122,9 +123,11 @@ public partial class App : AppBase
         //设置语言
         var settingService = IAppHost.Host.Services.GetRequiredService<ISettingsHostService>();
         LocalizeDictionary.Instance.Culture = settingService.Settings.CultureInfo;
+        Application.Current.Resources["CurrentLanguage"] = XmlLanguage.GetLanguage(settingService.Settings.CultureInfo.Name);
 
         //启动host
         await IAppHost.Host.StartAsync();
+        AppStarted?.Invoke(this, EventArgs.Empty);
 
         CurrentLifetime = ApplicationLifetime.Running;
 
@@ -139,8 +142,9 @@ public partial class App : AppBase
     protected override async void OnExit(ExitEventArgs e)
     {
         CurrentLifetime = ApplicationLifetime.Stopping;
+        AppStopping?.Invoke(this, EventArgs.Empty);
         base.OnExit(e);
-        var logger = IAppHost.Host.Services.GetRequiredService<ILogger<App>>();
+        var logger = IAppHost.Host!.Services.GetRequiredService<ILogger<App>>();
         logger.LogInformation("Application Closed");
         await IAppHost.Host.StopAsync();
         IAppHost.Host.Dispose();
@@ -164,7 +168,7 @@ public partial class App : AppBase
         DispatcherUnhandledExceptionEventArgs e
     )
     {
-        var logger = IAppHost.Host.Services.GetRequiredService<ILogger<App>>();
+        var logger = IAppHost.Host!.Services.GetRequiredService<ILogger<App>>();
         logger.LogError("Application crashed unexpectedly");
 #if !DEBUG
         _ = MessageBoxHelper.ShowInfoAsync($"出现了些在意料之外的错误，请带着下方地址处的日志文件联系开发者解决\nSome unexpected errors have occurred. Please contact the developer with the log file below for resolution \n\n{AppConstants.LogPath}\n ", "Error");

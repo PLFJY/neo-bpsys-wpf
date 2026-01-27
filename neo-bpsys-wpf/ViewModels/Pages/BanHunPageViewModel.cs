@@ -9,9 +9,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class BanHunPageViewModel : ViewModelBase
 {
-#pragma warning disable CS8618 
+#pragma warning disable CS8618
     public BanHunPageViewModel()
-#pragma warning restore CS8618 
+#pragma warning restore CS8618
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -20,13 +20,14 @@ public partial class BanHunPageViewModel : ViewModelBase
 
     public ObservableCollection<bool> CanCurrentHunBanned => _sharedDataService.CanCurrentHunBannedList;
 
-    public BanHunPageViewModel(ISharedDataService sharedDataService)
+    public BanHunPageViewModel(ISharedDataService sharedDataService,
+        ICharacterSelectionService characterSelectionService)
     {
         _sharedDataService = sharedDataService;
         BanHunCurrentViewModelList =
         [
             .. Enumerable.Range(0, AppConstants.CurrentBanHunCount)
-                .Select(i => new BanHunCurrentViewModel(_sharedDataService, i))
+                .Select(i => new BanHunCurrentViewModel(_sharedDataService, characterSelectionService, i))
         ];
         BanHunGlobalViewModelList =
         [
@@ -42,11 +43,15 @@ public partial class BanHunPageViewModel : ViewModelBase
     public class BanHunCurrentViewModel : CharaSelectViewModelBase
     {
         private readonly ISharedDataService _sharedDataService;
+        private readonly ICharacterSelectionService _characterSelectionService;
 
-        public BanHunCurrentViewModel(ISharedDataService sharedDataService, int index = 0) : base(sharedDataService,
-            Camp.Hun, index)
+        public BanHunCurrentViewModel(ISharedDataService sharedDataService,
+            ICharacterSelectionService characterSelectionService,
+            int index = 0)
+            : base(sharedDataService, Camp.Hun, index)
         {
             _sharedDataService = sharedDataService;
+            _characterSelectionService = characterSelectionService;
             IsEnabled = sharedDataService.CanCurrentHunBannedList[index];
             SharedDataService.BanCountChanged += OnBanCountChanged;
         }
@@ -59,11 +64,10 @@ public partial class BanHunPageViewModel : ViewModelBase
             }
         }
 
-        protected override Task SyncCharaToSourceAsync()
+        protected override async Task SyncCharaToSourceAsync()
         {
-            SharedDataService.CurrentGame.CurrentHunBannedList[Index] = SelectedChara;
+            await _characterSelectionService.BanCharacterAsync(Camp.Hun, Index, SelectedChara);
             PreviewImage = SharedDataService.CurrentGame.CurrentHunBannedList[Index]?.HeaderImageSingleColor;
-            return Task.CompletedTask;
         }
 
         protected override void SyncCharaFromSourceAsync()

@@ -2,7 +2,7 @@
 
 [neo-bpsys-wpf](https://github.com/PLFJY/neo-bpsys-wpf/)的插件 SDK
 
-# neo-bpsys-wpf 插件开发指南 -- AI生成
+# neo-bpsys-wpf 插件开发指南 -- AI生成，不保证的正确性，虽然我审过了一遍
 
 欢迎使用 neo-bpsys-wpf 插件系统！本指南将帮助您快速开始开发自己的插件。
 
@@ -29,11 +29,11 @@
 
 ### 1. 创建新项目
 
-创建一个新的 .NET WPF 类库项目，并引用 `neo-bpsys-wpf.PluginSdk`:
+创建一个新的 .NET WPF 类库项目，并引用 `neo-bpsys-wpf.PluginSdk`，接着进入插件项目的 `.csporj` 中在 sdk 包后面加上 `ExcludeAssets="runtime"` :
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="neo-bpsys-wpf.PluginSdk" Version="2.0.0" />
+  <PackageReference Include="neo-bpsys-wpf.PluginSdk" Version="0.1.5" ExcludeAssets="runtime"/>
 </ItemGroup>
 ```
 

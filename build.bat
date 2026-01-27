@@ -2,4 +2,4 @@
 :: switch dir
 cd /d %~dp0
 
-pwsh .\build.ps1
+powershell .\build.ps1

@@ -102,10 +102,10 @@
                             <TextBlock.Text>
                                 <MultiBinding Converter="{lex:StringFormatConverter}">
                                     <lex:BLoc Key="ScorePreview" />
-                                    <Binding Path="MainTeam.Name" />
-                                    <Binding Path="MainTeam.Score.Win" />
-                                    <Binding Path="MainTeam.Score.Tie" />
-                                    <Binding Path="MainTeam.Score.GameScores" />
+                                    <Binding Path="HomeTeam.Name" />
+                                    <Binding Path="HomeTeam.Score.Win" />
+                                    <Binding Path="HomeTeam.Score.Tie" />
+                                    <Binding Path="HomeTeam.Score.GameScores" />
                                 </MultiBinding>
                             </TextBlock.Text>
                         </TextBlock>
@@ -159,11 +159,6 @@
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
-                        <ui:Button
-                            Margin="10,0,0,0"
-                            Command="{Binding NextGameCommand}"
-                            Content="{lex:Loc Next}"
-                            Icon="{ui:SymbolIcon Symbol=ArrowNext24}" />
                     </StackPanel>
                     <Grid Grid.Row="2" Margin="0,10,0,0">
                         <CheckBox
@@ -182,11 +177,11 @@
                         Grid.Row="3"
                         d:IsEnabled="False"
                         IsEnabled="{Binding ElementName=IsGameComplted, Path=IsChecked, Mode=TwoWay}">
-                        <Grid.RowDefinitions>
-                            <RowDefinition />
-                            <RowDefinition />
-                        </Grid.RowDefinitions>
-                        <Grid Grid.Row="0" Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0" Margin="0,10,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition />
                                 <ColumnDefinition />
@@ -199,16 +194,16 @@
                                 Header="{lex:Loc CampOfHomeTeam}">
                                 <StackPanel>
                                     <RadioButton
-                                        Name="MainSurRadioButton"
+                                        Name="HomeSurRadioButton"
                                         Width="20"
                                         Height="30"
                                         Content="{lex:Loc Survivor}"
-                                        IsChecked="{Binding MainTeamCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Camp.Sur}, Mode=TwoWay}" />
+                                        IsChecked="{Binding HomeTeamCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Camp.Sur}, Mode=TwoWay}" />
                                     <RadioButton
-                                        Name="MainHunRadioButton"
+                                        Name="HomeHunRadioButton"
                                         Margin="0,10,0,0"
                                         Content="{lex:Loc Hunter}"
-                                        IsChecked="{Binding MainTeamCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Camp.Hun}, Mode=TwoWay}" />
+                                        IsChecked="{Binding HomeTeamCamp, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enum:Camp.Hun}, Mode=TwoWay}" />
                                 </StackPanel>
                             </GroupBox>
                             <GroupBox
@@ -222,18 +217,18 @@
                                     <RadioButton
                                         Name="AwaySurRadioButton"
                                         Content="{lex:Loc Survivor}"
-                                        IsChecked="{Binding ElementName=MainHunRadioButton, Path=IsChecked, Mode=TwoWay}" />
+                                        IsChecked="{Binding ElementName=HomeHunRadioButton, Path=IsChecked, Mode=TwoWay}" />
                                     <RadioButton
                                         Name="AwayHunRadioButton"
                                         Margin="0,10,0,0"
                                         Content="{lex:Loc Hunter}"
-                                        IsChecked="{Binding ElementName=MainSurRadioButton, Path=IsChecked, Mode=TwoWay}" />
+                                        IsChecked="{Binding ElementName=HomeSurRadioButton, Path=IsChecked, Mode=TwoWay}" />
                                 </StackPanel>
                             </GroupBox>
                         </Grid>
                         <GroupBox
-                            Grid.Row="1"
-                            Margin="0,10,0,0"
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
                             Padding="5"
                             Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                             BorderThickness="0"
@@ -286,7 +281,7 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Binding="{Binding Key}" Header="Key" />
                         <DataGridTextColumn Binding="{Binding Value.IsGameFinished}" Header="IsGameFinished" />
-                        <DataGridTextColumn Binding="{Binding Value.MainTeamCamp}" Header="MainTeamCamp" />
+                        <DataGridTextColumn Binding="{Binding Value.HomeTeamCamp}" Header="HomeTeamCamp" />
                         <DataGridTextColumn Binding="{Binding Value.GameResult}" Header="GameResult" />
                     </DataGrid.Columns>
                 </DataGrid>

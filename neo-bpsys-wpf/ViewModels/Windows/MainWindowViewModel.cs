@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
@@ -48,7 +48,6 @@ public partial class MainWindowViewModel :
     };
 
     private readonly IGameGuidanceService _gameGuidanceService;
-    private readonly IInfoBarService _infoBarService;
     private readonly ILogger<MainWindowViewModel> _logger;
     [ObservableProperty] private ApplicationTheme _applicationTheme = ApplicationTheme.Dark;
 
@@ -70,6 +69,7 @@ public partial class MainWindowViewModel :
     public bool CanGameProgressChange => !IsGuidanceStarted;
 
     private GameProgress _selectedGameProgress = GameProgress.Free;
+
     public string RemainingSeconds => _sharedDataService.RemainingSeconds;
 
     public GameProgress SelectedGameProgress
@@ -79,6 +79,7 @@ public partial class MainWindowViewModel :
         {
             _selectedGameProgress = value;
             CurrentGame.GameProgress = _selectedGameProgress;
+            NextGameCommand.NotifyCanExecuteChanged();
         });
     }
 
@@ -87,13 +88,11 @@ public partial class MainWindowViewModel :
     public MainWindowViewModel(
         ISharedDataService sharedDataService,
         IGameGuidanceService gameGuidanceService,
-        IInfoBarService infoBarService,
         IFilePickerService filePickerService,
         ILogger<MainWindowViewModel> logger)
     {
         _sharedDataService = sharedDataService;
         _gameGuidanceService = gameGuidanceService;
-        _infoBarService = infoBarService;
         _filePickerService = filePickerService;
         _logger = logger;
         _isGuidanceStarted = false;
@@ -225,6 +224,16 @@ public partial class MainWindowViewModel :
         _sharedDataService.TimerStop();
     }
 
+    [RelayCommand(CanExecute = nameof(CanNextGameExecute))]
+    private void NextGame()
+    {
+        var index = GameList.IndexOf(SelectedGameProgress);
+        SelectedGameProgress = GameList.GetAt(index + 1).Key;
+    }
+
+    private bool CanNextGameExecute() => GameList.IndexOf(SelectedGameProgress) < 8 && IsBo3Mode ||
+                                         GameList.IndexOf(SelectedGameProgress) < 12 && !IsBo3Mode;
+
     [RelayCommand]
     private async Task StartNavigationAsync()
     {
@@ -250,7 +259,7 @@ public partial class MainWindowViewModel :
     private async Task NavigateToNextStepAsync()
     {
         _logger.LogInformation("Calling navigating to the next step");
-        ActionName = await _gameGuidanceService.NextStepAsync();
+        ActionName = await _gameGuidanceService.NextStepAsync() ?? string.Empty;
         _logger.LogInformation("Accepted current step: {S}", ActionName);
         await Task.Delay(250);
     }
@@ -259,7 +268,7 @@ public partial class MainWindowViewModel :
     private async Task NavigateToPreviousStepAsync()
     {
         _logger.LogInformation("Calling navigating to the previous step");
-        ActionName = await _gameGuidanceService.PrevStepAsync();
+        ActionName = await _gameGuidanceService.PrevStepAsync() ?? string.Empty;
         _logger.LogInformation("Accepted current step: {S}", ActionName);
         await Task.Delay(250);
     }

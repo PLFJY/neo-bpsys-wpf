@@ -1,0 +1,506 @@
+{
+  "幸運児": {
+    "Camp": "Sur",
+    "ImageFileName": "幸运儿.png",
+    "Abbrev": "knj",
+    "FullSpell": "kouunji"
+  },
+  "医師": {
+    "Camp": "Sur",
+    "ImageFileName": "医生.png",
+    "Abbrev": "sh",
+    "FullSpell": "ishi"
+  },
+  "弁護士": {
+    "Camp": "Sur",
+    "ImageFileName": "律师.png",
+    "Abbrev": "bngsh",
+    "FullSpell": "bengoshi"
+  },
+  "泥棒": {
+    "Camp": "Sur",
+    "ImageFileName": "慈善家.png",
+    "Abbrev": "drb",
+    "FullSpell": "dorobou"
+  },
+  "庭師": {
+    "Camp": "Sur",
+    "ImageFileName": "园丁.png",
+    "Abbrev": "nwsh",
+    "FullSpell": "niwashi"
+  },
+  "マジシャン": {
+    "Camp": "Sur",
+    "ImageFileName": "魔术师.png",
+    "Abbrev": "mjshn",
+    "FullSpell": "majishan"
+  },
+  "冒険家": {
+    "Camp": "Sur",
+    "ImageFileName": "冒险家.png",
+    "Abbrev": "bknk",
+    "FullSpell": "boukenka"
+  },
+  "傭兵": {
+    "Camp": "Sur",
+    "ImageFileName": "佣兵.png",
+    "Abbrev": "yh",
+    "FullSpell": "youhei"
+  },
+  "空軍": {
+    "Camp": "Sur",
+    "ImageFileName": "空军.png",
+    "Abbrev": "kgn",
+    "FullSpell": "kuugun"
+  },
+  "機械技師": {
+    "Camp": "Sur",
+    "ImageFileName": "机械师.png",
+    "Abbrev": "kkgsh",
+    "FullSpell": "kikaigishi"
+  },
+  "オフェンス": {
+    "Camp": "Sur",
+    "ImageFileName": "前锋.png",
+    "Abbrev": "fns",
+    "FullSpell": "ofensu"
+  },
+  "心眼": {
+    "Camp": "Sur",
+    "ImageFileName": "盲女.png",
+    "Abbrev": "shngn",
+    "FullSpell": "shingan"
+  },
+  "祭司": {
+    "Camp": "Sur",
+    "ImageFileName": "祭司.png",
+    "Abbrev": "ssh",
+    "FullSpell": "saishi"
+  },
+  "調香師": {
+    "Camp": "Sur",
+    "ImageFileName": "调香师.png",
+    "Abbrev": "chksh",
+    "FullSpell": "choukoushi"
+  },
+  "カウボーイ": {
+    "Camp": "Sur",
+    "ImageFileName": "牛仔.png",
+    "Abbrev": "kb",
+    "FullSpell": "kaubooi"
+  },
+  "踊り子": {
+    "Camp": "Sur",
+    "ImageFileName": "舞女.png",
+    "Abbrev": "drk",
+    "FullSpell": "odoriko"
+  },
+  "占い師": {
+    "Camp": "Sur",
+    "ImageFileName": "先知.png",
+    "Abbrev": "rnsh",
+    "FullSpell": "uranaishi"
+  },
+  "納棺師": {
+    "Camp": "Sur",
+    "ImageFileName": "入殓师.png",
+    "Abbrev": "nknsh",
+    "FullSpell": "noukanshi"
+  },
+  "探鉱者": {
+    "Camp": "Sur",
+    "ImageFileName": "勘探员.png",
+    "Abbrev": "tnksh",
+    "FullSpell": "tankousha"
+  },
+  "呪術師": {
+    "Camp": "Sur",
+    "ImageFileName": "咒术师.png",
+    "Abbrev": "jjtsh",
+    "FullSpell": "jujutsushi"
+  },
+  "野人": {
+    "Camp": "Sur",
+    "ImageFileName": "野人.png",
+    "Abbrev": "yjn",
+    "FullSpell": "yajin"
+  },
+  "曲芸師": {
+    "Camp": "Sur",
+    "ImageFileName": "杂技演员.png",
+    "Abbrev": "kkgsh",
+    "FullSpell": "kyokugeishi"
+  },
+  "一等航海士": {
+    "Camp": "Sur",
+    "ImageFileName": "大副.png",
+    "Abbrev": "ttkksh",
+    "FullSpell": "ittoukoukaishi"
+  },
+  "バーメイド": {
+    "Camp": "Sur",
+    "ImageFileName": "调酒师.png",
+    "Abbrev": "bmd",
+    "FullSpell": "baameido"
+  },
+  "ポストマン": {
+    "Camp": "Sur",
+    "ImageFileName": "邮差.png",
+    "Abbrev": "pstmn",
+    "FullSpell": "posutoman"
+  },
+  "墓守": {
+    "Camp": "Sur",
+    "ImageFileName": "守墓人.png",
+    "Abbrev": "hkmr",
+    "FullSpell": "hakamori"
+  },
+  "「囚人」": {
+    "Camp": "Sur",
+    "ImageFileName": "囚徒.png",
+    "Abbrev": "shjn",
+    "FullSpell": "shuujin"
+  },
+  "昆虫学者": {
+    "Camp": "Sur",
+    "ImageFileName": "昆虫学者.png",
+    "Abbrev": "knchgksh",
+    "FullSpell": "konchuugakusha"
+  },
+  "画家": {
+    "Camp": "Sur",
+    "ImageFileName": "画家.png",
+    "Abbrev": "gk",
+    "FullSpell": "gaka"
+  },
+  "バッツマン": {
+    "Camp": "Sur",
+    "ImageFileName": "击球手.png",
+    "Abbrev": "bttsmn",
+    "FullSpell": "battsuman"
+  },
+  "玩具職人": {
+    "Camp": "Sur",
+    "ImageFileName": "玩具商.png",
+    "Abbrev": "gngshknn",
+    "FullSpell": "gangushokunin"
+  },
+  "患者": {
+    "Camp": "Sur",
+    "ImageFileName": "病患.png",
+    "Abbrev": "knj",
+    "FullSpell": "kanja"
+  },
+  "「心理学者」": {
+    "Camp": "Sur",
+    "ImageFileName": "心理学家.png",
+    "Abbrev": "shrgksh",
+    "FullSpell": "shinrigakusha"
+  },
+  "小説家": {
+    "Camp": "Sur",
+    "ImageFileName": "小说家.png",
+    "Abbrev": "shstsk",
+    "FullSpell": "shousetsuka"
+  },
+  "「少女」": {
+    "Camp": "Sur",
+    "ImageFileName": "小女孩.png",
+    "Abbrev": "shj",
+    "FullSpell": "shoujo"
+  },
+  "泣きピエロ": {
+    "Camp": "Sur",
+    "ImageFileName": "哭泣小丑.png",
+    "Abbrev": "nkpr",
+    "FullSpell": "nakipiero"
+  },
+  "教授": {
+    "Camp": "Sur",
+    "ImageFileName": "教授.png",
+    "Abbrev": "kyj",
+    "FullSpell": "kyouju"
+  },
+  "骨董商": {
+    "Camp": "Sur",
+    "ImageFileName": "古董商.png",
+    "Abbrev": "kttsh",
+    "FullSpell": "kottoushou"
+  },
+  "作曲家": {
+    "Camp": "Sur",
+    "ImageFileName": "作曲家.png",
+    "Abbrev": "skkykk",
+    "FullSpell": "sakkyokuka"
+  },
+  "記者": {
+    "Camp": "Sur",
+    "ImageFileName": "记者.png",
+    "Abbrev": "ksh",
+    "FullSpell": "kisha"
+  },
+  "航空エンジニア": {
+    "Camp": "Sur",
+    "ImageFileName": "飞行家.png",
+    "Abbrev": "kknzn",
+    "FullSpell": "koukuuenzinia"
+  },
+  "応援団": {
+    "Camp": "Sur",
+    "ImageFileName": "拉拉队员.png",
+    "Abbrev": "ndn",
+    "FullSpell": "ouendan"
+  },
+  "人形師": {
+    "Camp": "Sur",
+    "ImageFileName": "木偶师.png",
+    "Abbrev": "nngysh",
+    "FullSpell": "ningyoushi"
+  },
+  "火災調査員": {
+    "Camp": "Sur",
+    "ImageFileName": "火灾调查员.png",
+    "Abbrev": "kshchsn",
+    "FullSpell": "kasaichousain"
+  },
+  "「レディ・ファウロ」": {
+    "Camp": "Sur",
+    "ImageFileName": "法罗女士.png",
+    "Abbrev": "rdfr",
+    "FullSpell": "redifauro"
+  },
+  "「騎士」": {
+    "Camp": "Sur",
+    "ImageFileName": "骑士.png",
+    "Abbrev": "ksh",
+    "FullSpell": "kishi"
+  },
+  "気象学者": {
+    "Camp": "Sur",
+    "ImageFileName": "气象学家.png",
+    "Abbrev": "kshgksh",
+    "FullSpell": "kishougakusha"
+  },
+  "弓使い": {
+    "Camp": "Sur",
+    "ImageFileName": "弓箭手.png",
+    "Abbrev": "ymtsh",
+    "FullSpell": "yumitsukai"
+  },
+  "「脱出マスター」": {
+    "Camp": "Sur",
+    "ImageFileName": "逃脱大师.png",
+    "Abbrev": "dsstmst",
+    "FullSpell": "dasshutsumasutaa"
+  },
+  "幻灯師": {
+    "Camp": "Sur",
+    "ImageFileName": "幻灯师.png",
+    "Abbrev": "gntsh",
+    "FullSpell": "gentoushi"
+  },
+  "復讐者": {
+    "Camp": "Hun",
+    "ImageFileName": "厂长.png",
+    "Abbrev": "fkshsh",
+    "FullSpell": "fukushuusha"
+  },
+  "道化師": {
+    "Camp": "Hun",
+    "ImageFileName": "小丑.png",
+    "Abbrev": "dksh",
+    "FullSpell": "doukeshi"
+  },
+  "断罪狩人": {
+    "Camp": "Hun",
+    "ImageFileName": "鹿头.png",
+    "Abbrev": "dnzkryd",
+    "FullSpell": "danzaikaryuudo"
+  },
+  "リッパー": {
+    "Camp": "Hun",
+    "ImageFileName": "杰克.png",
+    "Abbrev": "rpp",
+    "FullSpell": "rippaa"
+  },
+  "結魂者": {
+    "Camp": "Hun",
+    "ImageFileName": "蜘蛛.png",
+    "Abbrev": "kknsh",
+    "FullSpell": "kekkonsha"
+  },
+  "芸者": {
+    "Camp": "Hun",
+    "ImageFileName": "红蝶.png",
+    "Abbrev": "gsh",
+    "FullSpell": "geisha"
+  },
+  "黄衣の王": {
+    "Camp": "Hun",
+    "ImageFileName": "黄衣之主.png",
+    "Abbrev": "kn",
+    "FullSpell": "kouinou"
+  },
+  "白黒無常": {
+    "Camp": "Hun",
+    "ImageFileName": "宿伞之魂.png",
+    "Abbrev": "shrkrmj",
+    "FullSpell": "shirokuromujou"
+  },
+  "写真家": {
+    "Camp": "Hun",
+    "ImageFileName": "摄影师.png",
+    "Abbrev": "shshnk",
+    "FullSpell": "shashinka"
+  },
+  "狂眼": {
+    "Camp": "Hun",
+    "ImageFileName": "疯眼.png",
+    "Abbrev": "kygn",
+    "FullSpell": "kyougan"
+  },
+  "梦の魔女": {
+    "Camp": "Hun",
+    "ImageFileName": "梦之女巫.png",
+    "Abbrev": "ymmj",
+    "FullSpell": "yumemajo"
+  },
+  "泣き虫": {
+    "Camp": "Hun",
+    "ImageFileName": "爱哭鬼.png",
+    "Abbrev": "nkmsh",
+    "FullSpell": "nakimushi"
+  },
+  "魔トカゲ": {
+    "Camp": "Hun",
+    "ImageFileName": "孽蜥.png",
+    "Abbrev": "mtkgh",
+    "FullSpell": "matokage"
+  },
+  "血の女王": {
+    "Camp": "Hun",
+    "ImageFileName": "红夫人.png",
+    "Abbrev": "chnj",
+    "FullSpell": "chinojoou"
+  },
+  "ガードNo.26": {
+    "Camp": "Hun",
+    "ImageFileName": "26号守卫.png",
+    "Abbrev": "gdnbnjrk",
+    "FullSpell": "gaadonanbaanijuuroku"
+  },
+  "「使徒」": {
+    "Camp": "Hun",
+    "ImageFileName": "使徒.png",
+    "Abbrev": "sht",
+    "FullSpell": "shito"
+  },
+  "ヴァイオリニスト": {
+    "Camp": "Hun",
+    "ImageFileName": "小提琴家.png",
+    "Abbrev": "vrst",
+    "FullSpell": "vaiorisuto"
+  },
+  "彫刻師": {
+    "Camp": "Hun",
+    "ImageFileName": "雕刻家.png",
+    "Abbrev": "chkksh",
+    "FullSpell": "choukokushi"
+  },
+  "「アンデッド」": {
+    "Camp": "Hun",
+    "ImageFileName": "博士.png",
+    "Abbrev": "ndd",
+    "FullSpell": "andeddo"
+  },
+  "破輪": {
+    "Camp": "Hun",
+    "ImageFileName": "破轮.png",
+    "Abbrev": "hrn",
+    "FullSpell": "harin"
+  },
+  "漁師": {
+    "Camp": "Hun",
+    "ImageFileName": "渔女.png",
+    "Abbrev": "rysh",
+    "FullSpell": "ryoushi"
+  },
+  "蝋人形師": {
+    "Camp": "Hun",
+    "ImageFileName": "蜡像师.png",
+    "Abbrev": "rnngysh",
+    "FullSpell": "rouningyoushi"
+  },
+  "「悪夢」": {
+    "Camp": "Hun",
+    "ImageFileName": "噩梦.png",
+    "Abbrev": "km",
+    "FullSpell": "akumu"
+  },
+  "書記官": {
+    "Camp": "Hun",
+    "ImageFileName": "记录员.png",
+    "Abbrev": "shkkn",
+    "FullSpell": "shokikan"
+  },
+  "隠者": {
+    "Camp": "Hun",
+    "ImageFileName": "隐士.png",
+    "Abbrev": "nj",
+    "FullSpell": "inja"
+  },
+  "夜の番人": {
+    "Camp": "Hun",
+    "ImageFileName": "守夜人.png",
+    "Abbrev": "yrnbnn",
+    "FullSpell": "yorunobannin"
+  },
+  "オペラ歌手": {
+    "Camp": "Hun",
+    "ImageFileName": "歌剧演员.png",
+    "Abbrev": "prksh",
+    "FullSpell": "operakashu"
+  },
+  "「フールズ・ゴールド」": {
+    "Camp": "Hun",
+    "ImageFileName": "愚人金.png",
+    "Abbrev": "frzgld",
+    "FullSpell": "fuuruzugoorudo"
+  },
+  "時空の影": {
+    "Camp": "Hun",
+    "ImageFileName": "时空之影.png",
+    "Abbrev": "jknkg",
+    "FullSpell": "jikuunokage"
+  },
+  "「足萎えの羊」": {
+    "Camp": "Hun",
+    "ImageFileName": "跛脚羊.png",
+    "Abbrev": "shnhtsj",
+    "FullSpell": "ashinaenohitsuji"
+  },
+  "「フラバルー」": {
+    "Camp": "Hun",
+    "ImageFileName": "喧嚣.png",
+    "Abbrev": "frbr",
+    "FullSpell": "furabaruu"
+  },
+  "雑貨商": {
+    "Camp": "Hun",
+    "ImageFileName": "杂货商.png",
+    "Abbrev": "zkksh",
+    "FullSpell": "zakkashou"
+  },
+  "「ビリヤードプレイヤー」": {
+    "Camp": "Hun",
+    "ImageFileName": "台球手.png",
+    "Abbrev": "brydpr",
+    "FullSpell": "biriyaadopureiyaa"
+  },
+  "「女王蜂」": {
+    "Camp": "Hun",
+    "ImageFileName": "女王蜂.png",
+    "Abbrev": "jbch",
+    "FullSpell": "jooubachi"
+  }
+}

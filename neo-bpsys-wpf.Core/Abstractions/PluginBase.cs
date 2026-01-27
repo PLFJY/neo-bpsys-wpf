@@ -4,6 +4,9 @@ using neo_bpsys_wpf.Core.Models;
 
 namespace neo_bpsys_wpf.Core.Abstractions;
 
+/// <summary>
+/// 插件基类。所有插件均应当继承自此类。
+/// </summary>
 public abstract class PluginBase
 {
     /// <summary>

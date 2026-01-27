@@ -56,6 +56,12 @@ public partial class App
         //FrontedWindowService
         services.AddSingleton<IFrontedWindowService, FrontedWindowService>();
 
+        // 角色选择动画服务（支持插件覆写）
+        services.AddSingleton<IAnimationService, AnimationService>();
+
+        // 角色选择服务
+        services.AddSingleton<ICharacterSelectionService, CharacterSelectionService>();
+
         //Tool Services
         services.AddSingleton<IFilePickerService, FilePickerService>();
         services.AddSingleton<IInfoBarService, InfoBarService>();

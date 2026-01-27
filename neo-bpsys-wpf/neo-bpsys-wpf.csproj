@@ -14,7 +14,7 @@
         <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
         <AssemblyVersion>2.0.0.0</AssemblyVersion>
 
-        <VersionPrefix>2.0.1</VersionPrefix>
+        <VersionPrefix>2.0.2</VersionPrefix>
         <VersionSuffix></VersionSuffix>
         <Version>$(VersionPrefix)$(VersionSuffix)</Version>
         <FileVersion>$(VersionPrefix).0</FileVersion>
@@ -24,9 +24,9 @@
         <!--
         版本号迭代原则：
         首位在出现大型重构或又非常重大更改时（如官方规则改变、UI重构）跟进
-        第二位出现重大的新Module更新/第三位满十跟进
-        第三位是有新Feature就会跟进
-        最后由Git gitAAAction 春如传入，没有本地构建为local
+        第二位出现重大的新 Module 更新/第三位满十跟进
+        第三位是有新 Feature 就会跟进
+        最后由构建时传入，为 git 的提交号，没有本地构建为 local
         -->
     </PropertyGroup>
 
@@ -235,6 +235,12 @@
         <EmbeddedResource Update="Locales\Lang.resx">
             <Generator>PublicResXFileCodeGenerator</Generator>
             <LastGenOutput>Lang.Designer.cs</LastGenOutput>
+        </EmbeddedResource>
+        <EmbeddedResource Update="Locales\Lang.en-us.resx">
+          <DependentUpon>Lang.resx</DependentUpon>
+        </EmbeddedResource>
+        <EmbeddedResource Update="Locales\Lang.ja-jp.resx">
+          <DependentUpon>Lang.resx</DependentUpon>
         </EmbeddedResource>
     </ItemGroup>
 </Project>

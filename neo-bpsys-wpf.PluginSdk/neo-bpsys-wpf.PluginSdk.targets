@@ -1,74 +1,32 @@
-<Project>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<PropertyGroup>
-		<!-- 打包开关：命令行 -p:PluginPack=true 才打包 -->
-		<PluginPack Condition="'$(PluginPack)'==''">false</PluginPack>
-
-		<!-- 输出 zip 到：项目目录/zip -->
-		<PluginPackDir>$(TargetDir)</PluginPackDir>
-
-		<!-- 版本：优先用项目的 Version，否则 0.0.0 -->
-		<PluginZipPath>$(PluginPackDir)$(MSBuildProjectName).zip</PluginZipPath>
-
-		<!-- manifest 默认在插件项目根目录 -->
-		<PluginManifestPath Condition="'$(PluginManifestPath)'==''">$(MSBuildProjectDirectory)\manifest.yml</PluginManifestPath>
-
-		<!-- 诊断：让你确认只有插件项目在打包 -->
-		<PluginPackDiagnostics Condition="'$(PluginPackDiagnostics)'==''">true</PluginPackDiagnostics>
+		<PowershellBinaryName>powershell</PowershellBinaryName>
 	</PropertyGroup>
 
-	<!-- 探针输出：你一看日志就知道哪些项目启用了 PluginPack -->
-	<Target Name="PluginPack_Probe"
-			BeforeTargets="Build"
-			Condition="'$(PluginPack)'=='true' AND '$(PluginPackDiagnostics)'=='true'">
-		<Message Importance="high"
-				 Text="[PluginPack][Probe] Project=$(MSBuildProjectName) TF=$(TargetFramework) PluginPack=$(PluginPack) TargetDir=$(TargetDir)" />
-	</Target>
+	<Target Name="CreateZip"
+	        AfterTargets="Publish"
+	        Condition="'$(CreateZip)'=='true'">
+		<PropertyGroup>
+			<ZipPackageOutputDirectory>$(MSBuildProjectDirectory)/build</ZipPackageOutputDirectory>
+			<ZipPackageOutputName>$(MSBuildProjectName).zip</ZipPackageOutputName>
 
-	<!-- 核心：从“将要复制到输出目录”的依赖里移除 Host 提供的 DLL -->
-	<Target Name="PluginPack_RemoveHostProvidedAssemblies"
-			AfterTargets="ResolveReferences">
-		<ItemGroup>
-			<!-- 不要把 SDK 自己带进插件输出（Host 提供） -->
-			<ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
-									 Condition="'%(ReferenceCopyLocalPaths.Filename)'=='neo-bpsys-wpf.PluginSdk'" />
+			<BpsysSdk_PackageRoot>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)'))</BpsysSdk_PackageRoot>
+			<BpsysSdk_ZipOutputPath>$(ZipPackageOutputDirectory)/$(ZipPackageOutputName)</BpsysSdk_ZipOutputPath>
+		</PropertyGroup>
 
-			<!-- 不要把 Core 带进插件输出（Host 提供） -->
-			<ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
-									 Condition="'%(ReferenceCopyLocalPaths.Filename)'=='neo-bpsys-wpf.Core'" />
-		</ItemGroup>
-	</Target>
+		<Message Text="正在创建插件包 $(BpsysSdk_ZipOutputPath)" Importance="high"/>
+		<Error Condition="Exists('$(PublishDir)/manifest.yml') != 'true'"
+		       Code="BPSDK0001"
+		       Text="插件清单 manifest.yml 在生成目录中不存在"/>
 
-	<!-- publish 也可能把依赖带上：这里再兜底移除 -->
-	<Target Name="PluginPack_RemoveHostProvidedFromPublish"
-			AfterTargets="ComputeFilesToPublish"
-			Condition="'$(PluginPack)'=='true'">
-		<ItemGroup>
-			<ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
-			  Condition="'%(ResolvedFileToPublish.FileName)'=='neo-bpsys-wpf.PluginSdk'
-                   OR '%(ResolvedFileToPublish.FileName)'=='neo-bpsys-wpf.Core'" />
-		</ItemGroup>
-	</Target>
-
-	<!-- 打包：Build 后把 TargetDir 打成 zip -->
-	<Target Name="PluginPack_CreateZip"
-			AfterTargets="Build"
-			Condition="'$(PluginPack)'=='true'">
-		<Message Importance="high" Text="[PluginPack] Creating zip: $(PluginZipPath)" />
-
-		<Error Condition="!Exists('$(PluginManifestPath)')"
-			   Text="Plugin manifest not found: $(PluginManifestPath)" />
-
-		<!-- 确保 zip 内有 manifest.yml -->
-		<Copy SourceFiles="$(PluginManifestPath)"
-			  DestinationFiles="$(TargetDir)manifest.yml"
-			  SkipUnchangedFiles="true" />
-
-		<MakeDir Directories="$(PluginPackDir)" Condition="!Exists('$(PluginPackDir)')" />
-
-		<ZipDirectory SourceDirectory="$(TargetDir)"
-					  DestinationFile="$(PluginZipPath)"
-					  Overwrite="true" />
-
-		<Message Importance="high" Text="[PluginPack] Done: $(PluginZipPath)" />
+		<!-- Create Zip -->
+		<RemoveDir Directories="$(ZipPackageOutputDirectory)"
+		           Condition="Exists($(ZipPackageOutputDirectory))"/>
+		<MakeDir Condition="Exists($(ZipPackageOutputDirectory)) != 'true'"
+		         Directories="$(ZipPackageOutputDirectory)"/>
+		<ZipDirectory SourceDirectory="$(PublishDir)"
+		              Overwrite="true"
+		              DestinationFile="$(BpsysSdk_ZipOutputPath)"/>
 	</Target>
 </Project>
+

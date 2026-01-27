@@ -80,7 +80,7 @@ public class SettingsHostService : ISettingsHostService
     public async Task LoadConfig()
     {
         if (!File.Exists(AppConstants.ConfigFilePath))
-            ResetConfigAsync();
+            await ResetConfigAsync();
         var json = await File.ReadAllTextAsync(AppConstants.ConfigFilePath);
         try
         {
@@ -92,7 +92,7 @@ public class SettingsHostService : ISettingsHostService
             else
             {
                 _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("ConfigurationFileEmpty"));
-                ResetConfigAsync();
+                await ResetConfigAsync();
             }
         }
         catch (Exception e)
@@ -102,7 +102,7 @@ public class SettingsHostService : ISettingsHostService
             if (await MessageBoxHelper.ShowConfirmAsync($"{I18nHelper.GetLocalizedString("ResetConfigurationFileToSolveTheProblem")}?",
                     I18nHelper.GetLocalizedString("FailedToReadConfigurationFile"), I18nHelper.GetLocalizedString("Confirm"), I18nHelper.GetLocalizedString("Cancel")))
             {
-                ResetConfigAsync();
+                await ResetConfigAsync();
             }
             else
             {

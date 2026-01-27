@@ -114,6 +114,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 允许窗口透明.
+        /// </summary>
+        public static string AllowsWindowTransparency {
+            get {
+                return ResourceManager.GetString("AllowsWindowTransparency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 已经是第一步.
         /// </summary>
         public static string AlreadyFirstStep {
@@ -348,6 +357,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 背景颜色.
+        /// </summary>
+        public static string BackgroundColor {
+            get {
+                return ResourceManager.GetString("BackgroundColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 禁用.
         /// </summary>
         public static string Ban {
@@ -411,7 +429,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Blink.
+        ///   Looks up a localized string similar to 闪现.
         /// </summary>
         public static string Blink {
             get {
@@ -425,6 +443,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string BPOverview {
             get {
                 return ResourceManager.GetString("BPOverview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to bpui 文件.
+        /// </summary>
+        public static string BpuiFiles {
+            get {
+                return ResourceManager.GetString("BpuiFiles", resourceCulture);
             }
         }
         
@@ -443,15 +470,6 @@ namespace neo_bpsys_wpf.Locales {
         public static string BPWindowImages {
             get {
                 return ResourceManager.GetString("BPWindowImages", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to 内置插件无法卸载.
-        /// </summary>
-        public static string BuiltInPluginCannotBeUninstalled {
-            get {
-                return ResourceManager.GetString("BuiltInPluginCannotBeUninstalled", resourceCulture);
             }
         }
         
@@ -1176,7 +1194,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Excitement.
+        ///   Looks up a localized string similar to 兴奋.
         /// </summary>
         public static string Excitement {
             get {
@@ -2049,7 +2067,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 日本語.
+        ///   Looks up a localized string similar to 日本語（正確性は100%保証されません）.
         /// </summary>
         public static string ja_JP {
             get {
@@ -2139,7 +2157,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Listen.
+        ///   Looks up a localized string similar to 聆听.
         /// </summary>
         public static string Listen {
             get {
@@ -2490,7 +2508,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Patroller.
+        ///   Looks up a localized string similar to 巡视者.
         /// </summary>
         public static string Patroller {
             get {
@@ -2499,7 +2517,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Peeper.
+        ///   Looks up a localized string similar to 窥视者.
         /// </summary>
         public static string Peeper {
             get {
@@ -2666,6 +2684,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string PluginMarket {
             get {
                 return ResourceManager.GetString("PluginMarket", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 内置插件无法卸载.
+        /// </summary>
+        public static string PluginNotRemovable {
+            get {
+                return ResourceManager.GetString("PluginNotRemovable", resourceCulture);
             }
         }
         
@@ -3435,7 +3462,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Teleport.
+        ///   Looks up a localized string similar to 传送.
         /// </summary>
         public static string Teleport {
             get {
