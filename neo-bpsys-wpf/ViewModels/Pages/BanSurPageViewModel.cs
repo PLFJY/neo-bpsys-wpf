@@ -89,6 +89,8 @@ public partial class BanSurPageViewModel : ViewModelBase
         {
             IsEnabled = sharedDataService.CanGlobalSurBannedList[index];
             SharedDataService.BanCountChanged += OnBanCountChanged;
+            SharedDataService.TeamSwapped += (senter, args) =>
+                SyncCharaFromSourceAsync();
         }
 
         private void OnBanCountChanged(object? sender, BanCountChangedEventArgs e)
