@@ -10,6 +10,7 @@
         <Configurations>Debug;Release;Beta</Configurations>
 		<AssemblyVersion>2.0.0.0</AssemblyVersion>
 		<Version>2.0.2</Version>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>

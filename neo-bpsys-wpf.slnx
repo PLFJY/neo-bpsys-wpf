@@ -8,6 +8,9 @@
     <Project Path="Built-inPlugins/neo-bpsys-wpf.TeamJsonMaker/neo-bpsys-wpf.TeamJsonMaker.csproj" />
   </Folder>
   <Project Path="neo-bpsys-wpf.Core/neo-bpsys-wpf.Core.csproj" />
+  <Project Path="neo-bpsys-wpf.DocsGenerator/neo-bpsys-wpf.DocsGenerator.csproj" Id="7d16ca2d-ce87-4c36-a468-c1899fc52afc">
+    <BuildType Solution="Beta|*" Project="Debug" />
+  </Project>
   <Project Path="neo-bpsys-wpf.ExamplePlugin/neo-bpsys-wpf.ExamplePlugin.csproj" />
   <Project Path="neo-bpsys-wpf.PluginSdk/neo-bpsys-wpf.PluginSdk.csproj">
     <BuildType Solution="Beta|*" Project="Debug" />
