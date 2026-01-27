@@ -102,13 +102,13 @@ public partial class Team : ObservableObjectBase
     /// 全局被禁用的求生者记录
     /// </summary>
     [Obsolete("此数组已弃用，将在3.0.0.0后删除，请迁移至 GlobalBannedSurRecordList")]
-    public Character?[] GlobalBannedSurRecordArray => [.. GlobalBannedSurRecordList];
+    [JsonIgnore] public Character?[] GlobalBannedSurRecordArray => [.. GlobalBannedSurRecordList];
 
     /// <summary>
     /// 全局被禁用的监管者记录
     /// </summary>
     [Obsolete("此数组已弃用，将在3.0.0.0后删除，请迁移至 GlobalBannedHunRecordList")]
-    public Character?[] GlobalBannedHunRecordArray => [.. GlobalBannedHunRecordList];
+    [JsonIgnore] public Character?[] GlobalBannedHunRecordArray => [.. GlobalBannedHunRecordList];
 
     /// <summary>
     /// 全局被禁用的求生者记录
