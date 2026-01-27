@@ -120,6 +120,9 @@ public partial class Team : ObservableObjectBase
     /// </summary>
     public ObservableCollection<Character?> GlobalBannedHunRecordList { get; }
 
+    /// <summary>
+    /// 同步全局禁选记录
+    /// </summary>
     public void UpdateGlobalBanFromRecord()
     {
         for (var i = 0; i < GlobalBannedSurRecordList.Count; i++)
