@@ -124,3 +124,35 @@ jobs:
             # --skip-duplicate 让重复推送不至于失败（但我们前面已经做了版本判断）
             dotnet nuget push $p.FullName --api-key $apiKey --source $source --skip-duplicate
           }
+      
+      - name: Trigger repo B workflow (only for neo-bpsys-wpf.Core)
+        if: ${{ matrix.packageId == 'neo-bpsys-wpf.Core' }}
+        shell: pwsh
+        env:
+          TOKEN: ${{ secrets.TRIGGER_DOCS_BUILD }}
+          OWNER: PLFJY              # ← 改成你的 GitHub 用户/组织
+          REPO: neo-bpsys-docs-next             # ← 改成 B 仓库名
+          WORKFLOW_FILE: deploy-docs.yml  # ← 改成 B 仓库里固定 workflow 文件名
+          REF: main                 # ← B 仓库要跑的 ref（main / release / tag）
+        run: |
+          $uri = "https://api.github.com/repos/$env:OWNER/$env:REPO/actions/workflows/$env:WORKFLOW_FILE/dispatches"
+
+          $body = @{
+            ref    = $env:REF
+            inputs = @{
+              source_repo = "${{ github.repository }}"
+              source_sha  = "${{ github.sha }}"
+              packageId   = "${{ matrix.packageId }}"
+            }
+          } | ConvertTo-Json -Depth 10
+
+          $headers = @{
+            "Accept"        = "application/vnd.github+json"
+            "Authorization" = "Bearer $env:TOKEN"
+            "User-Agent"    = "gh-actions-trigger"
+          }
+
+          Write-Host "Dispatching workflow to: $uri"
+          Write-Host "Body: $body"
+
+          Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -Body $body -ContentType "application/json"
