@@ -157,6 +157,10 @@ public partial class Game : ObservableObjectBase
             .. Enumerable.Range(0, AppConstants.GlobalBanHunCount).Select(_ => new Character(Camp.Hun))
         ];
 
+        //填充全局禁选列表
+        SurTeam.UpdateGlobalBanFromRecord();
+        HunTeam.UpdateGlobalBanFromRecord();
+
         //初始化地图信息
         if (pickedMap != null) PickedMap = pickedMap;
         if (bannedMap != null) BannedMap = bannedMap;
