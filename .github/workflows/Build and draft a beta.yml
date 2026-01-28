@@ -45,6 +45,12 @@ jobs:
         name: neo-bpsys-wpf_Installer.exe
         path: ${{ env.INSTALLER_OUTPUT }}
 
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: neo-bpsys-wpf_Installer.exe
+        path: ${{ env.INSTALLER_OUTPUT }}
+
     - name: Generate release body
       shell: pwsh
       run: |
