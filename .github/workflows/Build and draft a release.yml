@@ -39,6 +39,12 @@ jobs:
         $hash = (Get-FileHash -Path $file -Algorithm SHA256).Hash.ToLower()
         echo "INSTALLER_SHA256=$hash" >> $env:GITHUB_ENV
 
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: neo-bpsys-wpf_Installer.exe
+        path: ${{ env.INSTALLER_OUTPUT }}
+
     - name: Generate release body
       shell: pwsh
       run: |
