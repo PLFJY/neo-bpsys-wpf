@@ -40,7 +40,7 @@ jobs:
         echo "INSTALLER_SHA256=$hash" >> $env:GITHUB_ENV
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: neo-bpsys-wpf_Installer.exe
         path: ${{ env.INSTALLER_OUTPUT }}
