@@ -49,5 +49,5 @@ public partial class Player : ObservableObjectBase
     /// <summary>
     /// 显示的图片
     /// </summary>
-    [JsonIgnore] public ImageSource? PictureShown => Character == null ? Member.Image : Character?.HalfImage;
+    [JsonIgnore] public ImageSource? PictureShown => Character == null ? Member.Image : Character?.BigImage;
 }
