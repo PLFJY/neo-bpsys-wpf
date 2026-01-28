@@ -182,7 +182,7 @@ public partial class Team : ObservableObjectBase
     public Team(Camp camp, TeamType teamType)
     {
         TeamType = teamType;
-        SurMemberList = [.. Enumerable.Range(0, 4).Select(_ => new Member(Enums.Camp.Hun))];
+        SurMemberList = [.. Enumerable.Range(0, 4).Select(_ => new Member(Enums.Camp.Sur))];
         HunMemberList.Add(new Member(Enums.Camp.Hun));
 
         GlobalBannedHunRecordList =
@@ -220,8 +220,8 @@ public partial class Team : ObservableObjectBase
     {
         Name = name;
         ImageUri = imageUri;
-        SurMemberList = surMemberList ?? [];
-        HunMemberList = hunMemberList ?? [];
+        SurMemberList = surMemberList ?? [.. Enumerable.Range(0, 4).Select(_ => new Member(Enums.Camp.Sur))];
+        HunMemberList = hunMemberList ?? [new Member(Enums.Camp.Hun)];
 
         _surMemberOnFieldPrivateCollection = [.. Enumerable.Range(0, 4).Select<int, Member?>(_ => null)];
         _surMemberOnFieldCollection = new ReadOnlyObservableCollection<Member?>(_surMemberOnFieldPrivateCollection);
@@ -306,7 +306,7 @@ public partial class Team : ObservableObjectBase
     /// <returns>是否允许</returns>
     public bool CanMemberOnField(Camp camp)
     {
-        if (camp == Core.Enums.Camp.Hun)
+        if (camp == Enums.Camp.Hun)
         {
             return HunMemberOnField == null;
         }
