@@ -7,6 +7,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Themes;
 using Serilog;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -163,15 +164,21 @@ public partial class App : AppBase
     /// <summary>
     /// Occurs when an exception is thrown by an application but not handled.
     /// </summary>
-    private void OnDispatcherUnhandledException(
+    private async void OnDispatcherUnhandledException(
         object sender,
         DispatcherUnhandledExceptionEventArgs e
     )
     {
         var logger = IAppHost.Host!.Services.GetRequiredService<ILogger<App>>();
-        logger.LogError("Application crashed unexpectedly");
+        logger.LogError("Application crashed unexpectedly {message}", e.Exception.Message);
 #if !DEBUG
-        _ = MessageBoxHelper.ShowInfoAsync($"出现了些在意料之外的错误，请带着下方地址处的日志文件联系开发者解决\nSome unexpected errors have occurred. Please contact the developer with the log file below for resolution \n\n{AppConstants.LogPath}\n ", "Error");
+        if(await MessageBoxHelper.ShowConfirmAsync(
+            $@"出现了些在意料之外的错误，请带着下方地址处的日志文件联系开发者解决
+Some unexpected errors have occurred. Please contact the developer with the log file below for resolution 
+{AppConstants.LogPath}", "Error", "前往日志文件夹\nGo to the log folder", "关闭\nCancel"))
+        {
+            Process.Start("explorer.exe", AppConstants.LogPath);
+        }
 #endif
         // For more info see https://docs.microsoft.com/en-us/dotnet/api/system.windows.application.dispatcherunhandledexception?view=windowsdesktop-6.0
     }
