@@ -14,7 +14,7 @@
         <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
         <AssemblyVersion>2.0.0.0</AssemblyVersion>
 
-        <VersionPrefix>2.0.2</VersionPrefix>
+        <VersionPrefix>2.0.3</VersionPrefix>
         <VersionSuffix></VersionSuffix>
         <Version>$(VersionPrefix)$(VersionSuffix)</Version>
         <FileVersion>$(VersionPrefix).0</FileVersion>
