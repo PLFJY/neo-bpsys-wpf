@@ -256,7 +256,7 @@ public partial class Team : ObservableObjectBase
     {
         Name = newTeam.Name;
         Logo = null;
-        if (!string.IsNullOrEmpty(newTeam.ImageUri))
+        if (!string.IsNullOrEmpty(newTeam.ImageUri)&&newTeam.ImageUri!="null")
         {
             ImageUri = newTeam.ImageUri;
             Logo = new BitmapImage(new Uri(ImageUri));
