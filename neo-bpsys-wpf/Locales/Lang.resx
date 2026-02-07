@@ -1362,4 +1362,7 @@
   <data name="ScoreGlobalWindowSize" xml:space="preserve">
     <value>分数统计窗口大小</value>
   </data>
+  <data name="DesignerUnlockNote" xml:space="preserve">
+    <value>备注：设计者模式中，按住&lt;Shift&gt;键可以暂时取消自动吸附，实现精细化调整</value>
+  </data>
 </root>
