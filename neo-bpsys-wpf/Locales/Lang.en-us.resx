@@ -1344,4 +1344,7 @@
   <data name="ScoreGlobalWindowSize" xml:space="preserve">
     <value>Score statistics window size</value>
   </data>
+  <data name="DesignerUnlockNote" xml:space="preserve">
+    <value>NOTE: In Design Mode, holding down &lt;Shift&gt; key temporarily disables auto-snaping for precise adjustments</value>
+  </data>
 </root>
