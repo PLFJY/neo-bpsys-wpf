@@ -1347,4 +1347,19 @@
   <data name="AllowsWindowTransparency" xml:space="preserve">
     <value>允许窗口透明</value>
   </data>
+  <data name="ScoreGlobalWindowBackgroundColor" xml:space="preserve">
+    <value>分数统计背景颜色</value>
+  </data>
+  <data name="AllowsScoreGlobalWindowTransparency" xml:space="preserve">
+    <value>允许分数统计窗口透明</value>
+  </data>
+  <data name="WindowSize" xml:space="preserve">
+    <value>窗口大小</value>
+  </data>
+  <data name="ScoreInGameWindowSize" xml:space="preserve">
+    <value>游戏内比分窗口大小</value>
+  </data>
+  <data name="ScoreGlobalWindowSize" xml:space="preserve">
+    <value>分数统计窗口大小</value>
+  </data>
 </root>

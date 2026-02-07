@@ -33,6 +33,9 @@ public partial class Settings : ObservableObjectBase
         });
     }
 
+    /// <summary>
+    /// 语言
+    /// </summary>
     [JsonIgnore]
     public CultureInfo CultureInfo
     {
@@ -94,7 +97,7 @@ public partial class TextSettings : ObservableObjectBase
     [ObservableProperty] private FontWeight _fontWeight;
 
     [ObservableProperty] private double _fontSize;
-
+    
     [JsonConstructor]
     public TextSettings()
     {
@@ -121,7 +124,7 @@ public partial class TextSettings : ObservableObjectBase
 /// </summary>
 public partial class BpWindowSettings : ObservableObjectBase
 {
-    public WindowResolution Resolution { get; set; } = new(1440, 810);
+    public WindowSize WindowSize { get; init; } = new(1440, 810);
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BgImage))]
@@ -210,7 +213,7 @@ public class BpWindowTextSettings
 /// </summary>
 public partial class CutSceneWindowSettings : ObservableObjectBase
 {
-    public WindowResolution Resolution { get; set; } = new(1440, 810);
+    public WindowSize WindowSize { get; init; } = new(1440, 810);
     public bool IsBlackTalentAndTraitEnable { get; set; } = false;
 
     [ObservableProperty]
@@ -250,7 +253,9 @@ public class CutSceneWindowTextSettings
 /// </summary>
 public partial class ScoreWindowSettings : ObservableObjectBase
 {
-    public WindowResolution Resolution { get; set; } = new(1440, 810);
+    public WindowSize ScoreInGameWindowSize { get; init; } = new(480, 512);
+    
+    public WindowSize ScoreGlobalWindowSize { get; init; } = new(1440, 195);
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SurScoreBgImage))]
@@ -269,7 +274,22 @@ public partial class ScoreWindowSettings : ObservableObjectBase
     private string? _globalScoreBgImageUriBo3;
 
     public bool IsCampIconBlackVerEnabled { get; set; }
-    public double GlobalScoreTotalMargin { get; set; } = 390;
+    
+    public double GlobalScoreTotalMargin { get; set; } = 370;
+    
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ScoreGlobalWindowBackgroundBrush))]
+    private string? _scoreGlobalWindowBackgroundColor = "#00FF00";
+
+    [JsonIgnore]
+    public Brush ScoreGlobalWindowBackgroundBrush => AllowsScoreGlobalWindowTransparency
+        ? new SolidColorBrush(Colors.Transparent)
+        : ColorHelper.HexToBrush(string.IsNullOrEmpty(ScoreGlobalWindowBackgroundColor)
+            ? "#00FF00"
+            : ScoreGlobalWindowBackgroundColor);
+
+    [ObservableProperty] private bool _allowsScoreGlobalWindowTransparency;
+
     [ObservableProperty] private ScoreWindowTextSettings _textSettings = new();
 
     [JsonIgnore]
@@ -315,7 +335,7 @@ public class ScoreWindowTextSettings
 /// </summary>
 public partial class GameDataWindowSettings : ObservableObjectBase
 {
-    public WindowResolution Resolution { get; set; } = new(1440, 810);
+    public WindowSize WindowSize { get; init; } = new(1440, 810);
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BgImage))]
@@ -366,6 +386,8 @@ public class GameDataWindowTextSettings
 /// </summary>
 public partial class WidgetsWindowSettings : ObservableObjectBase
 {
+    public WindowSize WindowSize { get; init; } = new(1440, 716);
+    
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MapBpBgImage))]
     private string? _mapBpBgUri;
@@ -472,13 +494,4 @@ public class WidgetsWindowTextSettings
 
     public TextSettings BpOverview_GameScores { get; set; } =
         new("#FFFFFFFF", "pack://application:,,,/Assets/Fonts/#华康POP1体W5", 50);
-}
-
-/// <summary>
-/// 语言设置
-/// </summary>
-
-public class LanguageSettings
-{
-
 }

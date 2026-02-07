@@ -1329,4 +1329,19 @@
   <data name="AllowsWindowTransparency" xml:space="preserve">
     <value>Allows window transparency</value>
   </data>
+  <data name="ScoreGlobalWindowBackgroundColor" xml:space="preserve">
+    <value>Score statistics background color</value>
+  </data>
+  <data name="AllowsScoreGlobalWindowTransparency" xml:space="preserve">
+    <value>Allow score statistics window transparency</value>
+  </data>
+  <data name="WindowSize" xml:space="preserve">
+    <value>Window size</value>
+  </data>
+  <data name="ScoreInGameWindowSize" xml:space="preserve">
+    <value>Score (in-game) window size</value>
+  </data>
+  <data name="ScoreGlobalWindowSize" xml:space="preserve">
+    <value>Score statistics window size</value>
+  </data>
 </root>

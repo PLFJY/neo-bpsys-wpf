@@ -10,7 +10,6 @@ namespace neo_bpsys_wpf.Core.Abstractions;
 /// </summary>
 public abstract class ObservableObjectBase : ObservableObject
 {
-
     /// <summary>
     /// 设置属性并执行回调
     /// </summary>

@@ -377,6 +377,15 @@
                                     VerticalAlignment="Center"
                                     IsChecked="{Binding AllowsBpWindowTransparency}" />
                             </StackPanel>
+                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc WindowSize}" />
+                                <ComboBox
+                                    Width="250"
+                                    Margin="10,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    ItemsSource="{Binding RegularWindowSizesSelectionList}"
+                                    SelectedItem="{Binding SelectedBpWindowSize}" />
+                            </StackPanel>
                             <Grid Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -433,6 +442,15 @@
                                     Margin="10,0,0,0"
                                     Content="{lex:Loc Black}"
                                     IsChecked="{Binding IsTalentAndTraitBlackVerEnable}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc WindowSize}" />
+                                <ComboBox
+                                    Width="250"
+                                    Margin="10,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    ItemsSource="{Binding RegularWindowSizesSelectionList}"
+                                    SelectedItem="{Binding SelectedCutSceneWindowSize}" />
                             </StackPanel>
                             <Grid Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>
@@ -522,6 +540,48 @@
                                     Content="{lex:Loc Black}"
                                     IsChecked="{Binding IsScoreGlobalCampIconBlackVerEnable}" />
                             </StackPanel>
+                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc ScoreInGameWindowSize}" />
+                                <ComboBox
+                                    Width="250"
+                                    Margin="10,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    ItemsSource="{Binding ScoreInGameWindowSizesList}"
+                                    SelectedItem="{Binding ScoreInGameWindowSize}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc ScoreGlobalWindowSize}" />
+                                <ComboBox
+                                    Width="250"
+                                    Margin="10,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    ItemsSource="{Binding ScoreGlobalWindowSizeList}"
+                                    SelectedItem="{Binding ScoreGlobalWindowSize}" />
+                            </StackPanel>
+                            <StackPanel
+                                Margin="0,10,0,0"
+                                IsEnabled="{Binding AllowsScoreGlobalWindowTransparency, Converter={StaticResource InverseBooleanConverter}}"
+                                Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc ScoreGlobalWindowBackgroundColor}" />
+                                <colorpicker:PortableColorPicker
+                                    Width="60"
+                                    Height="30"
+                                    Margin="10,0,0,0"
+                                    SelectedColor="{Binding ScoreGlobalWindowBackgroundColorSettings, Mode=TwoWay}"
+                                    Style="{StaticResource DefaultColorPickerStyle}" />
+                                <ui:Button
+                                    Margin="10,0,0,0"
+                                    Command="{Binding SaveScoreGlobalWindowBackgroundColorCommand}"
+                                    Content="{lex:Loc SaveAndApply}"
+                                    Icon="{ui:SymbolIcon Symbol=Save24}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc AllowsScoreGlobalWindowTransparency}" />
+                                <ui:ToggleSwitch
+                                    Margin="10,0,0,0"
+                                    VerticalAlignment="Center"
+                                    IsChecked="{Binding AllowsScoreGlobalWindowTransparency}" />
+                            </StackPanel>
                             <Grid Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -568,6 +628,15 @@
                                 Command="{Binding EditGameDataWindowImagesCommand}"
                                 Content="{lex:Loc EditGameDataBackgroundImage}"
                                 Icon="{ui:SymbolIcon Symbol=ImageEdit24}" />
+                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc WindowSize}" />
+                                <ComboBox
+                                    Width="250"
+                                    Margin="10,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    ItemsSource="{Binding RegularWindowSizesSelectionList}"
+                                    SelectedItem="{Binding SelectedGameDataWindowSize}" />
+                            </StackPanel>
                             <Grid Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -635,7 +704,7 @@
                                             Header="{lex:Loc HunterIconOfMapBPV2}" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
-                                            CommandParameter="MapBpBgUri"
+                                            CommandParameter="BpOverviewBgUri"
                                             Header="{lex:Loc BPOverview}" />
                                         <MenuItem
                                             Command="{Binding EditWidgetsWindowImagesCommand}"
@@ -696,6 +765,15 @@
                                     Margin="10,0,0,0"
                                     VerticalAlignment="Center"
                                     IsChecked="{Binding AllowsWidgetsTransparency}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc WindowSize}" />
+                                <ComboBox
+                                    Width="250"
+                                    Margin="10,0,0,0"
+                                    HorizontalAlignment="Left"
+                                    ItemsSource="{Binding WidgetsWindowSizesList}"
+                                    SelectedItem="{Binding WidgetsWindowSize}" />
                             </StackPanel>
                             <Grid Margin="0,10,0,0">
                                 <Grid.ColumnDefinitions>

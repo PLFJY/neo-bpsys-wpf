@@ -171,7 +171,7 @@ public partial class App : AppBase
         var logger = IAppHost.Host!.Services.GetRequiredService<ILogger<App>>();
         logger.LogError("Application crashed unexpectedly");
 #if !DEBUG
-        _ = MessageBoxHelper.ShowInfoAsync($"出现了些在意料之外的错误，请带着下方地址处的日志文件联系开发者解决\nSome unexpected errors have occurred. Please contact the developer with the log file below for resolution \n\n{AppConstants.LogPath}\n ", "Error");
+        _ = MessageBoxHelper.ShowInfoAsync($"出现了些在意料之外的错误，请带着下方地址处的日志文件联系开发者解决\nSome unexpected errors have occurred. Please contact the developer with the log file below for solutions \n\n{AppConstants.LogPath}\n ", "Error");
 #endif
         // For more info see https://docs.microsoft.com/en-us/dotnet/api/system.windows.application.dispatcherunhandledexception?view=windowsdesktop-6.0
     }
