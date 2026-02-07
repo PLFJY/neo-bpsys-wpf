@@ -12,8 +12,8 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="{lex:Loc FrontedGameStatistics}"
-    Width="{Binding Settings.WindowSize.Width}"
-    Height="{Binding Settings.WindowSize.Height}"
+    Width="{Binding Settings.WindowSize.Width, Mode=TwoWay}"
+    Height="{Binding Settings.WindowSize.Height, Mode=TwoWay}"
     d:DataContext="{d:DesignInstance Type=vm:GameDataWindowViewModel,
                                      IsDesignTimeCreatable=True}"
     WindowStyle="None"

@@ -12,8 +12,8 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="{lex:Loc FrontedScoreStatistics}"
-    Width="{Binding Settings.ScoreGlobalWindowSize.Width}"
-    Height="{Binding Settings.ScoreGlobalWindowSize.Height}"
+    Width="{Binding Settings.ScoreGlobalWindowSize.Width, Mode=TwoWay}"
+    Height="{Binding Settings.ScoreGlobalWindowSize.Height, Mode=TwoWay}"
     d:DataContext="{d:DesignInstance Type=vm:ScoreWindowViewModel,
                                      IsDesignTimeCreatable=True}"
     AllowsTransparency="{Binding Settings.AllowsScoreGlobalWindowTransparency, Mode=OneTime}"

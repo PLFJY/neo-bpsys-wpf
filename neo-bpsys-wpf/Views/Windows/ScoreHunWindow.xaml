@@ -11,8 +11,8 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="{lex:Loc FrontendHunterScoreInGame}"
-    Width="{Binding Settings.ScoreInGameWindowSize.Width}"
-    Height="{Binding Settings.ScoreInGameWindowSize.Height}"
+    Width="{Binding Settings.ScoreInGameWindowSize.Width, Mode=TwoWay}"
+    Height="{Binding Settings.ScoreInGameWindowSize.Height, Mode=TwoWay}"
     d:DataContext="{d:DesignInstance Type=vm:ScoreWindowViewModel,
                                      IsDesignTimeCreatable=True}"
     WindowStyle="None"
