@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.ComponentModel;
+using System.Windows.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Core.Abstractions;
@@ -17,9 +19,9 @@ public partial class ScoreWindowViewModel :
     IRecipient<DesignerModeChangedMessage>,
     IRecipient<PropertyChangedMessage<int>>
 {
-#pragma warning disable CS8618 
+#pragma warning disable CS8618
     public ScoreWindowViewModel()
-#pragma warning restore CS8618 
+#pragma warning restore CS8618
     {
         //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
     }
@@ -32,14 +34,31 @@ public partial class ScoreWindowViewModel :
         _sharedDataService = sharedDataService;
         _settingsHostService = settingsHostService;
         sharedDataService.CurrentGameChanged += (_, _) => OnPropertyChanged(nameof(CurrentGame));
-        sharedDataService.IsBo3ModeChanged += (_, _) => OnPropertyChanged(nameof(IsBo3Mode));
+        sharedDataService.IsBo3ModeChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(IsBo3Mode));
+            OnPropertyChanged(nameof(ScoreGlobalImage));
+        };
         settingsHostService.SettingsChanged += (_, _) => OnPropertyChanged(nameof(Settings));
         settingsHostService.Settings.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(settingsHostService.Settings.ScoreWindowSettings))
-                OnPropertyChanged(nameof(Settings));
+            if (e.PropertyName != nameof(settingsHostService.Settings.ScoreWindowSettings)) return;
+            OnPropertyChanged(nameof(Settings));
+            Settings.PropertyChanged += SettingsOnPropertyChanged;
         };
+        Settings.PropertyChanged += SettingsOnPropertyChanged;
     }
+
+    private void SettingsOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(Settings.GlobalScoreBgImage) or nameof(Settings.GlobalScoreBgImageBo3))
+        {
+            OnPropertyChanged(nameof(ScoreGlobalImage));
+        }
+    }
+
+
+    public ImageSource? ScoreGlobalImage => IsBo3Mode ? Settings.GlobalScoreBgImageBo3 : Settings.GlobalScoreBgImage;
 
     [ObservableProperty] private bool _isDesignerMode;
 

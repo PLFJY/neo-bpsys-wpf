@@ -299,6 +299,12 @@
     "Abbrev": "gntsh",
     "FullSpell": "gentoushi"
   },
+  "闘牛士": {
+    "Camp": "Sur",
+    "ImageFileName": "斗牛士.png",
+    "Abbrev": "tgnsh",
+    "FullSpell": "tougyuushi"
+  },
   "復讐者": {
     "Camp": "Hun",
     "ImageFileName": "厂长.png",

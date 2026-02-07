@@ -1274,4 +1274,19 @@
   <data name="AllowsWindowTransparency" xml:space="preserve">
     <value>ウィンドウの透明化を許可</value>
   </data>
+  <data name="ScoreGlobalWindowBackgroundColor" xml:space="preserve">
+    <value>スコア統計の背景色</value>
+  </data>
+  <data name="AllowsScoreGlobalWindowTransparency" xml:space="preserve">
+    <value>スコア統計ウィンドウの透明化を許可</value>
+  </data>
+  <data name="WindowSize" xml:space="preserve">
+    <value>ウィンドウサイズ</value>
+  </data>
+  <data name="ScoreInGameWindowSize" xml:space="preserve">
+    <value>試合内スコアウィンドウサイズ</value>
+  </data>
+  <data name="ScoreGlobalWindowSize" xml:space="preserve">
+    <value>スコア統計ウィンドウサイズ</value>
+  </data>
 </root>

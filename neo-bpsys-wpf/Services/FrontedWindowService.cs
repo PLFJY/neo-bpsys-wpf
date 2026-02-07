@@ -12,6 +12,7 @@ using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Windows;
 using System.IO;
+using System.ComponentModel;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -61,6 +62,7 @@ public class FrontedWindowService : IFrontedWindowService
     private readonly ISharedDataService _sharedDataService;
     private readonly ISettingsHostService _settingsHostService;
     private readonly ILogger<FrontedWindowService> _logger;
+    private Settings? _windowSizeSettings;
 
     public FrontedWindowService(
         BpWindow bpWindow,
@@ -106,6 +108,9 @@ public class FrontedWindowService : IFrontedWindowService
         sharedDataService.GlobalScoreTotalMarginChanged += OnGlobalScoreTotalMarginChanged;
         sharedDataService.IsBo3ModeChanged += OnBo3ModeChanged;
         OnBo3ModeChanged(this, EventArgs.Empty);
+
+        //AttachWindowSizeHandlers(_settingsHostService.Settings);
+        //_settingsHostService.SettingsChanged += (_, settings) => AttachWindowSizeHandlers(settings);
     }
 
     /// <summary>
@@ -187,6 +192,92 @@ public class FrontedWindowService : IFrontedWindowService
         return control;
     }
 
+    //private void AttachWindowSizeHandlers(Settings settings)
+    //{
+    //    if (_windowSizeSettings != null)
+    //    {
+    //        _windowSizeSettings.BpWindowSettings.PropertyChanged -= OnBpWindowSettingsChanged;
+    //        _windowSizeSettings.CutSceneWindowSettings.PropertyChanged -= OnCutSceneWindowSettingsChanged;
+    //        _windowSizeSettings.GameDataWindowSettings.PropertyChanged -= OnGameDataWindowSettingsChanged;
+    //        _windowSizeSettings.WidgetsWindowSettings.PropertyChanged -= OnWidgetsWindowSettingsChanged;
+    //        _windowSizeSettings.ScoreWindowSettings.PropertyChanged -= OnScoreWindowSettingsChanged;
+    //    }
+
+    //    _windowSizeSettings = settings;
+    //    settings.BpWindowSettings.PropertyChanged += OnBpWindowSettingsChanged;
+    //    settings.CutSceneWindowSettings.PropertyChanged += OnCutSceneWindowSettingsChanged;
+    //    settings.GameDataWindowSettings.PropertyChanged += OnGameDataWindowSettingsChanged;
+    //    settings.WidgetsWindowSettings.PropertyChanged += OnWidgetsWindowSettingsChanged;
+    //    settings.ScoreWindowSettings.PropertyChanged += OnScoreWindowSettingsChanged;
+
+    //    ApplyWindowSizes(settings);
+    //}
+
+    //private void ApplyWindowSizes(Settings settings)
+    //{
+    //    UpdateWindowSize(FrontedWindowType.BpWindow, settings.BpWindowSettings.WindowSize);
+    //    UpdateWindowSize(FrontedWindowType.CutSceneWindow, settings.CutSceneWindowSettings.WindowSize);
+    //    UpdateWindowSize(FrontedWindowType.GameDataWindow, settings.GameDataWindowSettings.WindowSize);
+    //    UpdateWindowSize(FrontedWindowType.WidgetsWindow, settings.WidgetsWindowSettings.WindowSize);
+    //    UpdateWindowSize(FrontedWindowType.ScoreGlobalWindow, settings.ScoreWindowSettings.ScoreGlobalWindowSize);
+    //    UpdateWindowSize(FrontedWindowType.ScoreSurWindow, settings.ScoreWindowSettings.ScoreInGameWindowSize);
+    //    UpdateWindowSize(FrontedWindowType.ScoreHunWindow, settings.ScoreWindowSettings.ScoreInGameWindowSize);
+    //}
+
+    //private void OnBpWindowSettingsChanged(object? sender, PropertyChangedEventArgs e)
+    //{
+    //    if (e.PropertyName == nameof(BpWindowSettings.WindowSize))
+    //        UpdateWindowSize(FrontedWindowType.BpWindow, _settingsHostService.Settings.BpWindowSettings.WindowSize);
+    //}
+
+    //private void OnCutSceneWindowSettingsChanged(object? sender, PropertyChangedEventArgs e)
+    //{
+    //    if (e.PropertyName == nameof(CutSceneWindowSettings.WindowSize))
+    //        UpdateWindowSize(FrontedWindowType.CutSceneWindow, _settingsHostService.Settings.CutSceneWindowSettings.WindowSize);
+    //}
+
+    //private void OnGameDataWindowSettingsChanged(object? sender, PropertyChangedEventArgs e)
+    //{
+    //    if (e.PropertyName == nameof(GameDataWindowSettings.WindowSize))
+    //        UpdateWindowSize(FrontedWindowType.GameDataWindow, _settingsHostService.Settings.GameDataWindowSettings.WindowSize);
+    //}
+
+    //private void OnWidgetsWindowSettingsChanged(object? sender, PropertyChangedEventArgs e)
+    //{
+    //    if (e.PropertyName == nameof(WidgetsWindowSettings.WindowSize))
+    //        UpdateWindowSize(FrontedWindowType.WidgetsWindow, _settingsHostService.Settings.WidgetsWindowSettings.WindowSize);
+    //}
+
+    //private void OnScoreWindowSettingsChanged(object? sender, PropertyChangedEventArgs e)
+    //{
+    //    if (e.PropertyName == nameof(ScoreWindowSettings.ScoreInGameWindowSize))
+    //    {
+    //        var size = _settingsHostService.Settings.ScoreWindowSettings.ScoreInGameWindowSize;
+    //        UpdateWindowSize(FrontedWindowType.ScoreSurWindow, size);
+    //        UpdateWindowSize(FrontedWindowType.ScoreHunWindow, size);
+    //    }
+
+    //    if (e.PropertyName == nameof(ScoreWindowSettings.ScoreGlobalWindowSize))
+    //        UpdateWindowSize(FrontedWindowType.ScoreGlobalWindow, _settingsHostService.Settings.ScoreWindowSettings.ScoreGlobalWindowSize);
+    //}
+
+    //private void UpdateWindowSize(FrontedWindowType windowType, Size size)
+    //{
+    //    if (!FrontedWindows.TryGetValue(GetFrontedWindowGuid(windowType), out var window))
+    //        return;
+
+    //    void ApplySize()
+    //    {
+    //        window.Width = size.Width;
+    //        window.Height = size.Height;
+    //    }
+
+    //    if (window.Dispatcher.CheckAccess())
+    //        ApplySize();
+    //    else
+    //        window.Dispatcher.Invoke(ApplySize);
+    //}
+
     /// <summary>
     /// 注入控件
     /// </summary>
@@ -232,9 +323,6 @@ public class FrontedWindowService : IFrontedWindowService
             window.Value.Show();
             FrontedWindowStates[window.Key] = true;
         }
-
-        Task.Delay(250);
-        Application.Current.MainWindow?.Activate();
     }
 
     public void AllWindowHide()
@@ -298,9 +386,6 @@ public class FrontedWindowService : IFrontedWindowService
             window.Show();
             FrontedWindowStates[windowId] = true;
         }
-
-        Task.Delay(250);
-        Application.Current.MainWindow?.Activate();
     }
 
     #endregion
@@ -729,8 +814,6 @@ public class FrontedWindowService : IFrontedWindowService
             scoreWindow) return;
         if (_isBo3Mode)
         {
-            scoreWindow.BaseCanvas.Background =
-                new ImageBrush(_settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImageBo3);
             foreach (var item in
                      _mainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3OvertimeSecondHalf))
             {
@@ -751,8 +834,6 @@ public class FrontedWindowService : IFrontedWindowService
         }
         else
         {
-            scoreWindow.BaseCanvas.Background =
-                new ImageBrush(_settingsHostService.Settings.ScoreWindowSettings.GlobalScoreBgImage);
             foreach (var item in
                      _mainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3OvertimeSecondHalf))
             {
@@ -838,7 +919,8 @@ public class FrontedWindowService : IFrontedWindowService
     /// </summary>
     /// <param name="progress"></param>
     /// <returns></returns>
-    private static double CalculateLeftPosition(GameProgress progress) => 175 + ((int)progress) * 90; // 每个控件间隔的像素
+    private static double CalculateLeftPosition(GameProgress progress) =>
+        175 + (int)progress / 2 * 180 + ((int)progress % 2) * 90; // 左端点 + 大场间间隔 + 第一场和第二场之间小场间隔
 
     /// <summary>
     /// 注册控件

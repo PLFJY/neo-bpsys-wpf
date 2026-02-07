@@ -201,6 +201,10 @@
         "Camp": "Sur",
         "ImageFileName": "幻灯师.png"
     },
+    "斗牛士": {
+        "Camp": "Sur",
+        "ImageFileName": "斗牛士.png"
+    },
     "26号守卫": {
         "Camp": "Hun",
         "ImageFileName": "26号守卫.png",

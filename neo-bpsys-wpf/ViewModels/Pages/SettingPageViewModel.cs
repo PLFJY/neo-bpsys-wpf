@@ -155,7 +155,10 @@ public partial class SettingPageViewModel : ViewModelBase
 
         BpWindowPickingColorSettings = _settingsHostService.Settings.BpWindowSettings.PickingBorderColor.ToColor();
         BpWindowBackgroundColorSettings = _settingsHostService.Settings.BpWindowSettings.BackgroundColor.ToColor();
-        WidgetsWindowBackgroundColorSettings = _settingsHostService.Settings.WidgetsWindowSettings.BackgroundColor.ToColor();
+        ScoreGlobalWindowBackgroundColorSettings =
+            _settingsHostService.Settings.ScoreWindowSettings.ScoreGlobalWindowBackgroundColor.ToColor();
+        WidgetsWindowBackgroundColorSettings =
+            _settingsHostService.Settings.WidgetsWindowSettings.BackgroundColor.ToColor();
         MapBpV2PickingColorSettings =
             _settingsHostService.Settings.WidgetsWindowSettings.MapBpV2_PickingBorderColor.ToColor();
 
@@ -259,7 +262,8 @@ public partial class SettingPageViewModel : ViewModelBase
             _settingsHostService.Settings.Language = value;
             _settingsHostService.SaveConfigAsync();
             LocalizeDictionary.Instance.Culture = _settingsHostService.Settings.CultureInfo;
-            Application.Current.Resources["CurrentLanguage"] = XmlLanguage.GetLanguage(_settingsHostService.Settings.CultureInfo.Name);
+            Application.Current.Resources["CurrentLanguage"] =
+                XmlLanguage.GetLanguage(_settingsHostService.Settings.CultureInfo.Name);
             _logger.LogInformation("Set language to {appLanguage}", _settingsHostService.Settings.CultureInfo.Name);
         });
     }
@@ -269,7 +273,7 @@ public partial class SettingPageViewModel : ViewModelBase
         { "FollowSystem", LanguageKey.System },
         { "zh_Hans", LanguageKey.zh_Hans },
         { "en_US", LanguageKey.en_US },
-        { "ja_JP" , LanguageKey.ja_JP }
+        { "ja_JP", LanguageKey.ja_JP }
     };
 
     #endregion
@@ -384,6 +388,15 @@ public partial class SettingPageViewModel : ViewModelBase
         }
     }
 
+    public List<WindowSize> RegularWindowSizesSelectionList { get; } =
+    [
+        new(1440, 810),
+        new(1280, 720),
+        new(1920, 1080),
+        new(2560, 1440),
+        new(3840, 2160)
+    ];
+
     #endregion
 
     #region BP窗口设置
@@ -453,6 +466,17 @@ public partial class SettingPageViewModel : ViewModelBase
         }
     }
 
+    public WindowSize SelectedBpWindowSize
+    {
+        get => _settingsHostService.Settings.BpWindowSettings.WindowSize;
+        set
+        {
+            _settingsHostService.Settings.BpWindowSettings.WindowSize.SetNewValue(value);
+            _settingsHostService.SaveConfigAsync();
+            OnPropertyChanged();
+        }
+    }
+
     #endregion
 
     #region 过场窗口设置
@@ -485,9 +509,20 @@ public partial class SettingPageViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsTalentAndTraitBlackVerEnable));
     }
 
+    public WindowSize SelectedCutSceneWindowSize
+    {
+        get => _settingsHostService.Settings.CutSceneWindowSettings.WindowSize;
+        set
+        {
+            _settingsHostService.Settings.CutSceneWindowSettings.WindowSize.SetNewValue(value);
+            _settingsHostService.SaveConfigAsync();
+            OnPropertyChanged();
+        }
+    }
+
     #endregion
 
-    #region 计分板设置
+    #region 比分窗口设置
 
     [RelayCommand]
     private void EditScoreWindowImages(string arg)
@@ -550,15 +585,93 @@ public partial class SettingPageViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsScoreGlobalCampIconBlackVerEnable));
     }
 
+    [RelayCommand]
+    private void SaveScoreGlobalWindowBackgroundColor()
+    {
+        _settingsHostService.Settings.ScoreWindowSettings.ScoreGlobalWindowBackgroundColor =
+            ScoreGlobalWindowBackgroundColorSettings.ToArgbHexString();
+        _settingsHostService.SaveConfigAsync();
+    }
+
+    [ObservableProperty] private Color _scoreGlobalWindowBackgroundColorSettings;
+
+    public bool AllowsScoreGlobalWindowTransparency
+    {
+        get => _settingsHostService.Settings.ScoreWindowSettings.AllowsScoreGlobalWindowTransparency;
+        set => _ = SaveScoreGlobalWindowTransparency(value);
+    }
+
+    private async Task SaveScoreGlobalWindowTransparency(bool value)
+    {
+        _settingsHostService.Settings.ScoreWindowSettings.AllowsScoreGlobalWindowTransparency = value;
+        _ = _settingsHostService.SaveConfigAsync();
+        OnPropertyChanged(nameof(AllowsScoreGlobalWindowTransparency));
+        if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("RestartToApply"),
+                I18nHelper.GetLocalizedString("RestartNeeded"), I18nHelper.GetLocalizedString("Restart"),
+                I18nHelper.GetLocalizedString("NotNow")))
+        {
+            AppBase.Current.Restart();
+        }
+    }
+
+    public List<WindowSize> ScoreInGameWindowSizesList { get; } =
+    [
+        new(480, 512),
+        new(720, 768),
+        new(960, 1024),
+        new(1080, 1152),
+    ];
+
+    public List<WindowSize> ScoreGlobalWindowSizeList { get; } =
+    [
+        new(1440, 195),
+        new(640, 87),
+        new(960, 130),
+        new(1280, 173),
+    ];
+
+    public WindowSize ScoreInGameWindowSize
+    {
+        get => _settingsHostService.Settings.ScoreWindowSettings.ScoreInGameWindowSize;
+        set
+        {
+            _settingsHostService.Settings.ScoreWindowSettings.ScoreInGameWindowSize.SetNewValue(value);
+            _settingsHostService.SaveConfigAsync();
+            OnPropertyChanged();
+        }
+    }
+
+    public WindowSize ScoreGlobalWindowSize
+    {
+        get => _settingsHostService.Settings.ScoreWindowSettings.ScoreGlobalWindowSize;
+        set
+        {
+            _settingsHostService.Settings.ScoreWindowSettings.ScoreGlobalWindowSize.SetNewValue(value);
+            _settingsHostService.SaveConfigAsync();
+            OnPropertyChanged();
+        }
+    }
+
     #endregion
 
-    #region 数据面板设置
+    #region 赛后数据
 
     [RelayCommand]
     private void EditGameDataWindowImages()
     {
         var settings = _settingsHostService.Settings.GameDataWindowSettings;
         SetUiImage(value => { settings.BgImageUri = value; }, settings.BgImageUri);
+    }
+
+    public WindowSize SelectedGameDataWindowSize
+    {
+        get => _settingsHostService.Settings.GameDataWindowSettings.WindowSize;
+        set
+        {
+            _settingsHostService.Settings.GameDataWindowSettings.WindowSize.SetNewValue(value);
+            _settingsHostService.SaveConfigAsync();
+            OnPropertyChanged();
+        }
     }
 
     #endregion
@@ -656,6 +769,25 @@ public partial class SettingPageViewModel : ViewModelBase
         }
     }
 
+    public List<WindowSize> WidgetsWindowSizesList { get; } =
+    [
+        new(1440, 716),
+        new(640, 318),
+        new(960, 477),
+        new(1280, 636),
+    ];
+
+    public WindowSize WidgetsWindowSize
+    {
+        get => _settingsHostService.Settings.WidgetsWindowSettings.WindowSize;
+        set
+        {
+            _settingsHostService.Settings.WidgetsWindowSettings.WindowSize.SetNewValue(value);
+            _settingsHostService.SaveConfigAsync();
+            OnPropertyChanged();
+        }
+    }
+
     #endregion
 
     #region 文字设置
@@ -726,7 +858,12 @@ public partial class SettingPageViewModel : ViewModelBase
                 I18nHelper.GetLocalizedString("Tips"),
                 I18nHelper.GetLocalizedString("Confirm"), I18nHelper.GetLocalizedString("Cancel"))) return;
         await _settingsHostService.ResetConfigAsync();
-        _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("RestartToApply"));
+        if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("RestartToApply"),
+                I18nHelper.GetLocalizedString("RestartNeeded"), I18nHelper.GetLocalizedString("Restart"),
+                I18nHelper.GetLocalizedString("NotNow")))
+        {
+            AppBase.Current.Restart();
+        }
     }
 
     #endregion
