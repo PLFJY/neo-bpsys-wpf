@@ -9,7 +9,7 @@
         <CETCompat>false</CETCompat>
         <Configurations>Debug;Release;Beta</Configurations>
 		<AssemblyVersion>2.0.0.0</AssemblyVersion>
-		<Version>2.0.7</Version>
+		<Version>2.0.8</Version>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
