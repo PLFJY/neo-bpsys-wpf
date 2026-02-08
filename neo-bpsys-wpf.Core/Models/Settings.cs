@@ -416,7 +416,7 @@ public partial class WidgetsWindowSettings : ObservableObjectBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MapBpV2_PickingBorderBrush))]
-    private string? _mapBpV2_PickingBorderColor = Colors.DarkGreen.ToString();
+    private string? _mapBpV2_PickingBorderColor = Colors.White.ToString();
 
     /// <summary>
     /// MapBpV2文本颜色Brush

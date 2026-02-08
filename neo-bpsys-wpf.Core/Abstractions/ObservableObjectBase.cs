@@ -8,7 +8,7 @@ namespace neo_bpsys_wpf.Core.Abstractions;
 /// and provides helper methods for property change handling.
 /// Not MVVM-layer specific.
 /// </summary>
-public abstract class ObservableObjectBase : ObservableObject
+public abstract class ObservableObjectBase : ObservableRecipient
 {
     /// <summary>
     /// 设置属性并执行回调

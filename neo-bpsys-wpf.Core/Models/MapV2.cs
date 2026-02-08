@@ -9,13 +9,15 @@ using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Core.Models;
 
-public partial class MapV2(Map? mapName, string mapBorderNormal = "#2B483B", string mapBorderBanned = "#9C3E2F")
-    : ObservableObjectBase, IRecipient<PropertyChangedMessage<bool>>
+/// <summary>
+/// 地图BP v2
+/// </summary>
+public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMessage<bool>>
 {
     /// <summary>
     /// 地图名称
     /// </summary>
-    public Map? MapName { get; } = mapName;
+    public Map? MapName { get; }
 
     /// <summary>
     /// 地图是否被选中
@@ -116,16 +118,30 @@ public partial class MapV2(Map? mapName, string mapBorderNormal = "#2B483B", str
     /// <summary>
     /// 地图边框颜色（正常）
     /// </summary>
-    private readonly Brush _mapBorderNormalBrush = ColorHelper.HexToBrush(mapBorderNormal);
+    private readonly Brush _mapBorderNormalBrush;
     /// <summary>
     /// 地图边框颜色（ban）
     /// </summary>
-    private readonly Brush _mapBorderBannedBrush = ColorHelper.HexToBrush(mapBorderBanned);
+    private readonly Brush _mapBorderBannedBrush;
 
     /// <summary>
     /// 地图边框颜色
     /// </summary>
     [JsonIgnore] public Brush MapBorderBrush => IsBanned ? _mapBorderBannedBrush : _mapBorderNormalBrush;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="mapName">地图名称</param>
+    /// <param name="mapBorderNormal">地图边框颜色（正常）</param>
+    /// <param name="mapBorderBanned">地图边框颜色（ban）</param>
+    public MapV2(Map? mapName, string mapBorderNormal = "#2B483B", string mapBorderBanned = "#9C3E2F")
+    {
+        MapName = mapName;
+        _mapBorderNormalBrush = ColorHelper.HexToBrush(mapBorderNormal);
+        _mapBorderBannedBrush = ColorHelper.HexToBrush(mapBorderBanned);
+        IsActive = true;
+    }
 
     /// <summary>
     /// JSON 反序列化构造函数
