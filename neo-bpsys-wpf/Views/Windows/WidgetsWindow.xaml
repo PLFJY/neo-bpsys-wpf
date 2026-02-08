@@ -21,191 +21,494 @@
     Background="{Binding Settings.BackgroundBrush}"
     WindowStyle="None"
     mc:Ignorable="d">
-    <Viewbox Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}" Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
-        <Grid Width="1440" Height="716">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <Grid Grid.Row="0" Height="554">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-                <Border BorderBrush="Black" BorderThickness="1">
-                    <Canvas
-                        Name="MapBpCanvas"
-                        Width="308"
-                        Height="554"
-                        HorizontalAlignment="Left">
-                        <Canvas.Background>
-                            <ImageBrush d:ImageSource="/Resources/bpui/mapBp.png" ImageSource="{Binding Settings.MapBpBgImage}" />
-                        </Canvas.Background>
-                        <Canvas.Resources>
-                            <Style BasedOn="{StaticResource {x:Type ui:Image}}" TargetType="ui:Image">
-                                <Setter Property="CornerRadius" Value="8" />
-                                <Setter Property="Stretch" Value="UniformToFill" />
-                                <Setter Property="Height" Value="138" />
-                                <Setter Property="Width" Value="290" />
-                            </Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="White" />
-                                <Setter Property="FontSize" Value="22" />
-                            </Style>
-                            <Style x:Key="MapBp_MapName" TargetType="TextBlock">
-                                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MapBp_MapName.FontSize}" />
-                                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MapBp_MapName.FontFamily}" />
-                                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MapBp_MapName.FontWeight}" />
-                                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MapBp_MapName.Foreground}" />
-                            </Style>
-                            <Style x:Key="MapBp_PickWord" TargetType="TextBlock">
-                                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MapBp_PickWord.FontSize}" />
-                                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MapBp_PickWord.FontFamily}" />
-                                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MapBp_PickWord.FontWeight}" />
-                                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MapBp_PickWord.Foreground}" />
-                            </Style>
-                            <Style x:Key="MapBp_BanWord" TargetType="TextBlock">
-                                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MapBp_BanWord.FontSize}" />
-                                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MapBp_BanWord.FontFamily}" />
-                                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MapBp_BanWord.FontWeight}" />
-                                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MapBp_BanWord.Foreground}" />
-                            </Style>
-                            <Style x:Key="MapBp_TeamName" TargetType="TextBlock">
-                                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MapBp_TeamName.FontSize}" />
-                                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MapBp_TeamName.FontFamily}" />
-                                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MapBp_TeamName.FontWeight}" />
-                                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MapBp_TeamName.Foreground}" />
-                            </Style>
-                        </Canvas.Resources>
-                        <ui:Image
-                            Name="PickedMap"
-                            Canvas.Left="9"
-                            Canvas.Top="43"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Top"
-                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                            d:Source="/Assets/ChinaTown.png"
-                            Source="{Binding CurrentGame.PickedMapImage}" />
-                        <Border
-                            Name="PickedMapName"
-                            Canvas.Left="38"
-                            Canvas.Top="149"
-                            Width="232"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Top"
-                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
-                            <TextBlock
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                d:FontFamily="{StaticResource Hanyi}"
-                                d:FontSize="22"
-                                d:Foreground="White"
-                                d:Text="唐人街"
-                                Style="{StaticResource MapBp_MapName}"
-                                Text="{lex:Loc {Binding CurrentGame.PickedMap, TargetNullValue=null}}" />
-                        </Border>
-                        <Border
-                            Name="PickWord"
-                            Canvas.Left="38"
-                            Canvas.Top="215"
-                            Width="232"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Top"
-                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
-                            <TextBlock
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                d:FontFamily="{StaticResource POP1W5}"
-                                d:FontSize="22"
-                                d:Foreground="White"
-                                d:Text="选择"
-                                Style="{StaticResource MapBp_PickWord}"
-                                Text="{lex:Loc Pick}" />
-                        </Border>
-                        <!--  Team info  -->
-                        <Border
-                            Name="SurTeamName"
-                            Canvas.Top="265"
-                            Width="137"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Top"
-                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
-                            <TextBlock
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                d:FontFamily="{StaticResource Hanyi}"
-                                d:FontSize="22"
-                                d:Foreground="White"
-                                d:Text="队伍名称"
-                                Style="{StaticResource MapBp_TeamName}"
-                                Text="{Binding CurrentGame.SurTeam.Name}" />
-                        </Border>
-
+    <Grid Width="1440" Height="716">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0" Height="554">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Canvas
+                    Name="MapBpCanvas"
+                    Width="308"
+                    Height="554"
+                    HorizontalAlignment="Left">
+                    <Canvas.Background>
+                        <ImageBrush d:ImageSource="/Resources/bpui/mapBp.png" ImageSource="{Binding Settings.MapBpBgImage}" />
+                    </Canvas.Background>
+                    <Canvas.Resources>
+                        <Style BasedOn="{StaticResource {x:Type ui:Image}}" TargetType="ui:Image">
+                            <Setter Property="CornerRadius" Value="8" />
+                            <Setter Property="Stretch" Value="UniformToFill" />
+                            <Setter Property="Height" Value="138" />
+                            <Setter Property="Width" Value="290" />
+                        </Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter Property="FontSize" Value="22" />
+                        </Style>
+                        <Style x:Key="MapBp_MapName" TargetType="TextBlock">
+                            <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MapBp_MapName.FontSize}" />
+                            <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MapBp_MapName.FontFamily}" />
+                            <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MapBp_MapName.FontWeight}" />
+                            <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MapBp_MapName.Foreground}" />
+                        </Style>
+                        <Style x:Key="MapBp_PickWord" TargetType="TextBlock">
+                            <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MapBp_PickWord.FontSize}" />
+                            <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MapBp_PickWord.FontFamily}" />
+                            <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MapBp_PickWord.FontWeight}" />
+                            <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MapBp_PickWord.Foreground}" />
+                        </Style>
+                        <Style x:Key="MapBp_BanWord" TargetType="TextBlock">
+                            <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MapBp_BanWord.FontSize}" />
+                            <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MapBp_BanWord.FontFamily}" />
+                            <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MapBp_BanWord.FontWeight}" />
+                            <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MapBp_BanWord.Foreground}" />
+                        </Style>
+                        <Style x:Key="MapBp_TeamName" TargetType="TextBlock">
+                            <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MapBp_TeamName.FontSize}" />
+                            <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MapBp_TeamName.FontFamily}" />
+                            <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MapBp_TeamName.FontWeight}" />
+                            <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MapBp_TeamName.Foreground}" />
+                        </Style>
+                    </Canvas.Resources>
+                    <ui:Image
+                        Name="PickedMap"
+                        Canvas.Left="9"
+                        Canvas.Top="43"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                        d:Source="/Assets/ChinaTown.png"
+                        Source="{Binding CurrentGame.PickedMapImage}" />
+                    <Border
+                        Name="PickedMapName"
+                        Canvas.Left="38"
+                        Canvas.Top="149"
+                        Width="232"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
                         <TextBlock
-                            Name="VS_Word"
-                            Canvas.Left="142"
-                            Canvas.Top="267"
                             HorizontalAlignment="Center"
-                            VerticalAlignment="Top"
+                            VerticalAlignment="Center"
+                            d:FontFamily="{StaticResource Hanyi}"
+                            d:FontSize="22"
+                            d:Foreground="White"
+                            d:Text="唐人街"
+                            Style="{StaticResource MapBp_MapName}"
+                            Text="{lex:Loc {Binding CurrentGame.PickedMap, TargetNullValue=null}}" />
+                    </Border>
+                    <Border
+                        Name="PickWord"
+                        Canvas.Left="38"
+                        Canvas.Top="215"
+                        Width="232"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
                             d:FontFamily="{StaticResource POP1W5}"
                             d:FontSize="22"
                             d:Foreground="White"
-                            Style="{StaticResource MapBp_TeamName}"
-                            Text="VS" />
-
-                        <Border
-                            Name="HunTeamName"
-                            Canvas.Left="171"
-                            Canvas.Top="265"
-                            Width="137"
+                            d:Text="选择"
+                            Style="{StaticResource MapBp_PickWord}"
+                            Text="{lex:Loc Pick}" />
+                    </Border>
+                    <!--  Team info  -->
+                    <Border
+                        Name="SurTeamName"
+                        Canvas.Top="265"
+                        Width="137"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
+                        <TextBlock
                             HorizontalAlignment="Center"
-                            VerticalAlignment="Top"
-                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
-                            <TextBlock
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                d:FontFamily="{StaticResource Hanyi}"
-                                d:FontSize="22"
-                                d:Foreground="White"
-                                d:Text="队伍名称"
-                                Style="{StaticResource MapBp_TeamName}"
-                                Text="{Binding CurrentGame.HunTeam.Name}" />
-                        </Border>
+                            VerticalAlignment="Center"
+                            d:FontFamily="{StaticResource Hanyi}"
+                            d:FontSize="22"
+                            d:Foreground="White"
+                            d:Text="队伍名称"
+                            Style="{StaticResource MapBp_TeamName}"
+                            Text="{Binding CurrentGame.SurTeam.Name}" />
+                    </Border>
 
+                    <TextBlock
+                        Name="VS_Word"
+                        Canvas.Left="142"
+                        Canvas.Top="267"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        d:FontFamily="{StaticResource POP1W5}"
+                        d:FontSize="22"
+                        d:Foreground="White"
+                        Style="{StaticResource MapBp_TeamName}"
+                        Text="VS" />
+
+                    <Border
+                        Name="HunTeamName"
+                        Canvas.Left="171"
+                        Canvas.Top="265"
+                        Width="137"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            d:FontFamily="{StaticResource Hanyi}"
+                            d:FontSize="22"
+                            d:Foreground="White"
+                            d:Text="队伍名称"
+                            Style="{StaticResource MapBp_TeamName}"
+                            Text="{Binding CurrentGame.HunTeam.Name}" />
+                    </Border>
+
+                    <ui:Image
+                        Name="BannedMap"
+                        Canvas.Left="9"
+                        Canvas.Top="372"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                        d:Source="/Assets/ArmsFactory.png"
+                        Source="{Binding CurrentGame.BannedMapImage}" />
+                    <Border
+                        Name="BannedMapName"
+                        Canvas.Left="38"
+                        Canvas.Top="475"
+                        Width="232"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            d:FontFamily="{StaticResource Hanyi}"
+                            d:FontSize="22"
+                            d:Foreground="White"
+                            d:Text="军工厂"
+                            Style="{StaticResource MapBp_MapName}"
+                            Text="{lex:Loc {Binding CurrentGame.BannedMap, TargetNullValue=null}}" />
+                    </Border>
+                    <Border
+                        Name="BanWord"
+                        Canvas.Left="38"
+                        Canvas.Top="522"
+                        Width="232"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            d:FontFamily="{StaticResource POP1W5}"
+                            d:FontSize="22"
+                            d:Foreground="White"
+                            d:Text="禁用"
+                            Style="{StaticResource MapBp_BanWord}"
+                            Text="{lex:Loc Ban}" />
+                    </Border>
+                </Canvas>
+            </Border>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="182" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Border BorderBrush="Black" BorderThickness="1">
+                    <Canvas Name="BpOverViewCanvas">
+                        <Canvas.Background>
+                            <ImageBrush d:ImageSource="/Resources/bpui/bpOverview.png" ImageSource="{Binding Settings.BpOverviewBgImage}" />
+                        </Canvas.Background>
+                        <Canvas.Resources>
+                            <cv:GameProgressToStringConverter x:Key="GameProgressToStringConverter" />
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="White" />
+                            </Style>
+                            <Style x:Key="CurrentBan" TargetType="Border">
+                                <Setter Property="Width" Value="38.5" />
+                                <Setter Property="Height" Value="38.5" />
+                            </Style>
+                            <Style x:Key="SurPickImage" TargetType="Image">
+                                <Setter Property="HorizontalAlignment" Value="Center" />
+                                <Setter Property="Stretch" Value="UniformToFill" />
+                            </Style>
+                            <Style x:Key="SurPickImageBorder" TargetType="Border">
+                                <Setter Property="Width" Value="74" />
+                                <Setter Property="Height" Value="108" />
+                                <Setter Property="ClipToBounds" Value="True" />
+                            </Style>
+                            <Style x:Key="BpOverview_TeamName" TargetType="TextBlock">
+                                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.BpOverview_TeamName.FontSize}" />
+                                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.BpOverview_TeamName.FontFamily}" />
+                                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.BpOverview_TeamName.FontWeight}" />
+                                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.BpOverview_TeamName.Foreground}" />
+                            </Style>
+                            <Style x:Key="BpOverview_GameScores" TargetType="TextBlock">
+                                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.BpOverview_GameScores.FontSize}" />
+                                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.BpOverview_GameScores.FontFamily}" />
+                                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.BpOverview_GameScores.FontWeight}" />
+                                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.BpOverview_GameScores.Foreground}" />
+                            </Style>
+                        </Canvas.Resources>
                         <ui:Image
-                            Name="BannedMap"
-                            Canvas.Left="9"
-                            Canvas.Top="372"
+                            Name="SurTeamLogo"
+                            Canvas.Left="42"
+                            Canvas.Top="30"
+                            Width="85"
+                            Height="85"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Top"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                            d:Source="/Assets/ArmsFactory.png"
-                            Source="{Binding CurrentGame.BannedMapImage}" />
-                        <Border
-                            Name="BannedMapName"
-                            Canvas.Left="38"
-                            Canvas.Top="475"
-                            Width="232"
+                            d:Source="/Assets/TestLogo.JPG"
+                            CornerRadius="8"
+                            Source="{Binding CurrentGame.SurTeam.Logo}"
+                            Stretch="Fill" />
+                        <TextBlock
+                            Name="SurTeamNameInOverview"
+                            Canvas.Top="132"
+                            Width="166"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Top"
-                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
-                            <TextBlock
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                d:FontFamily="{StaticResource Hanyi}"
-                                d:FontSize="22"
-                                d:Foreground="White"
-                                d:Text="军工厂"
-                                Style="{StaticResource MapBp_MapName}"
-                                Text="{lex:Loc {Binding CurrentGame.BannedMap, TargetNullValue=null}}" />
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            d:FontFamily="{StaticResource NotoSans}"
+                            d:FontSize="22"
+                            d:Foreground="White"
+                            d:Text="求生者队伍名称"
+                            Style="{StaticResource BpOverview_TeamName}"
+                            Text="{Binding CurrentGame.SurTeam.Name}"
+                            TextAlignment="Center"
+                            TextWrapping="WrapWithOverflow" />
+                        <TextBlock
+                            Name="HunTeamNameInOverview"
+                            Canvas.Left="960"
+                            Canvas.Top="132"
+                            Width="166"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            d:FontFamily="{StaticResource NotoSans}"
+                            d:FontSize="22"
+                            d:Foreground="White"
+                            d:Text="监管者队伍名称"
+                            Style="{StaticResource BpOverview_TeamName}"
+                            Text="{Binding CurrentGame.HunTeam.Name}"
+                            TextAlignment="Center"
+                            TextWrapping="WrapWithOverflow" />
+                        <ui:Image
+                            Name="HunTeamLogo"
+                            Canvas.Left="1000"
+                            Canvas.Top="30"
+                            Width="86"
+                            Height="85"
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            d:Source="/Assets/TestLogo.JPG"
+                            CornerRadius="8"
+                            Source="{Binding CurrentGame.HunTeam.Logo}"
+                            Stretch="Fill" />
+                        <!--  Current Ban  -->
+                        <!--  Hun Current Ban  -->
+                        <Border
+                            Name="HunBanCurrent0"
+                            Canvas.Left="644"
+                            Canvas.Top="5"
+                            Width="145"
+                            Height="35"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            Style="{StaticResource CurrentBan}">
+                            <Image d:Source="/Assets/厂长.png" Source="{Binding CurrentGame.CurrentHunBannedList[0].HeaderImageSingleColor}" />
                         </Border>
                         <Border
-                            Name="BanWord"
-                            Canvas.Left="38"
-                            Canvas.Top="522"
-                            Width="232"
+                            Name="HunBanCurrent1"
+                            Canvas.Left="794"
+                            Canvas.Top="5"
+                            Width="141"
+                            Height="35"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            Style="{StaticResource CurrentBan}">
+                            <Image d:Source="/Assets/厂长.png" Source="{Binding CurrentGame.CurrentHunBannedList[1].HeaderImageSingleColor}" />
+                        </Border>
+                        <!--  Hun Current Ban Lock  -->
+                        <Image
+                            Name="HunBanCurrentLock0"
+                            Canvas.Left="{Binding ElementName=HunBanCurrent0, Path=(Canvas.Left)}"
+                            Canvas.Top="{Binding ElementName=HunBanCurrent0, Path=(Canvas.Top)}"
+                            Width="{Binding ElementName=HunBanCurrent0, Path=ActualWidth}"
+                            Height="{Binding ElementName=HunBanCurrent0, Path=ActualHeight}"
+                            Panel.ZIndex="1"
+                            Source="{Binding Settings.CurrentBanLockImage}"
+                            Visibility="{Binding CanCurrentHunBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                        <Image
+                            Name="HunBanCurrentLock1"
+                            Canvas.Left="{Binding ElementName=HunBanCurrent1, Path=(Canvas.Left)}"
+                            Canvas.Top="{Binding ElementName=HunBanCurrent1, Path=(Canvas.Top)}"
+                            Width="{Binding ElementName=HunBanCurrent1, Path=ActualWidth}"
+                            Height="{Binding ElementName=HunBanCurrent1, Path=ActualHeight}"
+                            Panel.ZIndex="1"
+                            Source="{Binding Settings.CurrentBanLockImage}"
+                            Visibility="{Binding CanCurrentHunBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                        <!--  Sur Current Ban  -->
+                        <Border
+                            Name="SurBanCurrent3"
+                            Canvas.Left="416"
+                            Canvas.Top="5"
+                            Width="68"
+                            Height="35"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            Style="{StaticResource CurrentBan}">
+                            <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.CurrentSurBannedList[3].HeaderImageSingleColor}" />
+                        </Border>
+                        <Border
+                            Name="SurBanCurrent2"
+                            Canvas.Left="340"
+                            Canvas.Top="5"
+                            Width="71"
+                            Height="35"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            Style="{StaticResource CurrentBan}">
+                            <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.CurrentSurBannedList[2].HeaderImageSingleColor}" />
+                        </Border>
+                        <Border
+                            Name="SurBanCurrent1"
+                            Canvas.Left="265"
+                            Canvas.Top="5"
+                            Width="71"
+                            Height="35"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            Style="{StaticResource CurrentBan}">
+                            <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.CurrentSurBannedList[1].HeaderImageSingleColor}" />
+                        </Border>
+                        <Border
+                            Name="SurBanCurrent0"
+                            Canvas.Left="193"
+                            Canvas.Top="5"
+                            Width="68"
+                            Height="35"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            Style="{StaticResource CurrentBan}">
+                            <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.CurrentSurBannedList[0].HeaderImageSingleColor}" />
+                        </Border>
+                        <!--  Sur Current Ban Lock  -->
+                        <Image
+                            Name="SurBanCurrentLock0"
+                            Canvas.Left="{Binding ElementName=SurBanCurrent0, Path=(Canvas.Left)}"
+                            Canvas.Top="{Binding ElementName=SurBanCurrent0, Path=(Canvas.Top)}"
+                            Width="{Binding ElementName=SurBanCurrent0, Path=ActualWidth}"
+                            Height="{Binding ElementName=SurBanCurrent0, Path=ActualHeight}"
+                            Panel.ZIndex="1"
+                            Source="{Binding Settings.CurrentBanLockImage}"
+                            Visibility="{Binding CanCurrentSurBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                        <Image
+                            Name="SurBanCurrentLock1"
+                            Canvas.Left="{Binding ElementName=SurBanCurrent1, Path=(Canvas.Left)}"
+                            Canvas.Top="{Binding ElementName=SurBanCurrent1, Path=(Canvas.Top)}"
+                            Width="{Binding ElementName=SurBanCurrent1, Path=ActualWidth}"
+                            Height="{Binding ElementName=SurBanCurrent1, Path=ActualHeight}"
+                            Panel.ZIndex="1"
+                            Source="{Binding Settings.CurrentBanLockImage}"
+                            Visibility="{Binding CanCurrentSurBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                        <Image
+                            Name="SurBanCurrentLock2"
+                            Canvas.Left="{Binding ElementName=SurBanCurrent2, Path=(Canvas.Left)}"
+                            Canvas.Top="{Binding ElementName=SurBanCurrent2, Path=(Canvas.Top)}"
+                            Width="{Binding ElementName=SurBanCurrent2, Path=ActualWidth}"
+                            Height="{Binding ElementName=SurBanCurrent2, Path=ActualHeight}"
+                            Panel.ZIndex="1"
+                            Source="{Binding Settings.CurrentBanLockImage}"
+                            Visibility="{Binding CanCurrentSurBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                        <Image
+                            Name="SurBanCurrentLock3"
+                            Canvas.Left="{Binding ElementName=SurBanCurrent3, Path=(Canvas.Left)}"
+                            Canvas.Top="{Binding ElementName=SurBanCurrent3, Path=(Canvas.Top)}"
+                            Width="{Binding ElementName=SurBanCurrent3, Path=ActualWidth}"
+                            Height="{Binding ElementName=SurBanCurrent3, Path=ActualHeight}"
+                            Panel.ZIndex="1"
+                            Source="{Binding Settings.CurrentBanLockImage}"
+                            Visibility="{Binding CanCurrentSurBanned[3], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                        <!--  Sur Pick  -->
+                        <Border
+                            Name="SurPick0"
+                            Canvas.Left="193"
+                            Canvas.Top="65"
+                            Width="68"
+                            Height="110"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Top"
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            Style="{StaticResource SurPickImageBorder}">
+                            <Image
+                                d:Source="/Assets/医生.png"
+                                Source="{Binding CurrentGame.SurPlayerList[0].Character.HalfImage}"
+                                Style="{StaticResource SurPickImage}" />
+                        </Border>
+                        <Border
+                            Name="SurPick1"
+                            Canvas.Left="265"
+                            Canvas.Top="65"
+                            Width="71"
+                            Height="110"
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            Style="{StaticResource SurPickImageBorder}">
+                            <Image
+                                d:Source="/Assets/医生.png"
+                                Source="{Binding CurrentGame.SurPlayerList[1].Character.HalfImage}"
+                                Style="{StaticResource SurPickImage}" />
+                        </Border>
+                        <Border
+                            Name="SurPick2"
+                            Canvas.Left="340"
+                            Canvas.Top="65"
+                            Width="72"
+                            Height="110"
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            Style="{StaticResource SurPickImageBorder}">
+                            <Image
+                                d:Source="/Assets/医生.png"
+                                Source="{Binding CurrentGame.SurPlayerList[2].Character.HalfImage}"
+                                Style="{StaticResource SurPickImage}" />
+                        </Border>
+                        <Border
+                            Name="SurPick3"
+                            Canvas.Left="416"
+                            Canvas.Top="65"
+                            Width="68"
+                            Height="110"
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            Style="{StaticResource SurPickImageBorder}">
+                            <Image
+                                d:Source="/Assets/医生.png"
+                                Source="{Binding CurrentGame.SurPlayerList[3].Character.HalfImage}"
+                                Style="{StaticResource SurPickImage}" />
+                        </Border>
+                        <!--  Middle  -->
+                        <Border
+                            Name="GameProgress"
+                            Canvas.Left="471"
+                            Width="178"
+                            Height="50"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top"
+                            Panel.ZIndex="1"
                             ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
                             <TextBlock
                                 HorizontalAlignment="Center"
@@ -213,492 +516,187 @@
                                 d:FontFamily="{StaticResource POP1W5}"
                                 d:FontSize="22"
                                 d:Foreground="White"
-                                d:Text="禁用"
-                                Style="{StaticResource MapBp_BanWord}"
-                                Text="{lex:Loc Ban}" />
+                                d:Text="GAME3 EXTRA&#10;FIRST HALF"
+                                FontFamily="{Binding Settings.TextSettings.BpOverview_GameProgress.FontFamily}"
+                                FontSize="{Binding Settings.TextSettings.BpOverview_GameProgress.FontSize}"
+                                FontWeight="{Binding Settings.TextSettings.BpOverview_GameProgress.FontWeight}"
+                                Foreground="{Binding Settings.TextSettings.BpOverview_GameProgress.Foreground}"
+                                TextAlignment="Center"
+                                TextOptions.TextFormattingMode="Display"
+                                TextOptions.TextRenderingMode="ClearType">
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{StaticResource GameProgressToStringConverter}" ConverterParameter="endl">
+                                        <Binding Path="CurrentGame.GameProgress" />
+                                        <Binding Path="IsBo3Mode" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </Border>
+                        <TextBlock
+                            Name="GameScoresSur"
+                            Canvas.Left="495"
+                            Canvas.Top="94"
+                            Width="52"
+                            Height="62"
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            d:FontFamily="{StaticResource POP1W5}"
+                            d:FontSize="50"
+                            d:FontWeight="Bold"
+                            d:Foreground="White"
+                            d:Text="0"
+                            Style="{StaticResource BpOverview_GameScores}"
+                            Text="{Binding CurrentGame.SurTeam.Score.GameScores}"
+                            TextAlignment="Center" />
+                        <TextBlock
+                            Name="RatioChar"
+                            Canvas.Left="552"
+                            Canvas.Top="89"
+                            Width="25"
+                            Height="62"
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            d:FontFamily="{StaticResource POP1W5}"
+                            d:FontSize="50"
+                            d:FontWeight="Bold"
+                            d:Foreground="White"
+                            Style="{StaticResource BpOverview_GameScores}"
+                            Text=":"
+                            TextAlignment="Center" />
+                        <TextBlock
+                            Name="GameScoresHun"
+                            Canvas.Left="583"
+                            Canvas.Top="94"
+                            Width="52"
+                            Height="62"
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            d:FontFamily="{StaticResource POP1W5}"
+                            d:FontSize="50"
+                            d:FontWeight="Bold"
+                            d:Foreground="White"
+                            d:Text="0"
+                            Style="{StaticResource BpOverview_GameScores}"
+                            Text="{Binding CurrentGame.HunTeam.Score.GameScores}"
+                            TextAlignment="Center" />
+
+                        <!--  Hun Pick  -->
+                        <Border
+                            Name="HunPick"
+                            Canvas.Left="644"
+                            Canvas.Top="45"
+                            Width="291"
+                            Height="130"
+                            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                            Style="{StaticResource SurPickImageBorder}">
+                            <Image
+                                d:Source="/Assets/小丑.png"
+                                Source="{Binding CurrentGame.HunPlayer.Character.HalfImage}"
+                                Style="{StaticResource SurPickImage}" />
                         </Border>
                     </Canvas>
                 </Border>
-                <Grid Grid.Column="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="182" />
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
-                    <Border BorderBrush="Black" BorderThickness="1">
-                        <Canvas Name="BpOverViewCanvas">
-                            <Canvas.Background>
-                                <ImageBrush d:ImageSource="/Resources/bpui/bpOverview.png" ImageSource="{Binding Settings.BpOverviewBgImage}" />
-                            </Canvas.Background>
-                            <Canvas.Resources>
-                                <cv:GameProgressToStringConverter x:Key="GameProgressToStringConverter" />
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Foreground" Value="White" />
-                                </Style>
-                                <Style x:Key="CurrentBan" TargetType="Border">
-                                    <Setter Property="Width" Value="38.5" />
-                                    <Setter Property="Height" Value="38.5" />
-                                </Style>
-                                <Style x:Key="SurPickImage" TargetType="Image">
-                                    <Setter Property="HorizontalAlignment" Value="Center" />
-                                    <Setter Property="Stretch" Value="UniformToFill" />
-                                </Style>
-                                <Style x:Key="SurPickImageBorder" TargetType="Border">
-                                    <Setter Property="Width" Value="74" />
-                                    <Setter Property="Height" Value="108" />
-                                    <Setter Property="ClipToBounds" Value="True" />
-                                </Style>
-                                <Style x:Key="BpOverview_TeamName" TargetType="TextBlock">
-                                    <Setter Property="FontSize" Value="{Binding Settings.TextSettings.BpOverview_TeamName.FontSize}" />
-                                    <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.BpOverview_TeamName.FontFamily}" />
-                                    <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.BpOverview_TeamName.FontWeight}" />
-                                    <Setter Property="Foreground" Value="{Binding Settings.TextSettings.BpOverview_TeamName.Foreground}" />
-                                </Style>
-                                <Style x:Key="BpOverview_GameScores" TargetType="TextBlock">
-                                    <Setter Property="FontSize" Value="{Binding Settings.TextSettings.BpOverview_GameScores.FontSize}" />
-                                    <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.BpOverview_GameScores.FontFamily}" />
-                                    <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.BpOverview_GameScores.FontWeight}" />
-                                    <Setter Property="Foreground" Value="{Binding Settings.TextSettings.BpOverview_GameScores.Foreground}" />
-                                </Style>
-                            </Canvas.Resources>
-                            <ui:Image
-                                Name="SurTeamLogo"
-                                Canvas.Left="42"
-                                Canvas.Top="30"
-                                Width="85"
-                                Height="85"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Top"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                d:Source="/Assets/TestLogo.JPG"
-                                CornerRadius="8"
-                                Source="{Binding CurrentGame.SurTeam.Logo}"
-                                Stretch="Fill" />
-                            <TextBlock
-                                Name="SurTeamNameInOverview"
-                                Canvas.Top="132"
-                                Width="166"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Top"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                d:FontFamily="{StaticResource NotoSans}"
-                                d:FontSize="22"
-                                d:Foreground="White"
-                                d:Text="求生者队伍名称"
-                                Style="{StaticResource BpOverview_TeamName}"
-                                Text="{Binding CurrentGame.SurTeam.Name}"
-                                TextAlignment="Center"
-                                TextWrapping="WrapWithOverflow" />
-                            <TextBlock
-                                Name="HunTeamNameInOverview"
-                                Canvas.Left="960"
-                                Canvas.Top="132"
-                                Width="166"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                d:FontFamily="{StaticResource NotoSans}"
-                                d:FontSize="22"
-                                d:Foreground="White"
-                                d:Text="监管者队伍名称"
-                                Style="{StaticResource BpOverview_TeamName}"
-                                Text="{Binding CurrentGame.HunTeam.Name}"
-                                TextAlignment="Center"
-                                TextWrapping="WrapWithOverflow" />
-                            <ui:Image
-                                Name="HunTeamLogo"
-                                Canvas.Left="1000"
-                                Canvas.Top="30"
-                                Width="86"
-                                Height="85"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                d:Source="/Assets/TestLogo.JPG"
-                                CornerRadius="8"
-                                Source="{Binding CurrentGame.HunTeam.Logo}"
-                                Stretch="Fill" />
-                            <!--  Current Ban  -->
-                            <!--  Hun Current Ban  -->
-                            <Border
-                                Name="HunBanCurrent0"
-                                Canvas.Left="644"
-                                Canvas.Top="5"
-                                Width="145"
-                                Height="35"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                Style="{StaticResource CurrentBan}">
-                                <Image d:Source="/Assets/厂长.png" Source="{Binding CurrentGame.CurrentHunBannedList[0].HeaderImageSingleColor}" />
-                            </Border>
-                            <Border
-                                Name="HunBanCurrent1"
-                                Canvas.Left="794"
-                                Canvas.Top="5"
-                                Width="141"
-                                Height="35"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                Style="{StaticResource CurrentBan}">
-                                <Image d:Source="/Assets/厂长.png" Source="{Binding CurrentGame.CurrentHunBannedList[1].HeaderImageSingleColor}" />
-                            </Border>
-                            <!--  Hun Current Ban Lock  -->
-                            <Image
-                                Name="HunBanCurrentLock0"
-                                Canvas.Left="{Binding ElementName=HunBanCurrent0, Path=(Canvas.Left)}"
-                                Canvas.Top="{Binding ElementName=HunBanCurrent0, Path=(Canvas.Top)}"
-                                Width="{Binding ElementName=HunBanCurrent0, Path=ActualWidth}"
-                                Height="{Binding ElementName=HunBanCurrent0, Path=ActualHeight}"
-                                Panel.ZIndex="1"
-                                Source="{Binding Settings.CurrentBanLockImage}"
-                                Visibility="{Binding CanCurrentHunBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                            <Image
-                                Name="HunBanCurrentLock1"
-                                Canvas.Left="{Binding ElementName=HunBanCurrent1, Path=(Canvas.Left)}"
-                                Canvas.Top="{Binding ElementName=HunBanCurrent1, Path=(Canvas.Top)}"
-                                Width="{Binding ElementName=HunBanCurrent1, Path=ActualWidth}"
-                                Height="{Binding ElementName=HunBanCurrent1, Path=ActualHeight}"
-                                Panel.ZIndex="1"
-                                Source="{Binding Settings.CurrentBanLockImage}"
-                                Visibility="{Binding CanCurrentHunBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                            <!--  Sur Current Ban  -->
-                            <Border
-                                Name="SurBanCurrent3"
-                                Canvas.Left="416"
-                                Canvas.Top="5"
-                                Width="68"
-                                Height="35"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Center"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                Style="{StaticResource CurrentBan}">
-                                <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.CurrentSurBannedList[3].HeaderImageSingleColor}" />
-                            </Border>
-                            <Border
-                                Name="SurBanCurrent2"
-                                Canvas.Left="340"
-                                Canvas.Top="5"
-                                Width="71"
-                                Height="35"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                Style="{StaticResource CurrentBan}">
-                                <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.CurrentSurBannedList[2].HeaderImageSingleColor}" />
-                            </Border>
-                            <Border
-                                Name="SurBanCurrent1"
-                                Canvas.Left="265"
-                                Canvas.Top="5"
-                                Width="71"
-                                Height="35"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                Style="{StaticResource CurrentBan}">
-                                <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.CurrentSurBannedList[1].HeaderImageSingleColor}" />
-                            </Border>
-                            <Border
-                                Name="SurBanCurrent0"
-                                Canvas.Left="193"
-                                Canvas.Top="5"
-                                Width="68"
-                                Height="35"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                Style="{StaticResource CurrentBan}">
-                                <Image d:Source="/Assets/幸运儿.png" Source="{Binding CurrentGame.CurrentSurBannedList[0].HeaderImageSingleColor}" />
-                            </Border>
-                            <!--  Sur Current Ban Lock  -->
-                            <Image
-                                Name="SurBanCurrentLock0"
-                                Canvas.Left="{Binding ElementName=SurBanCurrent0, Path=(Canvas.Left)}"
-                                Canvas.Top="{Binding ElementName=SurBanCurrent0, Path=(Canvas.Top)}"
-                                Width="{Binding ElementName=SurBanCurrent0, Path=ActualWidth}"
-                                Height="{Binding ElementName=SurBanCurrent0, Path=ActualHeight}"
-                                Panel.ZIndex="1"
-                                Source="{Binding Settings.CurrentBanLockImage}"
-                                Visibility="{Binding CanCurrentSurBanned[0], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                            <Image
-                                Name="SurBanCurrentLock1"
-                                Canvas.Left="{Binding ElementName=SurBanCurrent1, Path=(Canvas.Left)}"
-                                Canvas.Top="{Binding ElementName=SurBanCurrent1, Path=(Canvas.Top)}"
-                                Width="{Binding ElementName=SurBanCurrent1, Path=ActualWidth}"
-                                Height="{Binding ElementName=SurBanCurrent1, Path=ActualHeight}"
-                                Panel.ZIndex="1"
-                                Source="{Binding Settings.CurrentBanLockImage}"
-                                Visibility="{Binding CanCurrentSurBanned[1], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                            <Image
-                                Name="SurBanCurrentLock2"
-                                Canvas.Left="{Binding ElementName=SurBanCurrent2, Path=(Canvas.Left)}"
-                                Canvas.Top="{Binding ElementName=SurBanCurrent2, Path=(Canvas.Top)}"
-                                Width="{Binding ElementName=SurBanCurrent2, Path=ActualWidth}"
-                                Height="{Binding ElementName=SurBanCurrent2, Path=ActualHeight}"
-                                Panel.ZIndex="1"
-                                Source="{Binding Settings.CurrentBanLockImage}"
-                                Visibility="{Binding CanCurrentSurBanned[2], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                            <Image
-                                Name="SurBanCurrentLock3"
-                                Canvas.Left="{Binding ElementName=SurBanCurrent3, Path=(Canvas.Left)}"
-                                Canvas.Top="{Binding ElementName=SurBanCurrent3, Path=(Canvas.Top)}"
-                                Width="{Binding ElementName=SurBanCurrent3, Path=ActualWidth}"
-                                Height="{Binding ElementName=SurBanCurrent3, Path=ActualHeight}"
-                                Panel.ZIndex="1"
-                                Source="{Binding Settings.CurrentBanLockImage}"
-                                Visibility="{Binding CanCurrentSurBanned[3], Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                            <!--  Sur Pick  -->
-                            <Border
-                                Name="SurPick0"
-                                Canvas.Left="193"
-                                Canvas.Top="65"
-                                Width="68"
-                                Height="110"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Top"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                Style="{StaticResource SurPickImageBorder}">
-                                <Image
-                                    d:Source="/Assets/医生.png"
-                                    Source="{Binding CurrentGame.SurPlayerList[0].Character.HalfImage}"
-                                    Style="{StaticResource SurPickImage}" />
-                            </Border>
-                            <Border
-                                Name="SurPick1"
-                                Canvas.Left="265"
-                                Canvas.Top="65"
-                                Width="71"
-                                Height="110"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                Style="{StaticResource SurPickImageBorder}">
-                                <Image
-                                    d:Source="/Assets/医生.png"
-                                    Source="{Binding CurrentGame.SurPlayerList[1].Character.HalfImage}"
-                                    Style="{StaticResource SurPickImage}" />
-                            </Border>
-                            <Border
-                                Name="SurPick2"
-                                Canvas.Left="340"
-                                Canvas.Top="65"
-                                Width="72"
-                                Height="110"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                Style="{StaticResource SurPickImageBorder}">
-                                <Image
-                                    d:Source="/Assets/医生.png"
-                                    Source="{Binding CurrentGame.SurPlayerList[2].Character.HalfImage}"
-                                    Style="{StaticResource SurPickImage}" />
-                            </Border>
-                            <Border
-                                Name="SurPick3"
-                                Canvas.Left="416"
-                                Canvas.Top="65"
-                                Width="68"
-                                Height="110"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                Style="{StaticResource SurPickImageBorder}">
-                                <Image
-                                    d:Source="/Assets/医生.png"
-                                    Source="{Binding CurrentGame.SurPlayerList[3].Character.HalfImage}"
-                                    Style="{StaticResource SurPickImage}" />
-                            </Border>
-                            <!--  Middle  -->
-                            <Border
-                                Name="GameProgress"
-                                Canvas.Left="471"
-                                Width="178"
-                                Height="50"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Top"
-                                Panel.ZIndex="1"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
-                                <TextBlock
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    d:FontFamily="{StaticResource POP1W5}"
-                                    d:FontSize="22"
-                                    d:Foreground="White"
-                                    d:Text="GAME3 EXTRA&#10;FIRST HALF"
-                                    FontFamily="{Binding Settings.TextSettings.BpOverview_GameProgress.FontFamily}"
-                                    FontSize="{Binding Settings.TextSettings.BpOverview_GameProgress.FontSize}"
-                                    FontWeight="{Binding Settings.TextSettings.BpOverview_GameProgress.FontWeight}"
-                                    Foreground="{Binding Settings.TextSettings.BpOverview_GameProgress.Foreground}"
-                                    TextAlignment="Center"
-                                    TextOptions.TextFormattingMode="Display"
-                                    TextOptions.TextRenderingMode="ClearType">
-                                    <TextBlock.Text>
-                                        <MultiBinding Converter="{StaticResource GameProgressToStringConverter}" ConverterParameter="endl">
-                                            <Binding Path="CurrentGame.GameProgress" />
-                                            <Binding Path="IsBo3Mode" />
-                                        </MultiBinding>
-                                    </TextBlock.Text>
-                                </TextBlock>
-                            </Border>
-                            <TextBlock
-                                Name="GameScoresSur"
-                                Canvas.Left="495"
-                                Canvas.Top="94"
-                                Width="52"
-                                Height="62"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                d:FontFamily="{StaticResource POP1W5}"
-                                d:FontSize="50"
-                                d:FontWeight="Bold"
-                                d:Foreground="White"
-                                d:Text="0"
-                                Style="{StaticResource BpOverview_GameScores}"
-                                Text="{Binding CurrentGame.SurTeam.Score.GameScores}"
-                                TextAlignment="Center" />
-                            <TextBlock
-                                Name="RatioChar"
-                                Canvas.Left="552"
-                                Canvas.Top="89"
-                                Width="25"
-                                Height="62"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                d:FontFamily="{StaticResource POP1W5}"
-                                d:FontSize="50"
-                                d:FontWeight="Bold"
-                                d:Foreground="White"
-                                Style="{StaticResource BpOverview_GameScores}"
-                                Text=":"
-                                TextAlignment="Center" />
-                            <TextBlock
-                                Name="GameScoresHun"
-                                Canvas.Left="583"
-                                Canvas.Top="94"
-                                Width="52"
-                                Height="62"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                d:FontFamily="{StaticResource POP1W5}"
-                                d:FontSize="50"
-                                d:FontWeight="Bold"
-                                d:Foreground="White"
-                                d:Text="0"
-                                Style="{StaticResource BpOverview_GameScores}"
-                                Text="{Binding CurrentGame.HunTeam.Score.GameScores}"
-                                TextAlignment="Center" />
-
-                            <!--  Hun Pick  -->
-                            <Border
-                                Name="HunPick"
-                                Canvas.Left="644"
-                                Canvas.Top="45"
-                                Width="291"
-                                Height="130"
-                                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                                Style="{StaticResource SurPickImageBorder}">
-                                <Image
-                                    d:Source="/Assets/小丑.png"
-                                    Source="{Binding CurrentGame.HunPlayer.Character.HalfImage}"
-                                    Style="{StaticResource SurPickImage}" />
-                            </Border>
-                        </Canvas>
-                    </Border>
-                </Grid>
             </Grid>
-            <Border
-                Grid.Row="1"
-                BorderBrush="Black"
-                BorderThickness="1">
-                <Canvas
-                    Name="MapV2Canvas"
-                    Width="1440"
-                    Height="160">
-                    <Canvas.Background>
-                        <ImageBrush d:ImageSource="/Resources/bpui/mapBpV2.png" ImageSource="{Binding Settings.MapBpV2BgImage}" />
-                    </Canvas.Background>
-                    <Canvas.Resources>
-                        <Style x:Key="MapV2Presenter" TargetType="controls:MapV2Presenter">
-                            <Setter Property="MapNameForeground" Value="{Binding Settings.TextSettings.MapBpV2_MapName.Foreground}" />
-                            <Setter Property="MapNameFontSize" Value="{Binding Settings.TextSettings.MapBpV2_MapName.FontSize}" />
-                            <Setter Property="MapNameFontFamily" Value="{Binding Settings.TextSettings.MapBpV2_MapName.FontFamily}" />
-                            <Setter Property="MapNameFontWeight" Value="{Binding Settings.TextSettings.MapBpV2_MapName.FontWeight}" />
-                            <Setter Property="TeamNameForeground" Value="{Binding Settings.TextSettings.MapBpV2_TeamName.Foreground}" />
-                            <Setter Property="TeamNameFontSize" Value="{Binding Settings.TextSettings.MapBpV2_TeamName.FontSize}" />
-                            <Setter Property="TeamNameFontFamily" Value="{Binding Settings.TextSettings.MapBpV2_TeamName.FontFamily}" />
-                            <Setter Property="TeamNameFontWeight" Value="{Binding Settings.TextSettings.MapBpV2_TeamName.FontWeight}" />
-                            <Setter Property="CampNameForeground" Value="{Binding Settings.TextSettings.MapBpV2_CampWords.Foreground}" />
-                            <Setter Property="CampNameFontSize" Value="{Binding Settings.TextSettings.MapBpV2_CampWords.FontSize}" />
-                            <Setter Property="CampNameFontFamily" Value="{Binding Settings.TextSettings.MapBpV2_CampWords.FontFamily}" />
-                            <Setter Property="CampNameFontWeight" Value="{Binding Settings.TextSettings.MapBpV2_CampWords.FontWeight}" />
-                            <Setter Property="PickingBorderImage" Value="{Binding Settings.MapBpV2PickBorderImage}" />
-                            <Setter Property="PickingBorderBrush" Value="{Binding Settings.MapBpV2_PickingBorderBrush}" />
-                        </Style>
-                    </Canvas.Resources>
-                    <controls:MapV2Presenter
-                        x:Name="Arms_Factory"
-                        Canvas.Left="50.5"
-                        Width="149"
-                        Height="160"
-                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                        Map="{Binding CurrentGame.MapV2Dictionary[ArmsFactory]}"
-                        Style="{StaticResource MapV2Presenter}" />
-                    <controls:MapV2Presenter
-                        x:Name="The_Red_Church"
-                        Canvas.Left="204"
-                        Width="151"
-                        Height="160"
-                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                        Map="{Binding CurrentGame.MapV2Dictionary[TheRedChurch]}"
-                        Style="{StaticResource MapV2Presenter}" />
-                    <controls:MapV2Presenter
-                        x:Name="Sacred_Heart_Hospital"
-                        Canvas.Left="359"
-                        Width="151"
-                        Height="160"
-                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                        Map="{Binding CurrentGame.MapV2Dictionary[SacredHeartHospital]}"
-                        Style="{StaticResource MapV2Presenter}" />
-                    <controls:MapV2Presenter
-                        x:Name="Leo_s_Memory"
-                        Canvas.Left="514"
-                        Width="151"
-                        Height="160"
-                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                        Map="{Binding CurrentGame.MapV2Dictionary[LeosMemory]}"
-                        Style="{StaticResource MapV2Presenter}" />
-                    <controls:MapV2Presenter
-                        x:Name="Moonlit_River_Park"
-                        Canvas.Left="669"
-                        Width="151"
-                        Height="160"
-                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                        Map="{Binding CurrentGame.MapV2Dictionary[MoonlitRiverPark]}"
-                        Style="{StaticResource MapV2Presenter}" />
-                    <controls:MapV2Presenter
-                        x:Name="Lakeside_Village"
-                        Canvas.Left="824"
-                        Width="151"
-                        Height="160"
-                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                        Map="{Binding CurrentGame.MapV2Dictionary[LakesideVillage]}"
-                        Style="{StaticResource MapV2Presenter}" />
-                    <controls:MapV2Presenter
-                        x:Name="Eversleeping_Town"
-                        Canvas.Left="979"
-                        Width="151"
-                        Height="160"
-                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                        Map="{Binding CurrentGame.MapV2Dictionary[EversleepingTown]}"
-                        Style="{StaticResource MapV2Presenter}" />
-                    <controls:MapV2Presenter
-                        x:Name="Chinatown"
-                        Canvas.Left="1134"
-                        Width="151"
-                        Height="160"
-                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                        Map="{Binding CurrentGame.MapV2Dictionary[ChinaTown]}"
-                        Style="{StaticResource MapV2Presenter}" />
-                    <controls:MapV2Presenter
-                        x:Name="Darkwoods"
-                        Canvas.Left="1289"
-                        Width="151"
-                        Height="160"
-                        ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                        Map="{Binding CurrentGame.MapV2Dictionary[Darkwoods]}"
-                        Style="{StaticResource MapV2Presenter}" />
-                </Canvas>
-            </Border>
         </Grid>
-    </Viewbox>
+        <Border
+            Grid.Row="1"
+            BorderBrush="Black"
+            BorderThickness="1">
+            <Canvas
+                Name="MapV2Canvas"
+                Width="1440"
+                Height="160">
+                <Canvas.Background>
+                    <ImageBrush d:ImageSource="/Resources/bpui/mapBpV2.png" ImageSource="{Binding Settings.MapBpV2BgImage}" />
+                </Canvas.Background>
+                <Canvas.Resources>
+                    <Style x:Key="MapV2Presenter" TargetType="controls:MapV2Presenter">
+                        <Setter Property="MapNameForeground" Value="{Binding Settings.TextSettings.MapBpV2_MapName.Foreground}" />
+                        <Setter Property="MapNameFontSize" Value="{Binding Settings.TextSettings.MapBpV2_MapName.FontSize}" />
+                        <Setter Property="MapNameFontFamily" Value="{Binding Settings.TextSettings.MapBpV2_MapName.FontFamily}" />
+                        <Setter Property="MapNameFontWeight" Value="{Binding Settings.TextSettings.MapBpV2_MapName.FontWeight}" />
+                        <Setter Property="TeamNameForeground" Value="{Binding Settings.TextSettings.MapBpV2_TeamName.Foreground}" />
+                        <Setter Property="TeamNameFontSize" Value="{Binding Settings.TextSettings.MapBpV2_TeamName.FontSize}" />
+                        <Setter Property="TeamNameFontFamily" Value="{Binding Settings.TextSettings.MapBpV2_TeamName.FontFamily}" />
+                        <Setter Property="TeamNameFontWeight" Value="{Binding Settings.TextSettings.MapBpV2_TeamName.FontWeight}" />
+                        <Setter Property="CampNameForeground" Value="{Binding Settings.TextSettings.MapBpV2_CampWords.Foreground}" />
+                        <Setter Property="CampNameFontSize" Value="{Binding Settings.TextSettings.MapBpV2_CampWords.FontSize}" />
+                        <Setter Property="CampNameFontFamily" Value="{Binding Settings.TextSettings.MapBpV2_CampWords.FontFamily}" />
+                        <Setter Property="CampNameFontWeight" Value="{Binding Settings.TextSettings.MapBpV2_CampWords.FontWeight}" />
+                        <Setter Property="PickingBorderImage" Value="{Binding Settings.MapBpV2PickBorderImage}" />
+                        <Setter Property="PickingBorderBrush" Value="{Binding Settings.MapBpV2_PickingBorderBrush}" />
+                    </Style>
+                </Canvas.Resources>
+                <controls:MapV2Presenter
+                    x:Name="Arms_Factory"
+                    Canvas.Left="50.5"
+                    Width="149"
+                    Height="160"
+                    ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[ArmsFactory]}"
+                    Style="{StaticResource MapV2Presenter}" />
+                <controls:MapV2Presenter
+                    x:Name="The_Red_Church"
+                    Canvas.Left="204"
+                    Width="151"
+                    Height="160"
+                    ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[TheRedChurch]}"
+                    Style="{StaticResource MapV2Presenter}" />
+                <controls:MapV2Presenter
+                    x:Name="Sacred_Heart_Hospital"
+                    Canvas.Left="359"
+                    Width="151"
+                    Height="160"
+                    ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[SacredHeartHospital]}"
+                    Style="{StaticResource MapV2Presenter}" />
+                <controls:MapV2Presenter
+                    x:Name="Leo_s_Memory"
+                    Canvas.Left="514"
+                    Width="151"
+                    Height="160"
+                    ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[LeosMemory]}"
+                    Style="{StaticResource MapV2Presenter}" />
+                <controls:MapV2Presenter
+                    x:Name="Moonlit_River_Park"
+                    Canvas.Left="669"
+                    Width="151"
+                    Height="160"
+                    ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[MoonlitRiverPark]}"
+                    Style="{StaticResource MapV2Presenter}" />
+                <controls:MapV2Presenter
+                    x:Name="Lakeside_Village"
+                    Canvas.Left="824"
+                    Width="151"
+                    Height="160"
+                    ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[LakesideVillage]}"
+                    Style="{StaticResource MapV2Presenter}" />
+                <controls:MapV2Presenter
+                    x:Name="Eversleeping_Town"
+                    Canvas.Left="979"
+                    Width="151"
+                    Height="160"
+                    ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[EversleepingTown]}"
+                    Style="{StaticResource MapV2Presenter}" />
+                <controls:MapV2Presenter
+                    x:Name="Chinatown"
+                    Canvas.Left="1134"
+                    Width="151"
+                    Height="160"
+                    ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[ChinaTown]}"
+                    Style="{StaticResource MapV2Presenter}" />
+                <controls:MapV2Presenter
+                    x:Name="Darkwoods"
+                    Canvas.Left="1289"
+                    Width="151"
+                    Height="160"
+                    ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+                    Map="{Binding CurrentGame.MapV2Dictionary[Darkwoods]}"
+                    Style="{StaticResource MapV2Presenter}" />
+            </Canvas>
+        </Border>
+    </Grid>
 </controls1:FrontedWindowBase>

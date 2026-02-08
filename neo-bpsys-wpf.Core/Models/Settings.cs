@@ -253,7 +253,7 @@ public class CutSceneWindowTextSettings
 /// </summary>
 public partial class ScoreWindowSettings : ObservableObjectBase
 {
-    public WindowSize ScoreInGameWindowSize { get; init; } = new(480, 512);
+    public WindowSize ScoreInGameWindowSize { get; init; } = new(480, 152);
     
     public WindowSize ScoreGlobalWindowSize { get; init; } = new(1440, 195);
 
