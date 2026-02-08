@@ -616,10 +616,11 @@ public partial class SettingPageViewModel : ViewModelBase
 
     public List<WindowSize> ScoreInGameWindowSizesList { get; } =
     [
-        new(480, 512),
-        new(720, 768),
-        new(960, 1024),
-        new(1080, 1152),
+        new(480, 152),
+        new(240, 76),
+        new(160, 51),
+        new(960, 304),
+        new(1200, 380),
     ];
 
     public List<WindowSize> ScoreGlobalWindowSizeList { get; } =

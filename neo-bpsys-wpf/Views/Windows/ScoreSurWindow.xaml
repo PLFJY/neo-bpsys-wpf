@@ -18,107 +18,103 @@
     WindowStartupLocation="CenterScreen"
     WindowStyle="None"
     mc:Ignorable="d">
-    <Viewbox Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}" Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
-
-
-        <Canvas
-            Name="BaseCanvas"
-            Grid.Column="0"
-            Width="480"
-            Height="152">
-            <Canvas.Background>
-                <ImageBrush d:ImageSource="/Resources/bpui/scoreSur.png" ImageSource="{Binding Settings.SurScoreBgImage}" />
-            </Canvas.Background>
-            <Canvas.Resources>
-                <Style TargetType="TextBlock">
-                    <Setter Property="Foreground" Value="White" />
-                </Style>
-                <Style x:Key="TeamName" TargetType="TextBlock">
-                    <Setter Property="FontSize" Value="{Binding Settings.TextSettings.TeamName.FontSize}" />
-                    <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.TeamName.FontFamily}" />
-                    <Setter Property="Foreground" Value="{Binding Settings.TextSettings.TeamName.Foreground}" />
-                    <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.TeamName.FontWeight}" />
-                    <Setter Property="HorizontalAlignment" Value="Center" />
-                    <Setter Property="VerticalAlignment" Value="Center" />
-                </Style>
-                <Style x:Key="GameScores" TargetType="TextBlock">
-                    <Setter Property="FontSize" Value="{Binding Settings.TextSettings.GameScores.FontSize}" />
-                    <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.GameScores.FontFamily}" />
-                    <Setter Property="Foreground" Value="{Binding Settings.TextSettings.GameScores.Foreground}" />
-                    <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.GameScores.FontWeight}" />
-                    <Setter Property="HorizontalAlignment" Value="Center" />
-                    <Setter Property="VerticalAlignment" Value="Center" />
-                </Style>
-                <Style x:Key="MajorPoints" TargetType="TextBlock">
-                    <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MajorPoints.FontSize}" />
-                    <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MajorPoints.FontFamily}" />
-                    <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MajorPoints.Foreground}" />
-                    <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MajorPoints.FontWeight}" />
-                    <Setter Property="HorizontalAlignment" Value="Center" />
-                    <Setter Property="VerticalAlignment" Value="Center" />
-                </Style>
-            </Canvas.Resources>
-            <ui:Image
-                Name="SurTeamLogo"
-                Canvas.Left="22"
-                Canvas.Top="18"
-                Width="115"
-                Height="114"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                d:Source="/Assets/TestLogo.JPG"
-                CornerRadius="8"
-                Source="{Binding CurrentGame.SurTeam.Logo}"
-                Stretch="Fill" />
+    <Canvas
+        Name="BaseCanvas"
+        Grid.Column="0"
+        Width="480"
+        Height="152">
+        <Canvas.Background>
+            <ImageBrush d:ImageSource="/Resources/bpui/scoreSur.png" ImageSource="{Binding Settings.SurScoreBgImage}" />
+        </Canvas.Background>
+        <Canvas.Resources>
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="White" />
+            </Style>
+            <Style x:Key="TeamName" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.TeamName.FontSize}" />
+                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.TeamName.FontFamily}" />
+                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.TeamName.Foreground}" />
+                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.TeamName.FontWeight}" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+            <Style x:Key="GameScores" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.GameScores.FontSize}" />
+                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.GameScores.FontFamily}" />
+                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.GameScores.Foreground}" />
+                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.GameScores.FontWeight}" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+            <Style x:Key="MajorPoints" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="{Binding Settings.TextSettings.MajorPoints.FontSize}" />
+                <Setter Property="FontFamily" Value="{Binding Settings.TextSettings.MajorPoints.FontFamily}" />
+                <Setter Property="Foreground" Value="{Binding Settings.TextSettings.MajorPoints.Foreground}" />
+                <Setter Property="FontWeight" Value="{Binding Settings.TextSettings.MajorPoints.FontWeight}" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+        </Canvas.Resources>
+        <ui:Image
+            Name="SurTeamLogo"
+            Canvas.Left="22"
+            Canvas.Top="18"
+            Width="115"
+            Height="114"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+            d:Source="/Assets/TestLogo.JPG"
+            CornerRadius="8"
+            Source="{Binding CurrentGame.SurTeam.Logo}"
+            Stretch="Fill" />
+        <TextBlock
+            Name="SurTeamName"
+            Canvas.Left="153"
+            Canvas.Top="34"
+            Width="231"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+            d:FontFamily="{StaticResource POP1W5}"
+            d:FontSize="32"
+            d:Foreground="White"
+            d:Text="求生者队伍名称"
+            Style="{StaticResource TeamName}"
+            Text="{Binding CurrentGame.SurTeam.Name}"
+            TextAlignment="Center"
+            TextWrapping="WrapWithOverflow" />
+        <TextBlock
+            Name="SurTeamMajorPoint"
+            Canvas.Left="209"
+            Canvas.Top="86"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Top"
+            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
+            d:FontFamily="{StaticResource POP1W5}"
+            d:FontSize="38"
+            d:Foreground="White"
+            d:Text="W0 D0"
+            Style="{StaticResource MajorPoints}"
+            Text="{Binding CurrentGame.SurTeam.Score.MajorPointsOnFront}"
+            TextAlignment="Center" />
+        <Border
+            Name="GameScoresSur"
+            Canvas.Left="389"
+            Canvas.Top="11"
+            Width="64"
+            Height="130"
+            ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
             <TextBlock
-                Name="SurTeamName"
-                Canvas.Left="153"
-                Canvas.Top="34"
-                Width="231"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
                 d:FontFamily="{StaticResource POP1W5}"
-                d:FontSize="32"
+                d:FontSize="100"
                 d:Foreground="White"
-                d:Text="求生者队伍名称"
-                Style="{StaticResource TeamName}"
-                Text="{Binding CurrentGame.SurTeam.Name}"
-                TextAlignment="Center"
-                TextWrapping="WrapWithOverflow" />
-            <TextBlock
-                Name="SurTeamMajorPoint"
-                Canvas.Left="209"
-                Canvas.Top="86"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Top"
-                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}"
-                d:FontFamily="{StaticResource POP1W5}"
-                d:FontSize="38"
-                d:Foreground="White"
-                d:Text="W0 D0"
-                Style="{StaticResource MajorPoints}"
-                Text="{Binding CurrentGame.SurTeam.Score.MajorPointsOnFront}"
+                d:Text="0"
+                Style="{StaticResource GameScores}"
+                Text="{Binding CurrentGame.SurTeam.Score.GameScores}"
                 TextAlignment="Center" />
-            <Border
-                Name="GameScoresSur"
-                Canvas.Left="389"
-                Canvas.Top="11"
-                Width="64"
-                Height="130"
-                ab:DesignBehavior.IsDesignerMode="{Binding IsDesignerMode}">
-                <TextBlock
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    d:FontFamily="{StaticResource POP1W5}"
-                    d:FontSize="100"
-                    d:Foreground="White"
-                    d:Text="0"
-                    Style="{StaticResource GameScores}"
-                    Text="{Binding CurrentGame.SurTeam.Score.GameScores}"
-                    TextAlignment="Center" />
-            </Border>
-        </Canvas>
-    </Viewbox>
+        </Border>
+    </Canvas>
 </controls:FrontedWindowBase>
