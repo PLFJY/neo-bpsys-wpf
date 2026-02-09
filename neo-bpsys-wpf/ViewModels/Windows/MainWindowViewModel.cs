@@ -360,23 +360,7 @@ public partial class MainWindowViewModel :
         { GameProgress.Game3OvertimeSecondHalf, "Game3OvertimeSecondHalf" }
     };
 
-    public ObservableCollection<NavigationViewItem> MenuItems { get; } =
-    [
-        new("HomePage", SymbolRegular.Home24, typeof(HomePage)),
-        new("TeamInfo", SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
-        new("MapBP", SymbolRegular.Map24, typeof(MapBpPage)),
-        new("BanHunter", SymbolRegular.PresenterOff24, typeof(BanHunPage)),
-        new("BanSurvivor", SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
-        new("PickCharacter", SymbolRegular.PersonAdd24, typeof(PickPage)),
-        new("TalentAndTrait", SymbolRegular.PersonWalking24, typeof(TalentPage)),
-        new("ScoreControl", SymbolRegular.NumberRow24, typeof(ScorePage)),
-        new("GameData", SymbolRegular.TextNumberListLtr24, typeof(GameDataPage)),
-    ];
+    public ObservableCollection<NavigationViewItem> MenuItems { get; } = [];
 
-    public ObservableCollection<NavigationViewItem> FooterMenuItems { get; } =
-    [
-        new("FrontendManagement", SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
-        new("Plugins", SymbolRegular.AppsAddIn24, typeof(PluginPage)),
-        new("Settings", SymbolRegular.Settings24, typeof(SettingPage)),
-    ];
+    public ObservableCollection<NavigationViewItem> FooterMenuItems { get; } = [];
 }
