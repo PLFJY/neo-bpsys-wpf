@@ -12,8 +12,8 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="{lex:Loc FrontendCutScene}"
-    Width="1440"
-    Height="810"
+    Width="{Binding Settings.WindowSize.Width, Mode=TwoWay}"
+    Height="{Binding Settings.WindowSize.Height, Mode=TwoWay}"
     d:DataContext="{d:DesignInstance Type=vm:CutSceneWindowViewModel,
                                      IsDesignTimeCreatable=True}"
     WindowStyle="None"
@@ -24,8 +24,8 @@
     </Window.Resources>
     <Canvas
         x:Name="BaseCanvas"
-        Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}"
-        Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
+        Width="1440"
+        Height="810">
         <Canvas.Background>
             <ImageBrush d:ImageSource="/Resources/bpui/cutScene.png" ImageSource="{Binding Settings.BgImage}" />
         </Canvas.Background>

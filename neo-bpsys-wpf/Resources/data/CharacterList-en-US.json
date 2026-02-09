@@ -199,6 +199,10 @@
     "Camp": "Sur",
     "ImageFileName": "幻灯师.png"
   },
+  "Matador": {
+    "Camp": "Sur",
+    "ImageFileName": "斗牛士.png"
+  },
   "Guard 26": {
     "Camp": "Hun",
     "ImageFileName": "26号守卫.png"

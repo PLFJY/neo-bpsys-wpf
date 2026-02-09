@@ -424,7 +424,7 @@ public partial class SharedDataService : ISharedDataService
     /// <summary>
     /// 分数统计界面 BO3 和 BO5之间"Total"相差的距离
     /// </summary>
-    private double _globalScoreTotalMargin = 365;
+    private double _globalScoreTotalMargin = 370;
 
     public double GlobalScoreTotalMargin
     {

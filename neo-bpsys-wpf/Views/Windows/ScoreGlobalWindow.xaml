@@ -12,18 +12,20 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="{lex:Loc FrontedScoreStatistics}"
-    Width="1440"
-    Height="195"
+    Width="{Binding Settings.ScoreGlobalWindowSize.Width, Mode=TwoWay}"
+    Height="{Binding Settings.ScoreGlobalWindowSize.Height, Mode=TwoWay}"
     d:DataContext="{d:DesignInstance Type=vm:ScoreWindowViewModel,
                                      IsDesignTimeCreatable=True}"
-    Background="Lime"
+    AllowsTransparency="{Binding Settings.AllowsScoreGlobalWindowTransparency, Mode=OneTime}"
+    Background="{Binding Settings.ScoreGlobalWindowBackgroundBrush}"
+    WindowStyle="None"
     mc:Ignorable="d">
     <Canvas
         Name="BaseCanvas"
-        Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}"
-        Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
+        Width="1440"
+        Height="195">
         <Canvas.Background>
-            <ImageBrush d:ImageSource="/Resources/bpui/scoreGlobal.png" ImageSource="{Binding Settings.GlobalScoreBgImage}" />
+            <ImageBrush d:ImageSource="/Resources/bpui/scoreGlobal.png" ImageSource="{Binding ScoreGlobalImage}" />
         </Canvas.Background>
         <Canvas.Resources>
             <Style TargetType="TextBlock">
@@ -99,7 +101,7 @@
         <Border
             Name="AwayScoreTotal"
             Canvas.Left="1302"
-            Canvas.Top="141"
+            Canvas.Top="147"
             Width="87"
             HorizontalAlignment="Center"
             VerticalAlignment="Top"

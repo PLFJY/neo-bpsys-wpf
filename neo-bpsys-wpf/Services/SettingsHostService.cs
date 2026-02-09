@@ -23,13 +23,17 @@ public class SettingsHostService : ISettingsHostService
 {
     private readonly ILogger<SettingsHostService> _logger;
     private Settings _settings = new();
+    private bool _isBulk;
 
     public Settings Settings
     {
         get => _settings;
         set
         {
-            if (_settings == value) return;
+            if (_settings == value)
+            {
+                return;
+            }
 
             _settings.PropertyChanged -= OnSettingsPropertyChanged;
             _settings = value;
@@ -59,7 +63,10 @@ public class SettingsHostService : ISettingsHostService
     public async Task SaveConfigAsync()
     {
         if (!Directory.Exists(AppConstants.AppDataPath))
+        {
             Directory.CreateDirectory(AppConstants.AppDataPath);
+        }
+
         try
         {
             var jsonStr = JsonSerializer.Serialize(Settings, _jsonSerializerOptions);
@@ -70,7 +77,8 @@ public class SettingsHostService : ISettingsHostService
         catch (Exception e)
         {
             _logger.LogError(e, "Configuration file save error");
-            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("ConfigurationFileSaveError")}\n{e.Message}");
+            _ = MessageBoxHelper.ShowErrorAsync(
+                $"{I18nHelper.GetLocalizedString("ConfigurationFileSaveError")}\n{e.Message}");
         }
     }
 
@@ -80,7 +88,10 @@ public class SettingsHostService : ISettingsHostService
     public async Task LoadConfig()
     {
         if (!File.Exists(AppConstants.ConfigFilePath))
+        {
             await ResetConfigAsync();
+        }
+
         var json = await File.ReadAllTextAsync(AppConstants.ConfigFilePath);
         try
         {
@@ -99,8 +110,10 @@ public class SettingsHostService : ISettingsHostService
         {
             _logger.LogError(e, "Reading configuration file error");
 
-            if (await MessageBoxHelper.ShowConfirmAsync($"{I18nHelper.GetLocalizedString("ResetConfigurationFileToSolveTheProblem")}?",
-                    I18nHelper.GetLocalizedString("FailedToReadConfigurationFile"), I18nHelper.GetLocalizedString("Confirm"), I18nHelper.GetLocalizedString("Cancel")))
+            if (await MessageBoxHelper.ShowConfirmAsync(
+                    $"{I18nHelper.GetLocalizedString("ResetConfigurationFileToSolveTheProblem")}?",
+                    I18nHelper.GetLocalizedString("FailedToReadConfigurationFile"),
+                    I18nHelper.GetLocalizedString("Confirm"), I18nHelper.GetLocalizedString("Cancel")))
             {
                 await ResetConfigAsync();
             }
@@ -119,9 +132,20 @@ public class SettingsHostService : ISettingsHostService
         try
         {
             if (!Directory.Exists(AppConstants.AppDataPath))
+            {
                 Directory.CreateDirectory(AppConstants.AppDataPath);
+            }
 
-            Settings = new Settings();
+            _isBulk = true;
+            foreach (var window in Enum.GetValues<FrontedWindowType>())
+            {
+                if (window is FrontedWindowType.ScoreGlobalWindow or FrontedWindowType.ScoreSurWindow
+                    or FrontedWindowType.ScoreHunWindow)
+                    continue;
+                await ResetConfigAsync(window);
+            }
+
+            _isBulk = false;
             await SaveConfigAsync();
             await LoadConfig();
         }
@@ -142,25 +166,42 @@ public class SettingsHostService : ISettingsHostService
         try
         {
             if (!Directory.Exists(AppConstants.AppDataPath))
+            {
                 Directory.CreateDirectory(AppConstants.AppDataPath);
+            }
 
             switch (windowType)
             {
                 case FrontedWindowType.BpWindow:
                     try
                     {
-                        if (Settings.BpWindowSettings.BgImageUri != null)
+                        if (Settings.BpWindowSettings.BgImageUri != null &&
+                            File.Exists(Settings.BpWindowSettings.BgImageUri))
+                        {
                             File.Delete(Settings.BpWindowSettings.BgImageUri);
-                        if (Settings.BpWindowSettings.PickingBorderImageUri != null)
+                        }
+
+                        if (Settings.BpWindowSettings.PickingBorderImageUri != null &&
+                            File.Exists(Settings.BpWindowSettings.PickingBorderImageUri))
+                        {
                             File.Delete(Settings.BpWindowSettings.PickingBorderImageUri);
-                        if (Settings.BpWindowSettings.GlobalBanLockImageUri != null)
+                        }
+
+                        if (Settings.BpWindowSettings.GlobalBanLockImageUri != null &&
+                            File.Exists(Settings.BpWindowSettings.GlobalBanLockImageUri))
+                        {
                             File.Delete(Settings.BpWindowSettings.GlobalBanLockImageUri);
-                        if (Settings.BpWindowSettings.CurrentBanLockImageUri != null)
+                        }
+
+                        if (Settings.BpWindowSettings.CurrentBanLockImageUri != null &&
+                            File.Exists(Settings.BpWindowSettings.CurrentBanLockImageUri))
+                        {
                             File.Delete(Settings.BpWindowSettings.CurrentBanLockImageUri);
+                        }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "Error when deleting pictures about BpWindow settings");
+                        _logger.LogWarning(ex, "Error when deleting pictures about settings");
                     }
 
                     Settings.BpWindowSettings = new BpWindowSettings();
@@ -168,8 +209,11 @@ public class SettingsHostService : ISettingsHostService
                 case FrontedWindowType.CutSceneWindow:
                     try
                     {
-                        if (Settings.CutSceneWindowSettings.BgUri != null)
+                        if (Settings.CutSceneWindowSettings.BgUri != null &&
+                            File.Exists(Settings.CutSceneWindowSettings.BgUri))
+                        {
                             File.Delete(Settings.CutSceneWindowSettings.BgUri);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -178,17 +222,29 @@ public class SettingsHostService : ISettingsHostService
 
                     Settings.CutSceneWindowSettings = new CutSceneWindowSettings();
                     break;
+                case FrontedWindowType.ScoreWindow:
                 case FrontedWindowType.ScoreGlobalWindow:
                 case FrontedWindowType.ScoreSurWindow:
                 case FrontedWindowType.ScoreHunWindow:
                     try
                     {
-                        if (Settings.ScoreWindowSettings.SurScoreBgImageUri != null)
+                        if (Settings.ScoreWindowSettings.SurScoreBgImageUri != null &&
+                            File.Exists(Settings.ScoreWindowSettings.SurScoreBgImageUri))
+                        {
                             File.Delete(Settings.ScoreWindowSettings.SurScoreBgImageUri);
-                        if (Settings.ScoreWindowSettings.HunScoreBgImageUri != null)
+                        }
+
+                        if (Settings.ScoreWindowSettings.HunScoreBgImageUri != null &&
+                            File.Exists(Settings.ScoreWindowSettings.HunScoreBgImageUri))
+                        {
                             File.Delete(Settings.ScoreWindowSettings.HunScoreBgImageUri);
-                        if (Settings.ScoreWindowSettings.GlobalScoreBgImageUri != null)
+                        }
+
+                        if (Settings.ScoreWindowSettings.GlobalScoreBgImageUri != null &&
+                            File.Exists(Settings.ScoreWindowSettings.GlobalScoreBgImageUri))
+                        {
                             File.Delete(Settings.ScoreWindowSettings.GlobalScoreBgImageUri);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -200,8 +256,11 @@ public class SettingsHostService : ISettingsHostService
                 case FrontedWindowType.GameDataWindow:
                     try
                     {
-                        if (Settings.GameDataWindowSettings.BgImageUri != null)
+                        if (Settings.GameDataWindowSettings.BgImageUri != null &&
+                            File.Exists(Settings.GameDataWindowSettings.BgImageUri))
+                        {
                             File.Delete(Settings.GameDataWindowSettings.BgImageUri);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -213,18 +272,41 @@ public class SettingsHostService : ISettingsHostService
                 case FrontedWindowType.WidgetsWindow:
                     try
                     {
-                        if (Settings.WidgetsWindowSettings.MapBpBgUri != null)
+                        if (Settings.WidgetsWindowSettings.MapBpBgUri != null &&
+                            File.Exists(Settings.WidgetsWindowSettings.MapBpBgUri))
+                        {
                             File.Delete(Settings.WidgetsWindowSettings.MapBpBgUri);
-                        if (Settings.WidgetsWindowSettings.MapBpV2BgUri != null)
+                        }
+
+                        if (Settings.WidgetsWindowSettings.MapBpV2BgUri != null &&
+                            File.Exists(Settings.WidgetsWindowSettings.MapBpV2BgUri))
+                        {
                             File.Delete(Settings.WidgetsWindowSettings.MapBpV2BgUri);
-                        if (Settings.WidgetsWindowSettings.MapBpV2PickingBorderImageUri != null)
+                        }
+
+                        if (Settings.WidgetsWindowSettings.MapBpV2PickingBorderImageUri != null &&
+                            File.Exists(Settings.WidgetsWindowSettings.MapBpV2PickingBorderImageUri))
+                        {
                             File.Delete(Settings.WidgetsWindowSettings.MapBpV2PickingBorderImageUri);
-                        if (Settings.WidgetsWindowSettings.BpOverviewBgUri != null)
+                        }
+
+                        if (Settings.WidgetsWindowSettings.BpOverviewBgUri != null &&
+                            File.Exists(Settings.WidgetsWindowSettings.BpOverviewBgUri))
+                        {
                             File.Delete(Settings.WidgetsWindowSettings.BpOverviewBgUri);
-                        if (Settings.WidgetsWindowSettings.CurrentBanLockImageUri != null)
+                        }
+
+                        if (Settings.WidgetsWindowSettings.CurrentBanLockImageUri != null &&
+                            File.Exists(Settings.WidgetsWindowSettings.CurrentBanLockImageUri))
+                        {
                             File.Delete(Settings.WidgetsWindowSettings.CurrentBanLockImageUri);
-                        if (Settings.WidgetsWindowSettings.GlobalBanLockImageUri != null)
+                        }
+
+                        if (Settings.WidgetsWindowSettings.GlobalBanLockImageUri != null &&
+                            File.Exists(Settings.WidgetsWindowSettings.GlobalBanLockImageUri))
+                        {
                             File.Delete(Settings.WidgetsWindowSettings.GlobalBanLockImageUri);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -237,7 +319,8 @@ public class SettingsHostService : ISettingsHostService
                     throw new ArgumentOutOfRangeException(nameof(windowType), windowType, null);
             }
 
-            await SaveConfigAsync();
+            if (_isBulk)
+                await SaveConfigAsync();
         }
         catch (Exception e)
         {

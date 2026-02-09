@@ -10,6 +10,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Windows;
 using System.ComponentModel;
+using System.Windows.Media;
 using neo_bpsys_wpf.Core.Models;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 

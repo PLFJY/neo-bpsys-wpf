@@ -13,8 +13,8 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="{lex:Loc FrontendBP}"
-    Width="1440"
-    Height="810"
+    Width="{Binding Settings.WindowSize.Width, Mode=TwoWay}"
+    Height="{Binding Settings.WindowSize.Height, Mode=TwoWay}"
     d:DataContext="{d:DesignInstance Type=vm:BpWindowViewModel,
                                      IsDesignTimeCreatable=True}"
     AllowsTransparency="{Binding Settings.AllowsWindowTransparency, Mode=OneTime}"
@@ -28,8 +28,8 @@
     <Grid d:Background="#00ff00">
         <Canvas
             Name="BaseCanvas"
-            Width="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Width}"
-            Height="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Height}">
+            Width="1440"
+            Height="810">
             <Canvas.Background>
                 <ImageBrush d:ImageSource="/Resources/bpui/bp.png" ImageSource="{Binding Settings.BgImage}" />
             </Canvas.Background>
