@@ -1350,4 +1350,7 @@
   <data name="DesignerUnlockNote" xml:space="preserve">
     <value>注記：デザイナーモードでは、&lt;Shift&gt;キーを押すと自動スナップを一時的に解除し、微調整が可能になります。</value>
   </data>
+  <data name="AutoRecord" xml:space="preserve">
+    <value>自動記録</value>
+  </data>
 </root>

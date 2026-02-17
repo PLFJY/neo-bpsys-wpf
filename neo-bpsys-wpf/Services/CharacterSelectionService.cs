@@ -18,7 +18,7 @@ public class CharacterSelectionService(
     private readonly IAnimationService _animationService = animationService;
 
     /// <inheritdoc/>
-    public async Task SelectSurvivorAsync(int playerIndex, Character? character, bool playAnimation = true)
+    public async Task SelectSurvivorAsync(int playerIndex, Character? character, bool playAnimation = true, bool isRecordGlobalBan = true)
     {
         if (playAnimation)
         {
@@ -27,7 +27,7 @@ public class CharacterSelectionService(
         }
 
         sharedDataService.CurrentGame.SurPlayerList[playerIndex].Character = character;
-        if (sharedDataService.CurrentGame.GameProgress is > GameProgress.Free and < GameProgress.Game4FirstHalf)
+        if (isRecordGlobalBan && sharedDataService.CurrentGame.GameProgress is > GameProgress.Free and < GameProgress.Game4FirstHalf)
         {
             var targetIndex = (int)sharedDataService.CurrentGame.GameProgress / 2 * 4 + playerIndex;
             sharedDataService.CurrentGame.SurTeam.GlobalBannedSurRecordList[targetIndex] = character;
@@ -42,7 +42,7 @@ public class CharacterSelectionService(
     }
 
     /// <inheritdoc/>
-    public async Task SelectHunterAsync(Character? character, bool playAnimation = true)
+    public async Task SelectHunterAsync(Character? character, bool playAnimation = true, bool isRecordGlobalBan = true)
     {
         if (playAnimation)
         {
@@ -51,7 +51,7 @@ public class CharacterSelectionService(
         }
 
         sharedDataService.CurrentGame.HunPlayer.Character = character;
-        if (sharedDataService.CurrentGame.GameProgress is > GameProgress.Free and < GameProgress.Game4FirstHalf)
+        if (isRecordGlobalBan && sharedDataService.CurrentGame.GameProgress is > GameProgress.Free and < GameProgress.Game4FirstHalf)
         {
             var targetIndex = (int)sharedDataService.CurrentGame.GameProgress / 2;
             sharedDataService.CurrentGame.HunTeam.GlobalBannedHunRecordList[targetIndex] = character;

@@ -25,19 +25,22 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
 
     private readonly ISharedDataService _sharedDataService;
     private readonly IAnimationService _animationService;
+    private readonly ISettingsHostService _settingsHostService;
 
     public PickPageViewModel(ISharedDataService sharedDataService,
         ICharacterSelectionService characterSelectionService,
-        IAnimationService animationService)
+        IAnimationService animationService,
+        ISettingsHostService settingsHostService)
     {
         _sharedDataService = sharedDataService;
         _animationService = animationService;
+        _settingsHostService = settingsHostService;
         SurPickViewModelList =
         [
             .. Enumerable.Range(0, 4).Select(i =>
-                new SurPickViewModel(sharedDataService, characterSelectionService, i))
+                new SurPickViewModel(sharedDataService, characterSelectionService, settingsHostService, i))
         ];
-        HunPickVm = new HunPickViewModel(sharedDataService, characterSelectionService);
+        HunPickVm = new HunPickViewModel(sharedDataService, characterSelectionService, settingsHostService);
 
         HomeSurGlobalBanRecordViewModelList =
         [
@@ -110,6 +113,18 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         }
     }
 
+    public bool IsGlobalBanAutoRecord
+    {
+        get => _settingsHostService.Settings.IsRecordGlobalBan;
+
+        set
+        {
+            if (_settingsHostService.Settings.IsRecordGlobalBan == value) return;
+            _settingsHostService.Settings.IsRecordGlobalBan = value;
+            _ = _settingsHostService.SaveConfigAsync();
+        }
+    }
+
     public void Receive(HighlightMessage message)
     {
         if (message.GameAction == GameAction.PickSur)
@@ -163,13 +178,17 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
     public partial class SurPickViewModel : CharaSelectViewModelBase
     {
         private readonly ICharacterSelectionService _characterSelectionService;
+        private readonly ISettingsHostService _settingsHostService;
         public Player ThisPlayer => SharedDataService.CurrentGame.SurPlayerList[Index];
 
         public SurPickViewModel(ISharedDataService sharedDataService,
-            ICharacterSelectionService characterSelectionService, int index = 0) :
+            ICharacterSelectionService characterSelectionService, 
+            ISettingsHostService settingsHostService, 
+            int index = 0) :
             base(sharedDataService, Camp.Sur, index)
         {
             _characterSelectionService = characterSelectionService;
+            _settingsHostService = settingsHostService;
             sharedDataService.TeamSwapped += (_, _) => OnPropertyChanged(nameof(ThisPlayer));
             ThisPlayer.PropertyChanged += OnThisPlayerPropertyChanged;
             sharedDataService.CurrentGameChanged += (_, _) =>
@@ -189,7 +208,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
 
         protected override async Task SyncCharaToSourceAsync()
         {
-            await _characterSelectionService.SelectSurvivorAsync(Index, SelectedChara);
+            await _characterSelectionService.SelectSurvivorAsync(Index, SelectedChara, true, _settingsHostService.Settings.IsRecordGlobalBan);
             PreviewImage = ThisPlayer.Character?.HeaderImage;
         }
 
@@ -212,14 +231,16 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
 
     public class HunPickViewModel(
         ISharedDataService sharedDataService,
-        ICharacterSelectionService characterSelectionService)
+        ICharacterSelectionService characterSelectionService,
+        ISettingsHostService settingsHostService)
         : CharaSelectViewModelBase(sharedDataService, Camp.Hun)
     {
         private readonly ICharacterSelectionService _characterSelectionService1 = characterSelectionService;
+        private readonly ISettingsHostService _settingsHostService = settingsHostService;
 
         protected override async Task SyncCharaToSourceAsync()
         {
-            await _characterSelectionService1.SelectHunterAsync(SelectedChara);
+            await _characterSelectionService1.SelectHunterAsync(SelectedChara, true, _settingsHostService.Settings.IsRecordGlobalBan);
             PreviewImage = SharedDataService.CurrentGame.HunPlayer.Character?.HeaderImage;
         }
 

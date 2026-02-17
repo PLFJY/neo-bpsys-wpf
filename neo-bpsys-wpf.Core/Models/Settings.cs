@@ -17,6 +17,8 @@ public partial class Settings : ObservableObjectBase
     private static readonly CultureInfo SystemCulture = CultureInfo.CurrentUICulture;
     public bool ShowAfterUpdateTip { get; set; } = true;
 
+    public bool IsRecordGlobalBan { get; set; } = true;
+
     private LanguageKey _language = LanguageKey.System;
 
     public LanguageKey Language

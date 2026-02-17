@@ -16,14 +16,16 @@ public interface ICharacterSelectionService
     /// <param name="playerIndex">玩家索引 (0-3)</param>
     /// <param name="character">选择的角色</param>
     /// <param name="playAnimation">是否播放动画</param>
-    Task SelectSurvivorAsync(int playerIndex, Character? character, bool playAnimation = true);
+    /// <param name="isRecordGlobalBan">是否记录全局禁用</param>
+    Task SelectSurvivorAsync(int playerIndex, Character? character, bool playAnimation = true, bool isRecordGlobalBan = true);
 
     /// <summary>
     /// 选择监管者角色
     /// </summary>
     /// <param name="character">选择的角色</param>
     /// <param name="playAnimation">是否播放动画</param>
-    Task SelectHunterAsync(Character? character, bool playAnimation = true);
+    /// <param name="isRecordGlobalBan">是否记录全局禁用</param>
+    Task SelectHunterAsync(Character? character, bool playAnimation = true, bool isRecordGlobalBan = true);
 
     /// <summary>
     /// 禁用角色
