@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -21,17 +22,25 @@ public class PluginService : IPluginService
 
     internal static Dictionary<Type, string> FrontedWindowAssemblyFolder { get; } = [];
 
+    private static ILogger<PluginService>? Logger => IAppHost.TryGetService<ILogger<PluginService>>();
+
     public static void InitializePlugins(HostBuilderContext context, IServiceCollection services)
     {
+        Logger?.LogInformation("Initializing plugins. PluginPath: {PluginPath}, BuiltInPluginPath: {BuiltInPluginPath}",
+            AppConstants.PluginPath, AppConstants.BuiltInPluginPath);
+
         if (!Directory.Exists(AppConstants.PluginPath))
         {
             Directory.CreateDirectory(AppConstants.PluginPath);
+            Logger?.LogInformation("Created plugin directory: {PluginPath}", AppConstants.PluginPath);
         }
 
         var deserializer = new DeserializerBuilder()
             .IgnoreUnmatchedProperties()
             .WithNamingConvention(CamelCaseNamingConvention.Instance)
             .Build();
+        var minApiVersion = IAppHost.CoreVersion;
+        var hostApiVersion = typeof(PluginBase).Assembly.GetName().Version ?? minApiVersion;
 
         var pluginDirs = Directory.EnumerateDirectories(AppConstants.PluginPath);
 
@@ -53,13 +62,15 @@ public class PluginService : IPluginService
                 {
                     var target = Path.Combine(AppConstants.PluginPath, Path.GetFileName(plugin));
                     MoveAndOverwrite(plugin, target);
+                    Logger?.LogInformation("Applied staged plugin update from {Source} to {Target}", plugin, target);
                 }
 
                 Directory.Delete(newPath, true);
+                Logger?.LogInformation("Removed staged plugin update directory: {Path}", newPath);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // ignored
+                Logger?.LogWarning(ex, "Failed to apply staged plugin updates from {Path}", newPath);
             }
         }
 
@@ -71,13 +82,25 @@ public class PluginService : IPluginService
             var manifestPath = Path.Combine(pluginDir, PluginManifestFileName);
             if (!File.Exists(manifestPath))
             {
+                Logger?.LogDebug("Skipping plugin directory without manifest: {PluginDir}", pluginDir);
                 continue;
             }
 
-            var manifestYaml = File.ReadAllText(manifestPath);
-            var manifest = deserializer.Deserialize<PluginManifest?>(manifestYaml);
+            PluginManifest? manifest;
+            try
+            {
+                var manifestYaml = File.ReadAllText(manifestPath);
+                manifest = deserializer.Deserialize<PluginManifest?>(manifestYaml);
+            }
+            catch (Exception ex)
+            {
+                Logger?.LogError(ex, "Failed to read or parse plugin manifest: {ManifestPath}", manifestPath);
+                continue;
+            }
+
             if (manifest == null)
             {
+                Logger?.LogWarning("Manifest was null after deserialization: {ManifestPath}", manifestPath);
                 continue;
             }
 
@@ -92,25 +115,54 @@ public class PluginService : IPluginService
             if (info.IsUninstalling)
             {
                 Directory.Delete(pluginDir, true);
+                Logger?.LogInformation("Removed plugin marked for uninstall: {PluginDir}", pluginDir);
                 continue;
             }
 
             if (IPluginService.LoadedPluginsIds.Contains(manifest.Id))
+            {
+                Logger?.LogWarning("Duplicate plugin id detected, skipping: {PluginId}", manifest.Id);
                 continue;
+            }
             IPluginService.LoadedPluginsIds.Add(manifest.Id);
             IPluginService.LoadedPluginsInternal.Add(info);
             if (!info.IsEnabled)
             {
                 info.LoadStatus = PluginLoadStatus.Disabled;
+                Logger?.LogInformation("Plugin is disabled: {PluginId}", manifest.Id);
             }
 
-            if (info.IsEnabled && Version.TryParse(info.Manifest.ApiVersion, out var apiVersion) &&
-                apiVersion < new Version(2, 0, 0, 0))
+            if (info.IsEnabled)
             {
-                info.LoadStatus = PluginLoadStatus.Error;
-                info.Exception =
-                    new InvalidOperationException(
-                        $"不兼容的 API 版本 {apiVersion}。插件的 API 版本需要至少为 2.0.0.0 才能被当前版本的 neo-bpsys-wpf 加载。");
+                if (!Version.TryParse(info.Manifest.ApiVersion, out var apiVersion))
+                {
+                    info.LoadStatus = PluginLoadStatus.Error;
+                    info.Exception =
+                        new InvalidOperationException(
+                            $"Invalid API version format: {info.Manifest.ApiVersion}. Expected a valid System.Version value (e.g. 2.0.0.0).");
+                    Logger?.LogWarning("Plugin API version format is invalid. PluginId: {PluginId}, ApiVersion: {ApiVersion}",
+                        manifest.Id, info.Manifest.ApiVersion);
+                }
+                else if (apiVersion.Major > hostApiVersion.Major)
+                {
+                    info.LoadStatus = PluginLoadStatus.Error;
+                    info.Exception =
+                        new InvalidOperationException(
+                            $"Plugin API version is too high: {apiVersion}. Current host supports {hostApiVersion.Major}.x API.");
+                    Logger?.LogWarning(
+                        "Plugin API version is too high. PluginId: {PluginId}, PluginApiVersion: {PluginApiVersion}, HostApiVersion: {HostApiVersion}",
+                        manifest.Id, apiVersion, hostApiVersion);
+                }
+                else if (apiVersion < minApiVersion)
+                {
+                    info.LoadStatus = PluginLoadStatus.Error;
+                    info.Exception =
+                        new InvalidOperationException(
+                            $"Plugin API version is too low: {apiVersion}. The minimum required API version is {minApiVersion}.");
+                    Logger?.LogWarning(
+                        "Plugin API version is too low. PluginId: {PluginId}, PluginApiVersion: {PluginApiVersion}, MinApiVersion: {MinApiVersion}",
+                        manifest.Id, apiVersion, minApiVersion);
+                }
             }
         }
 
@@ -120,6 +172,7 @@ public class PluginService : IPluginService
                 .Select(x => x.Manifest.Id)
                 .ToList();
 
+        Logger?.LogInformation("Resolved plugin load order: {LoadOrder}", string.Join(", ", loadOrder));
         Console.WriteLine($@"Resolved load order: {string.Join(", ", loadOrder)}");
 
         // 加载插件
@@ -128,6 +181,7 @@ public class PluginService : IPluginService
             var info = IPluginService.LoadedPluginsInternal.First(x => x.Manifest.Id == id);
             var manifest = info.Manifest;
             var pluginDir = info.PluginFolderPath;
+            Logger?.LogInformation("Loading plugin {PluginId} from {PluginDir}", manifest.Id, pluginDir);
             try
             {
                 var fullPath = Path.GetFullPath(Path.Combine(pluginDir, manifest.EntranceAssembly));
@@ -137,11 +191,15 @@ public class PluginService : IPluginService
 
                 if (entrance == null)
                 {
+                    Logger?.LogWarning("Plugin entry type not found. PluginId: {PluginId}, Assembly: {AssemblyPath}",
+                        manifest.Id, fullPath);
                     continue;
                 }
 
                 if (Activator.CreateInstance(entrance) is not PluginBase entranceObj)
                 {
+                    Logger?.LogWarning("Failed to create plugin entry instance. PluginId: {PluginId}, EntryType: {EntryType}",
+                        manifest.Id, entrance.FullName);
                     continue;
                 }
 
@@ -169,12 +227,16 @@ public class PluginService : IPluginService
                 info.LoadStatus = PluginLoadStatus.Loaded;
                 InstalledPlugins.Add(info);
 
+                Logger?.LogInformation("Plugin initialized successfully: {PluginId} ({PluginVersion})",
+                    manifest.Id, manifest.Version);
                 Console.WriteLine($@"Initialize plugin: {pluginDir} ({manifest.Version})");
             }
             catch (Exception ex)
             {
                 info.Exception = ex;
                 info.LoadStatus = PluginLoadStatus.Error;
+                Logger?.LogError(ex, "Failed to load plugin. PluginId: {PluginId}, PluginDir: {PluginDir}",
+                    manifest.Id, pluginDir);
             }
         }
     }
