@@ -104,7 +104,7 @@ YourPlugin/
 | `entranceAssembly` | string | ✅ | 插件入口程序集文件名（含 .dll 后缀） |
 | `url` | string | ❌ | 插件项目主页或仓库地址 |
 | `version` | string | ✅ | 插件版本号（格式：major.minor.patch.build） |
-| `apiVersion` | string | ✅ | 插件 API 版本，当前必须为 `2.0.0.0` 或更高 |
+| `apiVersion` | string | ✅ | 插件 API 版本。需为有效的 `Version` 字符串，且必须 `>= 2.0.0.0`，同时主版本不能高于宿主支持的 API 主版本（当前为 `2.x`） |
 | `author` | string | ✅ | 插件作者名称 |
 | `icon` | string | ❌ | 插件图标文件名（PNG 格式，推荐尺寸：256x256） |
 
@@ -775,7 +775,10 @@ public class Plugin : PluginBase
 ## 常见问题
 
 ### Q: 插件 API 版本要求是什么？
-A: 当前插件 API 版本必须为 `2.0.0.0` 或更高。低于此版本的插件将无法加载。
+A: `apiVersion` 必须满足以下条件：
+- 能被解析为 `Version`（例如 `2.0.0.0`）
+- 不能低于 `2.0.0.0`
+- 主版本不能高于宿主支持的 API 主版本（当前为 `2.x`）
 
 ### Q: 如何在插件之间共享数据？
 A: 推荐使用主应用的 `ISharedDataService` 或创建自己的服务并注册为单例。
