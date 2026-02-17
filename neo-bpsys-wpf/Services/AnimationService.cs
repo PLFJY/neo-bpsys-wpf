@@ -13,7 +13,8 @@ namespace neo_bpsys_wpf.Services;
 public class AnimationService(IFrontedWindowService frontedWindowService) : IAnimationService
 {
     private readonly IFrontedWindowService _frontedWindowService = frontedWindowService;
-    private const int TransitionDelayMs = 250;
+    private const int DefaultFadeDurationMs = 500;
+    private const int TransitionDelayMs = 500;
 
     #region 角色选择动画 (Pick)
 
@@ -26,21 +27,21 @@ public class AnimationService(IFrontedWindowService frontedWindowService) : IAni
     }
 
     /// <inheritdoc/>
-    public void PlayPickFadeIn(Camp camp, int index)
+    public void PlayPickFadeIn(Camp camp, int index, int durationMs = DefaultFadeDurationMs)
     {
         var controlNameHeader = GetPickControlName(camp);
         var controlIndex = camp == Camp.Hun ? -1 : index;
 
-        FadeInAnimation(FrontedWindowType.BpWindow, controlNameHeader, controlIndex, string.Empty);
+        FadeInAnimation(FrontedWindowType.BpWindow, controlNameHeader, controlIndex, string.Empty, durationMs);
     }
 
     /// <inheritdoc/>
-    public void PlayPickFadeOut(Camp camp, int index)
+    public void PlayPickFadeOut(Camp camp, int index, int durationMs = DefaultFadeDurationMs)
     {
         var controlNameHeader = GetPickControlName(camp);
         var controlIndex = camp == Camp.Hun ? -1 : index;
 
-        FadeOutAnimation(FrontedWindowType.BpWindow, controlNameHeader, controlIndex, string.Empty);
+        FadeOutAnimation(FrontedWindowType.BpWindow, controlNameHeader, controlIndex, string.Empty, durationMs);
     }
 
     private static string GetPickControlName(Camp camp) => camp == Camp.Sur ? "SurPick" : "HunPick";
@@ -89,15 +90,16 @@ public class AnimationService(IFrontedWindowService frontedWindowService) : IAni
     /// <inheritdoc/>
     public async Task PlaySwapCharacterAnimationAsync(int sourceIndex, int targetIndex)
     {
+        const int swapFadeDurationMs = 250;
         // 同时淡出两个角色
-        FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", sourceIndex, string.Empty);
-        FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", targetIndex, string.Empty);
+        FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", sourceIndex, string.Empty, swapFadeDurationMs);
+        FadeOutAnimation(FrontedWindowType.BpWindow, "SurPick", targetIndex, string.Empty, swapFadeDurationMs);
 
-        await Task.Delay(TransitionDelayMs);
+        await Task.Delay(swapFadeDurationMs);
 
         // 同时淡入两个角色
-        FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", sourceIndex, string.Empty);
-        FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", targetIndex, string.Empty);
+        FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", sourceIndex, string.Empty, swapFadeDurationMs);
+        FadeInAnimation(FrontedWindowType.BpWindow, "SurPick", targetIndex, string.Empty, swapFadeDurationMs);
     }
 
     #endregion
@@ -111,14 +113,17 @@ public class AnimationService(IFrontedWindowService frontedWindowService) : IAni
     /// <param name="controlNameHeader">控件名称头</param>
     /// <param name="controlIndex">控件索引(-1表示没有)</param>
     /// <param name="controlNameFooter">控件名称尾</param>
+    /// <param name="durationMs">动画时长（毫秒）</param>
     public void FadeInAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
-        string controlNameFooter)
+        string controlNameFooter, int durationMs = DefaultFadeDurationMs)
     {
-        FadeInAnimation(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter);
+        FadeInAnimation(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter,
+            durationMs);
     }
 
     /// <inheritdoc/>
-    public void FadeInAnimation(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter)
+    public void FadeInAnimation(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter,
+        int durationMs = DefaultFadeDurationMs)
     {
         var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
         if (!_frontedWindowService.FrontedWindows.TryGetValue(windowId, out var window)) return;
@@ -126,7 +131,7 @@ public class AnimationService(IFrontedWindowService frontedWindowService) : IAni
         if (window.FindName(ctrName) is FrameworkElement element)
         {
             element.BeginAnimation(UIElement.OpacityProperty,
-                new DoubleAnimation(0, 1, new Duration(TimeSpan.FromSeconds(0.5))));
+                new DoubleAnimation(0, 1, new Duration(TimeSpan.FromMilliseconds(durationMs))));
         }
     }
 
@@ -137,21 +142,24 @@ public class AnimationService(IFrontedWindowService frontedWindowService) : IAni
     /// <param name="controlNameHeader">控件名称头</param>
     /// <param name="controlIndex">控件索引(-1表示没有)</param>
     /// <param name="controlNameFooter">控件名称尾</param>
+    /// <param name="durationMs">动画时长（毫秒）</param>
     public void FadeOutAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
-        string controlNameFooter)
+        string controlNameFooter, int durationMs = DefaultFadeDurationMs)
     {
-        FadeOutAnimation(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter);
+        FadeOutAnimation(GetFrontedWindowGuid(windowType), controlNameHeader, controlIndex, controlNameFooter,
+            durationMs);
     }
 
     /// <inheritdoc/>
-    public void FadeOutAnimation(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter)
+    public void FadeOutAnimation(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter,
+        int durationMs = DefaultFadeDurationMs)
     {
         var ctrName = controlNameHeader + (controlIndex >= 0 ? controlIndex : string.Empty) + controlNameFooter;
         if (!_frontedWindowService.FrontedWindows.TryGetValue(windowId, out var window)) return;
         if (window.FindName(ctrName) is FrameworkElement element)
         {
             element.BeginAnimation(UIElement.OpacityProperty,
-                new DoubleAnimation(1, 0, new Duration(TimeSpan.FromSeconds(0.5))));
+                new DoubleAnimation(1, 0, new Duration(TimeSpan.FromMilliseconds(durationMs))));
         }
     }
 

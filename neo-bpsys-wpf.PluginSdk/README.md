@@ -599,6 +599,8 @@ _sharedDataService.CountDownValueChanged += OnCountDownValueChanged;
 _sharedDataService.TeamSwapped += OnTeamSwapped;
 _sharedDataService.IsMapV2BreathingChanged += OnIsMapV2BreathingChanged;
 _sharedDataService.IsMapV2CampVisibleChanged += OnIsMapV2CampVisibleChanged;
+_sharedDataService.PickedMapChanged += OnPickedMapChanged;
+_sharedDataService.MapV2BannedChanged += OnMapV2BannedChanged;
 
 private void OnCurrentGameChanged(object? sender, EventArgs e)
 {

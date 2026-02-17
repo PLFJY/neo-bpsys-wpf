@@ -3,6 +3,9 @@ using System.Windows.Controls;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
+/// <summary>
+/// 文本设置导航服务
+/// </summary>
 public interface ITextSettingsNavigationService
 {
     /// <summary>

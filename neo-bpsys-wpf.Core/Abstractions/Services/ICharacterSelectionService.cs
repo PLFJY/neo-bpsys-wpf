@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
@@ -9,11 +10,6 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 /// </summary>
 public interface ICharacterSelectionService
 {
-    /// <summary>
-    /// 获取动画服务实例
-    /// </summary>
-    IAnimationService AnimationService { get; }
-
     /// <summary>
     /// 选择求生者角色
     /// </summary>
@@ -47,16 +43,12 @@ public interface ICharacterSelectionService
     Task SwapSurvivorsAsync(int sourceIndex, int targetIndex, bool playAnimation = true);
 
     /// <summary>
-    /// 开始待选框呼吸灯效果
+    /// 角色选择事件
     /// </summary>
-    /// <param name="camp">阵营</param>
-    /// <param name="index">角色索引，监管者为-1</param>
-    Task StartPickingIndicatorAsync(Camp camp, int index);
+    event EventHandler<CharacterSelectedEventArgs> CharacterSelected;
 
     /// <summary>
-    /// 停止待选框呼吸灯效果
+    /// 角色禁用事件
     /// </summary>
-    /// <param name="camp">阵营</param>
-    /// <param name="index">角色索引，监管者为-1</param>
-    Task StopPickingIndicatorAsync(Camp camp, int index);
+    event EventHandler<CharacterBannedEventArgs> CharacterBanned;
 }
