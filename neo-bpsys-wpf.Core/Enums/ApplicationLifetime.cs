@@ -1,5 +1,8 @@
 ﻿namespace neo_bpsys_wpf.Core.Enums;
 
+/// <summary>
+/// 应用生命周期
+/// </summary>
 public enum ApplicationLifetime
 {
     /// <summary>

@@ -160,4 +160,14 @@ public interface ISharedDataService
     /// 地图V2阵营是否可见改变事件
     /// </summary>
     event EventHandler? IsMapV2CampVisibleChanged;
+
+    /// <summary>
+    /// 选择地图改变事件
+    /// </summary>
+    event EventHandler? PickedMapChanged;
+
+    /// <summary>
+    /// 地图禁用状态改变事件（MapV2）
+    /// </summary>
+    event EventHandler? MapV2BannedChanged;
 }

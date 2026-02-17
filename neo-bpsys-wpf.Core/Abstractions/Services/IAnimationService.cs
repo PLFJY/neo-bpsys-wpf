@@ -23,14 +23,16 @@ public interface IAnimationService
     /// </summary>
     /// <param name="camp">阵营（求生者/监管者）</param>
     /// <param name="index">角色索引，监管者为-1</param>
-    void PlayPickFadeIn(Camp camp, int index);
+    /// <param name="durationMs">动画时长（毫秒）</param>
+    void PlayPickFadeIn(Camp camp, int index, int durationMs = 500);
 
     /// <summary>
     /// 播放角色选择渐隐动画
     /// </summary>
     /// <param name="camp">阵营（求生者/监管者）</param>
     /// <param name="index">角色索引，监管者为-1</param>
-    void PlayPickFadeOut(Camp camp, int index);
+    /// <param name="durationMs">动画时长（毫秒）</param>
+    void PlayPickFadeOut(Camp camp, int index, int durationMs = 500);
 
     #endregion
 
@@ -125,9 +127,10 @@ public interface IAnimationService
     /// <param name="controlNameHeader">控件名称头</param>
     /// <param name="controlIndex">控件索引(-1表示没有)</param>
     /// <param name="controlNameFooter">控件名称尾</param>
+    /// <param name="durationMs">动画时长（毫秒）</param>
     /// <returns></returns>
     void FadeInAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
-        string controlNameFooter);
+        string controlNameFooter, int durationMs = 500);
 
     /// <summary>
     /// 渐显动画
@@ -136,8 +139,10 @@ public interface IAnimationService
     /// <param name="controlNameHeader">控件名称头</param>
     /// <param name="controlIndex">控件索引(-1表示没有)</param>
     /// <param name="controlNameFooter">控件名称尾</param>
+    /// <param name="durationMs">动画时长（毫秒）</param>
     /// <returns></returns>
-    void FadeInAnimation(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter);
+    void FadeInAnimation(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter,
+        int durationMs = 500);
 
     /// <summary>
     /// 渐隐动画
@@ -146,9 +151,10 @@ public interface IAnimationService
     /// <param name="controlNameHeader">控件名称头</param>
     /// <param name="controlIndex">控件索引(-1表示没有)</param>
     /// <param name="controlNameFooter">控件名称尾</param>
+    /// <param name="durationMs">动画时长（毫秒）</param>
     /// <returns></returns>
     void FadeOutAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
-        string controlNameFooter);
+        string controlNameFooter, int durationMs = 500);
 
     /// <summary>
     /// 渐隐动画
@@ -157,9 +163,10 @@ public interface IAnimationService
     /// <param name="controlNameHeader">控件名称头</param>
     /// <param name="controlIndex">控件索引(-1表示没有)</param>
     /// <param name="controlNameFooter">控件名称尾</param>
+    /// <param name="durationMs">动画时长（毫秒）</param>
     /// <returns></returns>
     void FadeOutAnimation(string windowId, string controlNameHeader, int controlIndex,
-        string controlNameFooter);
+        string controlNameFooter, int durationMs = 500);
 
     #endregion
 }

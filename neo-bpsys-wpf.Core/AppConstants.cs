@@ -13,6 +13,9 @@ public static class AppConstants
     /// </summary>
     public const string AppName = "neo-bpsys-wpf";
 
+    /// <summary>
+    /// 应用程序版本
+    /// </summary>
     public static readonly string AppVersion = Assembly.GetEntryAssembly()?
         .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
         .InformationalVersion ?? "unknown";
