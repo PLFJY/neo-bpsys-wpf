@@ -1347,4 +1347,7 @@
   <data name="DesignerUnlockNote" xml:space="preserve">
     <value>NOTE: In Design Mode, holding down &lt;Shift&gt; key temporarily disables auto-snaping for precise adjustments</value>
   </data>
+  <data name="AutoRecord" xml:space="preserve">
+    <value>Auto Record</value>
+  </data>
 </root>

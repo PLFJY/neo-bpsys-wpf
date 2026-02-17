@@ -166,10 +166,17 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc GlobalBanRecord}" />
+                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                    <TextBlock Text="{lex:Loc GlobalBanRecord}" />
+                    <ui:ToggleSwitch
+                        Margin="50,0,0,0"
+                        VerticalAlignment="Center"
+                        Content="{lex:Loc AutoRecord}"
+                        IsChecked="{Binding IsGlobalBanAutoRecord}" />
+                </StackPanel>
                 <Grid Grid.Row="1" Margin="0,10,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
