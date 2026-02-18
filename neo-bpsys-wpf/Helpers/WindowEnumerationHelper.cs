@@ -52,6 +52,12 @@ static class WindowEnumerationHelper
         WS_VSCROLL = 0x200000
     }
 
+    [Flags]
+    private enum ExtendedWindowStyles : uint
+    {
+        WS_EX_TOOLWINDOW = 0x00000080
+    }
+
     enum DWMWINDOWATTRIBUTE : uint
     {
         NCRenderingEnabled = 1,
@@ -125,6 +131,12 @@ static class WindowEnumerationHelper
 
         var style = (WindowStyles)(uint)GetWindowLongPtr(hwnd, (int)GWL.GWL_STYLE).ToInt64();
         if (style.HasFlag(WindowStyles.WS_DISABLED))
+        {
+            return false;
+        }
+
+        var exStyle = (ExtendedWindowStyles)(uint)GetWindowLongPtr(hwnd, (int)GWL.GWL_EXSTYLE).ToInt64();
+        if (exStyle.HasFlag(ExtendedWindowStyles.WS_EX_TOOLWINDOW))
         {
             return false;
         }
