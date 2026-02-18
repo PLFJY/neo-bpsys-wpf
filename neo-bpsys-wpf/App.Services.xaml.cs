@@ -66,6 +66,7 @@ public partial class App
         services.AddSingleton<IFilePickerService, FilePickerService>();
         services.AddSingleton<IInfoBarService, InfoBarService>();
         services.AddSingleton<ISnackbarService, SnackbarService>();
+        services.AddSingleton<IWindowCaptureService, WindowCaptureService>();
 
         //Additional Feature Services
         services.AddSingleton<IGameGuidanceService, GameGuidanceService>();
@@ -104,6 +105,7 @@ public partial class App
         services.AddBackendPage<SettingPage, SettingPageViewModel>();
         services.AddBackendPage<FrontManagePage, FrontManagePageViewModel>();
         services.AddBackendPage<PluginPage, PluginPageViewModel>();
+        services.AddBackendPage<SmartBpPage, SmartBpPageViewModel>();
 
         PluginService.InitializePlugins(context, services);
     }

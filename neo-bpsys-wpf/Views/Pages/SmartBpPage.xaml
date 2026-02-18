@@ -1,0 +1,100 @@
+<Page
+    x:Class="neo_bpsys_wpf.Views.Pages.SmartBpPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    Title="SmartBpPage"
+    d:DataContext="{d:DesignInstance Type=vm:SmartBpPageViewModel,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="1000"
+    d:DesignWidth="685"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    mc:Ignorable="d">
+
+    <WrapPanel Orientation="Horizontal">
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Text="窗口捕获设置" />
+                <StackPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="捕获方式" />
+                    <ComboBox
+                        Grid.Row="1"
+                        Width="215"
+                        Margin="10,0,0,0"
+                        ItemsSource="{Binding CaptureMethodList}"
+                        SelectedIndex="{Binding SelectedCaptureMethodIndex}"
+                        SelectedValue="{Binding SelectedCaptureMethod}"
+                        SelectedValuePath="Method">
+                        <ComboBox.ItemContainerStyle>
+                            <Style BasedOn="{StaticResource {x:Type ComboBoxItem}}" TargetType="ComboBoxItem">
+                                <Setter Property="IsEnabled" Value="{Binding IsAvaliable}" />
+                            </Style>
+                        </ComboBox.ItemContainerStyle>
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+                <StackPanel
+                    Grid.Row="2"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="选择游戏窗口进程" />
+                    <ComboBox
+                        Grid.Row="1"
+                        MinWidth="200"
+                        Margin="10,0,0,0"
+                        ItemsSource="{Binding ActiveWindows}"
+                        SelectedValue="{Binding SelectedWindow}" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding RefreshActiveWindowsCommand}"
+                        Content="刷新"
+                        Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding OpenWindowPickerCommand}"
+                        Content="打开窗口选择器（仅WGC可用）" />
+                </StackPanel>
+                <StackPanel
+                    Grid.Row="3"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal">
+                    <ui:Button
+                        Command="{Binding StartCaptureCommand}"
+                        Content="开始捕获"
+                        Icon="{ui:SymbolIcon Symbol=WindowPlay20}" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding StopCaptureCommand}"
+                        Content="停止捕获"
+                        Icon="{ui:SymbolIcon Symbol=ShareScreenStop24}" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding OpenPreviewWindowCommand}"
+                        Content="打开预览"
+                        Icon="{ui:SymbolIcon Symbol=WindowNew24}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </WrapPanel>
+</Page>
+
