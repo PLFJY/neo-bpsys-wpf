@@ -21,6 +21,7 @@ using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.Storage.Xps;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -38,14 +39,19 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
 
     // WinRT 设备：WGC 的 FramePool/CreateCaptureSession 依赖它。
     private IDirect3DDevice? _winrtDevice;
+
     // SharpDX 设备：负责 CopyResource + MapSubresource，将 GPU 纹理读回 CPU。
     private Device? _d3dDevice;
+
     // 帧池：持续产出捕获帧。
     private Direct3D11CaptureFramePool? _framePool;
+
     // 捕获会话：启动/停止的核心对象。
     private GraphicsCaptureSession? _captureSession;
+
     // 当前捕获目标（窗口/显示器）对应的 GraphicsCaptureItem。
     private GraphicsCaptureItem? _captureItem;
+
     // 用于检测尺寸变化，尺寸变化后要重建 FramePool。
     private SizeInt32 _currentCaptureSize;
 
@@ -60,8 +66,10 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
     // BitBlt 捕获相关状态。
     // _bitbltTimer: 周期性拉取窗口图像的驱动器（和 WGC 的事件回调作用类似）。
     private DispatcherTimer? _bitbltTimer;
+
     // _bitbltTargetHwnd: 当前 BitBlt 模式下的目标窗口句柄。
     private HWND _bitbltTargetHwnd = HWND.Null;
+
     // _captureTargetHwnd: 当前捕获目标窗口句柄（用于在 WGC 帧上裁掉标题栏/边框）。
     private HWND _captureTargetHwnd = HWND.Null;
 
@@ -127,14 +135,16 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
         // 2) 任意窗口标题为 Airplayer
         // 满足条件的 PID，其全部窗口都保留（不会被标题规则剔除）。
         var airplayerWhitelistedPids = candidates
-            .Where(c => IsAirplayerProcess(c.ProcessName) || IsAirplayerTitle(c.Title))
-            .Select(c => c.Pid)
+            .Where(x => IsAirplayerProcess(x.ProcessName) || IsAirplayerTitle(x.Title))
+            .Select(x => x.Pid)
             .ToHashSet();
 
         // 非白名单进程仍要求标题非空白，以降低噪音窗口数量。
         var windows = candidates
-            .Where(c => airplayerWhitelistedPids.Contains(c.Pid) || !string.IsNullOrWhiteSpace(c.Title))
-            .Select(c => new WindowInfo(c.Hwnd, c.Title, c.ProcessName, c.Pid))
+            .Where(x =>
+                (airplayerWhitelistedPids.Contains(x.Pid) || !string.IsNullOrWhiteSpace(x.Title))
+                && PInvoke.IsWindowVisible((HWND)x.Hwnd))
+            .Select(x => new WindowInfo(x.Hwnd, x.Title, x.ProcessName, x.Pid))
             .ToList();
 
         if (windows.Count == 0)
@@ -177,7 +187,6 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
                 _logger.LogWarning("Unsupported capture method: {CaptureMethod}", captureMethod);
                 return false;
         }
-
     }
 
     /// <summary>
@@ -205,7 +214,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
 
             // 系统 UI：等待用户选择目标窗口。
             var item = await picker.PickSingleItemAsync();
-            
+
             // 用户点击取消属于正常流程，不作为异常处理。
             if (item == null)
                 return false;
@@ -484,7 +493,9 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
             // 若失败再回退 BitBlt，尽可能提高兼容性。
             // 带 PW_CLIENTONLY 时，PrintWindow 会尽量只输出客户区（去掉标题栏）。
             // 当当前 region 不是客户区（回退整窗）时使用 0。
-            PRINT_WINDOW_FLAGS printFlags = (PRINT_WINDOW_FLAGS)(captureRegion.X == 0 && captureRegion.Y == 0 ? 0u : PRINT_WINDOW_FLAGS.PW_CLIENTONLY);
+            PRINT_WINDOW_FLAGS printFlags = (PRINT_WINDOW_FLAGS)(captureRegion.X == 0 && captureRegion.Y == 0
+                ? 0u
+                : PRINT_WINDOW_FLAGS.PW_CLIENTONLY);
             var copied = PInvoke.PrintWindow(hwnd, memoryDc, printFlags);
             if (!copied)
             {
@@ -670,7 +681,8 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
             // 将 WinRT surface 包装为 SharpDX texture，便于执行 Direct3D 复制。
             using var sourceTexture = Direct3D11Helper.CreateSharpDXTexture2D(frame.Surface);
             // 创建 CPU 可读 staging 纹理，后续通过 MapSubresource 读取像素。
-            using var stagingTexture = CreateCpuReadableTexture(sourceTexture.Description, contentSize.Width, contentSize.Height);
+            using var stagingTexture =
+                CreateCpuReadableTexture(sourceTexture.Description, contentSize.Width, contentSize.Height);
 
             // 先把帧数据复制到 staging 资源。
             _d3dDevice.ImmediateContext.CopyResource(sourceTexture, stagingTexture);
@@ -932,7 +944,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
             }
         }
     }
-    
+
     // SelectObject 失败时的返回值（GDI 约定）。
     private static readonly IntPtr HGDI_ERROR = new(-1);
 
