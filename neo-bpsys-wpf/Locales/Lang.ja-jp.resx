@@ -189,9 +189,6 @@
   <data name="PickingBorderImage" xml:space="preserve">
     <value>ピック枠画像</value>
   </data>
-  <data name="DownloadProgress" xml:space="preserve">
-    <value>ダウンロード進捗：</value>
-  </data>
   <data name="PickingBorderImageColor" xml:space="preserve">
     <value>ピック枠の境界色（画像の色を上書き）</value>
   </data>

@@ -45,6 +45,7 @@
         <!-- Include = 插件 csproj 路径；FolderName = 复制到 Plugins\ 下的文件夹名 -->
         <BuiltinPlugin Include="..\Built-inPlugins\neo-bpsys-wpf.TeamJsonMaker\neo-bpsys-wpf.TeamJsonMaker.csproj">
             <FolderName>top.plfjy.bpsys.TeamJsonMaker</FolderName>
+            <PluginTargetFramework>net9.0-windows</PluginTargetFramework>
         </BuiltinPlugin>
     </ItemGroup>
 
@@ -62,7 +63,7 @@
         <MakeDir Directories="@(BuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
 
         <ItemGroup>
-            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\$(TargetFramework)\**\*.*">
+            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\%(BuiltinPlugin.PluginTargetFramework)\**\*.*">
                 <FolderName>%(BuiltinPlugin.FolderName)</FolderName>
             </_PluginFiles>
         </ItemGroup>
@@ -79,7 +80,7 @@
         <MakeDir Directories="@(BuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
 
         <ItemGroup>
-            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\$(TargetFramework)\**\*.*">
+            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\%(BuiltinPlugin.PluginTargetFramework)\**\*.*">
                 <FolderName>%(BuiltinPlugin.FolderName)</FolderName>
             </_PluginFiles>
         </ItemGroup>
@@ -155,7 +156,13 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+        <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260214" />
+        <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260214" />
+        <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.13.0.20260214" />
         <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2.2" />
+        <PackageReference Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="3.1.0.54" />
+        <PackageReference Include="Sdcb.PaddleOCR" Version="3.0.1" />
+        <PackageReference Include="Sdcb.PaddleOCR.Models.Online" Version="3.0.1" />
         <PackageReference Include="Serilog" Version="4.3.1" />
         <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
         <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />

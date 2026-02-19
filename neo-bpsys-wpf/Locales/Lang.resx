@@ -189,9 +189,6 @@
   <data name="PickingBorderImage" xml:space="preserve">
     <value>待选框</value>
   </data>
-  <data name="DownloadProgress" xml:space="preserve">
-    <value>下载进度：</value>
-  </data>
   <data name="PickingBorderImageColor" xml:space="preserve">
     <value>待选框边缘颜色（覆盖贴图颜色）</value>
   </data>

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net9.0-windows10.0.17763</TargetFrameworks>
+    <RootNamespace>neo_bpsys_wpf.Tests</RootNamespace>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="xunit.v3" Version="3.2.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\neo-bpsys-wpf\neo-bpsys-wpf.csproj" />
+  </ItemGroup>
+  
+</Project>

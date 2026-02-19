@@ -19,6 +19,8 @@ public partial class Settings : ObservableObjectBase
 
     public bool IsRecordGlobalBan { get; set; } = true;
 
+    public string? OcrModelKey { get; set; }
+
     private LanguageKey _language = LanguageKey.System;
 
     public LanguageKey Language

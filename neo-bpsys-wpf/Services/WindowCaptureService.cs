@@ -493,9 +493,9 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
             // 若失败再回退 BitBlt，尽可能提高兼容性。
             // 带 PW_CLIENTONLY 时，PrintWindow 会尽量只输出客户区（去掉标题栏）。
             // 当当前 region 不是客户区（回退整窗）时使用 0。
-            PRINT_WINDOW_FLAGS printFlags = (PRINT_WINDOW_FLAGS)(captureRegion.X == 0 && captureRegion.Y == 0
+            PRINT_WINDOW_FLAGS printFlags = captureRegion.X == 0 && captureRegion.Y == 0
                 ? 0u
-                : PRINT_WINDOW_FLAGS.PW_CLIENTONLY);
+                : PRINT_WINDOW_FLAGS.PW_CLIENTONLY;
             var copied = PInvoke.PrintWindow(hwnd, memoryDc, printFlags);
             if (!copied)
             {
@@ -579,11 +579,6 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
 
         // 句柄 -> GraphicsCaptureItem 是进入 WGC 捕获流程的关键转换。
         var item = CaptureHelper.CreateItemForWindow(hwnd);
-        if (item is null)
-        {
-            _ = MessageBoxHelper.ShowErrorAsync("Failed to create capture item for the selected window.");
-            return false;
-        }
 
         StopCapture();
         _captureTargetHwnd = hwnd;

@@ -15,5 +15,8 @@
   <Project Path="neo-bpsys-wpf.PluginSdk/neo-bpsys-wpf.PluginSdk.csproj">
     <BuildType Solution="Beta|*" Project="Debug" />
   </Project>
+  <Project Path="neo-bpsys-wpf.Tests/neo-bpsys-wpf.Tests.csproj">
+    <BuildType Solution="Beta|*" Project="Debug" />
+  </Project>
   <Project Path="neo-bpsys-wpf/neo-bpsys-wpf.csproj" />
 </Solution>

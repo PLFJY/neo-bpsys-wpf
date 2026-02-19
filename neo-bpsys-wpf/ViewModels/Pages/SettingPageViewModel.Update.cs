@@ -44,7 +44,7 @@ public partial class SettingPageViewModel : ViewModelBase
 
     [ObservableProperty] private string _mbPerSecondSpeed = string.Empty;
 
-    public string Mirror { get; set; } = "https://ghproxy.net/";
+    public string Mirror { get; set; } = DownloadMirrorPresets.DefaultMirror;
 
     private void Downloader_DownloadStarted(object? sender, Downloader.DownloadStartedEventArgs e)
     {
@@ -66,7 +66,7 @@ public partial class SettingPageViewModel : ViewModelBase
         Application.Current.Dispatcher.Invoke(() => { IsDownloading = false; });
     }
 
-    private void Downloader_DownloadProgressChanged(object? sender, Downloader.DownloadProgressChangedEventArgs e)
+    private void Downloader_DownloadProgressChanged(object? sender, DownloadProgressChangedEventArgs e)
     {
         DownloadProgress = e.ProgressPercentage;
         DownloadProgressText = $"{e.ProgressPercentage:0.00}%";
@@ -95,17 +95,7 @@ public partial class SettingPageViewModel : ViewModelBase
         _downloader?.CancelAsync();
     }
 
-    public ObservableCollection<string> MirrorList { get; } =
-    [
-        @"https://gh-proxy.com/",
-        @"https://ghproxy.net/",
-        @"https://ghfast.top/",
-        @"https://hk.gh-proxy.com/",
-        @"https://cdn.gh-proxy.com/",
-        @"https://edgeone.gh-proxy.com/",
-        @"https://gh.plfjy.top/",
-        @""
-    ];
+    public ObservableCollection<string> MirrorList { get; } = new(DownloadMirrorPresets.GhProxyMirrorList);
 
     #endregion
 }

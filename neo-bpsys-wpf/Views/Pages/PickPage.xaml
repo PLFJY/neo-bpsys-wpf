@@ -30,15 +30,17 @@
         </Style>
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
-        <Border Style="{StaticResource Card}">
+        <StackPanel Margin="0,0,10,10">
+            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc PickSurvivor}" />
+            <Border
+                Margin="0,10,0,0"
+                Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc PickSurvivor}" />
                 <ItemsControl
-                    Grid.Row="1"
+                    Grid.Row="0"
                     Margin="0,10,0,0"
                     ItemsSource="{Binding SurPickViewModelList}">
                     <ItemsControl.ItemsPanel>
@@ -69,16 +71,19 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </Grid>
-        </Border>
-        <Border Style="{StaticResource Card}">
+            </Border>
+        </StackPanel>
+        <StackPanel Margin="0,0,10,10">
+            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc PickHunter}" />
+            <Border
+                Margin="0,10,0,0"
+                Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc PickHunter}" />
                 <cc:CharacterSelector
-                    Grid.Row="1"
+                    Grid.Row="0"
                     Margin="0,10,0,0"
                     Command="{Binding HunPickVm.ConfirmCommand}"
                     ImageSource="{Binding HunPickVm.PreviewImage}"
@@ -86,8 +91,13 @@
                     ItemsSource="{Binding HunPickVm.CharaDict}"
                     SelectedValue="{Binding HunPickVm.SelectedChara}" />
             </Grid>
-        </Border>
-        <Border Style="{StaticResource Card}">
+            </Border>
+        </StackPanel>
+        <StackPanel Margin="0,0,10,10">
+            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc OpenPickingBorder}" />
+            <Border
+                Margin="0,10,0,0"
+                Style="{StaticResource Card}">
             <Border.Resources>
                 <cv:BooleanMultiConverter x:Key="BooleanMultiConverter" />
             </Border.Resources>
@@ -97,8 +107,7 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0" Orientation="Horizontal">
-                    <TextBlock Grid.Row="0" Text="{lex:Loc OpenPickingBorder}" />
-                    <ui:ToggleSwitch x:Name="IsSingleControlEnabled" Margin="10,0,0,0" />
+                    <ui:ToggleSwitch x:Name="IsSingleControlEnabled" />
                     <TextBlock Margin="10,0,0,0" Text="{lex:Loc ControlFirst2PickingBorderSeparately}" />
                 </StackPanel>
                 <StackPanel Grid.Row="1">
@@ -161,8 +170,13 @@
                     </StackPanel>
                 </StackPanel>
             </Grid>
-        </Border>
-        <Border Style="{StaticResource Card}">
+            </Border>
+        </StackPanel>
+        <StackPanel Margin="0,0,10,10">
+            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc GlobalBanRecord}" />
+            <Border
+                Margin="0,10,0,0"
+                Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -170,9 +184,8 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0" Orientation="Horizontal">
-                    <TextBlock Text="{lex:Loc GlobalBanRecord}" />
                     <ui:ToggleSwitch
-                        Margin="50,0,0,0"
+                        Margin="0,0,0,0"
                         VerticalAlignment="Center"
                         Content="{lex:Loc AutoRecord}"
                         IsChecked="{Binding IsGlobalBanAutoRecord}" />
@@ -306,6 +319,7 @@
                     </ItemsControl>
                 </Grid>
             </Grid>
-        </Border>
+            </Border>
+        </StackPanel>
     </WrapPanel>
 </Page>

@@ -52,6 +52,11 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
+
+            <Style x:Key="Title" TargetType="TextBlock">
+                <Setter Property="FontWeight" Value="DemiBold" />
+                <Setter Property="FontSize" Value="18" />
+            </Style>
             <!--  Images  -->
             <BitmapImage x:Key="surIcon" />
             <BitmapImage x:Key="hunIcon" />

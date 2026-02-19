@@ -20,14 +20,10 @@
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <WrapPanel Orientation="Horizontal">
-        <Border Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc ScoreInBPWindowAndGame}" />
-                <Grid Grid.Row="1" Margin="0,20,0,0">
+        <StackPanel Margin="0,0,10,10">
+            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc ScoreInBPWindowAndGame}" />
+            <Border Style="{StaticResource Card}">
+                <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -122,19 +118,15 @@
                         </TextBlock>
                     </StackPanel>
                 </Grid>
-            </Grid>
-        </Border>
-        <Border Style="{StaticResource Card}">
-            <Border.Resources>
-                <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
-            </Border.Resources>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc ScoreStatistics}" />
-                <Grid Grid.Row="1" Margin="0,10,0,0">
+            </Border>
+        </StackPanel>
+        <StackPanel Margin="0,0,10,10">
+            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc ScoreStatistics}" />
+            <Border Style="{StaticResource Card}">
+                <Border.Resources>
+                    <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
+                </Border.Resources>
+                <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition />
                         <RowDefinition />
@@ -270,8 +262,8 @@
                         </GroupBox>
                     </Grid>
                 </Grid>
-            </Grid>
-        </Border>
+            </Border>
+        </StackPanel>
         <Border Style="{StaticResource Card}" Visibility="{Binding IsDebugContentVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
             <Border.Resources>
                 <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />

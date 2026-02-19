@@ -21,15 +21,17 @@
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <WrapPanel Orientation="Horizontal">
-        <Border Style="{StaticResource Card}">
+        <StackPanel Margin="0,0,10,10">
+            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SurvivorTalent}" />
+            <Border
+                Margin="0,10,0,0"
+                Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc SurvivorTalent}" />
-                <WrapPanel Grid.Row="1" Orientation="Horizontal">
+                <WrapPanel Grid.Row="0" Orientation="Horizontal">
                     <controls:TalentPicker
                         Margin="0,0,10,10"
                         CharacterName="{Binding CurrentGame.SurPlayerList[0].Character.Name, Mode=OneWay}"
@@ -52,16 +54,19 @@
                         Player="{Binding CurrentGame.SurPlayerList[3]}" />
                 </WrapPanel>
             </Grid>
-        </Border>
-        <Border Style="{StaticResource Card}">
+            </Border>
+        </StackPanel>
+        <StackPanel Margin="0,0,10,10">
+            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc HunterTalent}" />
+            <Border
+                Margin="0,10,0,0"
+                Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc HunterTalent}" />
                 <controls:TalentPicker
-                    Grid.Row="1"
+                    Grid.Row="0"
                     Margin="0,0,20,10"
                     HorizontalAlignment="Left"
                     CharacterName="{Binding CurrentGame.HunPlayer.Character.Name, Mode=OneWay}"
@@ -69,8 +74,13 @@
                     IsTypeHun="True"
                     Player="{Binding CurrentGame.HunPlayer}" />
             </Grid>
-        </Border>
-        <Border Style="{StaticResource Card}">
+            </Border>
+        </StackPanel>
+        <StackPanel Margin="0,0,10,10">
+            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc HunterTrait}" />
+            <Border
+                Margin="0,10,0,0"
+                Style="{StaticResource Card}">
             <Border.Resources>
                 <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
                 <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
@@ -89,10 +99,9 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0" Orientation="Horizontal">
-                    <TextBlock Text="{lex:Loc HunterTrait}" />
                     <ui:ToggleSwitch
                         x:Name="IsTraitVisible"
-                        Margin="20,0,0,0"
+                        Margin="0,0,0,0"
                         d:IsChecked="True"
                         Content="{lex:Loc Enable}"
                         IsChecked="{Binding IsTraitVisible}" />
@@ -144,6 +153,7 @@
                     </i:Interaction.Triggers>
                 </WrapPanel>
             </Grid>
-        </Border>
+            </Border>
+        </StackPanel>
     </WrapPanel>
 </Page>
