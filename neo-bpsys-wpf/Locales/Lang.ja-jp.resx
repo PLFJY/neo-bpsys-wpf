@@ -1350,4 +1350,10 @@
   <data name="AutoRecord" xml:space="preserve">
     <value>自動記録</value>
   </data>
+  <data name="Error" xml:space="preserve">
+    <value>エラー</value>
+  </data>
+  <data name="UnexpectedExceptionMessage" xml:space="preserve">
+    <value>予期しないエラーが発生しました。下記のアドレスにあるログファイルを添えて、開発者までお問い合わせください。</value>
+  </data>
 </root>

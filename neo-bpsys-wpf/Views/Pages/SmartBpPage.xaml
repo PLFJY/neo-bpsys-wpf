@@ -11,7 +11,7 @@
     d:DataContext="{d:DesignInstance Type=vm:SmartBpPageViewModel,
                                      IsDesignTimeCreatable=True}"
     d:DesignHeight="1000"
-    d:DesignWidth="685"
+    d:DesignWidth="770"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
@@ -33,7 +33,7 @@
                 <StackPanel Orientation="Horizontal">
                     <TextBlock VerticalAlignment="Center" Text="捕获方式" />
                     <ComboBox
-                        Width="240"
+                        Width="215"
                         Margin="10,0,0,0"
                         ItemsSource="{Binding CaptureMethodList}"
                         SelectedIndex="{Binding SelectedCaptureMethodIndex}"
@@ -51,26 +51,29 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
                 </StackPanel>
-                <StackPanel
+                <WrapPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="选择游戏窗口进程" />
+                    <TextBlock
+                        Margin="0,0,10,10"
+                        VerticalAlignment="Center"
+                        Text="选择游戏窗口进程" />
                     <ComboBox
                         MinWidth="220"
-                        Margin="10,0,0,0"
+                        Margin="0,0,10,10"
                         ItemsSource="{Binding ActiveWindows}"
                         SelectedValue="{Binding SelectedWindow}" />
                     <ui:Button
-                        Margin="10,0,0,0"
+                        Margin="0,0,10,10"
                         Command="{Binding RefreshActiveWindowsCommand}"
                         Content="刷新"
                         Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
                     <ui:Button
-                        Margin="10,0,0,0"
+                        Margin="0,0,10,10"
                         Command="{Binding OpenWindowPickerCommand}"
                         Content="打开窗口选择器（仅WGC可用）" />
-                </StackPanel>
+                </WrapPanel>
                 <StackPanel
                     Grid.Row="2"
                     Margin="0,10,0,0"

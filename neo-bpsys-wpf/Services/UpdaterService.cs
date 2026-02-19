@@ -90,10 +90,13 @@ public class UpdaterService : IUpdaterService
     {
         if (e.Error != null)
         {
+            if (e.Cancelled) return;
             await Application.Current.Dispatcher.InvokeAsync(async () =>
             {
                 await MessageBoxHelper.ShowErrorAsync(
-                    $"{I18nHelper.GetLocalizedString("DownloadFails")}: {e.Error.Message}");
+                    $"{I18nHelper.GetLocalizedString("DownloadFails")}: {e.Error.Message}",
+                    I18nHelper.GetLocalizedString("Error"),
+                    I18nHelper.GetLocalizedString("Close"));
             });
             return;
         }

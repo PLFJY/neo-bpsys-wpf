@@ -48,7 +48,7 @@ public class SmartBpService : ISmartBpService
                _ocrService.IsModelInstalled(currentModelKey);
     }
 
-    public void DebugExtractGameData()
+    public Mat GetTable()
     {
         var frame = _windowCaptureService.GetCurrentFrame();
         if (frame == null)
@@ -62,9 +62,16 @@ public class SmartBpService : ISmartBpService
         var tableRect = new RelativeRect(0.1, 0.165, 0.845, 0.62)
             .ToPixelRect(mat.Width, mat.Height);
 
-        using var table = new Mat(mat, tableRect);
+        var table = new Mat(mat, tableRect);
         // SaveDebug(table, "02_table.png");
 
+        return table;
+    }
+
+    public string GetHunCharacterName()
+    {
+        var table = GetTable();
+        
         // === Step 2: 裁剪 Hunter 行 ===
         var hunterRect = new RelativeRect(0, 0, 1, 0.16)
             .ToPixelRect(table.Width, table.Height);
@@ -83,6 +90,8 @@ public class SmartBpService : ISmartBpService
         // SaveDebug(bin, "05_hunter_name_bin.png");
 
         _ocrService.RecognizeText(bin);
+
+        return string.Empty;
     }
 
     private static void SaveDebug(Mat mat, string fileName)

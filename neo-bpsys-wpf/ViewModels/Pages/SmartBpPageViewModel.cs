@@ -13,6 +13,9 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class SmartBpPageViewModel : ViewModelBase
 {
+    private const int WgcMinimumBuild = 17134; // Windows 10 1803
+    private const int WgcHwndInteropMinimumBuild = 18362; // Windows 10 1903
+
     private readonly IWindowCaptureService _windowCaptureService = null!;
     private readonly IOcrService _ocrService = null!;
 
@@ -30,7 +33,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
         ActiveWindows = _windowCaptureService.ListActiveWindows();
 
-        if (!GraphicsCaptureSession.IsSupported())
+        if (!IsWgcHwndCaptureSupported())
         {
             SelectedCaptureMethod = CaptureMethod.Bitblt;
             SelectedCaptureMethodIndex = 1;
@@ -85,7 +88,8 @@ public partial class SmartBpPageViewModel : ViewModelBase
         set => SetPropertyWithAction(ref _selectedWindow, value, _ =>
         {
             StartCaptureCommand.NotifyCanExecuteChanged();
-            StartCapture();
+            if (_windowCaptureService.IsCapturing)
+                StartCapture();
         });
     }
 
@@ -209,13 +213,15 @@ public partial class SmartBpPageViewModel : ViewModelBase
     }
 
     private bool CanCaptureStarted() =>
-        SelectedCaptureMethod == CaptureMethod.WGC ? GraphicsCaptureSession.IsSupported() : SelectedWindow is not null;
+        SelectedCaptureMethod == CaptureMethod.WGC
+            ? SelectedWindow is not null && IsWgcHwndCaptureSupported()
+            : SelectedWindow is not null;
 
     private bool CanCaptureStopped() => _windowCaptureService.IsCapturing;
 
     private bool CanOpenPreviewWindow() => _windowCaptureService.IsCapturing;
 
-    private static bool CanOpenWindowPicker() => GraphicsCaptureSession.IsSupported();
+    private static bool CanOpenWindowPicker() => IsWgcSupported();
 
     private bool CanDownloadSelectedOcrModel() =>
         !IsModelDownloading && SelectedOcrModel is { IsInstalled: false };
@@ -275,13 +281,27 @@ public partial class SmartBpPageViewModel : ViewModelBase
         OnPropertyChanged(nameof(ShowDeleteModelButton));
     }
 
+    private static bool IsWgcApiAvailable() => OperatingSystem.IsWindowsVersionAtLeast(10, 0, WgcMinimumBuild);
+
+    private static bool IsWgcHwndInteropAvailable() => OperatingSystem.IsWindowsVersionAtLeast(10, 0, WgcHwndInteropMinimumBuild);
+
+    private static bool IsWgcSupported()
+    {
+        if (!IsWgcApiAvailable())
+            return false;
+
+        return GraphicsCaptureSession.IsSupported();
+    }
+
+    private static bool IsWgcHwndCaptureSupported() => IsWgcHwndInteropAvailable() && IsWgcSupported();
+
     public CaptureMethod SelectedCaptureMethod { get; set; } = CaptureMethod.WGC;
 
     public int SelectedCaptureMethodIndex { get; set; }
 
     public List<CaptureMethodSelection> CaptureMethodList { get; } =
     [
-        new(CaptureMethod.WGC, "Windows Graphic Capture (Windows 10 1809 or later)"),
+        new(CaptureMethod.WGC, "Windows Graphic Capture (Windows 10 1903 or later)"),
         new(CaptureMethod.Bitblt, "Bitblt")
     ];
 
@@ -291,7 +311,8 @@ public partial class SmartBpPageViewModel : ViewModelBase
         {
             Method = method;
             DisplayName = displayName;
-            if (method == CaptureMethod.WGC && !GraphicsCaptureSession.IsSupported())
+
+            if (method == CaptureMethod.WGC && !IsWgcHwndCaptureSupported())
             {
                 IsAvaliable = false;
             }
