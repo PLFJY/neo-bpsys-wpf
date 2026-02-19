@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net9.0-windows10.0.17763</TargetFrameworks>
+    <TargetFrameworks>net9.0-windows10.0.20348</TargetFrameworks>
     <RootNamespace>neo_bpsys_wpf.Tests</RootNamespace>
 
     <IsPackable>false</IsPackable>

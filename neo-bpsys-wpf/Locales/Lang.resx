@@ -1365,4 +1365,10 @@
   <data name="AutoRecord" xml:space="preserve">
     <value>是否自动记录</value>
   </data>
+  <data name="Error" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="UnexpectedExceptionMessage" xml:space="preserve">
+    <value>出现了些在意料之外的错误，请带着下方地址处的日志文件联系开发者解决</value>
+  </data>
 </root>

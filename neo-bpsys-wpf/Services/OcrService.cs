@@ -21,8 +21,8 @@ public class OcrService : IOcrService
     ];
 
     private readonly ISettingsHostService _settingsHostService;
-    private readonly object _ocrLock = new();
-    private readonly object _downloadLock = new();
+    private readonly Lock _ocrLock = new();
+    private readonly Lock _downloadLock = new();
     private readonly DownloadService _downloader;
 
     private PaddleOcrAll? _ocr;
@@ -140,6 +140,7 @@ public class OcrService : IOcrService
         }
         catch
         {
+            CleanupModelDownloadResidue(definition.Key);
             DownloadProgress = null;
             DownloadStatusText = "下载失败。";
             RaiseDownloadStateChanged();
@@ -415,6 +416,21 @@ public class OcrService : IOcrService
             var targetPath = Path.Combine(targetDirectory, relative);
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
             File.Copy(file, targetPath, overwrite: true);
+        }
+    }
+
+    private static void CleanupModelDownloadResidue(string modelKey)
+    {
+        var modelDirectory = SmartBpOcrModelRegistry.GetModelDirectory(modelKey);
+        if (Directory.Exists(modelDirectory))
+        {
+            Directory.Delete(modelDirectory, recursive: true);
+        }
+
+        var dictPath = SmartBpOcrModelRegistry.GetRecDictPath(modelKey);
+        if (File.Exists(dictPath))
+        {
+            File.Delete(dictPath);
         }
     }
 

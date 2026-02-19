@@ -1347,4 +1347,10 @@
   <data name="AutoRecord" xml:space="preserve">
     <value>Auto Record</value>
   </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="UnexpectedExceptionMessage" xml:space="preserve">
+    <value>Some unexpected errors have occurred. Please contact the developer with the log file below for solutions</value>
+  </data>
 </root>

@@ -14,7 +14,7 @@ public class SmartBpServiceTest
 {
 
     [Fact]
-    public void FillGameData()
+    public void GetHunCharacterName()
     {
         const string path = @"F:\Videos\OBS\Screenshot OBS-2026-02-18 23-35-53.png";
         if (!File.Exists(path)) throw new InvalidOperationException();
@@ -31,6 +31,6 @@ public class SmartBpServiceTest
         var logger = NullLogger<SettingsHostService>.Instance;
         var smartBpService = new SmartBpService(provider.Object, new OcrService(new SettingsHostService(logger)));
 
-        smartBpService.DebugExtractGameData();
+        smartBpService.GetHunCharacterName();
     }
 }

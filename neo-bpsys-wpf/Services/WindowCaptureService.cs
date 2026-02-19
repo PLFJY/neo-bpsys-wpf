@@ -17,11 +17,6 @@ using Windows.Graphics;
 using Windows.Graphics.Capture;
 using Windows.Graphics.DirectX;
 using Windows.Graphics.DirectX.Direct3D11;
-using Windows.Win32;
-using Windows.Win32.Foundation;
-using Windows.Win32.Graphics.Gdi;
-using Windows.Win32.Storage.Xps;
-using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -31,6 +26,9 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) : IWindowCaptureService
 {
+    private const int WgcMinimumBuild = 17134; // Windows 10 1803
+    private const int WgcHwndInteropMinimumBuild = 18362; // Windows 10 1903
+
     private readonly ILogger<WindowCaptureService> _logger = logger;
 
     // 捕获线程会写入 _currentFrame，UI 线程会读取 _currentFrame。
@@ -68,10 +66,10 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
     private DispatcherTimer? _bitbltTimer;
 
     // _bitbltTargetHwnd: 当前 BitBlt 模式下的目标窗口句柄。
-    private HWND _bitbltTargetHwnd = HWND.Null;
+    private HWND _bitbltTargetHwnd = HWND.Zero;
 
     // _captureTargetHwnd: 当前捕获目标窗口句柄（用于在 WGC 帧上裁掉标题栏/边框）。
-    private HWND _captureTargetHwnd = HWND.Null;
+    private HWND _captureTargetHwnd = HWND.Zero;
 
     /// <summary>
     /// 当前是否正在捕获。
@@ -88,10 +86,10 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
 
         // 通过 EnumWindows 枚举系统顶层窗口。
         // 只要回调返回 true，枚举就会继续。
-        _ = PInvoke.EnumWindows((HWND hwnd, LPARAM _) =>
+        _ = Win32.EnumWindows((HWND hwnd, LPARAM _) =>
         {
             // 统一走同一套“可捕获窗口”规则，避免 UI 展示列表和真正捕获标准不一致。
-            if (!WindowEnumerationHelper.IsWindowValidForCapture((IntPtr)hwnd))
+            if (!WindowEnumerationHelper.IsWindowValidForCapture(hwnd))
             {
                 return true;
             }
@@ -102,7 +100,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
                 // 取 PID 的目的：
                 // 1) 展示进程名给用户看
                 // 2) 支持将特定进程（dwrg）置顶排序
-                PInvoke.GetWindowThreadProcessId(hwnd, &pid);
+                Win32.GetWindowThreadProcessId(hwnd, &pid);
 
                 string processName;
                 try
@@ -119,7 +117,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
 
                 // 标题读取统一走 helper，避免“长度判断 + 空白判断”分散在多处。
                 var title = TryGetWindowTitle(hwnd);
-                candidates.Add(new WindowCandidate((nint)hwnd.Value, title, processName, pid));
+                candidates.Add(new WindowCandidate(hwnd, title, processName, pid));
             }
 
             return true;
@@ -143,7 +141,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
         var windows = candidates
             .Where(x =>
                 (airplayerWhitelistedPids.Contains(x.Pid) || !string.IsNullOrWhiteSpace(x.Title))
-                && PInvoke.IsWindowVisible((HWND)x.Hwnd))
+                && Win32.IsWindowVisible(x.Hwnd))
             .Select(x => new WindowInfo(x.Hwnd, x.Title, x.ProcessName, x.Pid))
             .ToList();
 
@@ -180,9 +178,9 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
         switch (captureMethod)
         {
             case CaptureMethod.Bitblt:
-                return StartBitbltCaptureFromHwnd((HWND)window.Hwnd);
+                return StartBitbltCaptureFromHwnd(window.Hwnd);
             case CaptureMethod.WGC:
-                return StartWgcCaptureFromHwnd((HWND)window.Hwnd);
+                return StartWgcCaptureFromHwnd(window.Hwnd);
             default:
                 _logger.LogWarning("Unsupported capture method: {CaptureMethod}", captureMethod);
                 return false;
@@ -196,9 +194,15 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
     public async Task<bool> StartCaptureWithPickerAsync()
     {
         // WGC 是系统能力，先判断支持性，避免后续调用抛平台异常。
-        if (!GraphicsCaptureSession.IsSupported())
+        if (!IsWgcApiAvailable())
         {
-            _ = MessageBoxHelper.ShowErrorAsync("Windows Graphic Capture is require Windows 10 1809 or later");
+            _ = MessageBoxHelper.ShowErrorAsync("Windows Graphic Capture is required Windows 10 1803 or later.");
+            return false;
+        }
+
+        if (!IsWgcSupported())
+        {
+            _ = MessageBoxHelper.ShowErrorAsync("Windows Graphic Capture is not supported on current system.");
             return false;
         }
 
@@ -221,7 +225,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
 
             // Picker 路径无法稳定映射回 HWND，这里不做标题栏裁剪。
             StopCapture();
-            _captureTargetHwnd = HWND.Null;
+            _captureTargetHwnd = HWND.Zero;
             return StartWgcCapture(item);
         }
         catch (Exception ex)
@@ -324,8 +328,8 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
             _bitbltTimer = null;
         }
 
-        _bitbltTargetHwnd = HWND.Null;
-        _captureTargetHwnd = HWND.Null;
+        _bitbltTargetHwnd = HWND.Zero;
+        _captureTargetHwnd = HWND.Zero;
 
         if (_framePool != null)
         {
@@ -403,13 +407,13 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
     private void OnBitbltTimerTick(object? sender, EventArgs args)
     {
         // 句柄被重置（例如 StopCapture 后）时直接退出当前 tick。
-        if (_bitbltTargetHwnd == HWND.Null)
+        if (_bitbltTargetHwnd == HWND.Zero)
         {
             return;
         }
 
         // 窗口无效时直接结束捕获，避免持续无效调用。
-        if (!WindowEnumerationHelper.IsWindowValidForCapture(_bitbltTargetHwnd))
+        if (!WindowEnumerationHelper.IsWindowValidForCapture((nint)_bitbltTargetHwnd))
         {
             StopCapture();
             return;
@@ -426,90 +430,105 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
     /// <returns>抓帧成功返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
     private bool TryCaptureBitbltFrame(HWND hwnd)
     {
-        if (hwnd == HWND.Null)
+        if (hwnd == 0)
         {
             return false;
         }
 
-        // 优先捕获客户端区域（不含标题栏/边框）。
-        // 若客户端区域获取失败，则回退到整窗区域，保证功能可用性。
-        if (!TryGetClientCaptureRegion(hwnd, out var captureRegion))
+        // 优先只抓客户区，避免把 DWM 非客户区边框（移动/缩放时更明显）带入结果。
+        var captureClientOnly = false;
+        var width = 0;
+        var height = 0;
+        if (Win32.GetClientRect(hwnd, out var clientRect))
         {
-            if (!PInvoke.GetWindowRect(hwnd, out var rect))
-            {
-                return false;
-            }
-
-            var fullWidth = rect.right - rect.left;
-            var fullHeight = rect.bottom - rect.top;
-            if (fullWidth <= 0 || fullHeight <= 0)
-            {
-                return false;
-            }
-
-            captureRegion = new System.Drawing.Rectangle(0, 0, fullWidth, fullHeight);
+            width = clientRect.right - clientRect.left;
+            height = clientRect.bottom - clientRect.top;
+            captureClientOnly = width > 0 && height > 0;
         }
 
-        var width = captureRegion.Width;
-        var height = captureRegion.Height;
+        // 客户区不可用时回退整窗捕获，保证功能可用性。
+        if (!captureClientOnly)
+        {
+            if (!Win32.GetWindowRect(hwnd, out var windowRect))
+            {
+                return false;
+            }
 
-        HDC windowDc = HDC.Null;
-        HDC memoryDc = HDC.Null;
-        HBITMAP bitmap = HBITMAP.Null;
-        HGDIOBJ oldObject = HGDIOBJ.Null;
+            width = windowRect.right - windowRect.left;
+            height = windowRect.bottom - windowRect.top;
+            if (width <= 0 || height <= 0)
+            {
+                return false;
+            }
+        }
+
+        HDC windowDc = HDC.Zero;
+        HDC memoryDc = HDC.Zero;
+        HBITMAP bitmap = HBITMAP.Zero;
+        HGDIOBJ oldObject = HGDIOBJ.Zero;
 
         try
         {
             // 获取目标窗口 DC（设备上下文）。后续复制像素需要以它为源。
-            windowDc = PInvoke.GetWindowDC(hwnd);
-            if (windowDc == HDC.Null)
+            windowDc = captureClientOnly ? Win32.GetDC(hwnd) : Win32.GetWindowDC(hwnd);
+            if (windowDc == HDC.Zero)
             {
                 return false;
             }
 
             // 创建兼容内存 DC，作为离屏缓冲的承载对象。
-            memoryDc = PInvoke.CreateCompatibleDC(windowDc);
-            if (memoryDc == HDC.Null)
+            memoryDc = Win32.CreateCompatibleDC(windowDc);
+            if (memoryDc == HDC.Zero)
             {
                 return false;
             }
 
             // 根据目标大小创建兼容位图，作为帧像素容器。
-            bitmap = PInvoke.CreateCompatibleBitmap(windowDc, width, height);
-            if (bitmap == HBITMAP.Null)
+            bitmap = Win32.CreateCompatibleBitmap(windowDc, width, height);
+            if (bitmap == HBITMAP.Zero)
             {
                 return false;
             }
 
             // 把位图选入内存 DC，后续绘制/复制结果都会落到 bitmap。
-            oldObject = PInvoke.SelectObject(memoryDc, bitmap);
-            if (oldObject == HGDIOBJ.Null || oldObject == HGDI_ERROR)
+            oldObject = Win32.SelectObject(memoryDc, bitmap);
+            if (oldObject == HGDIOBJ.Zero || oldObject == HGDI_ERROR)
             {
                 return false;
             }
 
-            // 先尝试 PrintWindow：
-            // 对部分被遮挡/最小化场景更有机会拿到内容。
-            // 若失败再回退 BitBlt，尽可能提高兼容性。
-            // 带 PW_CLIENTONLY 时，PrintWindow 会尽量只输出客户区（去掉标题栏）。
-            // 当当前 region 不是客户区（回退整窗）时使用 0。
-            PRINT_WINDOW_FLAGS printFlags = captureRegion.X == 0 && captureRegion.Y == 0
-                ? 0u
-                : PRINT_WINDOW_FLAGS.PW_CLIENTONLY;
-            var copied = PInvoke.PrintWindow(hwnd, memoryDc, printFlags);
-            if (!copied)
+            bool copied;
+            if (captureClientOnly)
             {
-                // BitBlt 回退时通过源偏移裁切到客户区。
-                copied = PInvoke.BitBlt(
+                // 客户区路径固定使用 BitBlt，减少 PrintWindow/BitBlt 交替导致的视觉抖动。
+                copied = Win32.BitBlt(
                     memoryDc,
                     0,
                     0,
                     width,
                     height,
                     windowDc,
-                    captureRegion.X,
-                    captureRegion.Y,
-                    ROP_CODE.SRCCOPY | ROP_CODE.CAPTUREBLT);
+                    0,
+                    0,
+                    ROP_CODE.SRCCOPY);
+            }
+            else
+            {
+                // 整窗路径优先 PrintWindow；失败时再回退 BitBlt 提高兼容性。
+                copied = Win32.PrintWindow(hwnd, memoryDc, 0);
+                if (!copied)
+                {
+                    copied = Win32.BitBlt(
+                        memoryDc,
+                        0,
+                        0,
+                        width,
+                        height,
+                        windowDc,
+                        0,
+                        0,
+                        ROP_CODE.SRCCOPY | ROP_CODE.CAPTUREBLT);
+                }
             }
 
             if (!copied)
@@ -535,24 +554,24 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
         finally
         {
             // GDI 资源释放顺序很关键：先把旧对象选回去，再销毁位图/DC。
-            if (oldObject != HGDIOBJ.Null && oldObject != HGDI_ERROR && memoryDc != HDC.Null)
+            if (oldObject != 0 && oldObject != HGDI_ERROR && memoryDc != 0)
             {
-                _ = PInvoke.SelectObject(memoryDc, oldObject);
+                _ = Win32.SelectObject(memoryDc, oldObject);
             }
 
-            if (bitmap != HBITMAP.Null)
+            if (bitmap != 0)
             {
-                _ = PInvoke.DeleteObject(bitmap);
+                _ = Win32.DeleteObject(bitmap);
             }
 
-            if (memoryDc != HDC.Null)
+            if (memoryDc != 0)
             {
-                _ = PInvoke.DeleteDC(memoryDc);
+                _ = Win32.DeleteDC(memoryDc);
             }
 
-            if (windowDc != HDC.Null)
+            if (windowDc != 0)
             {
-                _ = PInvoke.ReleaseDC(hwnd, windowDc);
+                _ = Win32.ReleaseDC(hwnd, windowDc);
             }
         }
     }
@@ -564,7 +583,13 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
     /// <returns>启动成功返回 <see langword="true"/>；失败返回 <see langword="false"/>。</returns>
     private bool StartWgcCaptureFromHwnd(HWND hwnd)
     {
-        if (!GraphicsCaptureSession.IsSupported())
+        if (!IsWgcHwndInteropAvailable())
+        {
+            _ = MessageBoxHelper.ShowErrorAsync("Capture by selected window requires Windows 10 1903 or later. On 1803/1809, use picker capture.");
+            return false;
+        }
+
+        if (!IsWgcSupported())
         {
             _ = MessageBoxHelper.ShowErrorAsync("Windows Graphic Capture is not supported on current system.");
             return false;
@@ -578,7 +603,23 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
         }
 
         // 句柄 -> GraphicsCaptureItem 是进入 WGC 捕获流程的关键转换。
-        var item = CaptureHelper.CreateItemForWindow(hwnd);
+        GraphicsCaptureItem? item;
+        try
+        {
+            item = CaptureHelper.CreateItemForWindow(hwnd);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create GraphicsCaptureItem from HWND.");
+            _ = MessageBoxHelper.ShowErrorAsync($"Failed to capture selected window: {ex.Message}");
+            return false;
+        }
+
+        if (item is null)
+        {
+            _ = MessageBoxHelper.ShowErrorAsync("Failed to capture selected window: GraphicsCaptureItem is unavailable.");
+            return false;
+        }
 
         StopCapture();
         _captureTargetHwnd = hwnd;
@@ -607,6 +648,17 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
                 item.Size);
 
             _captureSession = _framePool.CreateCaptureSession(item);
+
+            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19041))
+            {
+                //隐藏鼠标指针
+                _captureSession.IsCursorCaptureEnabled = false;
+            }
+            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 20348))
+            {
+                //隐藏边框
+                _captureSession.IsBorderRequired = false;
+            }
             // 通过 FrameArrived 事件拉取每一帧。
             _framePool.FrameArrived += OnFrameArrived;
             _captureSession.StartCapture();
@@ -775,7 +827,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
             for (var y = 0; y < height; y++)
             {
                 // RowPitch 可能大于 stride（行对齐），逐行拷贝可避免错位。
-                Marshal.Copy(IntPtr.Add(dataBox.DataPointer, y * dataBox.RowPitch), pixels, y * stride, stride);
+                Marshal.Copy(nint.Add(dataBox.DataPointer, y * dataBox.RowPitch), pixels, y * stride, stride);
             }
 
             var bitmap = BitmapSource.Create(
@@ -811,7 +863,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
             return null;
         }
 
-        if (_captureTargetHwnd == IntPtr.Zero)
+        if (_captureTargetHwnd == 0)
         {
             return frame;
         }
@@ -848,16 +900,30 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
     /// <param name="hwnd">目标窗口句柄。</param>
     /// <param name="region">输出采集区域。</param>
     /// <returns>成功返回 <see langword="true"/>，失败返回 <see langword="false"/>。</returns>
-    private static bool TryGetClientCaptureRegion(HWND hwnd, out System.Drawing.Rectangle region)
-    {
-        region = default;
+    private static bool IsWgcApiAvailable() => OperatingSystem.IsWindowsVersionAtLeast(10, 0, WgcMinimumBuild);
 
-        if (!PInvoke.GetWindowRect(hwnd, out var windowRect))
+    private static bool IsWgcHwndInteropAvailable() => OperatingSystem.IsWindowsVersionAtLeast(10, 0, WgcHwndInteropMinimumBuild);
+
+    private static bool IsWgcSupported()
+    {
+        if (!IsWgcApiAvailable())
         {
             return false;
         }
 
-        if (!PInvoke.GetClientRect(hwnd, out var clientRect))
+        return GraphicsCaptureSession.IsSupported();
+    }
+
+    private static bool TryGetClientCaptureRegion(HWND hwnd, out System.Drawing.Rectangle region)
+    {
+        region = default;
+
+        if (!Win32.GetWindowRect(hwnd, out var windowRect))
+        {
+            return false;
+        }
+
+        if (!Win32.GetClientRect(hwnd, out var clientRect))
         {
             return false;
         }
@@ -872,7 +938,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
         // 客户区左上角是相对客户区(0,0)，通过 ClientToScreen 转到屏幕坐标，
         // 再减去 windowRect 左上角得到相对整窗的偏移。
         var clientTopLeft = new System.Drawing.Point { X = 0, Y = 0 };
-        if (!PInvoke.ClientToScreen(hwnd, ref clientTopLeft))
+        if (!Win32.ClientToScreen(hwnd, ref clientTopLeft))
         {
             return false;
         }
@@ -924,7 +990,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
     private static string TryGetWindowTitle(HWND hwnd)
     {
         // 长度为 0 直接返回，避免不必要的缓冲区分配。
-        var titleLength = PInvoke.GetWindowTextLength(hwnd);
+        var titleLength = Win32.GetWindowTextLength(hwnd);
         if (titleLength <= 0)
         {
             return string.Empty;
@@ -934,14 +1000,14 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
         {
             fixed (char* pBuffer = new char[titleLength + 1])
             {
-                _ = PInvoke.GetWindowText(hwnd, pBuffer, titleLength + 1);
+                _ = Win32.GetWindowText(hwnd, pBuffer, titleLength + 1);
                 return new string(pBuffer);
             }
         }
     }
 
     // SelectObject 失败时的返回值（GDI 约定）。
-    private static readonly IntPtr HGDI_ERROR = new(-1);
+    private static readonly nint HGDI_ERROR = -1;
 
     private readonly record struct WindowCandidate(nint Hwnd, string Title, string ProcessName, uint Pid);
 }
