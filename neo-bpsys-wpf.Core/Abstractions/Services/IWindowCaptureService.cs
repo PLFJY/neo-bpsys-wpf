@@ -19,7 +19,7 @@ public interface IWindowCaptureService
     /// <summary>
     /// 当前是否处于捕获状态。
     /// </summary>
-    public bool IsCapturing { get; }
+    bool IsCapturing { get; }
 
     /// <summary>
     /// 以指定方式启动对目标窗口的捕获。

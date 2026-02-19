@@ -19,6 +19,7 @@
         <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.2" />
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
         <PackageReference Include="hyjiacan.pinyin4net" Version="4.1.1" />
+        <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260214" />
         <PackageReference Include="WPF-UI" Version="4.2.0" />
     </ItemGroup>
 

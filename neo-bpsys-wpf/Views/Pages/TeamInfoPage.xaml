@@ -26,13 +26,17 @@
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
         <!--  main team  -->
-        <Border DataContext="{Binding MainTeamInfoViewModel}" Style="{StaticResource Card}">
+        <StackPanel Margin="0,0,10,10">
+            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc HomeTeamInformation}" />
+            <Border
+                Margin="0,10,0,0"
+                DataContext="{Binding MainTeamInfoViewModel}"
+                Style="{StaticResource Card}">
             <!--  basic info  -->
             <StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc HomeTeamInformation}" />
                     <ui:Button
-                        Margin="10,0,0,0"
+                        Margin="0,0,0,0"
                         Command="{Binding ImportInfoFromJsonCommand}"
                         Content="{lex:Loc ImportFromJsonFile}"
                         Icon="{ui:SymbolIcon Symbol=ArrowImport24}"
@@ -227,16 +231,21 @@
                         Icon="{ui:SymbolIcon Symbol=Add24}" />
                 </StackPanel>
             </StackPanel>
-        </Border>
+            </Border>
+        </StackPanel>
 
         <!--  away team  -->
-        <Border DataContext="{Binding AwayTeamInfoViewModel}" Style="{StaticResource Card}">
+        <StackPanel Margin="0,0,10,10">
+            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc AwayTeamInformation}" />
+            <Border
+                Margin="0,10,0,0"
+                DataContext="{Binding AwayTeamInfoViewModel}"
+                Style="{StaticResource Card}">
             <!--  basic info  -->
             <StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc AwayTeamInformation}" />
                     <ui:Button
-                        Margin="10,0,0,0"
+                        Margin="0,0,0,0"
                         Command="{Binding ImportInfoFromJsonCommand}"
                         Content="{lex:Loc ImportFromJsonFile}"
                         Icon="{ui:SymbolIcon Symbol=ArrowImport24}"
@@ -434,45 +443,48 @@
                         Icon="{ui:SymbolIcon Symbol=Add24}" />
                 </StackPanel>
             </StackPanel>
-        </Border>
+            </Border>
+        </StackPanel>
 
         <!--  current  -->
-        <Border
-            Margin="0,0,10,10"
-            Padding="10,10,10,10"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-            CornerRadius="8">
-            <Border.Resources>
-                <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="ui:TextBox">
-                    <!--<Setter Property="PlaceholderText" Value="选手名称" /> -->
-                    <Setter Property="MinWidth" Value="250" />
-                    <Setter Property="IsReadOnly" Value="True" />
-                    <Setter Property="HorizontalAlignment" Value="Left" />
-                </Style>
-                <Style BasedOn="{StaticResource {x:Type cc:CharacterChanger}}" TargetType="cc:CharacterChanger">
-                    <Setter Property="Spacing" Value="10" />
-                    <Setter Property="Margin" Value="10,0,0,0" />
-                </Style>
-            </Border.Resources>
-            <StackPanel>
-                <TextBlock Text="{lex:Loc CurrentPlayerOnStage}" />
-                <TextBlock Margin="0,10,0,0" Text="{lex:Loc Survivor}" />
-                <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding OnFieldSurPlayerViewModels}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
-                                <ui:TextBox PlaceholderText="{lex:Loc PlayerName}" Text="{Binding ThisPlayer.Member.Name}" />
-                                <cc:CharacterChanger Command="{Binding SwapMembersInPlayersCommand}" Index="{Binding Index}" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+        <StackPanel Margin="0,0,10,10">
+            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc CurrentPlayerOnStage}" />
+            <Border
+                Margin="0,10,0,0"
+                Padding="10,10,10,10"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                CornerRadius="8">
+                <Border.Resources>
+                    <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="ui:TextBox">
+                        <!--<Setter Property="PlaceholderText" Value="选手名称" /> -->
+                        <Setter Property="MinWidth" Value="250" />
+                        <Setter Property="IsReadOnly" Value="True" />
+                        <Setter Property="HorizontalAlignment" Value="Left" />
+                    </Style>
+                    <Style BasedOn="{StaticResource {x:Type cc:CharacterChanger}}" TargetType="cc:CharacterChanger">
+                        <Setter Property="Spacing" Value="10" />
+                        <Setter Property="Margin" Value="10,0,0,0" />
+                    </Style>
+                </Border.Resources>
+                <StackPanel>
+                    <TextBlock Text="{lex:Loc Survivor}" />
+                    <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding OnFieldSurPlayerViewModels}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,0,0,10" Orientation="Horizontal">
+                                    <ui:TextBox PlaceholderText="{lex:Loc PlayerName}" Text="{Binding ThisPlayer.Member.Name}" />
+                                    <cc:CharacterChanger Command="{Binding SwapMembersInPlayersCommand}" Index="{Binding Index}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
 
-                <TextBlock Margin="0,10,0,10" Text="{lex:Loc Hunter}" />
-                <ui:TextBox PlaceholderText="{lex:Loc PlayerName}" Text="{Binding OnFieldHunPlayerVm.ThisPlayer.Member.Name}" />
-            </StackPanel>
-        </Border>
+                    <TextBlock Margin="0,10,0,10" Text="{lex:Loc Hunter}" />
+                    <ui:TextBox PlaceholderText="{lex:Loc PlayerName}" Text="{Binding OnFieldHunPlayerVm.ThisPlayer.Member.Name}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
     </WrapPanel>
 </Page>

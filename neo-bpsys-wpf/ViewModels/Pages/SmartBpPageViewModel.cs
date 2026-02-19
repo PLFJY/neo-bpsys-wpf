@@ -1,9 +1,12 @@
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Helpers;
 using Windows.Graphics.Capture;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
@@ -11,15 +14,20 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 public partial class SmartBpPageViewModel : ViewModelBase
 {
     private readonly IWindowCaptureService _windowCaptureService = null!;
+    private readonly IOcrService _ocrService = null!;
 
     public SmartBpPageViewModel()
     {
         // Decorative constructor for design-time only.
+        OcrModelList = [];
     }
 
-    public SmartBpPageViewModel(IWindowCaptureService windowCaptureService)
+    public SmartBpPageViewModel(IWindowCaptureService windowCaptureService, IOcrService ocrService)
     {
         _windowCaptureService = windowCaptureService;
+        _ocrService = ocrService;
+        _ocrService.DownloadStateChanged += OcrService_DownloadStateChanged;
+
         ActiveWindows = _windowCaptureService.ListActiveWindows();
 
         if (!GraphicsCaptureSession.IsSupported())
@@ -27,14 +35,52 @@ public partial class SmartBpPageViewModel : ViewModelBase
             SelectedCaptureMethod = CaptureMethod.Bitblt;
             SelectedCaptureMethodIndex = 1;
         }
+
+        RefreshOcrModelStatus();
+        SyncDownloadStateFromService();
     }
 
     [ObservableProperty]
     private List<WindowInfo> _activeWindows = [];
 
+    [ObservableProperty]
+    private List<OcrModelSelection> _ocrModelList = [];
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(DownloadSelectedOcrModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteSelectedOcrModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SwitchSelectedOcrModelCommand))]
+    private OcrModelSelection? _selectedOcrModel;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(DownloadSelectedOcrModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteSelectedOcrModelCommand))]
+    [NotifyCanExecuteChangedFor(nameof(SwitchSelectedOcrModelCommand))]
+    private bool _isModelDownloading;
+
+    [ObservableProperty]
+    private bool _hasPreciseDownloadProgress;
+
+    [ObservableProperty]
+    private double _modelDownloadProgress;
+
+    [ObservableProperty]
+    private string _modelDownloadProgressText = string.Empty;
+
+    [ObservableProperty]
+    private string _modelDownloadStageText = string.Empty;
+
+    [ObservableProperty]
+    private string _currentOcrModelText = "当前 OCR 模型：未启用";
+
+    public bool ShowDownloadModelButton => SelectedOcrModel is not { IsInstalled: true };
+
+    public bool ShowDeleteModelButton => SelectedOcrModel is { IsInstalled: true };
+
     private WindowInfo? _selectedWindow;
 
-    public WindowInfo? SelectedWindow {
+    public WindowInfo? SelectedWindow
+    {
         get => _selectedWindow;
         set => SetPropertyWithAction(ref _selectedWindow, value, _ =>
         {
@@ -74,6 +120,94 @@ public partial class SmartBpPageViewModel : ViewModelBase
         RefreshCommandStates();
     }
 
+    [RelayCommand]
+    private void RefreshOcrModelStatus()
+    {
+        var preferredSelectedKey = SelectedOcrModel?.Key;
+        var currentModelKey = _ocrService.CurrentOcrModelKey;
+        OcrModelList =
+        [
+            .. _ocrService.GetAvailableModels().Select(m => new OcrModelSelection(
+                m.Key,
+                m.DisplayName,
+                m.Description,
+                _ocrService.IsModelInstalled(m.Key),
+                m.Key == currentModelKey))
+        ];
+
+        SelectedOcrModel = OcrModelList.FirstOrDefault(m => m.Key == preferredSelectedKey)
+            ?? OcrModelList.FirstOrDefault(m => m.Key == currentModelKey)
+            ?? OcrModelList.FirstOrDefault();
+
+        CurrentOcrModelText = currentModelKey is null
+            ? "当前 OCR 模型：未启用"
+            : $"当前 OCR 模型：{OcrModelList.FirstOrDefault(m => m.Key == currentModelKey)?.DisplayName ?? currentModelKey}";
+    }
+
+    [RelayCommand(CanExecute = nameof(CanDownloadSelectedOcrModel))]
+    private async Task DownloadSelectedOcrModelAsync()
+    {
+        if (SelectedOcrModel == null)
+            return;
+
+        try
+        {
+            await _ocrService.DownloadModelAsync(SelectedOcrModel.Key);
+            RefreshOcrModelStatus();
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            await MessageBoxHelper.ShowErrorAsync($"OCR 模型下载失败：{ex.Message}");
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanDeleteSelectedOcrModel))]
+    private async Task DeleteSelectedOcrModelAsync()
+    {
+        if (SelectedOcrModel == null)
+            return;
+
+        var confirmed = await MessageBoxHelper.ShowConfirmAsync(
+            $"确定删除 OCR 模型：{SelectedOcrModel.DisplayName}？",
+            "删除模型",
+            "删除",
+            "取消");
+        if (!confirmed)
+            return;
+
+        if (!_ocrService.TryDeleteModel(SelectedOcrModel.Key, out var errorMessage))
+        {
+            await MessageBoxHelper.ShowErrorAsync(errorMessage);
+            return;
+        }
+
+        RefreshOcrModelStatus();
+    }
+
+    [RelayCommand]
+    private void CancelOcrModelDownload()
+    {
+        _ocrService.CancelDownload();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanSwitchSelectedOcrModel))]
+    private void SwitchSelectedOcrModel()
+    {
+        if (SelectedOcrModel == null)
+            return;
+
+        if (!_ocrService.TrySwitchOcrModel(SelectedOcrModel.Key, out var errorMessage))
+        {
+            _ = MessageBoxHelper.ShowErrorAsync(errorMessage);
+            return;
+        }
+
+        RefreshOcrModelStatus();
+    }
+
     private bool CanCaptureStarted() =>
         SelectedCaptureMethod == CaptureMethod.WGC ? GraphicsCaptureSession.IsSupported() : SelectedWindow is not null;
 
@@ -83,12 +217,62 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
     private static bool CanOpenWindowPicker() => GraphicsCaptureSession.IsSupported();
 
+    private bool CanDownloadSelectedOcrModel() =>
+        !IsModelDownloading && SelectedOcrModel is { IsInstalled: false };
+
+    private bool CanDeleteSelectedOcrModel() =>
+        !IsModelDownloading && SelectedOcrModel is { IsInstalled: true };
+
+    private bool CanSwitchSelectedOcrModel() =>
+        !IsModelDownloading && SelectedOcrModel is { IsInstalled: true };
+
     private void RefreshCommandStates()
     {
         StopCaptureCommand.NotifyCanExecuteChanged();
         OpenPreviewWindowCommand.NotifyCanExecuteChanged();
         StartCaptureCommand.NotifyCanExecuteChanged();
         OpenWindowPickerCommand.NotifyCanExecuteChanged();
+    }
+
+    private void OcrService_DownloadStateChanged(object? sender, EventArgs e)
+    {
+        RunOnUiThread(SyncDownloadStateFromService);
+    }
+
+    private void SyncDownloadStateFromService()
+    {
+        IsModelDownloading = _ocrService.IsDownloading;
+        ModelDownloadStageText = _ocrService.DownloadStatusText;
+
+        if (_ocrService.DownloadProgress is double progress)
+        {
+            HasPreciseDownloadProgress = true;
+            ModelDownloadProgress = progress;
+            ModelDownloadProgressText = $"{progress:0.00}%";
+        }
+        else
+        {
+            HasPreciseDownloadProgress = false;
+            ModelDownloadProgress = 0;
+            ModelDownloadProgressText = string.Empty;
+        }
+    }
+
+    private static void RunOnUiThread(Action action)
+    {
+        if (Application.Current?.Dispatcher == null || Application.Current.Dispatcher.CheckAccess())
+        {
+            action();
+            return;
+        }
+
+        Application.Current.Dispatcher.Invoke(action);
+    }
+
+    partial void OnSelectedOcrModelChanged(OcrModelSelection? value)
+    {
+        OnPropertyChanged(nameof(ShowDownloadModelButton));
+        OnPropertyChanged(nameof(ShowDeleteModelButton));
     }
 
     public CaptureMethod SelectedCaptureMethod { get; set; } = CaptureMethod.WGC;
@@ -119,4 +303,11 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
         public bool IsAvaliable { get; init; } = true;
     }
+
+    public sealed record OcrModelSelection(
+        string Key,
+        string DisplayName,
+        string Description,
+        bool IsInstalled,
+        bool IsCurrent);
 }

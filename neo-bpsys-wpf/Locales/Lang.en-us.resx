@@ -189,9 +189,6 @@
   <data name="PickingBorderImage" xml:space="preserve">
     <value>Picking border image</value>
   </data>
-  <data name="DownloadProgress" xml:space="preserve">
-    <value>Download progress</value>
-  </data>
   <data name="PickingBorderImageColor" xml:space="preserve">
     <value>Picking border image color(It will cover the color of picking border itself)</value>
   </data>
