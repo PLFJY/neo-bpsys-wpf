@@ -15,7 +15,7 @@ public partial class PlayerData : ObservableObjectBase
     /// </summary>
     public string DecodingProgress
     {
-        get => string.IsNullOrWhiteSpace(_decodingProgress) ? "-" : $"{_decodingProgress}%";
+        get => string.IsNullOrWhiteSpace(_decodingProgress) ? "-" : _decodingProgress;
         set
         {
             var normalized = string.IsNullOrWhiteSpace(value)

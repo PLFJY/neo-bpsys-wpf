@@ -6,15 +6,26 @@ using neo_bpsys_wpf.Helpers;
 using OpenCvSharp;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace neo_bpsys_wpf.Services;
 
 public class SmartBpService : ISmartBpService
 {
+    private static readonly RelativeRect[] DataColumnRects =
+    [
+        new(0.255, 0, 0.1, 1),
+        new(0.4, 0, 0.1, 1),
+        new(0.515, 0, 0.1, 1),
+        new(0.65, 0, 0.1, 1),
+        new(0.79, 0, 0.1, 1)
+    ];
+
     private readonly ISharedDataService _sharedDataService;
     private readonly IWindowCaptureService _windowCaptureService;
     private readonly IOcrService _ocrService;
+    private int _ocrWarmupStarted;
 
     public bool IsSmartBpRunning { get; private set; }
 
@@ -36,11 +47,33 @@ public class SmartBpService : ISmartBpService
         }
 
         IsSmartBpRunning = true;
+        StartOcrWarmupIfNeeded();
     }
 
     public void StopSmartBp()
     {
         IsSmartBpRunning = false;
+    }
+
+    private void StartOcrWarmupIfNeeded()
+    {
+        if (Interlocked.Exchange(ref _ocrWarmupStarted, 1) == 1)
+            return;
+
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                using var warmup1 = new Mat(new Size(192, 64), MatType.CV_8UC1, Scalar.All(255));
+                using var warmup2 = new Mat(new Size(512, 96), MatType.CV_8UC1, Scalar.All(255));
+                _ = _ocrService.RecognizeText(warmup1);
+                _ = _ocrService.RecognizeText(warmup2);
+            }
+            catch
+            {
+                // 预热失败不影响主流程。
+            }
+        });
     }
 
     public async Task AutoFillGameDataAsync(CancellationToken cancellationToken = default)
@@ -172,11 +205,6 @@ public class SmartBpService : ISmartBpService
     {
         var surInfos = new List<PlayerInfo>();
 
-        var surFirstDataRowRect = new RelativeRect(0, 0.279, 1, 0.14)
-            .ToPixelRect(table.Width, table.Height);
-        using var surFirstDataRow = new Mat(table, surFirstDataRowRect);
-        // SaveDebug(surFirstDataRow, "03_sur_first_data_row.png");
-
         const double rowStep = 0.19;
         var baseRowRel = new RelativeRect(0, 0.279, 1, 0.14);
 
@@ -215,15 +243,17 @@ public class SmartBpService : ISmartBpService
 
     private PlayerData GetSurPlayerData(Mat surRow)
     {
-        // 这些列 x 位置你 hunter 已经调好，sur 直接复用就很合理
+        var values = GetRowDataValues(surRow);
+
         var data = new PlayerData
         {
-            DecodingProgress = GetData(surRow, new RelativeRect(0.255, 0, 0.1, 1), "sur_decoding_progress.png"),
-            PalletStrikes = GetData(surRow, new RelativeRect(0.4, 0, 0.1, 1), "sur_pallet_strikes.png"),
-            Rescues = GetData(surRow, new RelativeRect(0.515, 0, 0.1, 1), "sur_rescues.png"),
-            Heals = GetData(surRow, new RelativeRect(0.65, 0, 0.1, 1), "sur_heals.png"),
-            ContainmentTime = GetData(surRow, new RelativeRect(0.79, 0, 0.1, 1), "sur_containment_time.png")
+            DecodingProgress = values[0],
+            PalletStrikes = values[1],
+            Rescues = values[2],
+            Heals = values[3],
+            ContainmentTime = values[4]
         };
+
         return data;
     }
 
@@ -278,37 +308,120 @@ public class SmartBpService : ISmartBpService
 
     public PlayerData GetHunPlayerData(Mat hunter)
     {
+        var values = GetRowDataValues(hunter);
+
         var data = new PlayerData
         {
-            RemainingCipher = GetData(
-                hunter,
-                new RelativeRect(0.255, 0, 0.1, 1)),
-            PalletsDestroyed = GetData(
-                hunter,
-                new RelativeRect(0.4, 0, 0.1, 1)),
-            SurvivorHits = GetData(
-                hunter,
-                new RelativeRect(0.515, 0, 0.1, 1)),
-            TerrorShocks = GetData(
-                hunter,
-                new RelativeRect(0.65, 0, 0.1, 1)),
-            Knockdowns = GetData(
-                hunter,
-                new RelativeRect(0.79, 0, 0.1, 1))
+            RemainingCipher = values[0],
+            PalletsDestroyed = values[1],
+            SurvivorHits = values[2],
+            TerrorShocks = values[3],
+            Knockdowns = values[4]
         };
 
         return data;
     }
 
+    private string[] GetRowDataValues(Mat row)
+    {
+        var batchValues = TryGetRowDataValuesBySingleOcr(row);
+        if (batchValues != null)
+            return batchValues;
+
+        // 回退到逐列 OCR，保证稳定性。
+        return
+        [
+            GetData(row, DataColumnRects[0]),
+            GetData(row, DataColumnRects[1]),
+            GetData(row, DataColumnRects[2]),
+            GetData(row, DataColumnRects[3]),
+            GetData(row, DataColumnRects[4])
+        ];
+    }
+
+    private string[]? TryGetRowDataValuesBySingleOcr(Mat row)
+    {
+        using var strip = BuildDataStrip(row, DataColumnRects);
+        using var bin = PreprocessForDigits(strip);
+        var text = _ocrService.RecognizeText(bin);
+        return TryParseFiveNumbers(text);
+    }
+
+    private static string[]? TryParseFiveNumbers(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return null;
+
+        var matches = Regex.Matches(text, @"\d+");
+        if (matches.Count != 5)
+            return null;
+
+        return
+        [
+            matches[0].Value,
+            matches[1].Value,
+            matches[2].Value,
+            matches[3].Value,
+            matches[4].Value
+        ];
+    }
+
+    private static Mat BuildDataStrip(Mat row, IReadOnlyList<RelativeRect> rects)
+    {
+        var columnRects = rects
+            .Select(r => TrimDataRect(r.ToPixelRect(row.Width, row.Height)))
+            .ToArray();
+
+        var gap = Math.Max(20, row.Width / 55);
+        var totalWidth = columnRects.Sum(r => r.Width) + gap * Math.Max(0, columnRects.Length - 1);
+        var strip = new Mat(new Size(totalWidth, row.Height), MatType.CV_8UC3, Scalar.All(255));
+
+        var x = 0;
+        foreach (var rect in columnRects)
+        {
+            using var src = new Mat(row, rect);
+            using var dst = new Mat(strip, new Rect(x, 0, rect.Width, rect.Height));
+            src.CopyTo(dst);
+            x += rect.Width + gap;
+        }
+
+        return strip;
+    }
+
+    private static Rect TrimDataRect(Rect rect)
+    {
+        // 裁掉列边缘的分隔线，避免单个数字（尤其是 1）被粘连/吞掉。
+        var trimX = Math.Clamp(rect.Width / 10, 2, 10);
+        var trimY = Math.Clamp(rect.Height / 16, 0, 4);
+
+        var x = rect.X + trimX;
+        var y = rect.Y + trimY;
+        var w = Math.Max(1, rect.Width - trimX * 2);
+        var h = Math.Max(1, rect.Height - trimY * 2);
+        return new Rect(x, y, w, h);
+    }
+
     private string GetData(Mat row, RelativeRect rect, string? rawDebugFileName = null, string? binDebugFileName = null)
     {
-        var dataRect = rect.ToPixelRect(row.Width, row.Height);
+        var rawRect = rect.ToPixelRect(row.Width, row.Height);
+        var trimmedRect = TrimDataRect(rawRect);
+
+        var value = RecognizeDigits(row, trimmedRect, rawDebugFileName, binDebugFileName);
+        if (!string.IsNullOrEmpty(value))
+            return value;
+
+        // 兜底：裁边可能伤到细数字（例如单个 1），空结果时退回原始列再识别一次。
+        return RecognizeDigits(row, rawRect);
+    }
+
+    private string RecognizeDigits(Mat row, Rect dataRect, string? rawDebugFileName = null, string? binDebugFileName = null)
+    {
         using var column = new Mat(row, dataRect);
 
         if (!string.IsNullOrWhiteSpace(rawDebugFileName))
             SaveDebug(column, rawDebugFileName);
 
-        using var bin = PreprocessForText(column);
+        using var bin = PreprocessForDigits(column);
 
         if (!string.IsNullOrWhiteSpace(binDebugFileName))
             SaveDebug(bin, binDebugFileName);
@@ -363,27 +476,27 @@ public class SmartBpService : ISmartBpService
     public static Mat PreprocessForText(Mat bgr)
     {
         // 0) 放大：数字太小的话，det/rec 都会难受
-        var scaled = new Mat();
+        using var scaled = new Mat();
         Cv2.Resize(bgr, scaled, new Size(), 3.0, 3.0, InterpolationFlags.Cubic);
 
         // 1) 灰度
-        var gray = new Mat();
+        using var gray = new Mat();
         Cv2.CvtColor(scaled, gray, ColorConversionCodes.BGR2GRAY);
 
         // 2) 背景抹平：用大尺度模糊当“背景”，再做差分
         //    直觉：把慢变化的背景(头像/渐变)去掉，只剩“亮的细东西”(数字)
-        var bg = new Mat();
+        using var bg = new Mat();
         Cv2.GaussianBlur(gray, bg, new Size(0, 0), 12); // sigma 可调：8~18
 
-        var diff = new Mat();
+        using var diff = new Mat();
         Cv2.Subtract(gray, bg, diff); // 亮的东西会更突出，背景会趋近 0
 
         // 3) 拉伸对比度，避免 diff 太灰
-        var norm = new Mat();
+        using var norm = new Mat();
         Cv2.Normalize(diff, norm, 0, 255, NormTypes.MinMax);
 
         // 4) 轻去噪（别太重，不然笔画断）
-        var denoise = new Mat();
+        using var denoise = new Mat();
         Cv2.GaussianBlur(norm, denoise, new Size(3, 3), 0);
 
         // 5) 二值：用 Otsu 自动阈值更稳（比 adaptive 更不容易把背景线条提出来）
@@ -391,15 +504,36 @@ public class SmartBpService : ISmartBpService
         Cv2.Threshold(denoise, bin, 0, 255, ThresholdTypes.Binary | ThresholdTypes.Otsu);
 
         // 6) 形态学：把断笔画接上、去掉小噪点
-        var kClose = Cv2.GetStructuringElement(MorphShapes.Rect, new Size(3, 3));
+        using var kClose = Cv2.GetStructuringElement(MorphShapes.Rect, new Size(3, 3));
         Cv2.MorphologyEx(bin, bin, MorphTypes.Close, kClose, iterations: 1);
 
-        var kOpen = Cv2.GetStructuringElement(MorphShapes.Rect, new Size(2, 2));
+        using var kOpen = Cv2.GetStructuringElement(MorphShapes.Rect, new Size(2, 2));
         Cv2.MorphologyEx(bin, bin, MorphTypes.Open, kOpen, iterations: 1);
 
         // 7) Paddle 识别通常更喜欢 “黑字白底”
         Cv2.BitwiseNot(bin, bin);
 
+        return bin;
+    }
+
+    public static Mat PreprocessForDigits(Mat bgr)
+    {
+        using var scaled = new Mat();
+        Cv2.Resize(bgr, scaled, new Size(), 2.0, 2.0, InterpolationFlags.Linear);
+
+        using var gray = new Mat();
+        Cv2.CvtColor(scaled, gray, ColorConversionCodes.BGR2GRAY);
+
+        using var norm = new Mat();
+        Cv2.Normalize(gray, norm, 0, 255, NormTypes.MinMax);
+
+        var bin = new Mat();
+        Cv2.Threshold(norm, bin, 0, 255, ThresholdTypes.Binary | ThresholdTypes.Otsu);
+
+        using var kernel = Cv2.GetStructuringElement(MorphShapes.Rect, new Size(2, 2));
+        Cv2.MorphologyEx(bin, bin, MorphTypes.Close, kernel, iterations: 1);
+
+        Cv2.BitwiseNot(bin, bin);
         return bin;
     }
 
