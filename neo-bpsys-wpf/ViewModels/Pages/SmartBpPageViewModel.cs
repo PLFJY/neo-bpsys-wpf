@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
 using Windows.Graphics.Capture;
+using WPFLocalizeExtension.Engine;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -74,7 +75,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
     private string _modelDownloadStageText = string.Empty;
 
     [ObservableProperty]
-    private string _currentOcrModelText = "当前 OCR 模型：未启用";
+    private string _currentOcrModelDisplayName = "SmartBpCurrentOcrModelNotEnabled";
 
     public bool ShowDownloadModelButton => SelectedOcrModel is not { IsInstalled: true };
 
@@ -129,23 +130,27 @@ public partial class SmartBpPageViewModel : ViewModelBase
     {
         var preferredSelectedKey = SelectedOcrModel?.Key;
         var currentModelKey = _ocrService.CurrentOcrModelKey;
+        var recommendedModelKey = GetRecommendedModelKeyForCurrentLanguage();
         OcrModelList =
         [
-            .. _ocrService.GetAvailableModels().Select(m => new OcrModelSelection(
-                m.Key,
-                m.DisplayName,
-                m.Description,
-                _ocrService.IsModelInstalled(m.Key),
-                m.Key == currentModelKey))
+            .. _ocrService.GetAvailableModels()
+                .OrderByDescending(m => m.Key == recommendedModelKey)
+                .Select(m => new OcrModelSelection(
+                    m.Key,
+                    m.DisplayName,
+                    m.Description,
+                    _ocrService.IsModelInstalled(m.Key),
+                    m.Key == currentModelKey))
         ];
 
         SelectedOcrModel = OcrModelList.FirstOrDefault(m => m.Key == preferredSelectedKey)
             ?? OcrModelList.FirstOrDefault(m => m.Key == currentModelKey)
+            ?? OcrModelList.FirstOrDefault(m => m.Key == recommendedModelKey)
             ?? OcrModelList.FirstOrDefault();
 
-        CurrentOcrModelText = currentModelKey is null
-            ? "当前 OCR 模型：未启用"
-            : $"当前 OCR 模型：{OcrModelList.FirstOrDefault(m => m.Key == currentModelKey)?.DisplayName ?? currentModelKey}";
+        CurrentOcrModelDisplayName = currentModelKey is null
+            ? "SmartBpCurrentOcrModelNotEnabled"
+            : OcrModelList.FirstOrDefault(m => m.Key == currentModelKey)?.DisplayName ?? currentModelKey;
     }
 
     [RelayCommand(CanExecute = nameof(CanDownloadSelectedOcrModel))]
@@ -164,7 +169,10 @@ public partial class SmartBpPageViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            await MessageBoxHelper.ShowErrorAsync($"OCR 模型下载失败：{ex.Message}");
+            await MessageBoxHelper.ShowErrorAsync(
+                string.Format(
+                    I18nHelper.GetLocalizedString("SmartBpOcrModelDownloadFailed"),
+                    ex.Message));
         }
     }
 
@@ -175,10 +183,10 @@ public partial class SmartBpPageViewModel : ViewModelBase
             return;
 
         var confirmed = await MessageBoxHelper.ShowConfirmAsync(
-            $"确定删除 OCR 模型：{SelectedOcrModel.DisplayName}？",
-            "删除模型",
-            "删除",
-            "取消");
+            string.Format(I18nHelper.GetLocalizedString("SmartBpDeleteOcrModelConfirmFormat"), ResolveLocalizedOrRaw(SelectedOcrModel.DisplayName)),
+            I18nHelper.GetLocalizedString("SmartBpDeleteOcrModelTitle"),
+            I18nHelper.GetLocalizedString("Delete"),
+            I18nHelper.GetLocalizedString("Cancel"));
         if (!confirmed)
             return;
 
@@ -295,22 +303,40 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
     private static bool IsWgcHwndCaptureSupported() => IsWgcHwndInteropAvailable() && IsWgcSupported();
 
+    private static string GetRecommendedModelKeyForCurrentLanguage()
+    {
+        var language = LocalizeDictionary.CurrentCulture.Name;
+        if (language.StartsWith("en", StringComparison.OrdinalIgnoreCase))
+            return "en-v4-mobile";
+
+        if (language.StartsWith("ja", StringComparison.OrdinalIgnoreCase))
+            return "ja-v4-mobile";
+
+        return "zh-cn-v5-mobile";
+    }
+
+    private static string ResolveLocalizedOrRaw(string keyOrRawText)
+    {
+        var localized = I18nHelper.GetLocalizedString(keyOrRawText);
+        return string.IsNullOrWhiteSpace(localized) ? keyOrRawText : localized;
+    }
+
     public CaptureMethod SelectedCaptureMethod { get; set; } = CaptureMethod.WGC;
 
     public int SelectedCaptureMethodIndex { get; set; }
 
     public List<CaptureMethodSelection> CaptureMethodList { get; } =
     [
-        new(CaptureMethod.WGC, "Windows Graphic Capture (Windows 10 1903 or later)"),
-        new(CaptureMethod.Bitblt, "Bitblt")
+        new(CaptureMethod.WGC, "SmartBpCaptureMethodWgc"),
+        new(CaptureMethod.Bitblt, "SmartBpCaptureMethodBitblt")
     ];
 
     public class CaptureMethodSelection
     {
-        public CaptureMethodSelection(CaptureMethod method, string displayName)
+        public CaptureMethodSelection(CaptureMethod method, string displayNameKey)
         {
             Method = method;
-            DisplayName = displayName;
+            DisplayNameKey = displayNameKey;
 
             if (method == CaptureMethod.WGC && !IsWgcHwndCaptureSupported())
             {
@@ -320,7 +346,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
         public CaptureMethod Method { get; init; }
 
-        public string DisplayName { get; init; }
+        public string DisplayNameKey { get; init; }
 
         public bool IsAvaliable { get; init; } = true;
     }

@@ -21,17 +21,23 @@
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <WrapPanel Orientation="Horizontal">
-        <StackPanel Margin="0,0,10,10">
-            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SurvivorTalent}" />
-            <Border
-                Margin="0,10,0,0"
-                Style="{StaticResource Card}">
+        <Border
+            Margin="0,0,10,10"
+            Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <WrapPanel Grid.Row="0" Orientation="Horizontal">
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc SurvivorTalent}" />
+                <WrapPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
                     <controls:TalentPicker
                         Margin="0,0,10,10"
                         CharacterName="{Binding CurrentGame.SurPlayerList[0].Character.Name, Mode=OneWay}"
@@ -54,33 +60,32 @@
                         Player="{Binding CurrentGame.SurPlayerList[3]}" />
                 </WrapPanel>
             </Grid>
-            </Border>
-        </StackPanel>
-        <StackPanel Margin="0,0,10,10">
-            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc HunterTalent}" />
-            <Border
-                Margin="0,10,0,0"
-                Style="{StaticResource Card}">
+        </Border>
+        <Border
+            Margin="0,0,10,10"
+            Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <controls:TalentPicker
+                <TextBlock
                     Grid.Row="0"
-                    Margin="0,0,20,10"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc HunterTalent}" />
+                <controls:TalentPicker
+                    Grid.Row="1"
+                    Margin="0,10,20,10"
                     HorizontalAlignment="Left"
                     CharacterName="{Binding CurrentGame.HunPlayer.Character.Name, Mode=OneWay}"
                     IsHighlighted="{Binding IsHunTalentHighlighted}"
                     IsTypeHun="True"
                     Player="{Binding CurrentGame.HunPlayer}" />
             </Grid>
-            </Border>
-        </StackPanel>
-        <StackPanel Margin="0,0,10,10">
-            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc HunterTrait}" />
-            <Border
-                Margin="0,10,0,0"
-                Style="{StaticResource Card}">
+        </Border>
+        <Border
+            Margin="0,0,10,10"
+            Style="{StaticResource Card}">
             <Border.Resources>
                 <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
                 <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
@@ -96,9 +101,17 @@
                 </Grid.Resources>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc HunterTrait}" />
+                <StackPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
                     <ui:ToggleSwitch
                         x:Name="IsTraitVisible"
                         Margin="0,0,0,0"
@@ -107,7 +120,7 @@
                         IsChecked="{Binding IsTraitVisible}" />
                 </StackPanel>
                 <WrapPanel
-                    Grid.Row="1"
+                    Grid.Row="2"
                     Margin="0,10,0,0"
                     Orientation="Horizontal"
                     Visibility="{Binding ElementName=IsTraitVisible, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}, Mode=TwoWay}">
@@ -153,7 +166,6 @@
                     </i:Interaction.Triggers>
                 </WrapPanel>
             </Grid>
-            </Border>
-        </StackPanel>
+        </Border>
     </WrapPanel>
 </Page>

@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
@@ -19,21 +20,29 @@
     <Page.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <cv:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        <cv:LocalizationKeyToTextConverter x:Key="LocalizationKeyToTextConverter" />
     </Page.Resources>
 
     <StackPanel Margin="10,0,10,0">
-        <TextBlock Style="{StaticResource Title}" Text="窗口捕获设置" />
         <Border Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="捕获方式" />
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc SmartBpWindowCaptureSettings}" />
+                <StackPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc SmartBpCaptureMethod}" />
                     <ComboBox
-                        Width="215"
+                        Width="400"
                         Margin="10,0,0,0"
                         ItemsSource="{Binding CaptureMethodList}"
                         SelectedIndex="{Binding SelectedCaptureMethodIndex}"
@@ -46,19 +55,19 @@
                         </ComboBox.ItemContainerStyle>
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding DisplayName}" />
+                                <TextBlock Text="{lex:Loc {Binding DisplayNameKey}}" />
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
                 </StackPanel>
                 <WrapPanel
-                    Grid.Row="1"
+                    Grid.Row="2"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
                     <TextBlock
                         Margin="0,0,10,10"
                         VerticalAlignment="Center"
-                        Text="选择游戏窗口进程" />
+                        Text="{lex:Loc SmartBpSelectGameWindowProcess}" />
                     <ComboBox
                         MinWidth="220"
                         Margin="0,0,10,10"
@@ -67,53 +76,53 @@
                     <ui:Button
                         Margin="0,0,10,10"
                         Command="{Binding RefreshActiveWindowsCommand}"
-                        Content="刷新"
+                        Content="{lex:Loc Refresh}"
                         Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
                     <ui:Button
                         Margin="0,0,10,10"
                         Command="{Binding OpenWindowPickerCommand}"
-                        Content="打开窗口选择器（仅WGC可用）" />
+                        Content="{lex:Loc SmartBpOpenWindowPickerOnlyWgc}" />
                 </WrapPanel>
                 <StackPanel
-                    Grid.Row="2"
+                    Grid.Row="3"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
                     <ui:Button
                         Command="{Binding StartCaptureCommand}"
-                        Content="开始捕获"
+                        Content="{lex:Loc SmartBpStartCapture}"
                         Icon="{ui:SymbolIcon Symbol=WindowPlay20}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding StopCaptureCommand}"
-                        Content="停止捕获"
+                        Content="{lex:Loc SmartBpStopCapture}"
                         Icon="{ui:SymbolIcon Symbol=ShareScreenStop24}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding OpenPreviewWindowCommand}"
-                        Content="打开预览"
+                        Content="{lex:Loc SmartBpOpenPreview}"
                         Icon="{ui:SymbolIcon Symbol=WindowNew24}" />
                 </StackPanel>
             </Grid>
         </Border>
-
-        <TextBlock
-            Margin="0,10,0,0"
-            Style="{StaticResource Title}"
-            Text="OCR 模型管理" />
-        <Border Style="{StaticResource Card}">
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc SmartBpOcrModelManagement}" />
 
                 <StackPanel
-                    Grid.Row="0"
+                    Grid.Row="1"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="模型选择" />
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc SmartBpOcrModelSelection}" />
                     <ComboBox
                         Width="440"
                         Margin="10,0,0,0"
@@ -122,11 +131,12 @@
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel>
-                                    <TextBlock Text="{Binding DisplayName}" />
+                                    <TextBlock Text="{lex:Loc {Binding DisplayName}, FallbackBehavior=Key}" />
                                     <TextBlock
                                         FontSize="12"
                                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                        Text="{Binding Description}" />
+                                        Text="{lex:Loc {Binding Description},
+                                                       FallbackBehavior=Key}" />
                                 </StackPanel>
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
@@ -134,39 +144,39 @@
                 </StackPanel>
 
                 <StackPanel
-                    Grid.Row="1"
+                    Grid.Row="2"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
                     <ui:Button
                         Command="{Binding DownloadSelectedOcrModelCommand}"
-                        Content="下载模型"
+                        Content="{lex:Loc SmartBpDownloadModel}"
                         Icon="{ui:SymbolIcon Symbol=ArrowDownload24}"
                         Visibility="{Binding ShowDownloadModelButton, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     <ui:Button
                         Command="{Binding DeleteSelectedOcrModelCommand}"
-                        Content="删除模型"
+                        Content="{lex:Loc SmartBpDeleteModel}"
                         Icon="{ui:SymbolIcon Symbol=Delete24}"
                         Visibility="{Binding ShowDeleteModelButton, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding SwitchSelectedOcrModelCommand}"
-                        Content="切换为当前模型"
+                        Content="{lex:Loc SmartBpSwitchToCurrentModel}"
                         Icon="{ui:SymbolIcon Symbol=Save24}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding RefreshOcrModelStatusCommand}"
-                        Content="刷新状态"
+                        Content="{lex:Loc SmartBpRefreshStatus}"
                         Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding CancelOcrModelDownloadCommand}"
-                        Content="取消下载"
+                        Content="{lex:Loc SmartBpCancelDownload}"
                         Icon="{ui:SymbolIcon Symbol=Stop24}"
                         Visibility="{Binding IsModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 </StackPanel>
 
                 <StackPanel
-                    Grid.Row="2"
+                    Grid.Row="3"
                     Margin="0,10,0,0"
                     Visibility="{Binding IsModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock Text="{Binding ModelDownloadStageText}" />
@@ -197,10 +207,17 @@
                 </StackPanel>
 
                 <StackPanel
-                    Grid.Row="3"
+                    Grid.Row="4"
                     Margin="0,10,0,0"
                     Orientation="Horizontal">
-                    <TextBlock Text="{Binding CurrentOcrModelText}" />
+                    <TextBlock>
+                        <TextBlock.Text>
+                            <MultiBinding Converter="{lex:StringFormatConverter}">
+                                <lex:BLoc Key="SmartBpCurrentOcrModelFormat" />
+                                <Binding Converter="{StaticResource LocalizationKeyToTextConverter}" Path="CurrentOcrModelDisplayName" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
                 </StackPanel>
             </Grid>
         </Border>

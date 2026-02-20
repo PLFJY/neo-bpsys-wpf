@@ -15,11 +15,6 @@ namespace neo_bpsys_wpf.Services;
 
 public class OcrService : IOcrService
 {
-    private static readonly IReadOnlyList<OcrModelDefinition> AvailableModels =
-    [
-        .. SmartBpOcrModelRegistry.Models.Select(m => new OcrModelDefinition(m.Key, m.DisplayName, m.Description))
-    ];
-
     private readonly ISettingsHostService _settingsHostService;
     private readonly Lock _ocrLock = new();
     private readonly Lock _downloadLock = new();
@@ -59,7 +54,13 @@ public class OcrService : IOcrService
         TryLoadPreferredModel();
     }
 
-    public IReadOnlyList<OcrModelDefinition> GetAvailableModels() => AvailableModels;
+    public IReadOnlyList<OcrModelDefinition> GetAvailableModels() =>
+    [
+        .. SmartBpOcrModelRegistry.Models.Select(m => new OcrModelDefinition(
+            m.Key,
+            m.DisplayNameKey,
+            m.DescriptionKey))
+    ];
 
     public bool IsModelInstalled(string modelKey) => SmartBpOcrModelRegistry.IsModelInstalled(modelKey);
 
@@ -208,28 +209,10 @@ public class OcrService : IOcrService
                 Directory.Delete(modelDirectory, recursive: true);
             }
 
-            if (!deletingCurrent && _settingsHostService.Settings.OcrModelKey == modelKey)
+            if (_settingsHostService.Settings.OcrModelKey == modelKey)
             {
                 _settingsHostService.Settings.OcrModelKey = null;
                 _ = _settingsHostService.SaveConfigAsync();
-            }
-
-            if (!deletingCurrent && File.Exists(SmartBpOcrModelRegistry.ActiveModelFilePath))
-            {
-                var activeModelKey = File.ReadAllText(SmartBpOcrModelRegistry.ActiveModelFilePath).Trim();
-                if (activeModelKey == modelKey)
-                {
-                    File.Delete(SmartBpOcrModelRegistry.ActiveModelFilePath);
-                }
-            }
-
-            if (!deletingCurrent && File.Exists(SmartBpOcrModelRegistry.LegacyActiveModelFilePath))
-            {
-                var legacyActiveModelKey = File.ReadAllText(SmartBpOcrModelRegistry.LegacyActiveModelFilePath).Trim();
-                if (legacyActiveModelKey == modelKey)
-                {
-                    File.Delete(SmartBpOcrModelRegistry.LegacyActiveModelFilePath);
-                }
             }
 
             return true;
@@ -266,6 +249,8 @@ public class OcrService : IOcrService
             {
                 _ocr?.Dispose();
                 _ocr = nextOcr;
+                _ocr.AllowRotateDetection = false;
+                _ocr.Enable180Classification = true;
             }
 
             _missingModelWarningShown = 0;
@@ -280,16 +265,28 @@ public class OcrService : IOcrService
         }
     }
 
-    public string? RecognizeText(Mat bin)
+    public string? RecognizeText(Mat img)
     {
-        if (bin.Empty())
-            return null;
+        if (img.Empty()) return null;
+
+        // PaddleOCR 全流程更稳的是 8UC3(BGR)
+        Mat bgr;
+        if (img.Channels() == 1)
+        {
+            bgr = new Mat();
+            Cv2.CvtColor(img, bgr, ColorConversionCodes.GRAY2BGR);
+        }
+        else
+        {
+            bgr = img;
+        }
 
         lock (_ocrLock)
         {
             if (_ocr is not null)
             {
-                return _ocr.Run(bin).Text;
+                var r = _ocr.Run(bgr);
+                return string.IsNullOrWhiteSpace(r.Text) ? null : r.Text;
             }
         }
 
@@ -451,17 +448,6 @@ public class OcrService : IOcrService
     private void TryLoadPreferredModel()
     {
         string? preferredModel = _settingsHostService.Settings.OcrModelKey;
-        if (string.IsNullOrWhiteSpace(preferredModel) && File.Exists(SmartBpOcrModelRegistry.ActiveModelFilePath))
-        {
-            preferredModel = File.ReadAllText(SmartBpOcrModelRegistry.ActiveModelFilePath).Trim();
-        }
-        else if (string.IsNullOrWhiteSpace(preferredModel) && File.Exists(SmartBpOcrModelRegistry.LegacyActiveModelFilePath))
-        {
-            preferredModel = File.ReadAllText(SmartBpOcrModelRegistry.LegacyActiveModelFilePath).Trim();
-
-            Directory.CreateDirectory(SmartBpOcrModelRegistry.ActiveModelConfigDirectory);
-            File.WriteAllText(SmartBpOcrModelRegistry.ActiveModelFilePath, preferredModel);
-        }
 
         if (string.IsNullOrWhiteSpace(preferredModel))
             return;
@@ -479,14 +465,6 @@ public class OcrService : IOcrService
 
     private void PersistCurrentModel(string modelKey)
     {
-        Directory.CreateDirectory(SmartBpOcrModelRegistry.ActiveModelConfigDirectory);
-        File.WriteAllText(SmartBpOcrModelRegistry.ActiveModelFilePath, modelKey);
-
-        if (File.Exists(SmartBpOcrModelRegistry.LegacyActiveModelFilePath))
-        {
-            File.Delete(SmartBpOcrModelRegistry.LegacyActiveModelFilePath);
-        }
-
         _settingsHostService.Settings.OcrModelKey = modelKey;
         _ = _settingsHostService.SaveConfigAsync();
     }
@@ -518,4 +496,5 @@ public class OcrService : IOcrService
 
         return new FullOcrModel(detModel, clsModel, recModel);
     }
+
 }
