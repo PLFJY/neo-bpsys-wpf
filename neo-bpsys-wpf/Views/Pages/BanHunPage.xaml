@@ -23,17 +23,20 @@
         <cv:IndexFormatConverter x:Key="IndexFormatConverter" />
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
-        <StackPanel Margin="0,0,10,10">
-            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc CurrentBan}" />
-            <Border
-                Margin="0,10,0,0"
-                Style="{StaticResource Card}">
+        <Border
+            Margin="0,0,10,10"
+            Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <ItemsControl
+                <TextBlock
                     Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc CurrentBan}" />
+                <ItemsControl
+                    Grid.Row="1"
                     Margin="0,10,0,0"
                     Focusable="False"
                     ItemsSource="{Binding BanHunCurrentViewModelList}">
@@ -56,19 +59,21 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </Grid>
-            </Border>
-        </StackPanel>
-        <StackPanel Margin="0,0,10,10">
-            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc GlobalBan}" />
-            <Border
-                Margin="0,10,0,0"
-                Style="{StaticResource Card}">
+        </Border>
+        <Border
+            Margin="0,0,10,10"
+            Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <ItemsControl
+                <TextBlock
                     Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc GlobalBan}" />
+                <ItemsControl
+                    Grid.Row="1"
                     Margin="0,10,0,0"
                     Focusable="False"
                     ItemsSource="{Binding BanHunGlobalViewModelList}">
@@ -91,15 +96,13 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </Grid>
-            </Border>
-        </StackPanel>
-        <StackPanel Margin="0,0,10,10">
-            <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanNumberControl}" />
-            <Border
-                Margin="0,10,0,0"
-                Style="{StaticResource Card}">
+        </Border>
+        <Border
+            Margin="0,0,10,10"
+            Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
@@ -107,10 +110,14 @@
                 </Grid.RowDefinitions>
                 <TextBlock
                     Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc BanNumberControl}" />
+                <TextBlock
+                    Grid.Row="1"
                     Margin="0,10,0,0"
                     Text="{lex:Loc CurrentBan}" />
                 <ItemsControl
-                    Grid.Row="1"
+                    Grid.Row="2"
                     Margin="0,10,0,0"
                     ItemsSource="{Binding BanHunCurrentViewModelList}">
                     <ItemsControl.ItemsPanel>
@@ -135,11 +142,11 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
                 <TextBlock
-                    Grid.Row="2"
+                    Grid.Row="3"
                     Margin="0,10,0,0"
                     Text="{lex:Loc GlobalBan}" />
                 <ItemsControl
-                    Grid.Row="3"
+                    Grid.Row="4"
                     Margin="0,10,0,0"
                     ItemsSource="{Binding BanHunGlobalViewModelList}">
                     <ItemsControl.ItemsPanel>
@@ -167,7 +174,6 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </Grid>
-            </Border>
-        </StackPanel>
+        </Border>
     </WrapPanel>
 </Page>

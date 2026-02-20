@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Views.Pages;
 using SharpDX.Direct3D11;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -17,6 +18,7 @@ using Windows.Graphics;
 using Windows.Graphics.Capture;
 using Windows.Graphics.DirectX;
 using Windows.Graphics.DirectX.Direct3D11;
+using Wpf.Ui;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -24,12 +26,13 @@ namespace neo_bpsys_wpf.Services;
 /// 窗口捕获服务。
 /// 该服务统一负责窗口枚举、WGC 捕获生命周期管理、最新帧缓存以及预览窗口展示。
 /// </summary>
-public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) : IWindowCaptureService
+public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, INavigationService navigationService) : IWindowCaptureService
 {
     private const int WgcMinimumBuild = 17134; // Windows 10 1803
     private const int WgcHwndInteropMinimumBuild = 18362; // Windows 10 1903
 
     private readonly ILogger<WindowCaptureService> _logger = logger;
+    private readonly INavigationService _navigationService = navigationService;
 
     // 捕获线程会写入 _currentFrame，UI 线程会读取 _currentFrame。
     // 使用 Lock 保证读写一致性，避免帧对象在替换瞬间出现竞争。
@@ -171,7 +174,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
         // 没有选中窗口时直接失败，比后续空引用更可控、更易理解。
         if (window is null)
         {
-            _ = MessageBoxHelper.ShowErrorAsync("Please select a window first.");
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("WindowCapturePleaseSelectWindowFirst"));
             return false;
         }
 
@@ -196,13 +199,13 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
         // WGC 是系统能力，先判断支持性，避免后续调用抛平台异常。
         if (!IsWgcApiAvailable())
         {
-            _ = MessageBoxHelper.ShowErrorAsync("Windows Graphic Capture is required Windows 10 1803 or later.");
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("WindowCaptureWgcRequires1803OrLater"));
             return false;
         }
 
         if (!IsWgcSupported())
         {
-            _ = MessageBoxHelper.ShowErrorAsync("Windows Graphic Capture is not supported on current system.");
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("WindowCaptureWgcNotSupportedOnCurrentSystem"));
             return false;
         }
 
@@ -232,7 +235,10 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
         {
             // 这里捕获异常是为了保护 UI 主流程，避免未处理异常中断应用。
             _logger.LogError(ex, "Failed to start capture from picker.");
-            _ = MessageBoxHelper.ShowErrorAsync($"Failed to start picker capture: {ex.Message}");
+            _ = MessageBoxHelper.ShowErrorAsync(
+                string.Format(
+                    I18nHelper.GetLocalizedString("WindowCaptureFailedToStartPickerCaptureFormat"),
+                    ex.Message));
             return false;
         }
     }
@@ -243,6 +249,13 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
     /// <returns>最新帧；若尚未产生有效帧则返回 <see langword="null"/>。</returns>
     public BitmapSource? GetCurrentFrame()
     {
+        if (!IsCapturing)
+        {
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("PleaseStartWindowCaptureFirst"),
+                I18nHelper.GetLocalizedString("Error"), I18nHelper.GetLocalizedString("Close"));
+            _navigationService.Navigate(typeof(SmartBpPage));
+            return null;
+        }
         // 与 OnFrameArrived 中的写入共用同一把锁，确保读取到一致快照。
         lock (_frameLock)
         {
@@ -258,7 +271,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
         // 预览依赖捕获源；未开始捕获时直接提示用户。
         if (!IsCapturing)
         {
-            _ = MessageBoxHelper.ShowInfoAsync("Capture has not started.");
+            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("WindowCaptureCaptureNotStarted"));
             return;
         }
 
@@ -276,7 +289,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
 
         _previewWindow = new Window
         {
-            Title = "预览窗口",
+            Title = I18nHelper.GetLocalizedString("WindowCapturePreviewWindowTitle"),
             Width = 960,
             Height = 540,
             Content = _previewImage
@@ -359,7 +372,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
         // 验证窗口句柄有效性。
         if (!WindowEnumerationHelper.IsWindowValidForCapture(hwnd))
         {
-            _ = MessageBoxHelper.ShowInfoAsync("The selected window is not valid for capture.");
+            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("WindowCaptureSelectedWindowInvalidForCapture"));
             return false;
         }
 
@@ -373,7 +386,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
             // 先抓第一帧，确保目标窗口可被 BitBlt 实际采集到。
             if (!TryCaptureBitbltFrame(hwnd))
             {
-                _ = MessageBoxHelper.ShowErrorAsync("Failed to capture first frame with Bitblt.");
+                _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("WindowCaptureFailedToCaptureFirstFrameWithBitblt"));
                 StopCapture();
                 return false;
             }
@@ -393,7 +406,10 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to start Bitblt capture.");
-            _ = MessageBoxHelper.ShowErrorAsync($"Failed to start Bitblt capture: {ex.Message}");
+            _ = MessageBoxHelper.ShowErrorAsync(
+                string.Format(
+                    I18nHelper.GetLocalizedString("WindowCaptureFailedToStartBitbltCaptureFormat"),
+                    ex.Message));
             StopCapture();
             return false;
         }
@@ -585,20 +601,20 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
     {
         if (!IsWgcHwndInteropAvailable())
         {
-            _ = MessageBoxHelper.ShowErrorAsync("Capture by selected window requires Windows 10 1903 or later. On 1803/1809, use picker capture.");
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809"));
             return false;
         }
 
         if (!IsWgcSupported())
         {
-            _ = MessageBoxHelper.ShowErrorAsync("Windows Graphic Capture is not supported on current system.");
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("WindowCaptureWgcNotSupportedOnCurrentSystem"));
             return false;
         }
 
         // 再次校验句柄有效性，防止 UI 侧缓存了已失效窗口句柄。
         if (!WindowEnumerationHelper.IsWindowValidForCapture(hwnd))
         {
-            _ = MessageBoxHelper.ShowInfoAsync("The selected window is not valid for capture.");
+            _ = MessageBoxHelper.ShowInfoAsync(I18nHelper.GetLocalizedString("WindowCaptureSelectedWindowInvalidForCapture"));
             return false;
         }
 
@@ -611,13 +627,16 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create GraphicsCaptureItem from HWND.");
-            _ = MessageBoxHelper.ShowErrorAsync($"Failed to capture selected window: {ex.Message}");
+            _ = MessageBoxHelper.ShowErrorAsync(
+                string.Format(
+                    I18nHelper.GetLocalizedString("WindowCaptureFailedToCaptureSelectedWindowFormat"),
+                    ex.Message));
             return false;
         }
 
         if (item is null)
         {
-            _ = MessageBoxHelper.ShowErrorAsync("Failed to capture selected window: GraphicsCaptureItem is unavailable.");
+            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("WindowCaptureGraphicsCaptureItemUnavailable"));
             return false;
         }
 
@@ -670,7 +689,10 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger) 
         {
             // 启动失败时回滚状态，保证服务回到可再次启动的干净状态。
             _logger.LogError(ex, "Failed to start WGC capture.");
-            _ = MessageBoxHelper.ShowErrorAsync($"Failed to start capture: {ex.Message}");
+            _ = MessageBoxHelper.ShowErrorAsync(
+                string.Format(
+                    I18nHelper.GetLocalizedString("WindowCaptureFailedToStartCaptureFormat"),
+                    ex.Message));
             StopCapture();
             return false;
         }

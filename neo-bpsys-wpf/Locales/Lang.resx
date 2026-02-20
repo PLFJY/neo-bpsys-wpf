@@ -1371,4 +1371,154 @@
   <data name="UnexpectedExceptionMessage" xml:space="preserve">
     <value>出现了些在意料之外的错误，请带着下方地址处的日志文件联系开发者解决</value>
   </data>
+  <data name="AutoDetectAndFillPostGameData" xml:space="preserve">
+    <value>自动识别并填充赛后数据</value>
+  </data>
+  <data name="SmartBp" xml:space="preserve">
+    <value>智慧 BP</value>
+  </data>
+  <data name="PleaseStartWindowCaptureFirst" xml:space="preserve">
+    <value>请先启动窗口捕获</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="SmartBpWindowCaptureSettings" xml:space="preserve">
+    <value>窗口捕获设置</value>
+  </data>
+  <data name="SmartBpCaptureMethod" xml:space="preserve">
+    <value>捕获方式</value>
+  </data>
+  <data name="SmartBpSelectGameWindowProcess" xml:space="preserve">
+    <value>选择游戏窗口进程</value>
+  </data>
+  <data name="SmartBpOpenWindowPickerOnlyWgc" xml:space="preserve">
+    <value>打开窗口选择器（仅 WGC 可用）</value>
+  </data>
+  <data name="SmartBpStartCapture" xml:space="preserve">
+    <value>开始捕获</value>
+  </data>
+  <data name="SmartBpStopCapture" xml:space="preserve">
+    <value>停止捕获</value>
+  </data>
+  <data name="SmartBpOpenPreview" xml:space="preserve">
+    <value>打开预览</value>
+  </data>
+  <data name="SmartBpOcrModelManagement" xml:space="preserve">
+    <value>OCR 模型管理</value>
+  </data>
+  <data name="SmartBpOcrModelSelection" xml:space="preserve">
+    <value>模型选择</value>
+  </data>
+  <data name="SmartBpDownloadModel" xml:space="preserve">
+    <value>下载模型</value>
+  </data>
+  <data name="SmartBpDeleteModel" xml:space="preserve">
+    <value>删除模型</value>
+  </data>
+  <data name="SmartBpSwitchToCurrentModel" xml:space="preserve">
+    <value>切换为当前模型</value>
+  </data>
+  <data name="SmartBpRefreshStatus" xml:space="preserve">
+    <value>刷新状态</value>
+  </data>
+  <data name="SmartBpCancelDownload" xml:space="preserve">
+    <value>取消下载</value>
+  </data>
+  <data name="SmartBpCurrentOcrModelDisabled" xml:space="preserve">
+    <value>当前 OCR 模型：未启用</value>
+  </data>
+  <data name="SmartBpCurrentOcrModelFormat" xml:space="preserve">
+    <value>当前 OCR 模型：{0}</value>
+  </data>
+  <data name="SmartBpCurrentOcrModelNotEnabled" xml:space="preserve">
+    <value>未启用</value>
+  </data>
+  <data name="SmartBpOcrModelDownloadFailed" xml:space="preserve">
+    <value>OCR 模型下载失败：{0}</value>
+  </data>
+  <data name="SmartBpDeleteOcrModelConfirmFormat" xml:space="preserve">
+    <value>确定删除 OCR 模型：{0}？</value>
+  </data>
+  <data name="SmartBpDeleteOcrModelTitle" xml:space="preserve">
+    <value>删除模型</value>
+  </data>
+  <data name="SmartBpCaptureMethodWgc" xml:space="preserve">
+    <value>Windows Graphics Capture（Windows 10 1903 或更高）</value>
+  </data>
+  <data name="SmartBpCaptureMethodBitblt" xml:space="preserve">
+    <value>Bitblt</value>
+  </data>
+  <data name="SmartBpOcrNotReadyFirstDownloadAndSwitchModel" xml:space="preserve">
+    <value>OCR 功能未就绪，请先下载并切换 OCR 模型后再启动相关功能。</value>
+  </data>
+  <data name="WindowCapturePleaseSelectWindowFirst" xml:space="preserve">
+    <value>请先选择窗口。</value>
+  </data>
+  <data name="WindowCaptureWgcRequires1803OrLater" xml:space="preserve">
+    <value>Windows Graphics Capture 需要 Windows 10 1803 或更高版本。</value>
+  </data>
+  <data name="WindowCaptureWgcNotSupportedOnCurrentSystem" xml:space="preserve">
+    <value>当前系统不支持 Windows Graphics Capture。</value>
+  </data>
+  <data name="WindowCaptureFailedToStartPickerCaptureFormat" xml:space="preserve">
+    <value>通过窗口选择器启动捕获失败：{0}</value>
+  </data>
+  <data name="WindowCaptureCaptureNotStarted" xml:space="preserve">
+    <value>尚未开始捕获。</value>
+  </data>
+  <data name="WindowCapturePreviewWindowTitle" xml:space="preserve">
+    <value>预览窗口</value>
+  </data>
+  <data name="WindowCaptureSelectedWindowInvalidForCapture" xml:space="preserve">
+    <value>所选窗口无法用于捕获。</value>
+  </data>
+  <data name="WindowCaptureFailedToCaptureFirstFrameWithBitblt" xml:space="preserve">
+    <value>使用 Bitblt 捕获首帧失败。</value>
+  </data>
+  <data name="WindowCaptureFailedToStartBitbltCaptureFormat" xml:space="preserve">
+    <value>启动 Bitblt 捕获失败：{0}</value>
+  </data>
+  <data name="WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809" xml:space="preserve">
+    <value>按窗口句柄捕获需要 Windows 10 1903 或更高版本。在 1803/1809 上请使用窗口选择器捕获。</value>
+  </data>
+  <data name="WindowCaptureFailedToCaptureSelectedWindowFormat" xml:space="preserve">
+    <value>捕获所选窗口失败：{0}</value>
+  </data>
+  <data name="WindowCaptureGraphicsCaptureItemUnavailable" xml:space="preserve">
+    <value>捕获所选窗口失败：无法创建 GraphicsCaptureItem。</value>
+  </data>
+  <data name="WindowCaptureFailedToStartCaptureFormat" xml:space="preserve">
+    <value>启动捕获失败：{0}</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV5MobileDisplayName" xml:space="preserve">
+    <value>中文 V5 Mobile（推荐）</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV5MobileDescription" xml:space="preserve">
+    <value>精度与速度平衡，优先建议。</value>
+  </data>
+  <data name="SmartBpOcrModelEnV4MobileDisplayName" xml:space="preserve">
+    <value>English V4 Mobile</value>
+  </data>
+  <data name="SmartBpOcrModelEnV4MobileDescription" xml:space="preserve">
+    <value>英文场景优化，适合英文与数字识别。</value>
+  </data>
+  <data name="SmartBpOcrModelJaV4MobileDisplayName" xml:space="preserve">
+    <value>Japanese V4 Mobile</value>
+  </data>
+  <data name="SmartBpOcrModelJaV4MobileDescription" xml:space="preserve">
+    <value>日文场景优化，适合日文与数字识别。</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV4DisplayName" xml:space="preserve">
+    <value>中文 V4</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV4Description" xml:space="preserve">
+    <value>兼容性稳定，部署体积适中。</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV3SlimDisplayName" xml:space="preserve">
+    <value>中文 V3 Slim（轻量）</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV3SlimDescription" xml:space="preserve">
+    <value>体积更小，适合低配置设备。</value>
+  </data>
 </root>

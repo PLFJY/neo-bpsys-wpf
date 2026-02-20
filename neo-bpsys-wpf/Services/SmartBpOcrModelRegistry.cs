@@ -6,8 +6,8 @@ namespace neo_bpsys_wpf.Services;
 
 public sealed record SmartBpOcrModelDefinition(
     string Key,
-    string DisplayName,
-    string Description,
+    string DisplayNameKey,
+    string DescriptionKey,
     OnlineFullModels OnlineModel);
 
 public static class SmartBpOcrModelRegistry
@@ -16,38 +16,32 @@ public static class SmartBpOcrModelRegistry
     [
         new(
             "zh-cn-v5-mobile",
-            "中文 V5 Mobile（推荐）",
-            "精度与速度平衡，优先建议。",
+            "SmartBpOcrModelZhCnV5MobileDisplayName",
+            "SmartBpOcrModelZhCnV5MobileDescription",
             OnlineFullModels.ChineseV5),
         new(
             "en-v4-mobile",
-            "English V4 Mobile",
-            "英文场景优化，适合英文与数字识别。",
+            "SmartBpOcrModelEnV4MobileDisplayName",
+            "SmartBpOcrModelEnV4MobileDescription",
             OnlineFullModels.EnglishV4),
         new(
             "ja-v4-mobile",
-            "Japanese V4 Mobile",
-            "日文场景优化，适合日文与数字识别。",
+            "SmartBpOcrModelJaV4MobileDisplayName",
+            "SmartBpOcrModelJaV4MobileDescription",
             OnlineFullModels.JapanV4),
         new(
             "zh-cn-v4",
-            "中文 V4",
-            "兼容性稳定，部署体积适中。",
+            "SmartBpOcrModelZhCnV4DisplayName",
+            "SmartBpOcrModelZhCnV4Description",
             OnlineFullModels.ChineseV4),
         new(
             "zh-cn-v3-slim",
-            "中文 V3 Slim（轻量）",
-            "体积更小，适合低配置设备。",
+            "SmartBpOcrModelZhCnV3SlimDisplayName",
+            "SmartBpOcrModelZhCnV3SlimDescription",
             OnlineFullModels.ChineseV3Slim)
     ];
 
     public static string RootDirectory => Path.Combine(AppConstants.AppOutputPath, "OCRModels");
-
-    public static string ActiveModelConfigDirectory => Path.Combine(AppConstants.AppDataPath, "OCRModels");
-
-    public static string ActiveModelFilePath => Path.Combine(ActiveModelConfigDirectory, "active-model.txt");
-
-    public static string LegacyActiveModelFilePath => Path.Combine(RootDirectory, "active-model.txt");
 
     public static bool TryGet(string modelKey, out SmartBpOcrModelDefinition definition)
     {

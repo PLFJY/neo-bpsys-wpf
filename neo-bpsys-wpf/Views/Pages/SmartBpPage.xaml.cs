@@ -20,7 +20,7 @@ namespace neo_bpsys_wpf.Views.Pages;
 /// SmartBpPage.xaml 的交互逻辑
 /// </summary>
 [BackendPageInfo("6E5AB941-A4A0-4D43-B9CB-381364414C1B",
-    "SmartBpPage",
+    "SmartBp",
     Wpf.Ui.Controls.SymbolRegular.ScanText24,
     Core.Enums.BackendPageCategory.External)]
 public partial class SmartBpPage : Page
