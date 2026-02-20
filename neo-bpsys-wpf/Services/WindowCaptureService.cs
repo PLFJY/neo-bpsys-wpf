@@ -303,6 +303,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
         };
         _previewTimer.Tick += (_, _) =>
         {
+            if (!IsCapturing) _previewWindow.Close();
             var frame = GetCurrentFrame();
             if (frame != null && _previewImage != null)
             {
@@ -333,6 +334,7 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
     /// </summary>
     public void StopCapture()
     {
+        _previewWindow?.Close();
         if (_bitbltTimer != null)
         {
             // 停止并解绑 BitBlt 定时器，防止停止后仍持续抓帧。
