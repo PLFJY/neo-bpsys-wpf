@@ -19,7 +19,7 @@
         <FileVersion>$(VersionPrefix).0</FileVersion>
         <BuildMeta>local</BuildMeta>
         <InformationalVersion>v$(Version)+$(BuildMeta)</InformationalVersion>
-        <Configurations>Debug;Release;Beta</Configurations>
+        <Configurations>Debug;Release;Beta;Preview</Configurations>
         <!--
         版本号迭代原则：
         首位在出现大型重构或又非常重大更改时（如官方规则改变、UI重构）跟进
@@ -38,6 +38,20 @@
         <Version>$(VersionPrefix)$(VersionSuffix)</Version>
         <InformationalVersion>v$(Version)+$(BuildMeta)</InformationalVersion>
     </PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)'=='Preview'">
+		<Optimize>false</Optimize>
+		<DebugType>portable</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<DefineConstants>$(DefineConstants);PREVIEW</DefineConstants>
+		<VersionSuffix>-preview</VersionSuffix>
+		<Version>$(VersionPrefix)$(VersionSuffix)</Version>
+		<InformationalVersion>v$(Version)+$(BuildMeta)</InformationalVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Preview|AnyCPU'">
+	  <DefineConstants>$(DefineConstants);PREVIEW</DefineConstants>
+	</PropertyGroup>
 
     <!-- Built-in plugins (list) -->
 
