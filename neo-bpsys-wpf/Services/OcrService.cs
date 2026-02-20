@@ -250,7 +250,8 @@ public class OcrService : IOcrService
                 _ocr?.Dispose();
                 _ocr = nextOcr;
                 _ocr.AllowRotateDetection = false;
-                _ocr.Enable180Classification = true;
+                // 游戏内文本方向稳定，关闭 180 分类可减少每次 OCR 的额外开销。
+                _ocr.Enable180Classification = false;
             }
 
             _missingModelWarningShown = 0;
@@ -270,17 +271,18 @@ public class OcrService : IOcrService
         if (img.Empty()) return null;
 
         // PaddleOCR 全流程更稳的是 8UC3(BGR)
-        Mat bgr;
         if (img.Channels() == 1)
         {
-            bgr = new Mat();
+            using var bgr = new Mat();
             Cv2.CvtColor(img, bgr, ColorConversionCodes.GRAY2BGR);
-        }
-        else
-        {
-            bgr = img;
+            return RecognizeTextCore(bgr);
         }
 
+        return RecognizeTextCore(img);
+    }
+
+    private string? RecognizeTextCore(Mat bgr)
+    {
         lock (_ocrLock)
         {
             if (_ocr is not null)
