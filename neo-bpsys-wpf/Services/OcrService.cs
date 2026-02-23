@@ -13,6 +13,10 @@ using neo_bpsys_wpf.Core.Helpers;
 
 namespace neo_bpsys_wpf.Services;
 
+/// <summary>
+/// OCR 服务实现。
+/// 提供模型管理（枚举、下载、删除、切换）与图像文本识别能力。
+/// </summary>
 public class OcrService : IOcrService
 {
     private readonly ISettingsHostService _settingsHostService;
@@ -26,16 +30,35 @@ public class OcrService : IOcrService
     private int _totalDownloadSteps = 1;
     private int _missingModelWarningShown;
 
+    /// <summary>
+    /// 当前正在使用的 OCR 模型键。
+    /// </summary>
     public string? CurrentOcrModelKey { get; private set; }
 
+    /// <summary>
+    /// 当前是否处于模型下载中。
+    /// </summary>
     public bool IsDownloading { get; private set; }
 
+    /// <summary>
+    /// 当前下载进度（0-100）；未知时为 <see langword="null"/>。
+    /// </summary>
     public double? DownloadProgress { get; private set; }
 
+    /// <summary>
+    /// 当前下载状态文本。
+    /// </summary>
     public string DownloadStatusText { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// 下载状态变化事件。
+    /// </summary>
     public event EventHandler? DownloadStateChanged;
 
+    /// <summary>
+    /// 初始化 OCR 服务并尝试加载用户偏好模型。
+    /// </summary>
+    /// <param name="settingsHostService">设置服务。</param>
     public OcrService(ISettingsHostService settingsHostService)
     {
         _settingsHostService = settingsHostService;
@@ -54,6 +77,10 @@ public class OcrService : IOcrService
         TryLoadPreferredModel();
     }
 
+    /// <summary>
+    /// 获取可用 OCR 模型定义列表。
+    /// </summary>
+    /// <returns>模型定义列表。</returns>
     public IReadOnlyList<OcrModelDefinition> GetAvailableModels() =>
     [
         .. SmartBpOcrModelRegistry.Models.Select(m => new OcrModelDefinition(
@@ -62,8 +89,19 @@ public class OcrService : IOcrService
             m.DescriptionKey))
     ];
 
+    /// <summary>
+    /// 判断指定模型是否已安装。
+    /// </summary>
+    /// <param name="modelKey">模型键。</param>
+    /// <returns>已安装返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
     public bool IsModelInstalled(string modelKey) => SmartBpOcrModelRegistry.IsModelInstalled(modelKey);
 
+    /// <summary>
+    /// 下载并解压指定 OCR 模型。
+    /// </summary>
+    /// <param name="modelKey">模型键。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>异步任务。</returns>
     public async Task DownloadModelAsync(string modelKey, CancellationToken cancellationToken = default)
     {
         if (!SmartBpOcrModelRegistry.TryGet(modelKey, out var definition))
@@ -160,6 +198,9 @@ public class OcrService : IOcrService
         }
     }
 
+    /// <summary>
+    /// 取消当前下载任务。
+    /// </summary>
     public void CancelDownload()
     {
         lock (_downloadLock)
@@ -170,6 +211,12 @@ public class OcrService : IOcrService
         _downloader.CancelAsync();
     }
 
+    /// <summary>
+    /// 尝试删除指定模型及其本地缓存文件。
+    /// </summary>
+    /// <param name="modelKey">模型键。</param>
+    /// <param name="errorMessage">失败时的错误信息。</param>
+    /// <returns>删除成功返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
     public bool TryDeleteModel(string modelKey, out string errorMessage)
     {
         errorMessage = string.Empty;
@@ -224,6 +271,12 @@ public class OcrService : IOcrService
         }
     }
 
+    /// <summary>
+    /// 尝试切换当前 OCR 模型并加载推理实例。
+    /// </summary>
+    /// <param name="modelKey">模型键。</param>
+    /// <param name="errorMessage">失败时的错误信息。</param>
+    /// <returns>切换成功返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
     public bool TrySwitchOcrModel(string modelKey, out string errorMessage)
     {
         errorMessage = string.Empty;
@@ -266,6 +319,11 @@ public class OcrService : IOcrService
         }
     }
 
+    /// <summary>
+    /// 识别图像中的文本。
+    /// </summary>
+    /// <param name="img">待识别图像。</param>
+    /// <returns>识别文本；失败时返回 <see langword="null"/>。</returns>
     public string? RecognizeText(Mat img)
     {
         if (img.Empty()) return null;
@@ -294,19 +352,6 @@ public class OcrService : IOcrService
 
         ShowMissingModelWarningOnce();
         return null;
-    }
-
-    public string? GetCharacterName(Mat bin)
-    {
-        return RecognizeText(bin);
-    }
-
-    public string? GetCharacterName(string? playerAndCharacterName)
-    {
-        if (string.IsNullOrWhiteSpace(playerAndCharacterName))
-            return null;
-
-        return playerAndCharacterName.Trim();
     }
 
     private async Task DownloadAndExtractModelAssetAsync(

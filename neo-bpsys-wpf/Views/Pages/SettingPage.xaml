@@ -110,7 +110,7 @@
                                 Height="25"
                                 Margin="5,0,5,0"
                                 Source="/Assets/logo_net.jpg " />
-                            <TextBlock Text="9.0.4 &amp; " />
+                            <TextBlock Text="9.0 &amp; " />
                             <ui:ImageIcon
                                 Width="25"
                                 Height="25"
@@ -231,18 +231,20 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0">
                             <ui:HyperlinkButton Content=".Net Runtime" NavigateUri="https://github.com/dotnet/runtime/" />
-                            <ui:HyperlinkButton Content="CommunityToolkit.Mvvm" NavigateUri="https://github.com/CommunityToolkit/dotnet/" />
-                            <ui:HyperlinkButton Content="Downloader" NavigateUri="https://github.com/bezzad/Downloader/" />
-                            <ui:HyperlinkButton Content="WPFLocalizeExtension" NavigateUri="https://github.com/XAMLMarkupExtensions/WPFLocalizeExtension" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1">
                             <ui:HyperlinkButton Content="hyjiacan.pinyin4net" NavigateUri="https://gitee.com/hyjiacan/Pinyin4Net/" />
                             <ui:HyperlinkButton Content="PixiEditor.ColorPicker" NavigateUri="https://github.com/PixiEditor/ColorPicker/" />
                             <ui:HyperlinkButton Content="Windows Presentation Foundation (WPF)" NavigateUri="https://github.com/dotnet/wpf/" />
                         </StackPanel>
-                        <StackPanel Grid.Column="2">
-                            <ui:HyperlinkButton Content="WPF UI" NavigateUri="https://github.com/lepoco/wpfui/" />
+                        <StackPanel Grid.Column="1">
+                            <ui:HyperlinkButton Content="CommunityToolkit.Mvvm" NavigateUri="https://github.com/CommunityToolkit/dotnet/" />
+                            <ui:HyperlinkButton Content="OpenCvSharp" NavigateUri="https://github.com/shimat/opencvsharp/" />
+                            <ui:HyperlinkButton Content="Sdcb.PaddleOCR" NavigateUri="https://github.com/sdcb/PaddleSharp/" />
                             <ui:HyperlinkButton Content="WpfGorgeousThemeSwitch" NavigateUri="https://github.com/SunnyDesignor/WpfGorgeousThemeSwitch/" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <ui:HyperlinkButton Content="Downloader" NavigateUri="https://github.com/bezzad/Downloader/" />
+                            <ui:HyperlinkButton Content="WPF UI" NavigateUri="https://github.com/lepoco/wpfui/" />
+                            <ui:HyperlinkButton Content="WPFLocalizeExtension" NavigateUri="https://github.com/XAMLMarkupExtensions/WPFLocalizeExtension" />
                             <ui:HyperlinkButton Content="XamlBehaviors for WPF" NavigateUri="https://github.com/microsoft/XamlBehaviorsWpf/" />
                         </StackPanel>
                     </Grid>
