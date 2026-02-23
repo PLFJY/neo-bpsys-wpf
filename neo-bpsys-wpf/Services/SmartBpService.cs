@@ -11,6 +11,10 @@ using System.Threading;
 
 namespace neo_bpsys_wpf.Services;
 
+/// <summary>
+/// 智慧 BP 服务实现。
+/// 负责从窗口捕获帧中提取赛后统计数据，执行 OCR 识别并回填到当前对局数据。
+/// </summary>
 public class SmartBpService : ISmartBpService
 {
     private static readonly RelativeRect[] DataColumnRects =
@@ -27,8 +31,17 @@ public class SmartBpService : ISmartBpService
     private readonly IOcrService _ocrService;
     private int _ocrWarmupStarted;
 
+    /// <summary>
+    /// 当前智慧 BP 是否正在运行。
+    /// </summary>
     public bool IsSmartBpRunning { get; private set; }
 
+    /// <summary>
+    /// 初始化智慧 BP 服务。
+    /// </summary>
+    /// <param name="sharedDataService">共享对局数据服务。</param>
+    /// <param name="windowCaptureService">窗口捕获服务。</param>
+    /// <param name="ocrService">OCR 服务。</param>
     public SmartBpService(ISharedDataService sharedDataService, IWindowCaptureService windowCaptureService,
         IOcrService ocrService)
     {
@@ -37,6 +50,9 @@ public class SmartBpService : ISmartBpService
         _ocrService = ocrService;
     }
 
+    /// <summary>
+    /// 启动智慧 BP。
+    /// </summary>
     public void StartSmartBp()
     {
         if (!IsOcrReady())
@@ -50,6 +66,9 @@ public class SmartBpService : ISmartBpService
         StartOcrWarmupIfNeeded();
     }
 
+    /// <summary>
+    /// 停止智慧 BP。
+    /// </summary>
     public void StopSmartBp()
     {
         IsSmartBpRunning = false;
@@ -76,6 +95,10 @@ public class SmartBpService : ISmartBpService
         });
     }
 
+    /// <summary>
+    /// 自动识别并回填当前对局的赛后数据。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
     public async Task AutoFillGameDataAsync(CancellationToken cancellationToken = default)
     {
         var recognizedData = await Task.Run(
@@ -168,6 +191,10 @@ public class SmartBpService : ISmartBpService
                _ocrService.IsModelInstalled(currentModelKey);
     }
 
+    /// <summary>
+    /// 从当前捕获帧中裁剪出赛后数据表格区域。
+    /// </summary>
+    /// <returns>表格图像；当捕获帧不可用时返回 <see langword="null"/>。</returns>
     public Mat? GetTable()
     {
         var frame = _windowCaptureService.GetCurrentFrame();
@@ -188,6 +215,11 @@ public class SmartBpService : ISmartBpService
         return table;
     }
 
+    /// <summary>
+    /// 从表格图像中提取监管者行信息。
+    /// </summary>
+    /// <param name="table">赛后数据表格图像。</param>
+    /// <returns>监管者信息。</returns>
     public PlayerInfo GetHunInfo(Mat table)
     {
         // === Step 2: 裁剪 Hunter 行 ===
@@ -201,6 +233,11 @@ public class SmartBpService : ISmartBpService
         return new PlayerInfo(hunCharacterName.Item1, hunCharacterName.Item2, data);
     }
 
+    /// <summary>
+    /// 从表格图像中提取求生者信息列表。
+    /// </summary>
+    /// <param name="table">赛后数据表格图像。</param>
+    /// <returns>求生者信息列表。</returns>
     public List<PlayerInfo> GetSurInfos(Mat table)
     {
         var surInfos = new List<PlayerInfo>();
@@ -226,6 +263,11 @@ public class SmartBpService : ISmartBpService
         return surInfos;
     }
 
+    /// <summary>
+    /// 识别求生者行中的玩家名和角色名。
+    /// </summary>
+    /// <param name="surRow">求生者行图像。</param>
+    /// <returns>玩家名与角色名元组。</returns>
     public (string, string) GetSurPlayerNameAndCharacterName(Mat surRow)
     {
         // Sur 行里名字在左侧；高度用整行
@@ -257,6 +299,11 @@ public class SmartBpService : ISmartBpService
         return data;
     }
 
+    /// <summary>
+    /// 识别监管者行中的玩家名和角色名。
+    /// </summary>
+    /// <param name="hunter">监管者行图像。</param>
+    /// <returns>玩家名与角色名元组。</returns>
     public (string, string) GetHunPlayerNameAndCharacterName(Mat hunter)
     {
         // === Step 3: 裁剪 Name 列 ===
@@ -429,6 +476,11 @@ public class SmartBpService : ISmartBpService
         return CleanDigitsOnly(_ocrService.RecognizeText(bin));
     }
 
+    /// <summary>
+    /// 仅保留 OCR 结果中的数字字符。
+    /// </summary>
+    /// <param name="s">OCR 原始文本。</param>
+    /// <returns>仅由数字组成的字符串；为空时返回空字符串。</returns>
     public static string CleanDigitsOnly(string? s)
     {
         if (string.IsNullOrWhiteSpace(s)) return string.Empty;
@@ -457,8 +509,21 @@ public class SmartBpService : ISmartBpService
         mat.SaveImage(fullPath);
     }
 
+    /// <summary>
+    /// 归一化矩形定义（相对于图像宽高的比例坐标）。
+    /// </summary>
+    /// <param name="X">左上角 X 比例。</param>
+    /// <param name="Y">左上角 Y 比例。</param>
+    /// <param name="W">宽度比例。</param>
+    /// <param name="H">高度比例。</param>
     public readonly record struct RelativeRect(double X, double Y, double W, double H)
     {
+        /// <summary>
+        /// 将比例坐标转换为图像像素坐标矩形。
+        /// </summary>
+        /// <param name="imgW">图像宽度。</param>
+        /// <param name="imgH">图像高度。</param>
+        /// <returns>像素坐标矩形。</returns>
         public Rect ToPixelRect(int imgW, int imgH)
         {
             var x = Math.Clamp((int)(X * imgW), 0, Math.Max(imgW - 1, 0));
@@ -473,6 +538,11 @@ public class SmartBpService : ISmartBpService
         }
     }
 
+    /// <summary>
+    /// 对文本区域图像执行预处理，提升 OCR 对名字文本的识别稳定性。
+    /// </summary>
+    /// <param name="bgr">原始 BGR 图像。</param>
+    /// <returns>预处理后的二值图像。</returns>
     public static Mat PreprocessForText(Mat bgr)
     {
         // 0) 放大：数字太小的话，det/rec 都会难受
@@ -516,6 +586,11 @@ public class SmartBpService : ISmartBpService
         return bin;
     }
 
+    /// <summary>
+    /// 对数字区域图像执行预处理，提升 OCR 对数字列的识别效果。
+    /// </summary>
+    /// <param name="bgr">原始 BGR 图像。</param>
+    /// <returns>预处理后的二值图像。</returns>
     public static Mat PreprocessForDigits(Mat bgr)
     {
         using var scaled = new Mat();
@@ -537,6 +612,12 @@ public class SmartBpService : ISmartBpService
         return bin;
     }
 
+    /// <summary>
+    /// 玩家识别结果。
+    /// </summary>
+    /// <param name="PlayerName">玩家名称。</param>
+    /// <param name="CharacterName">角色名称。</param>
+    /// <param name="PlayerData">赛后统计数据。</param>
     public record PlayerInfo(string PlayerName, string CharacterName, PlayerData PlayerData);
 
     private sealed record RecognizedGameData(PlayerData HunterData, List<PlayerInfo> SurvivorInfos);
