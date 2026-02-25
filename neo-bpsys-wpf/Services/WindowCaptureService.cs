@@ -251,9 +251,22 @@ public partial class WindowCaptureService(ILogger<WindowCaptureService> logger, 
     {
         if (!IsCapturing)
         {
-            _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("PleaseStartWindowCaptureFirst"),
-                I18nHelper.GetLocalizedString("Error"), I18nHelper.GetLocalizedString("Close"));
-            _navigationService.Navigate(typeof(SmartBpPage));
+            // GetCurrentFrame 可能在后台线程被调用，所有 UI 访问必须切回 Dispatcher。
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher == null)
+            {
+                _logger.LogWarning("PleaseStartWindowCaptureFirst: Application dispatcher is null.");
+                return null;
+            }
+
+            _ = dispatcher.BeginInvoke(() =>
+            {
+                _ = MessageBoxHelper.ShowErrorAsync(
+                    I18nHelper.GetLocalizedString("PleaseStartWindowCaptureFirst"),
+                    I18nHelper.GetLocalizedString("Error"),
+                    I18nHelper.GetLocalizedString("Close"));
+                _navigationService.Navigate(typeof(SmartBpPage));
+            });
             return null;
         }
         // 与 OnFrameArrived 中的写入共用同一把锁，确保读取到一致快照。

@@ -167,10 +167,10 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.3" />
         <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.3" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
-        <PackageReference Include="OpenCvSharp4" Version="4.13.0.20260214" />
-        <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260214" />
-        <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.13.0.20260214" />
+        <PackageReference Include="OpenCvSharp4.Windows.Slim" Version="4.13.0.20260222" />
+        <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.13.0.20260222" />
         <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2.2" />
+        <PackageReference Include="Sdcb.OpenCvSharp4.mini.runtime.win-arm64" Version="4.11.0.35" />
         <PackageReference Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="3.1.0.54" />
         <PackageReference Include="Sdcb.PaddleOCR" Version="3.0.1" />
         <PackageReference Include="Sdcb.PaddleOCR.Models.Online" Version="3.0.1" />
