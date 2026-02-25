@@ -27,4 +27,18 @@ public interface IFilePickerService
     /// </summary>
     /// <returns>文件路径</returns>
     public string? PickZipFile();
+
+    /// <summary>
+    /// 选择 JSON 导出保存路径。
+    /// </summary>
+    /// <param name="defaultFileName">默认文件名。</param>
+    /// <returns>文件路径。</returns>
+    public string? SaveJsonFile(string defaultFileName);
+
+    /// <summary>
+    /// 选择 BPUI 导出保存路径。
+    /// </summary>
+    /// <param name="defaultFileName">默认文件名。</param>
+    /// <returns>文件路径。</returns>
+    public string? SaveBpuiFile(string defaultFileName);
 }

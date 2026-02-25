@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using Downloader;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Win32;
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
@@ -70,23 +69,9 @@ public partial class SettingPageViewModel : ViewModelBase
     [RelayCommand]
     private async Task ExportUiConfigAsync()
     {
-        //打开通用对话框选择保存路径
-        var dialog = new SaveFileDialog
-        {
-            Filter = $"{I18nHelper.GetLocalizedString("BpuiFiles")} (*.bpui)|*.bpui|All Files(*.*)|*.*",
-            DefaultExt = ".bpui",
-            AddExtension = true,
-            DefaultDirectory = AppConstants.AppOutputPath,
-            Title = "保存为",
-            FileName = "saved_ui",
-            OverwritePrompt = false
-        };
-        var result = (bool)dialog.ShowDialog()!;
-        //如果用户没选择直接退出
-        if (!result) return;
-
-        //准备一些路径
-        var savePath = dialog.FileName;
+        var savePath = _filePickerService.SaveBpuiFile("saved_ui");
+        if (string.IsNullOrWhiteSpace(savePath))
+            return;
         //先保存一遍配置保证地址格式已被转换
         await _settingsHostService.SaveConfigAsync();
         try
