@@ -67,6 +67,7 @@ public partial class App
         services.AddSingleton<IInfoBarService, InfoBarService>();
         services.AddSingleton<ISnackbarService, SnackbarService>();
         services.AddSingleton<IWindowCaptureService, WindowCaptureService>();
+        services.AddSingleton<ISmartBpRegionConfigService, SmartBpRegionConfigService>();
 
         //Additional Feature Services
         services.AddSingleton<IGameGuidanceService, GameGuidanceService>();

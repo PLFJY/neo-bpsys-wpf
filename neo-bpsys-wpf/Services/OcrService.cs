@@ -2,6 +2,7 @@ using System.Formats.Tar;
 using System.IO;
 using System.Text;
 using Downloader;
+using Microsoft.Extensions.Logging;
 using OpenCvSharp;
 using Sdcb.PaddleInference;
 using Sdcb.PaddleOCR;
@@ -20,6 +21,7 @@ namespace neo_bpsys_wpf.Services;
 public class OcrService : IOcrService
 {
     private readonly ISettingsHostService _settingsHostService;
+    private readonly ILogger<OcrService> _logger;
     private readonly Lock _ocrLock = new();
     private readonly Lock _downloadLock = new();
     private readonly DownloadService _downloader;
@@ -59,9 +61,10 @@ public class OcrService : IOcrService
     /// 初始化 OCR 服务并尝试加载用户偏好模型。
     /// </summary>
     /// <param name="settingsHostService">设置服务。</param>
-    public OcrService(ISettingsHostService settingsHostService)
+    public OcrService(ISettingsHostService settingsHostService, ILogger<OcrService> logger)
     {
         _settingsHostService = settingsHostService;
+        _logger = logger;
 
         var downloadOpt = new DownloadConfiguration
         {
@@ -345,13 +348,72 @@ public class OcrService : IOcrService
         {
             if (_ocr is not null)
             {
-                var r = _ocr.Run(bgr);
-                return string.IsNullOrWhiteSpace(r.Text) ? null : r.Text;
+                try
+                {
+                    var r = _ocr.Run(bgr);
+                    return string.IsNullOrWhiteSpace(r.Text) ? null : r.Text;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "OCR run failed, trying to rebuild OCR predictor and retry once.");
+                    if (!TryRebuildCurrentOcrUnsafe())
+                    {
+                        _logger.LogError("OCR rebuild failed, recognition aborted.");
+                        return null;
+                    }
+
+                    try
+                    {
+                        var retry = _ocr!.Run(bgr);
+                        return string.IsNullOrWhiteSpace(retry.Text) ? null : retry.Text;
+                    }
+                    catch (Exception retryEx)
+                    {
+                        _logger.LogError(retryEx, "OCR retry failed after rebuild.");
+                        return null;
+                    }
+                }
             }
         }
 
         ShowMissingModelWarningOnce();
         return null;
+    }
+
+    /// <summary>
+    /// 在 OCR 推理异常后尝试重建当前模型实例。
+    /// 该方法要求调用方已持有 <see cref="_ocrLock"/>。
+    /// </summary>
+    private bool TryRebuildCurrentOcrUnsafe()
+    {
+        if (string.IsNullOrWhiteSpace(CurrentOcrModelKey))
+            return false;
+
+        if (!SmartBpOcrModelRegistry.TryGet(CurrentOcrModelKey, out var definition))
+            return false;
+
+        if (!SmartBpOcrModelRegistry.IsModelInstalled(CurrentOcrModelKey))
+            return false;
+
+        try
+        {
+            var fullModel = BuildLocalFullModel(CurrentOcrModelKey, definition);
+            var rebuilt = new PaddleOcrAll(fullModel, PaddleDevice.Mkldnn())
+            {
+                AllowRotateDetection = false,
+                Enable180Classification = false
+            };
+
+            _ocr?.Dispose();
+            _ocr = rebuilt;
+            _logger.LogInformation("OCR predictor rebuilt successfully for model: {ModelKey}", CurrentOcrModelKey);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to rebuild OCR predictor for model: {ModelKey}", CurrentOcrModelKey);
+            return false;
+        }
     }
 
     private async Task DownloadAndExtractModelAssetAsync(

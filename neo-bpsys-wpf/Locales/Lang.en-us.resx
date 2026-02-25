@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1503,4 +1503,218 @@
   <data name="SmartBpOcrModelZhCnV3SlimDescription" xml:space="preserve">
     <value>Smaller size, suitable for low-spec devices.</value>
   </data>
+  <data name="SmartBpRegionConfigAspectRatioFormat" xml:space="preserve">
+    <value>Config aspect ratio: {0}</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidCellCountFormat" xml:space="preserve">
+    <value>Invalid config: row {0} must contain 6 child regions.</value>
+  </data>
+  <data name="SmartBpRegionCellHunterSurvivorHits" xml:space="preserve">
+    <value>Hits</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidBigRectFormat" xml:space="preserve">
+    <value>Invalid config: row {0} parent rect is out of range.</value>
+  </data>
+  <data name="SmartBpRegionConfigResetFailedFormat" xml:space="preserve">
+    <value>Reset failed: {0}</value>
+  </data>
+  <data name="SmartBpRegionEditorWindowTitle" xml:space="preserve">
+    <value>Region Editor</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchCellCountFormat" xml:space="preserve">
+    <value>Layout mismatch: row #{0} expected {1} cells, actual {2}.</value>
+  </data>
+  <data name="SmartBpRegionConfigTitle" xml:space="preserve">
+    <value>Region Config</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusNotStarted" xml:space="preserve">
+    <value>Capture not started</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateNotInGroup" xml:space="preserve">
+    <value>Current node is not in a template group.</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorContainmentTime" xml:space="preserve">
+    <value>Containment</value>
+  </data>
+  <data name="SmartBpRegionConfigPathFormat" xml:space="preserve">
+    <value>Config file: {0}</value>
+  </data>
+  <data name="SmartBpRegionCellHunterRemainingCipher" xml:space="preserve">
+    <value>Remaining Ciphers</value>
+  </data>
+  <data name="SmartBpRegionConfigResetDone" xml:space="preserve">
+    <value>Reset to built-in 16:9 default config.</value>
+  </data>
+  <data name="SmartBpRegionCellHunterTerrorShocks" xml:space="preserve">
+    <value>Terror Shocks</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateAppliedFormat" xml:space="preserve">
+    <value>Applied to {0} same-template elements (parent position kept).</value>
+  </data>
+  <data name="SmartBpRegionEditorApplyTemplate" xml:space="preserve">
+    <value>Apply to Same Template</value>
+  </data>
+  <data name="SmartBpRegionEditorOperationHelp" xml:space="preserve">
+    <value>How to use: 1. Drag inside region to move 2. Drag 8 handles to resize 3. Child regions are constrained inside parent 4. Preview is frozen on current frame</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchRootIdFormat" xml:space="preserve">
+    <value>Layout mismatch: root #{0} should be {1}, actual {2}.</value>
+  </data>
+  <data name="SmartBpRegionCellName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidCellRectFormat" xml:space="preserve">
+    <value>Invalid config: row {0} cell {1} is out of parent range.</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusMismatched" xml:space="preserve">
+    <value>Mismatched</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusWaitingFirstFrame" xml:space="preserve">
+    <value>Waiting for first frame</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeRectRootFormat" xml:space="preserve">
+    <value>Node: {0}`nRelative rect (to frame)`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6}</value>
+  </data>
+  <data name="SmartBpRegionConfigSaveFailedFormat" xml:space="preserve">
+    <value>Failed to save config: {0}</value>
+  </data>
+  <data name="SmartBpRegionConfigResetConfirm" xml:space="preserve">
+    <value>Reset to built-in 16:9 default config? Current config will be overwritten.</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusFormat" xml:space="preserve">
+    <value>Match status: {0}</value>
+  </data>
+  <data name="SmartBpRegionEditorCurrentRect" xml:space="preserve">
+    <value>Current Relative Rect</value>
+  </data>
+  <data name="SmartBpRegionEditorRequireCaptureFirst" xml:space="preserve">
+    <value>Please start capture before editing regions.</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeSelection" xml:space="preserve">
+    <value>Node Selection</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow3" xml:space="preserve">
+    <value>Survivor Row 3</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow1" xml:space="preserve">
+    <value>Survivor Row 1</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow2" xml:space="preserve">
+    <value>Survivor Row 2</value>
+  </data>
+  <data name="SmartBpRegionAspectHintNotStarted" xml:space="preserve">
+    <value>Start capture first, then check aspect ratio.</value>
+  </data>
+  <data name="SmartBpRegionAspectHintWaitingFirstFrame" xml:space="preserve">
+    <value>Capture started. Waiting for first frame to evaluate aspect ratio.</value>
+  </data>
+  <data name="SmartBpCaptureAspectRatioFormat" xml:space="preserve">
+    <value>Capture aspect ratio: {0}</value>
+  </data>
+  <data name="SmartBpRegionEditorRuleRuntimeFormat" xml:space="preserve">
+    <value>Current structure: {0} editable nodes (any depth and count supported)</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchRootCountFormat" xml:space="preserve">
+    <value>Layout mismatch: expected {0} root regions, actual {1}.</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusMatched" xml:space="preserve">
+    <value>Matched</value>
+  </data>
+  <data name="SmartBpRegionHunterRow" xml:space="preserve">
+    <value>Hunter Row</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeRectChildFormat" xml:space="preserve">
+    <value>Node: {0}`nRelative rect (to parent)`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6}</value>
+  </data>
+  <data name="SmartBpRegionAspectHintMismatched" xml:space="preserve">
+    <value>Capture aspect ratio differs from config. Open "Edit Regions (GameData)" and adjust manually.</value>
+  </data>
+  <data name="SmartBpRegionConfigResetTitle" xml:space="preserve">
+    <value>Reset Config</value>
+  </data>
+  <data name="SmartBpRegionEditorRuleDefault" xml:space="preserve">
+    <value>Current rule: 1 parent region + 6 child regions per row</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidScene" xml:space="preserve">
+    <value>Invalid config: scene must be GameData.</value>
+  </data>
+  <data name="SmartBpRegionConfigSaved" xml:space="preserve">
+    <value>Region config saved.</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorDecodingProgress" xml:space="preserve">
+    <value>Decoding</value>
+  </data>
+  <data name="SmartBpRegionConfigImportFileNotFound" xml:space="preserve">
+    <value>Import failed: config file does not exist.</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorPalletStrikes" xml:space="preserve">
+    <value>Pallet Strikes</value>
+  </data>
+  <data name="SmartBpRegionCellHunterPalletsDestroyed" xml:space="preserve">
+    <value>Pallets Destroyed</value>
+  </data>
+  <data name="SmartBpRegionConfigImportFailedFormat" xml:space="preserve">
+    <value>Import failed: {0}</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateGroupSummaryFormat" xml:space="preserve">
+    <value>Template group: {0}, elements: {1}.</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateMarkFormat" xml:space="preserve">
+    <value> [Template:{0}]</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidRowCount" xml:space="preserve">
+    <value>Invalid config: exactly 5 parent regions are required.</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow4" xml:space="preserve">
+    <value>Survivor Row 4</value>
+  </data>
+  <data name="SmartBpRegionAspectHintMatched" xml:space="preserve">
+    <value>Aspect ratio matched. Ready to use.</value>
+  </data>
+  <data name="SmartBpImportGameDataRegionConfig" xml:space="preserve">
+    <value>Import Config</value>
+  </data>
+  <data name="SmartBpEditGameDataRegion" xml:space="preserve">
+    <value>Edit Regions</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorHeals" xml:space="preserve">
+    <value>Heals</value>
+  </data>
+  <data name="SmartBpRegionConfigImported" xml:space="preserve">
+    <value>Config imported.</value>
+  </data>
+  <data name="SmartBpResetGameDataRegionConfig169" xml:space="preserve">
+    <value>Reset Config (16:9)</value>
+  </data>
+  <data name="SmartBpRegionCellHunterKnockdowns" xml:space="preserve">
+    <value>Knockdowns</value>
+  </data>
+  <data name="SmartBpRegionEditorSceneTitleFormat" xml:space="preserve">
+    <value>Region Editor ({0})</value>
+  </data>
+  <data name="SmartBpRegionConfigImportEmpty" xml:space="preserve">
+    <value>Import failed: config content is empty.</value>
+  </data>
+  <data name="SmartBpRegionEditorSelectNodeFirst" xml:space="preserve">
+    <value>Please select a node first</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorRescues" xml:space="preserve">
+    <value>Rescues</value>
+  </data>
+  <data name="SmartBpSceneGameData" xml:space="preserve">
+    <value>GameData</value>
+  </data>
+  <data name="SmartBpRegionConfigExportFailedFormat" xml:space="preserve">
+    <value>Failed to export config: {0}</value>
+  </data>
+  <data name="SmartBpExportGameDataRegionConfig" xml:space="preserve">
+    <value>Export Config</value>
+  </data>
+  <data name="SaveAs" xml:space="preserve">
+    <value>Save As</value>
+  </data>
+  <data name="SmartBpRegionConfigExportPathEmpty" xml:space="preserve">
+    <value>Export failed: target path cannot be empty.</value>
+  </data>
 </root>
+

@@ -1521,4 +1521,218 @@
   <data name="SmartBpOcrModelZhCnV3SlimDescription" xml:space="preserve">
     <value>体积更小，适合低配置设备。</value>
   </data>
+  <data name="SmartBpRegionConfigAspectRatioFormat" xml:space="preserve">
+    <value>配置支持比例：{0}</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidCellCountFormat" xml:space="preserve">
+    <value>配置无效：第 {0} 行必须包含 6 个小框。</value>
+  </data>
+  <data name="SmartBpRegionCellHunterSurvivorHits" xml:space="preserve">
+    <value>攻击命中</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidBigRectFormat" xml:space="preserve">
+    <value>配置无效：第 {0} 行大框超出范围。</value>
+  </data>
+  <data name="SmartBpRegionConfigResetFailedFormat" xml:space="preserve">
+    <value>重置失败：{0}</value>
+  </data>
+  <data name="SmartBpRegionEditorWindowTitle" xml:space="preserve">
+    <value>识别区域编辑</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchCellCountFormat" xml:space="preserve">
+    <value>结构不匹配：第 {0} 行期望 {1} 个小框，实际 {2} 个。</value>
+  </data>
+  <data name="SmartBpRegionConfigTitle" xml:space="preserve">
+    <value>识别区域配置</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusNotStarted" xml:space="preserve">
+    <value>未开始捕获</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateNotInGroup" xml:space="preserve">
+    <value>当前节点未处于模板组。</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorContainmentTime" xml:space="preserve">
+    <value>牵制时间</value>
+  </data>
+  <data name="SmartBpRegionConfigPathFormat" xml:space="preserve">
+    <value>当前配置文件：{0}</value>
+  </data>
+  <data name="SmartBpRegionCellHunterRemainingCipher" xml:space="preserve">
+    <value>剩余密码机</value>
+  </data>
+  <data name="SmartBpRegionConfigResetDone" xml:space="preserve">
+    <value>已重置为 16:9 默认配置。</value>
+  </data>
+  <data name="SmartBpRegionCellHunterTerrorShocks" xml:space="preserve">
+    <value>恐惧震慑</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateAppliedFormat" xml:space="preserve">
+    <value>已应用到 {0} 个同模板元素（保留大元素位置）。</value>
+  </data>
+  <data name="SmartBpRegionEditorApplyTemplate" xml:space="preserve">
+    <value>一键应用到同模板元素</value>
+  </data>
+  <data name="SmartBpRegionEditorOperationHelp" xml:space="preserve">
+    <value>操作说明： 1. 拖动框内部可移动 2. 拖动边缘8个点可缩放 3. 小框会被限制在所属大框内 4. 仅当前帧预览，不实时捕获</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchRootIdFormat" xml:space="preserve">
+    <value>结构不匹配：第 {0} 个大元素应为 {1}，实际 {2}。</value>
+  </data>
+  <data name="SmartBpRegionCellName" xml:space="preserve">
+    <value>名称框</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidCellRectFormat" xml:space="preserve">
+    <value>配置无效：第 {0} 行第 {1} 个小框超出大框范围。</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusMismatched" xml:space="preserve">
+    <value>不匹配</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusWaitingFirstFrame" xml:space="preserve">
+    <value>等待首帧</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeRectRootFormat" xml:space="preserve">
+    <value>节点：{0}`n相对坐标（相对整帧）`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6}</value>
+  </data>
+  <data name="SmartBpRegionConfigSaveFailedFormat" xml:space="preserve">
+    <value>保存配置失败：{0}</value>
+  </data>
+  <data name="SmartBpRegionConfigResetConfirm" xml:space="preserve">
+    <value>确认重置为内置 16:9 默认配置？当前配置将被覆盖。</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusFormat" xml:space="preserve">
+    <value>匹配状态：{0}</value>
+  </data>
+  <data name="SmartBpRegionEditorCurrentRect" xml:space="preserve">
+    <value>当前框相对坐标</value>
+  </data>
+  <data name="SmartBpRegionEditorRequireCaptureFirst" xml:space="preserve">
+    <value>请先启动捕获再编辑识别区域。</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeSelection" xml:space="preserve">
+    <value>节点选择</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow3" xml:space="preserve">
+    <value>求生者行3</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow1" xml:space="preserve">
+    <value>求生者行1</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow2" xml:space="preserve">
+    <value>求生者行2</value>
+  </data>
+  <data name="SmartBpRegionAspectHintNotStarted" xml:space="preserve">
+    <value>请先启动捕获后再检查比例。</value>
+  </data>
+  <data name="SmartBpRegionAspectHintWaitingFirstFrame" xml:space="preserve">
+    <value>捕获已启动，正在等待首帧用于比例匹配。</value>
+  </data>
+  <data name="SmartBpCaptureAspectRatioFormat" xml:space="preserve">
+    <value>当前捕获比例：{0}</value>
+  </data>
+  <data name="SmartBpRegionEditorRuleRuntimeFormat" xml:space="preserve">
+    <value>当前结构：{0}个可编辑节点（支持任意层级与数量）</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchRootCountFormat" xml:space="preserve">
+    <value>结构不匹配：期望 {0} 个大框，实际 {1} 个。</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusMatched" xml:space="preserve">
+    <value>匹配</value>
+  </data>
+  <data name="SmartBpRegionHunterRow" xml:space="preserve">
+    <value>监管者行</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeRectChildFormat" xml:space="preserve">
+    <value>节点：{0}`n相对坐标（相对父节点）`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6}</value>
+  </data>
+  <data name="SmartBpRegionAspectHintMismatched" xml:space="preserve">
+    <value>当前捕获比例与配置不一致，建议打开“编辑识别区域（GameData）”手动调整后保存。</value>
+  </data>
+  <data name="SmartBpRegionConfigResetTitle" xml:space="preserve">
+    <value>重置配置</value>
+  </data>
+  <data name="SmartBpRegionEditorRuleDefault" xml:space="preserve">
+    <value>当前规则：每行1个大框 + 6个小框</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidScene" xml:space="preserve">
+    <value>配置无效：scene 必须为 GameData。</value>
+  </data>
+  <data name="SmartBpRegionConfigSaved" xml:space="preserve">
+    <value>识别区域配置已保存。</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorDecodingProgress" xml:space="preserve">
+    <value>破译进度</value>
+  </data>
+  <data name="SmartBpRegionConfigImportFileNotFound" xml:space="preserve">
+    <value>导入失败：配置文件不存在。</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorPalletStrikes" xml:space="preserve">
+    <value>砸板命中</value>
+  </data>
+  <data name="SmartBpRegionCellHunterPalletsDestroyed" xml:space="preserve">
+    <value>踩板总数</value>
+  </data>
+  <data name="SmartBpRegionConfigImportFailedFormat" xml:space="preserve">
+    <value>导入失败：{0}</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateGroupSummaryFormat" xml:space="preserve">
+    <value>当前模板组：{0}，共 {1} 个元素。</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateMarkFormat" xml:space="preserve">
+    <value> [模板:{0}]</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidRowCount" xml:space="preserve">
+    <value>配置无效：必须包含 5 个大框。</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow4" xml:space="preserve">
+    <value>求生者行4</value>
+  </data>
+  <data name="SmartBpRegionAspectHintMatched" xml:space="preserve">
+    <value>当前比例匹配，可直接使用。</value>
+  </data>
+  <data name="SmartBpImportGameDataRegionConfig" xml:space="preserve">
+    <value>导入配置文件</value>
+  </data>
+  <data name="SmartBpEditGameDataRegion" xml:space="preserve">
+    <value>编辑识别区域</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorHeals" xml:space="preserve">
+    <value>治疗次数</value>
+  </data>
+  <data name="SmartBpRegionConfigImported" xml:space="preserve">
+    <value>已导入配置文件。</value>
+  </data>
+  <data name="SmartBpResetGameDataRegionConfig169" xml:space="preserve">
+    <value>重置配置（16:9）</value>
+  </data>
+  <data name="SmartBpRegionCellHunterKnockdowns" xml:space="preserve">
+    <value>击倒次数</value>
+  </data>
+  <data name="SmartBpRegionEditorSceneTitleFormat" xml:space="preserve">
+    <value>识别区域编辑（{0}）</value>
+  </data>
+  <data name="SmartBpRegionConfigImportEmpty" xml:space="preserve">
+    <value>导入失败：配置文件内容为空。</value>
+  </data>
+  <data name="SmartBpRegionEditorSelectNodeFirst" xml:space="preserve">
+    <value>请先选择一个节点</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorRescues" xml:space="preserve">
+    <value>救人次数</value>
+  </data>
+  <data name="SmartBpSceneGameData" xml:space="preserve">
+    <value>GameData</value>
+  </data>
+  <data name="SmartBpRegionConfigExportFailedFormat" xml:space="preserve">
+    <value>导出配置失败：{0}</value>
+  </data>
+  <data name="SmartBpExportGameDataRegionConfig" xml:space="preserve">
+    <value>导出配置文件</value>
+  </data>
+  <data name="SaveAs" xml:space="preserve">
+    <value>保存为</value>
+  </data>
+  <data name="SmartBpRegionConfigExportPathEmpty" xml:space="preserve">
+    <value>导出失败：目标路径不能为空。</value>
+  </data>
 </root>
+

@@ -1,4 +1,5 @@
 using F23.StringSimilarity;
+using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
@@ -17,44 +18,32 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public class SmartBpService : ISmartBpService
 {
-    private static readonly RelativeRect[] DataColumnRects =
-    [
-        new(0.255, 0, 0.1, 1),
-        new(0.4, 0, 0.1, 1),
-        new(0.515, 0, 0.1, 1),
-        new(0.65, 0, 0.1, 1),
-        new(0.79, 0, 0.1, 1)
-    ];
-
     private readonly ISharedDataService _sharedDataService;
     private readonly IWindowCaptureService _windowCaptureService;
     private readonly IOcrService _ocrService;
+    private readonly ISmartBpRegionConfigService _regionConfigService;
+    private readonly ILogger<SmartBpService> _logger;
     private int _ocrWarmupStarted;
 
-    /// <summary>
-    /// 当前智慧 BP 是否正在运行。
-    /// </summary>
     public bool IsSmartBpRunning { get; private set; }
 
-    /// <summary>
-    /// 初始化智慧 BP 服务。
-    /// </summary>
-    /// <param name="sharedDataService">共享对局数据服务。</param>
-    /// <param name="windowCaptureService">窗口捕获服务。</param>
-    /// <param name="ocrService">OCR 服务。</param>
-    public SmartBpService(ISharedDataService sharedDataService, IWindowCaptureService windowCaptureService,
-        IOcrService ocrService)
+    public SmartBpService(
+        ISharedDataService sharedDataService,
+        IWindowCaptureService windowCaptureService,
+        IOcrService ocrService,
+        ISmartBpRegionConfigService regionConfigService,
+        ILogger<SmartBpService> logger)
     {
         _sharedDataService = sharedDataService;
         _windowCaptureService = windowCaptureService;
         _ocrService = ocrService;
+        _regionConfigService = regionConfigService;
+        _logger = logger;
     }
 
-    /// <summary>
-    /// 启动智慧 BP。
-    /// </summary>
     public void StartSmartBp()
     {
+        // SmartBp 依赖 OCR 模型，未就绪时直接阻止启动。
         if (!IsOcrReady())
         {
             IsSmartBpRunning = false;
@@ -66,16 +55,54 @@ public class SmartBpService : ISmartBpService
         StartOcrWarmupIfNeeded();
     }
 
-    /// <summary>
-    /// 停止智慧 BP。
-    /// </summary>
     public void StopSmartBp()
     {
         IsSmartBpRunning = false;
     }
 
+    public async Task AutoFillGameDataAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!IsOcrReady())
+            {
+                _logger.LogWarning("SmartBp AutoFill skipped: OCR model is not ready.");
+                await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("SmartBpOcrNotReadyFirstDownloadAndSwitchModel"));
+                return;
+            }
+
+            if (!_windowCaptureService.IsCapturing)
+            {
+                _logger.LogInformation("SmartBp AutoFill skipped: capture is not running.");
+                return;
+            }
+
+            var recognizedData = await Task.Run(
+                () => CaptureAndRecognizeGameData(cancellationToken),
+                cancellationToken);
+
+            if (recognizedData == null)
+            {
+                _logger.LogInformation("SmartBp AutoFill finished with no result.");
+                return;
+            }
+
+            ApplyRecognizedData(recognizedData);
+            _logger.LogInformation("SmartBp AutoFill succeeded: {SurvivorCount} survivor rows applied.", recognizedData.SurvivorInfos.Count);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("SmartBp AutoFill canceled.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "SmartBp AutoFill failed with exception.");
+        }
+    }
+
     private void StartOcrWarmupIfNeeded()
     {
+        // 预热只执行一次，降低首次真实识别的延迟尖峰。
         if (Interlocked.Exchange(ref _ocrWarmupStarted, 1) == 1)
             return;
 
@@ -95,86 +122,138 @@ public class SmartBpService : ISmartBpService
         });
     }
 
-    /// <summary>
-    /// 自动识别并回填当前对局的赛后数据。
-    /// </summary>
-    /// <param name="cancellationToken">取消令牌。</param>
-    public async Task AutoFillGameDataAsync(CancellationToken cancellationToken = default)
-    {
-        var recognizedData = await Task.Run(
-            () => CaptureAndRecognizeGameData(cancellationToken),
-            cancellationToken);
-
-        if (recognizedData == null)
-            return;
-
-        ApplyRecognizedData(recognizedData);
-    }
-
     private RecognizedGameData? CaptureAndRecognizeGameData(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        using var table = GetTable();
-
-        if (table == null)
+        // 获取当前捕获帧（客户端区域截图）。
+        var frame = _windowCaptureService.GetCurrentFrame();
+        if (frame == null)
             return null;
 
-        cancellationToken.ThrowIfCancellationRequested();
+        using var full = frame.ToBgrMat();
+        // 识别区域来自可编辑配置，不再依赖硬编码像素。
+        var profile = _regionConfigService.GetCurrentGameDataProfile();
+        if (!TryResolveGameDataRows(profile, out var hunterRowProfile, out var survivorRowProfiles))
+            return null;
 
-        var hunterData = GetHunInfo(table).PlayerData;
-        var survivorInfos = GetSurInfos(table);
+        using var hunterRow = new Mat(full, hunterRowProfile.BigRect.ToPixelRect(full.Width, full.Height));
+        var hunterData = GetHunInfo(hunterRow, hunterRowProfile).PlayerData;
+
+        var survivorInfos = new List<PlayerInfo>();
+        foreach (var rowProfile in survivorRowProfiles)
+        {
+            using var survivorRow = new Mat(full, rowProfile.BigRect.ToPixelRect(full.Width, full.Height));
+            var rowInfo = GetSurInfo(survivorRow, rowProfile);
+            survivorInfos.Add(rowInfo);
+        }
+
         return new RecognizedGameData(hunterData, survivorInfos);
+    }
+
+    /// <summary>
+    /// 解析 GameData 行映射。
+    /// 优先按稳定 ID（row0_hunter / rowX_survivor）定位，避免因顺序变化导致识别错位。
+    /// </summary>
+    private static bool TryResolveGameDataRows(
+        SmartBpRegionProfile profile,
+        out SmartBpRegionRow hunterRow,
+        out List<SmartBpRegionRow> survivorRows)
+    {
+        hunterRow = null!;
+        survivorRows = [];
+
+        if (profile.Rows.Count == 0)
+            return false;
+
+        hunterRow = profile.Rows.FirstOrDefault(r =>
+                        string.Equals(r.Id, "row0_hunter", StringComparison.OrdinalIgnoreCase))
+                    ?? profile.Rows.First();
+        var resolvedHunter = hunterRow;
+
+        survivorRows = profile.Rows
+            .Where(r => !ReferenceEquals(r, resolvedHunter))
+            .OrderBy(r =>
+            {
+                var m = Regex.Match(r.Id ?? string.Empty, @"row(\d+)_survivor", RegexOptions.IgnoreCase);
+                return m.Success && int.TryParse(m.Groups[1].Value, out var n) ? n : int.MaxValue;
+            })
+            .Take(4)
+            .ToList();
+
+        return survivorRows.Count > 0;
+    }
+
+    private PlayerInfo GetSurInfo(Mat surRow, SmartBpRegionRow rowProfile)
+    {
+        var (playerName, characterName) = GetSurPlayerNameAndCharacterName(surRow, rowProfile);
+        var data = GetSurPlayerData(surRow, rowProfile);
+        _logger.LogInformation(
+            "SmartBp OCR Survivor row={RowId}: player={PlayerName}, character={CharacterName}, values=[{Decoding},{Pallet},{Rescue},{Heal},{Contain}]",
+            rowProfile.Id,
+            ToLogText(playerName),
+            ToLogText(characterName),
+            data.DecodingProgress,
+            data.PalletStrikes,
+            data.Rescues,
+            data.Heals,
+            data.ContainmentTime);
+        return new PlayerInfo(playerName, characterName, data);
     }
 
     private void ApplyRecognizedData(RecognizedGameData recognizedData)
     {
-        // Hunter
+        // 监管者数据直接按字段写回。
         _sharedDataService.CurrentGame.HunPlayer.Data.RemainingCipher = recognizedData.HunterData.RemainingCipher;
         _sharedDataService.CurrentGame.HunPlayer.Data.PalletsDestroyed = recognizedData.HunterData.PalletsDestroyed;
         _sharedDataService.CurrentGame.HunPlayer.Data.SurvivorHits = recognizedData.HunterData.SurvivorHits;
         _sharedDataService.CurrentGame.HunPlayer.Data.TerrorShocks = recognizedData.HunterData.TerrorShocks;
         _sharedDataService.CurrentGame.HunPlayer.Data.Knockdowns = recognizedData.HunterData.Knockdowns;
 
-        // Survivors
-        var jw = new JaroWinkler(); // 0~1，越大越像
-        const double threshold = 0.88; // 你可以根据OCR质量调：0.85~0.92
+        var jw = new JaroWinkler();
+        const double threshold = 0.50;
 
+        // 求生者通过角色名匹配目标对象。先做规范化精确匹配，再做近似匹配兜底。
         foreach (var survivorInfo in recognizedData.SurvivorInfos)
         {
-            var target = survivorInfo.CharacterName; // ✅ 你说上游已Normalize
-
-            // 先精确匹配（更快更稳）
+            var target = survivorInfo.CharacterName;
             var sur = _sharedDataService.CurrentGame.SurPlayerList
                 .FirstOrDefault(p => NormalizeName(p.Character?.Name) == target);
+            var matchMode = "exact";
+            var fuzzyScore = 1.0;
 
-            // 再用相似度兜底
             if (sur == null)
             {
-                sur = _sharedDataService.CurrentGame.SurPlayerList
+                var fuzzy = _sharedDataService.CurrentGame.SurPlayerList
                     .Select(p => new
                     {
                         Player = p,
-                        Name = NormalizeName(p.Character?.Name),
+                        Name = NormalizeName(p.Character?.Name)
                     })
                     .Where(x => !string.IsNullOrEmpty(x.Name))
-                    .Select(x => new
-                    {
-                        x.Player,
-                        Score = jw.Similarity(x.Name, target)
-                    })
+                    .Select(x => new { x.Player, Score = jw.Similarity(x.Name, target) })
                     .OrderByDescending(x => x.Score)
-                    .Where(x => x.Score >= threshold)
-                    .Select(x => x.Player)
-                    .FirstOrDefault();
+                    .FirstOrDefault(x => x.Score >= threshold);
+                sur = fuzzy?.Player;
+                fuzzyScore = fuzzy?.Score ?? 0.0;
+                matchMode = "fuzzy";
             }
 
             if (sur == null)
             {
-                // 找不到就跳过（建议加日志）
-                // _logger.LogWarning("Cannot match character name: {Name}", target);
+                _logger.LogWarning(
+                    "SmartBp Match failed: recognizedCharacter={Character}, threshold={Threshold}",
+                    ToLogText(target),
+                    threshold);
                 continue;
             }
+
+            _logger.LogInformation(
+                "SmartBp Match success: mode={Mode}, recognizedCharacter={Character}, mappedTo={MappedCharacter}, score={Score:F3}",
+                matchMode,
+                ToLogText(target),
+                ToLogText(sur.Character?.Name),
+                fuzzyScore);
 
             sur.Data.DecodingProgress = survivorInfo.PlayerData.DecodingProgress;
             sur.Data.PalletStrikes = survivorInfo.PlayerData.PalletStrikes;
@@ -191,103 +270,39 @@ public class SmartBpService : ISmartBpService
                _ocrService.IsModelInstalled(currentModelKey);
     }
 
-    /// <summary>
-    /// 从当前捕获帧中裁剪出赛后数据表格区域。
-    /// </summary>
-    /// <returns>表格图像；当捕获帧不可用时返回 <see langword="null"/>。</returns>
-    public Mat? GetTable()
+    public PlayerInfo GetHunInfo(Mat hunter, SmartBpRegionRow rowProfile)
     {
-        var frame = _windowCaptureService.GetCurrentFrame();
-        if (frame == null)
-            return null;
-
-        using var mat = frame.ToBgrMat();
-
-        // SaveDebug(mat, "01_full.png");
-
-        // === Step 1: 裁剪 Table ===
-        var tableRect = new RelativeRect(0.1, 0.165, 0.845, 0.62)
-            .ToPixelRect(mat.Width, mat.Height);
-
-        var table = new Mat(mat, tableRect);
-        // SaveDebug(table, "02_table.png");
-
-        return table;
-    }
-
-    /// <summary>
-    /// 从表格图像中提取监管者行信息。
-    /// </summary>
-    /// <param name="table">赛后数据表格图像。</param>
-    /// <returns>监管者信息。</returns>
-    public PlayerInfo GetHunInfo(Mat table)
-    {
-        // === Step 2: 裁剪 Hunter 行 ===
-        var hunterRect = new RelativeRect(0, 0, 1, 0.16)
-            .ToPixelRect(table.Width, table.Height);
-        using var hunter = new Mat(table, hunterRect);
-        // SaveDebug(hunter, "03_hunter_row.png");
-
-        var hunCharacterName = GetHunPlayerNameAndCharacterName(hunter);
-        var data = GetHunPlayerData(hunter);
+        var hunCharacterName = GetHunPlayerNameAndCharacterName(hunter, rowProfile);
+        var data = GetHunPlayerData(hunter, rowProfile);
+        _logger.LogInformation(
+            "SmartBp OCR Hunter row={RowId}: player={PlayerName}, character={CharacterName}, values=[{Cipher},{Pallets},{Hits},{Terror},{Knockdowns}]",
+            rowProfile.Id,
+            ToLogText(hunCharacterName.Item1),
+            ToLogText(hunCharacterName.Item2),
+            data.RemainingCipher,
+            data.PalletsDestroyed,
+            data.SurvivorHits,
+            data.TerrorShocks,
+            data.Knockdowns);
         return new PlayerInfo(hunCharacterName.Item1, hunCharacterName.Item2, data);
     }
 
-    /// <summary>
-    /// 从表格图像中提取求生者信息列表。
-    /// </summary>
-    /// <param name="table">赛后数据表格图像。</param>
-    /// <returns>求生者信息列表。</returns>
-    public List<PlayerInfo> GetSurInfos(Mat table)
+    public (string, string) GetSurPlayerNameAndCharacterName(Mat surRow, SmartBpRegionRow rowProfile)
     {
-        var surInfos = new List<PlayerInfo>();
-
-        const double rowStep = 0.19;
-        var baseRowRel = new RelativeRect(0, 0.279, 1, 0.14);
-
-        for (var i = 0; i < 4; i++)
-        {
-            var rowRel = baseRowRel with { Y = baseRowRel.Y + i * rowStep };
-
-            var rowPx = rowRel.ToPixelRect(table.Width, table.Height);
-            using var row = new Mat(table, rowPx);
-
-            // SaveDebug(row, $"sur_row_{i}.png"); // 你调试时可以打开
-
-            var (playerName, characterName) = GetSurPlayerNameAndCharacterName(row);
-            var data = GetSurPlayerData(row);
-
-            surInfos.Add(new PlayerInfo(playerName, characterName, data));
-        }
-
-        return surInfos;
-    }
-
-    /// <summary>
-    /// 识别求生者行中的玩家名和角色名。
-    /// </summary>
-    /// <param name="surRow">求生者行图像。</param>
-    /// <returns>玩家名与角色名元组。</returns>
-    public (string, string) GetSurPlayerNameAndCharacterName(Mat surRow)
-    {
-        // Sur 行里名字在左侧；高度用整行
-        var nameRect = new RelativeRect(0, 0, 0.28, 0.47)
-            .ToPixelRect(surRow.Width, surRow.Height);
-
+        // cells[0] 固定为“名称框”。
+        var nameRect = rowProfile.Cells[0].Rect.ToPixelRect(surRow.Width, surRow.Height);
         using var name = new Mat(surRow, nameRect);
-
-        // 这里先用你现成的 PreprocessForText 跑通（后面你想更稳再拆 PreprocessForName）
         using var bin = PreprocessForText(name);
-
         var text = _ocrService.RecognizeText(bin) ?? string.Empty;
+        _logger.LogInformation("SmartBp OCR Survivor Name row={RowId}: raw={Raw}", rowProfile.Id, ToLogText(text));
         return GetPlayerNameAndCharacterName(text);
     }
 
-    private PlayerData GetSurPlayerData(Mat surRow)
+    private PlayerData GetSurPlayerData(Mat surRow, SmartBpRegionRow rowProfile)
     {
-        var values = GetRowDataValues(surRow);
-
-        var data = new PlayerData
+        // cells[1..5] 固定映射 5 个数据字段。
+        var values = GetRowDataValues(surRow, rowProfile);
+        return new PlayerData
         {
             DecodingProgress = values[0],
             PalletStrikes = values[1],
@@ -295,43 +310,24 @@ public class SmartBpService : ISmartBpService
             Heals = values[3],
             ContainmentTime = values[4]
         };
-
-        return data;
     }
 
-    /// <summary>
-    /// 识别监管者行中的玩家名和角色名。
-    /// </summary>
-    /// <param name="hunter">监管者行图像。</param>
-    /// <returns>玩家名与角色名元组。</returns>
-    public (string, string) GetHunPlayerNameAndCharacterName(Mat hunter)
+    public (string, string) GetHunPlayerNameAndCharacterName(Mat hunter, SmartBpRegionRow rowProfile)
     {
-        // === Step 3: 裁剪 Name 列 ===
-        var nameRect = new RelativeRect(0, 0, 0.4, 0.5)
-            .ToPixelRect(hunter.Width, hunter.Height);
-
+        // 监管者与求生者共用“名称+角色”解析规则。
+        var nameRect = rowProfile.Cells[0].Rect.ToPixelRect(hunter.Width, hunter.Height);
         using var name = new Mat(hunter, nameRect);
-        // SaveDebug(name, "04_hunter_name.png");
-
-        // === Step 4: 预处理 ===
         using var bin = PreprocessForText(name);
-        // SaveDebug(bin, "05_hunter_name_bin.png");
-
         var hunterText = _ocrService.RecognizeText(bin) ?? string.Empty;
-
-        var (playerName, characterName) = GetPlayerNameAndCharacterName(hunterText);
-
-        return (playerName, characterName);
+        _logger.LogInformation("SmartBp OCR Hunter Name row={RowId}: raw={Raw}", rowProfile.Id, ToLogText(hunterText));
+        return GetPlayerNameAndCharacterName(hunterText);
     }
 
     private static (string, string) GetPlayerNameAndCharacterName(string playerText)
     {
-        playerText = playerText
-            .Replace('（', '(')
-            .Replace('）', ')');
+        playerText = playerText.Replace('（', '(').Replace('）', ')');
 
-        // 使用正则表达式分别提取括号前和括号内的内容
-        var match = System.Text.RegularExpressions.Regex.Match(playerText, @"^([^()]*?)\(([^)]*)\)");
+        var match = Regex.Match(playerText, @"^([^()]*?)\(([^)]*)\)");
         var playerName = match.Success ? match.Groups[1].Value.Trim() : string.Empty;
         var characterName = match.Success ? match.Groups[2].Value : string.Empty;
         playerName = NormalizeName(playerName);
@@ -345,19 +341,14 @@ public class SmartBpService : ISmartBpService
             return string.Empty;
 
         name = name.Trim().ToLowerInvariant();
-
-        // 统一全角到半角（可选但很有用：全角空格、全角字母数字）
         name = name.Normalize(NormalizationForm.FormKC);
-
-        // 只保留：字母(含汉字/日文/韩文等所有Unicode字母) + 数字
         return new string(name.Where(char.IsLetterOrDigit).ToArray());
     }
 
-    public PlayerData GetHunPlayerData(Mat hunter)
+    public PlayerData GetHunPlayerData(Mat hunter, SmartBpRegionRow rowProfile)
     {
-        var values = GetRowDataValues(hunter);
-
-        var data = new PlayerData
+        var values = GetRowDataValues(hunter, rowProfile);
+        return new PlayerData
         {
             RemainingCipher = values[0],
             PalletsDestroyed = values[1],
@@ -365,33 +356,54 @@ public class SmartBpService : ISmartBpService
             TerrorShocks = values[3],
             Knockdowns = values[4]
         };
-
-        return data;
     }
 
-    private string[] GetRowDataValues(Mat row)
+    private string[] GetRowDataValues(Mat row, SmartBpRegionRow rowProfile)
     {
-        var batchValues = TryGetRowDataValuesBySingleOcr(row);
+        // 优先尝试“整行数字拼条一次 OCR”，性能更好且通常更稳定。
+        var dataColumns = rowProfile.Cells.Skip(1).Take(5).Select(c => c.Rect).ToArray();
+        var batchValues = TryGetRowDataValuesBySingleOcr(row, dataColumns, out var batchRawText);
         if (batchValues != null)
+        {
+            _logger.LogInformation(
+                "SmartBp OCR RowData batch row={RowId}: raw={Raw}, parsed=[{D1},{D2},{D3},{D4},{D5}]",
+                rowProfile.Id,
+                ToLogText(batchRawText),
+                batchValues[0],
+                batchValues[1],
+                batchValues[2],
+                batchValues[3],
+                batchValues[4]);
             return batchValues;
+        }
 
-        // 回退到逐列 OCR，保证稳定性。
-        return
+        // 批量失败后降级到逐列 OCR，提高复杂噪声场景容错性。
+        string[] fallback =
         [
-            GetData(row, DataColumnRects[0]),
-            GetData(row, DataColumnRects[1]),
-            GetData(row, DataColumnRects[2]),
-            GetData(row, DataColumnRects[3]),
-            GetData(row, DataColumnRects[4])
+            GetData(row, dataColumns[0]),
+            GetData(row, dataColumns[1]),
+            GetData(row, dataColumns[2]),
+            GetData(row, dataColumns[3]),
+            GetData(row, dataColumns[4])
         ];
+        _logger.LogInformation(
+            "SmartBp OCR RowData fallback row={RowId}: values=[{D1},{D2},{D3},{D4},{D5}]",
+            rowProfile.Id,
+            fallback[0],
+            fallback[1],
+            fallback[2],
+            fallback[3],
+            fallback[4]);
+        return fallback;
     }
 
-    private string[]? TryGetRowDataValuesBySingleOcr(Mat row)
+    private string[]? TryGetRowDataValuesBySingleOcr(Mat row, IReadOnlyList<RelativeRect> dataColumns, out string? rawText)
     {
-        using var strip = BuildDataStrip(row, DataColumnRects);
+        // 将 5 个数字列拼成连续条带，减少 OCR 引擎多次启动开销。
+        using var strip = BuildDataStrip(row, dataColumns);
         using var bin = PreprocessForDigits(strip);
-        var text = _ocrService.RecognizeText(bin);
-        return TryParseFiveNumbers(text);
+        rawText = _ocrService.RecognizeText(bin);
+        return TryParseFiveNumbers(rawText);
     }
 
     private static string[]? TryParseFiveNumbers(string? text)
@@ -403,21 +415,13 @@ public class SmartBpService : ISmartBpService
         if (matches.Count != 5)
             return null;
 
-        return
-        [
-            matches[0].Value,
-            matches[1].Value,
-            matches[2].Value,
-            matches[3].Value,
-            matches[4].Value
-        ];
+        return [matches[0].Value, matches[1].Value, matches[2].Value, matches[3].Value, matches[4].Value];
     }
 
     private static Mat BuildDataStrip(Mat row, IReadOnlyList<RelativeRect> rects)
     {
-        var columnRects = rects
-            .Select(r => TrimDataRect(r.ToPixelRect(row.Width, row.Height)))
-            .ToArray();
+        // 先裁掉列边缘无效区域，再按固定间隔拼接成一张新图。
+        var columnRects = rects.Select(r => TrimDataRect(r.ToPixelRect(row.Width, row.Height))).ToArray();
 
         var gap = Math.Max(20, row.Width / 55);
         var totalWidth = columnRects.Sum(r => r.Width) + gap * Math.Max(0, columnRects.Length - 1);
@@ -437,7 +441,7 @@ public class SmartBpService : ISmartBpService
 
     private static Rect TrimDataRect(Rect rect)
     {
-        // 裁掉列边缘的分隔线，避免单个数字（尤其是 1）被粘连/吞掉。
+        // 去除列左右/上下边缘，尽量减少装饰元素对数字识别的干扰。
         var trimX = Math.Clamp(rect.Width / 10, 2, 10);
         var trimY = Math.Clamp(rect.Height / 16, 0, 4);
 
@@ -453,11 +457,11 @@ public class SmartBpService : ISmartBpService
         var rawRect = rect.ToPixelRect(row.Width, row.Height);
         var trimmedRect = TrimDataRect(rawRect);
 
+        // 先识别裁边区域，不行再回退到原始区域。
         var value = RecognizeDigits(row, trimmedRect, rawDebugFileName, binDebugFileName);
         if (!string.IsNullOrEmpty(value))
             return value;
 
-        // 兜底：裁边可能伤到细数字（例如单个 1），空结果时退回原始列再识别一次。
         return RecognizeDigits(row, rawRect);
     }
 
@@ -473,21 +477,15 @@ public class SmartBpService : ISmartBpService
         if (!string.IsNullOrWhiteSpace(binDebugFileName))
             SaveDebug(bin, binDebugFileName);
 
+        // 只保留 0-9，避免 OCR 把噪声字符带入结果。
         return CleanDigitsOnly(_ocrService.RecognizeText(bin));
     }
 
-    /// <summary>
-    /// 仅保留 OCR 结果中的数字字符。
-    /// </summary>
-    /// <param name="s">OCR 原始文本。</param>
-    /// <returns>仅由数字组成的字符串；为空时返回空字符串。</returns>
     public static string CleanDigitsOnly(string? s)
     {
         if (string.IsNullOrWhiteSpace(s)) return string.Empty;
 
-        // 先 Trim 掉前后空白（包括 \r \n \t）
         s = s.Trim();
-
         var sb = new StringBuilder(s.Length);
         foreach (var ch in s.Where(ch => ch is >= '0' and <= '9'))
         {
@@ -497,102 +495,62 @@ public class SmartBpService : ISmartBpService
         return sb.ToString();
     }
 
+    private static string ToLogText(string? text, int maxLength = 120)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return string.Empty;
+
+        var normalized = text.Replace("\r", " ").Replace("\n", " ").Trim();
+        return normalized.Length <= maxLength
+            ? normalized
+            : $"{normalized[..maxLength]}...";
+    }
+
     private static void SaveDebug(Mat mat, string fileName)
     {
-        var outputDir = Path.Combine(
-            AppContext.BaseDirectory,
-            "debug");
-
+        var outputDir = Path.Combine(AppContext.BaseDirectory, "debug");
         Directory.CreateDirectory(outputDir);
-
         var fullPath = Path.Combine(outputDir, fileName);
         mat.SaveImage(fullPath);
     }
 
-    /// <summary>
-    /// 归一化矩形定义（相对于图像宽高的比例坐标）。
-    /// </summary>
-    /// <param name="X">左上角 X 比例。</param>
-    /// <param name="Y">左上角 Y 比例。</param>
-    /// <param name="W">宽度比例。</param>
-    /// <param name="H">高度比例。</param>
-    public readonly record struct RelativeRect(double X, double Y, double W, double H)
-    {
-        /// <summary>
-        /// 将比例坐标转换为图像像素坐标矩形。
-        /// </summary>
-        /// <param name="imgW">图像宽度。</param>
-        /// <param name="imgH">图像高度。</param>
-        /// <returns>像素坐标矩形。</returns>
-        public Rect ToPixelRect(int imgW, int imgH)
-        {
-            var x = Math.Clamp((int)(X * imgW), 0, Math.Max(imgW - 1, 0));
-            var y = Math.Clamp((int)(Y * imgH), 0, Math.Max(imgH - 1, 0));
-
-            var maxW = Math.Max(imgW - x, 1);
-            var maxH = Math.Max(imgH - y, 1);
-
-            var w = Math.Clamp((int)(W * imgW), 1, maxW);
-            var h = Math.Clamp((int)(H * imgH), 1, maxH);
-            return new Rect(x, y, w, h);
-        }
-    }
-
-    /// <summary>
-    /// 对文本区域图像执行预处理，提升 OCR 对名字文本的识别稳定性。
-    /// </summary>
-    /// <param name="bgr">原始 BGR 图像。</param>
-    /// <returns>预处理后的二值图像。</returns>
     public static Mat PreprocessForText(Mat bgr)
     {
-        // 0) 放大：数字太小的话，det/rec 都会难受
+        // 名称文本预处理：放大 -> 灰度 -> 背景抑制 -> 二值化 -> 形态学 -> 反色。
         using var scaled = new Mat();
         Cv2.Resize(bgr, scaled, new Size(), 3.0, 3.0, InterpolationFlags.Cubic);
 
-        // 1) 灰度
         using var gray = new Mat();
         Cv2.CvtColor(scaled, gray, ColorConversionCodes.BGR2GRAY);
 
-        // 2) 背景抹平：用大尺度模糊当“背景”，再做差分
-        //    直觉：把慢变化的背景(头像/渐变)去掉，只剩“亮的细东西”(数字)
         using var bg = new Mat();
-        Cv2.GaussianBlur(gray, bg, new Size(0, 0), 12); // sigma 可调：8~18
+        Cv2.GaussianBlur(gray, bg, new Size(0, 0), 12);
 
         using var diff = new Mat();
-        Cv2.Subtract(gray, bg, diff); // 亮的东西会更突出，背景会趋近 0
+        Cv2.Subtract(gray, bg, diff);
 
-        // 3) 拉伸对比度，避免 diff 太灰
         using var norm = new Mat();
         Cv2.Normalize(diff, norm, 0, 255, NormTypes.MinMax);
 
-        // 4) 轻去噪（别太重，不然笔画断）
         using var denoise = new Mat();
         Cv2.GaussianBlur(norm, denoise, new Size(3, 3), 0);
 
-        // 5) 二值：用 Otsu 自动阈值更稳（比 adaptive 更不容易把背景线条提出来）
         var bin = new Mat();
         Cv2.Threshold(denoise, bin, 0, 255, ThresholdTypes.Binary | ThresholdTypes.Otsu);
 
-        // 6) 形态学：把断笔画接上、去掉小噪点
         using var kClose = Cv2.GetStructuringElement(MorphShapes.Rect, new Size(3, 3));
         Cv2.MorphologyEx(bin, bin, MorphTypes.Close, kClose, iterations: 1);
 
         using var kOpen = Cv2.GetStructuringElement(MorphShapes.Rect, new Size(2, 2));
         Cv2.MorphologyEx(bin, bin, MorphTypes.Open, kOpen, iterations: 1);
 
-        // 7) Paddle 识别通常更喜欢 “黑字白底”
         Cv2.BitwiseNot(bin, bin);
-
         return bin;
     }
 
-    /// <summary>
-    /// 对数字区域图像执行预处理，提升 OCR 对数字列的识别效果。
-    /// </summary>
-    /// <param name="bgr">原始 BGR 图像。</param>
-    /// <returns>预处理后的二值图像。</returns>
     public static Mat PreprocessForDigits(Mat bgr)
     {
+        // 数字预处理相对更轻，优先保持数字笔画边界。
         using var scaled = new Mat();
         Cv2.Resize(bgr, scaled, new Size(), 2.0, 2.0, InterpolationFlags.Linear);
 
@@ -612,12 +570,6 @@ public class SmartBpService : ISmartBpService
         return bin;
     }
 
-    /// <summary>
-    /// 玩家识别结果。
-    /// </summary>
-    /// <param name="PlayerName">玩家名称。</param>
-    /// <param name="CharacterName">角色名称。</param>
-    /// <param name="PlayerData">赛后统计数据。</param>
     public record PlayerInfo(string PlayerName, string CharacterName, PlayerData PlayerData);
 
     private sealed record RecognizedGameData(PlayerData HunterData, List<PlayerInfo> SurvivorInfos);

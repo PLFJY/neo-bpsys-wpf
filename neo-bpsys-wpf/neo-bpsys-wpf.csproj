@@ -20,6 +20,7 @@
         <BuildMeta>local</BuildMeta>
         <InformationalVersion>v$(Version)+$(BuildMeta)</InformationalVersion>
         <Configurations>Debug;Release;Beta;Preview</Configurations>
+        <Platforms>AnyCPU;x64</Platforms>
         <!--
         版本号迭代原则：
         首位在出现大型重构或又非常重大更改时（如官方规则改变、UI重构）跟进
@@ -50,6 +51,10 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Preview|AnyCPU'">
+	  <DefineConstants>$(DefineConstants);PREVIEW</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Preview|x64'">
 	  <DefineConstants>$(DefineConstants);PREVIEW</DefineConstants>
 	</PropertyGroup>
 

@@ -104,6 +104,116 @@
                 </StackPanel>
             </Grid>
         </Border>
+
+        <StackPanel Margin="0,10,0,0">
+            <TextBlock
+                Grid.Row="0"
+                Style="{StaticResource Title}"
+                Text="{lex:Loc SmartBpRegionConfigTitle}" />
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Border
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Style="{StaticResource Card}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Style="{StaticResource Title}" Text="{lex:Loc GameData}" />
+                        <WrapPanel Grid.Row="1" Margin="0,10,0,0">
+                            <ui:Button
+                                Margin="0,0,10,10"
+                                Command="{Binding OpenGameDataRegionEditorCommand}"
+                                Content="{lex:Loc SmartBpEditGameDataRegion}"
+                                Icon="{ui:SymbolIcon Symbol=Edit24}" />
+                            <ui:Button
+                                Margin="0,0,10,10"
+                                Command="{Binding ImportGameDataRegionConfigCommand}"
+                                Content="{lex:Loc SmartBpImportGameDataRegionConfig}"
+                                Icon="{ui:SymbolIcon Symbol=ArrowImport24}" />
+                            <ui:Button
+                                Margin="0,0,10,10"
+                                Command="{Binding ExportGameDataRegionConfigCommand}"
+                                Content="{lex:Loc SmartBpExportGameDataRegionConfig}"
+                                Icon="{ui:SymbolIcon Symbol=ArrowExportLtr24}" />
+                            <ui:Button
+                                Margin="0,0,10,10"
+                                Command="{Binding ResetGameDataRegionConfigCommand}"
+                                Content="{lex:Loc SmartBpResetGameDataRegionConfig169}"
+                                Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                        </WrapPanel>
+
+                        <StackPanel Grid.Row="2" Margin="0,4,0,0">
+                            <TextBlock TextWrapping="Wrap">
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{lex:StringFormatConverter}">
+                                        <lex:BLoc Key="SmartBpRegionConfigPathFormat" />
+                                        <Binding Path="RegionConfigPath" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{lex:StringFormatConverter}">
+                                        <lex:BLoc Key="SmartBpRegionConfigAspectRatioFormat" />
+                                        <Binding Path="RegionConfigAspectRatioText" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{lex:StringFormatConverter}">
+                                        <lex:BLoc Key="SmartBpCaptureAspectRatioFormat" />
+                                        <Binding Path="CaptureAspectRatioText" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{lex:StringFormatConverter}">
+                                        <lex:BLoc Key="SmartBpRegionAspectStatusFormat" />
+                                        <Binding Path="RegionAspectStatusText" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RegionAspectIsMismatch}" Value="True">
+                                                <Setter Property="Foreground" Value="#DC2626" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBlock
+                                Margin="0,6,0,0"
+                                Text="{Binding RegionAspectHintText}"
+                                TextWrapping="Wrap">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RegionAspectIsMismatch}" Value="True">
+                                                <Setter Property="Foreground" Value="#DC2626" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </StackPanel>
         <Border Margin="0,10,0,0" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
