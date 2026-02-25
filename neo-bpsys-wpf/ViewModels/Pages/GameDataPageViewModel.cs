@@ -11,7 +11,7 @@ public partial class GameDataPageViewModel : ViewModelBase
     public GameDataPageViewModel()
 #pragma warning restore CS8618 
     {
-        //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+        // Decorative constructor for design-time only.
     }
 
     private readonly ISharedDataService _sharedDataService;
