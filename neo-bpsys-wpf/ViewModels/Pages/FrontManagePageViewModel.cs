@@ -18,7 +18,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
     public FrontManagePageViewModel()
 #pragma warning restore CS8618 
     {
-        //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+        // Decorative constructor for design-time only.
     }
 
     private readonly IFrontedWindowService _frontedWindowService;

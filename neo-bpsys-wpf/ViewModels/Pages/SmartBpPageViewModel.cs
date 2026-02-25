@@ -29,20 +29,11 @@ public partial class SmartBpPageViewModel : ViewModelBase
     private static readonly RegionEditorStructure GameDataEditorStructure = CreateGameDataEditorStructure();
     private readonly DispatcherTimer _captureAspectRefreshTimer;
 
-    /// <summary>
-    /// 设计时构造函数。
-    /// </summary>
+#pragma warning disable CS8618
     public SmartBpPageViewModel()
+#pragma warning restore CS8618
     {
         // Decorative constructor for design-time only.
-        OcrModelList = [];
-        RegionConfigPath = "-";
-        RegionConfigAspectRatioText = "-";
-        CaptureAspectRatioText = "-";
-        RegionAspectStatusText = ResolveLocalizedOrRaw("SmartBpRegionAspectStatusNotStarted");
-        RegionAspectHintText = ResolveLocalizedOrRaw("SmartBpRegionAspectHintNotStarted");
-        RegionAspectIsMismatch = false;
-        _captureAspectRefreshTimer = new DispatcherTimer();
     }
 
     /// <summary>
