@@ -1555,7 +1555,11 @@
     <value>Apply to Same Template</value>
   </data>
   <data name="SmartBpRegionEditorOperationHelp" xml:space="preserve">
-    <value>How to use: 1. Drag inside region to move 2. Drag 8 handles to resize 3. Child regions are constrained inside parent 4. Preview is frozen on current frame</value>
+    <value>How to use:
+1. Drag inside region to move
+2. Drag 8 handles to resize
+3. Child regions are constrained inside parent
+4. Preview is frozen on current frame</value>
   </data>
   <data name="SmartBpRegionLayoutMismatchRootIdFormat" xml:space="preserve">
     <value>Layout mismatch: root #{0} should be {1}, actual {2}.</value>

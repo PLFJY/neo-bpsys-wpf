@@ -137,13 +137,13 @@ public class SmartBpService : ISmartBpService
         if (!TryResolveGameDataRows(profile, out var hunterRowProfile, out var survivorRowProfiles))
             return null;
 
-        using var hunterRow = new Mat(full, hunterRowProfile.BigRect.ToPixelRect(full.Width, full.Height));
+        using var hunterRow = new Mat(full, hunterRowProfile.Rect.ToPixelRect(full.Width, full.Height));
         var hunterData = GetHunInfo(hunterRow, hunterRowProfile).PlayerData;
 
         var survivorInfos = new List<PlayerInfo>();
         foreach (var rowProfile in survivorRowProfiles)
         {
-            using var survivorRow = new Mat(full, rowProfile.BigRect.ToPixelRect(full.Width, full.Height));
+            using var survivorRow = new Mat(full, rowProfile.Rect.ToPixelRect(full.Width, full.Height));
             var rowInfo = GetSurInfo(survivorRow, rowProfile);
             survivorInfos.Add(rowInfo);
         }
@@ -157,21 +157,21 @@ public class SmartBpService : ISmartBpService
     /// </summary>
     private static bool TryResolveGameDataRows(
         SmartBpRegionProfile profile,
-        out SmartBpRegionRow hunterRow,
-        out List<SmartBpRegionRow> survivorRows)
+        out RegionLayoutNode hunterRow,
+        out List<RegionLayoutNode> survivorRows)
     {
         hunterRow = null!;
         survivorRows = [];
 
-        if (profile.Rows.Count == 0)
+        if (profile.Layout.Roots.Count == 0)
             return false;
 
-        hunterRow = profile.Rows.FirstOrDefault(r =>
+        hunterRow = profile.Layout.Roots.FirstOrDefault(r =>
                         string.Equals(r.Id, "row0_hunter", StringComparison.OrdinalIgnoreCase))
-                    ?? profile.Rows.First();
+                    ?? profile.Layout.Roots.First();
         var resolvedHunter = hunterRow;
 
-        survivorRows = profile.Rows
+        survivorRows = profile.Layout.Roots
             .Where(r => !ReferenceEquals(r, resolvedHunter))
             .OrderBy(r =>
             {
@@ -184,7 +184,7 @@ public class SmartBpService : ISmartBpService
         return survivorRows.Count > 0;
     }
 
-    private PlayerInfo GetSurInfo(Mat surRow, SmartBpRegionRow rowProfile)
+    private PlayerInfo GetSurInfo(Mat surRow, RegionLayoutNode rowProfile)
     {
         var (playerName, characterName) = GetSurPlayerNameAndCharacterName(surRow, rowProfile);
         var data = GetSurPlayerData(surRow, rowProfile);
@@ -270,7 +270,7 @@ public class SmartBpService : ISmartBpService
                _ocrService.IsModelInstalled(currentModelKey);
     }
 
-    public PlayerInfo GetHunInfo(Mat hunter, SmartBpRegionRow rowProfile)
+    public PlayerInfo GetHunInfo(Mat hunter, RegionLayoutNode rowProfile)
     {
         var hunCharacterName = GetHunPlayerNameAndCharacterName(hunter, rowProfile);
         var data = GetHunPlayerData(hunter, rowProfile);
@@ -287,10 +287,13 @@ public class SmartBpService : ISmartBpService
         return new PlayerInfo(hunCharacterName.Item1, hunCharacterName.Item2, data);
     }
 
-    public (string, string) GetSurPlayerNameAndCharacterName(Mat surRow, SmartBpRegionRow rowProfile)
+    public (string, string) GetSurPlayerNameAndCharacterName(Mat surRow, RegionLayoutNode rowProfile)
     {
-        // cells[0] 固定为“名称框”。
-        var nameRect = rowProfile.Cells[0].Rect.ToPixelRect(surRow.Width, surRow.Height);
+        var nameCell = GetCellById(rowProfile, "name", 0);
+        if (nameCell == null)
+            return (string.Empty, string.Empty);
+
+        var nameRect = nameCell.Rect.ToPixelRect(surRow.Width, surRow.Height);
         using var name = new Mat(surRow, nameRect);
         using var bin = PreprocessForText(name);
         var text = _ocrService.RecognizeText(bin) ?? string.Empty;
@@ -298,7 +301,7 @@ public class SmartBpService : ISmartBpService
         return GetPlayerNameAndCharacterName(text);
     }
 
-    private PlayerData GetSurPlayerData(Mat surRow, SmartBpRegionRow rowProfile)
+    private PlayerData GetSurPlayerData(Mat surRow, RegionLayoutNode rowProfile)
     {
         // cells[1..5] 固定映射 5 个数据字段。
         var values = GetRowDataValues(surRow, rowProfile);
@@ -312,10 +315,14 @@ public class SmartBpService : ISmartBpService
         };
     }
 
-    public (string, string) GetHunPlayerNameAndCharacterName(Mat hunter, SmartBpRegionRow rowProfile)
+    public (string, string) GetHunPlayerNameAndCharacterName(Mat hunter, RegionLayoutNode rowProfile)
     {
         // 监管者与求生者共用“名称+角色”解析规则。
-        var nameRect = rowProfile.Cells[0].Rect.ToPixelRect(hunter.Width, hunter.Height);
+        var nameCell = GetCellById(rowProfile, "name", 0);
+        if (nameCell == null)
+            return (string.Empty, string.Empty);
+
+        var nameRect = nameCell.Rect.ToPixelRect(hunter.Width, hunter.Height);
         using var name = new Mat(hunter, nameRect);
         using var bin = PreprocessForText(name);
         var hunterText = _ocrService.RecognizeText(bin) ?? string.Empty;
@@ -345,7 +352,7 @@ public class SmartBpService : ISmartBpService
         return new string(name.Where(char.IsLetterOrDigit).ToArray());
     }
 
-    public PlayerData GetHunPlayerData(Mat hunter, SmartBpRegionRow rowProfile)
+    public PlayerData GetHunPlayerData(Mat hunter, RegionLayoutNode rowProfile)
     {
         var values = GetRowDataValues(hunter, rowProfile);
         return new PlayerData
@@ -358,10 +365,13 @@ public class SmartBpService : ISmartBpService
         };
     }
 
-    private string[] GetRowDataValues(Mat row, SmartBpRegionRow rowProfile)
+    private string[] GetRowDataValues(Mat row, RegionLayoutNode rowProfile)
     {
         // 优先尝试“整行数字拼条一次 OCR”，性能更好且通常更稳定。
-        var dataColumns = rowProfile.Cells.Skip(1).Take(5).Select(c => c.Rect).ToArray();
+        var dataColumns = GetDataRects(rowProfile);
+        if (dataColumns.Length != 5)
+            return ["", "", "", "", ""];
+
         var batchValues = TryGetRowDataValuesBySingleOcr(row, dataColumns, out var batchRawText);
         if (batchValues != null)
         {
@@ -395,6 +405,23 @@ public class SmartBpService : ISmartBpService
             fallback[3],
             fallback[4]);
         return fallback;
+    }
+
+    private static RegionLayoutNode? GetCellById(RegionLayoutNode row, string id, int fallbackIndex)
+    {
+        return row.Children.FirstOrDefault(c => string.Equals(c.Id, id, StringComparison.OrdinalIgnoreCase))
+               ?? (fallbackIndex >= 0 && fallbackIndex < row.Children.Count ? row.Children[fallbackIndex] : null);
+    }
+
+    private static RelativeRect[] GetDataRects(RegionLayoutNode row)
+    {
+        var ids = new[] { "d1", "d2", "d3", "d4", "d5" };
+        var cells = ids
+            .Select((id, index) => GetCellById(row, id, index + 1))
+            .ToArray();
+        if (cells.Any(c => c == null))
+            return [];
+        return cells.Select(c => c!.Rect).ToArray();
     }
 
     private string[]? TryGetRowDataValuesBySingleOcr(Mat row, IReadOnlyList<RelativeRect> dataColumns, out string? rawText)

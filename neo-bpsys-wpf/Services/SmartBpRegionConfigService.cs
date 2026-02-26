@@ -345,6 +345,7 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
     {
         Directory.CreateDirectory(ConfigDirectoryPath);
 
+        // 用户自定义配置优先：只要用户文件存在，就优先读取它。
         if (!File.Exists(GameDataConfigPath))
         {
             // 首次运行：直接生成用户配置文件。
@@ -377,22 +378,7 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
             Scene = profile.Scene,
             BaseAspectRatio = profile.BaseAspectRatio,
             BaseSize = new WindowSize(profile.BaseSize.Width, profile.BaseSize.Height),
-            Rows =
-            [
-                .. profile.Rows.Select(row => new SmartBpRegionRow
-                {
-                    Id = row.Id,
-                    BigRect = row.BigRect,
-                    Cells =
-                    [
-                        .. row.Cells.Select(cell => new SmartBpRegionCell
-                        {
-                            Id = cell.Id,
-                            Rect = cell.Rect
-                        })
-                    ]
-                })
-            ]
+            Layout = DeepCloneLayout(profile.Layout)
         };
     }
 
@@ -406,31 +392,31 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
             return false;
         }
 
-        if (profile.Rows.Count != 5)
+        if (profile.Layout.Roots.Count != 5)
         {
             errorMessage = I18nHelper.GetLocalizedString("SmartBpRegionConfigInvalidRowCount");
             return false;
         }
 
-        for (var i = 0; i < profile.Rows.Count; i++)
+        for (var i = 0; i < profile.Layout.Roots.Count; i++)
         {
-            var row = profile.Rows[i];
-            if (!row.BigRect.IsValid01())
+            var root = profile.Layout.Roots[i];
+            if (!root.Rect.IsValid01())
             {
                 errorMessage = string.Format(I18nHelper.GetLocalizedString("SmartBpRegionConfigInvalidBigRectFormat"), i + 1);
                 return false;
             }
 
-            if (row.Cells.Count != 6)
+            if (root.Children.Count != 6)
             {
                 errorMessage = string.Format(I18nHelper.GetLocalizedString("SmartBpRegionConfigInvalidCellCountFormat"), i + 1);
                 return false;
             }
 
-            for (var c = 0; c < row.Cells.Count; c++)
+            for (var c = 0; c < root.Children.Count; c++)
             {
-                // 小框坐标是相对大框，因此同样用 0~1 校验。
-                if (!row.Cells[c].Rect.IsValid01())
+                // 小框坐标是相对大框，因此同样用 0~100 校验。
+                if (!root.Children[c].Rect.IsValid01())
                 {
                     errorMessage = string.Format(I18nHelper.GetLocalizedString("SmartBpRegionConfigInvalidCellRectFormat"), i + 1, c + 1);
                     return false;
@@ -447,5 +433,28 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
             profile.BaseSize = new WindowSize(aw, ah);
 
         return true;
+    }
+
+    private static RegionLayoutDefinition DeepCloneLayout(RegionLayoutDefinition layout)
+    {
+        return new RegionLayoutDefinition
+        {
+            SceneDisplayName = layout.SceneDisplayName,
+            Roots = [.. layout.Roots.Select(CloneNode)]
+        };
+    }
+
+    private static RegionLayoutNode CloneNode(RegionLayoutNode node)
+    {
+        return new RegionLayoutNode
+        {
+            Id = node.Id,
+            Label = node.Label,
+            NodeType = node.NodeType,
+            TemplateGroupId = node.TemplateGroupId,
+            Rect = node.Rect,
+            ClampToParent = node.ClampToParent,
+            Children = [.. node.Children.Select(CloneNode)]
+        };
     }
 }

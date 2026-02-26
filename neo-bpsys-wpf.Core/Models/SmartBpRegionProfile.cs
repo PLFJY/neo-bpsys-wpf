@@ -2,7 +2,7 @@ namespace neo_bpsys_wpf.Core.Models;
 
 /// <summary>
 /// GameData 识别区域配置模型（当前实现）。
-/// 这是业务层配置结构，后续可由更通用的 RegionLayoutDefinition 适配得到。
+/// 直接持有通用 <see cref="RegionLayoutDefinition"/>，避免维护两套结构。
 /// </summary>
 public sealed class SmartBpRegionProfile
 {
@@ -28,46 +28,10 @@ public sealed class SmartBpRegionProfile
     public WindowSize BaseSize { get; set; } = new(1920, 1080);
 
     /// <summary>
-    /// 行级结构（当前约定 5 行：1 监管者 + 4 求生者）。
+    /// 识别区域布局（结构驱动）。
+    /// 当前 GameData 约定 5 个根节点（1 监管者 + 4 求生者），每个根节点 6 个子节点（name + d1..d5）。
     /// </summary>
-    public List<SmartBpRegionRow> Rows { get; set; } = [];
-}
-
-/// <summary>
-/// 一行识别区域（大框 + 若干小框）。
-/// </summary>
-public sealed class SmartBpRegionRow
-{
-    /// <summary>
-    /// 行标识（持久化 ID，便于后续做结构迁移时定位）。
-    /// </summary>
-    public string Id { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 行大框，相对于整帧。
-    /// </summary>
-    public RelativeRect BigRect { get; set; }
-
-    /// <summary>
-    /// 行内小框集合，小框坐标相对于 BigRect。
-    /// </summary>
-    public List<SmartBpRegionCell> Cells { get; set; } = [];
-}
-
-/// <summary>
-/// 行内小框定义。
-/// </summary>
-public sealed class SmartBpRegionCell
-{
-    /// <summary>
-    /// 小框标识（如 name / d1..d5）。
-    /// </summary>
-    public string Id { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 相对于所属大框（Row.BigRect）的坐标。
-    /// </summary>
-    public RelativeRect Rect { get; set; }
+    public RegionLayoutDefinition Layout { get; set; } = new();
 }
 
 /// <summary>

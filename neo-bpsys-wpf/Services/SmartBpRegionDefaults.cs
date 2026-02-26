@@ -1,3 +1,6 @@
+using System.IO;
+using System.Text.Json;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Models;
 
 namespace neo_bpsys_wpf.Services;
@@ -13,35 +16,63 @@ public static class SmartBpRegionDefaults
     /// </summary>
     public const string BuiltinGameDataDefaultRelativePath = "SmartBpDefaultConfigs/GameDataRegions.16-9.default.json";
 
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     /// <summary>
     /// 以代码方式构建一份 GameData 默认配置。
-    /// 用于资源文件缺失时的兜底，保证功能不因部署问题完全失效。
+    /// 优先读取 Resources 内置默认文件，读取失败时回退到代码兜底模板。
     /// </summary>
     public static SmartBpRegionProfile CreateGameDataDefaultProfile()
     {
-        // 5 个数字列的相对坐标模板（相对每一行大框）。
-        var dataColumns = new[]
-        {
-            new RelativeRect(0.255, 0, 0.1, 1),
-            new RelativeRect(0.4, 0, 0.1, 1),
-            new RelativeRect(0.515, 0, 0.1, 1),
-            new RelativeRect(0.65, 0, 0.1, 1),
-            new RelativeRect(0.79, 0, 0.1, 1)
-        };
+        var resourceProfile = TryLoadBuiltinDefaultProfile();
+        if (resourceProfile != null)
+            return resourceProfile;
 
-        var rows = new List<SmartBpRegionRow>();
-        // 先定义整块表格区域，再通过“父子相对坐标”生成每一行全局坐标。
-        var tableRect = new RelativeRect(0.1, 0.165, 0.845, 0.62);
-        rows.Add(CreateRow("row0_hunter", tableRect, new RelativeRect(0, 0, 1, 0.16), new RelativeRect(0, 0, 0.4, 0.5), dataColumns));
+        return CreateFallbackProfile();
+    }
 
-        // 求生者 4 行按固定步进从模板扩展。
-        const double rowStep = 0.19;
-        var survivorTemplate = new RelativeRect(0, 0.279, 1, 0.14);
-        for (var i = 0; i < 4; i++)
+    private static SmartBpRegionProfile? TryLoadBuiltinDefaultProfile()
+    {
+        try
         {
-            var row = survivorTemplate with { Y = survivorTemplate.Y + i * rowStep };
-            rows.Add(CreateRow($"row{i + 1}_survivor", tableRect, row, new RelativeRect(0, 0, 0.28, 0.47), dataColumns));
+            var path = Path.Combine(AppConstants.ResourcesPath, BuiltinGameDataDefaultRelativePath);
+            if (!File.Exists(path))
+                return null;
+
+            var json = File.ReadAllText(path);
+            var profile = JsonSerializer.Deserialize<SmartBpRegionProfile>(json, JsonOptions);
+            if (profile == null)
+                return null;
+
+            // 只做最小结构校验，详细校验仍由配置服务统一处理。
+            if (!string.Equals(profile.Scene, "GameData", StringComparison.OrdinalIgnoreCase))
+                return null;
+            if (profile.Layout.Roots.Count == 0)
+                return null;
+
+            return profile;
         }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// 代码内兜底模板（仅在资源文件缺失或损坏时使用）。
+    /// 数值与 Resources/SmartBpDefaultConfigs/GameDataRegions.16-9.default.json 保持一致。
+    /// </summary>
+    private static SmartBpRegionProfile CreateFallbackProfile()
+    {
+        var layoutBuilder = RegionLayoutDefinition.Builder("SmartBpSceneGameData");
+        AddHunterRow(layoutBuilder);
+        AddSurvivorRow(layoutBuilder, "row1_survivor", "SmartBpRegionSurvivorRow1", 33.798);
+        AddSurvivorRow(layoutBuilder, "row2_survivor", "SmartBpRegionSurvivorRow2", 45.578);
+        AddSurvivorRow(layoutBuilder, "row3_survivor", "SmartBpRegionSurvivorRow3", 57.358);
+        AddSurvivorRow(layoutBuilder, "row4_survivor", "SmartBpRegionSurvivorRow4", 69.138);
 
         return new SmartBpRegionProfile
         {
@@ -49,35 +80,89 @@ public static class SmartBpRegionDefaults
             Scene = "GameData",
             BaseAspectRatio = "16:9",
             BaseSize = new WindowSize(16, 9),
-            Rows = rows
+            Layout = layoutBuilder.Build()
         };
     }
 
+    private static void AddHunterRow(RegionLayoutBuilder builder)
+    {
+        builder.AddNode(
+            "row0_hunter",
+            "SmartBpRegionHunterRow",
+            new RegionNodeConfig { Rect = new RelativeRect(10, 16.5, 84.5, 9.92), ClampToParent = true },
+            node =>
+            {
+                node.AddChild("name", "SmartBpRegionCellName", new RegionNodeConfig { Rect = new RelativeRect(0, 0, 40, 50), ClampToParent = true });
+                AddHunterDataCells(node);
+            });
+    }
+
+    private static void AddSurvivorRow(
+        RegionLayoutBuilder builder,
+        string rowId,
+        string rowLabel,
+        double rowY)
+    {
+        builder.AddTemplatedNode(
+            "survivor_rows",
+            rowId,
+            rowLabel,
+            new RegionNodeConfig { Rect = new RelativeRect(10, rowY, 84.5, 8.68), ClampToParent = true },
+            node =>
+            {
+                node.AddChild("name", "SmartBpRegionCellName", new RegionNodeConfig { Rect = new RelativeRect(0, 0, 28, 47), ClampToParent = true });
+                AddSurvivorDataCells(node);
+            });
+    }
+
+    private static void AddHunterDataCells(RegionNodeBuilder node)
+    {
+        node.AddChild("d1", "SmartBpRegionCellHunterRemainingCipher", new RegionNodeConfig { Rect = new RelativeRect(25.5, 0, 10, 100), ClampToParent = true })
+            .AddChild("d2", "SmartBpRegionCellHunterPalletsDestroyed", new RegionNodeConfig { Rect = new RelativeRect(40, 0, 10, 100), ClampToParent = true })
+            .AddChild("d3", "SmartBpRegionCellHunterSurvivorHits", new RegionNodeConfig { Rect = new RelativeRect(51.5, 0, 10, 100), ClampToParent = true })
+            .AddChild("d4", "SmartBpRegionCellHunterTerrorShocks", new RegionNodeConfig { Rect = new RelativeRect(65, 0, 10, 100), ClampToParent = true })
+            .AddChild("d5", "SmartBpRegionCellHunterKnockdowns", new RegionNodeConfig { Rect = new RelativeRect(79, 0, 10, 100), ClampToParent = true });
+    }
+
+    private static void AddSurvivorDataCells(RegionNodeBuilder node)
+    {
+        node.AddChild("d1", "SmartBpRegionCellSurvivorDecodingProgress", new RegionNodeConfig { Rect = new RelativeRect(25.5, 0, 10, 100), ClampToParent = true })
+            .AddChild("d2", "SmartBpRegionCellSurvivorPalletStrikes", new RegionNodeConfig { Rect = new RelativeRect(40, 0, 10, 100), ClampToParent = true })
+            .AddChild("d3", "SmartBpRegionCellSurvivorRescues", new RegionNodeConfig { Rect = new RelativeRect(51.5, 0, 10, 100), ClampToParent = true })
+            .AddChild("d4", "SmartBpRegionCellSurvivorHeals", new RegionNodeConfig { Rect = new RelativeRect(65, 0, 10, 100), ClampToParent = true })
+            .AddChild("d5", "SmartBpRegionCellSurvivorContainmentTime", new RegionNodeConfig { Rect = new RelativeRect(79, 0, 10, 100), ClampToParent = true });
+    }
+
     /// <summary>
-    /// 生成单行配置：1 个名称框 + 5 个数据框。
+    /// 保留该方法仅用于将来需要继续从父子比例生成全局矩形时复用。
     /// </summary>
-    private static SmartBpRegionRow CreateRow(
+    private static void AddRow(
+        RegionLayoutBuilder builder,
+        string templateGroupId,
         string id,
+        string label,
         RelativeRect tableRect,
         RelativeRect rowInTable,
         RelativeRect nameRect,
         IReadOnlyList<RelativeRect> dataColumns)
     {
         var rowGlobal = ConvertNestedRect(tableRect, rowInTable);
-        return new SmartBpRegionRow
+        var rowConfig = new RegionNodeConfig { Rect = rowGlobal, ClampToParent = true };
+        Action<RegionNodeBuilder> configure = node => node
+            .AddChild("name", "SmartBpRegionCellName", new RegionNodeConfig { Rect = nameRect, ClampToParent = true })
+            .AddChild("d1", string.Empty, new RegionNodeConfig { Rect = dataColumns[0], ClampToParent = true })
+            .AddChild("d2", string.Empty, new RegionNodeConfig { Rect = dataColumns[1], ClampToParent = true })
+            .AddChild("d3", string.Empty, new RegionNodeConfig { Rect = dataColumns[2], ClampToParent = true })
+            .AddChild("d4", string.Empty, new RegionNodeConfig { Rect = dataColumns[3], ClampToParent = true })
+            .AddChild("d5", string.Empty, new RegionNodeConfig { Rect = dataColumns[4], ClampToParent = true });
+
+        if (string.IsNullOrWhiteSpace(templateGroupId))
         {
-            Id = id,
-            BigRect = rowGlobal,
-            Cells =
-            [
-                new SmartBpRegionCell { Id = "name", Rect = nameRect },
-                new SmartBpRegionCell { Id = "d1", Rect = dataColumns[0] },
-                new SmartBpRegionCell { Id = "d2", Rect = dataColumns[1] },
-                new SmartBpRegionCell { Id = "d3", Rect = dataColumns[2] },
-                new SmartBpRegionCell { Id = "d4", Rect = dataColumns[3] },
-                new SmartBpRegionCell { Id = "d5", Rect = dataColumns[4] }
-            ]
-        };
+            builder.AddNode(id, label, rowConfig, configure);
+            return;
+        }
+
+        builder.AddTemplatedNode(templateGroupId, id, label, rowConfig, configure);
     }
 
     /// <summary>
@@ -86,9 +171,9 @@ public static class SmartBpRegionDefaults
     private static RelativeRect ConvertNestedRect(RelativeRect parent, RelativeRect child)
     {
         return new RelativeRect(
-            parent.X + parent.W * child.X,
-            parent.Y + parent.H * child.Y,
-            parent.W * child.W,
-            parent.H * child.H);
+            parent.X + parent.W * (child.X / 100d),
+            parent.Y + parent.H * (child.Y / 100d),
+            parent.W * (child.W / 100d),
+            parent.H * (child.H / 100d));
     }
 }
