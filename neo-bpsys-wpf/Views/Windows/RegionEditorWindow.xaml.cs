@@ -312,11 +312,22 @@ public partial class RegionEditorWindow : FluentWindow
         }
 
         // 每次缩放都在约束边界中做 clamp，并保证最小尺寸。
+        // 核心规则：只移动当前手柄对应的边，对边保持固定，避免“左边跟着跑”。
         var constraint = GetConstraintRect(_selected);
-        left = Math.Clamp(left, constraint.Left, right - MinSelectionSize);
-        top = Math.Clamp(top, constraint.Top, bottom - MinSelectionSize);
-        right = Math.Clamp(right, left + MinSelectionSize, constraint.Right);
-        bottom = Math.Clamp(bottom, top + MinSelectionSize, constraint.Bottom);
+        var moveLeft = tag is "TopLeft" or "Left" or "BottomLeft";
+        var moveRight = tag is "TopRight" or "Right" or "BottomRight";
+        var moveTop = tag is "TopLeft" or "Top" or "TopRight";
+        var moveBottom = tag is "BottomLeft" or "Bottom" or "BottomRight";
+
+        if (moveLeft)
+            left = ClampSafe(left, constraint.Left, right - MinSelectionSize);
+        else if (moveRight)
+            right = ClampSafe(right, left + MinSelectionSize, constraint.Right);
+
+        if (moveTop)
+            top = ClampSafe(top, constraint.Top, bottom - MinSelectionSize);
+        else if (moveBottom)
+            bottom = ClampSafe(bottom, top + MinSelectionSize, constraint.Bottom);
 
         _selection = new Rect(left, top, right - left, bottom - top);
         CommitSelectionToNode(_selected, _selection);
@@ -595,6 +606,13 @@ public partial class RegionEditorWindow : FluentWindow
         var x = Math.Clamp(rect.X, minX, maxX);
         var y = Math.Clamp(rect.Y, minY, maxY);
         return new Rect(x, y, width, height);
+    }
+
+    private static double ClampSafe(double value, double min, double max)
+    {
+        if (max < min)
+            max = min;
+        return Math.Clamp(value, min, max);
     }
 
     /// <summary>
