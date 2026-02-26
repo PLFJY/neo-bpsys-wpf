@@ -12,6 +12,7 @@ using neo_bpsys_wpf.Views.Windows;
 using Windows.Graphics.Capture;
 using WPFLocalizeExtension.Engine;
 using System.Windows.Threading;
+using neo_bpsys_wpf.Core;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -208,8 +209,8 @@ public partial class SmartBpPageViewModel : ViewModelBase
         profile.BaseAspectRatio = SmartBpRegionConfigService.ToAspectRatioText(frame.PixelWidth, frame.PixelHeight);
         profile.BaseSize = SmartBpRegionConfigService.ToAspectBaseSize(frame.PixelWidth, frame.PixelHeight);
 
-        // Profile -> 通用树结构（编辑器不关心 GameData 的固定行列语义）。
-        var layout = BuildGameDataLayout(profile, GameDataEditorStructure);
+        // 配置已是通用布局结构；这里仅注入编辑展示元数据（标签/模板组）。
+        var layout = BuildGameDataLayout(profile.Layout, GameDataEditorStructure);
         var editor = new RegionEditorWindow(frame, layout)
         {
             Owner = Application.Current?.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive)
@@ -219,12 +220,14 @@ public partial class SmartBpPageViewModel : ViewModelBase
         if (editor.ShowDialog() != true || editor.ResultLayout == null)
             return;
 
-        // 编辑结果再映射回 GameData Profile，保持服务读取的数据结构稳定。
-        if (!TryApplyGameDataLayout(profile, editor.ResultLayout, GameDataEditorStructure, out var applyError))
+        // 保存前做结构校验，避免非法布局污染识别流程。
+        if (!TryValidateGameDataLayout(editor.ResultLayout, GameDataEditorStructure, out var applyError))
         {
             await MessageBoxHelper.ShowErrorAsync(applyError);
             return;
         }
+
+        profile.Layout = NormalizeGameDataLayoutForPersistence(editor.ResultLayout, GameDataEditorStructure);
 
         if (!_regionConfigService.TrySaveGameDataProfile(profile, out var error))
         {
@@ -548,75 +551,74 @@ public partial class SmartBpPageViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 将 GameData 固定结构（5 行 + 每行 6 列）转换为通用编辑树。
-    /// 之后若接入自动BP，可复用同一编辑器，仅需更换布局定义生成逻辑。
+    /// 为配置布局注入 GameData 编辑所需的展示元数据（标签、模板分组）。
     /// </summary>
-    private static RegionLayoutDefinition BuildGameDataLayout(SmartBpRegionProfile profile, RegionEditorStructure structure)
+    private static RegionLayoutDefinition BuildGameDataLayout(RegionLayoutDefinition sourceLayout, RegionEditorStructure structure)
     {
-        var layout = new RegionLayoutDefinition
-        {
-            SceneDisplayName = ResolveLocalizedOrRaw(structure.SceneDisplayName)
-        };
+        var builder = RegionLayoutDefinition.Builder(ResolveLocalizedOrRaw(structure.SceneDisplayName));
+        var elementById = structure.Elements.ToDictionary(e => e.Id, StringComparer.Ordinal);
 
-        for (var i = 0; i < profile.Rows.Count; i++)
+        foreach (var sourceRoot in sourceLayout.Roots)
         {
-            var row = profile.Rows[i];
-            var element = i < structure.Elements.Count
-                ? structure.Elements[i]
-                : new RegionEditorElement(row.Id, row.Id, []);
-            var root = new RegionLayoutNode
+            var element = elementById.TryGetValue(sourceRoot.Id, out var found)
+                ? found
+                : new RegionEditorElement(sourceRoot.Id, sourceRoot.Id, []);
+            Action<RegionNodeBuilder> configure = node =>
             {
-                Id = row.Id,
-                Label = ResolveLocalizedOrRaw(element.Label),
-                NodeType = string.IsNullOrWhiteSpace(element.TemplateGroupId) ? RegionLayoutNodeType.Single : RegionLayoutNodeType.TemplateItem,
-                TemplateGroupId = element.TemplateGroupId ?? string.Empty,
-                Rect = row.BigRect,
-                ClampToParent = true
+                for (var c = 0; c < sourceRoot.Children.Count; c++)
+                {
+                    var label = c < element.CellLabels.Count ? element.CellLabels[c] : sourceRoot.Children[c].Id;
+                    node.AddChild(
+                        sourceRoot.Children[c].Id,
+                        ResolveLocalizedOrRaw(label),
+                        new RegionNodeConfig
+                        {
+                            Rect = sourceRoot.Children[c].Rect,
+                            ClampToParent = true
+                        });
+                }
             };
 
-            for (var c = 0; c < row.Cells.Count; c++)
+            var rootConfig = new RegionNodeConfig
             {
-                var label = c < element.CellLabels.Count ? element.CellLabels[c] : row.Cells[c].Id;
-                root.Children.Add(new RegionLayoutNode
-                {
-                    Id = row.Cells[c].Id,
-                    Label = ResolveLocalizedOrRaw(label),
-                    Rect = row.Cells[c].Rect,
-                    ClampToParent = true
-                });
+                Rect = sourceRoot.Rect,
+                ClampToParent = true
+            };
+            if (string.IsNullOrWhiteSpace(element.TemplateGroupId))
+            {
+                builder.AddNode(sourceRoot.Id, ResolveLocalizedOrRaw(element.Label), rootConfig, configure);
             }
-
-            layout.Roots.Add(root);
+            else
+            {
+                builder.AddTemplatedNode(element.TemplateGroupId, sourceRoot.Id, ResolveLocalizedOrRaw(element.Label), rootConfig, configure);
+            }
         }
 
-        return layout;
+        return builder.Build();
     }
 
     /// <summary>
-    /// 将编辑器返回的通用树结构写回 GameData Profile。
-    /// 这里做结构数量校验，防止错误布局直接污染配置。
+    /// 校验编辑器返回布局是否满足 GameData 结构约束。
     /// </summary>
-    private static bool TryApplyGameDataLayout(
-        SmartBpRegionProfile profile,
+    private static bool TryValidateGameDataLayout(
         RegionLayoutDefinition layout,
         RegionEditorStructure structure,
         out string error)
     {
         error = string.Empty;
-        if (layout.Roots.Count != profile.Rows.Count)
+        if (layout.Roots.Count != structure.Elements.Count)
         {
             error = string.Format(
                 ResolveLocalizedOrRaw("SmartBpRegionLayoutMismatchRootCountFormat"),
-                profile.Rows.Count,
+                structure.Elements.Count,
                 layout.Roots.Count);
             return false;
         }
 
-        for (var i = 0; i < profile.Rows.Count; i++)
+        for (var i = 0; i < structure.Elements.Count; i++)
         {
             var root = layout.Roots[i];
-            var row = profile.Rows[i];
-            var expectedId = i < structure.Elements.Count ? structure.Elements[i].Id : row.Id;
+            var expectedId = structure.Elements[i].Id;
             if (!string.Equals(root.Id, expectedId, StringComparison.Ordinal))
             {
                 error = string.Format(
@@ -627,24 +629,66 @@ public partial class SmartBpPageViewModel : ViewModelBase
                 return false;
             }
 
-            if (root.Children.Count != row.Cells.Count)
+            var expectedCellCount = structure.Elements[i].CellLabels.Count;
+            if (root.Children.Count != expectedCellCount)
             {
                 error = string.Format(
                     ResolveLocalizedOrRaw("SmartBpRegionLayoutMismatchCellCountFormat"),
                     i + 1,
-                    row.Cells.Count,
+                    expectedCellCount,
                     root.Children.Count);
                 return false;
-            }
-
-            row.BigRect = root.Rect;
-            for (var c = 0; c < row.Cells.Count; c++)
-            {
-                row.Cells[c].Rect = root.Children[c].Rect;
             }
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// 将编辑结果标准化为稳定配置结构，避免把当前语言展示文案直接写入配置文件。
+    /// </summary>
+    private static RegionLayoutDefinition NormalizeGameDataLayoutForPersistence(
+        RegionLayoutDefinition layout,
+        RegionEditorStructure structure)
+    {
+        var builder = RegionLayoutDefinition.Builder(structure.SceneDisplayName);
+
+        for (var i = 0; i < layout.Roots.Count; i++)
+        {
+            var sourceRoot = layout.Roots[i];
+            var element = structure.Elements[i];
+            Action<RegionNodeBuilder> configure = node =>
+            {
+                for (var c = 0; c < sourceRoot.Children.Count; c++)
+                {
+                    var label = c < element.CellLabels.Count ? element.CellLabels[c] : sourceRoot.Children[c].Id;
+                    node.AddChild(
+                        sourceRoot.Children[c].Id,
+                        label,
+                        new RegionNodeConfig
+                        {
+                            Rect = sourceRoot.Children[c].Rect,
+                            ClampToParent = true
+                        });
+                }
+            };
+
+            var rootConfig = new RegionNodeConfig
+            {
+                Rect = sourceRoot.Rect,
+                ClampToParent = true
+            };
+            if (string.IsNullOrWhiteSpace(element.TemplateGroupId))
+            {
+                builder.AddNode(sourceRoot.Id, element.Label, rootConfig, configure);
+            }
+            else
+            {
+                builder.AddTemplatedNode(element.TemplateGroupId, sourceRoot.Id, element.Label, rootConfig, configure);
+            }
+        }
+
+        return builder.Build();
     }
 
     /// <summary>

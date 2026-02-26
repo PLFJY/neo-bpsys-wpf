@@ -1558,7 +1558,11 @@
     <value>同テンプレートへ一括適用</value>
   </data>
   <data name="SmartBpRegionEditorOperationHelp" xml:space="preserve">
-    <value>操作説明：1. 枠内部ドラッグで移動 2. 8つのハンドルでサイズ変更 3. 子領域は親領域内に制限 4. プレビューは現在フレーム固定</value>
+    <value>操作説明：
+1. 枠内部ドラッグで移動
+2. 8つのハンドルでサイズ変更
+3. 子領域は親領域内に制限
+4. プレビューは現在フレーム固定</value>
   </data>
   <data name="SmartBpRegionLayoutMismatchRootIdFormat" xml:space="preserve">
     <value>構造不一致：{0} 番目の親要素は {1} である必要がありますが、実際は {2} です。</value>

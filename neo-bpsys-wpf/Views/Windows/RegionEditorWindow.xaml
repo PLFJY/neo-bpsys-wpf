@@ -15,18 +15,25 @@
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     WindowStartupLocation="CenterOwner"
     mc:Ignorable="d">
-    <Grid Margin="10">
+    <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="350" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-
-        <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                <TextBlock
-                    x:Name="HeaderText"
-                    FontSize="18"
-                    FontWeight="Bold"
-                    Text="{lex:Loc SmartBpRegionEditorWindowTitle}" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <ui:TitleBar Grid.Row="0" Grid.ColumnSpan="2" />
+        <StackPanel
+            Grid.Row="1"
+            Grid.Column="0"
+            Margin="10,0,10,10">
+            <TextBlock
+                x:Name="HeaderText"
+                FontSize="18"
+                FontWeight="Bold"
+                Text="{lex:Loc SmartBpRegionEditorWindowTitle}" />
             <TextBlock
                 x:Name="RuleText"
                 Margin="0,8,0,0"
@@ -95,8 +102,10 @@
         </StackPanel>
 
         <Border
+            Grid.Row="1"
             Grid.Column="1"
             BorderBrush="#3F3F46"
+            Margin="0 0 10 10"
             BorderThickness="1"
             CornerRadius="6">
             <ScrollViewer

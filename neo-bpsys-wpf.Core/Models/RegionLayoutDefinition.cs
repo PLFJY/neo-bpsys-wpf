@@ -14,6 +14,11 @@ public sealed class RegionLayoutDefinition
     /// 根节点列表。每个根节点的 Rect 都是相对于整帧。
     /// </summary>
     public List<RegionLayoutNode> Roots { get; set; } = [];
+
+    /// <summary>
+    /// 创建一个新的布局建造器。
+    /// </summary>
+    public static RegionLayoutBuilder Builder(string sceneDisplayName) => new(sceneDisplayName);
 }
 
 /// <summary>
@@ -73,4 +78,148 @@ public enum RegionLayoutNodeType
     /// 模板实例元素，可与同模板组元素互相套用布局。
     /// </summary>
     TemplateItem = 1
+}
+
+/// <summary>
+/// 布局节点构建参数。
+/// </summary>
+public sealed class RegionNodeConfig
+{
+    /// <summary>
+    /// 节点区域（相对父节点；根节点相对整帧）。
+    /// </summary>
+    public RelativeRect Rect { get; init; }
+
+    /// <summary>
+    /// 是否限制在父节点内部编辑。
+    /// </summary>
+    public bool ClampToParent { get; init; } = true;
+}
+
+/// <summary>
+/// 通用布局建造器（Builder）。
+/// </summary>
+public sealed class RegionLayoutBuilder
+{
+    private readonly RegionLayoutDefinition _layout;
+
+    /// <summary>
+    /// 创建布局建造器。
+    /// </summary>
+    public RegionLayoutBuilder(string sceneDisplayName)
+    {
+        _layout = new RegionLayoutDefinition
+        {
+            SceneDisplayName = sceneDisplayName
+        };
+    }
+
+    /// <summary>
+    /// 添加普通根节点。
+    /// </summary>
+    public RegionLayoutBuilder AddNode(
+        string id,
+        string label,
+        RegionNodeConfig config,
+        Action<RegionNodeBuilder>? configure = null)
+    {
+        var node = new RegionLayoutNode
+        {
+            Id = id,
+            Label = label,
+            Rect = config.Rect,
+            ClampToParent = config.ClampToParent,
+            NodeType = RegionLayoutNodeType.Single
+        };
+
+        configure?.Invoke(new RegionNodeBuilder(node));
+        _layout.Roots.Add(node);
+        return this;
+    }
+
+    /// <summary>
+    /// 添加模板化根节点（同组可“一键应用模板”）。
+    /// </summary>
+    public RegionLayoutBuilder AddTemplatedNode(
+        string templateGroupId,
+        string id,
+        string label,
+        RegionNodeConfig config,
+        Action<RegionNodeBuilder>? configure = null)
+    {
+        var node = new RegionLayoutNode
+        {
+            Id = id,
+            Label = label,
+            Rect = config.Rect,
+            ClampToParent = config.ClampToParent,
+            NodeType = RegionLayoutNodeType.TemplateItem,
+            TemplateGroupId = templateGroupId
+        };
+
+        configure?.Invoke(new RegionNodeBuilder(node));
+        _layout.Roots.Add(node);
+        return this;
+    }
+
+    /// <summary>
+    /// 生成布局定义。
+    /// </summary>
+    public RegionLayoutDefinition Build()
+    {
+        return new RegionLayoutDefinition
+        {
+            SceneDisplayName = _layout.SceneDisplayName,
+            Roots = [.. _layout.Roots.Select(CloneNode)]
+        };
+    }
+
+    private static RegionLayoutNode CloneNode(RegionLayoutNode node)
+    {
+        return new RegionLayoutNode
+        {
+            Id = node.Id,
+            Label = node.Label,
+            NodeType = node.NodeType,
+            TemplateGroupId = node.TemplateGroupId,
+            Rect = node.Rect,
+            ClampToParent = node.ClampToParent,
+            Children = [.. node.Children.Select(CloneNode)]
+        };
+    }
+}
+
+/// <summary>
+/// 单个节点的子树建造器。
+/// </summary>
+public sealed class RegionNodeBuilder
+{
+    private readonly RegionLayoutNode _node;
+
+    internal RegionNodeBuilder(RegionLayoutNode node)
+    {
+        _node = node;
+    }
+
+    /// <summary>
+    /// 添加普通子节点。
+    /// </summary>
+    public RegionNodeBuilder AddChild(
+        string id,
+        string label,
+        RegionNodeConfig config,
+        Action<RegionNodeBuilder>? configure = null)
+    {
+        var child = new RegionLayoutNode
+        {
+            Id = id,
+            Label = label,
+            Rect = config.Rect,
+            ClampToParent = config.ClampToParent,
+            NodeType = RegionLayoutNodeType.Single
+        };
+        configure?.Invoke(new RegionNodeBuilder(child));
+        _node.Children.Add(child);
+        return this;
+    }
 }

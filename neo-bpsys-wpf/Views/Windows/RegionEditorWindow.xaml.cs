@@ -508,18 +508,18 @@ public partial class RegionEditorWindow : FluentWindow
         if (node.Parent == null)
         {
             return new Rect(
-                node.Node.Rect.X * _frame.PixelWidth,
-                node.Node.Rect.Y * _frame.PixelHeight,
-                node.Node.Rect.W * _frame.PixelWidth,
-                node.Node.Rect.H * _frame.PixelHeight);
+                (node.Node.Rect.X / 100d) * _frame.PixelWidth,
+                (node.Node.Rect.Y / 100d) * _frame.PixelHeight,
+                (node.Node.Rect.W / 100d) * _frame.PixelWidth,
+                (node.Node.Rect.H / 100d) * _frame.PixelHeight);
         }
 
         var parentRect = GetNodeGlobalRect(node.Parent);
         return new Rect(
-            parentRect.X + parentRect.Width * node.Node.Rect.X,
-            parentRect.Y + parentRect.Height * node.Node.Rect.Y,
-            parentRect.Width * node.Node.Rect.W,
-            parentRect.Height * node.Node.Rect.H);
+            parentRect.X + parentRect.Width * (node.Node.Rect.X / 100d),
+            parentRect.Y + parentRect.Height * (node.Node.Rect.Y / 100d),
+            parentRect.Width * (node.Node.Rect.W / 100d),
+            parentRect.Height * (node.Node.Rect.H / 100d));
     }
 
     /// <summary>
@@ -581,10 +581,19 @@ public partial class RegionEditorWindow : FluentWindow
     /// </summary>
     private static Rect ClampSelection(Rect rect, Rect constraint)
     {
-        var width = Math.Clamp(rect.Width, MinSelectionSize, constraint.Width);
-        var height = Math.Clamp(rect.Height, MinSelectionSize, constraint.Height);
-        var x = Math.Clamp(rect.X, constraint.X, constraint.Right - width);
-        var y = Math.Clamp(rect.Y, constraint.Y, constraint.Bottom - height);
+        // 浮点误差下可能出现 right-width 比 left 略小，先做安全归一化，避免 Math.Clamp 抛异常。
+        var maxWidth = Math.Max(MinSelectionSize, constraint.Width);
+        var maxHeight = Math.Max(MinSelectionSize, constraint.Height);
+        var width = Math.Clamp(rect.Width, MinSelectionSize, maxWidth);
+        var height = Math.Clamp(rect.Height, MinSelectionSize, maxHeight);
+
+        var minX = constraint.X;
+        var maxX = Math.Max(minX, constraint.Right - width);
+        var minY = constraint.Y;
+        var maxY = Math.Max(minY, constraint.Bottom - height);
+
+        var x = Math.Clamp(rect.X, minX, maxX);
+        var y = Math.Clamp(rect.Y, minY, maxY);
         return new Rect(x, y, width, height);
     }
 

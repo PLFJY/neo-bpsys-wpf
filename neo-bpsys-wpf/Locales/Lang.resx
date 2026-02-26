@@ -1573,7 +1573,11 @@
     <value>一键应用到同模板元素</value>
   </data>
   <data name="SmartBpRegionEditorOperationHelp" xml:space="preserve">
-    <value>操作说明： 1. 拖动框内部可移动 2. 拖动边缘8个点可缩放 3. 小框会被限制在所属大框内 4. 仅当前帧预览，不实时捕获</value>
+    <value>操作说明：
+1. 拖动框内部可移动
+2. 拖动边缘8个点可缩放
+3. 小框会被限制在所属大框内
+4. 仅当前帧预览，不实时捕获</value>
   </data>
   <data name="SmartBpRegionLayoutMismatchRootIdFormat" xml:space="preserve">
     <value>结构不匹配：第 {0} 个大元素应为 {1}，实际 {2}。</value>
