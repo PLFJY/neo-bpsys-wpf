@@ -61,6 +61,7 @@ public class OcrService : IOcrService
     /// 初始化 OCR 服务并尝试加载用户偏好模型。
     /// </summary>
     /// <param name="settingsHostService">设置服务。</param>
+    /// <param name="logger">日志记录器。</param>
     public OcrService(ISettingsHostService settingsHostService, ILogger<OcrService> logger)
     {
         _settingsHostService = settingsHostService;
@@ -342,6 +343,11 @@ public class OcrService : IOcrService
         return RecognizeTextCore(img);
     }
 
+    /// <summary>
+    /// 执行 OCR 主流程，并在失败时尝试一次重建后重试。
+    /// </summary>
+    /// <param name="bgr">BGR 格式输入图像。</param>
+    /// <returns>识别文本；失败返回 <see langword="null"/>。</returns>
     private string? RecognizeTextCore(Mat bgr)
     {
         lock (_ocrLock)
@@ -416,6 +422,16 @@ public class OcrService : IOcrService
         }
     }
 
+    /// <summary>
+    /// 下载并解压单个模型组件资源。
+    /// </summary>
+    /// <param name="sourceUri">资源地址。</param>
+    /// <param name="targetDirectory">目标目录。</param>
+    /// <param name="stageText">阶段状态文本。</param>
+    /// <param name="stepIndex">当前步骤序号（从 1 开始）。</param>
+    /// <param name="stepCount">总步骤数。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>异步任务。</returns>
     private async Task DownloadAndExtractModelAssetAsync(
         Uri sourceUri,
         string targetDirectory,
@@ -453,6 +469,13 @@ public class OcrService : IOcrService
         }
     }
 
+    /// <summary>
+    /// 下载文件到指定路径。
+    /// </summary>
+    /// <param name="sourceUrl">资源地址。</param>
+    /// <param name="destinationFilePath">目标文件路径。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>异步任务。</returns>
     private async Task DownloadAssetAsync(
         string sourceUrl,
         string destinationFilePath,
@@ -462,6 +485,11 @@ public class OcrService : IOcrService
         await _downloader.DownloadFileTaskAsync(sourceUrl, destinationFilePath);
     }
 
+    /// <summary>
+    /// 解压模型归档并复制有效模型文件到目标目录。
+    /// </summary>
+    /// <param name="archivePath">归档文件路径。</param>
+    /// <param name="targetDirectory">目标目录。</param>
     private static void ExtractModelAsset(string archivePath, string targetDirectory)
     {
         var extractDirectory = Path.Combine(Path.GetDirectoryName(archivePath)!, "extract");
@@ -485,6 +513,11 @@ public class OcrService : IOcrService
         CopyDirectoryContent(sourceDirectory, targetDirectory);
     }
 
+    /// <summary>
+    /// 在解压目录中定位实际模型文件所在目录。
+    /// </summary>
+    /// <param name="extractDirectory">解压根目录。</param>
+    /// <returns>模型目录；未找到时返回 <see langword="null"/>。</returns>
     private static string? ResolveModelSourceDirectory(string extractDirectory)
     {
         // Paddle 3.x/PIR 模型可能使用 inference.json；旧格式使用 inference.pdmodel。
@@ -498,6 +531,10 @@ public class OcrService : IOcrService
                 File.Exists(Path.Combine(dir, "inference.json")));
     }
 
+    /// <summary>
+    /// 重建目录：若已存在则先删除再创建。
+    /// </summary>
+    /// <param name="directoryPath">目录路径。</param>
     private static void RecreateDirectory(string directoryPath)
     {
         if (Directory.Exists(directoryPath))
@@ -508,6 +545,11 @@ public class OcrService : IOcrService
         Directory.CreateDirectory(directoryPath);
     }
 
+    /// <summary>
+    /// 递归复制目录内容到目标目录。
+    /// </summary>
+    /// <param name="sourceDirectory">源目录。</param>
+    /// <param name="targetDirectory">目标目录。</param>
     private static void CopyDirectoryContent(string sourceDirectory, string targetDirectory)
     {
         foreach (var directory in Directory.EnumerateDirectories(sourceDirectory, "*", SearchOption.AllDirectories))
@@ -525,6 +567,10 @@ public class OcrService : IOcrService
         }
     }
 
+    /// <summary>
+    /// 清理模型下载失败后残留的目录与字典文件。
+    /// </summary>
+    /// <param name="modelKey">模型键。</param>
     private static void CleanupModelDownloadResidue(string modelKey)
     {
         var modelDirectory = SmartBpOcrModelRegistry.GetModelDirectory(modelKey);
@@ -540,6 +586,11 @@ public class OcrService : IOcrService
         }
     }
 
+    /// <summary>
+    /// 处理下载进度变化并更新总体进度。
+    /// </summary>
+    /// <param name="sender">事件发送方。</param>
+    /// <param name="e">下载进度参数。</param>
     private void Downloader_DownloadProgressChanged(object? sender, DownloadProgressChangedEventArgs e)
     {
         var stepProgress = e.ProgressPercentage / 100.0;
@@ -549,11 +600,17 @@ public class OcrService : IOcrService
         RaiseDownloadStateChanged();
     }
 
+    /// <summary>
+    /// 触发下载状态变化事件。
+    /// </summary>
     private void RaiseDownloadStateChanged()
     {
         DownloadStateChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    /// <summary>
+    /// 尝试加载用户设置中的首选 OCR 模型。
+    /// </summary>
     private void TryLoadPreferredModel()
     {
         string? preferredModel = _settingsHostService.Settings.OcrModelKey;
@@ -564,6 +621,9 @@ public class OcrService : IOcrService
         _ = TrySwitchOcrModel(preferredModel, out _);
     }
 
+    /// <summary>
+    /// 仅在首次检测到 OCR 未就绪时弹出一次提示。
+    /// </summary>
     private void ShowMissingModelWarningOnce()
     {
         if (Interlocked.Exchange(ref _missingModelWarningShown, 1) == 1)
@@ -572,12 +632,22 @@ public class OcrService : IOcrService
         _ = MessageBoxHelper.ShowErrorAsync("OCR 功能未就绪，请先下载并切换 OCR 模型后再启动相关功能。");
     }
 
+    /// <summary>
+    /// 持久化当前模型键到配置。
+    /// </summary>
+    /// <param name="modelKey">模型键。</param>
     private void PersistCurrentModel(string modelKey)
     {
         _settingsHostService.Settings.OcrModelKey = modelKey;
         _ = _settingsHostService.SaveConfigAsync();
     }
 
+    /// <summary>
+    /// 基于本地模型目录构建完整 OCR 模型对象。
+    /// </summary>
+    /// <param name="modelKey">模型键。</param>
+    /// <param name="definition">模型定义。</param>
+    /// <returns>可用于推理的完整 OCR 模型。</returns>
     private static FullOcrModel BuildLocalFullModel(string modelKey, SmartBpOcrModelDefinition definition)
     {
         var onlineDet = definition.OnlineModel.DetModel

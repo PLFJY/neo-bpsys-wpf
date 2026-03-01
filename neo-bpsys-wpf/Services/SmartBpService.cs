@@ -25,8 +25,19 @@ public class SmartBpService : ISmartBpService
     private readonly ILogger<SmartBpService> _logger;
     private int _ocrWarmupStarted;
 
+    /// <summary>
+    /// 获取当前 SmartBp 是否处于运行状态。
+    /// </summary>
     public bool IsSmartBpRunning { get; private set; }
 
+    /// <summary>
+    /// 初始化 <see cref="SmartBpService"/> 的新实例。
+    /// </summary>
+    /// <param name="sharedDataService">共享对局数据服务。</param>
+    /// <param name="windowCaptureService">窗口捕获服务。</param>
+    /// <param name="ocrService">OCR 服务。</param>
+    /// <param name="regionConfigService">SmartBp 区域配置服务。</param>
+    /// <param name="logger">日志记录器。</param>
     public SmartBpService(
         ISharedDataService sharedDataService,
         IWindowCaptureService windowCaptureService,
@@ -41,6 +52,7 @@ public class SmartBpService : ISmartBpService
         _logger = logger;
     }
 
+    /// <inheritdoc/>
     public void StartSmartBp()
     {
         // SmartBp 依赖 OCR 模型，未就绪时直接阻止启动。
@@ -55,11 +67,13 @@ public class SmartBpService : ISmartBpService
         StartOcrWarmupIfNeeded();
     }
 
+    /// <inheritdoc/>
     public void StopSmartBp()
     {
         IsSmartBpRunning = false;
     }
 
+    /// <inheritdoc/>
     public async Task AutoFillGameDataAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -100,6 +114,9 @@ public class SmartBpService : ISmartBpService
         }
     }
 
+    /// <summary>
+    /// 在后台触发一次 OCR 预热，减少首次识别延迟。
+    /// </summary>
     private void StartOcrWarmupIfNeeded()
     {
         // 预热只执行一次，降低首次真实识别的延迟尖峰。
@@ -122,6 +139,11 @@ public class SmartBpService : ISmartBpService
         });
     }
 
+    /// <summary>
+    /// 捕获当前窗口帧并识别监管者与求生者数据。
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌。</param>
+    /// <returns>识别结果；当无法捕获或区域无效时返回 <see langword="null"/>。</returns>
     private RecognizedGameData? CaptureAndRecognizeGameData(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -184,6 +206,12 @@ public class SmartBpService : ISmartBpService
         return survivorRows.Count > 0;
     }
 
+    /// <summary>
+    /// 识别单个求生者行信息。
+    /// </summary>
+    /// <param name="surRow">求生者行图像。</param>
+    /// <param name="rowProfile">行布局配置。</param>
+    /// <returns>识别后的求生者信息。</returns>
     private PlayerInfo GetSurInfo(Mat surRow, RegionLayoutNode rowProfile)
     {
         var (playerName, characterName) = GetSurPlayerNameAndCharacterName(surRow, rowProfile);
@@ -201,6 +229,10 @@ public class SmartBpService : ISmartBpService
         return new PlayerInfo(playerName, characterName, data);
     }
 
+    /// <summary>
+    /// 将识别结果写回当前对局数据。
+    /// </summary>
+    /// <param name="recognizedData">识别到的监管者与求生者数据。</param>
     private void ApplyRecognizedData(RecognizedGameData recognizedData)
     {
         // 监管者数据直接按字段写回。
@@ -263,6 +295,10 @@ public class SmartBpService : ISmartBpService
         }
     }
 
+    /// <summary>
+    /// 检查当前 OCR 模型是否已就绪。
+    /// </summary>
+    /// <returns>模型可用时返回 <see langword="true"/>，否则返回 <see langword="false"/>。</returns>
     private bool IsOcrReady()
     {
         var currentModelKey = _ocrService.CurrentOcrModelKey;
@@ -270,6 +306,12 @@ public class SmartBpService : ISmartBpService
                _ocrService.IsModelInstalled(currentModelKey);
     }
 
+    /// <summary>
+    /// 识别监管者行的玩家名称、角色名称与数据字段。
+    /// </summary>
+    /// <param name="hunter">监管者行图像。</param>
+    /// <param name="rowProfile">行布局配置。</param>
+    /// <returns>监管者识别结果。</returns>
     public PlayerInfo GetHunInfo(Mat hunter, RegionLayoutNode rowProfile)
     {
         var hunCharacterName = GetHunPlayerNameAndCharacterName(hunter, rowProfile);
@@ -287,6 +329,12 @@ public class SmartBpService : ISmartBpService
         return new PlayerInfo(hunCharacterName.Item1, hunCharacterName.Item2, data);
     }
 
+    /// <summary>
+    /// 识别求生者行的玩家名称与角色名称。
+    /// </summary>
+    /// <param name="surRow">求生者行图像。</param>
+    /// <param name="rowProfile">行布局配置。</param>
+    /// <returns>玩家名称与角色名称元组。</returns>
     public (string, string) GetSurPlayerNameAndCharacterName(Mat surRow, RegionLayoutNode rowProfile)
     {
         var nameCell = GetCellById(rowProfile, "name", 0);
@@ -301,6 +349,12 @@ public class SmartBpService : ISmartBpService
         return GetPlayerNameAndCharacterName(text);
     }
 
+    /// <summary>
+    /// 识别求生者行的数据字段。
+    /// </summary>
+    /// <param name="surRow">求生者行图像。</param>
+    /// <param name="rowProfile">行布局配置。</param>
+    /// <returns>求生者数据对象。</returns>
     private PlayerData GetSurPlayerData(Mat surRow, RegionLayoutNode rowProfile)
     {
         // cells[1..5] 固定映射 5 个数据字段。
@@ -315,6 +369,12 @@ public class SmartBpService : ISmartBpService
         };
     }
 
+    /// <summary>
+    /// 识别监管者行的玩家名称与角色名称。
+    /// </summary>
+    /// <param name="hunter">监管者行图像。</param>
+    /// <param name="rowProfile">行布局配置。</param>
+    /// <returns>玩家名称与角色名称元组。</returns>
     public (string, string) GetHunPlayerNameAndCharacterName(Mat hunter, RegionLayoutNode rowProfile)
     {
         // 监管者与求生者共用“名称+角色”解析规则。
@@ -330,6 +390,11 @@ public class SmartBpService : ISmartBpService
         return GetPlayerNameAndCharacterName(hunterText);
     }
 
+    /// <summary>
+    /// 从 OCR 原始文本中解析玩家名称与角色名称。
+    /// </summary>
+    /// <param name="playerText">原始文本。</param>
+    /// <returns>玩家名称与角色名称元组。</returns>
     private static (string, string) GetPlayerNameAndCharacterName(string playerText)
     {
         playerText = playerText.Replace('（', '(').Replace('）', ')');
@@ -342,6 +407,11 @@ public class SmartBpService : ISmartBpService
         return (playerName, characterName);
     }
 
+    /// <summary>
+    /// 规范化名称文本，便于匹配比较。
+    /// </summary>
+    /// <param name="name">原始名称。</param>
+    /// <returns>仅包含字母数字的标准化小写字符串。</returns>
     private static string NormalizeName(string? name)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -352,6 +422,12 @@ public class SmartBpService : ISmartBpService
         return new string(name.Where(char.IsLetterOrDigit).ToArray());
     }
 
+    /// <summary>
+    /// 识别监管者行的数据字段。
+    /// </summary>
+    /// <param name="hunter">监管者行图像。</param>
+    /// <param name="rowProfile">行布局配置。</param>
+    /// <returns>监管者数据对象。</returns>
     public PlayerData GetHunPlayerData(Mat hunter, RegionLayoutNode rowProfile)
     {
         var values = GetRowDataValues(hunter, rowProfile);
@@ -365,6 +441,12 @@ public class SmartBpService : ISmartBpService
         };
     }
 
+    /// <summary>
+    /// 读取一行中的 5 个数据列值。
+    /// </summary>
+    /// <param name="row">行图像。</param>
+    /// <param name="rowProfile">行布局配置。</param>
+    /// <returns>长度为 5 的字符串数组。</returns>
     private string[] GetRowDataValues(Mat row, RegionLayoutNode rowProfile)
     {
         // 优先尝试“整行数字拼条一次 OCR”，性能更好且通常更稳定。
@@ -407,12 +489,24 @@ public class SmartBpService : ISmartBpService
         return fallback;
     }
 
+    /// <summary>
+    /// 按单元格 ID 获取行内单元格；未找到时使用索引回退。
+    /// </summary>
+    /// <param name="row">行布局节点。</param>
+    /// <param name="id">目标单元格 ID。</param>
+    /// <param name="fallbackIndex">回退索引。</param>
+    /// <returns>命中的单元格节点；未命中返回 <see langword="null"/>。</returns>
     private static RegionLayoutNode? GetCellById(RegionLayoutNode row, string id, int fallbackIndex)
     {
         return row.Children.FirstOrDefault(c => string.Equals(c.Id, id, StringComparison.OrdinalIgnoreCase))
                ?? (fallbackIndex >= 0 && fallbackIndex < row.Children.Count ? row.Children[fallbackIndex] : null);
     }
 
+    /// <summary>
+    /// 获取一行中 5 个数据列的相对矩形区域。
+    /// </summary>
+    /// <param name="row">行布局节点。</param>
+    /// <returns>数据列相对矩形数组；缺列时返回空数组。</returns>
     private static RelativeRect[] GetDataRects(RegionLayoutNode row)
     {
         var ids = new[] { "d1", "d2", "d3", "d4", "d5" };
@@ -424,6 +518,13 @@ public class SmartBpService : ISmartBpService
         return cells.Select(c => c!.Rect).ToArray();
     }
 
+    /// <summary>
+    /// 通过一次 OCR 识别整行数据列并解析为 5 个数字值。
+    /// </summary>
+    /// <param name="row">行图像。</param>
+    /// <param name="dataColumns">数据列区域集合。</param>
+    /// <param name="rawText">OCR 原始文本输出。</param>
+    /// <returns>成功时返回长度为 5 的数组；失败返回 <see langword="null"/>。</returns>
     private string[]? TryGetRowDataValuesBySingleOcr(Mat row, IReadOnlyList<RelativeRect> dataColumns, out string? rawText)
     {
         // 将 5 个数字列拼成连续条带，减少 OCR 引擎多次启动开销。
@@ -433,6 +534,11 @@ public class SmartBpService : ISmartBpService
         return TryParseFiveNumbers(rawText);
     }
 
+    /// <summary>
+    /// 从文本中提取 5 个数字。
+    /// </summary>
+    /// <param name="text">待解析文本。</param>
+    /// <returns>提取成功时返回长度为 5 的数组；否则返回 <see langword="null"/>。</returns>
     private static string[]? TryParseFiveNumbers(string? text)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -445,6 +551,12 @@ public class SmartBpService : ISmartBpService
         return [matches[0].Value, matches[1].Value, matches[2].Value, matches[3].Value, matches[4].Value];
     }
 
+    /// <summary>
+    /// 将多个数据列裁切并拼接为单条带图像。
+    /// </summary>
+    /// <param name="row">原始行图像。</param>
+    /// <param name="rects">数据列区域集合。</param>
+    /// <returns>拼接后的图像。</returns>
     private static Mat BuildDataStrip(Mat row, IReadOnlyList<RelativeRect> rects)
     {
         // 先裁掉列边缘无效区域，再按固定间隔拼接成一张新图。
@@ -466,6 +578,11 @@ public class SmartBpService : ISmartBpService
         return strip;
     }
 
+    /// <summary>
+    /// 裁掉数据列周边干扰边缘区域。
+    /// </summary>
+    /// <param name="rect">原始矩形。</param>
+    /// <returns>裁边后的矩形。</returns>
     private static Rect TrimDataRect(Rect rect)
     {
         // 去除列左右/上下边缘，尽量减少装饰元素对数字识别的干扰。
@@ -479,6 +596,14 @@ public class SmartBpService : ISmartBpService
         return new Rect(x, y, w, h);
     }
 
+    /// <summary>
+    /// 识别单个数据列值，失败时自动回退到未裁边区域重试。
+    /// </summary>
+    /// <param name="row">行图像。</param>
+    /// <param name="rect">数据列相对区域。</param>
+    /// <param name="rawDebugFileName">原图调试文件名。</param>
+    /// <param name="binDebugFileName">二值图调试文件名。</param>
+    /// <returns>识别到的数字字符串。</returns>
     private string GetData(Mat row, RelativeRect rect, string? rawDebugFileName = null, string? binDebugFileName = null)
     {
         var rawRect = rect.ToPixelRect(row.Width, row.Height);
@@ -492,6 +617,14 @@ public class SmartBpService : ISmartBpService
         return RecognizeDigits(row, rawRect);
     }
 
+    /// <summary>
+    /// 对指定区域执行数字识别。
+    /// </summary>
+    /// <param name="row">行图像。</param>
+    /// <param name="dataRect">像素级识别区域。</param>
+    /// <param name="rawDebugFileName">原图调试文件名。</param>
+    /// <param name="binDebugFileName">二值图调试文件名。</param>
+    /// <returns>仅包含数字字符的识别结果。</returns>
     private string RecognizeDigits(Mat row, Rect dataRect, string? rawDebugFileName = null, string? binDebugFileName = null)
     {
         using var column = new Mat(row, dataRect);
@@ -508,6 +641,11 @@ public class SmartBpService : ISmartBpService
         return CleanDigitsOnly(_ocrService.RecognizeText(bin));
     }
 
+    /// <summary>
+    /// 从字符串中移除非数字字符。
+    /// </summary>
+    /// <param name="s">输入字符串。</param>
+    /// <returns>仅由数字组成的字符串。</returns>
     public static string CleanDigitsOnly(string? s)
     {
         if (string.IsNullOrWhiteSpace(s)) return string.Empty;
@@ -522,6 +660,12 @@ public class SmartBpService : ISmartBpService
         return sb.ToString();
     }
 
+    /// <summary>
+    /// 规范化日志文本并限制最大长度。
+    /// </summary>
+    /// <param name="text">原始文本。</param>
+    /// <param name="maxLength">最大保留长度。</param>
+    /// <returns>用于日志输出的安全文本。</returns>
     private static string ToLogText(string? text, int maxLength = 120)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -533,6 +677,11 @@ public class SmartBpService : ISmartBpService
             : $"{normalized[..maxLength]}...";
     }
 
+    /// <summary>
+    /// 将调试图像写入应用目录下的 <c>debug</c> 文件夹。
+    /// </summary>
+    /// <param name="mat">待保存图像。</param>
+    /// <param name="fileName">输出文件名。</param>
     private static void SaveDebug(Mat mat, string fileName)
     {
         var outputDir = Path.Combine(AppContext.BaseDirectory, "debug");
@@ -541,6 +690,11 @@ public class SmartBpService : ISmartBpService
         mat.SaveImage(fullPath);
     }
 
+    /// <summary>
+    /// 对名称文本区域执行 OCR 预处理。
+    /// </summary>
+    /// <param name="bgr">输入 BGR 图像。</param>
+    /// <returns>预处理后的二值图像。</returns>
     public static Mat PreprocessForText(Mat bgr)
     {
         // 名称文本预处理：放大 -> 灰度 -> 背景抑制 -> 二值化 -> 形态学 -> 反色。
@@ -575,6 +729,11 @@ public class SmartBpService : ISmartBpService
         return bin;
     }
 
+    /// <summary>
+    /// 对数字文本区域执行 OCR 预处理。
+    /// </summary>
+    /// <param name="bgr">输入 BGR 图像。</param>
+    /// <returns>预处理后的二值图像。</returns>
     public static Mat PreprocessForDigits(Mat bgr)
     {
         // 数字预处理相对更轻，优先保持数字笔画边界。
@@ -597,6 +756,12 @@ public class SmartBpService : ISmartBpService
         return bin;
     }
 
+    /// <summary>
+    /// 表示识别后的单个玩家信息。
+    /// </summary>
+    /// <param name="PlayerName">玩家名称。</param>
+    /// <param name="CharacterName">角色名称。</param>
+    /// <param name="PlayerData">玩家数据。</param>
     public record PlayerInfo(string PlayerName, string CharacterName, PlayerData PlayerData);
 
     private sealed record RecognizedGameData(PlayerData HunterData, List<PlayerInfo> SurvivorInfos);
