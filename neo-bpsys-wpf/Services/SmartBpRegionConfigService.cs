@@ -34,16 +34,21 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
         PropertyNameCaseInsensitive = true,
         WriteIndented = true
     };
+    private readonly ISmartBpSceneDefinition _gameDataSceneDefinition;
 
     private SmartBpRegionProfile _cachedProfile;
 
     /// <summary>
     /// 初始化配置服务并加载当前配置（失败时自动回退默认配置）。
     /// </summary>
-    public SmartBpRegionConfigService()
+    public SmartBpRegionConfigService(IEnumerable<ISmartBpSceneDefinition> sceneDefinitions)
     {
+        _gameDataSceneDefinition = sceneDefinitions.FirstOrDefault(s =>
+                string.Equals(s.SceneKey, SmartBpSceneKeys.GameData, StringComparison.OrdinalIgnoreCase))
+            ?? throw new InvalidOperationException("Missing SmartBp scene definition: GameData");
+
         // 先放一份内存默认值，确保任意异常下都有可用配置。
-        _cachedProfile = SmartBpRegionDefaults.CreateGameDataDefaultProfile();
+        _cachedProfile = _gameDataSceneDefinition.CreateDefaultProfile();
         _ = EnsureLoaded();
     }
 
@@ -74,7 +79,7 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
     public bool TrySaveGameDataProfile(SmartBpRegionProfile profile, out string errorMessage)
     {
         // 保存前统一走校验，避免写入坏数据。
-        if (!TryValidate(profile, out errorMessage))
+        if (!_gameDataSceneDefinition.TryValidateProfile(profile, out errorMessage))
             return false;
 
         try
@@ -155,32 +160,15 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
     /// <inheritdoc />
     public bool TryResetGameDataToBuiltinDefault(out string errorMessage)
     {
-        errorMessage = string.Empty;
         try
         {
-            var source = Path.Combine(AppConstants.ResourcesPath, SmartBpRegionDefaults.BuiltinGameDataDefaultRelativePath);
-            if (File.Exists(source))
-            {
-                Directory.CreateDirectory(ConfigDirectoryPath);
-                // 重置是覆盖用户文件，不走合并。
-                File.Copy(source, GameDataConfigPath, true);
-
-                var json = File.ReadAllText(GameDataConfigPath);
-                var profile = JsonSerializer.Deserialize<SmartBpRegionProfile>(json, _jsonOptions);
-                if (profile != null && TryValidate(profile, out _))
-                {
-                    _cachedProfile = DeepClone(profile);
-                    GameDataProfileChanged?.Invoke(this, EventArgs.Empty);
-                    return true;
-                }
-            }
-
-            // 如果资源文件丢失，回退到代码内默认模板兜底。
-            var fallback = SmartBpRegionDefaults.CreateGameDataDefaultProfile();
+            // 默认配置优先从内置资源加载，失败时由场景定义回退到代码模板。
+            var fallback = _gameDataSceneDefinition.CreateDefaultProfile();
             return TrySaveGameDataProfile(fallback, out errorMessage);
         }
         catch (Exception ex)
         {
+            errorMessage = string.Empty;
             errorMessage = string.Format(I18nHelper.GetLocalizedString("SmartBpRegionConfigResetFailedFormat"), ex.Message);
             return false;
         }
@@ -356,7 +344,7 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
         {
             var json = File.ReadAllText(GameDataConfigPath);
             var profile = JsonSerializer.Deserialize<SmartBpRegionProfile>(json, _jsonOptions);
-            if (profile != null && TryValidate(profile, out _))
+            if (profile != null && _gameDataSceneDefinition.TryValidateProfile(profile, out _))
             {
                 _cachedProfile = profile;
                 return true;
@@ -380,59 +368,6 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
             BaseSize = new WindowSize(profile.BaseSize.Width, profile.BaseSize.Height),
             Layout = DeepCloneLayout(profile.Layout)
         };
-    }
-
-    private static bool TryValidate(SmartBpRegionProfile profile, out string errorMessage)
-    {
-        errorMessage = string.Empty;
-        // 当前服务只处理 GameData 场景。
-        if (!string.Equals(profile.Scene, "GameData", StringComparison.OrdinalIgnoreCase))
-        {
-            errorMessage = I18nHelper.GetLocalizedString("SmartBpRegionConfigInvalidScene");
-            return false;
-        }
-
-        if (profile.Layout.Roots.Count != 5)
-        {
-            errorMessage = I18nHelper.GetLocalizedString("SmartBpRegionConfigInvalidRowCount");
-            return false;
-        }
-
-        for (var i = 0; i < profile.Layout.Roots.Count; i++)
-        {
-            var root = profile.Layout.Roots[i];
-            if (!root.Rect.IsValid01())
-            {
-                errorMessage = string.Format(I18nHelper.GetLocalizedString("SmartBpRegionConfigInvalidBigRectFormat"), i + 1);
-                return false;
-            }
-
-            if (root.Children.Count != 6)
-            {
-                errorMessage = string.Format(I18nHelper.GetLocalizedString("SmartBpRegionConfigInvalidCellCountFormat"), i + 1);
-                return false;
-            }
-
-            for (var c = 0; c < root.Children.Count; c++)
-            {
-                // 小框坐标是相对大框，因此同样用 0~100 校验。
-                if (!root.Children[c].Rect.IsValid01())
-                {
-                    errorMessage = string.Format(I18nHelper.GetLocalizedString("SmartBpRegionConfigInvalidCellRectFormat"), i + 1, c + 1);
-                    return false;
-                }
-            }
-        }
-
-        profile.BaseAspectRatio = string.IsNullOrWhiteSpace(profile.BaseAspectRatio)
-            ? ToAspectRatioText(profile.BaseSize.Width, profile.BaseSize.Height)
-            : profile.BaseAspectRatio;
-
-        // 仅保留“比例基准尺寸”（如 16x9），避免把具体像素分辨率写入配置。
-        if (TryParseAspectIntegerPair(profile.BaseAspectRatio, out var aw, out var ah))
-            profile.BaseSize = new WindowSize(aw, ah);
-
-        return true;
     }
 
     private static RegionLayoutDefinition DeepCloneLayout(RegionLayoutDefinition layout)

@@ -20,14 +20,15 @@ public partial class SmartBpPageViewModel : ViewModelBase
 {
     // WGC API 可用最低版本：Windows 10 1803。
     private const int WgcMinimumBuild = 17134; // Windows 10 1803
+
     // HWND 直捕（CreateForWindow）可用最低版本：Windows 10 1903。
     private const int WgcHwndInteropMinimumBuild = 18362; // Windows 10 1903
 
     private readonly IWindowCaptureService _windowCaptureService = null!;
     private readonly IOcrService _ocrService = null!;
     private readonly ISmartBpRegionConfigService _regionConfigService = null!;
+    private readonly ISmartBpSceneDefinition _gameDataSceneDefinition = null!;
     private readonly IFilePickerService _filePickerService = null!;
-    private static readonly RegionEditorStructure GameDataEditorStructure = CreateGameDataEditorStructure();
     private readonly DispatcherTimer _captureAspectRefreshTimer;
 
 #pragma warning disable CS8618
@@ -44,11 +45,15 @@ public partial class SmartBpPageViewModel : ViewModelBase
         IWindowCaptureService windowCaptureService,
         IOcrService ocrService,
         ISmartBpRegionConfigService regionConfigService,
+        IEnumerable<ISmartBpSceneDefinition> sceneDefinitions,
         IFilePickerService filePickerService)
     {
         _windowCaptureService = windowCaptureService;
         _ocrService = ocrService;
         _regionConfigService = regionConfigService;
+        _gameDataSceneDefinition = sceneDefinitions.FirstOrDefault(s =>
+                string.Equals(s.SceneKey, SmartBpSceneKeys.GameData, StringComparison.OrdinalIgnoreCase))
+            ?? throw new InvalidOperationException("Missing SmartBp scene definition: GameData");
         _filePickerService = filePickerService;
         _ocrService.DownloadStateChanged += OcrService_DownloadStateChanged;
         // 配置被保存/导入/重置时同步刷新比例状态展示。
@@ -81,11 +86,9 @@ public partial class SmartBpPageViewModel : ViewModelBase
         RefreshRegionAspectInfo();
     }
 
-    [ObservableProperty]
-    private List<WindowInfo> _activeWindows = [];
+    [ObservableProperty] private List<WindowInfo> _activeWindows = [];
 
-    [ObservableProperty]
-    private List<OcrModelSelection> _ocrModelList = [];
+    [ObservableProperty] private List<OcrModelSelection> _ocrModelList = [];
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DownloadSelectedOcrModelCommand))]
@@ -99,38 +102,27 @@ public partial class SmartBpPageViewModel : ViewModelBase
     [NotifyCanExecuteChangedFor(nameof(SwitchSelectedOcrModelCommand))]
     private bool _isModelDownloading;
 
-    [ObservableProperty]
-    private bool _hasPreciseDownloadProgress;
+    [ObservableProperty] private bool _hasPreciseDownloadProgress;
 
-    [ObservableProperty]
-    private double _modelDownloadProgress;
+    [ObservableProperty] private double _modelDownloadProgress;
 
-    [ObservableProperty]
-    private string _modelDownloadProgressText = string.Empty;
+    [ObservableProperty] private string _modelDownloadProgressText = string.Empty;
 
-    [ObservableProperty]
-    private string _modelDownloadStageText = string.Empty;
+    [ObservableProperty] private string _modelDownloadStageText = string.Empty;
 
-    [ObservableProperty]
-    private string _currentOcrModelDisplayName = "SmartBpCurrentOcrModelNotEnabled";
+    [ObservableProperty] private string _currentOcrModelDisplayName = "SmartBpCurrentOcrModelNotEnabled";
 
-    [ObservableProperty]
-    private string _regionConfigPath = "-";
+    [ObservableProperty] private string _regionConfigPath = "-";
 
-    [ObservableProperty]
-    private string _regionConfigAspectRatioText = "-";
+    [ObservableProperty] private string _regionConfigAspectRatioText = "-";
 
-    [ObservableProperty]
-    private string _captureAspectRatioText = "-";
+    [ObservableProperty] private string _captureAspectRatioText = "-";
 
-    [ObservableProperty]
-    private string _regionAspectStatusText = "-";
+    [ObservableProperty] private string _regionAspectStatusText = "-";
 
-    [ObservableProperty]
-    private string _regionAspectHintText = "-";
+    [ObservableProperty] private string _regionAspectHintText = "-";
 
-    [ObservableProperty]
-    private bool _regionAspectIsMismatch;
+    [ObservableProperty] private bool _regionAspectIsMismatch;
 
     public bool ShowDownloadModelButton => SelectedOcrModel is not { IsInstalled: true };
 
@@ -210,7 +202,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
         profile.BaseSize = SmartBpRegionConfigService.ToAspectBaseSize(frame.PixelWidth, frame.PixelHeight);
 
         // 配置已是通用布局结构；这里仅注入编辑展示元数据（标签/模板组）。
-        var layout = BuildGameDataLayout(profile.Layout, GameDataEditorStructure);
+        var layout = _gameDataSceneDefinition.BuildEditorLayout(profile.Layout);
         var editor = new RegionEditorWindow(frame, layout)
         {
             Owner = Application.Current?.Windows.OfType<Window>().FirstOrDefault(w => w.IsActive)
@@ -221,13 +213,13 @@ public partial class SmartBpPageViewModel : ViewModelBase
             return;
 
         // 保存前做结构校验，避免非法布局污染识别流程。
-        if (!TryValidateGameDataLayout(editor.ResultLayout, GameDataEditorStructure, out var applyError))
+        if (!_gameDataSceneDefinition.TryValidateEditedLayout(editor.ResultLayout, out var applyError))
         {
             await MessageBoxHelper.ShowErrorAsync(applyError);
             return;
         }
 
-        profile.Layout = NormalizeGameDataLayoutForPersistence(editor.ResultLayout, GameDataEditorStructure);
+        profile.Layout = _gameDataSceneDefinition.NormalizeEditedLayoutForPersistence(editor.ResultLayout);
 
         if (!_regionConfigService.TrySaveGameDataProfile(profile, out var error))
         {
@@ -315,9 +307,9 @@ public partial class SmartBpPageViewModel : ViewModelBase
         ];
 
         SelectedOcrModel = OcrModelList.FirstOrDefault(m => m.Key == preferredSelectedKey)
-            ?? OcrModelList.FirstOrDefault(m => m.Key == currentModelKey)
-            ?? OcrModelList.FirstOrDefault(m => m.Key == recommendedModelKey)
-            ?? OcrModelList.FirstOrDefault();
+                           ?? OcrModelList.FirstOrDefault(m => m.Key == currentModelKey)
+                           ?? OcrModelList.FirstOrDefault(m => m.Key == recommendedModelKey)
+                           ?? OcrModelList.FirstOrDefault();
 
         CurrentOcrModelDisplayName = currentModelKey is null
             ? "SmartBpCurrentOcrModelNotEnabled"
@@ -354,7 +346,8 @@ public partial class SmartBpPageViewModel : ViewModelBase
             return;
 
         var confirmed = await MessageBoxHelper.ShowConfirmAsync(
-            string.Format(I18nHelper.GetLocalizedString("SmartBpDeleteOcrModelConfirmFormat"), ResolveLocalizedOrRaw(SelectedOcrModel.DisplayName)),
+            string.Format(I18nHelper.GetLocalizedString("SmartBpDeleteOcrModelConfirmFormat"),
+                ResolveLocalizedOrRaw(SelectedOcrModel.DisplayName)),
             I18nHelper.GetLocalizedString("SmartBpDeleteOcrModelTitle"),
             I18nHelper.GetLocalizedString("Delete"),
             I18nHelper.GetLocalizedString("Cancel"));
@@ -520,7 +513,8 @@ public partial class SmartBpPageViewModel : ViewModelBase
 
     private static bool IsWgcApiAvailable() => OperatingSystem.IsWindowsVersionAtLeast(10, 0, WgcMinimumBuild);
 
-    private static bool IsWgcHwndInteropAvailable() => OperatingSystem.IsWindowsVersionAtLeast(10, 0, WgcHwndInteropMinimumBuild);
+    private static bool IsWgcHwndInteropAvailable() =>
+        OperatingSystem.IsWindowsVersionAtLeast(10, 0, WgcHwndInteropMinimumBuild);
 
     private static bool IsWgcSupported()
     {
@@ -550,176 +544,6 @@ public partial class SmartBpPageViewModel : ViewModelBase
         return string.IsNullOrWhiteSpace(localized) ? keyOrRawText : localized;
     }
 
-    /// <summary>
-    /// 为配置布局注入 GameData 编辑所需的展示元数据（标签、模板分组）。
-    /// </summary>
-    private static RegionLayoutDefinition BuildGameDataLayout(RegionLayoutDefinition sourceLayout, RegionEditorStructure structure)
-    {
-        var builder = RegionLayoutDefinition.Builder(ResolveLocalizedOrRaw(structure.SceneDisplayName));
-        var elementById = structure.Elements.ToDictionary(e => e.Id, StringComparer.Ordinal);
-
-        foreach (var sourceRoot in sourceLayout.Roots)
-        {
-            var element = elementById.TryGetValue(sourceRoot.Id, out var found)
-                ? found
-                : new RegionEditorElement(sourceRoot.Id, sourceRoot.Id, []);
-            Action<RegionNodeBuilder> configure = node =>
-            {
-                for (var c = 0; c < sourceRoot.Children.Count; c++)
-                {
-                    var label = c < element.CellLabels.Count ? element.CellLabels[c] : sourceRoot.Children[c].Id;
-                    node.AddChild(
-                        sourceRoot.Children[c].Id,
-                        ResolveLocalizedOrRaw(label),
-                        new RegionNodeConfig
-                        {
-                            Rect = sourceRoot.Children[c].Rect,
-                            ClampToParent = true
-                        });
-                }
-            };
-
-            var rootConfig = new RegionNodeConfig
-            {
-                Rect = sourceRoot.Rect,
-                ClampToParent = true
-            };
-            if (string.IsNullOrWhiteSpace(element.TemplateGroupId))
-            {
-                builder.AddNode(sourceRoot.Id, ResolveLocalizedOrRaw(element.Label), rootConfig, configure);
-            }
-            else
-            {
-                builder.AddTemplatedNode(element.TemplateGroupId, sourceRoot.Id, ResolveLocalizedOrRaw(element.Label), rootConfig, configure);
-            }
-        }
-
-        return builder.Build();
-    }
-
-    /// <summary>
-    /// 校验编辑器返回布局是否满足 GameData 结构约束。
-    /// </summary>
-    private static bool TryValidateGameDataLayout(
-        RegionLayoutDefinition layout,
-        RegionEditorStructure structure,
-        out string error)
-    {
-        error = string.Empty;
-        if (layout.Roots.Count != structure.Elements.Count)
-        {
-            error = string.Format(
-                ResolveLocalizedOrRaw("SmartBpRegionLayoutMismatchRootCountFormat"),
-                structure.Elements.Count,
-                layout.Roots.Count);
-            return false;
-        }
-
-        for (var i = 0; i < structure.Elements.Count; i++)
-        {
-            var root = layout.Roots[i];
-            var expectedId = structure.Elements[i].Id;
-            if (!string.Equals(root.Id, expectedId, StringComparison.Ordinal))
-            {
-                error = string.Format(
-                    ResolveLocalizedOrRaw("SmartBpRegionLayoutMismatchRootIdFormat"),
-                    i + 1,
-                    expectedId,
-                    root.Id);
-                return false;
-            }
-
-            var expectedCellCount = structure.Elements[i].CellLabels.Count;
-            if (root.Children.Count != expectedCellCount)
-            {
-                error = string.Format(
-                    ResolveLocalizedOrRaw("SmartBpRegionLayoutMismatchCellCountFormat"),
-                    i + 1,
-                    expectedCellCount,
-                    root.Children.Count);
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// 将编辑结果标准化为稳定配置结构，避免把当前语言展示文案直接写入配置文件。
-    /// </summary>
-    private static RegionLayoutDefinition NormalizeGameDataLayoutForPersistence(
-        RegionLayoutDefinition layout,
-        RegionEditorStructure structure)
-    {
-        var builder = RegionLayoutDefinition.Builder(structure.SceneDisplayName);
-
-        for (var i = 0; i < layout.Roots.Count; i++)
-        {
-            var sourceRoot = layout.Roots[i];
-            var element = structure.Elements[i];
-            Action<RegionNodeBuilder> configure = node =>
-            {
-                for (var c = 0; c < sourceRoot.Children.Count; c++)
-                {
-                    var label = c < element.CellLabels.Count ? element.CellLabels[c] : sourceRoot.Children[c].Id;
-                    node.AddChild(
-                        sourceRoot.Children[c].Id,
-                        label,
-                        new RegionNodeConfig
-                        {
-                            Rect = sourceRoot.Children[c].Rect,
-                            ClampToParent = true
-                        });
-                }
-            };
-
-            var rootConfig = new RegionNodeConfig
-            {
-                Rect = sourceRoot.Rect,
-                ClampToParent = true
-            };
-            if (string.IsNullOrWhiteSpace(element.TemplateGroupId))
-            {
-                builder.AddNode(sourceRoot.Id, element.Label, rootConfig, configure);
-            }
-            else
-            {
-                builder.AddTemplatedNode(element.TemplateGroupId, sourceRoot.Id, element.Label, rootConfig, configure);
-            }
-        }
-
-        return builder.Build();
-    }
-
-    /// <summary>
-    /// GameData 编辑结构定义。
-    /// 你后续只需要改这里，就能调整大元素数量和名称（以及小元素名称）。
-    /// </summary>
-    private static RegionEditorStructure CreateGameDataEditorStructure()
-    {
-        const string hunterTemplateGroup = "hunter_rows";
-        const string survivorTemplateGroup = "survivor_rows";
-        return new RegionEditorStructure(
-            "SmartBpSceneGameData",
-            [
-                // 监管者与求生者拆分为两套模板，避免跨角色误套用。
-                new RegionEditorElement("row0_hunter", "SmartBpRegionHunterRow",
-                    ["SmartBpRegionCellName", "SmartBpRegionCellHunterRemainingCipher", "SmartBpRegionCellHunterPalletsDestroyed", "SmartBpRegionCellHunterSurvivorHits", "SmartBpRegionCellHunterTerrorShocks", "SmartBpRegionCellHunterKnockdowns"],
-                    hunterTemplateGroup),
-                new RegionEditorElement("row1_survivor", "SmartBpRegionSurvivorRow1",
-                    ["SmartBpRegionCellName", "SmartBpRegionCellSurvivorDecodingProgress", "SmartBpRegionCellSurvivorPalletStrikes", "SmartBpRegionCellSurvivorRescues", "SmartBpRegionCellSurvivorHeals", "SmartBpRegionCellSurvivorContainmentTime"],
-                    survivorTemplateGroup),
-                new RegionEditorElement("row2_survivor", "SmartBpRegionSurvivorRow2",
-                    ["SmartBpRegionCellName", "SmartBpRegionCellSurvivorDecodingProgress", "SmartBpRegionCellSurvivorPalletStrikes", "SmartBpRegionCellSurvivorRescues", "SmartBpRegionCellSurvivorHeals", "SmartBpRegionCellSurvivorContainmentTime"],
-                    survivorTemplateGroup),
-                new RegionEditorElement("row3_survivor", "SmartBpRegionSurvivorRow3",
-                    ["SmartBpRegionCellName", "SmartBpRegionCellSurvivorDecodingProgress", "SmartBpRegionCellSurvivorPalletStrikes", "SmartBpRegionCellSurvivorRescues", "SmartBpRegionCellSurvivorHeals", "SmartBpRegionCellSurvivorContainmentTime"],
-                    survivorTemplateGroup),
-                new RegionEditorElement("row4_survivor", "SmartBpRegionSurvivorRow4",
-                    ["SmartBpRegionCellName", "SmartBpRegionCellSurvivorDecodingProgress", "SmartBpRegionCellSurvivorPalletStrikes", "SmartBpRegionCellSurvivorRescues", "SmartBpRegionCellSurvivorHeals", "SmartBpRegionCellSurvivorContainmentTime"],
-                    survivorTemplateGroup)
-            ]);
-    }
 
     /// <summary>
     /// 当前选中的捕获方式。
@@ -784,12 +608,4 @@ public partial class SmartBpPageViewModel : ViewModelBase
         string Description,
         bool IsInstalled,
         bool IsCurrent);
-
-    private sealed record RegionEditorStructure(string SceneDisplayName, IReadOnlyList<RegionEditorElement> Elements);
-
-    private sealed record RegionEditorElement(
-        string Id,
-        string Label,
-        IReadOnlyList<string> CellLabels,
-        string? TemplateGroupId = null);
 }

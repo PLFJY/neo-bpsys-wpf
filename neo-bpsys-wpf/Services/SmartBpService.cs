@@ -4,11 +4,13 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Views.Pages;
 using OpenCvSharp;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -24,6 +26,7 @@ public class SmartBpService : ISmartBpService
     private readonly ISmartBpRegionConfigService _regionConfigService;
     private readonly ILogger<SmartBpService> _logger;
     private int _ocrWarmupStarted;
+    private readonly DispatcherTimer _timer;
 
     /// <summary>
     /// 获取当前 SmartBp 是否处于运行状态。
@@ -50,6 +53,10 @@ public class SmartBpService : ISmartBpService
         _ocrService = ocrService;
         _regionConfigService = regionConfigService;
         _logger = logger;
+
+        _timer = new DispatcherTimer();
+        _timer.Interval = TimeSpan.FromMilliseconds(1000);
+        _timer.Tick += Timer_Tick;
     }
 
     /// <inheritdoc/>
@@ -63,6 +70,11 @@ public class SmartBpService : ISmartBpService
             return;
         }
 
+        if(IsSmartBpRunning)
+        {
+            _ = MessageBoxHelper.ShowErrorAsync("请勿重复启动");
+        }
+        _timer.Start();
         IsSmartBpRunning = true;
         StartOcrWarmupIfNeeded();
     }
@@ -70,7 +82,30 @@ public class SmartBpService : ISmartBpService
     /// <inheritdoc/>
     public void StopSmartBp()
     {
+        if (!IsSmartBpRunning) return;
+        _timer.Stop();
         IsSmartBpRunning = false;
+    }
+
+
+    private void Timer_Tick(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (!_windowCaptureService.IsCapturing)
+            {
+                _logger.LogInformation("SmartBp auto BP skipped: capture is not running.");
+                return;
+            }
+
+            
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "SmartBp auto BP failed with exception. {Message}", ex.Message);
+            IsSmartBpRunning = false;
+            _timer.Stop();
+        }
     }
 
     /// <inheritdoc/>
@@ -110,7 +145,7 @@ public class SmartBpService : ISmartBpService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "SmartBp AutoFill failed with exception.");
+            _logger.LogError(ex, "SmartBp AutoFill failed with exception. {Message}", ex.Message);
         }
     }
 
@@ -765,4 +800,6 @@ public class SmartBpService : ISmartBpService
     public record PlayerInfo(string PlayerName, string CharacterName, PlayerData PlayerData);
 
     private sealed record RecognizedGameData(PlayerData HunterData, List<PlayerInfo> SurvivorInfos);
+
+    private sealed record RecognizedBpStatus(List<Character> SurCharacters, Character HunCharacter, List<Character> SurBannedCharacters, List<Character> HunBannedCharacters);
 }

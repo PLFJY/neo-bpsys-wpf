@@ -1452,6 +1452,60 @@
   <data name="SmartBpOcrNotReadyFirstDownloadAndSwitchModel" xml:space="preserve">
     <value>OCR 功能未就绪，请先下载并切换 OCR 模型后再启动相关功能。</value>
   </data>
+  <data name="SmartBpOcrUnsupportedModelFormat" xml:space="preserve">
+    <value>不支持的 OCR 模型：{0}</value>
+  </data>
+  <data name="SmartBpOcrDownloadAlreadyInProgress" xml:space="preserve">
+    <value>已有 OCR 模型下载任务正在进行。</value>
+  </data>
+  <data name="SmartBpOcrDownloadPreparing" xml:space="preserve">
+    <value>准备下载 OCR 模型...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageDet" xml:space="preserve">
+    <value>正在下载检测模型...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageCls" xml:space="preserve">
+    <value>正在下载方向分类模型...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageRec" xml:space="preserve">
+    <value>正在下载识别模型...</value>
+  </data>
+  <data name="SmartBpOcrDownloadCompleted" xml:space="preserve">
+    <value>OCR 模型下载完成。</value>
+  </data>
+  <data name="SmartBpOcrDownloadCanceled" xml:space="preserve">
+    <value>下载已取消。</value>
+  </data>
+  <data name="SmartBpOcrDownloadFailedSimple" xml:space="preserve">
+    <value>下载失败。</value>
+  </data>
+  <data name="SmartBpOcrDetModelMetadataEmpty" xml:space="preserve">
+    <value>OCR 检测模型元数据为空。</value>
+  </data>
+  <data name="SmartBpOcrClsModelMetadataEmpty" xml:space="preserve">
+    <value>OCR 分类模型元数据为空。</value>
+  </data>
+  <data name="SmartBpOcrRecModelMetadataEmpty" xml:space="preserve">
+    <value>OCR 识别模型元数据为空。</value>
+  </data>
+  <data name="SmartBpOcrDictNameEmpty" xml:space="preserve">
+    <value>OCR 字典名称为空。</value>
+  </data>
+  <data name="SmartBpOcrDeleteBlockedByDownloading" xml:space="preserve">
+    <value>下载进行中，无法删除模型。</value>
+  </data>
+  <data name="SmartBpOcrDeleteFailedFormat" xml:space="preserve">
+    <value>删除 OCR 模型失败：{0}</value>
+  </data>
+  <data name="SmartBpOcrModelFilesIncomplete" xml:space="preserve">
+    <value>模型文件未完整下载，请先下载。</value>
+  </data>
+  <data name="SmartBpOcrLoadFailedFormat" xml:space="preserve">
+    <value>加载 OCR 模型失败：{0}</value>
+  </data>
+  <data name="SmartBpOcrArchiveMissingModelFilesFormat" xml:space="preserve">
+    <value>模型压缩包中未找到可用模型文件（期望 inference.pdmodel 或 inference.json，且需包含 inference.pdiparams）。样例文件：{0}</value>
+  </data>
   <data name="WindowCapturePleaseSelectWindowFirst" xml:space="preserve">
     <value>请先选择窗口。</value>
   </data>

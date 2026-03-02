@@ -67,6 +67,8 @@ public partial class App
         services.AddSingleton<IInfoBarService, InfoBarService>();
         services.AddSingleton<ISnackbarService, SnackbarService>();
         services.AddSingleton<IWindowCaptureService, WindowCaptureService>();
+        // 场景定义先注册，配置服务会在构造时按 SceneKey 解析规则。
+        services.AddSingleton<ISmartBpSceneDefinition, SmartBpGameDataSceneDefinition>();
         services.AddSingleton<ISmartBpRegionConfigService, SmartBpRegionConfigService>();
 
         //Additional Feature Services

@@ -1434,6 +1434,60 @@
   <data name="SmartBpOcrNotReadyFirstDownloadAndSwitchModel" xml:space="preserve">
     <value>OCR is not ready. Please download and switch an OCR model before using this feature.</value>
   </data>
+  <data name="SmartBpOcrUnsupportedModelFormat" xml:space="preserve">
+    <value>Unsupported OCR model: {0}</value>
+  </data>
+  <data name="SmartBpOcrDownloadAlreadyInProgress" xml:space="preserve">
+    <value>An OCR model download is already in progress.</value>
+  </data>
+  <data name="SmartBpOcrDownloadPreparing" xml:space="preserve">
+    <value>Preparing to download OCR model...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageDet" xml:space="preserve">
+    <value>Downloading detection model...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageCls" xml:space="preserve">
+    <value>Downloading orientation classification model...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageRec" xml:space="preserve">
+    <value>Downloading recognition model...</value>
+  </data>
+  <data name="SmartBpOcrDownloadCompleted" xml:space="preserve">
+    <value>OCR model download completed.</value>
+  </data>
+  <data name="SmartBpOcrDownloadCanceled" xml:space="preserve">
+    <value>Download canceled.</value>
+  </data>
+  <data name="SmartBpOcrDownloadFailedSimple" xml:space="preserve">
+    <value>Download failed.</value>
+  </data>
+  <data name="SmartBpOcrDetModelMetadataEmpty" xml:space="preserve">
+    <value>OCR detection model metadata is empty.</value>
+  </data>
+  <data name="SmartBpOcrClsModelMetadataEmpty" xml:space="preserve">
+    <value>OCR classification model metadata is empty.</value>
+  </data>
+  <data name="SmartBpOcrRecModelMetadataEmpty" xml:space="preserve">
+    <value>OCR recognition model metadata is empty.</value>
+  </data>
+  <data name="SmartBpOcrDictNameEmpty" xml:space="preserve">
+    <value>OCR dictionary name is empty.</value>
+  </data>
+  <data name="SmartBpOcrDeleteBlockedByDownloading" xml:space="preserve">
+    <value>Cannot delete model while download is in progress.</value>
+  </data>
+  <data name="SmartBpOcrDeleteFailedFormat" xml:space="preserve">
+    <value>Failed to delete OCR model: {0}</value>
+  </data>
+  <data name="SmartBpOcrModelFilesIncomplete" xml:space="preserve">
+    <value>Model files are incomplete. Please download the model first.</value>
+  </data>
+  <data name="SmartBpOcrLoadFailedFormat" xml:space="preserve">
+    <value>Failed to load OCR model: {0}</value>
+  </data>
+  <data name="SmartBpOcrArchiveMissingModelFilesFormat" xml:space="preserve">
+    <value>No usable model files were found in the model archive (expected inference.pdmodel or inference.json, with inference.pdiparams). Sample files: {0}</value>
+  </data>
   <data name="WindowCapturePleaseSelectWindowFirst" xml:space="preserve">
     <value>Please select a window first.</value>
   </data>

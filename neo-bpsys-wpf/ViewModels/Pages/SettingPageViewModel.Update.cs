@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Downloader;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
@@ -46,31 +45,27 @@ public partial class SettingPageViewModel : ViewModelBase
 
     public string Mirror { get; set; } = DownloadMirrorPresets.DefaultMirror;
 
-    private void Downloader_DownloadStarted(object? sender, Downloader.DownloadStartedEventArgs e)
+    private void UpdaterService_DownloadStateChanged(object? sender, EventArgs e)
     {
-        Application.Current.Dispatcher.Invoke(() => { IsDownloading = true; });
-    }
-
-    private void Downloader_DownloadFileCompleted(object? sender, System.ComponentModel.AsyncCompletedEventArgs e)
-    {
-        if (e.Error == null && !e.Cancelled)
+        if (Application.Current.Dispatcher.CheckAccess())
         {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                IsDownloadFinished = true;
-                IsDownloading = false;
-            });
-            return;
+            RefreshUpdateDownloadState();
         }
-
-        Application.Current.Dispatcher.Invoke(() => { IsDownloading = false; });
+        else
+        {
+            Application.Current.Dispatcher.Invoke(RefreshUpdateDownloadState);
+        }
     }
 
-    private void Downloader_DownloadProgressChanged(object? sender, DownloadProgressChangedEventArgs e)
+    private void RefreshUpdateDownloadState()
     {
-        DownloadProgress = e.ProgressPercentage;
-        DownloadProgressText = $"{e.ProgressPercentage:0.00}%";
-        MbPerSecondSpeed = $"{(e.BytesPerSecondSpeed / 1024 / 1024):0.00} MB/s";
+        IsDownloading = UpdaterService.IsDownloading;
+        DownloadProgress = UpdaterService.DownloadProgress;
+        DownloadProgressText = IsDownloading ? $"{DownloadProgress:0.00}%" : string.Empty;
+        MbPerSecondSpeed = IsDownloading
+            ? $"{(UpdaterService.DownloadBytesPerSecond / 1024 / 1024):0.00} MB/s"
+            : string.Empty;
+        IsDownloadFinished = UpdaterService.IsDownloadFinished;
     }
 
     [RelayCommand(CanExecute = nameof(CanUpdateCheckExecute))]
@@ -92,7 +87,7 @@ public partial class SettingPageViewModel : ViewModelBase
     [RelayCommand]
     private void CancelDownload()
     {
-        _downloader?.CancelAsync();
+        UpdaterService.CancelDownload();
     }
 
     public ObservableCollection<string> MirrorList { get; } = new(DownloadMirrorPresets.GhProxyMirrorList);

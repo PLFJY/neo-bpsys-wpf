@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Downloader;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
@@ -51,7 +50,6 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly ISharedDataService _sharedDataService;
     private readonly ILogger<SettingPageViewModel> _logger;
     public IUpdaterService UpdaterService { get; }
-    private readonly DownloadService? _downloader;
 
     public SettingPageViewModel(IUpdaterService updaterService, ISettingsHostService settingsHostService,
         ITextSettingsNavigationService textSettingsNavigationService, IFrontedWindowService frontedWindowService,
@@ -67,13 +65,8 @@ public partial class SettingPageViewModel : ViewModelBase
         _sharedDataService = sharedDataService;
         _logger = logger;
 
-        if (updaterService.Downloader is DownloadService downloader)
-        {
-            _downloader = downloader;
-            _downloader.DownloadProgressChanged += Downloader_DownloadProgressChanged;
-            _downloader.DownloadFileCompleted += Downloader_DownloadFileCompleted;
-            _downloader.DownloadStarted += Downloader_DownloadStarted;
-        }
+        UpdaterService.DownloadStateChanged += UpdaterService_DownloadStateChanged;
+        RefreshUpdateDownloadState();
 
         _systemFonts = [.. _systemFonts, .. FontsHelper.GetSystemFonts()];
 

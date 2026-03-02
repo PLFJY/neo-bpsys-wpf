@@ -1437,6 +1437,60 @@
   <data name="SmartBpOcrNotReadyFirstDownloadAndSwitchModel" xml:space="preserve">
     <value>OCR機能の準備ができていません。先にOCRモデルをダウンロードして切り替えてください。</value>
   </data>
+  <data name="SmartBpOcrUnsupportedModelFormat" xml:space="preserve">
+    <value>サポートされていないOCRモデルです：{0}</value>
+  </data>
+  <data name="SmartBpOcrDownloadAlreadyInProgress" xml:space="preserve">
+    <value>OCRモデルのダウンロードはすでに実行中です。</value>
+  </data>
+  <data name="SmartBpOcrDownloadPreparing" xml:space="preserve">
+    <value>OCRモデルのダウンロードを準備中...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageDet" xml:space="preserve">
+    <value>検出モデルをダウンロード中...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageCls" xml:space="preserve">
+    <value>方向分類モデルをダウンロード中...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageRec" xml:space="preserve">
+    <value>認識モデルをダウンロード中...</value>
+  </data>
+  <data name="SmartBpOcrDownloadCompleted" xml:space="preserve">
+    <value>OCRモデルのダウンロードが完了しました。</value>
+  </data>
+  <data name="SmartBpOcrDownloadCanceled" xml:space="preserve">
+    <value>ダウンロードはキャンセルされました。</value>
+  </data>
+  <data name="SmartBpOcrDownloadFailedSimple" xml:space="preserve">
+    <value>ダウンロードに失敗しました。</value>
+  </data>
+  <data name="SmartBpOcrDetModelMetadataEmpty" xml:space="preserve">
+    <value>OCR検出モデルのメタデータが空です。</value>
+  </data>
+  <data name="SmartBpOcrClsModelMetadataEmpty" xml:space="preserve">
+    <value>OCR分類モデルのメタデータが空です。</value>
+  </data>
+  <data name="SmartBpOcrRecModelMetadataEmpty" xml:space="preserve">
+    <value>OCR認識モデルのメタデータが空です。</value>
+  </data>
+  <data name="SmartBpOcrDictNameEmpty" xml:space="preserve">
+    <value>OCR辞書名が空です。</value>
+  </data>
+  <data name="SmartBpOcrDeleteBlockedByDownloading" xml:space="preserve">
+    <value>ダウンロード中のため、モデルを削除できません。</value>
+  </data>
+  <data name="SmartBpOcrDeleteFailedFormat" xml:space="preserve">
+    <value>OCRモデルの削除に失敗しました：{0}</value>
+  </data>
+  <data name="SmartBpOcrModelFilesIncomplete" xml:space="preserve">
+    <value>モデルファイルが完全ではありません。先にモデルをダウンロードしてください。</value>
+  </data>
+  <data name="SmartBpOcrLoadFailedFormat" xml:space="preserve">
+    <value>OCRモデルの読み込みに失敗しました：{0}</value>
+  </data>
+  <data name="SmartBpOcrArchiveMissingModelFilesFormat" xml:space="preserve">
+    <value>モデルアーカイブ内に使用可能なモデルファイルが見つかりません（inference.pdiparams と inference.pdmodel または inference.json が必要）。サンプルファイル：{0}</value>
+  </data>
   <data name="WindowCapturePleaseSelectWindowFirst" xml:space="preserve">
     <value>先にウィンドウを選択してください。</value>
   </data>

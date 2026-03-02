@@ -11,6 +11,7 @@ using Sdcb.PaddleOCR.Models.Shared;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Helpers;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -69,7 +70,7 @@ public class OcrService : IOcrService
 
         var downloadOpt = new DownloadConfiguration
         {
-            ChunkCount = 8,
+            ChunkCount = 12,
             ParallelDownload = true,
             MaxTryAgainOnFailure = 3,
             ParallelCount = 6,
@@ -110,19 +111,19 @@ public class OcrService : IOcrService
     {
         if (!SmartBpOcrModelRegistry.TryGet(modelKey, out var definition))
         {
-            throw new InvalidOperationException($"不支持的 OCR 模型：{modelKey}");
+            throw new InvalidOperationException(Lf("SmartBpOcrUnsupportedModelFormat", modelKey));
         }
 
         lock (_downloadLock)
         {
             if (IsDownloading)
             {
-                throw new InvalidOperationException("已有 OCR 模型下载任务正在进行。");
+                throw new InvalidOperationException(L("SmartBpOcrDownloadAlreadyInProgress"));
             }
 
             IsDownloading = true;
             DownloadProgress = null;
-            DownloadStatusText = "准备下载 OCR 模型...";
+            DownloadStatusText = L("SmartBpOcrDownloadPreparing");
             _downloadCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             RaiseDownloadStateChanged();
         }
@@ -131,29 +132,29 @@ public class OcrService : IOcrService
         {
             await DownloadAndExtractModelAssetAsync(
                 definition.OnlineModel.DetModel?.Uri
-                    ?? throw new InvalidOperationException("OCR 检测模型元数据为空。"),
+                    ?? throw new InvalidOperationException(L("SmartBpOcrDetModelMetadataEmpty")),
                 SmartBpOcrModelRegistry.GetDetDirectory(definition.Key),
-                "正在下载检测模型...",
+                L("SmartBpOcrDownloadStageDet"),
                 stepIndex: 1,
                 stepCount: 3,
                 _downloadCts.Token);
 
             await DownloadAndExtractModelAssetAsync(
                 definition.OnlineModel.ClsModel?.Uri
-                    ?? throw new InvalidOperationException("OCR 分类模型元数据为空。"),
+                    ?? throw new InvalidOperationException(L("SmartBpOcrClsModelMetadataEmpty")),
                 SmartBpOcrModelRegistry.GetClsDirectory(definition.Key),
-                "正在下载方向分类模型...",
+                L("SmartBpOcrDownloadStageCls"),
                 stepIndex: 2,
                 stepCount: 3,
                 _downloadCts.Token);
 
             var recModel = definition.OnlineModel.RecModel
-                ?? throw new InvalidOperationException("OCR 识别模型元数据为空。");
+                ?? throw new InvalidOperationException(L("SmartBpOcrRecModelMetadataEmpty"));
 
             await DownloadAndExtractModelAssetAsync(
                 recModel.Uri,
                 SmartBpOcrModelRegistry.GetRecDirectory(definition.Key),
-                "正在下载识别模型...",
+                L("SmartBpOcrDownloadStageRec"),
                 stepIndex: 3,
                 stepCount: 3,
                 _downloadCts.Token);
@@ -162,7 +163,7 @@ public class OcrService : IOcrService
             {
                 if (string.IsNullOrWhiteSpace(recModel.DictName))
                 {
-                    throw new InvalidOperationException("OCR 字典名称为空。");
+                    throw new InvalidOperationException(L("SmartBpOcrDictNameEmpty"));
                 }
 
                 var dicts = SharedUtils.LoadDicts(recModel.DictName);
@@ -171,13 +172,13 @@ public class OcrService : IOcrService
             }
 
             DownloadProgress = 100;
-            DownloadStatusText = "OCR 模型下载完成。";
+            DownloadStatusText = L("SmartBpOcrDownloadCompleted");
             RaiseDownloadStateChanged();
         }
         catch (OperationCanceledException)
         {
             DownloadProgress = null;
-            DownloadStatusText = "下载已取消。";
+            DownloadStatusText = L("SmartBpOcrDownloadCanceled");
             RaiseDownloadStateChanged();
             throw;
         }
@@ -185,7 +186,7 @@ public class OcrService : IOcrService
         {
             CleanupModelDownloadResidue(definition.Key);
             DownloadProgress = null;
-            DownloadStatusText = "下载失败。";
+            DownloadStatusText = L("SmartBpOcrDownloadFailedSimple");
             RaiseDownloadStateChanged();
             throw;
         }
@@ -227,7 +228,7 @@ public class OcrService : IOcrService
 
         if (!SmartBpOcrModelRegistry.TryGet(modelKey, out _))
         {
-            errorMessage = $"不支持的 OCR 模型：{modelKey}";
+            errorMessage = Lf("SmartBpOcrUnsupportedModelFormat", modelKey);
             return false;
         }
 
@@ -235,7 +236,7 @@ public class OcrService : IOcrService
         {
             if (IsDownloading)
             {
-                errorMessage = "下载进行中，无法删除模型。";
+                errorMessage = L("SmartBpOcrDeleteBlockedByDownloading");
                 return false;
             }
         }
@@ -270,7 +271,7 @@ public class OcrService : IOcrService
         }
         catch (Exception ex)
         {
-            errorMessage = $"删除 OCR 模型失败：{ex.Message}";
+            errorMessage = Lf("SmartBpOcrDeleteFailedFormat", ex.Message);
             return false;
         }
     }
@@ -287,13 +288,13 @@ public class OcrService : IOcrService
 
         if (!SmartBpOcrModelRegistry.TryGet(modelKey, out var definition))
         {
-            errorMessage = $"不支持的 OCR 模型：{modelKey}";
+            errorMessage = Lf("SmartBpOcrUnsupportedModelFormat", modelKey);
             return false;
         }
 
         if (!SmartBpOcrModelRegistry.IsModelInstalled(modelKey))
         {
-            errorMessage = "模型文件未完整下载，请先下载。";
+            errorMessage = L("SmartBpOcrModelFilesIncomplete");
             return false;
         }
 
@@ -307,7 +308,6 @@ public class OcrService : IOcrService
                 _ocr?.Dispose();
                 _ocr = nextOcr;
                 _ocr.AllowRotateDetection = false;
-                // 游戏内文本方向稳定，关闭 180 分类可减少每次 OCR 的额外开销。
                 _ocr.Enable180Classification = false;
             }
 
@@ -318,7 +318,7 @@ public class OcrService : IOcrService
         }
         catch (Exception ex)
         {
-            errorMessage = $"加载 OCR 模型失败：{ex.Message}";
+            errorMessage = Lf("SmartBpOcrLoadFailedFormat", ex.Message);
             return false;
         }
     }
@@ -332,7 +332,7 @@ public class OcrService : IOcrService
     {
         if (img.Empty()) return null;
 
-        // PaddleOCR 全流程更稳的是 8UC3(BGR)
+        // PaddleOCR 全流程更稳的是 8UC3(BGR)，现在先对其进行预处理
         if (img.Channels() == 1)
         {
             using var bgr = new Mat();
@@ -506,7 +506,7 @@ public class OcrService : IOcrService
                     .Take(12)
                     .Select(path => Path.GetRelativePath(extractDirectory, path)));
             throw new InvalidOperationException(
-                $"模型压缩包中未找到可用模型文件（期望 inference.pdmodel 或 inference.json，且需包含 inference.pdiparams）。样例文件：{sample}");
+                Lf("SmartBpOcrArchiveMissingModelFilesFormat", sample));
         }
 
         RecreateDirectory(targetDirectory);
@@ -603,10 +603,7 @@ public class OcrService : IOcrService
     /// <summary>
     /// 触发下载状态变化事件。
     /// </summary>
-    private void RaiseDownloadStateChanged()
-    {
-        DownloadStateChanged?.Invoke(this, EventArgs.Empty);
-    }
+    private void RaiseDownloadStateChanged() => DownloadStateChanged?.Invoke(this, EventArgs.Empty);
 
     /// <summary>
     /// 尝试加载用户设置中的首选 OCR 模型。
@@ -629,7 +626,7 @@ public class OcrService : IOcrService
         if (Interlocked.Exchange(ref _missingModelWarningShown, 1) == 1)
             return;
 
-        _ = MessageBoxHelper.ShowErrorAsync("OCR 功能未就绪，请先下载并切换 OCR 模型后再启动相关功能。");
+        _ = MessageBoxHelper.ShowErrorAsync(L("SmartBpOcrNotReadyFirstDownloadAndSwitchModel"));
     }
 
     /// <summary>
@@ -651,11 +648,11 @@ public class OcrService : IOcrService
     private static FullOcrModel BuildLocalFullModel(string modelKey, SmartBpOcrModelDefinition definition)
     {
         var onlineDet = definition.OnlineModel.DetModel
-            ?? throw new InvalidOperationException("OCR 检测模型元数据为空。");
+            ?? throw new InvalidOperationException(L("SmartBpOcrDetModelMetadataEmpty"));
         var onlineCls = definition.OnlineModel.ClsModel
-            ?? throw new InvalidOperationException("OCR 分类模型元数据为空。");
+            ?? throw new InvalidOperationException(L("SmartBpOcrClsModelMetadataEmpty"));
         var onlineRec = definition.OnlineModel.RecModel
-            ?? throw new InvalidOperationException("OCR 识别模型元数据为空。");
+            ?? throw new InvalidOperationException(L("SmartBpOcrRecModelMetadataEmpty"));
 
         var detModel = DetectionModel.FromDirectory(
             SmartBpOcrModelRegistry.GetDetDirectory(modelKey),
@@ -675,5 +672,10 @@ public class OcrService : IOcrService
 
         return new FullOcrModel(detModel, clsModel, recModel);
     }
+
+    private static string L(string key) => I18nHelper.GetLocalizedString(key);
+
+    private static string Lf(string key, params object?[] args) =>
+        string.Format(I18nHelper.GetLocalizedString(key), args);
 
 }
