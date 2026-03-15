@@ -15,7 +15,7 @@ namespace neo_bpsys_wpf.Services;
 public class PluginMarketService : IPluginMarketService
 {
     private const string MarketIndexUrl =
-        "https://raw.githubusercontent.com/PLFJY/neo-bpsys.PluginMarket/refs/heads/main/PluginIndex.json";
+        "https://bpsys-plugin-index.plfjy.top/";
 
     private readonly HttpClient _httpClient;
     private readonly DownloadService _downloader;
