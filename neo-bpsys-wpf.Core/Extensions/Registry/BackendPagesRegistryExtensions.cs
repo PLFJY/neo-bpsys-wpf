@@ -5,10 +5,20 @@ using System.Windows.Controls;
 
 namespace neo_bpsys_wpf.Core.Extensions.Registry;
 
+/// <summary>
+/// 后台页面注册扩展
+/// </summary>
 public static class BackendPagesRegistryExtensions
 {
+    /// <summary>
+    /// 注册后台页面
+    /// </summary>
+    /// <param name="services">服务容器</param>
+    /// <typeparam name="TView">页面类型</typeparam>
+    /// <typeparam name="TViewModel">页面视图模型类型</typeparam>
+    /// <exception cref="ArgumentException">添加失败</exception>
     public static void AddBackendPage<TView, TViewModel>(this IServiceCollection services)
-        where TView : Page, new() where TViewModel : class
+        where TView : Page where TViewModel : class
     {
         var type = typeof(TView);
         if (type.GetCustomAttributes(false).FirstOrDefault(x => x is BackendPageInfo) is not BackendPageInfo info)
@@ -25,10 +35,11 @@ public static class BackendPagesRegistryExtensions
         BackendPagesRegistryService.Registered.Add(info);
 
         services.AddSingleton<TViewModel>();
-        services.AddSingleton<TView>(sp => new TView
+        services.AddSingleton<TView>(sp =>
         {
-            DataContext = sp.GetRequiredService<TViewModel>()
-        }
-        );
+            var view = ActivatorUtilities.CreateInstance<TView>(sp);
+            view.DataContext = sp.GetRequiredService<TViewModel>();
+            return view;
+        });
     }
 }

@@ -22,7 +22,14 @@ public class CanvasName
         }
     }
 
+    /// <summary>
+    /// 画布名称信息
+    /// </summary>
     public string Name { get; }
+    
+    /// <summary>
+    /// 显示名称
+    /// </summary>
     public string DisplayName { get; }
 }
 
@@ -117,12 +124,24 @@ public class FrontedWindowInfo : Attribute
         Initialize(id, name, null, false);
     }
 
+    /// <summary>
+    /// 前台窗口信息
+    /// </summary>
     public string Name { get; private set; } = string.Empty;
 
+    /// <summary>
+    /// 画布集合
+    /// </summary>
     public CanvasName[] Canvas { get; private set; } = [];
 
+    /// <summary>
+    /// 窗口唯一标识符
+    /// </summary>
     public string Id { get; private set; } = Guid.Empty.ToString();
 
+    /// <summary>
+    /// 是否是内置窗口
+    /// </summary>
     public Type? WindowType { get; internal set; }
 
     /// <summary>

@@ -286,6 +286,24 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 自动识别并填充赛后数据 的本地化字符串。
+        /// </summary>
+        public static string AutoDetectAndFillPostGameData {
+            get {
+                return ResourceManager.GetString("AutoDetectAndFillPostGameData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 是否自动记录 的本地化字符串。
+        /// </summary>
+        public static string AutoRecord {
+            get {
+                return ResourceManager.GetString("AutoRecord", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 客队 的本地化字符串。
         /// </summary>
         public static string AwayTeam {
@@ -1069,15 +1087,6 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 下载进度： 的本地化字符串。
-        /// </summary>
-        public static string DownloadProgress {
-            get {
-                return ResourceManager.GetString("DownloadProgress", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 下载源： 的本地化字符串。
         /// </summary>
         public static string DownloadSource {
@@ -1182,6 +1191,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string Enter {
             get {
                 return ResourceManager.GetString("Enter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 错误 的本地化字符串。
+        /// </summary>
+        public static string Error {
+            get {
+                return ResourceManager.GetString("Error", resourceCulture);
             }
         }
         
@@ -2689,6 +2707,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 请先启动窗口捕获 的本地化字符串。
+        /// </summary>
+        public static string PleaseStartWindowCaptureFirst {
+            get {
+                return ResourceManager.GetString("PleaseStartWindowCaptureFirst", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 插件管理 的本地化字符串。
         /// </summary>
         public static string PluginManagement {
@@ -2784,6 +2811,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string ReadFrontendDefaultConfigurationError {
             get {
                 return ResourceManager.GetString("ReadFrontendDefaultConfigurationError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 刷新 的本地化字符串。
+        /// </summary>
+        public static string Refresh {
+            get {
+                return ResourceManager.GetString("Refresh", resourceCulture);
             }
         }
         
@@ -3238,6 +3274,915 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 智慧 BP 的本地化字符串。
+        /// </summary>
+        public static string SmartBp {
+            get {
+                return ResourceManager.GetString("SmartBp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 取消下载 的本地化字符串。
+        /// </summary>
+        public static string SmartBpCancelDownload {
+            get {
+                return ResourceManager.GetString("SmartBpCancelDownload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前捕获比例：{0} 的本地化字符串。
+        /// </summary>
+        public static string SmartBpCaptureAspectRatioFormat {
+            get {
+                return ResourceManager.GetString("SmartBpCaptureAspectRatioFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 捕获方式 的本地化字符串。
+        /// </summary>
+        public static string SmartBpCaptureMethod {
+            get {
+                return ResourceManager.GetString("SmartBpCaptureMethod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Bitblt 的本地化字符串。
+        /// </summary>
+        public static string SmartBpCaptureMethodBitblt {
+            get {
+                return ResourceManager.GetString("SmartBpCaptureMethodBitblt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Windows Graphics Capture（Windows 10 1903 或更高） 的本地化字符串。
+        /// </summary>
+        public static string SmartBpCaptureMethodWgc {
+            get {
+                return ResourceManager.GetString("SmartBpCaptureMethodWgc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前 OCR 模型：未启用 的本地化字符串。
+        /// </summary>
+        public static string SmartBpCurrentOcrModelDisabled {
+            get {
+                return ResourceManager.GetString("SmartBpCurrentOcrModelDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前 OCR 模型：{0} 的本地化字符串。
+        /// </summary>
+        public static string SmartBpCurrentOcrModelFormat {
+            get {
+                return ResourceManager.GetString("SmartBpCurrentOcrModelFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 未启用 的本地化字符串。
+        /// </summary>
+        public static string SmartBpCurrentOcrModelNotEnabled {
+            get {
+                return ResourceManager.GetString("SmartBpCurrentOcrModelNotEnabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 删除模型 的本地化字符串。
+        /// </summary>
+        public static string SmartBpDeleteModel {
+            get {
+                return ResourceManager.GetString("SmartBpDeleteModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 确定删除 OCR 模型：{0}？ 的本地化字符串。
+        /// </summary>
+        public static string SmartBpDeleteOcrModelConfirmFormat {
+            get {
+                return ResourceManager.GetString("SmartBpDeleteOcrModelConfirmFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 删除模型 的本地化字符串。
+        /// </summary>
+        public static string SmartBpDeleteOcrModelTitle {
+            get {
+                return ResourceManager.GetString("SmartBpDeleteOcrModelTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 下载模型 的本地化字符串。
+        /// </summary>
+        public static string SmartBpDownloadModel {
+            get {
+                return ResourceManager.GetString("SmartBpDownloadModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 编辑识别区域 的本地化字符串。
+        /// </summary>
+        public static string SmartBpEditGameDataRegion {
+            get {
+                return ResourceManager.GetString("SmartBpEditGameDataRegion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 导入配置文件 的本地化字符串。
+        /// </summary>
+        public static string SmartBpImportGameDataRegionConfig {
+            get {
+                return ResourceManager.GetString("SmartBpImportGameDataRegionConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 OCR 模型下载失败：{0} 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrModelDownloadFailed {
+            get {
+                return ResourceManager.GetString("SmartBpOcrModelDownloadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 英文场景优化，适合英文与数字识别。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrModelEnV4MobileDescription {
+            get {
+                return ResourceManager.GetString("SmartBpOcrModelEnV4MobileDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 English V4 Mobile 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrModelEnV4MobileDisplayName {
+            get {
+                return ResourceManager.GetString("SmartBpOcrModelEnV4MobileDisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 日文场景优化，适合日文与数字识别。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrModelJaV4MobileDescription {
+            get {
+                return ResourceManager.GetString("SmartBpOcrModelJaV4MobileDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Japanese V4 Mobile 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrModelJaV4MobileDisplayName {
+            get {
+                return ResourceManager.GetString("SmartBpOcrModelJaV4MobileDisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 OCR 模型管理 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrModelManagement {
+            get {
+                return ResourceManager.GetString("SmartBpOcrModelManagement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 模型选择 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrModelSelection {
+            get {
+                return ResourceManager.GetString("SmartBpOcrModelSelection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 体积更小，适合低配置设备。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrModelZhCnV3SlimDescription {
+            get {
+                return ResourceManager.GetString("SmartBpOcrModelZhCnV3SlimDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 中文 V3 Slim（轻量） 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrModelZhCnV3SlimDisplayName {
+            get {
+                return ResourceManager.GetString("SmartBpOcrModelZhCnV3SlimDisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 兼容性稳定，部署体积适中。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrModelZhCnV4Description {
+            get {
+                return ResourceManager.GetString("SmartBpOcrModelZhCnV4Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 中文 V4 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrModelZhCnV4DisplayName {
+            get {
+                return ResourceManager.GetString("SmartBpOcrModelZhCnV4DisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 精度与速度平衡，优先建议。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrModelZhCnV5MobileDescription {
+            get {
+                return ResourceManager.GetString("SmartBpOcrModelZhCnV5MobileDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 中文 V5 Mobile（推荐） 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrModelZhCnV5MobileDisplayName {
+            get {
+                return ResourceManager.GetString("SmartBpOcrModelZhCnV5MobileDisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 OCR 功能未就绪，请先下载并切换 OCR 模型后再启动相关功能。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrNotReadyFirstDownloadAndSwitchModel {
+            get {
+                return ResourceManager.GetString("SmartBpOcrNotReadyFirstDownloadAndSwitchModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 打开预览 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOpenPreview {
+            get {
+                return ResourceManager.GetString("SmartBpOpenPreview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 打开窗口选择器（仅 WGC 可用） 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOpenWindowPickerOnlyWgc {
+            get {
+                return ResourceManager.GetString("SmartBpOpenWindowPickerOnlyWgc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 刷新状态 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRefreshStatus {
+            get {
+                return ResourceManager.GetString("SmartBpRefreshStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前比例匹配，可直接使用。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionAspectHintMatched {
+            get {
+                return ResourceManager.GetString("SmartBpRegionAspectHintMatched", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前捕获比例与配置不一致，建议打开“编辑识别区域（GameData）”手动调整后保存。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionAspectHintMismatched {
+            get {
+                return ResourceManager.GetString("SmartBpRegionAspectHintMismatched", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 请先启动捕获后再检查比例。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionAspectHintNotStarted {
+            get {
+                return ResourceManager.GetString("SmartBpRegionAspectHintNotStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 捕获已启动，正在等待首帧用于比例匹配。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionAspectHintWaitingFirstFrame {
+            get {
+                return ResourceManager.GetString("SmartBpRegionAspectHintWaitingFirstFrame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 匹配状态：{0} 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionAspectStatusFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionAspectStatusFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 匹配 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionAspectStatusMatched {
+            get {
+                return ResourceManager.GetString("SmartBpRegionAspectStatusMatched", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 不匹配 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionAspectStatusMismatched {
+            get {
+                return ResourceManager.GetString("SmartBpRegionAspectStatusMismatched", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 未开始捕获 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionAspectStatusNotStarted {
+            get {
+                return ResourceManager.GetString("SmartBpRegionAspectStatusNotStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 等待首帧 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionAspectStatusWaitingFirstFrame {
+            get {
+                return ResourceManager.GetString("SmartBpRegionAspectStatusWaitingFirstFrame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 击倒次数 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionCellHunterKnockdowns {
+            get {
+                return ResourceManager.GetString("SmartBpRegionCellHunterKnockdowns", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 踩板总数 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionCellHunterPalletsDestroyed {
+            get {
+                return ResourceManager.GetString("SmartBpRegionCellHunterPalletsDestroyed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 剩余密码机 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionCellHunterRemainingCipher {
+            get {
+                return ResourceManager.GetString("SmartBpRegionCellHunterRemainingCipher", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 攻击命中 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionCellHunterSurvivorHits {
+            get {
+                return ResourceManager.GetString("SmartBpRegionCellHunterSurvivorHits", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 恐惧震慑 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionCellHunterTerrorShocks {
+            get {
+                return ResourceManager.GetString("SmartBpRegionCellHunterTerrorShocks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 名称框 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionCellName {
+            get {
+                return ResourceManager.GetString("SmartBpRegionCellName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 牵制时间 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionCellSurvivorContainmentTime {
+            get {
+                return ResourceManager.GetString("SmartBpRegionCellSurvivorContainmentTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 破译进度 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionCellSurvivorDecodingProgress {
+            get {
+                return ResourceManager.GetString("SmartBpRegionCellSurvivorDecodingProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 治疗次数 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionCellSurvivorHeals {
+            get {
+                return ResourceManager.GetString("SmartBpRegionCellSurvivorHeals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 砸板命中 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionCellSurvivorPalletStrikes {
+            get {
+                return ResourceManager.GetString("SmartBpRegionCellSurvivorPalletStrikes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 救人次数 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionCellSurvivorRescues {
+            get {
+                return ResourceManager.GetString("SmartBpRegionCellSurvivorRescues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 配置支持比例：{0} 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigAspectRatioFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigAspectRatioFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 已导入配置文件。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigImported {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigImported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 导入失败：配置文件内容为空。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigImportEmpty {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigImportEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 导入失败：{0} 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigImportFailedFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigImportFailedFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 导入失败：配置文件不存在。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigImportFileNotFound {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigImportFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 配置无效：第 {0} 行大框超出范围。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigInvalidBigRectFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigInvalidBigRectFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 配置无效：第 {0} 行必须包含 6 个小框。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigInvalidCellCountFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigInvalidCellCountFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 配置无效：第 {0} 行第 {1} 个小框超出大框范围。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigInvalidCellRectFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigInvalidCellRectFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 配置无效：必须包含 5 个大框。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigInvalidRowCount {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigInvalidRowCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 配置无效：scene 必须为 GameData。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigInvalidScene {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigInvalidScene", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前配置文件：{0} 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigPathFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigPathFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 确认重置为内置 16:9 默认配置？当前配置将被覆盖。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigResetConfirm {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigResetConfirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 已重置为 16:9 默认配置。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigResetDone {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigResetDone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 重置失败：{0} 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigResetFailedFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigResetFailedFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 重置配置 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigResetTitle {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigResetTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 识别区域配置已保存。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigSaved {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigSaved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 保存配置失败：{0} 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigSaveFailedFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigSaveFailedFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 识别区域配置 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigTitle {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 一键应用到同模板元素 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionEditorApplyTemplate {
+            get {
+                return ResourceManager.GetString("SmartBpRegionEditorApplyTemplate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前框相对坐标 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionEditorCurrentRect {
+            get {
+                return ResourceManager.GetString("SmartBpRegionEditorCurrentRect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 节点：{0}`n相对坐标（相对父节点）`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6} 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionEditorNodeRectChildFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionEditorNodeRectChildFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 节点：{0}`n相对坐标（相对整帧）`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6} 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionEditorNodeRectRootFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionEditorNodeRectRootFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 节点选择 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionEditorNodeSelection {
+            get {
+                return ResourceManager.GetString("SmartBpRegionEditorNodeSelection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 操作说明： 1. 拖动框内部可移动 2. 拖动边缘8个点可缩放 3. 小框会被限制在所属大框内 4. 仅当前帧预览，不实时捕获 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionEditorOperationHelp {
+            get {
+                return ResourceManager.GetString("SmartBpRegionEditorOperationHelp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 请先启动捕获再编辑识别区域。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionEditorRequireCaptureFirst {
+            get {
+                return ResourceManager.GetString("SmartBpRegionEditorRequireCaptureFirst", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前规则：每行1个大框 + 6个小框 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionEditorRuleDefault {
+            get {
+                return ResourceManager.GetString("SmartBpRegionEditorRuleDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前结构：{0}个可编辑节点（支持任意层级与数量） 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionEditorRuleRuntimeFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionEditorRuleRuntimeFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 识别区域编辑（{0}） 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionEditorSceneTitleFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionEditorSceneTitleFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 请先选择一个节点 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionEditorSelectNodeFirst {
+            get {
+                return ResourceManager.GetString("SmartBpRegionEditorSelectNodeFirst", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 已应用到 {0} 个同模板元素（保留大元素位置）。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionEditorTemplateAppliedFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionEditorTemplateAppliedFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前模板组：{0}，共 {1} 个元素。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionEditorTemplateGroupSummaryFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionEditorTemplateGroupSummaryFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似  [模板:{0}] 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionEditorTemplateMarkFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionEditorTemplateMarkFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前节点未处于模板组。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionEditorTemplateNotInGroup {
+            get {
+                return ResourceManager.GetString("SmartBpRegionEditorTemplateNotInGroup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 识别区域编辑 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionEditorWindowTitle {
+            get {
+                return ResourceManager.GetString("SmartBpRegionEditorWindowTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 监管者行 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionHunterRow {
+            get {
+                return ResourceManager.GetString("SmartBpRegionHunterRow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 结构不匹配：第 {0} 行期望 {1} 个小框，实际 {2} 个。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionLayoutMismatchCellCountFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionLayoutMismatchCellCountFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 结构不匹配：期望 {0} 个大框，实际 {1} 个。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionLayoutMismatchRootCountFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionLayoutMismatchRootCountFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 结构不匹配：第 {0} 个大元素应为 {1}，实际 {2}。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionLayoutMismatchRootIdFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionLayoutMismatchRootIdFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 求生者行1 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionSurvivorRow1 {
+            get {
+                return ResourceManager.GetString("SmartBpRegionSurvivorRow1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 求生者行2 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionSurvivorRow2 {
+            get {
+                return ResourceManager.GetString("SmartBpRegionSurvivorRow2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 求生者行3 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionSurvivorRow3 {
+            get {
+                return ResourceManager.GetString("SmartBpRegionSurvivorRow3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 求生者行4 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionSurvivorRow4 {
+            get {
+                return ResourceManager.GetString("SmartBpRegionSurvivorRow4", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 重置配置（16:9） 的本地化字符串。
+        /// </summary>
+        public static string SmartBpResetGameDataRegionConfig169 {
+            get {
+                return ResourceManager.GetString("SmartBpResetGameDataRegionConfig169", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 GameData 的本地化字符串。
+        /// </summary>
+        public static string SmartBpSceneGameData {
+            get {
+                return ResourceManager.GetString("SmartBpSceneGameData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 选择游戏窗口进程 的本地化字符串。
+        /// </summary>
+        public static string SmartBpSelectGameWindowProcess {
+            get {
+                return ResourceManager.GetString("SmartBpSelectGameWindowProcess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 开始捕获 的本地化字符串。
+        /// </summary>
+        public static string SmartBpStartCapture {
+            get {
+                return ResourceManager.GetString("SmartBpStartCapture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 停止捕获 的本地化字符串。
+        /// </summary>
+        public static string SmartBpStopCapture {
+            get {
+                return ResourceManager.GetString("SmartBpStopCapture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 切换为当前模型 的本地化字符串。
+        /// </summary>
+        public static string SmartBpSwitchToCurrentModel {
+            get {
+                return ResourceManager.GetString("SmartBpSwitchToCurrentModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 窗口捕获设置 的本地化字符串。
+        /// </summary>
+        public static string SmartBpWindowCaptureSettings {
+            get {
+                return ResourceManager.GetString("SmartBpWindowCaptureSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 应用更新 的本地化字符串。
         /// </summary>
         public static string SoftwareUpdates {
@@ -3661,6 +4606,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 出现了些在意料之外的错误，请带着下方地址处的日志文件联系开发者解决 的本地化字符串。
+        /// </summary>
+        public static string UnexpectedExceptionMessage {
+            get {
+                return ResourceManager.GetString("UnexpectedExceptionMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 卸载 的本地化字符串。
         /// </summary>
         public static string Uninstall {
@@ -3738,6 +4692,123 @@ namespace neo_bpsys_wpf.Locales {
         public static string Widgets {
             get {
                 return ResourceManager.GetString("Widgets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 尚未开始捕获。 的本地化字符串。
+        /// </summary>
+        public static string WindowCaptureCaptureNotStarted {
+            get {
+                return ResourceManager.GetString("WindowCaptureCaptureNotStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 使用 Bitblt 捕获首帧失败。 的本地化字符串。
+        /// </summary>
+        public static string WindowCaptureFailedToCaptureFirstFrameWithBitblt {
+            get {
+                return ResourceManager.GetString("WindowCaptureFailedToCaptureFirstFrameWithBitblt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 捕获所选窗口失败：{0} 的本地化字符串。
+        /// </summary>
+        public static string WindowCaptureFailedToCaptureSelectedWindowFormat {
+            get {
+                return ResourceManager.GetString("WindowCaptureFailedToCaptureSelectedWindowFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 启动 Bitblt 捕获失败：{0} 的本地化字符串。
+        /// </summary>
+        public static string WindowCaptureFailedToStartBitbltCaptureFormat {
+            get {
+                return ResourceManager.GetString("WindowCaptureFailedToStartBitbltCaptureFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 启动捕获失败：{0} 的本地化字符串。
+        /// </summary>
+        public static string WindowCaptureFailedToStartCaptureFormat {
+            get {
+                return ResourceManager.GetString("WindowCaptureFailedToStartCaptureFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 通过窗口选择器启动捕获失败：{0} 的本地化字符串。
+        /// </summary>
+        public static string WindowCaptureFailedToStartPickerCaptureFormat {
+            get {
+                return ResourceManager.GetString("WindowCaptureFailedToStartPickerCaptureFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 捕获所选窗口失败：无法创建 GraphicsCaptureItem。 的本地化字符串。
+        /// </summary>
+        public static string WindowCaptureGraphicsCaptureItemUnavailable {
+            get {
+                return ResourceManager.GetString("WindowCaptureGraphicsCaptureItemUnavailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 请先选择窗口。 的本地化字符串。
+        /// </summary>
+        public static string WindowCapturePleaseSelectWindowFirst {
+            get {
+                return ResourceManager.GetString("WindowCapturePleaseSelectWindowFirst", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 预览窗口 的本地化字符串。
+        /// </summary>
+        public static string WindowCapturePreviewWindowTitle {
+            get {
+                return ResourceManager.GetString("WindowCapturePreviewWindowTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 所选窗口无法用于捕获。 的本地化字符串。
+        /// </summary>
+        public static string WindowCaptureSelectedWindowInvalidForCapture {
+            get {
+                return ResourceManager.GetString("WindowCaptureSelectedWindowInvalidForCapture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前系统不支持 Windows Graphics Capture。 的本地化字符串。
+        /// </summary>
+        public static string WindowCaptureWgcNotSupportedOnCurrentSystem {
+            get {
+                return ResourceManager.GetString("WindowCaptureWgcNotSupportedOnCurrentSystem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Windows Graphics Capture 需要 Windows 10 1803 或更高版本。 的本地化字符串。
+        /// </summary>
+        public static string WindowCaptureWgcRequires1803OrLater {
+            get {
+                return ResourceManager.GetString("WindowCaptureWgcRequires1803OrLater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 按窗口句柄捕获需要 Windows 10 1903 或更高版本。在 1803/1809 上请使用窗口选择器捕获。 的本地化字符串。
+        /// </summary>
+        public static string WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809 {
+            get {
+                return ResourceManager.GetString("WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809", resourceCulture);
             }
         }
         

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -188,9 +188,6 @@
   </data>
   <data name="PickingBorderImage" xml:space="preserve">
     <value>ピック枠画像</value>
-  </data>
-  <data name="DownloadProgress" xml:space="preserve">
-    <value>ダウンロード進捗：</value>
   </data>
   <data name="PickingBorderImageColor" xml:space="preserve">
     <value>ピック枠の境界色（画像の色を上書き）</value>
@@ -1350,4 +1347,477 @@
   <data name="DesignerUnlockNote" xml:space="preserve">
     <value>注記：デザイナーモードでは、&lt;Shift&gt;キーを押すと自動スナップを一時的に解除し、微調整が可能になります。</value>
   </data>
+  <data name="AutoRecord" xml:space="preserve">
+    <value>自動記録</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>エラー</value>
+  </data>
+  <data name="UnexpectedExceptionMessage" xml:space="preserve">
+    <value>予期しないエラーが発生しました。下記のアドレスにあるログファイルを添えて、開発者までお問い合わせください。</value>
+  </data>
+  <data name="AutoDetectAndFillPostGameData" xml:space="preserve">
+    <value>試合後データを自動検出して入力</value>
+  </data>
+  <data name="SmartBp" xml:space="preserve">
+    <value>スマート BP</value>
+  </data>
+  <data name="PleaseStartWindowCaptureFirst" xml:space="preserve">
+    <value>先にウィンドウキャプチャを開始してください。</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="SmartBpWindowCaptureSettings" xml:space="preserve">
+    <value>ウィンドウキャプチャ設定</value>
+  </data>
+  <data name="SmartBpCaptureMethod" xml:space="preserve">
+    <value>キャプチャ方式</value>
+  </data>
+  <data name="SmartBpSelectGameWindowProcess" xml:space="preserve">
+    <value>ゲームウィンドウのプロセスを選択</value>
+  </data>
+  <data name="SmartBpOpenWindowPickerOnlyWgc" xml:space="preserve">
+    <value>ウィンドウ選択を開く（WGCのみ）</value>
+  </data>
+  <data name="SmartBpStartCapture" xml:space="preserve">
+    <value>キャプチャ開始</value>
+  </data>
+  <data name="SmartBpStopCapture" xml:space="preserve">
+    <value>キャプチャ停止</value>
+  </data>
+  <data name="SmartBpOpenPreview" xml:space="preserve">
+    <value>プレビューを開く</value>
+  </data>
+  <data name="SmartBpOcrModelManagement" xml:space="preserve">
+    <value>OCRモデル管理</value>
+  </data>
+  <data name="SmartBpOcrModelSelection" xml:space="preserve">
+    <value>モデル選択</value>
+  </data>
+  <data name="SmartBpDownloadModel" xml:space="preserve">
+    <value>モデルをダウンロード</value>
+  </data>
+  <data name="SmartBpDeleteModel" xml:space="preserve">
+    <value>モデルを削除</value>
+  </data>
+  <data name="SmartBpSwitchToCurrentModel" xml:space="preserve">
+    <value>現在のモデルに切替</value>
+  </data>
+  <data name="SmartBpRefreshStatus" xml:space="preserve">
+    <value>状態を更新</value>
+  </data>
+  <data name="SmartBpCancelDownload" xml:space="preserve">
+    <value>ダウンロードをキャンセル</value>
+  </data>
+  <data name="SmartBpCurrentOcrModelDisabled" xml:space="preserve">
+    <value>現在のOCRモデル：未有効</value>
+  </data>
+  <data name="SmartBpCurrentOcrModelFormat" xml:space="preserve">
+    <value>現在のOCRモデル：{0}</value>
+  </data>
+  <data name="SmartBpCurrentOcrModelNotEnabled" xml:space="preserve">
+    <value>未有効</value>
+  </data>
+  <data name="SmartBpOcrModelDownloadFailed" xml:space="preserve">
+    <value>OCRモデルのダウンロードに失敗しました：{0}</value>
+  </data>
+  <data name="SmartBpDeleteOcrModelConfirmFormat" xml:space="preserve">
+    <value>OCRモデル「{0}」を削除しますか？</value>
+  </data>
+  <data name="SmartBpDeleteOcrModelTitle" xml:space="preserve">
+    <value>モデル削除</value>
+  </data>
+  <data name="SmartBpCaptureMethodWgc" xml:space="preserve">
+    <value>Windows Graphics Capture（Windows 10 1903 以降）</value>
+  </data>
+  <data name="SmartBpCaptureMethodBitblt" xml:space="preserve">
+    <value>Bitblt</value>
+  </data>
+  <data name="SmartBpOcrNotReadyFirstDownloadAndSwitchModel" xml:space="preserve">
+    <value>OCR機能の準備ができていません。先にOCRモデルをダウンロードして切り替えてください。</value>
+  </data>
+  <data name="SmartBpOcrUnsupportedModelFormat" xml:space="preserve">
+    <value>サポートされていないOCRモデルです：{0}</value>
+  </data>
+  <data name="SmartBpOcrDownloadAlreadyInProgress" xml:space="preserve">
+    <value>OCRモデルのダウンロードはすでに実行中です。</value>
+  </data>
+  <data name="SmartBpOcrDownloadPreparing" xml:space="preserve">
+    <value>OCRモデルのダウンロードを準備中...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageDet" xml:space="preserve">
+    <value>検出モデルをダウンロード中...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageCls" xml:space="preserve">
+    <value>方向分類モデルをダウンロード中...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageRec" xml:space="preserve">
+    <value>認識モデルをダウンロード中...</value>
+  </data>
+  <data name="SmartBpOcrDownloadCompleted" xml:space="preserve">
+    <value>OCRモデルのダウンロードが完了しました。</value>
+  </data>
+  <data name="SmartBpOcrDownloadCanceled" xml:space="preserve">
+    <value>ダウンロードはキャンセルされました。</value>
+  </data>
+  <data name="SmartBpOcrDownloadFailedSimple" xml:space="preserve">
+    <value>ダウンロードに失敗しました。</value>
+  </data>
+  <data name="SmartBpOcrDetModelMetadataEmpty" xml:space="preserve">
+    <value>OCR検出モデルのメタデータが空です。</value>
+  </data>
+  <data name="SmartBpOcrClsModelMetadataEmpty" xml:space="preserve">
+    <value>OCR分類モデルのメタデータが空です。</value>
+  </data>
+  <data name="SmartBpOcrRecModelMetadataEmpty" xml:space="preserve">
+    <value>OCR認識モデルのメタデータが空です。</value>
+  </data>
+  <data name="SmartBpOcrDictNameEmpty" xml:space="preserve">
+    <value>OCR辞書名が空です。</value>
+  </data>
+  <data name="SmartBpOcrDeleteBlockedByDownloading" xml:space="preserve">
+    <value>ダウンロード中のため、モデルを削除できません。</value>
+  </data>
+  <data name="SmartBpOcrDeleteFailedFormat" xml:space="preserve">
+    <value>OCRモデルの削除に失敗しました：{0}</value>
+  </data>
+  <data name="SmartBpOcrModelFilesIncomplete" xml:space="preserve">
+    <value>モデルファイルが完全ではありません。先にモデルをダウンロードしてください。</value>
+  </data>
+  <data name="SmartBpOcrLoadFailedFormat" xml:space="preserve">
+    <value>OCRモデルの読み込みに失敗しました：{0}</value>
+  </data>
+  <data name="SmartBpOcrArchiveMissingModelFilesFormat" xml:space="preserve">
+    <value>モデルアーカイブ内に使用可能なモデルファイルが見つかりません（inference.pdiparams と inference.pdmodel または inference.json が必要）。サンプルファイル：{0}</value>
+  </data>
+  <data name="WindowCapturePleaseSelectWindowFirst" xml:space="preserve">
+    <value>先にウィンドウを選択してください。</value>
+  </data>
+  <data name="WindowCaptureWgcRequires1803OrLater" xml:space="preserve">
+    <value>Windows Graphics Capture を使用するには Windows 10 1803 以降が必要です。</value>
+  </data>
+  <data name="WindowCaptureWgcNotSupportedOnCurrentSystem" xml:space="preserve">
+    <value>現在のシステムでは Windows Graphics Capture をサポートしていません。</value>
+  </data>
+  <data name="WindowCaptureFailedToStartPickerCaptureFormat" xml:space="preserve">
+    <value>ウィンドウ選択からのキャプチャ開始に失敗しました：{0}</value>
+  </data>
+  <data name="WindowCaptureCaptureNotStarted" xml:space="preserve">
+    <value>キャプチャはまだ開始されていません。</value>
+  </data>
+  <data name="WindowCapturePreviewWindowTitle" xml:space="preserve">
+    <value>プレビューウィンドウ</value>
+  </data>
+  <data name="WindowCaptureSelectedWindowInvalidForCapture" xml:space="preserve">
+    <value>選択したウィンドウはキャプチャできません。</value>
+  </data>
+  <data name="WindowCaptureFailedToCaptureFirstFrameWithBitblt" xml:space="preserve">
+    <value>Bitblt で最初のフレーム取得に失敗しました。</value>
+  </data>
+  <data name="WindowCaptureFailedToStartBitbltCaptureFormat" xml:space="preserve">
+    <value>Bitblt キャプチャの開始に失敗しました：{0}</value>
+  </data>
+  <data name="WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809" xml:space="preserve">
+    <value>選択したウィンドウのキャプチャには Windows 10 1903 以降が必要です。1803/1809 ではウィンドウ選択キャプチャを使用してください。</value>
+  </data>
+  <data name="WindowCaptureFailedToCaptureSelectedWindowFormat" xml:space="preserve">
+    <value>選択したウィンドウのキャプチャに失敗しました：{0}</value>
+  </data>
+  <data name="WindowCaptureGraphicsCaptureItemUnavailable" xml:space="preserve">
+    <value>選択したウィンドウのキャプチャに失敗しました：GraphicsCaptureItem を利用できません。</value>
+  </data>
+  <data name="WindowCaptureFailedToStartCaptureFormat" xml:space="preserve">
+    <value>キャプチャの開始に失敗しました：{0}</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV5MobileDisplayName" xml:space="preserve">
+    <value>中国語 V5 Mobile</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV5MobileDescription" xml:space="preserve">
+    <value>精度と速度のバランスが良いモデルです。</value>
+  </data>
+  <data name="SmartBpOcrModelEnV4MobileDisplayName" xml:space="preserve">
+    <value>英語 V4 Mobile</value>
+  </data>
+  <data name="SmartBpOcrModelEnV4MobileDescription" xml:space="preserve">
+    <value>英語環境向けに最適化され、英語と数字の認識に適しています。</value>
+  </data>
+  <data name="SmartBpOcrModelJaV4MobileDisplayName" xml:space="preserve">
+    <value>日本語 V4 Mobile（推奨）</value>
+  </data>
+  <data name="SmartBpOcrModelJaV4MobileDescription" xml:space="preserve">
+    <value>日本語環境向けに最適化され、日本語と数字の認識に適しています。日本語 UI では推奨です。</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV4DisplayName" xml:space="preserve">
+    <value>中国語 V4</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV4Description" xml:space="preserve">
+    <value>互換性が安定しており、配備サイズも適度です。</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV3SlimDisplayName" xml:space="preserve">
+    <value>中国語 V3 Slim（軽量）</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV3SlimDescription" xml:space="preserve">
+    <value>サイズが小さく、低スペック環境に適しています。</value>
+  </data>
+  <data name="SmartBpRegionConfigAspectRatioFormat" xml:space="preserve">
+    <value>設定対応比率：{0}</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidCellCountFormat" xml:space="preserve">
+    <value>設定無効：{0} 行目は子領域6個が必要です。</value>
+  </data>
+  <data name="SmartBpRegionCellHunterSurvivorHits" xml:space="preserve">
+    <value>攻撃命中</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidBigRectFormat" xml:space="preserve">
+    <value>設定無効：{0} 行目の親領域が範囲外です。</value>
+  </data>
+  <data name="SmartBpRegionConfigResetFailedFormat" xml:space="preserve">
+    <value>リセット失敗：{0}</value>
+  </data>
+  <data name="SmartBpRegionEditorWindowTitle" xml:space="preserve">
+    <value>認識領域エディター</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchCellCountFormat" xml:space="preserve">
+    <value>構造不一致：{0} 行目は子領域 {1} 個が必要ですが、実際は {2} 個です。</value>
+  </data>
+  <data name="SmartBpRegionConfigTitle" xml:space="preserve">
+    <value>認識領域設定</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusNotStarted" xml:space="preserve">
+    <value>キャプチャ未開始</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateNotInGroup" xml:space="preserve">
+    <value>現在のノードはテンプレートグループに属していません。</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorContainmentTime" xml:space="preserve">
+    <value>チェイス時間</value>
+  </data>
+  <data name="SmartBpRegionConfigPathFormat" xml:space="preserve">
+    <value>現在の設定ファイル：{0}</value>
+  </data>
+  <data name="SmartBpRegionCellHunterRemainingCipher" xml:space="preserve">
+    <value>残り暗号機</value>
+  </data>
+  <data name="SmartBpRegionConfigResetDone" xml:space="preserve">
+    <value>内蔵の16:9既定設定にリセットしました。</value>
+  </data>
+  <data name="SmartBpRegionCellHunterTerrorShocks" xml:space="preserve">
+    <value>恐怖の一撃</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateAppliedFormat" xml:space="preserve">
+    <value>{0} 個の同テンプレート要素に適用しました（親要素の位置は維持）。</value>
+  </data>
+  <data name="SmartBpRegionEditorApplyTemplate" xml:space="preserve">
+    <value>同テンプレートへ一括適用</value>
+  </data>
+  <data name="SmartBpRegionEditorOperationHelp" xml:space="preserve">
+    <value>操作説明：
+1. 枠内部ドラッグで移動
+2. 8つのハンドルでサイズ変更
+3. 子領域は親領域内に制限
+4. プレビューは現在フレーム固定</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchRootIdFormat" xml:space="preserve">
+    <value>構造不一致：{0} 番目の親要素は {1} である必要がありますが、実際は {2} です。</value>
+  </data>
+  <data name="SmartBpRegionCellName" xml:space="preserve">
+    <value>名前欄</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidCellRectFormat" xml:space="preserve">
+    <value>設定無効：{0} 行目 {1} 列目の子領域が親領域外です。</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusMismatched" xml:space="preserve">
+    <value>不一致</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusWaitingFirstFrame" xml:space="preserve">
+    <value>初回フレーム待機中</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeRectRootFormat" xml:space="preserve">
+    <value>ノード：{0}`n相対座標（フレーム基準）`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6}</value>
+  </data>
+  <data name="SmartBpRegionConfigSaveFailedFormat" xml:space="preserve">
+    <value>設定の保存に失敗しました：{0}</value>
+  </data>
+  <data name="SmartBpRegionConfigResetConfirm" xml:space="preserve">
+    <value>内蔵の16:9既定設定にリセットしますか？現在の設定は上書きされます。</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusFormat" xml:space="preserve">
+    <value>一致状態：{0}</value>
+  </data>
+  <data name="SmartBpRegionEditorCurrentRect" xml:space="preserve">
+    <value>現在の相対座標</value>
+  </data>
+  <data name="SmartBpRegionEditorRequireCaptureFirst" xml:space="preserve">
+    <value>認識領域を編集する前にキャプチャを開始してください。</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeSelection" xml:space="preserve">
+    <value>ノード選択</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow3" xml:space="preserve">
+    <value>サバイバー行3</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow1" xml:space="preserve">
+    <value>サバイバー行1</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow2" xml:space="preserve">
+    <value>サバイバー行2</value>
+  </data>
+  <data name="SmartBpRegionAspectHintNotStarted" xml:space="preserve">
+    <value>先にキャプチャを開始してから比率を確認してください。</value>
+  </data>
+  <data name="SmartBpRegionAspectHintWaitingFirstFrame" xml:space="preserve">
+    <value>キャプチャは開始済みです。比率判定用の初回フレームを待機しています。</value>
+  </data>
+  <data name="SmartBpCaptureAspectRatioFormat" xml:space="preserve">
+    <value>現在のキャプチャ比率：{0}</value>
+  </data>
+  <data name="SmartBpRegionEditorRuleRuntimeFormat" xml:space="preserve">
+    <value>現在の構造：編集可能ノード {0} 個（任意階層・任意個数対応）</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchRootCountFormat" xml:space="preserve">
+    <value>構造不一致：親領域は {0} 個必要ですが、実際は {1} 個です。</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusMatched" xml:space="preserve">
+    <value>一致</value>
+  </data>
+  <data name="SmartBpRegionHunterRow" xml:space="preserve">
+    <value>ハンター行</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeRectChildFormat" xml:space="preserve">
+    <value>ノード：{0}`n相対座標（親基準）`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6}</value>
+  </data>
+  <data name="SmartBpRegionAspectHintMismatched" xml:space="preserve">
+    <value>現在のキャプチャ比率と設定が一致していません。「認識領域を編集（GameData）」で手動調整してください。</value>
+  </data>
+  <data name="SmartBpRegionConfigResetTitle" xml:space="preserve">
+    <value>設定リセット</value>
+  </data>
+  <data name="SmartBpRegionEditorRuleDefault" xml:space="preserve">
+    <value>現在のルール：各行に親領域1つ + 子領域6つ</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidScene" xml:space="preserve">
+    <value>設定無効：scene は GameData である必要があります。</value>
+  </data>
+  <data name="SmartBpRegionConfigSaved" xml:space="preserve">
+    <value>認識領域設定を保存しました。</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorDecodingProgress" xml:space="preserve">
+    <value>解読進捗</value>
+  </data>
+  <data name="SmartBpRegionConfigImportFileNotFound" xml:space="preserve">
+    <value>インポート失敗：設定ファイルが存在しません。</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorPalletStrikes" xml:space="preserve">
+    <value>板当て回数</value>
+  </data>
+  <data name="SmartBpRegionCellHunterPalletsDestroyed" xml:space="preserve">
+    <value>板破壊数</value>
+  </data>
+  <data name="SmartBpRegionConfigImportFailedFormat" xml:space="preserve">
+    <value>インポート失敗：{0}</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateGroupSummaryFormat" xml:space="preserve">
+    <value>現在のテンプレートグループ：{0}、要素数：{1}。</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateMarkFormat" xml:space="preserve">
+    <value> [テンプレート:{0}]</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidRowCount" xml:space="preserve">
+    <value>設定無効：親領域は5個必要です。</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow4" xml:space="preserve">
+    <value>サバイバー行4</value>
+  </data>
+  <data name="SmartBpRegionAspectHintMatched" xml:space="preserve">
+    <value>現在の比率は一致しています。このまま利用できます。</value>
+  </data>
+  <data name="SmartBpImportGameDataRegionConfig" xml:space="preserve">
+    <value>設定ファイルをインポート</value>
+  </data>
+  <data name="SmartBpEditGameDataRegion" xml:space="preserve">
+    <value>認識領域を編集</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorHeals" xml:space="preserve">
+    <value>治療回数</value>
+  </data>
+  <data name="SmartBpRegionConfigImported" xml:space="preserve">
+    <value>設定ファイルをインポートしました。</value>
+  </data>
+  <data name="SmartBpResetGameDataRegionConfig169" xml:space="preserve">
+    <value>設定をリセット（16:9）</value>
+  </data>
+  <data name="SmartBpRegionCellHunterKnockdowns" xml:space="preserve">
+    <value>ダウン回数</value>
+  </data>
+  <data name="SmartBpRegionEditorSceneTitleFormat" xml:space="preserve">
+    <value>認識領域エディター（{0}）</value>
+  </data>
+  <data name="SmartBpRegionConfigImportEmpty" xml:space="preserve">
+    <value>インポート失敗：設定ファイルの内容が空です。</value>
+  </data>
+  <data name="SmartBpRegionEditorSelectNodeFirst" xml:space="preserve">
+    <value>先にノードを選択してください</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorRescues" xml:space="preserve">
+    <value>救助回数</value>
+  </data>
+  <data name="SmartBpSceneGameData" xml:space="preserve">
+    <value>GameData</value>
+  </data>
+  <data name="SmartBpRegionConfigExportFailedFormat" xml:space="preserve">
+    <value>設定のエクスポートに失敗しました：{0}</value>
+  </data>
+  <data name="SmartBpExportGameDataRegionConfig" xml:space="preserve">
+    <value>設定ファイルをエクスポート</value>
+  </data>
+  <data name="SaveAs" xml:space="preserve">
+    <value>名前を付けて保存</value>
+  </data>
+  <data name="SmartBpRegionConfigExportPathEmpty" xml:space="preserve">
+    <value>エクスポート失敗：出力先パスが空です。</value>
+  </data>
+  <data name="PluginMarketAuthorLabel" xml:space="preserve">
+    <value>作者: </value>
+  </data>
+  <data name="PluginMarketVersionLabel" xml:space="preserve">
+    <value>バージョン: </value>
+  </data>
+  <data name="PluginMarketSettingsTitle" xml:space="preserve">
+    <value>プラグインマーケット設定</value>
+  </data>
+  <data name="PluginMarketMirrorLabel" xml:space="preserve">
+    <value>Ghproxy</value>
+  </data>
+  <data name="PluginMarketCancelDownload" xml:space="preserve">
+    <value>ダウンロードをキャンセル</value>
+  </data>
+  <data name="PluginMarketDirectConnectionNoProxy" xml:space="preserve">
+    <value>直接接続（プロキシなし）</value>
+  </data>
+  <data name="PluginMarketVersionTooLow" xml:space="preserve">
+    <value>バージョンが低すぎます</value>
+  </data>
+  <data name="PluginMarketVersionIncompatible" xml:space="preserve">
+    <value>互換性のないバージョン</value>
+  </data>
+  <data name="PluginMarketHostVersionTooLow" xml:space="preserve">
+    <value>現在のソフトのバージョンが低すぎます</value>
+  </data>
+  <data name="PluginMarketApiIncompatible" xml:space="preserve">
+    <value>API に互換性がありません</value>
+  </data>
+  <data name="PluginMarketUpdateAvailable" xml:space="preserve">
+    <value>更新があります</value>
+  </data>
+  <data name="PluginMarketPendingUninstall" xml:space="preserve">
+    <value>アンインストール待ち</value>
+  </data>
+  <data name="PluginMarketInstallBlockedHostVersionTooLow" xml:space="preserve">
+    <value>現在のソフトのバージョンではこのプラグインをインストールできません。</value>
+  </data>
+  <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
+    <value>他のプラグインのダウンロードが進行中です。</value>
+  </data>
 </root>
+

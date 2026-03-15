@@ -3,6 +3,9 @@ using System.Windows;
 
 namespace neo_bpsys_wpf.Core;
 
+/// <summary>
+/// 应用程序基类
+/// </summary>
 public abstract class AppBase : Application, IAppHost
 {
     /// <summary>

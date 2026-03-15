@@ -5,8 +5,10 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Themes;
 using Serilog;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -131,7 +133,7 @@ public partial class App : AppBase
 
         CurrentLifetime = ApplicationLifetime.Running;
 
-#if !DEBUG
+#if !DEBUG && !Preview
         logger.LogInformation("Update checking on start up");
         await IAppHost.Host.Services.GetRequiredService<IUpdaterService>().UpdateCheck(true);
 #endif
@@ -156,22 +158,24 @@ public partial class App : AppBase
         // 释放互斥锁
         _mutex?.Close();
         // 重启应用程序
-        System.Diagnostics.Process.Start(ResourceAssembly.Location.Replace(".dll", ".exe"));
+        Process.Start(ResourceAssembly.Location.Replace(".dll", ".exe"));
         Current.Shutdown();
     }
 
     /// <summary>
     /// Occurs when an exception is thrown by an application but not handled.
     /// </summary>
-    private void OnDispatcherUnhandledException(
+    private async void OnDispatcherUnhandledException(
         object sender,
         DispatcherUnhandledExceptionEventArgs e
     )
     {
         var logger = IAppHost.Host!.Services.GetRequiredService<ILogger<App>>();
         logger.LogError("Application crashed unexpectedly");
+        logger.LogError(e.Exception.Message);
 #if !DEBUG
-        _ = MessageBoxHelper.ShowInfoAsync($"出现了些在意料之外的错误，请带着下方地址处的日志文件联系开发者解决\nSome unexpected errors have occurred. Please contact the developer with the log file below for solutions \n\n{AppConstants.LogPath}\n ", "Error");
+        await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("UnexpectedExceptionMessage")}\n\n{AppConstants.LogPath}\n ", "Error");
+        Process.Start("explorer.exe", AppConstants.LogPath);
 #endif
         // For more info see https://docs.microsoft.com/en-us/dotnet/api/system.windows.application.dispatcherunhandledexception?view=windowsdesktop-6.0
     }

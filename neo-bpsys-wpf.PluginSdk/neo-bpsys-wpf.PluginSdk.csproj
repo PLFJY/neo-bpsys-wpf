@@ -5,7 +5,8 @@
         <RootNamespace>neo_bpsys_wpf.PluginSdk</RootNamespace>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-		<Version>0.1.5</Version>
+		<Version>0.1.7</Version>
+		<Platforms>AnyCPU;x64</Platforms>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -29,10 +30,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj" IncludeAssets="all"/>
+		<ProjectReference Include="..\neo-bpsys-wpf.Core\neo-bpsys-wpf.Core.csproj" IncludeAssets="all" />
     </ItemGroup>
 
 	<ItemGroup>
-		<None Include=".\neo-bpsys-wpf.PluginSdk.targets" Pack="true" PackagePath="buildTransitive"/>
+		<None Include=".\neo-bpsys-wpf.PluginSdk.targets" Pack="true" PackagePath="buildTransitive" />
 	</ItemGroup>
 </Project>

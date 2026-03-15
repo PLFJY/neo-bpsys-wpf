@@ -28,28 +28,35 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel
-            Grid.Row="0"
-            Margin="0,0,0,10"
-            Orientation="Horizontal">
-            <TextBlock
-                HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                FontSize="28"
-                FontWeight="SemiBold"
-                Text="{lex:Loc PluginManagement}" />
+        <Grid>
+            <StackPanel
+                Grid.Row="0"
+                Margin="0,0,0,10"
+                Orientation="Horizontal">
+                <TextBlock
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    FontSize="28"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc PluginManagement}" />
+                <ui:Button
+                    Margin="20,0,0,0"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource SystemAccentColorPrimaryBrush}"
+                    Command="{Binding RestartAppCommand}"
+                    Content="{lex:Loc ClickToRestart}"
+                    Icon="{ui:SymbolIcon Symbol=ArrowClockwise24}"
+                    MouseOverBackground="{DynamicResource SystemAccentColorSecondaryBrush}"
+                    PressedBackground="{DynamicResource SystemAccentColorTertiaryBrush}"
+                    Visibility="{Binding IsRestartNeeded, Converter={StaticResource BooleanToVisibilityConverter}}">
+                </ui:Button>
+            </StackPanel>
             <ui:Button
-                Margin="20,0,0,0"
-                VerticalAlignment="Center"
-                Background="{DynamicResource SystemAccentColorPrimaryBrush}"
-                Command="{Binding RestartAppCommand}"
-                Content="{lex:Loc ClickToRestart}"
-                Icon="{ui:SymbolIcon Symbol=ArrowClockwise24}"
-                MouseOverBackground="{DynamicResource SystemAccentColorSecondaryBrush}"
-                PressedBackground="{DynamicResource SystemAccentColorTertiaryBrush}"
-                Visibility="{Binding IsRestartNeeded, Converter={StaticResource BooleanToVisibilityConverter}}">
-            </ui:Button>
-        </StackPanel>
+                HorizontalAlignment="Right"
+                Command="{Binding InstallPluginFromFileCommand}"
+                Content="{lex:Loc InstallPluginFromFile}"
+                Icon="{ui:SymbolIcon Symbol=CubeArrowCurveDown20}" />
+        </Grid>
 
         <TabControl Grid.Row="1">
             <TabControl.ItemContainerStyle>
@@ -108,23 +115,6 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock
-                        Width="400"
-                        Margin="10,10,0,0"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Center"
-                        Text="{lex:Loc PluginsThirdPartyWarning}"
-                        TextWrapping="WrapWithOverflow" />
-                    <StackPanel
-                        Grid.Row="0"
-                        Margin="0,10,10,0"
-                        HorizontalAlignment="Right"
-                        Orientation="Horizontal">
-                        <ui:Button
-                            Command="{Binding InstallPluginFromFileCommand}"
-                            Content="{lex:Loc InstallPluginFromFile}"
-                            Icon="{ui:SymbolIcon Symbol=CubeArrowCurveDown20}" />
-                    </StackPanel>
                     <ui:ListView
                         Grid.Row="1"
                         Margin="0,10,0,0"
@@ -243,13 +233,351 @@
                 </Grid>
             </TabItem>
             <TabItem Header="{lex:Loc PluginMarket}">
-                <Grid>
-                    <TextBlock
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        FontSize="18"
-                        Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                        Text="{lex:Loc ComingSoon}" />
+                <Grid Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Margin="10,10,10,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            Width="520"
+                            Margin="0,6,0,0"
+                            HorizontalAlignment="Left"
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            Text="{lex:Loc PluginsThirdPartyWarning}"
+                            TextWrapping="WrapWithOverflow" />
+                        <StackPanel
+                            Grid.Column="1"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal">
+                            <ui:Button
+                                Margin="0,0,10,0"
+                                Command="{Binding RefreshMarketCommand}"
+                                Content="{lex:Loc Refresh}"
+                                Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+                            <ui:Button
+                                Command="{Binding TogglePluginMarketSettingsCommand}"
+                                Content="{lex:Loc Settings}"
+                                Icon="{ui:SymbolIcon Symbol=Settings24}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid
+                        x:Name="PluginMarketContentHost"
+                        Grid.Row="1"
+                        Margin="10,10,10,10">
+                        <Border
+                            Margin="0,0,10,0"
+                            Padding="10"
+                            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock
+                                    Foreground="IndianRed"
+                                    Text="{Binding MarketErrorMessage}"
+                                    Visibility="{Binding HasMarketError, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                                <Grid Grid.Row="1">
+                                    <ListBox
+                                        Margin="0,10,0,0"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        ItemsSource="{Binding MarketPluginsCollection}"
+                                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                        ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                        SelectedItem="{Binding SelectedMarketPlugin, Mode=TwoWay}">
+                                        <ListBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ListBox.ItemsPanel>
+                                        <ListBox.ItemContainerStyle>
+                                            <Style TargetType="ListBoxItem">
+                                                <Setter Property="Margin" Value="0,0,12,12" />
+                                                <Setter Property="Padding" Value="0" />
+                                                <Setter Property="Background" Value="Transparent" />
+                                                <Setter Property="BorderThickness" Value="0" />
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                                <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                                                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border
+                                                    x:Name="MarketCardBorder"
+                                                    Width="240"
+                                                    Height="180"
+                                                    Padding="12"
+                                                    Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                                                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="12">
+                                                    <Grid>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="*" />
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                        </Grid.RowDefinitions>
+
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <ui:Image
+                                                                Width="32"
+                                                                Height="32"
+                                                                Margin="0,0,10,0"
+                                                                CornerRadius="8"
+                                                                Source="{Binding ResolvedIconUrl}" />
+                                                            <TextBlock
+                                                                Width="170"
+                                                                VerticalAlignment="Center"
+                                                                FontSize="16"
+                                                                FontWeight="SemiBold"
+                                                                Text="{Binding Name}"
+                                                                TextWrapping="Wrap" />
+                                                        </StackPanel>
+
+                                                        <TextBlock
+                                                            Grid.Row="1"
+                                                            Margin="0,10,0,0"
+                                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                            Text="{Binding Description}"
+                                                            TextTrimming="CharacterEllipsis"
+                                                            TextWrapping="Wrap" />
+
+                                                        <TextBlock
+                                                            Grid.Row="2"
+                                                            Margin="0,10,0,0"
+                                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}">
+                                                            <Run Text="{lex:Loc PluginMarketAuthorLabel}" />
+                                                            <Run Text="{Binding Author}" />
+                                                        </TextBlock>
+
+                                                        <TextBlock
+                                                            Grid.Row="3"
+                                                            Margin="0,6,0,0"
+                                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}">
+                                                            <Run Text="{lex:Loc PluginMarketVersionLabel}" />
+                                                            <Run Text="{Binding Version}" />
+                                                        </TextBlock>
+
+                                                        <TextBlock
+                                                            Grid.Row="4"
+                                                            Margin="0,8,0,0"
+                                                            Foreground="DarkOrange"
+                                                            Text="{lex:Loc {Binding MarketStatusKey}, FallbackBehavior=Key}"
+                                                            Visibility="{Binding IsStatusVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                                    </Grid>
+                                                </Border>
+                                                <DataTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" Value="True">
+                                                        <Setter TargetName="MarketCardBorder" Property="Background" Value="{DynamicResource CardBackgroundFillColorTertiaryBrush}" />
+                                                        <Setter TargetName="MarketCardBorder" Property="BorderBrush" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                                                    </DataTrigger>
+                                                </DataTemplate.Triggers>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+
+                                    <ui:ProgressRing
+                                        Width="40"
+                                        Height="40"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        IsIndeterminate="True"
+                                        Visibility="{Binding IsMarketLoading, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                </Grid>
+                            </Grid>
+                        </Border>
+                        <Border
+                            Width="420"
+                            Height="{Binding ElementName=PluginMarketContentHost, Path=ActualHeight}"
+                            Padding="0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Stretch"
+                            Panel.ZIndex="15"
+                            Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Visibility="{Binding IsMarketPluginSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Grid
+                                MinHeight="0"
+                                ClipToBounds="True"
+                                DataContext="{Binding SelectedMarketPlugin}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel
+                                        Grid.Column="0"
+                                        Margin="10"
+                                        HorizontalAlignment="Left"
+                                        Orientation="Horizontal">
+                                        <ui:Image
+                                            Width="30"
+                                            Height="30"
+                                            Margin="0,0,10,0"
+                                            CornerRadius="8"
+                                            Source="{Binding ResolvedIconUrl}" />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            FontSize="18"
+                                            FontWeight="SemiBold"
+                                            Text="{Binding Name}"
+                                            TextWrapping="Wrap" />
+                                        <TextBlock
+                                            Margin="10,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                            Text="{Binding Version, StringFormat='v{0}'}" />
+                                    </StackPanel>
+
+                                    <ui:Button
+                                        Grid.Column="1"
+                                        Margin="0,8,10,0"
+                                        Command="{Binding DataContext.CloseMarketPluginDetailsCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                        Content="{lex:Loc Close}"
+                                        Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
+                                </Grid>
+
+                                <StackPanel
+                                    Grid.Row="1"
+                                    Margin="10,10,10,0"
+                                    Orientation="Horizontal">
+                                    <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
+                                        <Run Text="{lex:Loc PluginMarketAuthorLabel}" />
+                                        <Run Text="{Binding Author}" />
+                                    </TextBlock>
+                                    <ui:HyperlinkButton
+                                        Margin="10,0,0,0"
+                                        Content="{Binding Url}"
+                                        NavigateUri="{Binding Url}" />
+                                </StackPanel>
+
+                                <TextBlock
+                                    Grid.Row="2"
+                                    Margin="10,10,10,0"
+                                    Text="{Binding Description}"
+                                    TextWrapping="Wrap" />
+
+                                <StackPanel Grid.Row="3" Margin="10,10,10,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:Button
+                                            Command="{Binding DataContext.ExecutePrimaryMarketActionCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                            Content="{lex:Loc {Binding PrimaryActionKey}, FallbackBehavior=Key}"
+                                            Icon="{ui:SymbolIcon Symbol=ArrowDownload24}"
+                                            IsEnabled="{Binding CanExecutePrimaryAction}" />
+                                        <ui:Button
+                                            Margin="10,0,0,0"
+                                            Command="{Binding DataContext.ToggleSelectedMarketPluginUninstallCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                            Content="{lex:Loc {Binding UninstallActionKey}, FallbackBehavior=Key}"
+                                            Icon="{ui:SymbolIcon Symbol=Delete24}"
+                                            IsEnabled="{Binding CanUninstall}" />
+                                    </StackPanel>
+
+                                    <StackPanel
+                                        Margin="0,10,0,0"
+                                        Orientation="Vertical"
+                                        Visibility="{Binding DataContext.IsPluginDownloadVisible, RelativeSource={RelativeSource AncestorType=Page}, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <ProgressBar
+                                            Height="10"
+                                            Maximum="100"
+                                            Minimum="0"
+                                            Value="{Binding DataContext.PluginDownloadProgress, RelativeSource={RelativeSource AncestorType=Page}}" />
+                                        <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                                            <TextBlock VerticalAlignment="Center" Text="{Binding DataContext.PluginDownloadProgressText, RelativeSource={RelativeSource AncestorType=Page}}" />
+                                            <TextBlock
+                                                Margin="10,0,0,0"
+                                                VerticalAlignment="Center"
+                                                Text="{Binding DataContext.PluginDownloadSpeedText, RelativeSource={RelativeSource AncestorType=Page}}" />
+                                            <ui:Button
+                                                Margin="10,0,0,0"
+                                                Command="{Binding DataContext.CancelPluginMarketDownloadCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                Content="{lex:Loc PluginMarketCancelDownload}"
+                                                Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <md:MarkdownViewer
+                                    x:Name="PluginReadmeMarkdownViewer"
+                                    Grid.Row="4"
+                                    MinHeight="0"
+                                    Margin="10"
+                                    VerticalAlignment="Stretch"
+                                    HorizontalContentAlignment="Left"
+                                    FontFamily="{StaticResource NotoSans}"
+                                    Markdown="{Binding ReadmeMarkdown}" />
+                            </Grid>
+                        </Border>
+
+                        <Border
+                            Width="380"
+                            Padding="14"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Stretch"
+                            Panel.ZIndex="10"
+                            Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Visibility="{Binding IsPluginMarketSettingsOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <StackPanel>
+                                <Grid>
+                                    <TextBlock
+                                        FontSize="18"
+                                        FontWeight="SemiBold"
+                                        Text="{lex:Loc PluginMarketSettingsTitle}" />
+                                    <ui:Button
+                                        HorizontalAlignment="Right"
+                                        Command="{Binding TogglePluginMarketSettingsCommand}"
+                                        Content="{lex:Loc Close}"
+                                        Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
+                                </Grid>
+
+                                <TextBlock
+                                    Margin="0,14,0,0"
+                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                    Text="{lex:Loc PluginMarketMirrorLabel}" />
+                                <ComboBox
+                                    Margin="0,8,0,0"
+                                    ItemsSource="{Binding PluginMarketMirrorOptions}"
+                                    SelectedValue="{Binding SelectedPluginMarketMirror, Mode=TwoWay}"
+                                    SelectedValuePath="Value">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{lex:Loc {Binding DisplayNameKey}, FallbackBehavior=Key}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
                 </Grid>
             </TabItem>
         </TabControl>

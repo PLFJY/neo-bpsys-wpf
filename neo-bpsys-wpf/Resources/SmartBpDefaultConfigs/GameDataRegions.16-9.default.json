@@ -1,0 +1,510 @@
+{
+  "Version": 1,
+  "Scene": "GameData",
+  "BaseAspectRatio": "16:9",
+  "BaseSize": {
+    "Width": 16,
+    "Height": 9,
+    "IsActive": false
+  },
+  "Layout": {
+    "SceneDisplayName": "SmartBpSceneGameData",
+    "Roots": [
+      {
+        "Id": "row0_hunter",
+        "Label": "SmartBpRegionHunterRow",
+        "NodeType": 1,
+        "TemplateGroupId": "hunter_rows",
+        "Rect": {
+          "X": 12.3936,
+          "Y": 16.5,
+          "W": 79.0318,
+          "H": 9.1993
+        },
+        "ClampToParent": true,
+        "Children": [
+          {
+            "Id": "name",
+            "Label": "SmartBpRegionCellName",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 0,
+              "Y": 0,
+              "W": 24.4128,
+              "H": 50
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d1",
+            "Label": "SmartBpRegionCellHunterRemainingCipher",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 25.5,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d2",
+            "Label": "SmartBpRegionCellHunterPalletsDestroyed",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 39.5161,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d3",
+            "Label": "SmartBpRegionCellHunterSurvivorHits",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 51.2581,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d4",
+            "Label": "SmartBpRegionCellHunterTerrorShocks",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 65.2419,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d5",
+            "Label": "SmartBpRegionCellHunterKnockdowns",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 78.6371,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Id": "row1_survivor",
+        "Label": "SmartBpRegionSurvivorRow1",
+        "NodeType": 1,
+        "TemplateGroupId": "survivor_rows",
+        "Rect": {
+          "X": 12.2901,
+          "Y": 32.2352,
+          "W": 79.292,
+          "H": 8.8362
+        },
+        "ClampToParent": true,
+        "Children": [
+          {
+            "Id": "name",
+            "Label": "SmartBpRegionCellName",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 0,
+              "Y": 0,
+              "W": 25.0737,
+              "H": 47
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d1",
+            "Label": "SmartBpRegionCellSurvivorDecodingProgress",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 25.5,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d2",
+            "Label": "SmartBpRegionCellSurvivorPalletStrikes",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 39.6383,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d3",
+            "Label": "SmartBpRegionCellSurvivorRescues",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 51.0177,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d4",
+            "Label": "SmartBpRegionCellSurvivorHeals",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 65,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d5",
+            "Label": "SmartBpRegionCellSurvivorContainmentTime",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 78.5177,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Id": "row2_survivor",
+        "Label": "SmartBpRegionSurvivorRow2",
+        "NodeType": 1,
+        "TemplateGroupId": "survivor_rows",
+        "Rect": {
+          "X": 12.4857,
+          "Y": 43.6439,
+          "W": 79.292,
+          "H": 8.8362
+        },
+        "ClampToParent": true,
+        "Children": [
+          {
+            "Id": "name",
+            "Label": "SmartBpRegionCellName",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 0,
+              "Y": 0,
+              "W": 25.0737,
+              "H": 47
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d1",
+            "Label": "SmartBpRegionCellSurvivorDecodingProgress",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 25.5,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d2",
+            "Label": "SmartBpRegionCellSurvivorPalletStrikes",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 39.6383,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d3",
+            "Label": "SmartBpRegionCellSurvivorRescues",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 51.0177,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d4",
+            "Label": "SmartBpRegionCellSurvivorHeals",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 65,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d5",
+            "Label": "SmartBpRegionCellSurvivorContainmentTime",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 78.5177,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Id": "row3_survivor",
+        "Label": "SmartBpRegionSurvivorRow3",
+        "NodeType": 1,
+        "TemplateGroupId": "survivor_rows",
+        "Rect": {
+          "X": 12.2945,
+          "Y": 55.4239,
+          "W": 79.292,
+          "H": 8.8362
+        },
+        "ClampToParent": true,
+        "Children": [
+          {
+            "Id": "name",
+            "Label": "SmartBpRegionCellName",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 0,
+              "Y": 0,
+              "W": 25.0737,
+              "H": 47
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d1",
+            "Label": "SmartBpRegionCellSurvivorDecodingProgress",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 25.5,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d2",
+            "Label": "SmartBpRegionCellSurvivorPalletStrikes",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 39.6383,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d3",
+            "Label": "SmartBpRegionCellSurvivorRescues",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 51.0177,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d4",
+            "Label": "SmartBpRegionCellSurvivorHeals",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 65,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d5",
+            "Label": "SmartBpRegionCellSurvivorContainmentTime",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 78.5177,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          }
+        ]
+      },
+      {
+        "Id": "row4_survivor",
+        "Label": "SmartBpRegionSurvivorRow4",
+        "NodeType": 1,
+        "TemplateGroupId": "survivor_rows",
+        "Rect": {
+          "X": 12.2945,
+          "Y": 66.1489,
+          "W": 79.292,
+          "H": 8.8362
+        },
+        "ClampToParent": true,
+        "Children": [
+          {
+            "Id": "name",
+            "Label": "SmartBpRegionCellName",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 0,
+              "Y": 0,
+              "W": 25.0737,
+              "H": 47
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d1",
+            "Label": "SmartBpRegionCellSurvivorDecodingProgress",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 25.5,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d2",
+            "Label": "SmartBpRegionCellSurvivorPalletStrikes",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 39.6383,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d3",
+            "Label": "SmartBpRegionCellSurvivorRescues",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 51.0177,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d4",
+            "Label": "SmartBpRegionCellSurvivorHeals",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 65,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          },
+          {
+            "Id": "d5",
+            "Label": "SmartBpRegionCellSurvivorContainmentTime",
+            "NodeType": 0,
+            "TemplateGroupId": "",
+            "Rect": {
+              "X": 78.5177,
+              "Y": 0,
+              "W": 10,
+              "H": 100
+            },
+            "ClampToParent": true,
+            "Children": []
+          }
+        ]
+      }
+    ]
+  }
+}

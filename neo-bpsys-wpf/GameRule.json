@@ -279,7 +279,7 @@
     "WorkFlow": [
       {
         "Action": "BanMap",
-        "Index": [ 0 ],
+        "Index": [ 1 ],
         "Time": null
       },
       {

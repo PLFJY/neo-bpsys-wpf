@@ -4,12 +4,12 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Windows;
+using System.Threading;
 using I18nHelper = neo_bpsys_wpf.Helpers.I18nHelper;
 
 namespace neo_bpsys_wpf.Services;
@@ -29,6 +29,10 @@ public class UpdaterService : IUpdaterService
 #endif
     private readonly DownloadService _downloader;
     public object Downloader => _downloader;
+    public bool IsDownloading { get; private set; }
+    public double DownloadProgress { get; private set; }
+    public double DownloadBytesPerSecond { get; private set; }
+    public bool IsDownloadFinished { get; private set; }
 
     private const string ApiUrl = "https://gh-releases.plfjy.top/?repo=PLFJY/neo-bpsys-wpf&ua=neo-bpsys-wpf";
     private const string InstallerFileName = "neo-bpsys-wpf_Installer.exe";
@@ -36,6 +40,8 @@ public class UpdaterService : IUpdaterService
     private readonly IInfoBarService _infoBarService;
     private readonly ILogger<UpdaterService> _logger;
     private readonly ISettingsHostService _settingsHostService;
+    private readonly Lock _downloadLock = new();
+    private CancellationTokenSource? _downloadCts;
 
     public UpdaterService(IInfoBarService infoBarService, ILogger<UpdaterService> logger,
         ISettingsHostService settingsHostService)
@@ -54,7 +60,7 @@ public class UpdaterService : IUpdaterService
         };
 
         _downloader = new DownloadService(downloadOpt);
-        _downloader.DownloadFileCompleted += OnDownloadFileCompletedAsync;
+        _downloader.DownloadProgressChanged += Downloader_DownloadProgressChanged;
 
         var fileName = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf_Installer.exe");
         if (!File.Exists(fileName)) return;
@@ -74,40 +80,99 @@ public class UpdaterService : IUpdaterService
     /// </summary>
     public async Task DownloadUpdate(string mirror = "")
     {
-        var fileName = Path.Combine(Path.GetTempPath(), InstallerFileName);
-        var downloadUrl = NewVersionInfo.Assets.First(a => a.Name == InstallerFileName).BrowserDownloadUrl;
-        try
+        var asset = NewVersionInfo.Assets.FirstOrDefault(a => a.Name == InstallerFileName);
+        if (asset == null || string.IsNullOrWhiteSpace(asset.BrowserDownloadUrl))
         {
-            await _downloader.DownloadFileTaskAsync(mirror + downloadUrl, fileName);
-        }
-        catch (Exception ex)
-        {
-            await MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("DownloadFails")}: {ex.Message}");
-        }
-    }
-
-    private async void OnDownloadFileCompletedAsync(object? sender, AsyncCompletedEventArgs e)
-    {
-        if (e.Error != null)
-        {
-            await Application.Current.Dispatcher.InvokeAsync(async () =>
-            {
-                await MessageBoxHelper.ShowErrorAsync(
-                    $"{I18nHelper.GetLocalizedString("DownloadFails")}: {e.Error.Message}");
-            });
+            await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("CheckForUpdatesFailed"));
             return;
         }
 
-        await Application.Current.Dispatcher.InvokeAsync(async () =>
+        CancellationTokenSource localCts;
+        lock (_downloadLock)
         {
-            if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("DownloadFinished"),
-                    I18nHelper.GetLocalizedString("DownloadTip"),
-                    I18nHelper.GetLocalizedString("Install"),
-                    I18nHelper.GetLocalizedString("Cancel")))
+            if (IsDownloading)
             {
-                _ = InstallUpdate();
+                return;
             }
-        });
+
+            IsDownloading = true;
+            IsDownloadFinished = false;
+            DownloadProgress = 0;
+            DownloadBytesPerSecond = 0;
+            _downloadCts = new CancellationTokenSource();
+            localCts = _downloadCts;
+        }
+
+        RaiseDownloadStateChanged();
+
+        var fileName = Path.Combine(Path.GetTempPath(), InstallerFileName);
+        var downloadUrl = asset.BrowserDownloadUrl;
+        try
+        {
+            await _downloader.DownloadFileTaskAsync(mirror + downloadUrl, fileName);
+            if (!localCts.IsCancellationRequested)
+            {
+                lock (_downloadLock)
+                {
+                    IsDownloadFinished = true;
+                }
+                RaiseDownloadStateChanged();
+
+                await Application.Current.Dispatcher.InvokeAsync(async () =>
+                {
+                    if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("DownloadFinished"),
+                            I18nHelper.GetLocalizedString("DownloadTip"),
+                            I18nHelper.GetLocalizedString("Install"),
+                            I18nHelper.GetLocalizedString("Cancel")))
+                    {
+                        _ = InstallUpdate();
+                    }
+                });
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // 用户取消下载时静默结束。
+            lock (_downloadLock)
+            {
+                IsDownloadFinished = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            lock (_downloadLock)
+            {
+                IsDownloadFinished = false;
+            }
+            if (!localCts.IsCancellationRequested)
+            {
+                await MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("DownloadFails")}: {ex.Message}");
+            }
+        }
+        finally
+        {
+            lock (_downloadLock)
+            {
+                IsDownloading = false;
+                DownloadProgress = 0;
+                DownloadBytesPerSecond = 0;
+                _downloadCts?.Dispose();
+                _downloadCts = null;
+            }
+
+            RaiseDownloadStateChanged();
+        }
+    }
+
+    /// <inheritdoc/>
+    public void CancelDownload()
+    {
+        lock (_downloadLock)
+        {
+            _downloadCts?.Cancel();
+        }
+
+        _downloader.CancelAsync();
     }
 
     /// <summary>
@@ -155,6 +220,8 @@ public class UpdaterService : IUpdaterService
 
     /// <inheritdoc/>
     public event EventHandler? NewVersionInfoChanged;
+    /// <inheritdoc/>
+    public event EventHandler? DownloadStateChanged;
 
     /// <summary>
     /// 获取新版本信息
@@ -203,6 +270,22 @@ public class UpdaterService : IUpdaterService
             _logger.LogError($"Unknown error: {ex.Message}");
             await MessageBoxHelper.ShowErrorAsync($"Unknown error: {ex.Message}");
         }
+    }
+
+    private void Downloader_DownloadProgressChanged(object? sender, DownloadProgressChangedEventArgs e)
+    {
+        lock (_downloadLock)
+        {
+            DownloadProgress = e.ProgressPercentage;
+            DownloadBytesPerSecond = e.BytesPerSecondSpeed;
+        }
+
+        RaiseDownloadStateChanged();
+    }
+
+    private void RaiseDownloadStateChanged()
+    {
+        DownloadStateChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>

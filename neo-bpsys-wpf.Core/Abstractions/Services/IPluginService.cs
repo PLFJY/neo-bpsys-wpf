@@ -3,6 +3,9 @@ using System.Collections.ObjectModel;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
+/// <summary>
+/// 插件服务接口
+/// </summary>
 public interface IPluginService
 {
     /// <summary>

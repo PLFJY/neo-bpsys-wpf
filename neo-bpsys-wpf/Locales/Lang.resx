@@ -189,9 +189,6 @@
   <data name="PickingBorderImage" xml:space="preserve">
     <value>待选框</value>
   </data>
-  <data name="DownloadProgress" xml:space="preserve">
-    <value>下载进度：</value>
-  </data>
   <data name="PickingBorderImageColor" xml:space="preserve">
     <value>待选框边缘颜色（覆盖贴图颜色）</value>
   </data>
@@ -1365,4 +1362,477 @@
   <data name="DesignerUnlockNote" xml:space="preserve">
     <value>备注：设计者模式中，按住&lt;Shift&gt;键可以暂时取消自动吸附，实现精细化调整</value>
   </data>
+  <data name="AutoRecord" xml:space="preserve">
+    <value>是否自动记录</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="UnexpectedExceptionMessage" xml:space="preserve">
+    <value>出现了些在意料之外的错误，请带着下方地址处的日志文件联系开发者解决</value>
+  </data>
+  <data name="AutoDetectAndFillPostGameData" xml:space="preserve">
+    <value>自动识别并填充赛后数据</value>
+  </data>
+  <data name="SmartBp" xml:space="preserve">
+    <value>智慧 BP</value>
+  </data>
+  <data name="PleaseStartWindowCaptureFirst" xml:space="preserve">
+    <value>请先启动窗口捕获</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="SmartBpWindowCaptureSettings" xml:space="preserve">
+    <value>窗口捕获设置</value>
+  </data>
+  <data name="SmartBpCaptureMethod" xml:space="preserve">
+    <value>捕获方式</value>
+  </data>
+  <data name="SmartBpSelectGameWindowProcess" xml:space="preserve">
+    <value>选择游戏窗口进程</value>
+  </data>
+  <data name="SmartBpOpenWindowPickerOnlyWgc" xml:space="preserve">
+    <value>打开窗口选择器（仅 WGC 可用）</value>
+  </data>
+  <data name="SmartBpStartCapture" xml:space="preserve">
+    <value>开始捕获</value>
+  </data>
+  <data name="SmartBpStopCapture" xml:space="preserve">
+    <value>停止捕获</value>
+  </data>
+  <data name="SmartBpOpenPreview" xml:space="preserve">
+    <value>打开预览</value>
+  </data>
+  <data name="SmartBpOcrModelManagement" xml:space="preserve">
+    <value>OCR 模型管理</value>
+  </data>
+  <data name="SmartBpOcrModelSelection" xml:space="preserve">
+    <value>模型选择</value>
+  </data>
+  <data name="SmartBpDownloadModel" xml:space="preserve">
+    <value>下载模型</value>
+  </data>
+  <data name="SmartBpDeleteModel" xml:space="preserve">
+    <value>删除模型</value>
+  </data>
+  <data name="SmartBpSwitchToCurrentModel" xml:space="preserve">
+    <value>切换为当前模型</value>
+  </data>
+  <data name="SmartBpRefreshStatus" xml:space="preserve">
+    <value>刷新状态</value>
+  </data>
+  <data name="SmartBpCancelDownload" xml:space="preserve">
+    <value>取消下载</value>
+  </data>
+  <data name="SmartBpCurrentOcrModelDisabled" xml:space="preserve">
+    <value>当前 OCR 模型：未启用</value>
+  </data>
+  <data name="SmartBpCurrentOcrModelFormat" xml:space="preserve">
+    <value>当前 OCR 模型：{0}</value>
+  </data>
+  <data name="SmartBpCurrentOcrModelNotEnabled" xml:space="preserve">
+    <value>未启用</value>
+  </data>
+  <data name="SmartBpOcrModelDownloadFailed" xml:space="preserve">
+    <value>OCR 模型下载失败：{0}</value>
+  </data>
+  <data name="SmartBpDeleteOcrModelConfirmFormat" xml:space="preserve">
+    <value>确定删除 OCR 模型：{0}？</value>
+  </data>
+  <data name="SmartBpDeleteOcrModelTitle" xml:space="preserve">
+    <value>删除模型</value>
+  </data>
+  <data name="SmartBpCaptureMethodWgc" xml:space="preserve">
+    <value>Windows Graphics Capture（Windows 10 1903 或更高）</value>
+  </data>
+  <data name="SmartBpCaptureMethodBitblt" xml:space="preserve">
+    <value>Bitblt</value>
+  </data>
+  <data name="SmartBpOcrNotReadyFirstDownloadAndSwitchModel" xml:space="preserve">
+    <value>OCR 功能未就绪，请先下载并切换 OCR 模型后再启动相关功能。</value>
+  </data>
+  <data name="SmartBpOcrUnsupportedModelFormat" xml:space="preserve">
+    <value>不支持的 OCR 模型：{0}</value>
+  </data>
+  <data name="SmartBpOcrDownloadAlreadyInProgress" xml:space="preserve">
+    <value>已有 OCR 模型下载任务正在进行。</value>
+  </data>
+  <data name="SmartBpOcrDownloadPreparing" xml:space="preserve">
+    <value>准备下载 OCR 模型...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageDet" xml:space="preserve">
+    <value>正在下载检测模型...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageCls" xml:space="preserve">
+    <value>正在下载方向分类模型...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageRec" xml:space="preserve">
+    <value>正在下载识别模型...</value>
+  </data>
+  <data name="SmartBpOcrDownloadCompleted" xml:space="preserve">
+    <value>OCR 模型下载完成。</value>
+  </data>
+  <data name="SmartBpOcrDownloadCanceled" xml:space="preserve">
+    <value>下载已取消。</value>
+  </data>
+  <data name="SmartBpOcrDownloadFailedSimple" xml:space="preserve">
+    <value>下载失败。</value>
+  </data>
+  <data name="SmartBpOcrDetModelMetadataEmpty" xml:space="preserve">
+    <value>OCR 检测模型元数据为空。</value>
+  </data>
+  <data name="SmartBpOcrClsModelMetadataEmpty" xml:space="preserve">
+    <value>OCR 分类模型元数据为空。</value>
+  </data>
+  <data name="SmartBpOcrRecModelMetadataEmpty" xml:space="preserve">
+    <value>OCR 识别模型元数据为空。</value>
+  </data>
+  <data name="SmartBpOcrDictNameEmpty" xml:space="preserve">
+    <value>OCR 字典名称为空。</value>
+  </data>
+  <data name="SmartBpOcrDeleteBlockedByDownloading" xml:space="preserve">
+    <value>下载进行中，无法删除模型。</value>
+  </data>
+  <data name="SmartBpOcrDeleteFailedFormat" xml:space="preserve">
+    <value>删除 OCR 模型失败：{0}</value>
+  </data>
+  <data name="SmartBpOcrModelFilesIncomplete" xml:space="preserve">
+    <value>模型文件未完整下载，请先下载。</value>
+  </data>
+  <data name="SmartBpOcrLoadFailedFormat" xml:space="preserve">
+    <value>加载 OCR 模型失败：{0}</value>
+  </data>
+  <data name="SmartBpOcrArchiveMissingModelFilesFormat" xml:space="preserve">
+    <value>模型压缩包中未找到可用模型文件（期望 inference.pdmodel 或 inference.json，且需包含 inference.pdiparams）。样例文件：{0}</value>
+  </data>
+  <data name="WindowCapturePleaseSelectWindowFirst" xml:space="preserve">
+    <value>请先选择窗口。</value>
+  </data>
+  <data name="WindowCaptureWgcRequires1803OrLater" xml:space="preserve">
+    <value>Windows Graphics Capture 需要 Windows 10 1803 或更高版本。</value>
+  </data>
+  <data name="WindowCaptureWgcNotSupportedOnCurrentSystem" xml:space="preserve">
+    <value>当前系统不支持 Windows Graphics Capture。</value>
+  </data>
+  <data name="WindowCaptureFailedToStartPickerCaptureFormat" xml:space="preserve">
+    <value>通过窗口选择器启动捕获失败：{0}</value>
+  </data>
+  <data name="WindowCaptureCaptureNotStarted" xml:space="preserve">
+    <value>尚未开始捕获。</value>
+  </data>
+  <data name="WindowCapturePreviewWindowTitle" xml:space="preserve">
+    <value>预览窗口</value>
+  </data>
+  <data name="WindowCaptureSelectedWindowInvalidForCapture" xml:space="preserve">
+    <value>所选窗口无法用于捕获。</value>
+  </data>
+  <data name="WindowCaptureFailedToCaptureFirstFrameWithBitblt" xml:space="preserve">
+    <value>使用 Bitblt 捕获首帧失败。</value>
+  </data>
+  <data name="WindowCaptureFailedToStartBitbltCaptureFormat" xml:space="preserve">
+    <value>启动 Bitblt 捕获失败：{0}</value>
+  </data>
+  <data name="WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809" xml:space="preserve">
+    <value>按窗口句柄捕获需要 Windows 10 1903 或更高版本。在 1803/1809 上请使用窗口选择器捕获。</value>
+  </data>
+  <data name="WindowCaptureFailedToCaptureSelectedWindowFormat" xml:space="preserve">
+    <value>捕获所选窗口失败：{0}</value>
+  </data>
+  <data name="WindowCaptureGraphicsCaptureItemUnavailable" xml:space="preserve">
+    <value>捕获所选窗口失败：无法创建 GraphicsCaptureItem。</value>
+  </data>
+  <data name="WindowCaptureFailedToStartCaptureFormat" xml:space="preserve">
+    <value>启动捕获失败：{0}</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV5MobileDisplayName" xml:space="preserve">
+    <value>中文 V5 Mobile（推荐）</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV5MobileDescription" xml:space="preserve">
+    <value>精度与速度平衡，优先建议。</value>
+  </data>
+  <data name="SmartBpOcrModelEnV4MobileDisplayName" xml:space="preserve">
+    <value>English V4 Mobile</value>
+  </data>
+  <data name="SmartBpOcrModelEnV4MobileDescription" xml:space="preserve">
+    <value>英文场景优化，适合英文与数字识别。</value>
+  </data>
+  <data name="SmartBpOcrModelJaV4MobileDisplayName" xml:space="preserve">
+    <value>Japanese V4 Mobile</value>
+  </data>
+  <data name="SmartBpOcrModelJaV4MobileDescription" xml:space="preserve">
+    <value>日文场景优化，适合日文与数字识别。</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV4DisplayName" xml:space="preserve">
+    <value>中文 V4</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV4Description" xml:space="preserve">
+    <value>兼容性稳定，部署体积适中。</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV3SlimDisplayName" xml:space="preserve">
+    <value>中文 V3 Slim（轻量）</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV3SlimDescription" xml:space="preserve">
+    <value>体积更小，适合低配置设备。</value>
+  </data>
+  <data name="SmartBpRegionConfigAspectRatioFormat" xml:space="preserve">
+    <value>配置支持比例：{0}</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidCellCountFormat" xml:space="preserve">
+    <value>配置无效：第 {0} 行必须包含 6 个小框。</value>
+  </data>
+  <data name="SmartBpRegionCellHunterSurvivorHits" xml:space="preserve">
+    <value>攻击命中</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidBigRectFormat" xml:space="preserve">
+    <value>配置无效：第 {0} 行大框超出范围。</value>
+  </data>
+  <data name="SmartBpRegionConfigResetFailedFormat" xml:space="preserve">
+    <value>重置失败：{0}</value>
+  </data>
+  <data name="SmartBpRegionEditorWindowTitle" xml:space="preserve">
+    <value>识别区域编辑</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchCellCountFormat" xml:space="preserve">
+    <value>结构不匹配：第 {0} 行期望 {1} 个小框，实际 {2} 个。</value>
+  </data>
+  <data name="SmartBpRegionConfigTitle" xml:space="preserve">
+    <value>识别区域配置</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusNotStarted" xml:space="preserve">
+    <value>未开始捕获</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateNotInGroup" xml:space="preserve">
+    <value>当前节点未处于模板组。</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorContainmentTime" xml:space="preserve">
+    <value>牵制时间</value>
+  </data>
+  <data name="SmartBpRegionConfigPathFormat" xml:space="preserve">
+    <value>当前配置文件：{0}</value>
+  </data>
+  <data name="SmartBpRegionCellHunterRemainingCipher" xml:space="preserve">
+    <value>剩余密码机</value>
+  </data>
+  <data name="SmartBpRegionConfigResetDone" xml:space="preserve">
+    <value>已重置为 16:9 默认配置。</value>
+  </data>
+  <data name="SmartBpRegionCellHunterTerrorShocks" xml:space="preserve">
+    <value>恐惧震慑</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateAppliedFormat" xml:space="preserve">
+    <value>已应用到 {0} 个同模板元素（保留大元素位置）。</value>
+  </data>
+  <data name="SmartBpRegionEditorApplyTemplate" xml:space="preserve">
+    <value>一键应用到同模板元素</value>
+  </data>
+  <data name="SmartBpRegionEditorOperationHelp" xml:space="preserve">
+    <value>操作说明：
+1. 拖动框内部可移动
+2. 拖动边缘8个点可缩放
+3. 小框会被限制在所属大框内
+4. 仅当前帧预览，不实时捕获</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchRootIdFormat" xml:space="preserve">
+    <value>结构不匹配：第 {0} 个大元素应为 {1}，实际 {2}。</value>
+  </data>
+  <data name="SmartBpRegionCellName" xml:space="preserve">
+    <value>名称框</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidCellRectFormat" xml:space="preserve">
+    <value>配置无效：第 {0} 行第 {1} 个小框超出大框范围。</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusMismatched" xml:space="preserve">
+    <value>不匹配</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusWaitingFirstFrame" xml:space="preserve">
+    <value>等待首帧</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeRectRootFormat" xml:space="preserve">
+    <value>节点：{0}`n相对坐标（相对整帧）`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6}</value>
+  </data>
+  <data name="SmartBpRegionConfigSaveFailedFormat" xml:space="preserve">
+    <value>保存配置失败：{0}</value>
+  </data>
+  <data name="SmartBpRegionConfigResetConfirm" xml:space="preserve">
+    <value>确认重置为内置 16:9 默认配置？当前配置将被覆盖。</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusFormat" xml:space="preserve">
+    <value>匹配状态：{0}</value>
+  </data>
+  <data name="SmartBpRegionEditorCurrentRect" xml:space="preserve">
+    <value>当前框相对坐标</value>
+  </data>
+  <data name="SmartBpRegionEditorRequireCaptureFirst" xml:space="preserve">
+    <value>请先启动捕获再编辑识别区域。</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeSelection" xml:space="preserve">
+    <value>节点选择</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow3" xml:space="preserve">
+    <value>求生者行3</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow1" xml:space="preserve">
+    <value>求生者行1</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow2" xml:space="preserve">
+    <value>求生者行2</value>
+  </data>
+  <data name="SmartBpRegionAspectHintNotStarted" xml:space="preserve">
+    <value>请先启动捕获后再检查比例。</value>
+  </data>
+  <data name="SmartBpRegionAspectHintWaitingFirstFrame" xml:space="preserve">
+    <value>捕获已启动，正在等待首帧用于比例匹配。</value>
+  </data>
+  <data name="SmartBpCaptureAspectRatioFormat" xml:space="preserve">
+    <value>当前捕获比例：{0}</value>
+  </data>
+  <data name="SmartBpRegionEditorRuleRuntimeFormat" xml:space="preserve">
+    <value>当前结构：{0}个可编辑节点（支持任意层级与数量）</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchRootCountFormat" xml:space="preserve">
+    <value>结构不匹配：期望 {0} 个大框，实际 {1} 个。</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusMatched" xml:space="preserve">
+    <value>匹配</value>
+  </data>
+  <data name="SmartBpRegionHunterRow" xml:space="preserve">
+    <value>监管者行</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeRectChildFormat" xml:space="preserve">
+    <value>节点：{0}`n相对坐标（相对父节点）`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6}</value>
+  </data>
+  <data name="SmartBpRegionAspectHintMismatched" xml:space="preserve">
+    <value>当前捕获比例与配置不一致，建议打开“编辑识别区域（GameData）”手动调整后保存。</value>
+  </data>
+  <data name="SmartBpRegionConfigResetTitle" xml:space="preserve">
+    <value>重置配置</value>
+  </data>
+  <data name="SmartBpRegionEditorRuleDefault" xml:space="preserve">
+    <value>当前规则：每行1个大框 + 6个小框</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidScene" xml:space="preserve">
+    <value>配置无效：scene 必须为 GameData。</value>
+  </data>
+  <data name="SmartBpRegionConfigSaved" xml:space="preserve">
+    <value>识别区域配置已保存。</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorDecodingProgress" xml:space="preserve">
+    <value>破译进度</value>
+  </data>
+  <data name="SmartBpRegionConfigImportFileNotFound" xml:space="preserve">
+    <value>导入失败：配置文件不存在。</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorPalletStrikes" xml:space="preserve">
+    <value>砸板命中</value>
+  </data>
+  <data name="SmartBpRegionCellHunterPalletsDestroyed" xml:space="preserve">
+    <value>踩板总数</value>
+  </data>
+  <data name="SmartBpRegionConfigImportFailedFormat" xml:space="preserve">
+    <value>导入失败：{0}</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateGroupSummaryFormat" xml:space="preserve">
+    <value>当前模板组：{0}，共 {1} 个元素。</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateMarkFormat" xml:space="preserve">
+    <value> [模板:{0}]</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidRowCount" xml:space="preserve">
+    <value>配置无效：必须包含 5 个大框。</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow4" xml:space="preserve">
+    <value>求生者行4</value>
+  </data>
+  <data name="SmartBpRegionAspectHintMatched" xml:space="preserve">
+    <value>当前比例匹配，可直接使用。</value>
+  </data>
+  <data name="SmartBpImportGameDataRegionConfig" xml:space="preserve">
+    <value>导入配置文件</value>
+  </data>
+  <data name="SmartBpEditGameDataRegion" xml:space="preserve">
+    <value>编辑识别区域</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorHeals" xml:space="preserve">
+    <value>治疗次数</value>
+  </data>
+  <data name="SmartBpRegionConfigImported" xml:space="preserve">
+    <value>已导入配置文件。</value>
+  </data>
+  <data name="SmartBpResetGameDataRegionConfig169" xml:space="preserve">
+    <value>重置配置（16:9）</value>
+  </data>
+  <data name="SmartBpRegionCellHunterKnockdowns" xml:space="preserve">
+    <value>击倒次数</value>
+  </data>
+  <data name="SmartBpRegionEditorSceneTitleFormat" xml:space="preserve">
+    <value>识别区域编辑（{0}）</value>
+  </data>
+  <data name="SmartBpRegionConfigImportEmpty" xml:space="preserve">
+    <value>导入失败：配置文件内容为空。</value>
+  </data>
+  <data name="SmartBpRegionEditorSelectNodeFirst" xml:space="preserve">
+    <value>请先选择一个节点</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorRescues" xml:space="preserve">
+    <value>救人次数</value>
+  </data>
+  <data name="SmartBpSceneGameData" xml:space="preserve">
+    <value>GameData</value>
+  </data>
+  <data name="SmartBpRegionConfigExportFailedFormat" xml:space="preserve">
+    <value>导出配置失败：{0}</value>
+  </data>
+  <data name="SmartBpExportGameDataRegionConfig" xml:space="preserve">
+    <value>导出配置文件</value>
+  </data>
+  <data name="SaveAs" xml:space="preserve">
+    <value>保存为</value>
+  </data>
+  <data name="SmartBpRegionConfigExportPathEmpty" xml:space="preserve">
+    <value>导出失败：目标路径不能为空。</value>
+  </data>
+  <data name="PluginMarketAuthorLabel" xml:space="preserve">
+    <value>作者：</value>
+  </data>
+  <data name="PluginMarketVersionLabel" xml:space="preserve">
+    <value>版本：</value>
+  </data>
+  <data name="PluginMarketSettingsTitle" xml:space="preserve">
+    <value>插件市场设置</value>
+  </data>
+  <data name="PluginMarketMirrorLabel" xml:space="preserve">
+    <value>Ghproxy</value>
+  </data>
+  <data name="PluginMarketCancelDownload" xml:space="preserve">
+    <value>取消下载</value>
+  </data>
+  <data name="PluginMarketDirectConnectionNoProxy" xml:space="preserve">
+    <value>直接连接（不使用代理）</value>
+  </data>
+  <data name="PluginMarketVersionTooLow" xml:space="preserve">
+    <value>版本过低</value>
+  </data>
+  <data name="PluginMarketVersionIncompatible" xml:space="preserve">
+    <value>版本不兼容</value>
+  </data>
+  <data name="PluginMarketHostVersionTooLow" xml:space="preserve">
+    <value>当前软件版本过低</value>
+  </data>
+  <data name="PluginMarketApiIncompatible" xml:space="preserve">
+    <value>API 不兼容</value>
+  </data>
+  <data name="PluginMarketUpdateAvailable" xml:space="preserve">
+    <value>有更新</value>
+  </data>
+  <data name="PluginMarketPendingUninstall" xml:space="preserve">
+    <value>待卸载</value>
+  </data>
+  <data name="PluginMarketInstallBlockedHostVersionTooLow" xml:space="preserve">
+    <value>当前软件版本过低，无法安装此插件。</value>
+  </data>
+  <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
+    <value>已有插件正在下载。</value>
+  </data>
 </root>
+

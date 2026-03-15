@@ -21,15 +21,23 @@
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <WrapPanel Orientation="Horizontal">
-        <Border Style="{StaticResource Card}">
+        <Border
+            Margin="0,0,10,10"
+            Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc SurvivorTalent}" />
-                <WrapPanel Grid.Row="1" Orientation="Horizontal">
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc SurvivorTalent}" />
+                <WrapPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
                     <controls:TalentPicker
                         Margin="0,0,10,10"
                         CharacterName="{Binding CurrentGame.SurPlayerList[0].Character.Name, Mode=OneWay}"
@@ -53,16 +61,21 @@
                 </WrapPanel>
             </Grid>
         </Border>
-        <Border Style="{StaticResource Card}">
+        <Border
+            Margin="0,0,10,10"
+            Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc HunterTalent}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc HunterTalent}" />
                 <controls:TalentPicker
                     Grid.Row="1"
-                    Margin="0,0,20,10"
+                    Margin="0,10,20,10"
                     HorizontalAlignment="Left"
                     CharacterName="{Binding CurrentGame.HunPlayer.Character.Name, Mode=OneWay}"
                     IsHighlighted="{Binding IsHunTalentHighlighted}"
@@ -70,7 +83,9 @@
                     Player="{Binding CurrentGame.HunPlayer}" />
             </Grid>
         </Border>
-        <Border Style="{StaticResource Card}">
+        <Border
+            Margin="0,0,10,10"
+            Style="{StaticResource Card}">
             <Border.Resources>
                 <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
                 <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
@@ -86,19 +101,26 @@
                 </Grid.Resources>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" Orientation="Horizontal">
-                    <TextBlock Text="{lex:Loc HunterTrait}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc HunterTrait}" />
+                <StackPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
                     <ui:ToggleSwitch
                         x:Name="IsTraitVisible"
-                        Margin="20,0,0,0"
+                        Margin="0,0,0,0"
                         d:IsChecked="True"
                         Content="{lex:Loc Enable}"
                         IsChecked="{Binding IsTraitVisible}" />
                 </StackPanel>
                 <WrapPanel
-                    Grid.Row="1"
+                    Grid.Row="2"
                     Margin="0,10,0,0"
                     Orientation="Horizontal"
                     Visibility="{Binding ElementName=IsTraitVisible, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}, Mode=TwoWay}">

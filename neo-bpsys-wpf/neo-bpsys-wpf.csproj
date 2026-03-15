@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net9.0-windows</TargetFramework>
+        <TargetFramework>net9.0-windows10.0.20348</TargetFramework>
         <RootNamespace>neo_bpsys_wpf</RootNamespace>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -9,18 +9,18 @@
         <ApplicationIcon>favicon.ico</ApplicationIcon>
         <Deterministic>False</Deterministic>
         <GenerateDocumentationFile>False</GenerateDocumentationFile>
+		<CETCompat>false</CETCompat>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <CETCompat>false</CETCompat>
         <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
-        <AssemblyVersion>2.0.0.0</AssemblyVersion>
-
-        <VersionPrefix>2.0.3</VersionPrefix>
+		<AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <VersionPrefix>2.1.0</VersionPrefix>
         <VersionSuffix></VersionSuffix>
         <Version>$(VersionPrefix)$(VersionSuffix)</Version>
         <FileVersion>$(VersionPrefix).0</FileVersion>
         <BuildMeta>local</BuildMeta>
         <InformationalVersion>v$(Version)+$(BuildMeta)</InformationalVersion>
-        <Configurations>Debug;Release;Beta</Configurations>
+        <Configurations>Debug;Release;Beta;Preview</Configurations>
+        <Platforms>AnyCPU;x64</Platforms>
         <!--
         版本号迭代原则：
         首位在出现大型重构或又非常重大更改时（如官方规则改变、UI重构）跟进
@@ -40,12 +40,31 @@
         <InformationalVersion>v$(Version)+$(BuildMeta)</InformationalVersion>
     </PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)'=='Preview'">
+		<Optimize>false</Optimize>
+		<DebugType>portable</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<DefineConstants>$(DefineConstants);PREVIEW</DefineConstants>
+		<VersionSuffix>-preview</VersionSuffix>
+		<Version>$(VersionPrefix)$(VersionSuffix)</Version>
+		<InformationalVersion>v$(Version)+$(BuildMeta)</InformationalVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Preview|AnyCPU'">
+	  <DefineConstants>$(DefineConstants);PREVIEW</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Preview|x64'">
+	  <DefineConstants>$(DefineConstants);PREVIEW</DefineConstants>
+	</PropertyGroup>
+
     <!-- Built-in plugins (list) -->
 
     <ItemGroup>
         <!-- Include = 插件 csproj 路径；FolderName = 复制到 Plugins\ 下的文件夹名 -->
         <BuiltinPlugin Include="..\Built-inPlugins\neo-bpsys-wpf.TeamJsonMaker\neo-bpsys-wpf.TeamJsonMaker.csproj">
             <FolderName>top.plfjy.bpsys.TeamJsonMaker</FolderName>
+            <PluginTargetFramework>net9.0-windows</PluginTargetFramework>
         </BuiltinPlugin>
     </ItemGroup>
 
@@ -63,7 +82,7 @@
         <MakeDir Directories="@(BuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
 
         <ItemGroup>
-            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\$(TargetFramework)\**\*.*">
+            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\%(BuiltinPlugin.PluginTargetFramework)\**\*.*">
                 <FolderName>%(BuiltinPlugin.FolderName)</FolderName>
             </_PluginFiles>
         </ItemGroup>
@@ -80,7 +99,7 @@
         <MakeDir Directories="@(BuiltinPlugin->'$(PluginsOutDir)%(FolderName)\')" />
 
         <ItemGroup>
-            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\$(TargetFramework)\**\*.*">
+            <_PluginFiles Include="$([System.IO.Path]::GetDirectoryName('%(BuiltinPlugin.FullPath)'))\bin\$(Configuration)\%(BuiltinPlugin.PluginTargetFramework)\**\*.*">
                 <FolderName>%(BuiltinPlugin.FolderName)</FolderName>
             </_PluginFiles>
         </ItemGroup>
@@ -148,17 +167,26 @@
         <Resource Include="Assets\wpfui.png" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Downloader" Version="4.0.3" />
-        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.2" />
-        <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.2" />
-        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+        <PackageReference Include="Downloader" Version="5.1.0" />
+        <PackageReference Include="F23.StringSimilarity" Version="7.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.5" />
+        <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.5" />
+        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
+        <PackageReference Include="OpenCvSharp4.Windows.Slim" Version="4.13.0.20260308" />
+        <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.13.0.20260308" />
         <PackageReference Include="PixiEditor.ColorPicker" Version="3.4.2.2" />
-        <PackageReference Include="Serilog" Version="4.3.0" />
+        <PackageReference Include="Sdcb.PaddleInference.runtime.win64.mkl" Version="3.1.0.54" />
+        <PackageReference Include="Sdcb.PaddleOCR" Version="3.0.1" />
+        <PackageReference Include="Sdcb.PaddleOCR.Models.Online" Version="3.0.1" />
+        <PackageReference Include="Serilog" Version="4.3.1" />
         <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
         <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
         <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
         <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+        <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
+        <PackageReference Include="System.Memory" Version="4.6.3" />
         <PackageReference Include="System.Net.Http" Version="4.3.4" />
+        <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
         <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
         <PackageReference Include="WPF-UI.DependencyInjection" Version="4.2.0" />
         <PackageReference Include="WPF-UI.Markdown" Version="4.0.2" />

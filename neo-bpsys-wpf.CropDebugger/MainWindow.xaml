@@ -1,0 +1,118 @@
+<Window x:Class="neo_bpsys_wpf.CropDebugger.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
+        mc:Ignorable="d"
+        Title="Mat Crop Debugger"
+        MinHeight="700"
+        MinWidth="1100">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <WrapPanel Grid.Row="0" Margin="0,0,0,8">
+            <Button Name="LoadImageButton" Width="120" Height="32" Margin="0,0,8,0" Click="LoadImageButton_OnClick">加载图片</Button>
+            <Button Name="ClearSelectionButton" Width="120" Height="32" Margin="0,0,8,0" Click="ClearSelectionButton_OnClick">清除框选</Button>
+            <Button Name="CopyRelativeRectButton" Width="150" Height="32" Margin="0,0,8,0" Click="CopyRelativeRectButton_OnClick">复制 RelativeRect</Button>
+            <TextBlock Name="ImageInfoText" VerticalAlignment="Center" Foreground="#555">未加载图片</TextBlock>
+        </WrapPanel>
+
+        <Grid Grid.Row="1" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Margin="0,0,8,0" VerticalAlignment="Top" FontWeight="SemiBold">框选结果:</TextBlock>
+            <StackPanel Grid.Column="1">
+                <TextBlock Name="PixelRectText" FontFamily="Consolas" />
+                <TextBlock Name="RelativeRectText" FontFamily="Consolas" Margin="0,2,0,0" />
+                <TextBox Name="RelativeRectCodeText"
+                         Margin="0,4,0,0"
+                         IsReadOnly="True"
+                         FontFamily="Consolas"
+                         BorderThickness="1"
+                         Padding="6" />
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="2" BorderBrush="#DDD" BorderThickness="1">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto"
+                          Background="#111">
+                <Canvas Name="EditorCanvas"
+                        Background="#222"
+                        MouseLeftButtonDown="EditorCanvas_OnMouseLeftButtonDown"
+                        MouseMove="EditorCanvas_OnMouseMove"
+                        MouseLeftButtonUp="EditorCanvas_OnMouseLeftButtonUp">
+                    <Image Name="SourceImage" Canvas.Left="0" Canvas.Top="0" SnapsToDevicePixels="True" />
+                    <Rectangle Name="SelectionRect"
+                               Stroke="#4FC3F7"
+                               StrokeThickness="2"
+                               Fill="#2250B4E6"
+                               Visibility="Collapsed" />
+                    <primitives:Thumb Name="HandleTopLeft" Width="10" Height="10" Cursor="SizeNWSE" DragDelta="ResizeHandle_OnDragDelta" DragStarted="ResizeHandle_OnDragStarted" DragCompleted="ResizeHandle_OnDragCompleted" Tag="TopLeft" Visibility="Collapsed">
+                        <primitives:Thumb.Template>
+                            <ControlTemplate TargetType="{x:Type primitives:Thumb}">
+                                <Border Background="#FFF" BorderBrush="#222" BorderThickness="1" CornerRadius="1" />
+                            </ControlTemplate>
+                        </primitives:Thumb.Template>
+                    </primitives:Thumb>
+                    <primitives:Thumb Name="HandleTopCenter" Width="10" Height="10" Cursor="SizeNS" DragDelta="ResizeHandle_OnDragDelta" DragStarted="ResizeHandle_OnDragStarted" DragCompleted="ResizeHandle_OnDragCompleted" Tag="Top" Visibility="Collapsed">
+                        <primitives:Thumb.Template>
+                            <ControlTemplate TargetType="{x:Type primitives:Thumb}">
+                                <Border Background="#FFF" BorderBrush="#222" BorderThickness="1" CornerRadius="1" />
+                            </ControlTemplate>
+                        </primitives:Thumb.Template>
+                    </primitives:Thumb>
+                    <primitives:Thumb Name="HandleTopRight" Width="10" Height="10" Cursor="SizeNESW" DragDelta="ResizeHandle_OnDragDelta" DragStarted="ResizeHandle_OnDragStarted" DragCompleted="ResizeHandle_OnDragCompleted" Tag="TopRight" Visibility="Collapsed">
+                        <primitives:Thumb.Template>
+                            <ControlTemplate TargetType="{x:Type primitives:Thumb}">
+                                <Border Background="#FFF" BorderBrush="#222" BorderThickness="1" CornerRadius="1" />
+                            </ControlTemplate>
+                        </primitives:Thumb.Template>
+                    </primitives:Thumb>
+                    <primitives:Thumb Name="HandleMiddleLeft" Width="10" Height="10" Cursor="SizeWE" DragDelta="ResizeHandle_OnDragDelta" DragStarted="ResizeHandle_OnDragStarted" DragCompleted="ResizeHandle_OnDragCompleted" Tag="Left" Visibility="Collapsed">
+                        <primitives:Thumb.Template>
+                            <ControlTemplate TargetType="{x:Type primitives:Thumb}">
+                                <Border Background="#FFF" BorderBrush="#222" BorderThickness="1" CornerRadius="1" />
+                            </ControlTemplate>
+                        </primitives:Thumb.Template>
+                    </primitives:Thumb>
+                    <primitives:Thumb Name="HandleMiddleRight" Width="10" Height="10" Cursor="SizeWE" DragDelta="ResizeHandle_OnDragDelta" DragStarted="ResizeHandle_OnDragStarted" DragCompleted="ResizeHandle_OnDragCompleted" Tag="Right" Visibility="Collapsed">
+                        <primitives:Thumb.Template>
+                            <ControlTemplate TargetType="{x:Type primitives:Thumb}">
+                                <Border Background="#FFF" BorderBrush="#222" BorderThickness="1" CornerRadius="1" />
+                            </ControlTemplate>
+                        </primitives:Thumb.Template>
+                    </primitives:Thumb>
+                    <primitives:Thumb Name="HandleBottomLeft" Width="10" Height="10" Cursor="SizeNESW" DragDelta="ResizeHandle_OnDragDelta" DragStarted="ResizeHandle_OnDragStarted" DragCompleted="ResizeHandle_OnDragCompleted" Tag="BottomLeft" Visibility="Collapsed">
+                        <primitives:Thumb.Template>
+                            <ControlTemplate TargetType="{x:Type primitives:Thumb}">
+                                <Border Background="#FFF" BorderBrush="#222" BorderThickness="1" CornerRadius="1" />
+                            </ControlTemplate>
+                        </primitives:Thumb.Template>
+                    </primitives:Thumb>
+                    <primitives:Thumb Name="HandleBottomCenter" Width="10" Height="10" Cursor="SizeNS" DragDelta="ResizeHandle_OnDragDelta" DragStarted="ResizeHandle_OnDragStarted" DragCompleted="ResizeHandle_OnDragCompleted" Tag="Bottom" Visibility="Collapsed">
+                        <primitives:Thumb.Template>
+                            <ControlTemplate TargetType="{x:Type primitives:Thumb}">
+                                <Border Background="#FFF" BorderBrush="#222" BorderThickness="1" CornerRadius="1" />
+                            </ControlTemplate>
+                        </primitives:Thumb.Template>
+                    </primitives:Thumb>
+                    <primitives:Thumb Name="HandleBottomRight" Width="10" Height="10" Cursor="SizeNWSE" DragDelta="ResizeHandle_OnDragDelta" DragStarted="ResizeHandle_OnDragStarted" DragCompleted="ResizeHandle_OnDragCompleted" Tag="BottomRight" Visibility="Collapsed">
+                        <primitives:Thumb.Template>
+                            <ControlTemplate TargetType="{x:Type primitives:Thumb}">
+                                <Border Background="#FFF" BorderBrush="#222" BorderThickness="1" CornerRadius="1" />
+                            </ControlTemplate>
+                        </primitives:Thumb.Template>
+                    </primitives:Thumb>
+                </Canvas>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Window>
