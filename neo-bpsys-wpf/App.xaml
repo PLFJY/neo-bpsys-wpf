@@ -18,6 +18,7 @@
                 <ui:ControlsDictionary />
                 <md:ThemesDictionary />
                 <md:ControlsDictionary />
+
                 <themes:IconThemesDictionary Theme="Dark" />
                 <ResourceDictionary Source="/Controls/CustomControlsStyleDictionary.xaml" />
                 <!--  Styles  -->
@@ -58,9 +59,6 @@
                 <Setter Property="FontWeight" Value="DemiBold" />
                 <Setter Property="FontSize" Value="18" />
             </Style>
-            <!--  Images  -->
-            <BitmapImage x:Key="surIcon" />
-            <BitmapImage x:Key="hunIcon" />
         </ResourceDictionary>
     </core:AppBase.Resources>
 </core:AppBase>

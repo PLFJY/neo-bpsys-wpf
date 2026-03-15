@@ -78,6 +78,7 @@ public partial class App
         services.AddSingleton<ISettingsHostService, SettingsHostService>();
         services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
         services.AddSingleton<IPluginService, PluginService>();
+        services.AddSingleton<IPluginMarketService, PluginMarketService>();
 
         //Views and ViewModels
         //Windows

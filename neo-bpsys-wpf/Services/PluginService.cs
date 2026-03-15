@@ -7,6 +7,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Helpers;
 using System.IO;
 using System.Reflection;
 using YamlDotNet.Serialization;
@@ -39,9 +40,6 @@ public class PluginService : IPluginService
             .IgnoreUnmatchedProperties()
             .WithNamingConvention(CamelCaseNamingConvention.Instance)
             .Build();
-        var minApiVersion = IAppHost.CoreVersion;
-        var hostApiVersion = typeof(PluginBase).Assembly.GetName().Version ?? minApiVersion;
-
         var pluginDirs = Directory.EnumerateDirectories(AppConstants.PluginPath);
 
         if (Directory.Exists(AppConstants.BuiltInPluginPath))
@@ -134,34 +132,14 @@ public class PluginService : IPluginService
 
             if (info.IsEnabled)
             {
-                if (!Version.TryParse(info.Manifest.ApiVersion, out var apiVersion))
+                var compatibility = PluginApiVersionHelper.Evaluate(info.Manifest.ApiVersion);
+                if (!compatibility.IsCompatible)
                 {
                     info.LoadStatus = PluginLoadStatus.Error;
-                    info.Exception =
-                        new InvalidOperationException(
-                            $"Invalid API version format: {info.Manifest.ApiVersion}. Expected a valid System.Version value (e.g. 2.0.0.0).");
-                    Logger?.LogWarning("Plugin API version format is invalid. PluginId: {PluginId}, ApiVersion: {ApiVersion}",
-                        manifest.Id, info.Manifest.ApiVersion);
-                }
-                else if (apiVersion.Major > hostApiVersion.Major)
-                {
-                    info.LoadStatus = PluginLoadStatus.Error;
-                    info.Exception =
-                        new InvalidOperationException(
-                            $"Plugin API version is too high: {apiVersion}. Current host supports {hostApiVersion.Major}.x API.");
+                    info.Exception = new InvalidOperationException(compatibility.Message);
                     Logger?.LogWarning(
-                        "Plugin API version is too high. PluginId: {PluginId}, PluginApiVersion: {PluginApiVersion}, HostApiVersion: {HostApiVersion}",
-                        manifest.Id, apiVersion, hostApiVersion);
-                }
-                else if (apiVersion < minApiVersion)
-                {
-                    info.LoadStatus = PluginLoadStatus.Error;
-                    info.Exception =
-                        new InvalidOperationException(
-                            $"Plugin API version is too low: {apiVersion}. The minimum required API version is {minApiVersion}.");
-                    Logger?.LogWarning(
-                        "Plugin API version is too low. PluginId: {PluginId}, PluginApiVersion: {PluginApiVersion}, MinApiVersion: {MinApiVersion}",
-                        manifest.Id, apiVersion, minApiVersion);
+                        "Plugin API version is incompatible. PluginId: {PluginId}, PluginApiVersion: {PluginApiVersion}, Message: {Message}",
+                        manifest.Id, info.Manifest.ApiVersion, compatibility.Message);
                 }
             }
         }

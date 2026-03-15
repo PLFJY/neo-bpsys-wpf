@@ -17,67 +17,83 @@
     Foreground="{DynamicResource TextFillColorTertiaryBrush}"
     mc:Ignorable="d">
     <Grid>
-        <StackPanel>
-            <Border VerticalAlignment="Top" CornerRadius="4">
-                <Grid>
-                    <Image Source="/Assets/HomePageHeader.png" />
-                    <StackPanel
-                        Margin="35,0,0,35"
-                        HorizontalAlignment="Left"
-                        VerticalAlignment="Bottom">
-                        <TextBlock
-                            FontSize="25"
-                            Foreground="White"
-                            Text="neo-bpsys-wpf" />
-                        <TextBlock
-                            Margin="0,10,0,0"
-                            FontSize="15"
-                            Foreground="White"
-                            Text="{lex:Loc AModernIdentityVBPSoftware}" />
-                        <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                            <ui:HyperlinkButton NavigateUri="https://bpsys.plfjy.top/">
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:SymbolIcon
-                                        Margin="0,0,0,0"
-                                        FontSize="20"
-                                        Foreground="LightGray"
-                                        Symbol="Link24" />
-                                    <TextBlock
-                                        Margin="5,0,0,0"
-                                        VerticalAlignment="Center"
-                                        FontSize="12"
-                                        Foreground="LightGray"
-                                        Text="{lex:Loc OfficialWebsite}" />
-                                </StackPanel>
-                            </ui:HyperlinkButton>
-                            <ui:HyperlinkButton NavigateUri="https://docs.bpsys.plfjy.top/">
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:SymbolIcon
-                                        Margin="0,0,0,0"
-                                        FontSize="20"
-                                        Foreground="LightGray"
-                                        Symbol="Link24" />
-                                    <TextBlock
-                                        Margin="5,0,0,0"
-                                        VerticalAlignment="Center"
-                                        FontSize="12"
-                                        Foreground="LightGray"
-                                        Text="{lex:Loc Documentations}" />
-                                </StackPanel>
-                            </ui:HyperlinkButton>
-                        </StackPanel>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border
+            Grid.Row="0"
+            VerticalAlignment="Top"
+            CornerRadius="4">
+            <Grid>
+                <Image Source="/Assets/HomePageHeader.png" />
+                <StackPanel
+                    Margin="35,0,0,35"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom">
+                    <TextBlock
+                        FontSize="25"
+                        Foreground="White"
+                        Text="neo-bpsys-wpf" />
+                    <TextBlock
+                        Margin="0,10,0,0"
+                        FontSize="15"
+                        Foreground="White"
+                        Text="{lex:Loc AModernIdentityVBPSoftware}" />
+                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                        <ui:HyperlinkButton NavigateUri="https://bpsys.plfjy.top/">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon
+                                    Margin="0,0,0,0"
+                                    FontSize="20"
+                                    Foreground="LightGray"
+                                    Symbol="Link24" />
+                                <TextBlock
+                                    Margin="5,0,0,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    Foreground="LightGray"
+                                    Text="{lex:Loc OfficialWebsite}" />
+                            </StackPanel>
+                        </ui:HyperlinkButton>
+                        <ui:HyperlinkButton NavigateUri="https://docs.bpsys.plfjy.top/">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon
+                                    Margin="0,0,0,0"
+                                    FontSize="20"
+                                    Foreground="LightGray"
+                                    Symbol="Link24" />
+                                <TextBlock
+                                    Margin="5,0,0,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    Foreground="LightGray"
+                                    Text="{lex:Loc Documentations}" />
+                            </StackPanel>
+                        </ui:HyperlinkButton>
                     </StackPanel>
-                </Grid>
-            </Border>
-            <ui:CardExpander Margin="10,10,10,0" IsExpanded="{Binding IsExpanded}">
-                <ui:CardExpander.Header>
-                    <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon FontSize="20" Symbol="SlideTextMultiple24" />
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc ReleaseNotes}" />
-                    </StackPanel>
-                </ui:CardExpander.Header>
-                <md:MarkdownViewer FontFamily="{StaticResource NotoSans}" Markdown="{Binding ReleaseNotes}" />
-            </ui:CardExpander>
-        </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <ui:CardExpander
+            Grid.Row="1"
+            Margin="10,10,10,0"
+            VerticalAlignment="Stretch"
+            IsExpanded="{Binding IsExpanded}">
+            <ui:CardExpander.Header>
+                <StackPanel Orientation="Horizontal">
+                    <ui:SymbolIcon FontSize="20" Symbol="SlideTextMultiple24" />
+                    <TextBlock Margin="10,0,0,0" Text="{lex:Loc ReleaseNotes}" />
+                </StackPanel>
+            </ui:CardExpander.Header>
+            <md:MarkdownViewer
+                MinHeight="0"
+                PreviewMouseWheel="ReleaseNotesMarkdownViewer_OnPreviewMouseWheel"
+                VerticalAlignment="Stretch"
+                FontFamily="{StaticResource NotoSans}"
+                Markdown="{Binding ReleaseNotes}" />
+        </ui:CardExpander>
     </Grid>
 </Page>
