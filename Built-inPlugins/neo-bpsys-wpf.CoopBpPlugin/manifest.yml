@@ -1,9 +1,0 @@
-id: GLM-5.CoopBpPlugin
-name: CoopBpPlugin
-description: 联机BP插件，支持远程多人合作BP。
-entranceAssembly: "neo-bpsys-wpf.CoopBpPlugin.dll"
-url: https://github.com/PLFJY/neo-bpsys-wpf
-version: 0.0.2.0
-apiVersion: 2.0.0.0
-author: GLM-5
-icon: icon.png
