@@ -8,6 +8,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -85,7 +86,11 @@ public class PluginMarketService : IPluginMarketService
 
         var response = await _httpClient.GetAsync(item.ResolvedReadmeUrl, cancellationToken);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsStringAsync(cancellationToken);
+        var markdown = await response.Content.ReadAsStringAsync(cancellationToken);
+        var baseReadmeUrl = Uri.TryCreate(item.Readme, UriKind.Absolute, out _)
+            ? item.Readme
+            : item.ResolvedReadmeUrl;
+        return RewriteRelativeMarkdownLinks(markdown, baseReadmeUrl);
     }
 
     public async Task<PluginPackageDownloadResult> DownloadPluginPackageAsync(PluginMarketItem item,
@@ -310,5 +315,81 @@ public class PluginMarketService : IPluginMarketService
         {
             Directory.Delete(extractPath, true);
         }
+    }
+
+    private static string RewriteRelativeMarkdownLinks(string markdown, string baseUrl)
+    {
+        if (string.IsNullOrWhiteSpace(markdown)
+            || string.IsNullOrWhiteSpace(baseUrl)
+            || !Uri.TryCreate(baseUrl, UriKind.Absolute, out var baseUri))
+        {
+            return markdown;
+        }
+
+        markdown = Regex.Replace(
+            markdown,
+            @"(?<prefix>!\[[^\]]*\]\()(?<target>[^)\s]+)(?<suffix>[^)]*\))",
+            match => RewriteMarkdownTarget(match, "target", baseUri),
+            RegexOptions.CultureInvariant);
+
+        markdown = Regex.Replace(
+            markdown,
+            @"(?<prefix>(?<!!)\[[^\]]+\]\()(?<target>[^)\s]+)(?<suffix>[^)]*\))",
+            match => RewriteMarkdownTarget(match, "target", baseUri),
+            RegexOptions.CultureInvariant);
+
+        markdown = Regex.Replace(
+            markdown,
+            @"(?m)^(?<prefix>\[[^\]]+\]:\s*)(?<target>\S+)(?<suffix>.*)$",
+            match => RewriteMarkdownTarget(match, "target", baseUri),
+            RegexOptions.CultureInvariant);
+
+        markdown = Regex.Replace(
+            markdown,
+            "(?<attr>href|src)=(?<quote>[\"'])(?<target>[^\"'#][^\"']*)(?<quote2>[\"'])",
+            match => RewriteHtmlAttributeTarget(match, "target", baseUri),
+            RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
+        return markdown;
+    }
+
+    private static string RewriteMarkdownTarget(Match match, string groupName, Uri baseUri)
+    {
+        var target = match.Groups[groupName].Value;
+        var resolved = ResolveRelativeTarget(target, baseUri);
+        if (resolved == null)
+        {
+            return match.Value;
+        }
+
+        return match.Value.Replace(target, resolved, StringComparison.Ordinal);
+    }
+
+    private static string RewriteHtmlAttributeTarget(Match match, string groupName, Uri baseUri)
+    {
+        var target = match.Groups[groupName].Value;
+        var resolved = ResolveRelativeTarget(target, baseUri);
+        if (resolved == null)
+        {
+            return match.Value;
+        }
+
+        return match.Value.Replace(target, resolved, StringComparison.Ordinal);
+    }
+
+    private static string? ResolveRelativeTarget(string target, Uri baseUri)
+    {
+        if (string.IsNullOrWhiteSpace(target)
+            || target.StartsWith('#')
+            || target.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase)
+            || target.StartsWith("javascript:", StringComparison.OrdinalIgnoreCase)
+            || Uri.TryCreate(target, UriKind.Absolute, out _))
+        {
+            return null;
+        }
+
+        return Uri.TryCreate(baseUri, target, out var resolvedUri)
+            ? resolvedUri.AbsoluteUri
+            : null;
     }
 }

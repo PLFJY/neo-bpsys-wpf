@@ -525,6 +525,7 @@
                                 </StackPanel>
 
                                 <md:MarkdownViewer
+                                    x:Name="PluginReadmeMarkdownViewer"
                                     Grid.Row="4"
                                     MinHeight="0"
                                     Margin="10"

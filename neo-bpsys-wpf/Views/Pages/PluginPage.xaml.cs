@@ -1,4 +1,7 @@
-﻿using System.Windows.Controls;
+using System.Diagnostics;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Navigation;
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
 using Wpf.Ui.Controls;
@@ -17,5 +20,18 @@ public partial class PluginPage : Page
     public PluginPage()
     {
         InitializeComponent();
+        PluginReadmeMarkdownViewer.AddHandler(
+            Hyperlink.RequestNavigateEvent,
+            new RequestNavigateEventHandler(PluginReadmeMarkdownViewer_OnRequestNavigate));
+    }
+
+    private static void PluginReadmeMarkdownViewer_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
+    {
+        if (e.Uri == null)
+        {
+            return;
+        }
+
+        e.Handled = true;
     }
 }
