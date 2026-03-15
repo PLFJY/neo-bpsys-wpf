@@ -11,6 +11,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Models.Plugins;
 using neo_bpsys_wpf.Views.Windows;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -90,7 +91,19 @@ public partial class SettingPageViewModel : ViewModelBase
         UpdaterService.CancelDownload();
     }
 
-    public ObservableCollection<string> MirrorList { get; } = new(DownloadMirrorPresets.GhProxyMirrorList);
+    public ObservableCollection<PluginMarketMirrorOption> MirrorList { get; } = CreateMirrorList();
+
+    private static ObservableCollection<PluginMarketMirrorOption> CreateMirrorList()
+    {
+        return new ObservableCollection<PluginMarketMirrorOption>(DownloadMirrorPresets.GhProxyMirrorList.Select(
+            mirror => new PluginMarketMirrorOption
+            {
+                DisplayNameKey = string.IsNullOrWhiteSpace(mirror)
+                    ? "PluginMarketDirectConnectionNoProxy"
+                    : mirror,
+                Value = mirror
+            }));
+    }
 
     #endregion
 }

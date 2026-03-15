@@ -71,13 +71,13 @@ public partial class PluginMarketItem : ObservableObjectBase
     private bool _isApiTooLow;
 
     [ObservableProperty]
-    private string _marketStatusText = string.Empty;
+    private string _marketStatusKey = string.Empty;
 
     [ObservableProperty]
     private bool _isStatusVisible;
 
     [ObservableProperty]
-    private string _primaryActionText = "安装";
+    private string _primaryActionKey = "Install";
 
     [ObservableProperty]
     private bool _canExecutePrimaryAction = true;
@@ -89,5 +89,5 @@ public partial class PluginMarketItem : ObservableObjectBase
     private string _compatibilityMessage = string.Empty;
 
     [ObservableProperty]
-    private string _uninstallActionText = "卸载";
+    private string _uninstallActionKey = "Uninstall";
 }

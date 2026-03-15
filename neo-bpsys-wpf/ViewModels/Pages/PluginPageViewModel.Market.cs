@@ -79,24 +79,7 @@ public partial class PluginPageViewModel
 
     private void InitializePluginMarket()
     {
-        PluginMarketMirrorOptions.Clear();
-        foreach (var mirror in DownloadMirrorPresets.GhProxyMirrorList)
-        {
-            PluginMarketMirrorOptions.Add(new PluginMarketMirrorOption
-            {
-                DisplayName = string.IsNullOrWhiteSpace(mirror) ? "直接连接（不使用代理）" : mirror,
-                Value = mirror
-            });
-        }
-
-        if (!PluginMarketMirrorOptions.Any(x => x.Value == _settingsHostService.Settings.PluginMarketMirror))
-        {
-            PluginMarketMirrorOptions.Insert(0, new PluginMarketMirrorOption
-            {
-                DisplayName = _settingsHostService.Settings.PluginMarketMirror,
-                Value = _settingsHostService.Settings.PluginMarketMirror
-            });
-        }
+        RebuildPluginMarketMirrorOptions();
 
         SelectedPluginMarketMirror = _settingsHostService.Settings.PluginMarketMirror;
         _pluginMarketService.DownloadStateChanged += PluginMarketService_DownloadStateChanged;
@@ -263,7 +246,9 @@ public partial class PluginPageViewModel
         item.LocalPlugin = localPlugin;
         item.IsInstalled = localPlugin != null;
         item.CanUninstall = localPlugin != null;
-        item.UninstallActionText = localPlugin?.IsUninstalling == true ? "取消卸载" : "卸载";
+        item.UninstallActionKey = localPlugin?.IsUninstalling == true
+            ? "CancelUninstall"
+            : "Uninstall";
         item.IsApiCompatible = compatibility.IsCompatible;
         item.IsHostVersionTooLow = compatibility.IsTooHigh;
         item.IsApiTooLow = compatibility.IsTooLow || !compatibility.IsFormatValid;
@@ -280,34 +265,40 @@ public partial class PluginPageViewModel
 
         if (!compatibility.IsCompatible)
         {
-            item.PrimaryActionText = compatibility.IsTooHigh ? "版本过低" : "版本不兼容";
+            item.PrimaryActionKey = compatibility.IsTooHigh
+                ? "PluginMarketVersionTooLow"
+                : "PluginMarketVersionIncompatible";
             item.CanExecutePrimaryAction = false;
-            item.MarketStatusText = compatibility.IsTooHigh ? "当前软件版本过低" : "API 不兼容";
+            item.MarketStatusKey = compatibility.IsTooHigh
+                ? "PluginMarketHostVersionTooLow"
+                : "PluginMarketApiIncompatible";
             item.IsStatusVisible = true;
             return;
         }
 
         if (item.HasUpdateAvailable)
         {
-            item.PrimaryActionText = "更新";
+            item.PrimaryActionKey = "Update";
             item.CanExecutePrimaryAction = true;
-            item.MarketStatusText = "有更新";
+            item.MarketStatusKey = "PluginMarketUpdateAvailable";
             item.IsStatusVisible = true;
             return;
         }
 
         if (item.IsInstalled)
         {
-            item.PrimaryActionText = "已安装";
+            item.PrimaryActionKey = "Installed";
             item.CanExecutePrimaryAction = false;
-            item.MarketStatusText = localPlugin?.IsUninstalling == true ? "待卸载" : "已安装";
+            item.MarketStatusKey = localPlugin?.IsUninstalling == true
+                ? "PluginMarketPendingUninstall"
+                : "Installed";
             item.IsStatusVisible = true;
             return;
         }
 
-        item.PrimaryActionText = "安装";
+        item.PrimaryActionKey = "Install";
         item.CanExecutePrimaryAction = true;
-        item.MarketStatusText = string.Empty;
+        item.MarketStatusKey = string.Empty;
         item.IsStatusVisible = false;
     }
 
@@ -335,7 +326,9 @@ public partial class PluginPageViewModel
         var compatibility = PluginApiVersionHelper.Evaluate(manifest.ApiVersion);
         if (!compatibility.IsCompatible)
         {
-            throw new InvalidOperationException(compatibility.IsTooHigh ? "当前软件版本过低，无法安装此插件。" : compatibility.Message);
+            throw new InvalidOperationException(compatibility.IsTooHigh
+                ? I18nHelper.GetLocalizedString("PluginMarketInstallBlockedHostVersionTooLow")
+                : compatibility.Message);
         }
 
         var pluginFolderPath = Path.Combine(AppConstants.PluginPath, manifest.Id);
@@ -394,5 +387,39 @@ public partial class PluginPageViewModel
         }
 
         return string.Compare(remoteVersion, localVersion, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void RebuildPluginMarketMirrorOptions()
+    {
+        var selectedMirror = SelectedPluginMarketMirror;
+        PluginMarketMirrorOptions.Clear();
+        foreach (var mirror in DownloadMirrorPresets.GhProxyMirrorList)
+        {
+            PluginMarketMirrorOptions.Add(new PluginMarketMirrorOption
+            {
+                DisplayNameKey = string.IsNullOrWhiteSpace(mirror)
+                    ? "PluginMarketDirectConnectionNoProxy"
+                    : mirror,
+                Value = mirror
+            });
+        }
+
+        if (!PluginMarketMirrorOptions.Any(x => x.Value == _settingsHostService.Settings.PluginMarketMirror))
+        {
+            PluginMarketMirrorOptions.Insert(0, new PluginMarketMirrorOption
+            {
+                DisplayNameKey = _settingsHostService.Settings.PluginMarketMirror,
+                Value = _settingsHostService.Settings.PluginMarketMirror
+            });
+        }
+
+        SelectedPluginMarketMirror = string.IsNullOrWhiteSpace(selectedMirror)
+            ? _settingsHostService.Settings.PluginMarketMirror
+            : selectedMirror;
+    }
+
+    private static string FormatLocalized(string key, params object[] args)
+    {
+        return string.Format(I18nHelper.GetLocalizedString(key), args);
     }
 }

@@ -1774,5 +1774,47 @@
   <data name="SmartBpRegionConfigExportPathEmpty" xml:space="preserve">
     <value>Export failed: target path cannot be empty.</value>
   </data>
+  <data name="PluginMarketAuthorLabel" xml:space="preserve">
+    <value>Author: </value>
+  </data>
+  <data name="PluginMarketVersionLabel" xml:space="preserve">
+    <value>Version: </value>
+  </data>
+  <data name="PluginMarketSettingsTitle" xml:space="preserve">
+    <value>Plugin Market Settings</value>
+  </data>
+  <data name="PluginMarketMirrorLabel" xml:space="preserve">
+    <value>Ghproxy</value>
+  </data>
+  <data name="PluginMarketCancelDownload" xml:space="preserve">
+    <value>Cancel Download</value>
+  </data>
+  <data name="PluginMarketDirectConnectionNoProxy" xml:space="preserve">
+    <value>Direct Connection (No Proxy)</value>
+  </data>
+  <data name="PluginMarketVersionTooLow" xml:space="preserve">
+    <value>Version Too Low</value>
+  </data>
+  <data name="PluginMarketVersionIncompatible" xml:space="preserve">
+    <value>Incompatible Version</value>
+  </data>
+  <data name="PluginMarketHostVersionTooLow" xml:space="preserve">
+    <value>Host Version Too Low</value>
+  </data>
+  <data name="PluginMarketApiIncompatible" xml:space="preserve">
+    <value>API Incompatible</value>
+  </data>
+  <data name="PluginMarketUpdateAvailable" xml:space="preserve">
+    <value>Update Available</value>
+  </data>
+  <data name="PluginMarketPendingUninstall" xml:space="preserve">
+    <value>Pending Uninstall</value>
+  </data>
+  <data name="PluginMarketInstallBlockedHostVersionTooLow" xml:space="preserve">
+    <value>The current app version is too low to install this plugin.</value>
+  </data>
+  <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
+    <value>Another plugin is already downloading.</value>
+  </data>
 </root>
 

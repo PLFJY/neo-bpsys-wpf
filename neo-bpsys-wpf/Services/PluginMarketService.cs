@@ -109,7 +109,7 @@ public class PluginMarketService : IPluginMarketService
         {
             if (IsDownloading)
             {
-                throw new InvalidOperationException("已有插件正在下载。");
+                throw new InvalidOperationException(I18nHelper.GetLocalizedString("PluginMarketDownloadAlreadyInProgress"));
             }
 
             IsDownloading = true;

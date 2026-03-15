@@ -141,8 +141,14 @@
                             <ComboBox
                                 Margin="10,0,0,0"
                                 ItemsSource="{Binding MirrorList}"
-                                SelectedIndex="0"
-                                SelectedValue="{Binding Mirror}" />
+                                SelectedValue="{Binding Mirror}"
+                                SelectedValuePath="Value">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{lex:Loc {Binding DisplayNameKey}, FallbackBehavior=Key}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                             <TextBlock
                                 Margin="10,0,0,0"
                                 VerticalAlignment="Center"

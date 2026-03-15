@@ -1792,5 +1792,47 @@
   <data name="SmartBpRegionConfigExportPathEmpty" xml:space="preserve">
     <value>导出失败：目标路径不能为空。</value>
   </data>
+  <data name="PluginMarketAuthorLabel" xml:space="preserve">
+    <value>作者：</value>
+  </data>
+  <data name="PluginMarketVersionLabel" xml:space="preserve">
+    <value>版本：</value>
+  </data>
+  <data name="PluginMarketSettingsTitle" xml:space="preserve">
+    <value>插件市场设置</value>
+  </data>
+  <data name="PluginMarketMirrorLabel" xml:space="preserve">
+    <value>Ghproxy</value>
+  </data>
+  <data name="PluginMarketCancelDownload" xml:space="preserve">
+    <value>取消下载</value>
+  </data>
+  <data name="PluginMarketDirectConnectionNoProxy" xml:space="preserve">
+    <value>直接连接（不使用代理）</value>
+  </data>
+  <data name="PluginMarketVersionTooLow" xml:space="preserve">
+    <value>版本过低</value>
+  </data>
+  <data name="PluginMarketVersionIncompatible" xml:space="preserve">
+    <value>版本不兼容</value>
+  </data>
+  <data name="PluginMarketHostVersionTooLow" xml:space="preserve">
+    <value>当前软件版本过低</value>
+  </data>
+  <data name="PluginMarketApiIncompatible" xml:space="preserve">
+    <value>API 不兼容</value>
+  </data>
+  <data name="PluginMarketUpdateAvailable" xml:space="preserve">
+    <value>有更新</value>
+  </data>
+  <data name="PluginMarketPendingUninstall" xml:space="preserve">
+    <value>待卸载</value>
+  </data>
+  <data name="PluginMarketInstallBlockedHostVersionTooLow" xml:space="preserve">
+    <value>当前软件版本过低，无法安装此插件。</value>
+  </data>
+  <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
+    <value>已有插件正在下载。</value>
+  </data>
 </root>
 

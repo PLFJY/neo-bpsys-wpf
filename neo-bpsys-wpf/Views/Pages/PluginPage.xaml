@@ -259,11 +259,11 @@
                             <ui:Button
                                 Margin="0,0,10,0"
                                 Command="{Binding RefreshMarketCommand}"
-                                Content="刷新"
+                                Content="{lex:Loc Refresh}"
                                 Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
                             <ui:Button
                                 Command="{Binding TogglePluginMarketSettingsCommand}"
-                                Content="设置"
+                                Content="{lex:Loc Settings}"
                                 Icon="{ui:SymbolIcon Symbol=Settings24}" />
                         </StackPanel>
                     </Grid>
@@ -362,20 +362,24 @@
                                                         <TextBlock
                                                             Grid.Row="2"
                                                             Margin="0,10,0,0"
-                                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                                            Text="{Binding Author, StringFormat='作者：{0}'}" />
+                                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}">
+                                                            <Run Text="{lex:Loc PluginMarketAuthorLabel}" />
+                                                            <Run Text="{Binding Author}" />
+                                                        </TextBlock>
 
                                                         <TextBlock
                                                             Grid.Row="3"
                                                             Margin="0,6,0,0"
-                                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                                            Text="{Binding Version, StringFormat='版本：{0}'}" />
+                                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}">
+                                                            <Run Text="{lex:Loc PluginMarketVersionLabel}" />
+                                                            <Run Text="{Binding Version}" />
+                                                        </TextBlock>
 
                                                         <TextBlock
                                                             Grid.Row="4"
                                                             Margin="0,8,0,0"
                                                             Foreground="DarkOrange"
-                                                            Text="{Binding MarketStatusText}"
+                                                            Text="{lex:Loc {Binding MarketStatusKey}, FallbackBehavior=Key}"
                                                             Visibility="{Binding IsStatusVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                                     </Grid>
                                                 </Border>
@@ -457,7 +461,7 @@
                                         Grid.Column="1"
                                         Margin="0,8,10,0"
                                         Command="{Binding DataContext.CloseMarketPluginDetailsCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                        Content="关闭"
+                                        Content="{lex:Loc Close}"
                                         Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
                                 </Grid>
 
@@ -465,10 +469,10 @@
                                     Grid.Row="1"
                                     Margin="10,10,10,0"
                                     Orientation="Horizontal">
-                                    <TextBlock
-                                        VerticalAlignment="Center"
-                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                        Text="{Binding Author, StringFormat='作者：{0}'}" />
+                                    <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
+                                        <Run Text="{lex:Loc PluginMarketAuthorLabel}" />
+                                        <Run Text="{Binding Author}" />
+                                    </TextBlock>
                                     <ui:HyperlinkButton
                                         Margin="10,0,0,0"
                                         Content="{Binding Url}"
@@ -485,13 +489,13 @@
                                     <StackPanel Orientation="Horizontal">
                                         <ui:Button
                                             Command="{Binding DataContext.ExecutePrimaryMarketActionCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                            Content="{Binding PrimaryActionText}"
+                                            Content="{lex:Loc {Binding PrimaryActionKey}, FallbackBehavior=Key}"
                                             Icon="{ui:SymbolIcon Symbol=ArrowDownload24}"
                                             IsEnabled="{Binding CanExecutePrimaryAction}" />
                                         <ui:Button
                                             Margin="10,0,0,0"
                                             Command="{Binding DataContext.ToggleSelectedMarketPluginUninstallCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                            Content="{Binding UninstallActionText}"
+                                            Content="{lex:Loc {Binding UninstallActionKey}, FallbackBehavior=Key}"
                                             Icon="{ui:SymbolIcon Symbol=Delete24}"
                                             IsEnabled="{Binding CanUninstall}" />
                                     </StackPanel>
@@ -514,7 +518,7 @@
                                             <ui:Button
                                                 Margin="10,0,0,0"
                                                 Command="{Binding DataContext.CancelPluginMarketDownloadCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                Content="取消下载"
+                                                Content="{lex:Loc PluginMarketCancelDownload}"
                                                 Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
                                         </StackPanel>
                                     </StackPanel>
@@ -532,7 +536,7 @@
                         </Border>
 
                         <Border
-                            Width="280"
+                            Width="380"
                             Padding="14"
                             HorizontalAlignment="Right"
                             VerticalAlignment="Stretch"
@@ -547,18 +551,18 @@
                                     <TextBlock
                                         FontSize="18"
                                         FontWeight="SemiBold"
-                                        Text="插件市场设置" />
+                                        Text="{lex:Loc PluginMarketSettingsTitle}" />
                                     <ui:Button
                                         HorizontalAlignment="Right"
                                         Command="{Binding TogglePluginMarketSettingsCommand}"
-                                        Content="关闭"
+                                        Content="{lex:Loc Close}"
                                         Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
                                 </Grid>
 
                                 <TextBlock
                                     Margin="0,14,0,0"
                                     Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                    Text="Ghproxy" />
+                                    Text="{lex:Loc PluginMarketMirrorLabel}" />
                                 <ComboBox
                                     Margin="0,8,0,0"
                                     ItemsSource="{Binding PluginMarketMirrorOptions}"
@@ -566,7 +570,7 @@
                                     SelectedValuePath="Value">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding DisplayName}" />
+                                            <TextBlock Text="{lex:Loc {Binding DisplayNameKey}, FallbackBehavior=Key}" />
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
