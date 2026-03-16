@@ -92,10 +92,15 @@ public partial class PluginPageViewModel
         if (App.Current.Dispatcher.CheckAccess())
         {
             RefreshDownloadState();
+            TryInstallCompletedPluginDownload();
         }
         else
         {
-            App.Current.Dispatcher.Invoke(RefreshDownloadState);
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                RefreshDownloadState();
+                TryInstallCompletedPluginDownload();
+            });
         }
     }
 
@@ -155,9 +160,7 @@ public partial class PluginPageViewModel
 
         try
         {
-            var result = await _pluginMarketService.DownloadPluginPackageAsync(SelectedMarketPlugin);
-            InstallPluginFromExtractedDirectory(result.ExtractedDirectoryPath);
-            RefreshMarketPluginStates();
+            await _pluginMarketService.DownloadPluginPackageAsync(SelectedMarketPlugin);
         }
         catch (OperationCanceledException)
         {
@@ -421,5 +424,25 @@ public partial class PluginPageViewModel
     private static string FormatLocalized(string key, params object[] args)
     {
         return string.Format(I18nHelper.GetLocalizedString(key), args);
+    }
+
+    private void TryInstallCompletedPluginDownload()
+    {
+        var result = _pluginMarketService.ConsumeCompletedDownload();
+        if (result == null)
+        {
+            return;
+        }
+
+        try
+        {
+            InstallPluginFromExtractedDirectory(result.ExtractedDirectoryPath);
+            RefreshMarketPluginStates();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error when installing downloaded plugin package");
+            _ = MessageBoxHelper.ShowErrorAsync(ex.Message);
+        }
     }
 }

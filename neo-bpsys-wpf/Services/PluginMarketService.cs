@@ -9,6 +9,7 @@ using System.IO.Compression;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -24,6 +25,7 @@ public class PluginMarketService : IPluginMarketService
     private readonly Lock _downloadLock = new();
     private CancellationTokenSource? _downloadCts;
     private readonly Dictionary<string, string> _resolvedMirrorCache = new(StringComparer.Ordinal);
+    private PluginPackageDownloadResult? _completedDownloadResult;
 
     public PluginMarketService(ILogger<PluginMarketService> logger, ISettingsHostService settingsHostService)
     {
@@ -44,6 +46,8 @@ public class PluginMarketService : IPluginMarketService
     }
 
     public bool IsDownloading { get; private set; }
+
+    public bool IsDownloadFinished { get; private set; }
 
     public double DownloadProgress { get; private set; }
 
@@ -96,18 +100,19 @@ public class PluginMarketService : IPluginMarketService
     public async Task<PluginPackageDownloadResult> DownloadPluginPackageAsync(PluginMarketItem item,
         CancellationToken cancellationToken = default)
     {
-        var tempZipPath = Path.Combine(AppConstants.AppTempPath, $"plugin-market-{item.Id}.zip");
-        var extractPath = Path.Combine(AppConstants.AppTempPath, "PluginMarket", item.Id);
+        var downloadSessionPath = Path.Combine(
+            AppConstants.AppTempPath,
+            "PluginMarket",
+            item.Id,
+            Guid.NewGuid().ToString("N"));
+        var tempZipPath = Path.Combine(downloadSessionPath, "package.zip");
+        var extractPath = Path.Combine(downloadSessionPath, "extract");
 
-        if (File.Exists(tempZipPath))
+        if (Directory.Exists(downloadSessionPath))
         {
-            File.Delete(tempZipPath);
+            Directory.Delete(downloadSessionPath, true);
         }
-
-        if (Directory.Exists(extractPath))
-        {
-            Directory.Delete(extractPath, true);
-        }
+        Directory.CreateDirectory(downloadSessionPath);
 
         CancellationTokenSource localCts;
         lock (_downloadLock)
@@ -118,10 +123,12 @@ public class PluginMarketService : IPluginMarketService
             }
 
             IsDownloading = true;
+            IsDownloadFinished = false;
             DownloadProgress = 0;
             DownloadBytesPerSecond = 0;
             CurrentDownloadPluginId = item.Id;
-            _downloadCts = new CancellationTokenSource();
+            _completedDownloadResult = null;
+            _downloadCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             localCts = _downloadCts;
         }
 
@@ -130,28 +137,43 @@ public class PluginMarketService : IPluginMarketService
         try
         {
             await _downloader.DownloadFileTaskAsync(item.ResolvedDownloadUrl, tempZipPath);
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (localCts.IsCancellationRequested)
-            {
-                throw new OperationCanceledException(localCts.Token);
-            }
+            localCts.Token.ThrowIfCancellationRequested();
+            await EnsureDownloadedZipReadyAsync(tempZipPath, localCts.Token);
 
             Directory.CreateDirectory(extractPath);
             ZipFile.ExtractToDirectory(tempZipPath, extractPath, true);
 
-            return new PluginPackageDownloadResult
+            var result = new PluginPackageDownloadResult
             {
                 ExtractedDirectoryPath = extractPath
             };
+
+            lock (_downloadLock)
+            {
+                _completedDownloadResult = result;
+                IsDownloadFinished = true;
+            }
+
+            RaiseDownloadStateChanged();
+            return result;
         }
         catch (OperationCanceledException)
         {
+            lock (_downloadLock)
+            {
+                IsDownloadFinished = false;
+                _completedDownloadResult = null;
+            }
             CleanupDownloadArtifacts(tempZipPath, extractPath);
             throw;
         }
         catch (Exception ex)
         {
+            lock (_downloadLock)
+            {
+                IsDownloadFinished = false;
+                _completedDownloadResult = null;
+            }
             CleanupDownloadArtifacts(tempZipPath, extractPath);
             _logger.LogError(ex, "Error downloading plugin package for {PluginId}", item.Id);
             throw;
@@ -185,6 +207,22 @@ public class PluginMarketService : IPluginMarketService
         }
 
         _downloader.CancelAsync();
+    }
+
+    public PluginPackageDownloadResult? ConsumeCompletedDownload()
+    {
+        lock (_downloadLock)
+        {
+            if (!IsDownloadFinished || _completedDownloadResult == null)
+            {
+                return null;
+            }
+
+            var result = _completedDownloadResult;
+            _completedDownloadResult = null;
+            IsDownloadFinished = false;
+            return result;
+        }
     }
 
     public void ResetMirrorCache()
@@ -315,6 +353,42 @@ public class PluginMarketService : IPluginMarketService
         {
             Directory.Delete(extractPath, true);
         }
+    }
+
+    private static async Task EnsureDownloadedZipReadyAsync(string zipPath, CancellationToken cancellationToken)
+    {
+        var timeout = TimeSpan.FromSeconds(5);
+        var stopwatch = Stopwatch.StartNew();
+
+        while (stopwatch.Elapsed < timeout)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (File.Exists(zipPath))
+            {
+                try
+                {
+                    var fileInfo = new FileInfo(zipPath);
+                    if (fileInfo.Length > 0)
+                    {
+                        using var stream = new FileStream(zipPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                        using var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: false);
+                        _ = archive.Entries.Count;
+                        return;
+                    }
+                }
+                catch (IOException)
+                {
+                }
+                catch (InvalidDataException)
+                {
+                }
+            }
+
+            await Task.Delay(150, cancellationToken);
+        }
+
+        throw new IOException($"Downloaded plugin package is missing or incomplete: {zipPath}");
     }
 
     private static string RewriteRelativeMarkdownLinks(string markdown, string baseUrl)

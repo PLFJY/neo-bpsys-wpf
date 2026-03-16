@@ -6,6 +6,8 @@ public interface IPluginMarketService
 {
     bool IsDownloading { get; }
 
+    bool IsDownloadFinished { get; }
+
     double DownloadProgress { get; }
 
     double DownloadBytesPerSecond { get; }
@@ -20,6 +22,8 @@ public interface IPluginMarketService
 
     Task<PluginPackageDownloadResult> DownloadPluginPackageAsync(PluginMarketItem item,
         CancellationToken cancellationToken = default);
+
+    PluginPackageDownloadResult? ConsumeCompletedDownload();
 
     void CancelDownload();
 
