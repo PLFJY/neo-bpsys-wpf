@@ -564,6 +564,11 @@
                                     Margin="0,14,0,0"
                                     Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                     Text="{lex:Loc PluginMarketMirrorLabel}" />
+                                <TextBlock
+                                    Margin="0,6,0,0"
+                                    Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                    Text="{lex:Loc PluginMarketMirrorSyncHint}"
+                                    TextWrapping="Wrap" />
                                 <ComboBox
                                     Margin="0,8,0,0"
                                     ItemsSource="{Binding PluginMarketMirrorOptions}"

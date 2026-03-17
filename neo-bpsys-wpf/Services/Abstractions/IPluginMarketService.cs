@@ -1,6 +1,6 @@
 using neo_bpsys_wpf.Models.Plugins;
 
-namespace neo_bpsys_wpf.Services;
+namespace neo_bpsys_wpf.Services.Abstractions;
 
 public interface IPluginMarketService
 {

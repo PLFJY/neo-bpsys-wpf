@@ -21,12 +21,7 @@ public class UpdaterService : IUpdaterService
 {
     public string NewVersion { get; set; } = string.Empty;
     public ReleaseInfo NewVersionInfo { get; set; } = new();
-    public bool IsFindPreRelease { get; set; } =
-#if BETA
-        true;
-#else
-        false;
-#endif
+    public bool IsFindPreRelease { get; set; }
     private readonly DownloadService _downloader;
     public object Downloader => _downloader;
     public bool IsDownloading { get; private set; }
@@ -51,6 +46,7 @@ public class UpdaterService : IUpdaterService
         _infoBarService = infoBarService;
         _logger = logger;
         _settingsHostService = settingsHostService;
+        IsFindPreRelease = _settingsHostService.Settings.IsFindPreRelease;
         var downloadOpt = new DownloadConfiguration()
         {
             ChunkCount = 8,
@@ -80,6 +76,7 @@ public class UpdaterService : IUpdaterService
     /// </summary>
     public async Task DownloadUpdate(string mirror = "")
     {
+        mirror = string.IsNullOrWhiteSpace(mirror) ? _settingsHostService.Settings.GhProxyMirror : mirror;
         var asset = NewVersionInfo.Assets.FirstOrDefault(a => a.Name == InstallerFileName);
         if (asset == null || string.IsNullOrWhiteSpace(asset.BrowserDownloadUrl))
         {
@@ -181,6 +178,7 @@ public class UpdaterService : IUpdaterService
     /// <returns>如果有新版本则返回true，反之为false</returns>
     public async Task<bool> UpdateCheck(bool isInitial = false, string mirror = "")
     {
+        mirror = string.IsNullOrWhiteSpace(mirror) ? _settingsHostService.Settings.GhProxyMirror : mirror;
         await GetNewVersionInfoAsync();
         if (string.IsNullOrEmpty(NewVersionInfo.TagName))
         {

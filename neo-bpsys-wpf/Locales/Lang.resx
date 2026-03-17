@@ -133,7 +133,7 @@
     <value>应用更新</value>
   </data>
   <data name="DownloadSource" xml:space="preserve">
-    <value>下载源：</value>
+    <value>下载源（此设置将同步至插件市场）：</value>
   </data>
   <data name="DownloadPreviewVersion" xml:space="preserve">
     <value>下载预览版？</value>
@@ -1803,6 +1803,9 @@
   </data>
   <data name="PluginMarketMirrorLabel" xml:space="preserve">
     <value>Ghproxy</value>
+  </data>
+  <data name="PluginMarketMirrorSyncHint" xml:space="preserve">
+    <value>此设置将同步至应用更新</value>
   </data>
   <data name="PluginMarketCancelDownload" xml:space="preserve">
     <value>取消下载</value>

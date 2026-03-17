@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Extensions.Registry;
+using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;

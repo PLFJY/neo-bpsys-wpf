@@ -12,6 +12,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Views.Windows;
+using neo_bpsys_wpf.Services.Abstractions;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -48,12 +49,14 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly IFrontedWindowService _frontedWindowService;
     private readonly IFilePickerService _filePickerService;
     private readonly ISharedDataService _sharedDataService;
+    private readonly IPluginMarketService _pluginMarketService;
     private readonly ILogger<SettingPageViewModel> _logger;
     public IUpdaterService UpdaterService { get; }
 
     public SettingPageViewModel(IUpdaterService updaterService, ISettingsHostService settingsHostService,
         ITextSettingsNavigationService textSettingsNavigationService, IFrontedWindowService frontedWindowService,
         IFilePickerService filePickerService, ISharedDataService sharedDataService,
+        IPluginMarketService pluginMarketService,
         ILogger<SettingPageViewModel> logger)
     {
         AppVersion = AppConstants.AppVersion;
@@ -63,10 +66,13 @@ public partial class SettingPageViewModel : ViewModelBase
         _frontedWindowService = frontedWindowService;
         _filePickerService = filePickerService;
         _sharedDataService = sharedDataService;
+        _pluginMarketService = pluginMarketService;
         _logger = logger;
 
         UpdaterService.DownloadStateChanged += UpdaterService_DownloadStateChanged;
         RefreshUpdateDownloadState();
+        _settingsHostService.Settings.PropertyChanged += Settings_PropertyChanged;
+        SyncMirrorFromSettings();
 
         _systemFonts = [.. _systemFonts, .. FontsHelper.GetSystemFonts()];
 
@@ -160,6 +166,23 @@ public partial class SettingPageViewModel : ViewModelBase
 
         //读取设置语言
         SelectedLanguage = _settingsHostService.Settings.Language;
+    }
+
+    private void Settings_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(Settings.GhProxyMirror))
+        {
+            return;
+        }
+
+        if (Application.Current.Dispatcher.CheckAccess())
+        {
+            SyncMirrorFromSettings();
+        }
+        else
+        {
+            Application.Current.Dispatcher.Invoke(SyncMirrorFromSettings);
+        }
     }
 
     #region 调试选项

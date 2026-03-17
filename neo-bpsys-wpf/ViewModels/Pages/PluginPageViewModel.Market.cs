@@ -16,6 +16,7 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 public partial class PluginPageViewModel
 {
     private bool _isPluginMarketInitialized;
+    private bool _isSyncingGlobalMirror;
 
     [ObservableProperty]
     private ObservableCollection<PluginMarketItem> _marketPluginsCollection;
@@ -69,22 +70,40 @@ public partial class PluginPageViewModel
 
     partial void OnSelectedPluginMarketMirrorChanged(string value)
     {
-        if (!_isPluginMarketInitialized || _settingsHostService == null)
+        if (!_isPluginMarketInitialized || _settingsHostService == null || _isSyncingGlobalMirror)
         {
             return;
         }
 
-        _ = PersistPluginMarketMirrorAsync(value);
+        _ = PersistGhProxyMirrorAsync(value);
     }
 
     private void InitializePluginMarket()
     {
         RebuildPluginMarketMirrorOptions();
 
-        SelectedPluginMarketMirror = _settingsHostService.Settings.PluginMarketMirror;
+        _settingsHostService.Settings.PropertyChanged += Settings_PropertyChanged;
+        SelectedPluginMarketMirror = _settingsHostService.Settings.GhProxyMirror;
         _pluginMarketService.DownloadStateChanged += PluginMarketService_DownloadStateChanged;
         _isPluginMarketInitialized = true;
         _ = RefreshMarketAsync();
+    }
+
+    private void Settings_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(Core.Models.Settings.GhProxyMirror))
+        {
+            return;
+        }
+
+        if (App.Current.Dispatcher.CheckAccess())
+        {
+            SyncPluginMarketMirrorFromSettings();
+        }
+        else
+        {
+            App.Current.Dispatcher.Invoke(SyncPluginMarketMirrorFromSettings);
+        }
     }
 
     private void PluginMarketService_DownloadStateChanged(object? sender, EventArgs e)
@@ -197,12 +216,11 @@ public partial class PluginPageViewModel
         _pluginMarketService.CancelDownload();
     }
 
-    private async Task PersistPluginMarketMirrorAsync(string value)
+    private async Task PersistGhProxyMirrorAsync(string value)
     {
-        _settingsHostService.Settings.PluginMarketMirror = value;
+        _settingsHostService.Settings.GhProxyMirror = value;
         _pluginMarketService.ResetMirrorCache();
         await _settingsHostService.SaveConfigAsync();
-        await RefreshMarketAsync();
     }
 
     private async Task LoadSelectedPluginReadmeAsync(PluginMarketItem? item)
@@ -350,10 +368,20 @@ public partial class PluginPageViewModel
 
             Directory.Move(tempFolderPath, pluginFolderPath);
 
-            var local = PluginsCollection.First(x => x.Manifest.Id == manifest.Id);
-            local.IsRestartRequired = true;
-            local.NewVersion = manifest.Version;
-            local.IsNewVersionInstalled = true;
+            var local = PluginsCollection.FirstOrDefault(x => x.Manifest.Id == manifest.Id);
+            if (local != null)
+            {
+                local.IsRestartRequired = true;
+                local.NewVersion = manifest.Version;
+                local.IsNewVersionInstalled = true;
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Plugin directory already exists for {PluginId}, but no matching plugin info was found in the current collection. Update was staged and will apply after restart.",
+                    manifest.Id);
+            }
+
             IsRestartNeeded = true;
             return;
         }
@@ -394,7 +422,9 @@ public partial class PluginPageViewModel
 
     private void RebuildPluginMarketMirrorOptions()
     {
-        var selectedMirror = SelectedPluginMarketMirror;
+        var selectedMirror = string.IsNullOrWhiteSpace(SelectedPluginMarketMirror)
+            ? _settingsHostService.Settings.GhProxyMirror
+            : SelectedPluginMarketMirror;
         PluginMarketMirrorOptions.Clear();
         foreach (var mirror in DownloadMirrorPresets.GhProxyMirrorList)
         {
@@ -407,18 +437,33 @@ public partial class PluginPageViewModel
             });
         }
 
-        if (!PluginMarketMirrorOptions.Any(x => x.Value == _settingsHostService.Settings.PluginMarketMirror))
+        if (!string.IsNullOrWhiteSpace(_settingsHostService.Settings.GhProxyMirror)
+            && !PluginMarketMirrorOptions.Any(x => x.Value == _settingsHostService.Settings.GhProxyMirror))
         {
             PluginMarketMirrorOptions.Insert(0, new PluginMarketMirrorOption
             {
-                DisplayNameKey = _settingsHostService.Settings.PluginMarketMirror,
-                Value = _settingsHostService.Settings.PluginMarketMirror
+                DisplayNameKey = _settingsHostService.Settings.GhProxyMirror,
+                Value = _settingsHostService.Settings.GhProxyMirror
             });
         }
 
         SelectedPluginMarketMirror = string.IsNullOrWhiteSpace(selectedMirror)
-            ? _settingsHostService.Settings.PluginMarketMirror
+            ? _settingsHostService.Settings.GhProxyMirror
             : selectedMirror;
+    }
+
+    private void SyncPluginMarketMirrorFromSettings()
+    {
+        _isSyncingGlobalMirror = true;
+        try
+        {
+            RebuildPluginMarketMirrorOptions();
+            SelectedPluginMarketMirror = _settingsHostService.Settings.GhProxyMirror;
+        }
+        finally
+        {
+            _isSyncingGlobalMirror = false;
+        }
     }
 
     private static string FormatLocalized(string key, params object[] args)

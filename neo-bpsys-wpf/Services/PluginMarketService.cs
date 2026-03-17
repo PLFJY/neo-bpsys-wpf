@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models.Plugins;
+using neo_bpsys_wpf.Services.Abstractions;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
@@ -245,7 +246,7 @@ public class PluginMarketService : IPluginMarketService
             return url;
         }
 
-        var preferredMirror = _settingsHostService.Settings.PluginMarketMirror;
+        var preferredMirror = _settingsHostService.Settings.GhProxyMirror;
         if (string.IsNullOrWhiteSpace(preferredMirror))
         {
             return url;

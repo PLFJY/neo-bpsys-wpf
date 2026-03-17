@@ -21,7 +21,16 @@ public partial class Settings : ObservableObjectBase
 
     public string? OcrModelKey { get; set; }
 
-    public string PluginMarketMirror { get; set; } = "https://ghproxy.net/";
+    [ObservableProperty]
+    private string _ghProxyMirror = "https://ghproxy.net/";
+
+    [ObservableProperty]
+    private bool _isFindPreRelease =
+#if BETA
+        true;
+#else
+        false;
+#endif
 
     private LanguageKey _language = LanguageKey.System;
 

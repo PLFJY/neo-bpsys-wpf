@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models.Plugins;
+using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
 using System.IO;

@@ -133,7 +133,7 @@
     <value>ソフトウェア更新</value>
   </data>
   <data name="DownloadSource" xml:space="preserve">
-    <value>ダウンロード元：</value>
+    <value>ダウンロード元（この設定はプラグインマーケットにも同期されます）：</value>
   </data>
   <data name="DownloadPreviewVersion" xml:space="preserve">
     <value>プレビュー版をダウンロードしますか？</value>
@@ -1788,6 +1788,9 @@
   </data>
   <data name="PluginMarketMirrorLabel" xml:space="preserve">
     <value>Ghproxy</value>
+  </data>
+  <data name="PluginMarketMirrorSyncHint" xml:space="preserve">
+    <value>この設定はアプリ更新にも同期されます</value>
   </data>
   <data name="PluginMarketCancelDownload" xml:space="preserve">
     <value>ダウンロードをキャンセル</value>

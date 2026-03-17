@@ -133,7 +133,7 @@
     <value>Software updates</value>
   </data>
   <data name="DownloadSource" xml:space="preserve">
-    <value>Download source</value>
+    <value>Download source (this setting syncs to the plugin market)</value>
   </data>
   <data name="DownloadPreviewVersion" xml:space="preserve">
     <value>Download preview version?</value>
@@ -1785,6 +1785,9 @@
   </data>
   <data name="PluginMarketMirrorLabel" xml:space="preserve">
     <value>Ghproxy</value>
+  </data>
+  <data name="PluginMarketMirrorSyncHint" xml:space="preserve">
+    <value>This setting syncs to app updates</value>
   </data>
   <data name="PluginMarketCancelDownload" xml:space="preserve">
     <value>Cancel Download</value>

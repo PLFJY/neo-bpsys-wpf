@@ -29,6 +29,8 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 public partial class SettingPageViewModel : ViewModelBase
 {
     #region 自动更新
+    private bool _isSyncingMirror;
+    private bool _isSyncingPreRelease;
 
     [ObservableProperty] private string _appVersion = string.Empty;
 
@@ -44,7 +46,43 @@ public partial class SettingPageViewModel : ViewModelBase
 
     [ObservableProperty] private string _mbPerSecondSpeed = string.Empty;
 
-    public string Mirror { get; set; } = DownloadMirrorPresets.DefaultMirror;
+    [ObservableProperty] private string _mirror = DownloadMirrorPresets.DefaultMirror;
+    
+    [ObservableProperty] private bool _isFindPreRelease;
+
+    public ObservableCollection<PluginMarketMirrorOption> MirrorList { get; } =
+        new(DownloadMirrorPresets.GhProxyMirrorList.Select(
+            mirror => new PluginMarketMirrorOption
+            {
+                DisplayNameKey = string.IsNullOrWhiteSpace(mirror)
+                    ? "PluginMarketDirectConnectionNoProxy"
+                    : mirror,
+                Value = mirror
+            }));
+
+    partial void OnMirrorChanged(string value)
+    {
+        if (_isSyncingMirror || _settingsHostService == null)
+        {
+            return;
+        }
+
+        _settingsHostService.Settings.GhProxyMirror = value;
+        _pluginMarketService.ResetMirrorCache();
+        _ = _settingsHostService.SaveConfigAsync();
+    }
+
+    partial void OnIsFindPreReleaseChanged(bool value)
+    {
+        if (_isSyncingPreRelease || _settingsHostService == null)
+        {
+            return;
+        }
+
+        _settingsHostService.Settings.IsFindPreRelease = value;
+        UpdaterService.IsFindPreRelease = value;
+        _ = _settingsHostService.SaveConfigAsync();
+    }
 
     private void UpdaterService_DownloadStateChanged(object? sender, EventArgs e)
     {
@@ -90,19 +128,23 @@ public partial class SettingPageViewModel : ViewModelBase
     {
         UpdaterService.CancelDownload();
     }
-
-    public ObservableCollection<PluginMarketMirrorOption> MirrorList { get; } = CreateMirrorList();
-
-    private static ObservableCollection<PluginMarketMirrorOption> CreateMirrorList()
+    
+    private void SyncMirrorFromSettings()
     {
-        return new ObservableCollection<PluginMarketMirrorOption>(DownloadMirrorPresets.GhProxyMirrorList.Select(
-            mirror => new PluginMarketMirrorOption
-            {
-                DisplayNameKey = string.IsNullOrWhiteSpace(mirror)
-                    ? "PluginMarketDirectConnectionNoProxy"
-                    : mirror,
-                Value = mirror
-            }));
+        var mirror = _settingsHostService.Settings.GhProxyMirror;
+        _isSyncingMirror = true;
+        _isSyncingPreRelease = true;
+        try
+        {
+            Mirror = mirror;
+            IsFindPreRelease = _settingsHostService.Settings.IsFindPreRelease;
+            UpdaterService.IsFindPreRelease = IsFindPreRelease;
+        }
+        finally
+        {
+            _isSyncingMirror = false;
+            _isSyncingPreRelease = false;
+        }
     }
 
     #endregion
