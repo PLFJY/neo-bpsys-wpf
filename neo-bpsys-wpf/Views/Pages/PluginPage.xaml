@@ -384,6 +384,16 @@
                                                             Grid.Row="2"
                                                             Margin="0,10,0,0"
                                                             Foreground="{DynamicResource TextFillColorTertiaryBrush}">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Author}" Value="">
+                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
                                                             <Run Text="{lex:Loc PluginMarketAuthorLabel}" />
                                                             <Run Text="{Binding Author}" />
                                                         </TextBlock>
@@ -622,13 +632,34 @@
                                     Margin="10,10,10,0"
                                     Orientation="Horizontal">
                                     <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Author}" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
                                         <Run Text="{lex:Loc PluginMarketAuthorLabel}" />
                                         <Run Text="{Binding Author}" />
                                     </TextBlock>
                                     <ui:HyperlinkButton
                                         Margin="10,0,0,0"
                                         Content="{Binding Url}"
-                                        NavigateUri="{Binding Url}" />
+                                        NavigateUri="{Binding Url}">
+                                        <ui:HyperlinkButton.Style>
+                                            <Style BasedOn="{StaticResource {x:Type ui:HyperlinkButton}}" TargetType="ui:HyperlinkButton">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Url}" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ui:HyperlinkButton.Style>
+                                    </ui:HyperlinkButton>
                                 </StackPanel>
 
                                 <TextBlock

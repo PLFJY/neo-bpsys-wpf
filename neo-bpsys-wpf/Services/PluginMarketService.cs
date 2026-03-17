@@ -102,6 +102,13 @@ public class PluginMarketService : IPluginMarketService
         foreach (var (key, value) in dictionary.OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase))
         {
             value.Id = string.IsNullOrWhiteSpace(value.Id) ? key : value.Id;
+            value.Name = string.IsNullOrWhiteSpace(value.Name) ? value.Id : value.Name;
+            value.Description ??= string.Empty;
+            value.Author ??= string.Empty;
+            value.Icon ??= string.Empty;
+            value.Readme ??= string.Empty;
+            value.Url ??= string.Empty;
+            value.DownloadUrl ??= string.Empty;
             value.ResolvedIconUrl = await ResolveGitHubUrlAsync(value.Icon, cancellationToken);
             value.ResolvedReadmeUrl = await ResolveGitHubUrlAsync(value.Readme, cancellationToken);
             value.ResolvedDownloadUrl = await ResolveGitHubUrlAsync(value.DownloadUrl, cancellationToken);

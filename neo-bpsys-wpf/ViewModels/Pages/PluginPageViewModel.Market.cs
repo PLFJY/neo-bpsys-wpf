@@ -418,7 +418,7 @@ public partial class PluginPageViewModel
 
         if (string.IsNullOrWhiteSpace(item.ResolvedReadmeUrl))
         {
-            item.ReadmeMarkdown = "暂无 README";
+            item.ReadmeMarkdown = string.Empty;
             return;
         }
 
