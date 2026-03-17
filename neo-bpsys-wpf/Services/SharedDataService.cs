@@ -67,11 +67,8 @@ public partial class SharedDataService : ISharedDataService
             HandleBanCollectionChanged(BanListName.CanGlobalHunBanned, e);
 
         GlobalScoreTotalMargin = _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreTotalMargin;
-
-
         _timer.Interval = TimeSpan.FromSeconds(1);
         _timer.Tick += Timer_Tick;
-        _logger.LogInformation("SharedDataService initialized");
 
         SubscribeCurrentGameRelatedEvents(CurrentGame);
         _settingsHostService.LanguageSettingChanged += (sender, args) => ReadCharaListFromFile(args.CultureInfo);
@@ -116,8 +113,6 @@ public partial class SharedDataService : ISharedDataService
         }
 
         WeakReferenceMessenger.Default.Send(new CharacterDictChangedMessage(this));
-
-        _logger.LogInformation("CharacterDict loaded");
     }
 
     #endregion
@@ -193,7 +188,6 @@ public partial class SharedDataService : ISharedDataService
         _ = MessageBoxHelper.ShowInfoAsync(
             $"{I18nHelper.GetLocalizedString("NewGameHasBeenCreated")}\n{CurrentGame.Guid}",
             I18nHelper.GetLocalizedString("CreateTip"), I18nHelper.GetLocalizedString("Cancel"));
-        _logger.LogInformation("New Game Created{CurrentGameGuid}", CurrentGame.Guid);
     }
 
     public async Task ImportGameAsync(string filePath)
@@ -392,8 +386,6 @@ public partial class SharedDataService : ISharedDataService
             default:
                 throw new ArgumentOutOfRangeException(nameof(listName), listName, null);
         }
-
-        _logger.LogInformation("{BanListName} set ban count to {Count}", listName, count);
     }
 
     /// <summary>
@@ -450,7 +442,6 @@ public partial class SharedDataService : ISharedDataService
         _remainingSeconds = (int)seconds;
         _timer.Start();
         CountDownValueChanged?.Invoke(this, EventArgs.Empty);
-        _logger.LogInformation("Timer started with {Seconds} seconds", seconds);
     }
 
     public void TimerStop()
@@ -458,7 +449,6 @@ public partial class SharedDataService : ISharedDataService
         _remainingSeconds = -1;
         _timer.Stop();
         CountDownValueChanged?.Invoke(this, EventArgs.Empty);
-        _logger.LogInformation("Timer stopped");
     }
 
     #endregion
@@ -477,7 +467,6 @@ public partial class SharedDataService : ISharedDataService
             var oldValue = _isTraitVisible;
             _isTraitVisible = value;
             IsTraitVisibleChanged?.Invoke(this, EventArgs.Empty);
-            _logger.LogInformation("IsTraitVisible changed to {Value}", value);
         }
     }
 
@@ -497,7 +486,6 @@ public partial class SharedDataService : ISharedDataService
             WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsBo3Mode), oldValue,
                 value));
             IsBo3ModeChanged?.Invoke(this, EventArgs.Empty);
-            _logger.LogInformation("IsBo3Mode changed to {Value}", value);
         }
     }
 
@@ -516,7 +504,6 @@ public partial class SharedDataService : ISharedDataService
             _globalScoreTotalMargin = value;
 
             GlobalScoreTotalMarginChanged?.Invoke(this, EventArgs.Empty);
-            _logger.LogInformation("GlobalScoreTotalMargin changed to {Value}", value);
         }
     }
 

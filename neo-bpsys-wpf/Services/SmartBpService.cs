@@ -94,7 +94,7 @@ public class SmartBpService : ISmartBpService
         {
             if (!_windowCaptureService.IsCapturing)
             {
-                _logger.LogInformation("SmartBp auto BP skipped: capture is not running.");
+                _logger.LogDebug("SmartBp auto BP skipped: capture is not running.");
                 return;
             }
 
@@ -115,14 +115,14 @@ public class SmartBpService : ISmartBpService
         {
             if (!IsOcrReady())
             {
-                _logger.LogWarning("SmartBp AutoFill skipped: OCR model is not ready.");
+                _logger.LogDebug("SmartBp AutoFill skipped: OCR model is not ready.");
                 await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("SmartBpOcrNotReadyFirstDownloadAndSwitchModel"));
                 return;
             }
 
             if (!_windowCaptureService.IsCapturing)
             {
-                _logger.LogInformation("SmartBp AutoFill skipped: capture is not running.");
+                _logger.LogDebug("SmartBp AutoFill skipped: capture is not running.");
                 return;
             }
 
@@ -132,16 +132,16 @@ public class SmartBpService : ISmartBpService
 
             if (recognizedData == null)
             {
-                _logger.LogInformation("SmartBp AutoFill finished with no result.");
+                _logger.LogDebug("SmartBp AutoFill finished with no result.");
                 return;
             }
 
             ApplyRecognizedData(recognizedData);
-            _logger.LogInformation("SmartBp AutoFill succeeded: {SurvivorCount} survivor rows applied.", recognizedData.SurvivorInfos.Count);
+            _logger.LogDebug("SmartBp AutoFill succeeded: {SurvivorCount} survivor rows applied.", recognizedData.SurvivorInfos.Count);
         }
         catch (OperationCanceledException)
         {
-            _logger.LogInformation("SmartBp AutoFill canceled.");
+            _logger.LogDebug("SmartBp AutoFill canceled.");
         }
         catch (Exception ex)
         {
@@ -251,7 +251,7 @@ public class SmartBpService : ISmartBpService
     {
         var (playerName, characterName) = GetSurPlayerNameAndCharacterName(surRow, rowProfile);
         var data = GetSurPlayerData(surRow, rowProfile);
-        _logger.LogInformation(
+        _logger.LogDebug(
             "SmartBp OCR Survivor row={RowId}: player={PlayerName}, character={CharacterName}, values=[{Decoding},{Pallet},{Rescue},{Heal},{Contain}]",
             rowProfile.Id,
             ToLogText(playerName),
@@ -308,14 +308,14 @@ public class SmartBpService : ISmartBpService
 
             if (sur == null)
             {
-                _logger.LogWarning(
+                _logger.LogDebug(
                     "SmartBp Match failed: recognizedCharacter={Character}, threshold={Threshold}",
                     ToLogText(target),
                     threshold);
                 continue;
             }
 
-            _logger.LogInformation(
+            _logger.LogDebug(
                 "SmartBp Match success: mode={Mode}, recognizedCharacter={Character}, mappedTo={MappedCharacter}, score={Score:F3}",
                 matchMode,
                 ToLogText(target),
@@ -351,7 +351,7 @@ public class SmartBpService : ISmartBpService
     {
         var hunCharacterName = GetHunPlayerNameAndCharacterName(hunter, rowProfile);
         var data = GetHunPlayerData(hunter, rowProfile);
-        _logger.LogInformation(
+        _logger.LogDebug(
             "SmartBp OCR Hunter row={RowId}: player={PlayerName}, character={CharacterName}, values=[{Cipher},{Pallets},{Hits},{Terror},{Knockdowns}]",
             rowProfile.Id,
             ToLogText(hunCharacterName.Item1),
@@ -380,7 +380,7 @@ public class SmartBpService : ISmartBpService
         using var name = new Mat(surRow, nameRect);
         using var bin = PreprocessForText(name);
         var text = _ocrService.RecognizeText(bin) ?? string.Empty;
-        _logger.LogInformation("SmartBp OCR Survivor Name row={RowId}: raw={Raw}", rowProfile.Id, ToLogText(text));
+        _logger.LogDebug("SmartBp OCR Survivor Name row={RowId}: raw={Raw}", rowProfile.Id, ToLogText(text));
         return GetPlayerNameAndCharacterName(text);
     }
 
@@ -421,7 +421,7 @@ public class SmartBpService : ISmartBpService
         using var name = new Mat(hunter, nameRect);
         using var bin = PreprocessForText(name);
         var hunterText = _ocrService.RecognizeText(bin) ?? string.Empty;
-        _logger.LogInformation("SmartBp OCR Hunter Name row={RowId}: raw={Raw}", rowProfile.Id, ToLogText(hunterText));
+        _logger.LogDebug("SmartBp OCR Hunter Name row={RowId}: raw={Raw}", rowProfile.Id, ToLogText(hunterText));
         return GetPlayerNameAndCharacterName(hunterText);
     }
 
@@ -492,7 +492,7 @@ public class SmartBpService : ISmartBpService
         var batchValues = TryGetRowDataValuesBySingleOcr(row, dataColumns, out var batchRawText);
         if (batchValues != null)
         {
-            _logger.LogInformation(
+            _logger.LogDebug(
                 "SmartBp OCR RowData batch row={RowId}: raw={Raw}, parsed=[{D1},{D2},{D3},{D4},{D5}]",
                 rowProfile.Id,
                 ToLogText(batchRawText),
@@ -513,7 +513,7 @@ public class SmartBpService : ISmartBpService
             GetData(row, dataColumns[3]),
             GetData(row, dataColumns[4])
         ];
-        _logger.LogInformation(
+        _logger.LogDebug(
             "SmartBp OCR RowData fallback row={RowId}: values=[{D1},{D2},{D3},{D4},{D5}]",
             rowProfile.Id,
             fallback[0],

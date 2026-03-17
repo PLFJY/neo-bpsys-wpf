@@ -27,13 +27,13 @@ public class PluginService : IPluginService
 
     public static void InitializePlugins(HostBuilderContext context, IServiceCollection services)
     {
-        Logger?.LogInformation("Initializing plugins. PluginPath: {PluginPath}, BuiltInPluginPath: {BuiltInPluginPath}",
+        Logger?.LogDebug("Initializing plugins. PluginPath: {PluginPath}, BuiltInPluginPath: {BuiltInPluginPath}",
             AppConstants.PluginPath, AppConstants.BuiltInPluginPath);
 
         if (!Directory.Exists(AppConstants.PluginPath))
         {
             Directory.CreateDirectory(AppConstants.PluginPath);
-            Logger?.LogInformation("Created plugin directory: {PluginPath}", AppConstants.PluginPath);
+            Logger?.LogDebug("Created plugin directory: {PluginPath}", AppConstants.PluginPath);
         }
 
         var deserializer = new DeserializerBuilder()
@@ -60,11 +60,11 @@ public class PluginService : IPluginService
                 {
                     var target = Path.Combine(AppConstants.PluginPath, Path.GetFileName(plugin));
                     MoveAndOverwrite(plugin, target);
-                    Logger?.LogInformation("Applied staged plugin update from {Source} to {Target}", plugin, target);
+                    Logger?.LogDebug("Applied staged plugin update from {Source} to {Target}", plugin, target);
                 }
 
                 Directory.Delete(newPath, true);
-                Logger?.LogInformation("Removed staged plugin update directory: {Path}", newPath);
+                Logger?.LogDebug("Removed staged plugin update directory: {Path}", newPath);
             }
             catch (Exception ex)
             {
@@ -113,7 +113,7 @@ public class PluginService : IPluginService
             if (info.IsUninstalling)
             {
                 Directory.Delete(pluginDir, true);
-                Logger?.LogInformation("Removed plugin marked for uninstall: {PluginDir}", pluginDir);
+                Logger?.LogDebug("Removed plugin marked for uninstall: {PluginDir}", pluginDir);
                 continue;
             }
 
@@ -127,7 +127,7 @@ public class PluginService : IPluginService
             if (!info.IsEnabled)
             {
                 info.LoadStatus = PluginLoadStatus.Disabled;
-                Logger?.LogInformation("Plugin is disabled: {PluginId}", manifest.Id);
+                Logger?.LogDebug("Plugin is disabled: {PluginId}", manifest.Id);
             }
 
             if (info.IsEnabled)
@@ -150,7 +150,7 @@ public class PluginService : IPluginService
                 .Select(x => x.Manifest.Id)
                 .ToList();
 
-        Logger?.LogInformation("Resolved plugin load order: {LoadOrder}", string.Join(", ", loadOrder));
+        Logger?.LogDebug("Resolved plugin load order: {LoadOrder}", string.Join(", ", loadOrder));
         Console.WriteLine($@"Resolved load order: {string.Join(", ", loadOrder)}");
 
         // 加载插件
@@ -159,7 +159,7 @@ public class PluginService : IPluginService
             var info = IPluginService.LoadedPluginsInternal.First(x => x.Manifest.Id == id);
             var manifest = info.Manifest;
             var pluginDir = info.PluginFolderPath;
-            Logger?.LogInformation("Loading plugin {PluginId} from {PluginDir}", manifest.Id, pluginDir);
+            Logger?.LogDebug("Loading plugin {PluginId} from {PluginDir}", manifest.Id, pluginDir);
             try
             {
                 var fullPath = Path.GetFullPath(Path.Combine(pluginDir, manifest.EntranceAssembly));
@@ -205,7 +205,7 @@ public class PluginService : IPluginService
                 info.LoadStatus = PluginLoadStatus.Loaded;
                 InstalledPlugins.Add(info);
 
-                Logger?.LogInformation("Plugin initialized successfully: {PluginId} ({PluginVersion})",
+                Logger?.LogDebug("Plugin initialized successfully: {PluginId} ({PluginVersion})",
                     manifest.Id, manifest.Version);
                 Console.WriteLine($@"Initialize plugin: {pluginDir} ({manifest.Version})");
             }

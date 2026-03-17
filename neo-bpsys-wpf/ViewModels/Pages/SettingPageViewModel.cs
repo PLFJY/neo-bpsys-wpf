@@ -28,6 +28,8 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class SettingPageViewModel : ViewModelBase
 {
+    private bool _isSyncingLogLevel;
+
 #pragma warning disable CS8618
     public SettingPageViewModel()
 #pragma warning restore CS8618
@@ -166,6 +168,9 @@ public partial class SettingPageViewModel : ViewModelBase
 
         //读取设置语言
         SelectedLanguage = _settingsHostService.Settings.Language;
+        _isSyncingLogLevel = true;
+        SelectedLogLevel = _settingsHostService.Settings.LogLevel;
+        _isSyncingLogLevel = false;
     }
 
     private void Settings_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -186,6 +191,31 @@ public partial class SettingPageViewModel : ViewModelBase
     }
 
     #region 调试选项
+
+    [ObservableProperty]
+    private AppLogLevel _selectedLogLevel;
+
+    public Dictionary<string, AppLogLevel> LogLevelOptions { get; } = new()
+    {
+        { "LogLevelVerbose", AppLogLevel.Verbose },
+        { "LogLevelDebug", AppLogLevel.Debug },
+        { "LogLevelInformation", AppLogLevel.Information },
+        { "LogLevelWarning", AppLogLevel.Warning },
+        { "LogLevelError", AppLogLevel.Error },
+        { "LogLevelFatal", AppLogLevel.Fatal }
+    };
+
+    partial void OnSelectedLogLevelChanged(AppLogLevel value)
+    {
+        if (_isSyncingLogLevel || _settingsHostService == null)
+        {
+            return;
+        }
+
+        _settingsHostService.Settings.LogLevel = value;
+        App.ApplyLogLevel(value);
+        _ = _settingsHostService.SaveConfigAsync();
+    }
 
     /// <summary>
     /// 手动触发GC (调试选项)

@@ -32,6 +32,9 @@ public partial class Settings : ObservableObjectBase
         false;
 #endif
 
+    [ObservableProperty]
+    private AppLogLevel _logLevel = AppLogLevel.Information;
+
     private LanguageKey _language = LanguageKey.System;
 
     public LanguageKey Language

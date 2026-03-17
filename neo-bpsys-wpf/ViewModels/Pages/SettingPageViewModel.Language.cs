@@ -42,7 +42,6 @@ public partial class SettingPageViewModel : ViewModelBase
             LocalizeDictionary.Instance.Culture = _settingsHostService.Settings.CultureInfo;
             Application.Current.Resources["CurrentLanguage"] =
                 XmlLanguage.GetLanguage(_settingsHostService.Settings.CultureInfo.Name);
-            _logger.LogInformation("Set language to {appLanguage}", _settingsHostService.Settings.CultureInfo.Name);
         });
     }
 

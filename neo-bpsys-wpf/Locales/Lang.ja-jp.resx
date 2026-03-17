@@ -312,6 +312,27 @@
   <data name="DebugOptions" xml:space="preserve">
     <value>デバッグオプション</value>
   </data>
+  <data name="LogLevel" xml:space="preserve">
+    <value>ログレベル</value>
+  </data>
+  <data name="LogLevelVerbose" xml:space="preserve">
+    <value>Verbose</value>
+  </data>
+  <data name="LogLevelDebug" xml:space="preserve">
+    <value>Debug</value>
+  </data>
+  <data name="LogLevelInformation" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="LogLevelWarning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="LogLevelError" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="LogLevelFatal" xml:space="preserve">
+    <value>Fatal</value>
+  </data>
   <data name="TriggerGCCollectionManually" xml:space="preserve">
     <value>GCを手動実行</value>
   </data>
