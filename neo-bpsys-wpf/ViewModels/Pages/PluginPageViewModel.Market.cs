@@ -7,6 +7,7 @@ using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models.Plugins;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.IO;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -15,42 +16,127 @@ namespace neo_bpsys_wpf.ViewModels.Pages;
 
 public partial class PluginPageViewModel
 {
+    /// <summary>
+    /// 标记插件市场功能是否已经初始化完成。
+    /// </summary>
     private bool _isPluginMarketInitialized;
+
+    /// <summary>
+    /// 防止同步镜像设置时重复保存。
+    /// </summary>
     private bool _isSyncingGlobalMirror;
 
+    /// <summary>
+    /// 当前插件市场列表。
+    /// </summary>
     [ObservableProperty]
     private ObservableCollection<PluginMarketItem> _marketPluginsCollection;
 
+    /// <summary>
+    /// 当前选中的插件市场条目。
+    /// </summary>
     [ObservableProperty]
     private PluginMarketItem? _selectedMarketPlugin;
 
+    /// <summary>
+    /// 插件市场列表是否正在加载。
+    /// </summary>
     [ObservableProperty]
     private bool _isMarketLoading;
 
+    /// <summary>
+    /// 插件市场加载失败时显示的错误消息。
+    /// </summary>
     [ObservableProperty]
     private string _marketErrorMessage = string.Empty;
 
+    /// <summary>
+    /// 插件市场设置面板是否打开。
+    /// </summary>
     [ObservableProperty]
     private bool _isPluginMarketSettingsOpen;
 
+    /// <summary>
+    /// 下载队列面板是否打开。
+    /// </summary>
+    [ObservableProperty]
+    private bool _isDownloadQueueOpen;
+
+    /// <summary>
+    /// 当前选中的下载镜像地址。
+    /// </summary>
     [ObservableProperty]
     private string _selectedPluginMarketMirror = string.Empty;
 
+    /// <summary>
+    /// 当前正在下载的插件进度值。
+    /// </summary>
     [ObservableProperty]
     private double _pluginDownloadProgress;
 
+    /// <summary>
+    /// 当前正在下载的插件进度文本。
+    /// </summary>
     [ObservableProperty]
     private string _pluginDownloadProgressText = string.Empty;
 
+    /// <summary>
+    /// 当前正在下载的插件速度文本。
+    /// </summary>
     [ObservableProperty]
     private string _pluginDownloadSpeedText = string.Empty;
 
-    public ObservableCollection<PluginMarketMirrorOption> PluginMarketMirrorOptions { get; } = [];
+    /// <summary>
+    /// 插件市场镜像选项列表。
+    /// </summary>
+    public ObservableCollection<PluginMarketMirrorOption> PluginMarketMirrorOptions { get; } =
+        new(DownloadMirrorPresets.GhProxyMirrorList.Select(
+            mirror => new PluginMarketMirrorOption
+            {
+                DisplayNameKey = string.IsNullOrWhiteSpace(mirror)
+                    ? "PluginMarketDirectConnectionNoProxy"
+                    : mirror,
+                Value = mirror
+            }));
 
+    /// <summary>
+    /// 插件下载队列。
+    /// </summary>
+    public ReadOnlyObservableCollection<PluginDownloadQueueItem> PluginDownloadQueue => _pluginMarketService.DownloadQueue;
+
+    /// <summary>
+    /// 当前是否存在插件市场加载错误。
+    /// </summary>
     public bool HasMarketError => !string.IsNullOrWhiteSpace(MarketErrorMessage);
 
+    /// <summary>
+    /// 当前是否选中了插件详情。
+    /// </summary>
     public bool IsMarketPluginSelected => SelectedMarketPlugin != null;
 
+    /// <summary>
+    /// 插件市场中的任一浮层是否处于打开状态。
+    /// </summary>
+    public bool HasPluginMarketOverlay => IsPluginMarketSettingsOpen || IsDownloadQueueOpen || IsMarketPluginSelected;
+
+    /// <summary>
+    /// 下载队列中是否存在任何任务。
+    /// </summary>
+    public bool HasPluginDownloadQueueItems => PluginDownloadQueue.Count > 0;
+
+    /// <summary>
+    /// 下载队列中是否存在仍在进行中的任务。
+    /// </summary>
+    public bool HasActivePluginDownloadQueueItems => PluginDownloadQueueCount > 0;
+
+    /// <summary>
+    /// 下载队列角标数量。
+    /// </summary>
+    public int PluginDownloadQueueCount => PluginDownloadQueue.Count(x => x.IsInProgress);
+
+    /// <summary>
+    /// 当前选中插件的下载进度条是否显示。
+    /// </summary>
     public bool IsPluginDownloadVisible =>
         SelectedMarketPlugin != null
         && SelectedMarketPlugin.Id == _pluginMarketService.CurrentDownloadPluginId
@@ -64,10 +150,24 @@ public partial class PluginPageViewModel
     partial void OnSelectedMarketPluginChanged(PluginMarketItem? value)
     {
         OnPropertyChanged(nameof(IsMarketPluginSelected));
+        OnPropertyChanged(nameof(HasPluginMarketOverlay));
         RefreshDownloadState();
         _ = LoadSelectedPluginReadmeAsync(value);
     }
 
+    partial void OnIsPluginMarketSettingsOpenChanged(bool value)
+    {
+        OnPropertyChanged(nameof(HasPluginMarketOverlay));
+    }
+
+    partial void OnIsDownloadQueueOpenChanged(bool value)
+    {
+        OnPropertyChanged(nameof(HasPluginMarketOverlay));
+    }
+
+    /// <summary>
+    /// 保存插件市场镜像设置。
+    /// </summary>
     partial void OnSelectedPluginMarketMirrorChanged(string value)
     {
         if (!_isPluginMarketInitialized || _settingsHostService == null || _isSyncingGlobalMirror)
@@ -78,17 +178,35 @@ public partial class PluginPageViewModel
         _ = PersistGhProxyMirrorAsync(value);
     }
 
+    /// <summary>
+    /// 初始化插件市场相关功能。
+    /// </summary>
     private void InitializePluginMarket()
     {
-        RebuildPluginMarketMirrorOptions();
-
         _settingsHostService.Settings.PropertyChanged += Settings_PropertyChanged;
+        if (PluginDownloadQueue is INotifyCollectionChanged notifyCollectionChanged)
+        {
+            notifyCollectionChanged.CollectionChanged += PluginDownloadQueue_CollectionChanged;
+        }
         SelectedPluginMarketMirror = _settingsHostService.Settings.GhProxyMirror;
         _pluginMarketService.DownloadStateChanged += PluginMarketService_DownloadStateChanged;
         _isPluginMarketInitialized = true;
         _ = RefreshMarketAsync();
     }
 
+    /// <summary>
+    /// 刷新下载队列相关的显示状态。
+    /// </summary>
+    private void PluginDownloadQueue_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        OnPropertyChanged(nameof(HasPluginDownloadQueueItems));
+        OnPropertyChanged(nameof(HasActivePluginDownloadQueueItems));
+        OnPropertyChanged(nameof(PluginDownloadQueueCount));
+    }
+
+    /// <summary>
+    /// 同步插件市场镜像设置。
+    /// </summary>
     private void Settings_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName != nameof(Core.Models.Settings.GhProxyMirror))
@@ -106,6 +224,9 @@ public partial class PluginPageViewModel
         }
     }
 
+    /// <summary>
+    /// 处理插件下载状态变化。
+    /// </summary>
     private void PluginMarketService_DownloadStateChanged(object? sender, EventArgs e)
     {
         if (App.Current.Dispatcher.CheckAccess())
@@ -123,6 +244,9 @@ public partial class PluginPageViewModel
         }
     }
 
+    /// <summary>
+    /// 刷新当前下载进度显示。
+    /// </summary>
     private void RefreshDownloadState()
     {
         PluginDownloadProgress = _pluginMarketService.DownloadProgress;
@@ -132,9 +256,14 @@ public partial class PluginPageViewModel
         PluginDownloadSpeedText = _pluginMarketService.IsDownloading
             ? $"{(_pluginMarketService.DownloadBytesPerSecond / 1024 / 1024):0.00} MB/s"
             : string.Empty;
+        OnPropertyChanged(nameof(HasActivePluginDownloadQueueItems));
+        OnPropertyChanged(nameof(PluginDownloadQueueCount));
         OnPropertyChanged(nameof(IsPluginDownloadVisible));
     }
 
+    /// <summary>
+    /// 重新加载插件市场列表。
+    /// </summary>
     [RelayCommand]
     private async Task RefreshMarketAsync()
     {
@@ -161,25 +290,62 @@ public partial class PluginPageViewModel
         }
     }
 
+    /// <summary>
+    /// 打开或关闭插件市场设置面板。
+    /// </summary>
     [RelayCommand]
     private void TogglePluginMarketSettings()
     {
+        if (!IsPluginMarketSettingsOpen)
+        {
+            IsDownloadQueueOpen = false;
+            SelectedMarketPlugin = null;
+        }
+
         IsPluginMarketSettingsOpen = !IsPluginMarketSettingsOpen;
     }
 
+    /// <summary>
+    /// 打开或关闭下载队列面板。
+    /// </summary>
+    [RelayCommand]
+    private void ToggleDownloadQueue()
+    {
+        if (!IsDownloadQueueOpen)
+        {
+            IsPluginMarketSettingsOpen = false;
+            SelectedMarketPlugin = null;
+        }
+
+        IsDownloadQueueOpen = !IsDownloadQueueOpen;
+    }
+
+    /// <summary>
+    /// 关闭插件市场中的所有浮层面板。
+    /// </summary>
+    [RelayCommand]
+    private void ClosePluginMarketOverlays()
+    {
+        IsDownloadQueueOpen = false;
+        IsPluginMarketSettingsOpen = false;
+        SelectedMarketPlugin = null;
+    }
+
+    /// <summary>
+    /// 将当前选中的插件加入下载队列。
+    /// </summary>
     [RelayCommand]
     private async Task ExecutePrimaryMarketActionAsync()
     {
         if (SelectedMarketPlugin == null
-            || !SelectedMarketPlugin.CanExecutePrimaryAction
-            || _pluginMarketService.IsDownloading)
+            || !SelectedMarketPlugin.CanExecutePrimaryAction)
         {
             return;
         }
 
         try
         {
-            await _pluginMarketService.DownloadPluginPackageAsync(SelectedMarketPlugin);
+            _ = await _pluginMarketService.QueuePluginDownloadAsync(SelectedMarketPlugin);
         }
         catch (OperationCanceledException)
         {
@@ -216,6 +382,23 @@ public partial class PluginPageViewModel
         _pluginMarketService.CancelDownload();
     }
 
+    /// <summary>
+    /// 取消指定下载任务。
+    /// </summary>
+    [RelayCommand]
+    private void CancelPluginMarketQueueItem(PluginDownloadQueueItem? item)
+    {
+        if (item == null)
+        {
+            return;
+        }
+
+        _pluginMarketService.CancelDownload(item.QueueId);
+    }
+
+    /// <summary>
+    /// 保存插件市场镜像设置。
+    /// </summary>
     private async Task PersistGhProxyMirrorAsync(string value)
     {
         _settingsHostService.Settings.GhProxyMirror = value;
@@ -223,6 +406,9 @@ public partial class PluginPageViewModel
         await _settingsHostService.SaveConfigAsync();
     }
 
+    /// <summary>
+    /// 加载选中插件的 README。
+    /// </summary>
     private async Task LoadSelectedPluginReadmeAsync(PluginMarketItem? item)
     {
         if (item == null || item.IsReadmeLoading || !string.IsNullOrWhiteSpace(item.ReadmeMarkdown))
@@ -252,6 +438,9 @@ public partial class PluginPageViewModel
         }
     }
 
+    /// <summary>
+    /// 刷新插件市场中每个插件的显示状态。
+    /// </summary>
     private void RefreshMarketPluginStates()
     {
         foreach (var item in MarketPluginsCollection)
@@ -260,6 +449,9 @@ public partial class PluginPageViewModel
         }
     }
 
+    /// <summary>
+    /// 更新单个插件在市场中的显示状态。
+    /// </summary>
     private void ApplyMarketPluginState(PluginMarketItem item)
     {
         var localPlugin = PluginsCollection.FirstOrDefault(x => x.Manifest.Id == item.Id);
@@ -323,6 +515,9 @@ public partial class PluginPageViewModel
         item.IsStatusVisible = false;
     }
 
+    /// <summary>
+    /// 安装一个已经解压好的插件包。
+    /// </summary>
     private void InstallPluginFromExtractedDirectory(string tempFolderPath)
     {
         var manifestPath = Path.Combine(tempFolderPath, "manifest.yml");
@@ -400,6 +595,9 @@ public partial class PluginPageViewModel
         IsRestartNeeded = true;
     }
 
+    /// <summary>
+    /// 获取插件当前应显示的版本号。
+    /// </summary>
     private static string GetDisplayedLocalPluginVersion(PluginInfo plugin)
     {
         if (plugin.IsNewVersionInstalled && !string.IsNullOrWhiteSpace(plugin.NewVersion))
@@ -410,6 +608,9 @@ public partial class PluginPageViewModel
         return plugin.Manifest.Version;
     }
 
+    /// <summary>
+    /// 比较插件市场版本号和本地版本号。
+    /// </summary>
     private static int CompareVersion(string remoteVersion, string localVersion)
     {
         if (Version.TryParse(remoteVersion, out var remote) && Version.TryParse(localVersion, out var local))
@@ -420,44 +621,14 @@ public partial class PluginPageViewModel
         return string.Compare(remoteVersion, localVersion, StringComparison.OrdinalIgnoreCase);
     }
 
-    private void RebuildPluginMarketMirrorOptions()
-    {
-        var selectedMirror = string.IsNullOrWhiteSpace(SelectedPluginMarketMirror)
-            ? _settingsHostService.Settings.GhProxyMirror
-            : SelectedPluginMarketMirror;
-        PluginMarketMirrorOptions.Clear();
-        foreach (var mirror in DownloadMirrorPresets.GhProxyMirrorList)
-        {
-            PluginMarketMirrorOptions.Add(new PluginMarketMirrorOption
-            {
-                DisplayNameKey = string.IsNullOrWhiteSpace(mirror)
-                    ? "PluginMarketDirectConnectionNoProxy"
-                    : mirror,
-                Value = mirror
-            });
-        }
-
-        if (!string.IsNullOrWhiteSpace(_settingsHostService.Settings.GhProxyMirror)
-            && !PluginMarketMirrorOptions.Any(x => x.Value == _settingsHostService.Settings.GhProxyMirror))
-        {
-            PluginMarketMirrorOptions.Insert(0, new PluginMarketMirrorOption
-            {
-                DisplayNameKey = _settingsHostService.Settings.GhProxyMirror,
-                Value = _settingsHostService.Settings.GhProxyMirror
-            });
-        }
-
-        SelectedPluginMarketMirror = string.IsNullOrWhiteSpace(selectedMirror)
-            ? _settingsHostService.Settings.GhProxyMirror
-            : selectedMirror;
-    }
-
+    /// <summary>
+    /// 同步镜像设置到插件市场页面。
+    /// </summary>
     private void SyncPluginMarketMirrorFromSettings()
     {
         _isSyncingGlobalMirror = true;
         try
         {
-            RebuildPluginMarketMirrorOptions();
             SelectedPluginMarketMirror = _settingsHostService.Settings.GhProxyMirror;
         }
         finally
@@ -471,23 +642,29 @@ public partial class PluginPageViewModel
         return string.Format(I18nHelper.GetLocalizedString(key), args);
     }
 
+    /// <summary>
+    /// 安装所有已经下载完成的插件包。
+    /// </summary>
     private void TryInstallCompletedPluginDownload()
     {
-        var result = _pluginMarketService.ConsumeCompletedDownload();
-        if (result == null)
+        while (true)
         {
-            return;
-        }
+            var result = _pluginMarketService.ConsumeCompletedDownload();
+            if (result == null)
+            {
+                return;
+            }
 
-        try
-        {
-            InstallPluginFromExtractedDirectory(result.ExtractedDirectoryPath);
-            RefreshMarketPluginStates();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error when installing downloaded plugin package");
-            _ = MessageBoxHelper.ShowErrorAsync(ex.Message);
+            try
+            {
+                InstallPluginFromExtractedDirectory(result.ExtractedDirectoryPath);
+                RefreshMarketPluginStates();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error when installing downloaded plugin package");
+                _ = MessageBoxHelper.ShowErrorAsync(ex.Message);
+            }
         }
     }
 }

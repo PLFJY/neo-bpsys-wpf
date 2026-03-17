@@ -1789,6 +1789,30 @@
   <data name="PluginMarketMirrorSyncHint" xml:space="preserve">
     <value>This setting syncs to app updates</value>
   </data>
+  <data name="PluginMarketDownloadQueue" xml:space="preserve">
+    <value>Download queue</value>
+  </data>
+  <data name="PluginMarketDownloadQueueTitle" xml:space="preserve">
+    <value>Download queue</value>
+  </data>
+  <data name="PluginMarketDownloadQueueEmpty" xml:space="preserve">
+    <value>No plugin downloads are queued right now</value>
+  </data>
+  <data name="QueuePending" xml:space="preserve">
+    <value>Queued</value>
+  </data>
+  <data name="QueueDownloading" xml:space="preserve">
+    <value>Downloading</value>
+  </data>
+  <data name="QueueDownloaded" xml:space="preserve">
+    <value>Downloaded, waiting to install</value>
+  </data>
+  <data name="QueueFailed" xml:space="preserve">
+    <value>Download failed</value>
+  </data>
+  <data name="QueueCanceled" xml:space="preserve">
+    <value>Canceled</value>
+  </data>
   <data name="PluginMarketCancelDownload" xml:space="preserve">
     <value>Cancel Download</value>
   </data>

@@ -1792,6 +1792,30 @@
   <data name="PluginMarketMirrorSyncHint" xml:space="preserve">
     <value>この設定はアプリ更新にも同期されます</value>
   </data>
+  <data name="PluginMarketDownloadQueue" xml:space="preserve">
+    <value>ダウンロードキュー</value>
+  </data>
+  <data name="PluginMarketDownloadQueueTitle" xml:space="preserve">
+    <value>ダウンロードキュー</value>
+  </data>
+  <data name="PluginMarketDownloadQueueEmpty" xml:space="preserve">
+    <value>現在キューに入っているプラグインのダウンロードはありません</value>
+  </data>
+  <data name="QueuePending" xml:space="preserve">
+    <value>待機中</value>
+  </data>
+  <data name="QueueDownloading" xml:space="preserve">
+    <value>ダウンロード中</value>
+  </data>
+  <data name="QueueDownloaded" xml:space="preserve">
+    <value>ダウンロード済み、インストール待ち</value>
+  </data>
+  <data name="QueueFailed" xml:space="preserve">
+    <value>ダウンロード失敗</value>
+  </data>
+  <data name="QueueCanceled" xml:space="preserve">
+    <value>キャンセル済み</value>
+  </data>
   <data name="PluginMarketCancelDownload" xml:space="preserve">
     <value>ダウンロードをキャンセル</value>
   </data>

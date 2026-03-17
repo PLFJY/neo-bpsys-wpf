@@ -22,7 +22,7 @@
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </Page.Resources>
 
-    <Grid Margin="10">
+    <Grid Margin="10" PreviewMouseLeftButtonDown="RootGrid_OnPreviewMouseLeftButtonDown">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -239,6 +239,15 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
+                    <Button
+                        Grid.RowSpan="2"
+                        Panel.ZIndex="5"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Command="{Binding ClosePluginMarketOverlaysCommand}"
+                        Focusable="False"
+                        Visibility="{Binding HasPluginMarketOverlay, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
                     <Grid Margin="10,10,10,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -256,6 +265,18 @@
                             Grid.Column="1"
                             HorizontalAlignment="Right"
                             Orientation="Horizontal">
+                            <Grid Margin="0,0,10,0">
+                                <ui:Button
+                                    Command="{Binding ToggleDownloadQueueCommand}"
+                                    Content="{lex:Loc PluginMarketDownloadQueue}"
+                                    Icon="{ui:SymbolIcon Symbol=ArrowDownload24}" />
+                                <ui:InfoBadge
+                                    Margin="0,-6,-6,0"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Visibility="{Binding HasActivePluginDownloadQueueItems, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    Value="{Binding PluginDownloadQueueCount}" />
+                            </Grid>
                             <ui:Button
                                 Margin="0,0,10,0"
                                 Command="{Binding RefreshMarketCommand}"
@@ -379,7 +400,8 @@
                                                             Grid.Row="4"
                                                             Margin="0,8,0,0"
                                                             Foreground="DarkOrange"
-                                                            Text="{lex:Loc {Binding MarketStatusKey}, FallbackBehavior=Key}"
+                                                            Text="{lex:Loc {Binding MarketStatusKey},
+                                                                           FallbackBehavior=Key}"
                                                             Visibility="{Binding IsStatusVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                                     </Grid>
                                                 </Border>
@@ -404,6 +426,136 @@
                             </Grid>
                         </Border>
                         <Border
+                            x:Name="DownloadQueuePanel"
+                            Width="360"
+                            Height="{Binding ElementName=PluginMarketContentHost, Path=ActualHeight}"
+                            Padding="14"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Stretch"
+                            Panel.ZIndex="12"
+                            Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Visibility="{Binding IsDownloadQueueOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <Grid>
+                                    <TextBlock
+                                        FontSize="18"
+                                        FontWeight="SemiBold"
+                                        Text="{lex:Loc PluginMarketDownloadQueueTitle}" />
+                                    <ui:Button
+                                        HorizontalAlignment="Right"
+                                        Command="{Binding ToggleDownloadQueueCommand}"
+                                        Content="{lex:Loc Close}"
+                                        Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
+                                </Grid>
+
+                                <Grid Grid.Row="1" Margin="0,14,0,0">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                        Text="{lex:Loc PluginMarketDownloadQueueEmpty}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasPluginDownloadQueueItems}" Value="False">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <ScrollViewer>
+                                        <ItemsControl
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            ItemsSource="{Binding PluginDownloadQueue}"
+                                            Visibility="{Binding HasPluginDownloadQueueItems, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border
+                                                        Margin="0,0,0,10"
+                                                        Padding="12"
+                                                        Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
+                                                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="10">
+                                                        <StackPanel>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock
+                                                                    FontSize="15"
+                                                                    FontWeight="SemiBold"
+                                                                    Text="{Binding PluginName}" />
+                                                                <TextBlock
+                                                                    Margin="8,0,0,0"
+                                                                    VerticalAlignment="Center"
+                                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                                    Text="{Binding PluginVersion, StringFormat='v{0}'}" />
+                                                            </StackPanel>
+                                                            <TextBlock
+                                                                Margin="0,6,0,0"
+                                                                Foreground="DarkOrange"
+                                                                Text="{lex:Loc {Binding Status}}" />
+                                                            <ProgressBar
+                                                                Height="8"
+                                                                Margin="0,8,0,0"
+                                                                Maximum="100"
+                                                                Minimum="0"
+                                                                Value="{Binding Progress}" />
+                                                            <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                                                                <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding ProgressText}" />
+                                                                <TextBlock
+                                                                    Margin="10,0,0,0"
+                                                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                                    Text="{Binding SpeedText}" />
+                                                            </StackPanel>
+                                                            <ui:Button
+                                                                Margin="0,8,0,0"
+                                                                Appearance="Secondary"
+                                                                Command="{Binding DataContext.CancelPluginMarketQueueItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                                CommandParameter="{Binding}"
+                                                                Content="{lex:Loc PluginMarketCancelDownload}"
+                                                                Icon="{ui:SymbolIcon Symbol=Dismiss24}"
+                                                                IsEnabled="{Binding CanCancel}" />
+                                                            <TextBlock
+                                                                Margin="0,8,0,0"
+                                                                HorizontalAlignment="Left"
+                                                                Foreground="IndianRed"
+                                                                Text="{Binding ErrorMessage}"
+                                                                TextWrapping="Wrap">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding ErrorMessage}" Value="">
+                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding ErrorMessage}" Value="{x:Null}">
+                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                        <Border
+                            x:Name="PluginDetailsPanel"
                             Width="420"
                             Height="{Binding ElementName=PluginMarketContentHost, Path=ActualHeight}"
                             Padding="0"
@@ -489,13 +641,15 @@
                                     <StackPanel Orientation="Horizontal">
                                         <ui:Button
                                             Command="{Binding DataContext.ExecutePrimaryMarketActionCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                            Content="{lex:Loc {Binding PrimaryActionKey}, FallbackBehavior=Key}"
+                                            Content="{lex:Loc {Binding PrimaryActionKey},
+                                                              FallbackBehavior=Key}"
                                             Icon="{ui:SymbolIcon Symbol=ArrowDownload24}"
                                             IsEnabled="{Binding CanExecutePrimaryAction}" />
                                         <ui:Button
                                             Margin="10,0,0,0"
                                             Command="{Binding DataContext.ToggleSelectedMarketPluginUninstallCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                            Content="{lex:Loc {Binding UninstallActionKey}, FallbackBehavior=Key}"
+                                            Content="{lex:Loc {Binding UninstallActionKey},
+                                                              FallbackBehavior=Key}"
                                             Icon="{ui:SymbolIcon Symbol=Delete24}"
                                             IsEnabled="{Binding CanUninstall}" />
                                     </StackPanel>
@@ -537,6 +691,7 @@
                         </Border>
 
                         <Border
+                            x:Name="PluginMarketSettingsPanel"
                             Width="380"
                             Padding="14"
                             HorizontalAlignment="Right"
