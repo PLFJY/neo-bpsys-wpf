@@ -1,6 +1,6 @@
 # neo-bpsys-wpf
 
-powered by <img src="https://raw.githubusercontent.com/PLFJY/neo-bpsys-wpf/refs/heads/main/neo-bpsys-wpf/Assets/logo_net.jpg" width="25px" height="25px"> 9.0 & <img src="https://raw.githubusercontent.com/PLFJY/neo-bpsys-wpf/refs/heads/main/neo-bpsys-wpf/Assets/wpfui.png" width="25px" height="25px"> 4.2.0
+powered by <img src="https://raw.githubusercontent.com/PLFJY/neo-bpsys-wpf/refs/heads/main/neo-bpsys-wpf/Assets/logo_net.jpg" width="25px" height="25px"> 9.0 & <img src="https://raw.githubusercontent.com/PLFJY/neo-bpsys-wpf/refs/heads/main/neo-bpsys-wpf/Assets/wpfui.png" width="25px" height="25px">
 
 ![GitHub License](https://img.shields.io/github/license/plfjy/neo-bpsys-wpf) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/plfjy/neo-bpsys-wpf) ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-pr/plfjy/neo-bpsys-wpf) ![GitHub forks](https://img.shields.io/github/forks/plfjy/neo-bpsys-wpf?style=flat) ![GitHub Repo stars](https://img.shields.io/github/stars/plfjy/neo-bpsys-wpf?style=flat)
 
@@ -12,7 +12,7 @@ powered by <img src="https://raw.githubusercontent.com/PLFJY/neo-bpsys-wpf/refs/
 
 ## 📖 项目简介
 
-neo-bpsys-wpf 是一个基于 .NET WPF 开发的第五人格直播BP软件，旨在为民间赛事的直播带来更贴近官方职业赛事的直播效果。其前身为[bp-sys-wpf](https://github.com/PLFJY/bp-sys-wpf)与[idv-bp-asg-e](https://github.com/PLFJY/idv-bp-asg-e)(均已分别因为屎山代码和技术栈老旧停止维护）。其包含地图BP、角色BP与赛后数据显示等在第五人格赛事中能用到的功能。
+neo-bpsys-wpf 是一个基于 .NET WPF 的**专为第五人格民间赛**开发的 BP 画面直播展示工具，旨在为民间赛事的直播带来更贴近官方职业赛事的直播效果。
 
 本项目的前身 [bp-sys-wpf](https://github.com/plfjy/bp-sys-wpf) 曾帮助了40余个民间赛事，希望它能够在未来帮助到你。
 
@@ -34,7 +34,7 @@ neo-bpsys-wpf 是一个基于 .NET WPF 开发的第五人格直播BP软件，旨
   - [x] 控件位置自定义
   - [x] 文字颜色、字体、大小自定义
   - [x] UI背景图片自定义
-- [x] 自定义插件
+- [x] 自定义插件及插件市场
 - [x] OCR识别自动填充赛后数据
 - [x] 全局禁选根据对局进度联动
 
@@ -46,7 +46,7 @@ neo-bpsys-wpf 是一个基于 .NET WPF 开发的第五人格直播BP软件，旨
 
 前往 [Release](https://github.com/PLFJY/neo-bpsys-wpf/releases/latest) 下载最新的版本，或者前往官网下载：https://bpsys.plfjy.top/
 
-更详细的教程请前往文档站查看：https://docs.bpsys.plfjy.top/
+更详细的教程请前往文档站查看：[https://docs.bpsys.plfjy.top/](https://docs.bpsys.plfjy.top/)
 
 ## 💻 构建
 
