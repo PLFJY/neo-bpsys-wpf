@@ -1879,6 +1879,12 @@
   <data name="PluginMarketInstallBlockedHostVersionTooLow" xml:space="preserve">
     <value>当前软件版本过低，无法安装此插件。</value>
   </data>
+  <data name="PluginMarketHashTargetMissing" xml:space="preserve">
+    <value>插件完整性校验失败：找不到需要校验的入口程序集 {0}</value>
+  </data>
+  <data name="PluginMarketSha256Mismatch" xml:space="preserve">
+    <value>插件完整性校验失败：{0} 的 SHA-256 不一致。期望值：{1}，实际值：{2}</value>
+  </data>
   <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
     <value>已有插件正在下载。</value>
   </data>

@@ -49,4 +49,10 @@ public record PluginManifest
     /// 插件作者
     /// </summary>
     public string Author { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 入口程序集文件的 SHA-256 校验值。
+    /// 用于在安装前验证插件核心程序集是否与发布时一致。
+    /// </summary>
+    public string? Sha256 { get; set; }
 }

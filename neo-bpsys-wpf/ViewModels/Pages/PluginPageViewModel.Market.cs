@@ -9,6 +9,7 @@ using neo_bpsys_wpf.Models.Plugins;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
+using System.Security.Cryptography;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -539,6 +540,8 @@ public partial class PluginPageViewModel
             throw new Exception(I18nHelper.GetLocalizedString("ManifestNotValid"));
         }
 
+        ValidatePluginIntegrity(manifest, tempFolderPath);
+
         var compatibility = PluginApiVersionHelper.Evaluate(manifest.ApiVersion);
         if (!compatibility.IsCompatible)
         {
@@ -593,6 +596,96 @@ public partial class PluginPageViewModel
         Directory.Move(tempFolderPath, pluginFolderPath);
         PluginsCollection.Add(info);
         IsRestartNeeded = true;
+    }
+
+    /// <summary>
+    /// 校验插件入口程序集的 SHA-256。
+    /// 如果清单中提供了 <c>sha256</c>，则必须与入口程序集文件的实际哈希一致；
+    /// 否则会阻止安装，避免篡改后的插件进入插件目录。
+    /// </summary>
+    /// <param name="manifest">插件清单。</param>
+    /// <param name="extractedDirectoryPath">插件解压目录。</param>
+    /// <exception cref="InvalidOperationException">
+    /// 当入口程序集缺失或哈希值与清单不一致时抛出。
+    /// </exception>
+    private static void ValidatePluginIntegrity(PluginManifest manifest, string extractedDirectoryPath)
+    {
+        if (string.IsNullOrWhiteSpace(manifest.Sha256))
+        {
+            return;
+        }
+
+        var entranceAssemblyPath = Path.Combine(extractedDirectoryPath, manifest.EntranceAssembly);
+        if (!File.Exists(entranceAssemblyPath))
+        {
+            throw new InvalidOperationException(
+                FormatLocalized("PluginMarketHashTargetMissing", manifest.EntranceAssembly));
+        }
+
+        var expectedHash = NormalizeSha256(manifest.Sha256);
+        var actualHash = ComputeFileSha256(entranceAssemblyPath);
+        if (!string.Equals(expectedHash, actualHash, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                FormatLocalized("PluginMarketSha256Mismatch", manifest.EntranceAssembly, expectedHash, actualHash));
+        }
+    }
+
+    /// <summary>
+    /// 计算指定文件的 SHA-256，并以小写十六进制字符串返回。
+    /// </summary>
+    /// <param name="filePath">待计算哈希的文件路径。</param>
+    /// <returns>文件的 SHA-256 字符串。</returns>
+    private static string ComputeFileSha256(string filePath)
+    {
+        using var stream = File.OpenRead(filePath);
+        var hashBytes = SHA256.HashData(stream);
+        return Convert.ToHexString(hashBytes).ToLowerInvariant();
+    }
+
+    /// <summary>
+    /// 规范化清单中的 SHA-256 文本。
+    /// 允许在清单中使用大小写混合或带连字符的写法，比较前统一转成连续小写十六进制。
+    /// </summary>
+    /// <param name="value">原始哈希文本。</param>
+    /// <returns>规范化后的 SHA-256 字符串。</returns>
+    private static string NormalizeSha256(string value)
+    {
+        return value.Trim().Replace("-", string.Empty, StringComparison.Ordinal).ToLowerInvariant();
+    }
+
+    /// <summary>
+    /// 清理插件包解压阶段留下的临时目录。
+    /// 成功安装时会删除空的下载会话目录；
+    /// 安装失败时会直接删除解压目录及其父级临时目录，避免残留继续堆积在临时目录下。
+    /// </summary>
+    /// <param name="extractedDirectoryPath">下载完成后用于安装的解压目录。</param>
+    private static void CleanupDownloadedPluginPackageResidue(string extractedDirectoryPath)
+    {
+        if (string.IsNullOrWhiteSpace(extractedDirectoryPath))
+        {
+            return;
+        }
+
+        try
+        {
+            if (Directory.Exists(extractedDirectoryPath))
+            {
+                Directory.Delete(extractedDirectoryPath, true);
+            }
+
+            var sessionDirectory = Directory.GetParent(extractedDirectoryPath)?.FullName;
+            if (!string.IsNullOrWhiteSpace(sessionDirectory)
+                && Directory.Exists(sessionDirectory)
+                && !Directory.EnumerateFileSystemEntries(sessionDirectory).Any())
+            {
+                Directory.Delete(sessionDirectory, true);
+            }
+        }
+        catch
+        {
+            // 临时目录清理失败不影响主流程，不在这里打断安装结果提示。
+        }
     }
 
     /// <summary>
@@ -664,6 +757,10 @@ public partial class PluginPageViewModel
             {
                 _logger.LogError(ex, "Error when installing downloaded plugin package");
                 _ = MessageBoxHelper.ShowErrorAsync(ex.Message);
+            }
+            finally
+            {
+                CleanupDownloadedPluginPackageResidue(result.ExtractedDirectoryPath);
             }
         }
     }
