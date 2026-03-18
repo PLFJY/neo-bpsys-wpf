@@ -650,12 +650,12 @@ private void OnCurrentGameChanged(object? sender, EventArgs e)
 
 ## 打包与发布
 
-### 使用 PluginPack 自动打包
+### 使用 CreateZip 自动打包
 
 在项目目录运行：
 
 ```bash
-dotnet publish -p:PluginPack=true
+dotnet publish -p:CreateZip=true
 ```
 
 这会自动创建一个包含所有必需文件的插件包，可以直接在插件页面导入它，也有可能不会创建，我也不知道为什么，可以自行去 publish 的目录拿产物打包成 zip
