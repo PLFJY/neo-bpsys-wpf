@@ -9,7 +9,6 @@ using neo_bpsys_wpf.Models.Plugins;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
-using System.Security.Cryptography;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -28,6 +27,17 @@ public partial class PluginPageViewModel
     private bool _isSyncingGlobalMirror;
 
     /// <summary>
+    /// 防止同步插件源设置时重复保存。
+    /// </summary>
+    private bool _isSyncingPluginMarketSource;
+
+    /// <summary>
+    /// 已经提示过失败信息的下载任务。
+    /// 用于避免下载状态多次刷新时重复弹出相同错误提示。
+    /// </summary>
+    private readonly HashSet<string> _notifiedFailedDownloadQueueItems = [];
+
+    /// <summary>
     /// 当前插件市场列表。
     /// </summary>
     [ObservableProperty]
@@ -37,6 +47,9 @@ public partial class PluginPageViewModel
     /// 当前选中的插件市场条目。
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsMarketPluginSelected))]
+    [NotifyPropertyChangedFor(nameof(HasPluginMarketOverlay))]
+    [NotifyCanExecuteChangedFor(nameof(ExecutePrimaryMarketActionCommand))]
     private PluginMarketItem? _selectedMarketPlugin;
 
     /// <summary>
@@ -49,18 +62,21 @@ public partial class PluginPageViewModel
     /// 插件市场加载失败时显示的错误消息。
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasMarketError))]
     private string _marketErrorMessage = string.Empty;
 
     /// <summary>
     /// 插件市场设置面板是否打开。
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPluginMarketOverlay))]
     private bool _isPluginMarketSettingsOpen;
 
     /// <summary>
     /// 下载队列面板是否打开。
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasPluginMarketOverlay))]
     private bool _isDownloadQueueOpen;
 
     /// <summary>
@@ -68,6 +84,12 @@ public partial class PluginPageViewModel
     /// </summary>
     [ObservableProperty]
     private string _selectedPluginMarketMirror = string.Empty;
+
+    /// <summary>
+    /// 当前选中的插件市场源地址。
+    /// </summary>
+    [ObservableProperty]
+    private string _selectedPluginMarketSource = string.Empty;
 
     /// <summary>
     /// 当前正在下载的插件进度值。
@@ -99,6 +121,23 @@ public partial class PluginPageViewModel
                     : mirror,
                 Value = mirror
             }));
+
+    /// <summary>
+    /// 插件市场源选项列表。
+    /// </summary>
+    public ObservableCollection<PluginMarketMirrorOption> PluginMarketSourceOptions { get; } =
+    [
+        new PluginMarketMirrorOption
+        {
+            DisplayNameKey = "https://bpsys-plugin-index.plfjy.top/",
+            Value = "https://bpsys-plugin-index.plfjy.top/"
+        },
+        new PluginMarketMirrorOption
+        {
+            DisplayNameKey = "https://raw.githubusercontent.com/PLFJY/neo-bpsys.PluginMarket/refs/heads/main/PluginIndex.json",
+            Value = "https://raw.githubusercontent.com/PLFJY/neo-bpsys.PluginMarket/refs/heads/main/PluginIndex.json"
+        }
+    ];
 
     /// <summary>
     /// 插件下载队列。
@@ -143,27 +182,10 @@ public partial class PluginPageViewModel
         && SelectedMarketPlugin.Id == _pluginMarketService.CurrentDownloadPluginId
         && _pluginMarketService.IsDownloading;
 
-    partial void OnMarketErrorMessageChanged(string value)
-    {
-        OnPropertyChanged(nameof(HasMarketError));
-    }
-
     partial void OnSelectedMarketPluginChanged(PluginMarketItem? value)
     {
-        OnPropertyChanged(nameof(IsMarketPluginSelected));
-        OnPropertyChanged(nameof(HasPluginMarketOverlay));
         RefreshDownloadState();
         _ = LoadSelectedPluginReadmeAsync(value);
-    }
-
-    partial void OnIsPluginMarketSettingsOpenChanged(bool value)
-    {
-        OnPropertyChanged(nameof(HasPluginMarketOverlay));
-    }
-
-    partial void OnIsDownloadQueueOpenChanged(bool value)
-    {
-        OnPropertyChanged(nameof(HasPluginMarketOverlay));
     }
 
     /// <summary>
@@ -180,6 +202,19 @@ public partial class PluginPageViewModel
     }
 
     /// <summary>
+    /// 保存插件市场源设置。
+    /// </summary>
+    partial void OnSelectedPluginMarketSourceChanged(string value)
+    {
+        if (!_isPluginMarketInitialized || _settingsHostService == null || _isSyncingPluginMarketSource)
+        {
+            return;
+        }
+
+        _ = PersistPluginMarketSourceAsync(value);
+    }
+
+    /// <summary>
     /// 初始化插件市场相关功能。
     /// </summary>
     private void InitializePluginMarket()
@@ -190,6 +225,7 @@ public partial class PluginPageViewModel
             notifyCollectionChanged.CollectionChanged += PluginDownloadQueue_CollectionChanged;
         }
         SelectedPluginMarketMirror = _settingsHostService.Settings.GhProxyMirror;
+        SelectedPluginMarketSource = _settingsHostService.Settings.PluginMarketSource;
         _pluginMarketService.DownloadStateChanged += PluginMarketService_DownloadStateChanged;
         _isPluginMarketInitialized = true;
         _ = RefreshMarketAsync();
@@ -210,18 +246,13 @@ public partial class PluginPageViewModel
     /// </summary>
     private void Settings_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName != nameof(Core.Models.Settings.GhProxyMirror))
-        {
-            return;
-        }
-
         if (App.Current.Dispatcher.CheckAccess())
         {
-            SyncPluginMarketMirrorFromSettings();
+            SyncPluginMarketSettingsFromSettings();
         }
         else
         {
-            App.Current.Dispatcher.Invoke(SyncPluginMarketMirrorFromSettings);
+            App.Current.Dispatcher.Invoke(SyncPluginMarketSettingsFromSettings);
         }
     }
 
@@ -233,6 +264,7 @@ public partial class PluginPageViewModel
         if (App.Current.Dispatcher.CheckAccess())
         {
             RefreshDownloadState();
+            NotifyFailedPluginDownloads();
             TryInstallCompletedPluginDownload();
         }
         else
@@ -240,6 +272,7 @@ public partial class PluginPageViewModel
             App.Current.Dispatcher.Invoke(() =>
             {
                 RefreshDownloadState();
+                NotifyFailedPluginDownloads();
                 TryInstallCompletedPluginDownload();
             });
         }
@@ -335,12 +368,17 @@ public partial class PluginPageViewModel
     /// <summary>
     /// 将当前选中的插件加入下载队列。
     /// </summary>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanExecutePrimaryMarketAction))]
     private async Task ExecutePrimaryMarketActionAsync()
     {
-        if (SelectedMarketPlugin == null
-            || !SelectedMarketPlugin.CanExecutePrimaryAction)
+        if (SelectedMarketPlugin == null)
         {
+            return;
+        }
+
+        if (SelectedMarketPlugin.IsRestartRequired)
+        {
+            await RestartAppAsync();
             return;
         }
 
@@ -357,6 +395,15 @@ public partial class PluginPageViewModel
             _logger.LogError(ex, "Error when downloading plugin from market");
             await MessageBoxHelper.ShowErrorAsync(ex.Message);
         }
+    }
+
+    /// <summary>
+    /// 判断主操作按钮当前是否允许执行。
+    /// 由命令统一负责可执行性，避免在按钮上再额外绑定 IsEnabled。
+    /// </summary>
+    private bool CanExecutePrimaryMarketAction()
+    {
+        return SelectedMarketPlugin?.CanExecutePrimaryAction == true;
     }
 
     [RelayCommand]
@@ -408,6 +455,18 @@ public partial class PluginPageViewModel
     }
 
     /// <summary>
+    /// 保存插件市场源设置。
+    /// 切换源后会立即刷新插件列表，确保当前页面看到的内容和所选源保持一致。
+    /// </summary>
+    private async Task PersistPluginMarketSourceAsync(string value)
+    {
+        _settingsHostService.Settings.PluginMarketSource = value;
+        _pluginMarketService.ResetMirrorCache();
+        await _settingsHostService.SaveConfigAsync();
+        await RefreshMarketAsync();
+    }
+
+    /// <summary>
     /// 加载选中插件的 README。
     /// </summary>
     private async Task LoadSelectedPluginReadmeAsync(PluginMarketItem? item)
@@ -448,6 +507,8 @@ public partial class PluginPageViewModel
         {
             ApplyMarketPluginState(item);
         }
+
+        ExecutePrimaryMarketActionCommand.NotifyCanExecuteChanged();
     }
 
     /// <summary>
@@ -459,6 +520,7 @@ public partial class PluginPageViewModel
         var compatibility = PluginApiVersionHelper.Evaluate(item.ApiVersion);
         item.LocalPlugin = localPlugin;
         item.IsInstalled = localPlugin != null;
+        item.IsRestartRequired = localPlugin?.IsRestartRequired == true;
         item.CanUninstall = localPlugin != null;
         item.UninstallActionKey = localPlugin?.IsUninstalling == true
             ? "CancelUninstall"
@@ -490,6 +552,17 @@ public partial class PluginPageViewModel
             return;
         }
 
+        if (localPlugin?.IsRestartRequired == true)
+        {
+            item.PrimaryActionKey = "Installed";
+            item.CanExecutePrimaryAction = false;
+            item.MarketStatusKey = localPlugin.IsUninstalling
+                ? "PluginMarketPendingUninstall"
+                : "PluginMarketInstalledRestartRequired";
+            item.IsStatusVisible = true;
+            return;
+        }
+
         if (item.HasUpdateAvailable)
         {
             item.PrimaryActionKey = "Update";
@@ -505,7 +578,9 @@ public partial class PluginPageViewModel
             item.CanExecutePrimaryAction = false;
             item.MarketStatusKey = localPlugin?.IsUninstalling == true
                 ? "PluginMarketPendingUninstall"
-                : "Installed";
+                : item.IsRestartRequired
+                    ? "PluginMarketInstalledRestartRequired"
+                    : "Installed";
             item.IsStatusVisible = true;
             return;
         }
@@ -539,8 +614,6 @@ public partial class PluginPageViewModel
         {
             throw new Exception(I18nHelper.GetLocalizedString("ManifestNotValid"));
         }
-
-        ValidatePluginIntegrity(manifest, tempFolderPath);
 
         var compatibility = PluginApiVersionHelper.Evaluate(manifest.ApiVersion);
         if (!compatibility.IsCompatible)
@@ -596,62 +669,6 @@ public partial class PluginPageViewModel
         Directory.Move(tempFolderPath, pluginFolderPath);
         PluginsCollection.Add(info);
         IsRestartNeeded = true;
-    }
-
-    /// <summary>
-    /// 校验插件入口程序集的 SHA-256。
-    /// 如果清单中提供了 <c>sha256</c>，则必须与入口程序集文件的实际哈希一致；
-    /// 否则会阻止安装，避免篡改后的插件进入插件目录。
-    /// </summary>
-    /// <param name="manifest">插件清单。</param>
-    /// <param name="extractedDirectoryPath">插件解压目录。</param>
-    /// <exception cref="InvalidOperationException">
-    /// 当入口程序集缺失或哈希值与清单不一致时抛出。
-    /// </exception>
-    private static void ValidatePluginIntegrity(PluginManifest manifest, string extractedDirectoryPath)
-    {
-        if (string.IsNullOrWhiteSpace(manifest.Sha256))
-        {
-            return;
-        }
-
-        var entranceAssemblyPath = Path.Combine(extractedDirectoryPath, manifest.EntranceAssembly);
-        if (!File.Exists(entranceAssemblyPath))
-        {
-            throw new InvalidOperationException(
-                FormatLocalized("PluginMarketHashTargetMissing", manifest.EntranceAssembly));
-        }
-
-        var expectedHash = NormalizeSha256(manifest.Sha256);
-        var actualHash = ComputeFileSha256(entranceAssemblyPath);
-        if (!string.Equals(expectedHash, actualHash, StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException(
-                FormatLocalized("PluginMarketSha256Mismatch", manifest.EntranceAssembly, expectedHash, actualHash));
-        }
-    }
-
-    /// <summary>
-    /// 计算指定文件的 SHA-256，并以小写十六进制字符串返回。
-    /// </summary>
-    /// <param name="filePath">待计算哈希的文件路径。</param>
-    /// <returns>文件的 SHA-256 字符串。</returns>
-    private static string ComputeFileSha256(string filePath)
-    {
-        using var stream = File.OpenRead(filePath);
-        var hashBytes = SHA256.HashData(stream);
-        return Convert.ToHexString(hashBytes).ToLowerInvariant();
-    }
-
-    /// <summary>
-    /// 规范化清单中的 SHA-256 文本。
-    /// 允许在清单中使用大小写混合或带连字符的写法，比较前统一转成连续小写十六进制。
-    /// </summary>
-    /// <param name="value">原始哈希文本。</param>
-    /// <returns>规范化后的 SHA-256 字符串。</returns>
-    private static string NormalizeSha256(string value)
-    {
-        return value.Trim().Replace("-", string.Empty, StringComparison.Ordinal).ToLowerInvariant();
     }
 
     /// <summary>
@@ -717,22 +734,45 @@ public partial class PluginPageViewModel
     /// <summary>
     /// 同步镜像设置到插件市场页面。
     /// </summary>
-    private void SyncPluginMarketMirrorFromSettings()
+    private void SyncPluginMarketSettingsFromSettings()
     {
         _isSyncingGlobalMirror = true;
+        _isSyncingPluginMarketSource = true;
         try
         {
             SelectedPluginMarketMirror = _settingsHostService.Settings.GhProxyMirror;
+            SelectedPluginMarketSource = _settingsHostService.Settings.PluginMarketSource;
         }
         finally
         {
             _isSyncingGlobalMirror = false;
+            _isSyncingPluginMarketSource = false;
         }
     }
 
     private static string FormatLocalized(string key, params object[] args)
     {
         return string.Format(I18nHelper.GetLocalizedString(key), args);
+    }
+
+    /// <summary>
+    /// 为下载失败的任务显示错误提示。
+    /// 下载队列在后台执行，失败时不会自然冒泡到按钮点击流程；
+    /// 因此在页面层统一监听失败任务并使用 InfoBar 提示用户。
+    /// </summary>
+    private void NotifyFailedPluginDownloads()
+    {
+        foreach (var queueItem in PluginDownloadQueue)
+        {
+            if (queueItem.Status != PluginDownloadQueueStatus.QueueFailed
+                || string.IsNullOrWhiteSpace(queueItem.ErrorMessage)
+                || !_notifiedFailedDownloadQueueItems.Add(queueItem.QueueId))
+            {
+                continue;
+            }
+
+            _infoBarService.ShowErrorInfoBar(queueItem.ErrorMessage);
+        }
     }
 
     /// <summary>
@@ -751,10 +791,24 @@ public partial class PluginPageViewModel
             try
             {
                 InstallPluginFromExtractedDirectory(result.ExtractedDirectoryPath);
+                if (result.QueueItem != null)
+                {
+                    result.QueueItem.Status = PluginDownloadQueueStatus.QueueInstalledRestartRequired;
+                    result.QueueItem.CanCancel = false;
+                    result.QueueItem.SpeedText = string.Empty;
+                    result.QueueItem.ErrorMessage = string.Empty;
+                }
                 RefreshMarketPluginStates();
             }
             catch (Exception ex)
             {
+                if (result.QueueItem != null)
+                {
+                    result.QueueItem.Status = PluginDownloadQueueStatus.QueueFailed;
+                    result.QueueItem.CanCancel = false;
+                    result.QueueItem.SpeedText = string.Empty;
+                    result.QueueItem.ErrorMessage = ex.Message;
+                }
                 _logger.LogError(ex, "Error when installing downloaded plugin package");
                 _ = MessageBoxHelper.ShowErrorAsync(ex.Message);
             }

@@ -674,8 +674,22 @@
                                             Command="{Binding DataContext.ExecutePrimaryMarketActionCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                             Content="{lex:Loc {Binding PrimaryActionKey},
                                                               FallbackBehavior=Key}"
-                                            Icon="{ui:SymbolIcon Symbol=ArrowDownload24}"
-                                            IsEnabled="{Binding CanExecutePrimaryAction}" />
+                                            Icon="{ui:SymbolIcon Symbol=ArrowDownload24}">
+                                            <ui:Button.Style>
+                                                <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="ui:Button">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsRestartRequired}" Value="True">
+                                                            <Setter Property="Content" Value="{lex:Loc RestartToApplyChanges}" />
+                                                            <Setter Property="Icon" Value="{ui:SymbolIcon Symbol=ArrowClockwise24}" />
+                                                            <Setter Property="Background" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                                                            <Setter Property="MouseOverBackground" Value="{DynamicResource SystemAccentColorSecondaryBrush}" />
+                                                            <Setter Property="PressedBackground" Value="{DynamicResource SystemAccentColorTertiaryBrush}" />
+                                                            <Setter Property="IsEnabled" Value="True" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ui:Button.Style>
+                                        </ui:Button>
                                         <ui:Button
                                             Margin="10,0,0,0"
                                             Command="{Binding DataContext.ToggleSelectedMarketPluginUninstallCommand, RelativeSource={RelativeSource AncestorType=Page}}"
@@ -745,6 +759,22 @@
                                         Content="{lex:Loc Close}"
                                         Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
                                 </Grid>
+
+                                <TextBlock
+                                    Margin="0,14,0,0"
+                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                    Text="{lex:Loc PluginMarketSourceLabel}" />
+                                <ComboBox
+                                    Margin="0,8,0,0"
+                                    ItemsSource="{Binding PluginMarketSourceOptions}"
+                                    SelectedValue="{Binding SelectedPluginMarketSource, Mode=TwoWay}"
+                                    SelectedValuePath="Value">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DisplayNameKey}" TextWrapping="Wrap" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
 
                                 <TextBlock
                                     Margin="0,14,0,0"

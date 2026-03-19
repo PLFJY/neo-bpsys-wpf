@@ -25,6 +25,9 @@ public partial class Settings : ObservableObjectBase
     private string _ghProxyMirror = "https://ghproxy.net/";
 
     [ObservableProperty]
+    private string _pluginMarketSource = "https://bpsys-plugin-index.plfjy.top/";
+
+    [ObservableProperty]
     private bool _isFindPreRelease =
 #if BETA
         true;

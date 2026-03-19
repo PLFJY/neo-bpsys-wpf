@@ -25,6 +25,7 @@ public partial class PluginPageViewModel : ViewModelBase
     private readonly ILogger<PluginPageViewModel> _logger;
     private readonly ISettingsHostService _settingsHostService;
     private readonly IPluginMarketService _pluginMarketService;
+    private readonly IInfoBarService _infoBarService;
 
 #pragma warning disable CS8618 
     public PluginPageViewModel()
@@ -35,13 +36,15 @@ public partial class PluginPageViewModel : ViewModelBase
     }
 
     public PluginPageViewModel(IPluginService pluginService, IFilePickerService filePickerService,
-        ILogger<PluginPageViewModel> logger, ISettingsHostService settingsHostService, IPluginMarketService pluginMarketService)
+        ILogger<PluginPageViewModel> logger, ISettingsHostService settingsHostService, IPluginMarketService pluginMarketService,
+        IInfoBarService infoBarService)
     {
         _pluginService = pluginService;
         _filePickerService = filePickerService;
         _logger = logger;
         _settingsHostService = settingsHostService;
         _pluginMarketService = pluginMarketService;
+        _infoBarService = infoBarService;
         PluginsCollection = new ObservableCollection<PluginInfo>(IPluginService.LoadedPlugins);
         MarketPluginsCollection = [];
         InitializePluginMarket();

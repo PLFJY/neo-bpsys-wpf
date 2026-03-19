@@ -9,4 +9,10 @@ public class PluginPackageDownloadResult
     /// 插件包解压后的目录路径。
     /// </summary>
     public string ExtractedDirectoryPath { get; init; } = string.Empty;
+
+    /// <summary>
+    /// 对应的下载队列项。
+    /// 安装完成后会回写最终状态，避免队列长期停留在“等待安装”。
+    /// </summary>
+    public PluginDownloadQueueItem? QueueItem { get; init; }
 }

@@ -1825,6 +1825,9 @@
   <data name="PluginMarketMirrorLabel" xml:space="preserve">
     <value>Ghproxy</value>
   </data>
+  <data name="PluginMarketSourceLabel" xml:space="preserve">
+    <value>插件源</value>
+  </data>
   <data name="PluginMarketMirrorSyncHint" xml:space="preserve">
     <value>此设置将同步至应用更新</value>
   </data>
@@ -1845,6 +1848,9 @@
   </data>
   <data name="QueueDownloaded" xml:space="preserve">
     <value>已下载，等待安装</value>
+  </data>
+  <data name="QueueInstalledRestartRequired" xml:space="preserve">
+    <value>已安装，重启以应用更改</value>
   </data>
   <data name="QueueFailed" xml:space="preserve">
     <value>下载失败</value>
@@ -1873,17 +1879,17 @@
   <data name="PluginMarketUpdateAvailable" xml:space="preserve">
     <value>有更新</value>
   </data>
+  <data name="PluginMarketInstalledRestartRequired" xml:space="preserve">
+    <value>已安装，重启以应用更改</value>
+  </data>
   <data name="PluginMarketPendingUninstall" xml:space="preserve">
     <value>待卸载</value>
   </data>
   <data name="PluginMarketInstallBlockedHostVersionTooLow" xml:space="preserve">
     <value>当前软件版本过低，无法安装此插件。</value>
   </data>
-  <data name="PluginMarketHashTargetMissing" xml:space="preserve">
-    <value>插件完整性校验失败：找不到需要校验的入口程序集 {0}</value>
-  </data>
   <data name="PluginMarketSha256Mismatch" xml:space="preserve">
-    <value>插件完整性校验失败：{0} 的 SHA-256 不一致。期望值：{1}，实际值：{2}</value>
+    <value>{0} 完整性校验失败，为确保安全已拒绝安装。</value>
   </data>
   <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
     <value>已有插件正在下载。</value>

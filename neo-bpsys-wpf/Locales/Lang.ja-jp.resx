@@ -1810,6 +1810,9 @@
   <data name="PluginMarketMirrorLabel" xml:space="preserve">
     <value>Ghproxy</value>
   </data>
+  <data name="PluginMarketSourceLabel" xml:space="preserve">
+    <value>プラグインソース</value>
+  </data>
   <data name="PluginMarketMirrorSyncHint" xml:space="preserve">
     <value>この設定はアプリ更新にも同期されます</value>
   </data>
@@ -1830,6 +1833,9 @@
   </data>
   <data name="QueueDownloaded" xml:space="preserve">
     <value>ダウンロード済み、インストール待ち</value>
+  </data>
+  <data name="QueueInstalledRestartRequired" xml:space="preserve">
+    <value>インストール済み、再起動して変更を適用</value>
   </data>
   <data name="QueueFailed" xml:space="preserve">
     <value>ダウンロード失敗</value>
@@ -1858,17 +1864,17 @@
   <data name="PluginMarketUpdateAvailable" xml:space="preserve">
     <value>更新があります</value>
   </data>
+  <data name="PluginMarketInstalledRestartRequired" xml:space="preserve">
+    <value>インストール済み、再起動して変更を適用</value>
+  </data>
   <data name="PluginMarketPendingUninstall" xml:space="preserve">
     <value>アンインストール待ち</value>
   </data>
   <data name="PluginMarketInstallBlockedHostVersionTooLow" xml:space="preserve">
     <value>現在のソフトのバージョンではこのプラグインをインストールできません。</value>
   </data>
-  <data name="PluginMarketHashTargetMissing" xml:space="preserve">
-    <value>プラグイン整合性チェックに失敗しました：検証対象のエントリアセンブリ {0} が見つかりません</value>
-  </data>
   <data name="PluginMarketSha256Mismatch" xml:space="preserve">
-    <value>プラグイン整合性チェックに失敗しました：{0} の SHA-256 が一致しません。期待値：{1}、実際値：{2}</value>
+    <value>{0} の整合性チェックに失敗しました。安全のためインストールを拒否しました。</value>
   </data>
   <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
     <value>他のプラグインのダウンロードが進行中です。</value>

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -52,9 +53,7 @@ public partial class PluginPage : Page
             return;
         }
 
-        if (IsWithinPanel(source, DownloadQueuePanel)
-            || IsWithinPanel(source, PluginDetailsPanel)
-            || IsWithinPanel(source, PluginMarketSettingsPanel))
+        if (IsWithinOverlay(source))
         {
             return;
         }
@@ -63,6 +62,19 @@ public partial class PluginPage : Page
         {
             viewModel.ClosePluginMarketOverlaysCommand.Execute(null);
         }
+    }
+
+    /// <summary>
+    /// 判断点击位置是否仍属于任一浮层的交互区域。
+    /// 这里除了普通面板本身，还会把 ComboBox 的下拉项弹层算作浮层内部，
+    /// 避免用户在切换插件源或 Ghproxy 时因为点中了弹出的列表项而被误判为“点击外部关闭”。
+    /// </summary>
+    private bool IsWithinOverlay(DependencyObject source)
+    {
+        return IsWithinPanel(source, DownloadQueuePanel)
+               || IsWithinPanel(source, PluginDetailsPanel)
+               || IsWithinPanel(source, PluginMarketSettingsPanel)
+               || IsWithinOverlayPopup(source);
     }
 
     /// <summary>
@@ -92,5 +104,65 @@ public partial class PluginPage : Page
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// 判断点击位置是否来自浮层内部控件弹出的 Popup。
+    /// 主要用于识别插件市场设置面板中的 ComboBox 下拉项。
+    /// </summary>
+    private bool IsWithinOverlayPopup(DependencyObject source)
+    {
+        var current = source;
+        while (current != null)
+        {
+            if (current is Popup popup
+                && popup.PlacementTarget is DependencyObject placementTarget
+                && IsWithinOverlayPlacementTarget(placementTarget))
+            {
+                return true;
+            }
+
+            if (current is ComboBoxItem comboBoxItem)
+            {
+                var owner = ItemsControl.ItemsControlFromItemContainer(comboBoxItem);
+                if (owner != null && IsWithinOverlayPlacementTarget(owner))
+                {
+                    return true;
+                }
+            }
+
+            if (current is FrameworkElement frameworkElement)
+            {
+                if (frameworkElement.TemplatedParent is DependencyObject templatedParent
+                    && IsWithinOverlayPlacementTarget(templatedParent))
+                {
+                    return true;
+                }
+
+                current = frameworkElement.Parent
+                          ?? frameworkElement.TemplatedParent
+                          ?? LogicalTreeHelper.GetParent(frameworkElement);
+                continue;
+            }
+
+            current = current switch
+            {
+                Visual visual => VisualTreeHelper.GetParent(visual),
+                Visual3D visual3D => VisualTreeHelper.GetParent(visual3D),
+                _ => LogicalTreeHelper.GetParent(current)
+            };
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 判断某个 Popup 的归属控件是否位于插件市场浮层内部。
+    /// </summary>
+    private bool IsWithinOverlayPlacementTarget(DependencyObject placementTarget)
+    {
+        return IsWithinPanel(placementTarget, DownloadQueuePanel)
+               || IsWithinPanel(placementTarget, PluginDetailsPanel)
+               || IsWithinPanel(placementTarget, PluginMarketSettingsPanel);
     }
 }

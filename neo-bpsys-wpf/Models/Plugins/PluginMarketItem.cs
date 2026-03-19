@@ -71,6 +71,13 @@ public partial class PluginMarketItem : ObservableObjectBase
     public string DownloadUrl { get; set; } = string.Empty;
 
     /// <summary>
+    /// 插件压缩包的 SHA-256 校验值。
+    /// 下载完成后会在解压前校验，用于阻止被篡改或损坏的插件包继续安装。
+    /// </summary>
+    [JsonPropertyName("sha256")]
+    public string Sha256 { get; set; } = string.Empty;
+
+    /// <summary>
     /// 当前已安装的本地插件信息。
     /// </summary>
     [JsonIgnore]
@@ -111,6 +118,12 @@ public partial class PluginMarketItem : ObservableObjectBase
     /// </summary>
     [ObservableProperty]
     private bool _isInstalled;
+
+    /// <summary>
+    /// 当前插件是否已经安装到本地，但需要重启后才能应用更改。
+    /// </summary>
+    [ObservableProperty]
+    private bool _isRestartRequired;
 
     /// <summary>
     /// 当前插件是否有可更新版本。

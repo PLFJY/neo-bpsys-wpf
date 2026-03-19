@@ -21,6 +21,11 @@ public enum PluginDownloadQueueStatus
     QueueDownloaded,
 
     /// <summary>
+    /// 插件已经安装完成，等待重启后应用更改。
+    /// </summary>
+    QueueInstalledRestartRequired,
+
+    /// <summary>
     /// 任务下载失败。
     /// </summary>
     QueueFailed,

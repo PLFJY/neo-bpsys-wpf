@@ -2,12 +2,14 @@ using Downloader;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models.Plugins;
 using neo_bpsys_wpf.Services.Abstractions;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
@@ -21,7 +23,7 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public class PluginMarketService : IPluginMarketService
 {
-    private const string MarketIndexUrl =
+    private const string DefaultMarketIndexUrl =
         "https://bpsys-plugin-index.plfjy.top/";
 
     private readonly HttpClient _httpClient;
@@ -89,7 +91,8 @@ public class PluginMarketService : IPluginMarketService
     /// </summary>
     public async Task<IReadOnlyList<PluginMarketItem>> GetMarketPluginsAsync(CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync(await ResolveGitHubUrlAsync(MarketIndexUrl, cancellationToken),
+        var marketIndexUrl = GetCurrentMarketIndexUrl();
+        var response = await _httpClient.GetAsync(await ResolveGitHubUrlAsync(marketIndexUrl, cancellationToken),
             cancellationToken);
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -109,6 +112,7 @@ public class PluginMarketService : IPluginMarketService
             value.Readme ??= string.Empty;
             value.Url ??= string.Empty;
             value.DownloadUrl ??= string.Empty;
+            value.Sha256 ??= string.Empty;
             value.ResolvedIconUrl = await ResolveGitHubUrlAsync(value.Icon, cancellationToken);
             value.ResolvedReadmeUrl = await ResolveGitHubUrlAsync(value.Readme, cancellationToken);
             value.ResolvedDownloadUrl = await ResolveGitHubUrlAsync(value.DownloadUrl, cancellationToken);
@@ -303,7 +307,7 @@ public class PluginMarketService : IPluginMarketService
 
         foreach (var mirror in candidates)
         {
-            if (await IsMirrorAvailableAsync(mirror, cancellationToken))
+            if (await IsMirrorAvailableAsync(mirror, url, cancellationToken))
             {
                 lock (_resolvedMirrorCache)
                 {
@@ -320,6 +324,18 @@ public class PluginMarketService : IPluginMarketService
         }
 
         return url;
+    }
+
+    /// <summary>
+    /// 获取当前插件市场索引地址。
+    /// 当设置文件中没有保存插件源时，回退到内置默认源。
+    /// </summary>
+    /// <returns>当前实际使用的插件市场索引地址。</returns>
+    private string GetCurrentMarketIndexUrl()
+    {
+        return string.IsNullOrWhiteSpace(_settingsHostService.Settings.PluginMarketSource)
+            ? DefaultMarketIndexUrl
+            : _settingsHostService.Settings.PluginMarketSource;
     }
 
     /// <summary>
@@ -350,13 +366,17 @@ public class PluginMarketService : IPluginMarketService
     }
 
     /// <summary>
-    /// 检查指定镜像是否可用。
+    /// 检查指定镜像是否可用于当前目标地址。
+    /// 只有确认镜像本身能访问目标地址后，才会真正把镜像前缀应用到下载地址上。
     /// </summary>
-    private async Task<bool> IsMirrorAvailableAsync(string mirror, CancellationToken cancellationToken)
+    /// <param name="mirror">待测试的镜像前缀。</param>
+    /// <param name="targetUrl">准备通过镜像访问的原始地址。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    private async Task<bool> IsMirrorAvailableAsync(string mirror, string targetUrl, CancellationToken cancellationToken)
     {
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, mirror + MarketIndexUrl);
+            using var request = new HttpRequestMessage(HttpMethod.Get, mirror + targetUrl);
             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             linkedCts.CancelAfter(TimeSpan.FromSeconds(4));
             using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead,
@@ -528,13 +548,15 @@ public class PluginMarketService : IPluginMarketService
             await downloadService.DownloadFileTaskAsync(request.Item.ResolvedDownloadUrl, tempZipPath);
             localCts.Token.ThrowIfCancellationRequested();
             await EnsureDownloadedZipReadyAsync(tempZipPath, localCts.Token);
+            ValidateDownloadedPackageHash(request.Item, tempZipPath);
 
             Directory.CreateDirectory(extractPath);
             ZipFile.ExtractToDirectory(tempZipPath, extractPath, true);
 
             var result = new PluginPackageDownloadResult
             {
-                ExtractedDirectoryPath = extractPath
+                ExtractedDirectoryPath = extractPath,
+                QueueItem = request.QueueItem
             };
 
             lock (_downloadLock)
@@ -674,6 +696,69 @@ public class PluginMarketService : IPluginMarketService
         }
 
         throw new IOException($"Downloaded plugin package is missing or incomplete: {zipPath}");
+    }
+
+    /// <summary>
+    /// 校验下载完成的插件压缩包是否与插件市场声明的 SHA-256 一致。
+    /// 校验发生在解压之前，这样一旦发现压缩包被篡改或损坏，就可以直接中断流程并清理整个下载会话目录，
+    /// 避免任何不可信内容进入后续安装步骤。
+    /// </summary>
+    /// <param name="item">当前下载的插件市场条目。</param>
+    /// <param name="zipPath">已经下载完成的插件压缩包路径。</param>
+    /// <exception cref="InvalidOperationException">
+    /// 当压缩包的 SHA-256 与插件市场声明值不一致时抛出。
+    /// </exception>
+    private static void ValidateDownloadedPackageHash(PluginMarketItem item, string zipPath)
+    {
+        if (string.IsNullOrWhiteSpace(item.Sha256))
+        {
+            return;
+        }
+
+        var expectedHash = NormalizeSha256(item.Sha256);
+        var actualHash = ComputeFileSha256(zipPath);
+        if (!string.Equals(expectedHash, actualHash, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                string.Format(
+                    I18nHelper.GetLocalizedString("PluginMarketSha256Mismatch"),
+                    FormatPluginDisplayName(item)));
+        }
+    }
+
+    /// <summary>
+    /// 计算指定文件的 SHA-256，并返回连续的小写十六进制字符串。
+    /// 这里直接读取已经落盘的 zip 文件，确保比较的是最终下载结果，而不是下载器过程中的中间数据。
+    /// </summary>
+    /// <param name="filePath">待计算哈希的文件路径。</param>
+    /// <returns>文件内容对应的 SHA-256。</returns>
+    private static string ComputeFileSha256(string filePath)
+    {
+        using var stream = File.OpenRead(filePath);
+        var hashBytes = SHA256.HashData(stream);
+        return Convert.ToHexString(hashBytes).ToLowerInvariant();
+    }
+
+    /// <summary>
+    /// 规范化 SHA-256 文本。
+    /// 允许配置中出现大小写混合或带连字符的写法，比较前统一转成连续的小写十六进制字符串。
+    /// </summary>
+    /// <param name="value">原始 SHA-256 文本。</param>
+    /// <returns>规范化后的 SHA-256。</returns>
+    private static string NormalizeSha256(string value)
+    {
+        return value.Trim().Replace("-", string.Empty, StringComparison.Ordinal).ToLowerInvariant();
+    }
+
+    /// <summary>
+    /// 生成用于展示给用户的插件名称。
+    /// 显示格式固定为带双引号的“插件名[插件ID]”，避免只显示名称时难以区分同名插件。
+    /// </summary>
+    /// <param name="item">插件市场条目。</param>
+    /// <returns>用于提示信息的插件显示名称。</returns>
+    private static string FormatPluginDisplayName(PluginMarketItem item)
+    {
+        return $"\"{item.Name}[{item.Id}]\"";
     }
 
     /// <summary>
