@@ -21,9 +21,7 @@
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
     <WrapPanel Orientation="Horizontal">
-        <Border
-            Margin="0,0,10,10"
-            Style="{StaticResource Card}">
+        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -61,9 +59,7 @@
                 </WrapPanel>
             </Grid>
         </Border>
-        <Border
-            Margin="0,0,10,10"
-            Style="{StaticResource Card}">
+        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -83,9 +79,7 @@
                     Player="{Binding CurrentGame.HunPlayer}" />
             </Grid>
         </Border>
-        <Border
-            Margin="0,0,10,10"
-            Style="{StaticResource Card}">
+        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
             <Border.Resources>
                 <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
                 <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />

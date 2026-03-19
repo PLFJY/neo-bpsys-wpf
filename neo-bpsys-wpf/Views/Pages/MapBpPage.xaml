@@ -37,171 +37,167 @@
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </StackPanel>
         </Border>
-        <Border
-            Margin="0,10,0,0"
-            Style="{StaticResource Card}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <TextBlock
-                        Grid.Row="0"
-                        Style="{StaticResource Title}"
-                        Text="{lex:Loc PickMap}" />
-                    <Grid Grid.Row="1" Margin="0,10,0,0">
-                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                            <TextBlock VerticalAlignment="Center" Text="{lex:Loc OperateTeam}" />
-                            <ComboBox
-                                ItemsSource="{Binding MapSelectTeamsList}"
-                                SelectedIndex="0"
-                                SelectedValue="{Binding PickMapTeam}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock>
-                                                <Run Text="{lex:Loc {Binding TeamType}}" /><Run Text=" - " />
-                                            </TextBlock>
-                                            <TextBlock Text="{Binding Team.Name}" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </StackPanel>
-                    </Grid>
-                    <ComboBox
-                        x:Name="PickMapCombobox"
-                        Grid.Row="2"
-                        Width="400"
-                        Margin="0,10,0,0"
-                        HorizontalAlignment="Left"
-                        ItemsSource="{Binding PickedMapSelections}"
-                        SelectedValue="{Binding PickedMap}"
-                        SelectedValuePath="Map.MapName">
-                        <ComboBox.ItemContainerStyle>
-                            <Style BasedOn="{StaticResource {x:Type ComboBoxItem}}" TargetType="ComboBoxItem">
-                                <Setter Property="IsEnabled" Value="{Binding Map.CanBePicked}" />
-                            </Style>
-                        </ComboBox.ItemContainerStyle>
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:Image
-                                        Width="200"
-                                        CornerRadius="4"
-                                        Source="{Binding ImageSource}" />
-                                    <TextBlock
-                                        Margin="20,0,0,0"
-                                        VerticalAlignment="Center"
-                                        FontSize="16"
-                                        Text="{lex:Loc {Binding Map.MapName, TargetNullValue=null}}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                        <i:Interaction.Triggers>
-                            <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Page}, Path=DataContext.IsPickHighlighted}" Value="true">
-                                <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedComboBox}" />
-                            </i:DataTrigger>
-                            <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Page}, Path=DataContext.IsPickHighlighted}" Value="false">
-                                <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource {x:Type ComboBox}}" />
-                            </i:DataTrigger>
-                        </i:Interaction.Triggers>
-                    </ComboBox>
-                </Grid>
-            </Border>
-        <Border
-            Margin="0,10,0,0"
-            Style="{StaticResource Card}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <TextBlock
-                        Grid.Row="0"
-                        Style="{StaticResource Title}"
-                        Text="{lex:Loc BanMap}" />
-                    <Grid Grid.Row="1" Margin="0,10,0,0">
-                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                            <TextBlock VerticalAlignment="Center" Text="{lex:Loc OperateTeam}" />
-                            <ComboBox
-                                ItemsSource="{Binding MapSelectTeamsList}"
-                                SelectedIndex="0"
-                                SelectedValue="{Binding BanMapTeam}">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock>
-                                                <Run Text="{lex:Loc {Binding TeamType}}" /><Run Text=" - " />
-                                            </TextBlock>
-                                            <TextBlock Text="{Binding Team.Name}" />
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                                <i:Interaction.Triggers>
-                                    <i:EventTrigger EventName="SelectionChanged">
-                                        <i:InvokeCommandAction Command="{Binding BanMapCommand}" />
-                                    </i:EventTrigger>
-                                </i:Interaction.Triggers>
-                            </ComboBox>
-                        </StackPanel>
-                    </Grid>
-                    <ItemsControl
-                        Grid.Row="2"
-                        Margin="0,10,0,0"
-                        ItemsSource="{Binding BannedMap}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel Orientation="Horizontal" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <ToggleButton
-                                    Margin="0,0,10,10"
-                                    Command="{Binding DataContext.BanMapCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                    CommandParameter="{Binding Map.MapName}"
-                                    IsChecked="{Binding Map.IsBanned}"
-                                    IsEnabled="{Binding Map.CanBeBanned}">
-                                    <StackPanel IsEnabled="{TemplateBinding IsEnabled}">
-                                        <Image
-                                            Width="276"
-                                            Height="73"
-                                            Margin="0,0,0,5"
-                                            Focusable="False"
-                                            Source="{Binding ImageSource}"
-                                            Stretch="UniformToFill" />
-                                        <TextBlock
-                                            HorizontalAlignment="Center"
-                                            Focusable="False"
-                                            FontSize="14"
-                                            Text="{lex:Loc {Binding Map.MapName}}">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="false">
-                                                            <Setter Property="Foreground" Value="Gray" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc PickMap}" />
+                <Grid Grid.Row="1" Margin="0,10,0,0">
+                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" Text="{lex:Loc OperateTeam}" />
+                        <ComboBox
+                            ItemsSource="{Binding MapSelectTeamsList}"
+                            SelectedIndex="0"
+                            SelectedValue="{Binding PickMapTeam}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock>
+                                            <Run Text="{lex:Loc {Binding TeamType}}" /><Run Text=" - " />
                                         </TextBlock>
+                                        <TextBlock Text="{Binding Team.Name}" />
                                     </StackPanel>
-                                </ToggleButton>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+                <ComboBox
+                    x:Name="PickMapCombobox"
+                    Grid.Row="2"
+                    Width="400"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Left"
+                    ItemsSource="{Binding PickedMapSelections}"
+                    SelectedValue="{Binding PickedMap}"
+                    SelectedValuePath="Map.MapName">
+                    <ComboBox.ItemContainerStyle>
+                        <Style BasedOn="{StaticResource {x:Type ComboBoxItem}}" TargetType="ComboBoxItem">
+                            <Setter Property="IsEnabled" Value="{Binding Map.CanBePicked}" />
+                        </Style>
+                    </ComboBox.ItemContainerStyle>
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:Image
+                                    Width="200"
+                                    CornerRadius="4"
+                                    Source="{Binding ImageSource}" />
+                                <TextBlock
+                                    Margin="20,0,0,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="16"
+                                    Text="{lex:Loc {Binding Map.MapName, TargetNullValue=null}}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
                     <i:Interaction.Triggers>
-                        <i:DataTrigger Binding="{Binding IsBanHighlighted}" Value="true">
-                            <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedGrid}" />
+                        <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Page}, Path=DataContext.IsPickHighlighted}" Value="true">
+                            <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedComboBox}" />
                         </i:DataTrigger>
-                        <i:DataTrigger Binding="{Binding IsBanHighlighted}" Value="false">
-                            <i:ChangePropertyAction PropertyName="Style" Value="{x:Null}" />
+                        <i:DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Page}, Path=DataContext.IsPickHighlighted}" Value="false">
+                            <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource {x:Type ComboBox}}" />
                         </i:DataTrigger>
                     </i:Interaction.Triggers>
+                </ComboBox>
+            </Grid>
+        </Border>
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc BanMap}" />
+                <Grid Grid.Row="1" Margin="0,10,0,0">
+                    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                        <TextBlock VerticalAlignment="Center" Text="{lex:Loc OperateTeam}" />
+                        <ComboBox
+                            ItemsSource="{Binding MapSelectTeamsList}"
+                            SelectedIndex="0"
+                            SelectedValue="{Binding BanMapTeam}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock>
+                                            <Run Text="{lex:Loc {Binding TeamType}}" /><Run Text=" - " />
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding Team.Name}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="SelectionChanged">
+                                    <i:InvokeCommandAction Command="{Binding BanMapCommand}" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </ComboBox>
+                    </StackPanel>
                 </Grid>
-            </Border>
+                <ItemsControl
+                    Grid.Row="2"
+                    Margin="0,10,0,0"
+                    ItemsSource="{Binding BannedMap}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <ToggleButton
+                                Margin="0,0,10,10"
+                                Command="{Binding DataContext.BanMapCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding Map.MapName}"
+                                IsChecked="{Binding Map.IsBanned}"
+                                IsEnabled="{Binding Map.CanBeBanned}">
+                                <StackPanel IsEnabled="{TemplateBinding IsEnabled}">
+                                    <Image
+                                        Width="276"
+                                        Height="73"
+                                        Margin="0,0,0,5"
+                                        Focusable="False"
+                                        Source="{Binding ImageSource}"
+                                        Stretch="UniformToFill" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        Focusable="False"
+                                        FontSize="14"
+                                        Text="{lex:Loc {Binding Map.MapName}}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Value="false">
+                                                        <Setter Property="Foreground" Value="Gray" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </ToggleButton>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <i:Interaction.Triggers>
+                    <i:DataTrigger Binding="{Binding IsBanHighlighted}" Value="true">
+                        <i:ChangePropertyAction PropertyName="Style" Value="{StaticResource HighlightedGrid}" />
+                    </i:DataTrigger>
+                    <i:DataTrigger Binding="{Binding IsBanHighlighted}" Value="false">
+                        <i:ChangePropertyAction PropertyName="Style" Value="{x:Null}" />
+                    </i:DataTrigger>
+                </i:Interaction.Triggers>
+            </Grid>
+        </Border>
     </StackPanel>
 </Page>

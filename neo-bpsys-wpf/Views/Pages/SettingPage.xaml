@@ -951,23 +951,23 @@
                     </ComboBox>
                 </StackPanel>
                 <WrapPanel Orientation="Horizontal">
-                <Button
-                    Margin="0,0,10,10"
-                    Command="{Binding ManualGcCommand}"
-                    Content="{lex:Loc TriggerGCCollectionManually}" />
-                <ui:Button
-                    Margin="0,0,10,10"
-                    Command="{Binding SwitchDebugGlobalScoreCommand}"
-                    Content="切换分数统计调试表格" />
-                <ui:Button
-                    Margin="0,0,10,10"
-                    Command="{Binding OpenTipCommand}"
-                    Content="打开启动时无作者UI提示" />
-                <ui:Button
-                    Margin="0,0,10,10"
-                    Command="{Binding HopToLogDirCommand}"
-                    Content="{lex:Loc OpenLogDirectory}"
-                    Icon="{ui:SymbolIcon Symbol=DocumentText24}" />
+                    <Button
+                        Margin="0,0,10,10"
+                        Command="{Binding ManualGcCommand}"
+                        Content="{lex:Loc TriggerGCCollectionManually}" />
+                    <ui:Button
+                        Margin="0,0,10,10"
+                        Command="{Binding SwitchDebugGlobalScoreCommand}"
+                        Content="切换分数统计调试表格" />
+                    <ui:Button
+                        Margin="0,0,10,10"
+                        Command="{Binding OpenTipCommand}"
+                        Content="打开启动时无作者UI提示" />
+                    <ui:Button
+                        Margin="0,0,10,10"
+                        Command="{Binding HopToLogDirCommand}"
+                        Content="{lex:Loc OpenLogDirectory}"
+                        Icon="{ui:SymbolIcon Symbol=DocumentText24}" />
                 </WrapPanel>
             </StackPanel>
         </Border>

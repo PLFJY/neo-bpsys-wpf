@@ -90,10 +90,10 @@
             </ui:CardExpander.Header>
             <md:MarkdownViewer
                 MinHeight="0"
-                PreviewMouseWheel="ReleaseNotesMarkdownViewer_OnPreviewMouseWheel"
                 VerticalAlignment="Stretch"
                 FontFamily="{StaticResource NotoSans}"
-                Markdown="{Binding ReleaseNotes}" />
+                Markdown="{Binding ReleaseNotes}"
+                PreviewMouseWheel="ReleaseNotesMarkdownViewer_OnPreviewMouseWheel" />
         </ui:CardExpander>
     </Grid>
 </Page>
