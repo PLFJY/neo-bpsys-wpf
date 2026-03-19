@@ -6,6 +6,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models.Plugins;
 using neo_bpsys_wpf.Services.Abstractions;
+using System.ComponentModel;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
@@ -33,6 +34,7 @@ public class PluginMarketService : IPluginMarketService
     private CancellationTokenSource? _downloadCts;
     private DownloadService? _currentDownloader;
     private QueuedPluginDownloadRequest? _currentDownloadRequest;
+    private PluginDownloadExecutionContext? _currentDownloadContext;
     private readonly ObservableCollection<PluginDownloadQueueItem> _downloadQueueInternal = [];
     private readonly Queue<QueuedPluginDownloadRequest> _pendingDownloads = new();
     private readonly Dictionary<string, string> _resolvedMirrorCache = new(StringComparer.Ordinal);
@@ -404,6 +406,7 @@ public class PluginMarketService : IPluginMarketService
         };
         var service = new DownloadService(downloadOpt);
         service.DownloadProgressChanged += Downloader_DownloadProgressChanged;
+        service.DownloadFileCompleted += OnDownloadFileCompletedAsync;
         return service;
     }
 
@@ -518,7 +521,15 @@ public class PluginMarketService : IPluginMarketService
         }
         Directory.CreateDirectory(downloadSessionPath);
 
-        CancellationTokenSource localCts;
+        var completionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var executionContext = new PluginDownloadExecutionContext(
+            request,
+            downloadSessionPath,
+            tempZipPath,
+            extractPath,
+            downloadService,
+            completionSource);
+
         lock (_downloadLock)
         {
             IsDownloading = true;
@@ -528,7 +539,7 @@ public class PluginMarketService : IPluginMarketService
             CurrentDownloadPluginId = request.QueueItem.PluginId;
             _currentDownloader = downloadService;
             _downloadCts = CancellationTokenSource.CreateLinkedTokenSource(request.CancellationToken);
-            localCts = _downloadCts;
+            _currentDownloadContext = executionContext;
         }
 
         UpdateQueueItem(request.QueueItem, queueItem =>
@@ -545,18 +556,98 @@ public class PluginMarketService : IPluginMarketService
 
         try
         {
-            await downloadService.DownloadFileTaskAsync(request.Item.ResolvedDownloadUrl, tempZipPath);
-            localCts.Token.ThrowIfCancellationRequested();
-            await EnsureDownloadedZipReadyAsync(tempZipPath, localCts.Token);
-            ValidateDownloadedPackageHash(request.Item, tempZipPath);
+            _ = downloadService.DownloadFileTaskAsync(request.Item.ResolvedDownloadUrl, tempZipPath);
+            await completionSource.Task;
+        }
+        finally
+        {
+            lock (_downloadLock)
+            {
+                IsDownloading = false;
+                DownloadProgress = 0;
+                DownloadBytesPerSecond = 0;
+                CurrentDownloadPluginId = string.Empty;
+                _currentDownloader = null;
+                _currentDownloadRequest = null;
+                _currentDownloadContext = null;
+                _downloadCts?.Dispose();
+                _downloadCts = null;
+            }
 
-            Directory.CreateDirectory(extractPath);
-            ZipFile.ExtractToDirectory(tempZipPath, extractPath, true);
+            if (File.Exists(tempZipPath))
+            {
+                File.Delete(tempZipPath);
+            }
+
+            RaiseDownloadStateChanged();
+        }
+    }
+
+    private async void OnDownloadFileCompletedAsync(object? sender, AsyncCompletedEventArgs e)
+    {
+        PluginDownloadExecutionContext? context;
+        lock (_downloadLock)
+        {
+            context = _currentDownloadContext;
+        }
+
+        if (context == null || !ReferenceEquals(sender, context.DownloadService))
+        {
+            return;
+        }
+
+        if (e.Cancelled)
+        {
+            lock (_downloadLock)
+            {
+                IsDownloadFinished = _completedDownloadResults.Count > 0;
+            }
+            CleanupDownloadArtifacts(context.DownloadSessionPath);
+            UpdateQueueItem(context.Request.QueueItem, queueItem =>
+            {
+                queueItem.Status = PluginDownloadQueueStatus.QueueCanceled;
+                queueItem.CanCancel = false;
+                queueItem.SpeedText = string.Empty;
+                queueItem.ErrorMessage = string.Empty;
+            });
+            context.CompletionSource.TrySetResult();
+            return;
+        }
+
+        if (e.Error != null)
+        {
+            lock (_downloadLock)
+            {
+                IsDownloadFinished = _completedDownloadResults.Count > 0;
+            }
+            CleanupDownloadArtifacts(context.DownloadSessionPath);
+            UpdateQueueItem(context.Request.QueueItem, queueItem =>
+            {
+                queueItem.Status = PluginDownloadQueueStatus.QueueFailed;
+                queueItem.CanCancel = false;
+                queueItem.SpeedText = string.Empty;
+                queueItem.ErrorMessage = e.Error.Message;
+            });
+            _logger.LogError(e.Error, "Error downloading plugin package for {PluginId}",
+                context.Request.QueueItem.PluginId);
+            context.CompletionSource.TrySetResult();
+            return;
+        }
+
+        try
+        {
+            var cancellationToken = _downloadCts?.Token ?? context.Request.CancellationToken;
+            cancellationToken.ThrowIfCancellationRequested();
+            await EnsureDownloadedZipReadyAsync(context.TempZipPath, cancellationToken);
+            ValidateDownloadedPackageHash(context.Request.Item, context.TempZipPath);
+
+            Directory.CreateDirectory(context.ExtractPath);
+            ZipFile.ExtractToDirectory(context.TempZipPath, context.ExtractPath, true);
 
             var result = new PluginPackageDownloadResult
             {
-                ExtractedDirectoryPath = extractPath,
-                QueueItem = request.QueueItem
+                ExtractedDirectoryPath = context.ExtractPath,
+                QueueItem = context.Request.QueueItem
             };
 
             lock (_downloadLock)
@@ -565,7 +656,7 @@ public class PluginMarketService : IPluginMarketService
                 IsDownloadFinished = true;
             }
 
-            UpdateQueueItem(request.QueueItem, queueItem =>
+            UpdateQueueItem(context.Request.QueueItem, queueItem =>
             {
                 queueItem.Status = PluginDownloadQueueStatus.QueueDownloaded;
                 queueItem.CanCancel = false;
@@ -581,8 +672,8 @@ public class PluginMarketService : IPluginMarketService
             {
                 IsDownloadFinished = _completedDownloadResults.Count > 0;
             }
-            CleanupDownloadArtifacts(downloadSessionPath);
-            UpdateQueueItem(request.QueueItem, queueItem =>
+            CleanupDownloadArtifacts(context.DownloadSessionPath);
+            UpdateQueueItem(context.Request.QueueItem, queueItem =>
             {
                 queueItem.Status = PluginDownloadQueueStatus.QueueCanceled;
                 queueItem.CanCancel = false;
@@ -596,36 +687,19 @@ public class PluginMarketService : IPluginMarketService
             {
                 IsDownloadFinished = _completedDownloadResults.Count > 0;
             }
-            CleanupDownloadArtifacts(downloadSessionPath);
-            UpdateQueueItem(request.QueueItem, queueItem =>
+            CleanupDownloadArtifacts(context.DownloadSessionPath);
+            UpdateQueueItem(context.Request.QueueItem, queueItem =>
             {
                 queueItem.Status = PluginDownloadQueueStatus.QueueFailed;
                 queueItem.CanCancel = false;
                 queueItem.SpeedText = string.Empty;
                 queueItem.ErrorMessage = ex.Message;
             });
-            _logger.LogError(ex, "Error downloading plugin package for {PluginId}", request.QueueItem.PluginId);
+            _logger.LogError(ex, "Error downloading plugin package for {PluginId}", context.Request.QueueItem.PluginId);
         }
         finally
         {
-            lock (_downloadLock)
-            {
-                IsDownloading = false;
-                DownloadProgress = 0;
-                DownloadBytesPerSecond = 0;
-                CurrentDownloadPluginId = string.Empty;
-                _currentDownloader = null;
-                _currentDownloadRequest = null;
-                _downloadCts?.Dispose();
-                _downloadCts = null;
-            }
-
-            if (File.Exists(tempZipPath))
-            {
-                File.Delete(tempZipPath);
-            }
-
-            RaiseDownloadStateChanged();
+            context.CompletionSource.TrySetResult();
         }
     }
 
@@ -658,6 +732,17 @@ public class PluginMarketService : IPluginMarketService
         PluginMarketItem Item,
         PluginDownloadQueueItem QueueItem,
         CancellationToken CancellationToken);
+
+    /// <summary>
+    /// 表示一个正在执行的插件下载上下文。
+    /// </summary>
+    private sealed record PluginDownloadExecutionContext(
+        QueuedPluginDownloadRequest Request,
+        string DownloadSessionPath,
+        string TempZipPath,
+        string ExtractPath,
+        DownloadService DownloadService,
+        TaskCompletionSource CompletionSource);
 
     /// <summary>
     /// 等待下载的压缩包可以被正常读取。

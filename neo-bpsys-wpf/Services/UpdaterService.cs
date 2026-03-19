@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -20,6 +21,13 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public class UpdaterService : IUpdaterService
 {
+    private enum UpdateDownloadStage
+    {
+        None,
+        Installer,
+        Sha256
+    }
+
     public string NewVersion { get; set; } = string.Empty;
     public ReleaseInfo NewVersionInfo { get; set; } = new();
     public bool IsFindPreRelease { get; set; }
@@ -39,6 +47,8 @@ public class UpdaterService : IUpdaterService
     private readonly ISettingsHostService _settingsHostService;
     private readonly Lock _downloadLock = new();
     private CancellationTokenSource? _downloadCts;
+    private string _pendingSha256DownloadUrl = string.Empty;
+    private UpdateDownloadStage _downloadStage = UpdateDownloadStage.None;
 
     public UpdaterService(IInfoBarService infoBarService, ILogger<UpdaterService> logger,
         ISettingsHostService settingsHostService)
@@ -59,6 +69,7 @@ public class UpdaterService : IUpdaterService
 
         _downloader = new DownloadService(downloadOpt);
         _downloader.DownloadProgressChanged += Downloader_DownloadProgressChanged;
+        _downloader.DownloadFileCompleted += OnDownloadFileCompletedAsync;
 
         CleanupResidualUpdateFile(InstallerFileName);
         CleanupResidualUpdateFile(InstallerSha256FileName);
@@ -67,7 +78,7 @@ public class UpdaterService : IUpdaterService
     /// <summary>
     /// 下载更新
     /// </summary>
-    public async Task DownloadUpdate(string mirror = "")
+    public Task DownloadUpdate(string mirror = "")
     {
         mirror = string.IsNullOrWhiteSpace(mirror) ? _settingsHostService.Settings.GhProxyMirror : mirror;
         var asset = NewVersionInfo.Assets.FirstOrDefault(a => a.Name == InstallerFileName);
@@ -78,16 +89,14 @@ public class UpdaterService : IUpdaterService
             || string.IsNullOrWhiteSpace(sha256Asset.BrowserDownloadUrl))
         {
             CleanupDownloadedUpdateFiles();
-            await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("AppUpdateHashFileMissing"));
-            return;
+            return MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("AppUpdateHashFileMissing"));
         }
 
-        CancellationTokenSource localCts;
         lock (_downloadLock)
         {
             if (IsDownloading)
             {
-                return;
+                return Task.CompletedTask;
             }
 
             IsDownloading = true;
@@ -95,30 +104,97 @@ public class UpdaterService : IUpdaterService
             DownloadProgress = 0;
             DownloadBytesPerSecond = 0;
             _downloadCts = new CancellationTokenSource();
-            localCts = _downloadCts;
+            _pendingSha256DownloadUrl = mirror + sha256Asset.BrowserDownloadUrl;
+            _downloadStage = UpdateDownloadStage.Installer;
         }
 
         RaiseDownloadStateChanged();
 
         var fileName = Path.Combine(Path.GetTempPath(), InstallerFileName);
-        var sha256FilePath = Path.Combine(Path.GetTempPath(), InstallerSha256FileName);
         var downloadUrl = asset.BrowserDownloadUrl;
-        var sha256DownloadUrl = sha256Asset.BrowserDownloadUrl;
         try
         {
-            await _downloader.DownloadFileTaskAsync(mirror + downloadUrl, fileName);
-            localCts.Token.ThrowIfCancellationRequested();
-            await _downloader.DownloadFileTaskAsync(mirror + sha256DownloadUrl, sha256FilePath);
-            localCts.Token.ThrowIfCancellationRequested();
-            ValidateDownloadedInstaller(fileName, sha256FilePath);
-            if (!localCts.IsCancellationRequested)
+            _ = _downloader.DownloadFileTaskAsync(mirror + downloadUrl, fileName);
+        }
+        catch (Exception ex)
+        {
+            CleanupDownloadedUpdateFiles();
+            ResetDownloadState(isDownloadFinished: false);
+            return MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("DownloadFails")}: {ex.Message}");
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private async void OnDownloadFileCompletedAsync(object? sender, AsyncCompletedEventArgs e)
+    {
+        UpdateDownloadStage completedStage;
+        lock (_downloadLock)
+        {
+            completedStage = _downloadStage;
+        }
+
+        if (completedStage == UpdateDownloadStage.None)
+        {
+            return;
+        }
+
+        if (e.Cancelled)
+        {
+            CleanupDownloadedUpdateFiles();
+            ResetDownloadState(isDownloadFinished: false);
+            return;
+        }
+
+        if (e.Error != null)
+        {
+            CleanupDownloadedUpdateFiles();
+            ResetDownloadState(isDownloadFinished: false);
+            await Application.Current.Dispatcher.InvokeAsync(async () =>
+            {
+                await MessageBoxHelper.ShowErrorAsync(
+                    $"{I18nHelper.GetLocalizedString("DownloadFails")}: {e.Error.Message}");
+            });
+            return;
+        }
+
+        if (completedStage == UpdateDownloadStage.Installer)
+        {
+            try
             {
                 lock (_downloadLock)
                 {
-                    IsDownloadFinished = true;
+                    _downloadStage = UpdateDownloadStage.Sha256;
+                    DownloadProgress = 0;
+                    DownloadBytesPerSecond = 0;
                 }
                 RaiseDownloadStateChanged();
+                _ = _downloader.DownloadFileTaskAsync(
+                    _pendingSha256DownloadUrl,
+                    Path.Combine(Path.GetTempPath(), InstallerSha256FileName));
+            }
+            catch (Exception ex)
+            {
+                CleanupDownloadedUpdateFiles();
+                ResetDownloadState(isDownloadFinished: false);
+                await Application.Current.Dispatcher.InvokeAsync(async () =>
+                {
+                    await MessageBoxHelper.ShowErrorAsync(
+                        $"{I18nHelper.GetLocalizedString("DownloadFails")}: {ex.Message}");
+                });
+            }
 
+            return;
+        }
+
+        if (completedStage == UpdateDownloadStage.Sha256)
+        {
+            try
+            {
+                ValidateDownloadedInstaller(
+                    Path.Combine(Path.GetTempPath(), InstallerFileName),
+                    Path.Combine(Path.GetTempPath(), InstallerSha256FileName));
+                ResetDownloadState(isDownloadFinished: true);
                 await Application.Current.Dispatcher.InvokeAsync(async () =>
                 {
                     if (await MessageBoxHelper.ShowConfirmAsync(I18nHelper.GetLocalizedString("DownloadFinished"),
@@ -130,40 +206,16 @@ public class UpdaterService : IUpdaterService
                     }
                 });
             }
-        }
-        catch (OperationCanceledException)
-        {
-            // 用户取消下载时静默结束。
-            lock (_downloadLock)
+            catch (Exception ex)
             {
-                IsDownloadFinished = false;
+                CleanupDownloadedUpdateFiles();
+                ResetDownloadState(isDownloadFinished: false);
+                await Application.Current.Dispatcher.InvokeAsync(async () =>
+                {
+                    await MessageBoxHelper.ShowErrorAsync(
+                        $"{I18nHelper.GetLocalizedString("DownloadFails")}: {ex.Message}");
+                });
             }
-            CleanupDownloadedUpdateFiles();
-        }
-        catch (Exception ex)
-        {
-            lock (_downloadLock)
-            {
-                IsDownloadFinished = false;
-            }
-            CleanupDownloadedUpdateFiles();
-            if (!localCts.IsCancellationRequested)
-            {
-                await MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("DownloadFails")}: {ex.Message}");
-            }
-        }
-        finally
-        {
-            lock (_downloadLock)
-            {
-                IsDownloading = false;
-                DownloadProgress = 0;
-                DownloadBytesPerSecond = 0;
-                _downloadCts?.Dispose();
-                _downloadCts = null;
-            }
-
-            RaiseDownloadStateChanged();
         }
     }
 
@@ -290,6 +342,23 @@ public class UpdaterService : IUpdaterService
     private void RaiseDownloadStateChanged()
     {
         DownloadStateChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void ResetDownloadState(bool isDownloadFinished)
+    {
+        lock (_downloadLock)
+        {
+            IsDownloading = false;
+            IsDownloadFinished = isDownloadFinished;
+            DownloadProgress = 0;
+            DownloadBytesPerSecond = 0;
+            _pendingSha256DownloadUrl = string.Empty;
+            _downloadStage = UpdateDownloadStage.None;
+            _downloadCts?.Dispose();
+            _downloadCts = null;
+        }
+
+        RaiseDownloadStateChanged();
     }
 
     /// <summary>
