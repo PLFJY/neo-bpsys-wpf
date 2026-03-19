@@ -1891,6 +1891,15 @@
   <data name="PluginMarketSha256Mismatch" xml:space="preserve">
     <value>{0} 完整性校验失败，为确保安全已拒绝安装。</value>
   </data>
+  <data name="AppUpdateHashFileMissing" xml:space="preserve">
+    <value>更新包缺少 SHA-256 校验文件，已停止下载。</value>
+  </data>
+  <data name="AppUpdateInvalidHashFile" xml:space="preserve">
+    <value>更新包的 SHA-256 校验文件格式无效，已停止安装。</value>
+  </data>
+  <data name="AppUpdateSha256Mismatch" xml:space="preserve">
+    <value>更新安装包完整性校验失败，为确保安全已拒绝安装。</value>
+  </data>
   <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
     <value>已有插件正在下载。</value>
   </data>

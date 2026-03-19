@@ -7,6 +7,7 @@ jobs:
     env:
       PROJ_PATH: ./neo-bpsys-wpf/neo-bpsys-wpf.csproj
       INSTALLER_OUTPUT: ./build/neo-bpsys-wpf_Installer.exe
+      INSTALLER_SHA256_OUTPUT: ./build/neo-bpsys-wpf_Installer.exe.sha256
 
     runs-on: windows-latest
 
@@ -38,12 +39,15 @@ jobs:
         $file = "${{ env.INSTALLER_OUTPUT }}"
         $hash = (Get-FileHash -Path $file -Algorithm SHA256).Hash.ToLower()
         echo "INSTALLER_SHA256=$hash" >> $env:GITHUB_ENV
-        
+        Set-Content -Path "${{ env.INSTALLER_SHA256_OUTPUT }}" -Value "$hash  $(Split-Path -Leaf $file)" -Encoding ascii
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: neo-bpsys-wpf_Installer.exe
-        path: ${{ env.INSTALLER_OUTPUT }}
+        name: neo-bpsys-wpf-release-assets
+        path: |
+          ${{ env.INSTALLER_OUTPUT }}
+          ${{ env.INSTALLER_SHA256_OUTPUT }}
 
     - name: Generate release body
       shell: pwsh
@@ -74,7 +78,9 @@ jobs:
       with:
         draft: true
         tag_name: ${{ env.VERSION }}
-        files: ${{ env.INSTALLER_OUTPUT }}
+        files: |
+          ${{ env.INSTALLER_OUTPUT }}
+          ${{ env.INSTALLER_SHA256_OUTPUT }}
         name: Beta-${{ env.VERSION }}
         body_path: release_body.md
         prerelease: true

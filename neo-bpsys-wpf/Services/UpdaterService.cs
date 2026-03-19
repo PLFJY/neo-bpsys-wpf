@@ -7,6 +7,7 @@ using neo_bpsys_wpf.Core.Models;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Windows;
 using System.Threading;
@@ -31,6 +32,7 @@ public class UpdaterService : IUpdaterService
 
     private const string ApiUrl = "https://gh-releases.plfjy.top/?repo=PLFJY/neo-bpsys-wpf&ua=neo-bpsys-wpf";
     private const string InstallerFileName = "neo-bpsys-wpf_Installer.exe";
+    private const string InstallerSha256FileName = InstallerFileName + ".sha256";
     private readonly HttpClient _httpClient;
     private readonly IInfoBarService _infoBarService;
     private readonly ILogger<UpdaterService> _logger;
@@ -58,17 +60,8 @@ public class UpdaterService : IUpdaterService
         _downloader = new DownloadService(downloadOpt);
         _downloader.DownloadProgressChanged += Downloader_DownloadProgressChanged;
 
-        var fileName = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf_Installer.exe");
-        if (!File.Exists(fileName)) return;
-        try
-        {
-            File.Delete(fileName);
-        }
-        catch (Exception ex)
-        {
-            _ = MessageBoxHelper.ShowErrorAsync(ex.Message,
-                I18nHelper.GetLocalizedString("ErrorWhenCleanUpResidualUpdateFiles"));
-        }
+        CleanupResidualUpdateFile(InstallerFileName);
+        CleanupResidualUpdateFile(InstallerSha256FileName);
     }
 
     /// <summary>
@@ -78,9 +71,14 @@ public class UpdaterService : IUpdaterService
     {
         mirror = string.IsNullOrWhiteSpace(mirror) ? _settingsHostService.Settings.GhProxyMirror : mirror;
         var asset = NewVersionInfo.Assets.FirstOrDefault(a => a.Name == InstallerFileName);
-        if (asset == null || string.IsNullOrWhiteSpace(asset.BrowserDownloadUrl))
+        var sha256Asset = NewVersionInfo.Assets.FirstOrDefault(a => a.Name == InstallerSha256FileName);
+        if (asset == null
+            || sha256Asset == null
+            || string.IsNullOrWhiteSpace(asset.BrowserDownloadUrl)
+            || string.IsNullOrWhiteSpace(sha256Asset.BrowserDownloadUrl))
         {
-            await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("CheckForUpdatesFailed"));
+            CleanupDownloadedUpdateFiles();
+            await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("AppUpdateHashFileMissing"));
             return;
         }
 
@@ -103,10 +101,16 @@ public class UpdaterService : IUpdaterService
         RaiseDownloadStateChanged();
 
         var fileName = Path.Combine(Path.GetTempPath(), InstallerFileName);
+        var sha256FilePath = Path.Combine(Path.GetTempPath(), InstallerSha256FileName);
         var downloadUrl = asset.BrowserDownloadUrl;
+        var sha256DownloadUrl = sha256Asset.BrowserDownloadUrl;
         try
         {
             await _downloader.DownloadFileTaskAsync(mirror + downloadUrl, fileName);
+            localCts.Token.ThrowIfCancellationRequested();
+            await _downloader.DownloadFileTaskAsync(mirror + sha256DownloadUrl, sha256FilePath);
+            localCts.Token.ThrowIfCancellationRequested();
+            ValidateDownloadedInstaller(fileName, sha256FilePath);
             if (!localCts.IsCancellationRequested)
             {
                 lock (_downloadLock)
@@ -134,6 +138,7 @@ public class UpdaterService : IUpdaterService
             {
                 IsDownloadFinished = false;
             }
+            CleanupDownloadedUpdateFiles();
         }
         catch (Exception ex)
         {
@@ -141,6 +146,7 @@ public class UpdaterService : IUpdaterService
             {
                 IsDownloadFinished = false;
             }
+            CleanupDownloadedUpdateFiles();
             if (!localCts.IsCancellationRequested)
             {
                 await MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("DownloadFails")}: {ex.Message}");
@@ -302,5 +308,83 @@ public class UpdaterService : IUpdaterService
         p.StartInfo.Arguments = "/silent";
         p.Start();
         Application.Current.Shutdown();
+    }
+
+    private static void ValidateDownloadedInstaller(string installerPath, string sha256FilePath)
+    {
+        var expectedHash = ReadExpectedSha256(sha256FilePath);
+        var actualHash = ComputeFileSha256(installerPath);
+        if (!string.Equals(expectedHash, actualHash, StringComparison.OrdinalIgnoreCase))
+        {
+            CleanupFileIfExists(installerPath);
+            CleanupFileIfExists(sha256FilePath);
+            throw new InvalidOperationException(I18nHelper.GetLocalizedString("AppUpdateSha256Mismatch"));
+        }
+    }
+
+    private static string ReadExpectedSha256(string sha256FilePath)
+    {
+        var content = File.ReadAllText(sha256FilePath).Trim();
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            throw new InvalidOperationException(I18nHelper.GetLocalizedString("AppUpdateInvalidHashFile"));
+        }
+
+        var hash = content
+            .Split([' ', '\t', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+            .FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(hash))
+        {
+            throw new InvalidOperationException(I18nHelper.GetLocalizedString("AppUpdateInvalidHashFile"));
+        }
+
+        return NormalizeSha256(hash);
+    }
+
+    private static string ComputeFileSha256(string filePath)
+    {
+        using var stream = File.OpenRead(filePath);
+        var hashBytes = SHA256.HashData(stream);
+        return Convert.ToHexString(hashBytes).ToLowerInvariant();
+    }
+
+    private static string NormalizeSha256(string value)
+    {
+        var normalized = value.Trim().Replace("-", string.Empty, StringComparison.Ordinal).ToLowerInvariant();
+        if (normalized.Length != 64 || normalized.Any(c => !Uri.IsHexDigit(c)))
+        {
+            throw new InvalidOperationException(I18nHelper.GetLocalizedString("AppUpdateInvalidHashFile"));
+        }
+
+        return normalized;
+    }
+
+    private void CleanupResidualUpdateFile(string fileName)
+    {
+        CleanupFileIfExists(Path.Combine(Path.GetTempPath(), fileName));
+    }
+
+    private void CleanupDownloadedUpdateFiles()
+    {
+        CleanupResidualUpdateFile(InstallerFileName);
+        CleanupResidualUpdateFile(InstallerSha256FileName);
+    }
+
+    private static void CleanupFileIfExists(string filePath)
+    {
+        if (!File.Exists(filePath))
+        {
+            return;
+        }
+
+        try
+        {
+            File.Delete(filePath);
+        }
+        catch (Exception ex)
+        {
+            _ = MessageBoxHelper.ShowErrorAsync(ex.Message,
+                I18nHelper.GetLocalizedString("ErrorWhenCleanUpResidualUpdateFiles"));
+        }
     }
 }

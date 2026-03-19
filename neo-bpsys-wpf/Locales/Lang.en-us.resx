@@ -1873,6 +1873,15 @@
   <data name="PluginMarketSha256Mismatch" xml:space="preserve">
     <value>Integrity check failed for {0}. Installation was blocked for your safety.</value>
   </data>
+  <data name="AppUpdateHashFileMissing" xml:space="preserve">
+    <value>The update package is missing its SHA-256 file. Download was stopped.</value>
+  </data>
+  <data name="AppUpdateInvalidHashFile" xml:space="preserve">
+    <value>The SHA-256 file for this update is invalid. Installation was stopped.</value>
+  </data>
+  <data name="AppUpdateSha256Mismatch" xml:space="preserve">
+    <value>Integrity check failed for the update installer. Installation was blocked for your safety.</value>
+  </data>
   <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
     <value>Another plugin is already downloading.</value>
   </data>

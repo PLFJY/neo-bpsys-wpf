@@ -1,5 +1,8 @@
 ﻿namespace neo_bpsys_wpf.Core.Models;
 
+/// <summary>
+/// 插件清单。每个插件必须包含一个 manifest.yml 文件，描述插件的基本信息和入口程序集。
+/// </summary>
 public record PluginManifest
 {
     /// <summary>

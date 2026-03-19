@@ -1876,6 +1876,15 @@
   <data name="PluginMarketSha256Mismatch" xml:space="preserve">
     <value>{0} の整合性チェックに失敗しました。安全のためインストールを拒否しました。</value>
   </data>
+  <data name="AppUpdateHashFileMissing" xml:space="preserve">
+    <value>更新パッケージに SHA-256 ファイルが含まれていないため、ダウンロードを停止しました。</value>
+  </data>
+  <data name="AppUpdateInvalidHashFile" xml:space="preserve">
+    <value>この更新の SHA-256 ファイル形式が無効なため、インストールを停止しました。</value>
+  </data>
+  <data name="AppUpdateSha256Mismatch" xml:space="preserve">
+    <value>更新インストーラーの整合性チェックに失敗しました。安全のためインストールを拒否しました。</value>
+  </data>
   <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
     <value>他のプラグインのダウンロードが進行中です。</value>
   </data>
