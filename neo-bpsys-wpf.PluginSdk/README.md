@@ -658,7 +658,28 @@ private void OnCurrentGameChanged(object? sender, EventArgs e)
 dotnet publish -p:CreateZip=true
 ```
 
-这会自动创建一个包含所有必需文件的插件包，可以直接在插件页面导入它，也有可能不会创建，我也不知道为什么，可以自行去 publish 的目录拿产物打包成 zip
+这会自动创建一个包含所有必需文件的插件包，可以直接在插件页面导入它，也有可能不会创建，我也不知道为什么，可以自行去 publish 的目录拿产物打包成 zip。
+
+默认情况下，`CreateZip` 会按依赖闭包自动排除由 `neo-bpsys-wpf.PluginSdk` 和 `neo-bpsys-wpf.Core` 带进来的发布文件，包括它们自身以及它们依赖的 NuGet 包，例如：
+
+- `neo-bpsys-wpf.Core.dll`
+- `Wpf.Ui.dll`
+- `OpenCvSharp.dll`
+- `Microsoft.Extensions.*.dll`
+
+但如果你的插件项目自己也直接引用了其中某个包，那么这个包仍然会保留在 ZIP 里，不会被误删。
+
+如果你要修改排除闭包的根节点，可以传入 `PluginPackageExcludeDependencyClosureRoots`：
+
+```bash
+dotnet publish -p:CreateZip=true -p:PluginPackageExcludeDependencyClosureRoots="neo-bpsys-wpf.PluginSdk;neo-bpsys-wpf.Core;Some.Shared.Runtime"
+```
+
+如果你临时不想启用这套自动排除逻辑，可以这样关闭：
+
+```bash
+dotnet publish -p:CreateZip=true -p:PluginPackageExcludeDependencyClosure=false
+```
 
 ### 手动打包
 

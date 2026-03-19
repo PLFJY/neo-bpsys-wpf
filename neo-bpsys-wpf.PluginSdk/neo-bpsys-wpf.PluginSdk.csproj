@@ -17,10 +17,11 @@
 		<RepositoryUrl>https://github.com/PLFJY/neo-bpsys-wpf/</RepositoryUrl>
 		<PackageId>neo-bpsys-wpf.PluginSdk</PackageId>
 		<Authors>Zero PLFJY</Authors>
-        <PackageTags>neo-bpsys-wpf;plugin;addin;wpf;identityv</PackageTags>
+		<PackageTags>neo-bpsys-wpf;plugin;addin;wpf;identityv</PackageTags>
         <Description>用于开发应用 neo-bpsys-wpf 插件的 SDK。</Description>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<NoWarn>$(NoWarn);NU5111</NoWarn>
     </PropertyGroup>
 
 	<ItemGroup>
@@ -35,5 +36,6 @@
 
 	<ItemGroup>
 		<None Include=".\neo-bpsys-wpf.PluginSdk.targets" Pack="true" PackagePath="buildTransitive" />
+		<None Include=".\tools\neo-bpsys-wpf.PluginSdk.CreateZipExclusionList.ps1" Pack="true" PackagePath="tools" />
 	</ItemGroup>
 </Project>
