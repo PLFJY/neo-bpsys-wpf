@@ -17,6 +17,27 @@ public partial class Settings : ObservableObjectBase
     private static readonly CultureInfo SystemCulture = CultureInfo.CurrentUICulture;
     public bool ShowAfterUpdateTip { get; set; } = true;
 
+    public bool IsRecordGlobalBan { get; set; } = true;
+
+    public string? OcrModelKey { get; set; }
+
+    [ObservableProperty]
+    private string _ghProxyMirror = "https://ghproxy.net/";
+
+    [ObservableProperty]
+    private string _pluginMarketSource = "https://bpsys-plugin-index.plfjy.top/";
+
+    [ObservableProperty]
+    private bool _isFindPreRelease =
+#if BETA
+        true;
+#else
+        false;
+#endif
+
+    [ObservableProperty]
+    private AppLogLevel _logLevel = AppLogLevel.Information;
+
     private LanguageKey _language = LanguageKey.System;
 
     public LanguageKey Language
@@ -416,7 +437,7 @@ public partial class WidgetsWindowSettings : ObservableObjectBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MapBpV2_PickingBorderBrush))]
-    private string? _mapBpV2_PickingBorderColor = Colors.DarkGreen.ToString();
+    private string? _mapBpV2_PickingBorderColor = Colors.White.ToString();
 
     /// <summary>
     /// MapBpV2文本颜色Brush

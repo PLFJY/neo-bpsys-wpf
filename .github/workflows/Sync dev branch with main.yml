@@ -18,8 +18,8 @@ jobs:
 
       - name: Setup Git
         run: |
-          git config --global user.name "gitHub-actions"
-          git config --global user.email "action@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "135627876+github-actions[bot]@users.noreply.github.com"
         shell: pwsh
 
       - name: Rebase dev onto main

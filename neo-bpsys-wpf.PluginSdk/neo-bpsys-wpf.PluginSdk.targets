@@ -11,22 +11,60 @@
 			<ZipPackageOutputName>$(MSBuildProjectName).zip</ZipPackageOutputName>
 
 			<BpsysSdk_PackageRoot>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)'))</BpsysSdk_PackageRoot>
+			<BpsysSdk_CreateZipScriptPath>$([MSBuild]::NormalizePath('$(BpsysSdk_PackageRoot)', 'tools', 'neo-bpsys-wpf.PluginSdk.CreateZipExclusionList.ps1'))</BpsysSdk_CreateZipScriptPath>
+			<BpsysSdk_CreateZipScriptPath Condition="Exists('$(BpsysSdk_CreateZipScriptPath)') != 'true'">$([MSBuild]::NormalizePath('$(BpsysSdk_PackageRoot)', '..', 'tools', 'neo-bpsys-wpf.PluginSdk.CreateZipExclusionList.ps1'))</BpsysSdk_CreateZipScriptPath>
+			<BpsysSdk_PublishDirPath>$([MSBuild]::NormalizePath('$(PublishDir)'))</BpsysSdk_PublishDirPath>
 			<BpsysSdk_ZipOutputPath>$(ZipPackageOutputDirectory)/$(ZipPackageOutputName)</BpsysSdk_ZipOutputPath>
+			<BpsysSdk_ZipStagingDirectory>$(BaseIntermediateOutputPath)CreateZip</BpsysSdk_ZipStagingDirectory>
+			<BpsysSdk_ZipExclusionListPath>$([MSBuild]::NormalizePath('$(BaseIntermediateOutputPath)', 'CreateZip.exclusions.txt'))</BpsysSdk_ZipExclusionListPath>
+			<PluginPackageExcludeDependencyClosure Condition="'$(PluginPackageExcludeDependencyClosure)'==''">true</PluginPackageExcludeDependencyClosure>
+			<PluginPackageExcludeDependencyClosureRoots Condition="'$(PluginPackageExcludeDependencyClosureRoots)'==''">neo-bpsys-wpf.PluginSdk;neo-bpsys-wpf.Core</PluginPackageExcludeDependencyClosureRoots>
 		</PropertyGroup>
 
 		<Message Text="正在创建插件包 $(BpsysSdk_ZipOutputPath)" Importance="high"/>
 		<Error Condition="Exists('$(PublishDir)/manifest.yml') != 'true'"
 		       Code="BPSDK0001"
 		       Text="插件清单 manifest.yml 在生成目录中不存在"/>
+		<Error Condition="'$(PluginPackageExcludeDependencyClosure)' == 'true' and Exists('$(ProjectAssetsFile)') != 'true'"
+		       Code="BPSDK0002"
+		       Text="无法找到 project.assets.json，无法计算需要从插件包中排除的依赖闭包"/>
+
+		<Delete Files="$(BpsysSdk_ZipExclusionListPath)"
+		        Condition="Exists('$(BpsysSdk_ZipExclusionListPath)')"/>
+		<Exec Condition="'$(PluginPackageExcludeDependencyClosure)' == 'true'"
+		      Command="&quot;$(PowershellBinaryName)&quot; -NoProfile -ExecutionPolicy Bypass -File &quot;$(BpsysSdk_CreateZipScriptPath)&quot; -ProjectAssetsFile &quot;$(ProjectAssetsFile)&quot; -PublishDir &quot;$(BpsysSdk_PublishDirPath).&quot; -ExcludedRoots &quot;$(PluginPackageExcludeDependencyClosureRoots)&quot; -OutputFile &quot;$(BpsysSdk_ZipExclusionListPath)&quot;" />
+
+		<ReadLinesFromFile File="$(BpsysSdk_ZipExclusionListPath)"
+		                   Condition="'$(PluginPackageExcludeDependencyClosure)' == 'true' and Exists('$(BpsysSdk_ZipExclusionListPath)')">
+			<Output TaskParameter="Lines" ItemName="BpsysSdk_ExcludedPackageFile"/>
+		</ReadLinesFromFile>
+
+		<ItemGroup>
+			<BpsysSdk_PackageFile Include="$(BpsysSdk_PublishDirPath)**\*" />
+			<BpsysSdk_PackageFile Remove="@(BpsysSdk_ExcludedPackageFile)"
+			                      Condition="'@(BpsysSdk_ExcludedPackageFile)' != ''"/>
+		</ItemGroup>
+
+		<Message Text="插件包排除依赖闭包根: $(PluginPackageExcludeDependencyClosureRoots)" Importance="normal"
+		         Condition="'$(PluginPackageExcludeDependencyClosure)' == 'true'"/>
+		<Message Text="插件包排除文件数: @(BpsysSdk_ExcludedPackageFile->Count())" Importance="normal"
+		         Condition="'@(BpsysSdk_ExcludedPackageFile)' != ''"/>
 
 		<!-- Create Zip -->
 		<RemoveDir Directories="$(ZipPackageOutputDirectory)"
 		           Condition="Exists($(ZipPackageOutputDirectory))"/>
+		<RemoveDir Directories="$(BpsysSdk_ZipStagingDirectory)"
+		           Condition="Exists('$(BpsysSdk_ZipStagingDirectory)')"/>
 		<MakeDir Condition="Exists($(ZipPackageOutputDirectory)) != 'true'"
 		         Directories="$(ZipPackageOutputDirectory)"/>
-		<ZipDirectory SourceDirectory="$(PublishDir)"
+		<MakeDir Directories="$(BpsysSdk_ZipStagingDirectory)"/>
+		<Copy SourceFiles="@(BpsysSdk_PackageFile)"
+		      DestinationFiles="@(BpsysSdk_PackageFile->'$(BpsysSdk_ZipStagingDirectory)\%(RecursiveDir)%(Filename)%(Extension)')" />
+		<ZipDirectory SourceDirectory="$(BpsysSdk_ZipStagingDirectory)"
 		              Overwrite="true"
 		              DestinationFile="$(BpsysSdk_ZipOutputPath)"/>
+		<RemoveDir Directories="$(BpsysSdk_ZipStagingDirectory)"
+		           Condition="Exists('$(BpsysSdk_ZipStagingDirectory)')"/>
 	</Target>
 </Project>
 

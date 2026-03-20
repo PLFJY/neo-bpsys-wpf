@@ -104,7 +104,7 @@ YourPlugin/
 | `entranceAssembly` | string | ✅ | 插件入口程序集文件名（含 .dll 后缀） |
 | `url` | string | ❌ | 插件项目主页或仓库地址 |
 | `version` | string | ✅ | 插件版本号（格式：major.minor.patch.build） |
-| `apiVersion` | string | ✅ | 插件 API 版本，当前必须为 `2.0.0.0` 或更高 |
+| `apiVersion` | string | ✅ | 插件 API 版本。需为有效的 `Version` 字符串，且必须 `>= 2.0.0.0`，同时主版本不能高于宿主支持的 API 主版本（当前为 `2.x`） |
 | `author` | string | ✅ | 插件作者名称 |
 | `icon` | string | ❌ | 插件图标文件名（PNG 格式，推荐尺寸：256x256） |
 
@@ -599,6 +599,8 @@ _sharedDataService.CountDownValueChanged += OnCountDownValueChanged;
 _sharedDataService.TeamSwapped += OnTeamSwapped;
 _sharedDataService.IsMapV2BreathingChanged += OnIsMapV2BreathingChanged;
 _sharedDataService.IsMapV2CampVisibleChanged += OnIsMapV2CampVisibleChanged;
+_sharedDataService.PickedMapChanged += OnPickedMapChanged;
+_sharedDataService.MapV2BannedChanged += OnMapV2BannedChanged;
 
 private void OnCurrentGameChanged(object? sender, EventArgs e)
 {
@@ -648,15 +650,36 @@ private void OnCurrentGameChanged(object? sender, EventArgs e)
 
 ## 打包与发布
 
-### 使用 PluginPack 自动打包
+### 使用 CreateZip 自动打包
 
 在项目目录运行：
 
 ```bash
-dotnet publish -p:PluginPack=true
+dotnet publish -p:CreateZip=true
 ```
 
-这会自动创建一个包含所有必需文件的插件包，可以直接在插件页面导入它，也有可能不会创建，我也不知道为什么，可以自行去 publish 的目录拿产物打包成 zip
+这会自动创建一个包含所有必需文件的插件包，可以直接在插件页面导入它，也有可能不会创建，我也不知道为什么，可以自行去 publish 的目录拿产物打包成 zip。
+
+默认情况下，`CreateZip` 会按依赖闭包自动排除由 `neo-bpsys-wpf.PluginSdk` 和 `neo-bpsys-wpf.Core` 带进来的发布文件，包括它们自身以及它们依赖的 NuGet 包，例如：
+
+- `neo-bpsys-wpf.Core.dll`
+- `Wpf.Ui.dll`
+- `OpenCvSharp.dll`
+- `Microsoft.Extensions.*.dll`
+
+但如果你的插件项目自己也直接引用了其中某个包，那么这个包仍然会保留在 ZIP 里，不会被误删。
+
+如果你要修改排除闭包的根节点，可以传入 `PluginPackageExcludeDependencyClosureRoots`：
+
+```bash
+dotnet publish -p:CreateZip=true -p:PluginPackageExcludeDependencyClosureRoots="neo-bpsys-wpf.PluginSdk;neo-bpsys-wpf.Core;Some.Shared.Runtime"
+```
+
+如果你临时不想启用这套自动排除逻辑，可以这样关闭：
+
+```bash
+dotnet publish -p:CreateZip=true -p:PluginPackageExcludeDependencyClosure=false
+```
 
 ### 手动打包
 
@@ -773,7 +796,10 @@ public class Plugin : PluginBase
 ## 常见问题
 
 ### Q: 插件 API 版本要求是什么？
-A: 当前插件 API 版本必须为 `2.0.0.0` 或更高。低于此版本的插件将无法加载。
+A: `apiVersion` 必须满足以下条件：
+- 能被解析为 `Version`（例如 `2.0.0.0`）
+- 不能低于 `2.0.0.0`
+- 主版本不能高于宿主支持的 API 主版本（当前为 `2.x`）
 
 ### Q: 如何在插件之间共享数据？
 A: 推荐使用主应用的 `ISharedDataService` 或创建自己的服务并注册为单例。

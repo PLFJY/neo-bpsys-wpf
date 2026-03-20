@@ -13,7 +13,7 @@ public partial class TeamInfoPageViewModel : ViewModelBase
     public TeamInfoPageViewModel()
 #pragma warning restore CS8618 
     {
-        //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+        // Decorative constructor for design-time only.
     }
 
     public TeamInfoPageViewModel(ISharedDataService sharedDataService, IFilePickerService filePickerService)

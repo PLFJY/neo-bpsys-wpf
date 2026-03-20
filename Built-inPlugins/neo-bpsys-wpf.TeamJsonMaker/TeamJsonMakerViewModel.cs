@@ -34,6 +34,7 @@ public partial class TeamJsonMakerViewModel : ViewModelBase
     private void AddHunMember()
     {
         CurrentTeam.HunMemberList.Add(new Member(Camp.Hun));
+        RemoveHunMemberCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(CanRemoveHunMember))]

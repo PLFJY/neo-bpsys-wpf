@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Extensions.Registry;
+using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
@@ -66,15 +67,22 @@ public partial class App
         services.AddSingleton<IFilePickerService, FilePickerService>();
         services.AddSingleton<IInfoBarService, InfoBarService>();
         services.AddSingleton<ISnackbarService, SnackbarService>();
+        services.AddSingleton<IWindowCaptureService, WindowCaptureService>();
+        // 场景定义先注册，配置服务会在构造时按 SceneKey 解析规则。
+        services.AddSingleton<ISmartBpSceneDefinition, SmartBpGameDataSceneDefinition>();
+        services.AddSingleton<ISmartBpRegionConfigService, SmartBpRegionConfigService>();
 
         //Additional Feature Services
         services.AddSingleton<IGameGuidanceService, GameGuidanceService>();
+        services.AddSingleton<ISmartBpService, SmartBpService>();
+        services.AddSingleton<IOcrService, OcrService>();
         services.AddSingleton<ISettingsHostService, SettingsHostService>();
         services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
         services.AddSingleton<IPluginService, PluginService>();
+        services.AddSingleton<IPluginMarketService, PluginMarketService>();
 
         //Views and ViewModels
-        //Window
+        //Windows
         services.AddFrontedWindow<BpWindow, BpWindowViewModel>();
         services.AddFrontedWindow<CutSceneWindow, CutSceneWindowViewModel>();
         services.AddFrontedWindow<ScoreGlobalWindow, ScoreWindowViewModel>();
@@ -89,78 +97,22 @@ public partial class App
         });
         services.AddSingleton<ScoreManualWindowViewModel>();
 
-        //Page
-        services.AddSingleton<HomePage>(sp=> new HomePage
-        {
-            DataContext = sp.GetRequiredService<HomePageViewModel>(),
-        });
-        services.AddSingleton<HomePageViewModel>();
-        services.AddSingleton<TeamInfoPage>(sp => new TeamInfoPage
-        {
-            DataContext = sp.GetRequiredService<TeamInfoPageViewModel>(),
-        });
-        services.AddSingleton<TeamInfoPageViewModel>();
-
-        services.AddSingleton<MapBpPage>(sp => new MapBpPage
-        {
-            DataContext = sp.GetRequiredService<MapBpPageViewModel>(),
-        });
-        services.AddSingleton<MapBpPageViewModel>();
-
-        services.AddSingleton<BanHunPage>(sp => new BanHunPage
-        {
-            DataContext = sp.GetRequiredService<BanHunPageViewModel>(),
-        });
-        services.AddSingleton<BanHunPageViewModel>();
-
-        services.AddSingleton<BanSurPage>(sp => new BanSurPage
-        {
-            DataContext = sp.GetRequiredService<BanSurPageViewModel>(),
-        });
-        services.AddSingleton<BanSurPageViewModel>();
-
-        services.AddSingleton<PickPage>(sp => new PickPage
-        {
-            DataContext = sp.GetRequiredService<PickPageViewModel>(),
-        });
-        services.AddSingleton<PickPageViewModel>();
-
-        services.AddSingleton<TalentPage>(sp => new TalentPage
-        {
-            DataContext = sp.GetRequiredService<TalentPageViewModel>(),
-        });
-        services.AddSingleton<TalentPageViewModel>();
-
-        services.AddSingleton<ScorePage>(sp => new ScorePage
-        {
-            DataContext = sp.GetRequiredService<ScorePageViewModel>(),
-        });
-        services.AddSingleton<ScorePageViewModel>();
-
-        services.AddSingleton<GameDataPage>(sp => new GameDataPage
-        {
-            DataContext = sp.GetRequiredService<GameDataPageViewModel>(),
-        });
-        services.AddSingleton<GameDataPageViewModel>();
-
-        services.AddSingleton<FrontManagePage>(sp => new FrontManagePage
-        {
-            DataContext = sp.GetRequiredService<FrontManagePageViewModel>(),
-        });
-        services.AddSingleton<FrontManagePageViewModel>();
-
-        services.AddSingleton<PluginPage>(sp => new PluginPage
-        {
-            DataContext = sp.GetRequiredService<PluginPageViewModel>(),
-        });
-        services.AddSingleton<PluginPageViewModel>();
-
-        services.AddSingleton<SettingPage>(sp =>
-            new SettingPage(sp.GetRequiredService<ITextSettingsNavigationService>())
-            {
-                DataContext = sp.GetRequiredService<SettingPageViewModel>()
-            });
-        services.AddSingleton<SettingPageViewModel>();
+        //Pages
+        //Internal
+        services.AddBackendPage<HomePage, HomePageViewModel>();
+        services.AddBackendPage<TeamInfoPage, TeamInfoPageViewModel>();
+        services.AddBackendPage<MapBpPage, MapBpPageViewModel>();
+        services.AddBackendPage<BanHunPage, BanHunPageViewModel>();
+        services.AddBackendPage<BanSurPage, BanSurPageViewModel>();
+        services.AddBackendPage<PickPage, PickPageViewModel>();
+        services.AddBackendPage<TalentPage, TalentPageViewModel>();
+        services.AddBackendPage<ScorePage, ScorePageViewModel>();
+        services.AddBackendPage<GameDataPage, GameDataPageViewModel>();
+        //External
+        services.AddBackendPage<SettingPage, SettingPageViewModel>();
+        services.AddBackendPage<FrontManagePage, FrontManagePageViewModel>();
+        services.AddBackendPage<PluginPage, PluginPageViewModel>();
+        services.AddBackendPage<SmartBpPage, SmartBpPageViewModel>();
 
         PluginService.InitializePlugins(context, services);
     }

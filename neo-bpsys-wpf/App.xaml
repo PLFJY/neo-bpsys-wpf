@@ -18,6 +18,7 @@
                 <ui:ControlsDictionary />
                 <md:ThemesDictionary />
                 <md:ControlsDictionary />
+
                 <themes:IconThemesDictionary Theme="Dark" />
                 <ResourceDictionary Source="/Controls/CustomControlsStyleDictionary.xaml" />
                 <!--  Styles  -->
@@ -52,9 +53,12 @@
                     </Trigger>
                 </Style.Triggers>
             </Style>
-            <!--  Images  -->
-            <BitmapImage x:Key="surIcon" />
-            <BitmapImage x:Key="hunIcon" />
+
+            <Style x:Key="Title" TargetType="TextBlock">
+                <Setter Property="Language" Value="{DynamicResource CurrentLanguage}" />
+                <Setter Property="FontWeight" Value="DemiBold" />
+                <Setter Property="FontSize" Value="18" />
+            </Style>
         </ResourceDictionary>
     </core:AppBase.Resources>
 </core:AppBase>

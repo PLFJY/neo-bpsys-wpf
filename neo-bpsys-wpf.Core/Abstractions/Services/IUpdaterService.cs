@@ -20,6 +20,22 @@ public interface IUpdaterService
     /// </summary>
     object Downloader { get; }
     /// <summary>
+    /// 当前是否正在下载更新。
+    /// </summary>
+    bool IsDownloading { get; }
+    /// <summary>
+    /// 当前下载进度（0-100）。
+    /// </summary>
+    double DownloadProgress { get; }
+    /// <summary>
+    /// 当前下载速度（字节/秒）。
+    /// </summary>
+    double DownloadBytesPerSecond { get; }
+    /// <summary>
+    /// 最近一次下载是否已成功完成。
+    /// </summary>
+    bool IsDownloadFinished { get; }
+    /// <summary>
     /// 是否寻找预览版
     /// </summary>
     bool IsFindPreRelease { get; set; }
@@ -29,6 +45,10 @@ public interface IUpdaterService
     /// <param name="mirror">ghproxy镜像链接</param>
     /// <returns></returns>
     Task DownloadUpdate(string mirror = "");
+    /// <summary>
+    /// 取消当前更新下载。
+    /// </summary>
+    void CancelDownload();
     /// <summary>
     /// 安装更新
     /// </summary> 
@@ -45,4 +65,8 @@ public interface IUpdaterService
     /// 新版本信息变化事件
     /// </summary>
     event EventHandler? NewVersionInfoChanged;
+    /// <summary>
+    /// 下载状态变化事件。
+    /// </summary>
+    event EventHandler? DownloadStateChanged;
 }

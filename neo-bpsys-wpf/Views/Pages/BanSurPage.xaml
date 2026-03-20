@@ -23,13 +23,16 @@
         <cv:IndexFormatConverter x:Key="IndexFormatConverter" />
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
-        <Border Style="{StaticResource Card}">
+        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc CurrentBan}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc CurrentBan}" />
                 <ItemsControl
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -55,13 +58,16 @@
                 </ItemsControl>
             </Grid>
         </Border>
-        <Border Style="{StaticResource Card}">
+        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc GlobalBan}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc GlobalBan}" />
                 <ItemsControl
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -87,7 +93,7 @@
                 </ItemsControl>
             </Grid>
         </Border>
-        <Border Style="{StaticResource Card}">
+        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -96,7 +102,10 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc BanNumberControl}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc BanNumberControl}" />
                 <TextBlock
                     Grid.Row="1"
                     Margin="0,10,0,0"

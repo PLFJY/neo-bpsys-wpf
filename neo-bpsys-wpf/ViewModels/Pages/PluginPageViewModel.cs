@@ -7,6 +7,8 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Models.Plugins;
+using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -21,21 +23,31 @@ public partial class PluginPageViewModel : ViewModelBase
     private readonly IPluginService _pluginService;
     private readonly IFilePickerService _filePickerService;
     private readonly ILogger<PluginPageViewModel> _logger;
+    private readonly ISettingsHostService _settingsHostService;
+    private readonly IPluginMarketService _pluginMarketService;
+    private readonly IInfoBarService _infoBarService;
 
 #pragma warning disable CS8618 
     public PluginPageViewModel()
 #pragma warning restore CS8618 
     {
-
+        PluginsCollection = [];
+        MarketPluginsCollection = [];
     }
 
     public PluginPageViewModel(IPluginService pluginService, IFilePickerService filePickerService,
-        ILogger<PluginPageViewModel> logger)
+        ILogger<PluginPageViewModel> logger, ISettingsHostService settingsHostService, IPluginMarketService pluginMarketService,
+        IInfoBarService infoBarService)
     {
         _pluginService = pluginService;
         _filePickerService = filePickerService;
         _logger = logger;
+        _settingsHostService = settingsHostService;
+        _pluginMarketService = pluginMarketService;
+        _infoBarService = infoBarService;
         PluginsCollection = new ObservableCollection<PluginInfo>(IPluginService.LoadedPlugins);
+        MarketPluginsCollection = [];
+        InitializePluginMarket();
     }
 
     [ObservableProperty] private bool _isRestartNeeded;
@@ -103,66 +115,16 @@ public partial class PluginPageViewModel : ViewModelBase
         {
             //解压压缩包
             ZipFile.ExtractToDirectory(pluginFile, tempFolderPath);
-
-            //获取插件真实名称
-            var manifestPath = Path.Combine(tempFolderPath, "manifest.yml");
-
-            if (!File.Exists(manifestPath))
-            {
-                throw new Exception(I18nHelper.GetLocalizedString("CannotFindManifest"));
-            }
-
-            var manifestYml = File.ReadAllText(manifestPath);
-
-            var deserializer = new DeserializerBuilder()
-                .IgnoreUnmatchedProperties()
-                .WithNamingConvention(CamelCaseNamingConvention.Instance)
-                .Build();
-
-            var manifest = deserializer.Deserialize<PluginManifest?>(manifestYml);
-            if (manifest == null)
-            {
-                throw new Exception(I18nHelper.GetLocalizedString("ManifestNotValid"));
-            }
-
-            var pluginFolderPath = Path.Combine(AppConstants.PluginPath, manifest.Id);
-
-
-            if (Directory.Exists(pluginFolderPath))
-            {
-                pluginFolderPath = Path.Combine(AppConstants.PluginPath, ".new", manifest.Id);
-                if (!Directory.Exists(Path.Combine(AppConstants.PluginPath, ".new")))
-                {
-                    Directory.CreateDirectory(Path.Combine(AppConstants.PluginPath, ".new"));
-                }
-                Directory.Move(tempFolderPath, pluginFolderPath);
-
-                var local = PluginService.InstalledPlugins.First(x => x.Manifest.Id == manifest.Id);
-                local.IsRestartRequired = true;
-                local.NewVersion = manifest.Version;
-                local.IsNewVersionInstalled = true;
-                IsRestartNeeded = true;
-                return;
-            }
-
-            var info = new PluginInfo
-            {
-                Manifest = manifest,
-                IsLocal = true,
-                PluginFolderPath = pluginFolderPath,
-                RealIconPath = Path.Combine(Path.GetFullPath(pluginFolderPath), manifest.Icon),
-                IsRestartRequired = true
-            };
-
-            Directory.Move(tempFolderPath, pluginFolderPath);
-            PluginsCollection.Add(info);
-            IsRestartNeeded = true;
+            InstallPluginFromExtractedDirectory(tempFolderPath);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Error when installing plugin from file");
             _ = MessageBoxHelper.ShowErrorAsync(e.Message);
-            Directory.Delete(tempFolderPath, true);
+            if (Directory.Exists(tempFolderPath))
+            {
+                Directory.Delete(tempFolderPath, true);
+            }
         }
     }
 }

@@ -1,5 +1,8 @@
 ﻿namespace neo_bpsys_wpf.Core.Models;
 
+/// <summary>
+/// 插件清单。每个插件必须包含一个 manifest.yml 文件，描述插件的基本信息和入口程序集。
+/// </summary>
 public record PluginManifest
 {
     /// <summary>
@@ -39,7 +42,9 @@ public record PluginManifest
     public string Version { get; set; } = string.Empty;
 
     /// <summary>
-    /// 插件目标主程序版本
+    /// 插件 API 版本（manifest.yml 中的 apiVersion）。
+    /// 需要是可解析的 Version 格式，且必须 >= 2.0.0.0；
+    /// 主版本不得高于宿主支持的 API 主版本。
     /// </summary>
     public string ApiVersion { get; set; } = string.Empty;
 
@@ -47,4 +52,5 @@ public record PluginManifest
     /// 插件作者
     /// </summary>
     public string Author { get; set; } = string.Empty;
+
 }

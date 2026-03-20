@@ -25,7 +25,7 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
 #pragma warning restore CS8618 
 
     {
-        //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+        // Decorative constructor for design-time only.
     }
 
     public MapBpPageViewModel(ISharedDataService sharedDataService)

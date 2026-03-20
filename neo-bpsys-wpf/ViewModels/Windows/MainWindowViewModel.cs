@@ -32,7 +32,7 @@ public partial class MainWindowViewModel :
     public MainWindowViewModel()
 #pragma warning restore CS8618
     {
-        //Decorative constructor, used in conjunction with IsDesignTimeCreatable=True
+        // Decorative constructor for design-time only.
     }
 
     private readonly ISharedDataService _sharedDataService;
@@ -132,7 +132,6 @@ public partial class MainWindowViewModel :
     {
         await Task.Delay(60);
         ApplicationThemeManager.Apply(ApplicationTheme);
-        _logger.LogInformation("Theme changed to {ApplicationTheme1}", ApplicationTheme);
     }
 
     [RelayCommand]
@@ -145,7 +144,6 @@ public partial class MainWindowViewModel :
     private void Swap()
     {
         _sharedDataService.CurrentGame.Swap();
-        _logger.LogInformation("Team swapped");
         OnPropertyChanged();
     }
 
@@ -207,7 +205,6 @@ public partial class MainWindowViewModel :
     {
         if (int.TryParse(TimerTime, out var time))
         {
-            _logger.LogInformation("Calling timer started with {Result} seconds", time);
             _sharedDataService.TimerStart(time);
         }
         else
@@ -220,7 +217,6 @@ public partial class MainWindowViewModel :
     [RelayCommand]
     private void TimerStop()
     {
-        _logger.LogInformation("Calling Time to stop");
         _sharedDataService.TimerStop();
     }
 
@@ -237,39 +233,31 @@ public partial class MainWindowViewModel :
     [RelayCommand]
     private async Task StartNavigationAsync()
     {
-        _logger.LogInformation("Calling GameGuidance to start");
         var result = await _gameGuidanceService.StartGuidance();
         if (string.IsNullOrEmpty(result)) return;
         ActionName = result;
         IsGuidanceStarted = true;
-        _logger.LogInformation("Accepted current step: {Result}", result);
     }
 
     [RelayCommand]
     private void StopNavigation()
     {
-        _logger.LogInformation("Calling GameGuidance to stop");
         _gameGuidanceService.StopGuidance();
         IsGuidanceStarted = false;
         ActionName = string.Empty;
-        _logger.LogInformation("Accepted Current step: None");
     }
 
     [RelayCommand]
     private async Task NavigateToNextStepAsync()
     {
-        _logger.LogInformation("Calling navigating to the next step");
         ActionName = await _gameGuidanceService.NextStepAsync() ?? string.Empty;
-        _logger.LogInformation("Accepted current step: {S}", ActionName);
         await Task.Delay(250);
     }
 
     [RelayCommand]
     private async Task NavigateToPreviousStepAsync()
     {
-        _logger.LogInformation("Calling navigating to the previous step");
         ActionName = await _gameGuidanceService.PrevStepAsync() ?? string.Empty;
-        _logger.LogInformation("Accepted current step: {S}", ActionName);
         await Task.Delay(250);
     }
 
@@ -290,7 +278,6 @@ public partial class MainWindowViewModel :
             case nameof(IGameGuidanceService.IsGuidanceStarted)
                 when message.NewValue != IsGuidanceStarted:
                 IsGuidanceStarted = message.NewValue;
-                _logger.LogInformation("Accepted IsGuidanceStarted value: {MessageNewValue}", message.NewValue);
                 break;
         }
     }
@@ -309,7 +296,6 @@ public partial class MainWindowViewModel :
             }
 
             GameList = !IsBo3Mode ? GameListBo5 : GameListBo3;
-            _logger.LogInformation("Accepted IsBo3Mode value: {Value}", value);
         });
     }
 
@@ -321,7 +307,6 @@ public partial class MainWindowViewModel :
     {
         IsSwapHighlighted = message.GameAction == GameAction.PickCamp;
         IsEndGuidanceHighlighted = message.GameAction == GameAction.EndGuidance;
-        _logger.LogInformation("Accepted highlight message: {MessageGameAction}", message.GameAction);
     }
 
     public string TimerTime { get; set; } = "30";
@@ -360,23 +345,7 @@ public partial class MainWindowViewModel :
         { GameProgress.Game3OvertimeSecondHalf, "Game3OvertimeSecondHalf" }
     };
 
-    public ObservableCollection<NavigationViewItem> MenuItems { get; } =
-    [
-        new("HomePage", SymbolRegular.Home24, typeof(HomePage)),
-        new("TeamInfo", SymbolRegular.PeopleTeam24, typeof(TeamInfoPage)),
-        new("MapBP", SymbolRegular.Map24, typeof(MapBpPage)),
-        new("BanHunter", SymbolRegular.PresenterOff24, typeof(BanHunPage)),
-        new("BanSurvivor", SymbolRegular.PersonProhibited24, typeof(BanSurPage)),
-        new("PickCharacter", SymbolRegular.PersonAdd24, typeof(PickPage)),
-        new("TalentAndTrait", SymbolRegular.PersonWalking24, typeof(TalentPage)),
-        new("ScoreControl", SymbolRegular.NumberRow24, typeof(ScorePage)),
-        new("GameData", SymbolRegular.TextNumberListLtr24, typeof(GameDataPage)),
-    ];
+    public ObservableCollection<NavigationViewItem> MenuItems { get; } = [];
 
-    public ObservableCollection<NavigationViewItem> FooterMenuItems { get; } =
-    [
-        new("FrontendManagement", SymbolRegular.ShareScreenStart24, typeof(FrontManagePage)),
-        new("Plugins", SymbolRegular.AppsAddIn24, typeof(PluginPage)),
-        new("Settings", SymbolRegular.Settings24, typeof(SettingPage)),
-    ];
+    public ObservableCollection<NavigationViewItem> FooterMenuItems { get; } = [];
 }

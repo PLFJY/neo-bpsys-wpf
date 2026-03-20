@@ -9,7 +9,7 @@ namespace neo_bpsys_wpf.Core.Extensions.Registry;
 public static class FrontedWindowRegistryExtensions
 {
     public static void AddFrontedWindow<TView, TViewModel>(this IServiceCollection services)
-    where TView : Window, new() where TViewModel : ViewModelBase
+    where TView : Window where TViewModel : ViewModelBase
     {
         var type = typeof(TView);
         if (type.GetCustomAttributes(false).FirstOrDefault(x => x is FrontedWindowInfo) is not FrontedWindowInfo info)
@@ -27,10 +27,11 @@ public static class FrontedWindowRegistryExtensions
         FrontedWindowRegistryService.RegisteredWindow.Add(info);
 
         services.AddSingleton<TViewModel>();
-        services.AddSingleton<TView>(sp => new TView
+        services.AddSingleton<TView>(sp =>
         {
-            DataContext = sp.GetRequiredService<TViewModel>()
-        }
-        );
+            var view = ActivatorUtilities.CreateInstance<TView>(sp);
+            view.DataContext = sp.GetRequiredService<TViewModel>();
+            return view;
+        });
     }
 }

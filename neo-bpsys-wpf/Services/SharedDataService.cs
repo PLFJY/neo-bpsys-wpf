@@ -11,6 +11,7 @@ using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Text.Json;
@@ -66,13 +67,10 @@ public partial class SharedDataService : ISharedDataService
             HandleBanCollectionChanged(BanListName.CanGlobalHunBanned, e);
 
         GlobalScoreTotalMargin = _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreTotalMargin;
-
-
         _timer.Interval = TimeSpan.FromSeconds(1);
         _timer.Tick += Timer_Tick;
-        _logger.LogInformation("SharedDataService initialized");
 
-        CurrentGame.TeamSwapped += OnTeamSwapped;
+        SubscribeCurrentGameRelatedEvents(CurrentGame);
         _settingsHostService.LanguageSettingChanged += (sender, args) => ReadCharaListFromFile(args.CultureInfo);
     }
 
@@ -115,8 +113,6 @@ public partial class SharedDataService : ISharedDataService
         }
 
         WeakReferenceMessenger.Default.Send(new CharacterDictChangedMessage(this));
-
-        _logger.LogInformation("CharacterDict loaded");
     }
 
     #endregion
@@ -135,6 +131,8 @@ public partial class SharedDataService : ISharedDataService
 
     #endregion
 
+    #region 对局
+
     private Game _currentGame;
 
     /// <summary>
@@ -146,10 +144,21 @@ public partial class SharedDataService : ISharedDataService
         private set
         {
             if (_currentGame == value) return;
-            CurrentGame.TeamSwapped -= OnTeamSwapped;
+            var oldPickedMap = _currentGame.PickedMap;
+            var isMapV2BannedChanged = IsMapV2BannedChanged(_currentGame, value);
+            UnsubscribeCurrentGameRelatedEvents(_currentGame);
             _currentGame = value;
-            CurrentGame.TeamSwapped += OnTeamSwapped;
+            SubscribeCurrentGameRelatedEvents(CurrentGame);
             CurrentGameChanged?.Invoke(this, EventArgs.Empty);
+            if (oldPickedMap != CurrentGame.PickedMap)
+            {
+                PickedMapChanged?.Invoke(this, EventArgs.Empty);
+            }
+
+            if (isMapV2BannedChanged)
+            {
+                MapV2BannedChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
     }
 
@@ -179,7 +188,6 @@ public partial class SharedDataService : ISharedDataService
         _ = MessageBoxHelper.ShowInfoAsync(
             $"{I18nHelper.GetLocalizedString("NewGameHasBeenCreated")}\n{CurrentGame.Guid}",
             I18nHelper.GetLocalizedString("CreateTip"), I18nHelper.GetLocalizedString("Cancel"));
-        _logger.LogInformation("New Game Created{CurrentGameGuid}", CurrentGame.Guid);
     }
 
     public async Task ImportGameAsync(string filePath)
@@ -247,6 +255,72 @@ public partial class SharedDataService : ISharedDataService
 
     private void OnTeamSwapped(object? sender, EventArgs args) => TeamSwapped?.Invoke(this, EventArgs.Empty);
 
+    private void SubscribeCurrentGameRelatedEvents(Game game)
+    {
+        game.TeamSwapped += OnTeamSwapped;
+        game.PropertyChanged += OnCurrentGamePropertyChanged;
+        foreach (var mapV2 in game.MapV2Dictionary.Values)
+        {
+            mapV2.PropertyChanged += OnMapV2PropertyChanged;
+        }
+    }
+
+    private void UnsubscribeCurrentGameRelatedEvents(Game game)
+    {
+        game.TeamSwapped -= OnTeamSwapped;
+        game.PropertyChanged -= OnCurrentGamePropertyChanged;
+        foreach (var mapV2 in game.MapV2Dictionary.Values)
+        {
+            mapV2.PropertyChanged -= OnMapV2PropertyChanged;
+        }
+    }
+
+    private void OnCurrentGamePropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName == nameof(Game.PickedMap))
+        {
+            PickedMapChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private void OnMapV2PropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName == nameof(MapV2.IsBanned))
+        {
+            MapV2BannedChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private static bool IsMapV2BannedChanged(Game oldGame, Game newGame)
+    {
+        if (ReferenceEquals(oldGame.MapV2Dictionary, newGame.MapV2Dictionary))
+        {
+            return false;
+        }
+
+        if (oldGame.MapV2Dictionary.Count != newGame.MapV2Dictionary.Count)
+        {
+            return true;
+        }
+
+        foreach (var (mapName, oldMapV2) in oldGame.MapV2Dictionary)
+        {
+            if (!newGame.MapV2Dictionary.TryGetValue(mapName, out var newMapV2))
+            {
+                return true;
+            }
+
+            if (oldMapV2.IsBanned != newMapV2.IsBanned)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    #endregion
+    
     #region 角色字典
 
     /// <summary>
@@ -312,8 +386,6 @@ public partial class SharedDataService : ISharedDataService
             default:
                 throw new ArgumentOutOfRangeException(nameof(listName), listName, null);
         }
-
-        _logger.LogInformation("{BanListName} set ban count to {Count}", listName, count);
     }
 
     /// <summary>
@@ -370,7 +442,6 @@ public partial class SharedDataService : ISharedDataService
         _remainingSeconds = (int)seconds;
         _timer.Start();
         CountDownValueChanged?.Invoke(this, EventArgs.Empty);
-        _logger.LogInformation("Timer started with {Seconds} seconds", seconds);
     }
 
     public void TimerStop()
@@ -378,7 +449,6 @@ public partial class SharedDataService : ISharedDataService
         _remainingSeconds = -1;
         _timer.Stop();
         CountDownValueChanged?.Invoke(this, EventArgs.Empty);
-        _logger.LogInformation("Timer stopped");
     }
 
     #endregion
@@ -397,7 +467,6 @@ public partial class SharedDataService : ISharedDataService
             var oldValue = _isTraitVisible;
             _isTraitVisible = value;
             IsTraitVisibleChanged?.Invoke(this, EventArgs.Empty);
-            _logger.LogInformation("IsTraitVisible changed to {Value}", value);
         }
     }
 
@@ -417,7 +486,6 @@ public partial class SharedDataService : ISharedDataService
             WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsBo3Mode), oldValue,
                 value));
             IsBo3ModeChanged?.Invoke(this, EventArgs.Empty);
-            _logger.LogInformation("IsBo3Mode changed to {Value}", value);
         }
     }
 
@@ -436,7 +504,6 @@ public partial class SharedDataService : ISharedDataService
             _globalScoreTotalMargin = value;
 
             GlobalScoreTotalMarginChanged?.Invoke(this, EventArgs.Empty);
-            _logger.LogInformation("GlobalScoreTotalMargin changed to {Value}", value);
         }
     }
 
@@ -526,6 +593,16 @@ public partial class SharedDataService : ISharedDataService
     /// 地图V2阵营是否可见改变事件
     /// </summary>
     public event EventHandler? IsMapV2CampVisibleChanged;
+
+    /// <summary>
+    /// 选择地图改变事件
+    /// </summary>
+    public event EventHandler? PickedMapChanged;
+
+    /// <summary>
+    /// 地图禁用状态改变事件（MapV2）
+    /// </summary>
+    public event EventHandler? MapV2BannedChanged;
 
     #endregion
 

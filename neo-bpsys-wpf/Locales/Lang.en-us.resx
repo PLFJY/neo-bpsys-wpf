@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -133,7 +133,7 @@
     <value>Software updates</value>
   </data>
   <data name="DownloadSource" xml:space="preserve">
-    <value>Download source</value>
+    <value>Download source (this setting syncs to the plugin market)</value>
   </data>
   <data name="DownloadPreviewVersion" xml:space="preserve">
     <value>Download preview version?</value>
@@ -188,9 +188,6 @@
   </data>
   <data name="PickingBorderImage" xml:space="preserve">
     <value>Picking border image</value>
-  </data>
-  <data name="DownloadProgress" xml:space="preserve">
-    <value>Download progress</value>
   </data>
   <data name="PickingBorderImageColor" xml:space="preserve">
     <value>Picking border image color(It will cover the color of picking border itself)</value>
@@ -314,6 +311,27 @@
   </data>
   <data name="DebugOptions" xml:space="preserve">
     <value>Debug options</value>
+  </data>
+  <data name="LogLevel" xml:space="preserve">
+    <value>Log level</value>
+  </data>
+  <data name="LogLevelVerbose" xml:space="preserve">
+    <value>Verbose</value>
+  </data>
+  <data name="LogLevelDebug" xml:space="preserve">
+    <value>Debug</value>
+  </data>
+  <data name="LogLevelInformation" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="LogLevelWarning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="LogLevelError" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="LogLevelFatal" xml:space="preserve">
+    <value>Fatal</value>
   </data>
   <data name="TriggerGCCollectionManually" xml:space="preserve">
     <value>Trigger GC collection manually</value>
@@ -1347,4 +1365,525 @@
   <data name="DesignerUnlockNote" xml:space="preserve">
     <value>NOTE: In Design Mode, holding down &lt;Shift&gt; key temporarily disables auto-snaping for precise adjustments</value>
   </data>
+  <data name="AutoRecord" xml:space="preserve">
+    <value>Auto Record</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="UnexpectedExceptionMessage" xml:space="preserve">
+    <value>Some unexpected errors have occurred. Please contact the developer with the log file below for solutions</value>
+  </data>
+  <data name="AutoDetectAndFillPostGameData" xml:space="preserve">
+    <value>Auto-Detect and Fill Post-Game Data</value>
+  </data>
+  <data name="SmartBp" xml:space="preserve">
+    <value>Smart BP</value>
+  </data>
+  <data name="PleaseStartWindowCaptureFirst" xml:space="preserve">
+    <value>Please start window capture first.</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="SmartBpWindowCaptureSettings" xml:space="preserve">
+    <value>Window Capture Settings</value>
+  </data>
+  <data name="SmartBpCaptureMethod" xml:space="preserve">
+    <value>Capture Method</value>
+  </data>
+  <data name="SmartBpSelectGameWindowProcess" xml:space="preserve">
+    <value>Select Game Window Process</value>
+  </data>
+  <data name="SmartBpOpenWindowPickerOnlyWgc" xml:space="preserve">
+    <value>Open Window Picker (WGC only)</value>
+  </data>
+  <data name="SmartBpStartCapture" xml:space="preserve">
+    <value>Start Capture</value>
+  </data>
+  <data name="SmartBpStopCapture" xml:space="preserve">
+    <value>Stop Capture</value>
+  </data>
+  <data name="SmartBpOpenPreview" xml:space="preserve">
+    <value>Open Preview</value>
+  </data>
+  <data name="SmartBpOcrModelManagement" xml:space="preserve">
+    <value>OCR Model Management</value>
+  </data>
+  <data name="SmartBpOcrModelSelection" xml:space="preserve">
+    <value>Model Selection</value>
+  </data>
+  <data name="SmartBpDownloadModel" xml:space="preserve">
+    <value>Download Model</value>
+  </data>
+  <data name="SmartBpDeleteModel" xml:space="preserve">
+    <value>Delete Model</value>
+  </data>
+  <data name="SmartBpSwitchToCurrentModel" xml:space="preserve">
+    <value>Switch to Current Model</value>
+  </data>
+  <data name="SmartBpRefreshStatus" xml:space="preserve">
+    <value>Refresh Status</value>
+  </data>
+  <data name="SmartBpCancelDownload" xml:space="preserve">
+    <value>Cancel Download</value>
+  </data>
+  <data name="SmartBpCurrentOcrModelDisabled" xml:space="preserve">
+    <value>Current OCR model: Not enabled</value>
+  </data>
+  <data name="SmartBpCurrentOcrModelFormat" xml:space="preserve">
+    <value>Current OCR model: {0}</value>
+  </data>
+  <data name="SmartBpCurrentOcrModelNotEnabled" xml:space="preserve">
+    <value>Not enabled</value>
+  </data>
+  <data name="SmartBpOcrModelDownloadFailed" xml:space="preserve">
+    <value>Failed to download OCR model: {0}</value>
+  </data>
+  <data name="SmartBpDeleteOcrModelConfirmFormat" xml:space="preserve">
+    <value>Are you sure you want to delete OCR model: {0}?</value>
+  </data>
+  <data name="SmartBpDeleteOcrModelTitle" xml:space="preserve">
+    <value>Delete Model</value>
+  </data>
+  <data name="SmartBpCaptureMethodWgc" xml:space="preserve">
+    <value>Windows Graphics Capture (Windows 10 1903 or later)</value>
+  </data>
+  <data name="SmartBpCaptureMethodBitblt" xml:space="preserve">
+    <value>Bitblt</value>
+  </data>
+  <data name="SmartBpOcrNotReadyFirstDownloadAndSwitchModel" xml:space="preserve">
+    <value>OCR is not ready. Please download and switch an OCR model before using this feature.</value>
+  </data>
+  <data name="SmartBpOcrUnsupportedModelFormat" xml:space="preserve">
+    <value>Unsupported OCR model: {0}</value>
+  </data>
+  <data name="SmartBpOcrDownloadAlreadyInProgress" xml:space="preserve">
+    <value>An OCR model download is already in progress.</value>
+  </data>
+  <data name="SmartBpOcrDownloadPreparing" xml:space="preserve">
+    <value>Preparing to download OCR model...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageDet" xml:space="preserve">
+    <value>Downloading detection model...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageCls" xml:space="preserve">
+    <value>Downloading orientation classification model...</value>
+  </data>
+  <data name="SmartBpOcrDownloadStageRec" xml:space="preserve">
+    <value>Downloading recognition model...</value>
+  </data>
+  <data name="SmartBpOcrDownloadCompleted" xml:space="preserve">
+    <value>OCR model download completed.</value>
+  </data>
+  <data name="SmartBpOcrDownloadCanceled" xml:space="preserve">
+    <value>Download canceled.</value>
+  </data>
+  <data name="SmartBpOcrDownloadFailedSimple" xml:space="preserve">
+    <value>Download failed.</value>
+  </data>
+  <data name="SmartBpOcrDetModelMetadataEmpty" xml:space="preserve">
+    <value>OCR detection model metadata is empty.</value>
+  </data>
+  <data name="SmartBpOcrClsModelMetadataEmpty" xml:space="preserve">
+    <value>OCR classification model metadata is empty.</value>
+  </data>
+  <data name="SmartBpOcrRecModelMetadataEmpty" xml:space="preserve">
+    <value>OCR recognition model metadata is empty.</value>
+  </data>
+  <data name="SmartBpOcrDictNameEmpty" xml:space="preserve">
+    <value>OCR dictionary name is empty.</value>
+  </data>
+  <data name="SmartBpOcrDeleteBlockedByDownloading" xml:space="preserve">
+    <value>Cannot delete model while download is in progress.</value>
+  </data>
+  <data name="SmartBpOcrDeleteFailedFormat" xml:space="preserve">
+    <value>Failed to delete OCR model: {0}</value>
+  </data>
+  <data name="SmartBpOcrModelFilesIncomplete" xml:space="preserve">
+    <value>Model files are incomplete. Please download the model first.</value>
+  </data>
+  <data name="SmartBpOcrLoadFailedFormat" xml:space="preserve">
+    <value>Failed to load OCR model: {0}</value>
+  </data>
+  <data name="SmartBpOcrArchiveMissingModelFilesFormat" xml:space="preserve">
+    <value>No usable model files were found in the model archive (expected inference.pdmodel or inference.json, with inference.pdiparams). Sample files: {0}</value>
+  </data>
+  <data name="WindowCapturePleaseSelectWindowFirst" xml:space="preserve">
+    <value>Please select a window first.</value>
+  </data>
+  <data name="WindowCaptureWgcRequires1803OrLater" xml:space="preserve">
+    <value>Windows Graphics Capture requires Windows 10 1803 or later.</value>
+  </data>
+  <data name="WindowCaptureWgcNotSupportedOnCurrentSystem" xml:space="preserve">
+    <value>Windows Graphics Capture is not supported on this system.</value>
+  </data>
+  <data name="WindowCaptureFailedToStartPickerCaptureFormat" xml:space="preserve">
+    <value>Failed to start picker capture: {0}</value>
+  </data>
+  <data name="WindowCaptureCaptureNotStarted" xml:space="preserve">
+    <value>Capture has not started.</value>
+  </data>
+  <data name="WindowCapturePreviewWindowTitle" xml:space="preserve">
+    <value>Preview Window</value>
+  </data>
+  <data name="WindowCaptureSelectedWindowInvalidForCapture" xml:space="preserve">
+    <value>The selected window is not valid for capture.</value>
+  </data>
+  <data name="WindowCaptureFailedToCaptureFirstFrameWithBitblt" xml:space="preserve">
+    <value>Failed to capture the first frame with Bitblt.</value>
+  </data>
+  <data name="WindowCaptureFailedToStartBitbltCaptureFormat" xml:space="preserve">
+    <value>Failed to start Bitblt capture: {0}</value>
+  </data>
+  <data name="WindowCaptureWgcWindowCaptureRequires1903OrLaterUsePickerOn1803Or1809" xml:space="preserve">
+    <value>Capturing by selected window requires Windows 10 1903 or later. On 1803/1809, use picker capture.</value>
+  </data>
+  <data name="WindowCaptureFailedToCaptureSelectedWindowFormat" xml:space="preserve">
+    <value>Failed to capture selected window: {0}</value>
+  </data>
+  <data name="WindowCaptureGraphicsCaptureItemUnavailable" xml:space="preserve">
+    <value>Failed to capture selected window: GraphicsCaptureItem is unavailable.</value>
+  </data>
+  <data name="WindowCaptureFailedToStartCaptureFormat" xml:space="preserve">
+    <value>Failed to start capture: {0}</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV5MobileDisplayName" xml:space="preserve">
+    <value>Chinese V5 Mobile</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV5MobileDescription" xml:space="preserve">
+    <value>Balanced accuracy and speed.</value>
+  </data>
+  <data name="SmartBpOcrModelEnV4MobileDisplayName" xml:space="preserve">
+    <value>English V4 Mobile (Recommended)</value>
+  </data>
+  <data name="SmartBpOcrModelEnV4MobileDescription" xml:space="preserve">
+    <value>Optimized for English scenes, suitable for English and numeric recognition. Recommended for English UI.</value>
+  </data>
+  <data name="SmartBpOcrModelJaV4MobileDisplayName" xml:space="preserve">
+    <value>Japanese V4 Mobile</value>
+  </data>
+  <data name="SmartBpOcrModelJaV4MobileDescription" xml:space="preserve">
+    <value>Optimized for Japanese scenes, suitable for Japanese and numeric recognition.</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV4DisplayName" xml:space="preserve">
+    <value>Chinese V4</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV4Description" xml:space="preserve">
+    <value>Stable compatibility with moderate deployment size.</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV3SlimDisplayName" xml:space="preserve">
+    <value>Chinese V3 Slim (Lightweight)</value>
+  </data>
+  <data name="SmartBpOcrModelZhCnV3SlimDescription" xml:space="preserve">
+    <value>Smaller size, suitable for low-spec devices.</value>
+  </data>
+  <data name="SmartBpRegionConfigAspectRatioFormat" xml:space="preserve">
+    <value>Config aspect ratio: {0}</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidCellCountFormat" xml:space="preserve">
+    <value>Invalid config: row {0} must contain 6 child regions.</value>
+  </data>
+  <data name="SmartBpRegionCellHunterSurvivorHits" xml:space="preserve">
+    <value>Hits</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidBigRectFormat" xml:space="preserve">
+    <value>Invalid config: row {0} parent rect is out of range.</value>
+  </data>
+  <data name="SmartBpRegionConfigResetFailedFormat" xml:space="preserve">
+    <value>Reset failed: {0}</value>
+  </data>
+  <data name="SmartBpRegionEditorWindowTitle" xml:space="preserve">
+    <value>Region Editor</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchCellCountFormat" xml:space="preserve">
+    <value>Layout mismatch: row #{0} expected {1} cells, actual {2}.</value>
+  </data>
+  <data name="SmartBpRegionConfigTitle" xml:space="preserve">
+    <value>Region Config</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusNotStarted" xml:space="preserve">
+    <value>Capture not started</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateNotInGroup" xml:space="preserve">
+    <value>Current node is not in a template group.</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorContainmentTime" xml:space="preserve">
+    <value>Containment</value>
+  </data>
+  <data name="SmartBpRegionConfigPathFormat" xml:space="preserve">
+    <value>Config file: {0}</value>
+  </data>
+  <data name="SmartBpRegionCellHunterRemainingCipher" xml:space="preserve">
+    <value>Remaining Ciphers</value>
+  </data>
+  <data name="SmartBpRegionConfigResetDone" xml:space="preserve">
+    <value>Reset to built-in 16:9 default config.</value>
+  </data>
+  <data name="SmartBpRegionCellHunterTerrorShocks" xml:space="preserve">
+    <value>Terror Shocks</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateAppliedFormat" xml:space="preserve">
+    <value>Applied to {0} same-template elements (parent position kept).</value>
+  </data>
+  <data name="SmartBpRegionEditorApplyTemplate" xml:space="preserve">
+    <value>Apply to Same Template</value>
+  </data>
+  <data name="SmartBpRegionEditorOperationHelp" xml:space="preserve">
+    <value>How to use:
+1. Drag inside region to move
+2. Drag 8 handles to resize
+3. Child regions are constrained inside parent
+4. Preview is frozen on current frame</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchRootIdFormat" xml:space="preserve">
+    <value>Layout mismatch: root #{0} should be {1}, actual {2}.</value>
+  </data>
+  <data name="SmartBpRegionCellName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidCellRectFormat" xml:space="preserve">
+    <value>Invalid config: row {0} cell {1} is out of parent range.</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusMismatched" xml:space="preserve">
+    <value>Mismatched</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusWaitingFirstFrame" xml:space="preserve">
+    <value>Waiting for first frame</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeRectRootFormat" xml:space="preserve">
+    <value>Node: {0}`nRelative rect (to frame)`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6}</value>
+  </data>
+  <data name="SmartBpRegionConfigSaveFailedFormat" xml:space="preserve">
+    <value>Failed to save config: {0}</value>
+  </data>
+  <data name="SmartBpRegionConfigResetConfirm" xml:space="preserve">
+    <value>Reset to built-in 16:9 default config? Current config will be overwritten.</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusFormat" xml:space="preserve">
+    <value>Match status: {0}</value>
+  </data>
+  <data name="SmartBpRegionEditorCurrentRect" xml:space="preserve">
+    <value>Current Relative Rect</value>
+  </data>
+  <data name="SmartBpRegionEditorRequireCaptureFirst" xml:space="preserve">
+    <value>Please start capture before editing regions.</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeSelection" xml:space="preserve">
+    <value>Node Selection</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow3" xml:space="preserve">
+    <value>Survivor Row 3</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow1" xml:space="preserve">
+    <value>Survivor Row 1</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow2" xml:space="preserve">
+    <value>Survivor Row 2</value>
+  </data>
+  <data name="SmartBpRegionAspectHintNotStarted" xml:space="preserve">
+    <value>Start capture first, then check aspect ratio.</value>
+  </data>
+  <data name="SmartBpRegionAspectHintWaitingFirstFrame" xml:space="preserve">
+    <value>Capture started. Waiting for first frame to evaluate aspect ratio.</value>
+  </data>
+  <data name="SmartBpCaptureAspectRatioFormat" xml:space="preserve">
+    <value>Capture aspect ratio: {0}</value>
+  </data>
+  <data name="SmartBpRegionEditorRuleRuntimeFormat" xml:space="preserve">
+    <value>Current structure: {0} editable nodes (any depth and count supported)</value>
+  </data>
+  <data name="SmartBpRegionLayoutMismatchRootCountFormat" xml:space="preserve">
+    <value>Layout mismatch: expected {0} root regions, actual {1}.</value>
+  </data>
+  <data name="SmartBpRegionAspectStatusMatched" xml:space="preserve">
+    <value>Matched</value>
+  </data>
+  <data name="SmartBpRegionHunterRow" xml:space="preserve">
+    <value>Hunter Row</value>
+  </data>
+  <data name="SmartBpRegionEditorNodeRectChildFormat" xml:space="preserve">
+    <value>Node: {0}`nRelative rect (to parent)`nX={1:F6}, Y={2:F6}, W={3:F6}, H={4:F6}</value>
+  </data>
+  <data name="SmartBpRegionAspectHintMismatched" xml:space="preserve">
+    <value>Capture aspect ratio differs from config. Open "Edit Regions (GameData)" and adjust manually.</value>
+  </data>
+  <data name="SmartBpRegionConfigResetTitle" xml:space="preserve">
+    <value>Reset Config</value>
+  </data>
+  <data name="SmartBpRegionEditorRuleDefault" xml:space="preserve">
+    <value>Current rule: 1 parent region + 6 child regions per row</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidScene" xml:space="preserve">
+    <value>Invalid config: scene must be GameData.</value>
+  </data>
+  <data name="SmartBpRegionConfigSaved" xml:space="preserve">
+    <value>Region config saved.</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorDecodingProgress" xml:space="preserve">
+    <value>Decoding</value>
+  </data>
+  <data name="SmartBpRegionConfigImportFileNotFound" xml:space="preserve">
+    <value>Import failed: config file does not exist.</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorPalletStrikes" xml:space="preserve">
+    <value>Pallet Strikes</value>
+  </data>
+  <data name="SmartBpRegionCellHunterPalletsDestroyed" xml:space="preserve">
+    <value>Pallets Destroyed</value>
+  </data>
+  <data name="SmartBpRegionConfigImportFailedFormat" xml:space="preserve">
+    <value>Import failed: {0}</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateGroupSummaryFormat" xml:space="preserve">
+    <value>Template group: {0}, elements: {1}.</value>
+  </data>
+  <data name="SmartBpRegionEditorTemplateMarkFormat" xml:space="preserve">
+    <value> [Template:{0}]</value>
+  </data>
+  <data name="SmartBpRegionConfigInvalidRowCount" xml:space="preserve">
+    <value>Invalid config: exactly 5 parent regions are required.</value>
+  </data>
+  <data name="SmartBpRegionSurvivorRow4" xml:space="preserve">
+    <value>Survivor Row 4</value>
+  </data>
+  <data name="SmartBpRegionAspectHintMatched" xml:space="preserve">
+    <value>Aspect ratio matched. Ready to use.</value>
+  </data>
+  <data name="SmartBpImportGameDataRegionConfig" xml:space="preserve">
+    <value>Import Config</value>
+  </data>
+  <data name="SmartBpEditGameDataRegion" xml:space="preserve">
+    <value>Edit Regions</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorHeals" xml:space="preserve">
+    <value>Heals</value>
+  </data>
+  <data name="SmartBpRegionConfigImported" xml:space="preserve">
+    <value>Config imported.</value>
+  </data>
+  <data name="SmartBpResetGameDataRegionConfig169" xml:space="preserve">
+    <value>Reset Config (16:9)</value>
+  </data>
+  <data name="SmartBpRegionCellHunterKnockdowns" xml:space="preserve">
+    <value>Knockdowns</value>
+  </data>
+  <data name="SmartBpRegionEditorSceneTitleFormat" xml:space="preserve">
+    <value>Region Editor ({0})</value>
+  </data>
+  <data name="SmartBpRegionConfigImportEmpty" xml:space="preserve">
+    <value>Import failed: config content is empty.</value>
+  </data>
+  <data name="SmartBpRegionEditorSelectNodeFirst" xml:space="preserve">
+    <value>Please select a node first</value>
+  </data>
+  <data name="SmartBpRegionCellSurvivorRescues" xml:space="preserve">
+    <value>Rescues</value>
+  </data>
+  <data name="SmartBpSceneGameData" xml:space="preserve">
+    <value>GameData</value>
+  </data>
+  <data name="SmartBpRegionConfigExportFailedFormat" xml:space="preserve">
+    <value>Failed to export config: {0}</value>
+  </data>
+  <data name="SmartBpExportGameDataRegionConfig" xml:space="preserve">
+    <value>Export Config</value>
+  </data>
+  <data name="SaveAs" xml:space="preserve">
+    <value>Save As</value>
+  </data>
+  <data name="SmartBpRegionConfigExportPathEmpty" xml:space="preserve">
+    <value>Export failed: target path cannot be empty.</value>
+  </data>
+  <data name="PluginMarketAuthorLabel" xml:space="preserve">
+    <value>Author: </value>
+  </data>
+  <data name="PluginMarketVersionLabel" xml:space="preserve">
+    <value>Version: </value>
+  </data>
+  <data name="PluginMarketSettingsTitle" xml:space="preserve">
+    <value>Plugin Market Settings</value>
+  </data>
+  <data name="PluginMarketMirrorLabel" xml:space="preserve">
+    <value>Ghproxy</value>
+  </data>
+  <data name="PluginMarketSourceLabel" xml:space="preserve">
+    <value>Plugin Source</value>
+  </data>
+  <data name="PluginMarketMirrorSyncHint" xml:space="preserve">
+    <value>This setting syncs to app updates</value>
+  </data>
+  <data name="PluginMarketDownloadQueue" xml:space="preserve">
+    <value>Download queue</value>
+  </data>
+  <data name="PluginMarketDownloadQueueTitle" xml:space="preserve">
+    <value>Download queue</value>
+  </data>
+  <data name="PluginMarketDownloadQueueEmpty" xml:space="preserve">
+    <value>No plugin downloads are queued right now</value>
+  </data>
+  <data name="QueuePending" xml:space="preserve">
+    <value>Queued</value>
+  </data>
+  <data name="QueueDownloading" xml:space="preserve">
+    <value>Downloading</value>
+  </data>
+  <data name="QueueDownloaded" xml:space="preserve">
+    <value>Downloaded, waiting to install</value>
+  </data>
+  <data name="QueueInstalledRestartRequired" xml:space="preserve">
+    <value>Installed, restart to apply changes</value>
+  </data>
+  <data name="QueueFailed" xml:space="preserve">
+    <value>Download failed</value>
+  </data>
+  <data name="QueueCanceled" xml:space="preserve">
+    <value>Canceled</value>
+  </data>
+  <data name="PluginMarketCancelDownload" xml:space="preserve">
+    <value>Cancel Download</value>
+  </data>
+  <data name="PluginMarketDirectConnectionNoProxy" xml:space="preserve">
+    <value>Direct Connection (No Proxy)</value>
+  </data>
+  <data name="PluginMarketVersionTooLow" xml:space="preserve">
+    <value>Version Too Low</value>
+  </data>
+  <data name="PluginMarketVersionIncompatible" xml:space="preserve">
+    <value>Incompatible Version</value>
+  </data>
+  <data name="PluginMarketHostVersionTooLow" xml:space="preserve">
+    <value>Host Version Too Low</value>
+  </data>
+  <data name="PluginMarketApiIncompatible" xml:space="preserve">
+    <value>API Incompatible</value>
+  </data>
+  <data name="PluginMarketUpdateAvailable" xml:space="preserve">
+    <value>Update Available</value>
+  </data>
+  <data name="PluginMarketInstalledRestartRequired" xml:space="preserve">
+    <value>Installed, restart to apply changes</value>
+  </data>
+  <data name="PluginMarketPendingUninstall" xml:space="preserve">
+    <value>Pending Uninstall</value>
+  </data>
+  <data name="PluginMarketInstallBlockedHostVersionTooLow" xml:space="preserve">
+    <value>The current app version is too low to install this plugin.</value>
+  </data>
+  <data name="PluginMarketSha256Mismatch" xml:space="preserve">
+    <value>Integrity check failed for {0}. Installation was blocked for your safety.</value>
+  </data>
+  <data name="AppUpdateHashFileMissing" xml:space="preserve">
+    <value>The update package is missing its SHA-256 file. Download was stopped.</value>
+  </data>
+  <data name="AppUpdateInvalidHashFile" xml:space="preserve">
+    <value>The SHA-256 file for this update is invalid. Installation was stopped.</value>
+  </data>
+  <data name="AppUpdateSha256Mismatch" xml:space="preserve">
+    <value>Integrity check failed for the update installer. Installation was blocked for your safety.</value>
+  </data>
+  <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
+    <value>Another plugin is already downloading.</value>
+  </data>
 </root>
+

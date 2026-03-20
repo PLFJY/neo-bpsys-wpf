@@ -25,7 +25,7 @@
         </ResourceDictionary>
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
-        <Border Style="{StaticResource Card}">
+        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -33,7 +33,10 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc AllFrontendWindows}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc AllFrontendWindows}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -58,7 +61,7 @@
                     TextWrapping="Wrap" />
             </Grid>
         </Border>
-        <Border Style="{StaticResource Card}">
+        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -67,7 +70,10 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc BPWindow}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc BPWindow}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -106,7 +112,7 @@
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
-        <Border Style="{StaticResource Card}">
+        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -115,7 +121,10 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc CutSceneWindow}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc CutSceneWindow}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -154,7 +163,7 @@
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
-        <Border Style="{StaticResource Card}">
+        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -170,7 +179,10 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc ScoreComponent}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc ScoreComponent}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -260,7 +272,7 @@
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
-        <Border Style="{StaticResource Card}">
+        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -269,7 +281,10 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc GameStatisticsWindow}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc GameStatisticsWindow}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -308,7 +323,7 @@
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </Grid>
         </Border>
-        <Border Style="{StaticResource Card}">
+        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -320,7 +335,10 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Text="{lex:Loc Widgets}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc Widgets}" />
                 <StackPanel
                     Grid.Row="1"
                     Margin="0,10,0,0"
@@ -382,7 +400,7 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Border Style="{StaticResource Card}">
+                    <Border Margin="0,0,10,10" Style="{StaticResource Card}">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
@@ -390,7 +408,10 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="{Binding Name}" />
+                            <TextBlock
+                                Grid.Row="0"
+                                Style="{StaticResource Title}"
+                                Text="{Binding Name}" />
                             <StackPanel
                                 Grid.Row="1"
                                 Margin="0,10,0,0"

@@ -30,7 +30,7 @@
             <!--  basic info  -->
             <StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc HomeTeamInformation}" />
+                    <TextBlock Style="{StaticResource Title}" Text="{lex:Loc HomeTeamInformation}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ImportInfoFromJsonCommand}"
@@ -234,7 +234,7 @@
             <!--  basic info  -->
             <StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc AwayTeamInformation}" />
+                    <TextBlock Style="{StaticResource Title}" Text="{lex:Loc AwayTeamInformation}" />
                     <ui:Button
                         Margin="10,0,0,0"
                         Command="{Binding ImportInfoFromJsonCommand}"
@@ -437,13 +437,7 @@
         </Border>
 
         <!--  current  -->
-        <Border
-            Margin="0,0,10,10"
-            Padding="10,10,10,10"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-            CornerRadius="8">
+        <Border Style="{StaticResource Card}">
             <Border.Resources>
                 <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="ui:TextBox">
                     <!--<Setter Property="PlaceholderText" Value="选手名称" /> -->
@@ -457,7 +451,7 @@
                 </Style>
             </Border.Resources>
             <StackPanel>
-                <TextBlock Text="{lex:Loc CurrentPlayerOnStage}" />
+                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc CurrentPlayerOnStage}" />
                 <TextBlock Margin="0,10,0,0" Text="{lex:Loc Survivor}" />
                 <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding OnFieldSurPlayerViewModels}">
                     <ItemsControl.ItemTemplate>

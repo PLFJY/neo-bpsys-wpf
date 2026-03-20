@@ -22,7 +22,7 @@
     <Page.Resources>
         <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
     </Page.Resources>
-    <StackPanel>
+    <StackPanel Margin="10,0,10,0">
         <Border Style="{StaticResource Card}">
             <StackPanel Orientation="Horizontal">
                 <ui:ToggleSwitch Content="{lex:Loc ShowPickingBorder}" IsChecked="{Binding IsBreathing}" />
@@ -37,14 +37,18 @@
                     Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
             </StackPanel>
         </Border>
-        <Border Style="{StaticResource Card}">
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <Grid Grid.Row="0">
-                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc PickMap}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc PickMap}" />
+                <Grid Grid.Row="1" Margin="0,10,0,0">
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                         <TextBlock VerticalAlignment="Center" Text="{lex:Loc OperateTeam}" />
                         <ComboBox
@@ -66,7 +70,7 @@
                 </Grid>
                 <ComboBox
                     x:Name="PickMapCombobox"
-                    Grid.Row="1"
+                    Grid.Row="2"
                     Width="400"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Left"
@@ -104,14 +108,18 @@
                 </ComboBox>
             </Grid>
         </Border>
-        <Border Style="{StaticResource Card}">
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <Grid Grid.Row="0">
-                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc BanMap}" />
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc BanMap}" />
+                <Grid Grid.Row="1" Margin="0,10,0,0">
                     <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                         <TextBlock VerticalAlignment="Center" Text="{lex:Loc OperateTeam}" />
                         <ComboBox
@@ -137,7 +145,7 @@
                     </StackPanel>
                 </Grid>
                 <ItemsControl
-                    Grid.Row="1"
+                    Grid.Row="2"
                     Margin="0,10,0,0"
                     ItemsSource="{Binding BannedMap}">
                     <ItemsControl.ItemsPanel>

@@ -1,0 +1,335 @@
+<Page
+    x:Class="neo_bpsys_wpf.Views.Pages.SmartBpPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
+    Title="SmartBpPage"
+    d:DataContext="{d:DesignInstance Type=vm:SmartBpPageViewModel,
+                                     IsDesignTimeCreatable=True}"
+    d:DesignHeight="1000"
+    d:DesignWidth="770"
+    ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <cv:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        <cv:LocalizationKeyToTextConverter x:Key="LocalizationKeyToTextConverter" />
+    </Page.Resources>
+
+    <StackPanel Margin="10,0,10,0">
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc SmartBpWindowCaptureSettings}" />
+                <StackPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc SmartBpCaptureMethod}" />
+                    <ComboBox
+                        Width="400"
+                        Margin="10,0,0,0"
+                        ItemsSource="{Binding CaptureMethodList}"
+                        SelectedIndex="{Binding SelectedCaptureMethodIndex}"
+                        SelectedValue="{Binding SelectedCaptureMethod}"
+                        SelectedValuePath="Method">
+                        <ComboBox.ItemContainerStyle>
+                            <Style BasedOn="{StaticResource {x:Type ComboBoxItem}}" TargetType="ComboBoxItem">
+                                <Setter Property="IsEnabled" Value="{Binding IsAvaliable}" />
+                            </Style>
+                        </ComboBox.ItemContainerStyle>
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{lex:Loc {Binding DisplayNameKey}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+                <WrapPanel
+                    Grid.Row="2"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <TextBlock
+                        Margin="0,0,10,10"
+                        VerticalAlignment="Center"
+                        Text="{lex:Loc SmartBpSelectGameWindowProcess}" />
+                    <ComboBox
+                        MinWidth="220"
+                        Margin="0,0,10,10"
+                        ItemsSource="{Binding ActiveWindows}"
+                        SelectedValue="{Binding SelectedWindow}" />
+                    <ui:Button
+                        Margin="0,0,10,10"
+                        Command="{Binding RefreshActiveWindowsCommand}"
+                        Content="{lex:Loc Refresh}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+                    <ui:Button
+                        Margin="0,0,10,10"
+                        Command="{Binding OpenWindowPickerCommand}"
+                        Content="{lex:Loc SmartBpOpenWindowPickerOnlyWgc}" />
+                </WrapPanel>
+                <StackPanel
+                    Grid.Row="3"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <ui:Button
+                        Command="{Binding StartCaptureCommand}"
+                        Content="{lex:Loc SmartBpStartCapture}"
+                        Icon="{ui:SymbolIcon Symbol=WindowPlay20}" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding StopCaptureCommand}"
+                        Content="{lex:Loc SmartBpStopCapture}"
+                        Icon="{ui:SymbolIcon Symbol=ShareScreenStop24}" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding OpenPreviewWindowCommand}"
+                        Content="{lex:Loc SmartBpOpenPreview}"
+                        Icon="{ui:SymbolIcon Symbol=WindowNew24}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <StackPanel Margin="0,10,0,0">
+            <TextBlock
+                Grid.Row="0"
+                Style="{StaticResource Title}"
+                Text="{lex:Loc SmartBpRegionConfigTitle}" />
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Border
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Style="{StaticResource Card}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Style="{StaticResource Title}" Text="{lex:Loc GameData}" />
+                        <WrapPanel Grid.Row="1" Margin="0,10,0,0">
+                            <ui:Button
+                                Margin="0,0,10,10"
+                                Command="{Binding OpenGameDataRegionEditorCommand}"
+                                Content="{lex:Loc SmartBpEditGameDataRegion}"
+                                Icon="{ui:SymbolIcon Symbol=Edit24}" />
+                            <ui:Button
+                                Margin="0,0,10,10"
+                                Command="{Binding ImportGameDataRegionConfigCommand}"
+                                Content="{lex:Loc SmartBpImportGameDataRegionConfig}"
+                                Icon="{ui:SymbolIcon Symbol=ArrowImport24}" />
+                            <ui:Button
+                                Margin="0,0,10,10"
+                                Command="{Binding ExportGameDataRegionConfigCommand}"
+                                Content="{lex:Loc SmartBpExportGameDataRegionConfig}"
+                                Icon="{ui:SymbolIcon Symbol=ArrowExportLtr24}" />
+                            <ui:Button
+                                Margin="0,0,10,10"
+                                Command="{Binding ResetGameDataRegionConfigCommand}"
+                                Content="{lex:Loc SmartBpResetGameDataRegionConfig169}"
+                                Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                        </WrapPanel>
+
+                        <StackPanel Grid.Row="2" Margin="0,4,0,0">
+                            <TextBlock TextWrapping="Wrap">
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{lex:StringFormatConverter}">
+                                        <lex:BLoc Key="SmartBpRegionConfigPathFormat" />
+                                        <Binding Path="RegionConfigPath" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{lex:StringFormatConverter}">
+                                        <lex:BLoc Key="SmartBpRegionConfigAspectRatioFormat" />
+                                        <Binding Path="RegionConfigAspectRatioText" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{lex:StringFormatConverter}">
+                                        <lex:BLoc Key="SmartBpCaptureAspectRatioFormat" />
+                                        <Binding Path="CaptureAspectRatioText" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding Converter="{lex:StringFormatConverter}">
+                                        <lex:BLoc Key="SmartBpRegionAspectStatusFormat" />
+                                        <Binding Path="RegionAspectStatusText" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RegionAspectIsMismatch}" Value="True">
+                                                <Setter Property="Foreground" Value="#DC2626" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBlock
+                                Margin="0,6,0,0"
+                                Text="{Binding RegionAspectHintText}"
+                                TextWrapping="Wrap">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding RegionAspectIsMismatch}" Value="True">
+                                                <Setter Property="Foreground" Value="#DC2626" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </StackPanel>
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    Grid.Row="0"
+                    Style="{StaticResource Title}"
+                    Text="{lex:Loc SmartBpOcrModelManagement}" />
+
+                <StackPanel
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc SmartBpOcrModelSelection}" />
+                    <ComboBox
+                        Width="440"
+                        Margin="10,0,0,0"
+                        ItemsSource="{Binding OcrModelList}"
+                        SelectedItem="{Binding SelectedOcrModel}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{lex:Loc {Binding DisplayName}, FallbackBehavior=Key}" />
+                                    <TextBlock
+                                        FontSize="12"
+                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                        Text="{lex:Loc {Binding Description},
+                                                       FallbackBehavior=Key}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel
+                    Grid.Row="2"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <ui:Button
+                        Command="{Binding DownloadSelectedOcrModelCommand}"
+                        Content="{lex:Loc SmartBpDownloadModel}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowDownload24}"
+                        Visibility="{Binding ShowDownloadModelButton, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <ui:Button
+                        Command="{Binding DeleteSelectedOcrModelCommand}"
+                        Content="{lex:Loc SmartBpDeleteModel}"
+                        Icon="{ui:SymbolIcon Symbol=Delete24}"
+                        Visibility="{Binding ShowDeleteModelButton, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding SwitchSelectedOcrModelCommand}"
+                        Content="{lex:Loc SmartBpSwitchToCurrentModel}"
+                        Icon="{ui:SymbolIcon Symbol=Save24}" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding RefreshOcrModelStatusCommand}"
+                        Content="{lex:Loc SmartBpRefreshStatus}"
+                        Icon="{ui:SymbolIcon Symbol=ArrowSync24}" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding CancelOcrModelDownloadCommand}"
+                        Content="{lex:Loc SmartBpCancelDownload}"
+                        Icon="{ui:SymbolIcon Symbol=Stop24}"
+                        Visibility="{Binding IsModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                </StackPanel>
+
+                <StackPanel
+                    Grid.Row="3"
+                    Margin="0,10,0,0"
+                    Visibility="{Binding IsModelDownloading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBlock Text="{Binding ModelDownloadStageText}" />
+                    <StackPanel
+                        Margin="0,6,0,0"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal">
+                        <ui:ProgressRing
+                            Width="26"
+                            Height="26"
+                            IsIndeterminate="True"
+                            Visibility="{Binding HasPreciseDownloadProgress, Converter={StaticResource InverseBooleanConverter}}" />
+                        <StackPanel
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Orientation="Horizontal"
+                            Visibility="{Binding HasPreciseDownloadProgress, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <ProgressBar
+                                Width="260"
+                                Height="20"
+                                Value="{Binding ModelDownloadProgress}" />
+                            <TextBlock
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                Text="{Binding ModelDownloadProgressText}" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel
+                    Grid.Row="4"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <TextBlock>
+                        <TextBlock.Text>
+                            <MultiBinding Converter="{lex:StringFormatConverter}">
+                                <lex:BLoc Key="SmartBpCurrentOcrModelFormat" />
+                                <Binding Converter="{StaticResource LocalizationKeyToTextConverter}" Path="CurrentOcrModelDisplayName" />
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </StackPanel>
+</Page>

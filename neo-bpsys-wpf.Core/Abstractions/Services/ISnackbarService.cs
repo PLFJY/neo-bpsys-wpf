@@ -3,6 +3,9 @@ using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
+/// <summary>
+/// 显示消息提示
+/// </summary>
 public interface ISnackbarService
 {
     /// <summary>

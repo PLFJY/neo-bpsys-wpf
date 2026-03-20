@@ -3,17 +3,38 @@
     <BuildType Name="Beta" />
     <BuildType Name="Debug" />
     <BuildType Name="Release" />
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
   </Configurations>
   <Folder Name="/Built-inPlugins/">
-    <Project Path="Built-inPlugins/neo-bpsys-wpf.TeamJsonMaker/neo-bpsys-wpf.TeamJsonMaker.csproj" />
+    <Project Path="Built-inPlugins/neo-bpsys-wpf.TeamJsonMaker/neo-bpsys-wpf.TeamJsonMaker.csproj">
+      <Platform Solution="*|x64" Project="x64" />
+    </Project>
   </Folder>
-  <Project Path="neo-bpsys-wpf.Core/neo-bpsys-wpf.Core.csproj" />
+  <Project Path="neo-bpsys-wpf.Core/neo-bpsys-wpf.Core.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
+  <Project Path="neo-bpsys-wpf.CropDebugger/neo-bpsys-wpf.CropDebugger.csproj">
+    <Platform Solution="Debug|x64" Project="x64" />
+    <Platform Solution="Release|x64" Project="x64" />
+  </Project>
   <Project Path="neo-bpsys-wpf.DocsGenerator/neo-bpsys-wpf.DocsGenerator.csproj" Id="7d16ca2d-ce87-4c36-a468-c1899fc52afc">
     <BuildType Solution="Beta|*" Project="Debug" />
+    <Platform Solution="*|x64" Project="x64" />
   </Project>
-  <Project Path="neo-bpsys-wpf.ExamplePlugin/neo-bpsys-wpf.ExamplePlugin.csproj" />
+  <Project Path="neo-bpsys-wpf.ExamplePlugin/neo-bpsys-wpf.ExamplePlugin.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
   <Project Path="neo-bpsys-wpf.PluginSdk/neo-bpsys-wpf.PluginSdk.csproj">
     <BuildType Solution="Beta|*" Project="Debug" />
+    <Platform Solution="*|x64" Project="x64" />
   </Project>
-  <Project Path="neo-bpsys-wpf/neo-bpsys-wpf.csproj" />
+  <Project Path="neo-bpsys-wpf.Tests/neo-bpsys-wpf.Tests.csproj">
+    <BuildType Solution="Beta|*" Project="Debug" />
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
+  <Project Path="neo-bpsys-wpf/neo-bpsys-wpf.csproj">
+    <BuildType Solution="Beta|x64" Project="Preview" />
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
 </Solution>

@@ -5,9 +5,14 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Themes;
+using Serilog.Core;
+using Serilog.Events;
 using Serilog;
+using System.Diagnostics;
 using System.IO;
+using System.Text.Json;
 using System.Text;
 using System.Windows;
 using System.Windows.Markup;
@@ -23,6 +28,9 @@ namespace neo_bpsys_wpf;
 /// </summary>
 public partial class App : AppBase
 {
+    private static readonly LoggingLevelSwitch AppLogLevelSwitch =
+        new(GetInitialLogEventLevel());
+
     /// <summary>
     /// 互斥锁
     /// </summary>
@@ -63,7 +71,7 @@ public partial class App : AppBase
                         encoding: Encoding.UTF8
                     )
                     .Enrich.FromLogContext()
-                    .MinimumLevel.Debug();
+                    .MinimumLevel.ControlledBy(AppLogLevelSwitch);
             })
             .ConfigureLogging(loggingBuilder =>
             {
@@ -88,6 +96,7 @@ public partial class App : AppBase
         //读取设置
         var settingsHostService = IAppHost.Host.Services.GetRequiredService<ISettingsHostService>();
         await settingsHostService.LoadConfig();
+        ApplyLogLevel(settingsHostService.Settings.LogLevel);
 
         CurrentLifetime = ApplicationLifetime.StartingOnline;
         //添加不同颜色的icon到resources里面
@@ -131,7 +140,7 @@ public partial class App : AppBase
 
         CurrentLifetime = ApplicationLifetime.Running;
 
-#if !DEBUG
+#if !DEBUG && !Preview
         logger.LogInformation("Update checking on start up");
         await IAppHost.Host.Services.GetRequiredService<IUpdaterService>().UpdateCheck(true);
 #endif
@@ -156,22 +165,24 @@ public partial class App : AppBase
         // 释放互斥锁
         _mutex?.Close();
         // 重启应用程序
-        System.Diagnostics.Process.Start(ResourceAssembly.Location.Replace(".dll", ".exe"));
+        Process.Start(ResourceAssembly.Location.Replace(".dll", ".exe"));
         Current.Shutdown();
     }
 
     /// <summary>
     /// Occurs when an exception is thrown by an application but not handled.
     /// </summary>
-    private void OnDispatcherUnhandledException(
+    private async void OnDispatcherUnhandledException(
         object sender,
         DispatcherUnhandledExceptionEventArgs e
     )
     {
         var logger = IAppHost.Host!.Services.GetRequiredService<ILogger<App>>();
         logger.LogError("Application crashed unexpectedly");
+        logger.LogError(e.Exception.Message);
 #if !DEBUG
-        _ = MessageBoxHelper.ShowInfoAsync($"出现了些在意料之外的错误，请带着下方地址处的日志文件联系开发者解决\nSome unexpected errors have occurred. Please contact the developer with the log file below for solutions \n\n{AppConstants.LogPath}\n ", "Error");
+        await MessageBoxHelper.ShowInfoAsync($"{I18nHelper.GetLocalizedString("UnexpectedExceptionMessage")}\n\n{AppConstants.LogPath}\n ", "Error");
+        Process.Start("explorer.exe", AppConstants.LogPath);
 #endif
         // For more info see https://docs.microsoft.com/en-us/dotnet/api/system.windows.application.dispatcherunhandledexception?view=windowsdesktop-6.0
     }
@@ -187,4 +198,57 @@ public partial class App : AppBase
 
     /// <inheritdoc/>
     public override event EventHandler? AppStopping;
+
+    /// <summary>
+    /// 立即应用新的日志级别。
+    /// </summary>
+    public static void ApplyLogLevel(AppLogLevel logLevel)
+    {
+        AppLogLevelSwitch.MinimumLevel = logLevel switch
+        {
+            AppLogLevel.Verbose => LogEventLevel.Verbose,
+            AppLogLevel.Debug => LogEventLevel.Debug,
+            AppLogLevel.Information => LogEventLevel.Information,
+            AppLogLevel.Warning => LogEventLevel.Warning,
+            AppLogLevel.Error => LogEventLevel.Error,
+            AppLogLevel.Fatal => LogEventLevel.Fatal,
+            _ => LogEventLevel.Information
+        };
+    }
+
+    private static LogEventLevel GetInitialLogEventLevel()
+    {
+        try
+        {
+            if (!File.Exists(AppConstants.ConfigFilePath))
+            {
+                return LogEventLevel.Information;
+            }
+
+            using var stream = File.OpenRead(AppConstants.ConfigFilePath);
+            using var document = JsonDocument.Parse(stream);
+            if (!document.RootElement.TryGetProperty("LogLevel", out var levelElement))
+            {
+                return LogEventLevel.Information;
+            }
+
+            var levelText = levelElement.GetString();
+            return Enum.TryParse<AppLogLevel>(levelText, ignoreCase: true, out var logLevel)
+                ? logLevel switch
+                {
+                    AppLogLevel.Verbose => LogEventLevel.Verbose,
+                    AppLogLevel.Debug => LogEventLevel.Debug,
+                    AppLogLevel.Information => LogEventLevel.Information,
+                    AppLogLevel.Warning => LogEventLevel.Warning,
+                    AppLogLevel.Error => LogEventLevel.Error,
+                    AppLogLevel.Fatal => LogEventLevel.Fatal,
+                    _ => LogEventLevel.Information
+                }
+                : LogEventLevel.Information;
+        }
+        catch
+        {
+            return LogEventLevel.Information;
+        }
+    }
 }
