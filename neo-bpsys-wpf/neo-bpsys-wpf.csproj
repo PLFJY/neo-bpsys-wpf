@@ -15,7 +15,7 @@
 		<AssemblyVersion>2.0.0.0</AssemblyVersion>
         <VersionPrefix>2.1.0</VersionPrefix>
         <VersionSuffix></VersionSuffix>
-        <Version>$(VersionPrefix)$(VersionSuffix)</Version>
+        <Version>$(VersionPrefix)$(VersionSuffix)-CPL</Version>
         <FileVersion>$(VersionPrefix).0</FileVersion>
         <BuildMeta>local</BuildMeta>
         <InformationalVersion>v$(Version)+$(BuildMeta)</InformationalVersion>
