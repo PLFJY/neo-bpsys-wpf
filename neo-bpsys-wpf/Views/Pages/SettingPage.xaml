@@ -131,7 +131,7 @@
                             Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                             NavigateUri="https://github.com/PLFJY/neo-bpsys-wpf" />
                     </Grid>
-                    <StackPanel Margin="0,10,0,0">
+                    <StackPanel Margin="0,10,0,0" Visibility="Collapsed">
                         <TextBlock
                             FontSize="16"
                             FontWeight="Bold"
