@@ -84,6 +84,6 @@ dotnet publish ".\neo-bpsys-wpf\neo-bpsys-wpf.csproj" -c Release -o ".\build\neo
 ---
 
 
-## ⭐ Stargazers over time
+## ⭐ Stargazers over time 
 
 [![Stargazers over time](https://starchart.cc/PLFJY/neo-bpsys-wpf.svg?variant=adaptive)](https://starchart.cc/PLFJY/neo-bpsys-wpf)
