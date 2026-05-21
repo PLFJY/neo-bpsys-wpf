@@ -508,5 +508,11 @@
     "ImageFileName": "女王蜂.png",
     "Abbrev": "jbch",
     "FullSpell": "jooubachi"
+  },
+  "「歯医者」": {
+    "Camp": "Hun",
+    "ImageFileName": "牙医.png",
+    "Abbrev": "his",
+    "FullSpell": "haisia"
   }
 }

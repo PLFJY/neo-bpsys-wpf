@@ -341,5 +341,9 @@
     "女王蜂": {
         "Camp": "Hun",
         "ImageFileName": "女王蜂.png"
+    },
+    "牙医": {
+        "Camp": "Hun",
+        "ImageFileName": "牙医.png"
     }
 }

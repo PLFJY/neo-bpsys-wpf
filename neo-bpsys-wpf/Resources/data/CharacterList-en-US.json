@@ -338,5 +338,9 @@
   "Queen Bee": {
     "Camp": "Hun",
     "ImageFileName": "女王蜂.png"
+  },
+  "Dentist": {
+    "Camp": "Hun",
+    "ImageFileName": "牙医.png"
   }
 }
