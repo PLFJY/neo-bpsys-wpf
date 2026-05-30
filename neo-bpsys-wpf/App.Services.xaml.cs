@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Extensions.Registry;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Controls.FrontedLayout;
 using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.ViewModels.Pages;
@@ -85,6 +86,7 @@ public partial class App
         services.AddSingleton<IFrontedResourceResolver, FrontedResourceResolver>();
         services.AddSingleton<IFrontedControl, TextFrontedControl>();
         services.AddSingleton<IFrontedControl, ImageFrontedControl>();
+        services.AddSingleton<IFrontedControl, GlobalScoreRowFrontedControl>();
         services.AddSingleton<IFrontedControlRegistry, FrontedControlRegistry>();
         services.AddSingleton<IFrontedLayoutService, FrontedLayoutService>();
         services.AddSingleton<IFrontedRenderer, FrontedRenderer>();

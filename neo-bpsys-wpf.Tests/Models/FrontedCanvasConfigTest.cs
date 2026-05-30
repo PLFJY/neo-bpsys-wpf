@@ -129,6 +129,74 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
+    public void ReadsGlobalScoreRowControlConfig()
+    {
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 195,
+              "MainGlobalScoreRow": {
+                "ControlType": "GlobalScoreRow",
+                "Left": 175,
+                "Top": 93,
+                "TeamType": "HomeTeam",
+                "MajorGameGap": 180,
+                "HalfGameGap": 90,
+                "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+                "FontWeight": "Bold",
+                "Color": "#FFFFFFFF",
+                "FontSize": 24,
+                "ShowCampIcon": true,
+                "ZIndex": 2
+              }
+            }
+            """);
+
+        Assert.NotNull(config);
+        var row = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["MainGlobalScoreRow"]);
+        Assert.Equal("GlobalScoreRow", row.ControlType);
+        Assert.Equal(175, row.Left);
+        Assert.Equal(93, row.Top);
+        Assert.Equal(neo_bpsys_wpf.Core.Enums.TeamType.HomeTeam, row.TeamType);
+        Assert.Equal(180, row.MajorGameGap);
+        Assert.Equal(90, row.HalfGameGap);
+        Assert.Equal("Bold", row.FontWeight);
+        Assert.Equal(24, row.FontSize);
+        Assert.True(row.ShowCampIcon);
+    }
+
+    [Fact]
+    public void ReadsBuiltInScoreGlobalWindowLayout()
+    {
+        var config = ReadBuiltInLayout("ScoreGlobalWindow");
+
+        Assert.NotNull(config);
+        Assert.Equal(3, config.Version);
+        Assert.Equal(1440, config.CanvasWidth);
+        Assert.Equal(195, config.CanvasHeight);
+        Assert.Equal("Resources/scoreGlobal.png", config.BackgroundImage);
+
+        Assert.Contains("MainTeamName", config.Controls.Keys);
+        Assert.Contains("AwayTeamName", config.Controls.Keys);
+        Assert.Contains("MainScoreTotal", config.Controls.Keys);
+        Assert.Contains("AwayScoreTotal", config.Controls.Keys);
+        Assert.Contains("MainGlobalScoreRow", config.Controls.Keys);
+        Assert.Contains("AwayGlobalScoreRow", config.Controls.Keys);
+
+        AssertTextBinding(config, "MainTeamName", "HomeTeam.Name");
+        AssertTextBinding(config, "AwayTeamName", "AwayTeam.Name");
+        AssertTextBinding(config, "MainScoreTotal", "CurrentGame.MatchScore.HomeTotalMinorScore");
+        AssertTextBinding(config, "AwayScoreTotal", "CurrentGame.MatchScore.AwayTotalMinorScore");
+
+        var mainRow = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["MainGlobalScoreRow"]);
+        var awayRow = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["AwayGlobalScoreRow"]);
+        Assert.Equal(neo_bpsys_wpf.Core.Enums.TeamType.HomeTeam, mainRow.TeamType);
+        Assert.Equal(neo_bpsys_wpf.Core.Enums.TeamType.AwayTeam, awayRow.TeamType);
+    }
+
+    [Fact]
     public void UnknownControlTypeReportsControlNameAndType()
     {
         var exception = Assert.Throws<FrontedLayoutConfigException>(() =>

@@ -35,11 +35,9 @@ services.AddFrontedWindow<TView, TViewModel>();
 `FrontedWindowService` 在构造时接收内置窗口实例，然后：
 
 1. 从 `FrontedWindowRegistryService.RegisteredWindow` 注册所有窗口和 Canvas。
-2. 注册全局比分控件。
-3. 加载插件或宿主注入的外部控件。
-4. DEBUG 下记录初始位置。
-5. 从配置文件加载元素位置。
-6. 订阅共享数据中的 BO3 和全局比分间距变化。
+2. 加载插件或宿主注入的外部控件。
+3. DEBUG 下记录初始位置。
+4. 从配置文件加载元素位置。
 
 核心状态：
 
@@ -64,7 +62,9 @@ services.AddFrontedWindow<TView, TViewModel>();
 
 设计者模式通过 `DesignBehavior.IsDesignerMode` 给控件加 `CanvasAdorner`，让用户调整 Canvas 内元素位置。
 
-Fronted Designer v3 的基础设施已经存在：`FrontedCanvasConfig` 可读取 root-level 控件 JSON，`IFrontedLayoutService` 按用户布局优先、内置默认布局兜底读取 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` 或 `Resources\FrontedLayouts\{WindowTypeName}\{CanvasName}.json`，`IFrontedRenderer` 可用注册的控件工厂生成 Text/Image 控件。`ScoreSurWindow` 和 `ScoreHunWindow` 是当前接入 v3 renderer 的 pilot 窗口，内置默认布局分别位于 `Resources\FrontedLayouts\ScoreSurWindow\BaseCanvas.json` 和 `Resources\FrontedLayouts\ScoreHunWindow\BaseCanvas.json`。这两个局内比分窗口的默认比分文本已绑定 `CurrentGame.MatchScore` 派生字段：大比分读取 `CurrentSurTeamMajorText` / `CurrentHunTeamMajorText`，小比分（MinorScore）预分读取 `CurrentSurTeamPreHalfMinorScoreText` / `CurrentHunTeamPreHalfMinorScoreText`。其他真实前台窗口仍是 XAML-first；`FrontedWindowService` 不会读取旧 `FrontedDefaultPositions` 作为 v3 输入。
+Fronted Designer v3 的基础设施已经存在：`FrontedCanvasConfig` 可读取 root-level 控件 JSON，`IFrontedLayoutService` 按用户布局优先、内置默认布局兜底读取 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` 或 `Resources\FrontedLayouts\{WindowTypeName}\{CanvasName}.json`，`IFrontedRenderer` 可用注册的控件工厂生成 Text/Image/GlobalScoreRow 控件。`ScoreSurWindow`、`ScoreHunWindow` 和 `ScoreGlobalWindow` 当前已接入 v3 renderer，内置默认布局分别位于 `Resources\FrontedLayouts\{WindowTypeName}\BaseCanvas.json`。局内比分窗口的默认比分文本已绑定 `CurrentGame.MatchScore` 派生字段：大比分读取 `CurrentSurTeamMajorText` / `CurrentHunTeamMajorText`，小比分（MinorScore）预分读取 `CurrentSurTeamPreHalfMinorScoreText` / `CurrentHunTeamPreHalfMinorScoreText`。全局比分窗口总分绑定 `CurrentGame.MatchScore.HomeTotalMinorScore` / `AwayTotalMinorScore`，比分行由 `GlobalScoreRow` 从 `CurrentGame.MatchScore` 生成；`FrontedWindowService.SetGlobalScore*` 不再作为 UI 状态来源。其他真实前台窗口仍是 XAML-first；`FrontedWindowService` 不会读取旧 `FrontedDefaultPositions` 作为 v3 输入。
+
+注意：`ScoreGlobalWindow` 当前没有完整条件布局引擎。BO3 模式下 `GlobalScoreRow` 会隐藏 BO5 后续比分格，但总分位置和背景仍采用固定 v3 layout。
 
 布局文件命名约定：
 
@@ -87,7 +87,7 @@ neo-bpsys-wpf/Resources/FrontedDefaultPositions
 
 恢复默认布局时，服务优先查内置资源；如果不是内置窗口，会通过 `PluginService.FrontedWindowAssemblyFolder` 找到插件目录。
 
-注意：v3 布局读取用户布局优先。如果用户目录下已有旧的 `ScoreSurWindow` / `ScoreHunWindow` v3 JSON，且其中比分字段仍绑定 `CurrentGame.*Team.Score.*`，运行时会继续使用用户布局；需要恢复默认布局或后续迁移工具才能切换到 `CurrentGame.MatchScore` 绑定。
+注意：v3 布局读取用户布局优先。如果用户目录下已有旧的 `ScoreSurWindow` / `ScoreHunWindow` / `ScoreGlobalWindow` v3 JSON，且其中比分字段仍绑定旧字段或缺少 `GlobalScoreRow`，运行时会继续使用用户布局；需要恢复默认布局或后续迁移工具才能切换到 `CurrentGame.MatchScore` 绑定。
 
 ## 插件注入控件
 

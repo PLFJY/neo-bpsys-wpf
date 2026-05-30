@@ -74,11 +74,11 @@ public ObservableCollection<bool> CanCurrentSurBanned => _sharedDataService.CanC
 1. 发送 `PropertyChangedMessage<bool>`。
 2. 触发 `IsBo3ModeChanged`。
 
-`ScorePageViewModel` 不再维护后台比分页专用的 BO3/BO5 Game/half 选择列表；比分控制跟随全局 `CurrentGame.GameProgress`。`FrontedWindowService` 订阅 `IsBo3ModeChanged`，隐藏或显示部分全局比分控件，并调整 Total 位置。
+`ScorePageViewModel` 不再维护后台比分页专用的 BO3/BO5 Game/half 选择列表；比分控制跟随全局 `CurrentGame.GameProgress`。`ScoreGlobalWindow` 的 v3 `GlobalScoreRow` 控件订阅 `IsBo3ModeChanged`，按显式 `ScoreGameKey` 规则切换 BO3/BO5 可见比分格；`FrontedWindowService` 不再直接隐藏全局比分控件或移动 Total 控件。
 
-`GlobalScoreTotalMargin` 也在共享服务中暴露，设置页修改后会同步给前台窗口服务。
+`GlobalScoreTotalMargin` 仍在共享服务中暴露并保留设置项，但当前 v3 `ScoreGlobalWindow` 默认布局不会动态移动总分位置；BO3 总分位置仍采用固定布局。
 
-Score System v2 的设计方向见 [score-system-v2.md](score-system-v2.md)。Phase 2 后，权威比分状态由现有 `Core.Models.Game.MatchScore` 持有，类型为 `MatchScoreState`；`IMatchScoreService` 只操作 `ISharedDataService.CurrentGame.MatchScore`，页面 ViewModel、前台窗口 ViewModel、`FrontedWindowService` 和 UI 控件都不能成为比分数据库。后台 `ScorePageViewModel` 的比分按钮已改为写入 `IMatchScoreService.CurrentHalf`，普通 UI 不再提供手动 Game/half 选择或“同步至前台”按钮；清除按钮位于旧“小比分清零”位置，会把当前半场结果设为 `null`。迁移期 `Team.Score` 仍作为旧窗口兼容镜像存在，`MatchScoreService.SyncLegacyTeamScoreMirror()` 从 `MatchScoreState` 派生写回，新功能不应继续把 `Team.Score` 当作权威写入点。
+Score System v2 的设计方向见 [score-system-v2.md](score-system-v2.md)。Phase 4 后，权威比分状态由现有 `Core.Models.Game.MatchScore` 持有，类型为 `MatchScoreState`；`IMatchScoreService` 只操作 `ISharedDataService.CurrentGame.MatchScore`，页面 ViewModel、前台窗口 ViewModel、`FrontedWindowService` 和 UI 控件都不能成为比分数据库。后台 `ScorePageViewModel` 的比分按钮已改为写入 `IMatchScoreService.CurrentHalf`，普通 UI 不再提供手动 Game/half 选择或“同步至前台”按钮；清除按钮位于旧“小比分清零”位置，会把当前半场结果设为 `null`。`ScoreSurWindow`、`ScoreHunWindow` 和 `ScoreGlobalWindow` 默认 v3 布局均读取 `CurrentGame.MatchScore`。迁移期 `Team.Score` 仍作为旧窗口兼容镜像存在，`MatchScoreService.SyncLegacyTeamScoreMirror()` 从 `MatchScoreState` 派生写回，新功能不应继续把 `Team.Score` 当作权威写入点。
 
 `SharedDataService.NewGame()` 创建新 `Game` 时会 clone 当前 `CurrentGame.MatchScore`，避免新旧对局共享同一个可变比分实例。导入旧 JSON 时如果没有 `MatchScore` 字段，`Game` 会创建默认 `MatchScoreState`，以兼容旧保存记录。
 

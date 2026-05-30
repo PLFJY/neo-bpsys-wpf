@@ -1,6 +1,6 @@
 # Fronted Designer v3 设计文档
 
-本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为低风险 pilot 接入 v3 renderer；其他真实前台窗口、独立编辑器和 `.bpui` 转换仍按后续阶段推进。
+本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为低风险 pilot 接入 v3 renderer；Score System v2 Phase 4 已额外将 `ScoreGlobalWindow` 接入 v3 renderer 并新增 `GlobalScoreRow` 控件。其他真实前台窗口、独立编辑器和 `.bpui` 转换仍按后续阶段推进。
 
 ## 1. 背景与目标
 
@@ -104,6 +104,7 @@ v3 初始内置控件类型建议只包含：
 | --- | --- |
 | `Text` | 文本、队名、比分、倒计时等。 |
 | `Image` | 角色图、队标、地图、背景元素等。 |
+| `GlobalScoreRow` | `ScoreGlobalWindow` 的全局比分行，根据 `CurrentGame.MatchScore` 生成每半场比分格和阵营图标。 |
 
 ### Text
 
@@ -137,6 +138,10 @@ new Binding(config.BindingPath)
 如果 `PickingBorder` 为 `true`，应创建独立覆盖控件；该覆盖控件必须与原始 `Border` 对齐。不要把 picking border 放进图片 `Border` 内部。
 
 `BanLockAvailable` 是布尔值，用于允许 Ban 位显示锁定覆盖层。它应驱动独立 overlay 或视觉状态，不应混入主 `Image` 控件。
+
+### GlobalScoreRow
+
+`GlobalScoreRow` 是 Score System v2 使用的内置控件类型，配置类型为 `GlobalScoreRowControlConfig`。它读取 `ISharedDataService.CurrentGame.MatchScore`，按 `ScoreGameKey` 的显式 BO3/BO5 顺序生成比分格；空半场显示 `-` 并隐藏阵营图标，已记录结果显示主队或客队的小比分和记录时阵营图标。该控件会响应 `CurrentGameChanged`、`IsBo3ModeChanged` 和 `MatchScoreState.PropertyChanged`。
 
 ## 6. PickingBorder / BanLockAvailable 兼容策略
 
@@ -226,7 +231,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 1 | 增加 `Settings.Version = 3`，建立 legacy config 迁移 skeleton。已实现：legacy `Config.json` 备份后写回 v3；未迁移前台窗口。 |
 | Phase 2 | 增加 v3 layout models、资源 resolver、Text/Image factory、renderer skeleton。已实现：基础服务和 DI 注册；未接入真实前台窗口。 |
 | Phase 3 | 先迁移低风险前台窗口，验证读取、渲染、保存和恢复路径。已实现：`ScoreSurWindow` 和 `ScoreHunWindow` 分别使用 `Resources/FrontedLayouts/{WindowTypeName}/BaseCanvas.json` 通过 v3 renderer 生成控件，且默认布局的比分文本已绑定 `CurrentGame.MatchScore`。当前只有局内求生者/监管者比分窗口已接入 v3 renderer。 |
-| Phase 4 | 迁移 `BpWindow`，保留 PickingBorder、BanLock、BP 动画兼容性。 |
+| Phase 4 | 迁移 `BpWindow`，保留 PickingBorder、BanLock、BP 动画兼容性。Score System v2 已在独立 Phase 4 中先迁移 `ScoreGlobalWindow`。 |
 | Phase 5 | 实现独立前台编辑窗口。 |
 | Phase 6 | 实现 v3 `.bpui` 导出/导入和 legacy `.bpui` 转换。 |
 
@@ -239,7 +244,7 @@ Phase 2 之后仍明确不做以下事情：
 | 非目标 | 说明 |
 | --- | --- |
 | 修改无关运行时行为 | 不改 ViewModel、插件加载逻辑或未迁移窗口的运行逻辑。 |
-| 继续批量迁移 XAML | Phase 3 当前只迁移 `ScoreSurWindow` 和 `ScoreHunWindow`；`ScoreGlobalWindow`、`BpWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 仍是 XAML-first。 |
+| 继续批量迁移 XAML | 当前只迁移 `ScoreSurWindow`、`ScoreHunWindow` 和 `ScoreGlobalWindow`；`BpWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 仍是 XAML-first。 |
 | 替换旧设计者/编辑器 | 当前 `DesignBehavior`、旧设计者入口和 `FrontedWindowService` 行为保持不变；独立编辑器尚未实现。 |
 | 移除 `config.json` 中的前台设置 | 自定义图片、文本设置、窗口设置仍保留在当前结构中。 |
 | 实现编辑器 UI | 不新增独立编辑窗口、Property Grid 或 Binding browser。 |
@@ -249,4 +254,4 @@ Phase 2 之后仍明确不做以下事情：
 
 `ScoreSurWindow` 和 `ScoreHunWindow` 已作为 v3 renderer pilot 接入 JSON 布局，且 Phase 3 后默认布局不再绑定旧的 `CurrentGame.*Team.Score.*` 字段。Score System v2 的权威比分状态在现有 `Core.Models.Game.MatchScoreState`，局内比分窗口绑定 `CurrentGame.MatchScore` 的派生字段：第二半显示同一个 `ScoreGame` 第一半的小比分（MinorScore）时必须按当前求生者/监管者队伍映射，而不是盲目使用第一半的求生者/监管者小比分。`Team.Score` 只作为剩余旧窗口的过渡兼容镜像。
 
-`ScoreGlobalWindow` 仍是 XAML-first。它未来迁移到 v3 时应绑定现有 `Core.Models.Game.MatchScoreState`，不要把 `FrontedWindowService` 动态创建并直接修改的全局比分控件继续作为状态来源。详细设计见 [score-system-v2.md](score-system-v2.md)。
+`ScoreGlobalWindow` 已接入 v3 renderer，默认布局绑定现有 `Core.Models.Game.MatchScoreState`，全局比分行由 `GlobalScoreRow` 控件生成。`FrontedWindowService` 不再动态创建并直接修改全局比分控件；旧 `SetGlobalScore*` 方法仅作为兼容入口保留。详细设计见 [score-system-v2.md](score-system-v2.md)。

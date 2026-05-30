@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.AttachedBehaviors;
@@ -44,22 +43,11 @@ public class FrontedWindowService : IFrontedWindowService
     public List<(string, string)> FrontedCanvas { get; private set; } = []; // 窗口ID, 画布名称
 
     /// <summary>
-    /// 全局分数控件列表
-    /// </summary>
-    private readonly Dictionary<GameProgress, FrameworkElement> _mainGlobalScoreControls = [];
-
-    /// <summary>
-    /// 客队分数控件列表
-    /// </summary>
-    private readonly Dictionary<GameProgress, FrameworkElement> _awayGlobalScoreControls = [];
-
-    /// <summary>
     /// 外部控件默认位置列表
     /// </summary>
     private readonly Dictionary<FrameworkElement, ElementInfo> _externalControlDefaultPosition = [];
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
-    private readonly ISharedDataService _sharedDataService;
     private readonly ISettingsHostService _settingsHostService;
     private readonly ILogger<FrontedWindowService> _logger;
     private Settings? _windowSizeSettings;
@@ -77,16 +65,12 @@ public class FrontedWindowService : IFrontedWindowService
         ILogger<FrontedWindowService> logger
     )
     {
-        _sharedDataService = sharedDataService;
         _settingsHostService = settingsHostService;
         _logger = logger;
         if (!Directory.Exists(AppConstants.AppDataPath)) Directory.CreateDirectory(AppConstants.AppDataPath);
 
         // 注册窗口和画布
         RegisterFrontedWindowAndCanvas();
-
-        //注册分数统计界面的分数控件
-        GlobalScoreControlsReg();
 
         //加载后期注入的控件
         LoadInjectedControl();
@@ -101,13 +85,6 @@ public class FrontedWindowService : IFrontedWindowService
 
         //从文件加载位置信息
         _ = LoadElementsPositionOnStartup();
-
-        //分数统计部分的消息订阅和部分参数
-        _isBo3Mode = sharedDataService.IsBo3Mode;
-        _globalScoreTotalMargin = sharedDataService.GlobalScoreTotalMargin;
-        sharedDataService.GlobalScoreTotalMarginChanged += OnGlobalScoreTotalMarginChanged;
-        sharedDataService.IsBo3ModeChanged += OnBo3ModeChanged;
-        OnBo3ModeChanged(this, EventArgs.Empty);
 
         //AttachWindowSizeHandlers(_settingsHostService.Settings);
         //_settingsHostService.SettingsChanged += (_, settings) => AttachWindowSizeHandlers(settings);
@@ -470,9 +447,6 @@ public class FrontedWindowService : IFrontedWindowService
             return;
         }
 
-        if (windowId == GetFrontedWindowGuid(FrontedWindowType.ScoreGlobalWindow) &&
-            canvasName == "ScoreGlobalCanvas" && _isBo3Mode) return;
-
         var positions = GetElementsPositions(window, canvasName);
         if (positions == null) return;
 
@@ -672,277 +646,19 @@ public class FrontedWindowService : IFrontedWindowService
 
     #region 分数统计
 
-    private bool _isBo3Mode;
-
-    /// <summary>
-    /// 注册全局计分板控件
-    /// </summary>
-    private void GlobalScoreControlsReg()
-    {
-        if (FrontedWindows[GetFrontedWindowGuid(FrontedWindowType.ScoreGlobalWindow)].FindName("BaseCanvas") is not
-            Canvas canvas) return;
-        //主队
-        foreach (var progress in Enum.GetValues<GameProgress>())
-        {
-            if (progress == GameProgress.Free) continue;
-            var control = new GlobalScorePresenter();
-            RegisterScoreGlobalControl(nameof(TeamType.HomeTeam), progress, _mainGlobalScoreControls, control);
-        }
-
-        //客队
-        foreach (var progress in Enum.GetValues<GameProgress>())
-        {
-            if (progress == GameProgress.Free) continue;
-            var control = new GlobalScorePresenter();
-            RegisterScoreGlobalControl(nameof(TeamType.AwayTeam), progress, _awayGlobalScoreControls, control);
-        }
-
-        //添加控件到 Canvas 并设置位置
-        foreach (var item in _mainGlobalScoreControls)
-        {
-            AddScoreGlobalControlToCanvas(item.Value, canvas, item.Key, 93);
-            SetBinding(item.Value, TextBlock.FontSizeProperty, "Settings.TextSettings.ScoreGlobal_Data.FontSize");
-            SetBinding(item.Value, TextBlock.FontFamilyProperty, "Settings.TextSettings.ScoreGlobal_Data.FontFamily");
-            SetBinding(item.Value, TextBlock.FontWeightProperty, "Settings.TextSettings.ScoreGlobal_Data.FontWeight");
-            SetBinding(item.Value, TextBlock.ForegroundProperty, "Settings.TextSettings.ScoreGlobal_Data.Foreground");
-        }
-
-        foreach (var item in _awayGlobalScoreControls)
-        {
-            AddScoreGlobalControlToCanvas(item.Value, canvas, item.Key, 150);
-            SetBinding(item.Value, TextBlock.FontSizeProperty, "Settings.TextSettings.ScoreGlobal_Data.FontSize");
-            SetBinding(item.Value, TextBlock.FontFamilyProperty, "Settings.TextSettings.ScoreGlobal_Data.FontFamily");
-            SetBinding(item.Value, TextBlock.FontWeightProperty, "Settings.TextSettings.ScoreGlobal_Data.FontWeight");
-            SetBinding(item.Value, TextBlock.ForegroundProperty, "Settings.TextSettings.ScoreGlobal_Data.Foreground");
-        }
-
-        return;
-
-        void SetBinding(UIElement textBlock, DependencyProperty dependencyProperty, string bindingPath)
-        {
-            BindingOperations.SetBinding(textBlock, dependencyProperty, new Binding(bindingPath)
-            {
-                Source = canvas.DataContext
-            });
-        }
-    }
-
-    /// <summary>
-    /// 设置分数统计
-    /// </summary>
-    /// <param name="team"></param>
-    /// <param name="gameProgress"></param>
-    /// <param name="camp"></param>
-    /// <param name="score"></param>
     public void SetGlobalScore(TeamType team, GameProgress gameProgress, Camp camp, int score)
     {
-        GlobalScorePresenter presenter = new();
-
-        if (team == TeamType.HomeTeam)
-        {
-            if (_mainGlobalScoreControls[gameProgress] is GlobalScorePresenter item)
-                presenter = item;
-        }
-        else
-        {
-            if (_awayGlobalScoreControls[gameProgress] is GlobalScorePresenter item1)
-                presenter = item1;
-        }
-
-        presenter.IsCampVisible = true;
-        presenter.IsHunIcon = camp == Camp.Hun;
-        presenter.Text = score.ToString();
+        // Compatibility adapter: ScoreGlobalWindow is rendered from CurrentGame.MatchScore by v3 controls.
     }
 
     public void SetGlobalScoreToBar(TeamType team, GameProgress gameProgress)
     {
-        GlobalScorePresenter presenter = new();
-
-        if (team == TeamType.HomeTeam)
-        {
-            if (_mainGlobalScoreControls[gameProgress] is GlobalScorePresenter item)
-                presenter = item;
-        }
-        else
-        {
-            if (_awayGlobalScoreControls[gameProgress] is GlobalScorePresenter item1)
-                presenter = item1;
-        }
-
-        presenter.IsCampVisible = false;
-        presenter.Text = "-";
+        // Compatibility adapter: empty half display is derived from CurrentGame.MatchScore by v3 controls.
     }
 
-    /// <summary>
-    /// 重置全局分数统计
-    /// </summary>
     public void ResetGlobalScore()
     {
-        //主队
-        foreach (var progress in Enum.GetValues<GameProgress>())
-        {
-            if (progress != GameProgress.Free)
-            {
-                SetGlobalScoreToBar(TeamType.HomeTeam, progress);
-            }
-        }
-
-        //客队
-        foreach (var progress in Enum.GetValues<GameProgress>())
-        {
-            if (progress != GameProgress.Free)
-            {
-                SetGlobalScoreToBar(TeamType.AwayTeam, progress);
-            }
-        }
-    }
-
-    private double _globalScoreTotalMargin;
-
-    private double _lastMove;
-
-
-    /// <summary>
-    /// 赛制切换
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="args"></param>
-    private void OnBo3ModeChanged(object? sender, EventArgs args)
-    {
-        _isBo3Mode = _sharedDataService.IsBo3Mode;
-        if (FrontedWindows[GetFrontedWindowGuid(FrontedWindowType.ScoreGlobalWindow)] is not ScoreGlobalWindow
-            scoreWindow) return;
-        if (_isBo3Mode)
-        {
-            foreach (var item in
-                     _mainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3OvertimeSecondHalf))
-            {
-                item.Value.Visibility = Visibility.Hidden;
-            }
-
-            foreach (var item in
-                     _awayGlobalScoreControls.Where(item => item.Key > GameProgress.Game3OvertimeSecondHalf))
-            {
-                item.Value.Visibility = Visibility.Hidden;
-            }
-
-            Canvas.SetLeft(scoreWindow.MainScoreTotal,
-                Canvas.GetLeft(scoreWindow.MainScoreTotal) - _globalScoreTotalMargin);
-            Canvas.SetLeft(scoreWindow.AwayScoreTotal,
-                Canvas.GetLeft(scoreWindow.AwayScoreTotal) - _globalScoreTotalMargin);
-            _lastMove = _globalScoreTotalMargin;
-        }
-        else
-        {
-            foreach (var item in
-                     _mainGlobalScoreControls.Where(item => item.Key > GameProgress.Game3OvertimeSecondHalf))
-            {
-                item.Value.Visibility = Visibility.Visible;
-            }
-
-            foreach (var item in
-                     _awayGlobalScoreControls.Where(item => item.Key > GameProgress.Game3OvertimeSecondHalf))
-            {
-                item.Value.Visibility = Visibility.Visible;
-            }
-
-            Canvas.SetLeft(scoreWindow.MainScoreTotal, Canvas.GetLeft(scoreWindow.MainScoreTotal) + _lastMove);
-            Canvas.SetLeft(scoreWindow.AwayScoreTotal, Canvas.GetLeft(scoreWindow.AwayScoreTotal) + _lastMove);
-        }
-    }
-
-
-    /// <summary>
-    /// 接收GlobalScoreTotalMargin变更
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="args"></param>
-    private void OnGlobalScoreTotalMarginChanged(object? sender, EventArgs args)
-    {
-        _globalScoreTotalMargin = _sharedDataService.GlobalScoreTotalMargin;
-        _globalScoreTotalMargin = _sharedDataService.GlobalScoreTotalMargin;
-    }
-
-    /// <summary>
-    /// 将控件添加到 Canvas 并设置位置
-    /// </summary>
-    private static void AddScoreGlobalControlToCanvas(FrameworkElement control, Canvas canvas, GameProgress progress,
-        int top)
-    {
-        // 设置控件位置
-        var left = CalculateLeftPosition(progress);
-
-        Canvas.SetLeft(control, left);
-        Canvas.SetTop(control, top);
-
-        //创建绑定
-
-        //设计者模式
-        var designerModeBinding =
-            new Binding(nameof(ScoreWindowViewModel.IsDesignerMode))
-            {
-                Source = canvas.DataContext,
-            };
-        //文本设置
-        var fontFamilyBinding =
-            new Binding("Settings.TextSettings.ScoreGlobal_Data.FontFamily")
-            {
-                Source = canvas.DataContext,
-            };
-        var fontSizeBinding =
-            new Binding("Settings.TextSettings.ScoreGlobal_Data.FontSize")
-            {
-                Source = canvas.DataContext,
-            };
-        var fontWeightBinding =
-            new Binding("Settings.TextSettings.ScoreGlobal_Data.FontWeight")
-            {
-                Source = canvas.DataContext,
-            };
-        var foregroundBinding =
-            new Binding("Settings.TextSettings.ScoreGlobal_Data.Foreground")
-            {
-                Source = canvas.DataContext,
-            };
-
-        BindingOperations.SetBinding(control, DesignBehavior.IsDesignerModeProperty, designerModeBinding);
-        BindingOperations.SetBinding(control, Control.FontFamilyProperty, fontFamilyBinding);
-        BindingOperations.SetBinding(control, Control.FontSizeProperty, fontSizeBinding);
-        BindingOperations.SetBinding(control, Control.FontWeightProperty, fontWeightBinding);
-        BindingOperations.SetBinding(control, Control.ForegroundProperty, foregroundBinding);
-
-        canvas.Children.Add(control);
-    }
-
-    /// <summary>
-    /// 计算控件左侧距离
-    /// </summary>
-    /// <param name="progress"></param>
-    /// <returns></returns>
-    private static double CalculateLeftPosition(GameProgress progress) =>
-        175 + (int)progress / 2 * 180 + ((int)progress % 2) * 90; // 左端点 + 大场间间隔 + 第一场和第二场之间小场间隔
-
-    /// <summary>
-    /// 注册控件
-    /// </summary>
-    /// <param name="nameHeader">控件名头</param>
-    /// <param name="key">控件序号 (在字典中查找用的Key)</param>
-    /// <param name="elementDict">控件所在的字典</param>
-    /// <param name="control">控件</param>
-    /// <param name="isOverride">是否覆盖(当Key值相同的情况下)</param>
-    /// <typeparam name="T">控件的Key类型</typeparam>
-    /// <exception cref="ArgumentException">添加控件时，Key值已经存在</exception>
-    private static void RegisterScoreGlobalControl<T>(string nameHeader, T key,
-        Dictionary<T, FrameworkElement> elementDict, FrameworkElement control, bool isOverride = true)
-        where T : notnull
-    {
-        var name = nameHeader + key.ToString();
-        control.Name = name;
-        if (elementDict.TryAdd(key, control)) return;
-        if (!isOverride)
-            throw new ArgumentException(
-                $"Control with key '{key}' already exists. Set isOverride to true to replace.");
-        elementDict[key] = control;
+        // Compatibility adapter: callers should clear CurrentGame.MatchScore through IMatchScoreService.
     }
 
     #endregion

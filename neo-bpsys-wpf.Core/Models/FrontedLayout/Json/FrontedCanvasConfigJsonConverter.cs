@@ -107,6 +107,9 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
                     ?? throw new FrontedLayoutConfigException($"Control '{controlName}' could not be read as Text."),
                 "Image" => JsonSerializer.Deserialize<ImageFrontedControlConfig>(json, options)
                     ?? throw new FrontedLayoutConfigException($"Control '{controlName}' could not be read as Image."),
+                "GlobalScoreRow" => JsonSerializer.Deserialize<GlobalScoreRowControlConfig>(json, options)
+                    ?? throw new FrontedLayoutConfigException(
+                        $"Control '{controlName}' could not be read as GlobalScoreRow."),
                 _ => throw new FrontedLayoutConfigException(
                     $"Control '{controlName}' has unsupported ControlType '{controlType}'.")
             };

@@ -34,7 +34,7 @@
 
 `FrontedWindow` / 前台窗口是 WPF 输出窗口，用于 OBS 或其他直播软件捕获，不是 Web frontend。不要引入 Web 路由、浏览器布局或前后端分离假设。
 
-Fronted Designer v3 当前已完成基础设施阶段，并将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为局内比分 v3 renderer pilot 窗口；这两个窗口的内置默认布局比分文本已绑定 `CurrentGame.MatchScore`。大多数前台窗口仍是 XAML-first，包括 `ScoreGlobalWindow`、`BpWindow`、`CutSceneWindow`、`GameDataWindow` 和 `WidgetsWindow`。旧设计者模式、旧 `config.json` 前台设置和旧 XAML-first 运行时仍保留。
+Fronted Designer v3 当前已完成基础设施阶段，并将 `ScoreSurWindow`、`ScoreHunWindow` 和 `ScoreGlobalWindow` 接入 v3 renderer；这些窗口的内置默认布局比分文本已绑定 `CurrentGame.MatchScore`。大多数前台窗口仍是 XAML-first，包括 `BpWindow`、`CutSceneWindow`、`GameDataWindow` 和 `WidgetsWindow`。旧设计者模式、旧 `config.json` 前台设置和旧 XAML-first 运行时仍保留。
 
 ## 文档边界
 
@@ -56,6 +56,6 @@ Fronted Designer v3 当前已完成基础设施阶段，并将 `ScoreSurWindow` 
 | --- | --- |
 | `Team.Score` 语义混杂 | 当前仍被剩余旧窗口使用；迁移期不要立即删除。新服务中的同步只是 transitional compatibility mirror，不是权威状态，`ScoreSurWindow` / `ScoreHunWindow` 默认比分绑定已不再依赖它。 |
 | `ScorePageViewModel.GameGlobalInfoRecord` 仍存在 | Phase 2 后它只是从 `MatchScoreState` 派生的调试/兼容视图，不是权威数据；普通 UI 不再提供手动选择或同步入口。 |
-| `ScoreGlobalWindow` 仍依赖服务动态控件 | `FrontedWindowService` 会创建并直接修改全局比分格，阻碍干净的 v3 绑定渲染。 |
+| `ScoreGlobalWindow` BO3 条件布局有限 | v3 `GlobalScoreRow` 会按 BO3/BO5 隐藏比分格，但总分位置和背景仍采用固定 layout；尚未实现完整条件布局引擎。 |
 | `GameProgress.Free` 未定义比分语义 | Score System v2 暂把它记录为设计缺口。 |
 | `Game3Overtime*` 与 `Game4*` enum 数值重叠 | `MatchScoreService` 结合 BO3/BO5 状态解析；缺少上下文的 `MatchScoreState.GetGame(progress)` 保守按 BO5 第四局解析。 |
