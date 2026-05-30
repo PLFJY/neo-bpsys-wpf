@@ -78,7 +78,7 @@ public ObservableCollection<bool> CanCurrentSurBanned => _sharedDataService.CanC
 
 `GlobalScoreTotalMargin` 也在共享服务中暴露，设置页修改后会同步给前台窗口服务。
 
-Score System v2 的设计方向见 [score-system-v2.md](score-system-v2.md)。Phase 1 后，权威比分状态由现有 `Core.Models.Game.MatchScore` 持有，类型为 `MatchScoreState`；`IMatchScoreService` 只操作 `ISharedDataService.CurrentGame.MatchScore`，页面 ViewModel、前台窗口 ViewModel、`FrontedWindowService` 和 UI 控件都不能成为比分数据库。迁移期 `Team.Score` 仍作为旧窗口兼容镜像存在，`MatchScoreService.SyncLegacyTeamScoreMirror()` 可从 `MatchScoreState` 派生写回，但旧 `ScorePageViewModel` 行为尚未迁移，新功能不应继续把 `Team.Score` 当作权威写入点。
+Score System v2 的设计方向见 [score-system-v2.md](score-system-v2.md)。Phase 2 后，权威比分状态由现有 `Core.Models.Game.MatchScore` 持有，类型为 `MatchScoreState`；`IMatchScoreService` 只操作 `ISharedDataService.CurrentGame.MatchScore`，页面 ViewModel、前台窗口 ViewModel、`FrontedWindowService` 和 UI 控件都不能成为比分数据库。后台 `ScorePageViewModel` 的比分按钮已改为写入 `IMatchScoreService.CurrentHalf`，清除按钮会把当前半场结果设为 `null`。迁移期 `Team.Score` 仍作为旧窗口兼容镜像存在，`MatchScoreService.SyncLegacyTeamScoreMirror()` 从 `MatchScoreState` 派生写回，新功能不应继续把 `Team.Score` 当作权威写入点。
 
 `SharedDataService.NewGame()` 创建新 `Game` 时会 clone 当前 `CurrentGame.MatchScore`，避免新旧对局共享同一个可变比分实例。导入旧 JSON 时如果没有 `MatchScore` 字段，`Game` 会创建默认 `MatchScoreState`，以兼容旧保存记录。
 

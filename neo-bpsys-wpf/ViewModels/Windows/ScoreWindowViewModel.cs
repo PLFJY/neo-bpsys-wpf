@@ -33,7 +33,11 @@ public partial class ScoreWindowViewModel :
     {
         _sharedDataService = sharedDataService;
         _settingsHostService = settingsHostService;
-        sharedDataService.CurrentGameChanged += (_, _) => OnPropertyChanged(nameof(CurrentGame));
+        sharedDataService.CurrentGameChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(CurrentGame));
+            RefreshTotalMinorScores();
+        };
         sharedDataService.IsBo3ModeChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(IsBo3Mode));
@@ -47,6 +51,7 @@ public partial class ScoreWindowViewModel :
             Settings.PropertyChanged += SettingsOnPropertyChanged;
         };
         Settings.PropertyChanged += SettingsOnPropertyChanged;
+        RefreshTotalMinorScores();
     }
 
     private void SettingsOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -83,12 +88,18 @@ public partial class ScoreWindowViewModel :
         switch (message.PropertyName)
         {
             case nameof(TotalMainGameScore):
-                TotalMainGameScore = message.NewValue;
+                RefreshTotalMinorScores();
                 break;
             case nameof(TotalAwayGameScore):
-                TotalAwayGameScore = message.NewValue;
+                RefreshTotalMinorScores();
                 break;
         }
+    }
+
+    private void RefreshTotalMinorScores()
+    {
+        TotalMainGameScore = _sharedDataService.CurrentGame.MatchScore.HomeTotalMinorScore;
+        TotalAwayGameScore = _sharedDataService.CurrentGame.MatchScore.AwayTotalMinorScore;
     }
 
     public Game CurrentGame => _sharedDataService.CurrentGame;

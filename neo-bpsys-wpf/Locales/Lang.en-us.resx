@@ -534,6 +534,9 @@
   <data name="ScoreSettlement" xml:space="preserve">
     <value>Score settlement</value>
   </data>
+  <data name="ClearCurrentHalfScore" xml:space="preserve">
+    <value>Clear current half score</value>
+  </data>
   <data name="HomeTeamInformation" xml:space="preserve">
     <value>Home team information</value>
   </data>

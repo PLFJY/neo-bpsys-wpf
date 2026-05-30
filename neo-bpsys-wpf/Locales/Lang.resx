@@ -534,6 +534,9 @@
   <data name="ScoreSettlement" xml:space="preserve">
     <value>大比分结算</value>
   </data>
+  <data name="ClearCurrentHalfScore" xml:space="preserve">
+    <value>清除当前半场比分</value>
+  </data>
   <data name="HomeTeamInformation" xml:space="preserve">
     <value>主场队伍信息</value>
   </data>

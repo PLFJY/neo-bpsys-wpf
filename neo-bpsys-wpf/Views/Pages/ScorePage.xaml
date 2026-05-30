@@ -64,8 +64,8 @@
                             Content="{lex:Loc Tie}" />
                         <Button
                             Width="140"
-                            Command="{Binding CalculateMajorPointCommand}"
-                            Content="{lex:Loc ScoreSettlement}" />
+                            Command="{Binding ClearCurrentHalfScoreCommand}"
+                            Content="{lex:Loc ClearCurrentHalfScore}" />
                     </StackPanel>
                     <StackPanel Grid.Column="2">
                         <Button
@@ -158,11 +158,11 @@
                     </ComboBox>
                 </StackPanel>
                 <Grid Grid.Row="2" Margin="0,10,0,0">
-                    <CheckBox
-                        x:Name="IsGameComplted"
+                    <ui:Button
                         HorizontalAlignment="Left"
-                        Content="{lex:Loc IsGameFinished}"
-                        IsChecked="{Binding IsGameFinished}" />
+                        Command="{Binding ClearCurrentHalfScoreCommand}"
+                        Content="{lex:Loc ClearCurrentHalfScore}"
+                        Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
                     <ui:Button
                         Grid.Row="4"
                         HorizontalAlignment="Right"
@@ -173,7 +173,7 @@
                 <Grid
                     Grid.Row="3"
                     d:IsEnabled="False"
-                    IsEnabled="{Binding ElementName=IsGameComplted, Path=IsChecked, Mode=TwoWay}">
+                    Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1*" />
                         <ColumnDefinition Width="1*" />

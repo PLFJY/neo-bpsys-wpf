@@ -7,10 +7,10 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Windows;
 using System.ComponentModel;
-using System.Windows.Media;
 using neo_bpsys_wpf.Core.Models;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 
@@ -27,26 +27,30 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
 
     private readonly ISharedDataService _sharedDataService;
     private readonly IFrontedWindowService _frontedWindowService;
+    private readonly IMatchScoreService _matchScoreService;
+    private Game? _subscribedGame;
+    private bool _isSyncingSelectedProgress;
 
-    public ScorePageViewModel(ISharedDataService sharedDataService, IFrontedWindowService frontedWindowService)
+    public ScorePageViewModel(
+        ISharedDataService sharedDataService,
+        IFrontedWindowService frontedWindowService,
+        IMatchScoreService matchScoreService)
     {
         _sharedDataService = sharedDataService;
         _frontedWindowService = frontedWindowService;
+        _matchScoreService = matchScoreService;
         _isBo3Mode = _sharedDataService.IsBo3Mode;
-        _sharedDataService.CurrentGame.TeamSwapped += SyncHomeTeamCampFromGlobal;
-        _sharedDataService.CurrentGame.PropertyChanged += (sender, args) =>
-        {
-            if (args.PropertyName == nameof(Game.GameProgress) &&
-                _sharedDataService.CurrentGame.GameProgress > GameProgress.Free)
-            {
-                SelectedGameProgress = _sharedDataService.CurrentGame.GameProgress;
-            }
-        };
+        _sharedDataService.CurrentGameChanged += OnCurrentGameChanged;
+        SubscribeGame(_sharedDataService.CurrentGame);
+        RefreshScorePageState();
     }
 
     private void SyncHomeTeamCampFromGlobal(object? sender, EventArgs args)
     {
-        HomeTeamCamp = _sharedDataService.HomeTeam.Camp == Camp.Sur ? Camp.Sur : Camp.Hun;
+        if (SelectedGameResult == null)
+        {
+            HomeTeamCamp = CurrentHomeTeamCamp;
+        }
     }
 
     [ObservableProperty] private bool _isDebugContentVisible =
@@ -65,85 +69,71 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     [RelayCommand]
     private void Escape4()
     {
-        _sharedDataService.CurrentGame.SurTeam.Score.GameScores += 5;
-        if (_sharedDataService.CurrentGame.GameProgress <= GameProgress.Free) return;
-        IsGameFinished = true;
-        SelectedGameResult = GameResult.Escape4;
+        SetCurrentHalfResult(GameResult.Escape4);
     }
 
     [RelayCommand]
     private void Escape3()
     {
-        _sharedDataService.CurrentGame.SurTeam.Score.GameScores += 3;
-        _sharedDataService.CurrentGame.HunTeam.Score.GameScores += 1;
-        if (_sharedDataService.CurrentGame.GameProgress <= GameProgress.Free) return;
-        IsGameFinished = true;
-        SelectedGameResult = GameResult.Escape3;
+        SetCurrentHalfResult(GameResult.Escape3);
     }
 
     [RelayCommand]
     private void Tie()
     {
-        _sharedDataService.CurrentGame.SurTeam.Score.GameScores += 2;
-        _sharedDataService.CurrentGame.HunTeam.Score.GameScores += 2;
-        if (_sharedDataService.CurrentGame.GameProgress <= GameProgress.Free) return;
-        IsGameFinished = true;
-        SelectedGameResult = GameResult.Tie;
+        SetCurrentHalfResult(GameResult.Tie);
     }
 
     [RelayCommand]
     private void Out3()
     {
-        _sharedDataService.CurrentGame.SurTeam.Score.GameScores += 1;
-        _sharedDataService.CurrentGame.HunTeam.Score.GameScores += 3;
-        if (_sharedDataService.CurrentGame.GameProgress <= GameProgress.Free) return;
-        IsGameFinished = true;
-        SelectedGameResult = GameResult.Out3;
+        SetCurrentHalfResult(GameResult.Out3);
     }
 
     [RelayCommand]
     private void Out4()
     {
-        _sharedDataService.CurrentGame.HunTeam.Score.GameScores += 5;
-        if (_sharedDataService.CurrentGame.GameProgress <= GameProgress.Free) return;
-        IsGameFinished = true;
-        SelectedGameResult = GameResult.Out4;
+        SetCurrentHalfResult(GameResult.Out4);
+    }
+
+    [RelayCommand]
+    private void ClearCurrentHalfScore()
+    {
+        if (_sharedDataService.CurrentGame.GameProgress <= GameProgress.Free)
+            return;
+
+        _matchScoreService.ClearCurrentHalfResult();
+        UpdateScoreCompatibilityViews(_sharedDataService.CurrentGame.GameProgress);
     }
 
     [RelayCommand]
     private void Reset()
     {
-        _sharedDataService.HomeTeam.ResetScore();
-        _sharedDataService.AwayTeam.ResetScore();
+        foreach (var scoreGame in _matchScoreService.Current.Games)
+        {
+            ClearHalf(scoreGame.FirstHalf);
+            ClearHalf(scoreGame.SecondHalf);
+        }
+
+        _matchScoreService.Recalculate();
+        _matchScoreService.RefreshCurrentProgress();
+        _matchScoreService.SyncLegacyTeamScoreMirror();
+        _frontedWindowService.ResetGlobalScore();
+        RefreshScorePageState();
     }
 
     [RelayCommand]
     private void ResetGameScore()
     {
-        _sharedDataService.HomeTeam.Score.GameScores = 0;
-        _sharedDataService.AwayTeam.Score.GameScores = 0;
+        ClearCurrentHalfScore();
     }
 
     [RelayCommand]
     private void CalculateMajorPoint()
     {
-        if (_sharedDataService.HomeTeam.Score.GameScores == _sharedDataService.AwayTeam.Score.GameScores)
-        {
-            _sharedDataService.HomeTeam.Score.Tie++;
-            _sharedDataService.AwayTeam.Score.Tie++;
-        }
-        else if (_sharedDataService.HomeTeam.Score.GameScores > _sharedDataService.AwayTeam.Score.GameScores)
-        {
-            _sharedDataService.HomeTeam.Score.Win++;
-        }
-        else
-        {
-            _sharedDataService.AwayTeam.Score.Win++;
-        }
-
-        _sharedDataService.HomeTeam.Score.GameScores = 0;
-        _sharedDataService.AwayTeam.Score.GameScores = 0;
-        OnPropertyChanged(string.Empty);
+        _matchScoreService.Recalculate();
+        _matchScoreService.SyncLegacyTeamScoreMirror();
+        RefreshScorePageState();
     }
 
     [RelayCommand]
@@ -167,7 +157,7 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
             OnPropertyChanged(nameof(IsGameFinished));
             OnPropertyChanged(nameof(HomeTeamCamp));
             OnPropertyChanged(nameof(SelectedGameResult));
-            UpdateTotalGameScore();
+            RefreshScorePageState();
         });
     }
 
@@ -176,19 +166,19 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     public GameProgress SelectedGameProgress
     {
         get => _selectedGameProgress;
-        set => SetPropertyWithAction(ref _selectedGameProgress, value, _ =>
+        set
         {
-            var gameInfo = GameGlobalInfoRecord[value];
-            IsGameFinished = gameInfo.IsGameFinished;
-            HomeTeamCamp = gameInfo.HomeTeamCamp;
-            SelectedGameResult = gameInfo.GameResult;
-            SyncHomeTeamCampFromGlobal(this, EventArgs.Empty);
+            if (!SetProperty(ref _selectedGameProgress, value))
+                return;
 
-            OnPropertyChanged(nameof(IsGameFinished));
-            OnPropertyChanged(nameof(HomeTeamCamp));
-            OnPropertyChanged(nameof(SelectedGameResult));
+            if (!_isSyncingSelectedProgress && _sharedDataService.CurrentGame.GameProgress != value)
+            {
+                _sharedDataService.CurrentGame.GameProgress = value;
+            }
+
+            RefreshSelectedGameInfo();
             OnPropertyChanged(nameof(SelectedIndex));
-        });
+        }
     }
 
     public int SelectedIndex => GameList.IndexOf(SelectedGameProgress);
@@ -196,19 +186,19 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     [RelayCommand]
     private void GlobalScoreUpdateToFront()
     {
-        GameGlobalInfoRecord[SelectedGameProgress].IsGameFinished = IsGameFinished;
-        if (!IsGameFinished)
-        {
-            _frontedWindowService.SetGlobalScoreToBar(TeamType.HomeTeam, SelectedGameProgress);
-            _frontedWindowService.SetGlobalScoreToBar(TeamType.AwayTeam, SelectedGameProgress);
-            UpdateTotalGameScore();
+        if (_sharedDataService.CurrentGame.GameProgress <= GameProgress.Free)
             return;
+
+        if (IsGameFinished && SelectedGameResult != null)
+        {
+            _matchScoreService.SetCurrentHalfResult(SelectedGameResult);
+        }
+        else
+        {
+            _matchScoreService.ClearCurrentHalfResult();
         }
 
-        GameGlobalInfoRecord[SelectedGameProgress].HomeTeamCamp = HomeTeamCamp;
-        GameGlobalInfoRecord[SelectedGameProgress].GameResult = SelectedGameResult;
-        UpdateGlobalScore();
-        UpdateTotalGameScore();
+        UpdateScoreCompatibilityViews(_sharedDataService.CurrentGame.GameProgress);
     }
 
     [ObservableProperty] private bool _isGameFinished;
@@ -217,62 +207,25 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
 
     [ObservableProperty] private GameResult? _selectedGameResult;
 
-    private void UpdateGlobalScore()
+    private void UpdateGlobalScore(GameProgress progress)
     {
-        if (!IsGameFinished)
+        var half = _matchScoreService.GetHalf(progress);
+        if (half is not { HasResult: true } ||
+            half.HomeMinorScore == null ||
+            half.AwayMinorScore == null)
         {
-            _frontedWindowService.SetGlobalScoreToBar(TeamType.HomeTeam, SelectedGameProgress);
-            _frontedWindowService.SetGlobalScoreToBar(TeamType.AwayTeam, SelectedGameProgress);
+            _frontedWindowService.SetGlobalScoreToBar(TeamType.HomeTeam, progress);
+            _frontedWindowService.SetGlobalScoreToBar(TeamType.AwayTeam, progress);
             return;
         }
 
-        if (HomeTeamCamp == null || SelectedGameResult == null) return;
+        var homeCamp = GetRecordedCamp(half, TeamType.HomeTeam);
+        var awayCamp = GetRecordedCamp(half, TeamType.AwayTeam);
+        if (homeCamp == null || awayCamp == null)
+            return;
 
-        var surScore = 0;
-        var hunScore = 0;
-        switch (SelectedGameResult)
-        {
-            case GameResult.Escape4:
-                surScore = 5;
-                hunScore = 0;
-                break;
-            case GameResult.Escape3:
-                surScore = 3;
-                hunScore = 1;
-                break;
-            case GameResult.Tie:
-                surScore = 2;
-                hunScore = 2;
-                break;
-            case GameResult.Out3:
-                surScore = 1;
-                hunScore = 3;
-                break;
-            case GameResult.Out4:
-                surScore = 0;
-                hunScore = 5;
-                break;
-        }
-
-        switch (HomeTeamCamp)
-        {
-            case Camp.Sur:
-                _frontedWindowService.SetGlobalScore(TeamType.HomeTeam, SelectedGameProgress, Camp.Sur,
-                    surScore);
-                _frontedWindowService.SetGlobalScore(TeamType.AwayTeam, SelectedGameProgress, Camp.Hun,
-                    hunScore);
-                break;
-            case Camp.Hun:
-                _frontedWindowService.SetGlobalScore(TeamType.HomeTeam, SelectedGameProgress, Camp.Hun,
-                    hunScore);
-                _frontedWindowService.SetGlobalScore(TeamType.AwayTeam, SelectedGameProgress, Camp.Sur,
-                    surScore);
-                break;
-            case null:
-                break;
-            default:
-                throw new InvalidEnumArgumentException();
-        }
+        _frontedWindowService.SetGlobalScore(TeamType.HomeTeam, progress, homeCamp.Value, half.HomeMinorScore.Value);
+        _frontedWindowService.SetGlobalScore(TeamType.AwayTeam, progress, awayCamp.Value, half.AwayMinorScore.Value);
     }
 
     public void Receive(PropertyChangedMessage<bool> message)
@@ -285,92 +238,128 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
 
     private void UpdateTotalGameScore()
     {
-        var totalMainGameScore = 0;
-        var totalAwayGameScore = 0;
-        foreach (var i in GameGlobalInfoRecord.Where(i => i.Value.IsGameFinished)
-                     .TakeWhile(i => !IsBo3Mode || i.Key <= GameProgress.Game4SecondHalf))
+        _matchScoreService.Recalculate();
+
+        WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<int>(this,
+            nameof(ScoreWindowViewModel.TotalMainGameScore), 0, _matchScoreService.Current.HomeTotalMinorScore));
+        WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<int>(this,
+            nameof(ScoreWindowViewModel.TotalAwayGameScore), 0, _matchScoreService.Current.AwayTotalMinorScore));
+    }
+
+    private void SetCurrentHalfResult(GameResult result)
+    {
+        if (_sharedDataService.CurrentGame.GameProgress <= GameProgress.Free)
+            return;
+
+        _matchScoreService.SetCurrentHalfResult(result);
+        UpdateScoreCompatibilityViews(_sharedDataService.CurrentGame.GameProgress);
+    }
+
+    private void UpdateScoreCompatibilityViews(GameProgress progress)
+    {
+        RefreshScorePageState();
+        UpdateGlobalScore(progress);
+        UpdateTotalGameScore();
+        OnPropertyChanged(string.Empty);
+    }
+
+    private void RefreshScorePageState()
+    {
+        SyncGameGlobalInfoRecordFromMatchScore();
+        RefreshSelectedProgressFromCurrentGame();
+        RefreshSelectedGameInfo();
+        UpdateTotalGameScore();
+    }
+
+    private void RefreshSelectedProgressFromCurrentGame()
+    {
+        var progress = _sharedDataService.CurrentGame.GameProgress;
+        if (progress <= GameProgress.Free)
+            return;
+
+        _isSyncingSelectedProgress = true;
+        try
         {
-            switch (i.Value.GameResult)
-            {
-                case GameResult.Escape4:
-                    if (i.Value.HomeTeamCamp == Camp.Sur)
-                    {
-                        totalMainGameScore += 5;
-                        totalAwayGameScore += 0;
-                    }
+            SelectedGameProgress = progress;
+        }
+        finally
+        {
+            _isSyncingSelectedProgress = false;
+        }
+    }
 
-                    if (i.Value.HomeTeamCamp == Camp.Hun)
-                    {
-                        totalMainGameScore += 0;
-                        totalAwayGameScore += 5;
-                    }
+    private void RefreshSelectedGameInfo()
+    {
+        var half = _matchScoreService.GetHalf(SelectedGameProgress);
+        IsGameFinished = half?.Result != null;
+        SelectedGameResult = half?.Result;
+        HomeTeamCamp = GetHomeTeamCamp(half) ?? CurrentHomeTeamCamp;
+    }
 
-                    break;
-                case GameResult.Escape3:
-                    switch (i.Value.HomeTeamCamp)
-                    {
-                        case Camp.Sur:
-                            totalMainGameScore += 3;
-                            totalAwayGameScore += 1;
-                            break;
-                        case Camp.Hun:
-                            totalMainGameScore += 1;
-                            totalAwayGameScore += 3;
-                            break;
-                    }
+    private void SyncGameGlobalInfoRecordFromMatchScore()
+    {
+        foreach (var (progress, gameInfo) in GameGlobalInfoRecord)
+        {
+            var half = _matchScoreService.GetHalf(progress);
+            gameInfo.IsGameFinished = half?.Result != null;
+            gameInfo.HomeTeamCamp = GetHomeTeamCamp(half);
+            gameInfo.GameResult = half?.Result;
+        }
+    }
 
-                    break;
-                case GameResult.Tie:
-                    totalMainGameScore += 2;
-                    totalAwayGameScore += 2;
-                    break;
-                case GameResult.Out3:
-                    switch (i.Value.HomeTeamCamp)
-                    {
-                        case Camp.Sur:
-                            totalMainGameScore += 1;
-                            totalAwayGameScore += 3;
-                            break;
-                        case Camp.Hun:
-                            totalMainGameScore += 3;
-                            totalAwayGameScore += 1;
-                            break;
-                        case null:
-                            break;
-                        default:
-                            throw new InvalidEnumArgumentException();
-                    }
+    private Camp CurrentHomeTeamCamp => _sharedDataService.HomeTeam.Camp == Camp.Sur ? Camp.Sur : Camp.Hun;
 
-                    break;
-                case GameResult.Out4:
-                    switch (i.Value.HomeTeamCamp)
-                    {
-                        case Camp.Sur:
-                            totalMainGameScore += 0;
-                            totalAwayGameScore += 5;
-                            break;
-                        case Camp.Hun:
-                            totalMainGameScore += 5;
-                            totalAwayGameScore += 0;
-                            break;
-                        case null:
-                            break;
-                        default:
-                            throw new InvalidEnumArgumentException();
-                    }
+    private static Camp? GetHomeTeamCamp(ScoreHalf? half)
+    {
+        if (half == null)
+            return null;
 
-                    break;
-                case null:
-                    break;
-                default:
-                    throw new InvalidEnumArgumentException();
-            }
+        return GetRecordedCamp(half, TeamType.HomeTeam);
+    }
+
+    private static Camp? GetRecordedCamp(ScoreHalf half, TeamType teamType)
+    {
+        if (half.SurTeamTypeWhenRecorded == teamType)
+            return Camp.Sur;
+
+        if (half.HunTeamTypeWhenRecorded == teamType)
+            return Camp.Hun;
+
+        return null;
+    }
+
+    private void OnCurrentGameChanged(object? sender, EventArgs args)
+    {
+        SubscribeGame(_sharedDataService.CurrentGame);
+        RefreshScorePageState();
+    }
+
+    private void SubscribeGame(Game game)
+    {
+        if (_subscribedGame != null)
+        {
+            _subscribedGame.TeamSwapped -= SyncHomeTeamCampFromGlobal;
+            _subscribedGame.PropertyChanged -= OnCurrentGamePropertyChanged;
         }
 
-        WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<int>(this,
-            nameof(ScoreWindowViewModel.TotalMainGameScore), 0, totalMainGameScore));
-        WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<int>(this,
-            nameof(ScoreWindowViewModel.TotalAwayGameScore), 0, totalAwayGameScore));
+        _subscribedGame = game;
+        _subscribedGame.TeamSwapped += SyncHomeTeamCampFromGlobal;
+        _subscribedGame.PropertyChanged += OnCurrentGamePropertyChanged;
+    }
+
+    private void OnCurrentGamePropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName != nameof(Game.GameProgress))
+            return;
+
+        RefreshScorePageState();
+    }
+
+    private static void ClearHalf(ScoreHalf half)
+    {
+        half.Result = null;
+        half.SurTeamTypeWhenRecorded = null;
+        half.HunTeamTypeWhenRecorded = null;
     }
 
     public OrderedDictionary<GameProgress, GameGlobalInfo> GameGlobalInfoRecord { get; } = new()

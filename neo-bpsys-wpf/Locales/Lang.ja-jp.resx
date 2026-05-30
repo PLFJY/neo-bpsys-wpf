@@ -534,6 +534,9 @@
   <data name="ScoreSettlement" xml:space="preserve">
     <value>対戦スコア精算</value>
   </data>
+  <data name="ClearCurrentHalfScore" xml:space="preserve">
+    <value>現在のハーフスコアを消去</value>
+  </data>
   <data name="HomeTeamInformation" xml:space="preserve">
     <value>ホームチーム情報</value>
   </data>
