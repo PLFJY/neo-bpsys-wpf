@@ -16,7 +16,7 @@ using Team = neo_bpsys_wpf.Core.Models.Team;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
-public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChangedMessage<bool>>
+public partial class ScorePageViewModel : ViewModelBase
 {
 #pragma warning disable CS8618
     public ScorePageViewModel()
@@ -29,7 +29,6 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     private readonly IFrontedWindowService _frontedWindowService;
     private readonly IMatchScoreService _matchScoreService;
     private Game? _subscribedGame;
-    private bool _isSyncingSelectedProgress;
 
     public ScorePageViewModel(
         ISharedDataService sharedDataService,
@@ -39,18 +38,9 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
         _sharedDataService = sharedDataService;
         _frontedWindowService = frontedWindowService;
         _matchScoreService = matchScoreService;
-        _isBo3Mode = _sharedDataService.IsBo3Mode;
         _sharedDataService.CurrentGameChanged += OnCurrentGameChanged;
         SubscribeGame(_sharedDataService.CurrentGame);
         RefreshScorePageState();
-    }
-
-    private void SyncHomeTeamCampFromGlobal(object? sender, EventArgs args)
-    {
-        if (SelectedGameResult == null)
-        {
-            HomeTeamCamp = CurrentHomeTeamCamp;
-        }
     }
 
     [ObservableProperty] private bool _isDebugContentVisible =
@@ -123,20 +113,6 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     }
 
     [RelayCommand]
-    private void ResetGameScore()
-    {
-        ClearCurrentHalfScore();
-    }
-
-    [RelayCommand]
-    private void CalculateMajorPoint()
-    {
-        _matchScoreService.Recalculate();
-        _matchScoreService.SyncLegacyTeamScoreMirror();
-        RefreshScorePageState();
-    }
-
-    [RelayCommand]
     private static void ManualControl()
     {
         IAppHost.Host?.Services.GetRequiredService<ScoreManualWindow>().ShowDialog();
@@ -145,67 +121,6 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     #endregion
 
     #region 分数统计
-
-    private bool _isBo3Mode;
-
-    private bool IsBo3Mode
-    {
-        get => _isBo3Mode;
-        set => SetPropertyWithAction(ref _isBo3Mode, value, _ =>
-        {
-            GameList = !value ? GameListBo5 : GameListBo3;
-            OnPropertyChanged(nameof(IsGameFinished));
-            OnPropertyChanged(nameof(HomeTeamCamp));
-            OnPropertyChanged(nameof(SelectedGameResult));
-            RefreshScorePageState();
-        });
-    }
-
-    private GameProgress _selectedGameProgress = GameProgress.Game1FirstHalf;
-
-    public GameProgress SelectedGameProgress
-    {
-        get => _selectedGameProgress;
-        set
-        {
-            if (!SetProperty(ref _selectedGameProgress, value))
-                return;
-
-            if (!_isSyncingSelectedProgress && _sharedDataService.CurrentGame.GameProgress != value)
-            {
-                _sharedDataService.CurrentGame.GameProgress = value;
-            }
-
-            RefreshSelectedGameInfo();
-            OnPropertyChanged(nameof(SelectedIndex));
-        }
-    }
-
-    public int SelectedIndex => GameList.IndexOf(SelectedGameProgress);
-
-    [RelayCommand]
-    private void GlobalScoreUpdateToFront()
-    {
-        if (_sharedDataService.CurrentGame.GameProgress <= GameProgress.Free)
-            return;
-
-        if (IsGameFinished && SelectedGameResult != null)
-        {
-            _matchScoreService.SetCurrentHalfResult(SelectedGameResult);
-        }
-        else
-        {
-            _matchScoreService.ClearCurrentHalfResult();
-        }
-
-        UpdateScoreCompatibilityViews(_sharedDataService.CurrentGame.GameProgress);
-    }
-
-    [ObservableProperty] private bool _isGameFinished;
-
-    [ObservableProperty] private Camp? _homeTeamCamp = Camp.Sur;
-
-    [ObservableProperty] private GameResult? _selectedGameResult;
 
     private void UpdateGlobalScore(GameProgress progress)
     {
@@ -226,14 +141,6 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
 
         _frontedWindowService.SetGlobalScore(TeamType.HomeTeam, progress, homeCamp.Value, half.HomeMinorScore.Value);
         _frontedWindowService.SetGlobalScore(TeamType.AwayTeam, progress, awayCamp.Value, half.AwayMinorScore.Value);
-    }
-
-    public void Receive(PropertyChangedMessage<bool> message)
-    {
-        if (message.PropertyName == nameof(ISharedDataService.IsBo3Mode))
-        {
-            IsBo3Mode = message.NewValue;
-        }
     }
 
     private void UpdateTotalGameScore()
@@ -259,41 +166,13 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     {
         RefreshScorePageState();
         UpdateGlobalScore(progress);
-        UpdateTotalGameScore();
         OnPropertyChanged(string.Empty);
     }
 
     private void RefreshScorePageState()
     {
         SyncGameGlobalInfoRecordFromMatchScore();
-        RefreshSelectedProgressFromCurrentGame();
-        RefreshSelectedGameInfo();
         UpdateTotalGameScore();
-    }
-
-    private void RefreshSelectedProgressFromCurrentGame()
-    {
-        var progress = _sharedDataService.CurrentGame.GameProgress;
-        if (progress <= GameProgress.Free)
-            return;
-
-        _isSyncingSelectedProgress = true;
-        try
-        {
-            SelectedGameProgress = progress;
-        }
-        finally
-        {
-            _isSyncingSelectedProgress = false;
-        }
-    }
-
-    private void RefreshSelectedGameInfo()
-    {
-        var half = _matchScoreService.GetHalf(SelectedGameProgress);
-        IsGameFinished = half?.Result != null;
-        SelectedGameResult = half?.Result;
-        HomeTeamCamp = GetHomeTeamCamp(half) ?? CurrentHomeTeamCamp;
     }
 
     private void SyncGameGlobalInfoRecordFromMatchScore()
@@ -306,8 +185,6 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
             gameInfo.GameResult = half?.Result;
         }
     }
-
-    private Camp CurrentHomeTeamCamp => _sharedDataService.HomeTeam.Camp == Camp.Sur ? Camp.Sur : Camp.Hun;
 
     private static Camp? GetHomeTeamCamp(ScoreHalf? half)
     {
@@ -338,12 +215,10 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
     {
         if (_subscribedGame != null)
         {
-            _subscribedGame.TeamSwapped -= SyncHomeTeamCampFromGlobal;
             _subscribedGame.PropertyChanged -= OnCurrentGamePropertyChanged;
         }
 
         _subscribedGame = game;
-        _subscribedGame.TeamSwapped += SyncHomeTeamCampFromGlobal;
         _subscribedGame.PropertyChanged += OnCurrentGamePropertyChanged;
     }
 
@@ -376,43 +251,6 @@ public partial class ScorePageViewModel : ViewModelBase, IRecipient<PropertyChan
         { GameProgress.Game5SecondHalf, new GameGlobalInfo() },
         { GameProgress.Game5OvertimeFirstHalf, new GameGlobalInfo() },
         { GameProgress.Game5OvertimeSecondHalf, new GameGlobalInfo() },
-    };
-
-    private OrderedDictionary<GameProgress, string> _gameList = GameListBo5;
-
-    public OrderedDictionary<GameProgress, string> GameList
-    {
-        get => _gameList;
-        private set => SetPropertyWithAction(ref _gameList, value,
-            _ => { SelectedGameProgress = value.GetAt(0).Key; });
-    }
-
-    private static OrderedDictionary<GameProgress, string> GameListBo5 => new()
-    {
-        { GameProgress.Game1FirstHalf, "Game1FirstHalf" },
-        { GameProgress.Game1SecondHalf, "Game1SecondHalf" },
-        { GameProgress.Game2FirstHalf, "Game2FirstHalf" },
-        { GameProgress.Game2SecondHalf, "Game2SecondHalf" },
-        { GameProgress.Game3FirstHalf, "Game3FirstHalf" },
-        { GameProgress.Game3SecondHalf, "Game3SecondHalf" },
-        { GameProgress.Game4FirstHalf, "Game4FirstHalf" },
-        { GameProgress.Game4SecondHalf, "Game4SecondHalf" },
-        { GameProgress.Game5FirstHalf, "Game5FirstHalf" },
-        { GameProgress.Game5SecondHalf, "Game5SecondHalf" },
-        { GameProgress.Game5OvertimeFirstHalf, "Game5OvertimeFirstHalf" },
-        { GameProgress.Game5OvertimeSecondHalf, "Game5OvertimeSecondHalf" }
-    };
-
-    private static OrderedDictionary<GameProgress, string> GameListBo3 => new()
-    {
-        { GameProgress.Game1FirstHalf, "Game1FirstHalf" },
-        { GameProgress.Game1SecondHalf, "Game1SecondHalf" },
-        { GameProgress.Game2FirstHalf, "Game2FirstHalf" },
-        { GameProgress.Game2SecondHalf, "Game2SecondHalf" },
-        { GameProgress.Game3FirstHalf, "Game3FirstHalf" },
-        { GameProgress.Game3SecondHalf, "Game3SecondHalf" },
-        { GameProgress.Game3OvertimeFirstHalf, "Game3OvertimeFirstHalf" },
-        { GameProgress.Game3OvertimeSecondHalf, "Game3OvertimeSecondHalf" }
     };
 
     public partial class GameGlobalInfo : ObservableObject

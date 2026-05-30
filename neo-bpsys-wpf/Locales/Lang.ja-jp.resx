@@ -688,7 +688,7 @@
     <value>人格と特質</value>
   </data>
   <data name="ScoreControl" xml:space="preserve">
-    <value>スコア管理</value>
+    <value>スコア制御</value>
   </data>
   <data name="GameData" xml:space="preserve">
     <value>戦績データ</value>

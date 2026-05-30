@@ -2,7 +2,7 @@
 
 本文定义 Score System v2 的目标模型、计算规则、前台绑定方向和迁移计划。
 
-当前实现状态：Score Phase 2 已完成后台比分页写入迁移。现有 `Core.Models.Game` 已持有 `MatchScoreState`，后台 `ScorePageViewModel` 的结果按钮通过 `IMatchScoreService.SetCurrentHalfResult(...)` / `ClearCurrentHalfResult()` 写入 `CurrentGame.MatchScore`，`GameGlobalInfoRecord` 仅作为从权威状态派生的调试/兼容视图。`ScoreGlobalWindow`、`ScoreSurWindow` / `ScoreHunWindow` layout 和 `.bpui` 尚未迁移，旧前台窗口仍可能读取 `Team.Score` 兼容镜像或依赖 `FrontedWindowService.SetGlobalScore*` 临时刷新。
+当前实现状态：Score Phase 2 已完成后台比分页写入与 UI 清理。现有 `Core.Models.Game` 已持有 `MatchScoreState`，后台 `ScorePageViewModel` 的结果按钮通过 `IMatchScoreService.SetCurrentHalfResult(...)` / `ClearCurrentHalfResult()` 写入 `CurrentGame.MatchScore`，普通 UI 不再提供手动 Game/half 选择或“同步至前台”按钮；比分控制始终跟随全局 `CurrentGame.GameProgress`。`GameGlobalInfoRecord` 仅作为从权威状态派生的调试/兼容视图。`ScoreGlobalWindow`、`ScoreSurWindow` / `ScoreHunWindow` layout 和 `.bpui` 尚未迁移，旧前台窗口仍可能读取 `Team.Score` 兼容镜像或依赖 `FrontedWindowService.SetGlobalScore*` 临时刷新。
 
 Score System v2 的核心目标是把权威比分状态放回现有 `Core.Models.Game`，让比分可以随对局导入、导出、回溯，并能在 `SharedDataService.NewGame()` 创建新对局时像 `MapV2Dictionary` 一样从上一局 `CurrentGame` 延续必要状态。
 
@@ -298,7 +298,7 @@ else:
 
 新模型不需要 `IsGameFinished` 作为核心概念。是否完成由 `GameResult != null` 表达。迁移期 UI 可以保留兼容字段或旧交互，但它们应映射到 nullable result，而不是成为新的模型字段。
 
-当前后台实现中，`IsGameFinished` 仍保留为 UI-only 兼容属性，用于显示当前选中半场是否已有结果；它不参与权威比分计算。清除按钮会把当前半场 `ScoreHalf.Result` 设为 `null`，并同步刷新旧 `Team.Score` 镜像和旧全局比分控件。
+当前后台实现不再暴露普通 UI 的 `IsGameFinished`、手动 Game/half 选择或“同步至前台”流程。清除当前半场比分按钮位于旧“小比分清零”按钮位置，会把全局 `CurrentGame.GameProgress` 对应半场的 `ScoreHalf.Result` 设为 `null`，并同步刷新旧 `Team.Score` 镜像和旧全局比分控件。
 
 ## 8. ScoreGlobalWindow 未来行为
 
@@ -352,7 +352,7 @@ ScorePage button
 | --- | --- | --- |
 | Score Phase 0 | 已完成：新增本文档，更新文档索引和相关提醒。 | 不改运行时代码、XAML、模型或 ViewModel。 |
 | Score Phase 1 | 已完成基础层：增加 `MatchScoreState`、`ScoreGame`、`ScoreHalf` 和 `IMatchScoreService` / `MatchScoreService`，权威状态由现有 `Core.Models.Game` 持有。 | 不迁移 UI。 |
-| Score Phase 2 | 已完成：将 `ScorePageViewModel` 的结果写入、当前半场清除、总小比分消息和旧 `Team.Score` 镜像刷新迁移到 service / `MatchScoreState`。 | 未迁移全局比分窗口，仍保留 `FrontedWindowService.SetGlobalScore*` 兼容刷新。 |
+| Score Phase 2 | 已完成：将 `ScorePageViewModel` 的结果写入、当前半场清除、总小比分消息和旧 `Team.Score` 镜像刷新迁移到 service / `MatchScoreState`，并移除普通 UI 的手动 Game/half 选择和同步按钮。 | 未迁移全局比分窗口，仍保留 `FrontedWindowService.SetGlobalScore*` 兼容刷新。 |
 | Score Phase 3 | 更新 `ScoreSurWindow` / `ScoreHunWindow` v3 layout 绑定到 `MatchScoreState` 派生字段。 | 不改 `ScoreGlobalWindow`。 |
 | Score Phase 4 | 迁移 `ScoreGlobalWindow`，使其绑定现有 `Core.Models.Game.MatchScoreState`，不再依赖服务动态控件作为状态。 | 不做无关前台窗口批量迁移。 |
 | Score Phase 5 | 移除或废弃旧 `Team.Score` 的比分写入职责。 | 不破坏仍未迁移窗口的兼容显示。 |
