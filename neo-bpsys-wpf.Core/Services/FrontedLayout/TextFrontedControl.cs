@@ -39,6 +39,10 @@ public class TextFrontedControl : IFrontedControl
                 Source = context.SharedDataService
             });
         }
+        else if (textConfig.Text is not null)
+        {
+            textBlock.Text = textConfig.Text;
+        }
 
         FrontedControlFactoryHelper.TryApplyEnum<HorizontalAlignment>(
             textConfig.HorizontalAlignment,

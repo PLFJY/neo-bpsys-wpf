@@ -1,10 +1,17 @@
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System;
 using System.IO;
+using System.Runtime.ExceptionServices;
 using System.Text.Json;
+using System.Threading;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Media;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Models;
@@ -28,6 +35,7 @@ public class FrontedCanvasConfigTest
                 "Width": 120,
                 "Height": null,
                 "BindingPath": "CurrentGame.SurTeam.Name",
+                "Text": "Ignored when BindingPath exists",
                 "HorizontalAlignment": "Center",
                 "VerticalAlignment": "Center",
                 "TextAlignment": "Center",
@@ -66,6 +74,7 @@ public class FrontedCanvasConfigTest
         Assert.Equal(120, text.Width);
         Assert.Null(text.Height);
         Assert.Equal("CurrentGame.SurTeam.Name", text.BindingPath);
+        Assert.Equal("Ignored when BindingPath exists", text.Text);
         Assert.Equal("Bold", text.FontWeight);
         Assert.Equal(28, text.FontSize);
         Assert.Equal(2, text.ZIndex);
@@ -78,6 +87,31 @@ public class FrontedCanvasConfigTest
         Assert.True(image.PickingBorder);
         Assert.Equal("Resources/pickingBorder.png", image.PickingBorderImagePath);
         Assert.True(image.BanLockAvailable);
+    }
+
+    [Fact]
+    public void ReadsTextControlStaticText()
+    {
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 810,
+              "Title": {
+                "ControlType": "Text",
+                "Left": 10,
+                "Top": 20,
+                "Text": "静态标题",
+                "FontSize": 28
+              }
+            }
+            """);
+
+        Assert.NotNull(config);
+        var text = Assert.IsType<TextFrontedControlConfig>(config.Controls["Title"]);
+        Assert.Null(text.BindingPath);
+        Assert.Equal("静态标题", text.Text);
     }
 
     [Fact]
@@ -342,6 +376,7 @@ public class FrontedCanvasConfigTest
                     Left = 10,
                     Top = 20,
                     ZIndex = 1,
+                    Text = "Static title",
                     FontSize = 18
                 }
             }
@@ -352,7 +387,59 @@ public class FrontedCanvasConfigTest
 
         Assert.True(document.RootElement.TryGetProperty("Title", out var title));
         Assert.Equal("Text", title.GetProperty("ControlType").GetString());
+        Assert.Equal("Static title", title.GetProperty("Text").GetString());
+        var roundTrip = JsonSerializer.Deserialize<FrontedCanvasConfig>(json);
+        Assert.NotNull(roundTrip);
+        var text = Assert.IsType<TextFrontedControlConfig>(roundTrip.Controls["Title"]);
+        Assert.Equal("Static title", text.Text);
         Assert.False(document.RootElement.TryGetProperty("Controls", out _));
+    }
+
+    [Fact]
+    public void TextFrontedControlUsesStaticTextWhenBindingPathIsEmpty()
+    {
+        RunOnStaThread(() =>
+        {
+            var control = new TextFrontedControl();
+            var element = control.Create(
+                "Title",
+                new TextFrontedControlConfig
+                {
+                    Text = "Static title"
+                },
+                CreateBuildContext());
+
+            var border = Assert.IsType<Border>(element);
+            var textBlock = Assert.IsType<TextBlock>(border.Child);
+            Assert.Equal("Static title", textBlock.Text);
+            Assert.Null(BindingOperations.GetBinding(textBlock, TextBlock.TextProperty));
+        });
+    }
+
+    [Fact]
+    public void TextFrontedControlBindingPathTakesPriorityOverStaticText()
+    {
+        RunOnStaThread(() =>
+        {
+            var sharedDataService = new Mock<ISharedDataService>().Object;
+            var control = new TextFrontedControl();
+            var element = control.Create(
+                "Title",
+                new TextFrontedControlConfig
+                {
+                    BindingPath = "CurrentGame.SurTeam.Name",
+                    Text = "Static title"
+                },
+                CreateBuildContext(sharedDataService));
+
+            var border = Assert.IsType<Border>(element);
+            var textBlock = Assert.IsType<TextBlock>(border.Child);
+            var binding = BindingOperations.GetBinding(textBlock, TextBlock.TextProperty);
+            Assert.NotNull(binding);
+            Assert.Equal("CurrentGame.SurTeam.Name", binding.Path.Path);
+            Assert.Same(sharedDataService, binding.Source);
+            Assert.NotEqual("Static title", textBlock.Text);
+        });
     }
 
     [Fact]
@@ -389,6 +476,40 @@ public class FrontedCanvasConfigTest
         return directory.FullName;
     }
 
+    private static FrontedControlBuildContext CreateBuildContext(ISharedDataService sharedDataService = null)
+    {
+        return new FrontedControlBuildContext
+        {
+            Services = EmptyServiceProvider.Instance,
+            SharedDataService = sharedDataService ?? new Mock<ISharedDataService>().Object,
+            ResourceResolver = NullFrontedResourceResolver.Instance,
+            WindowId = "TestWindow",
+            CanvasName = "BaseCanvas",
+            Logger = NullLogger.Instance
+        };
+    }
+
+    private static void RunOnStaThread(Action action)
+    {
+        ExceptionDispatchInfo exception = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception ex)
+            {
+                exception = ExceptionDispatchInfo.Capture(ex);
+            }
+        });
+
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+        exception?.Throw();
+    }
+
     private static FrontedCanvasConfig ReadBuiltInLayout(string windowTypeName)
     {
         var path = Path.Combine(
@@ -422,5 +543,21 @@ public class FrontedCanvasConfigTest
         var control = Assert.IsType<ImageFrontedControlConfig>(config.Controls[controlName]);
         Assert.Equal(bindingPath, control.BindingPath);
         return control;
+    }
+
+    private sealed class EmptyServiceProvider : IServiceProvider
+    {
+        public static readonly EmptyServiceProvider Instance = new();
+
+        public object GetService(Type serviceType) => null;
+    }
+
+    private sealed class NullFrontedResourceResolver : IFrontedResourceResolver
+    {
+        public static readonly NullFrontedResourceResolver Instance = new();
+
+        public string ResolveImagePath(string path) => null;
+
+        public ImageSource ResolveImage(string path) => null;
     }
 }

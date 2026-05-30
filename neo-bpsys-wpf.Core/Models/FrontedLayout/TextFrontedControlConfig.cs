@@ -14,6 +14,11 @@ public class TextFrontedControlConfig : FrontedControlConfigBase
     }
 
     /// <summary>
+    /// 静态文本内容，仅在 BindingPath 为空时使用。
+    /// </summary>
+    public string? Text { get; set; }
+
+    /// <summary>
     /// 文本块水平对齐。
     /// </summary>
     public string? HorizontalAlignment { get; set; }
