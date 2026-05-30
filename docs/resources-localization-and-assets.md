@@ -28,7 +28,7 @@
 
 `ImageHelper` 使用 `AppConstants.ResourcesPath` 拼接这些目录，按文件路径加载。新增运行时图片时，应确认文件被放在 `Resources` 下并能复制到输出目录。
 
-CutScene v3 内置业务控件复用这些资源目录：`TalentTraitDisplay` 通过 `ImageHelper.GetTalentImageSource` / `GetTraitImageSource` 读取 `Resources/talent` 和 `Resources/trait`，并跟随 `CutSceneWindowSettings.IsBlackTalentAndTraitEnable` 切换黑白图标。不要在 v3 JSON 中硬编码单个天赋或辅助特质图片路径。
+CutScene v3 默认布局位于 `Resources/FrontedLayouts/CutSceneWindow/BaseCanvas.json`，背景使用 `Resources/cutScene.png`（解析到运行目录 `Resources/bpui/cutScene.png`）。内置业务控件复用这些资源目录：`TalentTraitDisplay` 通过 `ImageHelper.GetTalentImageSource` / `GetTraitImageSource` 读取 `Resources/talent` 和 `Resources/trait`，并跟随 `CutSceneWindowSettings.IsBlackTalentAndTraitEnable` 切换黑白图标。不要在 v3 JSON 中硬编码单个天赋或辅助特质图片路径。
 
 ## Assets 与字体
 
@@ -89,7 +89,7 @@ I18nHelper.GetLocalizedString("SomeKey")
 1. 确认素材属于嵌入 `Assets` 还是输出 `Resources`。
 2. 如果代码用 `ImageHelper.GetUiImageSource("bp")`，文件应在 `Resources/bpui/bp.png`。
 3. 如果代码用 `ImageSourceKey.surHalf`，文件应在 `Resources/surHalf/{name}.png`。
-4. 默认前台布局文件命名必须匹配 `{WindowTypeName}Config-{CanvasName}.default.json`。
+4. 旧 XAML-first 默认位置文件命名必须匹配 `{WindowTypeName}Config-{CanvasName}.default.json`；v3 默认布局使用 `Resources/FrontedLayouts/{WindowTypeName}/{CanvasName}.json`。
 5. SmartBP 默认配置文件名和 `SmartBpGameDataSceneDefinition` 中的相对路径一致。
 
 ## 常见坑

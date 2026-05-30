@@ -19,6 +19,21 @@ public class ImageFrontedControlConfig : FrontedControlConfigBase
     public string? Stretch { get; set; }
 
     /// <summary>
+    /// 图片水平对齐。
+    /// </summary>
+    public string? HorizontalAlignment { get; set; }
+
+    /// <summary>
+    /// 图片垂直对齐。
+    /// </summary>
+    public string? VerticalAlignment { get; set; }
+
+    /// <summary>
+    /// 是否裁剪超出外层边框的图片内容。
+    /// </summary>
+    public bool ClipToBounds { get; set; }
+
+    /// <summary>
     /// 图片圆角半径。
     /// </summary>
     public double? CornerRadius { get; set; }

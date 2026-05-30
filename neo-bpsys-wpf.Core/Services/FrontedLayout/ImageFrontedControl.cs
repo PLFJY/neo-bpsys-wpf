@@ -31,6 +31,7 @@ public class ImageFrontedControl : IFrontedControl
 
         var border = FrontedControlFactoryHelper.CreateOuterBorder(name, imageConfig);
         var image = new Image();
+        border.ClipToBounds = imageConfig.ClipToBounds;
         ApplyCornerRadius(border, image, imageConfig.CornerRadius);
 
         if (!string.IsNullOrWhiteSpace(imageConfig.BindingPath))
@@ -46,6 +47,16 @@ public class ImageFrontedControl : IFrontedControl
             value => image.Stretch = value,
             context,
             nameof(imageConfig.Stretch));
+        FrontedControlFactoryHelper.TryApplyEnum<HorizontalAlignment>(
+            imageConfig.HorizontalAlignment,
+            value => image.HorizontalAlignment = value,
+            context,
+            nameof(imageConfig.HorizontalAlignment));
+        FrontedControlFactoryHelper.TryApplyEnum<VerticalAlignment>(
+            imageConfig.VerticalAlignment,
+            value => image.VerticalAlignment = value,
+            context,
+            nameof(imageConfig.VerticalAlignment));
 
         border.Child = image;
         return border;

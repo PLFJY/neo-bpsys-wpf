@@ -55,6 +55,9 @@ public class FrontedCanvasConfigTest
                 "BindingPath": "CurrentGame.SurPlayerList[1].PictureShown",
                 "ZIndex": 1,
                 "Stretch": "Fill",
+                "HorizontalAlignment": "Center",
+                "VerticalAlignment": "Top",
+                "ClipToBounds": true,
                 "CornerRadius": 8,
                 "PickingBorder": true,
                 "PickingBorderImagePath": "Resources/pickingBorder.png",
@@ -82,6 +85,10 @@ public class FrontedCanvasConfigTest
         var image = Assert.IsType<ImageFrontedControlConfig>(config.Controls["SurPick1"]);
         Assert.Equal(143, image.Left);
         Assert.Equal(160, image.Height);
+        Assert.Equal("Fill", image.Stretch);
+        Assert.Equal("Center", image.HorizontalAlignment);
+        Assert.Equal("Top", image.VerticalAlignment);
+        Assert.True(image.ClipToBounds);
         Assert.True(image.CornerRadius.HasValue);
         Assert.Equal(8, image.CornerRadius.Value);
         Assert.True(image.PickingBorder);
@@ -309,6 +316,105 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
+    public void ReadsBuiltInCutSceneWindowLayout()
+    {
+        var config = ReadBuiltInLayout("CutSceneWindow");
+
+        Assert.NotNull(config);
+        Assert.Equal(3, config.Version);
+        Assert.Equal(1440, config.CanvasWidth);
+        Assert.Equal(810, config.CanvasHeight);
+        Assert.Equal("Resources/cutScene.png", config.BackgroundImage);
+
+        var expectedControls = new[]
+        {
+            "SurTeamLogo",
+            "HunTeamLogo",
+            "SurTeamName",
+            "HunTeamName",
+            "SurTeamMajorPoint",
+            "HunTeamMajorPoint",
+            "Map",
+            "MapName",
+            "GameProgress",
+            "SurPick0",
+            "SurPick1",
+            "SurPick2",
+            "SurPick3",
+            "HunPick",
+            "SurId0",
+            "SurId1",
+            "SurId2",
+            "SurId3",
+            "HunId",
+            "SurTalent0",
+            "SurTalent1",
+            "SurTalent2",
+            "SurTalent3",
+            "HunTalent",
+            "Trait"
+        };
+
+        foreach (var controlName in expectedControls)
+        {
+            Assert.Contains(controlName, config.Controls.Keys);
+        }
+
+        AssertImageBinding(config, "SurTeamLogo", "CurrentGame.SurTeam.Logo");
+        AssertImageBinding(config, "HunTeamLogo", "CurrentGame.HunTeam.Logo");
+        AssertImageBinding(config, "Map", "CurrentGame.PickedMapImage");
+        AssertImageBinding(config, "SurPick0", "CurrentGame.SurPlayerList[0].Character.BigImage");
+        AssertImageBinding(config, "SurPick1", "CurrentGame.SurPlayerList[1].Character.BigImage");
+        AssertImageBinding(config, "SurPick2", "CurrentGame.SurPlayerList[2].Character.BigImage");
+        AssertImageBinding(config, "SurPick3", "CurrentGame.SurPlayerList[3].Character.BigImage");
+        AssertImageBinding(config, "HunPick", "CurrentGame.HunPlayer.Character.BigImage");
+
+        AssertTextBinding(config, "SurTeamName", "CurrentGame.SurTeam.Name");
+        AssertTextBinding(config, "HunTeamName", "CurrentGame.HunTeam.Name");
+        AssertTextBinding(config, "SurTeamMajorPoint", "CurrentGame.MatchScore.CurrentSurTeamMajorText");
+        AssertTextBinding(config, "HunTeamMajorPoint", "CurrentGame.MatchScore.CurrentHunTeamMajorText");
+        AssertTextBinding(config, "SurId0", "CurrentGame.SurPlayerList[0].Member.Name");
+        AssertTextBinding(config, "SurId1", "CurrentGame.SurPlayerList[1].Member.Name");
+        AssertTextBinding(config, "SurId2", "CurrentGame.SurPlayerList[2].Member.Name");
+        AssertTextBinding(config, "SurId3", "CurrentGame.SurPlayerList[3].Member.Name");
+        AssertTextBinding(config, "HunId", "CurrentGame.HunPlayer.Member.Name");
+
+        var mapName = Assert.IsType<MapNameTextControlConfig>(config.Controls["MapName"]);
+        Assert.Equal("MapNameText", mapName.ControlType);
+        var progress = Assert.IsType<GameProgressTextControlConfig>(config.Controls["GameProgress"]);
+        Assert.Equal("GameProgressText", progress.ControlType);
+        Assert.False(progress.UseLineBreak);
+
+        for (var index = 0; index < 4; index++)
+        {
+            var talent = Assert.IsType<TalentTraitDisplayControlConfig>(config.Controls[$"SurTalent{index}"]);
+            Assert.Equal("TalentTraitDisplay", talent.ControlType);
+            Assert.Equal(TalentTraitDisplayKind.SurvivorTalent, talent.DisplayKind);
+            Assert.Equal(index, talent.PlayerIndex);
+        }
+
+        var hunTalent = Assert.IsType<TalentTraitDisplayControlConfig>(config.Controls["HunTalent"]);
+        Assert.Equal("TalentTraitDisplay", hunTalent.ControlType);
+        Assert.Equal(TalentTraitDisplayKind.HunterTalent, hunTalent.DisplayKind);
+
+        var trait = Assert.IsType<TalentTraitDisplayControlConfig>(config.Controls["Trait"]);
+        Assert.Equal("TalentTraitDisplay", trait.ControlType);
+        Assert.Equal(TalentTraitDisplayKind.HunterTrait, trait.DisplayKind);
+        Assert.True(trait.RespectTraitVisibility);
+        Assert.Equal(56, trait.IconSize);
+    }
+
+    [Fact]
+    public void CutSceneWindowLayoutDoesNotReferenceLegacyTeamScoreBinding()
+    {
+        var layoutText = File.ReadAllText(GetBuiltInLayoutPath("CutSceneWindow"));
+
+        Assert.DoesNotContain("CurrentGame.SurTeam.Score.MajorPointsOnFront", layoutText);
+        Assert.DoesNotContain("CurrentGame.HunTeam.Score.MajorPointsOnFront", layoutText);
+        Assert.DoesNotContain("Team.Score", layoutText);
+    }
+
+    [Fact]
     public void UnknownControlTypeReportsControlNameAndType()
     {
         var exception = Assert.Throws<FrontedLayoutConfigException>(() =>
@@ -512,11 +618,7 @@ public class FrontedCanvasConfigTest
 
     private static FrontedCanvasConfig ReadBuiltInLayout(string windowTypeName)
     {
-        var path = Path.Combine(
-            AppConstants.ResourcesPath,
-            "FrontedLayouts",
-            windowTypeName,
-            "BaseCanvas.json");
+        var path = GetBuiltInLayoutPath(windowTypeName);
 
         Assert.True(File.Exists(path), path);
 
@@ -524,6 +626,13 @@ public class FrontedCanvasConfigTest
         Assert.NotNull(config);
         return config;
     }
+
+    private static string GetBuiltInLayoutPath(string windowTypeName) =>
+        Path.Combine(
+            AppConstants.ResourcesPath,
+            "FrontedLayouts",
+            windowTypeName,
+            "BaseCanvas.json");
 
     private static TextFrontedControlConfig AssertTextBinding(
         FrontedCanvasConfig config,

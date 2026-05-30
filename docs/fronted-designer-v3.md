@@ -1,10 +1,10 @@
 # Fronted Designer v3 设计文档
 
-本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为低风险 pilot 接入 v3 renderer；Score System v2 Phase 4 已额外将 `ScoreGlobalWindow` 接入 v3 renderer 并新增 `GlobalScoreRow` 控件。其他真实前台窗口、独立编辑器和 `.bpui` 转换仍按后续阶段推进。
+本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为低风险 pilot 接入 v3 renderer；Score System v2 Phase 4 已额外将 `ScoreGlobalWindow` 接入 v3 renderer 并新增 `GlobalScoreRow` 控件；Designer v3 Phase 4 已迁移 `CutSceneWindow`。`BpWindow`、独立编辑器和 `.bpui` 转换仍按后续阶段推进。
 
 ## 1. 背景与目标
 
-当前设计者模式是 XAML-first：前台窗口的具体控件已经直接写在各窗口 XAML 中，运行时再由 `FrontedWindowService` 扫描 Canvas 子元素并保存/恢复每个 Canvas 的 `ElementInfo`。这些布局文件主要记录 `Left`、`Top`、`Width`、`Height`，而前台自定义图片、文本设置、颜色、字体和窗口设置仍存放在 `config.json`。旧 `.bpui` 包也和 `Config.json`、`CustomUi/`、`FrontElementsConfig/` 等历史结构耦合。
+当前设计者模式历史上是 XAML-first：前台窗口的具体控件直接写在各窗口 XAML 中，运行时再由 `FrontedWindowService` 扫描 Canvas 子元素并保存/恢复每个 Canvas 的 `ElementInfo`。这些布局文件主要记录 `Left`、`Top`、`Width`、`Height`，而前台自定义图片、文本设置、颜色、字体和窗口设置仍存放在 `config.json`。旧 `.bpui` 包也和 `Config.json`、`CustomUi/`、`FrontElementsConfig/` 等历史结构耦合。当前 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow` 和 `CutSceneWindow` 已接入 v3 renderer，但 `BpWindow`、`GameDataWindow`、`WidgetsWindow` 等窗口仍是 XAML-first。
 
 v3 目标是转向 JSON/config-driven UI：前台窗口 XAML 最终只保留外层 Canvas，控件由 JSON 配置描述，并由已注册的控件工厂创建。这样可以把布局、素材、控件类型和绑定关系放到可迁移、可导入导出的结构中，也为独立编辑窗口、插件扩展控件和新版 `.bpui` 包打基础。
 
@@ -114,9 +114,9 @@ v3 初始内置控件类型建议只包含：
 | `Text` | 文本、队名、比分、倒计时等。 |
 | `Image` | 角色图、队标、地图、背景元素等。 |
 | `GlobalScoreRow` | `ScoreGlobalWindow` 的全局比分行，根据 `CurrentGame.MatchScore` 生成每半场比分格和阵营图标。 |
-| `TalentTraitDisplay` | `CutSceneWindow` 迁移准备控件，封装求生者/监管者固定天赋图标和监管者辅助特质图标。 |
-| `GameProgressText` | `CutSceneWindow` 迁移准备控件，集中生成 BO3/BO5 相关的对局进度文本。 |
-| `MapNameText` | `CutSceneWindow` 迁移准备控件，按地图 key 生成本地化地图名。 |
+| `TalentTraitDisplay` | `CutSceneWindow` 默认布局控件，封装求生者/监管者固定天赋图标和监管者辅助特质图标。 |
+| `GameProgressText` | `CutSceneWindow` 默认布局控件，集中生成 BO3/BO5 相关的对局进度文本。 |
+| `MapNameText` | `CutSceneWindow` 默认布局控件，按地图 key 生成本地化地图名。 |
 
 ### Text
 
@@ -159,7 +159,7 @@ new Binding(config.BindingPath)
 
 ### CutScene 业务控件
 
-`TalentTraitDisplay`、`GameProgressText` 和 `MapNameText` 是 CutScene v3 迁移的前置能力，当前只注册为 v3 内置控件，尚未迁移 `CutSceneWindow.xaml`，也不生成 `Resources/FrontedLayouts/CutSceneWindow/BaseCanvas.json`。这些控件用于把不适合散落在 JSON 中的业务规则收束起来：
+`TalentTraitDisplay`、`GameProgressText` 和 `MapNameText` 是 CutScene v3 默认布局使用的内置业务控件，`CutSceneWindow.xaml` 只保留外层 `BaseCanvas`，默认布局位于 `Resources/FrontedLayouts/CutSceneWindow/BaseCanvas.json`。这些控件用于把不适合散落在 JSON 中的业务规则收束起来：
 
 | 控件 | 封装规则 |
 | --- | --- |
@@ -167,7 +167,7 @@ new Binding(config.BindingPath)
 | `GameProgressText` | `CurrentGame.GameProgress` + `IsBo3Mode` 的显示文本，显式区分 BO3 第三局加赛与 BO5 第四局。 |
 | `MapNameText` | `CurrentGame.PickedMap` 地图 key 到本地化显示名的转换。 |
 
-迁移 CutScene 默认布局时，不应把四个天赋图标拆成四个普通 `Image` 控件，也不应在 JSON 中复制 BO3/BO5 文本判断；应使用这些内置业务控件。
+维护 CutScene 默认布局时，不应把四个天赋图标拆成四个普通 `Image` 控件，也不应在 JSON 中复制 BO3/BO5 文本判断；应继续使用这些内置业务控件。CutScene 大比分文本读取 `CurrentGame.MatchScore.CurrentSurTeamMajorText` / `CurrentGame.MatchScore.CurrentHunTeamMajorText`，不再读取旧 `Team.Score.MajorPointsOnFront`。
 
 ## 6. PickingBorder / BanLockAvailable 兼容策略
 
@@ -257,7 +257,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 1 | 增加 `Settings.Version = 3`，建立 legacy config 迁移 skeleton。已实现：legacy `Config.json` 备份后写回 v3；未迁移前台窗口。 |
 | Phase 2 | 增加 v3 layout models、资源 resolver、Text/Image factory、renderer skeleton。已实现：基础服务和 DI 注册；未接入真实前台窗口。 |
 | Phase 3 | 先迁移低风险前台窗口，验证读取、渲染、保存和恢复路径。已实现：`ScoreSurWindow` 和 `ScoreHunWindow` 分别使用 `Resources/FrontedLayouts/{WindowTypeName}/BaseCanvas.json` 通过 v3 renderer 生成控件，且默认布局的比分文本已绑定 `CurrentGame.MatchScore`。当前只有局内求生者/监管者比分窗口已接入 v3 renderer。 |
-| Phase 4 | 迁移 `BpWindow`，保留 PickingBorder、BanLock、BP 动画兼容性。Score System v2 已在独立 Phase 4 中先迁移 `ScoreGlobalWindow`。CutScene 迁移所需的 `TalentTraitDisplay`、`GameProgressText`、`MapNameText` 内置业务控件已加入，但 `CutSceneWindow` 本身尚未迁移。 |
+| Phase 4 | 已迁移 `CutSceneWindow` 到 v3 renderer，并使用 `TalentTraitDisplay`、`GameProgressText`、`MapNameText` 封装天赋/辅助特质、BO3/BO5 进度文本和地图名本地化。Score System v2 已在独立 Phase 4 中先迁移 `ScoreGlobalWindow`。`BpWindow` 尚未迁移，后续迁移仍需保留 PickingBorder、BanLock、BP 动画兼容性。 |
 | Phase 5 | 实现独立前台编辑窗口。 |
 | Phase 6 | 实现 v3 `.bpui` 导出/导入和 legacy `.bpui` 转换。 |
 
@@ -270,7 +270,7 @@ Phase 2 之后仍明确不做以下事情：
 | 非目标 | 说明 |
 | --- | --- |
 | 修改无关运行时行为 | 不改 ViewModel、插件加载逻辑或未迁移窗口的运行逻辑。 |
-| 继续批量迁移 XAML | 当前只迁移 `ScoreSurWindow`、`ScoreHunWindow` 和 `ScoreGlobalWindow`；`BpWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 仍是 XAML-first。 |
+| 继续批量迁移 XAML | 当前只迁移 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow` 和 `CutSceneWindow`；`BpWindow`、`GameDataWindow`、`WidgetsWindow` 仍是 XAML-first。 |
 | 替换旧设计者/编辑器 | 当前 `DesignBehavior`、旧设计者入口和 `FrontedWindowService` 行为保持不变；独立编辑器尚未实现。 |
 | 移除 `config.json` 中的前台设置 | 自定义图片、文本设置、窗口设置仍保留在当前结构中。 |
 | 实现编辑器 UI | 不新增独立编辑窗口、Property Grid 或 Binding browser。 |
