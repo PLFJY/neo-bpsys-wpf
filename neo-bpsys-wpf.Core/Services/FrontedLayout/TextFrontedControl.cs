@@ -73,7 +73,14 @@ public class TextFrontedControl : IFrontedControl
 
         if (!string.IsNullOrWhiteSpace(textConfig.FontFamily))
         {
-            textBlock.FontFamily = new FontFamily(textConfig.FontFamily);
+            if (textConfig.FontFamily.Contains("pack://application:,,,"))
+                textBlock.FontFamily = new FontFamily(
+                    new Uri(textConfig.FontFamily[..textConfig.FontFamily.IndexOf('#')]),
+                    "./" + textConfig.FontFamily[textConfig.FontFamily.IndexOf('#')..]);
+            else
+            {
+                textBlock.FontFamily = new FontFamily(textConfig.FontFamily);
+            }
         }
 
         if (textConfig.FontSize > 0)
