@@ -31,6 +31,7 @@ public class ImageFrontedControl : IFrontedControl
 
         var border = FrontedControlFactoryHelper.CreateOuterBorder(name, imageConfig);
         var image = new Image();
+        ApplyCornerRadius(border, image, imageConfig.CornerRadius);
 
         if (!string.IsNullOrWhiteSpace(imageConfig.BindingPath))
         {
@@ -48,5 +49,32 @@ public class ImageFrontedControl : IFrontedControl
 
         border.Child = image;
         return border;
+    }
+
+    private static void ApplyCornerRadius(Border border, Image image, double? cornerRadius)
+    {
+        if (!cornerRadius.HasValue || cornerRadius.Value <= 0)
+        {
+            return;
+        }
+
+        var radius = cornerRadius.Value;
+        border.CornerRadius = new CornerRadius(radius);
+        border.ClipToBounds = true;
+
+        void UpdateClip()
+        {
+            if (image.ActualWidth <= 0 || image.ActualHeight <= 0)
+            {
+                return;
+            }
+
+            image.Clip = new RectangleGeometry(
+                new Rect(0, 0, image.ActualWidth, image.ActualHeight),
+                radius,
+                radius);
+        }
+
+        image.SizeChanged += (_, _) => UpdateClip();
     }
 }

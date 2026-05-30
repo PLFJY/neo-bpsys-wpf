@@ -1,6 +1,6 @@
 # Fronted Designer v3 设计文档
 
-本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。真实前台窗口、编辑器和 `.bpui` 转换仍按后续阶段推进。
+本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 作为低风险 pilot 接入 v3 renderer；其他真实前台窗口、独立编辑器和 `.bpui` 转换仍按后续阶段推进。
 
 ## 1. 背景与目标
 
@@ -225,7 +225,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 0 | 设计文档 only。新增本文档并更新文档索引/改动前必读。 |
 | Phase 1 | 增加 `Settings.Version = 3`，建立 legacy config 迁移 skeleton。已实现：legacy `Config.json` 备份后写回 v3；未迁移前台窗口。 |
 | Phase 2 | 增加 v3 layout models、资源 resolver、Text/Image factory、renderer skeleton。已实现：基础服务和 DI 注册；未接入真实前台窗口。 |
-| Phase 3 | 先迁移一个小型低风险前台窗口，验证读取、渲染、保存和恢复路径。 |
+| Phase 3 | 先迁移一个小型低风险前台窗口，验证读取、渲染、保存和恢复路径。已实现：仅 `ScoreSurWindow` 使用 `Resources/FrontedLayouts/ScoreSurWindow/BaseCanvas.json` 通过 v3 renderer 生成控件。 |
 | Phase 4 | 迁移 `BpWindow`，保留 PickingBorder、BanLock、BP 动画兼容性。 |
 | Phase 5 | 实现独立前台编辑窗口。 |
 | Phase 6 | 实现 v3 `.bpui` 导出/导入和 legacy `.bpui` 转换。 |
@@ -238,9 +238,9 @@ Phase 2 之后仍明确不做以下事情：
 
 | 非目标 | 说明 |
 | --- | --- |
-| 修改运行时行为 | 不改服务、ViewModel、窗口逻辑或插件加载逻辑。 |
-| 迁移 XAML | 不修改任何 WPF XAML 窗口。 |
-| 移除旧设计者模式 | 当前 `DesignBehavior` 和 `FrontedWindowService` 行为保持不变。 |
+| 修改无关运行时行为 | 不改 ViewModel、插件加载逻辑或未迁移窗口的运行逻辑。 |
+| 继续批量迁移 XAML | Phase 3 只修改 `ScoreSurWindow`；`ScoreHunWindow`、`ScoreGlobalWindow`、`BpWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 仍是 XAML-first。 |
+| 替换旧设计者/编辑器 | 当前 `DesignBehavior`、旧设计者入口和 `FrontedWindowService` 行为保持不变；独立编辑器尚未实现。 |
 | 移除 `config.json` 中的前台设置 | 自定义图片、文本设置、窗口设置仍保留在当前结构中。 |
 | 实现编辑器 UI | 不新增独立编辑窗口、Property Grid 或 Binding browser。 |
 | 实现 `.bpui` 转换 | 不修改现有 `.bpui` import/export 流程。 |

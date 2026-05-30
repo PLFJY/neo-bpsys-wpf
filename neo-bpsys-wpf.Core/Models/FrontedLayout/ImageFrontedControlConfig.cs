@@ -19,6 +19,11 @@ public class ImageFrontedControlConfig : FrontedControlConfigBase
     public string? Stretch { get; set; }
 
     /// <summary>
+    /// 图片圆角半径。
+    /// </summary>
+    public double? CornerRadius { get; set; }
+
+    /// <summary>
     /// 是否声明可创建选择边框覆盖层。
     /// </summary>
     public bool PickingBorder { get; set; }

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging.Abstractions;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System;
@@ -46,6 +47,7 @@ public class FrontedCanvasConfigTest
                 "BindingPath": "CurrentGame.SurPlayerList[1].PictureShown",
                 "ZIndex": 1,
                 "Stretch": "Fill",
+                "CornerRadius": 8,
                 "PickingBorder": true,
                 "PickingBorderImagePath": "Resources/pickingBorder.png",
                 "BanLockAvailable": true
@@ -71,9 +73,40 @@ public class FrontedCanvasConfigTest
         var image = Assert.IsType<ImageFrontedControlConfig>(config.Controls["SurPick1"]);
         Assert.Equal(143, image.Left);
         Assert.Equal(160, image.Height);
+        Assert.True(image.CornerRadius.HasValue);
+        Assert.Equal(8, image.CornerRadius.Value);
         Assert.True(image.PickingBorder);
         Assert.Equal("Resources/pickingBorder.png", image.PickingBorderImagePath);
         Assert.True(image.BanLockAvailable);
+    }
+
+    [Fact]
+    public void ReadsBuiltInScoreSurWindowLayout()
+    {
+        var path = Path.Combine(
+            AppConstants.ResourcesPath,
+            "FrontedLayouts",
+            "ScoreSurWindow",
+            "BaseCanvas.json");
+
+        Assert.True(File.Exists(path), path);
+
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(File.ReadAllText(path));
+
+        Assert.NotNull(config);
+        Assert.Equal(3, config.Version);
+        Assert.Equal(480, config.CanvasWidth);
+        Assert.Equal(152, config.CanvasHeight);
+        Assert.Equal("Resources/scoreSur.png", config.BackgroundImage);
+
+        Assert.Contains("SurTeamLogo", config.Controls.Keys);
+        Assert.Contains("SurTeamName", config.Controls.Keys);
+        Assert.Contains("SurTeamMajorPoint", config.Controls.Keys);
+        Assert.Contains("GameScoresSur", config.Controls.Keys);
+
+        var logo = Assert.IsType<ImageFrontedControlConfig>(config.Controls["SurTeamLogo"]);
+        Assert.True(logo.CornerRadius.HasValue);
+        Assert.Equal(8, logo.CornerRadius.Value);
     }
 
     [Fact]
