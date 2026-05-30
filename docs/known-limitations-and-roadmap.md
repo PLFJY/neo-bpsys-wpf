@@ -50,12 +50,12 @@ Fronted Designer v3 当前已完成基础设施阶段，并将 `ScoreSurWindow` 
 
 ## Score System v2
 
-比分系统正在设计迁移到现有 `Core.Models.Game` 持有权威状态，详见 [score-system-v2.md](score-system-v2.md)。当前代码仍存在这些边界：
+比分系统正在迁移到现有 `Core.Models.Game` 持有权威状态，详见 [score-system-v2.md](score-system-v2.md)。Score Phase 1 已实现 `Game.MatchScore`、Score System v2 模型和 `IMatchScoreService` / `MatchScoreService` 基础，但 UI 尚未迁移。当前代码仍存在这些边界：
 
 | 边界 | 说明 |
 | --- | --- |
-| `Team.Score` 语义混杂 | 当前既用于大比分，也用于当前小比分（MinorScore）；迁移期不要立即删除。 |
-| `ScorePageViewModel` 持有全局比分记录 | `GameGlobalInfoRecord` 目前不是现有 `Core.Models.Game` 的一部分，导入导出和回溯语义不足。 |
+| `Team.Score` 语义混杂 | 当前仍被旧窗口和旧页面使用；迁移期不要立即删除。新服务中的同步只是 transitional compatibility mirror，不是权威状态。 |
+| `ScorePageViewModel` 持有全局比分记录 | `GameGlobalInfoRecord` 尚未迁移到 `IMatchScoreService`，仍不是权威数据。 |
 | `ScoreGlobalWindow` 仍依赖服务动态控件 | `FrontedWindowService` 会创建并直接修改全局比分格，阻碍干净的 v3 绑定渲染。 |
 | `GameProgress.Free` 未定义比分语义 | Score System v2 暂把它记录为设计缺口。 |
-| `Game3Overtime*` 与 `Game4*` enum 数值重叠 | 后续实现不能只按 enum 数值映射 `ScoreGame`。 |
+| `Game3Overtime*` 与 `Game4*` enum 数值重叠 | `MatchScoreService` 结合 BO3/BO5 状态解析；缺少上下文的 `MatchScoreState.GetGame(progress)` 保守按 BO5 第四局解析。 |

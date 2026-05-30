@@ -42,6 +42,9 @@ public partial class App
         //_sharedDataService
         services.AddSingleton<ISharedDataService, SharedDataService>();
 
+        //MatchScoreService
+        services.AddSingleton<IMatchScoreService, MatchScoreService>();
+
         // HomeTeam window with navigation
         services.AddSingleton<INavigationWindow, MainWindow>(sp => new MainWindow(
             sp.GetRequiredService<INavigationService>(),

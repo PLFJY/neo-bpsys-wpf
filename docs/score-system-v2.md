@@ -1,6 +1,8 @@
 # Score System v2 设计文档
 
-本文定义 Score System v2 的目标模型、计算规则、前台绑定方向和迁移计划。本阶段只写设计文档，不修改运行时代码、XAML、ViewModel 或模型实现。
+本文定义 Score System v2 的目标模型、计算规则、前台绑定方向和迁移计划。
+
+当前实现状态：Score Phase 1 已落地模型与服务基础。现有 `Core.Models.Game` 已持有 `MatchScoreState`，`IMatchScoreService` / `MatchScoreService` 可写入当前半场结果并刷新派生比分；后台 `ScorePageViewModel`、`ScoreGlobalWindow`、`ScoreSurWindow` / `ScoreHunWindow` layout 和 `.bpui` 尚未迁移，旧 UI 仍可能继续读写 `Team.Score` 或 `ScorePageViewModel.GameGlobalInfoRecord`。
 
 Score System v2 的核心目标是把权威比分状态放回现有 `Core.Models.Game`，让比分可以随对局导入、导出、回溯，并能在 `SharedDataService.NewGame()` 创建新对局时像 `MapV2Dictionary` 一样从上一局 `CurrentGame` 延续必要状态。
 
@@ -66,7 +68,7 @@ ISharedDataService
 | 派生显示字段 | 暴露前台和后台可绑定字段，避免 UI 层重复计算。 |
 | 重算入口 | 在半场结果、队伍换边、BO 模式或进度变化后统一重算派生值。 |
 
-建议结构：
+已实现结构：
 
 ```text
 MatchScoreState
@@ -85,7 +87,7 @@ MatchScoreState
   └─ CurrentHunTeamMajorText
 ```
 
-派生字段可以是只读属性或重算后写入的 observable 属性。实现时应优先保证前台绑定能收到变更通知。
+派生字段使用重算后写入的 observable 属性，并以 `[JsonIgnore]` 排除在持久化之外。`Games` 内的半场结果、记录时主客队映射和 `ScoreGameKey` 是持久化数据。
 
 ### 3.2 ScoreGame
 
@@ -94,13 +96,13 @@ MatchScoreState
 | 字段 | 说明 |
 | --- | --- |
 | `GameNumber` | Game 编号，范围 `1..5`。 |
-| `GameKind` | `Normal` 或 `Overtime`。未来实现可命名为 `ScoreGameKind`。 |
+| `GameKind` | `Normal` 或 `Overtime`，实现类型为 `ScoreGameKind`。 |
 | `FirstHalf` | 第一半。 |
 | `SecondHalf` | 第二半。 |
 | `HomeMinorScore` / `AwayMinorScore` | 两半都有结果时计算出的 Game-level MinorScore。 |
-| `MajorResult` | 两半都有结果时计算出的 Game major result。未来实现可命名为 `ScoreGameMajorResult`。 |
+| `MajorResult` | 两半都有结果时计算出的 Game major result，实现类型为 `ScoreGameMajorResult`。 |
 
-这个 `ScoreGame` 只有在 `FirstHalf.GameResult != null` 且 `SecondHalf.GameResult != null` 时才完整。未完整时，不参与大比分计算。
+这个 `ScoreGame` 只有在 `FirstHalf.Result != null` 且 `SecondHalf.Result != null` 时才完整。未完整时，不参与大比分计算。
 
 ### 3.3 ScoreHalf
 
@@ -109,11 +111,11 @@ MatchScoreState
 | 字段 | 说明 |
 | --- | --- |
 | `GameProgress` | 对应当前半场进度。 |
-| `GameResult?` | 可空结果；`null` 表示未记录或已清空。 |
-| `HomeTeamCampAtRecord` | 记录时主队阵营，计算主客得分时使用。 |
-| `AwayTeamCampAtRecord` | 记录时客队阵营，计算主客得分时使用。 |
+| `Result` | 可空 `GameResult`；`null` 表示未记录或已清空。 |
+| `SurTeamTypeWhenRecorded` | 记录时求生者侧对应主队还是客队，计算主客得分时使用。 |
+| `HunTeamTypeWhenRecorded` | 记录时监管者侧对应主队还是客队，计算主客得分时使用。 |
 | `SurMinorScore` / `HunMinorScore` | 从 `GameResult` 派生出的求生者/监管者小比分。 |
-| `HomeMinorScore` / `AwayMinorScore` | 根据记录时阵营映射派生出的主客小比分。 |
+| `HomeMinorScore` / `AwayMinorScore` | 根据记录时求生/监管侧与主客队映射派生出的主客小比分。 |
 
 半场必须保存“记录时”的队伍/阵营映射，不能只在显示时读取当前 `SurTeam` / `HunTeam`。原因是比分记录需要可回溯；后续换边或导入队伍信息不应改变过去半场的历史得分归属。
 
@@ -124,7 +126,7 @@ MatchScoreState
 | 字段 | 说明 |
 | --- | --- |
 | `GameNumber` | `1..5`。 |
-| `GameKind` | `Normal` / `Overtime`。未来实现可命名为 `ScoreGameKind`。 |
+| `GameKind` | `Normal` / `Overtime`，实现类型为 `ScoreGameKind`。 |
 
 示例：
 
@@ -140,11 +142,12 @@ ScoreGame 5 Overtime -> { GameNumber: 5, GameKind: Overtime }
 
 | 命令 | 行为 |
 | --- | --- |
-| `GetCurrentHalf()` | 根据 `CurrentGame.GameProgress` 定位当前 `ScoreHalf`。 |
+| `CurrentHalf` / `GetHalf(...)` | 根据 `CurrentGame.GameProgress` 定位当前 `ScoreHalf`。 |
 | `SetCurrentHalfResult(GameResult result)` | 写入当前半场结果，并记录当时主客队阵营映射。 |
 | `ClearCurrentHalfResult()` | 把当前半场结果设为 `null`。 |
 | `Recalculate()` | 从所有 `ScoreGame` 重新计算大比分、总小比分和前台派生字段。 |
-| `CarryFrom(MatchScoreState previous)` | 创建新的 `Core.Models.Game` 时复制上一局需要延续的比分状态。 |
+| `RefreshCurrentProgress()` | 结合当前 `GameProgress`、当前求生/监管队伍和 BO3/BO5 状态刷新局内显示字段。 |
+| `SyncLegacyTeamScoreMirror()` | 迁移期把当前派生比分写回 `Team.Score`，仅用于旧窗口兼容。 |
 
 ```text
 ScorePageViewModel
@@ -171,7 +174,7 @@ ScorePageViewModel
 | `Game5OvertimeFirstHalf` / `Game5OvertimeSecondHalf` | ScoreGame 5 Overtime |
 | `Free` | Unresolved / not designed yet |
 
-映射必须显式维护。当前 `GameProgress` enum 中 `Game4FirstHalf` 与 `Game3OvertimeFirstHalf` 共用数值 `6`，`Game4SecondHalf` 与 `Game3OvertimeSecondHalf` 共用数值 `7`。未来实现不能只从 enum 原始数值推断 `ScoreGame`，需要结合 BO3/BO5 模式、当前页面可选列表或后续独立的 progress key 来区分“Game 3 Overtime”和“Game 4 Normal”。
+映射必须显式维护。当前 `GameProgress` enum 中 `Game4FirstHalf` 与 `Game3OvertimeFirstHalf` 共用数值 `6`，`Game4SecondHalf` 与 `Game3OvertimeSecondHalf` 共用数值 `7`。实现中 `MatchScoreState.GetGame(progress)` 在缺少上下文时保守按 BO5 第四局解析，`MatchScoreService` 会结合 `ISharedDataService.IsBo3Mode` 调用带上下文的解析来区分“Game 3 Overtime”和“Game 4 Normal”。
 
 ## 5. 计分规则
 
@@ -187,7 +190,7 @@ ScorePageViewModel
 
 ### 5.1 Null 结果行为
 
-`ScoreHalf.GameResult == null` 表示未记录或已清空。
+`ScoreHalf.Result == null` 表示未记录或已清空。
 
 | 场景 | 行为 |
 | --- | --- |
@@ -202,9 +205,9 @@ ScorePageViewModel
 ### 5.2 半场派生
 
 ```text
-ScoreHalf.GameResult
+ScoreHalf.Result
   -> SurMinorScore / HunMinorScore
-  -> 根据 HomeTeamCampAtRecord / AwayTeamCampAtRecord
+  -> 根据 SurTeamTypeWhenRecorded / HunTeamTypeWhenRecorded
   -> HomeMinorScore / AwayMinorScore
 ```
 
@@ -335,7 +338,7 @@ ScorePage button
 
 | 旧能力 | 迁移期策略 |
 | --- | --- |
-| `Team.Score.GameScores` | 保留为旧窗口兼容镜像，后续由 `MatchScoreState` 派生写回或逐步解绑。 |
+| `Team.Score.GameScores` | 保留为旧窗口兼容镜像，`MatchScoreService.SyncLegacyTeamScoreMirror()` 可由 `MatchScoreState` 派生写回；旧 `ScorePageViewModel` 直接写入行为尚未迁移。 |
 | `Team.Score.MajorPointsOnFront` | 保留旧绑定，直到所有前台窗口迁移到 `MatchScoreState` 派生字段。 |
 | `ScorePageViewModel.GameGlobalInfoRecord` | Phase 2 后不再作为权威数据；Phase 2/3 可作为 UI 临时缓存。 |
 | `ScoreWindowViewModel.TotalMainGameScore` / `TotalAwayGameScore` | Phase 4 迁移 `ScoreGlobalWindow` 后应改为绑定 `MatchScoreState`。 |
@@ -345,8 +348,8 @@ ScorePage button
 
 | 阶段 | 范围 | 明确不做 |
 | --- | --- | --- |
-| Score Phase 0 | 设计文档 only：新增本文档，更新文档索引和相关提醒。 | 不改运行时代码、XAML、模型或 ViewModel。 |
-| Score Phase 1 | 增加 `MatchScoreState`、`ScoreGame`、`ScoreHalf` 和 `IMatchScoreService` / `MatchScoreService`，权威状态由现有 `Core.Models.Game` 持有。 | 不迁移 UI。 |
+| Score Phase 0 | 已完成：新增本文档，更新文档索引和相关提醒。 | 不改运行时代码、XAML、模型或 ViewModel。 |
+| Score Phase 1 | 已完成基础层：增加 `MatchScoreState`、`ScoreGame`、`ScoreHalf` 和 `IMatchScoreService` / `MatchScoreService`，权威状态由现有 `Core.Models.Game` 持有。 | 不迁移 UI。 |
 | Score Phase 2 | 将 `ScorePageViewModel` 的写入和计算迁移到 service。 | 不迁移全局比分窗口。 |
 | Score Phase 3 | 更新 `ScoreSurWindow` / `ScoreHunWindow` v3 layout 绑定到 `MatchScoreState` 派生字段。 | 不改 `ScoreGlobalWindow`。 |
 | Score Phase 4 | 迁移 `ScoreGlobalWindow`，使其绑定现有 `Core.Models.Game.MatchScoreState`，不再依赖服务动态控件作为状态。 | 不做无关前台窗口批量迁移。 |

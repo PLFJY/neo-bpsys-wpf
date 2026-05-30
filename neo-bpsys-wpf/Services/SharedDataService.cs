@@ -181,9 +181,10 @@ public partial class SharedDataService : ISharedDataService
         var bannedMap = CurrentGame.BannedMap;
         var mapV2Dictionary = CurrentGame.MapV2Dictionary;
         var gameProgress = CurrentGame.GameProgress;
+        var matchScore = CurrentGame.MatchScore.Clone();
 
         CurrentGame =
-            new Game(surTeam, hunTeam, gameProgress, pickedMap, bannedMap, mapV2Dictionary);
+            new Game(surTeam, hunTeam, gameProgress, pickedMap, bannedMap, mapV2Dictionary, matchScore: matchScore);
 
         _ = MessageBoxHelper.ShowInfoAsync(
             $"{I18nHelper.GetLocalizedString("NewGameHasBeenCreated")}\n{CurrentGame.Guid}",
@@ -242,7 +243,8 @@ public partial class SharedDataService : ISharedDataService
                 importedGame.BannedMap,
                 CurrentGame.MapV2Dictionary, importedGame.Guid, importedGame.StartTime,
                 importedGame.SurPlayersData, importedGame.HunPlayerData,
-                importedGame.CurrentSurBannedList, importedGame.CurrentHunBannedList);
+                importedGame.CurrentSurBannedList, importedGame.CurrentHunBannedList,
+                importedGame.MatchScore.Clone());
 
             _logger.LogInformation("Game imported successfully from {FilePath}", filePath);
         }

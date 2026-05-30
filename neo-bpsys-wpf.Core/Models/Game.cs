@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
+using neo_bpsys_wpf.Core.Models.ScoreSystem;
 
 namespace neo_bpsys_wpf.Core.Models;
 
@@ -62,6 +63,11 @@ public partial class Game : ObservableObjectBase
     /// </summary>
     [ObservableProperty] private GameProgress _gameProgress;
 
+    /// <summary>
+    /// Score System v2 的权威比分状态。
+    /// </summary>
+    public MatchScoreState MatchScore { get; }
+
     #endregion
 
     #region 角色禁用
@@ -93,6 +99,7 @@ public partial class Game : ObservableObjectBase
     /// <param name="hunPlayerData">监管者选手数据(用于恢复记录)</param>
     /// <param name="currentSurBannedList">求生者禁用列表(用于恢复记录)</param>
     /// <param name="currentHunBannedList">监管者禁用列表(用于恢复记录)</param>
+    /// <param name="matchScore">Score System v2 比分状态(用于恢复记录)</param>
     [JsonConstructor]
     public Game(Team surTeam, Team hunTeam,
         GameProgress gameProgress, Map? pickedMap = null, Map? bannedMap = null,
@@ -101,7 +108,8 @@ public partial class Game : ObservableObjectBase
         ObservableCollection<Player>? surPlayersData = null,
         Player? hunPlayerData = null,
         ObservableCollection<Character?>? currentSurBannedList = null,
-        ObservableCollection<Character?>? currentHunBannedList = null)
+        ObservableCollection<Character?>? currentHunBannedList = null,
+        MatchScoreState? matchScore = null)
     {
         //基本信息初始化
         Guid = guid == Guid.Empty ? Guid.NewGuid() : guid;
@@ -111,6 +119,8 @@ public partial class Game : ObservableObjectBase
         SurTeam.Camp = Camp.Sur;
         HunTeam = hunTeam;
         HunTeam.Camp = Camp.Hun;
+        MatchScore = matchScore ?? MatchScoreState.CreateDefault();
+        MatchScore.Recalculate();
         //初始化对局进度
         GameProgress = gameProgress;
 
@@ -171,6 +181,12 @@ public partial class Game : ObservableObjectBase
         {
             MapV2Dictionary.Add(map.ToString(), new MapV2(map));
         }
+    }
+
+    partial void OnGameProgressChanged(GameProgress value)
+    {
+        // GameProgress.Game3Overtime* 与 Game4* 在 enum 中共享数值。
+        // 仅凭 Game 无法知道当前是 BO3 加赛还是 BO5 第四局，当前显示刷新由 MatchScoreService 结合共享状态处理。
     }
 
     #region 上场选手
