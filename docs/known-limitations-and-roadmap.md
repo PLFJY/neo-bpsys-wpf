@@ -47,3 +47,15 @@ Fronted Designer v3 当前已完成基础设施阶段，并将 `ScoreSurWindow` 
 3. `App.xaml.cs` 更新检查条件写作 `#if !DEBUG && !Preview`，而项目配置定义 `PREVIEW`。这是代码观察到的命名 caveat；本文档不声称其运行时效果已经通过编译验证，本任务也不修改代码。
 4. `GameRule.json` 是项目内规则配置，不是外部权威赛事规则源。
 5. 前台默认布局依赖文件命名约定，插件窗口默认布局缺失时恢复默认会失败。
+
+## Score System v2
+
+比分系统正在设计迁移到现有 `Core.Models.Game` 持有权威状态，详见 [score-system-v2.md](score-system-v2.md)。当前代码仍存在这些边界：
+
+| 边界 | 说明 |
+| --- | --- |
+| `Team.Score` 语义混杂 | 当前既用于大比分，也用于当前小比分（MinorScore）；迁移期不要立即删除。 |
+| `ScorePageViewModel` 持有全局比分记录 | `GameGlobalInfoRecord` 目前不是现有 `Core.Models.Game` 的一部分，导入导出和回溯语义不足。 |
+| `ScoreGlobalWindow` 仍依赖服务动态控件 | `FrontedWindowService` 会创建并直接修改全局比分格，阻碍干净的 v3 绑定渲染。 |
+| `GameProgress.Free` 未定义比分语义 | Score System v2 暂把它记录为设计缺口。 |
+| `Game3Overtime*` 与 `Game4*` enum 数值重叠 | 后续实现不能只按 enum 数值映射 `ScoreGame`。 |

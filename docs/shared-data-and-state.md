@@ -78,6 +78,8 @@ public ObservableCollection<bool> CanCurrentSurBanned => _sharedDataService.CanC
 
 `GlobalScoreTotalMargin` 也在共享服务中暴露，设置页修改后会同步给前台窗口服务。
 
+Score System v2 的设计方向见 [score-system-v2.md](score-system-v2.md)。新比分模型要求权威比分状态由现有 `Core.Models.Game.MatchScoreState` 持有，`IMatchScoreService` 只操作 `ISharedDataService.CurrentGame.MatchScore`，页面 ViewModel、前台窗口 ViewModel、`FrontedWindowService` 和 UI 控件都不能成为比分数据库。迁移期 `Team.Score` 仍可能作为旧窗口兼容镜像存在，但新功能不应继续把它当作权威写入点。
+
 ## 事件模式
 
 `ISharedDataService` 暴露的事件包括：

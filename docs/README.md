@@ -15,6 +15,7 @@
 | [game-guidance.md](game-guidance.md) | 引导式 BP 的规则文件和工作流 |
 | [smartbp-and-ocr.md](smartbp-and-ocr.md) | SmartBP、赛后数据 OCR、模型和区域配置 |
 | [shared-data-and-state.md](shared-data-and-state.md) | 共享状态、CurrentGame、队伍、Ban、倒计时和前台绑定 |
+| [score-system-v2.md](score-system-v2.md) | Score System v2 的 `Core.Models.Game` 持有比分状态、小比分（MinorScore）计算规则、前台绑定和迁移计划 |
 | [plugin-system.md](plugin-system.md) | 插件生命周期、能力、安全边界、打包 |
 | [plugin-market.md](plugin-market.md) | 插件市场、镜像、下载队列、SHA-256 校验 |
 | [settings-paths-and-data.md](settings-paths-and-data.md) | AppData、Documents 输出、设置模型 |
@@ -32,7 +33,7 @@
 | --- | --- |
 | 架构入门 | `project-positioning.md`、`runtime-architecture.md`、`module-overview.md` |
 | UI / 前台 / 后台 | `frontend-windows-and-layout.md`、`fronted-designer-v3.md`、`backend-pages-and-navigation.md`、`wpf-ui-pitfalls.md` |
-| 业务流程 | `game-guidance.md`、`smartbp-and-ocr.md`、`shared-data-and-state.md` |
+| 业务流程 | `game-guidance.md`、`smartbp-and-ocr.md`、`shared-data-and-state.md`、`score-system-v2.md` |
 | 插件 | `plugin-system.md`、`plugin-market.md` |
 | 资源 / 本地化 | `resources-localization-and-assets.md`、`settings-paths-and-data.md` |
 | 构建 / 更新 / 调试 | `build-release-and-versioning.md`、`updater-and-downloads.md`、`testing-and-debugging.md` |
