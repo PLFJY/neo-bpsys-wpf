@@ -78,10 +78,6 @@
                             Width="150"
                             Command="{Binding ClearCurrentHalfScoreCommand}"
                             Content="{lex:Loc ClearCurrentHalfScore}" />
-                        <Button
-                            Width="150"
-                            Command="{Binding ManualControlCommand}"
-                            Content="{lex:Loc ControlManually}" />
                     </StackPanel>
                 </Grid>
                 <StackPanel
@@ -94,9 +90,9 @@
                             <MultiBinding Converter="{lex:StringFormatConverter}">
                                 <lex:BLoc Key="ScorePreview" />
                                 <Binding Path="HomeTeam.Name" />
-                                <Binding Path="HomeTeam.Score.Win" />
-                                <Binding Path="HomeTeam.Score.Tie" />
-                                <Binding Path="HomeTeam.Score.GameScores" />
+                                <Binding Path="CurrentGame.MatchScore.HomeMajorWin" />
+                                <Binding Path="CurrentGame.MatchScore.HomeMajorTie" />
+                                <Binding Path="CurrentGame.MatchScore.HomeTotalMinorScore" />
                             </MultiBinding>
                         </TextBlock.Text>
                     </TextBlock>
@@ -105,29 +101,14 @@
                             <MultiBinding Converter="{lex:StringFormatConverter}">
                                 <lex:BLoc Key="ScorePreview" />
                                 <Binding Path="AwayTeam.Name" />
-                                <Binding Path="AwayTeam.Score.Win" />
-                                <Binding Path="AwayTeam.Score.Tie" />
-                                <Binding Path="AwayTeam.Score.GameScores" />
+                                <Binding Path="CurrentGame.MatchScore.AwayMajorWin" />
+                                <Binding Path="CurrentGame.MatchScore.AwayMajorTie" />
+                                <Binding Path="CurrentGame.MatchScore.AwayTotalMinorScore" />
                             </MultiBinding>
                         </TextBlock.Text>
                     </TextBlock>
                 </StackPanel>
             </Grid>
-        </Border>
-        <Border Style="{StaticResource Card}" Visibility="{Binding IsDebugContentVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <Border.Resources>
-                <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-            </Border.Resources>
-            <StackPanel>
-                <DataGrid ItemsSource="{Binding GameGlobalInfoRecord}">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Binding="{Binding Key}" Header="Key" />
-                        <DataGridTextColumn Binding="{Binding Value.IsGameFinished}" Header="IsGameFinished" />
-                        <DataGridTextColumn Binding="{Binding Value.HomeTeamCamp}" Header="HomeTeamCamp" />
-                        <DataGridTextColumn Binding="{Binding Value.GameResult}" Header="GameResult" />
-                    </DataGrid.Columns>
-                </DataGrid>
-            </StackPanel>
         </Border>
     </WrapPanel>
 </Page>

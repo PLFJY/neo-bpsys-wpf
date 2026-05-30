@@ -2,7 +2,6 @@
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
@@ -16,8 +15,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows;
 
 public partial class ScoreWindowViewModel :
     ViewModelBase,
-    IRecipient<DesignerModeChangedMessage>,
-    IRecipient<PropertyChangedMessage<int>>
+    IRecipient<DesignerModeChangedMessage>
 {
 #pragma warning disable CS8618
     public ScoreWindowViewModel()
@@ -36,7 +34,6 @@ public partial class ScoreWindowViewModel :
         sharedDataService.CurrentGameChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(CurrentGame));
-            RefreshTotalMinorScores();
         };
         sharedDataService.IsBo3ModeChanged += (_, _) =>
         {
@@ -51,7 +48,6 @@ public partial class ScoreWindowViewModel :
             Settings.PropertyChanged += SettingsOnPropertyChanged;
         };
         Settings.PropertyChanged += SettingsOnPropertyChanged;
-        RefreshTotalMinorScores();
     }
 
     private void SettingsOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -67,10 +63,6 @@ public partial class ScoreWindowViewModel :
 
     [ObservableProperty] private bool _isDesignerMode;
 
-    [ObservableProperty] private int _totalMainGameScore;
-
-    [ObservableProperty] private int _totalAwayGameScore;
-
     public bool IsBo3Mode => _sharedDataService.IsBo3Mode;
 
     public void Receive(DesignerModeChangedMessage message)
@@ -81,25 +73,6 @@ public partial class ScoreWindowViewModel :
             message.FrontedWindowId == FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreWindow)
             && IsDesignerMode != message.IsDesignerMode)
             IsDesignerMode = message.IsDesignerMode;
-    }
-
-    public void Receive(PropertyChangedMessage<int> message)
-    {
-        switch (message.PropertyName)
-        {
-            case nameof(TotalMainGameScore):
-                RefreshTotalMinorScores();
-                break;
-            case nameof(TotalAwayGameScore):
-                RefreshTotalMinorScores();
-                break;
-        }
-    }
-
-    private void RefreshTotalMinorScores()
-    {
-        TotalMainGameScore = _sharedDataService.CurrentGame.MatchScore.HomeTotalMinorScore;
-        TotalAwayGameScore = _sharedDataService.CurrentGame.MatchScore.AwayTotalMinorScore;
     }
 
     public Game CurrentGame => _sharedDataService.CurrentGame;

@@ -646,16 +646,19 @@ public class FrontedWindowService : IFrontedWindowService
 
     #region 分数统计
 
+    [Obsolete("全局比分状态由 CurrentGame.MatchScore 驱动。请通过 IMatchScoreService 修改比分。")]
     public void SetGlobalScore(TeamType team, GameProgress gameProgress, Camp camp, int score)
     {
         // Compatibility adapter: ScoreGlobalWindow is rendered from CurrentGame.MatchScore by v3 controls.
     }
 
+    [Obsolete("全局比分状态由 CurrentGame.MatchScore 驱动。请通过 IMatchScoreService 修改比分。")]
     public void SetGlobalScoreToBar(TeamType team, GameProgress gameProgress)
     {
         // Compatibility adapter: empty half display is derived from CurrentGame.MatchScore by v3 controls.
     }
 
+    [Obsolete("全局比分状态由 CurrentGame.MatchScore 驱动。请通过 IMatchScoreService 修改比分。")]
     public void ResetGlobalScore()
     {
         // Compatibility adapter: callers should clear CurrentGame.MatchScore through IMatchScoreService.

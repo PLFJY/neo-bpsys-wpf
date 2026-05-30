@@ -256,24 +256,27 @@ public interface IFrontedWindowService
     #region Score Management
 
     /// <summary>
-    /// 重置全局分数
+    /// 兼容旧调用：全局比分状态现在由 CurrentGame.MatchScore 驱动，此方法不再修改 UI 状态。
     /// </summary>
+    [Obsolete("全局比分状态由 CurrentGame.MatchScore 驱动。请通过 IMatchScoreService 修改比分。")]
     void ResetGlobalScore();
 
     /// <summary>
-    /// 设置全局分数
+    /// 兼容旧调用：全局比分状态现在由 CurrentGame.MatchScore 驱动，此方法不再修改 UI 状态。
     /// </summary>
     /// <param name="team">队伍</param>
     /// <param name="gameProgress">游戏进度</param>
     /// <param name="camp">阵营</param>
     /// <param name="score">分数</param>
+    [Obsolete("全局比分状态由 CurrentGame.MatchScore 驱动。请通过 IMatchScoreService 修改比分。")]
     void SetGlobalScore(TeamType team, GameProgress gameProgress, Camp camp, int score);
 
     /// <summary>
-    /// 设置全局分数
+    /// 兼容旧调用：全局比分状态现在由 CurrentGame.MatchScore 驱动，此方法不再修改 UI 状态。
     /// </summary>
     /// <param name="team">队伍</param>
     /// <param name="gameProgress">对局进度</param>
+    [Obsolete("全局比分状态由 CurrentGame.MatchScore 驱动。请通过 IMatchScoreService 修改比分。")]
     void SetGlobalScoreToBar(TeamType team, GameProgress gameProgress);
 
     #endregion

@@ -5,7 +5,6 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.ViewModels.Pages;
-using neo_bpsys_wpf.ViewModels.Windows;
 using System.Linq;
 using Xunit;
 
@@ -41,9 +40,9 @@ public class MatchScoreServiceTest
     [Fact]
     public void ScorePageCommandUpdatesCurrentGameMatchScoreCurrentHalf()
     {
-        var (currentGame, sharedDataService, frontedWindowService, service) =
+        var (currentGame, sharedDataService, service) =
             CreateScorePageTestServices(GameProgress.Game1FirstHalf);
-        var viewModel = new ScorePageViewModel(sharedDataService.Object, frontedWindowService.Object, service);
+        var viewModel = new ScorePageViewModel(sharedDataService.Object, service);
 
         viewModel.Escape3Command.Execute(null);
 
@@ -56,9 +55,9 @@ public class MatchScoreServiceTest
     [Fact]
     public void ScorePageClearCommandSetsCurrentHalfResultToNull()
     {
-        var (_, sharedDataService, frontedWindowService, service) =
+        var (_, sharedDataService, service) =
             CreateScorePageTestServices(GameProgress.Game1FirstHalf);
-        var viewModel = new ScorePageViewModel(sharedDataService.Object, frontedWindowService.Object, service);
+        var viewModel = new ScorePageViewModel(sharedDataService.Object, service);
         viewModel.Escape4Command.Execute(null);
 
         viewModel.ClearCurrentHalfScoreCommand.Execute(null);
@@ -72,7 +71,7 @@ public class MatchScoreServiceTest
     [Fact]
     public void MajorScoreIsDerivedAfterBothHalvesAreSet()
     {
-        var (currentGame, sharedDataService, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        var (currentGame, sharedDataService, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
         service.SetCurrentHalfResult(GameResult.Escape3);
         currentGame.Swap();
         currentGame.GameProgress = GameProgress.Game1SecondHalf;
@@ -88,7 +87,7 @@ public class MatchScoreServiceTest
     [Fact]
     public void NullHalfPreventsScoreGameFromParticipatingInMajorCalculation()
     {
-        var (currentGame, _, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
         service.SetCurrentHalfResult(GameResult.Escape4);
         currentGame.GameProgress = GameProgress.Game1SecondHalf;
         service.ClearCurrentHalfResult();
@@ -102,9 +101,9 @@ public class MatchScoreServiceTest
     [Fact]
     public void FreeGameProgressScorePageCommandDoesNotCrashOrWriteScore()
     {
-        var (currentGame, sharedDataService, frontedWindowService, service) =
+        var (currentGame, sharedDataService, service) =
             CreateScorePageTestServices(GameProgress.Free);
-        var viewModel = new ScorePageViewModel(sharedDataService.Object, frontedWindowService.Object, service);
+        var viewModel = new ScorePageViewModel(sharedDataService.Object, service);
 
         viewModel.Out4Command.Execute(null);
 
@@ -117,7 +116,7 @@ public class MatchScoreServiceTest
     [Fact]
     public void LegacyTeamScoreMirrorUpdatesFromMatchScoreState()
     {
-        var (currentGame, sharedDataService, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        var (currentGame, sharedDataService, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
         service.SetCurrentHalfResult(GameResult.Escape3);
 
         currentGame.GameProgress = GameProgress.Game1SecondHalf;
@@ -129,7 +128,7 @@ public class MatchScoreServiceTest
     [Fact]
     public void FirstHalfPreScoreDisplaysZeroForBothCamps()
     {
-        var (currentGame, _, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
 
         service.RefreshCurrentProgress();
 
@@ -140,7 +139,7 @@ public class MatchScoreServiceTest
     [Fact]
     public void SecondHalfPreScoreUsesFirstHalfMinorScoreForSameMapping()
     {
-        var (currentGame, _, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
         service.SetCurrentHalfResult(GameResult.Escape3);
 
         currentGame.GameProgress = GameProgress.Game1SecondHalf;
@@ -152,7 +151,7 @@ public class MatchScoreServiceTest
     [Fact]
     public void SecondHalfPreScoreMapsFirstHalfMinorScoreToCurrentCampsAfterSwap()
     {
-        var (currentGame, _, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
         service.SetCurrentHalfResult(GameResult.Escape3);
 
         currentGame.Swap();
@@ -165,7 +164,7 @@ public class MatchScoreServiceTest
     [Fact]
     public void CurrentCampMajorTextUpdatesAfterBothHalvesAreRecorded()
     {
-        var (currentGame, _, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        var (currentGame, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
         service.SetCurrentHalfResult(GameResult.Escape3);
         currentGame.Swap();
         currentGame.GameProgress = GameProgress.Game1SecondHalf;
@@ -176,29 +175,9 @@ public class MatchScoreServiceTest
         Assert.Equal("W1  D0", currentGame.MatchScore.CurrentHunTeamMajorText);
     }
 
-    [Fact]
-    public void ScoreWindowTotalMinorScoreValuesComeFromMatchScoreState()
-    {
-        var (currentGame, sharedDataService, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
-        service.SetCurrentHalfResult(GameResult.Escape3);
-        var settingsHostService = new Mock<ISettingsHostService>();
-        settingsHostService.Setup(service => service.Settings).Returns(new Settings());
-        var viewModel = new ScoreWindowViewModel(sharedDataService.Object, settingsHostService.Object);
-
-        viewModel.Receive(new CommunityToolkit.Mvvm.Messaging.Messages.PropertyChangedMessage<int>(
-            this,
-            nameof(ScoreWindowViewModel.TotalMainGameScore),
-            0,
-            999));
-
-        Assert.Equal(currentGame.MatchScore.HomeTotalMinorScore, viewModel.TotalMainGameScore);
-        Assert.Equal(currentGame.MatchScore.AwayTotalMinorScore, viewModel.TotalAwayGameScore);
-    }
-
     private static (
         Game CurrentGame,
         Mock<ISharedDataService> SharedDataService,
-        Mock<IFrontedWindowService> FrontedWindowService,
         MatchScoreService MatchScoreService) CreateScorePageTestServices(GameProgress progress)
     {
         var homeTeam = new Team(Camp.Sur, TeamType.HomeTeam);
@@ -210,11 +189,10 @@ public class MatchScoreServiceTest
         sharedDataService.Setup(service => service.CurrentGame).Returns(currentGame);
         sharedDataService.Setup(service => service.IsBo3Mode).Returns(false);
 
-        var frontedWindowService = new Mock<IFrontedWindowService>();
         var matchScoreService = new MatchScoreService(
             sharedDataService.Object,
             NullLogger<MatchScoreService>.Instance);
 
-        return (currentGame, sharedDataService, frontedWindowService, matchScoreService);
+        return (currentGame, sharedDataService, matchScoreService);
     }
 }

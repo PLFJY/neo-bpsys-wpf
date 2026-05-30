@@ -254,4 +254,4 @@ Phase 2 之后仍明确不做以下事情：
 
 `ScoreSurWindow` 和 `ScoreHunWindow` 已作为 v3 renderer pilot 接入 JSON 布局，且 Phase 3 后默认布局不再绑定旧的 `CurrentGame.*Team.Score.*` 字段。Score System v2 的权威比分状态在现有 `Core.Models.Game.MatchScoreState`，局内比分窗口绑定 `CurrentGame.MatchScore` 的派生字段：第二半显示同一个 `ScoreGame` 第一半的小比分（MinorScore）时必须按当前求生者/监管者队伍映射，而不是盲目使用第一半的求生者/监管者小比分。`Team.Score` 只作为剩余旧窗口的过渡兼容镜像。
 
-`ScoreGlobalWindow` 已接入 v3 renderer，默认布局绑定现有 `Core.Models.Game.MatchScoreState`，全局比分行由 `GlobalScoreRow` 控件生成。`FrontedWindowService` 不再动态创建并直接修改全局比分控件；旧 `SetGlobalScore*` 方法仅作为兼容入口保留。详细设计见 [score-system-v2.md](score-system-v2.md)。
+`ScoreGlobalWindow` 已接入 v3 renderer，默认布局绑定现有 `Core.Models.Game.MatchScoreState`，全局比分行由 `GlobalScoreRow` 控件生成。`FrontedWindowService` 不再动态创建并直接修改全局比分控件；旧 `SetGlobalScore*` / `ResetGlobalScore` 方法仅作为 obsolete no-op 兼容入口保留。详细设计见 [score-system-v2.md](score-system-v2.md)。

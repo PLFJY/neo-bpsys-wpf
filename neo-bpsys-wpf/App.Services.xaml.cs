@@ -103,12 +103,6 @@ public partial class App
         services.AddFrontedWindow<ScoreHunWindow, ScoreWindowViewModel>();
         services.AddFrontedWindow<GameDataWindow, GameDataWindowViewModel>();
         services.AddFrontedWindow<WidgetsWindow, WidgetsWindowViewModel>();
-        services.AddTransient<ScoreManualWindow>(sp => new ScoreManualWindow
-        {
-            DataContext = sp.GetRequiredService<ScoreManualWindowViewModel>(),
-            Owner = Current.MainWindow
-        });
-        services.AddSingleton<ScoreManualWindowViewModel>();
 
         //Pages
         //Internal

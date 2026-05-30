@@ -159,6 +159,32 @@ public class ScoreSystemModelTest
     }
 
     [Fact]
+    public void GameDeserializesFromJsonWithMatchScoreRoundData()
+    {
+        var options = CreateJsonOptions();
+        var game = new Game(
+            new Team(Camp.Sur, TeamType.HomeTeam),
+            new Team(Camp.Hun, TeamType.AwayTeam),
+            GameProgress.Game1FirstHalf);
+        var half = game.MatchScore.GetHalf(GameProgress.Game1FirstHalf)!;
+        half.Result = GameResult.Escape3;
+        half.SurTeamTypeWhenRecorded = TeamType.HomeTeam;
+        half.HunTeamTypeWhenRecorded = TeamType.AwayTeam;
+
+        var json = JsonSerializer.Serialize(game, options);
+        var deserialized = JsonSerializer.Deserialize<Game>(json, options);
+        var deserializedHalf = deserialized!.MatchScore.GetHalf(GameProgress.Game1FirstHalf)!;
+
+        Assert.Equal(GameResult.Escape3, deserializedHalf.Result);
+        Assert.Equal(TeamType.HomeTeam, deserializedHalf.SurTeamTypeWhenRecorded);
+        Assert.Equal(TeamType.AwayTeam, deserializedHalf.HunTeamTypeWhenRecorded);
+        Assert.Equal(3, deserializedHalf.HomeMinorScore);
+        Assert.Equal(1, deserializedHalf.AwayMinorScore);
+        Assert.Equal(3, deserialized.MatchScore.HomeTotalMinorScore);
+        Assert.Equal(1, deserialized.MatchScore.AwayTotalMinorScore);
+    }
+
+    [Fact]
     public void MatchScoreStateCloneCreatesIndependentMutableCopy()
     {
         var state = MatchScoreState.CreateDefault();

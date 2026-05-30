@@ -236,18 +236,6 @@ public partial class SettingPageViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// 切换全局分数调试开启状态
-    /// </summary>
-    [RelayCommand]
-    private void SwitchDebugGlobalScore()
-    {
-        IAppHost.Host!.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible =
-            !IAppHost.Host.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible;
-        _ = MessageBoxHelper.ShowInfoAsync(
-            $"ScorePageViewModel.IsDebugContentVisible 已设置为 {IAppHost.Host.Services.GetRequiredService<ScorePageViewModel>().IsDebugContentVisible}");
-    }
-
-    /// <summary>
     /// 打开启动提示
     /// </summary>
     [RelayCommand]
