@@ -149,6 +149,7 @@ public partial class SharedDataService : ISharedDataService
             UnsubscribeCurrentGameRelatedEvents(_currentGame);
             _currentGame = value;
             SubscribeCurrentGameRelatedEvents(CurrentGame);
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentGame)));
             CurrentGameChanged?.Invoke(this, EventArgs.Empty);
             if (oldPickedMap != CurrentGame.PickedMap)
             {
@@ -555,6 +556,9 @@ public partial class SharedDataService : ISharedDataService
     /// 当前对局改变事件
     /// </summary>
     public event EventHandler? CurrentGameChanged;
+
+    /// <inheritdoc />
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     /// <summary>
     /// 分数统计界面 BO3 和 BO5之间"Total"相差的距离改变事件

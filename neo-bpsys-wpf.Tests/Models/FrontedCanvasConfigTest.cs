@@ -100,8 +100,8 @@ public class FrontedCanvasConfigTest
         Assert.True(logo.CornerRadius.HasValue);
         Assert.Equal(8, logo.CornerRadius.Value);
         AssertTextBinding(config, "SurTeamName", "CurrentGame.SurTeam.Name");
-        AssertTextBinding(config, "SurTeamMajorPoint", "CurrentGame.SurTeam.Score.MajorPointsOnFront");
-        AssertTextBinding(config, "GameScoresSur", "CurrentGame.SurTeam.Score.GameScores");
+        AssertTextBinding(config, "SurTeamMajorPoint", "CurrentGame.MatchScore.CurrentSurTeamMajorText");
+        AssertTextBinding(config, "GameScoresSur", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText");
     }
 
     [Fact]
@@ -124,8 +124,8 @@ public class FrontedCanvasConfigTest
         Assert.True(logo.CornerRadius.HasValue);
         Assert.Equal(8, logo.CornerRadius.Value);
         AssertTextBinding(config, "HunTeamName", "CurrentGame.HunTeam.Name");
-        AssertTextBinding(config, "HunTeamMajorPoint", "CurrentGame.HunTeam.Score.MajorPointsOnFront");
-        AssertTextBinding(config, "GameScoresHun", "CurrentGame.HunTeam.Score.GameScores");
+        AssertTextBinding(config, "HunTeamMajorPoint", "CurrentGame.MatchScore.CurrentHunTeamMajorText");
+        AssertTextBinding(config, "GameScoresHun", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText");
     }
 
     [Fact]

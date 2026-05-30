@@ -20,6 +20,7 @@ public class MatchScoreService : IMatchScoreService
         _logger = logger;
         SubscribeGame(_sharedDataService.CurrentGame);
         _sharedDataService.CurrentGameChanged += OnCurrentGameChanged;
+        _sharedDataService.IsBo3ModeChanged += OnIsBo3ModeChanged;
     }
 
     public MatchScoreState Current => _sharedDataService.CurrentGame.MatchScore;
@@ -132,6 +133,12 @@ public class MatchScoreService : IMatchScoreService
     }
 
     private void OnTeamSwapped(object? sender, EventArgs args)
+    {
+        RefreshCurrentProgress();
+        SyncLegacyTeamScoreMirror();
+    }
+
+    private void OnIsBo3ModeChanged(object? sender, EventArgs args)
     {
         RefreshCurrentProgress();
         SyncLegacyTeamScoreMirror();

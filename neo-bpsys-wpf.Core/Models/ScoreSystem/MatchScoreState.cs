@@ -23,6 +23,10 @@ public partial class MatchScoreState : ObservableObjectBase
     private string _currentHunTeamPreHalfMinorScoreText = "0";
     private string _currentSurTeamMajorText = "W0  D0";
     private string _currentHunTeamMajorText = "W0  D0";
+    private GameProgress _currentDisplayProgress = GameProgress.Free;
+    private TeamType _currentDisplaySurTeamType = TeamType.HomeTeam;
+    private TeamType _currentDisplayHunTeamType = TeamType.AwayTeam;
+    private bool _currentDisplayIsBo3Mode;
 
     [JsonConstructor]
     public MatchScoreState(ObservableCollection<ScoreGame>? games = null)
@@ -142,10 +146,11 @@ public partial class MatchScoreState : ObservableObjectBase
                 CloneHalf(game.SecondHalf))));
 
         var clone = new MatchScoreState(games);
-        clone.CurrentSurTeamPreHalfMinorScoreText = CurrentSurTeamPreHalfMinorScoreText;
-        clone.CurrentHunTeamPreHalfMinorScoreText = CurrentHunTeamPreHalfMinorScoreText;
-        clone.CurrentSurTeamMajorText = CurrentSurTeamMajorText;
-        clone.CurrentHunTeamMajorText = CurrentHunTeamMajorText;
+        clone._currentDisplayProgress = _currentDisplayProgress;
+        clone._currentDisplaySurTeamType = _currentDisplaySurTeamType;
+        clone._currentDisplayHunTeamType = _currentDisplayHunTeamType;
+        clone._currentDisplayIsBo3Mode = _currentDisplayIsBo3Mode;
+        clone.UpdateCurrentDisplay();
         return clone;
     }
 
@@ -214,25 +219,12 @@ public partial class MatchScoreState : ObservableObjectBase
         AwayMajorText = FormatMajorText(AwayMajorWin, AwayMajorTie);
         HomeTotalMinorScore = homeTotalMinorScore;
         AwayTotalMinorScore = awayTotalMinorScore;
+        UpdateCurrentDisplay();
     }
 
     public void RefreshCurrentDisplay(GameProgress progress, TeamType currentSurTeamType, TeamType currentHunTeamType)
     {
-        CurrentSurTeamMajorText = GetMajorText(currentSurTeamType);
-        CurrentHunTeamMajorText = GetMajorText(currentHunTeamType);
-
-        var currentGame = GetGame(progress);
-        if (currentGame == null || ResolveHalfKind(progress) != ScoreHalfKind.SecondHalf)
-        {
-            CurrentSurTeamPreHalfMinorScoreText = "0";
-            CurrentHunTeamPreHalfMinorScoreText = "0";
-            return;
-        }
-
-        CurrentSurTeamPreHalfMinorScoreText =
-            FormatMinorScore(GetTeamMinorScore(currentGame.FirstHalf, currentSurTeamType, fallbackToZero: true));
-        CurrentHunTeamPreHalfMinorScoreText =
-            FormatMinorScore(GetTeamMinorScore(currentGame.FirstHalf, currentHunTeamType, fallbackToZero: true));
+        RefreshCurrentDisplay(progress, currentSurTeamType, currentHunTeamType, isBo3Mode: false);
     }
 
     public void RefreshCurrentDisplay(
@@ -241,11 +233,20 @@ public partial class MatchScoreState : ObservableObjectBase
         TeamType currentHunTeamType,
         bool isBo3Mode)
     {
-        CurrentSurTeamMajorText = GetMajorText(currentSurTeamType);
-        CurrentHunTeamMajorText = GetMajorText(currentHunTeamType);
+        _currentDisplayProgress = progress;
+        _currentDisplaySurTeamType = currentSurTeamType;
+        _currentDisplayHunTeamType = currentHunTeamType;
+        _currentDisplayIsBo3Mode = isBo3Mode;
+        UpdateCurrentDisplay();
+    }
 
-        var currentGame = GetGame(progress, isBo3Mode);
-        if (currentGame == null || ResolveHalfKind(progress) != ScoreHalfKind.SecondHalf)
+    private void UpdateCurrentDisplay()
+    {
+        CurrentSurTeamMajorText = GetMajorText(_currentDisplaySurTeamType);
+        CurrentHunTeamMajorText = GetMajorText(_currentDisplayHunTeamType);
+
+        var currentGame = GetGame(_currentDisplayProgress, _currentDisplayIsBo3Mode);
+        if (currentGame == null || ResolveHalfKind(_currentDisplayProgress) != ScoreHalfKind.SecondHalf)
         {
             CurrentSurTeamPreHalfMinorScoreText = "0";
             CurrentHunTeamPreHalfMinorScoreText = "0";
@@ -253,9 +254,9 @@ public partial class MatchScoreState : ObservableObjectBase
         }
 
         CurrentSurTeamPreHalfMinorScoreText =
-            FormatMinorScore(GetTeamMinorScore(currentGame.FirstHalf, currentSurTeamType, fallbackToZero: true));
+            FormatMinorScore(GetTeamMinorScore(currentGame.FirstHalf, _currentDisplaySurTeamType, fallbackToZero: true));
         CurrentHunTeamPreHalfMinorScoreText =
-            FormatMinorScore(GetTeamMinorScore(currentGame.FirstHalf, currentHunTeamType, fallbackToZero: true));
+            FormatMinorScore(GetTeamMinorScore(currentGame.FirstHalf, _currentDisplayHunTeamType, fallbackToZero: true));
     }
 
     private static ScoreHalf CloneHalf(ScoreHalf half) =>

@@ -225,7 +225,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 0 | 设计文档 only。新增本文档并更新文档索引/改动前必读。 |
 | Phase 1 | 增加 `Settings.Version = 3`，建立 legacy config 迁移 skeleton。已实现：legacy `Config.json` 备份后写回 v3；未迁移前台窗口。 |
 | Phase 2 | 增加 v3 layout models、资源 resolver、Text/Image factory、renderer skeleton。已实现：基础服务和 DI 注册；未接入真实前台窗口。 |
-| Phase 3 | 先迁移低风险前台窗口，验证读取、渲染、保存和恢复路径。已实现：`ScoreSurWindow` 和 `ScoreHunWindow` 分别使用 `Resources/FrontedLayouts/{WindowTypeName}/BaseCanvas.json` 通过 v3 renderer 生成控件。当前只有局内求生者/监管者比分窗口已接入 v3 renderer。 |
+| Phase 3 | 先迁移低风险前台窗口，验证读取、渲染、保存和恢复路径。已实现：`ScoreSurWindow` 和 `ScoreHunWindow` 分别使用 `Resources/FrontedLayouts/{WindowTypeName}/BaseCanvas.json` 通过 v3 renderer 生成控件，且默认布局的比分文本已绑定 `CurrentGame.MatchScore`。当前只有局内求生者/监管者比分窗口已接入 v3 renderer。 |
 | Phase 4 | 迁移 `BpWindow`，保留 PickingBorder、BanLock、BP 动画兼容性。 |
 | Phase 5 | 实现独立前台编辑窗口。 |
 | Phase 6 | 实现 v3 `.bpui` 导出/导入和 legacy `.bpui` 转换。 |
@@ -247,6 +247,6 @@ Phase 2 之后仍明确不做以下事情：
 
 ## 12. 与 Score System v2 的关系
 
-`ScoreSurWindow` 和 `ScoreHunWindow` 虽然已作为 v3 renderer pilot 接入 JSON 布局，但当前默认布局仍绑定旧的 `CurrentGame.*Team.Score.*` 字段。Score System v2 要求比分权威状态迁移到现有 `Core.Models.Game.MatchScoreState`，后续局内比分窗口应绑定 `CurrentGame.MatchScore` 的派生字段，尤其是第二半显示同一个 `ScoreGame` 第一半的小比分（MinorScore）时必须按当前求生者/监管者队伍映射，而不是盲目使用第一半的求生者/监管者小比分。
+`ScoreSurWindow` 和 `ScoreHunWindow` 已作为 v3 renderer pilot 接入 JSON 布局，且 Phase 3 后默认布局不再绑定旧的 `CurrentGame.*Team.Score.*` 字段。Score System v2 的权威比分状态在现有 `Core.Models.Game.MatchScoreState`，局内比分窗口绑定 `CurrentGame.MatchScore` 的派生字段：第二半显示同一个 `ScoreGame` 第一半的小比分（MinorScore）时必须按当前求生者/监管者队伍映射，而不是盲目使用第一半的求生者/监管者小比分。`Team.Score` 只作为剩余旧窗口的过渡兼容镜像。
 
 `ScoreGlobalWindow` 仍是 XAML-first。它未来迁移到 v3 时应绑定现有 `Core.Models.Game.MatchScoreState`，不要把 `FrontedWindowService` 动态创建并直接修改的全局比分控件继续作为状态来源。详细设计见 [score-system-v2.md](score-system-v2.md)。

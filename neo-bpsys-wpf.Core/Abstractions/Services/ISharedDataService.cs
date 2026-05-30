@@ -2,13 +2,14 @@
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
 /// <summary>
 /// 共享数据服务接口
 /// </summary>
-public interface ISharedDataService
+public interface ISharedDataService : INotifyPropertyChanged
 {
     /// <summary>
     /// 主队

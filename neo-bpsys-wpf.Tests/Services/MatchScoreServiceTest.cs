@@ -127,6 +127,56 @@ public class MatchScoreServiceTest
     }
 
     [Fact]
+    public void FirstHalfPreScoreDisplaysZeroForBothCamps()
+    {
+        var (currentGame, _, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+
+        service.RefreshCurrentProgress();
+
+        Assert.Equal("0", currentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText);
+        Assert.Equal("0", currentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText);
+    }
+
+    [Fact]
+    public void SecondHalfPreScoreUsesFirstHalfMinorScoreForSameMapping()
+    {
+        var (currentGame, _, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        service.SetCurrentHalfResult(GameResult.Escape3);
+
+        currentGame.GameProgress = GameProgress.Game1SecondHalf;
+
+        Assert.Equal("3", currentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText);
+        Assert.Equal("1", currentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText);
+    }
+
+    [Fact]
+    public void SecondHalfPreScoreMapsFirstHalfMinorScoreToCurrentCampsAfterSwap()
+    {
+        var (currentGame, _, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        service.SetCurrentHalfResult(GameResult.Escape3);
+
+        currentGame.Swap();
+        currentGame.GameProgress = GameProgress.Game1SecondHalf;
+
+        Assert.Equal("1", currentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText);
+        Assert.Equal("3", currentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText);
+    }
+
+    [Fact]
+    public void CurrentCampMajorTextUpdatesAfterBothHalvesAreRecorded()
+    {
+        var (currentGame, _, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        service.SetCurrentHalfResult(GameResult.Escape3);
+        currentGame.Swap();
+        currentGame.GameProgress = GameProgress.Game1SecondHalf;
+
+        service.SetCurrentHalfResult(GameResult.Out4);
+
+        Assert.Equal("W0  D0", currentGame.MatchScore.CurrentSurTeamMajorText);
+        Assert.Equal("W1  D0", currentGame.MatchScore.CurrentHunTeamMajorText);
+    }
+
+    [Fact]
     public void ScoreWindowTotalMinorScoreValuesComeFromMatchScoreState()
     {
         var (currentGame, sharedDataService, _, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);

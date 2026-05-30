@@ -2,7 +2,7 @@
 
 本文定义 Score System v2 的目标模型、计算规则、前台绑定方向和迁移计划。
 
-当前实现状态：Score Phase 2 已完成后台比分页写入与 UI 清理。现有 `Core.Models.Game` 已持有 `MatchScoreState`，后台 `ScorePageViewModel` 的结果按钮通过 `IMatchScoreService.SetCurrentHalfResult(...)` / `ClearCurrentHalfResult()` 写入 `CurrentGame.MatchScore`，普通 UI 不再提供手动 Game/half 选择或“同步至前台”按钮；比分控制始终跟随全局 `CurrentGame.GameProgress`。`GameGlobalInfoRecord` 仅作为从权威状态派生的调试/兼容视图。`ScoreGlobalWindow`、`ScoreSurWindow` / `ScoreHunWindow` layout 和 `.bpui` 尚未迁移，旧前台窗口仍可能读取 `Team.Score` 兼容镜像或依赖 `FrontedWindowService.SetGlobalScore*` 临时刷新。
+当前实现状态：Score Phase 3 已完成局内比分窗口绑定迁移。现有 `Core.Models.Game` 已持有 `MatchScoreState`，后台 `ScorePageViewModel` 的结果按钮通过 `IMatchScoreService.SetCurrentHalfResult(...)` / `ClearCurrentHalfResult()` 写入 `CurrentGame.MatchScore`，普通 UI 不再提供手动 Game/half 选择或“同步至前台”按钮；比分控制始终跟随全局 `CurrentGame.GameProgress`。`ScoreSurWindow` / `ScoreHunWindow` 的 v3 layout 已绑定 `CurrentGame.MatchScore` 派生字段，不再从 `Team.Score` 读取局内比分。`GameGlobalInfoRecord` 仅作为从权威状态派生的调试/兼容视图。`ScoreGlobalWindow` 和 `.bpui` 尚未迁移，旧前台窗口仍可能读取 `Team.Score` 兼容镜像或依赖 `FrontedWindowService.SetGlobalScore*` 临时刷新。
 
 Score System v2 的核心目标是把权威比分状态放回现有 `Core.Models.Game`，让比分可以随对局导入、导出、回溯，并能在 `SharedDataService.NewGame()` 创建新对局时像 `MapV2Dictionary` 一样从上一局 `CurrentGame` 延续必要状态。
 
@@ -18,7 +18,7 @@ Score System v2 的核心目标是把权威比分状态放回现有 `Core.Models
 | 全局比分记录曾由页面 ViewModel 持有 | `ScorePageViewModel.GameGlobalInfoRecord` | Phase 2 后不再是权威数据，仅从 `CurrentGame.MatchScore` 派生供旧 UI/调试查看。 |
 | 总小比分通过 messenger 推送 | `ScorePageViewModel.UpdateTotalGameScore()` -> `ScoreWindowViewModel.TotalMainGameScore` / `TotalAwayGameScore` | Phase 2 保留消息兼容旧 `ScoreGlobalWindow`，但消息值来自 `MatchScoreState.HomeTotalMinorScore` / `AwayTotalMinorScore`。 |
 | 全局比分 UI 由服务动态创建和直接修改 | `FrontedWindowService.GlobalScoreControlsReg()`、`SetGlobalScore()`、`SetGlobalScoreToBar()` | UI 控件成了事实状态容器，阻碍 `ScoreGlobalWindow` 迁移到 v3 config-driven renderer。 |
-| 局内比分窗口已接入 v3 renderer，但仍绑定旧字段 | `ScoreSurWindow/BaseCanvas.json`、`ScoreHunWindow/BaseCanvas.json` | v3 布局可以渲染控件，但绑定路径仍指向 `CurrentGame.*Team.Score.*`，无法表达“第二半显示同一个 ScoreGame 第一半 MinorScore”的规则。 |
+| 局内比分窗口已接入 v3 renderer 并完成 Phase 3 绑定迁移 | `ScoreSurWindow/BaseCanvas.json`、`ScoreHunWindow/BaseCanvas.json` | 当前默认布局绑定 `CurrentGame.MatchScore.*` 派生字段；用户旧布局如果仍保留 `CurrentGame.*Team.Score.*`，需要后续布局迁移或手动恢复默认。 |
 
 ## 2. 核心设计决策
 
@@ -267,12 +267,12 @@ else:
 
 ## 6. ScoreSurWindow / ScoreHunWindow 行为
 
-`ScoreSurWindow` 和 `ScoreHunWindow` 已迁移为 v3 renderer pilot，但当前 layout 仍绑定：
+`ScoreSurWindow` 和 `ScoreHunWindow` 已迁移为 v3 renderer pilot。Phase 3 后，内置默认 layout 已从旧的 `Team.Score` 兼容镜像切换到 `CurrentGame.MatchScore` 派生字段：
 
-| 窗口 | 当前绑定 | v2 目标绑定 |
+| 窗口 | 旧绑定 | Phase 3 默认绑定 |
 | --- | --- | --- |
-| `ScoreSurWindow` | `CurrentGame.SurTeam.Score.MajorPointsOnFront`、`CurrentGame.SurTeam.Score.GameScores` | `CurrentGame.MatchScore.CurrentSurTeamMajorText`、`CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScore` |
-| `ScoreHunWindow` | `CurrentGame.HunTeam.Score.MajorPointsOnFront`、`CurrentGame.HunTeam.Score.GameScores` | `CurrentGame.MatchScore.CurrentHunTeamMajorText`、`CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScore` |
+| `ScoreSurWindow` | `CurrentGame.SurTeam.Score.MajorPointsOnFront`、`CurrentGame.SurTeam.Score.GameScores` | `CurrentGame.MatchScore.CurrentSurTeamMajorText`、`CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText` |
+| `ScoreHunWindow` | `CurrentGame.HunTeam.Score.MajorPointsOnFront`、`CurrentGame.HunTeam.Score.GameScores` | `CurrentGame.MatchScore.CurrentHunTeamMajorText`、`CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText` |
 
 局内比分窗口显示规则：
 
@@ -340,8 +340,8 @@ ScorePage button
 
 | 旧能力 | 迁移期策略 |
 | --- | --- |
-| `Team.Score.GameScores` | 保留为旧窗口兼容镜像，`MatchScoreService.SyncLegacyTeamScoreMirror()` 由 `MatchScoreState` 派生写回；后台 `ScorePageViewModel` 不再把它作为权威写入点。 |
-| `Team.Score.MajorPointsOnFront` | 保留旧绑定，直到所有前台窗口迁移到 `MatchScoreState` 派生字段。 |
+| `Team.Score.GameScores` | 仅作为仍未迁移旧窗口的 transitional compatibility mirror，`MatchScoreService.SyncLegacyTeamScoreMirror()` 由 `MatchScoreState` 派生写回；后台 `ScorePageViewModel` 和 `ScoreSurWindow` / `ScoreHunWindow` 不再把它作为权威写入点。 |
+| `Team.Score.MajorPointsOnFront` | 仅作为仍未迁移旧窗口的 transitional compatibility mirror；局内比分 v3 默认布局已改为读取 `MatchScoreState` 派生字段。 |
 | `ScorePageViewModel.GameGlobalInfoRecord` | Phase 2 后不再作为权威数据；Phase 2/3 可作为 UI 临时缓存。 |
 | `ScoreWindowViewModel.TotalMainGameScore` / `TotalAwayGameScore` | Phase 4 迁移 `ScoreGlobalWindow` 后应改为绑定 `MatchScoreState`。 |
 | `FrontedWindowService.SetGlobalScore*` | Phase 4 后不再作为比分状态入口，只保留窗口生命周期和 legacy layout 职责。 |
@@ -353,7 +353,7 @@ ScorePage button
 | Score Phase 0 | 已完成：新增本文档，更新文档索引和相关提醒。 | 不改运行时代码、XAML、模型或 ViewModel。 |
 | Score Phase 1 | 已完成基础层：增加 `MatchScoreState`、`ScoreGame`、`ScoreHalf` 和 `IMatchScoreService` / `MatchScoreService`，权威状态由现有 `Core.Models.Game` 持有。 | 不迁移 UI。 |
 | Score Phase 2 | 已完成：将 `ScorePageViewModel` 的结果写入、当前半场清除、总小比分消息和旧 `Team.Score` 镜像刷新迁移到 service / `MatchScoreState`，并移除普通 UI 的手动 Game/half 选择和同步按钮。 | 未迁移全局比分窗口，仍保留 `FrontedWindowService.SetGlobalScore*` 兼容刷新。 |
-| Score Phase 3 | 更新 `ScoreSurWindow` / `ScoreHunWindow` v3 layout 绑定到 `MatchScoreState` 派生字段。 | 不改 `ScoreGlobalWindow`。 |
+| Score Phase 3 | 已完成：`ScoreSurWindow` / `ScoreHunWindow` v3 layout 绑定到 `MatchScoreState` 派生字段，局内第一半预分显示 `0`，第二半按当前求生/监管队伍映射显示同一 `ScoreGame` 第一半 MinorScore；若第一半结果为 `null`，预分显示 `0`。 | 不改 `ScoreGlobalWindow`；不迁移 `.bpui`；不删除 `Team.Score`。 |
 | Score Phase 4 | 迁移 `ScoreGlobalWindow`，使其绑定现有 `Core.Models.Game.MatchScoreState`，不再依赖服务动态控件作为状态。 | 不做无关前台窗口批量迁移。 |
 | Score Phase 5 | 移除或废弃旧 `Team.Score` 的比分写入职责。 | 不破坏仍未迁移窗口的兼容显示。 |
 
