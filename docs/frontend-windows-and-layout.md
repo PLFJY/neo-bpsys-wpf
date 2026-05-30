@@ -64,7 +64,7 @@ services.AddFrontedWindow<TView, TViewModel>();
 
 设计者模式通过 `DesignBehavior.IsDesignerMode` 给控件加 `CanvasAdorner`，让用户调整 Canvas 内元素位置。
 
-Fronted Designer v3 的基础设施已经存在：`FrontedCanvasConfig` 可读取 root-level 控件 JSON，`IFrontedLayoutService` 按用户布局优先、内置默认布局兜底读取 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` 或 `Resources\FrontedLayouts\{WindowTypeName}\{CanvasName}.json`，`IFrontedRenderer` 可用注册的控件工厂生成 Text/Image 控件。`ScoreSurWindow` 是第一个接入 v3 renderer 的 pilot 窗口，内置默认布局位于 `Resources\FrontedLayouts\ScoreSurWindow\BaseCanvas.json`。其他真实前台窗口仍是 XAML-first；`FrontedWindowService` 不会读取旧 `FrontedDefaultPositions` 作为 v3 输入。
+Fronted Designer v3 的基础设施已经存在：`FrontedCanvasConfig` 可读取 root-level 控件 JSON，`IFrontedLayoutService` 按用户布局优先、内置默认布局兜底读取 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` 或 `Resources\FrontedLayouts\{WindowTypeName}\{CanvasName}.json`，`IFrontedRenderer` 可用注册的控件工厂生成 Text/Image 控件。`ScoreSurWindow` 和 `ScoreHunWindow` 是当前接入 v3 renderer 的 pilot 窗口，内置默认布局分别位于 `Resources\FrontedLayouts\ScoreSurWindow\BaseCanvas.json` 和 `Resources\FrontedLayouts\ScoreHunWindow\BaseCanvas.json`。其他真实前台窗口仍是 XAML-first；`FrontedWindowService` 不会读取旧 `FrontedDefaultPositions` 作为 v3 输入。
 
 布局文件命名约定：
 

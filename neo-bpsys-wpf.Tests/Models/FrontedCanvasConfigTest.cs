@@ -83,15 +83,7 @@ public class FrontedCanvasConfigTest
     [Fact]
     public void ReadsBuiltInScoreSurWindowLayout()
     {
-        var path = Path.Combine(
-            AppConstants.ResourcesPath,
-            "FrontedLayouts",
-            "ScoreSurWindow",
-            "BaseCanvas.json");
-
-        Assert.True(File.Exists(path), path);
-
-        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(File.ReadAllText(path));
+        var config = ReadBuiltInLayout("ScoreSurWindow");
 
         Assert.NotNull(config);
         Assert.Equal(3, config.Version);
@@ -104,9 +96,36 @@ public class FrontedCanvasConfigTest
         Assert.Contains("SurTeamMajorPoint", config.Controls.Keys);
         Assert.Contains("GameScoresSur", config.Controls.Keys);
 
-        var logo = Assert.IsType<ImageFrontedControlConfig>(config.Controls["SurTeamLogo"]);
+        var logo = AssertImageBinding(config, "SurTeamLogo", "CurrentGame.SurTeam.Logo");
         Assert.True(logo.CornerRadius.HasValue);
         Assert.Equal(8, logo.CornerRadius.Value);
+        AssertTextBinding(config, "SurTeamName", "CurrentGame.SurTeam.Name");
+        AssertTextBinding(config, "SurTeamMajorPoint", "CurrentGame.SurTeam.Score.MajorPointsOnFront");
+        AssertTextBinding(config, "GameScoresSur", "CurrentGame.SurTeam.Score.GameScores");
+    }
+
+    [Fact]
+    public void ReadsBuiltInScoreHunWindowLayout()
+    {
+        var config = ReadBuiltInLayout("ScoreHunWindow");
+
+        Assert.NotNull(config);
+        Assert.Equal(3, config.Version);
+        Assert.Equal(480, config.CanvasWidth);
+        Assert.Equal(152, config.CanvasHeight);
+        Assert.Equal("Resources/scoreHun.png", config.BackgroundImage);
+
+        Assert.Contains("HunTeamLogo", config.Controls.Keys);
+        Assert.Contains("HunTeamName", config.Controls.Keys);
+        Assert.Contains("HunTeamMajorPoint", config.Controls.Keys);
+        Assert.Contains("GameScoresHun", config.Controls.Keys);
+
+        var logo = AssertImageBinding(config, "HunTeamLogo", "CurrentGame.HunTeam.Logo");
+        Assert.True(logo.CornerRadius.HasValue);
+        Assert.Equal(8, logo.CornerRadius.Value);
+        AssertTextBinding(config, "HunTeamName", "CurrentGame.HunTeam.Name");
+        AssertTextBinding(config, "HunTeamMajorPoint", "CurrentGame.HunTeam.Score.MajorPointsOnFront");
+        AssertTextBinding(config, "GameScoresHun", "CurrentGame.HunTeam.Score.GameScores");
     }
 
     [Fact]
@@ -222,5 +241,40 @@ public class FrontedCanvasConfigTest
 
         Assert.NotNull(directory);
         return directory.FullName;
+    }
+
+    private static FrontedCanvasConfig ReadBuiltInLayout(string windowTypeName)
+    {
+        var path = Path.Combine(
+            AppConstants.ResourcesPath,
+            "FrontedLayouts",
+            windowTypeName,
+            "BaseCanvas.json");
+
+        Assert.True(File.Exists(path), path);
+
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(File.ReadAllText(path));
+        Assert.NotNull(config);
+        return config;
+    }
+
+    private static TextFrontedControlConfig AssertTextBinding(
+        FrontedCanvasConfig config,
+        string controlName,
+        string bindingPath)
+    {
+        var control = Assert.IsType<TextFrontedControlConfig>(config.Controls[controlName]);
+        Assert.Equal(bindingPath, control.BindingPath);
+        return control;
+    }
+
+    private static ImageFrontedControlConfig AssertImageBinding(
+        FrontedCanvasConfig config,
+        string controlName,
+        string bindingPath)
+    {
+        var control = Assert.IsType<ImageFrontedControlConfig>(config.Controls[controlName]);
+        Assert.Equal(bindingPath, control.BindingPath);
+        return control;
     }
 }

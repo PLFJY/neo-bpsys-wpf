@@ -34,7 +34,7 @@
 
 `FrontedWindow` / 前台窗口是 WPF 输出窗口，用于 OBS 或其他直播软件捕获，不是 Web frontend。不要引入 Web 路由、浏览器布局或前后端分离假设。
 
-Fronted Designer v3 当前已完成基础设施阶段，并将 `ScoreSurWindow` 作为第一个 v3 renderer pilot 窗口。大多数前台窗口仍是 XAML-first，包括 `ScoreHunWindow`、`ScoreGlobalWindow`、`BpWindow`、`CutSceneWindow`、`GameDataWindow` 和 `WidgetsWindow`。旧设计者模式、旧 `config.json` 前台设置和旧 XAML-first 运行时仍保留。
+Fronted Designer v3 当前已完成基础设施阶段，并将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为局内比分 v3 renderer pilot 窗口。大多数前台窗口仍是 XAML-first，包括 `ScoreGlobalWindow`、`BpWindow`、`CutSceneWindow`、`GameDataWindow` 和 `WidgetsWindow`。旧设计者模式、旧 `config.json` 前台设置和旧 XAML-first 运行时仍保留。
 
 ## 文档边界
 
