@@ -29,6 +29,7 @@
 | 改动类型 | 先读 |
 | --- | --- |
 | UI 状态、对局数据、前台绑定传播 | `docs/shared-data-and-state.md` |
+| 前台窗口设计者模式、v3 布局配置、`.bpui` 迁移设计 | `docs/fronted-designer-v3.md` |
 | async、下载回调、OCR 后台任务、UI 更新 | `docs/threading-dispatcher-and-async.md` |
 | 图片、字体、resx、本地化、默认布局资源 | `docs/resources-localization-and-assets.md` |
 | TODO、当前能力边界、不要误判的路线图 | `docs/known-limitations-and-roadmap.md` |
