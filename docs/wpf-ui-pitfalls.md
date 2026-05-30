@@ -98,3 +98,7 @@ snackbarService.SetSnackbarPresenter(SnbPre);
 2. 避免和宿主或其他插件重复 ID。
 3. 注入控件时给控件稳定 `Name` 和合理默认 `ElementInfo`。
 4. 用户可见文本同样考虑本地化。
+
+## NavigationView
+
+WPF-UI 默认的 `NavigationView` 样式和行为有坑点。Page被加载后外面会自动包一层 `ScrollViewer`，不要重复包裹，否则就导致页面无法滚动
