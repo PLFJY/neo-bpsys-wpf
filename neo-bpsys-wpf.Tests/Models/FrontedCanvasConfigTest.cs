@@ -168,6 +168,84 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
+    public void ReadsCutSceneBusinessControlConfigs()
+    {
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 810,
+              "SurTalent0": {
+                "ControlType": "TalentTraitDisplay",
+                "Left": 164,
+                "Top": 424,
+                "Width": 178,
+                "Height": 36,
+                "DisplayKind": "SurvivorTalent",
+                "PlayerIndex": 0,
+                "IconSize": 38,
+                "IconGap": 2,
+                "HorizontalAlignment": "Right",
+                "VerticalAlignment": "Center",
+                "ZIndex": 2
+              },
+              "GameProgress": {
+                "ControlType": "GameProgressText",
+                "Left": 488,
+                "Top": 82,
+                "Width": 463,
+                "Height": 30,
+                "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+                "FontWeight": "Bold",
+                "Color": "#FFFFFFFF",
+                "FontSize": 22,
+                "TextAlignment": "Center",
+                "HorizontalAlignment": "Center",
+                "VerticalAlignment": "Center",
+                "UseLineBreak": true,
+                "ZIndex": 1
+              },
+              "MapName": {
+                "ControlType": "MapNameText",
+                "Left": 488,
+                "Top": 51,
+                "Width": 463,
+                "FontFamily": "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简",
+                "FontWeight": "Normal",
+                "Color": "#FFFFFFFF",
+                "FontSize": 24,
+                "TextAlignment": "Center",
+                "HorizontalAlignment": "Center",
+                "VerticalAlignment": "Center",
+                "EmptyText": "",
+                "ZIndex": 1
+              }
+            }
+            """);
+
+        Assert.NotNull(config);
+
+        var talent = Assert.IsType<TalentTraitDisplayControlConfig>(config.Controls["SurTalent0"]);
+        Assert.Equal("TalentTraitDisplay", talent.ControlType);
+        Assert.Equal(TalentTraitDisplayKind.SurvivorTalent, talent.DisplayKind);
+        Assert.Equal(0, talent.PlayerIndex);
+        Assert.True(talent.HasValidSurvivorPlayerIndex());
+        Assert.Equal(38, talent.IconSize);
+        Assert.Equal(2, talent.IconGap);
+
+        var progress = Assert.IsType<GameProgressTextControlConfig>(config.Controls["GameProgress"]);
+        Assert.Equal("GameProgressText", progress.ControlType);
+        Assert.True(progress.UseLineBreak);
+        Assert.Equal("Center", progress.TextAlignment);
+
+        var mapName = Assert.IsType<MapNameTextControlConfig>(config.Controls["MapName"]);
+        Assert.Equal("MapNameText", mapName.ControlType);
+        Assert.Equal(24, mapName.FontSize);
+        Assert.Equal(string.Empty, mapName.EmptyText);
+    }
+
+    [Fact]
     public void ReadsBuiltInScoreGlobalWindowLayout()
     {
         var config = ReadBuiltInLayout("ScoreGlobalWindow");

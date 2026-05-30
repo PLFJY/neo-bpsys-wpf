@@ -110,6 +110,15 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
                 "GlobalScoreRow" => JsonSerializer.Deserialize<GlobalScoreRowControlConfig>(json, options)
                     ?? throw new FrontedLayoutConfigException(
                         $"Control '{controlName}' could not be read as GlobalScoreRow."),
+                "TalentTraitDisplay" => JsonSerializer.Deserialize<TalentTraitDisplayControlConfig>(json, options)
+                    ?? throw new FrontedLayoutConfigException(
+                        $"Control '{controlName}' could not be read as TalentTraitDisplay."),
+                "GameProgressText" => JsonSerializer.Deserialize<GameProgressTextControlConfig>(json, options)
+                    ?? throw new FrontedLayoutConfigException(
+                        $"Control '{controlName}' could not be read as GameProgressText."),
+                "MapNameText" => JsonSerializer.Deserialize<MapNameTextControlConfig>(json, options)
+                    ?? throw new FrontedLayoutConfigException(
+                        $"Control '{controlName}' could not be read as MapNameText."),
                 _ => throw new FrontedLayoutConfigException(
                     $"Control '{controlName}' has unsupported ControlType '{controlType}'.")
             };

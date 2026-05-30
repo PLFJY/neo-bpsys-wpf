@@ -240,7 +240,9 @@ public class BpWindowTextSettings
 public partial class CutSceneWindowSettings : ObservableObjectBase
 {
     public WindowSize WindowSize { get; init; } = new(1440, 810);
-    public bool IsBlackTalentAndTraitEnable { get; set; } = false;
+
+    [ObservableProperty]
+    private bool _isBlackTalentAndTraitEnable;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(BgImage))]

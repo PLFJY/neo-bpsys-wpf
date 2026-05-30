@@ -105,6 +105,9 @@ v3 初始内置控件类型建议只包含：
 | `Text` | 文本、队名、比分、倒计时等。 |
 | `Image` | 角色图、队标、地图、背景元素等。 |
 | `GlobalScoreRow` | `ScoreGlobalWindow` 的全局比分行，根据 `CurrentGame.MatchScore` 生成每半场比分格和阵营图标。 |
+| `TalentTraitDisplay` | `CutSceneWindow` 迁移准备控件，封装求生者/监管者固定天赋图标和监管者辅助特质图标。 |
+| `GameProgressText` | `CutSceneWindow` 迁移准备控件，集中生成 BO3/BO5 相关的对局进度文本。 |
+| `MapNameText` | `CutSceneWindow` 迁移准备控件，按地图 key 生成本地化地图名。 |
 
 ### Text
 
@@ -142,6 +145,18 @@ new Binding(config.BindingPath)
 ### GlobalScoreRow
 
 `GlobalScoreRow` 是 Score System v2 使用的内置控件类型，配置类型为 `GlobalScoreRowControlConfig`。它读取 `ISharedDataService.CurrentGame.MatchScore`，按 `ScoreGameKey` 的显式 BO3/BO5 顺序生成比分格；空半场显示 `-` 并隐藏阵营图标，已记录结果显示主队或客队的小比分和记录时阵营图标。该控件会响应 `CurrentGameChanged`、`IsBo3ModeChanged` 和 `MatchScoreState.PropertyChanged`。
+
+### CutScene 业务控件
+
+`TalentTraitDisplay`、`GameProgressText` 和 `MapNameText` 是 CutScene v3 迁移的前置能力，当前只注册为 v3 内置控件，尚未迁移 `CutSceneWindow.xaml`，也不生成 `Resources/FrontedLayouts/CutSceneWindow/BaseCanvas.json`。这些控件用于把不适合散落在 JSON 中的业务规则收束起来：
+
+| 控件 | 封装规则 |
+| --- | --- |
+| `TalentTraitDisplay` | 求生者 4 个固定天赋、监管者 4 个固定天赋、监管者辅助特质、辅助特质显隐状态，以及黑白图标设置。 |
+| `GameProgressText` | `CurrentGame.GameProgress` + `IsBo3Mode` 的显示文本，显式区分 BO3 第三局加赛与 BO5 第四局。 |
+| `MapNameText` | `CurrentGame.PickedMap` 地图 key 到本地化显示名的转换。 |
+
+迁移 CutScene 默认布局时，不应把四个天赋图标拆成四个普通 `Image` 控件，也不应在 JSON 中复制 BO3/BO5 文本判断；应使用这些内置业务控件。
 
 ## 6. PickingBorder / BanLockAvailable 兼容策略
 
@@ -231,7 +246,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 1 | 增加 `Settings.Version = 3`，建立 legacy config 迁移 skeleton。已实现：legacy `Config.json` 备份后写回 v3；未迁移前台窗口。 |
 | Phase 2 | 增加 v3 layout models、资源 resolver、Text/Image factory、renderer skeleton。已实现：基础服务和 DI 注册；未接入真实前台窗口。 |
 | Phase 3 | 先迁移低风险前台窗口，验证读取、渲染、保存和恢复路径。已实现：`ScoreSurWindow` 和 `ScoreHunWindow` 分别使用 `Resources/FrontedLayouts/{WindowTypeName}/BaseCanvas.json` 通过 v3 renderer 生成控件，且默认布局的比分文本已绑定 `CurrentGame.MatchScore`。当前只有局内求生者/监管者比分窗口已接入 v3 renderer。 |
-| Phase 4 | 迁移 `BpWindow`，保留 PickingBorder、BanLock、BP 动画兼容性。Score System v2 已在独立 Phase 4 中先迁移 `ScoreGlobalWindow`。 |
+| Phase 4 | 迁移 `BpWindow`，保留 PickingBorder、BanLock、BP 动画兼容性。Score System v2 已在独立 Phase 4 中先迁移 `ScoreGlobalWindow`。CutScene 迁移所需的 `TalentTraitDisplay`、`GameProgressText`、`MapNameText` 内置业务控件已加入，但 `CutSceneWindow` 本身尚未迁移。 |
 | Phase 5 | 实现独立前台编辑窗口。 |
 | Phase 6 | 实现 v3 `.bpui` 导出/导入和 legacy `.bpui` 转换。 |
 

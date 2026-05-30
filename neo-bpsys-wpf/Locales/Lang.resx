@@ -1960,5 +1960,26 @@
   <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
     <value>已有插件正在下载。</value>
   </data>
+  <data name="GameProgressFree" xml:space="preserve">
+    <value>FREE GAME</value>
+  </data>
+  <data name="GameProgressGameOnlyFormat" xml:space="preserve">
+    <value>GAME {0}</value>
+  </data>
+  <data name="GameProgressGameOvertimeOnlyFormat" xml:space="preserve">
+    <value>GAME {0} OVERTIME</value>
+  </data>
+  <data name="GameProgressGameHalfFormat" xml:space="preserve">
+    <value>GAME {0} {1}</value>
+  </data>
+  <data name="GameProgressGameOvertimeHalfFormat" xml:space="preserve">
+    <value>GAME {0} OVERTIME {1}</value>
+  </data>
+  <data name="FirstHalf" xml:space="preserve">
+    <value>FIRST HALF</value>
+  </data>
+  <data name="SecondHalf" xml:space="preserve">
+    <value>SECOND HALF</value>
+  </data>
 </root>
 

@@ -34,7 +34,7 @@
 
 `FrontedWindow` / 前台窗口是 WPF 输出窗口，用于 OBS 或其他直播软件捕获，不是 Web frontend。不要引入 Web 路由、浏览器布局或前后端分离假设。
 
-Fronted Designer v3 当前已完成基础设施阶段，并将 `ScoreSurWindow`、`ScoreHunWindow` 和 `ScoreGlobalWindow` 接入 v3 renderer；这些窗口的内置默认布局比分文本已绑定 `CurrentGame.MatchScore`。大多数前台窗口仍是 XAML-first，包括 `BpWindow`、`CutSceneWindow`、`GameDataWindow` 和 `WidgetsWindow`。旧设计者模式、旧 `config.json` 前台设置和旧 XAML-first 运行时仍保留。
+Fronted Designer v3 当前已完成基础设施阶段，并将 `ScoreSurWindow`、`ScoreHunWindow` 和 `ScoreGlobalWindow` 接入 v3 renderer；这些窗口的内置默认布局比分文本已绑定 `CurrentGame.MatchScore`。CutScene 迁移所需的 `TalentTraitDisplay`、`GameProgressText`、`MapNameText` 内置业务控件已加入，用于封装天赋/辅助特质显示、BO3/BO5 进度文本和地图名本地化，但 `CutSceneWindow` 本身尚未迁移，也没有内置 v3 `BaseCanvas.json`。大多数前台窗口仍是 XAML-first，包括 `BpWindow`、`CutSceneWindow`、`GameDataWindow` 和 `WidgetsWindow`。旧设计者模式、旧 `config.json` 前台设置和旧 XAML-first 运行时仍保留。
 
 ## 文档边界
 

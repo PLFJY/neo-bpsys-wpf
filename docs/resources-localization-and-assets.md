@@ -28,6 +28,8 @@
 
 `ImageHelper` 使用 `AppConstants.ResourcesPath` 拼接这些目录，按文件路径加载。新增运行时图片时，应确认文件被放在 `Resources` 下并能复制到输出目录。
 
+CutScene v3 内置业务控件复用这些资源目录：`TalentTraitDisplay` 通过 `ImageHelper.GetTalentImageSource` / `GetTraitImageSource` 读取 `Resources/talent` 和 `Resources/trait`，并跟随 `CutSceneWindowSettings.IsBlackTalentAndTraitEnable` 切换黑白图标。不要在 v3 JSON 中硬编码单个天赋或辅助特质图片路径。
+
 ## Assets 与字体
 
 字体位于：
@@ -77,6 +79,8 @@ I18nHelper.GetLocalizedString("SomeKey")
 ```
 
 `I18nHelper` 找不到 key 时返回原始 key，便于界面降级显示和定位缺失翻译。新增用户可见文本时至少添加默认 `Lang.resx`，并尽量补齐英文、日文资源，避免用户看到裸 key。
+
+`GameProgressText` 使用集中 helper 和资源 key 生成 `FREE GAME`、`GAME {n} FIRST HALF`、`GAME {n} OVERTIME SECOND HALF` 等文本，避免 BO3/BO5 进度文案散落在窗口 XAML 或 JSON 中。`MapNameText` 把 `CurrentGame.PickedMap` 枚举名作为本地化 key 查询地图名；新增地图时要同步补齐地图资源 key。
 
 ## 添加新素材
 
