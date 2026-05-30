@@ -15,6 +15,11 @@ namespace neo_bpsys_wpf.Core.Models;
 public partial class Settings : ObservableObjectBase
 {
     private static readonly CultureInfo SystemCulture = CultureInfo.CurrentUICulture;
+    /// <summary>
+    /// 主设置配置版本
+    /// </summary>
+    public int? Version { get; set; } = 3;
+
     public bool ShowAfterUpdateTip { get; set; } = true;
 
     public bool IsRecordGlobalBan { get; set; } = true;

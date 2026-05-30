@@ -22,6 +22,7 @@ namespace neo_bpsys_wpf.Services;
 public class SettingsHostService : ISettingsHostService
 {
     private readonly ILogger<SettingsHostService> _logger;
+    private readonly ISettingsMigrationService _settingsMigrationService;
     private Settings _settings = new();
     private bool _isBulk;
 
@@ -51,9 +52,12 @@ public class SettingsHostService : ISettingsHostService
         Converters = { new FontWeightJsonConverter() }
     };
 
-    public SettingsHostService(ILogger<SettingsHostService> logger)
+    public SettingsHostService(
+        ILogger<SettingsHostService> logger,
+        ISettingsMigrationService settingsMigrationService)
     {
         _logger = logger;
+        _settingsMigrationService = settingsMigrationService;
         _ = LoadConfig();
     }
 
@@ -95,10 +99,33 @@ public class SettingsHostService : ISettingsHostService
         var json = await File.ReadAllTextAsync(AppConstants.ConfigFilePath);
         try
         {
+            var versionInfo = SettingsConfigVersionHelper.InspectJson(json);
+            if (versionInfo.IsLegacy)
+            {
+                var result = await _settingsMigrationService.MigrateLegacyConfigToV3Async(AppConstants.ConfigFilePath);
+                if (!result.Success)
+                {
+                    throw new InvalidOperationException(result.ErrorMessage ?? "Legacy settings migration failed.");
+                }
+
+                if (result.Migrated)
+                {
+                    json = await File.ReadAllTextAsync(AppConstants.ConfigFilePath);
+                }
+            }
+            else if (versionInfo.Version != SettingsConfigVersionHelper.CurrentSettingsVersion)
+            {
+                _logger.LogWarning(
+                    "Configuration file version is not supported explicitly. Version: {Version}, has version field: {HasVersion}",
+                    versionInfo.Version,
+                    versionInfo.HasVersion);
+            }
+
             var settings = JsonSerializer.Deserialize<Settings>(json, _jsonSerializerOptions);
             if (settings != null)
             {
                 Settings = settings;
+                Settings.Version ??= SettingsConfigVersionHelper.CurrentSettingsVersion;
             }
             else
             {

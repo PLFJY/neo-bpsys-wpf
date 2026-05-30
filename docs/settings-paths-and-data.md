@@ -23,6 +23,7 @@
 
 | 字段 | 说明 |
 | --- | --- |
+| `Version` | 主设置配置版本；当前为 `3`，缺失或 `null` 表示 legacy 配置 |
 | `ShowAfterUpdateTip` | 更新后提示是否显示 |
 | `IsRecordGlobalBan` | 是否记录全局 Ban |
 | `OcrModelKey` | 当前 OCR 模型键 |
@@ -34,6 +35,8 @@
 | `CultureInfo` | 由 `Language` 推导，JSON 忽略 |
 
 窗口设置包括 `BpWindowSettings`、`CutSceneWindowSettings`、`ScoreWindowSettings`、`GameDataWindowSettings`、`WidgetsWindowSettings`。
+
+启动加载 `Config.json` 时会先检查 raw JSON root：`Version` 缺失或为 `null` 时按 legacy 配置处理，先备份为 `Config.json.v2.backup` 或带时间戳的同类文件，再写回 `Version = 3`。这个 Phase 1 迁移只更新主设置版本并保留现有字段，不迁移前台布局文件，也不删除旧前台窗口设置。
 
 ## 前台窗口设置
 

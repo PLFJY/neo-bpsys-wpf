@@ -76,6 +76,7 @@ public partial class App
         services.AddSingleton<IGameGuidanceService, GameGuidanceService>();
         services.AddSingleton<ISmartBpService, SmartBpService>();
         services.AddSingleton<IOcrService, OcrService>();
+        services.AddSingleton<ISettingsMigrationService, SettingsMigrationService>();
         services.AddSingleton<ISettingsHostService, SettingsHostService>();
         services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
         services.AddSingleton<IPluginService, PluginService>();
