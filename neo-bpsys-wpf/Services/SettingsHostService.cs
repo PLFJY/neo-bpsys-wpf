@@ -58,7 +58,7 @@ public class SettingsHostService : ISettingsHostService
     {
         _logger = logger;
         _settingsMigrationService = settingsMigrationService;
-        _ = LoadConfig();
+        // Config loading is intentionally triggered and awaited from App.OnStartup.
     }
 
     /// <summary>

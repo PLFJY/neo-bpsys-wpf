@@ -34,6 +34,8 @@
 
 `FrontedWindow` / 前台窗口是 WPF 输出窗口，用于 OBS 或其他直播软件捕获，不是 Web frontend。不要引入 Web 路由、浏览器布局或前后端分离假设。
 
+Fronted Designer v3 当前只完成基础设施阶段：v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton 已存在，但真实前台窗口尚未迁移到 v3 配置驱动渲染。旧设计者模式、旧 `config.json` 前台设置和旧 XAML-first 运行时仍保留。
+
 ## 文档边界
 
 公开 VuePress 文档面向用户，可能落后于 UI 或内部实现。仓库内 `/docs` 面向维护者和 AI agent，应跟随代码架构变化更新。

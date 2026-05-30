@@ -11,6 +11,7 @@
 | `ConfigFilePath` | `%APPDATA%\neo-bpsys-wpf\Config.json` |
 | `AppTempPath` | `%TEMP%\neo-bpsys-wpf` |
 | `CustomUiPath` | `%APPDATA%\neo-bpsys-wpf\CustomUi` |
+| `FrontedLayoutsPath` | `%APPDATA%\neo-bpsys-wpf\FrontedLayouts` |
 | `LogPath` | `%APPDATA%\neo-bpsys-wpf\Log` |
 | `ResourcesPath` | `{AppBaseDirectory}\Resources` |
 | `PluginPath` | `%APPDATA%\neo-bpsys-wpf\Plugins` |
@@ -67,6 +68,7 @@
 | 数据 | 路径 |
 | --- | --- |
 | 前台布局 | `%APPDATA%\neo-bpsys-wpf\*Config-*.json` |
+| v3 前台布局 | `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` |
 | SmartBP 区域 | `%APPDATA%\neo-bpsys-wpf\SmartBp\GameDataRegions.json` |
 | OCR 模型 | `Documents\neo-bpsys-wpf\OCRModels` |
 | 插件配置 | `%APPDATA%\neo-bpsys-wpf\PluginConfigs\{pluginId}` |

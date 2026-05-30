@@ -50,6 +50,11 @@ public static class AppConstants
     public static readonly string CustomUiPath = Path.Combine(AppDataPath, "CustomUi");
 
     /// <summary>
+    /// v3 前台布局路径
+    /// </summary>
+    public static readonly string FrontedLayoutsPath = Path.Combine(AppDataPath, "FrontedLayouts");
+
+    /// <summary>
     /// 日志路径
     /// </summary>
     public static readonly string LogPath = Path.Combine(AppDataPath, "Log");
