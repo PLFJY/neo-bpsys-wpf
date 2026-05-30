@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+using System.Windows.Controls;
+using System.Windows.Data;
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
 using Wpf.Ui.Controls;
@@ -17,5 +18,18 @@ public partial class ScorePage : Page
     public ScorePage()
     {
         InitializeComponent();
+    }
+
+    private void RestoreScorePreviewDefaultSort_Click(object sender, System.Windows.RoutedEventArgs e)
+    {
+        var view = CollectionViewSource.GetDefaultView(ScorePreviewDataGrid.ItemsSource);
+        view?.SortDescriptions.Clear();
+
+        foreach (var column in ScorePreviewDataGrid.Columns)
+        {
+            column.SortDirection = null;
+        }
+
+        view?.Refresh();
     }
 }

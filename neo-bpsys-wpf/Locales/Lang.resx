@@ -879,6 +879,60 @@
   <data name="ScorePreview" xml:space="preserve">
     <value>{0}  W:{1} D:{2}  小比分: {3}</value>
   </data>
+  <data name="ScorePreviewTable" xml:space="preserve">
+    <value>比分预览</value>
+  </data>
+  <data name="ScorePreviewCurrent" xml:space="preserve">
+    <value>当前</value>
+  </data>
+  <data name="ScorePreviewRecorded" xml:space="preserve">
+    <value>已录入</value>
+  </data>
+  <data name="ScorePreviewEmpty" xml:space="preserve">
+    <value>未录入</value>
+  </data>
+  <data name="ScorePreviewGame" xml:space="preserve">
+    <value>场次</value>
+  </data>
+  <data name="ScorePreviewHalf" xml:space="preserve">
+    <value>半场</value>
+  </data>
+  <data name="ScorePreviewStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="ScorePreviewResult" xml:space="preserve">
+    <value>结果</value>
+  </data>
+  <data name="ScorePreviewHomeCamp" xml:space="preserve">
+    <value>主队阵营</value>
+  </data>
+  <data name="ScorePreviewAwayCamp" xml:space="preserve">
+    <value>客队阵营</value>
+  </data>
+  <data name="ScorePreviewHomeMinorScore" xml:space="preserve">
+    <value>主队小比分</value>
+  </data>
+  <data name="ScorePreviewAwayMinorScore" xml:space="preserve">
+    <value>客队小比分</value>
+  </data>
+  <data name="ScorePreviewFirstHalf" xml:space="preserve">
+    <value>上半</value>
+  </data>
+  <data name="ScorePreviewSecondHalf" xml:space="preserve">
+    <value>下半</value>
+  </data>
+  <data name="ScorePreviewGameFormat" xml:space="preserve">
+    <value>第{0}局</value>
+  </data>
+  <data name="ScorePreviewGameOvertimeFormat" xml:space="preserve">
+    <value>第{0}局加赛</value>
+  </data>
+  <data name="ScorePreviewProgressFormat" xml:space="preserve">
+    <value>{0} {1}</value>
+  </data>
+  <data name="RestoreDefaultSort" xml:space="preserve">
+    <value>恢复默认排序</value>
+  </data>
   <data name="IndexFormat" xml:space="preserve">
     <value> {0} 号位</value>
     <comment>报错为正常现象</comment>

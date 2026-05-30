@@ -110,5 +110,87 @@
                 </StackPanel>
             </Grid>
         </Border>
+        <Border
+            Width="860"
+            Margin="0,0,10,10"
+            Style="{StaticResource Card}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <StackPanel
+                    Grid.Row="0"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Style="{StaticResource Title}"
+                        Text="{lex:Loc ScorePreviewTable}" />
+                    <Button
+                        Margin="16,0,0,0"
+                        Padding="12,4"
+                        Click="RestoreScorePreviewDefaultSort_Click"
+                        Content="{lex:Loc RestoreDefaultSort}" />
+                </StackPanel>
+                <ui:DataGrid
+                    x:Name="ScorePreviewDataGrid"
+                    Grid.Row="1"
+                    MinHeight="320"
+                    Margin="0,10,0,0"
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    CanUserDeleteRows="False"
+                    HeadersVisibility="Column"
+                    IsReadOnly="True"
+                    ItemsSource="{Binding ScorePreviewRows}"
+                    SelectionMode="Single">
+                    <ui:DataGrid.RowStyle>
+                        <Style TargetType="{x:Type DataGridRow}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsCurrentProgress}" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:DataGrid.RowStyle>
+                    <ui:DataGrid.Columns>
+                        <DataGridTextColumn
+                            Width="90"
+                            Binding="{Binding GameLabel}"
+                            Header="{lex:Loc ScorePreviewGame}" />
+                        <DataGridTextColumn
+                            Width="80"
+                            Binding="{Binding HalfLabel}"
+                            Header="{lex:Loc ScorePreviewHalf}" />
+                        <DataGridTextColumn
+                            Width="80"
+                            Binding="{Binding RowStatusText}"
+                            Header="{lex:Loc ScorePreviewStatus}" />
+                        <DataGridTextColumn
+                            Width="80"
+                            Binding="{Binding ResultText}"
+                            Header="{lex:Loc ScorePreviewResult}" />
+                        <DataGridTextColumn
+                            Width="110"
+                            Binding="{Binding HomeCampText}"
+                            Header="{lex:Loc ScorePreviewHomeCamp}" />
+                        <DataGridTextColumn
+                            Width="110"
+                            Binding="{Binding AwayCampText}"
+                            Header="{lex:Loc ScorePreviewAwayCamp}" />
+                        <DataGridTextColumn
+                            Width="120"
+                            Binding="{Binding HomeMinorScoreText}"
+                            Header="{lex:Loc ScorePreviewHomeMinorScore}" />
+                        <DataGridTextColumn
+                            Width="120"
+                            Binding="{Binding AwayMinorScoreText}"
+                            Header="{lex:Loc ScorePreviewAwayMinorScore}" />
+                    </ui:DataGrid.Columns>
+                </ui:DataGrid>
+            </Grid>
+        </Border>
     </WrapPanel>
 </Page>

@@ -879,6 +879,60 @@
   <data name="ScorePreview" xml:space="preserve">
     <value>{0}  勝:{1} 分:{2}  得点: {3}</value>
   </data>
+  <data name="ScorePreviewTable" xml:space="preserve">
+    <value>スコアプレビュー</value>
+  </data>
+  <data name="ScorePreviewCurrent" xml:space="preserve">
+    <value>現在</value>
+  </data>
+  <data name="ScorePreviewRecorded" xml:space="preserve">
+    <value>入力済み</value>
+  </data>
+  <data name="ScorePreviewEmpty" xml:space="preserve">
+    <value>未入力</value>
+  </data>
+  <data name="ScorePreviewGame" xml:space="preserve">
+    <value>ゲーム</value>
+  </data>
+  <data name="ScorePreviewHalf" xml:space="preserve">
+    <value>ハーフ</value>
+  </data>
+  <data name="ScorePreviewStatus" xml:space="preserve">
+    <value>状態</value>
+  </data>
+  <data name="ScorePreviewResult" xml:space="preserve">
+    <value>結果</value>
+  </data>
+  <data name="ScorePreviewHomeCamp" xml:space="preserve">
+    <value>ホーム陣営</value>
+  </data>
+  <data name="ScorePreviewAwayCamp" xml:space="preserve">
+    <value>アウェイ陣営</value>
+  </data>
+  <data name="ScorePreviewHomeMinorScore" xml:space="preserve">
+    <value>ホーム小スコア</value>
+  </data>
+  <data name="ScorePreviewAwayMinorScore" xml:space="preserve">
+    <value>アウェイ小スコア</value>
+  </data>
+  <data name="ScorePreviewFirstHalf" xml:space="preserve">
+    <value>前半</value>
+  </data>
+  <data name="ScorePreviewSecondHalf" xml:space="preserve">
+    <value>後半</value>
+  </data>
+  <data name="ScorePreviewGameFormat" xml:space="preserve">
+    <value>ゲーム {0}</value>
+  </data>
+  <data name="ScorePreviewGameOvertimeFormat" xml:space="preserve">
+    <value>ゲーム {0} 延長</value>
+  </data>
+  <data name="ScorePreviewProgressFormat" xml:space="preserve">
+    <value>{0} {1}</value>
+  </data>
+  <data name="RestoreDefaultSort" xml:space="preserve">
+    <value>既定の並び順に戻す</value>
+  </data>
   <data name="IndexFormat" xml:space="preserve">
     <value> {0} 番</value>
   </data>

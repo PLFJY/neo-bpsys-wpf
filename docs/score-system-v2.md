@@ -2,7 +2,7 @@
 
 本文定义 Score System v2 的目标模型、计算规则、前台绑定方向和迁移计划。
 
-当前实现状态：Score Phase 5 已完成旧比分写入路径清理。现有 `Core.Models.Game` 已持有 `MatchScoreState`，后台 `ScorePageViewModel` 的结果按钮通过 `IMatchScoreService.SetCurrentHalfResult(...)` / `ClearCurrentHalfResult()` 写入 `CurrentGame.MatchScore`，普通 UI 不再提供手动 Game/half 选择、手动 `Team.Score` 累加或“同步至前台”按钮；比分控制始终跟随全局 `CurrentGame.GameProgress`。`ScoreSurWindow` / `ScoreHunWindow` / `ScoreGlobalWindow` 的 v3 layout 已绑定 `CurrentGame.MatchScore` 派生字段，不再从 `Team.Score`、`ScoreWindowViewModel` 总分字段或 `FrontedWindowService` 动态控件读取比分。`GameGlobalInfoRecord` 和 `ScoreWindowViewModel.TotalMainGameScore` / `TotalAwayGameScore` 已移除。`.bpui` 尚未迁移，`BpWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 等旧 XAML-first 前台窗口仍可能读取 `Team.Score` 兼容镜像。
+当前实现状态：Score Phase 5 已完成旧比分写入路径清理。现有 `Core.Models.Game` 已持有 `MatchScoreState`，后台 `ScorePageViewModel` 的结果按钮通过 `IMatchScoreService.SetCurrentHalfResult(...)` / `ClearCurrentHalfResult()` 写入 `CurrentGame.MatchScore`，普通 UI 不再提供手动 Game/half 选择、手动 `Team.Score` 累加或“同步至前台”按钮；比分控制始终跟随全局 `CurrentGame.GameProgress`。后台 `ScorePage` 现在提供导播用只读比分预览表，表格行由 `CurrentGame.MatchScore.Games` 派生，按 BO3/BO5 显示对应 ScoreGame 和半场，并用状态列标记当前半场、已录入和未录入。`ScoreSurWindow` / `ScoreHunWindow` / `ScoreGlobalWindow` 的 v3 layout 已绑定 `CurrentGame.MatchScore` 派生字段，不再从 `Team.Score`、`ScoreWindowViewModel` 总分字段或 `FrontedWindowService` 动态控件读取比分。`GameGlobalInfoRecord` 和 `ScoreWindowViewModel.TotalMainGameScore` / `TotalAwayGameScore` 已移除。`.bpui` 尚未迁移，`BpWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 等旧 XAML-first 前台窗口仍可能读取 `Team.Score` 兼容镜像。
 
 Score System v2 的核心目标是把权威比分状态放回现有 `Core.Models.Game`，让比分可以随对局导入、导出、回溯，并能在 `SharedDataService.NewGame()` 创建新对局时像 `MapV2Dictionary` 一样从上一局 `CurrentGame` 延续必要状态。
 
@@ -298,7 +298,9 @@ else:
 
 新模型不需要 `IsGameFinished` 作为核心概念。是否完成由 `GameResult != null` 表达。迁移期 UI 可以保留兼容字段或旧交互，但它们应映射到 nullable result，而不是成为新的模型字段。
 
-当前后台实现不再暴露普通 UI 的 `IsGameFinished`、手动 Game/half 选择、手动 `Team.Score` 累加或“同步至前台”流程。清除当前半场比分按钮位于旧“小比分清零”按钮位置，会把全局 `CurrentGame.GameProgress` 对应半场的 `ScoreHalf.Result` 设为 `null`，并同步刷新旧 `Team.Score` 镜像；后台预览和 `ScoreGlobalWindow` 都由 `CurrentGame.MatchScore` 绑定自动刷新。
+当前后台实现不再暴露普通 UI 的 `IsGameFinished`、手动 Game/half 选择、手动 `Team.Score` 累加或“同步至前台”流程。清除当前半场比分按钮位于旧“小比分清零”按钮位置，会把全局 `CurrentGame.GameProgress` 对应半场的 `ScoreHalf.Result` 设为 `null`，并同步刷新旧 `Team.Score` 镜像；后台预览表和 `ScoreGlobalWindow` 都由 `CurrentGame.MatchScore` 绑定自动刷新。
+
+后台 `ScorePage` 的预览表是导播检查用只读 UI。其 `ScorePreviewRow` 集合从 `CurrentGame.MatchScore.Games` 重建，BO3 显示 Game 1、Game 2、Game 3 和 Game 3 Overtime，BO5 显示 Game 1 到 Game 5 以及 Game 5 Overtime。表格使用 `ScoreGameKey` / 现有显式可见性规则区分 Game 3 Overtime 与 Game 4，不把 `GameProgress` 原始数值作为唯一判断依据。行内结果、阵营和主客小比分均来自对应 `ScoreHalf` 的已记录结果及记录时主客队映射；空结果显示 `-`。它不提供行点击切换、手动 Game/half 选择或编辑能力，也不替代 Score System v2 的权威状态。
 
 ## 8. ScoreGlobalWindow 行为
 

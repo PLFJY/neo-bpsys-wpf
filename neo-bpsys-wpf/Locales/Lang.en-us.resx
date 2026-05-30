@@ -879,6 +879,60 @@
   <data name="ScorePreview" xml:space="preserve">
     <value>{0}  W:{1} D:{2}  Game score: {3}</value>
   </data>
+  <data name="ScorePreviewTable" xml:space="preserve">
+    <value>Score Preview</value>
+  </data>
+  <data name="ScorePreviewCurrent" xml:space="preserve">
+    <value>Current</value>
+  </data>
+  <data name="ScorePreviewRecorded" xml:space="preserve">
+    <value>Recorded</value>
+  </data>
+  <data name="ScorePreviewEmpty" xml:space="preserve">
+    <value>Empty</value>
+  </data>
+  <data name="ScorePreviewGame" xml:space="preserve">
+    <value>Game</value>
+  </data>
+  <data name="ScorePreviewHalf" xml:space="preserve">
+    <value>Half</value>
+  </data>
+  <data name="ScorePreviewStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ScorePreviewResult" xml:space="preserve">
+    <value>Result</value>
+  </data>
+  <data name="ScorePreviewHomeCamp" xml:space="preserve">
+    <value>Home Camp</value>
+  </data>
+  <data name="ScorePreviewAwayCamp" xml:space="preserve">
+    <value>Away Camp</value>
+  </data>
+  <data name="ScorePreviewHomeMinorScore" xml:space="preserve">
+    <value>Home Minor Score</value>
+  </data>
+  <data name="ScorePreviewAwayMinorScore" xml:space="preserve">
+    <value>Away Minor Score</value>
+  </data>
+  <data name="ScorePreviewFirstHalf" xml:space="preserve">
+    <value>First Half</value>
+  </data>
+  <data name="ScorePreviewSecondHalf" xml:space="preserve">
+    <value>Second Half</value>
+  </data>
+  <data name="ScorePreviewGameFormat" xml:space="preserve">
+    <value>Game {0}</value>
+  </data>
+  <data name="ScorePreviewGameOvertimeFormat" xml:space="preserve">
+    <value>Game {0} Overtime</value>
+  </data>
+  <data name="ScorePreviewProgressFormat" xml:space="preserve">
+    <value>{0} {1}</value>
+  </data>
+  <data name="RestoreDefaultSort" xml:space="preserve">
+    <value>Restore Default Sort</value>
+  </data>
   <data name="IndexFormat" xml:space="preserve">
     <value> {0}{1}</value>
   </data>
