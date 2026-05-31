@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:designer="clr-namespace:neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;assembly=neo-bpsys-wpf.Core"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:limits="clr-namespace:neo_bpsys_wpf.Core.Services.FrontedLayout;assembly=neo-bpsys-wpf.Core"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
@@ -48,6 +49,7 @@
                 <ui:TextBox
                     Grid.Column="0"
                     MinHeight="30"
+                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
                     KeyDown="PropertyTextBox_OnKeyDown"
                     Text="{Binding EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}">
                     <ui:TextBox.Style>
@@ -141,6 +143,7 @@
                 <ui:TextBox
                     Grid.Column="1"
                     MinHeight="30"
+                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
                     KeyDown="PropertyTextBox_OnKeyDown"
                     Text="{Binding EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}">
                     <ui:TextBox.Style>
@@ -355,6 +358,15 @@
                         </MenuItem>
                         <MenuItem Header="{lex:Loc Edit}">
                             <MenuItem
+                                Command="{Binding CopySelectedControlCommand}"
+                                Header="{lex:Loc CopyControl}"
+                                InputGestureText="Ctrl+C" />
+                            <MenuItem
+                                Command="{Binding PasteControlCommand}"
+                                Header="{lex:Loc PasteControl}"
+                                InputGestureText="Ctrl+V" />
+                            <Separator />
+                            <MenuItem
                                 Command="{Binding UndoCommand}"
                                 Header="{lex:Loc Undo}"
                                 InputGestureText="Ctrl+Z" />
@@ -461,6 +473,7 @@
                     <ui:TextBox
                         Grid.Row="1"
                         Margin="0,12,0,8"
+                        MaxLength="{x:Static limits:FrontedLayoutLimits.MaxSearchTextLength}"
                         PlaceholderText="{lex:Loc FilterControls}"
                         Text="{Binding ControlFilterText, UpdateSourceTrigger=PropertyChanged}" />
                     <Grid Grid.Row="2">
@@ -772,6 +785,7 @@
                                 <ui:TextBox
                                     Grid.Column="1"
                                     MinHeight="30"
+                                    MaxLength="32"
                                     Text="{Binding CanvasWidthEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </Grid>
                             <Grid Margin="0,0,0,8">
@@ -783,6 +797,7 @@
                                 <ui:TextBox
                                     Grid.Column="1"
                                     MinHeight="30"
+                                    MaxLength="32"
                                     Text="{Binding CanvasHeightEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             </Grid>
                             <ui:Button
@@ -794,7 +809,10 @@
                                 Margin="0,0,0,6"
                                 FontWeight="SemiBold"
                                 Text="{lex:Loc BackgroundImage}" />
-                            <ui:TextBox MinHeight="30" Text="{Binding BackgroundImageEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <ui:TextBox
+                                MinHeight="30"
+                                MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
+                                Text="{Binding BackgroundImageEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             <WrapPanel Margin="0,8,0,0">
                                 <ui:Button
                                     Margin="0,0,6,6"

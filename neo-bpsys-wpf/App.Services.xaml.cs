@@ -84,6 +84,7 @@ public partial class App
         services.AddSingleton<IOcrService, OcrService>();
         services.AddSingleton<ISettingsMigrationService, SettingsMigrationService>();
         services.AddSingleton<ISettingsHostService, SettingsHostService>();
+        services.AddSingleton<IFrontedImageSafetyService, FrontedImageSafetyService>();
         services.AddSingleton<IFrontedResourceResolver, FrontedResourceResolver>();
         services.AddSingleton<IFrontedLocalResourceStore, FrontedLocalResourceStore>();
         services.AddSingleton<IFrontedUserLayoutStore, FrontedUserLayoutStore>();

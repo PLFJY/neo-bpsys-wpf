@@ -5,6 +5,7 @@
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:designer="clr-namespace:neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;assembly=neo-bpsys-wpf.Core"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:limits="clr-namespace:neo_bpsys_wpf.Core.Services.FrontedLayout;assembly=neo-bpsys-wpf.Core"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     Title="{lex:Loc ResourceBrowser}"
     Width="760"
@@ -29,6 +30,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -47,6 +49,7 @@
             </Grid.ColumnDefinitions>
             <ui:TextBox
                 Grid.Column="0"
+                MaxLength="{x:Static limits:FrontedLayoutLimits.MaxSearchTextLength}"
                 PlaceholderText="{lex:Loc SearchResources}"
                 Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             <ui:Button
@@ -122,10 +125,17 @@
             <ui:TextBox
                 Margin="0,6,0,0"
                 IsReadOnly="True"
+                MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
                 Text="{Binding SelectedPath}" />
         </StackPanel>
-        <StackPanel
+        <TextBlock
             Grid.Row="4"
+            Margin="12,0,12,8"
+            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+            Text="{Binding ValidationMessage}"
+            TextWrapping="Wrap" />
+        <StackPanel
+            Grid.Row="5"
             Margin="12,0,12,12"
             HorizontalAlignment="Right"
             Orientation="Horizontal">

@@ -96,4 +96,6 @@ Phase 9D 起，`FrontManagePage` 的 Layout Packages 页支持导出和导入 v3
 
 Phase 9F 起，legacy `.bpui` 导入不会再调用 SettingPage 的旧导入覆盖流程。`Config.json` 只作为转换输入读取明确前台图片字段，不会复制到 AppData，不会覆盖当前设置，也不会要求为了 layout-only 转换重启。转换输出的 v3 包仍安装到 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}`，激活后只写入 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts`。
 
+Phase 10 起，用户布局、窗口选项和布局包读取会在反序列化前检查文件大小，并使用 JSON 最大深度 32：layout JSON 最大 2 MiB，`window.json` 最大 64 KiB，manifest 最大 256 KiB，legacy `Config.json` 读取路径最大 2 MiB。布局包 zip 还限制压缩包 50 MiB、解压总量 100 MiB、单 entry 10 MiB、最多 1000 entries，并继续保留 zip-slip 检查。超过限制的外部文件会拒绝读取或导入，不会截断。
+
 卸载脚本会询问是否删除 `%APPDATA%\neo-bpsys-wpf`，包括日志、自定义 UI 和设置。

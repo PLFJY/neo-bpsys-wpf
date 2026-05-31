@@ -243,6 +243,16 @@ public partial class FrontedDesignerWindow : FluentWindow
             _viewModel.RedoCommand.Execute(null);
             e.Handled = true;
         }
+        else if (e.Key == Key.C && !isShift)
+        {
+            _viewModel.CopySelectedControlCommand.Execute(null);
+            e.Handled = true;
+        }
+        else if (e.Key == Key.V && !isShift)
+        {
+            _viewModel.PasteControlCommand.Execute(null);
+            e.Handled = true;
+        }
     }
 
     private void PropertyTextBox_OnKeyDown(object sender, KeyEventArgs e)

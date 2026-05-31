@@ -8,6 +8,7 @@ namespace neo_bpsys_wpf.ViewModels.Windows;
 public partial class FrontedResourceBrowserWindowViewModel : ViewModelBase
 {
     private readonly FrontedResourceBrowserProvider _provider;
+    private readonly IFrontedImageSafetyService _imageSafetyService = new FrontedImageSafetyService();
 
     public FrontedResourceBrowserWindowViewModel()
         : this(new FrontedResourceBrowserProvider())
@@ -35,10 +36,20 @@ public partial class FrontedResourceBrowserWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(CanUseSelected))]
     private string _selectedPath = string.Empty;
 
+    [ObservableProperty]
+    private string _validationMessage = string.Empty;
+
     public bool CanUseSelected => !string.IsNullOrWhiteSpace(SelectedPath);
 
     partial void OnSearchTextChanged(string value)
     {
+        var clamped = FrontedTextLimitHelper.Clamp(value, FrontedLayoutLimits.MaxSearchTextLength);
+        if (!string.Equals(value, clamped, StringComparison.Ordinal))
+        {
+            SearchText = clamped;
+            return;
+        }
+
         RefreshResources();
         OnPropertyChanged(nameof(HasNoResults));
     }
@@ -65,9 +76,17 @@ public partial class FrontedResourceBrowserWindowViewModel : ViewModelBase
 
     public void UseAbsoluteFile(string path)
     {
+        var validation = _imageSafetyService.ValidateFile(path, FrontedImagePurpose.UiElement);
+        if (!validation.IsValid)
+        {
+            ValidationMessage = validation.ErrorCode ?? "InvalidImageResource";
+            return;
+        }
+
         var item = _provider.CreateAbsoluteFileItem(path);
         SelectedResource = item;
         SelectedPath = item.SelectedPath;
+        ValidationMessage = string.Empty;
     }
 
     private void RefreshResources()

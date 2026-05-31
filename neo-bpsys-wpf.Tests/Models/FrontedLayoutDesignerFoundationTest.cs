@@ -708,6 +708,54 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void AddControlCommandRefusesAtCanvasControlLimit()
+    {
+        var controls = Enumerable.Range(0, FrontedLayoutLimits.MaxControlsPerCanvas)
+            .Select(index => new FrontedControlDesignItem
+            {
+                Name = $"Text{index}",
+                IsSelectableInEditor = true,
+                IsEditableInEditor = true,
+                Config = new TextFrontedControlConfig()
+            })
+            .ToList();
+        var document = CreateDocument(controls);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+
+        viewModel.AddControlCommand.Execute(new FrontedAddControlRequest { ControlType = "Text" });
+
+        Assert.Equal(FrontedLayoutLimits.MaxControlsPerCanvas, document.Controls.Count);
+        Assert.False(string.IsNullOrWhiteSpace(viewModel.StatusMessage));
+    }
+
+    [Fact]
+    public void CopyPasteNormalControlCreatesOffsetSelectedDirtyUndoableCopy()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Text9",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new TextFrontedControlConfig { Text = "A", Left = 10, Top = 20, ZIndex = 3 }
+        };
+        var document = CreateDocument([title]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(title);
+
+        viewModel.CopySelectedControlCommand.Execute(null);
+        viewModel.PasteControlCommand.Execute(null);
+
+        var pasted = Assert.Single(document.Controls, control => control.Name == "Text10");
+        Assert.NotSame(title.Config, pasted.Config);
+        Assert.Equal(20, pasted.Config.Left);
+        Assert.Equal(30, pasted.Config.Top);
+        Assert.Equal(4, pasted.Config.ZIndex);
+        Assert.Same(pasted, viewModel.SelectedDesignItem);
+        Assert.True(document.IsDirty);
+        Assert.True(viewModel.CanUndo);
+    }
+
+    [Fact]
     public void DeleteSelectedControlRemovesNormalControlMarksDirtyAndClearsSelection()
     {
         var title = new FrontedControlDesignItem
@@ -1355,6 +1403,38 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Equal("New", ((TextFrontedControlConfig)item.Config).Text);
         Assert.True(document.IsDirty);
+    }
+
+    [Fact]
+    public void ApplyPropertyEditClampsStaticTextAndBindingPath()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig()
+        };
+        var document = CreateDocument([item]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(item);
+
+        viewModel.ApplyPropertyEdit(
+            new FrontedPropertyEditorItem
+            {
+                PropertyName = nameof(TextFrontedControlConfig.Text),
+                EditorKind = FrontedPropertyEditorKind.Text
+            },
+            new string('A', FrontedLayoutLimits.MaxStaticTextLength + 10));
+        viewModel.ApplyPropertyEdit(
+            new FrontedPropertyEditorItem
+            {
+                PropertyName = nameof(FrontedControlConfigBase.BindingPath),
+                EditorKind = FrontedPropertyEditorKind.Text
+            },
+            new string('B', FrontedLayoutLimits.MaxBindingPathLength + 10));
+
+        var config = Assert.IsType<TextFrontedControlConfig>(item.Config);
+        Assert.Equal(FrontedLayoutLimits.MaxStaticTextLength, config.Text?.Length);
+        Assert.Equal(FrontedLayoutLimits.MaxBindingPathLength, config.BindingPath?.Length);
     }
 
     [Fact]

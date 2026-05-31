@@ -21,6 +21,7 @@ public sealed class FrontedResourceBrowserProvider
     ];
 
     private readonly string _resourcesRoot;
+    private readonly IFrontedImageSafetyService _imageSafetyService;
 
     public FrontedResourceBrowserProvider()
         : this(AppConstants.ResourcesPath)
@@ -28,8 +29,19 @@ public sealed class FrontedResourceBrowserProvider
     }
 
     public FrontedResourceBrowserProvider(string resourcesRoot)
+        : this(resourcesRoot, new FrontedImageSafetyService())
+    {
+    }
+
+    public FrontedResourceBrowserProvider(IFrontedImageSafetyService imageSafetyService)
+        : this(AppConstants.ResourcesPath, imageSafetyService)
+    {
+    }
+
+    public FrontedResourceBrowserProvider(string resourcesRoot, IFrontedImageSafetyService imageSafetyService)
     {
         _resourcesRoot = resourcesRoot;
+        _imageSafetyService = imageSafetyService;
     }
 
     public IReadOnlyList<FrontedResourceBrowserItem> ListBuiltInResources()
@@ -49,7 +61,7 @@ public sealed class FrontedResourceBrowserProvider
                 SelectedPath = $"Resources/{Path.GetFileName(path)}",
                 FilePath = path,
                 Category = "BuiltInResources",
-                Thumbnail = LoadThumbnail(path)
+                Thumbnail = LoadThumbnail(path, _imageSafetyService)
             })
             .ToArray();
     }
@@ -77,16 +89,25 @@ public sealed class FrontedResourceBrowserProvider
             SelectedPath = path,
             FilePath = path,
             Category = "AbsoluteFile",
-            Thumbnail = LoadThumbnail(path),
+            Thumbnail = LoadThumbnail(path, _imageSafetyService),
             IsAbsoluteFile = true
         };
 
     public static bool IsSupportedImage(string path) =>
         SupportedImageExtensions.Contains(Path.GetExtension(path), StringComparer.OrdinalIgnoreCase);
 
-    public static ImageSource? LoadThumbnail(string? path)
+    public static ImageSource? LoadThumbnail(string? path) =>
+        LoadThumbnail(path, new FrontedImageSafetyService());
+
+    public static ImageSource? LoadThumbnail(string? path, IFrontedImageSafetyService imageSafetyService)
     {
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+        {
+            return null;
+        }
+
+        var validation = imageSafetyService.ValidateFile(path, FrontedImagePurpose.PreviewThumbnail);
+        if (!validation.IsValid)
         {
             return null;
         }

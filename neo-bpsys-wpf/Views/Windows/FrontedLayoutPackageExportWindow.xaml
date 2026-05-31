@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:limits="clr-namespace:neo_bpsys_wpf.Core.Services.FrontedLayout;assembly=neo-bpsys-wpf.Core"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     Title="{lex:Loc ExportPackageDialogTitle}"
     Width="640"
@@ -54,10 +55,10 @@
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc PackageId}" />
-                <ui:TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,10" Text="{Binding PackageId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <ui:TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,10" MaxLength="{x:Static limits:FrontedLayoutLimits.MaxPackageIdLength}" Text="{Binding PackageId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                 <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc PackageName}" />
-                <ui:TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,10" Text="{Binding PackageName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <ui:TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,10" MaxLength="{x:Static limits:FrontedLayoutLimits.MaxPackageNameLength}" Text="{Binding PackageName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                 <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Top" Text="{lex:Loc PackageDescription}" />
                 <ui:TextBox
@@ -66,14 +67,15 @@
                     MinHeight="84"
                     Margin="0,0,0,10"
                     AcceptsReturn="True"
+                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxPackageDescriptionLength}"
                     Text="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     TextWrapping="Wrap" />
 
                 <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc PackageAuthor}" />
-                <ui:TextBox Grid.Row="3" Grid.Column="1" Margin="0,0,0,10" Text="{Binding Author, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <ui:TextBox Grid.Row="3" Grid.Column="1" Margin="0,0,0,10" MaxLength="{x:Static limits:FrontedLayoutLimits.MaxPackageAuthorLength}" Text="{Binding Author, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                 <TextBlock Grid.Row="4" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc PackageMinVersion}" />
-                <ui:TextBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,10" Text="{Binding MinVersion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <ui:TextBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,10" MaxLength="{x:Static limits:FrontedLayoutLimits.MaxPackageMinVersionLength}" Text="{Binding MinVersion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                 <TextBlock Grid.Row="5" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc OutputPath}" />
                 <Grid Grid.Row="5" Grid.Column="1" Margin="0,0,0,10">

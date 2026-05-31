@@ -44,6 +44,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly Dictionary<string, string> _propertyEditBuffers = new(StringComparer.Ordinal);
     private readonly Stack<string> _undoStack = new();
     private readonly Stack<string> _redoStack = new();
+    private FrontedControlDesignItem? _copiedControl;
     private IReadOnlyList<FrontedLayoutValidationMessage> _lastValidationMessages = [];
     private bool _isChangingZoomPreset;
     private bool _isRebuildingPropertyGrid;
@@ -208,6 +209,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public bool CanDeleteSelectedControl =>
         SelectedDesignItem is { IsSelectableInEditor: true, IsEditableInEditor: true };
 
+    public bool CanCopySelectedControl => CanCopyControl(SelectedDesignItem);
+
+    public bool CanPasteControl => CurrentDocument is not null && _copiedControl is not null;
+
     public bool CanUndo => _undoStack.Count > 0;
 
     public bool CanRedo => _redoStack.Count > 0;
@@ -306,6 +311,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RebuildPropertyEditorItems();
         UpdateFitZoomFromCurrentDocument();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
+        CopySelectedControlCommand.NotifyCanExecuteChanged();
+        PasteControlCommand.NotifyCanExecuteChanged();
         NotifyLayoutCommandState();
     }
 
@@ -336,10 +343,19 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RefreshSelectedControlDisplay();
         RebuildPropertyEditorItems();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
+        CopySelectedControlCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnControlFilterTextChanged(string value)
     {
+        var clamped = FrontedTextLimitHelper.Clamp(value, FrontedLayoutLimits.MaxSearchTextLength);
+        if (!string.Equals(value, clamped, StringComparison.Ordinal))
+        {
+            ControlFilterText = clamped;
+            StatusMessage = I18nHelper.GetLocalizedString("InputTruncated");
+            return;
+        }
+
         RebuildFilteredDesignItems();
     }
 
@@ -666,6 +682,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
+        if (CurrentDocument.Controls.Count >= FrontedLayoutLimits.MaxControlsPerCanvas)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("ControlCountLimitReached");
+            return;
+        }
+
         CaptureUndoSnapshot();
         var config = _defaultConfigFactory.Create(
             controlType,
@@ -694,6 +716,62 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ValidateCurrentDocument();
         RequestPreviewRenderCurrentDocument();
         StatusMessage = $"{I18nHelper.GetLocalizedString("AddedControl")}: {item.Name}";
+    }
+
+    [RelayCommand(CanExecute = nameof(CanCopySelectedControl))]
+    private void CopySelectedControl()
+    {
+        if (!CanCopyControl(SelectedDesignItem))
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("CannotCopyControl");
+            return;
+        }
+
+        _copiedControl = SelectedDesignItem;
+        PasteControlCommand.NotifyCanExecuteChanged();
+        StatusMessage = I18nHelper.GetLocalizedString("CopyControl");
+    }
+
+    [RelayCommand(CanExecute = nameof(CanPasteControl))]
+    private void PasteControl()
+    {
+        if (CurrentDocument is null || _copiedControl is null)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("CannotPasteControl");
+            return;
+        }
+
+        if (CurrentDocument.Controls.Count >= FrontedLayoutLimits.MaxControlsPerCanvas)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("ControlCountLimitReached");
+            return;
+        }
+
+        var clonedConfig = CloneControlConfig(_copiedControl.Config);
+        clonedConfig.Left += 10D;
+        clonedConfig.Top += 10D;
+        clonedConfig.ZIndex = CurrentDocument.Controls.Count == 0
+            ? clonedConfig.ZIndex
+            : CurrentDocument.Controls.Max(control => control.Config.ZIndex) + 1;
+
+        var item = new FrontedControlDesignItem
+        {
+            Name = GeneratePasteName(_copiedControl.Name, CurrentDocument),
+            Config = clonedConfig,
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true
+        };
+
+        CaptureUndoSnapshot();
+        CurrentDocument.Controls.Add(item);
+        CurrentDocument.IsDirty = true;
+        RefreshDirtyState();
+        ControlFilterText = string.Empty;
+        RebuildFilteredDesignItems();
+        SelectDesignItem(item);
+        ValidateCurrentDocument();
+        RequestPreviewRenderCurrentDocument();
+        StatusMessage = $"{I18nHelper.GetLocalizedString("PasteControl")}: {item.Name}";
     }
 
     [RelayCommand(CanExecute = nameof(CanDeleteSelectedControl))]
@@ -785,7 +863,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
-        var normalizedValue = string.IsNullOrWhiteSpace(backgroundImage) ? null : backgroundImage.Trim();
+        var rawValue = string.IsNullOrWhiteSpace(backgroundImage) ? null : backgroundImage.Trim();
+        var normalizedValue = rawValue is null
+            ? null
+            : FrontedTextLimitHelper.Clamp(rawValue, FrontedLayoutLimits.MaxResourcePathLength);
+        if (!string.Equals(rawValue, normalizedValue, StringComparison.Ordinal))
+        {
+            CanvasPropertiesStatus = I18nHelper.GetLocalizedString("InputTruncated");
+        }
+
         if (string.Equals(CurrentDocument.CanvasConfig.BackgroundImage, normalizedValue, StringComparison.Ordinal))
         {
             BackgroundImageEditText = normalizedValue ?? string.Empty;
@@ -1032,7 +1118,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
-        if (!TryConvertPropertyValue(property, newValue, out var convertedValue, out var errorMessage))
+        var commitValue = ClampEditorPropertyValue(item.PropertyName, SelectedDesignItem.Config.ControlType, newValue, out var wasClamped);
+        if (!TryConvertPropertyValue(property, commitValue, out var convertedValue, out var errorMessage))
         {
             SetPropertyEditError(item, errorMessage, newValue);
             return false;
@@ -1059,6 +1146,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         FinishPropertyEdit(item.PropertyName);
+        if (wasClamped)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("InputTruncated");
+        }
+
         return true;
     }
 
@@ -1081,7 +1173,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         var oldName = SelectedDesignItem.Name;
-        var newName = Convert.ToString(newValue, CultureInfo.InvariantCulture)?.Trim() ?? string.Empty;
+        var rawName = Convert.ToString(newValue, CultureInfo.InvariantCulture)?.Trim() ?? string.Empty;
+        var newName = FrontedTextLimitHelper.Clamp(rawName, FrontedLayoutLimits.MaxControlNameLength);
+        var wasClamped = !string.Equals(rawName, newName, StringComparison.Ordinal);
         if (oldName == newName)
         {
             ClearPropertyEditError(item.PropertyName);
@@ -1126,6 +1220,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         item.EditText = newName;
         CurrentDocument.IsDirty = true;
         FinishPropertyEdit(item.PropertyName);
+        if (wasClamped)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("InputTruncated");
+        }
+
         return true;
     }
 
@@ -1171,9 +1270,29 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         _lastValidationMessages = messages;
         ValidationMessages.Clear();
-        foreach (var message in messages)
+        foreach (var message in messages.Take(FrontedLayoutLimits.MaxValidationMessagesShown))
         {
-            ValidationMessages.Add(message);
+            ValidationMessages.Add(new FrontedLayoutValidationMessage
+            {
+                Severity = message.Severity,
+                Code = message.Code,
+                ControlName = message.ControlName,
+                PropertyName = message.PropertyName,
+                Message = FrontedTextLimitHelper.Clamp(
+                    message.Message,
+                    FrontedLayoutLimits.MaxValidationMessageLength)
+            });
+        }
+
+        if (messages.Count > FrontedLayoutLimits.MaxValidationMessagesShown)
+        {
+            ValidationMessages.Add(CreateMessage(
+                FrontedLayoutValidationSeverity.Info,
+                "ValidationMessagesTruncated",
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    I18nHelper.GetLocalizedString("ValidationMessagesTruncated"),
+                    messages.Count - FrontedLayoutLimits.MaxValidationMessagesShown)));
         }
 
         ErrorCount = messages.Count(message => message.Severity == FrontedLayoutValidationSeverity.Error);
@@ -1503,6 +1622,65 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         return JsonSerializer.Serialize(_designConverter.ToConfig(CurrentDocument));
+    }
+
+    private static bool CanCopyControl(FrontedControlDesignItem? item)
+    {
+        return item is
+        {
+            IsSelectableInEditor: true,
+            IsEditableInEditor: true,
+            IsRuntimeCritical: false
+        } && item.Config is not PickingBorderOverlayControlConfig;
+    }
+
+    private static FrontedControlConfigBase CloneControlConfig(FrontedControlConfigBase config)
+    {
+        var json = JsonSerializer.Serialize(config, config.GetType());
+        return (FrontedControlConfigBase?)JsonSerializer.Deserialize(json, config.GetType())
+               ?? throw new InvalidOperationException("Failed to clone control config.");
+    }
+
+    private static string GeneratePasteName(string sourceName, FrontedCanvasDesignDocument document)
+    {
+        var match = Regex.Match(sourceName, "^(.*?)(\\d+)$", RegexOptions.CultureInvariant);
+        var baseName = match.Success ? match.Groups[1].Value : sourceName;
+        var index = match.Success && int.TryParse(match.Groups[2].Value, out var parsed) ? parsed + 1 : 1;
+        var existingNames = document.Controls.Select(control => control.Name).ToHashSet(StringComparer.Ordinal);
+
+        while (true)
+        {
+            var candidate = FrontedTextLimitHelper.Clamp($"{baseName}{index}", FrontedLayoutLimits.MaxControlNameLength);
+            if (!existingNames.Contains(candidate) && ValidControlNameRegex.IsMatch(candidate))
+            {
+                return candidate;
+            }
+
+            index++;
+        }
+    }
+
+    private static object? ClampEditorPropertyValue(
+        string propertyName,
+        string? controlType,
+        object? newValue,
+        out bool wasClamped)
+    {
+        wasClamped = false;
+        if (newValue is not string text)
+        {
+            return newValue;
+        }
+
+        var maxLength = FrontedTextLimitHelper.GetMaxLengthForProperty(propertyName, controlType);
+        if (maxLength == int.MaxValue)
+        {
+            return newValue;
+        }
+
+        var clamped = FrontedTextLimitHelper.Clamp(text, maxLength);
+        wasClamped = !string.Equals(text, clamped, StringComparison.Ordinal);
+        return clamped;
     }
 
     private void RestoreSnapshot(string snapshot)

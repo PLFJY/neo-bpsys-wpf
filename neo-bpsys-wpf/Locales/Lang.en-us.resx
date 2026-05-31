@@ -2461,4 +2461,28 @@
   <data name="LegacyResourceCopied" xml:space="preserve"><value>Legacy resource copied</value></data>
   <data name="LegacyResourceMissing" xml:space="preserve"><value>Legacy resource missing</value></data>
   <data name="ActivateConvertedPackage" xml:space="preserve"><value>Activate the converted package now?</value></data>
+  <data name="InputTruncated" xml:space="preserve"><value>Input was truncated to the length limit</value></data>
+  <data name="InputTooLong" xml:space="preserve"><value>Input is too long</value></data>
+  <data name="ImageTooLarge" xml:space="preserve"><value>Image file is too large</value></data>
+  <data name="ImageTooManyPixels" xml:space="preserve"><value>Image dimensions are too large</value></data>
+  <data name="UnsupportedImageFormat" xml:space="preserve"><value>Unsupported image format</value></data>
+  <data name="PackageTooLarge" xml:space="preserve"><value>Package archive is too large</value></data>
+  <data name="PackageExtractedTooLarge" xml:space="preserve"><value>Extracted package content is too large</value></data>
+  <data name="PackageTooManyEntries" xml:space="preserve"><value>Package contains too many entries</value></data>
+  <data name="PackageEntryTooLarge" xml:space="preserve"><value>Package entry is too large</value></data>
+  <data name="ManifestTooLarge" xml:space="preserve"><value>manifest.json is too large</value></data>
+  <data name="LayoutJsonTooLarge" xml:space="preserve"><value>Layout JSON is too large</value></data>
+  <data name="WindowOptionsTooLarge" xml:space="preserve"><value>Window options JSON is too large</value></data>
+  <data name="TooManyControls" xml:space="preserve"><value>Too many controls on this canvas</value></data>
+  <data name="ControlCountLimitReached" xml:space="preserve"><value>Control count limit reached for this canvas</value></data>
+  <data name="ControlCountWarning" xml:space="preserve"><value>This canvas has many controls</value></data>
+  <data name="MaxControlsPerCanvas" xml:space="preserve"><value>Max controls per canvas</value></data>
+  <data name="ResourcePathTooLong" xml:space="preserve"><value>Resource path is too long</value></data>
+  <data name="TextTooLong" xml:space="preserve"><value>Text is too long</value></data>
+  <data name="BindingPathTooLong" xml:space="preserve"><value>Binding path is too long</value></data>
+  <data name="ValidationMessagesTruncated" xml:space="preserve"><value>and {0} more...</value></data>
+  <data name="CopyControl" xml:space="preserve"><value>Copy Control</value></data>
+  <data name="PasteControl" xml:space="preserve"><value>Paste Control</value></data>
+  <data name="CannotCopyControl" xml:space="preserve"><value>Cannot copy this control</value></data>
+  <data name="CannotPasteControl" xml:space="preserve"><value>Cannot paste control</value></data>
 </root>

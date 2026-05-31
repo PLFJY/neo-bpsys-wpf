@@ -53,6 +53,21 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _validationMessage = string.Empty;
 
+    partial void OnPackageIdChanged(string value) =>
+        ClampManifestField(nameof(PackageId), value, v => PackageId = v);
+
+    partial void OnPackageNameChanged(string value) =>
+        ClampManifestField("Name", value, v => PackageName = v);
+
+    partial void OnDescriptionChanged(string value) =>
+        ClampManifestField(nameof(Description), value, v => Description = v);
+
+    partial void OnAuthorChanged(string value) =>
+        ClampManifestField(nameof(Author), value, v => Author = v);
+
+    partial void OnMinVersionChanged(string value) =>
+        ClampManifestField(nameof(MinVersion), value, v => MinVersion = v);
+
     [RelayCommand]
     private void BrowseOutputPath()
     {
@@ -80,14 +95,25 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
 
         return new FrontedLayoutPackageExportRequest
         {
-            PackageId = PackageId.Trim(),
-            Name = PackageName.Trim(),
-            Description = Description.Trim(),
-            Author = Author.Trim(),
-            MinVersion = MinVersion.Trim(),
+            PackageId = FrontedTextLimitHelper.Clamp(PackageId.Trim(), FrontedLayoutLimits.MaxPackageIdLength),
+            Name = FrontedTextLimitHelper.Clamp(PackageName.Trim(), FrontedLayoutLimits.MaxPackageNameLength),
+            Description = FrontedTextLimitHelper.Clamp(Description.Trim(), FrontedLayoutLimits.MaxPackageDescriptionLength),
+            Author = FrontedTextLimitHelper.Clamp(Author.Trim(), FrontedLayoutLimits.MaxPackageAuthorLength),
+            MinVersion = FrontedTextLimitHelper.Clamp(MinVersion.Trim(), FrontedLayoutLimits.MaxPackageMinVersionLength),
             ExportScope = FrontedLayoutPackageExportScope.AllFrontendLayouts,
             OutputPath = OutputPath.Trim()
         };
+    }
+
+    private void ClampManifestField(string fieldName, string value, Action<string> setValue)
+    {
+        var maxLength = FrontedTextLimitHelper.GetMaxLengthForManifestField(fieldName);
+        var clamped = FrontedTextLimitHelper.Clamp(value, maxLength);
+        if (!string.Equals(value, clamped, StringComparison.Ordinal))
+        {
+            setValue(clamped);
+            ValidationMessage = I18nHelper.GetLocalizedString("InputTruncated");
+        }
     }
 
     private string Validate()
@@ -105,6 +131,11 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
         if (string.IsNullOrWhiteSpace(OutputPath))
         {
             return I18nHelper.GetLocalizedString("OutputPathRequired");
+        }
+
+        if (FrontedTextLimitHelper.IsTooLong(OutputPath, FrontedLayoutLimits.MaxResourcePathLength))
+        {
+            return I18nHelper.GetLocalizedString("ResourcePathTooLong");
         }
 
         if (!string.Equals(Path.GetExtension(OutputPath), ".bpui", StringComparison.OrdinalIgnoreCase))

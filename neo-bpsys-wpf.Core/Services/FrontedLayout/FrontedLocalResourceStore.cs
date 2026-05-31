@@ -26,15 +26,27 @@ public class FrontedLocalResourceStore : IFrontedLocalResourceStore
     };
 
     private readonly string _imagesFolder;
+    private readonly IFrontedImageSafetyService _imageSafetyService;
 
     public FrontedLocalResourceStore()
         : this(AppConstants.FrontedLayoutLocalImagesPath)
     {
     }
 
+    public FrontedLocalResourceStore(IFrontedImageSafetyService imageSafetyService)
+        : this(AppConstants.FrontedLayoutLocalImagesPath, imageSafetyService)
+    {
+    }
+
     public FrontedLocalResourceStore(string imagesFolder)
+        : this(imagesFolder, new FrontedImageSafetyService())
+    {
+    }
+
+    public FrontedLocalResourceStore(string imagesFolder, IFrontedImageSafetyService imageSafetyService)
     {
         _imagesFolder = imagesFolder;
+        _imageSafetyService = imageSafetyService;
     }
 
     public string StoreImage(string sourcePath)
@@ -54,6 +66,18 @@ public class FrontedLocalResourceStore : IFrontedLocalResourceStore
         if (!SupportedImageExtensions.Contains(extension))
         {
             throw new NotSupportedException($"Unsupported image extension: {extension}");
+        }
+
+        var validation = _imageSafetyService.ValidateFile(fullSourcePath, FrontedImagePurpose.Background);
+        if (!validation.IsValid)
+        {
+            throw validation.ErrorCode switch
+            {
+                "ImageTooLarge" => new InvalidDataException("ImageTooLarge"),
+                "ImageTooManyPixels" => new InvalidDataException("ImageTooManyPixels"),
+                "UnsupportedImageFormat" => new NotSupportedException("UnsupportedImageFormat"),
+                _ => new InvalidDataException(validation.ErrorMessage ?? "Image validation failed.")
+            };
         }
 
         Directory.CreateDirectory(_imagesFolder);

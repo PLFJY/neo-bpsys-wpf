@@ -15,7 +15,8 @@ public class FrontedUserLayoutStore : IFrontedUserLayoutStore
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         WriteIndented = true,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        MaxDepth = FrontedLayoutLimits.MaxJsonDepth
     };
 
     public FrontedUserLayoutStore()
@@ -42,6 +43,11 @@ public class FrontedUserLayoutStore : IFrontedUserLayoutStore
         if (!File.Exists(path))
         {
             return null;
+        }
+
+        if (new FileInfo(path).Length > FrontedLayoutLimits.MaxLayoutJsonBytes)
+        {
+            throw new InvalidDataException("LayoutJsonTooLarge");
         }
 
         var json = await File.ReadAllTextAsync(path, cancellationToken);

@@ -61,7 +61,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     {
         WriteIndented = true,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        MaxDepth = FrontedLayoutLimits.MaxJsonDepth
     };
 
     public FrontedLayoutPackageLegacyConverter(
@@ -263,6 +264,11 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             throw new FileNotFoundException($"Built-in v3 layout was not found: {window}/{canvas}", path);
         }
 
+        if (new FileInfo(path).Length > FrontedLayoutLimits.MaxLayoutJsonBytes)
+        {
+            throw new InvalidDataException("LayoutJsonTooLarge");
+        }
+
         var json = await File.ReadAllTextAsync(path, cancellationToken);
         return JsonSerializer.Deserialize<FrontedCanvasConfig>(json, _jsonOptions)
                ?? throw new InvalidOperationException($"Built-in v3 layout could not be read: {window}/{canvas}");
@@ -276,9 +282,19 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         Dictionary<string, ElementInfo>? legacyPositions;
         try
         {
+            if (new FileInfo(legacyFile).Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
+            {
+                warnings.Add($"Legacy layout file is too large and was skipped: {Path.GetFileName(legacyFile)}");
+                return;
+            }
+
             legacyPositions = JsonSerializer.Deserialize<Dictionary<string, ElementInfo>>(
                 File.ReadAllText(legacyFile),
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    MaxDepth = FrontedLayoutLimits.MaxJsonDepth
+                });
         }
         catch (Exception ex)
         {
@@ -376,7 +392,16 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         JsonNode? root;
         try
         {
-            root = JsonNode.Parse(File.ReadAllText(configPath));
+            if (new FileInfo(configPath).Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
+            {
+                warnings.Add("Legacy Config.json is too large; frontend image settings were ignored.");
+                return result;
+            }
+
+            root = JsonNode.Parse(
+                File.ReadAllText(configPath),
+                nodeOptions: null,
+                documentOptions: new JsonDocumentOptions { MaxDepth = FrontedLayoutLimits.MaxJsonDepth });
         }
         catch (Exception ex)
         {
@@ -646,10 +671,32 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
     private static void ExtractZipSafely(string zipPath, string stagingRoot)
     {
+        if (new FileInfo(zipPath).Length > FrontedLayoutLimits.MaxPackageArchiveBytes)
+        {
+            throw new InvalidDataException("PackageTooLarge");
+        }
+
         var fullStagingRoot = EnsureTrailingSeparator(Path.GetFullPath(stagingRoot));
         using var archive = ZipFile.OpenRead(zipPath);
+        if (archive.Entries.Count > FrontedLayoutLimits.MaxPackageEntries)
+        {
+            throw new InvalidDataException("PackageTooManyEntries");
+        }
+
+        long totalUncompressedBytes = 0;
         foreach (var entry in archive.Entries)
         {
+            if (entry.Length > FrontedLayoutLimits.MaxPackageSingleEntryBytes)
+            {
+                throw new InvalidDataException("PackageEntryTooLarge");
+            }
+
+            totalUncompressedBytes += entry.Length;
+            if (totalUncompressedBytes > FrontedLayoutLimits.MaxPackageExtractedBytes)
+            {
+                throw new InvalidDataException("PackageExtractedTooLarge");
+            }
+
             var entryName = entry.FullName.Replace('\\', '/');
             if (string.IsNullOrWhiteSpace(entryName)
                 || Path.IsPathRooted(entryName)

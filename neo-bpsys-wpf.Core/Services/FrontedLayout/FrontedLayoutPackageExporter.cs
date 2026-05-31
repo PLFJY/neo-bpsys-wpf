@@ -46,10 +46,12 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
     private readonly string _packageRoot;
     private readonly string _tempRoot;
     private readonly ILogger<FrontedLayoutPackageExporter> _logger;
+    private readonly IFrontedImageSafetyService _imageSafetyService;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         WriteIndented = true,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        MaxDepth = FrontedLayoutLimits.MaxJsonDepth
     };
 
     public FrontedLayoutPackageExporter(
@@ -81,6 +83,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         _packageRoot = packageRoot;
         _tempRoot = tempRoot;
         _logger = logger ?? NullLogger<FrontedLayoutPackageExporter>.Instance;
+        _imageSafetyService = new FrontedImageSafetyService();
     }
 
     public async Task<FrontedLayoutPackageExportResult> ExportAsync(
@@ -323,6 +326,19 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
 
         var extension = Path.GetExtension(fullSourcePath);
         var kind = GetResourceKind(originalRelativePath, extension);
+        if (string.Equals(kind, "Image", StringComparison.Ordinal))
+        {
+            var validation = _imageSafetyService.ValidateFile(
+                fullSourcePath,
+                FrontedImagePurpose.PackageResource,
+                knownBackgroundImage: originalRelativePath?.Contains("Background", StringComparison.OrdinalIgnoreCase) == true,
+                knownUiImage: false);
+            if (!validation.IsValid)
+            {
+                throw new InvalidDataException(validation.ErrorCode ?? "InvalidImageResource");
+            }
+        }
+
         var folder = kind switch
         {
             "Font" => "fonts",

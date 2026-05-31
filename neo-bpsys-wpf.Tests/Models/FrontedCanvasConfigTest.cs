@@ -1536,7 +1536,7 @@ public class FrontedCanvasConfigTest
         try
         {
             var source = Path.Combine(root, "bad name .. image.png");
-            File.WriteAllBytes(source, [1, 2, 3, 4]);
+            WriteTinyPng(source);
             var store = new FrontedLocalResourceStore(Path.Combine(root, "local", "resources", "images"));
 
             var uri = store.StoreImage(source);
@@ -1643,6 +1643,14 @@ public class FrontedCanvasConfigTest
         var path = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf-tests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(path);
         return path;
+    }
+
+    private static void WriteTinyPng(string path)
+    {
+        File.WriteAllBytes(
+            path,
+            Convert.FromBase64String(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="));
     }
 
     private static void RunOnStaThread(Action action)

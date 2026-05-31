@@ -686,6 +686,10 @@ v3 `.bpui` 包不得包含：
 
 layout 层校验仍应遵守现有 Designer v3 规则：Canvas 尺寸必须有效，`Version` 必须为 3，root-level 控件 key 是控件名，运行时关键控件名不能静默丢失。
 
+Phase 10 起，导入器增加硬安全限制：`.bpui` 压缩包最大 50 MiB，解压后总大小最大 100 MiB，单 entry 最大 10 MiB，entry 数最多 1000；`manifest.json` 最大 256 KiB，layout JSON 最大 2 MiB，`window.json` 最大 64 KiB，JSON 最大深度为 32。外部导入的 manifest/layout/window 字符串超长或 Canvas 控件数超过 256 会拒绝导入，不会静默截断或丢弃控件。Canvas 控件数达到 160 开始给出 warning。
+
+图片资源在复制或导入前会校验扩展名、文件大小和像素尺寸。Canvas 背景图限制为 1 MiB、长边 4096、像素 4096×4096；普通 UI 图片限制为 512 KiB、长边 2048、像素 2048×2048；包内未知用途图片按包资源入口限制处理并仍需能安全解码。超限图片会整体拒绝，不会复制进包或生成 `bpui://` URI。
+
 ## 22. legacy 关系和迁移路线图
 
 旧 SettingPage `.bpui` 导入导出是 legacy。新的 v3 package manager 将替代它用于 Designer v3 布局。

@@ -20,7 +20,8 @@ public class FrontedWindowLayoutOptionsService : IFrontedWindowLayoutOptionsServ
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         WriteIndented = true,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        MaxDepth = FrontedLayoutLimits.MaxJsonDepth
     };
 
     public FrontedWindowLayoutOptionsService()
@@ -43,6 +44,11 @@ public class FrontedWindowLayoutOptionsService : IFrontedWindowLayoutOptionsServ
 
         try
         {
+            if (new FileInfo(path).Length > FrontedLayoutLimits.MaxWindowOptionsJsonBytes)
+            {
+                return new FrontedWindowLayoutOptions();
+            }
+
             var json = File.ReadAllText(path);
             return JsonSerializer.Deserialize<FrontedWindowLayoutOptions>(json, _jsonSerializerOptions)
                    ?? new FrontedWindowLayoutOptions();

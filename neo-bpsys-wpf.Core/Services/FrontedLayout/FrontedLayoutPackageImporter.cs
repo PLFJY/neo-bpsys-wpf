@@ -3,6 +3,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using System.IO;
 using System.IO.Compression;
@@ -18,9 +19,12 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     private readonly string _tempRoot;
     private readonly IFrontedLayoutPackageManager? _packageManager;
     private readonly ILogger<FrontedLayoutPackageImporter> _logger;
+    private readonly FrontedLayoutValidator _validator;
+    private readonly IFrontedImageSafetyService _imageSafetyService;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        MaxDepth = FrontedLayoutLimits.MaxJsonDepth
     };
 
     public FrontedLayoutPackageImporter(
@@ -44,6 +48,8 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         _tempRoot = tempRoot;
         _packageManager = packageManager;
         _logger = logger ?? NullLogger<FrontedLayoutPackageImporter>.Instance;
+        _validator = new FrontedLayoutValidator();
+        _imageSafetyService = new FrontedImageSafetyService();
     }
 
     public async Task<FrontedLayoutPackageImportResult> ImportAsync(
@@ -56,6 +62,11 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             if (string.IsNullOrWhiteSpace(request.PackagePath) || !File.Exists(request.PackagePath))
             {
                 return Fail("Package archive was not found.");
+            }
+
+            if (new FileInfo(request.PackagePath).Length > FrontedLayoutLimits.MaxPackageArchiveBytes)
+            {
+                return Fail("PackageTooLarge");
             }
 
             Directory.CreateDirectory(stagingRoot);
@@ -72,6 +83,11 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             FrontedLayoutPackageManifest? manifest;
             try
             {
+                if (new FileInfo(manifestPath).Length > FrontedLayoutLimits.MaxManifestBytes)
+                {
+                    return Fail("ManifestTooLarge");
+                }
+
                 var json = await File.ReadAllTextAsync(manifestPath, cancellationToken);
                 manifest = JsonSerializer.Deserialize<FrontedLayoutPackageManifest>(json, _jsonSerializerOptions);
             }
@@ -172,6 +188,12 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             return Fail("PackageId is invalid.");
         }
 
+        var manifestLimitError = ValidateManifestTextLengths(manifest);
+        if (!string.IsNullOrWhiteSpace(manifestLimitError))
+        {
+            return Fail(manifestLimitError);
+        }
+
         if (manifest.LayoutSchemaVersion != 3)
         {
             return Fail("Layout schema version is not supported.");
@@ -200,6 +222,16 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             return Fail("Package contains no layouts.");
         }
 
+        if (manifest.Content.Layouts.Count > FrontedLayoutLimits.MaxLayoutsPerPackage)
+        {
+            return Fail("TooManyLayouts");
+        }
+
+        if (manifest.Content.Resources.Count > FrontedLayoutLimits.MaxResourcesPerPackage)
+        {
+            return Fail("TooManyResources");
+        }
+
         foreach (var layout in manifest.Content.Layouts)
         {
             if (!IsSafeRelativePath(layout.Path)
@@ -215,10 +247,18 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                 return Fail($"Layout file is missing: {layout.Path}");
             }
 
+            if (new FileInfo(layoutPath).Length > FrontedLayoutLimits.MaxLayoutJsonBytes)
+            {
+                return Fail("LayoutJsonTooLarge");
+            }
+
             JsonNode? node;
             try
             {
-                node = JsonNode.Parse(await File.ReadAllTextAsync(layoutPath, cancellationToken));
+                node = JsonNode.Parse(
+                    await File.ReadAllTextAsync(layoutPath, cancellationToken),
+                    nodeOptions: null,
+                    documentOptions: new JsonDocumentOptions { MaxDepth = FrontedLayoutLimits.MaxJsonDepth });
             }
             catch (Exception ex)
             {
@@ -238,6 +278,30 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             {
                 return Fail(resourceError);
             }
+
+            try
+            {
+                var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+                    await File.ReadAllTextAsync(layoutPath, cancellationToken),
+                    _jsonSerializerOptions);
+                if (config is null)
+                {
+                    return Fail($"Layout JSON is invalid: {layout.Path}");
+                }
+
+                var validationMessages = _validator.Validate(layout.Window, layout.Canvas, config);
+                var error = validationMessages.FirstOrDefault(message =>
+                    message.Severity == global::neo_bpsys_wpf.Core.Models.FrontedLayout.Designer.FrontedLayoutValidationSeverity.Error
+                    && !string.Equals(message.Code, "RuntimeCriticalRenameOrDelete", StringComparison.Ordinal));
+                if (error is not null)
+                {
+                    return Fail($"Layout validation failed: {layout.Path}; {error.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                return Fail($"Layout JSON is invalid: {layout.Path}; {ex.Message}");
+            }
         }
 
         foreach (var resource in manifest.Content.Resources)
@@ -247,13 +311,54 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                 return Fail("Resource path is not safe.");
             }
 
-            if (!File.Exists(CombineInsideRoot(stagingRoot, resource.Path)))
+            var resourcePath = CombineInsideRoot(stagingRoot, resource.Path);
+            if (!File.Exists(resourcePath))
             {
                 return Fail($"Missing package resource: {resource.Path}");
+            }
+
+            if (IsImageResource(resource.Path))
+            {
+                var validation = _imageSafetyService.ValidateFile(
+                    resourcePath,
+                    FrontedImagePurpose.PackageResource,
+                    knownBackgroundImage: false,
+                    knownUiImage: false);
+                if (!validation.IsValid)
+                {
+                    return Fail(validation.ErrorCode ?? "InvalidImageResource");
+                }
             }
         }
 
         return new FrontedLayoutPackageImportResult { Success = true };
+    }
+
+    private static string? ValidateManifestTextLengths(FrontedLayoutPackageManifest manifest)
+    {
+        if (FrontedTextLimitHelper.IsTooLong(manifest.PackageId, FrontedLayoutLimits.MaxPackageIdLength))
+        {
+            return "InputTooLong: PackageId";
+        }
+
+        if (FrontedTextLimitHelper.IsTooLong(manifest.Name, FrontedLayoutLimits.MaxPackageNameLength))
+        {
+            return "InputTooLong: Name";
+        }
+
+        if (FrontedTextLimitHelper.IsTooLong(manifest.Author, FrontedLayoutLimits.MaxPackageAuthorLength))
+        {
+            return "InputTooLong: Author";
+        }
+
+        if (FrontedTextLimitHelper.IsTooLong(manifest.MinVersion, FrontedLayoutLimits.MaxPackageMinVersionLength))
+        {
+            return "InputTooLong: MinVersion";
+        }
+
+        return FrontedTextLimitHelper.IsTooLong(manifest.Description, FrontedLayoutLimits.MaxPackageDescriptionLength)
+            ? "InputTooLong: Description"
+            : null;
     }
 
     private static string? ValidateLayoutResourceReferences(JsonNode node, string stagingRoot, string packageId)
@@ -369,10 +474,32 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
 
     private static void ExtractZipSafely(string zipPath, string stagingRoot)
     {
+        if (new FileInfo(zipPath).Length > FrontedLayoutLimits.MaxPackageArchiveBytes)
+        {
+            throw new InvalidDataException("PackageTooLarge");
+        }
+
         var fullStagingRoot = EnsureTrailingSeparator(Path.GetFullPath(stagingRoot));
         using var archive = ZipFile.OpenRead(zipPath);
+        if (archive.Entries.Count > FrontedLayoutLimits.MaxPackageEntries)
+        {
+            throw new InvalidDataException("PackageTooManyEntries");
+        }
+
+        long totalUncompressedBytes = 0;
         foreach (var entry in archive.Entries)
         {
+            if (entry.Length > FrontedLayoutLimits.MaxPackageSingleEntryBytes)
+            {
+                throw new InvalidDataException("PackageEntryTooLarge");
+            }
+
+            totalUncompressedBytes += entry.Length;
+            if (totalUncompressedBytes > FrontedLayoutLimits.MaxPackageExtractedBytes)
+            {
+                throw new InvalidDataException("PackageExtractedTooLarge");
+            }
+
             var entryName = entry.FullName.Replace('\\', '/');
             if (string.IsNullOrWhiteSpace(entryName)
                 || Path.IsPathRooted(entryName)
@@ -396,6 +523,20 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
             entry.ExtractToFile(destinationPath, overwrite: false);
         }
+    }
+
+    private static bool IsImageResource(string path)
+    {
+        return path.StartsWith("resources/images/", StringComparison.OrdinalIgnoreCase)
+               || path.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+               || path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+               || path.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase)
+               || path.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase)
+               || path.EndsWith(".gif", StringComparison.OrdinalIgnoreCase)
+               || path.EndsWith(".webp", StringComparison.OrdinalIgnoreCase)
+               || path.EndsWith(".ico", StringComparison.OrdinalIgnoreCase)
+               || path.EndsWith(".tif", StringComparison.OrdinalIgnoreCase)
+               || path.EndsWith(".tiff", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool DetectLegacyPackage(string root)

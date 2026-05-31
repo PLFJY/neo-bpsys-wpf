@@ -30,7 +30,8 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
     {
         WriteIndented = true,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        MaxDepth = FrontedLayoutLimits.MaxJsonDepth
     };
 
     public FrontedLayoutPackageManager()
@@ -264,8 +265,17 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
 
         try
         {
+            if (new FileInfo(manifestPath).Length > FrontedLayoutLimits.MaxManifestBytes)
+            {
+                info.ValidationStatus = FrontedLayoutPackageValidationStatus.Error;
+                info.ValidationMessage = "ManifestTooLarge";
+                return info;
+            }
+
             var json = await File.ReadAllTextAsync(manifestPath, cancellationToken);
-            using var document = JsonDocument.Parse(json);
+            using var document = JsonDocument.Parse(
+                json,
+                new JsonDocumentOptions { MaxDepth = FrontedLayoutLimits.MaxJsonDepth });
             ApplyManifest(info, document.RootElement);
         }
         catch (Exception ex)

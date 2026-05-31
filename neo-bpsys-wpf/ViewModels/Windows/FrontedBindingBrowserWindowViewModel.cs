@@ -61,6 +61,13 @@ public partial class FrontedBindingBrowserWindowViewModel : ViewModelBase
 
     partial void OnSearchTextChanged(string value)
     {
+        var clamped = FrontedTextLimitHelper.Clamp(value, FrontedLayoutLimits.MaxSearchTextLength);
+        if (!string.Equals(value, clamped, StringComparison.Ordinal))
+        {
+            SearchText = clamped;
+            return;
+        }
+
         RefreshSearchResults();
         OnPropertyChanged(nameof(HasSearchText));
         OnPropertyChanged(nameof(HasNoResults));

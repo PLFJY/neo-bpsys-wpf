@@ -20,7 +20,8 @@ public class FrontedLayoutService : IFrontedLayoutService
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         WriteIndented = true,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        MaxDepth = FrontedLayoutLimits.MaxJsonDepth
     };
 
     public FrontedLayoutService()
@@ -203,6 +204,11 @@ public class FrontedLayoutService : IFrontedLayoutService
         string path,
         CancellationToken cancellationToken)
     {
+        if (new FileInfo(path).Length > FrontedLayoutLimits.MaxLayoutJsonBytes)
+        {
+            throw new InvalidDataException("LayoutJsonTooLarge");
+        }
+
         var json = await File.ReadAllTextAsync(path, cancellationToken);
         return JsonSerializer.Deserialize<FrontedCanvasConfig>(json, _jsonSerializerOptions);
     }

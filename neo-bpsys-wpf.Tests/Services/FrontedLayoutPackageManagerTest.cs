@@ -284,8 +284,9 @@ public class FrontedLayoutPackageManagerTest
             var localImagePath = Path.Combine(packageRoot, "local", "resources", "images", "local.png");
             var absoluteImagePath = Path.Combine(root, "absolute.png");
             Directory.CreateDirectory(Path.GetDirectoryName(localImagePath)!);
-            File.WriteAllBytes(localImagePath, [1, 2, 3]);
-            File.WriteAllBytes(absoluteImagePath, [4, 5, 6]);
+            WriteTinyPng(localImagePath);
+            WriteTinyPng(absoluteImagePath);
+            File.AppendAllBytes(absoluteImagePath, [0]);
 
             var catalog = new FrontedDesignerLayoutCatalog();
             WriteCatalogLayouts(
@@ -1065,7 +1066,7 @@ public class FrontedLayoutPackageManagerTest
         {
             var resource = archive.CreateEntry("resources/images/bg.png");
             using var stream = resource.Open();
-            stream.Write([1, 2, 3]);
+            stream.Write(TinyPngBytes);
         }
     }
 
@@ -1100,7 +1101,7 @@ public class FrontedLayoutPackageManagerTest
         {
             var resource = archive.CreateEntry("CustomUi/bg.png");
             using var stream = resource.Open();
-            stream.Write([1, 2, 3]);
+            stream.Write(TinyPngBytes);
         }
 
         if (includeKnownLayout)
@@ -1170,6 +1171,15 @@ public class FrontedLayoutPackageManagerTest
     private static string JsonEncodedText(string value)
     {
         return value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal);
+    }
+
+    private static byte[] TinyPngBytes =>
+        Convert.FromBase64String(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=");
+
+    private static void WriteTinyPng(string path)
+    {
+        File.WriteAllBytes(path, TinyPngBytes);
     }
 
     private static FrontedLayoutPackageManifest ReadManifest(ZipArchive archive)

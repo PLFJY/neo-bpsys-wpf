@@ -117,6 +117,27 @@ public class FrontedLayoutValidator
                 $"BackgroundImage '{document.CanvasConfig.BackgroundImage}' could not be resolved.",
                 propertyName: nameof(FrontedCanvasConfig.BackgroundImage)));
         }
+
+        if (FrontedTextLimitHelper.IsTooLong(document.CanvasConfig.BackgroundImage, FrontedLayoutLimits.MaxResourcePathLength))
+        {
+            messages.Add(Error(
+                "ResourcePathTooLong",
+                "Canvas BackgroundImage is too long.",
+                propertyName: nameof(FrontedCanvasConfig.BackgroundImage)));
+        }
+
+        if (document.Controls.Count > FrontedLayoutLimits.MaxControlsPerCanvas)
+        {
+            messages.Add(Error(
+                "TooManyControls",
+                $"Canvas has {document.Controls.Count} controls; max is {FrontedLayoutLimits.MaxControlsPerCanvas}."));
+        }
+        else if (document.Controls.Count >= FrontedLayoutLimits.WarningControlsPerCanvas)
+        {
+            messages.Add(Warning(
+                "ControlCountWarning",
+                $"Canvas has {document.Controls.Count} controls; warning threshold is {FrontedLayoutLimits.WarningControlsPerCanvas}."));
+        }
     }
 
     private static void ValidateControlNames(
@@ -148,6 +169,15 @@ public class FrontedLayoutValidator
                     "Control name cannot be empty.",
                     propertyName: nameof(FrontedControlDesignItem.Name)));
                 continue;
+            }
+
+            if (FrontedTextLimitHelper.IsTooLong(control.Name, FrontedLayoutLimits.MaxControlNameLength))
+            {
+                messages.Add(Error(
+                    "InputTooLong",
+                    $"Control name '{control.Name}' is too long.",
+                    control.Name,
+                    nameof(FrontedControlDesignItem.Name)));
             }
 
             if (!ValidControlNameRegex.IsMatch(control.Name))
@@ -208,6 +238,24 @@ public class FrontedLayoutValidator
                 nameof(FrontedControlConfigBase.ControlType)));
         }
 
+        if (FrontedTextLimitHelper.IsTooLong(item.Config.ControlType, FrontedLayoutLimits.MaxControlTypeLength))
+        {
+            messages.Add(Error(
+                "InputTooLong",
+                $"Control '{item.Name}' ControlType is too long.",
+                item.Name,
+                nameof(FrontedControlConfigBase.ControlType)));
+        }
+
+        if (FrontedTextLimitHelper.IsTooLong(item.Config.BindingPath, FrontedLayoutLimits.MaxBindingPathLength))
+        {
+            messages.Add(Error(
+                "BindingPathTooLong",
+                $"Control '{item.Name}' BindingPath is too long.",
+                item.Name,
+                nameof(FrontedControlConfigBase.BindingPath)));
+        }
+
         if (!IsFinite(item.Config.Left))
         {
             messages.Add(Error(
@@ -243,6 +291,8 @@ public class FrontedLayoutValidator
         switch (item.Config)
         {
             case TextFrontedControlConfig text:
+                ValidateTextLength(item.Name, nameof(TextFrontedControlConfig.Text), text.Text, FrontedLayoutLimits.MaxStaticTextLength, "TextTooLong", messages);
+                ValidateTextLength(item.Name, nameof(TextFrontedControlConfig.FontFamily), text.FontFamily, FrontedLayoutLimits.MaxFontFamilyLength, "InputTooLong", messages);
                 if (string.IsNullOrWhiteSpace(text.BindingPath) && string.IsNullOrWhiteSpace(text.Text))
                 {
                     messages.Add(Warning(
@@ -255,6 +305,8 @@ public class FrontedLayoutValidator
                 break;
 
             case LocalizedTextControlConfig localizedText:
+                ValidateTextLength(item.Name, nameof(LocalizedTextControlConfig.BindingPath), localizedText.BindingPath, FrontedLayoutLimits.MaxBindingPathLength, "BindingPathTooLong", messages);
+                ValidateTextLength(item.Name, nameof(LocalizedTextControlConfig.FontFamily), localizedText.FontFamily, FrontedLayoutLimits.MaxFontFamilyLength, "InputTooLong", messages);
                 if (string.IsNullOrWhiteSpace(localizedText.LocalizationKey))
                 {
                     messages.Add(Error(
@@ -267,6 +319,8 @@ public class FrontedLayoutValidator
                 break;
 
             case ImageFrontedControlConfig image:
+                ValidateTextLength(item.Name, nameof(ImageFrontedControlConfig.PickingBorderImagePath), image.PickingBorderImagePath, FrontedLayoutLimits.MaxResourcePathLength, "ResourcePathTooLong", messages);
+                ValidateTextLength(item.Name, nameof(ImageFrontedControlConfig.BanLockImagePath), image.BanLockImagePath, FrontedLayoutLimits.MaxResourcePathLength, "ResourcePathTooLong", messages);
                 if (string.IsNullOrWhiteSpace(image.BindingPath))
                 {
                     messages.Add(Warning(
@@ -291,6 +345,7 @@ public class FrontedLayoutValidator
                 break;
 
             case BanSlotDisplayControlConfig banSlot:
+                ValidateResourceLikeStrings(item.Name, banSlot, messages);
                 ValidateEnumValue(item.Name, nameof(BanSlotDisplayControlConfig.SlotKind), banSlot.SlotKind, messages);
                 ValidateEnumValue(item.Name, nameof(BanSlotDisplayControlConfig.Camp), banSlot.Camp, messages);
                 ValidateNonNegativeIndex(item.Name, banSlot.Index, messages);
@@ -314,6 +369,7 @@ public class FrontedLayoutValidator
                 break;
 
             case PickingBorderOverlayControlConfig pickingBorder:
+                ValidateResourceLikeStrings(item.Name, pickingBorder, messages);
                 if (string.IsNullOrWhiteSpace(pickingBorder.TargetControlName))
                 {
                     messages.Add(Error(
@@ -324,6 +380,51 @@ public class FrontedLayoutValidator
                 }
 
                 break;
+        }
+    }
+
+    private static void ValidateResourceLikeStrings(
+        string controlName,
+        object config,
+        ICollection<FrontedLayoutValidationMessage> messages)
+    {
+        foreach (var property in config.GetType().GetProperties())
+        {
+            if (property.PropertyType != typeof(string))
+            {
+                continue;
+            }
+
+            if (property.Name.Contains("Image", StringComparison.OrdinalIgnoreCase)
+                || property.Name.Contains("Path", StringComparison.OrdinalIgnoreCase)
+                || property.Name.Contains("Source", StringComparison.OrdinalIgnoreCase))
+            {
+                ValidateTextLength(
+                    controlName,
+                    property.Name,
+                    property.GetValue(config) as string,
+                    FrontedLayoutLimits.MaxResourcePathLength,
+                    "ResourcePathTooLong",
+                    messages);
+            }
+        }
+    }
+
+    private static void ValidateTextLength(
+        string controlName,
+        string propertyName,
+        string? value,
+        int maxLength,
+        string code,
+        ICollection<FrontedLayoutValidationMessage> messages)
+    {
+        if (FrontedTextLimitHelper.IsTooLong(value, maxLength))
+        {
+            messages.Add(Error(
+                code,
+                $"Control '{controlName}' {propertyName} is too long.",
+                controlName,
+                propertyName));
         }
     }
 

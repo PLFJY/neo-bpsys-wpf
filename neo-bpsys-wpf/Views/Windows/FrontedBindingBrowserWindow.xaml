@@ -5,6 +5,7 @@
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:designer="clr-namespace:neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;assembly=neo-bpsys-wpf.Core"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:limits="clr-namespace:neo_bpsys_wpf.Core.Services.FrontedLayout;assembly=neo-bpsys-wpf.Core"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     Title="{lex:Loc BindingBrowser}"
     Width="640"
@@ -60,6 +61,7 @@
         <ui:TextBox
             Grid.Row="2"
             Margin="12"
+            MaxLength="{x:Static limits:FrontedLayoutLimits.MaxSearchTextLength}"
             PlaceholderText="{lex:Loc SearchBindings}"
             Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
         <Grid Grid.Row="3" Margin="12,0,12,12">
@@ -127,6 +129,7 @@
             <ui:TextBox
                 Margin="0,6,0,0"
                 IsReadOnly="True"
+                MaxLength="{x:Static limits:FrontedLayoutLimits.MaxBindingPathLength}"
                 Text="{Binding SelectedPath}" />
         </StackPanel>
         <StackPanel

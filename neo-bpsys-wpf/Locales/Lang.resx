@@ -2593,4 +2593,28 @@
   <data name="LegacyResourceCopied" xml:space="preserve"><value>旧版资源已复制</value></data>
   <data name="LegacyResourceMissing" xml:space="preserve"><value>旧版资源缺失</value></data>
   <data name="ActivateConvertedPackage" xml:space="preserve"><value>是否立即激活转换后的布局包？</value></data>
+  <data name="InputTruncated" xml:space="preserve"><value>输入已按长度上限截断</value></data>
+  <data name="InputTooLong" xml:space="preserve"><value>输入内容过长</value></data>
+  <data name="ImageTooLarge" xml:space="preserve"><value>图片文件过大</value></data>
+  <data name="ImageTooManyPixels" xml:space="preserve"><value>图片尺寸过大</value></data>
+  <data name="UnsupportedImageFormat" xml:space="preserve"><value>不支持的图片格式</value></data>
+  <data name="PackageTooLarge" xml:space="preserve"><value>布局包文件过大</value></data>
+  <data name="PackageExtractedTooLarge" xml:space="preserve"><value>布局包解压后内容过大</value></data>
+  <data name="PackageTooManyEntries" xml:space="preserve"><value>布局包文件数量过多</value></data>
+  <data name="PackageEntryTooLarge" xml:space="preserve"><value>布局包单个文件过大</value></data>
+  <data name="ManifestTooLarge" xml:space="preserve"><value>manifest.json 过大</value></data>
+  <data name="LayoutJsonTooLarge" xml:space="preserve"><value>布局 JSON 过大</value></data>
+  <data name="WindowOptionsTooLarge" xml:space="preserve"><value>窗口选项 JSON 过大</value></data>
+  <data name="TooManyControls" xml:space="preserve"><value>Canvas 控件过多</value></data>
+  <data name="ControlCountLimitReached" xml:space="preserve"><value>已达到当前 Canvas 控件数量上限</value></data>
+  <data name="ControlCountWarning" xml:space="preserve"><value>当前 Canvas 控件数量较多</value></data>
+  <data name="MaxControlsPerCanvas" xml:space="preserve"><value>每个 Canvas 最大控件数</value></data>
+  <data name="ResourcePathTooLong" xml:space="preserve"><value>资源路径过长</value></data>
+  <data name="TextTooLong" xml:space="preserve"><value>文本过长</value></data>
+  <data name="BindingPathTooLong" xml:space="preserve"><value>绑定路径过长</value></data>
+  <data name="ValidationMessagesTruncated" xml:space="preserve"><value>还有 {0} 条验证消息未显示</value></data>
+  <data name="CopyControl" xml:space="preserve"><value>复制控件</value></data>
+  <data name="PasteControl" xml:space="preserve"><value>粘贴控件</value></data>
+  <data name="CannotCopyControl" xml:space="preserve"><value>无法复制该控件</value></data>
+  <data name="CannotPasteControl" xml:space="preserve"><value>无法粘贴控件</value></data>
 </root>

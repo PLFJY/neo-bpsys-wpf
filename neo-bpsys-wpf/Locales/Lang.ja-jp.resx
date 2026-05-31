@@ -2464,4 +2464,28 @@
   <data name="LegacyResourceCopied" xml:space="preserve"><value>旧形式リソースをコピーしました</value></data>
   <data name="LegacyResourceMissing" xml:space="preserve"><value>旧形式リソースが見つかりません</value></data>
   <data name="ActivateConvertedPackage" xml:space="preserve"><value>変換したパッケージを今すぐ有効化しますか？</value></data>
+  <data name="InputTruncated" xml:space="preserve"><value>入力は長さの上限で切り詰められました</value></data>
+  <data name="InputTooLong" xml:space="preserve"><value>入力が長すぎます</value></data>
+  <data name="ImageTooLarge" xml:space="preserve"><value>画像ファイルが大きすぎます</value></data>
+  <data name="ImageTooManyPixels" xml:space="preserve"><value>画像サイズが大きすぎます</value></data>
+  <data name="UnsupportedImageFormat" xml:space="preserve"><value>対応していない画像形式です</value></data>
+  <data name="PackageTooLarge" xml:space="preserve"><value>レイアウトパッケージが大きすぎます</value></data>
+  <data name="PackageExtractedTooLarge" xml:space="preserve"><value>展開後のパッケージ内容が大きすぎます</value></data>
+  <data name="PackageTooManyEntries" xml:space="preserve"><value>パッケージ内のファイル数が多すぎます</value></data>
+  <data name="PackageEntryTooLarge" xml:space="preserve"><value>パッケージ内の単一ファイルが大きすぎます</value></data>
+  <data name="ManifestTooLarge" xml:space="preserve"><value>manifest.json が大きすぎます</value></data>
+  <data name="LayoutJsonTooLarge" xml:space="preserve"><value>レイアウト JSON が大きすぎます</value></data>
+  <data name="WindowOptionsTooLarge" xml:space="preserve"><value>ウィンドウオプション JSON が大きすぎます</value></data>
+  <data name="TooManyControls" xml:space="preserve"><value>この Canvas のコントロールが多すぎます</value></data>
+  <data name="ControlCountLimitReached" xml:space="preserve"><value>この Canvas のコントロール数上限に達しました</value></data>
+  <data name="ControlCountWarning" xml:space="preserve"><value>この Canvas には多くのコントロールがあります</value></data>
+  <data name="MaxControlsPerCanvas" xml:space="preserve"><value>Canvas ごとの最大コントロール数</value></data>
+  <data name="ResourcePathTooLong" xml:space="preserve"><value>リソースパスが長すぎます</value></data>
+  <data name="TextTooLong" xml:space="preserve"><value>テキストが長すぎます</value></data>
+  <data name="BindingPathTooLong" xml:space="preserve"><value>バインドパスが長すぎます</value></data>
+  <data name="ValidationMessagesTruncated" xml:space="preserve"><value>他 {0} 件...</value></data>
+  <data name="CopyControl" xml:space="preserve"><value>コントロールをコピー</value></data>
+  <data name="PasteControl" xml:space="preserve"><value>コントロールを貼り付け</value></data>
+  <data name="CannotCopyControl" xml:space="preserve"><value>このコントロールはコピーできません</value></data>
+  <data name="CannotPasteControl" xml:space="preserve"><value>コントロールを貼り付けできません</value></data>
 </root>
