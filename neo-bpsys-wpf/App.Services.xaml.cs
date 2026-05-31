@@ -98,6 +98,10 @@ public partial class App
         services.AddSingleton<IFrontedControlRegistry, FrontedControlRegistry>();
         services.AddSingleton<IFrontedLayoutService, FrontedLayoutService>();
         services.AddSingleton<IFrontedRenderer, FrontedRenderer>();
+        services.AddSingleton<FrontedLayoutRuntimeContractCatalog>();
+        services.AddSingleton<FrontedLayoutReferenceScanner>();
+        services.AddSingleton<FrontedLayoutDesignConverter>();
+        services.AddSingleton<FrontedLayoutValidator>();
         services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
         services.AddSingleton<IPluginService, PluginService>();
         services.AddSingleton<IPluginMarketService, PluginMarketService>();

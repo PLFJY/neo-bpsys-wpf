@@ -29,6 +29,8 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
             throw new FrontedLayoutConfigException("Fronted canvas config root must be a JSON object.");
         }
 
+        EnsureNoDuplicateRootProperties(root);
+
         var config = new FrontedCanvasConfig
         {
             Version = ReadRequiredInt(root, nameof(FrontedCanvasConfig.Version)),
@@ -53,6 +55,19 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
         }
 
         return config;
+    }
+
+    private static void EnsureNoDuplicateRootProperties(JsonElement root)
+    {
+        var seenPropertyNames = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var property in root.EnumerateObject())
+        {
+            if (!seenPropertyNames.Add(property.Name))
+            {
+                throw new FrontedLayoutConfigException(
+                    $"Duplicate root-level property '{property.Name}' in fronted canvas config.");
+            }
+        }
     }
 
     /// <inheritdoc />

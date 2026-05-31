@@ -1,6 +1,6 @@
 # Fronted Designer v3 独立编辑器设计规格
 
-本文记录 Designer v3 Phase 8A 的编辑器设计规格。范围仅限文档和设计说明，不实现编辑器 UI，不迁移 `.bpui`，不移除旧 `config.json` 前台设置，也不修改现有 v3 layout JSON。
+本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；仍不实现编辑器 UI，不迁移 `.bpui`，不移除旧 `config.json` 前台设置，也不修改现有 v3 layout JSON。
 
 独立编辑器面向 v3 JSON layout 文件。它是后台侧的独立编辑窗口，不直接在真实前台窗口上编辑；真实前台窗口仍用于 OBS 捕获和运行时输出。编辑器必须同时支持单 Canvas 窗口和多 Canvas 窗口，并保持与现有 v3 renderer、生成控件名、`AnimationService`、业务控件和 JSON 格式兼容。
 
@@ -78,6 +78,16 @@ public sealed partial class FrontedControlDesignItem : ObservableObject
 
 保存前必须阻止 Error。Warning 可以允许保存，但应明确提示并要求用户确认。Info 只用于状态栏、校验面板或属性提示，不应阻止保存。
 
+Canvas 级字段同样必须校验：
+
+1. `Version` 必须为 `3`。
+2. `CanvasWidth` 必须为大于 0 的有效数字。
+3. `CanvasHeight` 必须为大于 0 的有效数字。
+4. `BackgroundImage` 可以为空；非空时如果资源 resolver 可用，应在无法解析时给出 Warning。
+5. 设计文档中的 `WindowTypeName` 和 `CanvasName` 不能为空。
+
+重复 JSON key 不能等到反序列化成 dictionary 后再处理，因为普通 dictionary 会丢失重复项。v3 converter 应在读取 raw root object 阶段发现重复 root-level property 并抛出布局配置异常，编辑器后续可把该异常转成校验友好的错误提示。
+
 ## 3. 运行时关键名称
 
 部分控件名是运行时契约，不只是设计器显示名。当前 `BpWindow` 必须保留：
@@ -96,6 +106,8 @@ public sealed partial class FrontedControlDesignItem : ObservableObject
 | `HunPickingBorder` | 监管者 picking border 呼吸动画目标 |
 
 这些名称被 `AnimationService` 通过 `window.FindName(...)` 查找，用于 pick 图淡入淡出和 picking border 呼吸动画。除非未来改为 metadata-based 动画目标查找，否则这些名称必须保持稳定。
+
+Phase 8B 起，这些运行时关键名称集中在 `FrontedLayoutRuntimeContractCatalog` 中。编辑器、校验器和后续删除/重命名保护都应通过该 catalog 查询，不应在 UI 层或多个服务中重复硬编码同一批名称。后续其他窗口如果出现类似运行时契约，也应扩展 catalog。
 
 编辑器行为：
 
@@ -544,7 +556,7 @@ Phase 8A 不实现保存 UI，只记录未来阶段行为。
 
 | 阶段 | 范围 |
 | --- | --- |
-| Phase 8B | `FrontedLayoutValidator`、`FrontedControlDesignItem`、设计项与 dictionary 转换、名称校验、引用扫描 |
+| Phase 8B | 已实现：`FrontedControlDesignItem` / `FrontedCanvasDesignDocument`、设计项与 dictionary 转换、`FrontedLayoutValidator`、名称校验、引用扫描、运行时关键名称 catalog、重复 JSON key 检测 |
 | Phase 8C | `FrontedDesignerWindow` shell、window/canvas selector、只读 preview surface |
 | Phase 8D | interaction layer、透明 hitbox、selection adorner、drag、resize、键盘微调 |
 | Phase 8E | PropertyGrid、基础编辑器、ColorPicker 支持 |
@@ -554,7 +566,7 @@ Phase 8A 不实现保存 UI，只记录未来阶段行为。
 
 ## 17. 非目标
 
-Phase 8A 不做：
+Phase 8A/8B 不做：
 
 1. 不新增 `FrontedDesignerWindow`。
 2. 不实现 Property Grid、Binding Browser 或 Resource Browser。
