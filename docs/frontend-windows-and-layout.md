@@ -64,18 +64,22 @@ services.AddFrontedWindow<TView, TViewModel>();
 
 Fronted Designer v3 的基础设施已经存在：`FrontedCanvasConfig` 可读取 root-level 控件 JSON，`IFrontedLayoutService` 按用户布局优先、内置默认布局兜底读取 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` 或 `Resources\FrontedLayouts\{WindowTypeName}\{CanvasName}.json`，`IFrontedRenderer` 可用注册的控件工厂生成 Text/Image/GlobalScoreRow 等控件。`Text` 控件支持 `BindingPath` 绑定 `ISharedDataService`，也支持在 `BindingPath` 为空时用 `Text` 字段显示原样静态文本；两者同时存在时 `BindingPath` 优先。`Text.StringFormat` 只在绑定文本时生效，静态 `Text` 不会自动本地化或格式化。需要本地化静态文本时使用 `LocalizedText`，它通过 `LocalizationKey` 查 resx，并在语言变化时刷新；需要业务规则文本时，应使用 `GameProgressText` / `MapNameText` 等业务控件，而不是普通静态 `Text`。`Image` 控件支持 `SizingMode`：`Auto` 保留 WPF/default 行为，`FillContainer` 让内层 `Image` 跟随外层 `Border` 尺寸，`OverflowCrop` 保留旧 `Border + Image + ClipToBounds` 裁剪语义。迁移默认布局时必须按旧 XAML 审计选择模式，不要全局强制所有图片填满容器。`ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 和 `BpWindow` 当前已接入 v3 renderer。单 Canvas 窗口的内置默认布局位于 `Resources\FrontedLayouts\{WindowTypeName}\BaseCanvas.json`；`WidgetsWindow` 是多 Canvas 前台窗口，使用 `Resources\FrontedLayouts\WidgetsWindow\MapBpCanvas.json`、`Resources\FrontedLayouts\WidgetsWindow\BpOverViewCanvas.json`、`Resources\FrontedLayouts\WidgetsWindow\MapV2Canvas.json` 三份独立布局。局内比分窗口、GameData 顶部比分文本、Widgets overview 小比分和 BpWindow 顶栏比分已绑定 `CurrentGame.MatchScore` 派生字段：大比分读取 `CurrentSurTeamMajorText` / `CurrentHunTeamMajorText`，小比分（MinorScore）预分读取 `CurrentSurTeamPreHalfMinorScoreText` / `CurrentHunTeamPreHalfMinorScoreText`。全局比分窗口总分绑定 `CurrentGame.MatchScore.HomeTotalMinorScore` / `AwayTotalMinorScore`，比分行由 `GlobalScoreRow` 从 `CurrentGame.MatchScore` 生成；`FrontedWindowService.SetGlobalScore*` / `ResetGlobalScore` 仅作为 obsolete no-op 兼容适配器保留，不再作为 UI 状态来源。`CutSceneWindow` 默认布局使用 `TalentTraitDisplay`、`GameProgressText`、`MapNameText` 封装天赋/辅助特质、BO3/BO5 进度文本和地图名本地化；`GameDataWindow` 默认布局使用 `LocalizedText` 处理表格表头，并复用 `GameProgressText`、`MapNameText`；`WidgetsWindow` 使用 `CurrentBanDisplay` 封装当前 Ban 槽和锁定覆盖层，使用 `MapV2Display` 封装地图 BP v2 展示；`BpWindow` 使用 `BanSlotDisplay` 封装当前局/全局 Ban 槽和锁定覆盖层，使用独立 `PickingBorderOverlay` 保留 `AnimationService` 的呼吸边框目标。`MapV2Display` 故意复用 `MapV2Presenter`，不要把地图 BP v2 拆成普通图片和文字控件。`FrontedWindowService` 不会读取旧 `FrontedDefaultPositions` 作为 v3 输入。
 
+当前已迁移的内置前台窗口全部使用 v3 layout 作为默认渲染来源。多 Canvas 窗口必须按 Canvas 维度读取、编辑、保存和恢复布局；例如 `WidgetsWindow` 的 `MapBpCanvas`、`BpOverViewCanvas`、`MapV2Canvas` 不能合并成一个布局文件，也不能在编辑器中只暴露窗口级单一画布。
+
 v3 renderer 会为生成控件注册 namescope 名称，并在清理生成控件前注销这些名称。这样 `BpWindow` 迁移后，`AnimationService` 仍可通过 `window.FindName("SurPick0")`、`window.FindName("HunPick")`、`window.FindName("SurPickingBorder0")`、`window.FindName("HunPickingBorder")` 找到动画目标。
+
+v3 layout 中 root-level 控件 JSON key 就是控件名。该名称同时作为 `FrontedCanvasConfig.Controls` key、生成控件 `FrameworkElement.Name` 和 namescope 注册名。独立编辑器必须通过设计项 `Name` 编辑 dictionary key，不能给 config 类新增重复 `Name` 字段。详细编辑器规格见 [fronted-designer-editor.md](fronted-designer-editor.md)。
 
 注意：`ScoreGlobalWindow` 当前没有完整条件布局引擎。BO3 模式下 `GlobalScoreRow` 会隐藏 BO5 后续比分格，但总分位置和背景仍采用固定 v3 layout。
 
-布局文件命名约定：
+legacy 布局文件命名约定：
 
 ```text
 %APPDATA%\neo-bpsys-wpf\{WindowTypeName}Config-{CanvasName}.json
 %APPDATA%\neo-bpsys-wpf\{WindowTypeName}Config-{CanvasName}.default.json   # DEBUG 记录初始位置时可能生成
 ```
 
-内置默认布局位于：
+legacy 内置默认布局位于：
 
 ```text
 neo-bpsys-wpf/Resources/FrontedDefaultPositions
@@ -88,6 +92,15 @@ neo-bpsys-wpf/Resources/FrontedDefaultPositions
 ```
 
 恢复默认布局时，服务优先查内置资源；如果不是内置窗口，会通过 `PluginService.FrontedWindowAssemblyFolder` 找到插件目录。
+
+v3 布局文件命名约定：
+
+```text
+%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json
+neo-bpsys-wpf/Resources/FrontedLayouts/{WindowTypeName}/{CanvasName}.json
+```
+
+v3 独立编辑器保存用户布局时应写入 AppData 的 `FrontedLayouts` 目录；“重置为内置”应删除或忽略用户布局，再回落到 `Resources/FrontedLayouts` 下的默认布局。
 
 注意：v3 布局读取用户布局优先。如果用户目录下已有旧的 `ScoreSurWindow` / `ScoreHunWindow` / `ScoreGlobalWindow` / `CutSceneWindow` / `GameDataWindow` / `WidgetsWindow` v3 JSON，且其中比分字段仍绑定旧字段、缺少 `GlobalScoreRow`、没有业务控件、把本地化表头写成普通静态 `Text`，或 Widgets overview 仍读取 `Team.Score`，运行时会继续使用用户布局；需要恢复默认布局或后续迁移工具才能切换到当前内置布局。
 

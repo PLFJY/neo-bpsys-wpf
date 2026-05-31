@@ -69,9 +69,12 @@
 | --- | --- |
 | 前台布局 | `%APPDATA%\neo-bpsys-wpf\*Config-*.json` |
 | v3 前台布局 | `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` |
+| v3 内置默认布局 | `{AppBaseDirectory}\Resources\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` |
 | SmartBP 区域 | `%APPDATA%\neo-bpsys-wpf\SmartBp\GameDataRegions.json` |
 | OCR 模型 | `Documents\neo-bpsys-wpf\OCRModels` |
 | 插件配置 | `%APPDATA%\neo-bpsys-wpf\PluginConfigs\{pluginId}` |
 | 插件市场临时下载 | `%TEMP%\neo-bpsys-wpf\PluginMarket\...` |
+
+v3 前台布局的加载优先级是用户布局优先、内置默认布局兜底。独立 Fronted Designer 编辑器保存普通用户改动时应写入 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json`，不应直接覆盖安装目录或源码中的 `Resources\FrontedLayouts`。多 Canvas 窗口按 `{CanvasName}.json` 分文件保存。
 
 卸载脚本会询问是否删除 `%APPDATA%\neo-bpsys-wpf`，包括日志、自定义 UI 和设置。
