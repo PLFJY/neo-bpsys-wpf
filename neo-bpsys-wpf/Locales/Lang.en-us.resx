@@ -2119,6 +2119,21 @@
   <data name="UnsupportedControlType" xml:space="preserve">
     <value>Unsupported control type.</value>
   </data>
+  <data name="DeleteControl" xml:space="preserve">
+    <value>Delete Control</value>
+  </data>
+  <data name="DeleteSelectedControl" xml:space="preserve">
+    <value>Deleted control</value>
+  </data>
+  <data name="CannotDeleteRuntimeCriticalControl" xml:space="preserve">
+    <value>Runtime-critical controls cannot be deleted.</value>
+  </data>
+  <data name="CannotDeleteReferencedControl" xml:space="preserve">
+    <value>This control is still referenced by another control and cannot be deleted.</value>
+  </data>
+  <data name="ConfirmDeleteControl" xml:space="preserve">
+    <value>Delete the selected control?</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

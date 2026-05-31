@@ -110,11 +110,6 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
     }
 
-    private void PropertyTextBox_OnLostFocus(object sender, RoutedEventArgs e)
-    {
-        ApplyPropertyEditorValue(sender);
-    }
-
     private void PropertyTextBox_OnKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter)
@@ -122,9 +117,21 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
-        ApplyPropertyEditorValue(sender);
-        FocusDesignSurface();
+        var committed = ApplyPropertyEditorValue(sender);
+        if (committed)
+        {
+            FocusDesignSurface();
+        }
+
         e.Handled = true;
+    }
+
+    private void PropertyTextApplyButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (ApplyPropertyEditorValue(sender))
+        {
+            FocusDesignSurface();
+        }
     }
 
     private void PropertyCheckBox_OnClick(object sender, RoutedEventArgs e)
@@ -144,19 +151,32 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void PropertyFontComboBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (sender is not ComboBox comboBox
+            || e.AddedItems.Count == 0
+            || !comboBox.IsDropDownOpen
+            || !comboBox.IsKeyboardFocusWithin)
+        {
+            return;
+        }
+
+        ApplyFontComboBoxValue(comboBox, useSelectedOption: true);
+    }
+
+    private void PropertyFontComboBox_OnDropDownClosed(object sender, EventArgs e)
+    {
         if (sender is not ComboBox comboBox || !comboBox.IsKeyboardFocusWithin)
         {
             return;
         }
 
-        ApplyFontComboBoxValue(comboBox);
+        ApplyFontComboBoxValue(comboBox, useSelectedOption: true);
     }
 
-    private void PropertyFontComboBox_OnLostFocus(object sender, RoutedEventArgs e)
+    private void PropertyFontComboBox_OnLostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
     {
-        if (sender is ComboBox comboBox)
+        if (sender is ComboBox comboBox && !comboBox.IsDropDownOpen)
         {
-            ApplyFontComboBoxValue(comboBox);
+            ApplyFontComboBoxValue(comboBox, useSelectedOption: false);
         }
     }
 
@@ -167,24 +187,30 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
-        ApplyFontComboBoxValue(comboBox);
-        FocusDesignSurface();
+        var committed = ApplyFontComboBoxValue(comboBox, useSelectedOption: false);
+        if (committed)
+        {
+            FocusDesignSurface();
+        }
+
         e.Handled = true;
     }
 
-    private void ApplyFontComboBoxValue(ComboBox comboBox)
+    private bool ApplyFontComboBoxValue(ComboBox comboBox, bool useSelectedOption)
     {
         if (IsPropertyEditorCommitSuppressed()
             || _viewModel is null
             || comboBox.DataContext is not FrontedPropertyEditorItem item)
         {
-            return;
+            return false;
         }
 
-        item.Value = comboBox.SelectedItem is FrontedFontFamilyOption option
+        var value = useSelectedOption && comboBox.SelectedItem is FrontedFontFamilyOption option
             ? option.Value
             : comboBox.Text;
-        _viewModel.ApplyPropertyEdit(item, item.Value);
+        item.Value = value;
+        item.EditText = comboBox.Text;
+        return _viewModel.ApplyPropertyEdit(item, value);
     }
 
     private void PropertyColorPicker_OnLoaded(object sender, RoutedEventArgs e)
@@ -228,16 +254,23 @@ public partial class FrontedDesignerWindow : FluentWindow
             DispatcherPriority.Background);
     }
 
-    private void ApplyPropertyEditorValue(object sender)
+    private bool ApplyPropertyEditorValue(object sender)
     {
         if (IsPropertyEditorCommitSuppressed()
             || _viewModel is null
             || sender is not FrameworkElement { DataContext: FrontedPropertyEditorItem item })
         {
-            return;
+            return false;
         }
 
-        _viewModel.ApplyPropertyEdit(item, item.Value);
+        var value = sender is System.Windows.Controls.TextBox textBox
+            ? textBox.Text
+            : item.EditorKind is FrontedPropertyEditorKind.Text
+                or FrontedPropertyEditorKind.Number
+                ? item.EditText
+                : item.Value;
+
+        return _viewModel.ApplyPropertyEdit(item, value);
     }
 
     private bool IsPropertyEditorCommitSuppressed()
@@ -862,6 +895,9 @@ public partial class FrontedDesignerWindow : FluentWindow
                 break;
             case Key.Down:
                 _viewModel.MoveSelectedDesignItemBy(0, step);
+                break;
+            case Key.Delete:
+                _viewModel.DeleteSelectedControlCommand.Execute(null);
                 break;
             default:
                 handled = false;

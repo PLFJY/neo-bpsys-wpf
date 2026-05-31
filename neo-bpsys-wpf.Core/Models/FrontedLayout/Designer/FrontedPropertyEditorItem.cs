@@ -15,9 +15,12 @@ public class FrontedPropertyEditorItem : ObservableObject
     private Type _propertyType = typeof(string);
     private FrontedPropertyEditorKind _editorKind;
     private object? _value;
+    private string? _editText;
     private Color _colorValue = FrontedPropertyColorHelper.FallbackColor;
     private bool _isReadOnly;
     private bool _isRequired;
+    private bool _hasEditError;
+    private string? _editError;
     private IReadOnlyList<string> _validationErrors = [];
     private IReadOnlyList<object>? _options;
     private string? _groupName;
@@ -95,6 +98,23 @@ public class FrontedPropertyEditorItem : ObservableObject
     }
 
     /// <summary>
+    /// User edit buffer for explicit-commit text-like rows.
+    /// </summary>
+    public string? EditText
+    {
+        get => _editText;
+        set
+        {
+            if (!SetProperty(ref _editText, value))
+            {
+                return;
+            }
+
+            ClearEditError();
+        }
+    }
+
+    /// <summary>
     /// ColorPicker-friendly value for color string rows.
     /// </summary>
     public Color ColorValue
@@ -127,6 +147,24 @@ public class FrontedPropertyEditorItem : ObservableObject
     {
         get => _isRequired;
         set => SetProperty(ref _isRequired, value);
+    }
+
+    /// <summary>
+    /// Whether the latest explicit text commit failed validation.
+    /// </summary>
+    public bool HasEditError
+    {
+        get => _hasEditError;
+        set => SetProperty(ref _hasEditError, value);
+    }
+
+    /// <summary>
+    /// Validation message for the latest failed explicit text commit.
+    /// </summary>
+    public string? EditError
+    {
+        get => _editError;
+        set => SetProperty(ref _editError, value);
     }
 
     /// <summary>
@@ -172,5 +210,25 @@ public class FrontedPropertyEditorItem : ObservableObject
     {
         get => _isGroupHeaderVisible;
         set => SetProperty(ref _isGroupHeaderVisible, value);
+    }
+
+    /// <summary>
+    /// Applies a failed edit state without discarding the user's edit buffer.
+    /// </summary>
+    public void SetEditError(string message)
+    {
+        HasEditError = true;
+        EditError = message;
+    }
+
+    private void ClearEditError()
+    {
+        if (!HasEditError && string.IsNullOrEmpty(EditError))
+        {
+            return;
+        }
+
+        HasEditError = false;
+        EditError = null;
     }
 }

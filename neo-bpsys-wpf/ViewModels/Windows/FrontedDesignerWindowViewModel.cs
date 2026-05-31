@@ -35,6 +35,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly FrontedControlNameGenerator _controlNameGenerator;
     private readonly ILogger<FrontedDesignerWindowViewModel> _logger;
     private readonly Dictionary<string, string> _propertyEditErrors = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _propertyEditBuffers = new(StringComparer.Ordinal);
     private IReadOnlyList<FrontedLayoutValidationMessage> _lastValidationMessages = [];
     private bool _isChangingZoomPreset;
     private bool _isRebuildingPropertyGrid;
@@ -152,9 +153,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedDesignItem))]
+    [NotifyPropertyChangedFor(nameof(CanDeleteSelectedControl))]
     private FrontedControlDesignItem? _selectedDesignItem;
 
     public bool HasSelectedDesignItem => SelectedDesignItem is not null;
+
+    public bool CanDeleteSelectedControl =>
+        SelectedDesignItem is { IsSelectableInEditor: true, IsEditableInEditor: true };
 
     [ObservableProperty]
     private string _controlFilterText = string.Empty;
@@ -219,6 +224,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     partial void OnSelectedDesignItemChanged(FrontedControlDesignItem? value)
     {
+        _propertyEditErrors.Clear();
+        _propertyEditBuffers.Clear();
         if (CurrentDocument is not null)
         {
             foreach (var control in CurrentDocument.Controls)
@@ -229,6 +236,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         RefreshSelectedControlDisplay();
         RebuildPropertyEditorItems();
+        DeleteSelectedControlCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnControlFilterTextChanged(string value)
@@ -382,6 +390,45 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         StatusMessage = $"{I18nHelper.GetLocalizedString("AddedControl")}: {item.Name}";
     }
 
+    [RelayCommand(CanExecute = nameof(CanDeleteSelectedControl))]
+    private void DeleteSelectedControl()
+    {
+        if (CurrentDocument is null || SelectedDesignItem is null)
+        {
+            return;
+        }
+
+        var item = SelectedDesignItem;
+        if (item.IsRuntimeCritical)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("CannotDeleteRuntimeCriticalControl");
+            return;
+        }
+
+        if (!item.IsEditableInEditor || !item.IsSelectableInEditor)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("CannotDeleteRuntimeCriticalControl");
+            return;
+        }
+
+        _referenceScanner.SetControls(CurrentDocument.Controls);
+        if (_referenceScanner.GetIncomingReferences(item.Name).Count > 0)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("CannotDeleteReferencedControl");
+            return;
+        }
+
+        CurrentDocument.Controls.Remove(item);
+        CurrentDocument.IsDirty = true;
+        DirtyIndicatorText = "●";
+        SelectDesignItem(null);
+        RebuildFilteredDesignItems();
+        RebuildPropertyEditorItems();
+        ValidateCurrentDocument();
+        RequestPreviewRenderCurrentDocument();
+        StatusMessage = $"{I18nHelper.GetLocalizedString("DeleteSelectedControl")}: {item.Name}";
+    }
+
     /// <summary>
     /// Adds a non-fatal render error to the validation/status panel.
     /// </summary>
@@ -510,24 +557,24 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RequestPreviewRenderCurrentDocument();
     }
 
-    public void ApplyPropertyEdit(FrontedPropertyEditorItem item, object? newValue)
+    public bool ApplyPropertyEdit(FrontedPropertyEditorItem item, object? newValue)
     {
         if (CurrentDocument is null || SelectedDesignItem is null)
         {
-            return;
+            return false;
         }
 
         if (item.IsReadOnly || item.EditorKind == FrontedPropertyEditorKind.ReadOnly)
         {
-            return;
+            return false;
         }
 
         _propertyEditErrors.Remove(item.PropertyName);
+        _propertyEditBuffers.Remove(item.PropertyName);
 
         if (item.PropertyName == nameof(FrontedControlDesignItem.Name))
         {
-            ApplyNameEdit(item, newValue);
-            return;
+            return ApplyNameEdit(item, newValue);
         }
 
         var property = SelectedDesignItem.Config.GetType().GetProperty(
@@ -535,23 +582,27 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             BindingFlags.Instance | BindingFlags.Public);
         if (property is null || !property.CanWrite)
         {
-            return;
+            return false;
         }
 
         if (!TryConvertPropertyValue(property, newValue, out var convertedValue, out var errorMessage))
         {
-            SetPropertyEditError(item.PropertyName, errorMessage);
-            return;
+            SetPropertyEditError(item, errorMessage, newValue);
+            return false;
         }
 
         var oldValue = property.GetValue(SelectedDesignItem.Config);
         if (ValuesEqual(oldValue, convertedValue))
         {
-            RebuildPropertyEditorItems();
-            return;
+            ClearPropertyEditError(item.PropertyName);
+            item.Value = convertedValue;
+            item.EditText = Convert.ToString(convertedValue, CultureInfo.InvariantCulture) ?? string.Empty;
+            return true;
         }
 
         property.SetValue(SelectedDesignItem.Config, convertedValue);
+        item.Value = convertedValue;
+        item.EditText = Convert.ToString(convertedValue, CultureInfo.InvariantCulture) ?? string.Empty;
         CurrentDocument.IsDirty = true;
 
         if (IsGeometryProperty(item.PropertyName))
@@ -560,13 +611,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         FinishPropertyEdit(item.PropertyName);
+        return true;
     }
 
-    private void ApplyNameEdit(FrontedPropertyEditorItem item, object? newValue)
+    private bool ApplyNameEdit(FrontedPropertyEditorItem item, object? newValue)
     {
         if (CurrentDocument is null || SelectedDesignItem is null)
         {
-            return;
+            return false;
         }
 
         if (SelectedDesignItem.IsRuntimeCritical
@@ -574,25 +626,29 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             || !SelectedDesignItem.IsEditableInEditor)
         {
             SetPropertyEditError(
-                item.PropertyName,
-                I18nHelper.GetLocalizedString("RuntimeCriticalControl"));
-            return;
+                item,
+                I18nHelper.GetLocalizedString("RuntimeCriticalControl"),
+                newValue);
+            return false;
         }
 
         var oldName = SelectedDesignItem.Name;
         var newName = Convert.ToString(newValue, CultureInfo.InvariantCulture)?.Trim() ?? string.Empty;
         if (oldName == newName)
         {
-            RebuildPropertyEditorItems();
-            return;
+            ClearPropertyEditError(item.PropertyName);
+            item.Value = oldName;
+            item.EditText = oldName;
+            return true;
         }
 
         if (string.IsNullOrWhiteSpace(newName) || !ValidControlNameRegex.IsMatch(newName))
         {
             SetPropertyEditError(
-                item.PropertyName,
-                I18nHelper.GetLocalizedString("InvalidControlName"));
-            return;
+                item,
+                I18nHelper.GetLocalizedString("InvalidControlName"),
+                newValue);
+            return false;
         }
 
         if (CurrentDocument.Controls.Any(control =>
@@ -600,23 +656,28 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 && string.Equals(control.Name, newName, StringComparison.Ordinal)))
         {
             SetPropertyEditError(
-                item.PropertyName,
-                I18nHelper.GetLocalizedString("DuplicateControlName"));
-            return;
+                item,
+                I18nHelper.GetLocalizedString("DuplicateControlName"),
+                newValue);
+            return false;
         }
 
         _referenceScanner.SetControls(CurrentDocument.Controls);
         if (_referenceScanner.GetIncomingReferences(oldName).Count > 0)
         {
             SetPropertyEditError(
-                item.PropertyName,
-                I18nHelper.GetLocalizedString("ReferencedControlRenameBlocked"));
-            return;
+                item,
+                I18nHelper.GetLocalizedString("ReferencedControlRenameBlocked"),
+                newValue);
+            return false;
         }
 
         SelectedDesignItem.Name = newName;
+        item.Value = newName;
+        item.EditText = newName;
         CurrentDocument.IsDirty = true;
         FinishPropertyEdit(item.PropertyName);
+        return true;
     }
 
     private void ResolveLayoutSource(FrontedDesignerLayoutCatalogEntry entry)
@@ -715,6 +776,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
                 if (_propertyEditErrors.TryGetValue(row.PropertyName, out var editError))
                 {
+                    if (_propertyEditBuffers.TryGetValue(row.PropertyName, out var editBuffer))
+                    {
+                        row.EditText = editBuffer;
+                    }
+
+                    row.SetEditError(editError);
                     row.ValidationErrors = row.ValidationErrors
                         .Concat([editError])
                         .Distinct(StringComparer.Ordinal)
@@ -731,16 +798,29 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
     }
 
-    private void SetPropertyEditError(string propertyName, string message)
+    private void SetPropertyEditError(FrontedPropertyEditorItem item, string message, object? attemptedValue)
     {
-        _propertyEditErrors[propertyName] = message;
+        var attemptedText = Convert.ToString(attemptedValue, CultureInfo.InvariantCulture) ?? string.Empty;
+        _propertyEditErrors[item.PropertyName] = message;
+        _propertyEditBuffers[item.PropertyName] = attemptedText;
+        item.EditText = attemptedText;
+        item.SetEditError(message);
+        item.ValidationErrors = item.ValidationErrors
+            .Concat([message])
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
         StatusMessage = message;
-        RebuildPropertyEditorItems();
+    }
+
+    private void ClearPropertyEditError(string propertyName)
+    {
+        _propertyEditErrors.Remove(propertyName);
+        _propertyEditBuffers.Remove(propertyName);
     }
 
     private void FinishPropertyEdit(string propertyName)
     {
-        _propertyEditErrors.Remove(propertyName);
+        ClearPropertyEditError(propertyName);
         DirtyIndicatorText = CurrentDocument?.IsDirty == true ? "●" : "○";
         RebuildFilteredDesignItems();
         ValidateCurrentDocument();

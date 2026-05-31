@@ -2122,6 +2122,21 @@
   <data name="UnsupportedControlType" xml:space="preserve">
     <value>未対応のコントロール種類です。</value>
   </data>
+  <data name="DeleteControl" xml:space="preserve">
+    <value>コントロールを削除</value>
+  </data>
+  <data name="DeleteSelectedControl" xml:space="preserve">
+    <value>コントロールを削除しました</value>
+  </data>
+  <data name="CannotDeleteRuntimeCriticalControl" xml:space="preserve">
+    <value>実行時に重要なコントロールは削除できません。</value>
+  </data>
+  <data name="CannotDeleteReferencedControl" xml:space="preserve">
+    <value>このコントロールは他のコントロールから参照されているため削除できません。</value>
+  </data>
+  <data name="ConfirmDeleteControl" xml:space="preserve">
+    <value>選択中のコントロールを削除しますか？</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

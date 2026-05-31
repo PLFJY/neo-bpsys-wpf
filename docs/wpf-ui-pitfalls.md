@@ -123,6 +123,11 @@ BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.
 23. 拖拽和缩放 live edit 中不要运行完整校验、不要重建 Property Grid、不要强制完整重渲染。只更新几何、linked overlay、preview element、hitbox/adorner、选中几何摘要和 dirty 状态；mouse-up/commit 后再统一校验和刷新。
 24. Property Grid 输入控件获得键盘焦点时，方向键不应触发设计 surface 微调。新增编辑器控件后要继续更新 `ShouldIgnoreKeyboardInput()` 的排除列表。
 25. Phase 8F 的 Add Control 只添加内存设计项并重渲染编辑器 preview，不保存用户布局。新控件应放在当前滚动视口中心附近，并避免普通菜单暴露 `PickingBorderOverlay`。
+26. Phase 8F owner validation 后，Delete Control 只在设计 surface 焦点下响应 Delete 键；焦点位于 `TextBox`、`ComboBox`、`DataGrid`、ColorPicker 或属性编辑器内部时必须忽略，避免编辑文本时误删控件。
+27. `Name`、`BindingPath` 和普通文本/资源路径属性使用显式提交：文本框绑定 `EditText`，按 Enter 或 Check/Apply 按钮提交。Enter 处理必须直接读取 `TextBox.Text`，不能依赖 `UpdateSourceTrigger=LostFocus` 后的 `Value`，否则会提交旧值或空值。
+28. 属性编辑失败时不要重建到丢失输入。应保留 `EditText`、设置 `HasEditError` / `EditError`、显示红色边框和行内错误消息；失败提交不应触发 preview render。
+29. `FontFamily` 的可编辑 ComboBox 不应在下拉打开时由 LostFocus 触发提交。下拉选择保存 `FrontedFontFamilyOption.Value`，手写字体按 Enter 或真正失焦保存 `ComboBox.Text`，内置字体 pack URI 不能被显示名替换。
+30. 右侧 Property Grid 面板通过中间 `GridSplitter` 调整宽度。拖动 splitter 只改变编辑器窗口布局，不写回 v3 layout JSON，也不需要在 Phase 8F 持久化。
 
 ## 插件 UI
 

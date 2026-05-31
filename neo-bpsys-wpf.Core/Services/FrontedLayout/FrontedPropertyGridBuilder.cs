@@ -125,6 +125,7 @@ public class FrontedPropertyGridBuilder
             PropertyType = typeof(string),
             EditorKind = nameReadOnly ? FrontedPropertyEditorKind.ReadOnly : FrontedPropertyEditorKind.Text,
             Value = selectedItem.Name,
+            EditText = selectedItem.Name,
             IsReadOnly = nameReadOnly,
             IsRequired = true,
             GroupName = "Identity",
@@ -208,6 +209,7 @@ public class FrontedPropertyGridBuilder
                 PropertyType = property.PropertyType,
                 EditorKind = isReadOnly ? FrontedPropertyEditorKind.ReadOnly : kind,
                 Value = value,
+                EditText = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
                 IsReadOnly = isReadOnly,
                 IsRequired = property.Name is nameof(FrontedControlConfigBase.Left)
                     or nameof(FrontedControlConfigBase.Top),

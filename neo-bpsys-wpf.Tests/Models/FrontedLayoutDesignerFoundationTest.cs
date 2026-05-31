@@ -678,6 +678,78 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void DeleteSelectedControlRemovesNormalControlMarksDirtyAndClearsSelection()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new TextFrontedControlConfig()
+        };
+        var logo = new FrontedControlDesignItem
+        {
+            Name = "Logo",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new ImageFrontedControlConfig()
+        };
+        var document = CreateDocument([title, logo]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var previewRequests = 0;
+        viewModel.PreviewRenderRequested += (_, _) => previewRequests++;
+        viewModel.SelectDesignItem(title);
+
+        viewModel.DeleteSelectedControlCommand.Execute(null);
+
+        Assert.DoesNotContain(title, document.Controls);
+        Assert.Contains(logo, document.Controls);
+        Assert.True(document.IsDirty);
+        Assert.Null(viewModel.SelectedDesignItem);
+        Assert.DoesNotContain(title, viewModel.FilteredDesignItems);
+        Assert.True(previewRequests > 0);
+    }
+
+    [Fact]
+    public void DeleteSelectedControlRefusesRuntimeCriticalAndReferencedControls()
+    {
+        var runtimeCritical = new FrontedControlDesignItem
+        {
+            Name = "SurPick0",
+            IsRuntimeCritical = true,
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new ImageFrontedControlConfig()
+        };
+        var referenced = new FrontedControlDesignItem
+        {
+            Name = "Target",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new ImageFrontedControlConfig()
+        };
+        var overlay = new FrontedControlDesignItem
+        {
+            Name = "TargetOverlay",
+            IsSelectableInEditor = false,
+            IsEditableInEditor = false,
+            Config = new PickingBorderOverlayControlConfig { TargetControlName = "Target" }
+        };
+        var document = CreateDocument([runtimeCritical, referenced, overlay], "BpWindow");
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+
+        viewModel.SelectDesignItem(runtimeCritical);
+        viewModel.DeleteSelectedControlCommand.Execute(null);
+        Assert.Contains(runtimeCritical, document.Controls);
+
+        viewModel.SelectDesignItem(referenced);
+        viewModel.DeleteSelectedControlCommand.Execute(null);
+        Assert.Contains(referenced, document.Controls);
+        Assert.False(string.IsNullOrWhiteSpace(viewModel.StatusMessage));
+        Assert.False(document.IsDirty);
+    }
+
+    [Fact]
     public void LinkedOverlaySynchronizerCopiesTargetGeometryToPickingBorderOverlay()
     {
         var target = new FrontedControlDesignItem
@@ -1064,6 +1136,41 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void FontFamilyOptionSelectionStoresOptionValueNotDisplayName()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig()
+        };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([item])
+        };
+        viewModel.SelectDesignItem(item);
+        var option = new FrontedFontFamilyOption
+        {
+            DisplayName = "Noto Sans",
+            Value = "pack://application:,,,/Assets/Fonts/#Noto Sans",
+            PreviewFontFamily = new FontFamily("Arial"),
+            IsBuiltIn = true
+        };
+
+        viewModel.ApplyPropertyEdit(
+            new FrontedPropertyEditorItem
+            {
+                PropertyName = nameof(TextFrontedControlConfig.FontFamily),
+                EditorKind = FrontedPropertyEditorKind.FontFamily,
+                Value = option.DisplayName,
+                EditText = option.DisplayName
+            },
+            option.Value);
+
+        Assert.Equal(option.Value, ((TextFrontedControlConfig)item.Config).FontFamily);
+        Assert.NotEqual(option.DisplayName, ((TextFrontedControlConfig)item.Config).FontFamily);
+    }
+
+    [Fact]
     public void ApplyPropertyEditUpdatesTextPropertyAndMarksDocumentDirty()
     {
         var item = new FrontedControlDesignItem
@@ -1160,15 +1267,100 @@ public class FrontedLayoutDesignerFoundationTest
         };
 
         viewModel.SelectDesignItem(title);
-        viewModel.ApplyPropertyEdit(NameEditorRow(), "Bad.Name");
+        var invalidNameRow = NameEditorRow();
+        var invalidResult = viewModel.ApplyPropertyEdit(invalidNameRow, "Bad.Name");
+        Assert.False(invalidResult);
         Assert.Equal("Title", title.Name);
+        Assert.Equal("Bad.Name", invalidNameRow.EditText);
+        Assert.True(invalidNameRow.HasEditError);
 
-        viewModel.ApplyPropertyEdit(NameEditorRow(), "Logo");
+        var duplicateNameRow = NameEditorRow();
+        var duplicateResult = viewModel.ApplyPropertyEdit(duplicateNameRow, "Logo");
+        Assert.False(duplicateResult);
         Assert.Equal("Title", title.Name);
+        Assert.Equal("Logo", duplicateNameRow.EditText);
+        Assert.True(duplicateNameRow.HasEditError);
 
         viewModel.SelectDesignItem(runtimeCritical);
-        viewModel.ApplyPropertyEdit(NameEditorRow(), "SurPickA");
+        var runtimeResult = viewModel.ApplyPropertyEdit(NameEditorRow(), "SurPickA");
+        Assert.False(runtimeResult);
         Assert.Equal("SurPick0", runtimeCritical.Name);
+    }
+
+    [Fact]
+    public void ApplyPropertyEditValidNameUpdatesDesignItemAndClearsEditError()
+    {
+        var title = new FrontedControlDesignItem { Name = "Title", Config = new TextFrontedControlConfig() };
+        var document = CreateDocument([title]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(title);
+        var row = NameEditorRow();
+        row.SetEditError("old error");
+
+        var result = viewModel.ApplyPropertyEdit(row, "Title2");
+
+        Assert.True(result);
+        Assert.Equal("Title2", title.Name);
+        Assert.True(document.IsDirty);
+        Assert.False(row.HasEditError);
+        Assert.DoesNotContain(viewModel.PropertyEditorItems, item => item.HasEditError);
+    }
+
+    [Fact]
+    public void ApplyPropertyEditUsesEditBufferForBindingPathAndAllowsEmptyText()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { BindingPath = "Old.Path", Text = "Static" }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([item]) };
+        viewModel.SelectDesignItem(item);
+        var row = new FrontedPropertyEditorItem
+        {
+            PropertyName = nameof(FrontedControlConfigBase.BindingPath),
+            EditorKind = FrontedPropertyEditorKind.Text,
+            Value = "Old.Path",
+            EditText = "CurrentGame.SurTeam.Name"
+        };
+
+        var result = viewModel.ApplyPropertyEdit(row, row.EditText);
+
+        Assert.True(result);
+        Assert.Equal("CurrentGame.SurTeam.Name", item.Config.BindingPath);
+
+        row.EditText = string.Empty;
+        result = viewModel.ApplyPropertyEdit(row, row.EditText);
+
+        Assert.True(result);
+        Assert.Equal(string.Empty, item.Config.BindingPath);
+    }
+
+    [Fact]
+    public void TextPropertyEditFailureKeepsEditBufferAndSetsErrorState()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Left = 10 }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([item]) };
+        viewModel.SelectDesignItem(item);
+        var row = new FrontedPropertyEditorItem
+        {
+            PropertyName = nameof(FrontedControlConfigBase.Left),
+            EditorKind = FrontedPropertyEditorKind.Number,
+            Value = "10",
+            EditText = "not-a-number"
+        };
+
+        var result = viewModel.ApplyPropertyEdit(row, row.EditText);
+
+        Assert.False(result);
+        Assert.Equal(10, item.Config.Left);
+        Assert.Equal("not-a-number", row.EditText);
+        Assert.True(row.HasEditError);
+        Assert.NotEmpty(row.ValidationErrors);
     }
 
     [Fact]
@@ -1423,7 +1615,12 @@ public class FrontedLayoutDesignerFoundationTest
             "Placeholder",
             "AddedControl",
             "CannotAddControl",
-            "UnsupportedControlType"
+            "UnsupportedControlType",
+            "DeleteControl",
+            "DeleteSelectedControl",
+            "CannotDeleteRuntimeCriticalControl",
+            "CannotDeleteReferencedControl",
+            "ConfirmDeleteControl"
         };
 
         foreach (var fileName in new[] { "Lang.resx", "Lang.en-us.resx", "Lang.ja-jp.resx" })
@@ -1491,8 +1688,15 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("OpenValidationDetails_OnClick", text);
         Assert.Contains("AddControlButton_OnClick", text);
         Assert.Contains("AddControlMenuItem_OnClick", text);
+        Assert.Contains("DeleteSelectedControlCommand", text);
+        Assert.Contains("GridSplitter", text);
+        Assert.Contains("ResizeDirection=\"Columns\"", text);
+        Assert.Contains("Grid.Column=\"3\"", text);
         Assert.Contains("PropertyFontFamilyEditorTemplate", text);
         Assert.Contains("PropertyFontComboBox_OnSelectionChanged", text);
+        Assert.Contains("DropDownClosed=\"PropertyFontComboBox_OnDropDownClosed\"", text);
+        Assert.Contains("Text=\"{Binding EditText", text);
+        Assert.Contains("HasEditError", text);
         Assert.DoesNotContain("ItemsSource=\"{Binding ValidationMessages}\"", text);
     }
 

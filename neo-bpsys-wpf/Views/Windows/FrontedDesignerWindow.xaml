@@ -35,11 +35,35 @@
         </DataTemplate>
 
         <DataTemplate x:Key="PropertyTextEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
-            <ui:TextBox
-                MinHeight="30"
-                KeyDown="PropertyTextBox_OnKeyDown"
-                LostFocus="PropertyTextBox_OnLostFocus"
-                Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=LostFocus, TargetNullValue=''}" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ui:TextBox
+                    Grid.Column="0"
+                    MinHeight="30"
+                    KeyDown="PropertyTextBox_OnKeyDown"
+                    Text="{Binding EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}">
+                    <ui:TextBox.Style>
+                        <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="{x:Type ui:TextBox}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasEditError}" Value="True">
+                                    <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                                    <Setter Property="BorderThickness" Value="1.5" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:TextBox.Style>
+                </ui:TextBox>
+                <ui:Button
+                    Grid.Column="1"
+                    MinWidth="34"
+                    Margin="6,0,0,0"
+                    Click="PropertyTextApplyButton_OnClick"
+                    Icon="{ui:SymbolIcon Symbol=Checkmark24}"
+                    ToolTip="{lex:Loc EditProperty}" />
+            </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="PropertyBooleanEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
@@ -76,8 +100,7 @@
                     Grid.Column="1"
                     MinHeight="30"
                     KeyDown="PropertyTextBox_OnKeyDown"
-                    LostFocus="PropertyTextBox_OnLostFocus"
-                    Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=LostFocus, TargetNullValue=''}" />
+                    Text="{Binding EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" />
             </Grid>
         </DataTemplate>
 
@@ -86,12 +109,12 @@
                 MinHeight="30"
                 IsEditable="True"
                 IsTextSearchEnabled="True"
+                DropDownClosed="PropertyFontComboBox_OnDropDownClosed"
                 ItemsSource="{Binding Options}"
                 KeyDown="PropertyFontComboBox_OnKeyDown"
-                LostFocus="PropertyFontComboBox_OnLostFocus"
-                SelectedValue="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                SelectedValuePath="Value"
+                LostKeyboardFocus="PropertyFontComboBox_OnLostKeyboardFocus"
                 SelectionChanged="PropertyFontComboBox_OnSelectionChanged"
+                Text="{Binding EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}"
                 TextSearch.TextPath="DisplayName">
                 <ComboBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type designer:FrontedFontFamilyOption}">
@@ -165,6 +188,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <ComboBox
@@ -223,13 +247,19 @@
                         </ContextMenu>
                     </ui:Button.ContextMenu>
                 </ui:Button>
-                <TextBlock
+                <ui:Button
                     Grid.Column="5"
+                    Margin="8,0,0,0"
+                    Command="{Binding DeleteSelectedControlCommand}"
+                    Content="{lex:Loc DeleteControl}"
+                    Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                <TextBlock
+                    Grid.Column="6"
                     Margin="12,0,0,0"
                     VerticalAlignment="Center"
                     Text="{Binding ZoomDisplay}" />
                 <Grid
-                    Grid.Column="6"
+                    Grid.Column="7"
                     Margin="16,0,0,0"
                     VerticalAlignment="Center">
                     <Grid.ColumnDefinitions>
@@ -289,7 +319,7 @@
                         Text="{Binding LayoutSourcePath}" />
                 </Grid>
                 <TextBlock
-                    Grid.Column="7"
+                    Grid.Column="8"
                     Margin="12,0,0,0"
                     VerticalAlignment="Center"
                     FontSize="18"
@@ -301,7 +331,8 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="280" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="360" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="360" MinWidth="300" />
             </Grid.ColumnDefinitions>
 
             <Border
@@ -407,7 +438,7 @@
 
             <Border
                 Grid.Column="1"
-                Margin="0,12,12,12"
+                Margin="0,12,8,12"
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                 BorderThickness="1"
@@ -473,8 +504,18 @@
                 </ScrollViewer>
             </Border>
 
-            <Border
+            <GridSplitter
                 Grid.Column="2"
+                Width="5"
+                Margin="0,12,0,12"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                Background="{DynamicResource ControlStrokeColorDefaultBrush}"
+                ResizeBehavior="PreviousAndNext"
+                ResizeDirection="Columns" />
+
+            <Border
+                Grid.Column="3"
                 Margin="0,12,12,12"
                 Padding="12"
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
