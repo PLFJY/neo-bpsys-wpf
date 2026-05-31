@@ -25,6 +25,7 @@
     Background="{DynamicResource ApplicationBackgroundBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     PreviewKeyDown="Window_OnPreviewKeyDown"
+    PreviewKeyUp="Window_OnPreviewKeyUp"
     WindowStartupLocation="CenterOwner"
     mc:Ignorable="d">
     <ui:FluentWindow.Resources>
@@ -248,6 +249,8 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
@@ -270,7 +273,7 @@
                 <ui:Button
                     Grid.Column="2"
                     Margin="8,0,0,0"
-                    Command="{Binding ReloadLayoutCommand}"
+                    Click="ReloadLayoutButton_OnClick"
                     Content="{lex:Loc ReloadLayout}"
                     Icon="{ui:SymbolIcon Symbol=ArrowClockwise24}" />
                 <ui:Button
@@ -356,13 +359,33 @@
                         </ContextMenu>
                     </ui:Button.ContextMenu>
                 </ui:Button>
-                <TextBlock
+                <ui:Button
+                    Grid.Column="7"
+                    Margin="8,0,0,0"
+                    Click="SaveLayoutButton_OnClick"
+                    Content="{lex:Loc SaveLayout}"
+                    Icon="{ui:SymbolIcon Symbol=Save24}"
+                    IsEnabled="{Binding CanSaveLayout}" />
+                <ui:Button
                     Grid.Column="8"
+                    Margin="8,0,0,0"
+                    Click="ResetToBuiltInButton_OnClick"
+                    Content="{lex:Loc ResetToBuiltIn}"
+                    Icon="{ui:SymbolIcon Symbol=ArrowClockwise24}"
+                    IsEnabled="{Binding CanResetToBuiltIn}" />
+                <ui:Button
+                    Grid.Column="9"
+                    Margin="8,0,0,0"
+                    Command="{Binding OpenLayoutFolderCommand}"
+                    Content="{lex:Loc OpenLayoutFolder}"
+                    Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
+                <TextBlock
+                    Grid.Column="10"
                     Margin="12,0,0,0"
                     VerticalAlignment="Center"
                     Text="{Binding ZoomDisplay}" />
                 <Grid
-                    Grid.Column="10"
+                    Grid.Column="12"
                     Margin="16,0,0,0"
                     VerticalAlignment="Center">
                     <Grid.ColumnDefinitions>
@@ -374,6 +397,8 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBlock
                         Grid.Column="0"
@@ -420,9 +445,25 @@
                         VerticalAlignment="Center"
                         IsReadOnly="True"
                         Text="{Binding LayoutSourcePath}" />
+                    <ui:ToggleSwitch
+                        Grid.Column="8"
+                        Margin="12,0,0,0"
+                        VerticalAlignment="Center"
+                        Content="{lex:Loc Snap}"
+                        IsChecked="{Binding SnapEnabled, Mode=TwoWay}" />
+                    <Border
+                        Grid.Column="9"
+                        Margin="8,0,0,0"
+                        Padding="6,2"
+                        Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                        CornerRadius="2">
+                        <TextBlock
+                            FontSize="12"
+                            Text="{Binding SnapStatusText}" />
+                    </Border>
                 </Grid>
                 <TextBlock
-                    Grid.Column="11"
+                    Grid.Column="13"
                     Margin="12,0,0,0"
                     VerticalAlignment="Center"
                     FontSize="18"

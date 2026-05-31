@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ViewModels.Windows;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -12,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using Wpf.Ui.Controls;
+using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
 
 namespace neo_bpsys_wpf.Views.Windows;
 
@@ -49,6 +51,11 @@ public partial class FrontedDesignerWindow : FluentWindow
     private double _panStartHorizontalOffset;
     private double _panStartVerticalOffset;
     private Cursor? _cursorBeforePan;
+    private bool _selectorReloadScheduled;
+    private bool _suppressSelectorReload;
+    private bool _isClosingAfterDirtyPrompt;
+    private FrontedDesignerWindowOption? _lastAcceptedWindow;
+    private FrontedDesignerLayoutCatalogEntry? _lastAcceptedCanvas;
 
     public FrontedDesignerWindow()
     {
@@ -71,13 +78,15 @@ public partial class FrontedDesignerWindow : FluentWindow
         DataContext = viewModel;
         Loaded += OnLoaded;
         Closed += OnClosed;
+        Closing += OnClosing;
+        Deactivated += OnDeactivated;
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         _isLoaded = true;
         AttachViewModel();
-        _viewModel?.ReloadLayoutCommand.Execute(null);
+        _ = LoadInitialLayoutAsync();
     }
 
     private void OnClosed(object? sender, EventArgs e)
@@ -93,14 +102,83 @@ public partial class FrontedDesignerWindow : FluentWindow
         _validationDetailsWindow = null;
     }
 
-    private void Selector_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    private async Task LoadInitialLayoutAsync()
     {
-        if (!_isLoaded)
+        if (_viewModel is null)
         {
             return;
         }
 
-        _viewModel?.ReloadLayoutCommand.Execute(null);
+        await _viewModel.ReloadLayoutCoreAsync();
+        _lastAcceptedWindow = _viewModel.SelectedWindow;
+        _lastAcceptedCanvas = _viewModel.SelectedCanvas;
+    }
+
+    private void Selector_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_isLoaded || _suppressSelectorReload)
+        {
+            return;
+        }
+
+        ScheduleSelectorReload();
+    }
+
+    private void ScheduleSelectorReload()
+    {
+        if (_selectorReloadScheduled)
+        {
+            return;
+        }
+
+        _selectorReloadScheduled = true;
+        Dispatcher.BeginInvoke(
+            new Action(async () => await HandleScheduledSelectorReloadAsync()),
+            DispatcherPriority.Background);
+    }
+
+    private async Task HandleScheduledSelectorReloadAsync()
+    {
+        _selectorReloadScheduled = false;
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        if (ReferenceEquals(_lastAcceptedWindow, _viewModel.SelectedWindow)
+            && ReferenceEquals(_lastAcceptedCanvas, _viewModel.SelectedCanvas))
+        {
+            return;
+        }
+
+        if (!await ConfirmDirtyDocumentCanContinueAsync("SaveBeforeSwitch"))
+        {
+            RestoreAcceptedSelection();
+            return;
+        }
+
+        await _viewModel.ReloadLayoutCoreAsync();
+        _lastAcceptedWindow = _viewModel.SelectedWindow;
+        _lastAcceptedCanvas = _viewModel.SelectedCanvas;
+    }
+
+    private void RestoreAcceptedSelection()
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        _suppressSelectorReload = true;
+        try
+        {
+            _viewModel.SelectedWindow = _lastAcceptedWindow;
+            _viewModel.SelectedCanvas = _lastAcceptedCanvas;
+        }
+        finally
+        {
+            _suppressSelectorReload = false;
+        }
     }
 
     private void ControlList_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -126,6 +204,8 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void Window_OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
+        UpdateShiftSnapState();
+
         if (_viewModel is null || ShouldIgnoreKeyboardInput())
         {
             return;
@@ -172,6 +252,16 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             FocusDesignSurface();
         }
+    }
+
+    private void Window_OnPreviewKeyUp(object sender, KeyEventArgs e)
+    {
+        UpdateShiftSnapState();
+    }
+
+    private void OnDeactivated(object? sender, EventArgs e)
+    {
+        _viewModel?.UpdateShiftSnapActive(false);
     }
 
     private void BrowseBindingButton_OnClick(object sender, RoutedEventArgs e)
@@ -461,6 +551,116 @@ public partial class FrontedDesignerWindow : FluentWindow
             CenterY = GetViewportCenterY()
         });
         FocusDesignSurface();
+    }
+
+    private async void ReloadLayoutButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel is null || !await ConfirmDirtyDocumentCanContinueAsync("SaveBeforeSwitch"))
+        {
+            return;
+        }
+
+        await _viewModel.ReloadLayoutCoreAsync();
+        _lastAcceptedWindow = _viewModel.SelectedWindow;
+        _lastAcceptedCanvas = _viewModel.SelectedCanvas;
+    }
+
+    private async void SaveLayoutButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        var saved = await _viewModel.SaveCurrentLayoutAsync();
+        if (!saved && _viewModel.ErrorCount > 0)
+        {
+            OpenValidationDetails_OnClick(sender, e);
+        }
+    }
+
+    private async void ResetToBuiltInButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel is null || !await ConfirmDirtyDocumentCanContinueAsync("SaveBeforeSwitch"))
+        {
+            return;
+        }
+
+        if (!await ConfirmResetToBuiltInAsync())
+        {
+            return;
+        }
+
+        await _viewModel.ResetToBuiltInCoreAsync();
+        _lastAcceptedWindow = _viewModel.SelectedWindow;
+        _lastAcceptedCanvas = _viewModel.SelectedCanvas;
+    }
+
+    private async void OnClosing(object? sender, CancelEventArgs e)
+    {
+        if (_isClosingAfterDirtyPrompt || _viewModel?.CurrentDocument?.IsDirty != true)
+        {
+            return;
+        }
+
+        e.Cancel = true;
+        if (!await ConfirmDirtyDocumentCanContinueAsync("SaveBeforeClose"))
+        {
+            return;
+        }
+
+        _isClosingAfterDirtyPrompt = true;
+        Close();
+    }
+
+    private async Task<bool> ConfirmDirtyDocumentCanContinueAsync(string messageKey)
+    {
+        if (_viewModel?.CurrentDocument?.IsDirty != true)
+        {
+            return true;
+        }
+
+        var messageBox = new Wpf.Ui.Controls.MessageBox
+        {
+            Owner = this,
+            Title = I18nHelper.GetLocalizedString("Unsaved"),
+            Content = I18nHelper.GetLocalizedString(messageKey),
+            PrimaryButtonText = I18nHelper.GetLocalizedString("Save"),
+            PrimaryButtonIcon = new SymbolIcon { Symbol = SymbolRegular.Save24 },
+            SecondaryButtonText = I18nHelper.GetLocalizedString("DiscardChanges"),
+            SecondaryButtonIcon = new SymbolIcon { Symbol = SymbolRegular.Delete24 },
+            CloseButtonText = I18nHelper.GetLocalizedString("Cancel"),
+            CloseButtonIcon = new SymbolIcon { Symbol = SymbolRegular.Dismiss24 }
+        };
+
+        var result = await messageBox.ShowDialogAsync();
+        if (result == MessageBoxResult.Primary)
+        {
+            return await _viewModel.SaveCurrentLayoutAsync();
+        }
+
+        return result == MessageBoxResult.Secondary;
+    }
+
+    private async Task<bool> ConfirmResetToBuiltInAsync()
+    {
+        var messageBox = new Wpf.Ui.Controls.MessageBox
+        {
+            Owner = this,
+            Title = I18nHelper.GetLocalizedString("ResetToBuiltIn"),
+            Content = I18nHelper.GetLocalizedString("ResetLayoutConfirm"),
+            PrimaryButtonText = I18nHelper.GetLocalizedString("Confirm"),
+            PrimaryButtonIcon = new SymbolIcon { Symbol = SymbolRegular.ArrowClockwise24 },
+            CloseButtonText = I18nHelper.GetLocalizedString("Cancel"),
+            CloseButtonIcon = new SymbolIcon { Symbol = SymbolRegular.Dismiss24 }
+        };
+
+        return await messageBox.ShowDialogAsync() == MessageBoxResult.Primary;
+    }
+
+    private void UpdateShiftSnapState()
+    {
+        _viewModel?.UpdateShiftSnapActive(Keyboard.Modifiers.HasFlag(ModifierKeys.Shift));
     }
 
     private void OnPreviewRenderRequested(
@@ -1267,8 +1467,13 @@ public partial class FrontedDesignerWindow : FluentWindow
         };
     }
 
-    private static double GetKeyboardMoveStep()
+    private double GetKeyboardMoveStep()
     {
+        if (_viewModel?.EffectiveSnapEnabled == true)
+        {
+            return _viewModel.SnapGridSize;
+        }
+
         if (Keyboard.Modifiers.HasFlag(ModifierKeys.Shift))
         {
             return 10D;

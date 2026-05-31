@@ -85,6 +85,7 @@ public partial class App
         services.AddSingleton<ISettingsMigrationService, SettingsMigrationService>();
         services.AddSingleton<ISettingsHostService, SettingsHostService>();
         services.AddSingleton<IFrontedResourceResolver, FrontedResourceResolver>();
+        services.AddSingleton<IFrontedUserLayoutStore, FrontedUserLayoutStore>();
         services.AddSingleton<IFrontedControl, TextFrontedControl>();
         services.AddSingleton<IFrontedControl, LocalizedTextFrontedControl>();
         services.AddSingleton<IFrontedControl, ImageFrontedControl>();

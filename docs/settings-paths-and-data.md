@@ -75,6 +75,6 @@
 | 插件配置 | `%APPDATA%\neo-bpsys-wpf\PluginConfigs\{pluginId}` |
 | 插件市场临时下载 | `%TEMP%\neo-bpsys-wpf\PluginMarket\...` |
 
-v3 前台布局的加载优先级是用户布局优先、内置默认布局兜底。独立 Fronted Designer 编辑器保存普通用户改动时应写入 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json`，不应直接覆盖安装目录或源码中的 `Resources\FrontedLayouts`。多 Canvas 窗口按 `{CanvasName}.json` 分文件保存。
+v3 前台布局的加载优先级是用户布局优先、内置默认布局兜底。`IFrontedUserLayoutStore` 负责 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts` 下的用户布局读写；`IFrontedLayoutService` 会先尝试用户布局，如果用户 JSON 不可读或无效，会记录警告并回退到内置 `Resources\FrontedLayouts`。独立 Fronted Designer 编辑器保存普通用户改动时只写入 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json`，不应直接覆盖安装目录或源码中的 `Resources\FrontedLayouts`。多 Canvas 窗口按 `{CanvasName}.json` 分文件保存；“重置为内置”会删除当前 Canvas 对应的用户布局文件。
 
 卸载脚本会询问是否删除 `%APPDATA%\neo-bpsys-wpf`，包括日志、自定义 UI 和设置。

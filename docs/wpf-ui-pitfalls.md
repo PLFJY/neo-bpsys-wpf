@@ -131,6 +131,8 @@ BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.
 31. 设计器 preview 使用独立 `DesignerPreviewSharedDataService`，只通过 `FrontedRenderContext.SharedDataServiceOverride` 传给 renderer。不要为了预览调用真实共享数据服务的 `NewGame()` 或修改真实 `CurrentGame`，否则会污染导播运行时状态。
 32. Undo/Redo 快捷键只在设计 surface、列表或编辑器背景获得焦点时执行布局撤销/重做；焦点在 `TextBox`、`ComboBox`、ColorPicker 等属性编辑器内时必须让控件自身处理文本撤销。切换窗口/Canvas 或 reload 必须清空 undo/redo 栈。
 33. Binding Browser 使用 curated `ISharedDataService` 树和固定常用集合索引，不应对任意对象做无边界深反射。绑定树节点必须保留真实 `ValueType`，树过滤和搜索都要使用同一 `FrontedBindingTypeFilter`：文本控件只允许字符串/数字，图片控件只允许 `ImageSource` 兼容值，`GameProgressText` 只允许 `GameProgress`，`MapNameText` 只允许 `Map` / `Map?`。浏览器选择仍只能写入属性行 `EditText`，不能绕过 Apply/Enter 直接提交 config。Resource Browser 读取 `Resources/bpui` 时缩略图必须用 `BitmapImage.CacheOption=OnLoad` 等方式避免锁文件；外部绝对路径只引用原文件，Phase 8G 不复制到用户布局目录或 `.bpui` 包。
+34. Phase 8H 的吸附开关分为持久 `SnapEnabled` 和临时 `IsShiftSnapActive`。ToggleSwitch 只能绑定 `SnapEnabled`；Shift KeyDown/KeyUp 只更新临时状态和状态文字，不能反向修改 ToggleSwitch，否则拖拽时会造成开关频繁刷新和输入延迟。
+35. Phase 8H 的保存只写用户 AppData 布局，不能覆盖 `Resources/FrontedLayouts`。切换窗口/Canvas、reload、reset 和关闭窗口前都要处理 dirty prompt；Save 因校验 Error 失败时必须取消原动作。
 
 ## 插件 UI
 

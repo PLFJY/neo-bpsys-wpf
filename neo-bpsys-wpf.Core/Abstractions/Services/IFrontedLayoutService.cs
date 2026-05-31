@@ -16,6 +16,14 @@ public interface IFrontedLayoutService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 加载 Canvas 配置并返回来源元数据。
+    /// </summary>
+    Task<FrontedLayoutLoadResult> LoadCanvasConfigWithMetadataAsync(
+        string windowTypeName,
+        string canvasName,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 保存 Canvas 配置到用户布局路径。
     /// </summary>
     Task SaveCanvasConfigAsync(
@@ -25,9 +33,32 @@ public interface IFrontedLayoutService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 删除用户布局。
+    /// </summary>
+    Task DeleteUserLayoutAsync(
+        string windowTypeName,
+        string canvasName,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 用户布局是否存在。
+    /// </summary>
+    bool UserLayoutExists(string windowTypeName, string canvasName);
+
+    /// <summary>
     /// 获取用户布局路径。
     /// </summary>
     string GetUserLayoutPath(string windowTypeName, string canvasName);
+
+    /// <summary>
+    /// 获取用户布局目录。
+    /// </summary>
+    string GetUserLayoutFolder(string windowTypeName, string canvasName);
+
+    /// <summary>
+    /// 获取用户布局根目录。
+    /// </summary>
+    string GetUserLayoutRootFolder();
 
     /// <summary>
     /// 获取内置默认布局路径。

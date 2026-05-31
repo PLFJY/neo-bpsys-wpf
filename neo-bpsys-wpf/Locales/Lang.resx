@@ -2176,6 +2176,63 @@
   <data name="HexColor" xml:space="preserve">
     <value>十六进制颜色</value>
   </data>
+  <data name="SaveLayout" xml:space="preserve">
+    <value>保存布局</value>
+  </data>
+  <data name="ResetToBuiltIn" xml:space="preserve">
+    <value>重置为内置</value>
+  </data>
+  <data name="OpenLayoutFolder" xml:space="preserve">
+    <value>打开布局目录</value>
+  </data>
+  <data name="Unsaved" xml:space="preserve">
+    <value>未保存</value>
+  </data>
+  <data name="LayoutSourceUser" xml:space="preserve">
+    <value>用户布局</value>
+  </data>
+  <data name="LayoutSourceBuiltIn" xml:space="preserve">
+    <value>内置布局</value>
+  </data>
+  <data name="LayoutSourceError" xml:space="preserve">
+    <value>缺失/错误</value>
+  </data>
+  <data name="SaveBeforeSwitch" xml:space="preserve">
+    <value>当前布局有未保存修改。是否保存后继续？</value>
+  </data>
+  <data name="SaveBeforeClose" xml:space="preserve">
+    <value>当前布局有未保存修改。是否保存后关闭？</value>
+  </data>
+  <data name="DiscardChanges" xml:space="preserve">
+    <value>放弃修改</value>
+  </data>
+  <data name="ResetLayoutConfirm" xml:space="preserve">
+    <value>是否重置为内置布局？当前自定义布局将被删除。</value>
+  </data>
+  <data name="LayoutSaved" xml:space="preserve">
+    <value>布局已保存</value>
+  </data>
+  <data name="LayoutSaveFailed" xml:space="preserve">
+    <value>布局保存失败</value>
+  </data>
+  <data name="CannotSaveInvalidLayout" xml:space="preserve">
+    <value>布局存在错误，无法保存</value>
+  </data>
+  <data name="Snap" xml:space="preserve">
+    <value>吸附</value>
+  </data>
+  <data name="SnapOn" xml:space="preserve">
+    <value>吸附开启</value>
+  </data>
+  <data name="SnapOff" xml:space="preserve">
+    <value>吸附关闭</value>
+  </data>
+  <data name="TemporarySnap" xml:space="preserve">
+    <value>临时吸附</value>
+  </data>
+  <data name="SnapGridSize" xml:space="preserve">
+    <value>吸附网格大小</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Xml.Linq;
@@ -2045,7 +2046,26 @@ public class FrontedLayoutDesignerFoundationTest
             "PlaceholderPreview",
             "DesignerPlaceholderData",
             "ApplyColor",
-            "HexColor"
+            "HexColor",
+            "SaveLayout",
+            "ResetToBuiltIn",
+            "OpenLayoutFolder",
+            "Unsaved",
+            "LayoutSourceUser",
+            "LayoutSourceBuiltIn",
+            "LayoutSourceError",
+            "SaveBeforeSwitch",
+            "SaveBeforeClose",
+            "DiscardChanges",
+            "ResetLayoutConfirm",
+            "LayoutSaved",
+            "LayoutSaveFailed",
+            "CannotSaveInvalidLayout",
+            "Snap",
+            "SnapOn",
+            "SnapOff",
+            "TemporarySnap",
+            "SnapGridSize"
         };
 
         foreach (var fileName in new[] { "Lang.resx", "Lang.en-us.resx", "Lang.ja-jp.resx" })
@@ -2149,6 +2169,224 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("private string _zoomDisplay = \"Fit\"", text);
     }
 
+    [Fact]
+    public async Task FrontedUserLayoutStoreSavesLoadsAndDeletesExpectedPath()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var store = new FrontedUserLayoutStore(root);
+            var config = new FrontedCanvasConfig
+            {
+                CanvasWidth = 1440,
+                CanvasHeight = 810,
+                Controls =
+                {
+                    ["Title"] = new TextFrontedControlConfig { Text = "Saved" }
+                }
+            };
+
+            await store.SaveAsync("BpWindow", "BaseCanvas", config, TestContext.Current.CancellationToken);
+
+            var expectedPath = Path.Combine(root, "BpWindow", "BaseCanvas.json");
+            Assert.Equal(expectedPath, store.GetLayoutPath("BpWindow", "BaseCanvas"));
+            Assert.Equal(Path.Combine(root, "BpWindow"), store.GetLayoutFolder("BpWindow", "BaseCanvas"));
+            Assert.Equal(root, store.GetRootFolder());
+            Assert.True(store.Exists("BpWindow", "BaseCanvas"));
+
+            var loaded = await store.LoadAsync("BpWindow", "BaseCanvas", TestContext.Current.CancellationToken);
+            Assert.NotNull(loaded);
+            Assert.Equal(3, loaded.Version);
+            Assert.True(loaded.Controls.ContainsKey("Title"));
+            Assert.Contains("\"Title\"", File.ReadAllText(expectedPath));
+
+            await store.DeleteAsync("BpWindow", "BaseCanvas", TestContext.Current.CancellationToken);
+            Assert.False(store.Exists("BpWindow", "BaseCanvas"));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task FrontedLayoutServicePrefersUserLayoutOverBuiltIn()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var userStore = new FrontedUserLayoutStore(Path.Combine(root, "user"));
+            var builtInRoot = Path.Combine(root, "builtIn");
+            WriteBuiltInLayout(builtInRoot, "BpWindow", "BaseCanvas", new FrontedCanvasConfig
+            {
+                CanvasWidth = 100,
+                CanvasHeight = 50,
+                Controls =
+                {
+                    ["BuiltInText"] = new TextFrontedControlConfig { Text = "Built-in" }
+                }
+            });
+            await userStore.SaveAsync("BpWindow", "BaseCanvas", new FrontedCanvasConfig
+            {
+                CanvasWidth = 200,
+                CanvasHeight = 100,
+                Controls =
+                {
+                    ["UserText"] = new TextFrontedControlConfig { Text = "User" }
+                }
+            }, TestContext.Current.CancellationToken);
+
+            var service = new FrontedLayoutService(userStore, builtInRoot, logger: null);
+            var result = await service.LoadCanvasConfigWithMetadataAsync(
+                "BpWindow",
+                "BaseCanvas",
+                TestContext.Current.CancellationToken);
+
+            Assert.Equal(FrontedLayoutSource.User, result.Source);
+            Assert.Equal(200, result.Config?.CanvasWidth);
+            Assert.True(result.Config?.Controls.ContainsKey("UserText"));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task FrontedLayoutServiceFallsBackToBuiltInWhenUserMissingOrInvalid()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var userStore = new FrontedUserLayoutStore(Path.Combine(root, "user"));
+            var builtInRoot = Path.Combine(root, "builtIn");
+            WriteBuiltInLayout(builtInRoot, "BpWindow", "BaseCanvas", new FrontedCanvasConfig
+            {
+                CanvasWidth = 100,
+                CanvasHeight = 50,
+                Controls =
+                {
+                    ["BuiltInText"] = new TextFrontedControlConfig { Text = "Built-in" }
+                }
+            });
+            var service = new FrontedLayoutService(userStore, builtInRoot, logger: null);
+
+            var missingUserResult = await service.LoadCanvasConfigWithMetadataAsync(
+                "BpWindow",
+                "BaseCanvas",
+                TestContext.Current.CancellationToken);
+            Assert.Equal(FrontedLayoutSource.BuiltIn, missingUserResult.Source);
+
+            Directory.CreateDirectory(userStore.GetLayoutFolder("BpWindow", "BaseCanvas"));
+            File.WriteAllText(userStore.GetLayoutPath("BpWindow", "BaseCanvas"), "{ invalid json");
+            var invalidUserResult = await service.LoadCanvasConfigWithMetadataAsync(
+                "BpWindow",
+                "BaseCanvas",
+                TestContext.Current.CancellationToken);
+
+            Assert.Equal(FrontedLayoutSource.BuiltIn, invalidUserResult.Source);
+            Assert.Equal(100, invalidUserResult.Config?.CanvasWidth);
+            Assert.NotNull(invalidUserResult.Error);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task SaveCurrentLayoutRefusesValidationErrors()
+    {
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = new FrontedCanvasDesignDocument
+            {
+                WindowTypeName = "BpWindow",
+                CanvasName = "BaseCanvas",
+                CanvasConfig = new FrontedCanvasConfig
+                {
+                    Version = 3,
+                    CanvasWidth = 0,
+                    CanvasHeight = 810
+                }
+            }
+        };
+
+        var saved = await viewModel.SaveCurrentLayoutAsync();
+
+        Assert.False(saved);
+        Assert.True(viewModel.ErrorCount > 0);
+        Assert.False(string.IsNullOrWhiteSpace(viewModel.StatusMessage));
+    }
+
+    [Fact]
+    public void SnapEffectiveStateAndStatusFollowToggleAndShiftSeparately()
+    {
+        var viewModel = new FrontedDesignerWindowViewModel();
+
+        Assert.False(viewModel.EffectiveSnapEnabled);
+        Assert.False(viewModel.SnapEnabled);
+
+        viewModel.UpdateShiftSnapActive(true);
+
+        Assert.True(viewModel.EffectiveSnapEnabled);
+        Assert.False(viewModel.SnapEnabled);
+        Assert.Equal(neo_bpsys_wpf.Helpers.I18nHelper.GetLocalizedString("TemporarySnap"), viewModel.SnapStatusText);
+
+        viewModel.SnapEnabled = true;
+        viewModel.UpdateShiftSnapActive(false);
+
+        Assert.True(viewModel.EffectiveSnapEnabled);
+        Assert.True(viewModel.SnapEnabled);
+        Assert.Equal(neo_bpsys_wpf.Helpers.I18nHelper.GetLocalizedString("SnapOn"), viewModel.SnapStatusText);
+    }
+
+    [Fact]
+    public void DesignerGeometryHelperNormalizesFreeAndSnapCoordinates()
+    {
+        Assert.Equal(10, FrontedDesignerGeometryHelper.NormalizeCoordinate(10.24));
+        Assert.Equal(10.5, FrontedDesignerGeometryHelper.NormalizeCoordinate(10.25));
+        Assert.Equal(20, FrontedDesignerGeometryHelper.NormalizeCoordinate(15.1, true, 10));
+    }
+
+    [Fact]
+    public void DesignerGeometryHelperMoveAndResizeUseEffectiveSnapOnly()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Image",
+            Config = new ImageFrontedControlConfig
+            {
+                Left = 10,
+                Top = 20,
+                Width = 50,
+                Height = 40
+            }
+        };
+
+        FrontedDesignerGeometryHelper.Move(item, 10, 20, 2.2, 2.2, effectiveSnapEnabled: false);
+        Assert.Equal(12, item.Config.Left);
+        Assert.Equal(22, item.Config.Top);
+
+        FrontedDesignerGeometryHelper.Move(item, 10, 20, 6, 6, effectiveSnapEnabled: true, snapGridSize: 10);
+        Assert.Equal(20, item.Config.Left);
+        Assert.Equal(30, item.Config.Top);
+
+        FrontedDesignerGeometryHelper.Resize(
+            item,
+            FrontedDesignerResizeHandleKind.BottomRight,
+            10,
+            20,
+            53,
+            44,
+            4,
+            7,
+            effectiveSnapEnabled: true,
+            snapGridSize: 10);
+        Assert.Equal(60, item.Config.Width);
+        Assert.Equal(50, item.Config.Height);
+    }
+
     private static FrontedCanvasDesignDocument CreateDocument(
         IList<FrontedControlDesignItem> controls,
         string windowTypeName = "TestWindow")
@@ -2225,6 +2463,37 @@ public class FrontedLayoutDesignerFoundationTest
         var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(File.ReadAllText(path));
         Assert.NotNull(config);
         return config;
+    }
+
+    private static void WriteBuiltInLayout(
+        string builtInRoot,
+        string windowTypeName,
+        string canvasName,
+        FrontedCanvasConfig config)
+    {
+        var folder = Path.Combine(builtInRoot, windowTypeName);
+        Directory.CreateDirectory(folder);
+        File.WriteAllText(
+            Path.Combine(folder, $"{canvasName}.json"),
+            JsonSerializer.Serialize(config));
+    }
+
+    private static string CreateTempDirectory()
+    {
+        var path = Path.Combine(
+            Path.GetTempPath(),
+            "neo-bpsys-wpf-tests",
+            Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(path);
+        return path;
+    }
+
+    private static void DeleteTempDirectory(string path)
+    {
+        if (Directory.Exists(path))
+        {
+            Directory.Delete(path, recursive: true);
+        }
     }
 
     private static string GetRepositoryPath(

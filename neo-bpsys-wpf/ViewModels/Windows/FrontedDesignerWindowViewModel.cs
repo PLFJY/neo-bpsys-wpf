@@ -12,6 +12,7 @@ using neo_bpsys_wpf.Services.FrontedDesigner;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -149,6 +150,34 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private string _dirtyIndicatorText = "○";
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(EffectiveSnapEnabled))]
+    private bool _snapEnabled;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(EffectiveSnapEnabled))]
+    private bool _isShiftSnapActive;
+
+    [ObservableProperty]
+    private double _snapGridSize = FrontedDesignerGeometryHelper.DefaultSnapGridSize;
+
+    public bool EffectiveSnapEnabled => SnapEnabled || IsShiftSnapActive;
+
+    public string SnapStatusText
+    {
+        get
+        {
+            if (SnapEnabled)
+            {
+                return I18nHelper.GetLocalizedString("SnapOn");
+            }
+
+            return IsShiftSnapActive
+                ? I18nHelper.GetLocalizedString("TemporarySnap")
+                : I18nHelper.GetLocalizedString("SnapOff");
+        }
+    }
+
+    [ObservableProperty]
     private double _zoomScale = 1D;
 
     [ObservableProperty]
@@ -173,6 +202,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public bool CanUndo => _undoStack.Count > 0;
 
     public bool CanRedo => _redoStack.Count > 0;
+
+    public bool CanSaveLayout => CurrentDocument?.IsDirty == true;
+
+    public bool CanResetToBuiltIn => CurrentDocument is not null;
 
     [ObservableProperty]
     private string _controlFilterText = string.Empty;
@@ -238,6 +271,19 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RebuildPropertyEditorItems();
         UpdateFitZoomFromCurrentDocument();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
+        NotifyLayoutCommandState();
+    }
+
+    partial void OnSnapEnabledChanged(bool value)
+    {
+        OnPropertyChanged(nameof(EffectiveSnapEnabled));
+        OnPropertyChanged(nameof(SnapStatusText));
+    }
+
+    partial void OnIsShiftSnapActiveChanged(bool value)
+    {
+        OnPropertyChanged(nameof(EffectiveSnapEnabled));
+        OnPropertyChanged(nameof(SnapStatusText));
     }
 
     partial void OnSelectedDesignItemChanged(FrontedControlDesignItem? value)
@@ -275,6 +321,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task ReloadLayoutAsync()
     {
+        await ReloadLayoutCoreAsync();
+    }
+
+    public async Task ReloadLayoutCoreAsync()
+    {
         if (SelectedWindow is null || SelectedCanvas is null)
         {
             ClearLoadedLayout(CreateMessage(
@@ -286,18 +337,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var entry = SelectedCanvas;
         CurrentWindowCanvasDisplay = $"{entry.WindowTypeName} / {entry.CanvasName}";
-        DirtyIndicatorText = "○";
-        ResolveLayoutSource(entry);
+        DirtyIndicatorText = string.Empty;
 
         try
         {
-            var config = await _layoutService.LoadCanvasConfigAsync(entry.WindowTypeName, entry.CanvasName);
+            var loadResult = await _layoutService.LoadCanvasConfigWithMetadataAsync(entry.WindowTypeName, entry.CanvasName);
+            ApplyLayoutSource(loadResult, entry);
+
+            var config = loadResult.Config;
             if (config is null)
             {
                 ClearLoadedLayout(CreateMessage(
                     FrontedLayoutValidationSeverity.Error,
                     "MissingLayout",
-                    $"Layout file was not found for {entry.WindowTypeName}/{entry.CanvasName}."));
+                    loadResult.Error ?? $"Layout file was not found for {entry.WindowTypeName}/{entry.CanvasName}."));
                 return;
             }
 
@@ -309,9 +362,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
             ControlFilterText = string.Empty;
             CurrentDocument = document;
+            CurrentDocument.IsDirty = false;
             SelectDesignItem(null);
-            ApplyValidationMessages(_validator.Validate(document));
+            var validationMessages = _validator.Validate(document).ToList();
+            if (!string.IsNullOrWhiteSpace(loadResult.Error))
+            {
+                validationMessages.Add(CreateMessage(
+                    FrontedLayoutValidationSeverity.Warning,
+                    "UserLayoutLoadFailed",
+                    loadResult.Error));
+            }
+
+            ApplyValidationMessages(validationMessages);
             RequestPreviewRender(config, entry);
+            RefreshDirtyState();
         }
         catch (Exception ex)
         {
@@ -326,6 +390,134 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 "LayoutLoadFailed",
                 ex.Message));
         }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanSaveLayout))]
+    private async Task SaveLayoutAsync()
+    {
+        await SaveCurrentLayoutAsync();
+    }
+
+    public async Task<bool> SaveCurrentLayoutAsync()
+    {
+        if (CurrentDocument is null)
+        {
+            return false;
+        }
+
+        var messages = _validator.Validate(CurrentDocument);
+        ApplyValidationMessages(messages);
+        if (messages.Any(message => message.Severity == FrontedLayoutValidationSeverity.Error))
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("CannotSaveInvalidLayout");
+            return false;
+        }
+
+        try
+        {
+            var config = _designConverter.ToConfig(CurrentDocument);
+            config.Version = 3;
+            await _layoutService.SaveCanvasConfigAsync(
+                CurrentDocument.WindowTypeName,
+                CurrentDocument.CanvasName,
+                config);
+
+            CurrentDocument.IsDirty = false;
+            LayoutSourceDisplay = I18nHelper.GetLocalizedString("LayoutSourceUser");
+            LayoutSourcePath = _layoutService.GetUserLayoutPath(
+                CurrentDocument.WindowTypeName,
+                CurrentDocument.CanvasName);
+            StatusMessage = I18nHelper.GetLocalizedString("LayoutSaved");
+            RefreshDirtyState();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to save fronted designer user layout. Window: {WindowTypeName}, Canvas: {CanvasName}",
+                CurrentDocument.WindowTypeName,
+                CurrentDocument.CanvasName);
+            StatusMessage = $"{I18nHelper.GetLocalizedString("LayoutSaveFailed")}: {ex.Message}";
+            return false;
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanResetToBuiltIn))]
+    private async Task ResetToBuiltInAsync()
+    {
+        await ResetToBuiltInCoreAsync();
+    }
+
+    public async Task<bool> ResetToBuiltInCoreAsync()
+    {
+        if (CurrentDocument is null)
+        {
+            return false;
+        }
+
+        var windowTypeName = CurrentDocument.WindowTypeName;
+        var canvasName = CurrentDocument.CanvasName;
+        await _layoutService.DeleteUserLayoutAsync(windowTypeName, canvasName);
+
+        var config = await LoadBuiltInLayoutForResetAsync(windowTypeName, canvasName);
+        if (config is null)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("MissingLayout");
+            return false;
+        }
+
+        var document = _designConverter.FromConfig(
+            windowTypeName,
+            canvasName,
+            config,
+            _runtimeContracts);
+        document.IsDirty = false;
+
+        ControlFilterText = string.Empty;
+        CurrentDocument = document;
+        SelectDesignItem(null);
+        ApplyValidationMessages(_validator.Validate(document));
+        RequestPreviewRender(config, SelectedCanvas);
+        LayoutSourceDisplay = I18nHelper.GetLocalizedString("LayoutSourceBuiltIn");
+        LayoutSourcePath = _layoutService.GetBuiltInDefaultLayoutPath(windowTypeName, canvasName);
+        StatusMessage = I18nHelper.GetLocalizedString("LayoutReset");
+        ClearUndoRedo();
+        RefreshDirtyState();
+        return true;
+    }
+
+    [RelayCommand]
+    private void OpenLayoutFolder()
+    {
+        if (SelectedCanvas is null)
+        {
+            return;
+        }
+
+        var folder = _layoutService.GetUserLayoutFolder(
+            SelectedCanvas.WindowTypeName,
+            SelectedCanvas.CanvasName);
+
+        try
+        {
+            Directory.CreateDirectory(folder);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = folder,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to open fronted user layout folder: {Folder}", folder);
+            StatusMessage = $"{I18nHelper.GetLocalizedString("OpenLayoutFolder")}: {ex.Message}";
+        }
+    }
+
+    public void UpdateShiftSnapActive(bool isActive)
+    {
+        IsShiftSnapActive = isActive;
     }
 
     [RelayCommand]
@@ -438,7 +630,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         CurrentDocument.Controls.Add(item);
         CurrentDocument.IsDirty = true;
-        DirtyIndicatorText = "●";
+        RefreshDirtyState();
         ControlFilterText = string.Empty;
         RebuildFilteredDesignItems();
         SelectDesignItem(item);
@@ -478,7 +670,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         CaptureUndoSnapshot();
         CurrentDocument.Controls.Remove(item);
         CurrentDocument.IsDirty = true;
-        DirtyIndicatorText = "●";
+        RefreshDirtyState();
         SelectDesignItem(null);
         RebuildFilteredDesignItems();
         RebuildPropertyEditorItems();
@@ -541,7 +733,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             originalTop,
             deltaX,
             deltaY,
-            CurrentDocument);
+            CurrentDocument,
+            EffectiveSnapEnabled,
+            SnapGridSize);
         SyncLinkedOverlays(SelectedDesignItem);
         OnDesignItemGeometryChanged(renderPreview);
     }
@@ -554,7 +748,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         CaptureUndoSnapshot();
-        FrontedDesignerGeometryHelper.MoveBy(SelectedDesignItem, deltaX, deltaY, CurrentDocument);
+        FrontedDesignerGeometryHelper.MoveBy(
+            SelectedDesignItem,
+            deltaX,
+            deltaY,
+            CurrentDocument,
+            EffectiveSnapEnabled,
+            SnapGridSize);
         SyncLinkedOverlays(SelectedDesignItem);
         OnDesignItemGeometryChanged(renderPreview: true);
     }
@@ -583,7 +783,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             originalHeight,
             deltaX,
             deltaY,
-            CurrentDocument);
+            CurrentDocument,
+            EffectiveSnapEnabled,
+            SnapGridSize);
         SyncLinkedOverlays(SelectedDesignItem);
         OnDesignItemGeometryChanged(renderPreview);
     }
@@ -764,26 +966,31 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         return true;
     }
 
-    private void ResolveLayoutSource(FrontedDesignerLayoutCatalogEntry entry)
+    private void ApplyLayoutSource(
+        FrontedLayoutLoadResult loadResult,
+        FrontedDesignerLayoutCatalogEntry entry)
     {
-        var userPath = _layoutService.GetUserLayoutPath(entry.WindowTypeName, entry.CanvasName);
-        if (File.Exists(userPath))
+        LayoutSourceDisplay = loadResult.Source switch
         {
-            LayoutSourceDisplay = I18nHelper.GetLocalizedString("UserLayout");
-            LayoutSourcePath = userPath;
-            return;
-        }
+            FrontedLayoutSource.User => I18nHelper.GetLocalizedString("LayoutSourceUser"),
+            FrontedLayoutSource.BuiltIn => I18nHelper.GetLocalizedString("LayoutSourceBuiltIn"),
+            _ => I18nHelper.GetLocalizedString("LayoutSourceError")
+        };
+        LayoutSourcePath = loadResult.Path
+            ?? _layoutService.GetBuiltInDefaultLayoutPath(entry.WindowTypeName, entry.CanvasName);
 
-        var builtInPath = _layoutService.GetBuiltInDefaultLayoutPath(entry.WindowTypeName, entry.CanvasName);
-        if (File.Exists(builtInPath))
+        if (!string.IsNullOrWhiteSpace(loadResult.Error))
         {
-            LayoutSourceDisplay = I18nHelper.GetLocalizedString("BuiltInLayout");
-            LayoutSourcePath = builtInPath;
-            return;
+            StatusMessage = loadResult.Error;
         }
+    }
 
-        LayoutSourceDisplay = I18nHelper.GetLocalizedString("MissingLayout");
-        LayoutSourcePath = builtInPath;
+    private async Task<FrontedCanvasConfig?> LoadBuiltInLayoutForResetAsync(
+        string windowTypeName,
+        string canvasName)
+    {
+        var loadResult = await _layoutService.LoadCanvasConfigWithMetadataAsync(windowTypeName, canvasName);
+        return loadResult.Source == FrontedLayoutSource.BuiltIn ? loadResult.Config : null;
     }
 
     private void ClearLoadedLayout(FrontedLayoutValidationMessage message)
@@ -905,7 +1112,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private void FinishPropertyEdit(string propertyName)
     {
         ClearPropertyEditError(propertyName);
-        DirtyIndicatorText = CurrentDocument?.IsDirty == true ? "●" : "○";
+        RefreshDirtyState();
         RebuildFilteredDesignItems();
         ValidateCurrentDocument();
         RequestPreviewRenderCurrentDocument();
@@ -914,7 +1121,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private void OnDesignItemGeometryChanged(bool renderPreview)
     {
-        DirtyIndicatorText = CurrentDocument?.IsDirty == true ? "●" : "○";
+        RefreshDirtyState();
         RefreshSelectedControlDisplay();
 
         if (renderPreview)
@@ -922,6 +1129,22 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             ValidateCurrentDocument();
             RequestPreviewRenderCurrentDocument();
         }
+    }
+
+    private void RefreshDirtyState()
+    {
+        DirtyIndicatorText = CurrentDocument?.IsDirty == true
+            ? $"* {I18nHelper.GetLocalizedString("Unsaved")}"
+            : string.Empty;
+        NotifyLayoutCommandState();
+    }
+
+    private void NotifyLayoutCommandState()
+    {
+        OnPropertyChanged(nameof(CanSaveLayout));
+        OnPropertyChanged(nameof(CanResetToBuiltIn));
+        SaveLayoutCommand.NotifyCanExecuteChanged();
+        ResetToBuiltInCommand.NotifyCanExecuteChanged();
     }
 
     private void RequestPreviewRenderCurrentDocument()
@@ -1055,7 +1278,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 string.Equals(control.Name, selectedName, StringComparison.Ordinal)));
             ApplyValidationMessages(_validator.Validate(document));
             RequestPreviewRender(config, SelectedCanvas);
-            DirtyIndicatorText = "●";
+            RefreshDirtyState();
         }
         finally
         {

@@ -14,6 +14,11 @@ public static class FrontedDesignerGeometryHelper
     public const double CoordinateStep = 0.5D;
 
     /// <summary>
+    /// Default grid size used when snap-to-grid is enabled.
+    /// </summary>
+    public const double DefaultSnapGridSize = 10D;
+
+    /// <summary>
     /// Fallback hitbox width when a config has no width.
     /// </summary>
     public const double MinHitWidth = 40D;
@@ -42,6 +47,23 @@ public static class FrontedDesignerGeometryHelper
     }
 
     /// <summary>
+    /// Normalizes a coordinate for free movement or grid snapping.
+    /// </summary>
+    public static double NormalizeCoordinate(
+        double value,
+        bool effectiveSnapEnabled = false,
+        double snapGridSize = DefaultSnapGridSize)
+    {
+        if (!effectiveSnapEnabled)
+        {
+            return Snap(value);
+        }
+
+        var gridSize = snapGridSize > 0D ? snapGridSize : DefaultSnapGridSize;
+        return Math.Round(value / gridSize, MidpointRounding.AwayFromZero) * gridSize;
+    }
+
+    /// <summary>
     /// Gets the editable hitbox width for a config.
     /// </summary>
     public static double GetEditableWidth(FrontedControlConfigBase config)
@@ -66,10 +88,12 @@ public static class FrontedDesignerGeometryHelper
         double originalTop,
         double deltaX,
         double deltaY,
-        FrontedCanvasDesignDocument? document = null)
+        FrontedCanvasDesignDocument? document = null,
+        bool effectiveSnapEnabled = false,
+        double snapGridSize = DefaultSnapGridSize)
     {
-        item.Config.Left = Snap(originalLeft + deltaX);
-        item.Config.Top = Snap(originalTop + deltaY);
+        item.Config.Left = NormalizeCoordinate(originalLeft + deltaX, effectiveSnapEnabled, snapGridSize);
+        item.Config.Top = NormalizeCoordinate(originalTop + deltaY, effectiveSnapEnabled, snapGridSize);
         MarkDirty(document);
     }
 
@@ -80,9 +104,19 @@ public static class FrontedDesignerGeometryHelper
         FrontedControlDesignItem item,
         double deltaX,
         double deltaY,
-        FrontedCanvasDesignDocument? document = null)
+        FrontedCanvasDesignDocument? document = null,
+        bool effectiveSnapEnabled = false,
+        double snapGridSize = DefaultSnapGridSize)
     {
-        Move(item, item.Config.Left, item.Config.Top, deltaX, deltaY, document);
+        Move(
+            item,
+            item.Config.Left,
+            item.Config.Top,
+            deltaX,
+            deltaY,
+            document,
+            effectiveSnapEnabled,
+            snapGridSize);
     }
 
     /// <summary>
@@ -97,7 +131,9 @@ public static class FrontedDesignerGeometryHelper
         double originalHeight,
         double deltaX,
         double deltaY,
-        FrontedCanvasDesignDocument? document = null)
+        FrontedCanvasDesignDocument? document = null,
+        bool effectiveSnapEnabled = false,
+        double snapGridSize = DefaultSnapGridSize)
     {
         var left = originalLeft;
         var top = originalTop;
@@ -136,10 +172,14 @@ public static class FrontedDesignerGeometryHelper
             height = Math.Max(MinResizeHeight, originalHeight + deltaY);
         }
 
-        item.Config.Left = Snap(left);
-        item.Config.Top = Snap(top);
-        item.Config.Width = Math.Max(MinResizeWidth, Snap(width));
-        item.Config.Height = Math.Max(MinResizeHeight, Snap(height));
+        item.Config.Left = NormalizeCoordinate(left, effectiveSnapEnabled, snapGridSize);
+        item.Config.Top = NormalizeCoordinate(top, effectiveSnapEnabled, snapGridSize);
+        item.Config.Width = Math.Max(
+            MinResizeWidth,
+            NormalizeCoordinate(width, effectiveSnapEnabled, snapGridSize));
+        item.Config.Height = Math.Max(
+            MinResizeHeight,
+            NormalizeCoordinate(height, effectiveSnapEnabled, snapGridSize));
         MarkDirty(document);
     }
 
@@ -151,7 +191,9 @@ public static class FrontedDesignerGeometryHelper
         FrontedDesignerResizeHandleKind handle,
         double deltaX,
         double deltaY,
-        FrontedCanvasDesignDocument? document = null)
+        FrontedCanvasDesignDocument? document = null,
+        bool effectiveSnapEnabled = false,
+        double snapGridSize = DefaultSnapGridSize)
     {
         Resize(
             item,
@@ -162,7 +204,9 @@ public static class FrontedDesignerGeometryHelper
             GetEditableHeight(item.Config),
             deltaX,
             deltaY,
-            document);
+            document,
+            effectiveSnapEnabled,
+            snapGridSize);
     }
 
     private static bool AffectsLeft(FrontedDesignerResizeHandleKind handle)

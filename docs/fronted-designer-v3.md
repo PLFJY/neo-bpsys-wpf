@@ -1,6 +1,6 @@
 # Fronted Designer v3 设计文档
 
-本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为低风险 pilot 接入 v3 renderer；Score System v2 Phase 4 已额外将 `ScoreGlobalWindow` 接入 v3 renderer 并新增 `GlobalScoreRow` 控件；Designer v3 Phase 4 已迁移 `CutSceneWindow`；Designer v3 Phase 5 已迁移 `GameDataWindow` 并新增 `LocalizedText`；Designer v3 Phase 6 已迁移多 Canvas 的 `WidgetsWindow`，并新增 `CurrentBanDisplay` / `MapV2Display`；Designer v3 Phase 7 已迁移 `BpWindow`，并新增 `BanSlotDisplay` / `PickingBorderOverlay`。Phase 8A 已补充独立编辑器设计规格，Phase 8B 已新增设计期模型、layout validator、runtime contract catalog、引用扫描和设计项转换，Phase 8C 已新增独立编辑器 shell、窗口/Canvas 选择器、ViewBox 只读预览、缩放控制和校验面板，Phase 8D 已新增编辑器内存交互层、透明 hitbox、selection adorner、拖拽、缩放和键盘微调，Phase 8E 已新增基础 Property Grid，Phase 8F 已新增 Add Control 菜单、默认 config 工厂和 FontFamily 字体 ComboBox，Phase 8G 已新增 Binding Browser 与 Resource Browser，见 [fronted-designer-editor.md](fronted-designer-editor.md)。保存用户布局和 `.bpui` 转换仍按后续阶段推进。
+本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为低风险 pilot 接入 v3 renderer；Score System v2 Phase 4 已额外将 `ScoreGlobalWindow` 接入 v3 renderer 并新增 `GlobalScoreRow` 控件；Designer v3 Phase 4 已迁移 `CutSceneWindow`；Designer v3 Phase 5 已迁移 `GameDataWindow` 并新增 `LocalizedText`；Designer v3 Phase 6 已迁移多 Canvas 的 `WidgetsWindow`，并新增 `CurrentBanDisplay` / `MapV2Display`；Designer v3 Phase 7 已迁移 `BpWindow`，并新增 `BanSlotDisplay` / `PickingBorderOverlay`。Phase 8A 已补充独立编辑器设计规格，Phase 8B 已新增设计期模型、layout validator、runtime contract catalog、引用扫描和设计项转换，Phase 8C 已新增独立编辑器 shell、窗口/Canvas 选择器、ViewBox 只读预览、缩放控制和校验面板，Phase 8D 已新增编辑器内存交互层、透明 hitbox、selection adorner、拖拽、缩放和键盘微调，Phase 8E 已新增基础 Property Grid，Phase 8F 已新增 Add Control 菜单、默认 config 工厂和 FontFamily 字体 ComboBox，Phase 8G 已新增 Binding Browser 与 Resource Browser，Phase 8H 已新增用户布局保存/重置/运行时加载优先级、脏状态提示和默认关闭的吸附网格，见 [fronted-designer-editor.md](fronted-designer-editor.md)。`.bpui` 转换仍按后续阶段推进。
 
 ## 1. 背景与目标
 
@@ -305,7 +305,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 8E | 已实现基础 Property Grid：编辑选中设计项与 config 简单属性、保守 Name 改名、运行时关键名称只读、被引用控件改名阻止；仍只改内存，不保存用户布局。 |
 | Phase 8F | 已实现 Add Control 菜单、默认 config factory、唯一命名、基础 placeholder 策略和 `FontFamily` 字体 ComboBox；仍只改内存，不保存用户布局。 |
 | Phase 8G | 已实现 Binding Browser 与 Resource Browser。浏览器选择只写入属性行 `EditText` 缓冲，仍需 Apply/Enter 提交；Resource Browser 支持 `Resources/bpui` 与绝对路径图片，但不复制外部资源。 |
-| Phase 8H | 用户 layout save/reset/load priority、validation-driven save。 |
+| Phase 8H | 已实现用户 layout save/reset/load priority、validation-driven save、打开用户布局目录、切换/重载/关闭脏状态提示，以及默认无吸附、Shift 临时吸附、工具栏持久吸附开关。 |
 | Phase 9 | 实现 v3 `.bpui` 导出/导入和 legacy `.bpui` 转换。 |
 
 每个阶段都应有明确回退策略。涉及用户可见文本时，应同步考虑 `WPFLocalizeExtension` 和 `Locales/*.resx`。
