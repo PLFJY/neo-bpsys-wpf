@@ -1942,6 +1942,48 @@
   <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
     <value>Another plugin is already downloading.</value>
   </data>
+  <data name="OpenFrontedDesigner" xml:space="preserve">
+    <value>Open Frontend Designer</value>
+  </data>
+  <data name="FrontedDesigner" xml:space="preserve">
+    <value>Frontend Designer</value>
+  </data>
+  <data name="FrontedDesignerWindow" xml:space="preserve">
+    <value>Frontend Designer</value>
+  </data>
+  <data name="Canvas" xml:space="preserve">
+    <value>Canvas</value>
+  </data>
+  <data name="LayoutSource" xml:space="preserve">
+    <value>Layout Source</value>
+  </data>
+  <data name="Validation" xml:space="preserve">
+    <value>Validation</value>
+  </data>
+  <data name="Errors" xml:space="preserve">
+    <value>Errors</value>
+  </data>
+  <data name="Warnings" xml:space="preserve">
+    <value>Warnings</value>
+  </data>
+  <data name="Infos" xml:space="preserve">
+    <value>Infos</value>
+  </data>
+  <data name="ReloadLayout" xml:space="preserve">
+    <value>Reload</value>
+  </data>
+  <data name="ValidateLayout" xml:space="preserve">
+    <value>Validate</value>
+  </data>
+  <data name="BuiltInLayout" xml:space="preserve">
+    <value>Built-in Layout</value>
+  </data>
+  <data name="UserLayout" xml:space="preserve">
+    <value>User Layout</value>
+  </data>
+  <data name="MissingLayout" xml:space="preserve">
+    <value>Missing Layout</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

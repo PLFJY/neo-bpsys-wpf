@@ -70,6 +70,10 @@ v3 renderer 会为生成控件注册 namescope 名称，并在清理生成控件
 
 v3 layout 中 root-level 控件 JSON key 就是控件名。该名称同时作为 `FrontedCanvasConfig.Controls` key、生成控件 `FrameworkElement.Name` 和 namescope 注册名。独立编辑器必须通过设计项 `Name` 编辑 dictionary key，不能给 config 类新增重复 `Name` 字段。详细编辑器规格见 [fronted-designer-editor.md](fronted-designer-editor.md)。
 
+Designer v3 Phase 8C 已新增后台侧独立 `FrontedDesignerWindow` shell。它通过 `FrontedDesignerLayoutCatalog` 只列出已迁移的内置 v3 窗口和 Canvas：`ScoreSurWindow/BaseCanvas`、`ScoreHunWindow/BaseCanvas`、`ScoreGlobalWindow/BaseCanvas`、`CutSceneWindow/BaseCanvas`、`GameDataWindow/BaseCanvas`、`WidgetsWindow/MapBpCanvas`、`WidgetsWindow/BpOverViewCanvas`、`WidgetsWindow/MapV2Canvas` 和 `BpWindow/BaseCanvas`。选择窗口和 Canvas 后，编辑器按 `IFrontedLayoutService` 的用户布局优先、内置布局兜底规则加载 JSON，转换成 `FrontedCanvasDesignDocument`，运行 `FrontedLayoutValidator`，再用现有 `IFrontedRenderer` 渲染到编辑器自己的只读 `PreviewCanvas`。
+
+该预览 Canvas 的 `Width` 和 `Height` 直接来自 `FrontedCanvasConfig.CanvasWidth` / `CanvasHeight`，不使用真实前台窗口的 `ActualHeight`、外框或标题栏尺寸，因此不会引入标题栏高度偏移。Phase 8C 不创建真实 `BpWindow`、`ScoreWindow`、`CutSceneWindow` 等前台输出窗口作为设计 surface，也不实现 drag/resize、透明 hitbox、Property Grid、Add Control、Binding/Resource Browser、保存或重置用户布局。
+
 注意：`ScoreGlobalWindow` 当前没有完整条件布局引擎。BO3 模式下 `GlobalScoreRow` 会隐藏 BO5 后续比分格，但总分位置和背景仍采用固定 v3 layout。
 
 legacy 布局文件命名约定：

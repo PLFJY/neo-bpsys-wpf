@@ -1960,6 +1960,48 @@
   <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
     <value>已有插件正在下载。</value>
   </data>
+  <data name="OpenFrontedDesigner" xml:space="preserve">
+    <value>打开前台编辑器</value>
+  </data>
+  <data name="FrontedDesigner" xml:space="preserve">
+    <value>前台编辑器</value>
+  </data>
+  <data name="FrontedDesignerWindow" xml:space="preserve">
+    <value>前台编辑器</value>
+  </data>
+  <data name="Canvas" xml:space="preserve">
+    <value>画布</value>
+  </data>
+  <data name="LayoutSource" xml:space="preserve">
+    <value>布局来源</value>
+  </data>
+  <data name="Validation" xml:space="preserve">
+    <value>校验</value>
+  </data>
+  <data name="Errors" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="Warnings" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="Infos" xml:space="preserve">
+    <value>信息</value>
+  </data>
+  <data name="ReloadLayout" xml:space="preserve">
+    <value>重新加载</value>
+  </data>
+  <data name="ValidateLayout" xml:space="preserve">
+    <value>校验布局</value>
+  </data>
+  <data name="BuiltInLayout" xml:space="preserve">
+    <value>内置布局</value>
+  </data>
+  <data name="UserLayout" xml:space="preserve">
+    <value>用户布局</value>
+  </data>
+  <data name="MissingLayout" xml:space="preserve">
+    <value>缺失布局</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

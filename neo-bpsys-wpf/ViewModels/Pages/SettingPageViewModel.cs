@@ -52,6 +52,7 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly IFilePickerService _filePickerService;
     private readonly ISharedDataService _sharedDataService;
     private readonly IPluginMarketService _pluginMarketService;
+    private readonly IServiceProvider? _serviceProvider;
     private readonly ILogger<SettingPageViewModel> _logger;
     public IUpdaterService UpdaterService { get; }
 
@@ -59,6 +60,7 @@ public partial class SettingPageViewModel : ViewModelBase
         ITextSettingsNavigationService textSettingsNavigationService, IFrontedWindowService frontedWindowService,
         IFilePickerService filePickerService, ISharedDataService sharedDataService,
         IPluginMarketService pluginMarketService,
+        IServiceProvider serviceProvider,
         ILogger<SettingPageViewModel> logger)
     {
         AppVersion = AppConstants.AppVersion;
@@ -69,6 +71,7 @@ public partial class SettingPageViewModel : ViewModelBase
         _filePickerService = filePickerService;
         _sharedDataService = sharedDataService;
         _pluginMarketService = pluginMarketService;
+        _serviceProvider = serviceProvider;
         _logger = logger;
 
         UpdaterService.DownloadStateChanged += UpdaterService_DownloadStateChanged;
@@ -267,6 +270,31 @@ public partial class SettingPageViewModel : ViewModelBase
     {
         var path = Path.Combine(AppConstants.AppOutputPath, "GameInfoOutput");
         Process.Start("explorer.exe", path);
+    }
+
+    /// <summary>
+    /// 打开独立前台编辑器。
+    /// </summary>
+    [RelayCommand]
+    private void OpenFrontedDesigner()
+    {
+        if (_serviceProvider is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var window = ActivatorUtilities.CreateInstance<FrontedDesignerWindow>(_serviceProvider);
+            window.Owner = Application.Current.MainWindow;
+            window.Show();
+            window.Activate();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to open fronted designer window.");
+            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("WindowLaunchError")}\n{ex.Message}");
+        }
     }
 
     #endregion

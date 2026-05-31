@@ -1945,6 +1945,48 @@
   <data name="PluginMarketDownloadAlreadyInProgress" xml:space="preserve">
     <value>他のプラグインのダウンロードが進行中です。</value>
   </data>
+  <data name="OpenFrontedDesigner" xml:space="preserve">
+    <value>フロントエンドデザイナーを開く</value>
+  </data>
+  <data name="FrontedDesigner" xml:space="preserve">
+    <value>フロントエンドデザイナー</value>
+  </data>
+  <data name="FrontedDesignerWindow" xml:space="preserve">
+    <value>フロントエンドデザイナー</value>
+  </data>
+  <data name="Canvas" xml:space="preserve">
+    <value>キャンバス</value>
+  </data>
+  <data name="LayoutSource" xml:space="preserve">
+    <value>レイアウト元</value>
+  </data>
+  <data name="Validation" xml:space="preserve">
+    <value>検証</value>
+  </data>
+  <data name="Errors" xml:space="preserve">
+    <value>エラー</value>
+  </data>
+  <data name="Warnings" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="Infos" xml:space="preserve">
+    <value>情報</value>
+  </data>
+  <data name="ReloadLayout" xml:space="preserve">
+    <value>再読み込み</value>
+  </data>
+  <data name="ValidateLayout" xml:space="preserve">
+    <value>検証</value>
+  </data>
+  <data name="BuiltInLayout" xml:space="preserve">
+    <value>組み込みレイアウト</value>
+  </data>
+  <data name="UserLayout" xml:space="preserve">
+    <value>ユーザーレイアウト</value>
+  </data>
+  <data name="MissingLayout" xml:space="preserve">
+    <value>レイアウトなし</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

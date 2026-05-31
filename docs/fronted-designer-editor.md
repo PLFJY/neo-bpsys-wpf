@@ -1,6 +1,6 @@
 # Fronted Designer v3 独立编辑器设计规格
 
-本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；仍不实现编辑器 UI，不迁移 `.bpui`，不移除旧 `config.json` 前台设置，也不修改现有 v3 layout JSON。
+本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染和校验面板。当前仍不实现拖拽/缩放交互层、透明 hitbox、Property Grid、Add Control、Binding Browser、Resource Browser、用户布局保存、`.bpui` 迁移，也不移除旧 `config.json` 前台设置。
 
 独立编辑器面向 v3 JSON layout 文件。它是后台侧的独立编辑窗口，不直接在真实前台窗口上编辑；真实前台窗口仍用于 OBS 捕获和运行时输出。编辑器必须同时支持单 Canvas 窗口和多 Canvas 窗口，并保持与现有 v3 renderer、生成控件名、`AnimationService`、业务控件和 JSON 格式兼容。
 
@@ -189,7 +189,7 @@ Phase 8B 起，这些运行时关键名称集中在 `FrontedLayoutRuntimeContrac
 1. 用户自定义布局。
 2. 内置默认布局。
 
-Phase 8A 只记录设计，不实现该加载 UI。
+Phase 8C 已实现基础加载 UI：编辑器使用固定目录列出已迁移的内置 v3 窗口和 Canvas，按选择项通过 `IFrontedLayoutService` 加载布局，转换为 `FrontedCanvasDesignDocument` 后执行校验，并把原始 config 渲染到编辑器自己的预览 Canvas。它不创建或复用真实 `BpWindow`、`ScoreWindow`、`CutSceneWindow` 等前台输出窗口。
 
 ## 6. 标题栏和窗口高度偏移
 
@@ -202,6 +202,8 @@ Phase 8A 只记录设计，不实现该加载 UI。
 3. 编辑器窗口标题栏不参与坐标计算。
 4. 如果未来显示假窗口边框，它只能是视觉装饰。
 5. 所有位置都基于内容 Canvas 坐标系，不基于 `Window.ActualHeight` 或窗口外边界。
+
+Phase 8C 的只读预览已经按此规则设置 `PreviewCanvas.Width = config.CanvasWidth`、`PreviewCanvas.Height = config.CanvasHeight`，不读取真实前台窗口尺寸，因此不会把原生标题栏高度混入控件坐标。
 
 ## 7. 设计 surface 架构
 
@@ -557,7 +559,7 @@ Phase 8A 不实现保存 UI，只记录未来阶段行为。
 | 阶段 | 范围 |
 | --- | --- |
 | Phase 8B | 已实现：`FrontedControlDesignItem` / `FrontedCanvasDesignDocument`、设计项与 dictionary 转换、`FrontedLayoutValidator`、名称校验、引用扫描、运行时关键名称 catalog、重复 JSON key 检测 |
-| Phase 8C | `FrontedDesignerWindow` shell、window/canvas selector、只读 preview surface |
+| Phase 8C | 已实现：`FrontedDesignerWindow` shell、window/canvas selector、只读 preview surface、layout source 状态和 validator 消息面板 |
 | Phase 8D | interaction layer、透明 hitbox、selection adorner、drag、resize、键盘微调 |
 | Phase 8E | PropertyGrid、基础编辑器、ColorPicker 支持 |
 | Phase 8F | Add Control FlyoutButton、默认 config factory、设计时 placeholder data |
@@ -566,12 +568,13 @@ Phase 8A 不实现保存 UI，只记录未来阶段行为。
 
 ## 17. 非目标
 
-Phase 8A/8B 不做：
+Phase 8C 不做：
 
-1. 不新增 `FrontedDesignerWindow`。
-2. 不实现 Property Grid、Binding Browser 或 Resource Browser。
-3. 不改变 `FrontedRenderer` 行为。
-4. 不修改 `AnimationService` 查找逻辑。
-5. 不迁移 `.bpui`。
-6. 不移除旧 `config.json` 前台设置。
-7. 不改变现有 v3 layout JSON。
+1. 不实现 drag/resize、透明 hitbox、selection adorner 或键盘微调。
+2. 不实现 Property Grid、Add Control、Binding Browser 或 Resource Browser。
+3. 不保存用户布局，不实现 reset/save-as/open-folder。
+4. 不改变 `FrontedRenderer` 行为。
+5. 不修改 `AnimationService` 查找逻辑。
+6. 不迁移 `.bpui`。
+7. 不移除旧 `config.json` 前台设置。
+8. 不改变现有 v3 layout JSON。

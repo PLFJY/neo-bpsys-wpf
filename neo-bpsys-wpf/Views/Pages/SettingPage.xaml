@@ -294,6 +294,11 @@
                         Command="{Binding ImportUiConfigCommand}"
                         Content="{lex:Loc ImportUIConfig}"
                         Icon="{ui:SymbolIcon Symbol=ArrowImport24}" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Command="{Binding OpenFrontedDesignerCommand}"
+                        Content="{lex:Loc OpenFrontedDesigner}"
+                        Icon="{ui:SymbolIcon Symbol=Edit24}" />
                 </StackPanel>
             </Grid>
         </Border>

@@ -102,6 +102,7 @@ public partial class App
         services.AddSingleton<FrontedLayoutReferenceScanner>();
         services.AddSingleton<FrontedLayoutDesignConverter>();
         services.AddSingleton<FrontedLayoutValidator>();
+        services.AddSingleton<FrontedDesignerLayoutCatalog>();
         services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
         services.AddSingleton<IPluginService, PluginService>();
         services.AddSingleton<IPluginMarketService, PluginMarketService>();
@@ -115,6 +116,8 @@ public partial class App
         services.AddFrontedWindow<ScoreHunWindow, ScoreWindowViewModel>();
         services.AddFrontedWindow<GameDataWindow, GameDataWindowViewModel>();
         services.AddFrontedWindow<WidgetsWindow, WidgetsWindowViewModel>();
+        services.AddTransient<FrontedDesignerWindowViewModel>();
+        services.AddTransient<FrontedDesignerWindow>();
 
         //Pages
         //Internal

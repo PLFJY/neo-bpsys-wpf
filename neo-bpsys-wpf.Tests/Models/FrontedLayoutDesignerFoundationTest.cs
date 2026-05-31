@@ -9,14 +9,23 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows;
+using System.Xml.Linq;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Models;
 
 public class FrontedLayoutDesignerFoundationTest
 {
+    public static IEnumerable<object[]> CatalogEntries()
+    {
+        return new FrontedDesignerLayoutCatalog()
+            .GetEntries()
+            .Select(entry => new object[] { entry });
+    }
+
     [Fact]
     public void FromConfigCreatesDesignItemsUsingDictionaryKeysAsName()
     {
@@ -270,6 +279,118 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("Duplicate root-level property 'Title'", exception.Message);
     }
 
+    [Fact]
+    public void DesignerLayoutCatalogListsMigratedWindowsAndCanvases()
+    {
+        var entries = new FrontedDesignerLayoutCatalog().GetEntries();
+
+        Assert.Equal(9, entries.Count);
+        Assert.Contains(entries, entry => entry.WindowTypeName == "ScoreSurWindow" && entry.CanvasName == "BaseCanvas");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "ScoreHunWindow" && entry.CanvasName == "BaseCanvas");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "ScoreGlobalWindow" && entry.CanvasName == "BaseCanvas");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "CutSceneWindow" && entry.CanvasName == "BaseCanvas");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "GameDataWindow" && entry.CanvasName == "BaseCanvas");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "WidgetsWindow" && entry.CanvasName == "MapBpCanvas");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "WidgetsWindow" && entry.CanvasName == "BpOverViewCanvas");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "WidgetsWindow" && entry.CanvasName == "MapV2Canvas");
+        Assert.Contains(entries, entry => entry.WindowTypeName == "BpWindow" && entry.CanvasName == "BaseCanvas");
+        Assert.All(entries, entry =>
+        {
+            Assert.True(entry.IsMigrated);
+            Assert.True(entry.IsEditable);
+        });
+    }
+
+    [Fact]
+    public void DesignerLayoutCatalogListsExactlyThreeWidgetsWindowCanvases()
+    {
+        var widgetsCanvases = new FrontedDesignerLayoutCatalog()
+            .GetEntries()
+            .Where(entry => entry.WindowTypeName == "WidgetsWindow")
+            .Select(entry => entry.CanvasName)
+            .OrderBy(name => name)
+            .ToArray();
+
+        Assert.Equal(["BpOverViewCanvas", "MapBpCanvas", "MapV2Canvas"], widgetsCanvases);
+    }
+
+    [Theory]
+    [MemberData(nameof(CatalogEntries))]
+    public void DesignerLayoutCatalogEntryPointsToExistingBuiltInLayout(
+        FrontedDesignerLayoutCatalogEntry entry)
+    {
+        var path = Path.Combine(
+            AppConstants.ResourcesPath,
+            "FrontedLayouts",
+            entry.WindowTypeName,
+            $"{entry.CanvasName}.json");
+
+        Assert.True(File.Exists(path), path);
+    }
+
+    [Theory]
+    [MemberData(nameof(CatalogEntries))]
+    public void DesignerLayoutCatalogLayoutLoadsAndValidatesWithoutErrors(
+        FrontedDesignerLayoutCatalogEntry entry)
+    {
+        var config = ReadBuiltInLayout(entry.WindowTypeName, entry.CanvasName);
+        var messages = CreateValidator().Validate(entry.WindowTypeName, entry.CanvasName, config);
+
+        Assert.DoesNotContain(messages, message => message.Severity == FrontedLayoutValidationSeverity.Error);
+    }
+
+    [Theory]
+    [MemberData(nameof(CatalogEntries))]
+    public void DesignerDocumentUsesCanvasSizeFromLoadedConfig(
+        FrontedDesignerLayoutCatalogEntry entry)
+    {
+        var config = ReadBuiltInLayout(entry.WindowTypeName, entry.CanvasName);
+        var document = new FrontedLayoutDesignConverter().FromConfig(
+            entry.WindowTypeName,
+            entry.CanvasName,
+            config,
+            new FrontedLayoutRuntimeContractCatalog());
+
+        Assert.Equal(config.CanvasWidth, document.CanvasConfig.CanvasWidth);
+        Assert.Equal(config.CanvasHeight, document.CanvasConfig.CanvasHeight);
+    }
+
+    [Fact]
+    public void FrontedDesignerLocalizationKeysExistInAllResxFiles()
+    {
+        var expectedKeys = new[]
+        {
+            "OpenFrontedDesigner",
+            "FrontedDesigner",
+            "FrontedDesignerWindow",
+            "Canvas",
+            "LayoutSource",
+            "Validation",
+            "Errors",
+            "Warnings",
+            "Infos",
+            "ReloadLayout",
+            "ValidateLayout",
+            "BuiltInLayout",
+            "UserLayout",
+            "MissingLayout"
+        };
+
+        foreach (var fileName in new[] { "Lang.resx", "Lang.en-us.resx", "Lang.ja-jp.resx" })
+        {
+            var names = XDocument.Load(GetRepositoryPath("neo-bpsys-wpf", "Locales", fileName))
+                .Root!
+                .Elements("data")
+                .Select(element => element.Attribute("name")?.Value)
+                .ToHashSet(StringComparer.Ordinal);
+
+            foreach (var key in expectedKeys)
+            {
+                Assert.Contains(key, names);
+            }
+        }
+    }
+
     private static FrontedCanvasDesignDocument CreateDocument(IList<FrontedControlDesignItem> controls)
     {
         return new FrontedCanvasDesignDocument
@@ -306,6 +427,16 @@ public class FrontedLayoutDesignerFoundationTest
         var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(File.ReadAllText(path));
         Assert.NotNull(config);
         return config;
+    }
+
+    private static string GetRepositoryPath(
+        string first,
+        string second,
+        string third,
+        [CallerFilePath] string sourceFilePath = "")
+    {
+        var repositoryRoot = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourceFilePath)!, "..", ".."));
+        return Path.Combine(repositoryRoot, first, second, third);
     }
 
     private sealed class KnownFrontedControlRegistry : IFrontedControlRegistry
