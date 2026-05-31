@@ -2,7 +2,7 @@
 
 本文定义 Score System v2 的目标模型、计算规则、前台绑定方向和迁移计划。
 
-当前实现状态：Score Phase 5 已完成旧比分写入路径清理。现有 `Core.Models.Game` 已持有 `MatchScoreState`，后台 `ScorePageViewModel` 的结果按钮通过 `IMatchScoreService.SetCurrentHalfResult(...)` / `ClearCurrentHalfResult()` 写入 `CurrentGame.MatchScore`，普通 UI 不再提供手动 Game/half 选择、手动 `Team.Score` 累加或“同步至前台”按钮；比分控制始终跟随全局 `CurrentGame.GameProgress`。后台 `ScorePage` 现在提供导播用只读比分预览表，表格行由 `CurrentGame.MatchScore.Games` 派生，按 BO3/BO5 显示对应 ScoreGame 和半场，并用状态列标记当前半场、已录入和未录入。`ScoreSurWindow` / `ScoreHunWindow` / `ScoreGlobalWindow` / `CutSceneWindow` 的 v3 layout 已绑定 `CurrentGame.MatchScore` 派生字段，不再从 `Team.Score`、`ScoreWindowViewModel` 总分字段或 `FrontedWindowService` 动态控件读取比分。`GameGlobalInfoRecord` 和 `ScoreWindowViewModel.TotalMainGameScore` / `TotalAwayGameScore` 已移除。`.bpui` 尚未迁移，`BpWindow`、`GameDataWindow`、`WidgetsWindow` 等旧 XAML-first 前台窗口仍可能读取 `Team.Score` 兼容镜像。
+当前实现状态：Score Phase 5 已完成旧比分写入路径清理。现有 `Core.Models.Game` 已持有 `MatchScoreState`，后台 `ScorePageViewModel` 的结果按钮通过 `IMatchScoreService.SetCurrentHalfResult(...)` / `ClearCurrentHalfResult()` 写入 `CurrentGame.MatchScore`，普通 UI 不再提供手动 Game/half 选择、手动 `Team.Score` 累加或“同步至前台”按钮；比分控制始终跟随全局 `CurrentGame.GameProgress`。后台 `ScorePage` 现在提供导播用只读比分预览表，表格行由 `CurrentGame.MatchScore.Games` 派生，按 BO3/BO5 显示对应 ScoreGame 和半场，并用状态列标记当前半场、已录入和未录入。`ScoreSurWindow` / `ScoreHunWindow` / `ScoreGlobalWindow` / `CutSceneWindow` / `GameDataWindow` 的 v3 layout 已绑定 `CurrentGame.MatchScore` 派生字段，不再从 `Team.Score`、`ScoreWindowViewModel` 总分字段或 `FrontedWindowService` 动态控件读取比分。`GameGlobalInfoRecord` 和 `ScoreWindowViewModel.TotalMainGameScore` / `TotalAwayGameScore` 已移除。`.bpui` 尚未迁移，`BpWindow`、`WidgetsWindow` 等旧 XAML-first 前台窗口仍可能读取 `Team.Score` 兼容镜像。
 
 Score System v2 的核心目标是把权威比分状态放回现有 `Core.Models.Game`，让比分可以随对局导入、导出、回溯，并能在 `SharedDataService.NewGame()` 创建新对局时像 `MapV2Dictionary` 一样从上一局 `CurrentGame` 延续必要状态。
 
@@ -52,7 +52,7 @@ ISharedDataService
 | `FrontedWindowService` | 服务可以操作当前比分，但不应通过控件属性保存比分。 |
 | 前台 UI 控件 | 控件只能显示状态，不能成为状态来源。 |
 
-`Team.Score` 暂时不能立即删除。`BpWindow`、`GameDataWindow`、`WidgetsWindow` 等旧 XAML-first 窗口仍依赖 `Team.Score.MajorPointsOnFront`、`Team.Score.GameScores`，迁移期把它作为兼容镜像。新模型不再以它作为权威写入点，后台 `ScorePage` 也不再提供手动 `Team.Score` 累加入口；`CutSceneWindow` v3 默认布局已改为读取 `CurrentGame.MatchScore.CurrentSurTeamMajorText` / `CurrentGame.MatchScore.CurrentHunTeamMajorText`。
+`Team.Score` 暂时不能立即删除。`BpWindow`、`WidgetsWindow` 等旧 XAML-first 窗口仍可能依赖 `Team.Score.MajorPointsOnFront`、`Team.Score.GameScores`，迁移期把它作为兼容镜像。新模型不再以它作为权威写入点，后台 `ScorePage` 也不再提供手动 `Team.Score` 累加入口；`CutSceneWindow` 和 `GameDataWindow` v3 默认布局已改为读取 `CurrentGame.MatchScore.CurrentSurTeamMajorText` / `CurrentGame.MatchScore.CurrentHunTeamMajorText`。
 
 ## 3. 新模型概念
 
@@ -374,5 +374,5 @@ ScorePage button
 | --- | --- |
 | `Free` 模式是否允许手动写比分 | 暂不支持，记录为设计缺口。暂时在Free下禁用相关按钮，且对外显示全部为 0 |
 | BO3 中第三场加赛与 BO5 第四场的持久化 key | 使用 `ScoreGameKey`，避免只靠 `GameProgress` 数值。 |
-| 旧 `Team.Score` 镜像何时删除 | 等 `BpWindow`、`GameDataWindow`、`WidgetsWindow` 等旧绑定迁移后再删除。旧记录中的 `Team.Score` 只能保留兼容显示，无法安全还原完整 per-Game/per-Half 历史。 |
+| 旧 `Team.Score` 镜像何时删除 | 等 `BpWindow`、`WidgetsWindow` 等旧绑定迁移后再删除。旧记录中的 `Team.Score` 只能保留兼容显示，无法安全还原完整 per-Game/per-Half 历史。 |
 | 全局比分 v3 控件类型 | 已新增内置 `GlobalScoreRow`，通过 `IFrontedControl` 注册并由 JSON `ControlType = "GlobalScoreRow"` 使用。 |

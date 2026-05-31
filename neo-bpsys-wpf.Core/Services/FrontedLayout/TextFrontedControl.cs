@@ -34,10 +34,17 @@ public class TextFrontedControl : IFrontedControl
 
         if (!string.IsNullOrWhiteSpace(textConfig.BindingPath))
         {
-            BindingOperations.SetBinding(textBlock, TextBlock.TextProperty, new Binding(textConfig.BindingPath)
+            var binding = new Binding(textConfig.BindingPath)
             {
                 Source = context.SharedDataService
-            });
+            };
+
+            if (!string.IsNullOrWhiteSpace(textConfig.StringFormat))
+            {
+                binding.StringFormat = textConfig.StringFormat;
+            }
+
+            BindingOperations.SetBinding(textBlock, TextBlock.TextProperty, binding);
         }
         else if (textConfig.Text is not null)
         {

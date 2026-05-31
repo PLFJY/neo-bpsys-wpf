@@ -19,6 +19,11 @@ public class TextFrontedControlConfig : FrontedControlConfigBase
     public string? Text { get; set; }
 
     /// <summary>
+    /// 绑定文本格式，仅在 BindingPath 非空时使用。
+    /// </summary>
+    public string? StringFormat { get; set; }
+
+    /// <summary>
     /// 文本块水平对齐。
     /// </summary>
     public string? HorizontalAlignment { get; set; }

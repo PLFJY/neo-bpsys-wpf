@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using neo_bpsys_wpf.Controls.FrontedLayout;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
@@ -36,6 +37,7 @@ public class FrontedCanvasConfigTest
                 "Height": null,
                 "BindingPath": "CurrentGame.SurTeam.Name",
                 "Text": "Ignored when BindingPath exists",
+                "StringFormat": "{0}%",
                 "HorizontalAlignment": "Center",
                 "VerticalAlignment": "Center",
                 "TextAlignment": "Center",
@@ -78,6 +80,7 @@ public class FrontedCanvasConfigTest
         Assert.Null(text.Height);
         Assert.Equal("CurrentGame.SurTeam.Name", text.BindingPath);
         Assert.Equal("Ignored when BindingPath exists", text.Text);
+        Assert.Equal("{0}%", text.StringFormat);
         Assert.Equal("Bold", text.FontWeight);
         Assert.Equal(28, text.FontSize);
         Assert.Equal(2, text.ZIndex);
@@ -316,6 +319,44 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
+    public void ReadsLocalizedTextControlConfig()
+    {
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 810,
+              "Header_Character": {
+                "ControlType": "LocalizedText",
+                "Left": 47,
+                "Top": 307,
+                "Width": 80,
+                "LocalizationKey": "Character",
+                "FallbackText": "Character",
+                "HorizontalAlignment": "Center",
+                "VerticalAlignment": "Center",
+                "TextAlignment": "Center",
+                "TextWrapping": "Wrap",
+                "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
+                "FontWeight": "Bold",
+                "Color": "#FFFFFFFF",
+                "FontSize": 16,
+                "ZIndex": 2
+              }
+            }
+            """);
+
+        Assert.NotNull(config);
+        var text = Assert.IsType<LocalizedTextControlConfig>(config.Controls["Header_Character"]);
+        Assert.Equal("LocalizedText", text.ControlType);
+        Assert.Equal("Character", text.LocalizationKey);
+        Assert.Equal("Character", text.FallbackText);
+        Assert.Equal("Wrap", text.TextWrapping);
+        Assert.Equal(16, text.FontSize);
+    }
+
+    [Fact]
     public void ReadsBuiltInCutSceneWindowLayout()
     {
         var config = ReadBuiltInLayout("CutSceneWindow");
@@ -402,6 +443,146 @@ public class FrontedCanvasConfigTest
         Assert.Equal(TalentTraitDisplayKind.HunterTrait, trait.DisplayKind);
         Assert.True(trait.RespectTraitVisibility);
         Assert.Equal(56, trait.IconSize);
+    }
+
+    [Fact]
+    public void ReadsBuiltInGameDataWindowLayout()
+    {
+        var config = ReadBuiltInLayout("GameDataWindow");
+
+        Assert.NotNull(config);
+        Assert.Equal(3, config.Version);
+        Assert.Equal(1440, config.CanvasWidth);
+        Assert.Equal(810, config.CanvasHeight);
+        Assert.Equal("Resources/gameData_withText.png", config.BackgroundImage);
+
+        var expectedControls = new[]
+        {
+            "SurTeamLogo",
+            "HunTeamLogo",
+            "SurTeamName",
+            "HunTeamName",
+            "SurTeamMajorPoint",
+            "HunTeamMajorPoint",
+            "GameScoresSur",
+            "GameScoresHun",
+            "Map",
+            "MapName",
+            "GameProgress",
+            "Header_Character",
+            "Header_ID",
+            "Header_DecodingProgress",
+            "Header_PalletStrikes",
+            "Header_Rescues",
+            "Header_Heals",
+            "Header_ContainmentTime",
+            "HunImage",
+            "HunId",
+            "Header_RemainingCiphers",
+            "Header_PalletsDestroyed",
+            "Header_SurvivorHits",
+            "Header_TerrorShocks",
+            "Header_Knockdowns",
+            "HunMachineLeft",
+            "HunPalletBroken",
+            "HunHitTimes",
+            "HunTerrorShockTimes",
+            "HunDownTimes"
+        };
+
+        foreach (var controlName in expectedControls)
+        {
+            Assert.Contains(controlName, config.Controls.Keys);
+        }
+
+        for (var index = 0; index < 4; index++)
+        {
+            AssertImageBinding(
+                config,
+                $"Player{index}Header",
+                $"CurrentGame.SurPlayerList[{index}].Character.HeaderImage");
+            AssertTextBinding(config, $"SurId{index}", $"CurrentGame.SurPlayerList[{index}].Member.Name");
+
+            var machineDecoded = AssertTextBinding(
+                config,
+                $"Sur{index}MachineDecoded",
+                $"CurrentGame.SurPlayerList[{index}].Data.DecodingProgress");
+            Assert.Equal("{0}%", machineDecoded.StringFormat);
+
+            AssertTextBinding(
+                config,
+                $"Sur{index}PalletStunTimes",
+                $"CurrentGame.SurPlayerList[{index}].Data.PalletStrikes");
+            AssertTextBinding(
+                config,
+                $"Sur{index}RescueTimes",
+                $"CurrentGame.SurPlayerList[{index}].Data.Rescues");
+            AssertTextBinding(
+                config,
+                $"Sur{index}HealedTimes",
+                $"CurrentGame.SurPlayerList[{index}].Data.Heals");
+            AssertTextBinding(
+                config,
+                $"Sur{index}KiteTime",
+                $"CurrentGame.SurPlayerList[{index}].Data.ContainmentTime");
+        }
+
+        AssertImageBinding(config, "SurTeamLogo", "CurrentGame.SurTeam.Logo");
+        AssertImageBinding(config, "HunTeamLogo", "CurrentGame.HunTeam.Logo");
+        AssertImageBinding(config, "Map", "CurrentGame.PickedMapImage");
+        AssertImageBinding(config, "HunImage", "CurrentGame.HunPlayer.Character.HalfImage");
+
+        AssertTextBinding(config, "SurTeamName", "CurrentGame.SurTeam.Name");
+        AssertTextBinding(config, "HunTeamName", "CurrentGame.HunTeam.Name");
+        AssertTextBinding(config, "SurTeamMajorPoint", "CurrentGame.MatchScore.CurrentSurTeamMajorText");
+        AssertTextBinding(config, "HunTeamMajorPoint", "CurrentGame.MatchScore.CurrentHunTeamMajorText");
+        AssertTextBinding(config, "GameScoresSur", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText");
+        AssertTextBinding(config, "GameScoresHun", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText");
+        AssertTextBinding(config, "HunId", "CurrentGame.HunPlayer.Member.Name");
+        AssertTextBinding(config, "HunMachineLeft", "CurrentGame.HunPlayer.Data.RemainingCipher");
+        AssertTextBinding(config, "HunPalletBroken", "CurrentGame.HunPlayer.Data.PalletsDestroyed");
+        AssertTextBinding(config, "HunHitTimes", "CurrentGame.HunPlayer.Data.SurvivorHits");
+        AssertTextBinding(config, "HunTerrorShockTimes", "CurrentGame.HunPlayer.Data.TerrorShocks");
+        AssertTextBinding(config, "HunDownTimes", "CurrentGame.HunPlayer.Data.Knockdowns");
+
+        var localizedHeaders = new[]
+        {
+            "Header_Character",
+            "Header_ID",
+            "Header_DecodingProgress",
+            "Header_PalletStrikes",
+            "Header_Rescues",
+            "Header_Heals",
+            "Header_ContainmentTime",
+            "Header_RemainingCiphers",
+            "Header_PalletsDestroyed",
+            "Header_SurvivorHits",
+            "Header_TerrorShocks",
+            "Header_Knockdowns"
+        };
+
+        foreach (var headerName in localizedHeaders)
+        {
+            Assert.IsType<LocalizedTextControlConfig>(config.Controls[headerName]);
+        }
+
+        var mapName = Assert.IsType<MapNameTextControlConfig>(config.Controls["MapName"]);
+        Assert.Equal("MapNameText", mapName.ControlType);
+        var progress = Assert.IsType<GameProgressTextControlConfig>(config.Controls["GameProgress"]);
+        Assert.Equal("GameProgressText", progress.ControlType);
+        Assert.False(progress.UseLineBreak);
+    }
+
+    [Fact]
+    public void GameDataWindowLayoutDoesNotReferenceLegacyTeamScoreBinding()
+    {
+        var layoutText = File.ReadAllText(GetBuiltInLayoutPath("GameDataWindow"));
+
+        Assert.DoesNotContain("CurrentGame.SurTeam.Score.GameScores", layoutText);
+        Assert.DoesNotContain("CurrentGame.HunTeam.Score.GameScores", layoutText);
+        Assert.DoesNotContain("CurrentGame.SurTeam.Score.MajorPointsOnFront", layoutText);
+        Assert.DoesNotContain("CurrentGame.HunTeam.Score.MajorPointsOnFront", layoutText);
+        Assert.DoesNotContain("Team.Score", layoutText);
     }
 
     [Fact]
@@ -546,6 +727,51 @@ public class FrontedCanvasConfigTest
             Assert.Same(sharedDataService, binding.Source);
             Assert.NotEqual("Static title", textBlock.Text);
         });
+    }
+
+    [Fact]
+    public void TextFrontedControlAppliesStringFormatOnlyForBindingPath()
+    {
+        RunOnStaThread(() =>
+        {
+            var control = new TextFrontedControl();
+            var element = control.Create(
+                "DecodingProgress",
+                new TextFrontedControlConfig
+                {
+                    BindingPath = "CurrentGame.SurPlayerList[0].Data.DecodingProgress",
+                    StringFormat = "{0}%"
+                },
+                CreateBuildContext(new Mock<ISharedDataService>().Object));
+
+            var border = Assert.IsType<Border>(element);
+            var textBlock = Assert.IsType<TextBlock>(border.Child);
+            var binding = BindingOperations.GetBinding(textBlock, TextBlock.TextProperty);
+            Assert.NotNull(binding);
+            Assert.Equal("{0}%", binding.StringFormat);
+
+            var staticElement = control.Create(
+                "Title",
+                new TextFrontedControlConfig
+                {
+                    Text = "Static title",
+                    StringFormat = "{0}%"
+                },
+                CreateBuildContext());
+
+            var staticBorder = Assert.IsType<Border>(staticElement);
+            var staticTextBlock = Assert.IsType<TextBlock>(staticBorder.Child);
+            Assert.Equal("Static title", staticTextBlock.Text);
+            Assert.Null(BindingOperations.GetBinding(staticTextBlock, TextBlock.TextProperty));
+        });
+    }
+
+    [Fact]
+    public void LocalizedTextFallbackUsesFallbackWhenKeyIsMissing()
+    {
+        Assert.Equal(
+            "Fallback header",
+            LocalizedTextFrontedControl.ResolveText("Missing_GameData_Header_Key_For_Test", "Fallback header"));
     }
 
     [Fact]

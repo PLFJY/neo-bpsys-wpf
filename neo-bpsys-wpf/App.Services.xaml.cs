@@ -85,6 +85,7 @@ public partial class App
         services.AddSingleton<ISettingsHostService, SettingsHostService>();
         services.AddSingleton<IFrontedResourceResolver, FrontedResourceResolver>();
         services.AddSingleton<IFrontedControl, TextFrontedControl>();
+        services.AddSingleton<IFrontedControl, LocalizedTextFrontedControl>();
         services.AddSingleton<IFrontedControl, ImageFrontedControl>();
         services.AddSingleton<IFrontedControl, GlobalScoreRowFrontedControl>();
         services.AddSingleton<IFrontedControl, TalentTraitDisplayFrontedControl>();
