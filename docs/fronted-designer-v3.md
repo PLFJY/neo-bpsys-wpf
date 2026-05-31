@@ -326,10 +326,10 @@ Phase 2 之后仍明确不做以下事情：
 | --- | --- |
 | 修改无关运行时行为 | 不改 ViewModel、插件加载逻辑或未迁移窗口的运行逻辑。 |
 | 继续批量迁移 XAML | 当前已迁移 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 和 `BpWindow`；后续不应顺手改无关窗口。 |
-| 替换旧设计者/编辑器 | 当前 `DesignBehavior`、旧设计者入口和 `FrontedWindowService` 行为保持不变；独立编辑器尚未实现。 |
-| 移除 `config.json` 中的前台设置 | 自定义图片、文本设置、窗口设置仍保留在当前结构中。 |
+| 替换旧设计者/编辑器 | ~~当前 `DesignBehavior`、旧设计者入口和 `FrontedWindowService` 行为保持不变；独立编辑器尚未实现。~~ **Phase 10+ 已完成**：旧版真实窗口设计器模式已移除。`DesignBehavior`、`CanvasAdorner`、`DesignerModeChangedMessage` 和 `FrontManagePage` 的 `ChangeDesignerMode` 命令已删除。Designer v3 独立编辑器（`FrontedDesignerWindow`）是当前唯一支持的设计编辑器。 |
+| 移除 `config.json` 中的前台设置 | ~~自定义图片、文本设置、窗口设置仍保留在当前结构中。~~ **Phase 10+ 已完成**：旧前台自定义 UI 已从 SettingPage 删除，`SettingPageViewModel.FrontedUiCustom.cs` 已删除。旧 Config 字段仍保留在模型中用于运行时控件，但不再作为用户编辑入口。 |
 | 实现完整编辑器 UI | 当前已新增 Phase 8C shell、Phase 8D 交互层和 Phase 8E 基础 Property Grid；仍不实现 Add Control、Binding browser、Resource browser 或保存。 |
-| 实现 legacy `.bpui` 转换 | Phase 9D 已实现 v3 `.bpui` 导入/安装，但仍不转换旧 `.bpui`，也不修改现有 SettingPage legacy `.bpui` import/export 流程。 |
+| 实现 legacy `.bpui` 转换 | ~~Phase 9D 已实现 v3 `.bpui` 导入/安装，但仍不转换旧 `.bpui`，也不修改现有 SettingPage legacy `.bpui` import/export 流程。~~ **Phase 10+ 已完成**：Phase 9D 已实现 v3 `.bpui` 导入/安装和 legacy `.bpui` 转换。`SettingPageViewModel.UiPackage.cs` 已删除。旧 `.bpui` 现在通过 `FrontManagePage` 的 Layout Packages 管理，不再通过 SettingPage 覆盖 Config.json。旧 Config 字段仍保留在模型中用于运行时控件，但不再作为用户编辑入口。 |
 
 ## 12. 与 Score System v2 的关系
 

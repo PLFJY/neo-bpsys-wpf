@@ -1,5 +1,3 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-using neo_bpsys_wpf.Core.Messages;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -20,7 +18,6 @@ public abstract class FrontedWindowBase : Window
     /// </summary>
     public FrontedWindowBase()
     {
-        WeakReferenceMessenger.Default.Register<DesignerModeChangedMessage>(this, OnDesignerModeChanged);
         MouseLeftButtonDown += OnMouseLeftButtonDown;
         ResizeMode = ResizeMode.NoResize;
         SizeToContent = SizeToContent.Manual;
@@ -79,14 +76,6 @@ public abstract class FrontedWindowBase : Window
         }
 
         base.OnContentChanged(oldContent, this.Content);
-    }
-
-    private void OnDesignerModeChanged(object recipient, DesignerModeChangedMessage message)
-    {
-        if (message.IsDesignerMode)
-            MouseLeftButtonDown -= OnMouseLeftButtonDown;
-        else
-            MouseLeftButtonDown += OnMouseLeftButtonDown;
     }
 
     private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)

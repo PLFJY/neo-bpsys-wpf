@@ -1,27 +1,20 @@
 ﻿using System.ComponentModel;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models;
 using Game = neo_bpsys_wpf.Core.Models.Game;
 using Team = neo_bpsys_wpf.Core.Models.Team;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
-public partial class ScoreWindowViewModel :
-    ViewModelBase,
-    IRecipient<DesignerModeChangedMessage>
+public partial class ScoreWindowViewModel : ViewModelBase
 {
 #pragma warning disable CS8618
     public ScoreWindowViewModel()
 #pragma warning restore CS8618
     {
-        // Decorative constructor for design-time only.
     }
 
     private readonly ISharedDataService _sharedDataService;
@@ -61,19 +54,7 @@ public partial class ScoreWindowViewModel :
 
     public ImageSource? ScoreGlobalImage => IsBo3Mode ? Settings.GlobalScoreBgImageBo3 : Settings.GlobalScoreBgImage;
 
-    [ObservableProperty] private bool _isDesignerMode;
-
     public bool IsBo3Mode => _sharedDataService.IsBo3Mode;
-
-    public void Receive(DesignerModeChangedMessage message)
-    {
-        if (message.FrontedWindowId == FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreGlobalWindow) ||
-            message.FrontedWindowId == FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreHunWindow) ||
-            message.FrontedWindowId == FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreSurWindow) ||
-            message.FrontedWindowId == FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreWindow)
-            && IsDesignerMode != message.IsDesignerMode)
-            IsDesignerMode = message.IsDesignerMode;
-    }
 
     public Game CurrentGame => _sharedDataService.CurrentGame;
 

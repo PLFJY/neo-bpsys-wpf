@@ -1,29 +1,20 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Core.Messages;
+using neo_bpsys_wpf.Core.Models;
 using System.Collections.ObjectModel;
-using BpWindowSettings = neo_bpsys_wpf.Core.Models.BpWindowSettings;
 using Game = neo_bpsys_wpf.Core.Models.Game;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
-public partial class BpWindowViewModel :
-    ViewModelBase,
-    IRecipient<DesignerModeChangedMessage>
+public partial class BpWindowViewModel : ViewModelBase
 {
-#pragma warning disable CS8618 
+#pragma warning disable CS8618
     public BpWindowViewModel()
-#pragma warning restore CS8618 
+#pragma warning restore CS8618
 
     {
-        // Decorative constructor for design-time only.
     }
-
-    [ObservableProperty] private bool _isDesignerMode;
 
     private readonly ISharedDataService _sharedDataService;
     private readonly ISettingsHostService _settingsHostService;
@@ -43,12 +34,6 @@ public partial class BpWindowViewModel :
             if (e.PropertyName == nameof(settingsHostService.Settings.BpWindowSettings))
                 OnPropertyChanged(nameof(Settings));
         };
-    }
-
-    public void Receive(DesignerModeChangedMessage message)
-    {
-        if (message.FrontedWindowId == FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.BpWindow) && IsDesignerMode != message.IsDesignerMode)
-            IsDesignerMode = message.IsDesignerMode;
     }
 
     public bool IsBo3Mode => _sharedDataService.IsBo3Mode;

@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.AttachedBehaviors;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
@@ -276,12 +275,6 @@ public class FrontedWindowService : IFrontedWindowService
             if (defaultInfo.Left != null)
                 Canvas.SetLeft(control, (double)defaultInfo.Left);
             _externalControlDefaultPosition[control] = defaultInfo;
-
-            var designerModeBinding = new Binding("IsDesignerMode")
-            {
-                Source = canvas?.DataContext,
-            };
-            BindingOperations.SetBinding(control, DesignBehavior.IsDesignerModeProperty, designerModeBinding);
 
             canvas?.Children.Add(control);
         }

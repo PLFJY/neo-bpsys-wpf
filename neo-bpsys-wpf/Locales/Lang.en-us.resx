@@ -1420,7 +1420,7 @@
     <value>Score statistics window size</value>
   </data>
   <data name="DesignerUnlockNote" xml:space="preserve">
-    <value>NOTE: In Design Mode, holding down &lt;Shift&gt; key temporarily enables auto-snaping</value>
+    <value>Use the independent Frontend Designer to edit layouts. Layout packages are managed in the Layout Packages tab.</value>
   </data>
   <data name="AutoRecord" xml:space="preserve">
     <value>Auto Record</value>

@@ -60,7 +60,7 @@ services.AddFrontedWindow<TView, TViewModel>();
 
 ## 设计者模式和布局文件
 
-设计者模式通过 `DesignBehavior.IsDesignerMode` 给控件加 `CanvasAdorner`，让用户调整 Canvas 内元素位置。
+> **注意**：旧版"真实前台窗口内编辑"设计器模式已废弃移除。Designer v3 独立编辑器（`FrontedDesignerWindow`）是当前唯一支持的设计编辑器。
 
 Fronted Designer v3 的基础设施已经存在：`FrontedCanvasConfig` 可读取 root-level 控件 JSON，`IFrontedLayoutService` 按用户布局优先、内置默认布局兜底读取 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` 或 `Resources\FrontedLayouts\{WindowTypeName}\{CanvasName}.json`，`IFrontedRenderer` 可用注册的控件工厂生成 Text/Image/GlobalScoreRow 等控件。`Text` 控件支持 `BindingPath` 绑定 `ISharedDataService`，也支持在 `BindingPath` 为空时用 `Text` 字段显示原样静态文本；两者同时存在时 `BindingPath` 优先。`Text.StringFormat` 只在绑定文本时生效，静态 `Text` 不会自动本地化或格式化。需要本地化静态文本时使用 `LocalizedText`，它通过 `LocalizationKey` 查 resx，并在语言变化时刷新；需要业务规则文本时，应使用 `GameProgressText` / `MapNameText` 等业务控件，而不是普通静态 `Text`。`Image` 控件支持 `SizingMode`：`Auto` 保留 WPF/default 行为，`FillContainer` 让内层 `Image` 跟随外层 `Border` 尺寸，`OverflowCrop` 保留旧 `Border + Image + ClipToBounds` 裁剪语义。迁移默认布局时必须按旧 XAML 审计选择模式，不要全局强制所有图片填满容器。`ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 和 `BpWindow` 当前已接入 v3 renderer。单 Canvas 窗口的内置默认布局位于 `Resources\FrontedLayouts\{WindowTypeName}\BaseCanvas.json`；`WidgetsWindow` 是多 Canvas 前台窗口，使用 `Resources\FrontedLayouts\WidgetsWindow\MapBpCanvas.json`、`Resources\FrontedLayouts\WidgetsWindow\BpOverViewCanvas.json`、`Resources\FrontedLayouts\WidgetsWindow\MapV2Canvas.json` 三份独立布局。局内比分窗口、GameData 顶部比分文本、Widgets overview 小比分和 BpWindow 顶栏比分已绑定 `CurrentGame.MatchScore` 派生字段：大比分读取 `CurrentSurTeamMajorText` / `CurrentHunTeamMajorText`，小比分（MinorScore）预分读取 `CurrentSurTeamPreHalfMinorScoreText` / `CurrentHunTeamPreHalfMinorScoreText`。全局比分窗口总分绑定 `CurrentGame.MatchScore.HomeTotalMinorScore` / `AwayTotalMinorScore`，比分行由 `GlobalScoreRow` 从 `CurrentGame.MatchScore` 生成；`FrontedWindowService.SetGlobalScore*` / `ResetGlobalScore` 仅作为 obsolete no-op 兼容适配器保留，不再作为 UI 状态来源。`CutSceneWindow` 默认布局使用 `TalentTraitDisplay`、`GameProgressText`、`MapNameText` 封装天赋/辅助特质、BO3/BO5 进度文本和地图名本地化；`GameDataWindow` 默认布局使用 `LocalizedText` 处理表格表头，并复用 `GameProgressText`、`MapNameText`；`WidgetsWindow` 使用 `CurrentBanDisplay` 封装当前 Ban 槽和锁定覆盖层，使用 `MapV2Display` 封装地图 BP v2 展示；`BpWindow` 使用 `BanSlotDisplay` 封装当前局/全局 Ban 槽和锁定覆盖层，使用独立 `PickingBorderOverlay` 保留 `AnimationService` 的呼吸边框目标。`MapV2Display` 故意复用 `MapV2Presenter`，不要把地图 BP v2 拆成普通图片和文字控件。`FrontedWindowService` 不会读取旧 `FrontedDefaultPositions` 作为 v3 输入。
 
@@ -106,7 +106,7 @@ neo-bpsys-wpf/Resources/FrontedLayouts/{WindowTypeName}/{CanvasName}.json
 
 v3 独立编辑器保存用户布局时应写入 AppData 的 `FrontedLayouts` 目录；“重置为内置”应删除或忽略用户布局，再回落到 `Resources/FrontedLayouts` 下的默认布局。
 
-Phase 9D 后，`FrontManagePage` 使用顶层 tabs：`Frontend Windows` 保留现有前台窗口打开/关闭/设计模式、独立编辑器入口与重置能力，`Layout Packages` 提供 v3 布局包管理器。包列表使用紧凑两栏布局，右侧详情按 Basic、Contents、Location、Validation 分组。当前可列出系统内置包、已安装包和活动包状态，并可导入、导出、激活和删除 v3 `.bpui` 包。导出固定为全部前台布局；导入 legacy `.bpui` 只提示转换尚未实现，不覆盖全局配置。
+Phase 9D 后，`FrontManagePage` 使用顶层 tabs：`Frontend Windows` 提供前台窗口打开/关闭和独立编辑器入口，`Layout Packages` 提供 v3 布局包管理器。Phase 10+ 后，`Frontend Windows` tab 不再包含旧版设计模式 ToggleSwitch，Reset 按钮也已移除；布局重置通过激活/删除包实现。包列表使用紧凑两栏布局，右侧详情按 Basic、Contents、Location、Validation 分组。当前可列出系统内置包、已安装包和活动包状态，并可导入、导出、激活和删除 v3 `.bpui` 包。导出固定为全部前台布局；导入 legacy `.bpui` 会触发转换流程。
 
 激活普通包时，包内 `layouts/{WindowTypeName}/{CanvasName}.json` 会复制到 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json`，可选 `layouts/{WindowTypeName}/window.json` 也会复制到同一窗口目录。激活内置布局或删除活动包会清空 `FrontedLayouts` 用户布局目录并回退到内置 `Resources/FrontedLayouts`。已打开的前台窗口会尝试重新渲染 v3 布局。
 
@@ -125,7 +125,7 @@ FrontedWindowHelper.InjectControlToFrontedWindow(
     new ElementInfo(width, height, left, top));
 ```
 
-该调用只是把 `InjectedControlInfo` 放入静态注册表。真正加入 Canvas 发生在 `FrontedWindowService.LoadInjectedControl()`。注入控件会绑定目标 Canvas DataContext 的 `IsDesignerMode`，因此能参与位置编辑。
+该调用只是把 `InjectedControlInfo` 放入静态注册表。真正加入 Canvas 发生在 `FrontedWindowService.LoadInjectedControl()`。
 
 注意：
 

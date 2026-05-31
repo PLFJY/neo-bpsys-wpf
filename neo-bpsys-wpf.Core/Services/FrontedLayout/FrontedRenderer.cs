@@ -1,10 +1,8 @@
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.AttachedBehaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Markup;
 
@@ -51,10 +49,6 @@ public class FrontedRenderer(
 
             var element = factory.Create(name, controlConfig, buildContext);
             FrontedRendererProperties.SetIsGeneratedControl(element, true);
-            BindingOperations.SetBinding(element, DesignBehavior.IsDesignerModeProperty, new Binding("IsDesignerMode")
-            {
-                Source = canvas.DataContext
-            });
             RegisterGeneratedName(canvas, name, element);
             canvas.Children.Add(element);
             renderedElements[name] = element;

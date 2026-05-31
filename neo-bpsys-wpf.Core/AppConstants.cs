@@ -45,11 +45,6 @@ public static class AppConstants
     public static readonly string AppTempPath = Path.Combine(Path.GetTempPath(), AppName);
 
     /// <summary>
-    /// 自定义UI路径
-    /// </summary>
-    public static readonly string CustomUiPath = Path.Combine(AppDataPath, "CustomUi");
-
-    /// <summary>
     /// v3 前台布局路径
     /// </summary>
     public static readonly string FrontedLayoutsPath = Path.Combine(AppDataPath, "FrontedLayouts");
