@@ -2179,5 +2179,53 @@
   <data name="SecondHalf" xml:space="preserve">
     <value>SECOND HALF</value>
   </data>
+  <data name="BindingBrowser" xml:space="preserve">
+    <value>Binding Browser</value>
+  </data>
+  <data name="BrowseBinding" xml:space="preserve">
+    <value>Browse Binding</value>
+  </data>
+  <data name="ResourceBrowser" xml:space="preserve">
+    <value>Resource Browser</value>
+  </data>
+  <data name="BrowseResource" xml:space="preserve">
+    <value>Browse Resource</value>
+  </data>
+  <data name="SelectBindingPath" xml:space="preserve">
+    <value>Select Binding Path</value>
+  </data>
+  <data name="SelectResource" xml:space="preserve">
+    <value>Select Resource</value>
+  </data>
+  <data name="SearchBindings" xml:space="preserve">
+    <value>Search bindings</value>
+  </data>
+  <data name="SearchResources" xml:space="preserve">
+    <value>Search resources</value>
+  </data>
+  <data name="SelectedPath" xml:space="preserve">
+    <value>Selected Path</value>
+  </data>
+  <data name="BuiltInResources" xml:space="preserve">
+    <value>Built-in Resources</value>
+  </data>
+  <data name="AppAssets" xml:space="preserve">
+    <value>App Assets</value>
+  </data>
+  <data name="AbsoluteFile" xml:space="preserve">
+    <value>Absolute File</value>
+  </data>
+  <data name="BrowseFile" xml:space="preserve">
+    <value>Browse file</value>
+  </data>
+  <data name="NoBindingResults" xml:space="preserve">
+    <value>No matching bindings.</value>
+  </data>
+  <data name="NoResourceResults" xml:space="preserve">
+    <value>No matching resources.</value>
+  </data>
+  <data name="UseSelected" xml:space="preserve">
+    <value>Use Selected</value>
+  </data>
 </root>
 

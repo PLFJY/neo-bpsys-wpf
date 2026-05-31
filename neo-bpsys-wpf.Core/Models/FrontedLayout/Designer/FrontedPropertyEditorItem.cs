@@ -26,6 +26,10 @@ public class FrontedPropertyEditorItem : ObservableObject
     private string? _groupName;
     private string? _groupDisplayName;
     private bool _isGroupHeaderVisible;
+    private bool _canBrowseBinding;
+    private bool _canBrowseResource;
+    private string? _browseButtonText;
+    private string? _browseDialogTitle;
 
     /// <summary>
     /// User-facing row label.
@@ -217,6 +221,42 @@ public class FrontedPropertyEditorItem : ObservableObject
     {
         get => _isGroupHeaderVisible;
         set => SetProperty(ref _isGroupHeaderVisible, value);
+    }
+
+    /// <summary>
+    /// Whether this text-like row can open the Binding Browser.
+    /// </summary>
+    public bool CanBrowseBinding
+    {
+        get => _canBrowseBinding;
+        set => SetProperty(ref _canBrowseBinding, value);
+    }
+
+    /// <summary>
+    /// Whether this text-like row can open the Resource Browser.
+    /// </summary>
+    public bool CanBrowseResource
+    {
+        get => _canBrowseResource;
+        set => SetProperty(ref _canBrowseResource, value);
+    }
+
+    /// <summary>
+    /// Optional short browse button text.
+    /// </summary>
+    public string? BrowseButtonText
+    {
+        get => _browseButtonText;
+        set => SetProperty(ref _browseButtonText, value);
+    }
+
+    /// <summary>
+    /// Optional browse dialog title key.
+    /// </summary>
+    public string? BrowseDialogTitle
+    {
+        get => _browseDialogTitle;
+        set => SetProperty(ref _browseDialogTitle, value);
     }
 
     /// <summary>

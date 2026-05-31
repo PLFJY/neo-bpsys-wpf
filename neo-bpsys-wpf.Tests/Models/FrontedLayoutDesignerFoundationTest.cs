@@ -1499,6 +1499,142 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void BindingBrowserProviderContainsCommonDesignerPaths()
+    {
+        var provider = new FrontedBindingBrowserProvider();
+        var paths = provider.BuildTree()
+            .SelectMany(node => node.Flatten())
+            .Select(node => node.FullPath)
+            .Where(path => path is not null)
+            .ToHashSet(StringComparer.Ordinal);
+
+        Assert.Contains("CurrentGame.SurTeam.Name", paths);
+        Assert.Contains("CurrentGame.HunTeam.Name", paths);
+        Assert.Contains("CurrentGame.SurPlayerList[0].Member.Name", paths);
+        Assert.Contains("CurrentGame.SurPlayerList[3].Member.Name", paths);
+        Assert.Contains("CurrentGame.HunPlayer.Member.Name", paths);
+        Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamMajorText", paths);
+        Assert.Contains("RemainingSeconds", paths);
+    }
+
+    [Fact]
+    public void BindingBrowserProviderSearchFindsPartialNamesAndHasNoDuplicatePaths()
+    {
+        var provider = new FrontedBindingBrowserProvider();
+
+        var results = provider.Search("SurTeam");
+        var allPaths = provider.BuildTree()
+            .SelectMany(node => node.Flatten())
+            .Where(node => !string.IsNullOrWhiteSpace(node.FullPath))
+            .Select(node => node.FullPath!)
+            .ToArray();
+
+        Assert.Contains(results, node => node.FullPath == "CurrentGame.SurTeam.Name");
+        Assert.Equal(allPaths.Length, allPaths.Distinct(StringComparer.Ordinal).Count());
+        Assert.True(allPaths.Length < 400);
+    }
+
+    [Fact]
+    public void PropertyGridMarksBindingAndResourcePathRows()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "SurPick",
+            Config = new ImageFrontedControlConfig
+            {
+                BindingPath = "CurrentGame.SurPlayerList[0].PictureShown",
+                PickingBorderImagePath = "Resources/pickingBorder.png"
+            }
+        };
+
+        var rows = BuildPropertyRows(CreateDocument([item]), item);
+
+        var bindingRow = Assert.Single(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.BindingPath));
+        Assert.True(bindingRow.CanBrowseBinding);
+        Assert.False(bindingRow.CanBrowseResource);
+
+        var resourceRow = Assert.Single(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorderImagePath));
+        Assert.True(resourceRow.CanBrowseResource);
+        Assert.False(resourceRow.CanBrowseBinding);
+
+        var normalTextRow = rows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.HorizontalAlignment));
+        Assert.False(normalTextRow.CanBrowseBinding);
+        Assert.False(normalTextRow.CanBrowseResource);
+    }
+
+    [Fact]
+    public void BrowserSelectionOnlyUpdatesEditTextUntilExplicitApply()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { BindingPath = "Old.Path" }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([item]) };
+        viewModel.SelectDesignItem(item);
+        var row = viewModel.PropertyEditorItems.Single(row => row.PropertyName == nameof(FrontedControlConfigBase.BindingPath));
+
+        row.EditText = "CurrentGame.SurTeam.Name";
+
+        Assert.Equal("Old.Path", item.Config.BindingPath);
+        Assert.False(viewModel.CanUndo);
+
+        var result = viewModel.ApplyPropertyEdit(row, row.EditText);
+
+        Assert.True(result);
+        Assert.Equal("CurrentGame.SurTeam.Name", item.Config.BindingPath);
+        Assert.True(viewModel.CanUndo);
+    }
+
+    [Fact]
+    public void ResourceBrowserProviderListsBuiltInResourcesWithResolverPathConvention()
+    {
+        var root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        var bpui = Path.Combine(root, "bpui");
+        Directory.CreateDirectory(bpui);
+        var imagePath = Path.Combine(bpui, "sample.png");
+        File.WriteAllText(imagePath, "not a real image");
+
+        try
+        {
+            var provider = new FrontedResourceBrowserProvider(root);
+            var resources = provider.ListBuiltInResources();
+
+            var item = Assert.Single(resources);
+            Assert.Equal("sample.png", item.DisplayName);
+            Assert.Equal("Resources/sample.png", item.SelectedPath);
+            Assert.Null(item.Thumbnail);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ResourceBrowserProviderAcceptsAbsoluteFileItem()
+    {
+        var provider = new FrontedResourceBrowserProvider();
+        var path = Path.Combine(Path.GetTempPath(), "designer-resource.png");
+
+        var item = provider.CreateAbsoluteFileItem(path);
+
+        Assert.Equal(path, item.SelectedPath);
+        Assert.True(item.IsAbsoluteFile);
+        Assert.Equal("AbsoluteFile", item.Category);
+    }
+
+    [Fact]
+    public void FrontedDesignerWindowXamlContainsBrowserButtonHandlers()
+    {
+        var xamlPath = GetRepositoryPath("neo-bpsys-wpf", "Views", "Windows", "FrontedDesignerWindow.xaml");
+        var xaml = File.ReadAllText(xamlPath);
+
+        Assert.Contains("BrowseBindingButton_OnClick", xaml, StringComparison.Ordinal);
+        Assert.Contains("BrowseResourceButton_OnClick", xaml, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TextPropertyEditFailureKeepsEditBufferAndSetsErrorState()
     {
         var item = new FrontedControlDesignItem

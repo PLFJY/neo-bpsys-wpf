@@ -1,6 +1,6 @@
 # Fronted Designer v3 独立编辑器设计规格
 
-本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；Phase 8D 已新增编辑器内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调，并在 owner validation 后补齐左侧控件列表、筛选和重叠控件选择语义。Phase 8D zoom/pan 修正后，编辑 surface 不再使用 `Viewbox` 控制 Fit/手动缩放，而是使用 `ScrollViewer + PreviewZoomHost + LayoutTransform`，所有缩放统一由 `ZoomScale` 驱动。Phase 8E 已新增基础 Property Grid，可编辑选中控件的内存设计项并即时重渲染预览；owner validation 后改为按编辑器类型实例化单一模板，提交事件在属性网格重建期间被抑制，验证详情移入底部状态区弹窗，颜色字段使用 ColorPicker。Phase 8F 已新增 Add Control 菜单、默认 config 工厂、唯一命名和 `FontFamily` 字体 ComboBox；owner validation 修正后补齐 Delete Control、文本属性显式提交、失败编辑红框保留输入、字体下拉打开/提交时机修复和右侧 Property Grid 可拖拽宽度。Phase 8F foundation 修复后，设计器预览使用独立 placeholder shared data service，颜色选择只同步 Hex 缓冲并由 Apply/Enter 显式提交，左侧列表右键和 Property Grid 底部都可删除控件，并新增内存 Undo/Redo 按钮和快捷键。编辑器入口位于 `FrontManagePage`，不是 `SettingPage`。当前仍不实现 Binding Browser、Resource Browser、用户布局保存、`.bpui` 迁移，也不移除旧 `config.json` 前台设置。
+本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；Phase 8D 已新增编辑器内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调，并在 owner validation 后补齐左侧控件列表、筛选和重叠控件选择语义。Phase 8D zoom/pan 修正后，编辑 surface 不再使用 `Viewbox` 控制 Fit/手动缩放，而是使用 `ScrollViewer + PreviewZoomHost + LayoutTransform`，所有缩放统一由 `ZoomScale` 驱动。Phase 8E 已新增基础 Property Grid，可编辑选中控件的内存设计项并即时重渲染预览；owner validation 后改为按编辑器类型实例化单一模板，提交事件在属性网格重建期间被抑制，验证详情移入底部状态区弹窗，颜色字段使用 ColorPicker。Phase 8F 已新增 Add Control 菜单、默认 config 工厂、唯一命名和 `FontFamily` 字体 ComboBox；owner validation 修正后补齐 Delete Control、文本属性显式提交、失败编辑红框保留输入、字体下拉打开/提交时机修复和右侧 Property Grid 可拖拽宽度。Phase 8F foundation 修复后，设计器预览使用独立 placeholder shared data service，颜色选择只同步 Hex 缓冲并由 Apply/Enter 显式提交，左侧列表右键和 Property Grid 底部都可删除控件，并新增内存 Undo/Redo 按钮和快捷键。Phase 8G 已新增 Binding Browser 和 Resource Browser；浏览器选择只写入属性行 `EditText` 缓冲，仍需 Apply 或 Enter 才提交到内存设计文档。编辑器入口位于 `FrontManagePage`，不是 `SettingPage`。当前仍不实现用户布局保存、`.bpui` 迁移，也不移除旧 `config.json` 前台设置。
 
 独立编辑器面向 v3 JSON layout 文件。它是后台侧的独立编辑窗口，不直接在真实前台窗口上编辑；真实前台窗口仍用于 OBS 捕获和运行时输出。编辑器必须同时支持单 Canvas 窗口和多 Canvas 窗口，并保持与现有 v3 renderer、生成控件名、`AnimationService`、业务控件和 JSON 格式兼容。
 
@@ -455,7 +455,9 @@ PropertyGrid
 
 Phase 8F owner validation 后，文本类属性使用显式提交模型。`Name`、`BindingPath`、普通 `Text` 字符串、资源路径字符串和手写 `FontFamily` 都先写入 `FrontedPropertyEditorItem.EditText`，按 Enter 或右侧 Check/Apply 按钮才提交。颜色行同样遵守显式提交：ColorPicker 选择颜色只把 `EditText` 和可见 Hex 文本更新为 `#AARRGGBB`，Apply 或 Hex 文本框 Enter 才写回 config；手写 Hex 有效时同步 ColorPicker，提交失败时保留输入并显示红色错误。`Name` 和 `BindingPath` 不再在 LostFocus 时自动提交，避免焦点移动和 Property Grid 重建时把未确认输入写回布局。提交失败时保留用户输入，设置 `HasEditError` / `EditError`，文本框显示红色边框，并在属性行下方显示验证消息；用户继续编辑或提交成功后错误状态清除。`Name` 仍遵守运行时关键名称只读、合法 WPF 名称、同 Canvas 唯一和被引用控件阻止重命名规则；成功重命名后刷新左侧列表、选中摘要、preview、hitbox/selection label 和属性行。
 
-`BindingPath` 仍是纯文本框，空字符串允许用于静态文本控件。Binding Browser 留到 Phase 8G；Resource Browser 同样仍是后续能力，不在 Phase 8F 修复中加入 browse button。
+Phase 8G 起，`BindingPath` 仍是可手写文本框，但旁边新增 Browse button。Binding Browser 使用 curated `ISharedDataService` 树，包含 `CurrentGame`、队伍、固定索引的 `SurPlayerList[0..3]`、`HunPlayer`、`MatchScore`、当前/全局 Ban 列表和倒计时等常用路径；搜索可按显示名或完整绑定路径过滤。选择结果只更新该行 `EditText`，不会立即写入 config，不会调用真实 `ISharedDataService`，也不会推入 Undo；用户后续按 Apply 或 Enter 后才走 `ApplyPropertyEdit`、校验、预览刷新和 Undo snapshot。
+
+Phase 8G 起，图片/资源路径字段旁新增 Resource Browser。当前资源来源包括内置运行时文件 `Resources/bpui`，返回值使用 resolver 约定的 `Resources/<fileName>`；也支持通过 “Browse file...” 选择 png/jpg/jpeg/webp/bmp 绝对路径。外部文件不会被复制或导入布局包，后续 `.bpui` / 资源管理阶段再处理打包。`Assets/icon.png` 是 WPF pack resource，当前 `IFrontedResourceResolver` 不解析 pack URI，因此不作为资源路径浏览结果提供。Canvas 级 `BackgroundImage` 目前没有 Property Grid，等 Canvas 属性编辑阶段再接入同一 Resource Browser。
 
 `FontFamily` 行仍使用可编辑 ComboBox，但不再依赖 `SelectedValue` 双向绑定。下拉打开期间不会触发 LostFocus 提交或重建 Property Grid；用户从下拉中选择时写入对应 `FrontedFontFamilyOption.Value`，因此内置字体继续保存 `pack://application:,,,/Assets/Fonts/#...` 原值；用户手写自定义字体时按 Enter 或真正失焦提交 `ComboBox.Text`。下拉项继续使用各自的 `PreviewFontFamily` 显示，保持旧 `TextSettingsEditControl` 的字体预览语义。
 
@@ -481,7 +483,7 @@ Phase 8E 的名称编辑采用保守策略：
 
 ## 12. Binding Browser
 
-任何 `BindingPath` 属性都应显示：
+Phase 8G 已实现。任何 `BindingPath` 属性都会显示：
 
 1. `TextBox`
 2. Browse button
@@ -519,7 +521,7 @@ ISharedDataService
 | `GlobalBannedHunList` | `0..2` 或按当前模型支持数量 |
 | `GlobalBannedSurList` | `0..11` |
 
-选择叶子节点后写入路径，例如：
+选择节点后写入路径，例如：
 
 ```text
 CurrentGame.SurTeam.Name
@@ -527,9 +529,11 @@ CurrentGame.SurPlayerList[0].Member.Name
 CurrentGame.MatchScore.CurrentSurTeamMajorText
 ```
 
+浏览器只更新属性行编辑缓冲；Apply/Enter 前，选中控件 config 仍保持旧值。取消浏览器不会修改 `EditText`。
+
 ## 13. Resource Browser
 
-Resource Browser 面向图片和资源路径字段：
+Phase 8G 已实现控件级资源路径浏览。Resource Browser 面向图片和资源路径字段：
 
 1. `BackgroundImage`
 2. 图片路径字段
@@ -540,15 +544,15 @@ Resource Browser 面向图片和资源路径字段：
 浏览器应支持：
 
 1. 内置 `Resources/bpui` 路径。
-2. 用户导入的自定义图片路径。
-3. resolver 支持时的绝对路径。
-4. 后续可增加缩略图预览。
+2. 通过文件选择器选择绝对路径图片。
+3. 缩略图预览；缩略图加载失败时显示为空，不阻断浏览器。
 
 路径规则：
 
 1. `Resources/foo.png` 解析到运行目录 `Resources/bpui/foo.png`。
 2. 绝对路径在 resolver 支持时直接加载。
 3. 不应让用户直接编辑 raw pack URI，除非目标字段明确需要 pack URI，如字体。
+4. 内置 `Assets` 资源不是当前 resolver 的文件路径资源，暂不列入 Resource Browser。
 
 ## 14. 编辑操作
 

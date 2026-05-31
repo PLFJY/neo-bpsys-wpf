@@ -21,6 +21,8 @@ namespace neo_bpsys_wpf.Views.Windows;
 public partial class FrontedDesignerWindow : FluentWindow
 {
     private readonly IFrontedRenderer? _renderer;
+    private readonly FrontedBindingBrowserProvider? _bindingBrowserProvider;
+    private readonly FrontedResourceBrowserProvider? _resourceBrowserProvider;
     private readonly ILogger<FrontedDesignerWindow>? _logger;
     private bool _isLoaded;
     private bool _suppressPropertyEditorCommit;
@@ -56,9 +58,13 @@ public partial class FrontedDesignerWindow : FluentWindow
     public FrontedDesignerWindow(
         FrontedDesignerWindowViewModel viewModel,
         IFrontedRenderer renderer,
+        FrontedBindingBrowserProvider bindingBrowserProvider,
+        FrontedResourceBrowserProvider resourceBrowserProvider,
         ILogger<FrontedDesignerWindow> logger)
     {
         _renderer = renderer;
+        _bindingBrowserProvider = bindingBrowserProvider;
+        _resourceBrowserProvider = resourceBrowserProvider;
         _logger = logger;
 
         InitializeComponent();
@@ -165,6 +171,52 @@ public partial class FrontedDesignerWindow : FluentWindow
         if (ApplyPropertyEditorValue(sender))
         {
             FocusDesignSurface();
+        }
+    }
+
+    private void BrowseBindingButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_bindingBrowserProvider is null
+            || sender is not FrameworkElement { DataContext: FrontedPropertyEditorItem item })
+        {
+            return;
+        }
+
+        var viewModel = new FrontedBindingBrowserWindowViewModel(_bindingBrowserProvider);
+        var window = new FrontedBindingBrowserWindow
+        {
+            Owner = this,
+            DataContext = viewModel
+        };
+        window.InitializeSelection(item.EditText);
+
+        if (window.ShowDialog() == true && !string.IsNullOrWhiteSpace(window.SelectedBindingPath))
+        {
+            item.EditText = window.SelectedBindingPath;
+            _viewModel?.ClearPropertyEditErrorForBufferUpdate(item.PropertyName);
+        }
+    }
+
+    private void BrowseResourceButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_resourceBrowserProvider is null
+            || sender is not FrameworkElement { DataContext: FrontedPropertyEditorItem item })
+        {
+            return;
+        }
+
+        var viewModel = new FrontedResourceBrowserWindowViewModel(_resourceBrowserProvider);
+        var window = new FrontedResourceBrowserWindow
+        {
+            Owner = this,
+            DataContext = viewModel
+        };
+        window.InitializeSelection(item.EditText);
+
+        if (window.ShowDialog() == true && !string.IsNullOrWhiteSpace(window.SelectedResourcePath))
+        {
+            item.EditText = window.SelectedResourcePath;
+            _viewModel?.ClearPropertyEditErrorForBufferUpdate(item.PropertyName);
         }
     }
 

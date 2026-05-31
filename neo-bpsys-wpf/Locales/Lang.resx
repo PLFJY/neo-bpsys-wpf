@@ -2197,5 +2197,53 @@
   <data name="SecondHalf" xml:space="preserve">
     <value>SECOND HALF</value>
   </data>
+  <data name="BindingBrowser" xml:space="preserve">
+    <value>绑定浏览器</value>
+  </data>
+  <data name="BrowseBinding" xml:space="preserve">
+    <value>浏览绑定</value>
+  </data>
+  <data name="ResourceBrowser" xml:space="preserve">
+    <value>资源浏览器</value>
+  </data>
+  <data name="BrowseResource" xml:space="preserve">
+    <value>浏览资源</value>
+  </data>
+  <data name="SelectBindingPath" xml:space="preserve">
+    <value>选择绑定路径</value>
+  </data>
+  <data name="SelectResource" xml:space="preserve">
+    <value>选择资源</value>
+  </data>
+  <data name="SearchBindings" xml:space="preserve">
+    <value>搜索绑定</value>
+  </data>
+  <data name="SearchResources" xml:space="preserve">
+    <value>搜索资源</value>
+  </data>
+  <data name="SelectedPath" xml:space="preserve">
+    <value>已选路径</value>
+  </data>
+  <data name="BuiltInResources" xml:space="preserve">
+    <value>内置资源</value>
+  </data>
+  <data name="AppAssets" xml:space="preserve">
+    <value>应用资产</value>
+  </data>
+  <data name="AbsoluteFile" xml:space="preserve">
+    <value>绝对路径文件</value>
+  </data>
+  <data name="BrowseFile" xml:space="preserve">
+    <value>浏览文件</value>
+  </data>
+  <data name="NoBindingResults" xml:space="preserve">
+    <value>没有匹配的绑定。</value>
+  </data>
+  <data name="NoResourceResults" xml:space="preserve">
+    <value>没有匹配的资源。</value>
+  </data>
+  <data name="UseSelected" xml:space="preserve">
+    <value>使用所选</value>
+  </data>
 </root>
 

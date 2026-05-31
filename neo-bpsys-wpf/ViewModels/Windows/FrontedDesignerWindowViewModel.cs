@@ -623,6 +623,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         NotifyUndoRedoCommands();
     }
 
+    public void ClearPropertyEditErrorForBufferUpdate(string propertyName)
+    {
+        ClearPropertyEditError(propertyName);
+    }
+
     public void CommitDesignItemGeometryEdit()
     {
         if (CurrentDocument is null)

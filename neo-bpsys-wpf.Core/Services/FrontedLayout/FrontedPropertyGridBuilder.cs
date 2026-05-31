@@ -69,6 +69,19 @@ public class FrontedPropertyGridBuilder
         "ClipToBounds"
     };
 
+    private static readonly HashSet<string> ResourcePathPropertyNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "ImagePath",
+        "ImageSource",
+        "SourcePath",
+        "ResourcePath",
+        "BackgroundImage",
+        "LockImageSource",
+        "BorderImagePath",
+        "PickingBorderImagePath",
+        "BanLockImagePath"
+    };
+
     private static readonly IReadOnlyDictionary<string, IReadOnlyList<object>> StringOptionProperties =
         new Dictionary<string, IReadOnlyList<object>>(StringComparer.OrdinalIgnoreCase)
         {
@@ -202,6 +215,11 @@ public class FrontedPropertyGridBuilder
                 validationErrors.Add("Invalid color. Use #AARRGGBB.");
             }
 
+            var canBrowseBinding = !isReadOnly && IsBindingPathProperty(property.Name);
+            var canBrowseResource = !isReadOnly
+                                    && !canBrowseBinding
+                                    && IsResourcePathProperty(property.Name);
+
             rows.Add(new FrontedPropertyEditorItem
             {
                 DisplayName = property.Name,
@@ -215,7 +233,15 @@ public class FrontedPropertyGridBuilder
                     or nameof(FrontedControlConfigBase.Top),
                 Options = ResolveOptions(property, kind),
                 GroupName = groupName,
-                ValidationErrors = validationErrors
+                ValidationErrors = validationErrors,
+                CanBrowseBinding = canBrowseBinding,
+                CanBrowseResource = canBrowseResource,
+                BrowseButtonText = "...",
+                BrowseDialogTitle = canBrowseBinding
+                    ? "BindingBrowser"
+                    : canBrowseResource
+                        ? "ResourceBrowser"
+                        : null
             });
         }
     }
@@ -323,6 +349,21 @@ public class FrontedPropertyGridBuilder
         return AppearancePropertyNames.Contains(propertyName)
             ? "Appearance"
             : "ControlSpecific";
+    }
+
+    private static bool IsBindingPathProperty(string propertyName) =>
+        propertyName.Equals(nameof(FrontedControlConfigBase.BindingPath), StringComparison.Ordinal)
+        || propertyName.EndsWith(nameof(FrontedControlConfigBase.BindingPath), StringComparison.Ordinal);
+
+    private static bool IsResourcePathProperty(string propertyName)
+    {
+        if (IsBindingPathProperty(propertyName))
+        {
+            return false;
+        }
+
+        return ResourcePathPropertyNames.Contains(propertyName)
+               || ResourcePathPropertyNames.Any(propertyName.EndsWith);
     }
 
     private static int GetPropertyOrder(PropertyInfo property)

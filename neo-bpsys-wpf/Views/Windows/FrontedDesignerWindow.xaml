@@ -40,6 +40,8 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <ui:TextBox
                     Grid.Column="0"
@@ -59,6 +61,42 @@
                 </ui:TextBox>
                 <ui:Button
                     Grid.Column="1"
+                    MinWidth="34"
+                    Margin="6,0,0,0"
+                    Click="BrowseBindingButton_OnClick"
+                    Content="{Binding BrowseButtonText}"
+                    ToolTip="{lex:Loc BrowseBinding}">
+                    <ui:Button.Style>
+                        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CanBrowseBinding}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:Button.Style>
+                </ui:Button>
+                <ui:Button
+                    Grid.Column="2"
+                    MinWidth="34"
+                    Margin="6,0,0,0"
+                    Click="BrowseResourceButton_OnClick"
+                    Content="{Binding BrowseButtonText}"
+                    ToolTip="{lex:Loc BrowseResource}">
+                    <ui:Button.Style>
+                        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CanBrowseResource}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:Button.Style>
+                </ui:Button>
+                <ui:Button
+                    Grid.Column="3"
                     MinWidth="34"
                     Margin="6,0,0,0"
                     Click="PropertyTextApplyButton_OnClick"

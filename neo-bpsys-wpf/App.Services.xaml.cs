@@ -105,6 +105,8 @@ public partial class App
         services.AddSingleton<FrontedLayoutValidator>();
         services.AddSingleton<FrontedFontFamilyOptionProvider>();
         services.AddSingleton<FrontedPropertyGridBuilder>();
+        services.AddSingleton<FrontedBindingBrowserProvider>();
+        services.AddSingleton<FrontedResourceBrowserProvider>();
         services.AddSingleton<FrontedControlDefaultConfigFactory>();
         services.AddSingleton<FrontedControlNameGenerator>();
         services.AddSingleton<FrontedDesignerLayoutCatalog>();
@@ -124,6 +126,10 @@ public partial class App
         services.AddFrontedWindow<WidgetsWindow, WidgetsWindowViewModel>();
         services.AddTransient<FrontedDesignerWindowViewModel>();
         services.AddTransient<FrontedDesignerWindow>();
+        services.AddTransient<FrontedBindingBrowserWindowViewModel>();
+        services.AddTransient<FrontedBindingBrowserWindow>();
+        services.AddTransient<FrontedResourceBrowserWindowViewModel>();
+        services.AddTransient<FrontedResourceBrowserWindow>();
 
         //Pages
         //Internal
