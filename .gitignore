@@ -367,3 +367,5 @@ build/
 
 #Jetbrains Rider
 .idea/
+
+diff.txt
