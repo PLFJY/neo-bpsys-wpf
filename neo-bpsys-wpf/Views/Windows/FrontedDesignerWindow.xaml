@@ -27,6 +27,7 @@
     PreviewKeyDown="Window_OnPreviewKeyDown"
     PreviewKeyUp="Window_OnPreviewKeyUp"
     WindowStartupLocation="CenterOwner"
+    WindowState="Maximized"
     mc:Ignorable="d">
     <ui:FluentWindow.Resources>
         <DataTemplate x:Key="PropertyReadOnlyEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
@@ -342,7 +343,10 @@
                         ToolTip="{lex:Loc ShortcutSave}" />
                     <Menu Margin="0,0,8,8" VerticalAlignment="Center">
                         <MenuItem Header="{lex:Loc Layout}">
-                            <MenuItem Click="SaveLayoutButton_OnClick" Header="{lex:Loc SaveLayout}" InputGestureText="Ctrl+S" />
+                            <MenuItem
+                                Click="SaveLayoutButton_OnClick"
+                                Header="{lex:Loc SaveLayout}"
+                                InputGestureText="Ctrl+S" />
                             <MenuItem Click="ReloadLayoutButton_OnClick" Header="{lex:Loc ReloadLayout}" />
                             <MenuItem Click="ResetToBuiltInButton_OnClick" Header="{lex:Loc ResetToBuiltIn}" />
                             <Separator />
@@ -350,24 +354,57 @@
                             <MenuItem Command="{Binding ValidateLayoutCommand}" Header="{lex:Loc ValidationDetails}" />
                         </MenuItem>
                         <MenuItem Header="{lex:Loc Edit}">
-                            <MenuItem Command="{Binding UndoCommand}" Header="{lex:Loc Undo}" InputGestureText="Ctrl+Z" />
-                            <MenuItem Command="{Binding RedoCommand}" Header="{lex:Loc Redo}" InputGestureText="Ctrl+Y / Ctrl+Shift+Z" />
-                            <MenuItem Command="{Binding DeleteSelectedControlCommand}" Header="{lex:Loc DeleteControl}" InputGestureText="Del" />
+                            <MenuItem
+                                Command="{Binding UndoCommand}"
+                                Header="{lex:Loc Undo}"
+                                InputGestureText="Ctrl+Z" />
+                            <MenuItem
+                                Command="{Binding RedoCommand}"
+                                Header="{lex:Loc Redo}"
+                                InputGestureText="Ctrl+Y / Ctrl+Shift+Z" />
+                            <MenuItem
+                                Command="{Binding DeleteSelectedControlCommand}"
+                                Header="{lex:Loc DeleteControl}"
+                                InputGestureText="Del" />
                         </MenuItem>
                         <MenuItem Header="{lex:Loc View}">
                             <MenuItem Command="{Binding FitToWindowCommand}" Header="{lex:Loc Fit}" />
                             <MenuItem Command="{Binding ZoomInCommand}" Header="{lex:Loc ZoomIn}" />
                             <MenuItem Command="{Binding ZoomOutCommand}" Header="{lex:Loc ZoomOut}" />
                             <Separator />
-                            <MenuItem Command="{Binding SetZoomPresetCommand}" CommandParameter="25%" Header="25%" />
-                            <MenuItem Command="{Binding SetZoomPresetCommand}" CommandParameter="50%" Header="50%" />
-                            <MenuItem Command="{Binding SetZoomPresetCommand}" CommandParameter="75%" Header="75%" />
-                            <MenuItem Command="{Binding SetZoomPresetCommand}" CommandParameter="100%" Header="100%" />
-                            <MenuItem Command="{Binding SetZoomPresetCommand}" CommandParameter="125%" Header="125%" />
-                            <MenuItem Command="{Binding SetZoomPresetCommand}" CommandParameter="150%" Header="150%" />
-                            <MenuItem Command="{Binding SetZoomPresetCommand}" CommandParameter="200%" Header="200%" />
+                            <MenuItem
+                                Command="{Binding SetZoomPresetCommand}"
+                                CommandParameter="25%"
+                                Header="25%" />
+                            <MenuItem
+                                Command="{Binding SetZoomPresetCommand}"
+                                CommandParameter="50%"
+                                Header="50%" />
+                            <MenuItem
+                                Command="{Binding SetZoomPresetCommand}"
+                                CommandParameter="75%"
+                                Header="75%" />
+                            <MenuItem
+                                Command="{Binding SetZoomPresetCommand}"
+                                CommandParameter="100%"
+                                Header="100%" />
+                            <MenuItem
+                                Command="{Binding SetZoomPresetCommand}"
+                                CommandParameter="125%"
+                                Header="125%" />
+                            <MenuItem
+                                Command="{Binding SetZoomPresetCommand}"
+                                CommandParameter="150%"
+                                Header="150%" />
+                            <MenuItem
+                                Command="{Binding SetZoomPresetCommand}"
+                                CommandParameter="200%"
+                                Header="200%" />
                             <Separator />
-                            <MenuItem Header="{lex:Loc Snap}" IsCheckable="True" IsChecked="{Binding SnapEnabled, Mode=TwoWay}" />
+                            <MenuItem
+                                Header="{lex:Loc Snap}"
+                                IsCheckable="True"
+                                IsChecked="{Binding SnapEnabled, Mode=TwoWay}" />
                         </MenuItem>
                     </Menu>
                     <TextBlock
@@ -758,9 +795,7 @@
                                 Margin="0,0,0,6"
                                 FontWeight="SemiBold"
                                 Text="{lex:Loc BackgroundImage}" />
-                            <ui:TextBox
-                                MinHeight="30"
-                                Text="{Binding BackgroundImageEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <ui:TextBox MinHeight="30" Text="{Binding BackgroundImageEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                             <WrapPanel Margin="0,8,0,0">
                                 <ui:Button
                                     Margin="0,0,6,6"
@@ -796,9 +831,7 @@
                                 Margin="0,0,0,6"
                                 FontWeight="SemiBold"
                                 Text="{Binding WindowOptionsWindowTypeName}" />
-                            <ui:ToggleSwitch
-                                Content="{lex:Loc AllowTransparency}"
-                                IsChecked="{Binding WindowAllowTransparency, Mode=TwoWay}" />
+                            <ui:ToggleSwitch Content="{lex:Loc AllowTransparency}" IsChecked="{Binding WindowAllowTransparency, Mode=TwoWay}" />
                             <TextBlock
                                 Margin="0,6,0,0"
                                 FontSize="12"
