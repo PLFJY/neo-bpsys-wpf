@@ -482,7 +482,6 @@
             <Grid Margin="0,0,10,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*" MinWidth="340" />
-                    <ColumnDefinition Width="16" />
                     <ColumnDefinition Width="*" MinWidth="360" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
@@ -662,7 +661,8 @@
 
                 <Border
                     Grid.Row="1"
-                    Grid.Column="2"
+                    Grid.Column="1"
+                    Margin="10,0,0,0"
                     Padding="12"
                     Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
                     BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
