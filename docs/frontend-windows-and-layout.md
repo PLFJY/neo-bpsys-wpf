@@ -106,6 +106,8 @@ neo-bpsys-wpf/Resources/FrontedLayouts/{WindowTypeName}/{CanvasName}.json
 
 v3 独立编辑器保存用户布局时应写入 AppData 的 `FrontedLayouts` 目录；“重置为内置”应删除或忽略用户布局，再回落到 `Resources/FrontedLayouts` 下的默认布局。
 
+Phase 9B.1 后，`FrontManagePage` 使用顶层 tabs：`Frontend Windows` 保留现有前台窗口打开/关闭/设计模式、独立编辑器入口与重置能力，`Layout Packages` 提供 v3 布局包管理器骨架。包列表与包详情界面参考插件市场/插件详情页实现，包操作按钮位于页面和详情面板顶部。包管理器当前只列出系统内置包、已安装包和活动包状态；导入、导出、legacy 转换和资源打包仍是后续阶段。
+
 注意：v3 布局读取用户布局优先。如果用户目录下已有旧的 `ScoreSurWindow` / `ScoreHunWindow` / `ScoreGlobalWindow` / `CutSceneWindow` / `GameDataWindow` / `WidgetsWindow` v3 JSON，且其中比分字段仍绑定旧字段、缺少 `GlobalScoreRow`、没有业务控件、把本地化表头写成普通静态 `Text`，或 Widgets overview 仍读取 `Team.Score`，运行时会继续使用用户布局；需要恢复默认布局或后续迁移工具才能切换到当前内置布局。
 
 ## 插件注入控件

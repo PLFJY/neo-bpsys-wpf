@@ -2374,4 +2374,40 @@
   <data name="SaveBeforeRestart" xml:space="preserve">
     <value>Save the current layout before restarting?</value>
   </data>
+  <data name="FrontendWindows" xml:space="preserve"><value>Frontend Windows</value></data>
+  <data name="FrontendDesigner" xml:space="preserve"><value>Frontend Designer</value></data>
+  <data name="LayoutPackages" xml:space="preserve"><value>Layout Packages</value></data>
+  <data name="LayoutPackageManager" xml:space="preserve"><value>Layout Package Manager</value></data>
+  <data name="InstalledPackages" xml:space="preserve"><value>Installed Packages</value></data>
+  <data name="ActivePackage" xml:space="preserve"><value>Active Package</value></data>
+  <data name="BuiltInPackage" xml:space="preserve"><value>Built-in Package</value></data>
+  <data name="SystemBuiltIn" xml:space="preserve"><value>System Built-in</value></data>
+  <data name="PackageId" xml:space="preserve"><value>PackageId</value></data>
+  <data name="PackageName" xml:space="preserve"><value>Name</value></data>
+  <data name="PackageAuthor" xml:space="preserve"><value>Author</value></data>
+  <data name="PackageDescription" xml:space="preserve"><value>Description</value></data>
+  <data name="PackageMinVersion" xml:space="preserve"><value>Min Version</value></data>
+  <data name="PackageCreatedAt" xml:space="preserve"><value>Created At</value></data>
+  <data name="PackageSource" xml:space="preserve"><value>Source</value></data>
+  <data name="PackageValidationStatus" xml:space="preserve"><value>Validation</value></data>
+  <data name="PackageInstallPath" xml:space="preserve"><value>Install Path</value></data>
+  <data name="LayoutCount" xml:space="preserve"><value>Layout Count</value></data>
+  <data name="ResourceCount" xml:space="preserve"><value>Resource Count</value></data>
+  <data name="ImportPackage" xml:space="preserve"><value>Import Package</value></data>
+  <data name="ExportPackage" xml:space="preserve"><value>Export Package</value></data>
+  <data name="ActivatePackage" xml:space="preserve"><value>Activate Package</value></data>
+  <data name="DeletePackage" xml:space="preserve"><value>Delete Package</value></data>
+  <data name="OpenPackageFolder" xml:space="preserve"><value>Open Package Folder</value></data>
+  <data name="RefreshPackages" xml:space="preserve"><value>Refresh Packages</value></data>
+  <data name="PackageNotImplemented" xml:space="preserve"><value>Package import/export is not implemented yet.</value></data>
+  <data name="CannotDeleteBuiltinPackage" xml:space="preserve"><value>Cannot delete the built-in package.</value></data>
+  <data name="CannotDeleteLocalPackage" xml:space="preserve"><value>Cannot delete the local resource package.</value></data>
+  <data name="PackageDeleted" xml:space="preserve"><value>Package deleted.</value></data>
+  <data name="PackageDeleteFailed" xml:space="preserve"><value>Package delete failed</value></data>
+  <data name="PackageActivated" xml:space="preserve"><value>Package activated.</value></data>
+  <data name="PackageActivationNotImplemented" xml:space="preserve"><value>This package cannot be activated yet.</value></data>
+  <data name="ShortcutUndo" xml:space="preserve"><value>Undo (Ctrl+Z)</value></data>
+  <data name="ShortcutRedo" xml:space="preserve"><value>Redo (Ctrl+Y / Ctrl+Shift+Z)</value></data>
+  <data name="ShortcutDelete" xml:space="preserve"><value>Delete (Del)</value></data>
+  <data name="ShortcutSave" xml:space="preserve"><value>Save Layout (Ctrl+S)</value></data>
 </root>

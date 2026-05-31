@@ -262,18 +262,19 @@
                         Margin="0,0,8,8"
                         Command="{Binding UndoCommand}"
                         Icon="{ui:SymbolIcon Symbol=ArrowUndo24}"
-                        ToolTip="{lex:Loc Undo}" />
+                        ToolTip="{lex:Loc ShortcutUndo}" />
                     <ui:Button
                         Margin="0,0,8,8"
                         Command="{Binding RedoCommand}"
                         Icon="{ui:SymbolIcon Symbol=ArrowRedo24}"
-                        ToolTip="{lex:Loc Redo}" />
+                        ToolTip="{lex:Loc ShortcutRedo}" />
                     <ui:Button
                         x:Name="AddControlButton"
                         Margin="0,0,8,8"
                         Click="AddControlButton_OnClick"
                         Content="{lex:Loc AddControl}"
-                        Icon="{ui:SymbolIcon Symbol=Add24}">
+                        Icon="{ui:SymbolIcon Symbol=Add24}"
+                        ToolTip="{lex:Loc AddControl}">
                         <ui:Button.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="{lex:Loc BasicControls}" IsEnabled="False" />
@@ -337,10 +338,11 @@
                         Click="SaveLayoutButton_OnClick"
                         Content="{lex:Loc SaveLayout}"
                         Icon="{ui:SymbolIcon Symbol=Save24}"
-                        IsEnabled="{Binding CanSaveLayout}" />
+                        IsEnabled="{Binding CanSaveLayout}"
+                        ToolTip="{lex:Loc ShortcutSave}" />
                     <Menu Margin="0,0,8,8" VerticalAlignment="Center">
                         <MenuItem Header="{lex:Loc Layout}">
-                            <MenuItem Click="SaveLayoutButton_OnClick" Header="{lex:Loc SaveLayout}" />
+                            <MenuItem Click="SaveLayoutButton_OnClick" Header="{lex:Loc SaveLayout}" InputGestureText="Ctrl+S" />
                             <MenuItem Click="ReloadLayoutButton_OnClick" Header="{lex:Loc ReloadLayout}" />
                             <MenuItem Click="ResetToBuiltInButton_OnClick" Header="{lex:Loc ResetToBuiltIn}" />
                             <Separator />
@@ -348,14 +350,9 @@
                             <MenuItem Command="{Binding ValidateLayoutCommand}" Header="{lex:Loc ValidationDetails}" />
                         </MenuItem>
                         <MenuItem Header="{lex:Loc Edit}">
-                            <MenuItem Command="{Binding UndoCommand}" Header="{lex:Loc Undo}" />
-                            <MenuItem Command="{Binding RedoCommand}" Header="{lex:Loc Redo}" />
-                            <MenuItem Header="{lex:Loc AddControl}">
-                                <MenuItem Click="AddControlMenuItem_OnClick" Header="Text" Tag="Text" />
-                                <MenuItem Click="AddControlMenuItem_OnClick" Header="LocalizedText" Tag="LocalizedText" />
-                                <MenuItem Click="AddControlMenuItem_OnClick" Header="Image" Tag="Image" />
-                            </MenuItem>
-                            <MenuItem Command="{Binding DeleteSelectedControlCommand}" Header="{lex:Loc DeleteControl}" />
+                            <MenuItem Command="{Binding UndoCommand}" Header="{lex:Loc Undo}" InputGestureText="Ctrl+Z" />
+                            <MenuItem Command="{Binding RedoCommand}" Header="{lex:Loc Redo}" InputGestureText="Ctrl+Y / Ctrl+Shift+Z" />
+                            <MenuItem Command="{Binding DeleteSelectedControlCommand}" Header="{lex:Loc DeleteControl}" InputGestureText="Del" />
                         </MenuItem>
                         <MenuItem Header="{lex:Loc View}">
                             <MenuItem Command="{Binding FitToWindowCommand}" Header="{lex:Loc Fit}" />
@@ -371,11 +368,6 @@
                             <MenuItem Command="{Binding SetZoomPresetCommand}" CommandParameter="200%" Header="200%" />
                             <Separator />
                             <MenuItem Header="{lex:Loc Snap}" IsCheckable="True" IsChecked="{Binding SnapEnabled, Mode=TwoWay}" />
-                        </MenuItem>
-                        <MenuItem Header="{lex:Loc Window}">
-                            <MenuItem Header="{lex:Loc WindowOptions}" IsEnabled="False" />
-                            <MenuItem Header="{lex:Loc AllowTransparency}" IsCheckable="True" IsChecked="{Binding WindowAllowTransparency, Mode=TwoWay}" />
-                            <MenuItem Click="RestartNowButton_OnClick" Header="{lex:Loc RestartNow}" />
                         </MenuItem>
                     </Menu>
                     <TextBlock
@@ -612,7 +604,6 @@
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <StackPanel>
                         <TextBlock
@@ -826,12 +817,6 @@
                             </WrapPanel>
                         </StackPanel>
                     </Expander>
-                    <ui:Button
-                        Grid.Row="5"
-                        HorizontalAlignment="Stretch"
-                        Command="{Binding DeleteSelectedControlCommand}"
-                        Content="{lex:Loc DeleteControl}"
-                        Icon="{ui:SymbolIcon Symbol=Delete24}" />
                 </Grid>
             </Border>
         </Grid>

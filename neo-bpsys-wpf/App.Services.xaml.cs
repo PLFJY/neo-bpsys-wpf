@@ -88,6 +88,7 @@ public partial class App
         services.AddSingleton<IFrontedLocalResourceStore, FrontedLocalResourceStore>();
         services.AddSingleton<IFrontedUserLayoutStore, FrontedUserLayoutStore>();
         services.AddSingleton<IFrontedWindowLayoutOptionsService, FrontedWindowLayoutOptionsService>();
+        services.AddSingleton<IFrontedLayoutPackageManager, FrontedLayoutPackageManager>();
         services.AddSingleton<IFrontedControl, TextFrontedControl>();
         services.AddSingleton<IFrontedControl, LocalizedTextFrontedControl>();
         services.AddSingleton<IFrontedControl, ImageFrontedControl>();

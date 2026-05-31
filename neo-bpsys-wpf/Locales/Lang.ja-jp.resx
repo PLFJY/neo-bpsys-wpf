@@ -2377,4 +2377,40 @@
   <data name="SaveBeforeRestart" xml:space="preserve">
     <value>再起動前に現在のレイアウトを保存しますか？</value>
   </data>
+  <data name="FrontendWindows" xml:space="preserve"><value>フロントウィンドウ</value></data>
+  <data name="FrontendDesigner" xml:space="preserve"><value>フロントデザイナー</value></data>
+  <data name="LayoutPackages" xml:space="preserve"><value>レイアウトパッケージ</value></data>
+  <data name="LayoutPackageManager" xml:space="preserve"><value>レイアウトパッケージ管理</value></data>
+  <data name="InstalledPackages" xml:space="preserve"><value>インストール済みパッケージ</value></data>
+  <data name="ActivePackage" xml:space="preserve"><value>有効なパッケージ</value></data>
+  <data name="BuiltInPackage" xml:space="preserve"><value>内蔵パッケージ</value></data>
+  <data name="SystemBuiltIn" xml:space="preserve"><value>システム内蔵</value></data>
+  <data name="PackageId" xml:space="preserve"><value>PackageId</value></data>
+  <data name="PackageName" xml:space="preserve"><value>名前</value></data>
+  <data name="PackageAuthor" xml:space="preserve"><value>作者</value></data>
+  <data name="PackageDescription" xml:space="preserve"><value>説明</value></data>
+  <data name="PackageMinVersion" xml:space="preserve"><value>最低バージョン</value></data>
+  <data name="PackageCreatedAt" xml:space="preserve"><value>作成日時</value></data>
+  <data name="PackageSource" xml:space="preserve"><value>ソース</value></data>
+  <data name="PackageValidationStatus" xml:space="preserve"><value>検証状態</value></data>
+  <data name="PackageInstallPath" xml:space="preserve"><value>インストール先</value></data>
+  <data name="LayoutCount" xml:space="preserve"><value>レイアウト数</value></data>
+  <data name="ResourceCount" xml:space="preserve"><value>リソース数</value></data>
+  <data name="ImportPackage" xml:space="preserve"><value>パッケージをインポート</value></data>
+  <data name="ExportPackage" xml:space="preserve"><value>パッケージをエクスポート</value></data>
+  <data name="ActivatePackage" xml:space="preserve"><value>パッケージを有効化</value></data>
+  <data name="DeletePackage" xml:space="preserve"><value>パッケージを削除</value></data>
+  <data name="OpenPackageFolder" xml:space="preserve"><value>パッケージフォルダーを開く</value></data>
+  <data name="RefreshPackages" xml:space="preserve"><value>パッケージを更新</value></data>
+  <data name="PackageNotImplemented" xml:space="preserve"><value>パッケージのインポート/エクスポートはまだ実装されていません。</value></data>
+  <data name="CannotDeleteBuiltinPackage" xml:space="preserve"><value>内蔵パッケージは削除できません。</value></data>
+  <data name="CannotDeleteLocalPackage" xml:space="preserve"><value>ローカルリソースパッケージは削除できません。</value></data>
+  <data name="PackageDeleted" xml:space="preserve"><value>パッケージを削除しました。</value></data>
+  <data name="PackageDeleteFailed" xml:space="preserve"><value>パッケージの削除に失敗しました</value></data>
+  <data name="PackageActivated" xml:space="preserve"><value>パッケージを有効化しました。</value></data>
+  <data name="PackageActivationNotImplemented" xml:space="preserve"><value>このパッケージはまだ有効化できません。</value></data>
+  <data name="ShortcutUndo" xml:space="preserve"><value>元に戻す (Ctrl+Z)</value></data>
+  <data name="ShortcutRedo" xml:space="preserve"><value>やり直し (Ctrl+Y / Ctrl+Shift+Z)</value></data>
+  <data name="ShortcutDelete" xml:space="preserve"><value>削除 (Del)</value></data>
+  <data name="ShortcutSave" xml:space="preserve"><value>レイアウトを保存 (Ctrl+S)</value></data>
 </root>

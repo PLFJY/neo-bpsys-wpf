@@ -24,455 +24,753 @@
             <cv:MultiCommandParameterConverter x:Key="MultiCommandParameterConverter" />
         </ResourceDictionary>
     </Page.Resources>
-    <WrapPanel Orientation="Horizontal">
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    Style="{StaticResource Title}"
-                    Text="{lex:Loc AllFrontendWindows}" />
-                <StackPanel
-                    Grid.Row="1"
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal">
-                    <ui:Button
-                        Height="50"
-                        Command="{Binding OpenFrontedDesignerCommand}"
-                        Content="{lex:Loc OpenFrontedDesigner}"
-                        Icon="{ui:SymbolIcon Symbol=Edit24}" />
-                    <ui:Button
-                        Height="50"
-                        Margin="10,0,0,0"
-                        Command="{Binding ShowAllWindowsCommand}"
-                        Content="{lex:Loc OpenAll}" />
-                    <ui:Button
-                        Height="50"
-                        Margin="10,0,0,0"
-                        Command="{Binding HideAllWindowsCommand}"
-                        Content="{lex:Loc CloseAll}" />
-                </StackPanel>
-                <TextBlock
-                    Grid.Row="2"
-                    Width="170"
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Left"
-                    Text="{lex:Loc DesignerUnlockNote}"
-                    TextWrapping="Wrap" />
-            </Grid>
-        </Border>
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    Style="{StaticResource Title}"
-                    Text="{lex:Loc BPWindow}" />
-                <StackPanel
-                    Grid.Row="1"
-                    Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <ui:Button
-                        Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}"
-                        Content="{lex:Loc Open}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}"
-                        Content="{lex:Loc Close}" />
-                </StackPanel>
-                <ui:ToggleSwitch
-                    Grid.Row="2"
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Command="{Binding ChangeDesignerModeCommand}">
-                    <ui:ToggleSwitch.CommandParameter>
-                        <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
-                            <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
-                            <Binding Source="{x:Static enums:FrontedWindowType.BpWindow}" />
-                        </MultiBinding>
-                    </ui:ToggleSwitch.CommandParameter>
-                    <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
-                    </StackPanel>
-                </ui:ToggleSwitch>
-                <ui:Button
-                    Grid.Row="3"
-                    Margin="0,10,0,0"
-                    Command="{Binding ResetBpWindowElementsPositionCommand}"
-                    Content="{lex:Loc ResetLayout}"
-                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-            </Grid>
-        </Border>
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    Style="{StaticResource Title}"
-                    Text="{lex:Loc CutSceneWindow}" />
-                <StackPanel
-                    Grid.Row="1"
-                    Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <ui:Button
-                        Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}"
-                        Content="{lex:Loc Open}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}"
-                        Content="{lex:Loc Close}" />
-                </StackPanel>
-                <ui:ToggleSwitch
-                    Grid.Row="2"
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Command="{Binding ChangeDesignerModeCommand}">
-                    <ui:ToggleSwitch.CommandParameter>
-                        <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
-                            <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
-                            <Binding Source="{x:Static enums:FrontedWindowType.CutSceneWindow}" />
-                        </MultiBinding>
-                    </ui:ToggleSwitch.CommandParameter>
-                    <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
-                    </StackPanel>
-                </ui:ToggleSwitch>
-                <ui:Button
-                    Grid.Row="3"
-                    Margin="0,10,0,0"
-                    Command="{Binding ResetCutSceneWindowElementsPositionCommand}"
-                    Content="{lex:Loc ResetLayout}"
-                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-            </Grid>
-        </Border>
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    Style="{StaticResource Title}"
-                    Text="{lex:Loc ScoreComponent}" />
-                <StackPanel
-                    Grid.Row="1"
-                    Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc SurvivorScoreInGame}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreSurWindow}"
-                        Content="{lex:Loc Open}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreSurWindow}"
-                        Content="{lex:Loc Close}" />
-                </StackPanel>
-                <StackPanel
-                    Grid.Row="2"
-                    Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc HunterScoreInGame}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreHunWindow}"
-                        Content="{lex:Loc Open}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreHunWindow}"
-                        Content="{lex:Loc Close}" />
-                </StackPanel>
-                <StackPanel
-                    Grid.Row="3"
-                    Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc ScoreStatistics}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}"
-                        Content="{lex:Loc Open}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}"
-                        Content="{lex:Loc Close}" />
-                </StackPanel>
-                <ui:ToggleSwitch
-                    Grid.Row="4"
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Command="{Binding ChangeDesignerModeCommand}">
-                    <ui:ToggleSwitch.CommandParameter>
-                        <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
-                            <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
-                            <Binding Source="{x:Static enums:FrontedWindowType.ScoreWindow}" />
-                        </MultiBinding>
-                    </ui:ToggleSwitch.CommandParameter>
-                    <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
-                    </StackPanel>
-                </ui:ToggleSwitch>
-                <TextBlock
-                    Grid.Row="5"
-                    Margin="0,10,0,0"
-                    Text="{lex:Loc NoteScoreStatisticsNotSaveInBO3Mode}"
-                    TextWrapping="WrapWithOverflow" />
-                <ui:Button
-                    Grid.Row="6"
-                    Margin="0,10,0,0"
-                    Command="{Binding ResetScoreSurWindowElementsPositionCommand}"
-                    Content="{lex:Loc ResetSurvivorScoreLayoutInGame}"
-                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-                <ui:Button
-                    Grid.Row="7"
-                    Margin="0,10,0,0"
-                    Command="{Binding ResetScoreHunWindowElementsPositionCommand}"
-                    Content="{lex:Loc ResetHunterScoreLayoutInGame}"
-                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-                <ui:Button
-                    Grid.Row="8"
-                    Margin="0,10,0,0"
-                    Command="{Binding ResetScoreGlobalWindowElementsPositionCommand}"
-                    Content="{lex:Loc ResetScoreStatisticsLayout}"
-                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-            </Grid>
-        </Border>
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    Style="{StaticResource Title}"
-                    Text="{lex:Loc GameStatisticsWindow}" />
-                <StackPanel
-                    Grid.Row="1"
-                    Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <ui:Button
-                        Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}"
-                        Content="{lex:Loc Open}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}"
-                        Content="{lex:Loc Close}" />
-                </StackPanel>
-                <ui:ToggleSwitch
-                    Grid.Row="2"
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Command="{Binding ChangeDesignerModeCommand}">
-                    <ui:ToggleSwitch.CommandParameter>
-                        <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
-                            <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
-                            <Binding Source="{x:Static enums:FrontedWindowType.GameDataWindow}" />
-                        </MultiBinding>
-                    </ui:ToggleSwitch.CommandParameter>
-                    <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
-                    </StackPanel>
-                </ui:ToggleSwitch>
-                <ui:Button
-                    Grid.Row="3"
-                    Margin="0,10,0,0"
-                    Command="{Binding ResetGameDataWindowElementsPositionCommand}"
-                    Content="{lex:Loc ResetLayout}"
-                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-            </Grid>
-        </Border>
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
-                    Style="{StaticResource Title}"
-                    Text="{lex:Loc Widgets}" />
-                <StackPanel
-                    Grid.Row="1"
-                    Margin="0,10,0,0"
-                    Orientation="Horizontal">
-                    <ui:Button
-                        Command="{Binding ShowWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}"
-                        Content="{lex:Loc Open}" />
-                    <ui:Button
-                        Margin="10,0,0,0"
-                        Command="{Binding HideWindowCommand}"
-                        CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}"
-                        Content="{lex:Loc Close}" />
-                </StackPanel>
-                <ui:ToggleSwitch
-                    Grid.Row="3"
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Command="{Binding ChangeDesignerModeCommand}">
-                    <ui:ToggleSwitch.CommandParameter>
-                        <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
-                            <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
-                            <Binding Source="{x:Static enums:FrontedWindowType.WidgetsWindow}" />
-                        </MultiBinding>
-                    </ui:ToggleSwitch.CommandParameter>
-                    <StackPanel Orientation="Horizontal">
-                        <ui:SymbolIcon Symbol="Edit24" />
-                        <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
-                    </StackPanel>
-                </ui:ToggleSwitch>
-                <ui:Button
-                    Grid.Row="4"
-                    Margin="0,10,0,0"
-                    Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
-                    CommandParameter="MapBpCanvas"
-                    Content="{lex:Loc ResetMapBPLayout}"
-                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-                <ui:Button
-                    Grid.Row="5"
-                    Margin="0,10,0,0"
-                    Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
-                    CommandParameter="BpOverViewCanvas"
-                    Content="{lex:Loc ResetBPOverviewLayout}"
-                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-                <ui:Button
-                    Grid.Row="6"
-                    Margin="0,10,0,0"
-                    Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
-                    CommandParameter="MapV2Canvas"
-                    Content="{lex:Loc ResetMapBPV2Layout}"
-                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
-            </Grid>
-        </Border>
-        <ItemsControl ItemsSource="{Binding ExternalFrontedWindows}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapPanel Orientation="Horizontal" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Border Margin="0,0,10,10" Style="{StaticResource Card}">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <TextBlock
-                                Grid.Row="0"
-                                Style="{StaticResource Title}"
-                                Text="{Binding Name}" />
-                            <StackPanel
-                                Grid.Row="1"
-                                Margin="0,10,0,0"
-                                Orientation="Horizontal">
-                                <ui:Button
-                                    Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.ShowWindowCommand}"
-                                    CommandParameter="{Binding Id}"
-                                    Content="{lex:Loc Open}" />
-                                <ui:Button
-                                    Margin="10,0,0,0"
-                                    Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.HideWindowCommand}"
-                                    CommandParameter="{Binding Id}"
-                                    Content="{lex:Loc Close}" />
+    <TabControl>
+        <TabItem Header="{lex:Loc FrontendWindows}">
+            <WrapPanel Orientation="Horizontal">
+                <Border Margin="0,0,10,10" Style="{StaticResource Card}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock
+                            Grid.Row="0"
+                            Style="{StaticResource Title}"
+                            Text="{lex:Loc AllFrontendWindows}" />
+                        <StackPanel
+                            Grid.Row="1"
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Center"
+                            Orientation="Horizontal">
+                            <ui:Button
+                                Height="50"
+                                Command="{Binding OpenFrontedDesignerCommand}"
+                                Content="{lex:Loc OpenFrontedDesigner}"
+                                Icon="{ui:SymbolIcon Symbol=Edit24}" />
+                            <ui:Button
+                                Height="50"
+                                Margin="10,0,0,0"
+                                Command="{Binding ShowAllWindowsCommand}"
+                                Content="{lex:Loc OpenAll}" />
+                            <ui:Button
+                                Height="50"
+                                Margin="10,0,0,0"
+                                Command="{Binding HideAllWindowsCommand}"
+                                Content="{lex:Loc CloseAll}" />
+                        </StackPanel>
+                        <TextBlock
+                            Grid.Row="2"
+                            Grid.RowSpan="3"
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Left"
+                            Text="{lex:Loc DesignerUnlockNote}"
+                            TextWrapping="WrapWithOverflow" />
+                    </Grid>
+                </Border>
+                <Border Margin="0,0,10,10" Style="{StaticResource Card}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock
+                            Grid.Row="0"
+                            Style="{StaticResource Title}"
+                            Text="{lex:Loc BPWindow}" />
+                        <StackPanel
+                            Grid.Row="1"
+                            Margin="0,10,0,0"
+                            Orientation="Horizontal">
+                            <ui:Button
+                                Command="{Binding ShowWindowCommand}"
+                                CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}"
+                                Content="{lex:Loc Open}" />
+                            <ui:Button
+                                Margin="10,0,0,0"
+                                Command="{Binding HideWindowCommand}"
+                                CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}"
+                                Content="{lex:Loc Close}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch
+                            Grid.Row="2"
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Center"
+                            Command="{Binding ChangeDesignerModeCommand}">
+                            <ui:ToggleSwitch.CommandParameter>
+                                <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
+                                    <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
+                                    <Binding Source="{x:Static enums:FrontedWindowType.BpWindow}" />
+                                </MultiBinding>
+                            </ui:ToggleSwitch.CommandParameter>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Edit24" />
+                                <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
                             </StackPanel>
-                            <ui:ToggleSwitch
-                                Grid.Row="2"
-                                Margin="0,10,0,0"
-                                HorizontalAlignment="Center"
-                                Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.ChangeDesignerModeCommand}">
-                                <ui:ToggleSwitch.CommandParameter>
-                                    <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
-                                        <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
-                                        <Binding Path="Id" />
-                                    </MultiBinding>
-                                </ui:ToggleSwitch.CommandParameter>
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:SymbolIcon Symbol="Edit24" />
-                                    <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
-                                </StackPanel>
-                            </ui:ToggleSwitch>
-                            <ItemsControl Grid.Row="3" ItemsSource="{Binding Canvas}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
+                        </ui:ToggleSwitch>
+                        <ui:Button
+                            Grid.Row="3"
+                            Margin="0,10,0,0"
+                            Command="{Binding ResetBpWindowElementsPositionCommand}"
+                            Content="{lex:Loc ResetLayout}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                    </Grid>
+                </Border>
+                <Border Margin="0,0,10,10" Style="{StaticResource Card}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock
+                            Grid.Row="0"
+                            Style="{StaticResource Title}"
+                            Text="{lex:Loc CutSceneWindow}" />
+                        <StackPanel
+                            Grid.Row="1"
+                            Margin="0,10,0,0"
+                            Orientation="Horizontal">
+                            <ui:Button
+                                Command="{Binding ShowWindowCommand}"
+                                CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}"
+                                Content="{lex:Loc Open}" />
+                            <ui:Button
+                                Margin="10,0,0,0"
+                                Command="{Binding HideWindowCommand}"
+                                CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}"
+                                Content="{lex:Loc Close}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch
+                            Grid.Row="2"
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Center"
+                            Command="{Binding ChangeDesignerModeCommand}">
+                            <ui:ToggleSwitch.CommandParameter>
+                                <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
+                                    <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
+                                    <Binding Source="{x:Static enums:FrontedWindowType.CutSceneWindow}" />
+                                </MultiBinding>
+                            </ui:ToggleSwitch.CommandParameter>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Edit24" />
+                                <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
+                            </StackPanel>
+                        </ui:ToggleSwitch>
+                        <ui:Button
+                            Grid.Row="3"
+                            Margin="0,10,0,0"
+                            Command="{Binding ResetCutSceneWindowElementsPositionCommand}"
+                            Content="{lex:Loc ResetLayout}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                    </Grid>
+                </Border>
+                <Border Margin="0,0,10,10" Style="{StaticResource Card}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock
+                            Grid.Row="0"
+                            Style="{StaticResource Title}"
+                            Text="{lex:Loc ScoreComponent}" />
+                        <StackPanel
+                            Grid.Row="1"
+                            Margin="0,10,0,0"
+                            Orientation="Horizontal">
+                            <TextBlock VerticalAlignment="Center" Text="{lex:Loc SurvivorScoreInGame}" />
+                            <ui:Button
+                                Margin="10,0,0,0"
+                                Command="{Binding ShowWindowCommand}"
+                                CommandParameter="{x:Static enums:FrontedWindowType.ScoreSurWindow}"
+                                Content="{lex:Loc Open}" />
+                            <ui:Button
+                                Margin="10,0,0,0"
+                                Command="{Binding HideWindowCommand}"
+                                CommandParameter="{x:Static enums:FrontedWindowType.ScoreSurWindow}"
+                                Content="{lex:Loc Close}" />
+                        </StackPanel>
+                        <StackPanel
+                            Grid.Row="2"
+                            Margin="0,10,0,0"
+                            Orientation="Horizontal">
+                            <TextBlock VerticalAlignment="Center" Text="{lex:Loc HunterScoreInGame}" />
+                            <ui:Button
+                                Margin="10,0,0,0"
+                                Command="{Binding ShowWindowCommand}"
+                                CommandParameter="{x:Static enums:FrontedWindowType.ScoreHunWindow}"
+                                Content="{lex:Loc Open}" />
+                            <ui:Button
+                                Margin="10,0,0,0"
+                                Command="{Binding HideWindowCommand}"
+                                CommandParameter="{x:Static enums:FrontedWindowType.ScoreHunWindow}"
+                                Content="{lex:Loc Close}" />
+                        </StackPanel>
+                        <StackPanel
+                            Grid.Row="3"
+                            Margin="0,10,0,0"
+                            Orientation="Horizontal">
+                            <TextBlock VerticalAlignment="Center" Text="{lex:Loc ScoreStatistics}" />
+                            <ui:Button
+                                Margin="10,0,0,0"
+                                Command="{Binding ShowWindowCommand}"
+                                CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}"
+                                Content="{lex:Loc Open}" />
+                            <ui:Button
+                                Margin="10,0,0,0"
+                                Command="{Binding HideWindowCommand}"
+                                CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}"
+                                Content="{lex:Loc Close}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch
+                            Grid.Row="4"
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Center"
+                            Command="{Binding ChangeDesignerModeCommand}">
+                            <ui:ToggleSwitch.CommandParameter>
+                                <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
+                                    <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
+                                    <Binding Source="{x:Static enums:FrontedWindowType.ScoreWindow}" />
+                                </MultiBinding>
+                            </ui:ToggleSwitch.CommandParameter>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Edit24" />
+                                <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
+                            </StackPanel>
+                        </ui:ToggleSwitch>
+                        <TextBlock
+                            Grid.Row="5"
+                            Margin="0,10,0,0"
+                            Text="{lex:Loc NoteScoreStatisticsNotSaveInBO3Mode}"
+                            TextWrapping="WrapWithOverflow" />
+                        <ui:Button
+                            Grid.Row="6"
+                            Margin="0,10,0,0"
+                            Command="{Binding ResetScoreSurWindowElementsPositionCommand}"
+                            Content="{lex:Loc ResetSurvivorScoreLayoutInGame}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                        <ui:Button
+                            Grid.Row="7"
+                            Margin="0,10,0,0"
+                            Command="{Binding ResetScoreHunWindowElementsPositionCommand}"
+                            Content="{lex:Loc ResetHunterScoreLayoutInGame}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                        <ui:Button
+                            Grid.Row="8"
+                            Margin="0,10,0,0"
+                            Command="{Binding ResetScoreGlobalWindowElementsPositionCommand}"
+                            Content="{lex:Loc ResetScoreStatisticsLayout}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                    </Grid>
+                </Border>
+                <Border Margin="0,0,10,10" Style="{StaticResource Card}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock
+                            Grid.Row="0"
+                            Style="{StaticResource Title}"
+                            Text="{lex:Loc GameStatisticsWindow}" />
+                        <StackPanel
+                            Grid.Row="1"
+                            Margin="0,10,0,0"
+                            Orientation="Horizontal">
+                            <ui:Button
+                                Command="{Binding ShowWindowCommand}"
+                                CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}"
+                                Content="{lex:Loc Open}" />
+                            <ui:Button
+                                Margin="10,0,0,0"
+                                Command="{Binding HideWindowCommand}"
+                                CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}"
+                                Content="{lex:Loc Close}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch
+                            Grid.Row="2"
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Center"
+                            Command="{Binding ChangeDesignerModeCommand}">
+                            <ui:ToggleSwitch.CommandParameter>
+                                <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
+                                    <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
+                                    <Binding Source="{x:Static enums:FrontedWindowType.GameDataWindow}" />
+                                </MultiBinding>
+                            </ui:ToggleSwitch.CommandParameter>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Edit24" />
+                                <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
+                            </StackPanel>
+                        </ui:ToggleSwitch>
+                        <ui:Button
+                            Grid.Row="3"
+                            Margin="0,10,0,0"
+                            Command="{Binding ResetGameDataWindowElementsPositionCommand}"
+                            Content="{lex:Loc ResetLayout}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                    </Grid>
+                </Border>
+                <Border Margin="0,0,10,10" Style="{StaticResource Card}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock
+                            Grid.Row="0"
+                            Style="{StaticResource Title}"
+                            Text="{lex:Loc Widgets}" />
+                        <StackPanel
+                            Grid.Row="1"
+                            Margin="0,10,0,0"
+                            Orientation="Horizontal">
+                            <ui:Button
+                                Command="{Binding ShowWindowCommand}"
+                                CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}"
+                                Content="{lex:Loc Open}" />
+                            <ui:Button
+                                Margin="10,0,0,0"
+                                Command="{Binding HideWindowCommand}"
+                                CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}"
+                                Content="{lex:Loc Close}" />
+                        </StackPanel>
+                        <ui:ToggleSwitch
+                            Grid.Row="3"
+                            Margin="0,10,0,0"
+                            HorizontalAlignment="Center"
+                            Command="{Binding ChangeDesignerModeCommand}">
+                            <ui:ToggleSwitch.CommandParameter>
+                                <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
+                                    <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
+                                    <Binding Source="{x:Static enums:FrontedWindowType.WidgetsWindow}" />
+                                </MultiBinding>
+                            </ui:ToggleSwitch.CommandParameter>
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Edit24" />
+                                <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
+                            </StackPanel>
+                        </ui:ToggleSwitch>
+                        <ui:Button
+                            Grid.Row="4"
+                            Margin="0,10,0,0"
+                            Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
+                            CommandParameter="MapBpCanvas"
+                            Content="{lex:Loc ResetMapBPLayout}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                        <ui:Button
+                            Grid.Row="5"
+                            Margin="0,10,0,0"
+                            Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
+                            CommandParameter="BpOverViewCanvas"
+                            Content="{lex:Loc ResetBPOverviewLayout}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                        <ui:Button
+                            Grid.Row="6"
+                            Margin="0,10,0,0"
+                            Command="{Binding ResetWidgetsWindowElementsPositionCommand}"
+                            CommandParameter="MapV2Canvas"
+                            Content="{lex:Loc ResetMapBPV2Layout}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                    </Grid>
+                </Border>
+                <ItemsControl ItemsSource="{Binding ExternalFrontedWindows}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,10,10" Style="{StaticResource Card}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock
+                                        Grid.Row="0"
+                                        Style="{StaticResource Title}"
+                                        Text="{Binding Name}" />
+                                    <StackPanel
+                                        Grid.Row="1"
+                                        Margin="0,10,0,0"
+                                        Orientation="Horizontal">
                                         <ui:Button
-                                            Margin="0,10,0,0"
-                                            Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl, AncestorLevel=2}, Path=DataContext.ResetCanvasElementsPositionCommand}"
-                                            Icon="{ui:SymbolIcon Symbol=ArrowReset24}">
-                                            <ui:Button.CommandParameter>
-                                                <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
-                                                    <Binding Path="DataContext.Id" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
-                                                    <Binding Path="Name" />
-                                                </MultiBinding>
-                                            </ui:Button.CommandParameter>
-                                            <MultiBinding Converter="{lex:StringFormatConverter}">
-                                                <lex:BLoc Key="ResetLayoutFormat" />
-                                                <Binding Path="DisplayName" />
+                                            Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.ShowWindowCommand}"
+                                            CommandParameter="{Binding Id}"
+                                            Content="{lex:Loc Open}" />
+                                        <ui:Button
+                                            Margin="10,0,0,0"
+                                            Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.HideWindowCommand}"
+                                            CommandParameter="{Binding Id}"
+                                            Content="{lex:Loc Close}" />
+                                    </StackPanel>
+                                    <ui:ToggleSwitch
+                                        Grid.Row="2"
+                                        Margin="0,10,0,0"
+                                        HorizontalAlignment="Center"
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl}, Path=DataContext.ChangeDesignerModeCommand}">
+                                        <ui:ToggleSwitch.CommandParameter>
+                                            <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
+                                                <Binding Path="IsChecked" RelativeSource="{RelativeSource Mode=Self}" />
+                                                <Binding Path="Id" />
                                             </MultiBinding>
-                                        </ui:Button>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                                        </ui:ToggleSwitch.CommandParameter>
+                                        <StackPanel Orientation="Horizontal">
+                                            <ui:SymbolIcon Symbol="Edit24" />
+                                            <TextBlock Margin="10,0,0,0" Text="{lex:Loc DesignerMode}" />
+                                        </StackPanel>
+                                    </ui:ToggleSwitch>
+                                    <ItemsControl Grid.Row="3" ItemsSource="{Binding Canvas}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <ui:Button
+                                                    Margin="0,10,0,0"
+                                                    Command="{Binding RelativeSource={RelativeSource AncestorType=ItemsControl, AncestorLevel=2}, Path=DataContext.ResetCanvasElementsPositionCommand}"
+                                                    Icon="{ui:SymbolIcon Symbol=ArrowReset24}">
+                                                    <ui:Button.CommandParameter>
+                                                        <MultiBinding Converter="{StaticResource MultiCommandParameterConverter}">
+                                                            <Binding Path="DataContext.Id" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                                            <Binding Path="Name" />
+                                                        </MultiBinding>
+                                                    </ui:Button.CommandParameter>
+                                                    <MultiBinding Converter="{lex:StringFormatConverter}">
+                                                        <lex:BLoc Key="ResetLayoutFormat" />
+                                                        <Binding Path="DisplayName" />
+                                                    </MultiBinding>
+                                                </ui:Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </WrapPanel>
+        </TabItem>
+        <TabItem Header="{lex:Loc LayoutPackages}">
+            <Grid Margin="0,0,10,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="420" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.ColumnSpan="2" Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource Title}" Text="{lex:Loc LayoutPackageManager}" />
+                        <TextBlock Margin="0,8,0,0">
+                            <Run Text="{lex:Loc ActivePackage}" />
+                            <Run Text=": " />
+                            <Run Text="{Binding ActivePackageDisplay}" />
+                        </TextBlock>
+                        <TextBlock
+                            Margin="0,6,0,0"
+                            Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                            Text="{Binding PackageManagerStatus}"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                    <WrapPanel
+                        Grid.Column="1"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top">
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding ImportPackageCommand}"
+                            Content="{lex:Loc ImportPackage}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding ExportPackageCommand}"
+                            Content="{lex:Loc ExportPackage}" />
+                        <ui:Button
+                            Margin="0,0,8,8"
+                            Command="{Binding RefreshPackagesCommand}"
+                            Content="{lex:Loc RefreshPackages}" />
+                    </WrapPanel>
+                </Grid>
+
+                <Border
+                    Grid.Row="1"
+                    Margin="0,0,10,0"
+                    Padding="10"
+                    Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock
+                            Margin="0,0,0,8"
+                            FontSize="16"
+                            FontWeight="SemiBold"
+                            Text="{lex:Loc InstalledPackages}" />
+                        <ListBox
+                            Grid.Row="1"
+                            Margin="0,10,0,0"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            ItemsSource="{Binding LayoutPackages}"
+                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                            ScrollViewer.VerticalScrollBarVisibility="Auto"
+                            SelectedItem="{Binding SelectedPackage, Mode=TwoWay}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <ui:CardExpander>
+                                        <ui:CardExpander.Header>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock
+                                                        FontSize="18"
+                                                        FontWeight="SemiBold"
+                                                        Text="{Binding Name}" />
+                                                    <TextBlock
+                                                        Margin="0,5,0,0"
+                                                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                        Text="{Binding Description}"
+                                                        TextWrapping="Wrap" />
+                                                    <WrapPanel Margin="0,5,0,0">
+                                                        <TextBlock
+                                                            Margin="0,0,12,0"
+                                                            FontSize="12"
+                                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                            Text="{Binding PackageId}" />
+                                                        <TextBlock
+                                                            Margin="0,0,12,0"
+                                                            FontSize="12"
+                                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                            Text="{Binding Author}" />
+                                                        <TextBlock
+                                                            Margin="0,0,12,0"
+                                                            FontSize="12"
+                                                            Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                                            Text="{Binding MinVersion}" />
+                                                    </WrapPanel>
+                                                </StackPanel>
+                                                <StackPanel
+                                                    Grid.Column="1"
+                                                    Margin="16,0,0,0"
+                                                    VerticalAlignment="Center"
+                                                    Orientation="Horizontal">
+                                                    <Border
+                                                        Margin="0,0,8,0"
+                                                        Padding="8,3"
+                                                        Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                                        CornerRadius="4">
+                                                        <TextBlock FontSize="12" Text="{Binding Source}" />
+                                                    </Border>
+                                                    <Border
+                                                        Margin="0,0,8,0"
+                                                        Padding="8,3"
+                                                        Background="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                                        CornerRadius="4">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <TextBlock FontSize="12" Text="{lex:Loc ActivePackage}" />
+                                                    </Border>
+                                                    <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding ValidationStatus}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </ui:CardExpander.Header>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding ValidationMessage}" TextWrapping="Wrap" />
+                                            <TextBlock
+                                                Margin="0,6,0,0"
+                                                Text="{Binding InstallPath}"
+                                                TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </ui:CardExpander>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </Border>
+
+                <Border
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Padding="0"
+                    Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="10">
+                    <Grid MinHeight="0" ClipToBounds="True">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid Margin="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock
+                                    FontSize="18"
+                                    FontWeight="SemiBold"
+                                    Text="{Binding SelectedPackage.Name}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="0,4,0,0"
+                                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                    Text="{Binding SelectedPackage.PackageId}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <ui:Button
+                                    Margin="0,0,8,0"
+                                    Command="{Binding ActivatePackageCommand}"
+                                    Content="{lex:Loc ActivatePackage}" />
+                                <ui:Button
+                                    Margin="0,0,8,0"
+                                    Command="{Binding OpenPackageFolderCommand}"
+                                    Content="{lex:Loc OpenPackageFolder}" />
+                                <ui:Button
+                                    Command="{Binding DeletePackageCommand}"
+                                    Content="{lex:Loc DeletePackage}"
+                                    Icon="{ui:SymbolIcon Symbol=Delete24}" />
+                            </StackPanel>
                         </Grid>
-                    </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </WrapPanel>
+
+                        <TextBlock
+                            Grid.Row="1"
+                            Margin="10,0,10,10"
+                            Text="{Binding SelectedPackage.Description}"
+                            TextWrapping="Wrap" />
+
+                        <ui:DynamicScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                            <StackPanel>
+                                <TextBlock
+                                    Margin="10,0,10,0"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc PackageId}" />
+                                <TextBlock
+                                    Margin="10,2,10,0"
+                                    Text="{Binding SelectedPackage.PackageId}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="10,10,10,0"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc PackageName}" />
+                                <TextBlock
+                                    Margin="10,2,10,0"
+                                    Text="{Binding SelectedPackage.Name}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="10,10,10,0"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc PackageAuthor}" />
+                                <TextBlock
+                                    Margin="10,2,10,0"
+                                    Text="{Binding SelectedPackage.Author}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="10,10,10,0"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc PackageCreatedAt}" />
+                                <TextBlock
+                                    Margin="10,2,10,0"
+                                    Text="{Binding SelectedPackage.CreatedAt}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="10,10,10,0"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc PackageMinVersion}" />
+                                <TextBlock
+                                    Margin="10,2,10,0"
+                                    Text="{Binding SelectedPackage.MinVersion}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="10,10,10,0"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc PackageSource}" />
+                                <TextBlock
+                                    Margin="10,2,10,0"
+                                    Text="{Binding SelectedPackage.Source}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="10,10,10,0"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc LayoutCount}" />
+                                <TextBlock Margin="10,2,10,0" Text="{Binding SelectedPackage.LayoutCount}" />
+                                <TextBlock
+                                    Margin="10,10,10,0"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc ResourceCount}" />
+                                <TextBlock Margin="10,2,10,0" Text="{Binding SelectedPackage.ResourceCount}" />
+                                <TextBlock
+                                    Margin="10,10,10,0"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc PackageInstallPath}" />
+                                <TextBlock
+                                    Margin="10,2,10,0"
+                                    Text="{Binding SelectedPackage.InstallPath}"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="10,10,10,0"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc PackageValidationStatus}" />
+                                <TextBlock
+                                    Margin="10,2,10,10"
+                                    Text="{Binding SelectedPackage.ValidationMessage}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </ui:DynamicScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+        </TabItem>
+    </TabControl>
 </Page>

@@ -1,17 +1,22 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Views.Windows;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
 using System.Windows;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
@@ -28,25 +33,40 @@ public partial class FrontManagePageViewModel : ViewModelBase
     private readonly IFrontedWindowService _frontedWindowService;
     private readonly ISharedDataService _sharedDataService;
     private readonly IServiceProvider? _serviceProvider;
+    private readonly IFrontedLayoutPackageManager? _packageManager;
     private readonly ILogger<FrontManagePageViewModel>? _logger;
     private FrontedDesignerWindow? _frontedDesignerWindow;
 
     public FrontManagePageViewModel(
         IFrontedWindowService frontedWindowService,
         ISharedDataService sharedDataService,
+        IFrontedLayoutPackageManager packageManager,
         IServiceProvider serviceProvider,
         ILogger<FrontManagePageViewModel> logger)
     {
         _frontedWindowService = frontedWindowService;
         _sharedDataService = sharedDataService;
+        _packageManager = packageManager;
         _serviceProvider = serviceProvider;
         _logger = logger;
         ExternalFrontedWindows = new ObservableCollection<FrontedWindowInfo>(FrontedWindowRegistryService.RegisteredWindow
             .Where(x => !x.IsBuiltIn)
             .ToList());
+        _ = RefreshPackagesAsync();
     }
 
-    public ObservableCollection<FrontedWindowInfo> ExternalFrontedWindows { get; } 
+    public ObservableCollection<FrontedWindowInfo> ExternalFrontedWindows { get; } = [];
+
+    public ObservableCollection<FrontedLayoutPackageInfo> LayoutPackages { get; } = [];
+
+    [ObservableProperty]
+    private FrontedLayoutPackageInfo? _selectedPackage;
+
+    [ObservableProperty]
+    private string _activePackageDisplay = "builtin";
+
+    [ObservableProperty]
+    private string _packageManagerStatus = string.Empty;
 
     [RelayCommand]
     private void ShowAllWindows()
@@ -90,6 +110,137 @@ public partial class FrontManagePageViewModel : ViewModelBase
         {
             _logger?.LogError(ex, "Failed to open fronted designer window.");
             _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("WindowLaunchError")}\n{ex.Message}");
+        }
+    }
+
+    [RelayCommand]
+    private async Task RefreshPackagesAsync()
+    {
+        if (_packageManager is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var packages = await _packageManager.ListPackagesAsync();
+            LayoutPackages.Clear();
+            foreach (var package in packages)
+            {
+                LayoutPackages.Add(package);
+            }
+
+            SelectedPackage ??= LayoutPackages.FirstOrDefault();
+            var active = packages.FirstOrDefault(package => package.IsActive)
+                         ?? packages.FirstOrDefault(package => package.IsBuiltin);
+            ActivePackageDisplay = active is null
+                ? I18nHelper.GetLocalizedString("SystemBuiltIn")
+                : $"{active.Name} ({active.PackageId})";
+            PackageManagerStatus = I18nHelper.GetLocalizedString("RefreshPackages");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to refresh fronted layout packages.");
+            PackageManagerStatus = ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void ImportPackage()
+    {
+        PackageManagerStatus = I18nHelper.GetLocalizedString("PackageNotImplemented");
+    }
+
+    [RelayCommand]
+    private void ExportPackage()
+    {
+        PackageManagerStatus = I18nHelper.GetLocalizedString("PackageNotImplemented");
+    }
+
+    [RelayCommand]
+    private async Task ActivatePackageAsync()
+    {
+        if (_packageManager is null || SelectedPackage is null)
+        {
+            return;
+        }
+
+        if (SelectedPackage.IsLocal)
+        {
+            PackageManagerStatus = I18nHelper.GetLocalizedString("PackageActivationNotImplemented");
+            return;
+        }
+
+        try
+        {
+            await _packageManager.ActivatePackageAsync(SelectedPackage.PackageId);
+            PackageManagerStatus = I18nHelper.GetLocalizedString("PackageActivated");
+            await RefreshPackagesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to activate fronted layout package {PackageId}.", SelectedPackage.PackageId);
+            PackageManagerStatus = ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeletePackageAsync()
+    {
+        if (_packageManager is null || SelectedPackage is null)
+        {
+            return;
+        }
+
+        if (SelectedPackage.IsBuiltin)
+        {
+            PackageManagerStatus = I18nHelper.GetLocalizedString("CannotDeleteBuiltinPackage");
+            return;
+        }
+
+        if (SelectedPackage.IsLocal)
+        {
+            PackageManagerStatus = I18nHelper.GetLocalizedString("CannotDeleteLocalPackage");
+            return;
+        }
+
+        var packageId = SelectedPackage.PackageId;
+        try
+        {
+            await _packageManager.DeletePackageAsync(packageId);
+            PackageManagerStatus = I18nHelper.GetLocalizedString("PackageDeleted");
+            SelectedPackage = null;
+            await RefreshPackagesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to delete fronted layout package {PackageId}.", packageId);
+            PackageManagerStatus = $"{I18nHelper.GetLocalizedString("PackageDeleteFailed")}: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void OpenPackageFolder()
+    {
+        var folder = SelectedPackage?.InstallPath;
+        if (string.IsNullOrWhiteSpace(folder))
+        {
+            folder = _packageManager?.GetPackageRootFolder() ?? AppConstants.FrontedLayoutPackagesPath;
+        }
+
+        try
+        {
+            Directory.CreateDirectory(folder);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = folder,
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to open fronted layout package folder {Folder}.", folder);
+            PackageManagerStatus = ex.Message;
         }
     }
 

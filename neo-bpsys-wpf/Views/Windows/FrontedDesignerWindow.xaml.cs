@@ -224,7 +224,16 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
-        if (e.Key == Key.Z && !isShift)
+        if (e.Key == Key.S && !isShift)
+        {
+            if (_viewModel.CanSaveLayout)
+            {
+                _viewModel.SaveLayoutCommand.Execute(null);
+            }
+
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Z && !isShift)
         {
             _viewModel.UndoCommand.Execute(null);
             e.Handled = true;
