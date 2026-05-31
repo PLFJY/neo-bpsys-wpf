@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:designer="clr-namespace:neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;assembly=neo-bpsys-wpf.Core"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -198,8 +199,8 @@
                     <Grid Grid.Row="2">
                         <ListBox
                             ItemsSource="{Binding FilteredDesignItems}"
-                            SelectionChanged="ControlList_OnSelectionChanged"
-                            ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                            SelectionChanged="ControlList_OnSelectionChanged">
                             <ListBox.ItemContainerStyle>
                                 <Style TargetType="ListBoxItem">
                                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=OneWay}" />
@@ -246,9 +247,7 @@
                                                         </Style.Triggers>
                                                     </Style>
                                                 </Border.Style>
-                                                <TextBlock
-                                                    FontSize="11"
-                                                    Text="{lex:Loc RuntimeCriticalControl}" />
+                                                <TextBlock FontSize="11" Text="{lex:Loc RuntimeCriticalControl}" />
                                             </Border>
                                         </WrapPanel>
                                     </Grid>
@@ -295,10 +294,10 @@
                     VerticalScrollBarVisibility="Auto">
                     <Grid
                         x:Name="PreviewWorkspace"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"
                         MinWidth="640"
                         MinHeight="420"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
                         Background="{DynamicResource SolidBackgroundFillColorSecondaryBrush}">
                         <Border
                             x:Name="PreviewZoomHost"
@@ -355,8 +354,9 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="190" />
                     </Grid.RowDefinitions>
                     <StackPanel>
                         <TextBlock
@@ -369,10 +369,27 @@
                             Text="{Binding SelectedControlDisplay}" />
                         <TextBlock Margin="0,4,0,0" Text="{Binding SelectedControlTypeDisplay}" />
                         <TextBlock Margin="0,4,0,0" Text="{Binding SelectedControlGeometryDisplay}" />
-                        <TextBlock
-                            Margin="0,4,0,0"
-                            FontWeight="SemiBold"
-                            Text="{Binding SelectedControlRuntimeCriticalDisplay}" />
+                        <Border
+                            Margin="0,6,0,0"
+                            Padding="6,2"
+                            HorizontalAlignment="Left"
+                            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                            CornerRadius="2">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedDesignItem.IsRuntimeCritical}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <TextBlock
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Text="{lex:Loc RuntimeCriticalControl}" />
+                        </Border>
                         <TextBlock Margin="0,4,0,0">
                             <Run Text="{lex:Loc ValidationMessages}" />
                             <Run Text=": " />
@@ -384,10 +401,150 @@
                         Margin="0,16,0,0"
                         FontSize="18"
                         FontWeight="SemiBold"
+                        Text="{lex:Loc Properties}" />
+                    <Grid Grid.Row="2" Margin="0,8,0,12">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding PropertyEditorItems}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type designer:FrontedPropertyEditorItem}">
+                                        <StackPanel Margin="0,0,0,10">
+                                            <TextBlock
+                                                Margin="0,4,0,6"
+                                                FontSize="12"
+                                                FontWeight="SemiBold"
+                                                Opacity="0.75"
+                                                Text="{Binding GroupDisplayName}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsGroupHeaderVisible}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="112" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    Margin="0,5,8,0"
+                                                    Text="{Binding DisplayName}"
+                                                    TextTrimming="CharacterEllipsis"
+                                                    ToolTip="{Binding Description}" />
+                                                <Grid Grid.Column="1">
+                                                    <TextBlock Text="{Binding Value}">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                <Setter Property="VerticalAlignment" Value="Center" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.ReadOnly}">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                    <ui:TextBox
+                                                        KeyDown="PropertyTextBox_OnKeyDown"
+                                                        LostFocus="PropertyTextBox_OnLostFocus"
+                                                        Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=LostFocus, TargetNullValue=''}">
+                                                        <ui:TextBox.Style>
+                                                            <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="ui:TextBox">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                <Setter Property="MinHeight" Value="30" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.Text}">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.Number}">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.Color}">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </ui:TextBox.Style>
+                                                    </ui:TextBox>
+                                                    <CheckBox Click="PropertyCheckBox_OnClick" IsChecked="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                                        <CheckBox.Style>
+                                                            <Style TargetType="CheckBox">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                <Setter Property="VerticalAlignment" Value="Center" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.Boolean}">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </CheckBox.Style>
+                                                    </CheckBox>
+                                                    <ComboBox
+                                                        ItemsSource="{Binding Options}"
+                                                        SelectedItem="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                        SelectionChanged="PropertyComboBox_OnSelectionChanged">
+                                                        <ComboBox.Style>
+                                                            <Style TargetType="ComboBox">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                <Setter Property="MinHeight" Value="30" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.Enum}">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </ComboBox.Style>
+                                                    </ComboBox>
+                                                </Grid>
+                                            </Grid>
+                                            <ItemsControl Margin="112,4,0,0" ItemsSource="{Binding ValidationErrors}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock
+                                                            FontSize="12"
+                                                            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                                            Text="{Binding}"
+                                                            TextWrapping="Wrap" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Opacity="0.65"
+                            Text="{lex:Loc NoSelectedControl}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasSelectedDesignItem}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                    <TextBlock
+                        Grid.Row="3"
+                        Margin="0,4,0,0"
+                        FontSize="18"
+                        FontWeight="SemiBold"
                         Text="{lex:Loc Validation}" />
                     <UniformGrid
-                        Grid.Row="2"
-                        Margin="0,12,0,12"
+                        Grid.Row="3"
+                        Margin="92,4,0,8"
                         Columns="3">
                         <StackPanel>
                             <TextBlock Text="{lex:Loc Errors}" />
@@ -403,7 +560,7 @@
                         </StackPanel>
                     </UniformGrid>
                     <DataGrid
-                        Grid.Row="3"
+                        Grid.Row="4"
                         AutoGenerateColumns="False"
                         CanUserAddRows="False"
                         HeadersVisibility="Column"

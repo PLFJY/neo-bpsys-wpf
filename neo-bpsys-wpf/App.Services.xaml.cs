@@ -102,6 +102,7 @@ public partial class App
         services.AddSingleton<FrontedLayoutReferenceScanner>();
         services.AddSingleton<FrontedLayoutDesignConverter>();
         services.AddSingleton<FrontedLayoutValidator>();
+        services.AddSingleton<FrontedPropertyGridBuilder>();
         services.AddSingleton<FrontedDesignerLayoutCatalog>();
         services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
         services.AddSingleton<IPluginService, PluginService>();

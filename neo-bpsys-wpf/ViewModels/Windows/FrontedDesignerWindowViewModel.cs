@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
@@ -8,7 +9,10 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
+using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
@@ -17,11 +21,18 @@ namespace neo_bpsys_wpf.ViewModels.Windows;
 /// </summary>
 public partial class FrontedDesignerWindowViewModel : ViewModelBase
 {
+    private static readonly Regex ValidControlNameRegex = new(
+        "^[A-Za-z_][A-Za-z0-9_]*$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
     private readonly IFrontedLayoutService _layoutService;
     private readonly FrontedLayoutDesignConverter _designConverter;
     private readonly FrontedLayoutRuntimeContractCatalog _runtimeContracts;
     private readonly FrontedLayoutValidator _validator;
+    private readonly FrontedLayoutReferenceScanner _referenceScanner;
+    private readonly FrontedPropertyGridBuilder _propertyGridBuilder;
     private readonly ILogger<FrontedDesignerWindowViewModel> _logger;
+    private readonly Dictionary<string, string> _propertyEditErrors = new(StringComparer.Ordinal);
     private IReadOnlyList<FrontedLayoutValidationMessage> _lastValidationMessages = [];
     private bool _isChangingZoomPreset;
     private double _lastPreviewViewportWidth;
@@ -32,6 +43,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 #pragma warning restore CS8618
     {
         // Decorative constructor for design-time only.
+        _layoutService = null!;
+        _designConverter = new FrontedLayoutDesignConverter();
+        _runtimeContracts = new FrontedLayoutRuntimeContractCatalog();
+        _referenceScanner = new FrontedLayoutReferenceScanner();
+        _validator = new FrontedLayoutValidator(
+            runtimeContracts: _runtimeContracts,
+            referenceScanner: _referenceScanner);
+        _propertyGridBuilder = new FrontedPropertyGridBuilder();
+        _logger = NullLogger<FrontedDesignerWindowViewModel>.Instance;
         InitializeZoomPresets();
     }
 
@@ -41,12 +61,16 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         FrontedLayoutDesignConverter designConverter,
         FrontedLayoutRuntimeContractCatalog runtimeContracts,
         FrontedLayoutValidator validator,
+        FrontedLayoutReferenceScanner referenceScanner,
+        FrontedPropertyGridBuilder propertyGridBuilder,
         ILogger<FrontedDesignerWindowViewModel> logger)
     {
         _layoutService = layoutService;
         _designConverter = designConverter;
         _runtimeContracts = runtimeContracts;
         _validator = validator;
+        _referenceScanner = referenceScanner;
+        _propertyGridBuilder = propertyGridBuilder;
         _logger = logger;
 
         foreach (var group in layoutCatalog.GetEntries()
@@ -76,6 +100,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public ObservableCollection<FrontedDesignerZoomPreset> ZoomPresets { get; } = [];
 
     public ObservableCollection<FrontedControlDesignItem> FilteredDesignItems { get; } = [];
+
+    public ObservableCollection<FrontedPropertyEditorItem> PropertyEditorItems { get; } = [];
 
     [ObservableProperty]
     private FrontedDesignerWindowOption? _selectedWindow;
@@ -174,7 +200,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     partial void OnCurrentDocumentChanged(FrontedCanvasDesignDocument? value)
     {
+        _propertyEditErrors.Clear();
         RebuildFilteredDesignItems();
+        RebuildPropertyEditorItems();
         UpdateFitZoomFromCurrentDocument();
     }
 
@@ -189,6 +217,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         RefreshSelectedControlDisplay();
+        RebuildPropertyEditorItems();
     }
 
     partial void OnControlFilterTextChanged(string value)
@@ -424,6 +453,115 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RequestPreviewRenderCurrentDocument();
     }
 
+    public void ApplyPropertyEdit(FrontedPropertyEditorItem item, object? newValue)
+    {
+        if (CurrentDocument is null || SelectedDesignItem is null)
+        {
+            return;
+        }
+
+        if (item.IsReadOnly || item.EditorKind == FrontedPropertyEditorKind.ReadOnly)
+        {
+            return;
+        }
+
+        _propertyEditErrors.Remove(item.PropertyName);
+
+        if (item.PropertyName == nameof(FrontedControlDesignItem.Name))
+        {
+            ApplyNameEdit(item, newValue);
+            return;
+        }
+
+        var property = SelectedDesignItem.Config.GetType().GetProperty(
+            item.PropertyName,
+            BindingFlags.Instance | BindingFlags.Public);
+        if (property is null || !property.CanWrite)
+        {
+            return;
+        }
+
+        if (!TryConvertPropertyValue(property, newValue, out var convertedValue, out var errorMessage))
+        {
+            SetPropertyEditError(item.PropertyName, errorMessage);
+            return;
+        }
+
+        var oldValue = property.GetValue(SelectedDesignItem.Config);
+        if (ValuesEqual(oldValue, convertedValue))
+        {
+            RebuildPropertyEditorItems();
+            return;
+        }
+
+        property.SetValue(SelectedDesignItem.Config, convertedValue);
+        CurrentDocument.IsDirty = true;
+
+        if (IsGeometryProperty(item.PropertyName))
+        {
+            SyncLinkedOverlays(SelectedDesignItem);
+        }
+
+        FinishPropertyEdit(item.PropertyName);
+    }
+
+    private void ApplyNameEdit(FrontedPropertyEditorItem item, object? newValue)
+    {
+        if (CurrentDocument is null || SelectedDesignItem is null)
+        {
+            return;
+        }
+
+        if (SelectedDesignItem.IsRuntimeCritical
+            || !SelectedDesignItem.IsSelectableInEditor
+            || !SelectedDesignItem.IsEditableInEditor)
+        {
+            SetPropertyEditError(
+                item.PropertyName,
+                I18nHelper.GetLocalizedString("RuntimeCriticalControl"));
+            return;
+        }
+
+        var oldName = SelectedDesignItem.Name;
+        var newName = Convert.ToString(newValue, CultureInfo.InvariantCulture)?.Trim() ?? string.Empty;
+        if (oldName == newName)
+        {
+            RebuildPropertyEditorItems();
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(newName) || !ValidControlNameRegex.IsMatch(newName))
+        {
+            SetPropertyEditError(
+                item.PropertyName,
+                I18nHelper.GetLocalizedString("InvalidControlName"));
+            return;
+        }
+
+        if (CurrentDocument.Controls.Any(control =>
+                !ReferenceEquals(control, SelectedDesignItem)
+                && string.Equals(control.Name, newName, StringComparison.Ordinal)))
+        {
+            SetPropertyEditError(
+                item.PropertyName,
+                I18nHelper.GetLocalizedString("DuplicateControlName"));
+            return;
+        }
+
+        _referenceScanner.SetControls(CurrentDocument.Controls);
+        if (_referenceScanner.GetIncomingReferences(oldName).Count > 0)
+        {
+            SetPropertyEditError(
+                item.PropertyName,
+                I18nHelper.GetLocalizedString("ReferencedControlRenameBlocked"));
+            return;
+        }
+
+        SelectedDesignItem.Name = newName;
+        CurrentDocument.IsDirty = true;
+        FinishPropertyEdit(item.PropertyName);
+    }
+
     private void ResolveLayoutSource(FrontedDesignerLayoutCatalogEntry entry)
     {
         var userPath = _layoutService.GetUserLayoutPath(entry.WindowTypeName, entry.CanvasName);
@@ -472,6 +610,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             + $"{I18nHelper.GetLocalizedString("Warnings")}: {WarningCount}  "
             + $"{I18nHelper.GetLocalizedString("Infos")}: {InfoCount}";
         RefreshSelectedControlDisplay();
+        RebuildPropertyEditorItems();
     }
 
     private void ValidateCurrentDocument()
@@ -482,6 +621,58 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         ApplyValidationMessages(_validator.Validate(CurrentDocument));
+    }
+
+    private void RebuildPropertyEditorItems()
+    {
+        PropertyEditorItems.Clear();
+
+        if (CurrentDocument is null || SelectedDesignItem is null)
+        {
+            return;
+        }
+
+        var rows = _propertyGridBuilder.Build(
+            CurrentDocument,
+            SelectedDesignItem,
+            _validator,
+            _referenceScanner,
+            _runtimeContracts);
+
+        foreach (var row in rows)
+        {
+            row.DisplayName = I18nHelper.GetLocalizedString(row.DisplayName);
+            if (!string.IsNullOrWhiteSpace(row.GroupName))
+            {
+                row.GroupDisplayName = I18nHelper.GetLocalizedString(row.GroupName);
+            }
+
+            if (_propertyEditErrors.TryGetValue(row.PropertyName, out var editError))
+            {
+                row.ValidationErrors = row.ValidationErrors
+                    .Concat([editError])
+                    .Distinct(StringComparer.Ordinal)
+                    .ToArray();
+            }
+
+            PropertyEditorItems.Add(row);
+        }
+    }
+
+    private void SetPropertyEditError(string propertyName, string message)
+    {
+        _propertyEditErrors[propertyName] = message;
+        StatusMessage = message;
+        RebuildPropertyEditorItems();
+    }
+
+    private void FinishPropertyEdit(string propertyName)
+    {
+        _propertyEditErrors.Remove(propertyName);
+        DirtyIndicatorText = CurrentDocument?.IsDirty == true ? "●" : "○";
+        RebuildFilteredDesignItems();
+        ValidateCurrentDocument();
+        RequestPreviewRenderCurrentDocument();
     }
 
     private void OnDesignItemGeometryChanged(bool renderPreview)
@@ -749,6 +940,122 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             Code = code,
             Message = message
         };
+    }
+
+    private static bool TryConvertPropertyValue(
+        PropertyInfo property,
+        object? value,
+        out object? convertedValue,
+        out string errorMessage)
+    {
+        convertedValue = null;
+        errorMessage = string.Empty;
+
+        var targetType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+        var text = Convert.ToString(value, CultureInfo.InvariantCulture);
+
+        if (Nullable.GetUnderlyingType(property.PropertyType) is not null
+            && string.IsNullOrWhiteSpace(text))
+        {
+            convertedValue = null;
+            return true;
+        }
+
+        try
+        {
+            if (targetType == typeof(string))
+            {
+                convertedValue = text;
+            }
+            else if (targetType == typeof(bool))
+            {
+                convertedValue = value is bool boolValue
+                    ? boolValue
+                    : bool.Parse(text ?? string.Empty);
+            }
+            else if (targetType.IsEnum)
+            {
+                convertedValue = value?.GetType() == targetType
+                    ? value
+                    : Enum.Parse(targetType, text ?? string.Empty, ignoreCase: true);
+            }
+            else if (targetType == typeof(int))
+            {
+                convertedValue = Convert.ToInt32(value, CultureInfo.InvariantCulture);
+            }
+            else if (targetType == typeof(long))
+            {
+                convertedValue = Convert.ToInt64(value, CultureInfo.InvariantCulture);
+            }
+            else if (targetType == typeof(float))
+            {
+                convertedValue = Convert.ToSingle(value, CultureInfo.InvariantCulture);
+            }
+            else if (targetType == typeof(decimal))
+            {
+                convertedValue = Convert.ToDecimal(value, CultureInfo.InvariantCulture);
+            }
+            else if (targetType == typeof(double))
+            {
+                var doubleValue = Convert.ToDouble(value, CultureInfo.InvariantCulture);
+                if (double.IsNaN(doubleValue) || double.IsInfinity(doubleValue))
+                {
+                    errorMessage = I18nHelper.GetLocalizedString("PropertyValidationErrors");
+                    return false;
+                }
+
+                convertedValue = NormalizeDoubleProperty(property.Name, doubleValue);
+            }
+            else
+            {
+                errorMessage = I18nHelper.GetLocalizedString("PropertyValidationErrors");
+                return false;
+            }
+
+            return true;
+        }
+        catch (Exception)
+        {
+            errorMessage = I18nHelper.GetLocalizedString("PropertyValidationErrors");
+            return false;
+        }
+    }
+
+    private static double NormalizeDoubleProperty(string propertyName, double value)
+    {
+        if (propertyName is nameof(FrontedControlConfigBase.Left)
+            or nameof(FrontedControlConfigBase.Top))
+        {
+            return FrontedDesignerGeometryHelper.Snap(value);
+        }
+
+        if (propertyName is nameof(FrontedControlConfigBase.Width)
+            or nameof(FrontedControlConfigBase.Height))
+        {
+            return Math.Max(
+                FrontedDesignerGeometryHelper.MinResizeWidth,
+                FrontedDesignerGeometryHelper.Snap(value));
+        }
+
+        return value;
+    }
+
+    private static bool ValuesEqual(object? left, object? right)
+    {
+        if (left is double leftDouble && right is double rightDouble)
+        {
+            return Math.Abs(leftDouble - rightDouble) < 0.0001D;
+        }
+
+        return Equals(left, right);
+    }
+
+    private static bool IsGeometryProperty(string propertyName)
+    {
+        return propertyName is nameof(FrontedControlConfigBase.Left)
+            or nameof(FrontedControlConfigBase.Top)
+            or nameof(FrontedControlConfigBase.Width)
+            or nameof(FrontedControlConfigBase.Height);
     }
 }
 

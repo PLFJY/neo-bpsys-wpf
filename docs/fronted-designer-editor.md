@@ -1,6 +1,6 @@
 # Fronted Designer v3 独立编辑器设计规格
 
-本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；Phase 8D 已新增编辑器内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调，并在 owner validation 后补齐左侧控件列表、筛选和重叠控件选择语义。Phase 8D zoom/pan 修正后，编辑 surface 不再使用 `Viewbox` 控制 Fit/手动缩放，而是使用 `ScrollViewer + PreviewZoomHost + LayoutTransform`，所有缩放统一由 `ZoomScale` 驱动。编辑器入口位于 `FrontManagePage`，不是 `SettingPage`。当前仍不实现完整 Property Grid、Add Control、Binding Browser、Resource Browser、用户布局保存、`.bpui` 迁移，也不移除旧 `config.json` 前台设置。
+本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；Phase 8D 已新增编辑器内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调，并在 owner validation 后补齐左侧控件列表、筛选和重叠控件选择语义。Phase 8D zoom/pan 修正后，编辑 surface 不再使用 `Viewbox` 控制 Fit/手动缩放，而是使用 `ScrollViewer + PreviewZoomHost + LayoutTransform`，所有缩放统一由 `ZoomScale` 驱动。Phase 8E 已新增基础 Property Grid，可编辑选中控件的内存设计项并即时重渲染预览。编辑器入口位于 `FrontManagePage`，不是 `SettingPage`。当前仍不实现 Add Control、Binding Browser、Resource Browser、用户布局保存、`.bpui` 迁移，也不移除旧 `config.json` 前台设置。
 
 独立编辑器面向 v3 JSON layout 文件。它是后台侧的独立编辑窗口，不直接在真实前台窗口上编辑；真实前台窗口仍用于 OBS 捕获和运行时输出。编辑器必须同时支持单 Canvas 窗口和多 Canvas 窗口，并保持与现有 v3 renderer、生成控件名、`AnimationService`、业务控件和 JSON 格式兼容。
 
@@ -342,8 +342,10 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
 | 分组 | 控件 |
 | --- | --- |
 | Basic | `Text`, `LocalizedText`, `Image` |
-| Business | `MapNameText`, `GameProgressText`, `TalentTraitDisplay`, `GlobalScoreRow`, `CurrentBanDisplay`, `BanSlotDisplay`, `MapV2Display`, `PickingBorderOverlay` |
-| Score/BP | `GlobalScoreRow`, `BanSlotDisplay`, `PickingBorderOverlay` |
+| Business | `MapNameText`, `GameProgressText`, `TalentTraitDisplay`, `GlobalScoreRow`, `CurrentBanDisplay`, `BanSlotDisplay`, `MapV2Display` |
+| Score/BP | `GlobalScoreRow`, `BanSlotDisplay` |
+
+`PickingBorderOverlay` 不应出现在普通 Add Control 列表中。它是跟随 pick 目标控件的 linked runtime overlay，承担 `AnimationService` 的独立命名目标职责，应由宿主控件或未来高级动作创建和维护，而不是作为普通控件直接添加、选中或编辑。
 
 用户选择控件后：
 
@@ -379,7 +381,7 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
 
 ## 11. Property Grid
 
-Property Grid 应手写 WPF 实现，优先基于 `ItemsControl`，不使用 WinForms `PropertyGrid`：
+Phase 8E 已实现基础 Property Grid。Property Grid 手写 WPF 实现，基于 `ItemsControl`，不使用 WinForms `PropertyGrid`：
 
 ```text
 PropertyGrid
@@ -406,9 +408,9 @@ PropertyGrid
 | nullable number | `NumberBox` + clear button |
 | `bool` | `ToggleSwitch` 或 `CheckBox` |
 | enum | `ComboBox` |
-| color string | `ColorPicker` |
-| `BindingPath` | `TextBox` + Browse button |
-| image/resource path | `TextBox` + Resource browse button |
+| color string | Phase 8E 先使用 `TextBox` fallback，保存为 `#AARRGGBB`；ColorPicker 接入后续补齐 |
+| `BindingPath` | Phase 8E 为普通 `TextBox`；Binding Browser 留到 Phase 8G |
+| image/resource path | Phase 8E 为普通 `TextBox`；Resource Browser 留到 Phase 8G |
 | `ControlType` | read-only |
 | `Name` | 带校验的 `TextBox` |
 | `ZIndex` | `NumberBox` |
@@ -420,12 +422,21 @@ PropertyGrid
 2. 保存为 `#AARRGGBB`。
 3. 识别属性名：`Color`, `Foreground`, `Background`, `FillColor`, `BorderColor`。
 
-属性编辑应直接修改当前设计项的 `Config`。每次编辑后：
+属性编辑直接修改当前设计项的 `Config`。每次编辑后：
 
 1. 校验设计项和 Canvas。
 2. 重新渲染 preview。
 3. 更新 hitbox 和 adorner。
 4. 标记布局 dirty。
+
+Phase 8E 的名称编辑采用保守策略：
+
+1. `Name` 属于设计项和 JSON key，不属于 config object；不要给 `FrontedControlConfigBase` 或派生 config 添加重复 `Name`。
+2. 运行时关键控件的 `Name` 只读。
+3. 普通控件改名必须非空、匹配 `^[A-Za-z_][A-Za-z0-9_]*$`，并在当前 Canvas 内唯一。
+4. 如果旧名称被其他控件引用，Phase 8E 阻止改名并提示“Reference-aware rename will be implemented later.”，避免静默断开引用。
+5. `PickingBorderOverlay` 不是普通 Property Grid 目标；如果被程序化选中，属性行应按只读处理或清空选择。
+6. `BanSlotDisplay` 仍作为单个控件编辑；内部 ban lock overlay 不是单独属性面板目标。
 
 ## 12. Binding Browser
 
@@ -584,20 +595,19 @@ Phase 8A 不实现保存 UI，只记录未来阶段行为。
 | Phase 8B | 已实现：`FrontedControlDesignItem` / `FrontedCanvasDesignDocument`、设计项与 dictionary 转换、`FrontedLayoutValidator`、名称校验、引用扫描、运行时关键名称 catalog、重复 JSON key 检测 |
 | Phase 8C | 已实现：`FrontedDesignerWindow` shell、window/canvas selector、只读 preview surface、缩放控制、layout source 状态和 validator 消息面板 |
 | Phase 8D | 已实现：interaction layer、透明 hitbox、selection adorner、drag、resize、键盘微调；owner validation 后补齐左侧控件列表/筛选、单击选择与拖拽分离、选中 hitbox editor-only 提层、拖拽/缩放时 preview live update、无显式尺寸时使用渲染实际尺寸；仍只改内存，不保存用户布局 |
-| Phase 8E | PropertyGrid、基础编辑器、ColorPicker 支持 |
+| Phase 8E | 已实现：基础 Property Grid、Text/Number/Boolean/Enum/Color 文本 fallback 编辑、保守 Name 编辑、运行时关键名称只读、被引用控件改名阻止；仍只改内存，不保存用户布局 |
 | Phase 8F | Add Control FlyoutButton、默认 config factory、设计时 placeholder data |
 | Phase 8G | Binding Browser、Resource Browser |
 | Phase 8H | 用户 layout save/reset/load priority、validation-driven save |
 
 ## 17. 非目标
 
-Phase 8C 不做：
+当前编辑器仍不做：
 
-1. 不实现 drag/resize、透明 hitbox、selection adorner 或键盘微调。
-2. 不实现 Property Grid、Add Control、Binding Browser 或 Resource Browser。
-3. 不保存用户布局，不实现 reset/save-as/open-folder。
-4. 不改变 `FrontedRenderer` 行为。
-5. 不修改 `AnimationService` 查找逻辑。
-6. 不迁移 `.bpui`。
-7. 不移除旧 `config.json` 前台设置。
-8. 不改变现有 v3 layout JSON。
+1. 不实现 Add Control、Binding Browser 或 Resource Browser。
+2. 不保存用户布局，不实现 reset/save-as/open-folder。
+3. 不改变 `FrontedRenderer` 行为。
+4. 不修改 `AnimationService` 查找逻辑。
+5. 不迁移 `.bpui`。
+6. 不移除旧 `config.json` 前台设置。
+7. 不改变现有 v3 layout JSON。

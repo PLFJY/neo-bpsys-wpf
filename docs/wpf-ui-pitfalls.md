@@ -114,6 +114,9 @@ BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.
 14. `PickingBorderOverlay` 是 linked runtime overlay：编辑器中不生成普通 hitbox、不进入普通控件列表、不允许直接拖拽或缩放。移动/缩放它的 `TargetControlName` 目标控件时同步 overlay 几何，保持运行时独立命名目标不变。
 15. `BanSlotDisplay` 的锁定覆盖层是控件内部视觉层，不是独立设计项。不要把 ban lock overlay 拆成单独控件或单独 hitbox。
 16. 视口导航优先于选择：Fit 模式根据 `ScrollViewer` viewport 和 Canvas 尺寸计算 `ZoomScale`；`Ctrl + mouse wheel` 进入手动缩放并保持 25% 到 200%；右键拖拽或 `Space + left mouse drag` 只平移 `ScrollViewer` offset。这些操作不能写回 layout 坐标，也不能改变当前选中控件。
+17. Phase 8E 的 Property Grid 基于 `ItemsControl`，编辑的是 `FrontedControlDesignItem` 和其 `Config`。`Name` 仍是设计项/JSON key，不能加到 config 类；运行时关键 `Name` 只读，被其他控件引用的普通控件在 8E 也阻止改名。
+18. Phase 8E 中 `BindingPath`、图片/资源路径和颜色字符串都先用文本框编辑；Binding Browser、Resource Browser 和 ColorPicker 深度接入属于后续阶段。颜色字符串仍按 `#AARRGGBB` 存储。
+19. Property Grid 输入控件获得键盘焦点时，方向键不应触发设计 surface 微调。新增编辑器控件后要继续更新 `ShouldIgnoreKeyboardInput()` 的排除列表。
 
 ## 插件 UI
 

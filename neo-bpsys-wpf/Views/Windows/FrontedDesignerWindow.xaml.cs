@@ -102,6 +102,49 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
     }
 
+    private void PropertyTextBox_OnLostFocus(object sender, RoutedEventArgs e)
+    {
+        ApplyPropertyEditorValue(sender);
+    }
+
+    private void PropertyTextBox_OnKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter)
+        {
+            return;
+        }
+
+        ApplyPropertyEditorValue(sender);
+        FocusDesignSurface();
+        e.Handled = true;
+    }
+
+    private void PropertyCheckBox_OnClick(object sender, RoutedEventArgs e)
+    {
+        ApplyPropertyEditorValue(sender);
+    }
+
+    private void PropertyComboBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_isLoaded)
+        {
+            return;
+        }
+
+        ApplyPropertyEditorValue(sender);
+    }
+
+    private void ApplyPropertyEditorValue(object sender)
+    {
+        if (_viewModel is null
+            || sender is not FrameworkElement { DataContext: FrontedPropertyEditorItem item })
+        {
+            return;
+        }
+
+        _viewModel.ApplyPropertyEdit(item, item.Value);
+    }
+
     private void AttachViewModel()
     {
         if (_viewModel is not null)

@@ -2029,6 +2029,57 @@
   <data name="NoControlsFound" xml:space="preserve">
     <value>No controls found</value>
   </data>
+  <data name="Properties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
+  <data name="Property" xml:space="preserve">
+    <value>Property</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="Identity" xml:space="preserve">
+    <value>Identity</value>
+  </data>
+  <data name="Layout" xml:space="preserve">
+    <value>Layout</value>
+  </data>
+  <data name="Binding" xml:space="preserve">
+    <value>Binding</value>
+  </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="ControlSpecific" xml:space="preserve">
+    <value>Control-specific</value>
+  </data>
+  <data name="ReadOnly" xml:space="preserve">
+    <value>Read-only</value>
+  </data>
+  <data name="RuntimeCritical" xml:space="preserve">
+    <value>Runtime-critical</value>
+  </data>
+  <data name="InvalidControlName" xml:space="preserve">
+    <value>Control name cannot be empty and must match ^[A-Za-z_][A-Za-z0-9_]*$.</value>
+  </data>
+  <data name="DuplicateControlName" xml:space="preserve">
+    <value>A control with this name already exists in this canvas.</value>
+  </data>
+  <data name="ReferencedControlRenameBlocked" xml:space="preserve">
+    <value>This control is referenced by another control. Reference-aware rename will be implemented later.</value>
+  </data>
+  <data name="PropertyValidationErrors" xml:space="preserve">
+    <value>The property value is invalid.</value>
+  </data>
+  <data name="NoSelectedControl" xml:space="preserve">
+    <value>No control selected</value>
+  </data>
+  <data name="EditProperty" xml:space="preserve">
+    <value>Edit property</value>
+  </data>
+  <data name="Color" xml:space="preserve">
+    <value>Color</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

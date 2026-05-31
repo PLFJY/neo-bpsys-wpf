@@ -2047,6 +2047,57 @@
   <data name="NoControlsFound" xml:space="preserve">
     <value>未找到控件</value>
   </data>
+  <data name="Properties" xml:space="preserve">
+    <value>属性</value>
+  </data>
+  <data name="Property" xml:space="preserve">
+    <value>属性</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>值</value>
+  </data>
+  <data name="Identity" xml:space="preserve">
+    <value>身份</value>
+  </data>
+  <data name="Layout" xml:space="preserve">
+    <value>布局</value>
+  </data>
+  <data name="Binding" xml:space="preserve">
+    <value>绑定</value>
+  </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>外观</value>
+  </data>
+  <data name="ControlSpecific" xml:space="preserve">
+    <value>控件专属</value>
+  </data>
+  <data name="ReadOnly" xml:space="preserve">
+    <value>只读</value>
+  </data>
+  <data name="RuntimeCritical" xml:space="preserve">
+    <value>运行时关键</value>
+  </data>
+  <data name="InvalidControlName" xml:space="preserve">
+    <value>控件名不能为空，且必须匹配 ^[A-Za-z_][A-Za-z0-9_]*$。</value>
+  </data>
+  <data name="DuplicateControlName" xml:space="preserve">
+    <value>同一画布中已存在该控件名。</value>
+  </data>
+  <data name="ReferencedControlRenameBlocked" xml:space="preserve">
+    <value>This control is referenced by another control. Reference-aware rename will be implemented later.</value>
+  </data>
+  <data name="PropertyValidationErrors" xml:space="preserve">
+    <value>属性值无效。</value>
+  </data>
+  <data name="NoSelectedControl" xml:space="preserve">
+    <value>未选中控件</value>
+  </data>
+  <data name="EditProperty" xml:space="preserve">
+    <value>编辑属性</value>
+  </data>
+  <data name="Color" xml:space="preserve">
+    <value>颜色</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

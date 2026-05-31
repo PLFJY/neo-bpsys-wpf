@@ -2032,6 +2032,57 @@
   <data name="NoControlsFound" xml:space="preserve">
     <value>コントロールが見つかりません</value>
   </data>
+  <data name="Properties" xml:space="preserve">
+    <value>プロパティ</value>
+  </data>
+  <data name="Property" xml:space="preserve">
+    <value>プロパティ</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>値</value>
+  </data>
+  <data name="Identity" xml:space="preserve">
+    <value>識別情報</value>
+  </data>
+  <data name="Layout" xml:space="preserve">
+    <value>レイアウト</value>
+  </data>
+  <data name="Binding" xml:space="preserve">
+    <value>バインド</value>
+  </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>外観</value>
+  </data>
+  <data name="ControlSpecific" xml:space="preserve">
+    <value>コントロール固有</value>
+  </data>
+  <data name="ReadOnly" xml:space="preserve">
+    <value>読み取り専用</value>
+  </data>
+  <data name="RuntimeCritical" xml:space="preserve">
+    <value>実行時重要</value>
+  </data>
+  <data name="InvalidControlName" xml:space="preserve">
+    <value>コントロール名は空にできず、^[A-Za-z_][A-Za-z0-9_]*$ に一致する必要があります。</value>
+  </data>
+  <data name="DuplicateControlName" xml:space="preserve">
+    <value>このキャンバスには同じ名前のコントロールが既に存在します。</value>
+  </data>
+  <data name="ReferencedControlRenameBlocked" xml:space="preserve">
+    <value>This control is referenced by another control. Reference-aware rename will be implemented later.</value>
+  </data>
+  <data name="PropertyValidationErrors" xml:space="preserve">
+    <value>プロパティ値が無効です。</value>
+  </data>
+  <data name="NoSelectedControl" xml:space="preserve">
+    <value>コントロール未選択</value>
+  </data>
+  <data name="EditProperty" xml:space="preserve">
+    <value>プロパティを編集</value>
+  </data>
+  <data name="Color" xml:space="preserve">
+    <value>色</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

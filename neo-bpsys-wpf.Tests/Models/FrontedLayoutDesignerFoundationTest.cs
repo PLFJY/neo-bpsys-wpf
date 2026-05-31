@@ -727,6 +727,267 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void PropertyGridBuilderCreatesIdentityAndLayoutRows()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig
+            {
+                Left = 10,
+                Top = 20,
+                Width = 100,
+                Height = 40,
+                ZIndex = 2
+            }
+        };
+        var rows = BuildPropertyRows(CreateDocument([item]), item);
+
+        Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlDesignItem.Name));
+        Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.ControlType));
+        Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.Left));
+        Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.Top));
+        Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.Width));
+        Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.Height));
+        Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.ZIndex));
+    }
+
+    [Fact]
+    public void PropertyGridBuilderAppliesNameReadOnlyRules()
+    {
+        var runtimeCritical = new FrontedControlDesignItem
+        {
+            Name = "SurPick0",
+            Config = new ImageFrontedControlConfig()
+        };
+        var normal = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig()
+        };
+
+        var criticalRows = BuildPropertyRows(
+            CreateDocument([runtimeCritical], "BpWindow"),
+            runtimeCritical);
+        var normalRows = BuildPropertyRows(CreateDocument([normal]), normal);
+
+        Assert.True(criticalRows.Single(row => row.PropertyName == nameof(FrontedControlDesignItem.Name)).IsReadOnly);
+        Assert.False(normalRows.Single(row => row.PropertyName == nameof(FrontedControlDesignItem.Name)).IsReadOnly);
+    }
+
+    [Fact]
+    public void PropertyGridBuilderMapsSupportedEditorKinds()
+    {
+        var text = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig
+            {
+                Text = "A",
+                FontSize = 24,
+                Color = "#FFFFFFFF"
+            }
+        };
+        var image = new FrontedControlDesignItem
+        {
+            Name = "Logo",
+            Config = new ImageFrontedControlConfig
+            {
+                PickingBorder = true,
+                SizingMode = ImageSizingMode.FillContainer
+            }
+        };
+
+        var textRows = BuildPropertyRows(CreateDocument([text]), text);
+        var imageRows = BuildPropertyRows(CreateDocument([image]), image);
+
+        Assert.Equal(
+            FrontedPropertyEditorKind.Text,
+            textRows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.Text)).EditorKind);
+        Assert.Equal(
+            FrontedPropertyEditorKind.Number,
+            textRows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.FontSize)).EditorKind);
+        Assert.Equal(
+            FrontedPropertyEditorKind.Color,
+            textRows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.Color)).EditorKind);
+        Assert.Equal(
+            FrontedPropertyEditorKind.Boolean,
+            imageRows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorder)).EditorKind);
+        Assert.Equal(
+            FrontedPropertyEditorKind.Enum,
+            imageRows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.SizingMode)).EditorKind);
+    }
+
+    [Fact]
+    public void ApplyPropertyEditUpdatesTextPropertyAndMarksDocumentDirty()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Text = "Old" }
+        };
+        var document = CreateDocument([item]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(item);
+
+        viewModel.ApplyPropertyEdit(
+            new FrontedPropertyEditorItem
+            {
+                PropertyName = nameof(TextFrontedControlConfig.Text),
+                EditorKind = FrontedPropertyEditorKind.Text
+            },
+            "New");
+
+        Assert.Equal("New", ((TextFrontedControlConfig)item.Config).Text);
+        Assert.True(document.IsDirty);
+    }
+
+    [Fact]
+    public void ApplyPropertyEditUpdatesGeometryWithHalfStepSnap()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Left = 10, Top = 20, Width = 100, Height = 40 }
+        };
+        var document = CreateDocument([item]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(item);
+
+        viewModel.ApplyPropertyEdit(
+            new FrontedPropertyEditorItem
+            {
+                PropertyName = nameof(FrontedControlConfigBase.Left),
+                EditorKind = FrontedPropertyEditorKind.Number
+            },
+            "10.25");
+        viewModel.ApplyPropertyEdit(
+            new FrontedPropertyEditorItem
+            {
+                PropertyName = nameof(FrontedControlConfigBase.Width),
+                EditorKind = FrontedPropertyEditorKind.Number
+            },
+            "0.1");
+
+        Assert.Equal(10.5, item.Config.Left);
+        Assert.Equal(1, item.Config.Width);
+        Assert.True(document.IsDirty);
+    }
+
+    [Fact]
+    public void ApplyPropertyEditRefusesInvalidDuplicateAndRuntimeCriticalNames()
+    {
+        var title = new FrontedControlDesignItem { Name = "Title", Config = new TextFrontedControlConfig() };
+        var logo = new FrontedControlDesignItem { Name = "Logo", Config = new ImageFrontedControlConfig() };
+        var runtimeCritical = new FrontedControlDesignItem
+        {
+            Name = "SurPick0",
+            IsRuntimeCritical = true,
+            Config = new ImageFrontedControlConfig()
+        };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([title, logo, runtimeCritical], "BpWindow")
+        };
+
+        viewModel.SelectDesignItem(title);
+        viewModel.ApplyPropertyEdit(NameEditorRow(), "Bad.Name");
+        Assert.Equal("Title", title.Name);
+
+        viewModel.ApplyPropertyEdit(NameEditorRow(), "Logo");
+        Assert.Equal("Title", title.Name);
+
+        viewModel.SelectDesignItem(runtimeCritical);
+        viewModel.ApplyPropertyEdit(NameEditorRow(), "SurPickA");
+        Assert.Equal("SurPick0", runtimeCritical.Name);
+    }
+
+    [Fact]
+    public void ApplyPropertyEditBlocksReferencedControlRename()
+    {
+        var target = new FrontedControlDesignItem
+        {
+            Name = "Target",
+            Config = new ImageFrontedControlConfig()
+        };
+        var overlay = new FrontedControlDesignItem
+        {
+            Name = "TargetOverlay",
+            IsSelectableInEditor = false,
+            IsEditableInEditor = false,
+            Config = new PickingBorderOverlayControlConfig { TargetControlName = "Target" }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([target, overlay])
+        };
+        viewModel.SelectDesignItem(target);
+
+        viewModel.ApplyPropertyEdit(NameEditorRow(), "Target2");
+
+        Assert.Equal("Target", target.Name);
+    }
+
+    [Fact]
+    public void ApplyPropertyEditSyncsLinkedPickingBorderOverlayGeometry()
+    {
+        var target = new FrontedControlDesignItem
+        {
+            Name = "SurPick0",
+            Config = new ImageFrontedControlConfig { Left = 10, Top = 20, Width = 141, Height = 160 }
+        };
+        var overlay = new FrontedControlDesignItem
+        {
+            Name = "SurPickingBorder0",
+            IsSelectableInEditor = false,
+            IsEditableInEditor = false,
+            IsLinkedOverlay = true,
+            Config = new PickingBorderOverlayControlConfig
+            {
+                TargetControlName = "SurPick0",
+                Left = 0,
+                Top = 0,
+                Width = 1,
+                Height = 1
+            }
+        };
+        var document = CreateDocument([target, overlay]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(target);
+
+        viewModel.ApplyPropertyEdit(
+            new FrontedPropertyEditorItem
+            {
+                PropertyName = nameof(FrontedControlConfigBase.Height),
+                EditorKind = FrontedPropertyEditorKind.Number
+            },
+            "200.25");
+
+        var overlayConfig = Assert.IsType<PickingBorderOverlayControlConfig>(overlay.Config);
+        Assert.Equal(target.Config.Left, overlayConfig.Left);
+        Assert.Equal(target.Config.Top, overlayConfig.Top);
+        Assert.Equal(target.Config.Width, overlayConfig.Width);
+        Assert.Equal(200.5, overlayConfig.Height);
+    }
+
+    [Fact]
+    public void PropertyGridBuilderTreatsPickingBorderOverlayAsReadOnlyIfSelectedProgrammatically()
+    {
+        var overlay = new FrontedControlDesignItem
+        {
+            Name = "SurPickingBorder0",
+            IsSelectableInEditor = false,
+            IsEditableInEditor = false,
+            IsLinkedOverlay = true,
+            Config = new PickingBorderOverlayControlConfig { TargetControlName = "SurPick0" }
+        };
+
+        var rows = BuildPropertyRows(CreateDocument([overlay]), overlay);
+
+        Assert.All(rows, row => Assert.True(row.IsReadOnly));
+    }
+
+    [Fact]
     public void DesignerViewModelZoomByWheelDeltaAppliesManualZoom()
     {
         var viewModel = new FrontedDesignerWindowViewModel();
@@ -863,7 +1124,24 @@ public class FrontedLayoutDesignerFoundationTest
             "FilterControls",
             "ZIndexShort",
             "ControlType",
-            "NoControlsFound"
+            "NoControlsFound",
+            "Properties",
+            "Property",
+            "Value",
+            "Identity",
+            "Layout",
+            "Binding",
+            "Appearance",
+            "ControlSpecific",
+            "ReadOnly",
+            "RuntimeCritical",
+            "InvalidControlName",
+            "DuplicateControlName",
+            "ReferencedControlRenameBlocked",
+            "PropertyValidationErrors",
+            "NoSelectedControl",
+            "EditProperty",
+            "Color"
         };
 
         foreach (var fileName in new[] { "Lang.resx", "Lang.en-us.resx", "Lang.ja-jp.resx" })
@@ -944,11 +1222,13 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("private string _zoomDisplay = \"Fit\"", text);
     }
 
-    private static FrontedCanvasDesignDocument CreateDocument(IList<FrontedControlDesignItem> controls)
+    private static FrontedCanvasDesignDocument CreateDocument(
+        IList<FrontedControlDesignItem> controls,
+        string windowTypeName = "TestWindow")
     {
         return new FrontedCanvasDesignDocument
         {
-            WindowTypeName = "TestWindow",
+            WindowTypeName = windowTypeName,
             CanvasName = "BaseCanvas",
             CanvasConfig = new FrontedCanvasConfig
             {
@@ -957,6 +1237,27 @@ public class FrontedLayoutDesignerFoundationTest
                 CanvasHeight = 810
             },
             Controls = new(controls)
+        };
+    }
+
+    private static IReadOnlyList<FrontedPropertyEditorItem> BuildPropertyRows(
+        FrontedCanvasDesignDocument document,
+        FrontedControlDesignItem item)
+    {
+        return new FrontedPropertyGridBuilder().Build(
+            document,
+            item,
+            CreateValidator(),
+            new FrontedLayoutReferenceScanner(),
+            new FrontedLayoutRuntimeContractCatalog());
+    }
+
+    private static FrontedPropertyEditorItem NameEditorRow()
+    {
+        return new FrontedPropertyEditorItem
+        {
+            PropertyName = nameof(FrontedControlDesignItem.Name),
+            EditorKind = FrontedPropertyEditorKind.Text
         };
     }
 

@@ -1,6 +1,6 @@
 # Fronted Designer v3 设计文档
 
-本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为低风险 pilot 接入 v3 renderer；Score System v2 Phase 4 已额外将 `ScoreGlobalWindow` 接入 v3 renderer 并新增 `GlobalScoreRow` 控件；Designer v3 Phase 4 已迁移 `CutSceneWindow`；Designer v3 Phase 5 已迁移 `GameDataWindow` 并新增 `LocalizedText`；Designer v3 Phase 6 已迁移多 Canvas 的 `WidgetsWindow`，并新增 `CurrentBanDisplay` / `MapV2Display`；Designer v3 Phase 7 已迁移 `BpWindow`，并新增 `BanSlotDisplay` / `PickingBorderOverlay`。Phase 8A 已补充独立编辑器设计规格，Phase 8B 已新增设计期模型、layout validator、runtime contract catalog、引用扫描和设计项转换，Phase 8C 已新增独立编辑器 shell、窗口/Canvas 选择器、ViewBox 只读预览、缩放控制和校验面板，Phase 8D 已新增编辑器内存交互层、透明 hitbox、selection adorner、拖拽、缩放和键盘微调，见 [fronted-designer-editor.md](fronted-designer-editor.md)。Property Grid、Add Control、保存用户布局和 `.bpui` 转换仍按后续阶段推进。
+本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为低风险 pilot 接入 v3 renderer；Score System v2 Phase 4 已额外将 `ScoreGlobalWindow` 接入 v3 renderer 并新增 `GlobalScoreRow` 控件；Designer v3 Phase 4 已迁移 `CutSceneWindow`；Designer v3 Phase 5 已迁移 `GameDataWindow` 并新增 `LocalizedText`；Designer v3 Phase 6 已迁移多 Canvas 的 `WidgetsWindow`，并新增 `CurrentBanDisplay` / `MapV2Display`；Designer v3 Phase 7 已迁移 `BpWindow`，并新增 `BanSlotDisplay` / `PickingBorderOverlay`。Phase 8A 已补充独立编辑器设计规格，Phase 8B 已新增设计期模型、layout validator、runtime contract catalog、引用扫描和设计项转换，Phase 8C 已新增独立编辑器 shell、窗口/Canvas 选择器、ViewBox 只读预览、缩放控制和校验面板，Phase 8D 已新增编辑器内存交互层、透明 hitbox、selection adorner、拖拽、缩放和键盘微调，Phase 8E 已新增基础 Property Grid，见 [fronted-designer-editor.md](fronted-designer-editor.md)。Add Control、保存用户布局和 `.bpui` 转换仍按后续阶段推进。
 
 ## 1. 背景与目标
 
@@ -302,7 +302,8 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 8B | 已实现设计期基础：`FrontedControlDesignItem`、`FrontedCanvasDesignDocument`、设计项与 dictionary 转换、layout validator、引用扫描、运行时关键名称 catalog，以及 converter 阶段的重复 JSON key 检测。不实现 UI、不改 renderer、不迁移 `.bpui`。 |
 | Phase 8C | 已实现独立编辑器 shell、窗口/Canvas 选择器、layout source 显示、ViewBox 只读 preview surface、缩放控制和 validator 消息面板。预览 Canvas 使用 layout config 的 `CanvasWidth` / `CanvasHeight`，不使用真实窗口尺寸。 |
 | Phase 8D | 已实现 interaction layer、透明 hitbox、selection adorner、drag、resize、键盘微调和内存 dirty/validation 刷新；不保存用户布局。 |
-| Phase 8E-8H | 按编辑器设计规格逐步实现 Property Grid、Add Control、Binding/Resource Browser、用户布局保存和重置。 |
+| Phase 8E | 已实现基础 Property Grid：编辑选中设计项与 config 简单属性、保守 Name 改名、运行时关键名称只读、被引用控件改名阻止；仍只改内存，不保存用户布局。 |
+| Phase 8F-8H | 按编辑器设计规格逐步实现 Add Control、Binding/Resource Browser、用户布局保存和重置。 |
 | Phase 9 | 实现 v3 `.bpui` 导出/导入和 legacy `.bpui` 转换。 |
 
 每个阶段都应有明确回退策略。涉及用户可见文本时，应同步考虑 `WPFLocalizeExtension` 和 `Locales/*.resx`。
@@ -317,7 +318,7 @@ Phase 2 之后仍明确不做以下事情：
 | 继续批量迁移 XAML | 当前已迁移 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 和 `BpWindow`；后续不应顺手改无关窗口。 |
 | 替换旧设计者/编辑器 | 当前 `DesignBehavior`、旧设计者入口和 `FrontedWindowService` 行为保持不变；独立编辑器尚未实现。 |
 | 移除 `config.json` 中的前台设置 | 自定义图片、文本设置、窗口设置仍保留在当前结构中。 |
-| 实现完整编辑器 UI | 当前只新增 Phase 8C shell 和只读预览；不实现 drag/resize、透明 hitbox、Property Grid、Add Control、Binding browser、Resource browser 或保存。 |
+| 实现完整编辑器 UI | 当前已新增 Phase 8C shell、Phase 8D 交互层和 Phase 8E 基础 Property Grid；仍不实现 Add Control、Binding browser、Resource browser 或保存。 |
 | 实现 `.bpui` 转换 | 不修改现有 `.bpui` import/export 流程。 |
 
 ## 12. 与 Score System v2 的关系
