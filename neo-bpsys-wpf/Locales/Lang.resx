@@ -1438,7 +1438,7 @@
     <value>分数统计窗口大小</value>
   </data>
   <data name="DesignerUnlockNote" xml:space="preserve">
-    <value>备注：设计者模式中，按住&lt;Shift&gt;键可以暂时取消自动吸附，实现精细化调整</value>
+    <value>备注：设计者模式中，按住&lt;Shift&gt;键可以暂时开启自动吸附</value>
   </data>
   <data name="AutoRecord" xml:space="preserve">
     <value>是否自动记录</value>
@@ -2342,4 +2342,3 @@
     <value>使用所选</value>
   </data>
 </root>
-

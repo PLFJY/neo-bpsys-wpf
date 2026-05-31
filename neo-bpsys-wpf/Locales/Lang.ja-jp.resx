@@ -1423,7 +1423,7 @@
     <value>スコア統計ウィンドウサイズ</value>
   </data>
   <data name="DesignerUnlockNote" xml:space="preserve">
-    <value>注記：デザイナーモードでは、&lt;Shift&gt;キーを押すと自動スナップを一時的に解除し、微調整が可能になります。</value>
+    <value>注：デザイナーモードでは、&lt;Shift&gt;キーを押したままにすると、一時的に自動スナップ機能が有効になります。</value>
   </data>
   <data name="AutoRecord" xml:space="preserve">
     <value>自動記録</value>
@@ -2327,4 +2327,3 @@
     <value>選択を使用</value>
   </data>
 </root>
-

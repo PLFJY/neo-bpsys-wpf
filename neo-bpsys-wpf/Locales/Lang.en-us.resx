@@ -1420,7 +1420,7 @@
     <value>Score statistics window size</value>
   </data>
   <data name="DesignerUnlockNote" xml:space="preserve">
-    <value>NOTE: In Design Mode, holding down &lt;Shift&gt; key temporarily disables auto-snaping for precise adjustments</value>
+    <value>NOTE: In Design Mode, holding down &lt;Shift&gt; key temporarily enables auto-snaping</value>
   </data>
   <data name="AutoRecord" xml:space="preserve">
     <value>Auto Record</value>
@@ -2324,4 +2324,3 @@
     <value>Use Selected</value>
   </data>
 </root>
-

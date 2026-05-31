@@ -88,6 +88,33 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 绝对路径文件 的本地化字符串。
+        /// </summary>
+        public static string AbsoluteFile {
+            get {
+                return ResourceManager.GetString("AbsoluteFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 添加控件 的本地化字符串。
+        /// </summary>
+        public static string AddControl {
+            get {
+                return ResourceManager.GetString("AddControl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 已添加控件 的本地化字符串。
+        /// </summary>
+        public static string AddedControl {
+            get {
+                return ResourceManager.GetString("AddedControl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 添加选手 的本地化字符串。
         /// </summary>
         public static string AddPlayer {
@@ -183,6 +210,69 @@ namespace neo_bpsys_wpf.Locales {
         public static string AModernIdentityVBPSoftware {
             get {
                 return ResourceManager.GetString("AModernIdentityVBPSoftware", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 任意绑定 的本地化字符串。
+        /// </summary>
+        public static string AnyBinding {
+            get {
+                return ResourceManager.GetString("AnyBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 应用资产 的本地化字符串。
+        /// </summary>
+        public static string AppAssets {
+            get {
+                return ResourceManager.GetString("AppAssets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 外观 的本地化字符串。
+        /// </summary>
+        public static string Appearance {
+            get {
+                return ResourceManager.GetString("Appearance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 应用颜色 的本地化字符串。
+        /// </summary>
+        public static string ApplyColor {
+            get {
+                return ResourceManager.GetString("ApplyColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 更新包缺少 SHA-256 校验文件，已停止下载。 的本地化字符串。
+        /// </summary>
+        public static string AppUpdateHashFileMissing {
+            get {
+                return ResourceManager.GetString("AppUpdateHashFileMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 更新包的 SHA-256 校验文件格式无效，已停止安装。 的本地化字符串。
+        /// </summary>
+        public static string AppUpdateInvalidHashFile {
+            get {
+                return ResourceManager.GetString("AppUpdateInvalidHashFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 更新安装包完整性校验失败，为确保安全已拒绝安装。 的本地化字符串。
+        /// </summary>
+        public static string AppUpdateSha256Mismatch {
+            get {
+                return ResourceManager.GetString("AppUpdateSha256Mismatch", resourceCulture);
             }
         }
         
@@ -448,6 +538,33 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 基础控件 的本地化字符串。
+        /// </summary>
+        public static string BasicControls {
+            get {
+                return ResourceManager.GetString("BasicControls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 绑定 的本地化字符串。
+        /// </summary>
+        public static string Binding {
+            get {
+                return ResourceManager.GetString("Binding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 绑定浏览器 的本地化字符串。
+        /// </summary>
+        public static string BindingBrowser {
+            get {
+                return ResourceManager.GetString("BindingBrowser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 黑色 的本地化字符串。
         /// </summary>
         public static string Black {
@@ -462,6 +579,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string Blink {
             get {
                 return ResourceManager.GetString("Blink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 布尔绑定 的本地化字符串。
+        /// </summary>
+        public static string BooleanBinding {
+            get {
+                return ResourceManager.GetString("BooleanBinding", resourceCulture);
             }
         }
         
@@ -498,6 +624,69 @@ namespace neo_bpsys_wpf.Locales {
         public static string BPWindowImages {
             get {
                 return ResourceManager.GetString("BPWindowImages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 浏览绑定 的本地化字符串。
+        /// </summary>
+        public static string BrowseBinding {
+            get {
+                return ResourceManager.GetString("BrowseBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 浏览文件 的本地化字符串。
+        /// </summary>
+        public static string BrowseFile {
+            get {
+                return ResourceManager.GetString("BrowseFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 浏览资源 的本地化字符串。
+        /// </summary>
+        public static string BrowseResource {
+            get {
+                return ResourceManager.GetString("BrowseResource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 内置字体 的本地化字符串。
+        /// </summary>
+        public static string BuiltInFont {
+            get {
+                return ResourceManager.GetString("BuiltInFont", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 内置布局 的本地化字符串。
+        /// </summary>
+        public static string BuiltInLayout {
+            get {
+                return ResourceManager.GetString("BuiltInLayout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 内置资源 的本地化字符串。
+        /// </summary>
+        public static string BuiltInResources {
+            get {
+                return ResourceManager.GetString("BuiltInResources", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 业务控件 的本地化字符串。
+        /// </summary>
+        public static string BusinessControls {
+            get {
+                return ResourceManager.GetString("BusinessControls", resourceCulture);
             }
         }
         
@@ -565,6 +754,33 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 当前无法添加控件。 的本地化字符串。
+        /// </summary>
+        public static string CannotAddControl {
+            get {
+                return ResourceManager.GetString("CannotAddControl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 该控件仍被其他控件引用，不能删除。 的本地化字符串。
+        /// </summary>
+        public static string CannotDeleteReferencedControl {
+            get {
+                return ResourceManager.GetString("CannotDeleteReferencedControl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 运行时关键控件不能删除。 的本地化字符串。
+        /// </summary>
+        public static string CannotDeleteRuntimeCriticalControl {
+            get {
+                return ResourceManager.GetString("CannotDeleteRuntimeCriticalControl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 无法找到窗口提供方提供的默认布局配置 的本地化字符串。
         /// </summary>
         public static string CannotFindDefaultLayoutConfigurationFromWindowProvider {
@@ -579,6 +795,42 @@ namespace neo_bpsys_wpf.Locales {
         public static string CannotFindManifest {
             get {
                 return ResourceManager.GetString("CannotFindManifest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 没有可重做的操作。 的本地化字符串。
+        /// </summary>
+        public static string CannotRedo {
+            get {
+                return ResourceManager.GetString("CannotRedo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 布局存在错误，无法保存 的本地化字符串。
+        /// </summary>
+        public static string CannotSaveInvalidLayout {
+            get {
+                return ResourceManager.GetString("CannotSaveInvalidLayout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 没有可撤销的操作。 的本地化字符串。
+        /// </summary>
+        public static string CannotUndo {
+            get {
+                return ResourceManager.GetString("CannotUndo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 画布 的本地化字符串。
+        /// </summary>
+        public static string Canvas {
+            get {
+                return ResourceManager.GetString("Canvas", resourceCulture);
             }
         }
         
@@ -637,6 +889,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 清除当前半场比分 的本地化字符串。
+        /// </summary>
+        public static string ClearCurrentHalfScore {
+            get {
+                return ResourceManager.GetString("ClearCurrentHalfScore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 清楚提示 的本地化字符串。
         /// </summary>
         public static string ClearTip {
@@ -669,6 +930,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string CloseAll {
             get {
                 return ResourceManager.GetString("CloseAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 颜色 的本地化字符串。
+        /// </summary>
+        public static string Color {
+            get {
+                return ResourceManager.GetString("Color", resourceCulture);
             }
         }
         
@@ -736,6 +1006,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 确认删除选中控件？ 的本地化字符串。
+        /// </summary>
+        public static string ConfirmDeleteControl {
+            get {
+                return ResourceManager.GetString("ConfirmDeleteControl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 牵制时长 (秒) 的本地化字符串。
         /// </summary>
         public static string ContainmentTime {
@@ -768,6 +1047,33 @@ namespace neo_bpsys_wpf.Locales {
         public static string ControlManually {
             get {
                 return ResourceManager.GetString("ControlManually", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 控件列表 的本地化字符串。
+        /// </summary>
+        public static string ControlsList {
+            get {
+                return ResourceManager.GetString("ControlsList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 控件专属 的本地化字符串。
+        /// </summary>
+        public static string ControlSpecific {
+            get {
+                return ResourceManager.GetString("ControlSpecific", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 控件类型 的本地化字符串。
+        /// </summary>
+        public static string ControlType {
+            get {
+                return ResourceManager.GetString("ControlType", resourceCulture);
             }
         }
         
@@ -988,6 +1294,24 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 删除控件 的本地化字符串。
+        /// </summary>
+        public static string DeleteControl {
+            get {
+                return ResourceManager.GetString("DeleteControl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 已删除控件 的本地化字符串。
+        /// </summary>
+        public static string DeleteSelectedControl {
+            get {
+                return ResourceManager.GetString("DeleteSelectedControl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 设计模式 的本地化字符串。
         /// </summary>
         public static string DesignerMode {
@@ -997,7 +1321,16 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 备注：设计者模式中，按住&lt;Shift&gt;键可以暂时取消自动吸附，实现精细化调整 的本地化字符串。
+        ///   查找类似 设计器占位数据 的本地化字符串。
+        /// </summary>
+        public static string DesignerPlaceholderData {
+            get {
+                return ResourceManager.GetString("DesignerPlaceholderData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 备注：设计者模式中，按住&lt;Shift&gt;键可以暂时开启自动吸附 的本地化字符串。
         /// </summary>
         public static string DesignerUnlockNote {
             get {
@@ -1011,6 +1344,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string Disabled {
             get {
                 return ResourceManager.GetString("Disabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 放弃修改 的本地化字符串。
+        /// </summary>
+        public static string DiscardChanges {
+            get {
+                return ResourceManager.GetString("DiscardChanges", resourceCulture);
             }
         }
         
@@ -1087,7 +1429,7 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 下载源： 的本地化字符串。
+        ///   查找类似 下载源（此设置将同步至插件市场）： 的本地化字符串。
         /// </summary>
         public static string DownloadSource {
             get {
@@ -1101,6 +1443,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string DownloadTip {
             get {
                 return ResourceManager.GetString("DownloadTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 同一画布中已存在该控件名。 的本地化字符串。
+        /// </summary>
+        public static string DuplicateControlName {
+            get {
+                return ResourceManager.GetString("DuplicateControlName", resourceCulture);
             }
         }
         
@@ -1137,6 +1488,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string EditIntercludeBackgroundImage {
             get {
                 return ResourceManager.GetString("EditIntercludeBackgroundImage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 编辑属性 的本地化字符串。
+        /// </summary>
+        public static string EditProperty {
+            get {
+                return ResourceManager.GetString("EditProperty", resourceCulture);
             }
         }
         
@@ -1204,6 +1564,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 错误 的本地化字符串。
+        /// </summary>
+        public static string Errors {
+            get {
+                return ResourceManager.GetString("Errors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 清理更新残留异常 的本地化字符串。
         /// </summary>
         public static string ErrorWhenCleanUpResidualUpdateFiles {
@@ -1249,6 +1618,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 期望绑定类型 的本地化字符串。
+        /// </summary>
+        public static string ExpectedBindingType {
+            get {
+                return ResourceManager.GetString("ExpectedBindingType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 导出UI配置 的本地化字符串。
         /// </summary>
         public static string ExportUIConfig {
@@ -1276,11 +1654,56 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 按名称或类型筛选 的本地化字符串。
+        /// </summary>
+        public static string FilterControls {
+            get {
+                return ResourceManager.GetString("FilterControls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 FIRST HALF 的本地化字符串。
+        /// </summary>
+        public static string FirstHalf {
+            get {
+                return ResourceManager.GetString("FirstHalf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 适应 的本地化字符串。
+        /// </summary>
+        public static string Fit {
+            get {
+                return ResourceManager.GetString("Fit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 适应窗口 的本地化字符串。
+        /// </summary>
+        public static string FitToWindow {
+            get {
+                return ResourceManager.GetString("FitToWindow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 跟随系统 的本地化字符串。
         /// </summary>
         public static string FollowSystem {
             get {
                 return ResourceManager.GetString("FollowSystem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 字体 的本地化字符串。
+        /// </summary>
+        public static string FontFamily {
+            get {
+                return ResourceManager.GetString("FontFamily", resourceCulture);
             }
         }
         
@@ -1317,6 +1740,24 @@ namespace neo_bpsys_wpf.Locales {
         public static string Free {
             get {
                 return ResourceManager.GetString("Free", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 前台编辑器 的本地化字符串。
+        /// </summary>
+        public static string FrontedDesigner {
+            get {
+                return ResourceManager.GetString("FrontedDesigner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 前台编辑器 的本地化字符串。
+        /// </summary>
+        public static string FrontedDesignerWindow {
+            get {
+                return ResourceManager.GetString("FrontedDesignerWindow", resourceCulture);
             }
         }
         
@@ -1573,11 +2014,65 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 对局进度绑定 的本地化字符串。
+        /// </summary>
+        public static string GameProgressBinding {
+            get {
+                return ResourceManager.GetString("GameProgressBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 对局进度： 的本地化字符串。
         /// </summary>
         public static string GameProgressColon {
             get {
                 return ResourceManager.GetString("GameProgressColon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 FREE GAME 的本地化字符串。
+        /// </summary>
+        public static string GameProgressFree {
+            get {
+                return ResourceManager.GetString("GameProgressFree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 GAME {0} {1} 的本地化字符串。
+        /// </summary>
+        public static string GameProgressGameHalfFormat {
+            get {
+                return ResourceManager.GetString("GameProgressGameHalfFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 GAME {0} 的本地化字符串。
+        /// </summary>
+        public static string GameProgressGameOnlyFormat {
+            get {
+                return ResourceManager.GetString("GameProgressGameOnlyFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 GAME {0} OVERTIME {1} 的本地化字符串。
+        /// </summary>
+        public static string GameProgressGameOvertimeHalfFormat {
+            get {
+                return ResourceManager.GetString("GameProgressGameOvertimeHalfFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 GAME {0} OVERTIME 的本地化字符串。
+        /// </summary>
+        public static string GameProgressGameOvertimeOnlyFormat {
+            get {
+                return ResourceManager.GetString("GameProgressGameOvertimeOnlyFormat", resourceCulture);
             }
         }
         
@@ -1780,6 +2275,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 十六进制颜色 的本地化字符串。
+        /// </summary>
+        public static string HexColor {
+            get {
+                return ResourceManager.GetString("HexColor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 启动页 的本地化字符串。
         /// </summary>
         public static string HomePage {
@@ -1969,6 +2473,24 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 身份 的本地化字符串。
+        /// </summary>
+        public static string Identity {
+            get {
+                return ResourceManager.GetString("Identity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 图片绑定 的本地化字符串。
+        /// </summary>
+        public static string ImageBinding {
+            get {
+                return ResourceManager.GetString("ImageBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 图片文件 的本地化字符串。
         /// </summary>
         public static string ImageFiles {
@@ -2050,6 +2572,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 信息 的本地化字符串。
+        /// </summary>
+        public static string Infos {
+            get {
+                return ResourceManager.GetString("Infos", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 安装 的本地化字符串。
         /// </summary>
         public static string Install {
@@ -2073,6 +2604,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string InstallPluginFromFile {
             get {
                 return ResourceManager.GetString("InstallPluginFromFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 控件名不能为空，且必须匹配 ^[A-Za-z_][A-Za-z0-9_]*$。 的本地化字符串。
+        /// </summary>
+        public static string InvalidControlName {
+            get {
+                return ResourceManager.GetString("InvalidControlName", resourceCulture);
             }
         }
         
@@ -2185,6 +2725,69 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 布局 的本地化字符串。
+        /// </summary>
+        public static string Layout {
+            get {
+                return ResourceManager.GetString("Layout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 布局已保存 的本地化字符串。
+        /// </summary>
+        public static string LayoutSaved {
+            get {
+                return ResourceManager.GetString("LayoutSaved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 布局保存失败 的本地化字符串。
+        /// </summary>
+        public static string LayoutSaveFailed {
+            get {
+                return ResourceManager.GetString("LayoutSaveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 布局来源 的本地化字符串。
+        /// </summary>
+        public static string LayoutSource {
+            get {
+                return ResourceManager.GetString("LayoutSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 内置布局 的本地化字符串。
+        /// </summary>
+        public static string LayoutSourceBuiltIn {
+            get {
+                return ResourceManager.GetString("LayoutSourceBuiltIn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 缺失/错误 的本地化字符串。
+        /// </summary>
+        public static string LayoutSourceError {
+            get {
+                return ResourceManager.GetString("LayoutSourceError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 用户布局 的本地化字符串。
+        /// </summary>
+        public static string LayoutSourceUser {
+            get {
+                return ResourceManager.GetString("LayoutSourceUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 里奥的回忆 的本地化字符串。
         /// </summary>
         public static string LeosMemory {
@@ -2221,6 +2824,69 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 日志等级 的本地化字符串。
+        /// </summary>
+        public static string LogLevel {
+            get {
+                return ResourceManager.GetString("LogLevel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Debug 的本地化字符串。
+        /// </summary>
+        public static string LogLevelDebug {
+            get {
+                return ResourceManager.GetString("LogLevelDebug", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Error 的本地化字符串。
+        /// </summary>
+        public static string LogLevelError {
+            get {
+                return ResourceManager.GetString("LogLevelError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Fatal 的本地化字符串。
+        /// </summary>
+        public static string LogLevelFatal {
+            get {
+                return ResourceManager.GetString("LogLevelFatal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Information 的本地化字符串。
+        /// </summary>
+        public static string LogLevelInformation {
+            get {
+                return ResourceManager.GetString("LogLevelInformation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Verbose 的本地化字符串。
+        /// </summary>
+        public static string LogLevelVerbose {
+            get {
+                return ResourceManager.GetString("LogLevelVerbose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Warning 的本地化字符串。
+        /// </summary>
+        public static string LogLevelWarning {
+            get {
+                return ResourceManager.GetString("LogLevelWarning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Logo 文件不合法 的本地化字符串。
         /// </summary>
         public static string LogoFileIsNotValid {
@@ -2244,6 +2910,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string ManifestNotValid {
             get {
                 return ResourceManager.GetString("ManifestNotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 地图绑定 的本地化字符串。
+        /// </summary>
+        public static string MapBinding {
+            get {
+                return ResourceManager.GetString("MapBinding", resourceCulture);
             }
         }
         
@@ -2316,6 +2991,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string MatchScores {
             get {
                 return ResourceManager.GetString("MatchScores", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 缺失布局 的本地化字符串。
+        /// </summary>
+        public static string MissingLayout {
+            get {
+                return ResourceManager.GetString("MissingLayout", resourceCulture);
             }
         }
         
@@ -2401,6 +3085,51 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 没有匹配的绑定。 的本地化字符串。
+        /// </summary>
+        public static string NoBindingResults {
+            get {
+                return ResourceManager.GetString("NoBindingResults", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 未选中控件 的本地化字符串。
+        /// </summary>
+        public static string NoControlSelected {
+            get {
+                return ResourceManager.GetString("NoControlSelected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 未找到控件 的本地化字符串。
+        /// </summary>
+        public static string NoControlsFound {
+            get {
+                return ResourceManager.GetString("NoControlsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 没有匹配的资源。 的本地化字符串。
+        /// </summary>
+        public static string NoResourceResults {
+            get {
+                return ResourceManager.GetString("NoResourceResults", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 未选中控件 的本地化字符串。
+        /// </summary>
+        public static string NoSelectedControl {
+            get {
+                return ResourceManager.GetString("NoSelectedControl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 备注：在 BO3 模式下，所有分数统计的布局修改将【不会】被保存 的本地化字符串。
         /// </summary>
         public static string NoteScoreStatisticsNotSaveInBO3Mode {
@@ -2437,6 +3166,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 数字绑定 的本地化字符串。
+        /// </summary>
+        public static string NumberBinding {
+            get {
+                return ResourceManager.GetString("NumberBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 前往官网 的本地化字符串。
         /// </summary>
         public static string OfficialWebsite {
@@ -2464,6 +3202,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 打开前台编辑器 的本地化字符串。
+        /// </summary>
+        public static string OpenFrontedDesigner {
+            get {
+                return ResourceManager.GetString("OpenFrontedDesigner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 打开前台配置文件目录 的本地化字符串。
         /// </summary>
         public static string OpenFrontendDirectory {
@@ -2478,6 +3225,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string OpenGameFileDirectory {
             get {
                 return ResourceManager.GetString("OpenGameFileDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 打开布局目录 的本地化字符串。
+        /// </summary>
+        public static string OpenLayoutFolder {
+            get {
+                return ResourceManager.GetString("OpenLayoutFolder", resourceCulture);
             }
         }
         
@@ -2505,6 +3261,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string OpenSourceRepositoryUsed {
             get {
                 return ResourceManager.GetString("OpenSourceRepositoryUsed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 打开验证详情 的本地化字符串。
+        /// </summary>
+        public static string OpenValidationDetails {
+            get {
+                return ResourceManager.GetString("OpenValidationDetails", resourceCulture);
             }
         }
         
@@ -2680,6 +3445,24 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 占位符 的本地化字符串。
+        /// </summary>
+        public static string Placeholder {
+            get {
+                return ResourceManager.GetString("Placeholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 占位预览 的本地化字符串。
+        /// </summary>
+        public static string PlaceholderPreview {
+            get {
+                return ResourceManager.GetString("PlaceholderPreview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 选手 ID 的本地化字符串。
         /// </summary>
         public static string PlayerID {
@@ -2734,6 +3517,195 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 API 不兼容 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketApiIncompatible {
+            get {
+                return ResourceManager.GetString("PluginMarketApiIncompatible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 作者： 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketAuthorLabel {
+            get {
+                return ResourceManager.GetString("PluginMarketAuthorLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 取消下载 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketCancelDownload {
+            get {
+                return ResourceManager.GetString("PluginMarketCancelDownload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 直接连接（不使用代理） 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketDirectConnectionNoProxy {
+            get {
+                return ResourceManager.GetString("PluginMarketDirectConnectionNoProxy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 已有插件正在下载。 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketDownloadAlreadyInProgress {
+            get {
+                return ResourceManager.GetString("PluginMarketDownloadAlreadyInProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 下载队列 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketDownloadQueue {
+            get {
+                return ResourceManager.GetString("PluginMarketDownloadQueue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前没有排队中的插件下载任务 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketDownloadQueueEmpty {
+            get {
+                return ResourceManager.GetString("PluginMarketDownloadQueueEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 下载队列 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketDownloadQueueTitle {
+            get {
+                return ResourceManager.GetString("PluginMarketDownloadQueueTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前软件版本过低 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketHostVersionTooLow {
+            get {
+                return ResourceManager.GetString("PluginMarketHostVersionTooLow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前软件版本过低，无法安装此插件。 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketInstallBlockedHostVersionTooLow {
+            get {
+                return ResourceManager.GetString("PluginMarketInstallBlockedHostVersionTooLow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 已安装，重启以应用更改 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketInstalledRestartRequired {
+            get {
+                return ResourceManager.GetString("PluginMarketInstalledRestartRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Ghproxy 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketMirrorLabel {
+            get {
+                return ResourceManager.GetString("PluginMarketMirrorLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 此设置将同步至应用更新 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketMirrorSyncHint {
+            get {
+                return ResourceManager.GetString("PluginMarketMirrorSyncHint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 待卸载 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketPendingUninstall {
+            get {
+                return ResourceManager.GetString("PluginMarketPendingUninstall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 插件市场设置 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketSettingsTitle {
+            get {
+                return ResourceManager.GetString("PluginMarketSettingsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 {0} 完整性校验失败，为确保安全已拒绝安装。 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketSha256Mismatch {
+            get {
+                return ResourceManager.GetString("PluginMarketSha256Mismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 插件源 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketSourceLabel {
+            get {
+                return ResourceManager.GetString("PluginMarketSourceLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 有更新 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketUpdateAvailable {
+            get {
+                return ResourceManager.GetString("PluginMarketUpdateAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 版本不兼容 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketVersionIncompatible {
+            get {
+                return ResourceManager.GetString("PluginMarketVersionIncompatible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 版本： 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketVersionLabel {
+            get {
+                return ResourceManager.GetString("PluginMarketVersionLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 版本过低 的本地化字符串。
+        /// </summary>
+        public static string PluginMarketVersionTooLow {
+            get {
+                return ResourceManager.GetString("PluginMarketVersionTooLow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 内置插件无法卸载 的本地化字符串。
         /// </summary>
         public static string PluginNotRemovable {
@@ -2770,6 +3742,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 预览 的本地化字符串。
+        /// </summary>
+        public static string Preview {
+            get {
+                return ResourceManager.GetString("Preview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 预览： 的本地化字符串。
         /// </summary>
         public static string PreviewColon {
@@ -2797,6 +3778,87 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 属性 的本地化字符串。
+        /// </summary>
+        public static string Properties {
+            get {
+                return ResourceManager.GetString("Properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 属性 的本地化字符串。
+        /// </summary>
+        public static string Property {
+            get {
+                return ResourceManager.GetString("Property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 属性值无效。 的本地化字符串。
+        /// </summary>
+        public static string PropertyValidationErrors {
+            get {
+                return ResourceManager.GetString("PropertyValidationErrors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 已取消 的本地化字符串。
+        /// </summary>
+        public static string QueueCanceled {
+            get {
+                return ResourceManager.GetString("QueueCanceled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 已下载，等待安装 的本地化字符串。
+        /// </summary>
+        public static string QueueDownloaded {
+            get {
+                return ResourceManager.GetString("QueueDownloaded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 下载中 的本地化字符串。
+        /// </summary>
+        public static string QueueDownloading {
+            get {
+                return ResourceManager.GetString("QueueDownloading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 下载失败 的本地化字符串。
+        /// </summary>
+        public static string QueueFailed {
+            get {
+                return ResourceManager.GetString("QueueFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 已安装，重启以应用更改 的本地化字符串。
+        /// </summary>
+        public static string QueueInstalledRestartRequired {
+            get {
+                return ResourceManager.GetString("QueueInstalledRestartRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 等待下载 的本地化字符串。
+        /// </summary>
+        public static string QueuePending {
+            get {
+                return ResourceManager.GetString("QueuePending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 快捷入口 的本地化字符串。
         /// </summary>
         public static string QuickAccess {
@@ -2815,6 +3877,33 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 只读 的本地化字符串。
+        /// </summary>
+        public static string ReadOnly {
+            get {
+                return ResourceManager.GetString("ReadOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 重做 的本地化字符串。
+        /// </summary>
+        public static string Redo {
+            get {
+                return ResourceManager.GetString("Redo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 This control is referenced by another control. Reference-aware rename will be implemented later. 的本地化字符串。
+        /// </summary>
+        public static string ReferencedControlRenameBlocked {
+            get {
+                return ResourceManager.GetString("ReferencedControlRenameBlocked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 刷新 的本地化字符串。
         /// </summary>
         public static string Refresh {
@@ -2829,6 +3918,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string ReleaseNotes {
             get {
                 return ResourceManager.GetString("ReleaseNotes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 重新加载 的本地化字符串。
+        /// </summary>
+        public static string ReloadLayout {
+            get {
+                return ResourceManager.GetString("ReloadLayout", resourceCulture);
             }
         }
         
@@ -2941,6 +4039,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 是否重置为内置布局？当前自定义布局将被删除。 的本地化字符串。
+        /// </summary>
+        public static string ResetLayoutConfirm {
+            get {
+                return ResourceManager.GetString("ResetLayoutConfirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 重置 {0}布局 的本地化字符串。
         /// </summary>
         public static string ResetLayoutFormat {
@@ -3004,6 +4111,24 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 重置为内置 的本地化字符串。
+        /// </summary>
+        public static string ResetToBuiltIn {
+            get {
+                return ResourceManager.GetString("ResetToBuiltIn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 资源浏览器 的本地化字符串。
+        /// </summary>
+        public static string ResourceBrowser {
+            get {
+                return ResourceManager.GetString("ResourceBrowser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 重启 的本地化字符串。
         /// </summary>
         public static string Restart {
@@ -3040,6 +4165,33 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 恢复默认排序 的本地化字符串。
+        /// </summary>
+        public static string RestoreDefaultSort {
+            get {
+                return ResourceManager.GetString("RestoreDefaultSort", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 运行时关键 的本地化字符串。
+        /// </summary>
+        public static string RuntimeCritical {
+            get {
+                return ResourceManager.GetString("RuntimeCritical", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 系统关键控件 的本地化字符串。
+        /// </summary>
+        public static string RuntimeCriticalControl {
+            get {
+                return ResourceManager.GetString("RuntimeCriticalControl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 圣心医院 的本地化字符串。
         /// </summary>
         public static string SacredHeartHospital {
@@ -3063,6 +4215,33 @@ namespace neo_bpsys_wpf.Locales {
         public static string SaveAndApply {
             get {
                 return ResourceManager.GetString("SaveAndApply", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 保存为 的本地化字符串。
+        /// </summary>
+        public static string SaveAs {
+            get {
+                return ResourceManager.GetString("SaveAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前布局有未保存修改。是否保存后关闭？ 的本地化字符串。
+        /// </summary>
+        public static string SaveBeforeClose {
+            get {
+                return ResourceManager.GetString("SaveBeforeClose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前布局有未保存修改。是否保存后继续？ 的本地化字符串。
+        /// </summary>
+        public static string SaveBeforeSwitch {
+            get {
+                return ResourceManager.GetString("SaveBeforeSwitch", resourceCulture);
             }
         }
         
@@ -3103,11 +4282,29 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 保存布局 的本地化字符串。
+        /// </summary>
+        public static string SaveLayout {
+            get {
+                return ResourceManager.GetString("SaveLayout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 成功保存到 的本地化字符串。
         /// </summary>
         public static string SaveSuccessfullyTo {
             get {
                 return ResourceManager.GetString("SaveSuccessfullyTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 比分/BP 控件 的本地化字符串。
+        /// </summary>
+        public static string ScoreBpControls {
+            get {
+                return ResourceManager.GetString("ScoreBpControls", resourceCulture);
             }
         }
         
@@ -3175,6 +4372,159 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 客队阵营 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewAwayCamp {
+            get {
+                return ResourceManager.GetString("ScorePreviewAwayCamp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 客队小比分 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewAwayMinorScore {
+            get {
+                return ResourceManager.GetString("ScorePreviewAwayMinorScore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewCurrent {
+            get {
+                return ResourceManager.GetString("ScorePreviewCurrent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 未录入 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewEmpty {
+            get {
+                return ResourceManager.GetString("ScorePreviewEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 上半 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewFirstHalf {
+            get {
+                return ResourceManager.GetString("ScorePreviewFirstHalf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 场次 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewGame {
+            get {
+                return ResourceManager.GetString("ScorePreviewGame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 第{0}局 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewGameFormat {
+            get {
+                return ResourceManager.GetString("ScorePreviewGameFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 第{0}局加赛 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewGameOvertimeFormat {
+            get {
+                return ResourceManager.GetString("ScorePreviewGameOvertimeFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 半场 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewHalf {
+            get {
+                return ResourceManager.GetString("ScorePreviewHalf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 主队阵营 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewHomeCamp {
+            get {
+                return ResourceManager.GetString("ScorePreviewHomeCamp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 主队小比分 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewHomeMinorScore {
+            get {
+                return ResourceManager.GetString("ScorePreviewHomeMinorScore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 {0} {1} 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewProgressFormat {
+            get {
+                return ResourceManager.GetString("ScorePreviewProgressFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 已录入 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewRecorded {
+            get {
+                return ResourceManager.GetString("ScorePreviewRecorded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 结果 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewResult {
+            get {
+                return ResourceManager.GetString("ScorePreviewResult", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 下半 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewSecondHalf {
+            get {
+                return ResourceManager.GetString("ScorePreviewSecondHalf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 状态 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewStatus {
+            get {
+                return ResourceManager.GetString("ScorePreviewStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 比分预览 的本地化字符串。
+        /// </summary>
+        public static string ScorePreviewTable {
+            get {
+                return ResourceManager.GetString("ScorePreviewTable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 大比分结算 的本地化字符串。
         /// </summary>
         public static string ScoreSettlement {
@@ -3216,6 +4566,69 @@ namespace neo_bpsys_wpf.Locales {
         public static string ScoreStatisticsBO5 {
             get {
                 return ResourceManager.GetString("ScoreStatisticsBO5", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 搜索绑定 的本地化字符串。
+        /// </summary>
+        public static string SearchBindings {
+            get {
+                return ResourceManager.GetString("SearchBindings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 搜索资源 的本地化字符串。
+        /// </summary>
+        public static string SearchResources {
+            get {
+                return ResourceManager.GetString("SearchResources", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 SECOND HALF 的本地化字符串。
+        /// </summary>
+        public static string SecondHalf {
+            get {
+                return ResourceManager.GetString("SecondHalf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 选择绑定路径 的本地化字符串。
+        /// </summary>
+        public static string SelectBindingPath {
+            get {
+                return ResourceManager.GetString("SelectBindingPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 选中控件 的本地化字符串。
+        /// </summary>
+        public static string SelectedControl {
+            get {
+                return ResourceManager.GetString("SelectedControl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 已选路径 的本地化字符串。
+        /// </summary>
+        public static string SelectedPath {
+            get {
+                return ResourceManager.GetString("SelectedPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 选择资源 的本地化字符串。
+        /// </summary>
+        public static string SelectResource {
+            get {
+                return ResourceManager.GetString("SelectResource", resourceCulture);
             }
         }
         
@@ -3400,11 +4813,155 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 导出配置文件 的本地化字符串。
+        /// </summary>
+        public static string SmartBpExportGameDataRegionConfig {
+            get {
+                return ResourceManager.GetString("SmartBpExportGameDataRegionConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 导入配置文件 的本地化字符串。
         /// </summary>
         public static string SmartBpImportGameDataRegionConfig {
             get {
                 return ResourceManager.GetString("SmartBpImportGameDataRegionConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 模型压缩包中未找到可用模型文件（期望 inference.pdmodel 或 inference.json，且需包含 inference.pdiparams）。样例文件：{0} 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrArchiveMissingModelFilesFormat {
+            get {
+                return ResourceManager.GetString("SmartBpOcrArchiveMissingModelFilesFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 OCR 分类模型元数据为空。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrClsModelMetadataEmpty {
+            get {
+                return ResourceManager.GetString("SmartBpOcrClsModelMetadataEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 下载进行中，无法删除模型。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrDeleteBlockedByDownloading {
+            get {
+                return ResourceManager.GetString("SmartBpOcrDeleteBlockedByDownloading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 删除 OCR 模型失败：{0} 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrDeleteFailedFormat {
+            get {
+                return ResourceManager.GetString("SmartBpOcrDeleteFailedFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 OCR 检测模型元数据为空。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrDetModelMetadataEmpty {
+            get {
+                return ResourceManager.GetString("SmartBpOcrDetModelMetadataEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 OCR 字典名称为空。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrDictNameEmpty {
+            get {
+                return ResourceManager.GetString("SmartBpOcrDictNameEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 已有 OCR 模型下载任务正在进行。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrDownloadAlreadyInProgress {
+            get {
+                return ResourceManager.GetString("SmartBpOcrDownloadAlreadyInProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 下载已取消。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrDownloadCanceled {
+            get {
+                return ResourceManager.GetString("SmartBpOcrDownloadCanceled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 OCR 模型下载完成。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrDownloadCompleted {
+            get {
+                return ResourceManager.GetString("SmartBpOcrDownloadCompleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 下载失败。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrDownloadFailedSimple {
+            get {
+                return ResourceManager.GetString("SmartBpOcrDownloadFailedSimple", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 准备下载 OCR 模型... 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrDownloadPreparing {
+            get {
+                return ResourceManager.GetString("SmartBpOcrDownloadPreparing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 正在下载方向分类模型... 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrDownloadStageCls {
+            get {
+                return ResourceManager.GetString("SmartBpOcrDownloadStageCls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 正在下载检测模型... 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrDownloadStageDet {
+            get {
+                return ResourceManager.GetString("SmartBpOcrDownloadStageDet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 正在下载识别模型... 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrDownloadStageRec {
+            get {
+                return ResourceManager.GetString("SmartBpOcrDownloadStageRec", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 加载 OCR 模型失败：{0} 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrLoadFailedFormat {
+            get {
+                return ResourceManager.GetString("SmartBpOcrLoadFailedFormat", resourceCulture);
             }
         }
         
@@ -3432,6 +4989,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string SmartBpOcrModelEnV4MobileDisplayName {
             get {
                 return ResourceManager.GetString("SmartBpOcrModelEnV4MobileDisplayName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 模型文件未完整下载，请先下载。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrModelFilesIncomplete {
+            get {
+                return ResourceManager.GetString("SmartBpOcrModelFilesIncomplete", resourceCulture);
             }
         }
         
@@ -3531,6 +5097,24 @@ namespace neo_bpsys_wpf.Locales {
         public static string SmartBpOcrNotReadyFirstDownloadAndSwitchModel {
             get {
                 return ResourceManager.GetString("SmartBpOcrNotReadyFirstDownloadAndSwitchModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 OCR 识别模型元数据为空。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrRecModelMetadataEmpty {
+            get {
+                return ResourceManager.GetString("SmartBpOcrRecModelMetadataEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 不支持的 OCR 模型：{0} 的本地化字符串。
+        /// </summary>
+        public static string SmartBpOcrUnsupportedModelFormat {
+            get {
+                return ResourceManager.GetString("SmartBpOcrUnsupportedModelFormat", resourceCulture);
             }
         }
         
@@ -3751,6 +5335,24 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 导出配置失败：{0} 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigExportFailedFormat {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigExportFailedFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 导出失败：目标路径不能为空。 的本地化字符串。
+        /// </summary>
+        public static string SmartBpRegionConfigExportPathEmpty {
+            get {
+                return ResourceManager.GetString("SmartBpRegionConfigExportPathEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 已导入配置文件。 的本地化字符串。
         /// </summary>
         public static string SmartBpRegionConfigImported {
@@ -3949,7 +5551,11 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 操作说明： 1. 拖动框内部可移动 2. 拖动边缘8个点可缩放 3. 小框会被限制在所属大框内 4. 仅当前帧预览，不实时捕获 的本地化字符串。
+        ///   查找类似 操作说明：
+        ///1. 拖动框内部可移动
+        ///2. 拖动边缘8个点可缩放
+        ///3. 小框会被限制在所属大框内
+        ///4. 仅当前帧预览，不实时捕获 的本地化字符串。
         /// </summary>
         public static string SmartBpRegionEditorOperationHelp {
             get {
@@ -4183,6 +5789,42 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 吸附 的本地化字符串。
+        /// </summary>
+        public static string Snap {
+            get {
+                return ResourceManager.GetString("Snap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 吸附网格大小 的本地化字符串。
+        /// </summary>
+        public static string SnapGridSize {
+            get {
+                return ResourceManager.GetString("SnapGridSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 吸附关闭 的本地化字符串。
+        /// </summary>
+        public static string SnapOff {
+            get {
+                return ResourceManager.GetString("SnapOff", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 吸附开启 的本地化字符串。
+        /// </summary>
+        public static string SnapOn {
+            get {
+                return ResourceManager.GetString("SnapOn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 应用更新 的本地化字符串。
         /// </summary>
         public static string SoftwareUpdates {
@@ -4242,6 +5884,15 @@ namespace neo_bpsys_wpf.Locales {
         public static string Stop {
             get {
                 return ResourceManager.GetString("Stop", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 字符串绑定 的本地化字符串。
+        /// </summary>
+        public static string StringBinding {
+            get {
+                return ResourceManager.GetString("StringBinding", resourceCulture);
             }
         }
         
@@ -4390,11 +6041,29 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 系统字体 的本地化字符串。
+        /// </summary>
+        public static string SystemFont {
+            get {
+                return ResourceManager.GetString("SystemFont", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 天赋特质 的本地化字符串。
         /// </summary>
         public static string TalentAndTrait {
             get {
                 return ResourceManager.GetString("TalentAndTrait", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 天赋绑定 的本地化字符串。
+        /// </summary>
+        public static string TalentBinding {
+            get {
+                return ResourceManager.GetString("TalentBinding", resourceCulture);
             }
         }
         
@@ -4462,11 +6131,29 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 临时吸附 的本地化字符串。
+        /// </summary>
+        public static string TemporarySnap {
+            get {
+                return ResourceManager.GetString("TemporarySnap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 恐惧震慑次数 的本地化字符串。
         /// </summary>
         public static string TerrorShocks {
             get {
                 return ResourceManager.GetString("TerrorShocks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 文本绑定 的本地化字符串。
+        /// </summary>
+        public static string TextBinding {
+            get {
+                return ResourceManager.GetString("TextBinding", resourceCulture);
             }
         }
         
@@ -4552,6 +6239,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 辅助特质绑定 的本地化字符串。
+        /// </summary>
+        public static string TraitBinding {
+            get {
+                return ResourceManager.GetString("TraitBinding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 手动触发GC回收 的本地化字符串。
         /// </summary>
         public static string TriggerGCCollectionManually {
@@ -4606,6 +6302,15 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 撤销 的本地化字符串。
+        /// </summary>
+        public static string Undo {
+            get {
+                return ResourceManager.GetString("Undo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 出现了些在意料之外的错误，请带着下方地址处的日志文件联系开发者解决 的本地化字符串。
         /// </summary>
         public static string UnexpectedExceptionMessage {
@@ -4651,6 +6356,42 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 未保存 的本地化字符串。
+        /// </summary>
+        public static string Unsaved {
+            get {
+                return ResourceManager.GetString("Unsaved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 未保存的修改 的本地化字符串。
+        /// </summary>
+        public static string UnsavedChanges {
+            get {
+                return ResourceManager.GetString("UnsavedChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 当前布局有未保存修改。 的本地化字符串。
+        /// </summary>
+        public static string UnsavedChangesMessage {
+            get {
+                return ResourceManager.GetString("UnsavedChangesMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 不支持的控件类型。 的本地化字符串。
+        /// </summary>
+        public static string UnsupportedControlType {
+            get {
+                return ResourceManager.GetString("UnsupportedControlType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 更新 的本地化字符串。
         /// </summary>
         public static string Update {
@@ -4660,11 +6401,83 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 用户布局 的本地化字符串。
+        /// </summary>
+        public static string UserLayout {
+            get {
+                return ResourceManager.GetString("UserLayout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 使用所选 的本地化字符串。
+        /// </summary>
+        public static string UseSelected {
+            get {
+                return ResourceManager.GetString("UseSelected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 校验布局 的本地化字符串。
+        /// </summary>
+        public static string ValidateLayout {
+            get {
+                return ResourceManager.GetString("ValidateLayout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 校验 的本地化字符串。
+        /// </summary>
+        public static string Validation {
+            get {
+                return ResourceManager.GetString("Validation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 验证详情 的本地化字符串。
+        /// </summary>
+        public static string ValidationDetails {
+            get {
+                return ResourceManager.GetString("ValidationDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 校验消息 的本地化字符串。
+        /// </summary>
+        public static string ValidationMessages {
+            get {
+                return ResourceManager.GetString("ValidationMessages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 值 的本地化字符串。
+        /// </summary>
+        public static string Value {
+            get {
+                return ResourceManager.GetString("Value", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 警告 的本地化字符串。
         /// </summary>
         public static string Warning {
             get {
                 return ResourceManager.GetString("Warning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 警告 的本地化字符串。
+        /// </summary>
+        public static string Warnings {
+            get {
+                return ResourceManager.GetString("Warnings", resourceCulture);
             }
         }
         
@@ -4849,11 +6662,47 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
+        ///   查找类似 Z 的本地化字符串。
+        /// </summary>
+        public static string ZIndexShort {
+            get {
+                return ResourceManager.GetString("ZIndexShort", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Zip 压缩文件 的本地化字符串。
         /// </summary>
         public static string ZipFiles {
             get {
                 return ResourceManager.GetString("ZipFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 缩放 的本地化字符串。
+        /// </summary>
+        public static string Zoom {
+            get {
+                return ResourceManager.GetString("Zoom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 放大 的本地化字符串。
+        /// </summary>
+        public static string ZoomIn {
+            get {
+                return ResourceManager.GetString("ZoomIn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 缩小 的本地化字符串。
+        /// </summary>
+        public static string ZoomOut {
+            get {
+                return ResourceManager.GetString("ZoomOut", resourceCulture);
             }
         }
     }
