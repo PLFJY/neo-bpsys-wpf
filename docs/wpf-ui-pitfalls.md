@@ -117,10 +117,12 @@ BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.
 17. Phase 8E 的 Property Grid 基于 `ItemsControl`，编辑的是 `FrontedControlDesignItem` 和其 `Config`。`Name` 仍是设计项/JSON key，不能加到 config 类；运行时关键 `Name` 只读，被其他控件引用的普通控件在 8E 也阻止改名。
 18. Phase 8E owner validation 后，Property Grid 行编辑器通过模板按需实例化，不要恢复成“TextBox、CheckBox、ComboBox 全部创建再用 Visibility 隐藏”的结构；否则切换选中控件时会出现未套样式的原生控件闪烁。
 19. 属性编辑事件必须避开绑定初始化：ComboBox 用 `DropDownClosed` 提交，TextBox 用 `LostFocus` 或 Enter 提交，CheckBox 用 Click 提交，ColorPicker 只在用户更改颜色后提交。属性网格重建和 layout pass 期间应抑制提交，避免 BpWindow / CutSceneWindow 选中控件时递归触发 `ApplyPropertyEdit`。
-20. Phase 8E 中 `BindingPath` 和图片/资源路径仍是文本框；Binding Browser、Resource Browser 属于后续阶段。颜色字符串使用项目已有 `PortableColorPicker`，仍按 `#AARRGGBB` 存储，并保留文本 fallback。
-21. 验证详情表不在右侧属性面板常驻显示；右侧应主要保留选中控件摘要和 Property Grid。底部左侧验证摘要可点击打开非模态验证详情窗口。
-22. 拖拽和缩放 live edit 中不要运行完整校验、不要重建 Property Grid、不要强制完整重渲染。只更新几何、linked overlay、preview element、hitbox/adorner、选中几何摘要和 dirty 状态；mouse-up/commit 后再统一校验和刷新。
-23. Property Grid 输入控件获得键盘焦点时，方向键不应触发设计 surface 微调。新增编辑器控件后要继续更新 `ShouldIgnoreKeyboardInput()` 的排除列表。
+20. Phase 8F 的 `FontFamily` 行使用可编辑 ComboBox，初始化、选中项同步和手写提交都必须尊重同一套提交抑制逻辑。内置字体选项保存 pack URI 原值，预览字体时沿用运行时的 `Uri + "./#FontName"` 构造方式，不要把显示名写回布局。
+21. Phase 8E/8F 中 `BindingPath` 和图片/资源路径仍是文本框；Binding Browser、Resource Browser 属于后续阶段。颜色字符串使用项目已有 `PortableColorPicker`，仍按 `#AARRGGBB` 存储，并保留文本 fallback。
+22. 验证详情表不在右侧属性面板常驻显示；右侧应主要保留选中控件摘要和 Property Grid。底部左侧验证摘要可点击打开非模态验证详情窗口。
+23. 拖拽和缩放 live edit 中不要运行完整校验、不要重建 Property Grid、不要强制完整重渲染。只更新几何、linked overlay、preview element、hitbox/adorner、选中几何摘要和 dirty 状态；mouse-up/commit 后再统一校验和刷新。
+24. Property Grid 输入控件获得键盘焦点时，方向键不应触发设计 surface 微调。新增编辑器控件后要继续更新 `ShouldIgnoreKeyboardInput()` 的排除列表。
+25. Phase 8F 的 Add Control 只添加内存设计项并重渲染编辑器 preview，不保存用户布局。新控件应放在当前滚动视口中心附近，并避免普通菜单暴露 `PickingBorderOverlay`。
 
 ## 插件 UI
 

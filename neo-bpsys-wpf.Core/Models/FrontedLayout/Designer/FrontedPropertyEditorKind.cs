@@ -31,6 +31,11 @@ public enum FrontedPropertyEditorKind
     Color,
 
     /// <summary>
+    /// Font family ComboBox editor.
+    /// </summary>
+    FontFamily,
+
+    /// <summary>
     /// Read-only display row.
     /// </summary>
     ReadOnly

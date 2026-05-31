@@ -2089,6 +2089,39 @@
   <data name="OpenValidationDetails" xml:space="preserve">
     <value>検証詳細を開く</value>
   </data>
+  <data name="AddControl" xml:space="preserve">
+    <value>コントロールを追加</value>
+  </data>
+  <data name="BasicControls" xml:space="preserve">
+    <value>基本コントロール</value>
+  </data>
+  <data name="BusinessControls" xml:space="preserve">
+    <value>業務コントロール</value>
+  </data>
+  <data name="ScoreBpControls" xml:space="preserve">
+    <value>スコア/BP コントロール</value>
+  </data>
+  <data name="FontFamily" xml:space="preserve">
+    <value>フォント</value>
+  </data>
+  <data name="BuiltInFont" xml:space="preserve">
+    <value>組み込みフォント</value>
+  </data>
+  <data name="SystemFont" xml:space="preserve">
+    <value>システムフォント</value>
+  </data>
+  <data name="Placeholder" xml:space="preserve">
+    <value>プレースホルダー</value>
+  </data>
+  <data name="AddedControl" xml:space="preserve">
+    <value>コントロールを追加しました</value>
+  </data>
+  <data name="CannotAddControl" xml:space="preserve">
+    <value>現在コントロールを追加できません。</value>
+  </data>
+  <data name="UnsupportedControlType" xml:space="preserve">
+    <value>未対応のコントロール種類です。</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

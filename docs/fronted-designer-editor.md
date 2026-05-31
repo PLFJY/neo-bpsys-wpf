@@ -1,6 +1,6 @@
 # Fronted Designer v3 独立编辑器设计规格
 
-本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；Phase 8D 已新增编辑器内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调，并在 owner validation 后补齐左侧控件列表、筛选和重叠控件选择语义。Phase 8D zoom/pan 修正后，编辑 surface 不再使用 `Viewbox` 控制 Fit/手动缩放，而是使用 `ScrollViewer + PreviewZoomHost + LayoutTransform`，所有缩放统一由 `ZoomScale` 驱动。Phase 8E 已新增基础 Property Grid，可编辑选中控件的内存设计项并即时重渲染预览；owner validation 后改为按编辑器类型实例化单一模板，提交事件在属性网格重建期间被抑制，验证详情移入底部状态区弹窗，颜色字段使用 ColorPicker。编辑器入口位于 `FrontManagePage`，不是 `SettingPage`。当前仍不实现 Add Control、Binding Browser、Resource Browser、用户布局保存、`.bpui` 迁移，也不移除旧 `config.json` 前台设置。
+本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；Phase 8D 已新增编辑器内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调，并在 owner validation 后补齐左侧控件列表、筛选和重叠控件选择语义。Phase 8D zoom/pan 修正后，编辑 surface 不再使用 `Viewbox` 控制 Fit/手动缩放，而是使用 `ScrollViewer + PreviewZoomHost + LayoutTransform`，所有缩放统一由 `ZoomScale` 驱动。Phase 8E 已新增基础 Property Grid，可编辑选中控件的内存设计项并即时重渲染预览；owner validation 后改为按编辑器类型实例化单一模板，提交事件在属性网格重建期间被抑制，验证详情移入底部状态区弹窗，颜色字段使用 ColorPicker。Phase 8F 已新增 Add Control 菜单、默认 config 工厂、唯一命名和 `FontFamily` 字体 ComboBox。编辑器入口位于 `FrontManagePage`，不是 `SettingPage`。当前仍不实现 Binding Browser、Resource Browser、用户布局保存、`.bpui` 迁移，也不移除旧 `config.json` 前台设置。
 
 独立编辑器面向 v3 JSON layout 文件。它是后台侧的独立编辑窗口，不直接在真实前台窗口上编辑；真实前台窗口仍用于 OBS 捕获和运行时输出。编辑器必须同时支持单 Canvas 窗口和多 Canvas 窗口，并保持与现有 v3 renderer、生成控件名、`AnimationService`、业务控件和 JSON 格式兼容。
 
@@ -326,6 +326,8 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
 | 无绑定和无静态文本的 `Text` | overlay 标签 `[Text]` |
 | 无图片源的 `Image` | overlay 标签 `[Image]` |
 
+Phase 8F 的最小 placeholder 策略是让新增的默认 `Text` / `LocalizedText` 自带可见文本，业务控件尽量给出合法最小配置；空图片或缺少运行时数据的业务控件仍依赖 editor-only hitbox、名称标签和选择框定位。后续如果加入 `DesignerPreviewSharedDataService`，样例数据仍必须只属于编辑器预览，不能写入 layout JSON 或污染运行时共享状态。
+
 `InteractionLayer` 可以显示 fallback overlay 标签，帮助用户定位空控件：
 
 ```text
@@ -337,7 +339,7 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
 
 ## 10. Add Control FlyoutButton
 
-工具栏应提供 WPF-UI `FlyoutButton` 添加控件，并按类别展示内置控件类型。
+Phase 8F 起，工具栏提供 Add Control 按钮和菜单添加控件，并按类别展示内置控件类型。
 
 | 分组 | 控件 |
 | --- | --- |
@@ -357,6 +359,8 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
 6. 打开 property grid。
 7. 标记布局 dirty。
 8. 重新渲染 preview。
+
+当前 Add Control 只修改 `CurrentDocument` 的内存设计项集合，不写入 AppData 或内置 `Resources/FrontedLayouts`。重新打开或 reload 布局仍按现有加载优先级恢复用户/内置布局，直到后续保存阶段实现。`PickingBorderOverlay` 不出现在普通 Add Control 菜单中；它仍是跟随 pick 目标控件的 linked runtime overlay，由宿主布局或未来高级动作维护。
 
 唯一名称示例：
 
@@ -414,7 +418,7 @@ PropertyGrid
 | `ControlType` | read-only |
 | `Name` | 带校验的 `TextBox` |
 | `ZIndex` | `NumberBox` |
-| `FontFamily` | 初期 `TextBox`，后续可做 font picker |
+| `FontFamily` | Phase 8F 起使用可编辑字体 ComboBox |
 
 字符串选项处理：
 
@@ -431,6 +435,15 @@ PropertyGrid
 2. 保存为 `#AARRGGBB`。
 3. 识别属性名：`Color`, `Foreground`, `Background`, `FillColor`, `BorderColor`。
 4. 无效颜色字符串不会让编辑器崩溃；ColorPicker 显示白色 fallback，并由属性行验证错误提示用户修正。
+
+`FontFamily` 编辑器：
+
+1. 使用与旧 `TextSettingsEditControl` 类似的可编辑 `ComboBox`，支持文本搜索。
+2. 每个选项使用自身字体预览显示名。
+3. 系统字体保存普通字体名字符串。
+4. 内置字体保存现有 pack URI 约定，例如 `pack://application:,,,/Assets/Fonts/#Noto Sans`。
+5. 预览内置字体时按运行时同样的 split 逻辑构造 `FontFamily(new Uri(pathBeforeHash), "./" + hashAndName)`，不要把 pack URI 原样传给 `new FontFamily(string)`。
+6. 如果当前值不在选项中，ComboBox 允许手写并按原始字符串提交；无效字体字符串不能让属性网格崩溃。
 
 属性编辑直接修改当前设计项的 `Config`。每次编辑后：
 
@@ -610,7 +623,7 @@ Phase 8A 不实现保存 UI，只记录未来阶段行为。
 | Phase 8C | 已实现：`FrontedDesignerWindow` shell、window/canvas selector、只读 preview surface、缩放控制、layout source 状态和 validator 消息面板 |
 | Phase 8D | 已实现：interaction layer、透明 hitbox、selection adorner、drag、resize、键盘微调；owner validation 后补齐左侧控件列表/筛选、单击选择与拖拽分离、选中 hitbox editor-only 提层、拖拽/缩放时 preview live update、无显式尺寸时使用渲染实际尺寸；仍只改内存，不保存用户布局 |
 | Phase 8E | 已实现：基础 Property Grid、Text/Number/Boolean/Enum/ColorPicker 编辑、对齐/换行/拉伸/字重字符串选项 ComboBox、保守 Name 编辑、运行时关键名称只读、被引用控件改名阻止；owner validation 后验证详情移至底部状态区弹窗，属性重建期间抑制提交，live 拖拽不重建属性网格；仍只改内存，不保存用户布局 |
-| Phase 8F | Add Control FlyoutButton、默认 config factory、设计时 placeholder data |
+| Phase 8F | 已实现：Add Control 菜单、默认 config factory、唯一命名、视口中心放置、基础 placeholder 策略、FontFamily 字体 ComboBox；仍只改内存，不保存用户布局 |
 | Phase 8G | Binding Browser、Resource Browser |
 | Phase 8H | 用户 layout save/reset/load priority、validation-driven save |
 
@@ -618,7 +631,7 @@ Phase 8A 不实现保存 UI，只记录未来阶段行为。
 
 当前编辑器仍不做：
 
-1. 不实现 Add Control、Binding Browser 或 Resource Browser。
+1. 不实现 Binding Browser 或 Resource Browser。
 2. 不保存用户布局，不实现 reset/save-as/open-folder。
 3. 不改变 `FrontedRenderer` 行为。
 4. 不修改 `AnimationService` 查找逻辑。

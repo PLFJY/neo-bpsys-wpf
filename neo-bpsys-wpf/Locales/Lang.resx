@@ -2104,6 +2104,39 @@
   <data name="OpenValidationDetails" xml:space="preserve">
     <value>打开验证详情</value>
   </data>
+  <data name="AddControl" xml:space="preserve">
+    <value>添加控件</value>
+  </data>
+  <data name="BasicControls" xml:space="preserve">
+    <value>基础控件</value>
+  </data>
+  <data name="BusinessControls" xml:space="preserve">
+    <value>业务控件</value>
+  </data>
+  <data name="ScoreBpControls" xml:space="preserve">
+    <value>比分/BP 控件</value>
+  </data>
+  <data name="FontFamily" xml:space="preserve">
+    <value>字体</value>
+  </data>
+  <data name="BuiltInFont" xml:space="preserve">
+    <value>内置字体</value>
+  </data>
+  <data name="SystemFont" xml:space="preserve">
+    <value>系统字体</value>
+  </data>
+  <data name="Placeholder" xml:space="preserve">
+    <value>占位符</value>
+  </data>
+  <data name="AddedControl" xml:space="preserve">
+    <value>已添加控件</value>
+  </data>
+  <data name="CannotAddControl" xml:space="preserve">
+    <value>当前无法添加控件。</value>
+  </data>
+  <data name="UnsupportedControlType" xml:space="preserve">
+    <value>不支持的控件类型。</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

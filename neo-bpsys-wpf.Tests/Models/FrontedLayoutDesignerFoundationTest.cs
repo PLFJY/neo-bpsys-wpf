@@ -2,6 +2,7 @@
 
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
@@ -539,6 +540,143 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.True(item.IsRuntimeCritical);
     }
 
+    [Theory]
+    [InlineData("Text", typeof(TextFrontedControlConfig), 160, 40)]
+    [InlineData("LocalizedText", typeof(LocalizedTextControlConfig), 200, 40)]
+    [InlineData("Image", typeof(ImageFrontedControlConfig), 120, 120)]
+    [InlineData("MapNameText", typeof(MapNameTextControlConfig), 240, 40)]
+    [InlineData("GameProgressText", typeof(GameProgressTextControlConfig), 260, 56)]
+    [InlineData("TalentTraitDisplay", typeof(TalentTraitDisplayControlConfig), 180, 40)]
+    [InlineData("GlobalScoreRow", typeof(GlobalScoreRowControlConfig), 540, 40)]
+    [InlineData("CurrentBanDisplay", typeof(CurrentBanDisplayControlConfig), 70, 36)]
+    [InlineData("BanSlotDisplay", typeof(BanSlotDisplayControlConfig), 48, 48)]
+    [InlineData("MapV2Display", typeof(MapV2DisplayControlConfig), 151, 160)]
+    public void DefaultConfigFactoryCreatesValidAddControlDefaults(
+        string controlType,
+        Type expectedType,
+        double expectedWidth,
+        double expectedHeight)
+    {
+        var document = CreateDocument(
+            [
+                new FrontedControlDesignItem
+                {
+                    Name = "Existing",
+                    Config = new TextFrontedControlConfig { ZIndex = 7 }
+                }
+            ]);
+        var factory = new FrontedControlDefaultConfigFactory();
+
+        var config = factory.Create(controlType, document, 100.25, 100.25);
+
+        Assert.IsType(expectedType, config);
+        Assert.Equal(controlType, config.ControlType);
+        Assert.Equal(expectedWidth, config.Width);
+        Assert.Equal(expectedHeight, config.Height);
+        Assert.Equal(8, config.ZIndex);
+        Assert.Equal(FrontedDesignerGeometryHelper.Snap(config.Left), config.Left);
+        Assert.Equal(FrontedDesignerGeometryHelper.Snap(config.Top), config.Top);
+    }
+
+    [Fact]
+    public void DefaultConfigFactoryDoesNotCreatePickingBorderOverlayFromNormalAddControl()
+    {
+        var factory = new FrontedControlDefaultConfigFactory();
+
+        Assert.False(factory.CanCreate("PickingBorderOverlay"));
+        Assert.Throws<NotSupportedException>(() => factory.Create("PickingBorderOverlay", CreateDocument([])));
+    }
+
+    [Fact]
+    public void DefaultConfigFactoryUsesControlSpecificRecommendedDefaults()
+    {
+        var factory = new FrontedControlDefaultConfigFactory();
+        var document = CreateDocument([]);
+
+        var text = Assert.IsType<TextFrontedControlConfig>(factory.Create("Text", document));
+        Assert.Equal("Text", text.Text);
+        Assert.Equal("#FFFFFFFF", text.Color);
+        Assert.Equal("Center", text.TextAlignment);
+
+        var localizedText = Assert.IsType<LocalizedTextControlConfig>(factory.Create("LocalizedText", document));
+        Assert.Equal("Text", localizedText.LocalizationKey);
+        Assert.Equal("Localized Text", localizedText.FallbackText);
+
+        var talent = Assert.IsType<TalentTraitDisplayControlConfig>(factory.Create("TalentTraitDisplay", document));
+        Assert.Equal(TalentTraitDisplayKind.SurvivorTalent, talent.DisplayKind);
+        Assert.Equal(0, talent.PlayerIndex);
+        Assert.Equal(36, talent.IconSize);
+
+        var globalScore = Assert.IsType<GlobalScoreRowControlConfig>(factory.Create("GlobalScoreRow", document));
+        Assert.Equal(TeamType.HomeTeam, globalScore.TeamType);
+
+        var currentBan = Assert.IsType<CurrentBanDisplayControlConfig>(factory.Create("CurrentBanDisplay", document));
+        Assert.Equal(Camp.Sur, currentBan.Camp);
+        Assert.Equal(0, currentBan.Index);
+
+        var banSlot = Assert.IsType<BanSlotDisplayControlConfig>(factory.Create("BanSlotDisplay", document));
+        Assert.Equal(BanSlotKind.Current, banSlot.SlotKind);
+        Assert.Equal(Camp.Sur, banSlot.Camp);
+
+        var mapV2 = Assert.IsType<MapV2DisplayControlConfig>(factory.Create("MapV2Display", document));
+        Assert.Equal("ArmsFactory", mapV2.MapKey);
+    }
+
+    [Fact]
+    public void ControlNameGeneratorCreatesUniqueNamesAndSkipsLinkedOverlayNames()
+    {
+        var document = CreateDocument(
+            [
+                new FrontedControlDesignItem { Name = "Text1", Config = new TextFrontedControlConfig() },
+                new FrontedControlDesignItem
+                {
+                    Name = "Text2",
+                    IsSelectableInEditor = false,
+                    Config = new PickingBorderOverlayControlConfig { TargetControlName = "Text1" }
+                }
+            ]);
+        var generator = new FrontedControlNameGenerator();
+
+        Assert.Equal("Image1", generator.Generate("Image", document));
+        Assert.Equal("Text3", generator.Generate("Text", document));
+        Assert.Equal("Text1", generator.Generate("Text", CreateDocument([])));
+    }
+
+    [Fact]
+    public void AddControlCommandAddsSelectsMarksDirtyClearsFilterAndRequestsPreview()
+    {
+        var document = CreateDocument(
+            [
+                new FrontedControlDesignItem
+                {
+                    Name = "Title",
+                    Config = new TextFrontedControlConfig { ZIndex = 3 }
+                }
+            ]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.ControlFilterText = "will-hide-new-control";
+        var previewRequests = 0;
+        viewModel.PreviewRenderRequested += (_, _) => previewRequests++;
+
+        viewModel.AddControlCommand.Execute(new FrontedAddControlRequest
+        {
+            ControlType = "Text",
+            CenterX = 300.25,
+            CenterY = 200.25
+        });
+
+        var added = Assert.Single(document.Controls, control => control.Name == "Text1");
+        Assert.IsType<TextFrontedControlConfig>(added.Config);
+        Assert.Same(added, viewModel.SelectedDesignItem);
+        Assert.True(document.IsDirty);
+        Assert.Equal(string.Empty, viewModel.ControlFilterText);
+        Assert.Contains(added, viewModel.FilteredDesignItems);
+        Assert.Equal(4, added.Config.ZIndex);
+        Assert.Equal(220.5, added.Config.Left);
+        Assert.Equal(180.5, added.Config.Top);
+        Assert.True(previewRequests > 0);
+    }
+
     [Fact]
     public void LinkedOverlaySynchronizerCopiesTargetGeometryToPickingBorderOverlay()
     {
@@ -812,6 +950,9 @@ public class FrontedLayoutDesignerFoundationTest
             FrontedPropertyEditorKind.Color,
             textRows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.Color)).EditorKind);
         Assert.Equal(
+            FrontedPropertyEditorKind.FontFamily,
+            textRows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.FontFamily)).EditorKind);
+        Assert.Equal(
             FrontedPropertyEditorKind.Boolean,
             imageRows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorder)).EditorKind);
         Assert.Equal(
@@ -855,6 +996,71 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Equal("#FFFFFFFF", FrontedPropertyColorHelper.ToArgbString(color));
         Assert.False(FrontedPropertyColorHelper.TryParseArgbColor("not-a-color", out var fallback));
         Assert.Equal(FrontedPropertyColorHelper.FallbackColor, fallback);
+    }
+
+    [Fact]
+    public void FontFamilyOptionProviderIncludesSystemAndBuiltInPackUriOptions()
+    {
+        var provider = new FrontedFontFamilyOptionProvider(GetRepositoryPath("neo-bpsys-wpf", "Assets", "Fonts"));
+
+        var options = provider.GetFontFamilyOptions();
+
+        Assert.Contains(options, option => !option.IsBuiltIn);
+        Assert.Contains(
+            options,
+            option => option.IsBuiltIn
+                      && option.Value == "pack://application:,,,/Assets/Fonts/#Noto Sans");
+        Assert.Contains(
+            options,
+            option => option.IsBuiltIn
+                      && option.Value == "pack://application:,,,/Assets/Fonts/#华康POP1体W5");
+    }
+
+    [Fact]
+    public void FontFamilyOptionProviderCreatesBuiltInPreviewWithSplitPackUriLogic()
+    {
+        var provider = new FrontedFontFamilyOptionProvider();
+        const string value = "pack://application:,,,/Assets/Fonts/#Noto Sans";
+
+        var preview = provider.CreatePreviewFontFamily(value);
+
+        Assert.Contains("Noto Sans", preview.Source);
+        Assert.Equal("Noto Sans", provider.GetDisplayName(value));
+        Assert.NotNull(provider.CreatePreviewFontFamily("not a valid font \0 string"));
+    }
+
+    [Fact]
+    public void ApplyPropertyEditStoresBuiltInFontPackUriAndCustomFontRawValue()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig()
+        };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([item])
+        };
+        viewModel.SelectDesignItem(item);
+        const string builtInFont = "pack://application:,,,/Assets/Fonts/#Noto Sans";
+
+        viewModel.ApplyPropertyEdit(
+            new FrontedPropertyEditorItem
+            {
+                PropertyName = nameof(TextFrontedControlConfig.FontFamily),
+                EditorKind = FrontedPropertyEditorKind.FontFamily
+            },
+            builtInFont);
+        Assert.Equal(builtInFont, ((TextFrontedControlConfig)item.Config).FontFamily);
+
+        viewModel.ApplyPropertyEdit(
+            new FrontedPropertyEditorItem
+            {
+                PropertyName = nameof(TextFrontedControlConfig.FontFamily),
+                EditorKind = FrontedPropertyEditorKind.FontFamily
+            },
+            "Custom Font Name");
+        Assert.Equal("Custom Font Name", ((TextFrontedControlConfig)item.Config).FontFamily);
     }
 
     [Fact]
@@ -1206,7 +1412,18 @@ public class FrontedLayoutDesignerFoundationTest
             "EditProperty",
             "Color",
             "ValidationDetails",
-            "OpenValidationDetails"
+            "OpenValidationDetails",
+            "AddControl",
+            "BasicControls",
+            "BusinessControls",
+            "ScoreBpControls",
+            "FontFamily",
+            "BuiltInFont",
+            "SystemFont",
+            "Placeholder",
+            "AddedControl",
+            "CannotAddControl",
+            "UnsupportedControlType"
         };
 
         foreach (var fileName in new[] { "Lang.resx", "Lang.en-us.resx", "Lang.ja-jp.resx" })
@@ -1272,6 +1489,10 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("DesignSurfaceGrid", text);
         Assert.Contains("PropertyEditorContentControlStyle", text);
         Assert.Contains("OpenValidationDetails_OnClick", text);
+        Assert.Contains("AddControlButton_OnClick", text);
+        Assert.Contains("AddControlMenuItem_OnClick", text);
+        Assert.Contains("PropertyFontFamilyEditorTemplate", text);
+        Assert.Contains("PropertyFontComboBox_OnSelectionChanged", text);
         Assert.DoesNotContain("ItemsSource=\"{Binding ValidationMessages}\"", text);
     }
 

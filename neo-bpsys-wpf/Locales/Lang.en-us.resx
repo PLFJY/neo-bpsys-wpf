@@ -2086,6 +2086,39 @@
   <data name="OpenValidationDetails" xml:space="preserve">
     <value>Open validation details</value>
   </data>
+  <data name="AddControl" xml:space="preserve">
+    <value>Add control</value>
+  </data>
+  <data name="BasicControls" xml:space="preserve">
+    <value>Basic controls</value>
+  </data>
+  <data name="BusinessControls" xml:space="preserve">
+    <value>Business controls</value>
+  </data>
+  <data name="ScoreBpControls" xml:space="preserve">
+    <value>Score/BP controls</value>
+  </data>
+  <data name="FontFamily" xml:space="preserve">
+    <value>Font family</value>
+  </data>
+  <data name="BuiltInFont" xml:space="preserve">
+    <value>Built-in font</value>
+  </data>
+  <data name="SystemFont" xml:space="preserve">
+    <value>System font</value>
+  </data>
+  <data name="Placeholder" xml:space="preserve">
+    <value>Placeholder</value>
+  </data>
+  <data name="AddedControl" xml:space="preserve">
+    <value>Added control</value>
+  </data>
+  <data name="CannotAddControl" xml:space="preserve">
+    <value>Cannot add a control right now.</value>
+  </data>
+  <data name="UnsupportedControlType" xml:space="preserve">
+    <value>Unsupported control type.</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

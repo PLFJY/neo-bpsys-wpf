@@ -142,6 +142,51 @@ public partial class FrontedDesignerWindow : FluentWindow
         ApplyPropertyEditorValue(sender);
     }
 
+    private void PropertyFontComboBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ComboBox comboBox || !comboBox.IsKeyboardFocusWithin)
+        {
+            return;
+        }
+
+        ApplyFontComboBoxValue(comboBox);
+    }
+
+    private void PropertyFontComboBox_OnLostFocus(object sender, RoutedEventArgs e)
+    {
+        if (sender is ComboBox comboBox)
+        {
+            ApplyFontComboBoxValue(comboBox);
+        }
+    }
+
+    private void PropertyFontComboBox_OnKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter || sender is not ComboBox comboBox)
+        {
+            return;
+        }
+
+        ApplyFontComboBoxValue(comboBox);
+        FocusDesignSurface();
+        e.Handled = true;
+    }
+
+    private void ApplyFontComboBoxValue(ComboBox comboBox)
+    {
+        if (IsPropertyEditorCommitSuppressed()
+            || _viewModel is null
+            || comboBox.DataContext is not FrontedPropertyEditorItem item)
+        {
+            return;
+        }
+
+        item.Value = comboBox.SelectedItem is FrontedFontFamilyOption option
+            ? option.Value
+            : comboBox.Text;
+        _viewModel.ApplyPropertyEdit(item, item.Value);
+    }
+
     private void PropertyColorPicker_OnLoaded(object sender, RoutedEventArgs e)
     {
         if (sender is not DependencyObject picker)
@@ -267,6 +312,33 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
 
         _validationDetailsWindow.Activate();
+    }
+
+    private void AddControlButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (AddControlButton.ContextMenu is null)
+        {
+            return;
+        }
+
+        AddControlButton.ContextMenu.PlacementTarget = AddControlButton;
+        AddControlButton.ContextMenu.IsOpen = true;
+    }
+
+    private void AddControlMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel is null || sender is not System.Windows.Controls.MenuItem { Tag: string controlType })
+        {
+            return;
+        }
+
+        _viewModel.AddControlCommand.Execute(new FrontedAddControlRequest
+        {
+            ControlType = controlType,
+            CenterX = GetViewportCenterX(),
+            CenterY = GetViewportCenterY()
+        });
+        FocusDesignSurface();
     }
 
     private void OnPreviewRenderRequested(
@@ -1028,6 +1100,28 @@ public partial class FrontedDesignerWindow : FluentWindow
     private void FocusDesignSurface()
     {
         InteractionLayer.Focus();
+    }
+
+    private double? GetViewportCenterX()
+    {
+        if (_viewModel?.CurrentDocument is null || _viewModel.ZoomScale <= 0D)
+        {
+            return null;
+        }
+
+        var value = (PreviewScrollViewer.HorizontalOffset + PreviewScrollViewer.ViewportWidth / 2D) / _viewModel.ZoomScale;
+        return double.IsFinite(value) ? value : null;
+    }
+
+    private double? GetViewportCenterY()
+    {
+        if (_viewModel?.CurrentDocument is null || _viewModel.ZoomScale <= 0D)
+        {
+            return null;
+        }
+
+        var value = (PreviewScrollViewer.VerticalOffset + PreviewScrollViewer.ViewportHeight / 2D) / _viewModel.ZoomScale;
+        return double.IsFinite(value) ? value : null;
     }
 
     private static Cursor GetCursor(FrontedDesignerResizeHandleKind handle)

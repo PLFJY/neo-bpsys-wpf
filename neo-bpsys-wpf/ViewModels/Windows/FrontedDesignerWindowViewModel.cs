@@ -31,6 +31,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly FrontedLayoutValidator _validator;
     private readonly FrontedLayoutReferenceScanner _referenceScanner;
     private readonly FrontedPropertyGridBuilder _propertyGridBuilder;
+    private readonly FrontedControlDefaultConfigFactory _defaultConfigFactory;
+    private readonly FrontedControlNameGenerator _controlNameGenerator;
     private readonly ILogger<FrontedDesignerWindowViewModel> _logger;
     private readonly Dictionary<string, string> _propertyEditErrors = new(StringComparer.Ordinal);
     private IReadOnlyList<FrontedLayoutValidationMessage> _lastValidationMessages = [];
@@ -52,6 +54,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             runtimeContracts: _runtimeContracts,
             referenceScanner: _referenceScanner);
         _propertyGridBuilder = new FrontedPropertyGridBuilder();
+        _defaultConfigFactory = new FrontedControlDefaultConfigFactory();
+        _controlNameGenerator = new FrontedControlNameGenerator();
         _logger = NullLogger<FrontedDesignerWindowViewModel>.Instance;
         InitializeZoomPresets();
     }
@@ -64,6 +68,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         FrontedLayoutValidator validator,
         FrontedLayoutReferenceScanner referenceScanner,
         FrontedPropertyGridBuilder propertyGridBuilder,
+        FrontedControlDefaultConfigFactory defaultConfigFactory,
+        FrontedControlNameGenerator controlNameGenerator,
         ILogger<FrontedDesignerWindowViewModel> logger)
     {
         _layoutService = layoutService;
@@ -72,6 +78,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _validator = validator;
         _referenceScanner = referenceScanner;
         _propertyGridBuilder = propertyGridBuilder;
+        _defaultConfigFactory = defaultConfigFactory;
+        _controlNameGenerator = controlNameGenerator;
         _logger = logger;
 
         foreach (var group in layoutCatalog.GetEntries()
@@ -326,6 +334,52 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             ApplyZoomPreset(fitPreset);
         }
+    }
+
+    [RelayCommand]
+    private void AddControl(object? parameter)
+    {
+        if (CurrentDocument is null)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("CannotAddControl");
+            return;
+        }
+
+        var request = parameter as FrontedAddControlRequest;
+        var controlType = request?.ControlType ?? Convert.ToString(parameter, CultureInfo.InvariantCulture);
+        if (string.IsNullOrWhiteSpace(controlType) || !_defaultConfigFactory.CanCreate(controlType))
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("UnsupportedControlType");
+            return;
+        }
+
+        var config = _defaultConfigFactory.Create(
+            controlType,
+            CurrentDocument,
+            request?.CenterX,
+            request?.CenterY);
+        var item = new FrontedControlDesignItem
+        {
+            Name = _controlNameGenerator.Generate(controlType, CurrentDocument),
+            Config = config,
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true
+        };
+
+        item.IsRuntimeCritical = _runtimeContracts.IsRuntimeCritical(
+            CurrentDocument.WindowTypeName,
+            CurrentDocument.CanvasName,
+            item.Name);
+
+        CurrentDocument.Controls.Add(item);
+        CurrentDocument.IsDirty = true;
+        DirtyIndicatorText = "●";
+        ControlFilterText = string.Empty;
+        RebuildFilteredDesignItems();
+        SelectDesignItem(item);
+        ValidateCurrentDocument();
+        RequestPreviewRenderCurrentDocument();
+        StatusMessage = $"{I18nHelper.GetLocalizedString("AddedControl")}: {item.Name}";
     }
 
     /// <summary>

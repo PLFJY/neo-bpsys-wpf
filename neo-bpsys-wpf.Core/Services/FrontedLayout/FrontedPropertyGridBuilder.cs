@@ -12,6 +12,24 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 /// </summary>
 public class FrontedPropertyGridBuilder
 {
+    private readonly FrontedFontFamilyOptionProvider _fontFamilyOptionProvider;
+
+    /// <summary>
+    /// Initializes a property grid builder with default font options.
+    /// </summary>
+    public FrontedPropertyGridBuilder()
+        : this(new FrontedFontFamilyOptionProvider())
+    {
+    }
+
+    /// <summary>
+    /// Initializes a property grid builder with a custom font option provider.
+    /// </summary>
+    public FrontedPropertyGridBuilder(FrontedFontFamilyOptionProvider fontFamilyOptionProvider)
+    {
+        _fontFamilyOptionProvider = fontFamilyOptionProvider;
+    }
+
     private static readonly HashSet<string> CommonPropertyNames = new(StringComparer.Ordinal)
     {
         nameof(FrontedControlConfigBase.Left),
@@ -152,7 +170,7 @@ public class FrontedPropertyGridBuilder
         }
     }
 
-    private static void AddConfigRows(
+    private void AddConfigRows(
         ICollection<FrontedPropertyEditorItem> rows,
         FrontedControlDesignItem selectedItem,
         IReadOnlyList<FrontedLayoutValidationMessage> messages)
@@ -232,6 +250,12 @@ public class FrontedPropertyGridBuilder
             return FrontedPropertyEditorKind.Color;
         }
 
+        if (property.PropertyType == typeof(string)
+            && string.Equals(property.Name, "FontFamily", StringComparison.Ordinal))
+        {
+            return FrontedPropertyEditorKind.FontFamily;
+        }
+
         if (property.PropertyType == typeof(string) && StringOptionProperties.ContainsKey(property.Name))
         {
             return FrontedPropertyEditorKind.Enum;
@@ -257,8 +281,13 @@ public class FrontedPropertyGridBuilder
             : FrontedPropertyEditorKind.ReadOnly;
     }
 
-    private static IReadOnlyList<object>? ResolveOptions(PropertyInfo property, FrontedPropertyEditorKind kind)
+    private IReadOnlyList<object>? ResolveOptions(PropertyInfo property, FrontedPropertyEditorKind kind)
     {
+        if (kind == FrontedPropertyEditorKind.FontFamily)
+        {
+            return _fontFamilyOptionProvider.GetFontFamilyOptions().Cast<object>().ToArray();
+        }
+
         if (kind != FrontedPropertyEditorKind.Enum)
         {
             return null;
