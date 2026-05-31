@@ -2002,6 +2002,18 @@
   <data name="Preview" xml:space="preserve">
     <value>Preview</value>
   </data>
+  <data name="SelectedControl" xml:space="preserve">
+    <value>Selected Control</value>
+  </data>
+  <data name="NoControlSelected" xml:space="preserve">
+    <value>No control selected</value>
+  </data>
+  <data name="RuntimeCriticalControl" xml:space="preserve">
+    <value>Runtime-critical control</value>
+  </data>
+  <data name="ValidationMessages" xml:space="preserve">
+    <value>Validation messages</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

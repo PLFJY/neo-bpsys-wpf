@@ -2020,6 +2020,18 @@
   <data name="Preview" xml:space="preserve">
     <value>预览</value>
   </data>
+  <data name="SelectedControl" xml:space="preserve">
+    <value>选中控件</value>
+  </data>
+  <data name="NoControlSelected" xml:space="preserve">
+    <value>未选中控件</value>
+  </data>
+  <data name="RuntimeCriticalControl" xml:space="preserve">
+    <value>系统关键控件</value>
+  </data>
+  <data name="ValidationMessages" xml:space="preserve">
+    <value>校验消息</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

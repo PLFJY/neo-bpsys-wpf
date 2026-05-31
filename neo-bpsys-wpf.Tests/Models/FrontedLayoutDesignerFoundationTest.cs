@@ -355,6 +355,131 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Equal(config.CanvasHeight, document.CanvasConfig.CanvasHeight);
     }
 
+    [Theory]
+    [InlineData(10.24, 10)]
+    [InlineData(10.25, 10.5)]
+    [InlineData(10.75, 11)]
+    public void DesignerGeometryHelperSnapsToHalfStep(double value, double expected)
+    {
+        Assert.Equal(expected, FrontedDesignerGeometryHelper.Snap(value));
+    }
+
+    [Fact]
+    public void DesignerGeometryHelperMovesControlAndMarksDocumentDirty()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Left = 10, Top = 20 }
+        };
+        var document = CreateDocument([item]);
+
+        FrontedDesignerGeometryHelper.Move(item, 10, 20, 0.24, 0.25, document);
+
+        Assert.Equal(10, item.Config.Left);
+        Assert.Equal(20.5, item.Config.Top);
+        Assert.True(document.IsDirty);
+    }
+
+    [Fact]
+    public void DesignerGeometryHelperResizesRightBottomAndClampsMinimum()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Image",
+            Config = new ImageFrontedControlConfig
+            {
+                Left = 10,
+                Top = 20,
+                Width = 50,
+                Height = 40
+            }
+        };
+        var document = CreateDocument([item]);
+
+        FrontedDesignerGeometryHelper.Resize(
+            item,
+            FrontedDesignerResizeHandleKind.BottomRight,
+            10,
+            20,
+            50,
+            40,
+            -100,
+            -100,
+            document);
+
+        Assert.Equal(10, item.Config.Left);
+        Assert.Equal(20, item.Config.Top);
+        Assert.Equal(1, item.Config.Width);
+        Assert.Equal(1, item.Config.Height);
+        Assert.True(document.IsDirty);
+    }
+
+    [Fact]
+    public void DesignerGeometryHelperLeftTopResizeUpdatesPositionAndSize()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Image",
+            Config = new ImageFrontedControlConfig
+            {
+                Left = 10,
+                Top = 20,
+                Width = 50,
+                Height = 40
+            }
+        };
+
+        FrontedDesignerGeometryHelper.Resize(
+            item,
+            FrontedDesignerResizeHandleKind.TopLeft,
+            10,
+            20,
+            50,
+            40,
+            5.25,
+            -4.75);
+
+        Assert.Equal(15.5, item.Config.Left);
+        Assert.Equal(15.5, item.Config.Top);
+        Assert.Equal(45, item.Config.Width);
+        Assert.Equal(45, item.Config.Height);
+    }
+
+    [Fact]
+    public void DesignerGeometryHelperUsesFallbackSizeWhenResizingControlWithoutSize()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Left = 10, Top = 20 }
+        };
+
+        FrontedDesignerGeometryHelper.ResizeBy(
+            item,
+            FrontedDesignerResizeHandleKind.Right,
+            12,
+            0);
+
+        Assert.Equal(52, item.Config.Width);
+        Assert.Equal(24, item.Config.Height);
+    }
+
+    [Fact]
+    public void DesignerGeometryHelperKeepsRuntimeCriticalFlagAfterMove()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "SurPick0",
+            IsRuntimeCritical = true,
+            Config = new ImageFrontedControlConfig { Left = 10, Top = 20 }
+        };
+
+        FrontedDesignerGeometryHelper.MoveBy(item, 1, 1);
+
+        Assert.True(item.IsRuntimeCritical);
+    }
+
     [Fact]
     public void FrontedDesignerLocalizationKeysExistInAllResxFiles()
     {
@@ -379,7 +504,11 @@ public class FrontedLayoutDesignerFoundationTest
             "ZoomOut",
             "FitToWindow",
             "Fit",
-            "Preview"
+            "Preview",
+            "SelectedControl",
+            "NoControlSelected",
+            "RuntimeCriticalControl",
+            "ValidationMessages"
         };
 
         foreach (var fileName in new[] { "Lang.resx", "Lang.en-us.resx", "Lang.ja-jp.resx" })
@@ -437,6 +566,8 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("<Viewbox", text);
         Assert.Contains("ZoomPresets", text);
         Assert.Contains("FitToWindowCommand", text);
+        Assert.Contains("InteractionLayer", text);
+        Assert.Contains("DesignSurfaceGrid", text);
     }
 
     [Fact]

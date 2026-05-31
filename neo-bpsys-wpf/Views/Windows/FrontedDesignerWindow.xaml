@@ -96,38 +96,66 @@
                     Margin="12,0,0,0"
                     VerticalAlignment="Center"
                     Text="{Binding ZoomDisplay}" />
-                <StackPanel
+                <Grid
                     Grid.Column="5"
                     Margin="16,0,0,0"
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal">
-                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc Zoom}" />
+                    VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Text="{lex:Loc Zoom}" />
                     <ui:Button
+                        Grid.Column="1"
                         Margin="8,0,0,0"
                         Command="{Binding ZoomOutCommand}"
                         Icon="{ui:SymbolIcon Symbol=Subtract24}"
                         ToolTip="{lex:Loc ZoomOut}" />
                     <ComboBox
+                        Grid.Column="2"
                         Width="90"
                         Margin="8,0,0,0"
                         DisplayMemberPath="DisplayName"
                         ItemsSource="{Binding ZoomPresets}"
                         SelectedItem="{Binding SelectedZoomPreset}" />
                     <ui:Button
+                        Grid.Column="3"
                         Margin="8,0,0,0"
                         Command="{Binding ZoomInCommand}"
                         Icon="{ui:SymbolIcon Symbol=Add24}"
                         ToolTip="{lex:Loc ZoomIn}" />
                     <ui:Button
+                        Grid.Column="4"
                         Margin="8,0,12,0"
                         Command="{Binding FitToWindowCommand}"
                         Content="{lex:Loc Fit}"
                         Icon="{ui:SymbolIcon Symbol=FullScreenMaximize24}"
                         ToolTip="{lex:Loc FitToWindow}" />
-                    <TextBlock Text="{lex:Loc LayoutSource}" />
-                    <TextBlock Margin="8,0,0,0" Text="{Binding LayoutSourceDisplay}" />
-                    <TextBlock Margin="8,0,0,0" Text="{Binding LayoutSourcePath}" />
-                </StackPanel>
+                    <TextBlock
+                        Grid.Column="5"
+                        VerticalAlignment="Center"
+                        Text="{lex:Loc LayoutSource}" />
+                    <TextBlock
+                        Grid.Column="6"
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"
+                        Text="{Binding LayoutSourceDisplay}" />
+                    <TextBox
+                        Grid.Column="7"
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"
+                        IsReadOnly="True"
+                        Text="{Binding LayoutSourcePath}" />
+                </Grid>
                 <TextBlock
                     Grid.Column="6"
                     Margin="12,0,0,0"
@@ -170,12 +198,33 @@
                                 <Border.LayoutTransform>
                                     <ScaleTransform ScaleX="{Binding ZoomScale}" ScaleY="{Binding ZoomScale}" />
                                 </Border.LayoutTransform>
-                                <Canvas
-                                    x:Name="PreviewCanvas"
-                                    Width="640"
-                                    Height="360"
+                                <Grid
+                                    x:Name="DesignSurfaceGrid"
+                                    Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=640}"
+                                    Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=360}"
                                     ClipToBounds="True"
-                                    SnapsToDevicePixels="True" />
+                                    Focusable="True"
+                                    KeyDown="DesignSurface_OnKeyDown"
+                                    MouseLeftButtonDown="DesignSurface_OnMouseLeftButtonDown"
+                                    SnapsToDevicePixels="True">
+                                    <Canvas
+                                        x:Name="PreviewCanvas"
+                                        Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=640}"
+                                        Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=360}"
+                                        ClipToBounds="True"
+                                        SnapsToDevicePixels="True" />
+                                    <Canvas
+                                        x:Name="InteractionLayer"
+                                        Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=640}"
+                                        Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=360}"
+                                        Background="Transparent"
+                                        Focusable="True"
+                                        IsHitTestVisible="True"
+                                        KeyDown="DesignSurface_OnKeyDown"
+                                        MouseLeftButtonDown="InteractionLayer_OnMouseLeftButtonDown"
+                                        MouseLeftButtonUp="InteractionLayer_OnMouseLeftButtonUp"
+                                        MouseMove="InteractionLayer_OnMouseMove" />
+                                </Grid>
                             </Border>
                         </Viewbox>
                     </Grid>
@@ -194,14 +243,38 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
+                    <StackPanel>
+                        <TextBlock
+                            FontSize="18"
+                            FontWeight="SemiBold"
+                            Text="{lex:Loc SelectedControl}" />
+                        <TextBlock
+                            Margin="0,8,0,0"
+                            FontWeight="SemiBold"
+                            Text="{Binding SelectedControlDisplay}" />
+                        <TextBlock Margin="0,4,0,0" Text="{Binding SelectedControlTypeDisplay}" />
+                        <TextBlock Margin="0,4,0,0" Text="{Binding SelectedControlGeometryDisplay}" />
+                        <TextBlock
+                            Margin="0,4,0,0"
+                            FontWeight="SemiBold"
+                            Text="{Binding SelectedControlRuntimeCriticalDisplay}" />
+                        <TextBlock Margin="0,4,0,0">
+                            <Run Text="{lex:Loc ValidationMessages}" />
+                            <Run Text=": " />
+                            <Run Text="{Binding SelectedControlValidationMessageCount, Mode=OneWay}" />
+                        </TextBlock>
+                    </StackPanel>
                     <TextBlock
+                        Grid.Row="1"
+                        Margin="0,16,0,0"
                         FontSize="18"
                         FontWeight="SemiBold"
                         Text="{lex:Loc Validation}" />
                     <UniformGrid
-                        Grid.Row="1"
+                        Grid.Row="2"
                         Margin="0,12,0,12"
                         Columns="3">
                         <StackPanel>
@@ -218,18 +291,33 @@
                         </StackPanel>
                     </UniformGrid>
                     <DataGrid
-                        Grid.Row="2"
+                        Grid.Row="3"
                         AutoGenerateColumns="False"
                         CanUserAddRows="False"
                         HeadersVisibility="Column"
                         IsReadOnly="True"
                         ItemsSource="{Binding ValidationMessages}">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Binding="{Binding Severity}" Header="Severity" Width="70" />
-                            <DataGridTextColumn Binding="{Binding Code}" Header="Code" Width="110" />
-                            <DataGridTextColumn Binding="{Binding ControlName}" Header="Control" Width="90" />
-                            <DataGridTextColumn Binding="{Binding PropertyName}" Header="Property" Width="90" />
-                            <DataGridTextColumn Binding="{Binding Message}" Header="Message" Width="240" />
+                            <DataGridTextColumn
+                                Width="70"
+                                Binding="{Binding Severity}"
+                                Header="Severity" />
+                            <DataGridTextColumn
+                                Width="110"
+                                Binding="{Binding Code}"
+                                Header="Code" />
+                            <DataGridTextColumn
+                                Width="90"
+                                Binding="{Binding ControlName}"
+                                Header="Control" />
+                            <DataGridTextColumn
+                                Width="90"
+                                Binding="{Binding PropertyName}"
+                                Header="Property" />
+                            <DataGridTextColumn
+                                Width="240"
+                                Binding="{Binding Message}"
+                                Header="Message" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
@@ -243,9 +331,7 @@
             BorderThickness="0,1,0,0">
             <DockPanel LastChildFill="True">
                 <TextBlock DockPanel.Dock="Left" Text="{Binding StatusMessage}" />
-                <TextBlock
-                    HorizontalAlignment="Right"
-                    Text="{Binding CurrentWindowCanvasDisplay}" />
+                <TextBlock HorizontalAlignment="Right" Text="{Binding CurrentWindowCanvasDisplay}" />
             </DockPanel>
         </Border>
     </Grid>

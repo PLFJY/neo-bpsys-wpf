@@ -117,6 +117,27 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private FrontedDesignerZoomPreset? _selectedZoomPreset;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelectedDesignItem))]
+    private FrontedControlDesignItem? _selectedDesignItem;
+
+    public bool HasSelectedDesignItem => SelectedDesignItem is not null;
+
+    [ObservableProperty]
+    private string _selectedControlDisplay = string.Empty;
+
+    [ObservableProperty]
+    private string _selectedControlTypeDisplay = string.Empty;
+
+    [ObservableProperty]
+    private string _selectedControlGeometryDisplay = string.Empty;
+
+    [ObservableProperty]
+    private string _selectedControlRuntimeCriticalDisplay = string.Empty;
+
+    [ObservableProperty]
+    private int _selectedControlValidationMessageCount;
+
+    [ObservableProperty]
     private int _errorCount;
 
     [ObservableProperty]
@@ -189,6 +210,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 _runtimeContracts);
 
             CurrentDocument = document;
+            SelectDesignItem(null);
             ApplyValidationMessages(_validator.Validate(document));
             RequestPreviewRender(config, entry);
         }
@@ -216,7 +238,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
-        ApplyValidationMessages(_validator.Validate(CurrentDocument));
+        ValidateCurrentDocument();
     }
 
     [RelayCommand]
@@ -262,6 +284,97 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         StatusMessage = exception.Message;
     }
 
+    public void SelectDesignItem(FrontedControlDesignItem? item)
+    {
+        if (CurrentDocument is not null)
+        {
+            foreach (var control in CurrentDocument.Controls)
+            {
+                control.IsSelected = ReferenceEquals(control, item);
+            }
+        }
+
+        SelectedDesignItem = item;
+        RefreshSelectedControlDisplay();
+    }
+
+    public void ClearSelection()
+    {
+        SelectDesignItem(null);
+    }
+
+    public void MoveSelectedDesignItem(
+        double originalLeft,
+        double originalTop,
+        double deltaX,
+        double deltaY,
+        bool renderPreview)
+    {
+        if (CurrentDocument is null || SelectedDesignItem is null)
+        {
+            return;
+        }
+
+        FrontedDesignerGeometryHelper.Move(
+            SelectedDesignItem,
+            originalLeft,
+            originalTop,
+            deltaX,
+            deltaY,
+            CurrentDocument);
+        OnDesignItemGeometryChanged(renderPreview);
+    }
+
+    public void MoveSelectedDesignItemBy(double deltaX, double deltaY)
+    {
+        if (CurrentDocument is null || SelectedDesignItem is null)
+        {
+            return;
+        }
+
+        FrontedDesignerGeometryHelper.MoveBy(SelectedDesignItem, deltaX, deltaY, CurrentDocument);
+        OnDesignItemGeometryChanged(renderPreview: true);
+    }
+
+    public void ResizeSelectedDesignItem(
+        FrontedDesignerResizeHandleKind handle,
+        double originalLeft,
+        double originalTop,
+        double originalWidth,
+        double originalHeight,
+        double deltaX,
+        double deltaY,
+        bool renderPreview)
+    {
+        if (CurrentDocument is null || SelectedDesignItem is null)
+        {
+            return;
+        }
+
+        FrontedDesignerGeometryHelper.Resize(
+            SelectedDesignItem,
+            handle,
+            originalLeft,
+            originalTop,
+            originalWidth,
+            originalHeight,
+            deltaX,
+            deltaY,
+            CurrentDocument);
+        OnDesignItemGeometryChanged(renderPreview);
+    }
+
+    public void CommitDesignItemGeometryEdit()
+    {
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        ValidateCurrentDocument();
+        RequestPreviewRenderCurrentDocument();
+    }
+
     private void ResolveLayoutSource(FrontedDesignerLayoutCatalogEntry entry)
     {
         var userPath = _layoutService.GetUserLayoutPath(entry.WindowTypeName, entry.CanvasName);
@@ -287,6 +400,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private void ClearLoadedLayout(FrontedLayoutValidationMessage message)
     {
         CurrentDocument = null;
+        SelectDesignItem(null);
         ApplyValidationMessages([message]);
         RequestPreviewRender(null, SelectedCanvas);
     }
@@ -307,6 +421,65 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             $"{I18nHelper.GetLocalizedString("Errors")}: {ErrorCount}  "
             + $"{I18nHelper.GetLocalizedString("Warnings")}: {WarningCount}  "
             + $"{I18nHelper.GetLocalizedString("Infos")}: {InfoCount}";
+        RefreshSelectedControlDisplay();
+    }
+
+    private void ValidateCurrentDocument()
+    {
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        ApplyValidationMessages(_validator.Validate(CurrentDocument));
+    }
+
+    private void OnDesignItemGeometryChanged(bool renderPreview)
+    {
+        DirtyIndicatorText = CurrentDocument?.IsDirty == true ? "●" : "○";
+        RefreshSelectedControlDisplay();
+        ValidateCurrentDocument();
+
+        if (renderPreview)
+        {
+            RequestPreviewRenderCurrentDocument();
+        }
+    }
+
+    private void RequestPreviewRenderCurrentDocument()
+    {
+        if (CurrentDocument is null)
+        {
+            RequestPreviewRender(null, SelectedCanvas);
+            return;
+        }
+
+        RequestPreviewRender(_designConverter.ToConfig(CurrentDocument), SelectedCanvas);
+    }
+
+    private void RefreshSelectedControlDisplay()
+    {
+        if (SelectedDesignItem is null)
+        {
+            SelectedControlDisplay = I18nHelper.GetLocalizedString("NoControlSelected");
+            SelectedControlTypeDisplay = string.Empty;
+            SelectedControlGeometryDisplay = string.Empty;
+            SelectedControlRuntimeCriticalDisplay = string.Empty;
+            SelectedControlValidationMessageCount = 0;
+            return;
+        }
+
+        var config = SelectedDesignItem.Config;
+        SelectedControlDisplay = SelectedDesignItem.Name;
+        SelectedControlTypeDisplay = config.ControlType;
+        SelectedControlGeometryDisplay =
+            $"L {config.Left:0.##}  T {config.Top:0.##}  "
+            + $"W {(config.Width?.ToString("0.##") ?? "-")}  "
+            + $"H {(config.Height?.ToString("0.##") ?? "-")}";
+        SelectedControlRuntimeCriticalDisplay = SelectedDesignItem.IsRuntimeCritical
+            ? I18nHelper.GetLocalizedString("RuntimeCriticalControl")
+            : string.Empty;
+        SelectedControlValidationMessageCount = SelectedDesignItem.ValidationMessages.Count;
     }
 
     private void RequestPreviewRender(FrontedCanvasConfig? config, FrontedDesignerLayoutCatalogEntry? entry)

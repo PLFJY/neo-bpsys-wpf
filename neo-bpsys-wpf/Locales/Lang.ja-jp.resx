@@ -2005,6 +2005,18 @@
   <data name="Preview" xml:space="preserve">
     <value>プレビュー</value>
   </data>
+  <data name="SelectedControl" xml:space="preserve">
+    <value>選択中のコントロール</value>
+  </data>
+  <data name="NoControlSelected" xml:space="preserve">
+    <value>コントロール未選択</value>
+  </data>
+  <data name="RuntimeCriticalControl" xml:space="preserve">
+    <value>実行時重要コントロール</value>
+  </data>
+  <data name="ValidationMessages" xml:space="preserve">
+    <value>検証メッセージ</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>
