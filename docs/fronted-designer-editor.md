@@ -1,6 +1,6 @@
 # Fronted Designer v3 独立编辑器设计规格
 
-本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；Phase 8D 已新增编辑器内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调，并在 owner validation 后补齐左侧控件列表、筛选和重叠控件选择语义。Phase 8D zoom/pan 修正后，编辑 surface 不再使用 `Viewbox` 控制 Fit/手动缩放，而是使用 `ScrollViewer + PreviewZoomHost + LayoutTransform`，所有缩放统一由 `ZoomScale` 驱动。Phase 8E 已新增基础 Property Grid，可编辑选中控件的内存设计项并即时重渲染预览；owner validation 后改为按编辑器类型实例化单一模板，提交事件在属性网格重建期间被抑制，验证详情移入底部状态区弹窗，颜色字段使用 ColorPicker。Phase 8F 已新增 Add Control 菜单、默认 config 工厂、唯一命名和 `FontFamily` 字体 ComboBox；owner validation 修正后补齐 Delete Control、文本属性显式提交、失败编辑红框保留输入、字体下拉打开/提交时机修复和右侧 Property Grid 可拖拽宽度。Phase 8F foundation 修复后，设计器预览使用独立 placeholder shared data service，颜色选择只同步 Hex 缓冲并由 Apply/Enter 显式提交，左侧列表右键和 Property Grid 底部都可删除控件，并新增内存 Undo/Redo 按钮和快捷键。Phase 8G 已新增 Binding Browser 和 Resource Browser；浏览器选择只写入属性行 `EditText` 缓冲，仍需 Apply 或 Enter 才提交到内存设计文档。Phase 8H 已新增保存用户布局、重置为内置、打开布局目录、运行时用户布局优先级、脏状态提示和吸附开关。编辑器入口位于 `FrontManagePage`，不是 `SettingPage`。当前仍不实现 `.bpui` 迁移，也不移除旧 `config.json` 前台设置。
+本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；Phase 8D 已新增编辑器内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调，并在 owner validation 后补齐左侧控件列表、筛选和重叠控件选择语义。Phase 8D zoom/pan 修正后，编辑 surface 不再使用 `Viewbox` 控制 Fit/手动缩放，而是使用 `ScrollViewer + PreviewZoomHost + LayoutTransform`，所有缩放统一由 `ZoomScale` 驱动。Phase 8E 已新增基础 Property Grid，可编辑选中控件的内存设计项并即时重渲染预览；owner validation 后改为按编辑器类型实例化单一模板，提交事件在属性网格重建期间被抑制，验证详情移入底部状态区弹窗，颜色字段使用 ColorPicker。Phase 8F 已新增 Add Control 菜单、默认 config 工厂、唯一命名和 `FontFamily` 字体 ComboBox；owner validation 修正后补齐 Delete Control、文本属性显式提交、失败编辑红框保留输入、字体下拉打开/提交时机修复和右侧 Property Grid 可拖拽宽度。Phase 8F foundation 修复后，设计器预览使用独立 placeholder shared data service，颜色选择只同步 Hex 缓冲并由 Apply/Enter 显式提交，左侧列表右键和 Property Grid 底部都可删除控件，并新增内存 Undo/Redo 按钮和快捷键。Phase 8G 已新增 Binding Browser 和 Resource Browser；浏览器选择只写入属性行 `EditText` 缓冲，仍需 Apply 或 Enter 才提交到内存设计文档。Phase 8H 已新增保存用户布局、重置为内置、打开布局目录、运行时用户布局优先级、脏状态提示和吸附开关。Phase 9A 已定义 `.bpui v3` 布局包标准，见 [bpui-package-v3.md](bpui-package-v3.md)。编辑器入口位于 `FrontManagePage`，不是 `SettingPage`。当前仍不实现 `.bpui` 导入导出、包管理或 legacy 迁移，也不移除旧 `config.json` 前台设置。
 
 独立编辑器面向 v3 JSON layout 文件。它是后台侧的独立编辑窗口，不直接在真实前台窗口上编辑；真实前台窗口仍用于 OBS 捕获和运行时输出。编辑器必须同时支持单 Canvas 窗口和多 Canvas 窗口，并保持与现有 v3 renderer、生成控件名、`AnimationService`、业务控件和 JSON 格式兼容。
 
@@ -457,7 +457,7 @@ Phase 8F owner validation 后，文本类属性使用显式提交模型。`Name`
 
 Phase 8G 起，`BindingPath` 仍是可手写文本框，但旁边新增 Browse button。Binding Browser 使用 curated `ISharedDataService` 树，包含 `CurrentGame`、队伍、固定索引的 `SurPlayerList[0..3]`、`HunPlayer`、`MatchScore`、当前/全局 Ban 列表和倒计时等常用路径；搜索可按显示名或完整绑定路径过滤。Binding Browser 现在按当前属性行的目标类型过滤候选路径：`Text` / `LocalizedText` 只显示字符串和数字，`Image` 只显示 `ImageSource` / `BitmapSource` / `BitmapImage` 兼容值，`GameProgressText.BindingPath` 只显示 `GameProgress`，`MapNameText.BindingPath` 只显示 `Map` / `Map?`。不匹配的叶子节点会从树和搜索结果中隐藏，父节点只在仍有可用子节点时保留。选择结果只更新该行 `EditText`，不会立即写入 config，不会调用真实 `ISharedDataService`，也不会推入 Undo；用户后续按 Apply 或 Enter 后才走 `ApplyPropertyEdit`、校验、预览刷新和 Undo snapshot。
 
-Phase 8G 起，图片/资源路径字段旁新增 Resource Browser。当前资源来源包括内置运行时文件 `Resources/bpui`，返回值使用 resolver 约定的 `Resources/<fileName>`；也支持通过 “Browse file...” 选择 png/jpg/jpeg/webp/bmp 绝对路径。外部文件不会被复制或导入布局包，后续 `.bpui` / 资源管理阶段再处理打包。`Assets/icon.png` 是 WPF pack resource，当前 `IFrontedResourceResolver` 不解析 pack URI，因此不作为资源路径浏览结果提供。Canvas 级 `BackgroundImage` 目前没有 Property Grid，等 Canvas 属性编辑阶段再接入同一 Resource Browser。
+Phase 8G 起，图片/资源路径字段旁新增 Resource Browser。当前资源来源包括内置运行时文件 `Resources/bpui`，返回值使用 resolver 约定的 `Resources/<fileName>`；也支持通过 “Browse file...” 选择 png/jpg/jpeg/webp/bmp 绝对路径。外部文件不会被复制或导入布局包，后续 `.bpui` / 资源管理阶段再处理打包。`Assets/icon.png` 是 WPF pack resource，当前 `IFrontedResourceResolver` 不解析 pack URI，因此不作为资源路径浏览结果提供。Canvas 级 `BackgroundImage` 目前没有 Property Grid，后续 Canvas Properties GUI 应接入同一 Resource Browser，并编辑 `CanvasWidth`、`CanvasHeight` 和 `BackgroundImage`。选择本地图片时应复制到 editor-local resource store，layout JSON 写为 `bpui://local/...`；导出包时再复制进包资源并重写为 `bpui://{PackageId}/...`。
 
 `FontFamily` 行仍使用可编辑 ComboBox，但不再依赖 `SelectedValue` 双向绑定。下拉打开期间不会触发 LostFocus 提交或重建 Property Grid；用户从下拉中选择时写入对应 `FrontedFontFamilyOption.Value`，因此内置字体继续保存 `pack://application:,,,/Assets/Fonts/#...` 原值；用户手写自定义字体时按 Enter 或真正失焦提交 `ComboBox.Text`。下拉项继续使用各自的 `PreviewFontFamily` 显示，保持旧 `TextSettingsEditControl` 的字体预览语义。
 
@@ -634,6 +634,10 @@ neo-bpsys-wpf/Resources/FrontedLayouts/{WindowName}/{CanvasName}.json
 
 Phase 8H 起，Save 只写入 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowName}/{CanvasName}.json`，绝不覆盖源码或发布目录中的 `Resources/FrontedLayouts`。Reset to Built-in 会删除当前 Canvas 的用户布局文件并重新加载内置布局，清空 undo/redo、选择和筛选。Open Layout Folder 打开当前用户布局文件所在目录，目录不存在时会先创建。
 
+`.bpui v3` package import/export 是后续阶段。包管理器应放在 `FrontManagePage` 的 `Layout Packages` tab，而不是 `SettingPage`。SettingPage 中现有 `.bpui` 导入导出是 legacy 流程，会覆盖全局 `Config.json`，不能作为 Designer v3 包管理入口。
+
+`AllowTransparency` 是窗口级选项，不是普通控件属性。单 Canvas 窗口可以在 Canvas Properties 附近显示该开关，多 Canvas 窗口则对整个窗口生效。由于 WPF 透明窗口行为可能需要重新创建窗口或重启应用，开关变化后应提示需要重启；如果用户选择立即重启，必须先处理设计器未保存修改，提供 Save / Discard / Cancel。
+
 窗口/Canvas 切换、Reload、Reset to Built-in 和关闭编辑器时，如果当前文档 dirty，会通过 `MessageBoxHelper` 提示 Save / Discard / Cancel。Save 会先执行完整校验，存在 Error 时阻止保存并取消切换或关闭；Warning/Info 不阻止保存。关闭窗口的 dirty prompt 必须先在 `Closing` 中设置 `e.Cancel = true`，再通过 Dispatcher 异步显示本地化的宽版 helper 对话框；用户选择 Save 且保存成功或选择 Discard 后，设置强制关闭标记并再次调用 `Close()`。这样避免 WPF 在窗口已经进入 closing 状态时执行 `ShowDialog` / `Close` 触发异常。验证详情窗口是非模态子窗口，父编辑器关闭时只做受保护关闭，已关闭或正在关闭时不能让异常冒泡。
 
 顶部工具栏从 Phase 8H owner validation 修正后使用 `ScrollViewer + WrapPanel`，窗口选择器、Canvas 选择器、Add/Delete、Undo/Redo、保存/重置/打开目录、reload/validate、缩放、吸附和 dirty/path 状态都允许在窄窗口下自动换行。长 layout path 只显示省略文本并通过 tooltip 查看完整路径，不能把工具栏撑出窗口右侧。
@@ -651,6 +655,8 @@ Phase 8H 起，Save 只写入 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowNam
 | Phase 8F | 已实现：Add Control 菜单、默认 config factory、唯一命名、视口中心放置、独立 placeholder preview data、FontFamily 字体 ComboBox、ColorPicker Hex 缓冲显式提交、左侧右键/Property Grid 底部删除、基础内存 Undo/Redo；仍只改内存，不保存用户布局 |
 | Phase 8G | Binding Browser、Resource Browser |
 | Phase 8H | 已实现：用户 layout save/reset/load priority、validation-driven save、打开布局目录、dirty prompt 和 snap-to-grid |
+| Phase 8I 或 9B-prep | 计划：Canvas Properties GUI，包含 `CanvasWidth`、`CanvasHeight`、`BackgroundImage`，并将本地图片规范化为 `bpui://local/...` |
+| Phase 9B+ | 计划：`FrontManagePage` 的 Layout Packages tab、v3 package import/export/activate/delete；规格见 [bpui-package-v3.md](bpui-package-v3.md) |
 
 ## 17. 非目标
 
@@ -661,3 +667,4 @@ Phase 8H 起，Save 只写入 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowNam
 3. 不迁移 `.bpui`。
 4. 不移除旧 `config.json` 前台设置。
 5. 不改变现有 v3 layout JSON schema。
+6. 不把 `AllowTransparency` 当成控件属性；它是窗口级选项。

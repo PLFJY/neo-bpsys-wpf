@@ -12,6 +12,7 @@
 | [frontend-windows-and-layout.md](frontend-windows-and-layout.md) | 前台窗口、OBS 捕获、布局保存/恢复、插件注入控件 |
 | [fronted-designer-v3.md](fronted-designer-v3.md) | Fronted Designer v3 的配置驱动重构设计、兼容策略和分阶段计划 |
 | [fronted-designer-editor.md](fronted-designer-editor.md) | Designer v3 独立编辑器技术设计，包括 JSON key = 控件名、多 Canvas、透明 hitbox、Property Grid、Binding/Resource Browser 和保存策略 |
+| [bpui-package-v3.md](bpui-package-v3.md) | Designer v3 `.bpui` 布局包标准，包括 manifest、资源 URI、包隔离、导入导出与包管理规格 |
 | [backend-pages-and-navigation.md](backend-pages-and-navigation.md) | 后台页面注册、WPF-UI 导航约定 |
 | [game-guidance.md](game-guidance.md) | 引导式 BP 的规则文件和工作流 |
 | [smartbp-and-ocr.md](smartbp-and-ocr.md) | SmartBP、赛后数据 OCR、模型和区域配置 |
@@ -33,11 +34,11 @@
 | 主题 | 建议文档 |
 | --- | --- |
 | 架构入门 | `project-positioning.md`、`runtime-architecture.md`、`module-overview.md` |
-| UI / 前台 / 后台 | `frontend-windows-and-layout.md`、`fronted-designer-v3.md`、`fronted-designer-editor.md`、`backend-pages-and-navigation.md`、`wpf-ui-pitfalls.md` |
+| UI / 前台 / 后台 | `frontend-windows-and-layout.md`、`fronted-designer-v3.md`、`fronted-designer-editor.md`、`bpui-package-v3.md`、`backend-pages-and-navigation.md`、`wpf-ui-pitfalls.md` |
 | 业务流程 | `game-guidance.md`、`smartbp-and-ocr.md`、`shared-data-and-state.md`、`score-system-v2.md` |
 | 插件 | `plugin-system.md`、`plugin-market.md` |
-| 资源 / 本地化 | `resources-localization-and-assets.md`、`settings-paths-and-data.md` |
-| 构建 / 更新 / 调试 | `build-release-and-versioning.md`、`updater-and-downloads.md`、`testing-and-debugging.md` |
+| 资源 / 本地化 | `resources-localization-and-assets.md`、`settings-paths-and-data.md`、`bpui-package-v3.md` |
+| 构建 / 打包 / 更新 / 调试 | `build-release-and-versioning.md`、`bpui-package-v3.md`、`updater-and-downloads.md`、`testing-and-debugging.md` |
 
 阅读方式：
 

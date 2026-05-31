@@ -30,6 +30,36 @@
 
 CutScene v3 默认布局位于 `Resources/FrontedLayouts/CutSceneWindow/BaseCanvas.json`，背景使用 `Resources/cutScene.png`（解析到运行目录 `Resources/bpui/cutScene.png`）。GameData v3 默认布局位于 `Resources/FrontedLayouts/GameDataWindow/BaseCanvas.json`，背景使用 `Resources/gameData_withText.png`（解析到运行目录 `Resources/bpui/gameData_withText.png`）。WidgetsWindow v3 是多 Canvas 布局，默认文件为 `Resources/FrontedLayouts/WidgetsWindow/MapBpCanvas.json`、`Resources/FrontedLayouts/WidgetsWindow/BpOverViewCanvas.json`、`Resources/FrontedLayouts/WidgetsWindow/MapV2Canvas.json`，背景分别使用 `Resources/mapBp.png`、`Resources/bpOverview.png`、`Resources/mapBpV2.png`。BpWindow v3 默认布局位于 `Resources/FrontedLayouts/BpWindow/BaseCanvas.json`，背景使用 `Resources/bp.png`。内置业务控件复用这些资源目录：`TalentTraitDisplay` 通过 `ImageHelper.GetTalentImageSource` / `GetTraitImageSource` 读取 `Resources/talent` 和 `Resources/trait`，并跟随 `CutSceneWindowSettings.IsBlackTalentAndTraitEnable` 切换黑白图标；`CurrentBanDisplay` 读取角色 `HeaderImageSingleColor` 并使用 WidgetsWindow 设置中的 `CurrentBanLockImage`；`BanSlotDisplay` 读取当前局/全局 Ban 角色 `HeaderImageSingleColor` 并使用 BpWindow 设置中的 `CurrentBanLockImage` / `GlobalBanLockImage`；`PickingBorderOverlay` 使用 BpWindow 设置中的 `PickingBorderImage` 和 `PickingBorderBrush`；`MapV2Display` 复用现有 `MapV2Presenter` 和 Map BP v2 设置。不要在 v3 JSON 中硬编码单个天赋、辅助特质、Ban 锁覆盖层或 Map BP v2 展示控件内部图片路径。
 
+## Designer v3 资源 URI
+
+Designer v3 layout 和 `.bpui v3` 包标准允许以下资源 URI 形式，完整包规格见 [bpui-package-v3.md](bpui-package-v3.md)。
+
+| 形式 | 含义 |
+| --- | --- |
+| `Resources/foo.png` | 内置前台文件资源，解析到运行目录 `Resources/bpui/foo.png`。 |
+| `pack://application:,,,/Assets/Fonts/#Noto Sans` | WPF app pack resource，主要用于内置字体或 app-bundled asset。 |
+| `bpui://local/resources/images/foo.png` | 编辑器本地资源命名空间，用于用户选择本地图片后的持久副本。 |
+| `bpui://{PackageId}/resources/images/foo.png` | 已安装布局包资源，按包目录隔离。 |
+| `bpui://{PackageId}/resources/fonts/font.ttf#FontFamilyName` | 预留的包内字体 URI 形式，`#` 后为字体族名。 |
+
+绝对路径只应作为编辑时临时输入。后续 Canvas Properties GUI 或 Resource Browser 在用户选择本地图片后，应复制文件到本地资源目录，并在 layout JSON 中写入 `bpui://local/...`。导出 `.bpui v3` 时再把引用到的 `local` 资源复制进导出包，并重写为 `bpui://{PackageId}/...`。
+
+推荐本地资源目录：
+
+```text
+%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/local/resources/images/
+```
+
+已安装包资源必须按包隔离，不能合并进共享全局目录：
+
+```text
+%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/{PackageId}/resources/
+```
+
+删除普通布局包时，应删除整个 `%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/{PackageId}/` 目录，从而删除该包资源。不要只根据 manifest 逐个删除资源文件。`builtin` 是内置布局/资源的虚拟包 ID，`local` 是编辑器本地资源命名空间，二者都不能通过普通包删除流程删除。
+
+第一版导入校验应拒绝跨包资源引用。包 `package-a` 中的布局可以引用 `bpui://package-a/...`、`Resources/...`、`pack://application:,,,/...`；不应引用 `bpui://package-b/...`。导出前存在的 `bpui://local/...` 必须重写为导出包自己的 `PackageId`。
+
 ## Assets 与字体
 
 字体位于：

@@ -12,6 +12,7 @@
 | `AppTempPath` | `%TEMP%\neo-bpsys-wpf` |
 | `CustomUiPath` | `%APPDATA%\neo-bpsys-wpf\CustomUi` |
 | `FrontedLayoutsPath` | `%APPDATA%\neo-bpsys-wpf\FrontedLayouts` |
+| v3 layout package root | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages`，当前为 Phase 9A 规格路径，常量尚未实现 |
 | `LogPath` | `%APPDATA%\neo-bpsys-wpf\Log` |
 | `ResourcesPath` | `{AppBaseDirectory}\Resources` |
 | `PluginPath` | `%APPDATA%\neo-bpsys-wpf\Plugins` |
@@ -70,11 +71,19 @@
 | 前台布局 | `%APPDATA%\neo-bpsys-wpf\*Config-*.json` |
 | v3 前台布局 | `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` |
 | v3 内置默认布局 | `{AppBaseDirectory}\Resources\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` |
+| v3 布局包根目录 | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\` |
+| v3 editor-local 资源 | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\local\` |
+| v3 已安装布局包 | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}\` |
+| v3 活动包状态 | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\active-package.json` |
 | SmartBP 区域 | `%APPDATA%\neo-bpsys-wpf\SmartBp\GameDataRegions.json` |
 | OCR 模型 | `Documents\neo-bpsys-wpf\OCRModels` |
 | 插件配置 | `%APPDATA%\neo-bpsys-wpf\PluginConfigs\{pluginId}` |
 | 插件市场临时下载 | `%TEMP%\neo-bpsys-wpf\PluginMarket\...` |
 
 v3 前台布局的加载优先级是用户布局优先、内置默认布局兜底。`IFrontedUserLayoutStore` 负责 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts` 下的用户布局读写；`IFrontedLayoutService` 会先尝试用户布局，如果用户 JSON 不可读或无效，会记录警告并回退到内置 `Resources\FrontedLayouts`。独立 Fronted Designer 编辑器保存普通用户改动时只写入 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json`，不应直接覆盖安装目录或源码中的 `Resources\FrontedLayouts`。多 Canvas 窗口按 `{CanvasName}.json` 分文件保存；“重置为内置”会删除当前 Canvas 对应的用户布局文件。
+
+Designer v3 `.bpui` 包路径标准见 [bpui-package-v3.md](bpui-package-v3.md)。已安装包资源应放在各自包目录内，例如 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}\resources\`，不要合并到共享资源目录。若旧讨论或临时代码提到 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutResources\`，应视为已被包隔离方案取代，不作为新实现的首选路径。
+
+`builtin` 是虚拟包 ID，映射到应用内置 `Resources\FrontedLayouts`，不在 `FrontedLayoutPackages` 下作为普通包安装，也不能删除。`local` 是编辑器本地资源命名空间，推荐路径为 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\local\resources\`，用于保存用户选择本地图片后的副本；普通包删除不能删除 `local`。
 
 卸载脚本会询问是否删除 `%APPDATA%\neo-bpsys-wpf`，包括日志、自定义 UI 和设置。
