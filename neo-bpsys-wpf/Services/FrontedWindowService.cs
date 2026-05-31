@@ -11,7 +11,6 @@ using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Windows;
 using System.IO;
 using System.ComponentModel;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -46,7 +45,6 @@ public class FrontedWindowService : IFrontedWindowService
     /// </summary>
     private readonly Dictionary<FrameworkElement, ElementInfo> _externalControlDefaultPosition = [];
 
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
     private readonly ISettingsHostService _settingsHostService;
     private readonly ILogger<FrontedWindowService> _logger;
     private Settings? _windowSizeSettings;
@@ -73,20 +71,6 @@ public class FrontedWindowService : IFrontedWindowService
 
         //加载后期注入的控件
         LoadInjectedControl();
-
-#if DEBUG
-        //记录初始位置 (仅DEBUG生效)
-        foreach (var i in FrontedCanvas)
-        {
-            RecordInitialPositions(i.Item1, i.Item2, true);
-        }
-#endif
-
-        //从文件加载位置信息
-        _ = LoadElementsPositionOnStartup();
-
-        //AttachWindowSizeHandlers(_settingsHostService.Settings);
-        //_settingsHostService.SettingsChanged += (_, settings) => AttachWindowSizeHandlers(settings);
     }
 
     /// <summary>
@@ -97,18 +81,6 @@ public class FrontedWindowService : IFrontedWindowService
         foreach (var info in FrontedWindowRegistryService.InjectedControls)
         {
             InjectControl(info.TargetWindow, info.TargetCanvas, info.Control, info.DefaultInfo);
-        }
-    }
-
-    /// <summary>
-    /// 从文件加载位置信息
-    /// </summary>
-    /// <returns></returns>
-    private async Task LoadElementsPositionOnStartup()
-    {
-        foreach (var i in FrontedCanvas)
-        {
-            await LoadWindowElementsPositionOnStartupAsync(i.Item1, i.Item2);
         }
     }
 
@@ -379,283 +351,6 @@ public class FrontedWindowService : IFrontedWindowService
             {
                 _logger.LogWarning(ex, "Failed to reload fronted v3 layout for {WindowType}.", window.GetType().Name);
             }
-        }
-    }
-
-    #endregion
-
-    #region 设计者模式
-
-    /// <summary>
-    /// 记录窗口中元素的初始位置 (仅在DEBUG下有效)
-    /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="canvasName">画布名称</param>
-    private void RecordInitialPositions(string windowId, string canvasName = "BaseCanvas", bool isInitial = false)
-    {
-        if (!FrontedWindows.TryGetValue(windowId, out var window)) return;
-        var path = Path.Combine(AppConstants.AppDataPath, $"{window.GetType().Name}Config-{canvasName}.default.json");
-
-        if (File.Exists(path)) return;
-
-        var positions = GetElementsPositions(window, canvasName, isInitial);
-        if (positions == null) return;
-        var output = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
-        try
-        {
-            File.WriteAllText(path, output);
-        }
-        catch (Exception ex)
-        {
-            _ = MessageBoxHelper.ShowErrorAsync(ex.Message, I18nHelper.GetLocalizedString("ErrorWhenGeneratingFrontendConfigurationFile"));
-        }
-    }
-
-    /// <summary>
-    /// 获取窗口中元素的位置信息
-    /// </summary>
-    /// <param name="window"></param>
-    /// <param name="canvasName"></param>
-    /// <returns></returns>
-    private Dictionary<string, ElementInfo>? GetElementsPositions(Window window, string canvasName,
-        bool isInitial = false)
-    {
-        if (window.FindName(canvasName) is not Canvas canvas)
-            return null;
-
-        var positions = new Dictionary<string, ElementInfo>();
-        foreach (UIElement child in canvas.Children)
-        {
-            if (child is not FrameworkElement fe || string.IsNullOrEmpty(fe.Name)) continue;
-            if (fe.Tag?.ToString() == "nv") continue;
-
-            if (isInitial && _externalControlDefaultPosition.ContainsKey(fe))
-            {
-                continue;
-            }
-
-            positions[fe.Name] = new ElementInfo(
-                double.IsNaN(fe.Width) ? null : fe.Width,
-                double.IsNaN(fe.Height) ? null : fe.Height,
-                double.IsNaN(Canvas.GetLeft(fe)) ? 0 : Canvas.GetLeft(fe),
-                double.IsNaN(Canvas.GetTop(fe)) ? 0 : Canvas.GetTop(fe));
-        }
-
-        return positions;
-    }
-
-
-    /// <summary>
-    /// 保存指定窗口的指定Canvas中元素的位置信息
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    /// <param name="canvasName">画布名称</param>
-    public void SaveWindowCanvasElementsPosition(FrontedWindowType windowType, string canvasName = "BaseCanvas")
-    {
-        SaveWindowCanvasElementsPosition(GetFrontedWindowGuid(windowType), canvasName);
-    }
-
-    public void SaveWindowCanvasElementsPosition(string windowId, string canvasName = "BaseCanvas")
-    {
-        if (!FrontedWindows.TryGetValue(windowId, out var window))
-        {
-            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("UnregisteredWindowType")}: {windowId}",
-                I18nHelper.GetLocalizedString("ConfigurationFileSaveError"));
-            return;
-        }
-
-        var positions = GetElementsPositions(window, canvasName);
-        if (positions == null) return;
-
-        var path = Path.Combine(AppConstants.AppDataPath, $"{window.GetType().Name}Config-{canvasName}.json");
-        try
-        {
-            var jsonContent = JsonSerializer.Serialize(positions, _jsonSerializerOptions);
-            File.WriteAllText(path, jsonContent);
-        }
-        catch (Exception ex)
-        {
-            _ = MessageBoxHelper.ShowInfoAsync(
-                $"{I18nHelper.GetLocalizedString("SaveFrontendConfigurationFileFailed")}\n{ex.Message}",
-                I18nHelper.GetLocalizedString("SaveInfo"));
-        }
-    }
-
-    /// <summary>
-    /// 保存指定窗口的元素位置信息
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    public void SaveWindowElementsPosition(FrontedWindowType windowType)
-    {
-        SaveWindowElementsPosition(GetFrontedWindowGuid(windowType));
-    }
-
-    public void SaveWindowElementsPosition(string windowId)
-    {
-        if (windowId == GetFrontedWindowGuid(FrontedWindowType.ScoreWindow))
-        {
-            SaveWindowElementsPosition(FrontedWindowType.ScoreSurWindow);
-            SaveWindowElementsPosition(FrontedWindowType.ScoreHunWindow);
-            SaveWindowElementsPosition(FrontedWindowType.ScoreGlobalWindow);
-        }
-
-        foreach (var tuple in FrontedCanvas.Where(x =>
-                     x.Item1 == windowId))
-        {
-            SaveWindowCanvasElementsPosition(tuple.Item1, tuple.Item2);
-        }
-    }
-
-
-    /// <summary>
-    /// 批量保存所有窗口中元素位置信息
-    /// </summary>
-    public void SaveAllWindowElementsPosition()
-    {
-        foreach (var i in FrontedCanvas)
-        {
-            SaveWindowCanvasElementsPosition(i.Item1, i.Item2);
-        }
-    }
-
-    /// <summary>
-    /// 程序启动时从JSON中加载窗口中元素的位置信息
-    /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="canvasName">画布名称</param>
-    private async Task LoadWindowElementsPositionOnStartupAsync(string windowId,
-        string canvasName = "BaseCanvas")
-    {
-        if (!FrontedWindows.TryGetValue(windowId, out var window))
-        {
-            await MessageBoxHelper.ShowErrorAsync(
-                $"{I18nHelper.GetLocalizedString("UnregisteredWindowType")}: {windowId}",
-                I18nHelper.GetLocalizedString("ConfigurationFileLoadingError"));
-            return;
-        }
-
-        var path = Path.Combine(AppConstants.AppDataPath, $"{window.GetType().Name}Config-{canvasName}.json");
-        if (!File.Exists(path)) return;
-
-        try
-        {
-            var jsonContent = await File.ReadAllTextAsync(path);
-            LoadElementsPositions(canvasName, jsonContent, window);
-        }
-        catch (Exception ex)
-        {
-            File.Move(path, $"{path}.disabled", true);
-            await MessageBoxHelper.ShowErrorAsync(ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// 从JSON中加载窗口中元素位置信息
-    /// </summary>
-    /// <param name="canvasName">画布名称</param>
-    /// <param name="jsonContent">JSON内容</param>
-    /// <param name="window">窗口实例</param>
-    private void LoadElementsPositions(string canvasName, string jsonContent, Window window)
-    {
-        var positions = JsonSerializer.Deserialize<Dictionary<string, ElementInfo>>(jsonContent);
-
-        if (window.FindName(canvasName) is not Canvas canvas || positions == null) return;
-        foreach (UIElement child in canvas.Children)
-        {
-            if (child is not FrameworkElement fe) continue;
-            if (fe.Tag?.ToString() == "nv") continue;
-
-            if (positions.TryGetValue(fe.Name, out var value))
-            {
-                if (value.Width != null)
-                    fe.Width = (double)value.Width;
-                if (value.Height != null)
-                    fe.Height = (double)value.Height;
-                if (value.Left != null)
-                    Canvas.SetLeft(fe, (double)value.Left);
-                if (value.Top != null)
-                    Canvas.SetTop(fe, (double)value.Top);
-            }
-            else if (_externalControlDefaultPosition.TryGetValue(fe, out var info))
-            {
-                if (info.Width != null)
-                    fe.Width = (double)info.Width;
-                if (info.Height != null)
-                    fe.Height = (double)info.Height;
-                if (info.Left != null)
-                    Canvas.SetLeft(fe, (double)info.Left);
-                if (info.Top != null)
-                    Canvas.SetTop(fe, (double)info.Top);
-            }
-        }
-    }
-
-    /// <summary>
-    /// 还原窗口中的元素到初始位置
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    /// <param name="canvasName">画布名称</param>
-    public async Task RestoreInitialPositions(FrontedWindowType windowType, string canvasName = "BaseCanvas")
-    {
-        await RestoreInitialPositions(GetFrontedWindowGuid(windowType), canvasName);
-    }
-
-    public async Task RestoreInitialPositions(string windowId, string canvasName = "BaseCanvas")
-    {
-        if (!FrontedWindows.TryGetValue(windowId, out var window))
-        {
-            await MessageBoxHelper.ShowErrorAsync(
-                $"{I18nHelper.GetLocalizedString("UnregisteredWindowType")}: {windowId}",
-                I18nHelper.GetLocalizedString("FrontendDefaultConfigurationRestoreError"));
-            return;
-        }
-
-        if (!await MessageBoxHelper.ShowConfirmAsync($"{I18nHelper.GetLocalizedString("ConfigurationResetConfirmation")}: {window.GetType().Name}-{canvasName}",
-            I18nHelper.GetLocalizedString("ResetTip"), I18nHelper.GetLocalizedString("Confirm"), I18nHelper.GetLocalizedString("Cancel")))
-            return;
-
-
-        // Built in fronted window
-        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-            "Resources", "FrontedDefaultPositions", $"{window.GetType().Name}Config-{canvasName}.default.json");
-
-        if (!File.Exists(path))
-        {
-            // Find Plugin Path
-            var type = window.GetType();
-            if (PluginService.FrontedWindowAssemblyFolder
-                .TryGetValue(type, out var folderPath))
-            {
-                path = Path.Combine(folderPath, "FrontedDefaultPositions",
-                    $"{type.Name}Config-{canvasName}.default.json");
-            }
-            else
-            {
-                await MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("UnknownWindowSource"));
-                return;
-            }
-        }
-
-        try
-        {
-            var json = await File.ReadAllTextAsync(path);
-            LoadElementsPositions(canvasName, json, window);
-
-            var customFilePath =
-                Path.Combine(AppConstants.AppDataPath, $"{window.GetType().Name}Config-{canvasName}.json");
-
-            if (File.Exists(customFilePath))
-                File.Move(customFilePath, $"{customFilePath}.disabled", true);
-
-            if (File.Exists(path) && Directory.Exists(AppConstants.AppDataPath))
-                File.Copy(path, customFilePath, true);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Reading frontend default configuration error");
-            await MessageBoxHelper.ShowErrorAsync(
-                $"{I18nHelper.GetLocalizedString("ReadFrontendDefaultConfigurationError")}\n{I18nHelper.GetLocalizedString("CannotFindDefaultLayoutConfigurationFromWindowProvider")}",
-                I18nHelper.GetLocalizedString("ReadFrontendDefaultConfigurationError"));
         }
     }
 

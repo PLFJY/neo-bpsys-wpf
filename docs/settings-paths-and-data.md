@@ -70,7 +70,7 @@
 
 | 数据 | 路径 |
 | --- | --- |
-| 前台布局 | `%APPDATA%\neo-bpsys-wpf\*Config-*.json` |
+| ~~前台布局~~ | ~~`%APPDATA%\neo-bpsys-wpf\*Config-*.json`~~ Phase 10+ 已删除，不再使用 |
 | v3 前台布局 | `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` |
 | v3 内置默认布局 | `{AppBaseDirectory}\Resources\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` |
 | v3 布局包根目录 | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\` |
@@ -81,6 +81,8 @@
 | OCR 模型 | `Documents\neo-bpsys-wpf\OCRModels` |
 | 插件配置 | `%APPDATA%\neo-bpsys-wpf\PluginConfigs\{pluginId}` |
 | 插件市场临时下载 | `%TEMP%\neo-bpsys-wpf\PluginMarket\...` |
+
+> **注意**：Phase 10+ 已删除旧的 `{WindowName}Config-{CanvasName}.json` 位置保存/恢复功能。这些 legacy 文件不再被运行时读取，只用于 legacy `.bpui` 转换流程。
 
 v3 前台布局的加载优先级是用户布局优先、内置默认布局兜底。`IFrontedUserLayoutStore` 负责 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts` 下的用户布局读写；`IFrontedLayoutService` 会先尝试用户布局，如果用户 JSON 不可读或无效，会记录警告并回退到内置 `Resources\FrontedLayouts`。独立 Fronted Designer 编辑器保存普通用户改动时只写入 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json`，不应直接覆盖安装目录或源码中的 `Resources\FrontedLayouts`。多 Canvas 窗口按 `{CanvasName}.json` 分文件保存；“重置为内置”会删除当前 Canvas 对应的用户布局文件。
 

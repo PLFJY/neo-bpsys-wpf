@@ -1,0 +1,250 @@
+你正在修改仓库：
+
+PLFJY/neo-bpsys-wpf
+
+分支：
+dev-refactor/Designer-v3
+
+任务：
+继续清理旧真实窗口设计器残留。这次重点删除旧“前台元素位置保存/恢复”服务层 API 和实现。
+
+背景：
+上一轮已经删除：
+- DesignBehavior.cs
+- CanvasAdorner.cs
+- DesignerModeChangedMessage.cs
+- FrontManagePage 旧设计模式 Toggle
+- SettingPage 旧前台自定义 UI
+- SettingPageViewModel.FrontedUiCustom.cs
+- SettingPageViewModel.UiPackage.cs
+- AppConstants.CustomUiPath
+
+但现在仍残留旧设计器时代的“真实前台窗口元素位置保存/恢复”逻辑：
+- IFrontedWindowService 仍暴露 RestoreInitialPositions / SaveWindowElementsPosition 等 API
+- FrontedWindowService 仍有 #region 设计者模式
+- 仍读写旧文件：
+  - AppData/{WindowName}Config-{CanvasName}.json
+  - Resources/FrontedDefaultPositions/{WindowName}Config-{CanvasName}.default.json
+
+Designer v3 当前使用：
+- FrontedDesignerWindow 独立编辑器
+- FrontedLayouts/{WindowTypeName}/{CanvasName}.json
+- Resources/FrontedLayouts/{WindowTypeName}/{CanvasName}.json
+- FrontedLayoutPackages
+- Layout Packages
+
+所以旧位置保存/恢复路径要删除。
+
+重要原则：
+1. 删除旧真实窗口设计器的位置保存/恢复 API。
+2. 不要删除 v3 layout renderer。
+3. 不要删除 FrontedDesignerWindow。
+4. 不要删除 Layout Packages。
+5. 不要删除前台窗口正常显示/隐藏/拖动。
+6. 不要删除插件前台窗口注册和注入控件能力。
+7. 不要删除动画兼容 no-op。
+8. 不要删除 Score System v2 兼容 no-op。
+9. 不要删除 legacy .bpui converter 里读取 FrontElementsConfig 的逻辑。
+10. runtime service 不应再读写旧位置文件。
+
+一、清理 IFrontedWindowService
+
+文件：
+neo-bpsys-wpf.Core/Abstractions/Services/IFrontedWindowService.cs
+
+删除整个旧 Window Position Management 区域，包括：
+
+- Task RestoreInitialPositions(FrontedWindowType windowType, string canvasName = "BaseCanvas");
+- Task RestoreInitialPositions(string windowId, string canvasName = "BaseCanvas");
+- void SaveAllWindowElementsPosition();
+- void SaveWindowCanvasElementsPosition(FrontedWindowType windowType, string canvasName = "BaseCanvas");
+- void SaveWindowCanvasElementsPosition(string windowId, string canvasName = "BaseCanvas");
+- void SaveWindowElementsPosition(FrontedWindowType windowType);
+- void SaveWindowElementsPosition(string windowId);
+
+如果 region 只剩这些内容，就删掉整个 region。
+
+不要删除：
+- FrontedCanvas
+- FrontedWindows
+- FrontedWindowStates
+- RegisterFrontedWindowAndCanvas
+- ReloadFrontedLayoutsAsync
+- ShowWindow / HideWindow / AllWindowShow / AllWindowHide
+- GetInjectedControl
+- SetGlobalScore / ResetGlobalScore 兼容 no-op
+- 动画兼容方法
+
+二、清理 FrontedWindowService 旧实现
+
+文件：
+neo-bpsys-wpf/Services/FrontedWindowService.cs
+
+删除旧 #region 设计者模式 中的位置保存/恢复代码：
+
+- RecordInitialPositions
+- GetElementsPositions
+- SaveWindowCanvasElementsPosition(FrontedWindowType...)
+- SaveWindowCanvasElementsPosition(string...)
+- SaveWindowElementsPosition(FrontedWindowType...)
+- SaveWindowElementsPosition(string...)
+- SaveAllWindowElementsPosition
+- LoadWindowElementsPositionOnStartupAsync
+- LoadElementsPositions
+- RestoreInitialPositions(FrontedWindowType...)
+- RestoreInitialPositions(string...)
+
+同时删除只被这些方法使用的字段 / using：
+- JsonSerializerOptions，如果只用于旧位置保存
+- System.Text.Json，如果只用于旧位置保存
+- ElementInfo using，如果只用于旧位置保存
+- 旧 default position 相关 using
+- I18n / MessageBoxHelper 调用，如果只由这坨使用
+
+注意：
+- 如果 JsonSerializerOptions 还被其它方法用，不要删。
+- 如果 _externalControlDefaultPosition 只用于旧位置恢复，就删除。
+- 如果 LoadInjectedControl 里还记录 _externalControlDefaultPosition，且没有别处读取，也一起删。
+- 不要删插件注入控件逻辑。
+
+三、保留插件注入控件能力
+
+检查：
+- LoadInjectedControl
+- GetInjectedControl
+- InjectedControlInfo
+- ElementInfo
+- FrontedWindowHelper.InjectControlToFrontedWindow
+
+要求：
+- 插件/外部控件仍能注入到指定 window/canvas。
+- 可以设置 Width / Height / Left / Top。
+- 可以加入 Canvas。
+- 只是不要再参与旧位置保存/恢复。
+
+如果 ElementInfo 只给旧位置保存/恢复用，可以删除。
+如果 InjectedControlInfo 仍用 ElementInfo 表示位置，则保留 ElementInfo 或改成必要结构，不要破坏注入。
+
+四、清理旧运行时引用
+
+全仓搜索并清理 runtime 引用：
+
+- FrontedDefaultPositions
+- FrontElementsConfig
+- Config-{canvasName}
+- Config-BaseCanvas
+- RestoreInitialPositions
+- SaveWindowElementsPosition
+- SaveWindowCanvasElementsPosition
+- LoadWindowElementsPositionOnStartupAsync
+- RecordInitialPositions
+- LoadElementsPositions
+
+要求：
+- 运行时代码不再引用 Resources/FrontedDefaultPositions。
+- 运行时代码不再读写 AppData 下的 {WindowName}Config-{CanvasName}.json。
+- FrontElementsConfig 只能出现在 legacy converter / legacy docs / migration notes 中。
+- FrontedDefaultPositions 如果保留资源目录，也不能被 runtime service 读取。
+
+是否删除 Resources/FrontedDefaultPositions：
+- 如果没有任何引用，可以删除。
+- 如果 legacy converter 测试或文档还需要样例，可暂时保留。
+- 优先目标是删除 runtime 引用，不强制删资源目录。
+
+五、清理 localization key
+
+搜索旧位置保存/恢复相关 key：
+
+- ConfigurationFileSaveError
+- SaveFrontendConfigurationFileFailed
+- ConfigurationFileLoadingError
+- FrontendDefaultConfigurationRestoreError
+- ConfigurationResetConfirmation
+- ReadFrontendDefaultConfigurationError
+- CannotFindDefaultLayoutConfigurationFromWindowProvider
+- ErrorWhenGeneratingFrontendConfigurationFile
+- ResetLayout
+- ResetMapBPLayout
+- ResetBPOverviewLayout
+- ResetMapBPV2Layout
+- ResetSurvivorScoreLayoutInGame
+- ResetHunterScoreLayoutInGame
+- ResetScoreStatisticsLayout
+
+只删除“无引用且只服务旧设计器”的 key。
+不要盲删仍被其它功能使用的 key。
+
+六、更新文档
+
+更新：
+- docs/frontend-windows-and-layout.md
+- docs/fronted-designer-v3.md
+- docs/known-limitations-and-roadmap.md
+- docs/settings-paths-and-data.md
+- docs/bpui-package-v3.md，如有必要
+
+写明：
+- runtime 不再读取 FrontedDefaultPositions。
+- runtime 不再保存/恢复 {WindowName}Config-{CanvasName}.json。
+- 当前前台布局状态来源是 v3 FrontedLayouts。
+- 重置布局通过 Layout Packages 激活 builtin 或删除用户布局实现。
+- 旧位置文件只属于 legacy .bpui / migration 语境。
+- FrontManagePage 的 Reset Layout 旧按钮已删除。
+
+七、测试
+
+增加或更新测试：
+1. IFrontedWindowService 不再暴露 RestoreInitialPositions。
+2. IFrontedWindowService 不再暴露 SaveWindowElementsPosition。
+3. IFrontedWindowService 不再暴露 SaveWindowCanvasElementsPosition。
+4. FrontedWindowService 不再读写 {WindowName}Config-{CanvasName}.json。
+5. FrontedWindowService 不再引用 Resources/FrontedDefaultPositions。
+6. RegisterFrontedWindowAndCanvas 仍可用。
+7. ShowWindow / HideWindow 仍可用。
+8. ReloadFrontedLayoutsAsync 仍可用。
+9. 插件 injected control 仍能加入 Canvas。
+10. legacy converter 如果存在，仍能识别 legacy FrontElementsConfig。
+
+八、最终搜索确认
+
+修改后搜索：
+
+- RestoreInitialPositions
+- SaveWindowElementsPosition
+- SaveWindowCanvasElementsPosition
+- SaveAllWindowElementsPosition
+- LoadWindowElementsPositionOnStartupAsync
+- RecordInitialPositions
+- GetElementsPositions
+- LoadElementsPositions
+- FrontedDefaultPositions
+- FrontElementsConfig
+
+期望：
+- 生产 runtime 代码中不再有旧位置保存/恢复 API。
+- FrontElementsConfig 只允许出现在 legacy converter / legacy docs / migration notes 中。
+- FrontedDefaultPositions 如果仍出现，只能是 docs/migration/test，不能是 runtime 读取路径。
+
+九、验证
+
+运行：
+- git diff --check
+- dotnet build
+- dotnet test
+
+手动验证：
+1. 应用能启动。
+2. FrontManagePage 能打开/关闭前台窗口。
+3. 前台窗口能正常拖动。
+4. FrontedDesignerWindow 能打开。
+5. 修改 v3 layout 后保存，前台能 reload。
+6. Layout Packages 导入/导出/激活/删除正常。
+7. 插件前台窗口或 injected control 如有入口，仍能显示。
+
+最终回复：
+1. 删除了 IFrontedWindowService 哪些旧 API。
+2. 删除了 FrontedWindowService 哪些旧实现。
+3. 是否保留 FrontedDefaultPositions 资源目录，为什么。
+4. FrontElementsConfig 是否还存在，是否仅 legacy 用途。
+5. 插件注入控件能力是否保留。
+6. build/test 结果。

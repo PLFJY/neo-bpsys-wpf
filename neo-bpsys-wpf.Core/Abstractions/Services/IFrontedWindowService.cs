@@ -179,56 +179,6 @@ public interface IFrontedWindowService
 
     #endregion
 
-    #region Window Position Management
-
-    /// <summary>
-    /// 恢复初始位置
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    /// <param name="canvasName"></param>
-    /// <returns></returns>
-    Task RestoreInitialPositions(FrontedWindowType windowType, string canvasName = "BaseCanvas");
-
-    /// <summary>
-    /// 恢复初始位置
-    /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="canvasName"></param>
-    Task RestoreInitialPositions(string windowId, string canvasName = "BaseCanvas");
-
-    /// <summary>
-    /// 保存所有窗口元素位置
-    /// </summary>
-    void SaveAllWindowElementsPosition();
-
-    /// <summary>
-    /// 保存指定窗口的指定Canvas中元素的位置信息
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    /// <param name="canvasName">画布名称</param>
-    void SaveWindowCanvasElementsPosition(FrontedWindowType windowType, string canvasName = "BaseCanvas");
-
-    /// <summary>
-    /// 保存指定窗口的指定Canvas中元素位置信息
-    /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="canvasName">画布名称</param>
-    void SaveWindowCanvasElementsPosition(string windowId, string canvasName = "BaseCanvas");
-
-    /// <summary>
-    /// 保存指定窗口的元素位置信息
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    public void SaveWindowElementsPosition(FrontedWindowType windowType);
-
-    /// <summary>
-    /// 保存指定窗口的元素位置信息
-    /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    public void SaveWindowElementsPosition(string windowId);
-
-    #endregion
-
     #region Window Information
 
     /// <summary>
