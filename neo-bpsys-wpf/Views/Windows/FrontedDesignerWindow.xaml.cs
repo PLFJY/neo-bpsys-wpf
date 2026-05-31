@@ -3,12 +3,14 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.ViewModels.Windows;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Views.Windows;
@@ -21,7 +23,9 @@ public partial class FrontedDesignerWindow : FluentWindow
     private readonly IFrontedRenderer? _renderer;
     private readonly ILogger<FrontedDesignerWindow>? _logger;
     private bool _isLoaded;
+    private bool _suppressPropertyEditorCommit;
     private FrontedDesignerWindowViewModel? _viewModel;
+    private ValidationDetailsWindow? _validationDetailsWindow;
     private readonly Dictionary<FrontedControlDesignItem, Border> _hitboxes = new();
     private readonly Dictionary<FrontedDesignerResizeHandleKind, Border> _resizeHandles = new();
     private Border? _selectionOutline;
@@ -76,7 +80,11 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             _viewModel.PreviewRenderRequested -= OnPreviewRenderRequested;
             _viewModel.PropertyChanged -= ViewModel_OnPropertyChanged;
+            _viewModel.PropertyEditorItems.CollectionChanged -= PropertyEditorItems_OnCollectionChanged;
         }
+
+        _validationDetailsWindow?.Close();
+        _validationDetailsWindow = null;
     }
 
     private void Selector_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -124,9 +132,9 @@ public partial class FrontedDesignerWindow : FluentWindow
         ApplyPropertyEditorValue(sender);
     }
 
-    private void PropertyComboBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void PropertyComboBox_OnDropDownClosed(object sender, EventArgs e)
     {
-        if (!_isLoaded)
+        if (sender is not ComboBox comboBox || !comboBox.IsKeyboardFocusWithin)
         {
             return;
         }
@@ -134,15 +142,70 @@ public partial class FrontedDesignerWindow : FluentWindow
         ApplyPropertyEditorValue(sender);
     }
 
+    private void PropertyColorPicker_OnLoaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not DependencyObject picker)
+        {
+            return;
+        }
+
+        DependencyPropertyDescriptor
+            .FromName("SelectedColor", picker.GetType(), picker.GetType())
+            ?.AddValueChanged(picker, PropertyColorPicker_OnSelectedColorChanged);
+    }
+
+    private void PropertyColorPicker_OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is not DependencyObject picker)
+        {
+            return;
+        }
+
+        DependencyPropertyDescriptor
+            .FromName("SelectedColor", picker.GetType(), picker.GetType())
+            ?.RemoveValueChanged(picker, PropertyColorPicker_OnSelectedColorChanged);
+    }
+
+    private void PropertyColorPicker_OnSelectedColorChanged(object? sender, EventArgs e)
+    {
+        if (sender is not FrameworkElement picker || !picker.IsKeyboardFocusWithin)
+        {
+            return;
+        }
+
+        if (IsPropertyEditorCommitSuppressed())
+        {
+            return;
+        }
+
+        Dispatcher.BeginInvoke(
+            () => ApplyPropertyEditorValue(picker),
+            DispatcherPriority.Background);
+    }
+
     private void ApplyPropertyEditorValue(object sender)
     {
-        if (_viewModel is null
+        if (IsPropertyEditorCommitSuppressed()
+            || _viewModel is null
             || sender is not FrameworkElement { DataContext: FrontedPropertyEditorItem item })
         {
             return;
         }
 
         _viewModel.ApplyPropertyEdit(item, item.Value);
+    }
+
+    private bool IsPropertyEditorCommitSuppressed()
+    {
+        return !_isLoaded || _suppressPropertyEditorCommit || _viewModel?.IsRebuildingPropertyGrid == true;
+    }
+
+    private void SuppressPropertyEditorCommitForLayoutPass()
+    {
+        _suppressPropertyEditorCommit = true;
+        Dispatcher.BeginInvoke(
+            () => _suppressPropertyEditorCommit = false,
+            DispatcherPriority.Loaded);
     }
 
     private void AttachViewModel()
@@ -160,15 +223,50 @@ public partial class FrontedDesignerWindow : FluentWindow
         _viewModel = viewModel;
         _viewModel.PreviewRenderRequested += OnPreviewRenderRequested;
         _viewModel.PropertyChanged += ViewModel_OnPropertyChanged;
+        _viewModel.PropertyEditorItems.CollectionChanged += PropertyEditorItems_OnCollectionChanged;
     }
 
     private void ViewModel_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.IsRebuildingPropertyGrid)
+            && _viewModel?.IsRebuildingPropertyGrid == true)
+        {
+            SuppressPropertyEditorCommitForLayoutPass();
+        }
+
         if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.SelectedDesignItem))
         {
+            SuppressPropertyEditorCommitForLayoutPass();
             RebuildInteractionLayer();
             FocusDesignSurface();
         }
+    }
+
+    private void PropertyEditorItems_OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        SuppressPropertyEditorCommitForLayoutPass();
+    }
+
+    private void OpenValidationDetails_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        if (_validationDetailsWindow is null || !_validationDetailsWindow.IsVisible)
+        {
+            _validationDetailsWindow = new ValidationDetailsWindow
+            {
+                Owner = this,
+                DataContext = _viewModel
+            };
+            _validationDetailsWindow.Closed += (_, _) => _validationDetailsWindow = null;
+            _validationDetailsWindow.Show();
+            return;
+        }
+
+        _validationDetailsWindow.Activate();
     }
 
     private void OnPreviewRenderRequested(

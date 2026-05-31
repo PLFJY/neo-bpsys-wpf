@@ -35,6 +35,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly Dictionary<string, string> _propertyEditErrors = new(StringComparer.Ordinal);
     private IReadOnlyList<FrontedLayoutValidationMessage> _lastValidationMessages = [];
     private bool _isChangingZoomPreset;
+    private bool _isRebuildingPropertyGrid;
     private double _lastPreviewViewportWidth;
     private double _lastPreviewViewportHeight;
 
@@ -102,6 +103,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public ObservableCollection<FrontedControlDesignItem> FilteredDesignItems { get; } = [];
 
     public ObservableCollection<FrontedPropertyEditorItem> PropertyEditorItems { get; } = [];
+
+    public bool IsRebuildingPropertyGrid => _isRebuildingPropertyGrid;
 
     [ObservableProperty]
     private FrontedDesignerWindowOption? _selectedWindow;
@@ -368,7 +371,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         double deltaY,
         bool renderPreview)
     {
-        if (CurrentDocument is null || SelectedDesignItem is null)
+        if (CurrentDocument is null || SelectedDesignItem is null || IsRebuildingPropertyGrid)
         {
             return;
         }
@@ -593,7 +596,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RequestPreviewRender(null, SelectedCanvas);
     }
 
-    private void ApplyValidationMessages(IReadOnlyList<FrontedLayoutValidationMessage> messages)
+    private void ApplyValidationMessages(
+        IReadOnlyList<FrontedLayoutValidationMessage> messages,
+        bool refreshPropertyGrid = true)
     {
         _lastValidationMessages = messages;
         ValidationMessages.Clear();
@@ -610,7 +615,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             + $"{I18nHelper.GetLocalizedString("Warnings")}: {WarningCount}  "
             + $"{I18nHelper.GetLocalizedString("Infos")}: {InfoCount}";
         RefreshSelectedControlDisplay();
-        RebuildPropertyEditorItems();
+        if (refreshPropertyGrid)
+        {
+            RebuildPropertyEditorItems();
+        }
     }
 
     private void ValidateCurrentDocument()
@@ -625,37 +633,47 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private void RebuildPropertyEditorItems()
     {
-        PropertyEditorItems.Clear();
-
-        if (CurrentDocument is null || SelectedDesignItem is null)
+        _isRebuildingPropertyGrid = true;
+        OnPropertyChanged(nameof(IsRebuildingPropertyGrid));
+        try
         {
-            return;
+            PropertyEditorItems.Clear();
+
+            if (CurrentDocument is null || SelectedDesignItem is null)
+            {
+                return;
+            }
+
+            var rows = _propertyGridBuilder.Build(
+                CurrentDocument,
+                SelectedDesignItem,
+                _validator,
+                _referenceScanner,
+                _runtimeContracts);
+
+            foreach (var row in rows)
+            {
+                row.DisplayName = I18nHelper.GetLocalizedString(row.DisplayName);
+                if (!string.IsNullOrWhiteSpace(row.GroupName))
+                {
+                    row.GroupDisplayName = I18nHelper.GetLocalizedString(row.GroupName);
+                }
+
+                if (_propertyEditErrors.TryGetValue(row.PropertyName, out var editError))
+                {
+                    row.ValidationErrors = row.ValidationErrors
+                        .Concat([editError])
+                        .Distinct(StringComparer.Ordinal)
+                        .ToArray();
+                }
+
+                PropertyEditorItems.Add(row);
+            }
         }
-
-        var rows = _propertyGridBuilder.Build(
-            CurrentDocument,
-            SelectedDesignItem,
-            _validator,
-            _referenceScanner,
-            _runtimeContracts);
-
-        foreach (var row in rows)
+        finally
         {
-            row.DisplayName = I18nHelper.GetLocalizedString(row.DisplayName);
-            if (!string.IsNullOrWhiteSpace(row.GroupName))
-            {
-                row.GroupDisplayName = I18nHelper.GetLocalizedString(row.GroupName);
-            }
-
-            if (_propertyEditErrors.TryGetValue(row.PropertyName, out var editError))
-            {
-                row.ValidationErrors = row.ValidationErrors
-                    .Concat([editError])
-                    .Distinct(StringComparer.Ordinal)
-                    .ToArray();
-            }
-
-            PropertyEditorItems.Add(row);
+            _isRebuildingPropertyGrid = false;
+            OnPropertyChanged(nameof(IsRebuildingPropertyGrid));
         }
     }
 
@@ -679,10 +697,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         DirtyIndicatorText = CurrentDocument?.IsDirty == true ? "●" : "○";
         RefreshSelectedControlDisplay();
-        ValidateCurrentDocument();
 
         if (renderPreview)
         {
+            ValidateCurrentDocument();
             RequestPreviewRenderCurrentDocument();
         }
     }

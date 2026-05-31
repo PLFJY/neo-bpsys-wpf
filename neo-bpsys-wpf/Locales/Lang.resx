@@ -2098,6 +2098,12 @@
   <data name="Color" xml:space="preserve">
     <value>颜色</value>
   </data>
+  <data name="ValidationDetails" xml:space="preserve">
+    <value>验证详情</value>
+  </data>
+  <data name="OpenValidationDetails" xml:space="preserve">
+    <value>打开验证详情</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

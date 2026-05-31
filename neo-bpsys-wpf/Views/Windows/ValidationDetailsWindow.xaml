@@ -1,0 +1,82 @@
+<ui:FluentWindow
+    x:Class="neo_bpsys_wpf.Views.Windows.ValidationDetailsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="{lex:Loc ValidationDetails}"
+    Width="820"
+    Height="420"
+    MinWidth="640"
+    MinHeight="300"
+    lex:LocalizeDictionary.DesignCulture="zh"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Lang"
+    Background="{DynamicResource ApplicationBackgroundBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    WindowStartupLocation="CenterOwner">
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="35"
+            CornerRadius="8"
+            GlassFrameThickness="0"
+            ResizeBorderThickness="5"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <controls:CustomTitleBar
+            Grid.Row="0"
+            Icon="/Assets/icon.png"
+            IsMaximizeVisible="True"
+            IsMinimizeVisible="True"
+            IsThemeChangeVisible="False"
+            IsTopMostVisible="False" />
+
+        <DataGrid
+            Grid.Row="1"
+            Margin="12"
+            AutoGenerateColumns="False"
+            CanUserAddRows="False"
+            HeadersVisibility="Column"
+            IsReadOnly="True"
+            ItemsSource="{Binding ValidationMessages}">
+            <DataGrid.Columns>
+                <DataGridTextColumn
+                    Width="90"
+                    Binding="{Binding Severity}"
+                    Header="Severity" />
+                <DataGridTextColumn
+                    Width="130"
+                    Binding="{Binding Code}"
+                    Header="Code" />
+                <DataGridTextColumn
+                    Width="120"
+                    Binding="{Binding ControlName}"
+                    Header="ControlName" />
+                <DataGridTextColumn
+                    Width="120"
+                    Binding="{Binding PropertyName}"
+                    Header="PropertyName" />
+                <DataGridTextColumn
+                    Width="*"
+                    Binding="{Binding Message}"
+                    Header="Message" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <ui:Button
+            Grid.Row="2"
+            Margin="12,0,12,12"
+            HorizontalAlignment="Right"
+            Click="Close_OnClick"
+            Content="{lex:Loc Close}"
+            Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
+    </Grid>
+</ui:FluentWindow>

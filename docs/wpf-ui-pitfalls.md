@@ -115,8 +115,12 @@ BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.
 15. `BanSlotDisplay` 的锁定覆盖层是控件内部视觉层，不是独立设计项。不要把 ban lock overlay 拆成单独控件或单独 hitbox。
 16. 视口导航优先于选择：Fit 模式根据 `ScrollViewer` viewport 和 Canvas 尺寸计算 `ZoomScale`；`Ctrl + mouse wheel` 进入手动缩放并保持 25% 到 200%；右键拖拽或 `Space + left mouse drag` 只平移 `ScrollViewer` offset。这些操作不能写回 layout 坐标，也不能改变当前选中控件。
 17. Phase 8E 的 Property Grid 基于 `ItemsControl`，编辑的是 `FrontedControlDesignItem` 和其 `Config`。`Name` 仍是设计项/JSON key，不能加到 config 类；运行时关键 `Name` 只读，被其他控件引用的普通控件在 8E 也阻止改名。
-18. Phase 8E 中 `BindingPath`、图片/资源路径和颜色字符串都先用文本框编辑；Binding Browser、Resource Browser 和 ColorPicker 深度接入属于后续阶段。颜色字符串仍按 `#AARRGGBB` 存储。
-19. Property Grid 输入控件获得键盘焦点时，方向键不应触发设计 surface 微调。新增编辑器控件后要继续更新 `ShouldIgnoreKeyboardInput()` 的排除列表。
+18. Phase 8E owner validation 后，Property Grid 行编辑器通过模板按需实例化，不要恢复成“TextBox、CheckBox、ComboBox 全部创建再用 Visibility 隐藏”的结构；否则切换选中控件时会出现未套样式的原生控件闪烁。
+19. 属性编辑事件必须避开绑定初始化：ComboBox 用 `DropDownClosed` 提交，TextBox 用 `LostFocus` 或 Enter 提交，CheckBox 用 Click 提交，ColorPicker 只在用户更改颜色后提交。属性网格重建和 layout pass 期间应抑制提交，避免 BpWindow / CutSceneWindow 选中控件时递归触发 `ApplyPropertyEdit`。
+20. Phase 8E 中 `BindingPath` 和图片/资源路径仍是文本框；Binding Browser、Resource Browser 属于后续阶段。颜色字符串使用项目已有 `PortableColorPicker`，仍按 `#AARRGGBB` 存储，并保留文本 fallback。
+21. 验证详情表不在右侧属性面板常驻显示；右侧应主要保留选中控件摘要和 Property Grid。底部左侧验证摘要可点击打开非模态验证详情窗口。
+22. 拖拽和缩放 live edit 中不要运行完整校验、不要重建 Property Grid、不要强制完整重渲染。只更新几何、linked overlay、preview element、hitbox/adorner、选中几何摘要和 dirty 状态；mouse-up/commit 后再统一校验和刷新。
+23. Property Grid 输入控件获得键盘焦点时，方向键不应触发设计 surface 微调。新增编辑器控件后要继续更新 `ShouldIgnoreKeyboardInput()` 的排除列表。
 
 ## 插件 UI
 

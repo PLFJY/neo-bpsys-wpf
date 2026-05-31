@@ -1,4 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 
@@ -13,6 +15,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     private Type _propertyType = typeof(string);
     private FrontedPropertyEditorKind _editorKind;
     private object? _value;
+    private Color _colorValue = FrontedPropertyColorHelper.FallbackColor;
     private bool _isReadOnly;
     private bool _isRequired;
     private IReadOnlyList<string> _validationErrors = [];
@@ -72,7 +75,40 @@ public class FrontedPropertyEditorItem : ObservableObject
     public object? Value
     {
         get => _value;
-        set => SetProperty(ref _value, value);
+        set
+        {
+            if (!SetProperty(ref _value, value))
+            {
+                return;
+            }
+
+            if (EditorKind == FrontedPropertyEditorKind.Color)
+            {
+                SetProperty(
+                    ref _colorValue,
+                    FrontedPropertyColorHelper.TryParseArgbColor(value as string, out var color)
+                        ? color
+                        : FrontedPropertyColorHelper.FallbackColor,
+                    nameof(ColorValue));
+            }
+        }
+    }
+
+    /// <summary>
+    /// ColorPicker-friendly value for color string rows.
+    /// </summary>
+    public Color ColorValue
+    {
+        get => _colorValue;
+        set
+        {
+            if (!SetProperty(ref _colorValue, value))
+            {
+                return;
+            }
+
+            Value = FrontedPropertyColorHelper.ToArgbString(value);
+        }
     }
 
     /// <summary>

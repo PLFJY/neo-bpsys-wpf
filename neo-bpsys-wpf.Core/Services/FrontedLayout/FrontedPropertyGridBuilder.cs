@@ -51,6 +51,17 @@ public class FrontedPropertyGridBuilder
         "ClipToBounds"
     };
 
+    private static readonly IReadOnlyDictionary<string, IReadOnlyList<object>> StringOptionProperties =
+        new Dictionary<string, IReadOnlyList<object>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["HorizontalAlignment"] = ["Left", "Center", "Right", "Stretch"],
+            ["VerticalAlignment"] = ["Top", "Center", "Bottom", "Stretch"],
+            ["TextAlignment"] = ["Left", "Center", "Right", "Justify"],
+            ["TextWrapping"] = ["NoWrap", "Wrap", "WrapWithOverflow"],
+            ["Stretch"] = ["None", "Fill", "Uniform", "UniformToFill"],
+            ["FontWeight"] = ["Normal", "Bold", "SemiBold", "Light", "Medium", "ExtraBold"]
+        };
+
     private static readonly Regex ArgbColorRegex = new(
         "^#[0-9A-Fa-f]{8}$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
@@ -182,9 +193,7 @@ public class FrontedPropertyGridBuilder
                 IsReadOnly = isReadOnly,
                 IsRequired = property.Name is nameof(FrontedControlConfigBase.Left)
                     or nameof(FrontedControlConfigBase.Top),
-                Options = kind == FrontedPropertyEditorKind.Enum
-                    ? Enum.GetValues(GetCoreType(property.PropertyType)).Cast<object>().ToArray()
-                    : null,
+                Options = ResolveOptions(property, kind),
                 GroupName = groupName,
                 ValidationErrors = validationErrors
             });
@@ -223,6 +232,11 @@ public class FrontedPropertyGridBuilder
             return FrontedPropertyEditorKind.Color;
         }
 
+        if (property.PropertyType == typeof(string) && StringOptionProperties.ContainsKey(property.Name))
+        {
+            return FrontedPropertyEditorKind.Enum;
+        }
+
         if (type == typeof(bool))
         {
             return FrontedPropertyEditorKind.Boolean;
@@ -241,6 +255,22 @@ public class FrontedPropertyGridBuilder
         return type == typeof(string)
             ? FrontedPropertyEditorKind.Text
             : FrontedPropertyEditorKind.ReadOnly;
+    }
+
+    private static IReadOnlyList<object>? ResolveOptions(PropertyInfo property, FrontedPropertyEditorKind kind)
+    {
+        if (kind != FrontedPropertyEditorKind.Enum)
+        {
+            return null;
+        }
+
+        if (property.PropertyType == typeof(string)
+            && StringOptionProperties.TryGetValue(property.Name, out var stringOptions))
+        {
+            return stringOptions;
+        }
+
+        return Enum.GetValues(GetCoreType(property.PropertyType)).Cast<object>().ToArray();
     }
 
     private static string ResolveGroupName(string propertyName)

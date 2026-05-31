@@ -1,6 +1,6 @@
 # Fronted Designer v3 独立编辑器设计规格
 
-本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；Phase 8D 已新增编辑器内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调，并在 owner validation 后补齐左侧控件列表、筛选和重叠控件选择语义。Phase 8D zoom/pan 修正后，编辑 surface 不再使用 `Viewbox` 控制 Fit/手动缩放，而是使用 `ScrollViewer + PreviewZoomHost + LayoutTransform`，所有缩放统一由 `ZoomScale` 驱动。Phase 8E 已新增基础 Property Grid，可编辑选中控件的内存设计项并即时重渲染预览。编辑器入口位于 `FrontManagePage`，不是 `SettingPage`。当前仍不实现 Add Control、Binding Browser、Resource Browser、用户布局保存、`.bpui` 迁移，也不移除旧 `config.json` 前台设置。
+本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；Phase 8D 已新增编辑器内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调，并在 owner validation 后补齐左侧控件列表、筛选和重叠控件选择语义。Phase 8D zoom/pan 修正后，编辑 surface 不再使用 `Viewbox` 控制 Fit/手动缩放，而是使用 `ScrollViewer + PreviewZoomHost + LayoutTransform`，所有缩放统一由 `ZoomScale` 驱动。Phase 8E 已新增基础 Property Grid，可编辑选中控件的内存设计项并即时重渲染预览；owner validation 后改为按编辑器类型实例化单一模板，提交事件在属性网格重建期间被抑制，验证详情移入底部状态区弹窗，颜色字段使用 ColorPicker。编辑器入口位于 `FrontManagePage`，不是 `SettingPage`。当前仍不实现 Add Control、Binding Browser、Resource Browser、用户布局保存、`.bpui` 迁移，也不移除旧 `config.json` 前台设置。
 
 独立编辑器面向 v3 JSON layout 文件。它是后台侧的独立编辑窗口，不直接在真实前台窗口上编辑；真实前台窗口仍用于 OBS 捕获和运行时输出。编辑器必须同时支持单 Canvas 窗口和多 Canvas 窗口，并保持与现有 v3 renderer、生成控件名、`AnimationService`、业务控件和 JSON 格式兼容。
 
@@ -381,7 +381,7 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
 
 ## 11. Property Grid
 
-Phase 8E 已实现基础 Property Grid。Property Grid 手写 WPF 实现，基于 `ItemsControl`，不使用 WinForms `PropertyGrid`：
+Phase 8E 已实现基础 Property Grid。Property Grid 手写 WPF 实现，基于 `ItemsControl`，不使用 WinForms `PropertyGrid`。owner validation 后每行通过 `ContentControl` 和编辑器模板只创建当前需要的编辑器，避免切换选中控件时同时创建多套原生控件造成闪烁：
 
 ```text
 PropertyGrid
@@ -408,7 +408,7 @@ PropertyGrid
 | nullable number | `NumberBox` + clear button |
 | `bool` | `ToggleSwitch` 或 `CheckBox` |
 | enum | `ComboBox` |
-| color string | Phase 8E 先使用 `TextBox` fallback，保存为 `#AARRGGBB`；ColorPicker 接入后续补齐 |
+| color string | `PortableColorPicker` + 文本 fallback，保存为 `#AARRGGBB` |
 | `BindingPath` | Phase 8E 为普通 `TextBox`；Binding Browser 留到 Phase 8G |
 | image/resource path | Phase 8E 为普通 `TextBox`；Resource Browser 留到 Phase 8G |
 | `ControlType` | read-only |
@@ -416,11 +416,21 @@ PropertyGrid
 | `ZIndex` | `NumberBox` |
 | `FontFamily` | 初期 `TextBox`，后续可做 font picker |
 
+字符串选项处理：
+
+1. `HorizontalAlignment` 使用 `Left` / `Center` / `Right` / `Stretch`。
+2. `VerticalAlignment` 使用 `Top` / `Center` / `Bottom` / `Stretch`。
+3. `TextAlignment` 使用 `Left` / `Center` / `Right` / `Justify`。
+4. `TextWrapping` 使用 `NoWrap` / `Wrap` / `WrapWithOverflow`。
+5. `Stretch` 使用 `None` / `Fill` / `Uniform` / `UniformToFill`。
+6. `FontWeight` 使用 `Normal` / `Bold` / `SemiBold` / `Light` / `Medium` / `ExtraBold`。
+
 颜色处理：
 
 1. 优先使用项目已有 ColorPicker。
 2. 保存为 `#AARRGGBB`。
 3. 识别属性名：`Color`, `Foreground`, `Background`, `FillColor`, `BorderColor`。
+4. 无效颜色字符串不会让编辑器崩溃；ColorPicker 显示白色 fallback，并由属性行验证错误提示用户修正。
 
 属性编辑直接修改当前设计项的 `Config`。每次编辑后：
 
@@ -428,6 +438,10 @@ PropertyGrid
 2. 重新渲染 preview。
 3. 更新 hitbox 和 adorner。
 4. 标记布局 dirty。
+
+属性编辑提交必须只由用户交互触发。ComboBox 在 `DropDownClosed` 后提交，TextBox 在 `LostFocus` 或 Enter 后提交，CheckBox 在 Click 后提交，ColorPicker 在用户更改颜色后提交。属性网格重建、切换选中控件、绑定初始化和 layout pass 期间应抑制提交事件，避免 BpWindow / CutSceneWindow 中大量枚举或字符串选项行触发递归重建。
+
+拖拽和缩放过程中的 live geometry edit 只更新内存 config、linked overlay、preview element、hitbox/adorner、选中控件几何摘要和 dirty 状态，不运行完整校验、不重建 Property Grid、不强制重渲染。鼠标释放或键盘微调等 commit 操作再执行一次校验、属性行刷新和最终 preview render。
 
 Phase 8E 的名称编辑采用保守策略：
 
@@ -595,7 +609,7 @@ Phase 8A 不实现保存 UI，只记录未来阶段行为。
 | Phase 8B | 已实现：`FrontedControlDesignItem` / `FrontedCanvasDesignDocument`、设计项与 dictionary 转换、`FrontedLayoutValidator`、名称校验、引用扫描、运行时关键名称 catalog、重复 JSON key 检测 |
 | Phase 8C | 已实现：`FrontedDesignerWindow` shell、window/canvas selector、只读 preview surface、缩放控制、layout source 状态和 validator 消息面板 |
 | Phase 8D | 已实现：interaction layer、透明 hitbox、selection adorner、drag、resize、键盘微调；owner validation 后补齐左侧控件列表/筛选、单击选择与拖拽分离、选中 hitbox editor-only 提层、拖拽/缩放时 preview live update、无显式尺寸时使用渲染实际尺寸；仍只改内存，不保存用户布局 |
-| Phase 8E | 已实现：基础 Property Grid、Text/Number/Boolean/Enum/Color 文本 fallback 编辑、保守 Name 编辑、运行时关键名称只读、被引用控件改名阻止；仍只改内存，不保存用户布局 |
+| Phase 8E | 已实现：基础 Property Grid、Text/Number/Boolean/Enum/ColorPicker 编辑、对齐/换行/拉伸/字重字符串选项 ComboBox、保守 Name 编辑、运行时关键名称只读、被引用控件改名阻止；owner validation 后验证详情移至底部状态区弹窗，属性重建期间抑制提交，live 拖拽不重建属性网格；仍只改内存，不保存用户布局 |
 | Phase 8F | Add Control FlyoutButton、默认 config factory、设计时 placeholder data |
 | Phase 8G | Binding Browser、Resource Browser |
 | Phase 8H | 用户 layout save/reset/load priority、validation-driven save |

@@ -13,6 +13,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Media;
 using System.Xml.Linq;
 using Xunit;
 
@@ -818,6 +819,44 @@ public class FrontedLayoutDesignerFoundationTest
             imageRows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.SizingMode)).EditorKind);
     }
 
+    [Theory]
+    [InlineData("HorizontalAlignment", "Left", "Center", "Right", "Stretch")]
+    [InlineData("VerticalAlignment", "Top", "Center", "Bottom", "Stretch")]
+    [InlineData("TextAlignment", "Left", "Center", "Right", "Justify")]
+    [InlineData("TextWrapping", "NoWrap", "Wrap", "WrapWithOverflow")]
+    [InlineData("Stretch", "None", "Fill", "Uniform", "UniformToFill")]
+    [InlineData("FontWeight", "Normal", "Bold", "SemiBold", "Light", "Medium", "ExtraBold")]
+    public void PropertyGridBuilderMapsStringOptionPropertiesToComboBox(string propertyName, params string[] options)
+    {
+        var text = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig()
+        };
+        var image = new FrontedControlDesignItem
+        {
+            Name = "Logo",
+            Config = new ImageFrontedControlConfig()
+        };
+        var item = propertyName == "Stretch" ? image : text;
+
+        var rows = BuildPropertyRows(CreateDocument([item]), item);
+        var row = rows.Single(row => row.PropertyName == propertyName);
+
+        Assert.Equal(FrontedPropertyEditorKind.Enum, row.EditorKind);
+        Assert.Equal(options, row.Options?.Cast<string>().ToArray());
+    }
+
+    [Fact]
+    public void PropertyColorHelperParsesFormatsAndFallsBackSafely()
+    {
+        Assert.True(FrontedPropertyColorHelper.TryParseArgbColor("#FFFFFFFF", out var color));
+        Assert.Equal(Colors.White, color);
+        Assert.Equal("#FFFFFFFF", FrontedPropertyColorHelper.ToArgbString(color));
+        Assert.False(FrontedPropertyColorHelper.TryParseArgbColor("not-a-color", out var fallback));
+        Assert.Equal(FrontedPropertyColorHelper.FallbackColor, fallback);
+    }
+
     [Fact]
     public void ApplyPropertyEditUpdatesTextPropertyAndMarksDocumentDirty()
     {
@@ -840,6 +879,30 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Equal("New", ((TextFrontedControlConfig)item.Config).Text);
         Assert.True(document.IsDirty);
+    }
+
+    [Fact]
+    public void LiveGeometryChangeDoesNotRebuildPropertyGridUntilCommit()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Left = 10, Top = 20 }
+        };
+        var document = CreateDocument([item]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(item);
+        viewModel.PropertyEditorItems.Clear();
+        viewModel.PropertyEditorItems.Add(new FrontedPropertyEditorItem { PropertyName = "Sentinel" });
+
+        viewModel.MoveSelectedDesignItem(10, 20, 5, 6, renderPreview: false);
+
+        Assert.Single(viewModel.PropertyEditorItems);
+        Assert.Equal("Sentinel", viewModel.PropertyEditorItems[0].PropertyName);
+
+        viewModel.CommitDesignItemGeometryEdit();
+
+        Assert.Contains(viewModel.PropertyEditorItems, row => row.PropertyName == nameof(FrontedControlConfigBase.Left));
     }
 
     [Fact]
@@ -1141,7 +1204,9 @@ public class FrontedLayoutDesignerFoundationTest
             "PropertyValidationErrors",
             "NoSelectedControl",
             "EditProperty",
-            "Color"
+            "Color",
+            "ValidationDetails",
+            "OpenValidationDetails"
         };
 
         foreach (var fileName in new[] { "Lang.resx", "Lang.en-us.resx", "Lang.ja-jp.resx" })
@@ -1205,6 +1270,9 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("FitToWindowCommand", text);
         Assert.Contains("InteractionLayer", text);
         Assert.Contains("DesignSurfaceGrid", text);
+        Assert.Contains("PropertyEditorContentControlStyle", text);
+        Assert.Contains("OpenValidationDetails_OnClick", text);
+        Assert.DoesNotContain("ItemsSource=\"{Binding ValidationMessages}\"", text);
     }
 
     [Fact]
