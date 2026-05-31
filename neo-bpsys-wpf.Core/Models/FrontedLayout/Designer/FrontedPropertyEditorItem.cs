@@ -15,6 +15,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     private Type _propertyType = typeof(string);
     private FrontedPropertyEditorKind _editorKind;
     private object? _value;
+    private string? _displayValue;
     private string? _editText;
     private Color _colorValue = FrontedPropertyColorHelper.FallbackColor;
     private bool _isReadOnly;
@@ -102,6 +103,15 @@ public class FrontedPropertyEditorItem : ObservableObject
                     nameof(ColorValue));
             }
         }
+    }
+
+    /// <summary>
+    /// Optional user-facing display text for read-only values.
+    /// </summary>
+    public string? DisplayValue
+    {
+        get => _displayValue;
+        set => SetProperty(ref _displayValue, value);
     }
 
     /// <summary>

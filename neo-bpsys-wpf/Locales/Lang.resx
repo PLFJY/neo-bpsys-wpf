@@ -2563,58 +2563,562 @@
   <data name="FrontendLayoutPackageDefaultName" xml:space="preserve">
     <value>前台布局包</value>
   </data>
-  <data name="PackageImportSucceeded" xml:space="preserve"><value>布局包导入成功</value></data>
-  <data name="PackageImportFailed" xml:space="preserve"><value>布局包导入失败</value></data>
-  <data name="PackageAlreadyExists" xml:space="preserve"><value>布局包已存在</value></data>
-  <data name="ReplaceExistingPackage" xml:space="preserve"><value>已存在相同 PackageId 的布局包，是否替换？</value></data>
-  <data name="ActivateImportedPackage" xml:space="preserve"><value>布局包已导入，是否立即激活？</value></data>
-  <data name="LegacyPackageDetected" xml:space="preserve"><value>检测到旧版 .bpui 包</value></data>
-  <data name="LegacyPackageConversionNotImplemented" xml:space="preserve"><value>旧版 .bpui 转换尚未实现。</value></data>
-  <data name="InvalidPackageManifest" xml:space="preserve"><value>无效的布局包 manifest。</value></data>
-  <data name="InvalidPackageArchive" xml:space="preserve"><value>无效的布局包归档。</value></data>
-  <data name="PackageRequiresNewerVersion" xml:space="preserve"><value>该布局包需要更新版本的软件。</value></data>
-  <data name="CrossPackageResourceReference" xml:space="preserve"><value>布局包包含跨包资源引用。</value></data>
-  <data name="MissingPackageResource" xml:space="preserve"><value>布局包缺少资源文件。</value></data>
-  <data name="ConfirmActivatePackage" xml:space="preserve"><value>激活布局包会覆盖当前用户前台布局，是否继续？</value></data>
-  <data name="ConfirmDeleteActivePackage" xml:space="preserve"><value>此布局包正在使用。是否删除并切换到内置布局？</value></data>
-  <data name="ConfirmDeletePackage" xml:space="preserve"><value>是否删除此布局包？</value></data>
-  <data name="SwitchToBuiltIn" xml:space="preserve"><value>切换到内置布局</value></data>
-  <data name="PackageActivatedBuiltin" xml:space="preserve"><value>已切换到内置布局</value></data>
-  <data name="PackageActivatedInstalled" xml:space="preserve"><value>已激活布局包</value></data>
-  <data name="LegacyPackageConvertTitle" xml:space="preserve"><value>转换旧版布局包</value></data>
-  <data name="LegacyPackageConvertMessage" xml:space="preserve"><value>检测到旧版 .bpui 布局包。是否转换为 Designer v3 布局包并导入？旧版 Config.json 不会覆盖当前应用设置。</value></data>
-  <data name="ConvertLegacyPackage" xml:space="preserve"><value>转换旧版布局包</value></data>
-  <data name="LegacyPackageConvertSucceeded" xml:space="preserve"><value>旧版布局包转换成功</value></data>
-  <data name="LegacyPackageConvertFailed" xml:space="preserve"><value>旧版布局包转换失败</value></data>
-  <data name="LegacyPackageConvertWarnings" xml:space="preserve"><value>旧版布局包转换警告</value></data>
-  <data name="LegacyPackageDefaultDescription" xml:space="preserve"><value>从旧版 .bpui 转换而来。无法安全映射的旧字段会被忽略。</value></data>
-  <data name="UnknownLegacyLayoutFile" xml:space="preserve"><value>未知旧版布局文件</value></data>
-  <data name="LegacyFieldIgnored" xml:space="preserve"><value>旧版字段已忽略</value></data>
-  <data name="LegacyResourceCopied" xml:space="preserve"><value>旧版资源已复制</value></data>
-  <data name="LegacyResourceMissing" xml:space="preserve"><value>旧版资源缺失</value></data>
-  <data name="ActivateConvertedPackage" xml:space="preserve"><value>是否立即激活转换后的布局包？</value></data>
-  <data name="InputTruncated" xml:space="preserve"><value>输入已按长度上限截断</value></data>
-  <data name="InputTooLong" xml:space="preserve"><value>输入内容过长</value></data>
-  <data name="ImageTooLarge" xml:space="preserve"><value>图片文件过大</value></data>
-  <data name="ImageTooManyPixels" xml:space="preserve"><value>图片尺寸过大</value></data>
-  <data name="UnsupportedImageFormat" xml:space="preserve"><value>不支持的图片格式</value></data>
-  <data name="PackageTooLarge" xml:space="preserve"><value>布局包文件过大</value></data>
-  <data name="PackageExtractedTooLarge" xml:space="preserve"><value>布局包解压后内容过大</value></data>
-  <data name="PackageTooManyEntries" xml:space="preserve"><value>布局包文件数量过多</value></data>
-  <data name="PackageEntryTooLarge" xml:space="preserve"><value>布局包单个文件过大</value></data>
-  <data name="ManifestTooLarge" xml:space="preserve"><value>manifest.json 过大</value></data>
-  <data name="LayoutJsonTooLarge" xml:space="preserve"><value>布局 JSON 过大</value></data>
-  <data name="WindowOptionsTooLarge" xml:space="preserve"><value>窗口选项 JSON 过大</value></data>
-  <data name="TooManyControls" xml:space="preserve"><value>Canvas 控件过多</value></data>
-  <data name="ControlCountLimitReached" xml:space="preserve"><value>已达到当前 Canvas 控件数量上限</value></data>
-  <data name="ControlCountWarning" xml:space="preserve"><value>当前 Canvas 控件数量较多</value></data>
-  <data name="MaxControlsPerCanvas" xml:space="preserve"><value>每个 Canvas 最大控件数</value></data>
-  <data name="ResourcePathTooLong" xml:space="preserve"><value>资源路径过长</value></data>
-  <data name="TextTooLong" xml:space="preserve"><value>文本过长</value></data>
-  <data name="BindingPathTooLong" xml:space="preserve"><value>绑定路径过长</value></data>
-  <data name="ValidationMessagesTruncated" xml:space="preserve"><value>还有 {0} 条验证消息未显示</value></data>
-  <data name="CopyControl" xml:space="preserve"><value>复制控件</value></data>
-  <data name="PasteControl" xml:space="preserve"><value>粘贴控件</value></data>
-  <data name="CannotCopyControl" xml:space="preserve"><value>无法复制该控件</value></data>
-  <data name="CannotPasteControl" xml:space="preserve"><value>无法粘贴控件</value></data>
+  <data name="PackageImportSucceeded" xml:space="preserve">
+    <value>布局包导入成功</value>
+  </data>
+  <data name="PackageImportFailed" xml:space="preserve">
+    <value>布局包导入失败</value>
+  </data>
+  <data name="PackageAlreadyExists" xml:space="preserve">
+    <value>布局包已存在</value>
+  </data>
+  <data name="ReplaceExistingPackage" xml:space="preserve">
+    <value>已存在相同 PackageId 的布局包，是否替换？</value>
+  </data>
+  <data name="ActivateImportedPackage" xml:space="preserve">
+    <value>布局包已导入，是否立即激活？</value>
+  </data>
+  <data name="LegacyPackageDetected" xml:space="preserve">
+    <value>检测到旧版 .bpui 包</value>
+  </data>
+  <data name="LegacyPackageConversionNotImplemented" xml:space="preserve">
+    <value>旧版 .bpui 转换尚未实现。</value>
+  </data>
+  <data name="InvalidPackageManifest" xml:space="preserve">
+    <value>无效的布局包 manifest。</value>
+  </data>
+  <data name="InvalidPackageArchive" xml:space="preserve">
+    <value>无效的布局包归档。</value>
+  </data>
+  <data name="PackageRequiresNewerVersion" xml:space="preserve">
+    <value>该布局包需要更新版本的软件。</value>
+  </data>
+  <data name="CrossPackageResourceReference" xml:space="preserve">
+    <value>布局包包含跨包资源引用。</value>
+  </data>
+  <data name="MissingPackageResource" xml:space="preserve">
+    <value>布局包缺少资源文件。</value>
+  </data>
+  <data name="ConfirmActivatePackage" xml:space="preserve">
+    <value>激活布局包会覆盖当前用户前台布局，是否继续？</value>
+  </data>
+  <data name="ConfirmDeleteActivePackage" xml:space="preserve">
+    <value>此布局包正在使用。是否删除并切换到内置布局？</value>
+  </data>
+  <data name="ConfirmDeletePackage" xml:space="preserve">
+    <value>是否删除此布局包？</value>
+  </data>
+  <data name="SwitchToBuiltIn" xml:space="preserve">
+    <value>切换到内置布局</value>
+  </data>
+  <data name="PackageActivatedBuiltin" xml:space="preserve">
+    <value>已切换到内置布局</value>
+  </data>
+  <data name="PackageActivatedInstalled" xml:space="preserve">
+    <value>已激活布局包</value>
+  </data>
+  <data name="LegacyPackageConvertTitle" xml:space="preserve">
+    <value>转换旧版布局包</value>
+  </data>
+  <data name="LegacyPackageConvertMessage" xml:space="preserve">
+    <value>检测到旧版 .bpui 布局包。是否转换为 Designer v3 布局包并导入？旧版 Config.json 不会覆盖当前应用设置。</value>
+  </data>
+  <data name="ConvertLegacyPackage" xml:space="preserve">
+    <value>转换旧版布局包</value>
+  </data>
+  <data name="LegacyPackageConvertSucceeded" xml:space="preserve">
+    <value>旧版布局包转换成功</value>
+  </data>
+  <data name="LegacyPackageConvertFailed" xml:space="preserve">
+    <value>旧版布局包转换失败</value>
+  </data>
+  <data name="LegacyPackageConvertWarnings" xml:space="preserve">
+    <value>旧版布局包转换警告</value>
+  </data>
+  <data name="LegacyPackageDefaultDescription" xml:space="preserve">
+    <value>从旧版 .bpui 转换而来。无法安全映射的旧字段会被忽略。</value>
+  </data>
+  <data name="UnknownLegacyLayoutFile" xml:space="preserve">
+    <value>未知旧版布局文件</value>
+  </data>
+  <data name="LegacyFieldIgnored" xml:space="preserve">
+    <value>旧版字段已忽略</value>
+  </data>
+  <data name="LegacyResourceCopied" xml:space="preserve">
+    <value>旧版资源已复制</value>
+  </data>
+  <data name="LegacyResourceMissing" xml:space="preserve">
+    <value>旧版资源缺失</value>
+  </data>
+  <data name="ActivateConvertedPackage" xml:space="preserve">
+    <value>是否立即激活转换后的布局包？</value>
+  </data>
+  <data name="InputTruncated" xml:space="preserve">
+    <value>输入已按长度上限截断</value>
+  </data>
+  <data name="InputTooLong" xml:space="preserve">
+    <value>输入内容过长</value>
+  </data>
+  <data name="ImageTooLarge" xml:space="preserve">
+    <value>图片文件过大</value>
+  </data>
+  <data name="ImageTooManyPixels" xml:space="preserve">
+    <value>图片尺寸过大</value>
+  </data>
+  <data name="UnsupportedImageFormat" xml:space="preserve">
+    <value>不支持的图片格式</value>
+  </data>
+  <data name="PackageTooLarge" xml:space="preserve">
+    <value>布局包文件过大</value>
+  </data>
+  <data name="PackageExtractedTooLarge" xml:space="preserve">
+    <value>布局包解压后内容过大</value>
+  </data>
+  <data name="PackageTooManyEntries" xml:space="preserve">
+    <value>布局包文件数量过多</value>
+  </data>
+  <data name="PackageEntryTooLarge" xml:space="preserve">
+    <value>布局包单个文件过大</value>
+  </data>
+  <data name="ManifestTooLarge" xml:space="preserve">
+    <value>manifest.json 过大</value>
+  </data>
+  <data name="LayoutJsonTooLarge" xml:space="preserve">
+    <value>布局 JSON 过大</value>
+  </data>
+  <data name="WindowOptionsTooLarge" xml:space="preserve">
+    <value>窗口选项 JSON 过大</value>
+  </data>
+  <data name="TooManyControls" xml:space="preserve">
+    <value>Canvas 控件过多</value>
+  </data>
+  <data name="ControlCountLimitReached" xml:space="preserve">
+    <value>已达到当前 Canvas 控件数量上限</value>
+  </data>
+  <data name="ControlCountWarning" xml:space="preserve">
+    <value>当前 Canvas 控件数量较多</value>
+  </data>
+  <data name="MaxControlsPerCanvas" xml:space="preserve">
+    <value>每个 Canvas 最大控件数</value>
+  </data>
+  <data name="ResourcePathTooLong" xml:space="preserve">
+    <value>资源路径过长</value>
+  </data>
+  <data name="TextTooLong" xml:space="preserve">
+    <value>文本过长</value>
+  </data>
+  <data name="BindingPathTooLong" xml:space="preserve">
+    <value>绑定路径过长</value>
+  </data>
+  <data name="ValidationMessagesTruncated" xml:space="preserve">
+    <value>还有 {0} 条验证消息未显示</value>
+  </data>
+  <data name="CopyControl" xml:space="preserve">
+    <value>复制控件</value>
+  </data>
+  <data name="PasteControl" xml:space="preserve">
+    <value>粘贴控件</value>
+  </data>
+  <data name="CannotCopyControl" xml:space="preserve">
+    <value>无法复制该控件</value>
+  </data>
+  <data name="CannotPasteControl" xml:space="preserve">
+    <value>无法粘贴控件</value>
+  </data>
+  <data name="Designer.Property.Name" xml:space="preserve">
+    <value>控件名称</value>
+  </data>
+  <data name="Designer.Property.ControlType" xml:space="preserve">
+    <value>控件类型</value>
+  </data>
+  <data name="Designer.Property.RuntimeCritical" xml:space="preserve">
+    <value>运行时关键控件</value>
+  </data>
+  <data name="Designer.Property.LinkedTargetControlName" xml:space="preserve">
+    <value>关联目标控件</value>
+  </data>
+  <data name="Designer.Property.Left" xml:space="preserve">
+    <value>X 坐标</value>
+  </data>
+  <data name="Designer.Property.Top" xml:space="preserve">
+    <value>Y 坐标</value>
+  </data>
+  <data name="Designer.Property.Width" xml:space="preserve">
+    <value>宽度</value>
+  </data>
+  <data name="Designer.Property.Height" xml:space="preserve">
+    <value>高度</value>
+  </data>
+  <data name="Designer.Property.ZIndex" xml:space="preserve">
+    <value>层级</value>
+  </data>
+  <data name="Designer.Property.BindingPath" xml:space="preserve">
+    <value>绑定路径</value>
+  </data>
+  <data name="Designer.Property.HorizontalAlignment" xml:space="preserve">
+    <value>水平对齐</value>
+  </data>
+  <data name="Designer.Property.VerticalAlignment" xml:space="preserve">
+    <value>垂直对齐</value>
+  </data>
+  <data name="Designer.Property.TextAlignment" xml:space="preserve">
+    <value>文本对齐</value>
+  </data>
+  <data name="Designer.Property.TextWrapping" xml:space="preserve">
+    <value>文本换行</value>
+  </data>
+  <data name="Designer.Property.Stretch" xml:space="preserve">
+    <value>图片缩放</value>
+  </data>
+  <data name="Designer.Property.FontFamily" xml:space="preserve">
+    <value>字体</value>
+  </data>
+  <data name="Designer.Property.FontWeight" xml:space="preserve">
+    <value>字重</value>
+  </data>
+  <data name="Designer.Property.FontSize" xml:space="preserve">
+    <value>字号</value>
+  </data>
+  <data name="Designer.Property.Color" xml:space="preserve">
+    <value>颜色</value>
+  </data>
+  <data name="Designer.Property.BackgroundImage" xml:space="preserve">
+    <value>背景图片</value>
+  </data>
+  <data name="Designer.Property.PickingBorder" xml:space="preserve">
+    <value>选择框</value>
+  </data>
+  <data name="Designer.Property.BanLockAvailable" xml:space="preserve">
+    <value>Ban 位锁可用</value>
+  </data>
+  <data name="Designer.Property.Text" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="Designer.Property.StringFormat" xml:space="preserve">
+    <value>文本格式</value>
+  </data>
+  <data name="Designer.Property.SizingMode" xml:space="preserve">
+    <value>尺寸模式</value>
+  </data>
+  <data name="Designer.Property.ClipToBounds" xml:space="preserve">
+    <value>裁剪溢出</value>
+  </data>
+  <data name="Designer.Property.CornerRadius" xml:space="preserve">
+    <value>圆角</value>
+  </data>
+  <data name="Designer.Property.PickingBorderImagePath" xml:space="preserve">
+    <value>选择框图片</value>
+  </data>
+  <data name="Designer.Property.BanLockImagePath" xml:space="preserve">
+    <value>Ban 锁图片</value>
+  </data>
+  <data name="Designer.Property.LocalizationKey" xml:space="preserve">
+    <value>本地化键</value>
+  </data>
+  <data name="Designer.Property.FallbackText" xml:space="preserve">
+    <value>备用文本</value>
+  </data>
+  <data name="Designer.Property.EmptyText" xml:space="preserve">
+    <value>空值文本</value>
+  </data>
+  <data name="Designer.Property.UseLineBreak" xml:space="preserve">
+    <value>使用换行</value>
+  </data>
+  <data name="Designer.Property.TeamType" xml:space="preserve">
+    <value>队伍</value>
+  </data>
+  <data name="Designer.Property.MajorGameGap" xml:space="preserve">
+    <value>大局间距</value>
+  </data>
+  <data name="Designer.Property.HalfGameGap" xml:space="preserve">
+    <value>半场间距</value>
+  </data>
+  <data name="Designer.Property.ShowCampIcon" xml:space="preserve">
+    <value>显示阵营图标</value>
+  </data>
+  <data name="Designer.Property.MapKey" xml:space="preserve">
+    <value>地图键</value>
+  </data>
+  <data name="Designer.Property.DisplayKind" xml:space="preserve">
+    <value>显示类型</value>
+  </data>
+  <data name="Designer.Property.PlayerIndex" xml:space="preserve">
+    <value>选手序号</value>
+  </data>
+  <data name="Designer.Property.IconSize" xml:space="preserve">
+    <value>图标大小</value>
+  </data>
+  <data name="Designer.Property.IconGap" xml:space="preserve">
+    <value>图标间距</value>
+  </data>
+  <data name="Designer.Property.RespectTraitVisibility" xml:space="preserve">
+    <value>跟随辅助特质可见性</value>
+  </data>
+  <data name="Designer.Property.TargetControlName" xml:space="preserve">
+    <value>目标控件名称</value>
+  </data>
+  <data name="Designer.Property.BorderImagePath" xml:space="preserve">
+    <value>边框图片</value>
+  </data>
+  <data name="Designer.Property.FillColor" xml:space="preserve">
+    <value>填充颜色</value>
+  </data>
+  <data name="Designer.Property.InitiallyHidden" xml:space="preserve">
+    <value>初始隐藏</value>
+  </data>
+  <data name="Designer.Property.SlotKind" xml:space="preserve">
+    <value>Ban 位类型</value>
+  </data>
+  <data name="Designer.Property.Camp" xml:space="preserve">
+    <value>阵营</value>
+  </data>
+  <data name="Designer.Property.Index" xml:space="preserve">
+    <value>索引</value>
+  </data>
+  <data name="Designer.Property.ShowLockOverlay" xml:space="preserve">
+    <value>显示锁定覆盖层</value>
+  </data>
+  <data name="Designer.Property.LockImageSource" xml:space="preserve">
+    <value>锁定图片</value>
+  </data>
+  <data name="Designer.Property.LockZIndexOffset" xml:space="preserve">
+    <value>锁定层级偏移</value>
+  </data>
+  <data name="Designer.PropertyGroup.Identity" xml:space="preserve">
+    <value>标识</value>
+  </data>
+  <data name="Designer.PropertyGroup.Layout" xml:space="preserve">
+    <value>布局</value>
+  </data>
+  <data name="Designer.PropertyGroup.Binding" xml:space="preserve">
+    <value>数据绑定</value>
+  </data>
+  <data name="Designer.PropertyGroup.Appearance" xml:space="preserve">
+    <value>外观</value>
+  </data>
+  <data name="Designer.PropertyGroup.Resource" xml:space="preserve">
+    <value>资源</value>
+  </data>
+  <data name="Designer.PropertyGroup.Behavior" xml:space="preserve">
+    <value>行为</value>
+  </data>
+  <data name="Designer.PropertyGroup.Advanced" xml:space="preserve">
+    <value>高级</value>
+  </data>
+  <data name="Designer.PropertyGroup.Validation" xml:space="preserve">
+    <value>校验</value>
+  </data>
+  <data name="Designer.PropertyGroup.ControlSpecific" xml:space="preserve">
+    <value>控件特定</value>
+  </data>
+  <data name="Designer.ControlType.Text" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="Designer.ControlType.LocalizedText" xml:space="preserve">
+    <value>本地化文本</value>
+  </data>
+  <data name="Designer.ControlType.Image" xml:space="preserve">
+    <value>图片</value>
+  </data>
+  <data name="Designer.ControlType.GameProgressText" xml:space="preserve">
+    <value>对局进度</value>
+  </data>
+  <data name="Designer.ControlType.MapNameText" xml:space="preserve">
+    <value>地图名称</value>
+  </data>
+  <data name="Designer.ControlType.TalentTraitDisplay" xml:space="preserve">
+    <value>天赋 / 辅助特质</value>
+  </data>
+  <data name="Designer.ControlType.GlobalScoreRow" xml:space="preserve">
+    <value>全局比分</value>
+  </data>
+  <data name="Designer.ControlType.CurrentBanDisplay" xml:space="preserve">
+    <value>当前 Ban 位</value>
+  </data>
+  <data name="Designer.ControlType.BanSlotDisplay" xml:space="preserve">
+    <value>Ban 位</value>
+  </data>
+  <data name="Designer.ControlType.MapV2Display" xml:space="preserve">
+    <value>地图 v2</value>
+  </data>
+  <data name="Designer.Option.HorizontalAlignment.Left" xml:space="preserve">
+    <value>左</value>
+  </data>
+  <data name="Designer.Option.HorizontalAlignment.Center" xml:space="preserve">
+    <value>居中</value>
+  </data>
+  <data name="Designer.Option.HorizontalAlignment.Right" xml:space="preserve">
+    <value>右</value>
+  </data>
+  <data name="Designer.Option.HorizontalAlignment.Stretch" xml:space="preserve">
+    <value>拉伸</value>
+  </data>
+  <data name="Designer.Option.VerticalAlignment.Top" xml:space="preserve">
+    <value>上</value>
+  </data>
+  <data name="Designer.Option.VerticalAlignment.Center" xml:space="preserve">
+    <value>居中</value>
+  </data>
+  <data name="Designer.Option.VerticalAlignment.Bottom" xml:space="preserve">
+    <value>下</value>
+  </data>
+  <data name="Designer.Option.VerticalAlignment.Stretch" xml:space="preserve">
+    <value>拉伸</value>
+  </data>
+  <data name="Designer.Option.TextAlignment.Left" xml:space="preserve">
+    <value>左</value>
+  </data>
+  <data name="Designer.Option.TextAlignment.Center" xml:space="preserve">
+    <value>居中</value>
+  </data>
+  <data name="Designer.Option.TextAlignment.Right" xml:space="preserve">
+    <value>右</value>
+  </data>
+  <data name="Designer.Option.TextAlignment.Justify" xml:space="preserve">
+    <value>两端对齐</value>
+  </data>
+  <data name="Designer.Option.TextWrapping.NoWrap" xml:space="preserve">
+    <value>不换行</value>
+  </data>
+  <data name="Designer.Option.TextWrapping.Wrap" xml:space="preserve">
+    <value>自动换行</value>
+  </data>
+  <data name="Designer.Option.TextWrapping.WrapWithOverflow" xml:space="preserve">
+    <value>换行并允许溢出</value>
+  </data>
+  <data name="Designer.Option.Stretch.None" xml:space="preserve">
+    <value>原始大小</value>
+  </data>
+  <data name="Designer.Option.Stretch.Fill" xml:space="preserve">
+    <value>填充</value>
+  </data>
+  <data name="Designer.Option.Stretch.Uniform" xml:space="preserve">
+    <value>等比适应</value>
+  </data>
+  <data name="Designer.Option.Stretch.UniformToFill" xml:space="preserve">
+    <value>等比裁剪填充</value>
+  </data>
+  <data name="Designer.Option.FontWeight.Light" xml:space="preserve">
+    <value>细</value>
+  </data>
+  <data name="Designer.Option.FontWeight.Normal" xml:space="preserve">
+    <value>常规</value>
+  </data>
+  <data name="Designer.Option.FontWeight.Medium" xml:space="preserve">
+    <value>中等</value>
+  </data>
+  <data name="Designer.Option.FontWeight.SemiBold" xml:space="preserve">
+    <value>半粗</value>
+  </data>
+  <data name="Designer.Option.FontWeight.Bold" xml:space="preserve">
+    <value>粗</value>
+  </data>
+  <data name="Designer.Option.FontWeight.ExtraBold" xml:space="preserve">
+    <value>特粗</value>
+  </data>
+  <data name="Designer.Option.SizingMode.Auto" xml:space="preserve">
+    <value>自动</value>
+  </data>
+  <data name="Designer.Option.SizingMode.FillContainer" xml:space="preserve">
+    <value>填充容器</value>
+  </data>
+  <data name="Designer.Option.SizingMode.OverflowCrop" xml:space="preserve">
+    <value>溢出裁剪</value>
+  </data>
+  <data name="Designer.Option.TeamType.HomeTeam" xml:space="preserve">
+    <value>主队</value>
+  </data>
+  <data name="Designer.Option.TeamType.AwayTeam" xml:space="preserve">
+    <value>客队</value>
+  </data>
+  <data name="Designer.Option.DisplayKind.SurvivorTalent" xml:space="preserve">
+    <value>求生者天赋</value>
+  </data>
+  <data name="Designer.Option.DisplayKind.HunterTalent" xml:space="preserve">
+    <value>监管者天赋</value>
+  </data>
+  <data name="Designer.Option.DisplayKind.HunterTrait" xml:space="preserve">
+    <value>监管者辅助特质</value>
+  </data>
+  <data name="Designer.Option.SlotKind.Current" xml:space="preserve">
+    <value>当前局 Ban</value>
+  </data>
+  <data name="Designer.Option.SlotKind.Global" xml:space="preserve">
+    <value>全局 Ban</value>
+  </data>
+  <data name="Designer.Option.Camp.Sur" xml:space="preserve">
+    <value>求生者</value>
+  </data>
+  <data name="Designer.Option.Camp.Hun" xml:space="preserve">
+    <value>监管者</value>
+  </data>
+  <data name="Designer.Window.BpWindow" xml:space="preserve">
+    <value>BP 主窗口</value>
+  </data>
+  <data name="Designer.Window.CutSceneWindow" xml:space="preserve">
+    <value>过场窗口</value>
+  </data>
+  <data name="Designer.Window.ScoreSurWindow" xml:space="preserve">
+    <value>求生者游戏内比分窗口</value>
+  </data>
+  <data name="Designer.Window.ScoreHunWindow" xml:space="preserve">
+    <value>监管者游戏内比分窗口</value>
+  </data>
+  <data name="Designer.Window.ScoreGlobalWindow" xml:space="preserve">
+    <value>全局比分窗口</value>
+  </data>
+  <data name="Designer.Window.GameDataWindow" xml:space="preserve">
+    <value>赛后数据窗口</value>
+  </data>
+  <data name="Designer.Window.WidgetsWindow" xml:space="preserve">
+    <value>组件窗口</value>
+  </data>
+  <data name="Designer.Canvas.BaseCanvas" xml:space="preserve">
+    <value>主画布</value>
+  </data>
+  <data name="Designer.Canvas.MapBpCanvas" xml:space="preserve">
+    <value>地图 BP 画布</value>
+  </data>
+  <data name="Designer.Canvas.BpOverViewCanvas" xml:space="preserve">
+    <value>BP 总览画布</value>
+  </data>
+  <data name="Designer.Canvas.MapV2Canvas" xml:space="preserve">
+    <value>地图 v2 画布</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurTeam.Name" xml:space="preserve">
+    <value>求生者队伍名称</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunTeam.Name" xml:space="preserve">
+    <value>监管者队伍名称</value>
+  </data>
+  <data name="Designer.Binding.Name" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="Designer.Binding.Logo" xml:space="preserve">
+    <value>队标</value>
+  </data>
+  <data name="Designer.Binding.Member" xml:space="preserve">
+    <value>选手</value>
+  </data>
+  <data name="Designer.Binding.Character" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="Designer.Binding.GameProgress" xml:space="preserve">
+    <value>对局进度</value>
+  </data>
+  <data name="Designer.BindingType.String" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="Designer.BindingType.String?" xml:space="preserve">
+    <value>文本</value>
+  </data>
+  <data name="Designer.BindingType.Int32" xml:space="preserve">
+    <value>数字</value>
+  </data>
+  <data name="Designer.BindingType.ImageSource" xml:space="preserve">
+    <value>图片源</value>
+  </data>
+  <data name="Designer.BindingType.GameProgress" xml:space="preserve">
+    <value>对局进度</value>
+  </data>
 </root>

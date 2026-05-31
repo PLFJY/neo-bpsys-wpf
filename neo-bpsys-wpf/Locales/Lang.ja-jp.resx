@@ -2488,4 +2488,136 @@
   <data name="PasteControl" xml:space="preserve"><value>コントロールを貼り付け</value></data>
   <data name="CannotCopyControl" xml:space="preserve"><value>このコントロールはコピーできません</value></data>
   <data name="CannotPasteControl" xml:space="preserve"><value>コントロールを貼り付けできません</value></data>
+  <data name="Designer.Property.Name" xml:space="preserve"><value>コントロール名</value></data>
+  <data name="Designer.Property.ControlType" xml:space="preserve"><value>コントロールタイプ</value></data>
+  <data name="Designer.Property.RuntimeCritical" xml:space="preserve"><value>ランタイム重要コントロール</value></data>
+  <data name="Designer.Property.LinkedTargetControlName" xml:space="preserve"><value>リンク先コントロール</value></data>
+  <data name="Designer.Property.Left" xml:space="preserve"><value>X 座標</value></data>
+  <data name="Designer.Property.Top" xml:space="preserve"><value>Y 座標</value></data>
+  <data name="Designer.Property.Width" xml:space="preserve"><value>幅</value></data>
+  <data name="Designer.Property.Height" xml:space="preserve"><value>高さ</value></data>
+  <data name="Designer.Property.ZIndex" xml:space="preserve"><value>レイヤー</value></data>
+  <data name="Designer.Property.BindingPath" xml:space="preserve"><value>バインドパス</value></data>
+  <data name="Designer.Property.HorizontalAlignment" xml:space="preserve"><value>水平配置</value></data>
+  <data name="Designer.Property.VerticalAlignment" xml:space="preserve"><value>垂直配置</value></data>
+  <data name="Designer.Property.TextAlignment" xml:space="preserve"><value>テキスト配置</value></data>
+  <data name="Designer.Property.TextWrapping" xml:space="preserve"><value>テキスト折り返し</value></data>
+  <data name="Designer.Property.Stretch" xml:space="preserve"><value>画像の伸縮</value></data>
+  <data name="Designer.Property.FontFamily" xml:space="preserve"><value>フォント</value></data>
+  <data name="Designer.Property.FontWeight" xml:space="preserve"><value>フォントウェイト</value></data>
+  <data name="Designer.Property.FontSize" xml:space="preserve"><value>フォントサイズ</value></data>
+  <data name="Designer.Property.Color" xml:space="preserve"><value>色</value></data>
+  <data name="Designer.Property.BackgroundImage" xml:space="preserve"><value>背景画像</value></data>
+  <data name="Designer.Property.PickingBorder" xml:space="preserve"><value>選択枠</value></data>
+  <data name="Designer.Property.BanLockAvailable" xml:space="preserve"><value>Ban ロック使用可</value></data>
+  <data name="Designer.Property.Text" xml:space="preserve"><value>テキスト</value></data>
+  <data name="Designer.Property.StringFormat" xml:space="preserve"><value>テキスト形式</value></data>
+  <data name="Designer.Property.SizingMode" xml:space="preserve"><value>サイズモード</value></data>
+  <data name="Designer.Property.ClipToBounds" xml:space="preserve"><value>範囲外をクリップ</value></data>
+  <data name="Designer.Property.CornerRadius" xml:space="preserve"><value>角丸</value></data>
+  <data name="Designer.Property.PickingBorderImagePath" xml:space="preserve"><value>選択枠画像</value></data>
+  <data name="Designer.Property.BanLockImagePath" xml:space="preserve"><value>Ban ロック画像</value></data>
+  <data name="Designer.Property.LocalizationKey" xml:space="preserve"><value>ローカライズキー</value></data>
+  <data name="Designer.Property.FallbackText" xml:space="preserve"><value>代替テキスト</value></data>
+  <data name="Designer.Property.EmptyText" xml:space="preserve"><value>空表示テキスト</value></data>
+  <data name="Designer.Property.UseLineBreak" xml:space="preserve"><value>改行を使用</value></data>
+  <data name="Designer.Property.TeamType" xml:space="preserve"><value>チーム</value></data>
+  <data name="Designer.Property.MajorGameGap" xml:space="preserve"><value>ゲーム間隔</value></data>
+  <data name="Designer.Property.HalfGameGap" xml:space="preserve"><value>ハーフ間隔</value></data>
+  <data name="Designer.Property.ShowCampIcon" xml:space="preserve"><value>陣営アイコンを表示</value></data>
+  <data name="Designer.Property.MapKey" xml:space="preserve"><value>マップキー</value></data>
+  <data name="Designer.Property.DisplayKind" xml:space="preserve"><value>表示タイプ</value></data>
+  <data name="Designer.Property.PlayerIndex" xml:space="preserve"><value>プレイヤー番号</value></data>
+  <data name="Designer.Property.IconSize" xml:space="preserve"><value>アイコンサイズ</value></data>
+  <data name="Designer.Property.IconGap" xml:space="preserve"><value>アイコン間隔</value></data>
+  <data name="Designer.Property.RespectTraitVisibility" xml:space="preserve"><value>補助特質の表示状態に従う</value></data>
+  <data name="Designer.Property.TargetControlName" xml:space="preserve"><value>対象コントロール名</value></data>
+  <data name="Designer.Property.BorderImagePath" xml:space="preserve"><value>枠画像</value></data>
+  <data name="Designer.Property.FillColor" xml:space="preserve"><value>塗りつぶし色</value></data>
+  <data name="Designer.Property.InitiallyHidden" xml:space="preserve"><value>初期状態で非表示</value></data>
+  <data name="Designer.Property.SlotKind" xml:space="preserve"><value>Ban 枠タイプ</value></data>
+  <data name="Designer.Property.Camp" xml:space="preserve"><value>陣営</value></data>
+  <data name="Designer.Property.Index" xml:space="preserve"><value>インデックス</value></data>
+  <data name="Designer.Property.ShowLockOverlay" xml:space="preserve"><value>ロック表示を重ねる</value></data>
+  <data name="Designer.Property.LockImageSource" xml:space="preserve"><value>ロック画像</value></data>
+  <data name="Designer.Property.LockZIndexOffset" xml:space="preserve"><value>ロックレイヤーのオフセット</value></data>
+  <data name="Designer.PropertyGroup.Identity" xml:space="preserve"><value>識別</value></data>
+  <data name="Designer.PropertyGroup.Layout" xml:space="preserve"><value>レイアウト</value></data>
+  <data name="Designer.PropertyGroup.Binding" xml:space="preserve"><value>データバインド</value></data>
+  <data name="Designer.PropertyGroup.Appearance" xml:space="preserve"><value>外観</value></data>
+  <data name="Designer.PropertyGroup.Resource" xml:space="preserve"><value>リソース</value></data>
+  <data name="Designer.PropertyGroup.Behavior" xml:space="preserve"><value>動作</value></data>
+  <data name="Designer.PropertyGroup.Advanced" xml:space="preserve"><value>詳細</value></data>
+  <data name="Designer.PropertyGroup.Validation" xml:space="preserve"><value>検証</value></data>
+  <data name="Designer.PropertyGroup.ControlSpecific" xml:space="preserve"><value>コントロール固有</value></data>
+  <data name="Designer.ControlType.Text" xml:space="preserve"><value>テキスト</value></data>
+  <data name="Designer.ControlType.LocalizedText" xml:space="preserve"><value>ローカライズ済みテキスト</value></data>
+  <data name="Designer.ControlType.Image" xml:space="preserve"><value>画像</value></data>
+  <data name="Designer.ControlType.GameProgressText" xml:space="preserve"><value>ゲーム進行</value></data>
+  <data name="Designer.ControlType.MapNameText" xml:space="preserve"><value>マップ名</value></data>
+  <data name="Designer.ControlType.TalentTraitDisplay" xml:space="preserve"><value>人格 / 補助特質</value></data>
+  <data name="Designer.ControlType.GlobalScoreRow" xml:space="preserve"><value>全体スコア</value></data>
+  <data name="Designer.ControlType.CurrentBanDisplay" xml:space="preserve"><value>現在の Ban</value></data>
+  <data name="Designer.ControlType.BanSlotDisplay" xml:space="preserve"><value>Ban 枠</value></data>
+  <data name="Designer.ControlType.MapV2Display" xml:space="preserve"><value>マップ v2</value></data>
+  <data name="Designer.Option.HorizontalAlignment.Left" xml:space="preserve"><value>左</value></data>
+  <data name="Designer.Option.HorizontalAlignment.Center" xml:space="preserve"><value>中央</value></data>
+  <data name="Designer.Option.HorizontalAlignment.Right" xml:space="preserve"><value>右</value></data>
+  <data name="Designer.Option.HorizontalAlignment.Stretch" xml:space="preserve"><value>引き伸ばし</value></data>
+  <data name="Designer.Option.VerticalAlignment.Top" xml:space="preserve"><value>上</value></data>
+  <data name="Designer.Option.VerticalAlignment.Center" xml:space="preserve"><value>中央</value></data>
+  <data name="Designer.Option.VerticalAlignment.Bottom" xml:space="preserve"><value>下</value></data>
+  <data name="Designer.Option.VerticalAlignment.Stretch" xml:space="preserve"><value>引き伸ばし</value></data>
+  <data name="Designer.Option.TextAlignment.Left" xml:space="preserve"><value>左</value></data>
+  <data name="Designer.Option.TextAlignment.Center" xml:space="preserve"><value>中央</value></data>
+  <data name="Designer.Option.TextAlignment.Right" xml:space="preserve"><value>右</value></data>
+  <data name="Designer.Option.TextAlignment.Justify" xml:space="preserve"><value>両端揃え</value></data>
+  <data name="Designer.Option.TextWrapping.NoWrap" xml:space="preserve"><value>折り返さない</value></data>
+  <data name="Designer.Option.TextWrapping.Wrap" xml:space="preserve"><value>折り返し</value></data>
+  <data name="Designer.Option.TextWrapping.WrapWithOverflow" xml:space="preserve"><value>折り返しとオーバーフロー許可</value></data>
+  <data name="Designer.Option.Stretch.None" xml:space="preserve"><value>元のサイズ</value></data>
+  <data name="Designer.Option.Stretch.Fill" xml:space="preserve"><value>塗りつぶし</value></data>
+  <data name="Designer.Option.Stretch.Uniform" xml:space="preserve"><value>縦横比を維持して収める</value></data>
+  <data name="Designer.Option.Stretch.UniformToFill" xml:space="preserve"><value>縦横比を維持して切り抜き</value></data>
+  <data name="Designer.Option.FontWeight.Light" xml:space="preserve"><value>細字</value></data>
+  <data name="Designer.Option.FontWeight.Normal" xml:space="preserve"><value>標準</value></data>
+  <data name="Designer.Option.FontWeight.Medium" xml:space="preserve"><value>中</value></data>
+  <data name="Designer.Option.FontWeight.SemiBold" xml:space="preserve"><value>やや太字</value></data>
+  <data name="Designer.Option.FontWeight.Bold" xml:space="preserve"><value>太字</value></data>
+  <data name="Designer.Option.FontWeight.ExtraBold" xml:space="preserve"><value>極太</value></data>
+  <data name="Designer.Option.SizingMode.Auto" xml:space="preserve"><value>自動</value></data>
+  <data name="Designer.Option.SizingMode.FillContainer" xml:space="preserve"><value>コンテナに合わせる</value></data>
+  <data name="Designer.Option.SizingMode.OverflowCrop" xml:space="preserve"><value>はみ出しを切り抜き</value></data>
+  <data name="Designer.Option.TeamType.HomeTeam" xml:space="preserve"><value>ホームチーム</value></data>
+  <data name="Designer.Option.TeamType.AwayTeam" xml:space="preserve"><value>アウェイチーム</value></data>
+  <data name="Designer.Option.DisplayKind.SurvivorTalent" xml:space="preserve"><value>サバイバー人格</value></data>
+  <data name="Designer.Option.DisplayKind.HunterTalent" xml:space="preserve"><value>ハンター人格</value></data>
+  <data name="Designer.Option.DisplayKind.HunterTrait" xml:space="preserve"><value>ハンター補助特質</value></data>
+  <data name="Designer.Option.SlotKind.Current" xml:space="preserve"><value>現在の Ban</value></data>
+  <data name="Designer.Option.SlotKind.Global" xml:space="preserve"><value>グローバル Ban</value></data>
+  <data name="Designer.Option.Camp.Sur" xml:space="preserve"><value>サバイバー</value></data>
+  <data name="Designer.Option.Camp.Hun" xml:space="preserve"><value>ハンター</value></data>
+  <data name="Designer.Window.BpWindow" xml:space="preserve"><value>BP メインウィンドウ</value></data>
+  <data name="Designer.Window.CutSceneWindow" xml:space="preserve"><value>カットシーンウィンドウ</value></data>
+  <data name="Designer.Window.ScoreSurWindow" xml:space="preserve"><value>サバイバー小スコアウィンドウ</value></data>
+  <data name="Designer.Window.ScoreHunWindow" xml:space="preserve"><value>ハンター小スコアウィンドウ</value></data>
+  <data name="Designer.Window.ScoreGlobalWindow" xml:space="preserve"><value>全体スコアウィンドウ</value></data>
+  <data name="Designer.Window.GameDataWindow" xml:space="preserve"><value>試合後データウィンドウ</value></data>
+  <data name="Designer.Window.WidgetsWindow" xml:space="preserve"><value>ウィジェットウィンドウ</value></data>
+  <data name="Designer.Canvas.BaseCanvas" xml:space="preserve"><value>メイン Canvas</value></data>
+  <data name="Designer.Canvas.MapBpCanvas" xml:space="preserve"><value>マップ BP Canvas</value></data>
+  <data name="Designer.Canvas.BpOverViewCanvas" xml:space="preserve"><value>BP 概要 Canvas</value></data>
+  <data name="Designer.Canvas.MapV2Canvas" xml:space="preserve"><value>マップ v2 Canvas</value></data>
+  <data name="Designer.Binding.CurrentGame.SurTeam.Name" xml:space="preserve"><value>サバイバーチーム名</value></data>
+  <data name="Designer.Binding.CurrentGame.HunTeam.Name" xml:space="preserve"><value>ハンターチーム名</value></data>
+  <data name="Designer.Binding.Name" xml:space="preserve"><value>名前</value></data>
+  <data name="Designer.Binding.Logo" xml:space="preserve"><value>ロゴ</value></data>
+  <data name="Designer.Binding.Member" xml:space="preserve"><value>メンバー</value></data>
+  <data name="Designer.Binding.Character" xml:space="preserve"><value>キャラクター</value></data>
+  <data name="Designer.Binding.GameProgress" xml:space="preserve"><value>ゲーム進行</value></data>
+  <data name="Designer.BindingType.String" xml:space="preserve"><value>テキスト</value></data>
+  <data name="Designer.BindingType.String?" xml:space="preserve"><value>テキスト</value></data>
+  <data name="Designer.BindingType.Int32" xml:space="preserve"><value>数値</value></data>
+  <data name="Designer.BindingType.ImageSource" xml:space="preserve"><value>画像ソース</value></data>
+  <data name="Designer.BindingType.GameProgress" xml:space="preserve"><value>ゲーム進行</value></data>
 </root>

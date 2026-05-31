@@ -36,6 +36,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly FrontedPropertyGridBuilder _propertyGridBuilder;
     private readonly FrontedControlDefaultConfigFactory _defaultConfigFactory;
     private readonly FrontedControlNameGenerator _controlNameGenerator;
+    private readonly IFrontedDesignerLocalizationService _localizationService;
     private readonly ISharedDataService _designerPreviewSharedDataService;
     private readonly IFrontedLocalResourceStore? _localResourceStore;
     private readonly IFrontedWindowLayoutOptionsService? _windowLayoutOptionsService;
@@ -68,6 +69,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _propertyGridBuilder = new FrontedPropertyGridBuilder();
         _defaultConfigFactory = new FrontedControlDefaultConfigFactory();
         _controlNameGenerator = new FrontedControlNameGenerator();
+        _localizationService = new FrontedDesignerLocalizationService();
         _designerPreviewSharedDataService = new DesignerPreviewSharedDataService();
         _localResourceStore = null;
         _windowLayoutOptionsService = null;
@@ -85,6 +87,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         FrontedPropertyGridBuilder propertyGridBuilder,
         FrontedControlDefaultConfigFactory defaultConfigFactory,
         FrontedControlNameGenerator controlNameGenerator,
+        IFrontedDesignerLocalizationService localizationService,
         DesignerPreviewSharedDataService designerPreviewSharedDataService,
         IFrontedLocalResourceStore localResourceStore,
         IFrontedWindowLayoutOptionsService windowLayoutOptionsService,
@@ -98,6 +101,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _propertyGridBuilder = propertyGridBuilder;
         _defaultConfigFactory = defaultConfigFactory;
         _controlNameGenerator = controlNameGenerator;
+        _localizationService = localizationService;
         _designerPreviewSharedDataService = designerPreviewSharedDataService;
         _localResourceStore = localResourceStore;
         _windowLayoutOptionsService = windowLayoutOptionsService;
@@ -106,7 +110,23 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         foreach (var group in layoutCatalog.GetEntries()
                      .Where(entry => entry.IsMigrated && entry.IsEditable)
                      .GroupBy(entry => entry.WindowTypeName)
-                     .Select(group => new FrontedDesignerWindowOption(group.Key, group.First().DisplayName, group.ToArray())))
+                     .Select(group => new FrontedDesignerWindowOption(
+                         group.Key,
+                         _localizationService.GetWindowDisplayName(group.Key),
+                         group
+                             .Select(entry => new FrontedDesignerLayoutCatalogEntry
+                             {
+                                 WindowTypeName = entry.WindowTypeName,
+                                 DisplayName = _localizationService.GetWindowDisplayName(entry.WindowTypeName),
+                                 WindowId = entry.WindowId,
+                                 CanvasName = entry.CanvasName,
+                                 CanvasDisplayName = _localizationService.GetCanvasDisplayName(entry.CanvasName),
+                                 CanvasWidth = entry.CanvasWidth,
+                                 CanvasHeight = entry.CanvasHeight,
+                                 IsMigrated = entry.IsMigrated,
+                                 IsEditable = entry.IsEditable
+                             })
+                             .ToArray())))
         {
             WindowOptions.Add(group);
         }
@@ -1341,12 +1361,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
             foreach (var row in rows)
             {
-                row.DisplayName = I18nHelper.GetLocalizedString(row.DisplayName);
-                if (!string.IsNullOrWhiteSpace(row.GroupName))
-                {
-                    row.GroupDisplayName = I18nHelper.GetLocalizedString(row.GroupName);
-                }
-
                 if (_propertyEditErrors.TryGetValue(row.PropertyName, out var editError))
                 {
                     if (_propertyEditBuffers.TryGetValue(row.PropertyName, out var editBuffer))
@@ -1427,7 +1441,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private void LoadWindowOptions(string windowTypeName)
     {
-        WindowOptionsWindowTypeName = windowTypeName;
+        WindowOptionsWindowTypeName = $"{_localizationService.GetWindowDisplayName(windowTypeName)} ({windowTypeName})";
         WindowOptionsRestartRequired = false;
 
         if (_windowLayoutOptionsService is null)
@@ -1587,7 +1601,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var config = SelectedDesignItem.Config;
         SelectedControlDisplay = SelectedDesignItem.Name;
-        SelectedControlTypeDisplay = config.ControlType;
+        SelectedControlTypeDisplay = _localizationService.GetControlTypeDisplayName(config.ControlType);
         SelectedControlGeometryDisplay =
             $"L {config.Left:0.##}  T {config.Top:0.##}  "
             + $"W {(config.Width?.ToString("0.##") ?? "-")}  "

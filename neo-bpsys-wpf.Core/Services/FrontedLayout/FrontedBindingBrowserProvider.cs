@@ -13,6 +13,18 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 /// </summary>
 public sealed class FrontedBindingBrowserProvider
 {
+    private readonly IFrontedDesignerLocalizationService _localizationService;
+
+    public FrontedBindingBrowserProvider()
+        : this(new FrontedDesignerLocalizationService())
+    {
+    }
+
+    public FrontedBindingBrowserProvider(IFrontedDesignerLocalizationService localizationService)
+    {
+        _localizationService = localizationService;
+    }
+
     /// <summary>
     /// Builds the complete binding tree without target-type filtering.
     /// </summary>
@@ -25,6 +37,7 @@ public sealed class FrontedBindingBrowserProvider
     public IReadOnlyList<FrontedBindingTreeNode> BuildTree(FrontedBindingTypeFilter filter)
     {
         return BuildUnfilteredTree()
+            .Select(LocalizeNode)
             .Select(node => FilterNode(node, filter))
             .Where(node => node is not null)
             .Cast<FrontedBindingTreeNode>()
@@ -57,6 +70,20 @@ public sealed class FrontedBindingBrowserProvider
                 || node.FullPath?.Contains(queryText, StringComparison.OrdinalIgnoreCase) == true)
             .DistinctBy(node => node.FullPath, StringComparer.Ordinal)
             .ToArray();
+    }
+
+    private FrontedBindingTreeNode LocalizeNode(FrontedBindingTreeNode node)
+    {
+        return new FrontedBindingTreeNode
+        {
+            DisplayName = _localizationService.GetBindingNodeDisplayName(node.DisplayName, node.FullPath),
+            FullPath = node.FullPath,
+            TypeName = node.TypeName is null
+                ? null
+                : _localizationService.GetBindingTypeDisplayName(node.TypeName),
+            ValueType = node.ValueType,
+            Children = node.Children.Select(LocalizeNode).ToArray()
+        };
     }
 
     private static IReadOnlyList<FrontedBindingTreeNode> BuildUnfilteredTree() =>

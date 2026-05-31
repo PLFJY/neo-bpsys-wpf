@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
     xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
+    xmlns:converters="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:designer="clr-namespace:neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;assembly=neo-bpsys-wpf.Core"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
@@ -31,10 +32,12 @@
     WindowState="Maximized"
     mc:Ignorable="d">
     <ui:FluentWindow.Resources>
+        <converters:DesignerControlTypeDisplayConverter x:Key="DesignerControlTypeDisplayConverter" />
+
         <DataTemplate x:Key="PropertyReadOnlyEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
             <TextBlock
                 VerticalAlignment="Center"
-                Text="{Binding Value}"
+                Text="{Binding DisplayValue}"
                 TextTrimming="CharacterEllipsis" />
         </DataTemplate>
 
@@ -119,9 +122,11 @@
         <DataTemplate x:Key="PropertyEnumEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
             <ComboBox
                 MinHeight="30"
+                DisplayMemberPath="DisplayName"
                 DropDownClosed="PropertyComboBox_OnDropDownClosed"
                 ItemsSource="{Binding Options}"
-                SelectedItem="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                SelectedValue="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                SelectedValuePath="Value" />
         </DataTemplate>
 
         <DataTemplate x:Key="PropertyColorEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
@@ -284,55 +289,55 @@
                                 <MenuItem Header="{lex:Loc BasicControls}" IsEnabled="False" />
                                 <MenuItem
                                     Click="AddControlMenuItem_OnClick"
-                                    Header="Text"
+                                    Header="{lex:Loc Designer.ControlType.Text}"
                                     Tag="Text" />
                                 <MenuItem
                                     Click="AddControlMenuItem_OnClick"
-                                    Header="LocalizedText"
+                                    Header="{lex:Loc Designer.ControlType.LocalizedText}"
                                     Tag="LocalizedText" />
                                 <MenuItem
                                     Click="AddControlMenuItem_OnClick"
-                                    Header="Image"
+                                    Header="{lex:Loc Designer.ControlType.Image}"
                                     Tag="Image" />
                                 <Separator />
                                 <MenuItem Header="{lex:Loc BusinessControls}" IsEnabled="False" />
                                 <MenuItem
                                     Click="AddControlMenuItem_OnClick"
-                                    Header="MapNameText"
+                                    Header="{lex:Loc Designer.ControlType.MapNameText}"
                                     Tag="MapNameText" />
                                 <MenuItem
                                     Click="AddControlMenuItem_OnClick"
-                                    Header="GameProgressText"
+                                    Header="{lex:Loc Designer.ControlType.GameProgressText}"
                                     Tag="GameProgressText" />
                                 <MenuItem
                                     Click="AddControlMenuItem_OnClick"
-                                    Header="TalentTraitDisplay"
+                                    Header="{lex:Loc Designer.ControlType.TalentTraitDisplay}"
                                     Tag="TalentTraitDisplay" />
                                 <MenuItem
                                     Click="AddControlMenuItem_OnClick"
-                                    Header="GlobalScoreRow"
+                                    Header="{lex:Loc Designer.ControlType.GlobalScoreRow}"
                                     Tag="GlobalScoreRow" />
                                 <MenuItem
                                     Click="AddControlMenuItem_OnClick"
-                                    Header="CurrentBanDisplay"
+                                    Header="{lex:Loc Designer.ControlType.CurrentBanDisplay}"
                                     Tag="CurrentBanDisplay" />
                                 <MenuItem
                                     Click="AddControlMenuItem_OnClick"
-                                    Header="BanSlotDisplay"
+                                    Header="{lex:Loc Designer.ControlType.BanSlotDisplay}"
                                     Tag="BanSlotDisplay" />
                                 <MenuItem
                                     Click="AddControlMenuItem_OnClick"
-                                    Header="MapV2Display"
+                                    Header="{lex:Loc Designer.ControlType.MapV2Display}"
                                     Tag="MapV2Display" />
                                 <Separator />
                                 <MenuItem Header="{lex:Loc ScoreBpControls}" IsEnabled="False" />
                                 <MenuItem
                                     Click="AddControlMenuItem_OnClick"
-                                    Header="GlobalScoreRow"
+                                    Header="{lex:Loc Designer.ControlType.GlobalScoreRow}"
                                     Tag="GlobalScoreRow" />
                                 <MenuItem
                                     Click="AddControlMenuItem_OnClick"
-                                    Header="BanSlotDisplay"
+                                    Header="{lex:Loc Designer.ControlType.BanSlotDisplay}"
                                     Tag="BanSlotDisplay" />
                             </ContextMenu>
                         </ui:Button.ContextMenu>
@@ -508,7 +513,8 @@
                                             <TextBlock
                                                 FontSize="12"
                                                 Opacity="0.78"
-                                                Text="{Binding Config.ControlType}" />
+                                                Text="{Binding Config.ControlType, Converter={StaticResource DesignerControlTypeDisplayConverter}}"
+                                                ToolTip="{Binding Config.ControlType}" />
                                             <TextBlock
                                                 Margin="10,0,0,0"
                                                 FontSize="12"

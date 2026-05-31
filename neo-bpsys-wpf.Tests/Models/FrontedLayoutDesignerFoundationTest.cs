@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -1213,7 +1214,164 @@ public class FrontedLayoutDesignerFoundationTest
         var row = rows.Single(row => row.PropertyName == propertyName);
 
         Assert.Equal(FrontedPropertyEditorKind.Enum, row.EditorKind);
-        Assert.Equal(options, row.Options?.Cast<string>().ToArray());
+        Assert.Equal(options, row.Options?.Cast<FrontedPropertyEditorOption>().Select(option => option.Value).Cast<string>().ToArray());
+    }
+
+    [Fact]
+    public void PropertyGridLocalizationKeepsRawPropertyNamesAndLocalizesDisplay()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig
+            {
+                Left = 10,
+                HorizontalAlignment = "Center"
+            }
+        };
+        var localizer = new TestDesignerLocalizationService(
+            propertyNames: new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                [nameof(FrontedControlDesignItem.Name)] = "控件名称",
+                [nameof(FrontedControlConfigBase.Left)] = "X 坐标"
+            },
+            groupNames: new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["Identity"] = "标识"
+            });
+        var rows = BuildPropertyRows(CreateDocument([item]), item, localizer);
+
+        var nameRow = rows.Single(row => row.PropertyName == nameof(FrontedControlDesignItem.Name));
+        Assert.Equal(nameof(FrontedControlDesignItem.Name), nameRow.PropertyName);
+        Assert.Equal("控件名称", nameRow.DisplayName);
+        Assert.Equal("Identity", nameRow.GroupName);
+        Assert.Equal("标识", nameRow.GroupDisplayName);
+
+        var leftRow = rows.Single(row => row.PropertyName == nameof(FrontedControlConfigBase.Left));
+        Assert.Equal("X 坐标", leftRow.DisplayName);
+
+        var missingRow = rows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.Text));
+        Assert.Equal(nameof(TextFrontedControlConfig.Text), missingRow.DisplayName);
+    }
+
+    [Fact]
+    public void PropertyGridOptionsDisplayLocalizedNamesButKeepRawValues()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig
+            {
+                HorizontalAlignment = "Center"
+            }
+        };
+        var localizer = new TestDesignerLocalizationService(
+            options: new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["HorizontalAlignment.Right"] = "右"
+            });
+
+        var rows = BuildPropertyRows(CreateDocument([item]), item, localizer);
+        var row = rows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.HorizontalAlignment));
+        var right = Assert.IsType<FrontedPropertyEditorOption>(
+            Assert.Single(row.Options!.Cast<FrontedPropertyEditorOption>(), option => Equals(option.Value, "Right")));
+
+        Assert.Equal("Right", right.Value);
+        Assert.Equal("右", right.DisplayName);
+
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([item]) };
+        viewModel.SelectDesignItem(item);
+        Assert.True(viewModel.ApplyPropertyEdit(row, right.Value));
+        Assert.Equal("Right", ((TextFrontedControlConfig)item.Config).HorizontalAlignment);
+        Assert.Contains("\"HorizontalAlignment\":\"Right\"", JsonSerializer.Serialize((TextFrontedControlConfig)item.Config));
+    }
+
+    [Fact]
+    public void DesignerLocalizationKeepsContractIdsRawAndFallsBackForUnknownControlTypes()
+    {
+        var localizer = new TestDesignerLocalizationService(
+            controlTypes: new Dictionary<string, string>(StringComparer.Ordinal) { ["Text"] = "文本" },
+            windows: new Dictionary<string, string>(StringComparer.Ordinal) { ["BpWindow"] = "BP 主窗口" },
+            canvases: new Dictionary<string, string>(StringComparer.Ordinal) { ["BaseCanvas"] = "主画布" });
+        var catalogEntry = new FrontedDesignerLayoutCatalog().GetEntries()
+            .Single(entry => entry.WindowTypeName == "BpWindow" && entry.CanvasName == "BaseCanvas");
+
+        Assert.Equal("Text", new TextFrontedControlConfig().ControlType);
+        Assert.Equal("文本", localizer.GetControlTypeDisplayName("Text"));
+        Assert.Equal("PluginFancyControl", localizer.GetControlTypeDisplayName("PluginFancyControl"));
+        Assert.Equal("BpWindow", catalogEntry.WindowTypeName);
+        Assert.Equal("BaseCanvas", catalogEntry.CanvasName);
+        Assert.Equal("BP 主窗口", localizer.GetWindowDisplayName(catalogEntry.WindowTypeName));
+        Assert.Equal("主画布", localizer.GetCanvasDisplayName(catalogEntry.CanvasName));
+    }
+
+    [Fact]
+    public void BindingBrowserLocalizationKeepsRawBindingPathVisible()
+    {
+        var localizer = new TestDesignerLocalizationService(
+            bindings: new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["CurrentGame.SurTeam.Name"] = "求生者队伍名称"
+            });
+        var provider = new FrontedBindingBrowserProvider(localizer);
+
+        var node = provider.Search("求生者", FrontedBindingTypeFilter.Text)
+            .Single(item => item.FullPath == "CurrentGame.SurTeam.Name");
+
+        Assert.Equal("求生者队伍名称", node.DisplayName);
+        Assert.Equal("CurrentGame.SurTeam.Name", node.FullPath);
+    }
+
+    [Fact]
+    public void DesignerPropertyGridLocalizationKeysCoverBuiltInConfigPropertiesAndOptions()
+    {
+        var requiredKeys = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "Designer.Property.Name",
+            "Designer.Property.RuntimeCritical",
+            "Designer.Property.LinkedTargetControlName"
+        };
+
+        foreach (var type in BuiltInConfigTypes())
+        {
+            foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                         .Where(property => property.GetIndexParameters().Length == 0 && property.CanRead))
+            {
+                var coreType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+                if (coreType == typeof(string)
+                    || coreType == typeof(bool)
+                    || coreType.IsEnum
+                    || coreType == typeof(int)
+                    || coreType == typeof(double))
+                {
+                    requiredKeys.Add($"Designer.Property.{property.Name}");
+                }
+            }
+
+            var config = (FrontedControlConfigBase)Activator.CreateInstance(type)!;
+            var item = new FrontedControlDesignItem
+            {
+                Name = type.Name,
+                Config = config
+            };
+            foreach (var row in BuildPropertyRows(CreateDocument([item]), item)
+                         .Where(row => row.Options is not null))
+            {
+                foreach (var option in row.Options!.OfType<FrontedPropertyEditorOption>())
+                {
+                    requiredKeys.Add($"Designer.Option.{row.PropertyName}.{option.Value}");
+                }
+            }
+        }
+
+        foreach (var fileName in new[] { "Lang.resx", "Lang.en-us.resx", "Lang.ja-jp.resx" })
+        {
+            var names = LoadResxKeys(fileName);
+            foreach (var key in requiredKeys.OrderBy(key => key, StringComparer.Ordinal))
+            {
+                Assert.Contains(key, names);
+            }
+        }
     }
 
     [Fact]
@@ -1716,6 +1874,7 @@ public class FrontedLayoutDesignerFoundationTest
         var resourceRow = Assert.Single(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorderImagePath));
         Assert.True(resourceRow.CanBrowseResource);
         Assert.False(resourceRow.CanBrowseBinding);
+        Assert.Equal("Resource", resourceRow.GroupName);
 
         var normalTextRow = rows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.HorizontalAlignment));
         Assert.False(normalTextRow.CanBrowseBinding);
@@ -2579,14 +2738,101 @@ public class FrontedLayoutDesignerFoundationTest
 
     private static IReadOnlyList<FrontedPropertyEditorItem> BuildPropertyRows(
         FrontedCanvasDesignDocument document,
-        FrontedControlDesignItem item)
+        FrontedControlDesignItem item,
+        IFrontedDesignerLocalizationService? localizationService = null)
     {
-        return new FrontedPropertyGridBuilder().Build(
+        var builder = localizationService is null
+            ? new FrontedPropertyGridBuilder()
+            : new FrontedPropertyGridBuilder(new FrontedFontFamilyOptionProvider(), localizationService);
+
+        return builder.Build(
             document,
             item,
             CreateValidator(),
             new FrontedLayoutReferenceScanner(),
             new FrontedLayoutRuntimeContractCatalog());
+    }
+
+    private static IReadOnlyList<Type> BuiltInConfigTypes() =>
+    [
+        typeof(FrontedControlConfigBase),
+        typeof(TextFrontedControlConfig),
+        typeof(LocalizedTextControlConfig),
+        typeof(ImageFrontedControlConfig),
+        typeof(GameProgressTextControlConfig),
+        typeof(MapNameTextControlConfig),
+        typeof(TalentTraitDisplayControlConfig),
+        typeof(GlobalScoreRowControlConfig),
+        typeof(CurrentBanDisplayControlConfig),
+        typeof(BanSlotDisplayControlConfig),
+        typeof(MapV2DisplayControlConfig),
+        typeof(PickingBorderOverlayControlConfig)
+    ];
+
+    private static HashSet<string> LoadResxKeys(string fileName)
+    {
+        return XDocument.Load(GetRepositoryPath("neo-bpsys-wpf", "Locales", fileName))
+            .Root!
+            .Elements("data")
+            .Select(element => element.Attribute("name")?.Value)
+            .Where(name => name is not null)
+            .Cast<string>()
+            .ToHashSet(StringComparer.Ordinal);
+    }
+
+    private sealed class TestDesignerLocalizationService : FrontedDesignerLocalizationService
+    {
+        private readonly IReadOnlyDictionary<string, string> _propertyNames;
+        private readonly IReadOnlyDictionary<string, string> _groupNames;
+        private readonly IReadOnlyDictionary<string, string> _options;
+        private readonly IReadOnlyDictionary<string, string> _controlTypes;
+        private readonly IReadOnlyDictionary<string, string> _windows;
+        private readonly IReadOnlyDictionary<string, string> _canvases;
+        private readonly IReadOnlyDictionary<string, string> _bindings;
+
+        public TestDesignerLocalizationService(
+            IReadOnlyDictionary<string, string>? propertyNames = null,
+            IReadOnlyDictionary<string, string>? groupNames = null,
+            IReadOnlyDictionary<string, string>? options = null,
+            IReadOnlyDictionary<string, string>? controlTypes = null,
+            IReadOnlyDictionary<string, string>? windows = null,
+            IReadOnlyDictionary<string, string>? canvases = null,
+            IReadOnlyDictionary<string, string>? bindings = null)
+        {
+            _propertyNames = propertyNames ?? new Dictionary<string, string>();
+            _groupNames = groupNames ?? new Dictionary<string, string>();
+            _options = options ?? new Dictionary<string, string>();
+            _controlTypes = controlTypes ?? new Dictionary<string, string>();
+            _windows = windows ?? new Dictionary<string, string>();
+            _canvases = canvases ?? new Dictionary<string, string>();
+            _bindings = bindings ?? new Dictionary<string, string>();
+        }
+
+        public override string GetPropertyDisplayName(string propertyName) =>
+            _propertyNames.GetValueOrDefault(propertyName, propertyName);
+
+        public override string GetGroupDisplayName(string groupName) =>
+            _groupNames.GetValueOrDefault(groupName, groupName);
+
+        public override string GetOptionDisplayName(string propertyName, object? value)
+        {
+            var rawValue = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty;
+            return _options.GetValueOrDefault($"{propertyName}.{rawValue}", rawValue);
+        }
+
+        public override string GetControlTypeDisplayName(string controlType) =>
+            _controlTypes.GetValueOrDefault(controlType, controlType);
+
+        public override string GetWindowDisplayName(string windowTypeName) =>
+            _windows.GetValueOrDefault(windowTypeName, windowTypeName);
+
+        public override string GetCanvasDisplayName(string canvasName) =>
+            _canvases.GetValueOrDefault(canvasName, canvasName);
+
+        public override string GetBindingNodeDisplayName(string pathOrPropertyName, string? fullPath = null) =>
+            fullPath is not null && _bindings.TryGetValue(fullPath, out var displayName)
+                ? displayName
+                : pathOrPropertyName;
     }
 
     private static IEnumerable<FrontedBindingTreeNode> FlattenBindingTree(

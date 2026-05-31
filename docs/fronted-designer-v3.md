@@ -1,6 +1,6 @@
 # Fronted Designer v3 设计文档
 
-本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为低风险 pilot 接入 v3 renderer；Score System v2 Phase 4 已额外将 `ScoreGlobalWindow` 接入 v3 renderer 并新增 `GlobalScoreRow` 控件；Designer v3 Phase 4 已迁移 `CutSceneWindow`；Designer v3 Phase 5 已迁移 `GameDataWindow` 并新增 `LocalizedText`；Designer v3 Phase 6 已迁移多 Canvas 的 `WidgetsWindow`，并新增 `CurrentBanDisplay` / `MapV2Display`；Designer v3 Phase 7 已迁移 `BpWindow`，并新增 `BanSlotDisplay` / `PickingBorderOverlay`。Phase 8A 已补充独立编辑器设计规格，Phase 8B 已新增设计期模型、layout validator、runtime contract catalog、引用扫描和设计项转换，Phase 8C 已新增独立编辑器 shell、窗口/Canvas 选择器、ViewBox 只读预览、缩放控制和校验面板，Phase 8D 已新增编辑器内存交互层、透明 hitbox、selection adorner、拖拽、缩放和键盘微调，Phase 8E 已新增基础 Property Grid，Phase 8F 已新增 Add Control 菜单、默认 config 工厂和 FontFamily 字体 ComboBox，Phase 8G 已新增 Binding Browser 与 Resource Browser，Phase 8H 已新增用户布局保存/重置/运行时加载优先级、脏状态提示和默认关闭的吸附网格，见 [fronted-designer-editor.md](fronted-designer-editor.md)。Phase 9A 已新增 `.bpui v3` 布局包标准，见 [bpui-package-v3.md](bpui-package-v3.md)；Phase 9C/9D 已实现 v3 package 导出、导入、安装、激活复制和删除，Phase 9F 已实现 legacy 转换。
+本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为低风险 pilot 接入 v3 renderer；Score System v2 Phase 4 已额外将 `ScoreGlobalWindow` 接入 v3 renderer 并新增 `GlobalScoreRow` 控件；Designer v3 Phase 4 已迁移 `CutSceneWindow`；Designer v3 Phase 5 已迁移 `GameDataWindow` 并新增 `LocalizedText`；Designer v3 Phase 6 已迁移多 Canvas 的 `WidgetsWindow`，并新增 `CurrentBanDisplay` / `MapV2Display`；Designer v3 Phase 7 已迁移 `BpWindow`，并新增 `BanSlotDisplay` / `PickingBorderOverlay`。Phase 8A 已补充独立编辑器设计规格，Phase 8B 已新增设计期模型、layout validator、runtime contract catalog、引用扫描和设计项转换，Phase 8C 已新增独立编辑器 shell、窗口/Canvas 选择器、ViewBox 只读预览、缩放控制和校验面板，Phase 8D 已新增编辑器内存交互层、透明 hitbox、selection adorner、拖拽、缩放和键盘微调，Phase 8E 已新增基础 Property Grid，Phase 8F 已新增 Add Control 菜单、默认 config 工厂和 FontFamily 字体 ComboBox，Phase 8G 已新增 Binding Browser 与 Resource Browser，Phase 8H 已新增用户布局保存/重置/运行时加载优先级、脏状态提示和默认关闭的吸附网格，见 [fronted-designer-editor.md](fronted-designer-editor.md)。Phase 9A 已新增 `.bpui v3` 布局包标准，见 [bpui-package-v3.md](bpui-package-v3.md)；Phase 9C/9D 已实现 v3 package 导出、导入、安装、激活复制和删除，Phase 9F 已实现 legacy 转换。Phase 12 已新增 Designer v3 显示层 i18n，编辑器 UI 可显示本地化属性名、组选项、控件类型、窗口/Canvas 名和 Binding Browser 节点，但 v3 JSON schema 与运行时契约保持不变。
 
 ## 1. 背景与目标
 
@@ -147,6 +147,8 @@ new Binding(config.BindingPath)
 ```
 
 如果 `BindingPath` 为空，`Text` 控件也可以使用 `"Text"` 字段显示原样静态文本。`BindingPath` 与 `Text` 同时存在时，`BindingPath` 优先，静态 `Text` 会被忽略。`Text` 支持可选 `StringFormat`，但只在 `BindingPath` 非空时应用；静态 `Text` 不会套用格式化。静态 `Text` 不会自动走 `WPFLocalizeExtension`、`I18nHelper` 或 resx，本阶段按 JSON 中写入的原文显示；需要业务规则或本地化文本时，应优先使用 `GameProgressText`、`MapNameText`、`LocalizedText` 等控件，而不是把业务/i18n 文案写进普通 `Text`。
+
+Designer v3 的本地化只作用于编辑器显示层。`ControlType`、`BindingPath`、JSON property name、Canvas 字段名、资源 URI、`FontFamily` 和控件 `Name` 都必须保存原始值；ComboBox 可以显示本地化选项，但序列化仍写入 `Center`、`Uniform`、`Bold` 等英文契约值。Binding Browser 可以显示本地化节点名，但必须同时保留原始路径，并且插入属性行的仍是原始 `BindingPath`。
 
 ### LocalizedText
 
@@ -308,6 +310,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 8E | 已实现基础 Property Grid：编辑选中设计项与 config 简单属性、保守 Name 改名、运行时关键名称只读、被引用控件改名阻止；仍只改内存，不保存用户布局。 |
 | Phase 8F | 已实现 Add Control 菜单、默认 config factory、唯一命名、基础 placeholder 策略和 `FontFamily` 字体 ComboBox；仍只改内存，不保存用户布局。 |
 | Phase 8G | 已实现 Binding Browser 与 Resource Browser。浏览器选择只写入属性行 `EditText` 缓冲，仍需 Apply/Enter 提交；Resource Browser 支持 `Resources/bpui` 与绝对路径图片，但不复制外部资源。 |
+| Phase 12 | 已实现 Designer v3 显示层 i18n。`IFrontedDesignerLocalizationService` 负责属性名、属性组、控件类型、窗口/Canvas、ComboBox 选项、Binding Browser 节点和绑定类型的友好显示；schema key、`ControlType`、`BindingPath`、资源路径和包导入/导出格式保持原样。 |
 | Phase 8H | 已实现用户 layout save/reset/load priority、validation-driven save、打开用户布局目录、切换/重载/关闭脏状态提示，以及默认无吸附、Shift 临时吸附、工具栏持久吸附开关。 |
 | Phase 9A | 已完成文档规格：Designer v3 `.bpui` 布局包标准，见 [bpui-package-v3.md](bpui-package-v3.md)。不实现导入、导出、包管理 UI 或 legacy 转换。 |
 | Phase 9B.0 | 已实现 Canvas Properties GUI、本地 `bpui://local` 资源规范化、`bpui://{PackageId}` resolver、顶部工具栏整理和窗口级 Window Options 基础。`AllowTransparency` 是窗口级选项，不写入 `FrontedCanvasConfig`。 |

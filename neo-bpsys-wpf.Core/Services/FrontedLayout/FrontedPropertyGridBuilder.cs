@@ -1,3 +1,4 @@
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using System.Collections;
@@ -13,12 +14,13 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 public class FrontedPropertyGridBuilder
 {
     private readonly FrontedFontFamilyOptionProvider _fontFamilyOptionProvider;
+    private readonly IFrontedDesignerLocalizationService _localizationService;
 
     /// <summary>
     /// Initializes a property grid builder with default font options.
     /// </summary>
     public FrontedPropertyGridBuilder()
-        : this(new FrontedFontFamilyOptionProvider())
+        : this(new FrontedFontFamilyOptionProvider(), new FrontedDesignerLocalizationService())
     {
     }
 
@@ -26,8 +28,19 @@ public class FrontedPropertyGridBuilder
     /// Initializes a property grid builder with a custom font option provider.
     /// </summary>
     public FrontedPropertyGridBuilder(FrontedFontFamilyOptionProvider fontFamilyOptionProvider)
+        : this(fontFamilyOptionProvider, new FrontedDesignerLocalizationService())
+    {
+    }
+
+    /// <summary>
+    /// Initializes a property grid builder with custom font options and localization.
+    /// </summary>
+    public FrontedPropertyGridBuilder(
+        FrontedFontFamilyOptionProvider fontFamilyOptionProvider,
+        IFrontedDesignerLocalizationService localizationService)
     {
         _fontFamilyOptionProvider = fontFamilyOptionProvider;
+        _localizationService = localizationService;
     }
 
     private static readonly HashSet<string> CommonPropertyNames = new(StringComparer.Ordinal)
@@ -121,7 +134,7 @@ public class FrontedPropertyGridBuilder
         return new ObservableCollection<FrontedPropertyEditorItem>(rows);
     }
 
-    private static void AddIdentityRows(
+    private void AddIdentityRows(
         ICollection<FrontedPropertyEditorItem> rows,
         FrontedControlDesignItem selectedItem,
         IReadOnlyList<FrontedLayoutValidationMessage> messages)
@@ -132,12 +145,13 @@ public class FrontedPropertyGridBuilder
 
         rows.Add(new FrontedPropertyEditorItem
         {
-            DisplayName = nameof(FrontedControlDesignItem.Name),
+            DisplayName = _localizationService.GetPropertyDisplayName(nameof(FrontedControlDesignItem.Name)),
             PropertyName = nameof(FrontedControlDesignItem.Name),
-            Description = "Runtime-critical control names are part of the runtime contract and cannot be edited.",
+            Description = _localizationService.GetPropertyDescription(nameof(FrontedControlDesignItem.Name)),
             PropertyType = typeof(string),
             EditorKind = nameReadOnly ? FrontedPropertyEditorKind.ReadOnly : FrontedPropertyEditorKind.Text,
             Value = selectedItem.Name,
+            DisplayValue = selectedItem.Name,
             EditText = selectedItem.Name,
             IsReadOnly = nameReadOnly,
             IsRequired = true,
@@ -147,11 +161,12 @@ public class FrontedPropertyGridBuilder
 
         rows.Add(new FrontedPropertyEditorItem
         {
-            DisplayName = nameof(FrontedControlConfigBase.ControlType),
+            DisplayName = _localizationService.GetPropertyDisplayName(nameof(FrontedControlConfigBase.ControlType)),
             PropertyName = nameof(FrontedControlConfigBase.ControlType),
             PropertyType = typeof(string),
             EditorKind = FrontedPropertyEditorKind.ReadOnly,
             Value = selectedItem.Config.ControlType,
+            DisplayValue = _localizationService.GetControlTypeDisplayName(selectedItem.Config.ControlType),
             IsReadOnly = true,
             IsRequired = true,
             GroupName = "Identity",
@@ -160,11 +175,12 @@ public class FrontedPropertyGridBuilder
 
         rows.Add(new FrontedPropertyEditorItem
         {
-            DisplayName = "RuntimeCritical",
+            DisplayName = _localizationService.GetPropertyDisplayName("RuntimeCritical"),
             PropertyName = "RuntimeCritical",
             PropertyType = typeof(bool),
             EditorKind = FrontedPropertyEditorKind.ReadOnly,
             Value = selectedItem.IsRuntimeCritical,
+            DisplayValue = Convert.ToString(selectedItem.IsRuntimeCritical, System.Globalization.CultureInfo.InvariantCulture),
             IsReadOnly = true,
             GroupName = "Identity"
         });
@@ -173,11 +189,12 @@ public class FrontedPropertyGridBuilder
         {
             rows.Add(new FrontedPropertyEditorItem
             {
-                DisplayName = nameof(FrontedControlDesignItem.LinkedTargetControlName),
+                DisplayName = _localizationService.GetPropertyDisplayName(nameof(FrontedControlDesignItem.LinkedTargetControlName)),
                 PropertyName = nameof(FrontedControlDesignItem.LinkedTargetControlName),
                 PropertyType = typeof(string),
                 EditorKind = FrontedPropertyEditorKind.ReadOnly,
                 Value = selectedItem.LinkedTargetControlName,
+                DisplayValue = selectedItem.LinkedTargetControlName,
                 IsReadOnly = true,
                 GroupName = "Identity"
             });
@@ -225,11 +242,13 @@ public class FrontedPropertyGridBuilder
 
             rows.Add(new FrontedPropertyEditorItem
             {
-                DisplayName = property.Name,
+                DisplayName = _localizationService.GetPropertyDisplayName(property.Name),
                 PropertyName = property.Name,
+                Description = NullIfEmpty(_localizationService.GetPropertyDescription(property.Name)),
                 PropertyType = property.PropertyType,
                 EditorKind = isReadOnly ? FrontedPropertyEditorKind.ReadOnly : kind,
                 Value = value,
+                DisplayValue = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
                 EditText = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
                 IsReadOnly = isReadOnly,
                 IsRequired = property.Name is nameof(FrontedControlConfigBase.Left)
@@ -246,7 +265,7 @@ public class FrontedPropertyGridBuilder
                         ? "ResourceBrowser"
                         : null,
                 BindingTargetKind = bindingTargetKind,
-                ExpectedBindingTypeName = ResolveBindingTargetTypeName(bindingTargetKind),
+                ExpectedBindingTypeName = _localizationService.GetBindingTypeDisplayName(ResolveBindingTargetTypeName(bindingTargetKind)),
                 AllowedBindingTypeNames = ResolveAllowedBindingTypeNames(bindingTargetKind)
             });
         }
@@ -384,10 +403,17 @@ public class FrontedPropertyGridBuilder
         if (property.PropertyType == typeof(string)
             && StringOptionProperties.TryGetValue(property.Name, out var stringOptions))
         {
-            return stringOptions;
+            return stringOptions
+                .Select(value => CreateOption(property.Name, value))
+                .Cast<object>()
+                .ToArray();
         }
 
-        return Enum.GetValues(GetCoreType(property.PropertyType)).Cast<object>().ToArray();
+        return Enum.GetValues(GetCoreType(property.PropertyType))
+            .Cast<object>()
+            .Select(value => CreateOption(property.Name, value))
+            .Cast<object>()
+            .ToArray();
     }
 
     private static string ResolveGroupName(string propertyName)
@@ -404,6 +430,11 @@ public class FrontedPropertyGridBuilder
         if (propertyName == nameof(FrontedControlConfigBase.BindingPath))
         {
             return "Binding";
+        }
+
+        if (IsResourcePathProperty(propertyName))
+        {
+            return "Resource";
         }
 
         return AppearancePropertyNames.Contains(propertyName)
@@ -458,16 +489,28 @@ public class FrontedPropertyGridBuilder
             .ToArray();
     }
 
-    private static void MarkGroupHeaders(IReadOnlyList<FrontedPropertyEditorItem> rows)
+    private void MarkGroupHeaders(IReadOnlyList<FrontedPropertyEditorItem> rows)
     {
         string? currentGroup = null;
         foreach (var row in rows)
         {
             row.IsGroupHeaderVisible = row.GroupName != currentGroup;
-            row.GroupDisplayName = row.GroupName;
+            row.GroupDisplayName = string.IsNullOrWhiteSpace(row.GroupName)
+                ? row.GroupName
+                : _localizationService.GetGroupDisplayName(row.GroupName);
             currentGroup = row.GroupName;
         }
     }
+
+    private FrontedPropertyEditorOption CreateOption(string propertyName, object? value) =>
+        new()
+        {
+            Value = value,
+            DisplayName = _localizationService.GetOptionDisplayName(propertyName, value)
+        };
+
+    private static string? NullIfEmpty(string value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value;
 
     private static Type GetCoreType(Type type)
     {

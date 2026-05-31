@@ -116,6 +116,10 @@ I18nHelper.GetLocalizedString("SomeKey")
 
 `I18nHelper` 找不到 key 时返回原始 key，便于界面降级显示和定位缺失翻译。新增用户可见文本时至少添加默认 `Lang.resx`，并尽量补齐英文、日文资源，避免用户看到裸 key。
 
+Designer v3 的显示层本地化统一使用 `Designer.*` key 前缀。代码侧通过 `IFrontedDesignerLocalizationService` 访问，WPF 宿主实现再委托 `I18nHelper.GetLocalizedString(key)`；Core 中的默认实现只返回原始值，避免 Core 反向引用 WPF 项目。常用命名包括 `Designer.Property.*`、`Designer.PropertyGroup.*`、`Designer.ControlType.*`、`Designer.Option.{Property}.{Value}`、`Designer.Window.*`、`Designer.Canvas.*`、`Designer.Binding.*` 和 `Designer.BindingType.*`。
+
+这些 key 只影响编辑器 UI 显示，不改变布局文件。`.bpui` / v3 JSON 中的 schema 字段名、控件 `Name`、`ControlType`、`BindingPath`、资源 URI 和 `FontFamily` 仍写入原始契约值；例如中文界面 ComboBox 显示“居中”，保存仍是 `"HorizontalAlignment": "Center"`。Binding Browser 可以显示本地化节点名，但界面必须保留原始路径，选择结果也必须写回原始 `BindingPath`。
+
 `GameProgressText` 使用集中 helper 和资源 key 生成 `FREE GAME`、`GAME {n} FIRST HALF`、`GAME {n} OVERTIME SECOND HALF` 等文本，避免 BO3/BO5 进度文案散落在窗口 XAML 或 JSON 中。默认是单行文本；`WidgetsWindow/BpOverViewCanvas.json` 使用 `UseLineBreak=true` 把 Game / Overtime 和 half 分为两行。`MapNameText` 默认把 `CurrentGame.PickedMap` 枚举名作为本地化 key 查询地图名，也可以通过 `BindingPath` 指向其他地图字段，例如 WidgetsWindow 的 picked / banned map 名称；新增地图时要同步补齐地图资源 key。`LocalizedText` 用 `LocalizationKey` 查询普通 resx 文案，适合 GameData 表头等静态标签；如果 key 缺失会显示 `FallbackText` 或 key 本身。普通 `Text.Text` 仍是原样静态文本，不会自动本地化。
 
 ## 添加新素材

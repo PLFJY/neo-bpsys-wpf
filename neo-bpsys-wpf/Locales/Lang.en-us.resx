@@ -2374,115 +2374,733 @@
   <data name="SaveBeforeRestart" xml:space="preserve">
     <value>Save the current layout before restarting?</value>
   </data>
-  <data name="FrontendWindows" xml:space="preserve"><value>Frontend Windows</value></data>
-  <data name="FrontendDesigner" xml:space="preserve"><value>Frontend Designer</value></data>
-  <data name="LayoutPackages" xml:space="preserve"><value>Layout Packages</value></data>
-  <data name="LayoutPackageManager" xml:space="preserve"><value>Layout Package Manager</value></data>
-  <data name="InstalledPackages" xml:space="preserve"><value>Installed Packages</value></data>
-  <data name="ActivePackage" xml:space="preserve"><value>Active Package</value></data>
-  <data name="BuiltInPackage" xml:space="preserve"><value>Built-in Package</value></data>
-  <data name="SystemBuiltIn" xml:space="preserve"><value>System Built-in</value></data>
-  <data name="PackageId" xml:space="preserve"><value>PackageId</value></data>
-  <data name="PackageName" xml:space="preserve"><value>Name</value></data>
-  <data name="PackageAuthor" xml:space="preserve"><value>Author</value></data>
-  <data name="PackageDescription" xml:space="preserve"><value>Description</value></data>
-  <data name="PackageMinVersion" xml:space="preserve"><value>Min Version</value></data>
-  <data name="PackageCreatedAt" xml:space="preserve"><value>Created At</value></data>
-  <data name="PackageSource" xml:space="preserve"><value>Source</value></data>
-  <data name="PackageValidationStatus" xml:space="preserve"><value>Validation</value></data>
-  <data name="PackageInstallPath" xml:space="preserve"><value>Install Path</value></data>
-  <data name="LayoutCount" xml:space="preserve"><value>Layout Count</value></data>
-  <data name="ResourceCount" xml:space="preserve"><value>Resource Count</value></data>
-  <data name="ImportPackage" xml:space="preserve"><value>Import Package</value></data>
-  <data name="ExportPackage" xml:space="preserve"><value>Export Package</value></data>
-  <data name="ActivatePackage" xml:space="preserve"><value>Activate Package</value></data>
-  <data name="DeletePackage" xml:space="preserve"><value>Delete Package</value></data>
-  <data name="OpenPackageFolder" xml:space="preserve"><value>Open Package Folder</value></data>
-  <data name="RefreshPackages" xml:space="preserve"><value>Refresh Packages</value></data>
-  <data name="PackageNotImplemented" xml:space="preserve"><value>v3 package import will be implemented in Phase 9D.</value></data>
-  <data name="CannotDeleteBuiltinPackage" xml:space="preserve"><value>Cannot delete the built-in package.</value></data>
-  <data name="CannotDeleteLocalPackage" xml:space="preserve"><value>Cannot delete the local resource package.</value></data>
-  <data name="PackageDeleted" xml:space="preserve"><value>Package deleted.</value></data>
-  <data name="PackageDeleteFailed" xml:space="preserve"><value>Package delete failed</value></data>
-  <data name="PackageActivated" xml:space="preserve"><value>Package activated.</value></data>
-  <data name="PackageActivationNotImplemented" xml:space="preserve"><value>This package cannot be activated yet.</value></data>
-  <data name="ShortcutUndo" xml:space="preserve"><value>Undo (Ctrl+Z)</value></data>
-  <data name="ShortcutRedo" xml:space="preserve"><value>Redo (Ctrl+Y / Ctrl+Shift+Z)</value></data>
-  <data name="ShortcutDelete" xml:space="preserve"><value>Delete (Del)</value></data>
-  <data name="ShortcutSave" xml:space="preserve"><value>Save Layout (Ctrl+S)</value></data>
-  <data name="ExportPackageDialogTitle" xml:space="preserve"><value>Export Layout Package</value></data>
-  <data name="ExportScope" xml:space="preserve"><value>Export Scope</value></data>
-  <data name="ExportCurrentCanvas" xml:space="preserve"><value>Current Canvas</value></data>
-  <data name="ExportCurrentWindow" xml:space="preserve"><value>Current Window</value></data>
-  <data name="ExportAllFrontendLayouts" xml:space="preserve"><value>All Frontend Layouts</value></data>
-  <data name="OutputPath" xml:space="preserve"><value>Output Path</value></data>
-  <data name="BrowseOutputPath" xml:space="preserve"><value>Browse Output Path</value></data>
-  <data name="PackageExportSucceeded" xml:space="preserve"><value>Package export succeeded</value></data>
-  <data name="PackageExportFailed" xml:space="preserve"><value>Package export failed</value></data>
-  <data name="InvalidPackageId" xml:space="preserve"><value>PackageId may contain only lowercase letters, numbers, dot, dash, and underscore, with no whitespace, path separators, colon, or ...</value></data>
-  <data name="PackageNameRequired" xml:space="preserve"><value>Package name is required.</value></data>
-  <data name="OutputPathRequired" xml:space="preserve"><value>Output path is required.</value></data>
-  <data name="ConfirmOverwriteFile" xml:space="preserve"><value>The output file already exists. Overwrite it?</value></data>
-  <data name="ExportedLayoutCount" xml:space="preserve"><value>Exported layouts</value></data>
-  <data name="ExportedResourceCount" xml:space="preserve"><value>Exported resources</value></data>
-  <data name="CompactPackageList" xml:space="preserve"><value>Compact Package List</value></data>
-  <data name="PackageBasicInfo" xml:space="preserve"><value>Basic</value></data>
-  <data name="PackageContents" xml:space="preserve"><value>Contents</value></data>
-  <data name="PackageLocation" xml:space="preserve"><value>Location</value></data>
-  <data name="PackageValidation" xml:space="preserve"><value>Validation</value></data>
-  <data name="FrontendLayoutPackageDefaultName" xml:space="preserve"><value>Frontend Layout Package</value></data>
-  <data name="PackageImportSucceeded" xml:space="preserve"><value>Layout package imported</value></data>
-  <data name="PackageImportFailed" xml:space="preserve"><value>Layout package import failed</value></data>
-  <data name="PackageAlreadyExists" xml:space="preserve"><value>Package already exists</value></data>
-  <data name="ReplaceExistingPackage" xml:space="preserve"><value>A package with the same PackageId already exists. Replace it?</value></data>
-  <data name="ActivateImportedPackage" xml:space="preserve"><value>The package was imported. Activate it now?</value></data>
-  <data name="LegacyPackageDetected" xml:space="preserve"><value>Legacy .bpui package detected</value></data>
-  <data name="LegacyPackageConversionNotImplemented" xml:space="preserve"><value>Legacy .bpui conversion is not implemented yet.</value></data>
-  <data name="InvalidPackageManifest" xml:space="preserve"><value>Invalid package manifest.</value></data>
-  <data name="InvalidPackageArchive" xml:space="preserve"><value>Invalid package archive.</value></data>
-  <data name="PackageRequiresNewerVersion" xml:space="preserve"><value>This package requires a newer app version.</value></data>
-  <data name="CrossPackageResourceReference" xml:space="preserve"><value>The package contains a cross-package resource reference.</value></data>
-  <data name="MissingPackageResource" xml:space="preserve"><value>The package is missing a resource file.</value></data>
-  <data name="ConfirmActivatePackage" xml:space="preserve"><value>Activating this package will overwrite current user frontend layouts. Continue?</value></data>
-  <data name="ConfirmDeleteActivePackage" xml:space="preserve"><value>This package is active. Delete it and switch to the built-in layout?</value></data>
-  <data name="ConfirmDeletePackage" xml:space="preserve"><value>Delete this layout package?</value></data>
-  <data name="SwitchToBuiltIn" xml:space="preserve"><value>Switch to built-in</value></data>
-  <data name="PackageActivatedBuiltin" xml:space="preserve"><value>Switched to built-in layout</value></data>
-  <data name="PackageActivatedInstalled" xml:space="preserve"><value>Layout package activated</value></data>
-  <data name="LegacyPackageConvertTitle" xml:space="preserve"><value>Convert Legacy Layout Package</value></data>
-  <data name="LegacyPackageConvertMessage" xml:space="preserve"><value>A legacy .bpui layout package was detected. Convert it to a Designer v3 package and import it? The legacy Config.json will not overwrite current app settings.</value></data>
-  <data name="ConvertLegacyPackage" xml:space="preserve"><value>Convert Legacy Package</value></data>
-  <data name="LegacyPackageConvertSucceeded" xml:space="preserve"><value>Legacy package converted</value></data>
-  <data name="LegacyPackageConvertFailed" xml:space="preserve"><value>Legacy package conversion failed</value></data>
-  <data name="LegacyPackageConvertWarnings" xml:space="preserve"><value>Legacy package conversion warnings</value></data>
-  <data name="LegacyPackageDefaultDescription" xml:space="preserve"><value>Converted from a legacy .bpui package. Legacy fields without a safe mapping are ignored.</value></data>
-  <data name="UnknownLegacyLayoutFile" xml:space="preserve"><value>Unknown legacy layout file</value></data>
-  <data name="LegacyFieldIgnored" xml:space="preserve"><value>Legacy field ignored</value></data>
-  <data name="LegacyResourceCopied" xml:space="preserve"><value>Legacy resource copied</value></data>
-  <data name="LegacyResourceMissing" xml:space="preserve"><value>Legacy resource missing</value></data>
-  <data name="ActivateConvertedPackage" xml:space="preserve"><value>Activate the converted package now?</value></data>
-  <data name="InputTruncated" xml:space="preserve"><value>Input was truncated to the length limit</value></data>
-  <data name="InputTooLong" xml:space="preserve"><value>Input is too long</value></data>
-  <data name="ImageTooLarge" xml:space="preserve"><value>Image file is too large</value></data>
-  <data name="ImageTooManyPixels" xml:space="preserve"><value>Image dimensions are too large</value></data>
-  <data name="UnsupportedImageFormat" xml:space="preserve"><value>Unsupported image format</value></data>
-  <data name="PackageTooLarge" xml:space="preserve"><value>Package archive is too large</value></data>
-  <data name="PackageExtractedTooLarge" xml:space="preserve"><value>Extracted package content is too large</value></data>
-  <data name="PackageTooManyEntries" xml:space="preserve"><value>Package contains too many entries</value></data>
-  <data name="PackageEntryTooLarge" xml:space="preserve"><value>Package entry is too large</value></data>
-  <data name="ManifestTooLarge" xml:space="preserve"><value>manifest.json is too large</value></data>
-  <data name="LayoutJsonTooLarge" xml:space="preserve"><value>Layout JSON is too large</value></data>
-  <data name="WindowOptionsTooLarge" xml:space="preserve"><value>Window options JSON is too large</value></data>
-  <data name="TooManyControls" xml:space="preserve"><value>Too many controls on this canvas</value></data>
-  <data name="ControlCountLimitReached" xml:space="preserve"><value>Control count limit reached for this canvas</value></data>
-  <data name="ControlCountWarning" xml:space="preserve"><value>This canvas has many controls</value></data>
-  <data name="MaxControlsPerCanvas" xml:space="preserve"><value>Max controls per canvas</value></data>
-  <data name="ResourcePathTooLong" xml:space="preserve"><value>Resource path is too long</value></data>
-  <data name="TextTooLong" xml:space="preserve"><value>Text is too long</value></data>
-  <data name="BindingPathTooLong" xml:space="preserve"><value>Binding path is too long</value></data>
-  <data name="ValidationMessagesTruncated" xml:space="preserve"><value>and {0} more...</value></data>
-  <data name="CopyControl" xml:space="preserve"><value>Copy Control</value></data>
-  <data name="PasteControl" xml:space="preserve"><value>Paste Control</value></data>
-  <data name="CannotCopyControl" xml:space="preserve"><value>Cannot copy this control</value></data>
-  <data name="CannotPasteControl" xml:space="preserve"><value>Cannot paste control</value></data>
+  <data name="FrontendWindows" xml:space="preserve">
+    <value>Frontend Windows</value>
+  </data>
+  <data name="FrontendDesigner" xml:space="preserve">
+    <value>Frontend Designer</value>
+  </data>
+  <data name="LayoutPackages" xml:space="preserve">
+    <value>Layout Packages</value>
+  </data>
+  <data name="LayoutPackageManager" xml:space="preserve">
+    <value>Layout Package Manager</value>
+  </data>
+  <data name="InstalledPackages" xml:space="preserve">
+    <value>Installed Packages</value>
+  </data>
+  <data name="ActivePackage" xml:space="preserve">
+    <value>Active Package</value>
+  </data>
+  <data name="BuiltInPackage" xml:space="preserve">
+    <value>Built-in Package</value>
+  </data>
+  <data name="SystemBuiltIn" xml:space="preserve">
+    <value>System Built-in</value>
+  </data>
+  <data name="PackageId" xml:space="preserve">
+    <value>PackageId</value>
+  </data>
+  <data name="PackageName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="PackageAuthor" xml:space="preserve">
+    <value>Author</value>
+  </data>
+  <data name="PackageDescription" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="PackageMinVersion" xml:space="preserve">
+    <value>Min Version</value>
+  </data>
+  <data name="PackageCreatedAt" xml:space="preserve">
+    <value>Created At</value>
+  </data>
+  <data name="PackageSource" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="PackageValidationStatus" xml:space="preserve">
+    <value>Validation</value>
+  </data>
+  <data name="PackageInstallPath" xml:space="preserve">
+    <value>Install Path</value>
+  </data>
+  <data name="LayoutCount" xml:space="preserve">
+    <value>Layout Count</value>
+  </data>
+  <data name="ResourceCount" xml:space="preserve">
+    <value>Resource Count</value>
+  </data>
+  <data name="ImportPackage" xml:space="preserve">
+    <value>Import Package</value>
+  </data>
+  <data name="ExportPackage" xml:space="preserve">
+    <value>Export Package</value>
+  </data>
+  <data name="ActivatePackage" xml:space="preserve">
+    <value>Activate Package</value>
+  </data>
+  <data name="DeletePackage" xml:space="preserve">
+    <value>Delete Package</value>
+  </data>
+  <data name="OpenPackageFolder" xml:space="preserve">
+    <value>Open Package Folder</value>
+  </data>
+  <data name="RefreshPackages" xml:space="preserve">
+    <value>Refresh Packages</value>
+  </data>
+  <data name="PackageNotImplemented" xml:space="preserve">
+    <value>v3 package import will be implemented in Phase 9D.</value>
+  </data>
+  <data name="CannotDeleteBuiltinPackage" xml:space="preserve">
+    <value>Cannot delete the built-in package.</value>
+  </data>
+  <data name="CannotDeleteLocalPackage" xml:space="preserve">
+    <value>Cannot delete the local resource package.</value>
+  </data>
+  <data name="PackageDeleted" xml:space="preserve">
+    <value>Package deleted.</value>
+  </data>
+  <data name="PackageDeleteFailed" xml:space="preserve">
+    <value>Package delete failed</value>
+  </data>
+  <data name="PackageActivated" xml:space="preserve">
+    <value>Package activated.</value>
+  </data>
+  <data name="PackageActivationNotImplemented" xml:space="preserve">
+    <value>This package cannot be activated yet.</value>
+  </data>
+  <data name="ShortcutUndo" xml:space="preserve">
+    <value>Undo (Ctrl+Z)</value>
+  </data>
+  <data name="ShortcutRedo" xml:space="preserve">
+    <value>Redo (Ctrl+Y / Ctrl+Shift+Z)</value>
+  </data>
+  <data name="ShortcutDelete" xml:space="preserve">
+    <value>Delete (Del)</value>
+  </data>
+  <data name="ShortcutSave" xml:space="preserve">
+    <value>Save Layout (Ctrl+S)</value>
+  </data>
+  <data name="ExportPackageDialogTitle" xml:space="preserve">
+    <value>Export Layout Package</value>
+  </data>
+  <data name="ExportScope" xml:space="preserve">
+    <value>Export Scope</value>
+  </data>
+  <data name="ExportCurrentCanvas" xml:space="preserve">
+    <value>Current Canvas</value>
+  </data>
+  <data name="ExportCurrentWindow" xml:space="preserve">
+    <value>Current Window</value>
+  </data>
+  <data name="ExportAllFrontendLayouts" xml:space="preserve">
+    <value>All Frontend Layouts</value>
+  </data>
+  <data name="OutputPath" xml:space="preserve">
+    <value>Output Path</value>
+  </data>
+  <data name="BrowseOutputPath" xml:space="preserve">
+    <value>Browse Output Path</value>
+  </data>
+  <data name="PackageExportSucceeded" xml:space="preserve">
+    <value>Package export succeeded</value>
+  </data>
+  <data name="PackageExportFailed" xml:space="preserve">
+    <value>Package export failed</value>
+  </data>
+  <data name="InvalidPackageId" xml:space="preserve">
+    <value>PackageId may contain only lowercase letters, numbers, dot, dash, and underscore, with no whitespace, path separators, colon, or ...</value>
+  </data>
+  <data name="PackageNameRequired" xml:space="preserve">
+    <value>Package name is required.</value>
+  </data>
+  <data name="OutputPathRequired" xml:space="preserve">
+    <value>Output path is required.</value>
+  </data>
+  <data name="ConfirmOverwriteFile" xml:space="preserve">
+    <value>The output file already exists. Overwrite it?</value>
+  </data>
+  <data name="ExportedLayoutCount" xml:space="preserve">
+    <value>Exported layouts</value>
+  </data>
+  <data name="ExportedResourceCount" xml:space="preserve">
+    <value>Exported resources</value>
+  </data>
+  <data name="CompactPackageList" xml:space="preserve">
+    <value>Compact Package List</value>
+  </data>
+  <data name="PackageBasicInfo" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="PackageContents" xml:space="preserve">
+    <value>Contents</value>
+  </data>
+  <data name="PackageLocation" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="PackageValidation" xml:space="preserve">
+    <value>Validation</value>
+  </data>
+  <data name="FrontendLayoutPackageDefaultName" xml:space="preserve">
+    <value>Frontend Layout Package</value>
+  </data>
+  <data name="PackageImportSucceeded" xml:space="preserve">
+    <value>Layout package imported</value>
+  </data>
+  <data name="PackageImportFailed" xml:space="preserve">
+    <value>Layout package import failed</value>
+  </data>
+  <data name="PackageAlreadyExists" xml:space="preserve">
+    <value>Package already exists</value>
+  </data>
+  <data name="ReplaceExistingPackage" xml:space="preserve">
+    <value>A package with the same PackageId already exists. Replace it?</value>
+  </data>
+  <data name="ActivateImportedPackage" xml:space="preserve">
+    <value>The package was imported. Activate it now?</value>
+  </data>
+  <data name="LegacyPackageDetected" xml:space="preserve">
+    <value>Legacy .bpui package detected</value>
+  </data>
+  <data name="LegacyPackageConversionNotImplemented" xml:space="preserve">
+    <value>Legacy .bpui conversion is not implemented yet.</value>
+  </data>
+  <data name="InvalidPackageManifest" xml:space="preserve">
+    <value>Invalid package manifest.</value>
+  </data>
+  <data name="InvalidPackageArchive" xml:space="preserve">
+    <value>Invalid package archive.</value>
+  </data>
+  <data name="PackageRequiresNewerVersion" xml:space="preserve">
+    <value>This package requires a newer app version.</value>
+  </data>
+  <data name="CrossPackageResourceReference" xml:space="preserve">
+    <value>The package contains a cross-package resource reference.</value>
+  </data>
+  <data name="MissingPackageResource" xml:space="preserve">
+    <value>The package is missing a resource file.</value>
+  </data>
+  <data name="ConfirmActivatePackage" xml:space="preserve">
+    <value>Activating this package will overwrite current user frontend layouts. Continue?</value>
+  </data>
+  <data name="ConfirmDeleteActivePackage" xml:space="preserve">
+    <value>This package is active. Delete it and switch to the built-in layout?</value>
+  </data>
+  <data name="ConfirmDeletePackage" xml:space="preserve">
+    <value>Delete this layout package?</value>
+  </data>
+  <data name="SwitchToBuiltIn" xml:space="preserve">
+    <value>Switch to built-in</value>
+  </data>
+  <data name="PackageActivatedBuiltin" xml:space="preserve">
+    <value>Switched to built-in layout</value>
+  </data>
+  <data name="PackageActivatedInstalled" xml:space="preserve">
+    <value>Layout package activated</value>
+  </data>
+  <data name="LegacyPackageConvertTitle" xml:space="preserve">
+    <value>Convert Legacy Layout Package</value>
+  </data>
+  <data name="LegacyPackageConvertMessage" xml:space="preserve">
+    <value>A legacy .bpui layout package was detected. Convert it to a Designer v3 package and import it? The legacy Config.json will not overwrite current app settings.</value>
+  </data>
+  <data name="ConvertLegacyPackage" xml:space="preserve">
+    <value>Convert Legacy Package</value>
+  </data>
+  <data name="LegacyPackageConvertSucceeded" xml:space="preserve">
+    <value>Legacy package converted</value>
+  </data>
+  <data name="LegacyPackageConvertFailed" xml:space="preserve">
+    <value>Legacy package conversion failed</value>
+  </data>
+  <data name="LegacyPackageConvertWarnings" xml:space="preserve">
+    <value>Legacy package conversion warnings</value>
+  </data>
+  <data name="LegacyPackageDefaultDescription" xml:space="preserve">
+    <value>Converted from a legacy .bpui package. Legacy fields without a safe mapping are ignored.</value>
+  </data>
+  <data name="UnknownLegacyLayoutFile" xml:space="preserve">
+    <value>Unknown legacy layout file</value>
+  </data>
+  <data name="LegacyFieldIgnored" xml:space="preserve">
+    <value>Legacy field ignored</value>
+  </data>
+  <data name="LegacyResourceCopied" xml:space="preserve">
+    <value>Legacy resource copied</value>
+  </data>
+  <data name="LegacyResourceMissing" xml:space="preserve">
+    <value>Legacy resource missing</value>
+  </data>
+  <data name="ActivateConvertedPackage" xml:space="preserve">
+    <value>Activate the converted package now?</value>
+  </data>
+  <data name="InputTruncated" xml:space="preserve">
+    <value>Input was truncated to the length limit</value>
+  </data>
+  <data name="InputTooLong" xml:space="preserve">
+    <value>Input is too long</value>
+  </data>
+  <data name="ImageTooLarge" xml:space="preserve">
+    <value>Image file is too large</value>
+  </data>
+  <data name="ImageTooManyPixels" xml:space="preserve">
+    <value>Image dimensions are too large</value>
+  </data>
+  <data name="UnsupportedImageFormat" xml:space="preserve">
+    <value>Unsupported image format</value>
+  </data>
+  <data name="PackageTooLarge" xml:space="preserve">
+    <value>Package archive is too large</value>
+  </data>
+  <data name="PackageExtractedTooLarge" xml:space="preserve">
+    <value>Extracted package content is too large</value>
+  </data>
+  <data name="PackageTooManyEntries" xml:space="preserve">
+    <value>Package contains too many entries</value>
+  </data>
+  <data name="PackageEntryTooLarge" xml:space="preserve">
+    <value>Package entry is too large</value>
+  </data>
+  <data name="ManifestTooLarge" xml:space="preserve">
+    <value>manifest.json is too large</value>
+  </data>
+  <data name="LayoutJsonTooLarge" xml:space="preserve">
+    <value>Layout JSON is too large</value>
+  </data>
+  <data name="WindowOptionsTooLarge" xml:space="preserve">
+    <value>Window options JSON is too large</value>
+  </data>
+  <data name="TooManyControls" xml:space="preserve">
+    <value>Too many controls on this canvas</value>
+  </data>
+  <data name="ControlCountLimitReached" xml:space="preserve">
+    <value>Control count limit reached for this canvas</value>
+  </data>
+  <data name="ControlCountWarning" xml:space="preserve">
+    <value>This canvas has many controls</value>
+  </data>
+  <data name="MaxControlsPerCanvas" xml:space="preserve">
+    <value>Max controls per canvas</value>
+  </data>
+  <data name="ResourcePathTooLong" xml:space="preserve">
+    <value>Resource path is too long</value>
+  </data>
+  <data name="TextTooLong" xml:space="preserve">
+    <value>Text is too long</value>
+  </data>
+  <data name="BindingPathTooLong" xml:space="preserve">
+    <value>Binding path is too long</value>
+  </data>
+  <data name="ValidationMessagesTruncated" xml:space="preserve">
+    <value>and {0} more...</value>
+  </data>
+  <data name="CopyControl" xml:space="preserve">
+    <value>Copy Control</value>
+  </data>
+  <data name="PasteControl" xml:space="preserve">
+    <value>Paste Control</value>
+  </data>
+  <data name="CannotCopyControl" xml:space="preserve">
+    <value>Cannot copy this control</value>
+  </data>
+  <data name="CannotPasteControl" xml:space="preserve">
+    <value>Cannot paste control</value>
+  </data>
+  <data name="Designer.Property.Name" xml:space="preserve">
+    <value>Control Name</value>
+  </data>
+  <data name="Designer.Property.ControlType" xml:space="preserve">
+    <value>Control Type</value>
+  </data>
+  <data name="Designer.Property.RuntimeCritical" xml:space="preserve">
+    <value>Runtime-critical Control</value>
+  </data>
+  <data name="Designer.Property.LinkedTargetControlName" xml:space="preserve">
+    <value>Linked Target Control</value>
+  </data>
+  <data name="Designer.Property.Left" xml:space="preserve">
+    <value>X</value>
+  </data>
+  <data name="Designer.Property.Top" xml:space="preserve">
+    <value>Y</value>
+  </data>
+  <data name="Designer.Property.Width" xml:space="preserve">
+    <value>Width</value>
+  </data>
+  <data name="Designer.Property.Height" xml:space="preserve">
+    <value>Height</value>
+  </data>
+  <data name="Designer.Property.ZIndex" xml:space="preserve">
+    <value>Layer</value>
+  </data>
+  <data name="Designer.Property.BindingPath" xml:space="preserve">
+    <value>Binding Path</value>
+  </data>
+  <data name="Designer.Property.HorizontalAlignment" xml:space="preserve">
+    <value>Horizontal Alignment</value>
+  </data>
+  <data name="Designer.Property.VerticalAlignment" xml:space="preserve">
+    <value>Vertical Alignment</value>
+  </data>
+  <data name="Designer.Property.TextAlignment" xml:space="preserve">
+    <value>Text Alignment</value>
+  </data>
+  <data name="Designer.Property.TextWrapping" xml:space="preserve">
+    <value>Text Wrapping</value>
+  </data>
+  <data name="Designer.Property.Stretch" xml:space="preserve">
+    <value>Image Stretch</value>
+  </data>
+  <data name="Designer.Property.FontFamily" xml:space="preserve">
+    <value>Font</value>
+  </data>
+  <data name="Designer.Property.FontWeight" xml:space="preserve">
+    <value>Font Weight</value>
+  </data>
+  <data name="Designer.Property.FontSize" xml:space="preserve">
+    <value>Font Size</value>
+  </data>
+  <data name="Designer.Property.Color" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="Designer.Property.BackgroundImage" xml:space="preserve">
+    <value>Background Image</value>
+  </data>
+  <data name="Designer.Property.PickingBorder" xml:space="preserve">
+    <value>Picking Border</value>
+  </data>
+  <data name="Designer.Property.BanLockAvailable" xml:space="preserve">
+    <value>Ban Lock Available</value>
+  </data>
+  <data name="Designer.Property.Text" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="Designer.Property.StringFormat" xml:space="preserve">
+    <value>Text Format</value>
+  </data>
+  <data name="Designer.Property.SizingMode" xml:space="preserve">
+    <value>Sizing Mode</value>
+  </data>
+  <data name="Designer.Property.ClipToBounds" xml:space="preserve">
+    <value>Clip to Bounds</value>
+  </data>
+  <data name="Designer.Property.CornerRadius" xml:space="preserve">
+    <value>Corner Radius</value>
+  </data>
+  <data name="Designer.Property.PickingBorderImagePath" xml:space="preserve">
+    <value>Picking Border Image</value>
+  </data>
+  <data name="Designer.Property.BanLockImagePath" xml:space="preserve">
+    <value>Ban Lock Image</value>
+  </data>
+  <data name="Designer.Property.LocalizationKey" xml:space="preserve">
+    <value>Localization Key</value>
+  </data>
+  <data name="Designer.Property.FallbackText" xml:space="preserve">
+    <value>Fallback Text</value>
+  </data>
+  <data name="Designer.Property.EmptyText" xml:space="preserve">
+    <value>Empty Text</value>
+  </data>
+  <data name="Designer.Property.UseLineBreak" xml:space="preserve">
+    <value>Use Line Break</value>
+  </data>
+  <data name="Designer.Property.TeamType" xml:space="preserve">
+    <value>Team</value>
+  </data>
+  <data name="Designer.Property.MajorGameGap" xml:space="preserve">
+    <value>Major Game Gap</value>
+  </data>
+  <data name="Designer.Property.HalfGameGap" xml:space="preserve">
+    <value>Half Game Gap</value>
+  </data>
+  <data name="Designer.Property.ShowCampIcon" xml:space="preserve">
+    <value>Show Camp Icon</value>
+  </data>
+  <data name="Designer.Property.MapKey" xml:space="preserve">
+    <value>Map Key</value>
+  </data>
+  <data name="Designer.Property.DisplayKind" xml:space="preserve">
+    <value>Display Kind</value>
+  </data>
+  <data name="Designer.Property.PlayerIndex" xml:space="preserve">
+    <value>Player Index</value>
+  </data>
+  <data name="Designer.Property.IconSize" xml:space="preserve">
+    <value>Icon Size</value>
+  </data>
+  <data name="Designer.Property.IconGap" xml:space="preserve">
+    <value>Icon Gap</value>
+  </data>
+  <data name="Designer.Property.RespectTraitVisibility" xml:space="preserve">
+    <value>Respect Trait Visibility</value>
+  </data>
+  <data name="Designer.Property.TargetControlName" xml:space="preserve">
+    <value>Target Control Name</value>
+  </data>
+  <data name="Designer.Property.BorderImagePath" xml:space="preserve">
+    <value>Border Image</value>
+  </data>
+  <data name="Designer.Property.FillColor" xml:space="preserve">
+    <value>Fill Color</value>
+  </data>
+  <data name="Designer.Property.InitiallyHidden" xml:space="preserve">
+    <value>Initially Hidden</value>
+  </data>
+  <data name="Designer.Property.SlotKind" xml:space="preserve">
+    <value>Ban Slot Kind</value>
+  </data>
+  <data name="Designer.Property.Camp" xml:space="preserve">
+    <value>Camp</value>
+  </data>
+  <data name="Designer.Property.Index" xml:space="preserve">
+    <value>Index</value>
+  </data>
+  <data name="Designer.Property.ShowLockOverlay" xml:space="preserve">
+    <value>Show Lock Overlay</value>
+  </data>
+  <data name="Designer.Property.LockImageSource" xml:space="preserve">
+    <value>Lock Image</value>
+  </data>
+  <data name="Designer.Property.LockZIndexOffset" xml:space="preserve">
+    <value>Lock Layer Offset</value>
+  </data>
+  <data name="Designer.PropertyGroup.Identity" xml:space="preserve">
+    <value>Identity</value>
+  </data>
+  <data name="Designer.PropertyGroup.Layout" xml:space="preserve">
+    <value>Layout</value>
+  </data>
+  <data name="Designer.PropertyGroup.Binding" xml:space="preserve">
+    <value>Data Binding</value>
+  </data>
+  <data name="Designer.PropertyGroup.Appearance" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="Designer.PropertyGroup.Resource" xml:space="preserve">
+    <value>Resource</value>
+  </data>
+  <data name="Designer.PropertyGroup.Behavior" xml:space="preserve">
+    <value>Behavior</value>
+  </data>
+  <data name="Designer.PropertyGroup.Advanced" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="Designer.PropertyGroup.Validation" xml:space="preserve">
+    <value>Validation</value>
+  </data>
+  <data name="Designer.PropertyGroup.ControlSpecific" xml:space="preserve">
+    <value>Control Specific</value>
+  </data>
+  <data name="Designer.ControlType.Text" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="Designer.ControlType.LocalizedText" xml:space="preserve">
+    <value>Localized Text</value>
+  </data>
+  <data name="Designer.ControlType.Image" xml:space="preserve">
+    <value>Image</value>
+  </data>
+  <data name="Designer.ControlType.GameProgressText" xml:space="preserve">
+    <value>Game Progress</value>
+  </data>
+  <data name="Designer.ControlType.MapNameText" xml:space="preserve">
+    <value>Map Name</value>
+  </data>
+  <data name="Designer.ControlType.TalentTraitDisplay" xml:space="preserve">
+    <value>Talent / Trait</value>
+  </data>
+  <data name="Designer.ControlType.GlobalScoreRow" xml:space="preserve">
+    <value>Global Score</value>
+  </data>
+  <data name="Designer.ControlType.CurrentBanDisplay" xml:space="preserve">
+    <value>Current Ban</value>
+  </data>
+  <data name="Designer.ControlType.BanSlotDisplay" xml:space="preserve">
+    <value>Ban Slot</value>
+  </data>
+  <data name="Designer.ControlType.MapV2Display" xml:space="preserve">
+    <value>Map v2</value>
+  </data>
+  <data name="Designer.Option.HorizontalAlignment.Left" xml:space="preserve">
+    <value>Left</value>
+  </data>
+  <data name="Designer.Option.HorizontalAlignment.Center" xml:space="preserve">
+    <value>Center</value>
+  </data>
+  <data name="Designer.Option.HorizontalAlignment.Right" xml:space="preserve">
+    <value>Right</value>
+  </data>
+  <data name="Designer.Option.HorizontalAlignment.Stretch" xml:space="preserve">
+    <value>Stretch</value>
+  </data>
+  <data name="Designer.Option.VerticalAlignment.Top" xml:space="preserve">
+    <value>Top</value>
+  </data>
+  <data name="Designer.Option.VerticalAlignment.Center" xml:space="preserve">
+    <value>Center</value>
+  </data>
+  <data name="Designer.Option.VerticalAlignment.Bottom" xml:space="preserve">
+    <value>Bottom</value>
+  </data>
+  <data name="Designer.Option.VerticalAlignment.Stretch" xml:space="preserve">
+    <value>Stretch</value>
+  </data>
+  <data name="Designer.Option.TextAlignment.Left" xml:space="preserve">
+    <value>Left</value>
+  </data>
+  <data name="Designer.Option.TextAlignment.Center" xml:space="preserve">
+    <value>Center</value>
+  </data>
+  <data name="Designer.Option.TextAlignment.Right" xml:space="preserve">
+    <value>Right</value>
+  </data>
+  <data name="Designer.Option.TextAlignment.Justify" xml:space="preserve">
+    <value>Justify</value>
+  </data>
+  <data name="Designer.Option.TextWrapping.NoWrap" xml:space="preserve">
+    <value>No Wrap</value>
+  </data>
+  <data name="Designer.Option.TextWrapping.Wrap" xml:space="preserve">
+    <value>Wrap</value>
+  </data>
+  <data name="Designer.Option.TextWrapping.WrapWithOverflow" xml:space="preserve">
+    <value>Wrap With Overflow</value>
+  </data>
+  <data name="Designer.Option.Stretch.None" xml:space="preserve">
+    <value>Original Size</value>
+  </data>
+  <data name="Designer.Option.Stretch.Fill" xml:space="preserve">
+    <value>Fill</value>
+  </data>
+  <data name="Designer.Option.Stretch.Uniform" xml:space="preserve">
+    <value>Uniform</value>
+  </data>
+  <data name="Designer.Option.Stretch.UniformToFill" xml:space="preserve">
+    <value>Uniform to Fill</value>
+  </data>
+  <data name="Designer.Option.FontWeight.Light" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Designer.Option.FontWeight.Normal" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="Designer.Option.FontWeight.Medium" xml:space="preserve">
+    <value>Medium</value>
+  </data>
+  <data name="Designer.Option.FontWeight.SemiBold" xml:space="preserve">
+    <value>Semi Bold</value>
+  </data>
+  <data name="Designer.Option.FontWeight.Bold" xml:space="preserve">
+    <value>Bold</value>
+  </data>
+  <data name="Designer.Option.FontWeight.ExtraBold" xml:space="preserve">
+    <value>Extra Bold</value>
+  </data>
+  <data name="Designer.Option.SizingMode.Auto" xml:space="preserve">
+    <value>Auto</value>
+  </data>
+  <data name="Designer.Option.SizingMode.FillContainer" xml:space="preserve">
+    <value>Fill Container</value>
+  </data>
+  <data name="Designer.Option.SizingMode.OverflowCrop" xml:space="preserve">
+    <value>Overflow Crop</value>
+  </data>
+  <data name="Designer.Option.TeamType.HomeTeam" xml:space="preserve">
+    <value>Home Team</value>
+  </data>
+  <data name="Designer.Option.TeamType.AwayTeam" xml:space="preserve">
+    <value>Away Team</value>
+  </data>
+  <data name="Designer.Option.DisplayKind.SurvivorTalent" xml:space="preserve">
+    <value>Survivor Talent</value>
+  </data>
+  <data name="Designer.Option.DisplayKind.HunterTalent" xml:space="preserve">
+    <value>Hunter Talent</value>
+  </data>
+  <data name="Designer.Option.DisplayKind.HunterTrait" xml:space="preserve">
+    <value>Hunter Trait</value>
+  </data>
+  <data name="Designer.Option.SlotKind.Current" xml:space="preserve">
+    <value>Current Ban</value>
+  </data>
+  <data name="Designer.Option.SlotKind.Global" xml:space="preserve">
+    <value>Global Ban</value>
+  </data>
+  <data name="Designer.Option.Camp.Sur" xml:space="preserve">
+    <value>Survivor</value>
+  </data>
+  <data name="Designer.Option.Camp.Hun" xml:space="preserve">
+    <value>Hunter</value>
+  </data>
+  <data name="Designer.Window.BpWindow" xml:space="preserve">
+    <value>BP Main Window</value>
+  </data>
+  <data name="Designer.Window.CutSceneWindow" xml:space="preserve">
+    <value>Cut Scene Window</value>
+  </data>
+  <data name="Designer.Window.ScoreSurWindow" xml:space="preserve">
+    <value>Survivor Score in Gane Window</value>
+  </data>
+  <data name="Designer.Window.ScoreHunWindow" xml:space="preserve">
+    <value>Hunter Score in Gane Window</value>
+  </data>
+  <data name="Designer.Window.ScoreGlobalWindow" xml:space="preserve">
+    <value>Global Score Window</value>
+  </data>
+  <data name="Designer.Window.GameDataWindow" xml:space="preserve">
+    <value>Post-match Data Window</value>
+  </data>
+  <data name="Designer.Window.WidgetsWindow" xml:space="preserve">
+    <value>Widgets Window</value>
+  </data>
+  <data name="Designer.Canvas.BaseCanvas" xml:space="preserve">
+    <value>Main Canvas</value>
+  </data>
+  <data name="Designer.Canvas.MapBpCanvas" xml:space="preserve">
+    <value>Map BP Canvas</value>
+  </data>
+  <data name="Designer.Canvas.BpOverViewCanvas" xml:space="preserve">
+    <value>BP Overview Canvas</value>
+  </data>
+  <data name="Designer.Canvas.MapV2Canvas" xml:space="preserve">
+    <value>Map v2 Canvas</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.SurTeam.Name" xml:space="preserve">
+    <value>Survivor Team Name</value>
+  </data>
+  <data name="Designer.Binding.CurrentGame.HunTeam.Name" xml:space="preserve">
+    <value>Hunter Team Name</value>
+  </data>
+  <data name="Designer.Binding.Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Designer.Binding.Logo" xml:space="preserve">
+    <value>Logo</value>
+  </data>
+  <data name="Designer.Binding.Member" xml:space="preserve">
+    <value>Member</value>
+  </data>
+  <data name="Designer.Binding.Character" xml:space="preserve">
+    <value>Character</value>
+  </data>
+  <data name="Designer.Binding.GameProgress" xml:space="preserve">
+    <value>Game Progress</value>
+  </data>
+  <data name="Designer.BindingType.String" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="Designer.BindingType.String?" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="Designer.BindingType.Int32" xml:space="preserve">
+    <value>Number</value>
+  </data>
+  <data name="Designer.BindingType.ImageSource" xml:space="preserve">
+    <value>Image Source</value>
+  </data>
+  <data name="Designer.BindingType.GameProgress" xml:space="preserve">
+    <value>Game Progress</value>
+  </data>
 </root>

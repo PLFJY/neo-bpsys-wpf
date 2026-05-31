@@ -20,12 +20,18 @@
     WindowStartupLocation="CenterOwner">
     <ui:FluentWindow.Resources>
         <HierarchicalDataTemplate DataType="{x:Type designer:FrontedBindingTreeNode}" ItemsSource="{Binding Children}">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="{Binding DisplayName}" />
+            <StackPanel Margin="0,2">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding DisplayName}" />
+                    <TextBlock
+                        Margin="8,0,0,0"
+                        Opacity="0.6"
+                        Text="{Binding TypeName}" />
+                </StackPanel>
                 <TextBlock
-                    Margin="8,0,0,0"
-                    Opacity="0.6"
-                    Text="{Binding TypeName}" />
+                    FontSize="11"
+                    Opacity="0.65"
+                    Text="{Binding FullPath}" />
             </StackPanel>
         </HierarchicalDataTemplate>
     </ui:FluentWindow.Resources>
