@@ -12,8 +12,8 @@
 		<CETCompat>false</CETCompat>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
-		<AssemblyVersion>2.0.0.0</AssemblyVersion>
-        <VersionPrefix>2.1.1</VersionPrefix>
+		<AssemblyVersion>3.0.0.0</AssemblyVersion>
+        <VersionPrefix>3.0.0</VersionPrefix>
         <VersionSuffix></VersionSuffix>
         <Version>$(VersionPrefix)$(VersionSuffix)</Version>
         <FileVersion>$(VersionPrefix).0</FileVersion>

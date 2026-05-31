@@ -5,7 +5,7 @@
         <RootNamespace>neo_bpsys_wpf.PluginSdk</RootNamespace>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-		<Version>0.1.7</Version>
+		<Version>0.2.0</Version>
 		<Platforms>AnyCPU;x64</Platforms>
     </PropertyGroup>
 
@@ -15,10 +15,10 @@
 		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://bpsys.plfjy.top/</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/PLFJY/neo-bpsys-wpf/</RepositoryUrl>
-		<PackageId>neo-bpsys-wpf.PluginSdk</PackageId>
+		<PackageId>neo-bpsys-wpf.PluginSdk_new</PackageId>
 		<Authors>Zero PLFJY</Authors>
 		<PackageTags>neo-bpsys-wpf;plugin;addin;wpf;identityv</PackageTags>
-        <Description>用于开发应用 neo-bpsys-wpf 插件的 SDK。</Description>
+        <Description>新的用于开发应用 neo-bpsys-wpf 插件的 SDK。</Description>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<NoWarn>$(NoWarn);NU5111</NoWarn>
