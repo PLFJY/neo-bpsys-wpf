@@ -62,6 +62,8 @@ Phase 9B.0 起，`FrontedResourceResolver` 支持 `bpui://local/resources/images
 
 Phase 9D 的导入校验会拒绝跨包资源引用和 `bpui://local/...` 引用。包 `package-a` 中的布局可以引用 `bpui://package-a/...`、`Resources/...`、`pack://application:,,,/...`；不应引用 `bpui://package-b/...`。导出前存在的 `bpui://local/...` 必须重写为导出包自己的 `PackageId`。导入安装时资源保持在 `%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/{PackageId}/resources/`，不会合并到共享目录。
 
+Phase 9F 的 legacy `.bpui` 转换会把旧 `CustomUi/` 中的图片复制到转换后包的 `resources/images/`，并在 manifest 的 `Content.Resources` 中记录 `Kind = Image` 和 `Sha256`。如果旧 `Config.json` 的明确前台图片字段指向这些文件，转换后的布局会改写为 `bpui://{PackageId}/resources/images/...`；缺失或无法安全映射的旧资源只产生 warning，不写入全局 `CustomUi`。
+
 ## Assets 与字体
 
 字体位于：

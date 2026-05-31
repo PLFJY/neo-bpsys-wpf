@@ -2581,4 +2581,16 @@
   <data name="SwitchToBuiltIn" xml:space="preserve"><value>切换到内置布局</value></data>
   <data name="PackageActivatedBuiltin" xml:space="preserve"><value>已切换到内置布局</value></data>
   <data name="PackageActivatedInstalled" xml:space="preserve"><value>已激活布局包</value></data>
+  <data name="LegacyPackageConvertTitle" xml:space="preserve"><value>转换旧版布局包</value></data>
+  <data name="LegacyPackageConvertMessage" xml:space="preserve"><value>检测到旧版 .bpui 布局包。是否转换为 Designer v3 布局包并导入？旧版 Config.json 不会覆盖当前应用设置。</value></data>
+  <data name="ConvertLegacyPackage" xml:space="preserve"><value>转换旧版布局包</value></data>
+  <data name="LegacyPackageConvertSucceeded" xml:space="preserve"><value>旧版布局包转换成功</value></data>
+  <data name="LegacyPackageConvertFailed" xml:space="preserve"><value>旧版布局包转换失败</value></data>
+  <data name="LegacyPackageConvertWarnings" xml:space="preserve"><value>旧版布局包转换警告</value></data>
+  <data name="LegacyPackageDefaultDescription" xml:space="preserve"><value>从旧版 .bpui 转换而来。无法安全映射的旧字段会被忽略。</value></data>
+  <data name="UnknownLegacyLayoutFile" xml:space="preserve"><value>未知旧版布局文件</value></data>
+  <data name="LegacyFieldIgnored" xml:space="preserve"><value>旧版字段已忽略</value></data>
+  <data name="LegacyResourceCopied" xml:space="preserve"><value>旧版资源已复制</value></data>
+  <data name="LegacyResourceMissing" xml:space="preserve"><value>旧版资源缺失</value></data>
+  <data name="ActivateConvertedPackage" xml:space="preserve"><value>是否立即激活转换后的布局包？</value></data>
 </root>

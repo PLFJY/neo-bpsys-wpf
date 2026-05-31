@@ -2449,4 +2449,16 @@
   <data name="SwitchToBuiltIn" xml:space="preserve"><value>Switch to built-in</value></data>
   <data name="PackageActivatedBuiltin" xml:space="preserve"><value>Switched to built-in layout</value></data>
   <data name="PackageActivatedInstalled" xml:space="preserve"><value>Layout package activated</value></data>
+  <data name="LegacyPackageConvertTitle" xml:space="preserve"><value>Convert Legacy Layout Package</value></data>
+  <data name="LegacyPackageConvertMessage" xml:space="preserve"><value>A legacy .bpui layout package was detected. Convert it to a Designer v3 package and import it? The legacy Config.json will not overwrite current app settings.</value></data>
+  <data name="ConvertLegacyPackage" xml:space="preserve"><value>Convert Legacy Package</value></data>
+  <data name="LegacyPackageConvertSucceeded" xml:space="preserve"><value>Legacy package converted</value></data>
+  <data name="LegacyPackageConvertFailed" xml:space="preserve"><value>Legacy package conversion failed</value></data>
+  <data name="LegacyPackageConvertWarnings" xml:space="preserve"><value>Legacy package conversion warnings</value></data>
+  <data name="LegacyPackageDefaultDescription" xml:space="preserve"><value>Converted from a legacy .bpui package. Legacy fields without a safe mapping are ignored.</value></data>
+  <data name="UnknownLegacyLayoutFile" xml:space="preserve"><value>Unknown legacy layout file</value></data>
+  <data name="LegacyFieldIgnored" xml:space="preserve"><value>Legacy field ignored</value></data>
+  <data name="LegacyResourceCopied" xml:space="preserve"><value>Legacy resource copied</value></data>
+  <data name="LegacyResourceMissing" xml:space="preserve"><value>Legacy resource missing</value></data>
+  <data name="ActivateConvertedPackage" xml:space="preserve"><value>Activate the converted package now?</value></data>
 </root>

@@ -2452,4 +2452,16 @@
   <data name="SwitchToBuiltIn" xml:space="preserve"><value>組み込みに切り替え</value></data>
   <data name="PackageActivatedBuiltin" xml:space="preserve"><value>組み込みレイアウトに切り替えました</value></data>
   <data name="PackageActivatedInstalled" xml:space="preserve"><value>レイアウトパッケージを有効化しました</value></data>
+  <data name="LegacyPackageConvertTitle" xml:space="preserve"><value>旧形式レイアウトパッケージの変換</value></data>
+  <data name="LegacyPackageConvertMessage" xml:space="preserve"><value>旧形式の .bpui レイアウトパッケージが検出されました。Designer v3 パッケージへ変換してインポートしますか？旧形式の Config.json は現在のアプリ設定を上書きしません。</value></data>
+  <data name="ConvertLegacyPackage" xml:space="preserve"><value>旧形式パッケージを変換</value></data>
+  <data name="LegacyPackageConvertSucceeded" xml:space="preserve"><value>旧形式パッケージを変換しました</value></data>
+  <data name="LegacyPackageConvertFailed" xml:space="preserve"><value>旧形式パッケージの変換に失敗しました</value></data>
+  <data name="LegacyPackageConvertWarnings" xml:space="preserve"><value>旧形式パッケージ変換の警告</value></data>
+  <data name="LegacyPackageDefaultDescription" xml:space="preserve"><value>旧形式 .bpui から変換されました。安全に対応付けできない旧フィールドは無視されます。</value></data>
+  <data name="UnknownLegacyLayoutFile" xml:space="preserve"><value>不明な旧形式レイアウトファイル</value></data>
+  <data name="LegacyFieldIgnored" xml:space="preserve"><value>旧形式フィールドを無視しました</value></data>
+  <data name="LegacyResourceCopied" xml:space="preserve"><value>旧形式リソースをコピーしました</value></data>
+  <data name="LegacyResourceMissing" xml:space="preserve"><value>旧形式リソースが見つかりません</value></data>
+  <data name="ActivateConvertedPackage" xml:space="preserve"><value>変換したパッケージを今すぐ有効化しますか？</value></data>
 </root>

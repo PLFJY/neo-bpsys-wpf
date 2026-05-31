@@ -761,8 +761,7 @@
                     <Expander
                         Grid.Row="3"
                         Margin="0,4,0,8"
-                        Header="{lex:Loc CanvasProperties}"
-                        IsExpanded="True">
+                        Header="{lex:Loc CanvasProperties}">
                         <StackPanel Margin="0,8,0,0">
                             <Grid Margin="0,0,0,8">
                                 <Grid.ColumnDefinitions>

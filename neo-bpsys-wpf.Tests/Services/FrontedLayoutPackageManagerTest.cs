@@ -1,6 +1,7 @@
 #nullable enable
 
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.ViewModels.Windows;
@@ -320,7 +321,7 @@ public class FrontedLayoutPackageManagerTest
             using var archive = ZipFile.OpenRead(outputPath);
             var entryNames = archive.Entries.Select(entry => entry.FullName.Replace('\\', '/')).ToArray();
             Assert.Contains("manifest.json", entryNames);
-            Assert.Contains("layouts/BpWindow/BaseCanvas.json", entryNames);
+            Assert.Contains("layouts/ScoreSurWindow/BaseCanvas.json", entryNames);
             Assert.DoesNotContain("Config.json", entryNames);
             Assert.DoesNotContain(entryNames, name => name.StartsWith("CustomUi/", StringComparison.OrdinalIgnoreCase));
             Assert.DoesNotContain(entryNames, name => name.StartsWith("FrontElementsConfig/", StringComparison.OrdinalIgnoreCase));
@@ -433,6 +434,247 @@ public class FrontedLayoutPackageManagerTest
             Assert.False(result.Success);
             Assert.True(result.IsLegacyPackage);
             Assert.False(Directory.Exists(Path.Combine(root, "packages")));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Theory]
+    [InlineData("CustomUi/bg.png")]
+    [InlineData("FrontElementsConfig/BpWindowConfig-BaseCanvas.json")]
+    public async Task LegacyPackageIsDetectedFromLegacyFolders(string entryName)
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            using (var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create))
+            {
+                WriteZipEntry(archive, entryName, "{}");
+            }
+
+            var importer = new FrontedLayoutPackageImporter(Path.Combine(root, "packages"), Path.Combine(root, "temp"));
+
+            var result = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.False(result.Success);
+            Assert.True(result.IsLegacyPackage);
+            Assert.False(Directory.Exists(Path.Combine(root, "packages")));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task LegacyConverterCreatesCleanV3ManifestCopiesResourcesAndGeometry()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            WriteBuiltInLayoutForLegacyConversion(builtInRoot);
+            var legacyArchive = Path.Combine(root, "legacy.bpui");
+            CreateLegacyBpuiArchive(
+                legacyArchive,
+                includeConfig: true,
+                includeResource: true,
+                includeKnownLayout: true,
+                includeUnknownLayout: true);
+            var converter = new FrontedLayoutPackageLegacyConverter(
+                builtInRoot,
+                Path.Combine(root, "temp"));
+
+            var result = await converter.ConvertAsync(new FrontedLayoutPackageLegacyConvertRequest
+            {
+                LegacyPackagePath = legacyArchive,
+                PackageId = "converted.legacy.test",
+                Name = "legacy",
+                Description = "Converted package",
+                Author = string.Empty,
+                MinVersion = "3.0.0"
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.True(File.Exists(result.ConvertedPackagePath));
+            Assert.Equal(1, result.LayoutCount);
+            Assert.Equal(1, result.ResourceCount);
+            Assert.Contains(result.Warnings, warning => warning.Contains("Unknown legacy layout file", StringComparison.OrdinalIgnoreCase));
+
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var entryNames = archive.Entries.Select(entry => entry.FullName.Replace('\\', '/')).ToArray();
+            Assert.Contains("manifest.json", entryNames);
+            Assert.Contains("layouts/ScoreSurWindow/BaseCanvas.json", entryNames);
+            Assert.Contains(entryNames, name => name.StartsWith("resources/images/bg-", StringComparison.Ordinal));
+            Assert.DoesNotContain("Config.json", entryNames);
+            Assert.DoesNotContain(entryNames, name => name.StartsWith("CustomUi/", StringComparison.OrdinalIgnoreCase));
+            Assert.DoesNotContain(entryNames, name => name.StartsWith("FrontElementsConfig/", StringComparison.OrdinalIgnoreCase));
+
+            var manifestJson = ReadZipEntry(archive, "manifest.json");
+            using var manifestDocument = JsonDocument.Parse(manifestJson);
+            var manifestRoot = manifestDocument.RootElement;
+            Assert.Equal("neo-bpsys-bpui", manifestRoot.GetProperty("Format").GetString());
+            Assert.Equal(3, manifestRoot.GetProperty("FormatVersion").GetInt32());
+            Assert.Equal(3, manifestRoot.GetProperty("LayoutSchemaVersion").GetInt32());
+            Assert.Equal("legacy", manifestRoot.GetProperty("Name").GetString());
+            Assert.Equal(string.Empty, manifestRoot.GetProperty("Author").GetString());
+            Assert.Equal("3.0.0", manifestRoot.GetProperty("MinVersion").GetString());
+            Assert.False(manifestRoot.TryGetProperty("App", out _));
+            Assert.False(string.IsNullOrWhiteSpace(
+                manifestRoot.GetProperty("Content").GetProperty("Resources")[0].GetProperty("Sha256").GetString()));
+
+            var layoutJson = ReadZipEntry(archive, "layouts/ScoreSurWindow/BaseCanvas.json");
+            var layout = JsonSerializer.Deserialize<neo_bpsys_wpf.Core.Models.FrontedLayout.FrontedCanvasConfig>(layoutJson)!;
+            Assert.Equal(3, layout.Version);
+            Assert.StartsWith("bpui://converted.legacy.test/resources/images/bg-", layout.BackgroundImage);
+            var control = layout.Controls["SurTeamName"];
+            Assert.Equal(11, control.Left);
+            Assert.Equal(22, control.Top);
+            Assert.Equal(33, control.Width);
+            Assert.Equal(44, control.Height);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ConvertedLegacyPackageImportsThroughV3ImporterAndCanActivate()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            WriteBuiltInLayoutForLegacyConversion(builtInRoot);
+            var legacyArchive = Path.Combine(root, "legacy.bpui");
+            CreateLegacyBpuiArchive(legacyArchive, includeConfig: true, includeResource: true, includeKnownLayout: true);
+            var packageRoot = Path.Combine(root, "packages");
+            var userLayoutRoot = Path.Combine(root, "userLayouts");
+            var manager = new FrontedLayoutPackageManager(packageRoot, builtInRoot, userLayoutRoot);
+            var importer = new FrontedLayoutPackageImporter(packageRoot, Path.Combine(root, "importTemp"), manager);
+            var converter = new FrontedLayoutPackageLegacyConverter(
+                builtInRoot,
+                Path.Combine(root, "convertTemp"));
+
+            var convertResult = await converter.ConvertAsync(new FrontedLayoutPackageLegacyConvertRequest
+            {
+                LegacyPackagePath = legacyArchive,
+                PackageId = "converted.legacy.test",
+                Name = "Converted"
+            }, TestContext.Current.CancellationToken);
+            Assert.True(convertResult.Success, convertResult.ErrorMessage);
+
+            var importResult = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = convertResult.ConvertedPackagePath!,
+                ActivateAfterImport = true
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(importResult.Success, importResult.ErrorMessage);
+            Assert.True(File.Exists(Path.Combine(packageRoot, "converted.legacy.test", "manifest.json")));
+            Assert.True(File.Exists(Path.Combine(userLayoutRoot, "ScoreSurWindow", "BaseCanvas.json")));
+            var active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
+            Assert.Equal("converted.legacy.test", active.PackageId);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task LegacyConversionDoesNotOverwriteAppDataConfigJson()
+    {
+        var root = CreateTempDirectory();
+        var configPath = AppConstants.ConfigFilePath;
+        var backupPath = configPath + ".phase9f-test-backup";
+        var hadExisting = File.Exists(configPath);
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(configPath)!);
+            if (hadExisting)
+            {
+                File.Copy(configPath, backupPath, overwrite: true);
+            }
+
+            File.WriteAllText(configPath, "sentinel-current-config");
+            var builtInRoot = Path.Combine(root, "builtIn");
+            WriteBuiltInLayoutForLegacyConversion(builtInRoot);
+            var legacyArchive = Path.Combine(root, "legacy.bpui");
+            CreateLegacyBpuiArchive(legacyArchive, includeConfig: true, includeResource: false, includeKnownLayout: true);
+            var converter = new FrontedLayoutPackageLegacyConverter(
+                builtInRoot,
+                Path.Combine(root, "temp"));
+
+            var result = await converter.ConvertAsync(new FrontedLayoutPackageLegacyConvertRequest
+            {
+                LegacyPackagePath = legacyArchive,
+                PackageId = "converted.legacy.config",
+                Name = "Converted"
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.Equal("sentinel-current-config", File.ReadAllText(configPath));
+        }
+        finally
+        {
+            if (hadExisting)
+            {
+                File.Copy(backupPath, configPath, overwrite: true);
+                File.Delete(backupPath);
+            }
+            else if (File.Exists(configPath))
+            {
+                File.Delete(configPath);
+            }
+
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public void LegacyConverterAppliesZipSlipSafetyChecks()
+    {
+        var source = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf.Core",
+            "Services",
+            "FrontedLayout",
+            "FrontedLayoutPackageLegacyConverter.cs"));
+
+        Assert.Contains("Path.IsPathRooted(entryName)", source);
+        Assert.Contains("segment is \".\" or \"..\"", source);
+        Assert.Contains("Zip entry escaped staging directory", source);
+        Assert.Contains("Unsafe zip entry", source);
+    }
+
+    [Fact]
+    public async Task LegacyConverterRejectsUnsafePackageId()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            CreateLegacyBpuiArchive(archivePath, includeConfig: true, includeResource: false, includeKnownLayout: false);
+            var converter = new FrontedLayoutPackageLegacyConverter(
+                Path.Combine(root, "builtIn"),
+                Path.Combine(root, "temp"));
+
+            var result = await converter.ConvertAsync(new FrontedLayoutPackageLegacyConvertRequest
+            {
+                LegacyPackagePath = archivePath,
+                PackageId = "../evil",
+                Name = "Converted"
+            }, TestContext.Current.CancellationToken);
+
+            Assert.False(result.Success);
+            Assert.Contains("PackageId", result.ErrorMessage);
         }
         finally
         {
@@ -825,6 +1067,96 @@ public class FrontedLayoutPackageManagerTest
             using var stream = resource.Open();
             stream.Write([1, 2, 3]);
         }
+    }
+
+    private static void CreateLegacyBpuiArchive(
+        string archivePath,
+        bool includeConfig,
+        bool includeResource,
+        bool includeKnownLayout,
+        bool includeUnknownLayout = false)
+    {
+        if (File.Exists(archivePath))
+        {
+            File.Delete(archivePath);
+        }
+
+        using var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create);
+        if (includeConfig)
+        {
+            WriteZipEntry(
+                archive,
+                "Config.json",
+                """
+                {
+                  "ScoreWindowSettings": {
+                    "SurScoreBgImageUri": "C:\\legacy\\bg.png"
+                  }
+                }
+                """);
+        }
+
+        if (includeResource)
+        {
+            var resource = archive.CreateEntry("CustomUi/bg.png");
+            using var stream = resource.Open();
+            stream.Write([1, 2, 3]);
+        }
+
+        if (includeKnownLayout)
+        {
+            WriteZipEntry(
+                archive,
+                "FrontElementsConfig/ScoreSurWindowConfig-BaseCanvas.json",
+                """
+                {
+                  "SurTeamName": {
+                    "Width": 33,
+                    "Height": 44,
+                    "Left": 11,
+                    "Top": 22
+                  },
+                  "LegacyOnly": {
+                    "Width": 1,
+                    "Height": 2,
+                    "Left": 3,
+                    "Top": 4
+                  }
+                }
+                """);
+        }
+
+        if (includeUnknownLayout)
+        {
+            WriteZipEntry(
+                archive,
+                "FrontElementsConfig/UnknownWindowConfig-BaseCanvas.json",
+                "{}");
+        }
+    }
+
+    private static void WriteBuiltInLayoutForLegacyConversion(string builtInRoot)
+    {
+        var layoutPath = Path.Combine(builtInRoot, "ScoreSurWindow", "BaseCanvas.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(layoutPath)!);
+        File.WriteAllText(
+            layoutPath,
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 810,
+              "BackgroundImage": "Resources/bp.png",
+              "SurTeamName": {
+                "ControlType": "Text",
+                "Left": 1,
+                "Top": 2,
+                "Width": 3,
+                "Height": 4,
+                "Text": "Team"
+              }
+            }
+            """);
     }
 
     private static void WriteZipEntry(ZipArchive archive, string entryName, string text)

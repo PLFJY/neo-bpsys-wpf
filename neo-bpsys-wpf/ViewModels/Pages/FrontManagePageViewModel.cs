@@ -37,6 +37,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
     private readonly IFrontedLayoutPackageManager? _packageManager;
     private readonly IFrontedLayoutPackageExporter? _packageExporter;
     private readonly IFrontedLayoutPackageImporter? _packageImporter;
+    private readonly IFrontedLayoutPackageLegacyConverter? _legacyPackageConverter;
     private readonly ILogger<FrontManagePageViewModel>? _logger;
     private FrontedDesignerWindow? _frontedDesignerWindow;
 
@@ -47,6 +48,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
         IFrontedLayoutPackageManager packageManager,
         IFrontedLayoutPackageExporter packageExporter,
         IFrontedLayoutPackageImporter packageImporter,
+        IFrontedLayoutPackageLegacyConverter legacyPackageConverter,
         IServiceProvider serviceProvider,
         ILogger<FrontManagePageViewModel> logger)
     {
@@ -56,6 +58,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
         _packageManager = packageManager;
         _packageExporter = packageExporter;
         _packageImporter = packageImporter;
+        _legacyPackageConverter = legacyPackageConverter;
         _serviceProvider = serviceProvider;
         _logger = logger;
         ExternalFrontedWindows = new ObservableCollection<FrontedWindowInfo>(FrontedWindowRegistryService.RegisteredWindow
@@ -170,6 +173,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
 
         try
         {
+            var importedFromLegacy = false;
             var result = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
             {
                 PackagePath = path
@@ -196,8 +200,90 @@ public partial class FrontManagePageViewModel : ViewModelBase
 
             if (result.IsLegacyPackage)
             {
-                PackageManagerStatus = I18nHelper.GetLocalizedString("LegacyPackageConversionNotImplemented");
-                await MessageBoxHelper.ShowInfoAsync(PackageManagerStatus);
+                importedFromLegacy = true;
+                if (_legacyPackageConverter is null)
+                {
+                    PackageManagerStatus = I18nHelper.GetLocalizedString("LegacyPackageConvertFailed");
+                    return;
+                }
+
+                var convert = await MessageBoxHelper.ShowConfirmAsync(
+                    I18nHelper.GetLocalizedString("LegacyPackageConvertMessage"),
+                    I18nHelper.GetLocalizedString("LegacyPackageConvertTitle"),
+                    I18nHelper.GetLocalizedString("ConvertLegacyPackage"),
+                    I18nHelper.GetLocalizedString("Cancel"));
+                if (!convert)
+                {
+                    return;
+                }
+
+                var packageId = $"converted.legacy.{DateTime.Now:yyyyMMddHHmm}";
+                var packageName = Path.GetFileName(path);
+                var convertResult = await _legacyPackageConverter.ConvertAsync(new FrontedLayoutPackageLegacyConvertRequest
+                {
+                    LegacyPackagePath = path,
+                    PackageId = packageId,
+                    Name = string.IsNullOrWhiteSpace(packageName) ? packageId : packageName,
+                    Description = I18nHelper.GetLocalizedString("LegacyPackageDefaultDescription"),
+                    Author = string.Empty,
+                    MinVersion = string.Empty,
+                    InstallAfterConvert = false,
+                    ActivateAfterInstall = false
+                });
+
+                if (!convertResult.Success || string.IsNullOrWhiteSpace(convertResult.ConvertedPackagePath))
+                {
+                    PackageManagerStatus =
+                        $"{I18nHelper.GetLocalizedString("LegacyPackageConvertFailed")}: {convertResult.ErrorMessage}";
+                    await MessageBoxHelper.ShowErrorAsync(PackageManagerStatus);
+                    return;
+                }
+
+                result = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
+                {
+                    PackagePath = convertResult.ConvertedPackagePath
+                });
+
+                if (result.PackageAlreadyExists && !string.IsNullOrWhiteSpace(result.PackageId))
+                {
+                    var replace = await MessageBoxHelper.ShowConfirmAsync(
+                        I18nHelper.GetLocalizedString("ReplaceExistingPackage"),
+                        I18nHelper.GetLocalizedString("PackageAlreadyExists"),
+                        I18nHelper.GetLocalizedString("Confirm"),
+                        I18nHelper.GetLocalizedString("Cancel"));
+                    if (!replace)
+                    {
+                        return;
+                    }
+
+                    result = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
+                    {
+                        PackagePath = convertResult.ConvertedPackagePath,
+                        ReplaceExisting = true
+                    });
+                }
+
+                if (convertResult.Warnings.Count > 0)
+                {
+                    await MessageBoxHelper.ShowInfoAsync(
+                        string.Join(Environment.NewLine, convertResult.Warnings.Take(12)),
+                        I18nHelper.GetLocalizedString("LegacyPackageConvertWarnings"));
+                }
+
+                PackageManagerStatus =
+                    $"{I18nHelper.GetLocalizedString("LegacyPackageConvertSucceeded")}: {packageId} "
+                    + $"{I18nHelper.GetLocalizedString("LayoutCount")}: {convertResult.LayoutCount}, "
+                    + $"{I18nHelper.GetLocalizedString("ResourceCount")}: {convertResult.ResourceCount}";
+                if (!result.Success)
+                {
+                    PackageManagerStatus =
+                        $"{I18nHelper.GetLocalizedString("PackageImportFailed")}: {result.ErrorMessage}";
+                    return;
+                }
+            }
+
+            if (result.IsLegacyPackage)
+            {
                 return;
             }
 
@@ -221,7 +307,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
                 + $"{I18nHelper.GetLocalizedString("ResourceCount")}: {result.ResourceCount}";
 
             if (await MessageBoxHelper.ShowConfirmAsync(
-                    I18nHelper.GetLocalizedString("ActivateImportedPackage"),
+                    I18nHelper.GetLocalizedString(importedFromLegacy ? "ActivateConvertedPackage" : "ActivateImportedPackage"),
                     I18nHelper.GetLocalizedString("Tips"),
                     I18nHelper.GetLocalizedString("Confirm"),
                     I18nHelper.GetLocalizedString("Cancel"))

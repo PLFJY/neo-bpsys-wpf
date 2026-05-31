@@ -1,6 +1,6 @@
 # Designer v3 `.bpui` 布局包标准
 
-本文定义 Designer v3 使用的 `.bpui v3` 前台布局包格式。它是导入、导出、包管理、资源复制、热切换和 legacy 转换的规格依据；Phase 9D 已实现 v3 包导出、导入安装、激活复制和删除语义，legacy 转换仍在后续阶段。
+本文定义 Designer v3 使用的 `.bpui v3` 前台布局包格式。它是导入、导出、包管理、资源复制、热切换和 legacy 转换的规格依据；Phase 9D 已实现 v3 包导出、导入安装、激活复制和删除语义，Phase 9F 已实现 legacy `.bpui` 到 Designer v3 `.bpui` 的导入前转换。
 
 ## 1. 目的
 
@@ -128,7 +128,7 @@ package.bpui
 2. `preview/`。
 3. `docs/`。
 
-当前实现导出始终包含全部已迁移前台布局。早期规格中的 Current Canvas / Current Window 导出范围暂不再暴露。
+当前实现导出始终包含全部已迁移前台布局。早期规格中的 Current Canvas / Current Window 导出范围暂不再暴露。Phase 9F legacy 转换输出的 v3 包只包含能够从旧 `FrontElementsConfig/` 明确映射到 v3 窗口和 Canvas 的布局。
 
 ## 5. `manifest.json` schema
 
@@ -696,6 +696,7 @@ legacy 包检测：
 2. 存在 `Config.json`、`CustomUi/` 或 `FrontElementsConfig/`。
 
 legacy 转换是后续阶段，不在 Phase 9A 实现。Phase 9A 不修改旧导入导出流程，不实现 legacy conversion。
+Phase 9F 起，`FrontManagePage` 导入 legacy `.bpui` 时会先询问是否转换。转换器会安全解压旧 zip 到 staging，复制 `CustomUi/` 资源到 `resources/images/`，生成 `manifest.json`，并从当前内置 v3 布局起步应用旧 `ElementInfo` 几何覆盖。旧 `Config.json` 只读取明确可映射的前台图片字段，不会写入 `%APPDATA%/neo-bpsys-wpf/Config.json`，也不会复制到新包或 AppData。未知旧布局文件只产生 warning 并跳过；如果没有任何可映射布局，转换失败并显示错误。转换后的包再走现有 v3 importer，因此安装、重复 PackageId 替换、资源隔离和激活行为与普通 v3 包一致。
 
 路线图：
 
@@ -705,6 +706,6 @@ legacy 转换是后续阶段，不在 Phase 9A 实现。Phase 9A 不修改旧导
 | Phase 9B.0: Canvas Properties GUI, local bpui resource normalization, toolbar cleanup, and Window Options foundation | 已实现 Canvas Properties GUI、本地 `bpui://local` 图片规范化、`bpui://` resolver、工具栏二级菜单和窗口级 `AllowTransparency` 选项基础。 |
 | Phase 9B.1: FrontManagePage Layout Package Manager UI skeleton | 已新增 `FrontManagePage` 的 `Frontend Windows` / `Layout Packages` 顶层 tabs、Layout Packages UI skeleton、布局包列表服务基础和活动包状态文件读取/写入骨架。独立编辑器入口保留在 `Frontend Windows` 页，不单独占用 tab。导入、导出、legacy 转换和资源打包仍未实现。 |
 | Phase 9C | 已实现 v3 `.bpui` 包导出、导出 manifest 对话框、All Frontend Layouts 导出范围、资源收集/重写和包管理器 UI 打磨。导出包不会包含 `Config.json`、`CustomUi/` 或 `FrontElementsConfig/`；`Resources/...` 与 `pack://application:,,,/...` 保持原样，`bpui://local/...`、其他已安装包资源和绝对路径资源会复制到包内并重写为当前 `PackageId`。导入/安装仍未实现。 |
-| Phase 9D | 已实现 v3 包导入、安装、激活复制到用户布局目录、删除普通包和删除活动包时切回内置。导出范围固定为全部前台布局。导入会检测 legacy 包并提示转换尚未实现。 |
+| Phase 9D | 已实现 v3 包导入、安装、激活复制到用户布局目录、删除普通包和删除活动包时切回内置。导出范围固定为全部前台布局。 |
 | Phase 9E | legacy 包转换入口设计和更细的迁移提示。 |
-| Phase 9F | legacy 到 v3 转换器。 |
+| Phase 9F | 已实现 legacy 到 v3 转换器、转换确认入口、CustomUi 资源复制、旧位置几何覆盖和转换后 v3 importer 安装。 |

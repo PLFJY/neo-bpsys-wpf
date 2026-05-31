@@ -94,4 +94,6 @@ Phase 9D 起，`IFrontedLayoutPackageManager` 会读取 `%APPDATA%\neo-bpsys-wpf
 
 Phase 9D 起，`FrontManagePage` 的 Layout Packages 页支持导出和导入 v3 `.bpui` 包。导出会从 `IFrontedLayoutService` 按“用户布局优先、内置兜底”加载全部已迁移前台布局，生成 `manifest.json`、`layouts/` 和 `resources/`，但不会包含全局 `%APPDATA%\neo-bpsys-wpf\Config.json`，也不会包含 legacy `CustomUi/` 或 `FrontElementsConfig/`。导入会先解压到 staging 目录并完成校验，再安装到 `FrontedLayoutPackages/{PackageId}`；替换已有包时，旧包只会在新包校验成功后删除。
 
+Phase 9F 起，legacy `.bpui` 导入不会再调用 SettingPage 的旧导入覆盖流程。`Config.json` 只作为转换输入读取明确前台图片字段，不会复制到 AppData，不会覆盖当前设置，也不会要求为了 layout-only 转换重启。转换输出的 v3 包仍安装到 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}`，激活后只写入 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts`。
+
 卸载脚本会询问是否删除 `%APPDATA%\neo-bpsys-wpf`，包括日志、自定义 UI 和设置。
