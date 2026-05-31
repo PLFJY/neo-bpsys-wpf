@@ -80,6 +80,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public ObservableCollection<FrontedDesignerZoomPreset> ZoomPresets { get; } = [];
 
+    public ObservableCollection<FrontedControlDesignItem> FilteredDesignItems { get; } = [];
+
     [ObservableProperty]
     private FrontedDesignerWindowOption? _selectedWindow;
 
@@ -123,6 +125,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public bool HasSelectedDesignItem => SelectedDesignItem is not null;
 
     [ObservableProperty]
+    private string _controlFilterText = string.Empty;
+
+    [ObservableProperty]
     private string _selectedControlDisplay = string.Empty;
 
     [ObservableProperty]
@@ -148,6 +153,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     partial void OnSelectedWindowChanged(FrontedDesignerWindowOption? value)
     {
+        ControlFilterText = string.Empty;
+        SelectDesignItem(null);
         CanvasOptions.Clear();
 
         if (value is null)
@@ -162,6 +169,35 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         SelectedCanvas = CanvasOptions.FirstOrDefault();
+    }
+
+    partial void OnSelectedCanvasChanged(FrontedDesignerLayoutCatalogEntry? value)
+    {
+        ControlFilterText = string.Empty;
+        SelectDesignItem(null);
+    }
+
+    partial void OnCurrentDocumentChanged(FrontedCanvasDesignDocument? value)
+    {
+        RebuildFilteredDesignItems();
+    }
+
+    partial void OnSelectedDesignItemChanged(FrontedControlDesignItem? value)
+    {
+        if (CurrentDocument is not null)
+        {
+            foreach (var control in CurrentDocument.Controls)
+            {
+                control.IsSelected = ReferenceEquals(control, value);
+            }
+        }
+
+        RefreshSelectedControlDisplay();
+    }
+
+    partial void OnControlFilterTextChanged(string value)
+    {
+        RebuildFilteredDesignItems();
     }
 
     partial void OnSelectedZoomPresetChanged(FrontedDesignerZoomPreset? value)
@@ -209,6 +245,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 config,
                 _runtimeContracts);
 
+            ControlFilterText = string.Empty;
             CurrentDocument = document;
             SelectDesignItem(null);
             ApplyValidationMessages(_validator.Validate(document));
@@ -286,16 +323,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public void SelectDesignItem(FrontedControlDesignItem? item)
     {
-        if (CurrentDocument is not null)
-        {
-            foreach (var control in CurrentDocument.Controls)
-            {
-                control.IsSelected = ReferenceEquals(control, item);
-            }
-        }
-
         SelectedDesignItem = item;
-        RefreshSelectedControlDisplay();
     }
 
     public void ClearSelection()
@@ -399,6 +427,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private void ClearLoadedLayout(FrontedLayoutValidationMessage message)
     {
+        ControlFilterText = string.Empty;
         CurrentDocument = null;
         SelectDesignItem(null);
         ApplyValidationMessages([message]);
@@ -426,7 +455,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private void ValidateCurrentDocument()
     {
-        if (CurrentDocument is null)
+        if (CurrentDocument is null || _validator is null)
         {
             return;
         }
@@ -455,6 +484,40 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         RequestPreviewRender(_designConverter.ToConfig(CurrentDocument), SelectedCanvas);
+    }
+
+    private void RebuildFilteredDesignItems()
+    {
+        FilteredDesignItems.Clear();
+
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        var filter = ControlFilterText?.Trim();
+        var controls = CurrentDocument.Controls
+            .Select((item, index) => new { Item = item, Index = index })
+            .Where(entry => MatchesControlFilter(entry.Item, filter))
+            .OrderByDescending(entry => entry.Item.Config.ZIndex)
+            .ThenBy(entry => entry.Index)
+            .Select(entry => entry.Item);
+
+        foreach (var item in controls)
+        {
+            FilteredDesignItems.Add(item);
+        }
+    }
+
+    public static bool MatchesControlFilter(FrontedControlDesignItem item, string? filter)
+    {
+        if (string.IsNullOrWhiteSpace(filter))
+        {
+            return true;
+        }
+
+        return item.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)
+               || item.Config.ControlType.Contains(filter, StringComparison.OrdinalIgnoreCase);
     }
 
     private void RefreshSelectedControlDisplay()

@@ -167,6 +167,7 @@
 
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="360" />
             </Grid.ColumnDefinitions>
@@ -174,6 +175,109 @@
             <Border
                 Grid.Column="0"
                 Margin="12"
+                Padding="12"
+                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="SemiBold"
+                        Text="{lex:Loc ControlsList}" />
+                    <ui:TextBox
+                        Grid.Row="1"
+                        Margin="0,12,0,8"
+                        PlaceholderText="{lex:Loc FilterControls}"
+                        Text="{Binding ControlFilterText, UpdateSourceTrigger=PropertyChanged}" />
+                    <Grid Grid.Row="2">
+                        <ListBox
+                            ItemsSource="{Binding FilteredDesignItems}"
+                            SelectionChanged="ControlList_OnSelectionChanged"
+                            ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=OneWay}" />
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,4">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock
+                                            FontWeight="SemiBold"
+                                            Text="{Binding Name}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <WrapPanel Grid.Row="1" Margin="0,2,0,0">
+                                            <TextBlock
+                                                FontSize="12"
+                                                Opacity="0.78"
+                                                Text="{Binding Config.ControlType}" />
+                                            <TextBlock
+                                                Margin="10,0,0,0"
+                                                FontSize="12"
+                                                Opacity="0.78"
+                                                Text="{lex:Loc ZIndexShort}" />
+                                            <TextBlock
+                                                Margin="3,0,0,0"
+                                                FontSize="12"
+                                                Opacity="0.78"
+                                                Text="{Binding Config.ZIndex}" />
+                                            <Border
+                                                Margin="10,0,0,0"
+                                                Padding="4,0"
+                                                Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                                CornerRadius="2">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsRuntimeCritical}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock
+                                                    FontSize="11"
+                                                    Text="{lex:Loc RuntimeCriticalControl}" />
+                                            </Border>
+                                        </WrapPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Opacity="0.65"
+                            Text="{lex:Loc NoControlsFound}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding FilteredDesignItems.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <Border
+                Grid.Column="1"
+                Margin="0,12,12,12"
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                 BorderThickness="1"
@@ -232,7 +336,7 @@
             </Border>
 
             <Border
-                Grid.Column="1"
+                Grid.Column="2"
                 Margin="0,12,12,12"
                 Padding="12"
                 Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"

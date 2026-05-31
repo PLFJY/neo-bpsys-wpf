@@ -106,6 +106,11 @@ BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.
 6. v3 JSON 的 root-level 控件 key 就是控件名。该名称同时参与 `FrameworkElement.Name` 和 WPF namescope 注册。不要在 config 类里再加 `Name` 字段，也不要让编辑器只改生成控件的 `Name` 而忘记 dictionary key。
 7. 空图片和空文本在 preview 中应通过编辑器 overlay 或设计时 placeholder 辅助识别。placeholder 只属于编辑器预览，不应写入 layout JSON 或运行时设置。
 8. Phase 8D 的方向键移动步长默认是 `0.5`。键盘事件应避开 `TextBox`、`ComboBox`、`DataGrid` 等编辑控件，避免后续 Property Grid 实现后抢输入焦点。
+9. Phase 8D owner validation 后，编辑器主区域是左侧控件列表、中间设计 surface、右侧选中/校验面板。左侧列表用于选中被遮挡或低 ZIndex 控件；筛选文本在切换窗口、切换 Canvas 或成功重载布局时清空。
+10. 鼠标选择语义是“单击选择，拖拽不切换选择”。`MouseLeftButtonDown` 只记录候选控件和起点；超过 3-5 logical px 阈值后，只有候选项本来就是当前选中项才开始拖拽。拖到未选中控件上不应改变焦点。
+11. 被选中控件的 hitbox、outline 和 handles 会使用 editor-only 高 ZIndex 放在其他 hitbox 上方，以便拖动重叠下层控件。该值不能写入 v3 JSON，也不能改变 preview/runtime `ZIndex`。
+12. 拖拽和缩放过程中要同步更新生成 preview root element 的 `Canvas.Left` / `Canvas.Top` / `Width` / `Height`，不要等 mouse-up 重渲染后才看到真实预览移动。mouse-up 可再重渲染一次保证一致。
+13. 选择边界优先使用显式 `Width` / `Height`；缺失时使用渲染 root element 的 `ActualWidth` / `ActualHeight`；再不可用才回退到 `40x24`。这对无 `Height` 的文本控件尤其重要。
 
 ## 插件 UI
 

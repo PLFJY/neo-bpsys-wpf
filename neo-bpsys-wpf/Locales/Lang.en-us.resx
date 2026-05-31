@@ -2014,6 +2014,21 @@
   <data name="ValidationMessages" xml:space="preserve">
     <value>Validation messages</value>
   </data>
+  <data name="ControlsList" xml:space="preserve">
+    <value>Controls</value>
+  </data>
+  <data name="FilterControls" xml:space="preserve">
+    <value>Filter by name or type</value>
+  </data>
+  <data name="ZIndexShort" xml:space="preserve">
+    <value>Z</value>
+  </data>
+  <data name="ControlType" xml:space="preserve">
+    <value>Control Type</value>
+  </data>
+  <data name="NoControlsFound" xml:space="preserve">
+    <value>No controls found</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

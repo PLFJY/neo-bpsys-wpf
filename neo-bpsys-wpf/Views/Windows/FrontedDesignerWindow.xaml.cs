@@ -3,6 +3,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.ViewModels.Windows;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -28,6 +29,10 @@ public partial class FrontedDesignerWindow : FluentWindow
     private FrameworkElement? _capturedElement;
     private InteractionMode _interactionMode = InteractionMode.None;
     private FrontedDesignerResizeHandleKind? _activeResizeHandle;
+    private FrontedControlDesignItem? _pendingHitCandidate;
+    private bool _isPendingEmptyClick;
+    private bool _hasExceededClickThreshold;
+    private bool _hasStartedDrag;
     private Point _startMousePosition;
     private double _originalLeft;
     private double _originalTop;
@@ -65,6 +70,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         if (_viewModel is not null)
         {
             _viewModel.PreviewRenderRequested -= OnPreviewRenderRequested;
+            _viewModel.PropertyChanged -= ViewModel_OnPropertyChanged;
         }
     }
 
@@ -76,6 +82,19 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
 
         _viewModel?.ReloadLayoutCommand.Execute(null);
+    }
+
+    private void ControlList_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count == 0 || _viewModel is null)
+        {
+            return;
+        }
+
+        if (e.AddedItems[0] is FrontedControlDesignItem item)
+        {
+            _viewModel.SelectDesignItem(item);
+        }
     }
 
     private void AttachViewModel()
@@ -92,6 +111,16 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         _viewModel = viewModel;
         _viewModel.PreviewRenderRequested += OnPreviewRenderRequested;
+        _viewModel.PropertyChanged += ViewModel_OnPropertyChanged;
+    }
+
+    private void ViewModel_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.SelectedDesignItem))
+        {
+            RebuildInteractionLayer();
+            FocusDesignSurface();
+        }
     }
 
     private void OnPreviewRenderRequested(
@@ -108,6 +137,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             ConfigureDesignSurface(e.Config.CanvasWidth, e.Config.CanvasHeight);
             _renderer.RenderToCanvas(PreviewCanvas, e.Config, e.Context);
+            PreviewCanvas.UpdateLayout();
             RebuildInteractionLayer();
         }
         catch (Exception ex)
@@ -128,6 +158,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _resizeHandles.Clear();
         _selectionOutline = null;
         _selectionLabel = null;
+        ResetPointerInteraction();
     }
 
     private void ConfigureDesignSurface(double width, double height)
@@ -153,10 +184,10 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
-        foreach (var item in _viewModel.CurrentDocument.Controls)
+        foreach (var entry in _viewModel.CurrentDocument.Controls.Select((item, index) => new { Item = item, Index = index }))
         {
-            var hitbox = CreateHitbox(item);
-            _hitboxes[item] = hitbox;
+            var hitbox = CreateHitbox(entry.Item, entry.Index);
+            _hitboxes[entry.Item] = hitbox;
             InteractionLayer.Children.Add(hitbox);
         }
 
@@ -166,44 +197,47 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
     }
 
-    private Border CreateHitbox(FrontedControlDesignItem item)
+    private Border CreateHitbox(FrontedControlDesignItem item, int layoutOrder)
     {
+        var bounds = ResolveItemBounds(item);
         var hitbox = new Border
         {
             Background = Brushes.Transparent,
             BorderBrush = Brushes.Transparent,
             BorderThickness = new Thickness(1),
-            Width = FrontedDesignerGeometryHelper.GetEditableWidth(item.Config),
-            Height = FrontedDesignerGeometryHelper.GetEditableHeight(item.Config),
+            Width = bounds.Width,
+            Height = bounds.Height,
             IsHitTestVisible = true,
             Tag = item
         };
 
-        Canvas.SetLeft(hitbox, item.Config.Left);
-        Canvas.SetTop(hitbox, item.Config.Top);
-        Panel.SetZIndex(hitbox, 10_000);
+        Canvas.SetLeft(hitbox, bounds.Left);
+        Canvas.SetTop(hitbox, bounds.Top);
+        Panel.SetZIndex(
+            hitbox,
+            FrontedDesignerEditorVisualHelper.GetHitboxZIndex(
+                item.Config.ZIndex,
+                layoutOrder,
+                ReferenceEquals(item, _viewModel?.SelectedDesignItem)));
         hitbox.MouseLeftButtonDown += Hitbox_OnMouseLeftButtonDown;
         return hitbox;
     }
 
     private void AddSelectionAdorner(FrontedControlDesignItem item)
     {
-        var left = item.Config.Left;
-        var top = item.Config.Top;
-        var width = FrontedDesignerGeometryHelper.GetEditableWidth(item.Config);
-        var height = FrontedDesignerGeometryHelper.GetEditableHeight(item.Config);
+        var bounds = ResolveItemBounds(item);
 
         _selectionOutline = new Border
         {
-            Width = width,
-            Height = height,
+            Width = bounds.Width,
+            Height = bounds.Height,
             BorderBrush = TryFindResource("AccentFillColorDefaultBrush") as Brush ?? Brushes.DeepSkyBlue,
-            BorderThickness = new Thickness(1.5),
+            BorderThickness = new Thickness(FrontedDesignerEditorVisualHelper.SelectionBorderThickness),
             IsHitTestVisible = false
         };
-        Canvas.SetLeft(_selectionOutline, left);
-        Canvas.SetTop(_selectionOutline, top);
-        Panel.SetZIndex(_selectionOutline, 10_100);
+        Canvas.SetLeft(_selectionOutline, bounds.Left);
+        Canvas.SetTop(_selectionOutline, bounds.Top);
+        Panel.SetZIndex(_selectionOutline, FrontedDesignerEditorVisualHelper.SelectedOutlineZIndex);
         InteractionLayer.Children.Add(_selectionOutline);
 
         _selectionLabel = new Border
@@ -219,9 +253,9 @@ public partial class FrontedDesignerWindow : FluentWindow
             },
             IsHitTestVisible = false
         };
-        Canvas.SetLeft(_selectionLabel, left);
-        Canvas.SetTop(_selectionLabel, Math.Max(0, top - 20));
-        Panel.SetZIndex(_selectionLabel, 10_101);
+        Canvas.SetLeft(_selectionLabel, bounds.Left);
+        Canvas.SetTop(_selectionLabel, Math.Max(0, bounds.Top - 18));
+        Panel.SetZIndex(_selectionLabel, FrontedDesignerEditorVisualHelper.SelectedOutlineZIndex + 1);
         InteractionLayer.Children.Add(_selectionLabel);
 
         foreach (var handle in Enum.GetValues<FrontedDesignerResizeHandleKind>())
@@ -238,16 +272,24 @@ public partial class FrontedDesignerWindow : FluentWindow
     {
         var element = new Border
         {
-            Width = 8,
-            Height = 8,
-            Background = TryFindResource("AccentFillColorDefaultBrush") as Brush ?? Brushes.DeepSkyBlue,
-            BorderBrush = Brushes.White,
-            BorderThickness = new Thickness(1),
+            Width = FrontedDesignerEditorVisualHelper.HandleHitTargetSize,
+            Height = FrontedDesignerEditorVisualHelper.HandleHitTargetSize,
+            Background = Brushes.Transparent,
+            Child = new Border
+            {
+                Width = FrontedDesignerEditorVisualHelper.HandleVisualSize,
+                Height = FrontedDesignerEditorVisualHelper.HandleVisualSize,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Background = TryFindResource("AccentFillColorDefaultBrush") as Brush ?? Brushes.DeepSkyBlue,
+                BorderBrush = Brushes.White,
+                BorderThickness = new Thickness(FrontedDesignerEditorVisualHelper.HandleBorderThickness)
+            },
             Cursor = GetCursor(handle),
             Tag = handle
         };
 
-        Panel.SetZIndex(element, 10_102);
+        Panel.SetZIndex(element, FrontedDesignerEditorVisualHelper.SelectedHandleZIndex);
         element.MouseLeftButtonDown += ResizeHandle_OnMouseLeftButtonDown;
         return element;
     }
@@ -260,41 +302,39 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
-        var left = item.Config.Left;
-        var top = item.Config.Top;
-        var width = FrontedDesignerGeometryHelper.GetEditableWidth(item.Config);
-        var height = FrontedDesignerGeometryHelper.GetEditableHeight(item.Config);
+        var bounds = ResolveItemBounds(item);
 
         if (_hitboxes.TryGetValue(item, out var hitbox))
         {
-            hitbox.Width = width;
-            hitbox.Height = height;
-            Canvas.SetLeft(hitbox, left);
-            Canvas.SetTop(hitbox, top);
+            hitbox.Width = bounds.Width;
+            hitbox.Height = bounds.Height;
+            Canvas.SetLeft(hitbox, bounds.Left);
+            Canvas.SetTop(hitbox, bounds.Top);
+            Panel.SetZIndex(hitbox, FrontedDesignerEditorVisualHelper.SelectedHitboxZIndex);
         }
 
         if (_selectionOutline is not null)
         {
-            _selectionOutline.Width = width;
-            _selectionOutline.Height = height;
-            Canvas.SetLeft(_selectionOutline, left);
-            Canvas.SetTop(_selectionOutline, top);
+            _selectionOutline.Width = bounds.Width;
+            _selectionOutline.Height = bounds.Height;
+            Canvas.SetLeft(_selectionOutline, bounds.Left);
+            Canvas.SetTop(_selectionOutline, bounds.Top);
         }
 
         if (_selectionLabel is not null)
         {
-            Canvas.SetLeft(_selectionLabel, left);
-            Canvas.SetTop(_selectionLabel, Math.Max(0, top - 20));
+            Canvas.SetLeft(_selectionLabel, bounds.Left);
+            Canvas.SetTop(_selectionLabel, Math.Max(0, bounds.Top - 18));
         }
 
-        SetHandlePosition(FrontedDesignerResizeHandleKind.TopLeft, left, top);
-        SetHandlePosition(FrontedDesignerResizeHandleKind.Top, left + width / 2, top);
-        SetHandlePosition(FrontedDesignerResizeHandleKind.TopRight, left + width, top);
-        SetHandlePosition(FrontedDesignerResizeHandleKind.Left, left, top + height / 2);
-        SetHandlePosition(FrontedDesignerResizeHandleKind.Right, left + width, top + height / 2);
-        SetHandlePosition(FrontedDesignerResizeHandleKind.BottomLeft, left, top + height);
-        SetHandlePosition(FrontedDesignerResizeHandleKind.Bottom, left + width / 2, top + height);
-        SetHandlePosition(FrontedDesignerResizeHandleKind.BottomRight, left + width, top + height);
+        SetHandlePosition(FrontedDesignerResizeHandleKind.TopLeft, bounds.Left, bounds.Top);
+        SetHandlePosition(FrontedDesignerResizeHandleKind.Top, bounds.Left + bounds.Width / 2, bounds.Top);
+        SetHandlePosition(FrontedDesignerResizeHandleKind.TopRight, bounds.Left + bounds.Width, bounds.Top);
+        SetHandlePosition(FrontedDesignerResizeHandleKind.Left, bounds.Left, bounds.Top + bounds.Height / 2);
+        SetHandlePosition(FrontedDesignerResizeHandleKind.Right, bounds.Left + bounds.Width, bounds.Top + bounds.Height / 2);
+        SetHandlePosition(FrontedDesignerResizeHandleKind.BottomLeft, bounds.Left, bounds.Top + bounds.Height);
+        SetHandlePosition(FrontedDesignerResizeHandleKind.Bottom, bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height);
+        SetHandlePosition(FrontedDesignerResizeHandleKind.BottomRight, bounds.Left + bounds.Width, bounds.Top + bounds.Height);
     }
 
     private void SetHandlePosition(FrontedDesignerResizeHandleKind handle, double x, double y)
@@ -317,9 +357,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
 
         FocusDesignSurface();
-        _viewModel.SelectDesignItem(item);
-        RebuildInteractionLayer();
-        BeginInteraction(InteractionMode.Drag, e.GetPosition(InteractionLayer), _hitboxes[item]);
+        BeginPendingHitboxClick(item, e.GetPosition(InteractionLayer), hitbox);
         e.Handled = true;
     }
 
@@ -341,9 +379,8 @@ public partial class FrontedDesignerWindow : FluentWindow
     {
         if (ReferenceEquals(e.OriginalSource, InteractionLayer))
         {
-            _viewModel?.ClearSelection();
-            RebuildInteractionLayer();
             FocusDesignSurface();
+            BeginPendingEmptyClick(e.GetPosition(InteractionLayer));
             e.Handled = true;
         }
     }
@@ -355,9 +392,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void InteractionLayer_OnMouseMove(object sender, MouseEventArgs e)
     {
-        if (_viewModel?.SelectedDesignItem is null
-            || _capturedElement is null
-            || e.LeftButton != MouseButtonState.Pressed)
+        if (_capturedElement is null || e.LeftButton != MouseButtonState.Pressed)
         {
             return;
         }
@@ -366,13 +401,17 @@ public partial class FrontedDesignerWindow : FluentWindow
         var deltaX = currentPosition.X - _startMousePosition.X;
         var deltaY = currentPosition.Y - _startMousePosition.Y;
 
-        if (_interactionMode == InteractionMode.Drag)
+        if (_pendingHitCandidate is not null)
         {
-            _viewModel.MoveSelectedDesignItem(_originalLeft, _originalTop, deltaX, deltaY, renderPreview: false);
+            HandlePendingHitboxMove(deltaX, deltaY);
+        }
+        else if (_isPendingEmptyClick)
+        {
+            _hasExceededClickThreshold |= FrontedDesignerInteractionHelper.ExceedsClickThreshold(deltaX, deltaY);
         }
         else if (_interactionMode == InteractionMode.Resize && _activeResizeHandle is { } handle)
         {
-            _viewModel.ResizeSelectedDesignItem(
+            _viewModel?.ResizeSelectedDesignItem(
                 handle,
                 _originalLeft,
                 _originalTop,
@@ -381,10 +420,43 @@ public partial class FrontedDesignerWindow : FluentWindow
                 deltaX,
                 deltaY,
                 renderPreview: false);
+            UpdateSelectedInteractionVisuals();
+            UpdateSelectedPreviewElement();
         }
 
-        UpdateSelectedInteractionVisuals();
         e.Handled = true;
+    }
+
+    private void HandlePendingHitboxMove(double deltaX, double deltaY)
+    {
+        if (_viewModel?.SelectedDesignItem is null || _pendingHitCandidate is null)
+        {
+            return;
+        }
+
+        _hasExceededClickThreshold |= FrontedDesignerInteractionHelper.ExceedsClickThreshold(deltaX, deltaY);
+        var action = FrontedDesignerInteractionHelper.ResolvePointerAction(
+            _hasExceededClickThreshold,
+            ReferenceEquals(_pendingHitCandidate, _viewModel.SelectedDesignItem),
+            _hasStartedDrag);
+
+        if (action == FrontedDesignerPointerAction.BeginDragSelected)
+        {
+            _hasStartedDrag = true;
+            _interactionMode = InteractionMode.Drag;
+        }
+
+        if (action is FrontedDesignerPointerAction.BeginDragSelected or FrontedDesignerPointerAction.DragSelected)
+        {
+            _viewModel.MoveSelectedDesignItem(
+                _originalLeft,
+                _originalTop,
+                deltaX,
+                deltaY,
+                renderPreview: false);
+            UpdateSelectedInteractionVisuals();
+            UpdateSelectedPreviewElement();
+        }
     }
 
     private void InteractionLayer_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -395,10 +467,31 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
 
         _capturedElement.ReleaseMouseCapture();
-        _capturedElement = null;
-        _interactionMode = InteractionMode.None;
-        _activeResizeHandle = null;
-        _viewModel?.CommitDesignItemGeometryEdit();
+
+        if (_pendingHitCandidate is not null)
+        {
+            if (!_hasExceededClickThreshold)
+            {
+                _viewModel?.SelectDesignItem(_pendingHitCandidate);
+            }
+            else if (_hasStartedDrag)
+            {
+                _viewModel?.CommitDesignItemGeometryEdit();
+            }
+        }
+        else if (_isPendingEmptyClick)
+        {
+            if (!_hasExceededClickThreshold)
+            {
+                _viewModel?.ClearSelection();
+            }
+        }
+        else if (_interactionMode == InteractionMode.Resize)
+        {
+            _viewModel?.CommitDesignItemGeometryEdit();
+        }
+
+        ResetPointerInteraction();
         e.Handled = true;
     }
 
@@ -449,10 +542,138 @@ public partial class FrontedDesignerWindow : FluentWindow
         _startMousePosition = startMousePosition;
         _originalLeft = item.Config.Left;
         _originalTop = item.Config.Top;
-        _originalWidth = FrontedDesignerGeometryHelper.GetEditableWidth(item.Config);
-        _originalHeight = FrontedDesignerGeometryHelper.GetEditableHeight(item.Config);
+        var bounds = ResolveItemBounds(item);
+        if (!item.Config.Width.HasValue)
+        {
+            item.Config.Width = bounds.Width;
+        }
+
+        if (!item.Config.Height.HasValue)
+        {
+            item.Config.Height = bounds.Height;
+        }
+
+        _originalWidth = bounds.Width;
+        _originalHeight = bounds.Height;
         _capturedElement = element;
         element.CaptureMouse();
+    }
+
+    private void BeginPendingHitboxClick(
+        FrontedControlDesignItem item,
+        Point startMousePosition,
+        FrameworkElement element)
+    {
+        ResetPointerInteraction();
+        _pendingHitCandidate = item;
+        _startMousePosition = startMousePosition;
+        _originalLeft = item.Config.Left;
+        _originalTop = item.Config.Top;
+        var bounds = ResolveItemBounds(item);
+        _originalWidth = bounds.Width;
+        _originalHeight = bounds.Height;
+        _capturedElement = element;
+        element.CaptureMouse();
+    }
+
+    private void BeginPendingEmptyClick(Point startMousePosition)
+    {
+        ResetPointerInteraction();
+        _isPendingEmptyClick = true;
+        _startMousePosition = startMousePosition;
+        _capturedElement = InteractionLayer;
+        InteractionLayer.CaptureMouse();
+    }
+
+    private void ResetPointerInteraction()
+    {
+        _capturedElement = null;
+        _interactionMode = InteractionMode.None;
+        _activeResizeHandle = null;
+        _pendingHitCandidate = null;
+        _isPendingEmptyClick = false;
+        _hasExceededClickThreshold = false;
+        _hasStartedDrag = false;
+    }
+
+    private FrontedDesignerResolvedBounds ResolveItemBounds(FrontedControlDesignItem item)
+    {
+        var previewElement = FindPreviewElement(item.Name);
+        return FrontedDesignerBoundsResolver.Resolve(
+            item.Config,
+            previewElement?.ActualWidth,
+            previewElement?.ActualHeight);
+    }
+
+    private void UpdateSelectedPreviewElement()
+    {
+        var item = _viewModel?.SelectedDesignItem;
+        if (item is null)
+        {
+            return;
+        }
+
+        var element = FindPreviewElement(item.Name);
+        if (element is null)
+        {
+            return;
+        }
+
+        Canvas.SetLeft(element, item.Config.Left);
+        Canvas.SetTop(element, item.Config.Top);
+
+        if (item.Config.Width.HasValue)
+        {
+            element.Width = item.Config.Width.Value;
+        }
+
+        if (item.Config.Height.HasValue)
+        {
+            element.Height = item.Config.Height.Value;
+        }
+    }
+
+    private FrameworkElement? FindPreviewElement(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return null;
+        }
+
+        if (PreviewCanvas.FindName(name) is FrameworkElement canvasNameMatch)
+        {
+            return canvasNameMatch;
+        }
+
+        if (Window.GetWindow(PreviewCanvas) is FrameworkElement window
+            && window.FindName(name) is FrameworkElement windowNameMatch)
+        {
+            return windowNameMatch;
+        }
+
+        return FindGeneratedPreviewElement(PreviewCanvas, name);
+    }
+
+    private static FrameworkElement? FindGeneratedPreviewElement(DependencyObject parent, string name)
+    {
+        var childCount = VisualTreeHelper.GetChildrenCount(parent);
+        for (var i = 0; i < childCount; i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is FrameworkElement element
+                && (element.Name == name || FrontedRendererProperties.GetRegisteredName(element) == name))
+            {
+                return element;
+            }
+
+            var nested = FindGeneratedPreviewElement(child, name);
+            if (nested is not null)
+            {
+                return nested;
+            }
+        }
+
+        return null;
     }
 
     private void FocusDesignSurface()

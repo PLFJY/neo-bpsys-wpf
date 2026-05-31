@@ -2017,6 +2017,21 @@
   <data name="ValidationMessages" xml:space="preserve">
     <value>検証メッセージ</value>
   </data>
+  <data name="ControlsList" xml:space="preserve">
+    <value>コントロール</value>
+  </data>
+  <data name="FilterControls" xml:space="preserve">
+    <value>名前または種類で絞り込み</value>
+  </data>
+  <data name="ZIndexShort" xml:space="preserve">
+    <value>Z</value>
+  </data>
+  <data name="ControlType" xml:space="preserve">
+    <value>コントロール種別</value>
+  </data>
+  <data name="NoControlsFound" xml:space="preserve">
+    <value>コントロールが見つかりません</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

@@ -2032,6 +2032,21 @@
   <data name="ValidationMessages" xml:space="preserve">
     <value>校验消息</value>
   </data>
+  <data name="ControlsList" xml:space="preserve">
+    <value>控件列表</value>
+  </data>
+  <data name="FilterControls" xml:space="preserve">
+    <value>按名称或类型筛选</value>
+  </data>
+  <data name="ZIndexShort" xml:space="preserve">
+    <value>Z</value>
+  </data>
+  <data name="ControlType" xml:space="preserve">
+    <value>控件类型</value>
+  </data>
+  <data name="NoControlsFound" xml:space="preserve">
+    <value>未找到控件</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

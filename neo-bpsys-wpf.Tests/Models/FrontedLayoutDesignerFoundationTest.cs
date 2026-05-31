@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.ViewModels.Windows;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -481,6 +482,133 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void DesignerControlFilterMatchesNameAndControlType()
+    {
+        var textItem = new FrontedControlDesignItem
+        {
+            Name = "SurTeamName",
+            Config = new TextFrontedControlConfig { ControlType = "Text" }
+        };
+        var imageItem = new FrontedControlDesignItem
+        {
+            Name = "TeamLogo",
+            Config = new ImageFrontedControlConfig { ControlType = "Image" }
+        };
+
+        Assert.True(FrontedDesignerWindowViewModel.MatchesControlFilter(textItem, "team"));
+        Assert.True(FrontedDesignerWindowViewModel.MatchesControlFilter(imageItem, "image"));
+        Assert.False(FrontedDesignerWindowViewModel.MatchesControlFilter(imageItem, "score"));
+    }
+
+    [Fact]
+    public void DesignerViewModelFiltersControlsAndClearsFilterOnDocumentClear()
+    {
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument(
+            [
+                new FrontedControlDesignItem
+                {
+                    Name = "Title",
+                    Config = new TextFrontedControlConfig { ControlType = "Text", ZIndex = 1 }
+                },
+                new FrontedControlDesignItem
+                {
+                    Name = "Logo",
+                    Config = new ImageFrontedControlConfig { ControlType = "Image", ZIndex = 2 }
+                }
+            ])
+        };
+
+        Assert.Equal(["Logo", "Title"], viewModel.FilteredDesignItems.Select(item => item.Name));
+
+        viewModel.ControlFilterText = "text";
+
+        Assert.Equal(["Title"], viewModel.FilteredDesignItems.Select(item => item.Name));
+
+        viewModel.ControlFilterText = string.Empty;
+        Assert.Equal(2, viewModel.FilteredDesignItems.Count);
+
+        viewModel.CurrentDocument = null;
+        viewModel.ControlFilterText = string.Empty;
+        Assert.Empty(viewModel.FilteredDesignItems);
+    }
+
+    [Fact]
+    public void DesignerViewModelSelectDesignItemSetsSelectedItemAndKeepsItAfterMove()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Left = 10, Top = 20, ControlType = "Text" }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([item])
+        };
+
+        viewModel.SelectDesignItem(item);
+        viewModel.MoveSelectedDesignItem(10, 20, 5, 5, renderPreview: false);
+
+        Assert.Same(item, viewModel.SelectedDesignItem);
+        Assert.True(item.IsSelected);
+    }
+
+    [Fact]
+    public void DesignerBoundsResolverPrefersExplicitSizeThenActualThenFallback()
+    {
+        var explicitConfig = new TextFrontedControlConfig { Width = 100, Height = 50 };
+        var actualConfig = new TextFrontedControlConfig();
+        var fallbackConfig = new TextFrontedControlConfig();
+
+        Assert.Equal((100, 50), ToSize(FrontedDesignerBoundsResolver.Resolve(explicitConfig, 200, 80)));
+        Assert.Equal((200, 80), ToSize(FrontedDesignerBoundsResolver.Resolve(actualConfig, 200, 80)));
+        Assert.Equal(
+            (FrontedDesignerGeometryHelper.MinHitWidth, FrontedDesignerGeometryHelper.MinHitHeight),
+            ToSize(FrontedDesignerBoundsResolver.Resolve(fallbackConfig)));
+    }
+
+    [Fact]
+    public void DesignerInteractionHelperKeepsSelectionStableUntilSingleClick()
+    {
+        Assert.Equal(
+            FrontedDesignerPointerAction.WaitForClick,
+            FrontedDesignerInteractionHelper.ResolvePointerAction(
+                thresholdExceeded: false,
+                candidateIsSelected: false,
+                isDraggingSelected: false));
+        Assert.Equal(
+            FrontedDesignerPointerAction.IgnoreUnselectedDrag,
+            FrontedDesignerInteractionHelper.ResolvePointerAction(
+                thresholdExceeded: true,
+                candidateIsSelected: false,
+                isDraggingSelected: false));
+        Assert.Equal(
+            FrontedDesignerPointerAction.BeginDragSelected,
+            FrontedDesignerInteractionHelper.ResolvePointerAction(
+                thresholdExceeded: true,
+                candidateIsSelected: true,
+                isDraggingSelected: false));
+        Assert.Equal(
+            FrontedDesignerPointerAction.DragSelected,
+            FrontedDesignerInteractionHelper.ResolvePointerAction(
+                thresholdExceeded: true,
+                candidateIsSelected: true,
+                isDraggingSelected: true));
+    }
+
+    [Fact]
+    public void DesignerEditorZIndexAndAdornerConstantsMatchLightweightSelection()
+    {
+        var normalZIndex = FrontedDesignerEditorVisualHelper.GetHitboxZIndex(10, 0, isSelected: false);
+        var selectedZIndex = FrontedDesignerEditorVisualHelper.GetHitboxZIndex(0, 0, isSelected: true);
+
+        Assert.True(selectedZIndex > normalZIndex);
+        Assert.True(FrontedDesignerEditorVisualHelper.SelectionBorderThickness <= 1);
+        Assert.True(FrontedDesignerEditorVisualHelper.HandleVisualSize <= 6);
+    }
+
+    [Fact]
     public void FrontedDesignerLocalizationKeysExistInAllResxFiles()
     {
         var expectedKeys = new[]
@@ -508,7 +636,12 @@ public class FrontedLayoutDesignerFoundationTest
             "SelectedControl",
             "NoControlSelected",
             "RuntimeCriticalControl",
-            "ValidationMessages"
+            "ValidationMessages",
+            "ControlsList",
+            "FilterControls",
+            "ZIndexShort",
+            "ControlType",
+            "NoControlsFound"
         };
 
         foreach (var fileName in new[] { "Lang.resx", "Lang.en-us.resx", "Lang.ja-jp.resx" })
@@ -633,6 +766,11 @@ public class FrontedLayoutDesignerFoundationTest
         return fourth is null
             ? Path.Combine(repositoryRoot, first, second, third)
             : Path.Combine(repositoryRoot, first, second, third, fourth);
+    }
+
+    private static (double Width, double Height) ToSize(FrontedDesignerResolvedBounds bounds)
+    {
+        return (bounds.Width, bounds.Height);
     }
 
     private sealed class KnownFrontedControlRegistry : IFrontedControlRegistry
