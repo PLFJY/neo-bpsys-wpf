@@ -1518,6 +1518,75 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void BindingBrowserTreeNodesPreserveRuntimeValueTypes()
+    {
+        var provider = new FrontedBindingBrowserProvider();
+        var nodes = FlattenBindingTree(provider.BuildTree())
+            .Where(node => !string.IsNullOrWhiteSpace(node.FullPath))
+            .ToDictionary(node => node.FullPath!, StringComparer.Ordinal);
+
+        Assert.Equal(typeof(string), nodes["CurrentGame.SurTeam.Name"].ValueType);
+        Assert.True(typeof(ImageSource).IsAssignableFrom(nodes["CurrentGame.SurTeam.Logo"].ValueType));
+        Assert.Equal(typeof(GameProgress), nodes["CurrentGame.GameProgress"].ValueType);
+        Assert.Equal(typeof(Map?), nodes["CurrentGame.PickedMap"].ValueType);
+    }
+
+    [Fact]
+    public void BindingBrowserTextFilterIncludesOnlyTextCompatiblePaths()
+    {
+        var provider = new FrontedBindingBrowserProvider();
+        var paths = BindingSearchPaths(provider, FrontedBindingTypeFilter.Text);
+
+        Assert.Contains("CurrentGame.SurTeam.Name", paths);
+        Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamMajorText", paths);
+        Assert.Contains("CurrentGame.MatchScore.HomeTotalMinorScore", paths);
+        Assert.DoesNotContain("CurrentGame.SurTeam.Logo", paths);
+        Assert.DoesNotContain("CurrentGame.PickedMapImage", paths);
+        Assert.DoesNotContain("CurrentGame.GameProgress", paths);
+        Assert.DoesNotContain("CurrentGame.PickedMap", paths);
+    }
+
+    [Fact]
+    public void BindingBrowserImageFilterIncludesOnlyImageCompatiblePaths()
+    {
+        var provider = new FrontedBindingBrowserProvider();
+        var paths = BindingSearchPaths(provider, FrontedBindingTypeFilter.Image);
+
+        Assert.Contains("CurrentGame.SurTeam.Logo", paths);
+        Assert.Contains("CurrentGame.PickedMapImage", paths);
+        Assert.Contains("CurrentGame.SurPlayerList[0].PictureShown", paths);
+        Assert.DoesNotContain("CurrentGame.SurTeam.Name", paths);
+        Assert.DoesNotContain("CurrentGame.MatchScore.CurrentSurTeamMajorText", paths);
+        Assert.DoesNotContain("CurrentGame.GameProgress", paths);
+        Assert.DoesNotContain("CurrentGame.PickedMap", paths);
+    }
+
+    [Fact]
+    public void BindingBrowserGameProgressFilterIncludesOnlyGameProgressPaths()
+    {
+        var provider = new FrontedBindingBrowserProvider();
+        var paths = BindingSearchPaths(provider, FrontedBindingTypeFilter.GameProgress);
+
+        Assert.Contains("CurrentGame.GameProgress", paths);
+        Assert.DoesNotContain("CurrentGame.SurTeam.Name", paths);
+        Assert.DoesNotContain("CurrentGame.SurTeam.Logo", paths);
+        Assert.DoesNotContain("CurrentGame.PickedMap", paths);
+    }
+
+    [Fact]
+    public void BindingBrowserMapFilterIncludesOnlyMapPaths()
+    {
+        var provider = new FrontedBindingBrowserProvider();
+        var paths = BindingSearchPaths(provider, FrontedBindingTypeFilter.Map);
+
+        Assert.Contains("CurrentGame.PickedMap", paths);
+        Assert.Contains("CurrentGame.BannedMap", paths);
+        Assert.DoesNotContain("CurrentGame.SurTeam.Name", paths);
+        Assert.DoesNotContain("CurrentGame.PickedMapImage", paths);
+        Assert.DoesNotContain("CurrentGame.GameProgress", paths);
+    }
+
+    [Fact]
     public void BindingBrowserProviderSearchFindsPartialNamesAndHasNoDuplicatePaths()
     {
         var provider = new FrontedBindingBrowserProvider();
@@ -1532,6 +1601,16 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains(results, node => node.FullPath == "CurrentGame.SurTeam.Name");
         Assert.Equal(allPaths.Length, allPaths.Distinct(StringComparer.Ordinal).Count());
         Assert.True(allPaths.Length < 400);
+    }
+
+    [Fact]
+    public void BindingBrowserSearchRespectsTypeFilter()
+    {
+        var provider = new FrontedBindingBrowserProvider();
+
+        Assert.Empty(provider.Search("Logo", FrontedBindingTypeFilter.Text));
+        Assert.Contains(provider.Search("Logo", FrontedBindingTypeFilter.Image), node => node.FullPath == "CurrentGame.SurTeam.Logo");
+        Assert.DoesNotContain(provider.Search("Name", FrontedBindingTypeFilter.Image), node => node.ValueType == typeof(string));
     }
 
     [Fact]
@@ -1560,6 +1639,46 @@ public class FrontedLayoutDesignerFoundationTest
         var normalTextRow = rows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.HorizontalAlignment));
         Assert.False(normalTextRow.CanBrowseBinding);
         Assert.False(normalTextRow.CanBrowseResource);
+    }
+
+    [Theory]
+    [InlineData("Text", typeof(TextFrontedControlConfig), FrontedBindingTargetKind.Text)]
+    [InlineData("Image", typeof(ImageFrontedControlConfig), FrontedBindingTargetKind.Image)]
+    [InlineData("GameProgressText", typeof(GameProgressTextControlConfig), FrontedBindingTargetKind.GameProgress)]
+    [InlineData("MapNameText", typeof(MapNameTextControlConfig), FrontedBindingTargetKind.Map)]
+    public void PropertyGridBuilderSetsBindingTargetKind(
+        string name,
+        Type configType,
+        FrontedBindingTargetKind expectedKind)
+    {
+        var config = (FrontedControlConfigBase)Activator.CreateInstance(configType)!;
+        var item = new FrontedControlDesignItem
+        {
+            Name = name,
+            Config = config
+        };
+
+        var rows = BuildPropertyRows(CreateDocument([item]), item);
+        var bindingRow = Assert.Single(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.BindingPath));
+
+        Assert.True(bindingRow.CanBrowseBinding);
+        Assert.Equal(expectedKind, bindingRow.BindingTargetKind);
+    }
+
+    [Fact]
+    public void BindingBrowserWindowViewModelInitializedWithImageFilterOnlyExposesImages()
+    {
+        var viewModel = new FrontedBindingBrowserWindowViewModel(
+            new FrontedBindingBrowserProvider(),
+            FrontedBindingTypeFilter.Image);
+
+        Assert.Contains(viewModel.SearchResults, node => node.FullPath == "CurrentGame.SurTeam.Logo");
+        Assert.Contains(viewModel.SearchResults, node => node.FullPath == "CurrentGame.PickedMapImage");
+        Assert.DoesNotContain(viewModel.SearchResults, node => node.FullPath == "CurrentGame.SurTeam.Name");
+
+        viewModel.SearchText = "Name";
+
+        Assert.DoesNotContain(viewModel.SearchResults, node => node.ValueType == typeof(string));
     }
 
     [Fact]
@@ -2058,6 +2177,23 @@ public class FrontedLayoutDesignerFoundationTest
             CreateValidator(),
             new FrontedLayoutReferenceScanner(),
             new FrontedLayoutRuntimeContractCatalog());
+    }
+
+    private static IEnumerable<FrontedBindingTreeNode> FlattenBindingTree(
+        IEnumerable<FrontedBindingTreeNode> nodes)
+    {
+        return nodes.SelectMany(node => node.Flatten());
+    }
+
+    private static HashSet<string> BindingSearchPaths(
+        FrontedBindingBrowserProvider provider,
+        FrontedBindingTypeFilter filter)
+    {
+        return provider.Search(null, filter)
+            .Select(node => node.FullPath)
+            .Where(path => path is not null)
+            .Cast<string>()
+            .ToHashSet(StringComparer.Ordinal);
     }
 
     private static FrontedPropertyEditorItem NameEditorRow()

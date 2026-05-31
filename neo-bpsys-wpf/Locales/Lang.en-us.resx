@@ -2224,6 +2224,39 @@
   <data name="NoResourceResults" xml:space="preserve">
     <value>No matching resources.</value>
   </data>
+  <data name="ExpectedBindingType" xml:space="preserve">
+    <value>Expected binding type</value>
+  </data>
+  <data name="AnyBinding" xml:space="preserve">
+    <value>Any binding</value>
+  </data>
+  <data name="TextBinding" xml:space="preserve">
+    <value>Text binding</value>
+  </data>
+  <data name="ImageBinding" xml:space="preserve">
+    <value>Image binding</value>
+  </data>
+  <data name="GameProgressBinding" xml:space="preserve">
+    <value>GameProgress binding</value>
+  </data>
+  <data name="MapBinding" xml:space="preserve">
+    <value>Map binding</value>
+  </data>
+  <data name="BooleanBinding" xml:space="preserve">
+    <value>Boolean binding</value>
+  </data>
+  <data name="NumberBinding" xml:space="preserve">
+    <value>Number binding</value>
+  </data>
+  <data name="StringBinding" xml:space="preserve">
+    <value>String binding</value>
+  </data>
+  <data name="TalentBinding" xml:space="preserve">
+    <value>Talent binding</value>
+  </data>
+  <data name="TraitBinding" xml:space="preserve">
+    <value>Trait binding</value>
+  </data>
   <data name="UseSelected" xml:space="preserve">
     <value>Use Selected</value>
   </data>

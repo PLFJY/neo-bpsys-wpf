@@ -40,6 +40,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -51,12 +52,17 @@
             IsMinimizeVisible="True"
             IsThemeChangeVisible="False"
             IsTopMostVisible="False" />
-        <ui:TextBox
+        <TextBlock
             Grid.Row="1"
+            Margin="12,12,12,0"
+            FontWeight="SemiBold"
+            Text="{Binding ExpectedBindingTypeDisplay}" />
+        <ui:TextBox
+            Grid.Row="2"
             Margin="12"
             PlaceholderText="{lex:Loc SearchBindings}"
             Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-        <Grid Grid.Row="2" Margin="12,0,12,12">
+        <Grid Grid.Row="3" Margin="12,0,12,12">
             <TreeView
                 SelectedItemChanged="BindingTree_OnSelectedItemChanged"
                 ItemsSource="{Binding TreeNodes}">
@@ -87,7 +93,13 @@
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type designer:FrontedBindingTreeNode}">
                         <StackPanel Margin="0,4">
-                            <TextBlock FontWeight="SemiBold" Text="{Binding DisplayName}" />
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock FontWeight="SemiBold" Text="{Binding DisplayName}" />
+                                <TextBlock
+                                    Margin="8,0,0,0"
+                                    Opacity="0.6"
+                                    Text="{Binding TypeName}" />
+                            </StackPanel>
                             <TextBlock Opacity="0.7" Text="{Binding FullPath}" />
                         </StackPanel>
                     </DataTemplate>
@@ -110,7 +122,7 @@
                 </TextBlock.Style>
             </TextBlock>
         </Grid>
-        <StackPanel Grid.Row="3" Margin="12,0,12,12">
+        <StackPanel Grid.Row="4" Margin="12,0,12,12">
             <TextBlock FontWeight="SemiBold" Text="{lex:Loc SelectedPath}" />
             <ui:TextBox
                 Margin="0,6,0,0"
@@ -118,7 +130,7 @@
                 Text="{Binding SelectedPath}" />
         </StackPanel>
         <StackPanel
-            Grid.Row="4"
+            Grid.Row="5"
             Margin="12,0,12,12"
             HorizontalAlignment="Right"
             Orientation="Horizontal">

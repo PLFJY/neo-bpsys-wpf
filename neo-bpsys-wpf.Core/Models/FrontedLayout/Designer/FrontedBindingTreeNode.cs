@@ -11,9 +11,11 @@ public sealed class FrontedBindingTreeNode
 
     public string? TypeName { get; init; }
 
+    public Type? ValueType { get; init; }
+
     public IReadOnlyList<FrontedBindingTreeNode> Children { get; init; } = [];
 
-    public bool IsSelectable => !string.IsNullOrWhiteSpace(FullPath);
+    public bool IsSelectable => !string.IsNullOrWhiteSpace(FullPath) && Children.Count == 0;
 
     public IEnumerable<FrontedBindingTreeNode> Flatten()
     {

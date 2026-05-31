@@ -30,6 +30,9 @@ public class FrontedPropertyEditorItem : ObservableObject
     private bool _canBrowseResource;
     private string? _browseButtonText;
     private string? _browseDialogTitle;
+    private FrontedBindingTargetKind _bindingTargetKind = FrontedBindingTargetKind.Any;
+    private string? _expectedBindingTypeName;
+    private IReadOnlyList<string> _allowedBindingTypeNames = [];
 
     /// <summary>
     /// User-facing row label.
@@ -257,6 +260,33 @@ public class FrontedPropertyEditorItem : ObservableObject
     {
         get => _browseDialogTitle;
         set => SetProperty(ref _browseDialogTitle, value);
+    }
+
+    /// <summary>
+    /// Expected binding target kind used by Binding Browser filtering.
+    /// </summary>
+    public FrontedBindingTargetKind BindingTargetKind
+    {
+        get => _bindingTargetKind;
+        set => SetProperty(ref _bindingTargetKind, value);
+    }
+
+    /// <summary>
+    /// Short display name for the expected binding type.
+    /// </summary>
+    public string? ExpectedBindingTypeName
+    {
+        get => _expectedBindingTypeName;
+        set => SetProperty(ref _expectedBindingTypeName, value);
+    }
+
+    /// <summary>
+    /// Type names accepted by the Binding Browser for this row.
+    /// </summary>
+    public IReadOnlyList<string> AllowedBindingTypeNames
+    {
+        get => _allowedBindingTypeNames;
+        set => SetProperty(ref _allowedBindingTypeNames, value);
     }
 
     /// <summary>

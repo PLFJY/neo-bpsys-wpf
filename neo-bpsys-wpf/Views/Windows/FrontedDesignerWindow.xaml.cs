@@ -182,7 +182,9 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
-        var viewModel = new FrontedBindingBrowserWindowViewModel(_bindingBrowserProvider);
+        var viewModel = new FrontedBindingBrowserWindowViewModel(
+            _bindingBrowserProvider,
+            new FrontedBindingTypeFilter(item.BindingTargetKind));
         var window = new FrontedBindingBrowserWindow
         {
             Owner = this,

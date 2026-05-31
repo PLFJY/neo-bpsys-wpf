@@ -13,7 +13,53 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 /// </summary>
 public sealed class FrontedBindingBrowserProvider
 {
+    /// <summary>
+    /// Builds the complete binding tree without target-type filtering.
+    /// </summary>
     public IReadOnlyList<FrontedBindingTreeNode> BuildTree() =>
+        BuildTree(FrontedBindingTypeFilter.Any);
+
+    /// <summary>
+    /// Builds the binding tree filtered for the expected binding target.
+    /// </summary>
+    public IReadOnlyList<FrontedBindingTreeNode> BuildTree(FrontedBindingTypeFilter filter)
+    {
+        return BuildUnfilteredTree()
+            .Select(node => FilterNode(node, filter))
+            .Where(node => node is not null)
+            .Cast<FrontedBindingTreeNode>()
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Searches the complete binding tree without target-type filtering.
+    /// </summary>
+    public IReadOnlyList<FrontedBindingTreeNode> Search(string? query) =>
+        Search(query, FrontedBindingTypeFilter.Any);
+
+    /// <summary>
+    /// Searches selectable binding paths filtered for the expected binding target.
+    /// </summary>
+    public IReadOnlyList<FrontedBindingTreeNode> Search(string? query, FrontedBindingTypeFilter filter)
+    {
+        var nodes = BuildTree(filter).SelectMany(node => node.Flatten()).Where(node => node.IsSelectable);
+        var queryText = query?.Trim();
+        if (string.IsNullOrWhiteSpace(queryText))
+        {
+            return nodes
+                .DistinctBy(node => node.FullPath, StringComparer.Ordinal)
+                .ToArray();
+        }
+
+        return nodes
+            .Where(node =>
+                node.DisplayName.Contains(queryText, StringComparison.OrdinalIgnoreCase)
+                || node.FullPath?.Contains(queryText, StringComparison.OrdinalIgnoreCase) == true)
+            .DistinctBy(node => node.FullPath, StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    private static IReadOnlyList<FrontedBindingTreeNode> BuildUnfilteredTree() =>
     [
         Node("ISharedDataService", null, typeof(ISharedDataService),
         [
@@ -28,21 +74,29 @@ public sealed class FrontedBindingBrowserProvider
         ])
     ];
 
-    public IReadOnlyList<FrontedBindingTreeNode> Search(string? query)
+    private static FrontedBindingTreeNode? FilterNode(
+        FrontedBindingTreeNode node,
+        FrontedBindingTypeFilter filter)
     {
-        var nodes = BuildTree().SelectMany(node => node.Flatten()).Where(node => node.IsSelectable);
-        var filter = query?.Trim();
-        if (string.IsNullOrWhiteSpace(filter))
+        var children = node.Children
+            .Select(child => FilterNode(child, filter))
+            .Where(child => child is not null)
+            .Cast<FrontedBindingTreeNode>()
+            .ToArray();
+        var isSelfAllowed = !string.IsNullOrWhiteSpace(node.FullPath) && filter.IsAllowed(node.ValueType);
+        if (!isSelfAllowed && children.Length == 0)
         {
-            return nodes.ToArray();
+            return null;
         }
 
-        return nodes
-            .Where(node =>
-                node.DisplayName.Contains(filter, StringComparison.OrdinalIgnoreCase)
-                || node.FullPath?.Contains(filter, StringComparison.OrdinalIgnoreCase) == true)
-            .DistinctBy(node => node.FullPath, StringComparer.Ordinal)
-            .ToArray();
+        return new FrontedBindingTreeNode
+        {
+            DisplayName = node.DisplayName,
+            FullPath = node.FullPath,
+            TypeName = node.TypeName,
+            ValueType = node.ValueType,
+            Children = children
+        };
     }
 
     private static IReadOnlyList<FrontedBindingTreeNode> BuildCurrentGameChildren() =>
@@ -161,7 +215,8 @@ public sealed class FrontedBindingBrowserProvider
         {
             DisplayName = displayName,
             FullPath = fullPath,
-            TypeName = type.Name
+            TypeName = FormatTypeName(type),
+            ValueType = type
         };
 
     private static FrontedBindingTreeNode Node(
@@ -173,7 +228,14 @@ public sealed class FrontedBindingBrowserProvider
         {
             DisplayName = displayName,
             FullPath = fullPath,
-            TypeName = type.Name,
+            TypeName = FormatTypeName(type),
+            ValueType = type,
             Children = children
         };
+
+    private static string FormatTypeName(Type type)
+    {
+        var nullableType = Nullable.GetUnderlyingType(type);
+        return nullableType is null ? type.Name : $"{nullableType.Name}?";
+    }
 }

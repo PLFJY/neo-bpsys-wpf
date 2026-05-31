@@ -219,6 +219,9 @@ public class FrontedPropertyGridBuilder
             var canBrowseResource = !isReadOnly
                                     && !canBrowseBinding
                                     && IsResourcePathProperty(property.Name);
+            var bindingTargetKind = canBrowseBinding
+                ? ResolveBindingTargetKind(selectedItem.Config, property)
+                : FrontedBindingTargetKind.Any;
 
             rows.Add(new FrontedPropertyEditorItem
             {
@@ -241,9 +244,66 @@ public class FrontedPropertyGridBuilder
                     ? "BindingBrowser"
                     : canBrowseResource
                         ? "ResourceBrowser"
-                        : null
+                        : null,
+                BindingTargetKind = bindingTargetKind,
+                ExpectedBindingTypeName = ResolveBindingTargetTypeName(bindingTargetKind),
+                AllowedBindingTypeNames = ResolveAllowedBindingTypeNames(bindingTargetKind)
             });
         }
+    }
+
+    private static FrontedBindingTargetKind ResolveBindingTargetKind(
+        FrontedControlConfigBase config,
+        PropertyInfo property)
+    {
+        if (!IsBindingPathProperty(property.Name))
+        {
+            return FrontedBindingTargetKind.Any;
+        }
+
+        return config switch
+        {
+            TextFrontedControlConfig => FrontedBindingTargetKind.Text,
+            LocalizedTextControlConfig => FrontedBindingTargetKind.Text,
+            ImageFrontedControlConfig => FrontedBindingTargetKind.Image,
+            GameProgressTextControlConfig => FrontedBindingTargetKind.GameProgress,
+            MapNameTextControlConfig => FrontedBindingTargetKind.Map,
+            _ => FrontedBindingTargetKind.Any
+        };
+    }
+
+    private static string ResolveBindingTargetTypeName(FrontedBindingTargetKind kind)
+    {
+        return kind switch
+        {
+            FrontedBindingTargetKind.Text => "Text",
+            FrontedBindingTargetKind.Image => "ImageSource",
+            FrontedBindingTargetKind.GameProgress => "GameProgress",
+            FrontedBindingTargetKind.Map => "Map",
+            FrontedBindingTargetKind.Boolean => "Boolean",
+            FrontedBindingTargetKind.Number => "Number",
+            FrontedBindingTargetKind.String => "String",
+            FrontedBindingTargetKind.Talent => "Talent",
+            FrontedBindingTargetKind.Trait => "Trait",
+            _ => "Any"
+        };
+    }
+
+    private static IReadOnlyList<string> ResolveAllowedBindingTypeNames(FrontedBindingTargetKind kind)
+    {
+        return kind switch
+        {
+            FrontedBindingTargetKind.Text => ["string", "int", "double", "float", "decimal"],
+            FrontedBindingTargetKind.Image => ["ImageSource", "BitmapSource", "BitmapImage"],
+            FrontedBindingTargetKind.GameProgress => ["GameProgress", "GameProgress?"],
+            FrontedBindingTargetKind.Map => ["Map", "Map?"],
+            FrontedBindingTargetKind.Boolean => ["bool", "bool?"],
+            FrontedBindingTargetKind.Number => ["int", "double", "float", "decimal"],
+            FrontedBindingTargetKind.String => ["string"],
+            FrontedBindingTargetKind.Talent => ["Talent"],
+            FrontedBindingTargetKind.Trait => ["Trait"],
+            _ => ["Any"]
+        };
     }
 
     private static bool IsSupportedProperty(PropertyInfo property)

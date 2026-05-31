@@ -39,7 +39,7 @@ public partial class FrontedBindingBrowserWindow : FluentWindow
 
     private void UseSelected_OnClick(object sender, RoutedEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(ViewModel?.SelectedPath))
+        if (ViewModel?.SelectedNode?.IsSelectable != true || string.IsNullOrWhiteSpace(ViewModel.SelectedPath))
         {
             return;
         }

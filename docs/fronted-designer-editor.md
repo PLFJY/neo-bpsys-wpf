@@ -455,7 +455,7 @@ PropertyGrid
 
 Phase 8F owner validation 后，文本类属性使用显式提交模型。`Name`、`BindingPath`、普通 `Text` 字符串、资源路径字符串和手写 `FontFamily` 都先写入 `FrontedPropertyEditorItem.EditText`，按 Enter 或右侧 Check/Apply 按钮才提交。颜色行同样遵守显式提交：ColorPicker 选择颜色只把 `EditText` 和可见 Hex 文本更新为 `#AARRGGBB`，Apply 或 Hex 文本框 Enter 才写回 config；手写 Hex 有效时同步 ColorPicker，提交失败时保留输入并显示红色错误。`Name` 和 `BindingPath` 不再在 LostFocus 时自动提交，避免焦点移动和 Property Grid 重建时把未确认输入写回布局。提交失败时保留用户输入，设置 `HasEditError` / `EditError`，文本框显示红色边框，并在属性行下方显示验证消息；用户继续编辑或提交成功后错误状态清除。`Name` 仍遵守运行时关键名称只读、合法 WPF 名称、同 Canvas 唯一和被引用控件阻止重命名规则；成功重命名后刷新左侧列表、选中摘要、preview、hitbox/selection label 和属性行。
 
-Phase 8G 起，`BindingPath` 仍是可手写文本框，但旁边新增 Browse button。Binding Browser 使用 curated `ISharedDataService` 树，包含 `CurrentGame`、队伍、固定索引的 `SurPlayerList[0..3]`、`HunPlayer`、`MatchScore`、当前/全局 Ban 列表和倒计时等常用路径；搜索可按显示名或完整绑定路径过滤。选择结果只更新该行 `EditText`，不会立即写入 config，不会调用真实 `ISharedDataService`，也不会推入 Undo；用户后续按 Apply 或 Enter 后才走 `ApplyPropertyEdit`、校验、预览刷新和 Undo snapshot。
+Phase 8G 起，`BindingPath` 仍是可手写文本框，但旁边新增 Browse button。Binding Browser 使用 curated `ISharedDataService` 树，包含 `CurrentGame`、队伍、固定索引的 `SurPlayerList[0..3]`、`HunPlayer`、`MatchScore`、当前/全局 Ban 列表和倒计时等常用路径；搜索可按显示名或完整绑定路径过滤。Binding Browser 现在按当前属性行的目标类型过滤候选路径：`Text` / `LocalizedText` 只显示字符串和数字，`Image` 只显示 `ImageSource` / `BitmapSource` / `BitmapImage` 兼容值，`GameProgressText.BindingPath` 只显示 `GameProgress`，`MapNameText.BindingPath` 只显示 `Map` / `Map?`。不匹配的叶子节点会从树和搜索结果中隐藏，父节点只在仍有可用子节点时保留。选择结果只更新该行 `EditText`，不会立即写入 config，不会调用真实 `ISharedDataService`，也不会推入 Undo；用户后续按 Apply 或 Enter 后才走 `ApplyPropertyEdit`、校验、预览刷新和 Undo snapshot。
 
 Phase 8G 起，图片/资源路径字段旁新增 Resource Browser。当前资源来源包括内置运行时文件 `Resources/bpui`，返回值使用 resolver 约定的 `Resources/<fileName>`；也支持通过 “Browse file...” 选择 png/jpg/jpeg/webp/bmp 绝对路径。外部文件不会被复制或导入布局包，后续 `.bpui` / 资源管理阶段再处理打包。`Assets/icon.png` 是 WPF pack resource，当前 `IFrontedResourceResolver` 不解析 pack URI，因此不作为资源路径浏览结果提供。Canvas 级 `BackgroundImage` 目前没有 Property Grid，等 Canvas 属性编辑阶段再接入同一 Resource Browser。
 
@@ -483,7 +483,7 @@ Phase 8E 的名称编辑采用保守策略：
 
 ## 12. Binding Browser
 
-Phase 8G 已实现。任何 `BindingPath` 属性都会显示：
+Phase 8G 已实现。任何可浏览的 `BindingPath` 属性都会显示：
 
 1. `TextBox`
 2. Browse button
@@ -528,6 +528,8 @@ CurrentGame.SurTeam.Name
 CurrentGame.SurPlayerList[0].Member.Name
 CurrentGame.MatchScore.CurrentSurTeamMajorText
 ```
+
+浏览器按属性行携带的 `BindingTargetKind` 初始化过滤器。内置控件的推断规则为：`TextFrontedControlConfig.BindingPath` 和 `LocalizedTextControlConfig.BindingPath` 使用文本过滤；`ImageFrontedControlConfig.BindingPath` 使用图片过滤；`GameProgressTextControlConfig.BindingPath` 使用 `GameProgress` 过滤；`MapNameTextControlConfig.BindingPath` 使用 `Map` 过滤；未知插件或未来控件默认使用 `Any`，避免宿主过早拒绝插件自定义路径。浏览器标题区会显示当前期望绑定类型，搜索结果遵守同一过滤器，例如文本模式搜索 `Logo` 不会返回队标图片，图片模式搜索 `Name` 不会返回字符串名称。
 
 浏览器只更新属性行编辑缓冲；Apply/Enter 前，选中控件 config 仍保持旧值。取消浏览器不会修改 `EditText`。
 
@@ -649,7 +651,7 @@ Phase 8A 不实现保存 UI，只记录未来阶段行为。
 
 当前编辑器仍不做：
 
-1. 不实现 Binding Browser 或 Resource Browser。
+1. 不实现用户布局保存、重置、另存为或打开布局目录。
 2. 不保存用户布局，不实现 reset/save-as/open-folder。
 3. 不改变 `FrontedRenderer` 行为。
 4. 不修改 `AnimationService` 查找逻辑。

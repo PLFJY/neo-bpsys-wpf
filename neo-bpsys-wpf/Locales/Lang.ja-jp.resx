@@ -2227,6 +2227,39 @@
   <data name="NoResourceResults" xml:space="preserve">
     <value>一致するリソースはありません。</value>
   </data>
+  <data name="ExpectedBindingType" xml:space="preserve">
+    <value>想定バインド型</value>
+  </data>
+  <data name="AnyBinding" xml:space="preserve">
+    <value>任意のバインド</value>
+  </data>
+  <data name="TextBinding" xml:space="preserve">
+    <value>テキストバインド</value>
+  </data>
+  <data name="ImageBinding" xml:space="preserve">
+    <value>画像バインド</value>
+  </data>
+  <data name="GameProgressBinding" xml:space="preserve">
+    <value>ゲーム進行バインド</value>
+  </data>
+  <data name="MapBinding" xml:space="preserve">
+    <value>マップバインド</value>
+  </data>
+  <data name="BooleanBinding" xml:space="preserve">
+    <value>真偽値バインド</value>
+  </data>
+  <data name="NumberBinding" xml:space="preserve">
+    <value>数値バインド</value>
+  </data>
+  <data name="StringBinding" xml:space="preserve">
+    <value>文字列バインド</value>
+  </data>
+  <data name="TalentBinding" xml:space="preserve">
+    <value>人格バインド</value>
+  </data>
+  <data name="TraitBinding" xml:space="preserve">
+    <value>補助特質バインド</value>
+  </data>
   <data name="UseSelected" xml:space="preserve">
     <value>選択を使用</value>
   </data>
