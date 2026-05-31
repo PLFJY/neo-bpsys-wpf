@@ -1,7 +1,9 @@
 #nullable enable
 
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.ViewModels.Windows;
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -189,6 +191,83 @@ public class FrontedLayoutPackageManagerTest
         Assert.Equal(3, root.GetProperty("LayoutSchemaVersion").GetInt32());
         Assert.Equal("3.0.0", root.GetProperty("MinVersion").GetString());
         Assert.False(root.TryGetProperty("App", out _));
+    }
+
+    [Fact]
+    public void ExportWindowRuntimeConstructorInjectsViewModelAsDataContext()
+    {
+        var text = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Windows",
+            "FrontedLayoutPackageExportWindow.xaml.cs"));
+
+        Assert.Contains(
+            "public FrontedLayoutPackageExportWindow(FrontedLayoutPackageExportWindowViewModel viewModel)",
+            text);
+        Assert.Contains("DataContext = viewModel;", text);
+    }
+
+    [Fact]
+    public void ExportWindowViewModelDefaultsScopeAuthorAndMinVersion()
+    {
+        var viewModel = new FrontedLayoutPackageExportWindowViewModel(new FakeFilePickerService(null));
+
+        Assert.Equal(3, viewModel.ScopeOptions.Count);
+        Assert.False(viewModel.ScopeOptions.Single(option => option.Scope == FrontedLayoutPackageExportScope.CurrentCanvas).IsEnabled);
+        Assert.False(viewModel.ScopeOptions.Single(option => option.Scope == FrontedLayoutPackageExportScope.CurrentWindow).IsEnabled);
+        Assert.True(viewModel.ScopeOptions.Single(option => option.Scope == FrontedLayoutPackageExportScope.AllFrontendLayouts).IsEnabled);
+        Assert.Equal(FrontedLayoutPackageExportScope.AllFrontendLayouts, viewModel.SelectedScopeOption?.Scope);
+        Assert.Equal(Environment.UserName ?? string.Empty, viewModel.Author);
+        Assert.False(string.IsNullOrWhiteSpace(viewModel.MinVersion));
+        Assert.False(string.IsNullOrWhiteSpace(viewModel.PackageId));
+        Assert.False(string.IsNullOrWhiteSpace(viewModel.PackageName));
+        Assert.True(FrontedLayoutPackageExporter.IsSafePackageId(viewModel.PackageId));
+    }
+
+    [Fact]
+    public void BrowseOutputPathCommandCallsFilePickerAndUpdatesOutputPath()
+    {
+        var picker = new FakeFilePickerService(@"C:\exports\layout.bpui");
+        var viewModel = new FrontedLayoutPackageExportWindowViewModel(picker)
+        {
+            PackageId = "package-id"
+        };
+
+        viewModel.BrowseOutputPathCommand.Execute(null);
+
+        Assert.Equal(@"C:\exports\layout.bpui", viewModel.OutputPath);
+        Assert.Equal(1, picker.SaveBpuiFileCallCount);
+        Assert.Equal("package-id.bpui", picker.LastDefaultFileName);
+    }
+
+    [Fact]
+    public void BrowseOutputPathCommandIsSafeWithoutFilePickerService()
+    {
+        var viewModel = new FrontedLayoutPackageExportWindowViewModel();
+
+        viewModel.BrowseOutputPathCommand.Execute(null);
+
+        Assert.Equal(string.Empty, viewModel.OutputPath);
+    }
+
+    [Fact]
+    public void ExportWindowViewModelCreateRequestKeepsRootMinVersion()
+    {
+        var viewModel = new FrontedLayoutPackageExportWindowViewModel(new FakeFilePickerService(null))
+        {
+            PackageId = "package-id",
+            PackageName = "Package",
+            Author = "Author",
+            MinVersion = "2.0.9",
+            OutputPath = @"C:\exports\layout.bpui"
+        };
+
+        var request = viewModel.CreateRequest();
+
+        Assert.NotNull(request);
+        Assert.Equal("2.0.9", request.MinVersion);
+        Assert.Equal(FrontedLayoutPackageExportScope.AllFrontendLayouts, request.ExportScope);
     }
 
     [Fact]
@@ -519,5 +598,29 @@ public class FrontedLayoutPackageManagerTest
         return fourth is null
             ? Path.Combine(repositoryRoot, first, second, third)
             : Path.Combine(repositoryRoot, first, second, third, fourth);
+    }
+
+    private sealed class FakeFilePickerService(string? bpuiSavePath) : IFilePickerService
+    {
+        public int SaveBpuiFileCallCount { get; private set; }
+
+        public string? LastDefaultFileName { get; private set; }
+
+        public string? PickBpuiFile() => null;
+
+        public string? PickImage() => null;
+
+        public string? PickJsonFile() => null;
+
+        public string? PickZipFile() => null;
+
+        public string? SaveJsonFile(string defaultFileName) => null;
+
+        public string? SaveBpuiFile(string defaultFileName)
+        {
+            SaveBpuiFileCallCount++;
+            LastDefaultFileName = defaultFileName;
+            return bpuiSavePath;
+        }
     }
 }

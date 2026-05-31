@@ -2430,4 +2430,5 @@
   <data name="PackageContents" xml:space="preserve"><value>Contents</value></data>
   <data name="PackageLocation" xml:space="preserve"><value>Location</value></data>
   <data name="PackageValidation" xml:space="preserve"><value>Validation</value></data>
+  <data name="FrontendLayoutPackageDefaultName" xml:space="preserve"><value>Frontend Layout Package</value></data>
 </root>

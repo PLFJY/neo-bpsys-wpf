@@ -2433,4 +2433,5 @@
   <data name="PackageContents" xml:space="preserve"><value>内容</value></data>
   <data name="PackageLocation" xml:space="preserve"><value>場所</value></data>
   <data name="PackageValidation" xml:space="preserve"><value>検証</value></data>
+  <data name="FrontendLayoutPackageDefaultName" xml:space="preserve"><value>フロントレイアウトパッケージ</value></data>
 </root>

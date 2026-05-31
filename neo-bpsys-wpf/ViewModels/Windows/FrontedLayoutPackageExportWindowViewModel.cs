@@ -1,26 +1,35 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using System.IO;
+using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
 public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
 {
-    private readonly IFilePickerService _filePickerService;
+    private static readonly Regex UnsafePackageIdChars = new("[^a-z0-9._-]+", RegexOptions.Compiled);
+
+    private readonly IFilePickerService? _filePickerService;
 
     public FrontedLayoutPackageExportWindowViewModel()
-        : this(null!)
+        : this(null)
     {
     }
 
-    public FrontedLayoutPackageExportWindowViewModel(IFilePickerService filePickerService)
+    public FrontedLayoutPackageExportWindowViewModel(IFilePickerService? filePickerService)
     {
         _filePickerService = filePickerService;
+        Author = GetDefaultAuthor();
+        MinVersion = GetDefaultMinVersion();
+        PackageId = CreateDefaultPackageId(Author);
+        PackageName = I18nHelper.GetLocalizedString("FrontendLayoutPackageDefaultName");
         ScopeOptions =
         [
             new FrontedLayoutPackageExportScopeOption(
@@ -42,7 +51,7 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
     public IReadOnlyList<FrontedLayoutPackageExportScopeOption> ScopeOptions { get; }
 
     [ObservableProperty]
-    private string _packageId = "my-layout-package";
+    private string _packageId = string.Empty;
 
     [ObservableProperty]
     private string _packageName = string.Empty;
@@ -54,7 +63,7 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
     private string _author = string.Empty;
 
     [ObservableProperty]
-    private string _minVersion = "3.0.0";
+    private string _minVersion = string.Empty;
 
     [ObservableProperty]
     private string _outputPath = string.Empty;
@@ -68,6 +77,11 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
     [RelayCommand]
     private void BrowseOutputPath()
     {
+        if (_filePickerService is null)
+        {
+            return;
+        }
+
         var defaultName = string.IsNullOrWhiteSpace(PackageId) ? "layout-package.bpui" : $"{PackageId}.bpui";
         var path = _filePickerService.SaveBpuiFile(defaultName);
         if (!string.IsNullOrWhiteSpace(path))
@@ -120,6 +134,70 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
         }
 
         return string.Empty;
+    }
+
+    private static string GetDefaultAuthor()
+    {
+        try
+        {
+            return Environment.UserName ?? string.Empty;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    private static string GetDefaultMinVersion()
+    {
+        var appVersion = NormalizeVersion(AppConstants.AppVersion);
+        if (!string.IsNullOrWhiteSpace(appVersion))
+        {
+            return appVersion;
+        }
+
+        return Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3)
+               ?? Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)
+               ?? "3.0.0";
+    }
+
+    private static string? NormalizeVersion(string? version)
+    {
+        if (string.IsNullOrWhiteSpace(version)
+            || string.Equals(version, "unknown", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var normalized = version.Trim();
+        if (normalized.StartsWith('v') || normalized.StartsWith('V'))
+        {
+            normalized = normalized[1..];
+        }
+
+        var metadataIndex = normalized.IndexOfAny(['+', '-']);
+        if (metadataIndex > 0)
+        {
+            normalized = normalized[..metadataIndex];
+        }
+
+        return Version.TryParse(normalized, out var parsed)
+            ? parsed.ToString(parsed.Build >= 0 ? 3 : 2)
+            : null;
+    }
+
+    private static string CreateDefaultPackageId(string author)
+    {
+        var name = string.IsNullOrWhiteSpace(author) ? "user" : author;
+        var safeName = UnsafePackageIdChars.Replace(name.Trim().ToLowerInvariant(), "-")
+            .Replace("..", "-", StringComparison.Ordinal)
+            .Trim('.', '-', '_');
+        if (string.IsNullOrWhiteSpace(safeName))
+        {
+            safeName = "user";
+        }
+
+        return $"{safeName}.layout.{DateTime.Now:yyyyMMddHHmm}";
     }
 }
 

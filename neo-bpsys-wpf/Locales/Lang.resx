@@ -2560,4 +2560,7 @@
   <data name="PackageValidation" xml:space="preserve">
     <value>校验</value>
   </data>
+  <data name="FrontendLayoutPackageDefaultName" xml:space="preserve">
+    <value>前台布局包</value>
+  </data>
 </root>

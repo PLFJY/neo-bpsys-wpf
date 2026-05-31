@@ -7,9 +7,10 @@ namespace neo_bpsys_wpf.Views.Windows;
 
 public partial class FrontedLayoutPackageExportWindow : FluentWindow
 {
-    public FrontedLayoutPackageExportWindow()
+    public FrontedLayoutPackageExportWindow(FrontedLayoutPackageExportWindowViewModel viewModel)
     {
         InitializeComponent();
+        DataContext = viewModel;
     }
 
     public FrontedLayoutPackageExportRequest? ExportRequest { get; private set; }
