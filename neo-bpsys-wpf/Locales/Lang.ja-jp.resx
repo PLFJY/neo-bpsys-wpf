@@ -2137,6 +2137,30 @@
   <data name="ConfirmDeleteControl" xml:space="preserve">
     <value>選択中のコントロールを削除しますか？</value>
   </data>
+  <data name="Undo" xml:space="preserve">
+    <value>元に戻す</value>
+  </data>
+  <data name="Redo" xml:space="preserve">
+    <value>やり直し</value>
+  </data>
+  <data name="CannotUndo" xml:space="preserve">
+    <value>元に戻せる操作がありません。</value>
+  </data>
+  <data name="CannotRedo" xml:space="preserve">
+    <value>やり直せる操作がありません。</value>
+  </data>
+  <data name="PlaceholderPreview" xml:space="preserve">
+    <value>プレースホルダープレビュー</value>
+  </data>
+  <data name="DesignerPlaceholderData" xml:space="preserve">
+    <value>デザイナープレースホルダーデータ</value>
+  </data>
+  <data name="ApplyColor" xml:space="preserve">
+    <value>色を適用</value>
+  </data>
+  <data name="HexColor" xml:space="preserve">
+    <value>16進カラー</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

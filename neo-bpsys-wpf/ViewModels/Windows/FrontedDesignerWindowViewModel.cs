@@ -8,10 +8,12 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Services.FrontedDesigner;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
@@ -33,12 +35,16 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly FrontedPropertyGridBuilder _propertyGridBuilder;
     private readonly FrontedControlDefaultConfigFactory _defaultConfigFactory;
     private readonly FrontedControlNameGenerator _controlNameGenerator;
+    private readonly ISharedDataService _designerPreviewSharedDataService;
     private readonly ILogger<FrontedDesignerWindowViewModel> _logger;
     private readonly Dictionary<string, string> _propertyEditErrors = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _propertyEditBuffers = new(StringComparer.Ordinal);
+    private readonly Stack<string> _undoStack = new();
+    private readonly Stack<string> _redoStack = new();
     private IReadOnlyList<FrontedLayoutValidationMessage> _lastValidationMessages = [];
     private bool _isChangingZoomPreset;
     private bool _isRebuildingPropertyGrid;
+    private bool _isRestoringSnapshot;
     private double _lastPreviewViewportWidth;
     private double _lastPreviewViewportHeight;
 
@@ -57,6 +63,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _propertyGridBuilder = new FrontedPropertyGridBuilder();
         _defaultConfigFactory = new FrontedControlDefaultConfigFactory();
         _controlNameGenerator = new FrontedControlNameGenerator();
+        _designerPreviewSharedDataService = new DesignerPreviewSharedDataService();
         _logger = NullLogger<FrontedDesignerWindowViewModel>.Instance;
         InitializeZoomPresets();
     }
@@ -71,6 +78,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         FrontedPropertyGridBuilder propertyGridBuilder,
         FrontedControlDefaultConfigFactory defaultConfigFactory,
         FrontedControlNameGenerator controlNameGenerator,
+        DesignerPreviewSharedDataService designerPreviewSharedDataService,
         ILogger<FrontedDesignerWindowViewModel> logger)
     {
         _layoutService = layoutService;
@@ -81,6 +89,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _propertyGridBuilder = propertyGridBuilder;
         _defaultConfigFactory = defaultConfigFactory;
         _controlNameGenerator = controlNameGenerator;
+        _designerPreviewSharedDataService = designerPreviewSharedDataService;
         _logger = logger;
 
         foreach (var group in layoutCatalog.GetEntries()
@@ -161,6 +170,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public bool CanDeleteSelectedControl =>
         SelectedDesignItem is { IsSelectableInEditor: true, IsEditableInEditor: true };
 
+    public bool CanUndo => _undoStack.Count > 0;
+
+    public bool CanRedo => _redoStack.Count > 0;
+
     [ObservableProperty]
     private string _controlFilterText = string.Empty;
 
@@ -217,9 +230,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     partial void OnCurrentDocumentChanged(FrontedCanvasDesignDocument? value)
     {
         _propertyEditErrors.Clear();
+        if (!_isRestoringSnapshot)
+        {
+            ClearUndoRedo();
+        }
         RebuildFilteredDesignItems();
         RebuildPropertyEditorItems();
         UpdateFitZoomFromCurrentDocument();
+        DeleteSelectedControlCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnSelectedDesignItemChanged(FrontedControlDesignItem? value)
@@ -322,6 +340,44 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ValidateCurrentDocument();
     }
 
+    [RelayCommand(CanExecute = nameof(CanUndo))]
+    private void Undo()
+    {
+        if (CurrentDocument is null || _undoStack.Count == 0)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("CannotUndo");
+            return;
+        }
+
+        var currentSnapshot = CreateSnapshot();
+        if (currentSnapshot is not null)
+        {
+            _redoStack.Push(currentSnapshot);
+        }
+
+        RestoreSnapshot(_undoStack.Pop());
+        StatusMessage = I18nHelper.GetLocalizedString("Undo");
+    }
+
+    [RelayCommand(CanExecute = nameof(CanRedo))]
+    private void Redo()
+    {
+        if (CurrentDocument is null || _redoStack.Count == 0)
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("CannotRedo");
+            return;
+        }
+
+        var currentSnapshot = CreateSnapshot();
+        if (currentSnapshot is not null)
+        {
+            _undoStack.Push(currentSnapshot);
+        }
+
+        RestoreSnapshot(_redoStack.Pop());
+        StatusMessage = I18nHelper.GetLocalizedString("Redo");
+    }
+
     [RelayCommand]
     private void ZoomIn()
     {
@@ -361,6 +417,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
+        CaptureUndoSnapshot();
         var config = _defaultConfigFactory.Create(
             controlType,
             CurrentDocument,
@@ -418,6 +475,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
+        CaptureUndoSnapshot();
         CurrentDocument.Controls.Remove(item);
         CurrentDocument.IsDirty = true;
         DirtyIndicatorText = "●";
@@ -495,6 +553,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
+        CaptureUndoSnapshot();
         FrontedDesignerGeometryHelper.MoveBy(SelectedDesignItem, deltaX, deltaY, CurrentDocument);
         SyncLinkedOverlays(SelectedDesignItem);
         OnDesignItemGeometryChanged(renderPreview: true);
@@ -544,6 +603,24 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 changedTarget,
                 targetBounds.Value)
             : FrontedLayoutLinkedOverlaySynchronizer.SyncLinkedOverlays(CurrentDocument, changedTarget);
+    }
+
+    public void CaptureUndoSnapshot()
+    {
+        var snapshot = CreateSnapshot();
+        if (snapshot is null)
+        {
+            return;
+        }
+
+        if (_undoStack.TryPeek(out var previous) && previous == snapshot)
+        {
+            return;
+        }
+
+        _undoStack.Push(snapshot);
+        _redoStack.Clear();
+        NotifyUndoRedoCommands();
     }
 
     public void CommitDesignItemGeometryEdit()
@@ -600,6 +677,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return true;
         }
 
+        CaptureUndoSnapshot();
         property.SetValue(SelectedDesignItem.Config, convertedValue);
         item.Value = convertedValue;
         item.EditText = Convert.ToString(convertedValue, CultureInfo.InvariantCulture) ?? string.Empty;
@@ -672,6 +750,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
+        CaptureUndoSnapshot();
         SelectedDesignItem.Name = newName;
         item.Value = newName;
         item.EditText = newName;
@@ -825,6 +904,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RebuildFilteredDesignItems();
         ValidateCurrentDocument();
         RequestPreviewRenderCurrentDocument();
+        DeleteSelectedControlCommand.NotifyCanExecuteChanged();
     }
 
     private void OnDesignItemGeometryChanged(bool renderPreview)
@@ -925,8 +1005,84 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                     : new FrontedRenderContext
                     {
                         WindowId = entry.WindowId,
-                        CanvasName = entry.CanvasName
+                        CanvasName = entry.CanvasName,
+                        SharedDataServiceOverride = _designerPreviewSharedDataService
                     }));
+    }
+
+    private string? CreateSnapshot()
+    {
+        if (CurrentDocument is null)
+        {
+            return null;
+        }
+
+        return JsonSerializer.Serialize(_designConverter.ToConfig(CurrentDocument));
+    }
+
+    private void RestoreSnapshot(string snapshot)
+    {
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        var selectedName = SelectedDesignItem?.Name;
+        var windowTypeName = CurrentDocument.WindowTypeName;
+        var canvasName = CurrentDocument.CanvasName;
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(snapshot);
+        if (config is null)
+        {
+            return;
+        }
+
+        _isRestoringSnapshot = true;
+        try
+        {
+            var document = _designConverter.FromConfig(
+                windowTypeName,
+                canvasName,
+                config,
+                _runtimeContracts);
+            document.IsDirty = true;
+            CurrentDocument = document;
+            SelectDesignItem(document.Controls.FirstOrDefault(control =>
+                string.Equals(control.Name, selectedName, StringComparison.Ordinal)));
+            ApplyValidationMessages(_validator.Validate(document));
+            RequestPreviewRender(config, SelectedCanvas);
+            DirtyIndicatorText = "●";
+        }
+        finally
+        {
+            _isRestoringSnapshot = false;
+            NotifyUndoRedoCommands();
+        }
+    }
+
+    private void ClearUndoRedo()
+    {
+        _undoStack.Clear();
+        _redoStack.Clear();
+        NotifyUndoRedoCommands();
+    }
+
+    private void NotifyUndoRedoCommands()
+    {
+        OnPropertyChanged(nameof(CanUndo));
+        OnPropertyChanged(nameof(CanRedo));
+        UndoCommand.NotifyCanExecuteChanged();
+        RedoCommand.NotifyCanExecuteChanged();
+    }
+
+    private bool HasIncomingReferences(string controlName)
+    {
+        if (CurrentDocument is null)
+        {
+            return false;
+        }
+
+        _referenceScanner.SetControls(CurrentDocument.Controls);
+        return _referenceScanner.GetIncomingReferences(controlName).Count > 0;
     }
 
     private void ApplyZoomPreset(FrontedDesignerZoomPreset preset)
@@ -1117,7 +1273,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             if (targetType == typeof(string))
             {
-                convertedValue = text;
+                if (IsColorProperty(property.Name))
+                {
+                    if (!FrontedPropertyColorHelper.TryParseArgbColor(text, out var color))
+                    {
+                        errorMessage = I18nHelper.GetLocalizedString("PropertyValidationErrors");
+                        return false;
+                    }
+
+                    convertedValue = FrontedPropertyColorHelper.ToArgbString(color);
+                }
+                else
+                {
+                    convertedValue = text;
+                }
             }
             else if (targetType == typeof(bool))
             {
@@ -1208,6 +1377,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             or nameof(FrontedControlConfigBase.Top)
             or nameof(FrontedControlConfigBase.Width)
             or nameof(FrontedControlConfigBase.Height);
+    }
+
+    private static bool IsColorProperty(string propertyName)
+    {
+        return propertyName.EndsWith("Color", StringComparison.OrdinalIgnoreCase)
+               || propertyName.Equals("Foreground", StringComparison.OrdinalIgnoreCase)
+               || propertyName.Equals("Background", StringComparison.OrdinalIgnoreCase);
     }
 }
 

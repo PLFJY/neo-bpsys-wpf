@@ -1,6 +1,6 @@
 # Fronted Designer v3 独立编辑器设计规格
 
-本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；Phase 8D 已新增编辑器内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调，并在 owner validation 后补齐左侧控件列表、筛选和重叠控件选择语义。Phase 8D zoom/pan 修正后，编辑 surface 不再使用 `Viewbox` 控制 Fit/手动缩放，而是使用 `ScrollViewer + PreviewZoomHost + LayoutTransform`，所有缩放统一由 `ZoomScale` 驱动。Phase 8E 已新增基础 Property Grid，可编辑选中控件的内存设计项并即时重渲染预览；owner validation 后改为按编辑器类型实例化单一模板，提交事件在属性网格重建期间被抑制，验证详情移入底部状态区弹窗，颜色字段使用 ColorPicker。Phase 8F 已新增 Add Control 菜单、默认 config 工厂、唯一命名和 `FontFamily` 字体 ComboBox；owner validation 修正后补齐 Delete Control、文本属性显式提交、失败编辑红框保留输入、字体下拉打开/提交时机修复和右侧 Property Grid 可拖拽宽度。编辑器入口位于 `FrontManagePage`，不是 `SettingPage`。当前仍不实现 Binding Browser、Resource Browser、用户布局保存、`.bpui` 迁移，也不移除旧 `config.json` 前台设置。
+本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；Phase 8D 已新增编辑器内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调，并在 owner validation 后补齐左侧控件列表、筛选和重叠控件选择语义。Phase 8D zoom/pan 修正后，编辑 surface 不再使用 `Viewbox` 控制 Fit/手动缩放，而是使用 `ScrollViewer + PreviewZoomHost + LayoutTransform`，所有缩放统一由 `ZoomScale` 驱动。Phase 8E 已新增基础 Property Grid，可编辑选中控件的内存设计项并即时重渲染预览；owner validation 后改为按编辑器类型实例化单一模板，提交事件在属性网格重建期间被抑制，验证详情移入底部状态区弹窗，颜色字段使用 ColorPicker。Phase 8F 已新增 Add Control 菜单、默认 config 工厂、唯一命名和 `FontFamily` 字体 ComboBox；owner validation 修正后补齐 Delete Control、文本属性显式提交、失败编辑红框保留输入、字体下拉打开/提交时机修复和右侧 Property Grid 可拖拽宽度。Phase 8F foundation 修复后，设计器预览使用独立 placeholder shared data service，颜色选择只同步 Hex 缓冲并由 Apply/Enter 显式提交，左侧列表右键和 Property Grid 底部都可删除控件，并新增内存 Undo/Redo 按钮和快捷键。编辑器入口位于 `FrontManagePage`，不是 `SettingPage`。当前仍不实现 Binding Browser、Resource Browser、用户布局保存、`.bpui` 迁移，也不移除旧 `config.json` 前台设置。
 
 独立编辑器面向 v3 JSON layout 文件。它是后台侧的独立编辑窗口，不直接在真实前台窗口上编辑；真实前台窗口仍用于 OBS 捕获和运行时输出。编辑器必须同时支持单 Canvas 窗口和多 Canvas 窗口，并保持与现有 v3 renderer、生成控件名、`AnimationService`、业务控件和 JSON 格式兼容。
 
@@ -326,7 +326,7 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
 | 无绑定和无静态文本的 `Text` | overlay 标签 `[Text]` |
 | 无图片源的 `Image` | overlay 标签 `[Image]` |
 
-Phase 8F 的最小 placeholder 策略是让新增的默认 `Text` / `LocalizedText` 自带可见文本，业务控件尽量给出合法最小配置；空图片或缺少运行时数据的业务控件仍依赖 editor-only hitbox、名称标签和选择框定位。后续如果加入 `DesignerPreviewSharedDataService`，样例数据仍必须只属于编辑器预览，不能写入 layout JSON 或污染运行时共享状态。
+Phase 8F foundation 修复后，`FrontedDesignerWindow` 渲染 preview 时通过 `FrontedRenderContext.SharedDataServiceOverride` 使用 `DesignerPreviewSharedDataService`，不会调用真实 `ISharedDataService.NewGame()`，也不会修改真实运行时 `CurrentGame`。真实前台窗口仍使用 DI 中的全局 `ISharedDataService`。当前 placeholder 值包括：`MainTeam` / `AwayTeam`、应用 `Assets/icon.png` 队标、求生者 `幸运儿`、监管者 `厂长`、比分 0、选手 `Player 1` 到 `Player 5`、赛后数据 0、`GameProgress.Game1FirstHalf`、倒计时 `30`、禁用地图 `TheRedChurch`、选择地图 `EversleepingTown`、求生者天赋 `BorrowedTime` / `FlywheelEffect`、监管者天赋 `Detention` / `TrumpCard`、辅助特质 `Blink`，以及默认可见的当前/全局 Ban 位。
 
 `InteractionLayer` 可以显示 fallback overlay 标签，帮助用户定位空控件：
 
@@ -453,7 +453,7 @@ PropertyGrid
 5. 预览内置字体时按运行时同样的 split 逻辑构造 `FontFamily(new Uri(pathBeforeHash), "./" + hashAndName)`，不要把 pack URI 原样传给 `new FontFamily(string)`。
 6. 如果当前值不在选项中，ComboBox 允许手写并按原始字符串提交；无效字体字符串不能让属性网格崩溃。
 
-Phase 8F owner validation 后，文本类属性使用显式提交模型。`Name`、`BindingPath`、普通 `Text` 字符串、资源路径字符串和手写 `FontFamily` 都先写入 `FrontedPropertyEditorItem.EditText`，按 Enter 或右侧 Check/Apply 按钮才提交。`Name` 和 `BindingPath` 不再在 LostFocus 时自动提交，避免焦点移动和 Property Grid 重建时把未确认输入写回布局。提交失败时保留用户输入，设置 `HasEditError` / `EditError`，文本框显示红色边框，并在属性行下方显示验证消息；用户继续编辑或提交成功后错误状态清除。`Name` 仍遵守运行时关键名称只读、合法 WPF 名称、同 Canvas 唯一和被引用控件阻止重命名规则；成功重命名后刷新左侧列表、选中摘要、preview、hitbox/selection label 和属性行。
+Phase 8F owner validation 后，文本类属性使用显式提交模型。`Name`、`BindingPath`、普通 `Text` 字符串、资源路径字符串和手写 `FontFamily` 都先写入 `FrontedPropertyEditorItem.EditText`，按 Enter 或右侧 Check/Apply 按钮才提交。颜色行同样遵守显式提交：ColorPicker 选择颜色只把 `EditText` 和可见 Hex 文本更新为 `#AARRGGBB`，Apply 或 Hex 文本框 Enter 才写回 config；手写 Hex 有效时同步 ColorPicker，提交失败时保留输入并显示红色错误。`Name` 和 `BindingPath` 不再在 LostFocus 时自动提交，避免焦点移动和 Property Grid 重建时把未确认输入写回布局。提交失败时保留用户输入，设置 `HasEditError` / `EditError`，文本框显示红色边框，并在属性行下方显示验证消息；用户继续编辑或提交成功后错误状态清除。`Name` 仍遵守运行时关键名称只读、合法 WPF 名称、同 Canvas 唯一和被引用控件阻止重命名规则；成功重命名后刷新左侧列表、选中摘要、preview、hitbox/selection label 和属性行。
 
 `BindingPath` 仍是纯文本框，空字符串允许用于静态文本控件。Binding Browser 留到 Phase 8G；Resource Browser 同样仍是后续能力，不在 Phase 8F 修复中加入 browse button。
 
@@ -466,7 +466,7 @@ Phase 8F owner validation 后，文本类属性使用显式提交模型。`Name`
 3. 更新 hitbox 和 adorner。
 4. 标记布局 dirty。
 
-属性编辑提交必须只由用户交互触发。普通 ComboBox 在 `DropDownClosed` 后提交，文本类属性在 Enter 或 Apply 按钮后提交，CheckBox 在 Click 后提交，ColorPicker 在用户更改颜色后提交，FontFamily ComboBox 按上述下拉/手写规则提交。属性网格重建、切换选中控件、绑定初始化和 layout pass 期间应抑制提交事件，避免 BpWindow / CutSceneWindow 中大量枚举或字符串选项行触发递归重建。失败的属性提交不应请求 preview render，也不应重建到丢失用户输入。
+属性编辑提交必须只由用户交互触发。普通 ComboBox 在 `DropDownClosed` 后提交，文本类属性在 Enter 或 Apply 按钮后提交，CheckBox 在 Click 后提交，ColorPicker 只同步 Hex 编辑缓冲，颜色写回也由 Apply 或 Enter 提交，FontFamily ComboBox 按上述下拉/手写规则提交。属性网格重建、切换选中控件、绑定初始化和 layout pass 期间应抑制提交事件，避免 BpWindow / CutSceneWindow 中大量枚举或字符串选项行触发递归重建。失败的属性提交不应请求 preview render，也不应重建到丢失用户输入。
 
 拖拽和缩放过程中的 live geometry edit 只更新内存 config、linked overlay、preview element、hitbox/adorner、选中控件几何摘要和 dirty 状态，不运行完整校验、不重建 Property Grid、不强制重渲染。鼠标释放或键盘微调等 commit 操作再执行一次校验、属性行刷新和最终 preview render。
 
@@ -591,7 +591,7 @@ Resource Browser 面向图片和资源路径字段：
 
 ### Undo/Redo
 
-作为未来阶段能力记录。除非项目 owner 明确要求，初始编辑器实现不强制包含 undo/redo。
+Phase 8F foundation 修复后已提供基础内存 Undo/Redo。工具栏有 Undo / Redo 按钮，快捷键为 `Ctrl+Z`、`Ctrl+Y` 和 `Ctrl+Shift+Z`；焦点位于 `TextBox`、`ComboBox`、ColorPicker 等属性编辑器内时不抢编辑控件自身的撤销/重做。Undo/Redo 以当前 Canvas config 的 JSON 快照实现，覆盖新增控件、删除控件、成功属性提交、重命名、颜色/字体提交、键盘移动和鼠标拖拽/缩放提交；切换窗口/Canvas 或 reload 会清空栈。该能力仍只影响当前内存设计文档，不保存用户布局。
 
 ## 15. 保存和布局路径
 
@@ -637,7 +637,7 @@ Phase 8A 不实现保存 UI，只记录未来阶段行为。
 | Phase 8C | 已实现：`FrontedDesignerWindow` shell、window/canvas selector、只读 preview surface、缩放控制、layout source 状态和 validator 消息面板 |
 | Phase 8D | 已实现：interaction layer、透明 hitbox、selection adorner、drag、resize、键盘微调；owner validation 后补齐左侧控件列表/筛选、单击选择与拖拽分离、选中 hitbox editor-only 提层、拖拽/缩放时 preview live update、无显式尺寸时使用渲染实际尺寸；仍只改内存，不保存用户布局 |
 | Phase 8E | 已实现：基础 Property Grid、Text/Number/Boolean/Enum/ColorPicker 编辑、对齐/换行/拉伸/字重字符串选项 ComboBox、保守 Name 编辑、运行时关键名称只读、被引用控件改名阻止；owner validation 后验证详情移至底部状态区弹窗，属性重建期间抑制提交，live 拖拽不重建属性网格；仍只改内存，不保存用户布局 |
-| Phase 8F | 已实现：Add Control 菜单、默认 config factory、唯一命名、视口中心放置、基础 placeholder 策略、FontFamily 字体 ComboBox；仍只改内存，不保存用户布局 |
+| Phase 8F | 已实现：Add Control 菜单、默认 config factory、唯一命名、视口中心放置、独立 placeholder preview data、FontFamily 字体 ComboBox、ColorPicker Hex 缓冲显式提交、左侧右键/Property Grid 底部删除、基础内存 Undo/Redo；仍只改内存，不保存用户布局 |
 | Phase 8G | Binding Browser、Resource Browser |
 | Phase 8H | 用户 layout save/reset/load priority、validation-driven save |
 

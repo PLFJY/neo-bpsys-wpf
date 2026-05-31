@@ -110,6 +110,40 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
     }
 
+    private void ControlListItem_OnPreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is ListBoxItem { DataContext: FrontedControlDesignItem item })
+        {
+            _viewModel?.SelectDesignItem(item);
+        }
+    }
+
+    private void Window_OnPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (_viewModel is null || ShouldIgnoreKeyboardInput())
+        {
+            return;
+        }
+
+        var isControl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+        var isShift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+        if (!isControl)
+        {
+            return;
+        }
+
+        if (e.Key == Key.Z && !isShift)
+        {
+            _viewModel.UndoCommand.Execute(null);
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Y || (e.Key == Key.Z && isShift))
+        {
+            _viewModel.RedoCommand.Execute(null);
+            e.Handled = true;
+        }
+    }
+
     private void PropertyTextBox_OnKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter)
@@ -249,9 +283,10 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
-        Dispatcher.BeginInvoke(
-            () => ApplyPropertyEditorValue(picker),
-            DispatcherPriority.Background);
+        if (picker.DataContext is FrontedPropertyEditorItem item)
+        {
+            item.EditText = FrontedPropertyColorHelper.ToArgbString(item.ColorValue);
+        }
     }
 
     private bool ApplyPropertyEditorValue(object sender)
@@ -727,6 +762,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         if (action == FrontedDesignerPointerAction.BeginDragSelected)
         {
+            _viewModel.CaptureUndoSnapshot();
             _hasStartedDrag = true;
             _interactionMode = InteractionMode.Drag;
         }
@@ -919,6 +955,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
+        _viewModel?.CaptureUndoSnapshot();
         _interactionMode = mode;
         _startMousePosition = startMousePosition;
         _originalLeft = item.Config.Left;
@@ -1210,7 +1247,8 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         return FindAncestorOrSelf<System.Windows.Controls.TextBox>(focused) is not null
                || FindAncestorOrSelf<System.Windows.Controls.ComboBox>(focused) is not null
-               || FindAncestorOrSelf<System.Windows.Controls.DataGrid>(focused) is not null;
+               || FindAncestorOrSelf<System.Windows.Controls.DataGrid>(focused) is not null
+               || HasAncestorInNamespace(focused, "ColorPicker");
     }
 
     private static T? FindAncestorOrSelf<T>(DependencyObject current)
@@ -1228,6 +1266,22 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
 
         return null;
+    }
+
+    private static bool HasAncestorInNamespace(DependencyObject current, string namespacePrefix)
+    {
+        var node = current;
+        while (node is not null)
+        {
+            if (node.GetType().Namespace?.StartsWith(namespacePrefix, StringComparison.Ordinal) == true)
+            {
+                return true;
+            }
+
+            node = VisualTreeHelper.GetParent(node);
+        }
+
+        return false;
     }
 
     private enum InteractionMode

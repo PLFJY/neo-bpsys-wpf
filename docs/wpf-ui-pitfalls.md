@@ -118,16 +118,18 @@ BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.
 18. Phase 8E owner validation 后，Property Grid 行编辑器通过模板按需实例化，不要恢复成“TextBox、CheckBox、ComboBox 全部创建再用 Visibility 隐藏”的结构；否则切换选中控件时会出现未套样式的原生控件闪烁。
 19. 属性编辑事件必须避开绑定初始化：ComboBox 用 `DropDownClosed` 提交，TextBox 用 `LostFocus` 或 Enter 提交，CheckBox 用 Click 提交，ColorPicker 只在用户更改颜色后提交。属性网格重建和 layout pass 期间应抑制提交，避免 BpWindow / CutSceneWindow 选中控件时递归触发 `ApplyPropertyEdit`。
 20. Phase 8F 的 `FontFamily` 行使用可编辑 ComboBox，初始化、选中项同步和手写提交都必须尊重同一套提交抑制逻辑。内置字体选项保存 pack URI 原值，预览字体时沿用运行时的 `Uri + "./#FontName"` 构造方式，不要把显示名写回布局。
-21. Phase 8E/8F 中 `BindingPath` 和图片/资源路径仍是文本框；Binding Browser、Resource Browser 属于后续阶段。颜色字符串使用项目已有 `PortableColorPicker`，仍按 `#AARRGGBB` 存储，并保留文本 fallback。
+21. Phase 8E/8F 中 `BindingPath` 和图片/资源路径仍是文本框；Binding Browser、Resource Browser 属于后续阶段。颜色字符串使用项目已有 `PortableColorPicker`，仍按 `#AARRGGBB` 存储，并保留文本 fallback；ColorPicker 选色只同步 Hex 编辑缓冲，必须由 Apply 或 Enter 显式提交，避免初始化/选色时绕过显式提交模型。
 22. 验证详情表不在右侧属性面板常驻显示；右侧应主要保留选中控件摘要和 Property Grid。底部左侧验证摘要可点击打开非模态验证详情窗口。
 23. 拖拽和缩放 live edit 中不要运行完整校验、不要重建 Property Grid、不要强制完整重渲染。只更新几何、linked overlay、preview element、hitbox/adorner、选中几何摘要和 dirty 状态；mouse-up/commit 后再统一校验和刷新。
 24. Property Grid 输入控件获得键盘焦点时，方向键不应触发设计 surface 微调。新增编辑器控件后要继续更新 `ShouldIgnoreKeyboardInput()` 的排除列表。
 25. Phase 8F 的 Add Control 只添加内存设计项并重渲染编辑器 preview，不保存用户布局。新控件应放在当前滚动视口中心附近，并避免普通菜单暴露 `PickingBorderOverlay`。
-26. Phase 8F owner validation 后，Delete Control 只在设计 surface 焦点下响应 Delete 键；焦点位于 `TextBox`、`ComboBox`、`DataGrid`、ColorPicker 或属性编辑器内部时必须忽略，避免编辑文本时误删控件。
+26. Phase 8F owner validation 后，Delete Control 只在设计 surface 焦点下响应 Delete 键；焦点位于 `TextBox`、`ComboBox`、`DataGrid`、ColorPicker 或属性编辑器内部时必须忽略，避免编辑文本时误删控件。左侧控件列表右键菜单和 Property Grid 底部删除按钮都应调用同一个删除命令，继续复用运行时关键控件和 incoming reference 的删除保护。
 27. `Name`、`BindingPath` 和普通文本/资源路径属性使用显式提交：文本框绑定 `EditText`，按 Enter 或 Check/Apply 按钮提交。Enter 处理必须直接读取 `TextBox.Text`，不能依赖 `UpdateSourceTrigger=LostFocus` 后的 `Value`，否则会提交旧值或空值。
 28. 属性编辑失败时不要重建到丢失输入。应保留 `EditText`、设置 `HasEditError` / `EditError`、显示红色边框和行内错误消息；失败提交不应触发 preview render。
 29. `FontFamily` 的可编辑 ComboBox 不应在下拉打开时由 LostFocus 触发提交。下拉选择保存 `FrontedFontFamilyOption.Value`，手写字体按 Enter 或真正失焦保存 `ComboBox.Text`，内置字体 pack URI 不能被显示名替换。
 30. 右侧 Property Grid 面板通过中间 `GridSplitter` 调整宽度。拖动 splitter 只改变编辑器窗口布局，不写回 v3 layout JSON，也不需要在 Phase 8F 持久化。
+31. 设计器 preview 使用独立 `DesignerPreviewSharedDataService`，只通过 `FrontedRenderContext.SharedDataServiceOverride` 传给 renderer。不要为了预览调用真实共享数据服务的 `NewGame()` 或修改真实 `CurrentGame`，否则会污染导播运行时状态。
+32. Undo/Redo 快捷键只在设计 surface、列表或编辑器背景获得焦点时执行布局撤销/重做；焦点在 `TextBox`、`ComboBox`、ColorPicker 等属性编辑器内时必须让控件自身处理文本撤销。切换窗口/Canvas 或 reload 必须清空 undo/redo 栈。
 
 ## 插件 UI
 

@@ -14,4 +14,9 @@ public class FrontedRenderContext
     /// Canvas 名称。
     /// </summary>
     public required string CanvasName { get; init; }
+
+    /// <summary>
+    /// Optional shared data override for isolated preview rendering.
+    /// </summary>
+    public ISharedDataService? SharedDataServiceOverride { get; init; }
 }

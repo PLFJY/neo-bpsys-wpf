@@ -2152,6 +2152,30 @@
   <data name="ConfirmDeleteControl" xml:space="preserve">
     <value>确认删除选中控件？</value>
   </data>
+  <data name="Undo" xml:space="preserve">
+    <value>撤销</value>
+  </data>
+  <data name="Redo" xml:space="preserve">
+    <value>重做</value>
+  </data>
+  <data name="CannotUndo" xml:space="preserve">
+    <value>没有可撤销的操作。</value>
+  </data>
+  <data name="CannotRedo" xml:space="preserve">
+    <value>没有可重做的操作。</value>
+  </data>
+  <data name="PlaceholderPreview" xml:space="preserve">
+    <value>占位预览</value>
+  </data>
+  <data name="DesignerPlaceholderData" xml:space="preserve">
+    <value>设计器占位数据</value>
+  </data>
+  <data name="ApplyColor" xml:space="preserve">
+    <value>应用颜色</value>
+  </data>
+  <data name="HexColor" xml:space="preserve">
+    <value>十六进制颜色</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

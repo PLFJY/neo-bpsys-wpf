@@ -225,6 +225,7 @@ public class UpdaterService : IUpdaterService
         lock (_downloadLock)
         {
             _downloadCts?.Cancel();
+            ResetDownloadState(false);
         }
 
         _downloader.CancelAsync();

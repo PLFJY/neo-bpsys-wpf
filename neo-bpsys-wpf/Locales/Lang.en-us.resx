@@ -2134,6 +2134,30 @@
   <data name="ConfirmDeleteControl" xml:space="preserve">
     <value>Delete the selected control?</value>
   </data>
+  <data name="Undo" xml:space="preserve">
+    <value>Undo</value>
+  </data>
+  <data name="Redo" xml:space="preserve">
+    <value>Redo</value>
+  </data>
+  <data name="CannotUndo" xml:space="preserve">
+    <value>Nothing to undo.</value>
+  </data>
+  <data name="CannotRedo" xml:space="preserve">
+    <value>Nothing to redo.</value>
+  </data>
+  <data name="PlaceholderPreview" xml:space="preserve">
+    <value>Placeholder Preview</value>
+  </data>
+  <data name="DesignerPlaceholderData" xml:space="preserve">
+    <value>Designer Placeholder Data</value>
+  </data>
+  <data name="ApplyColor" xml:space="preserve">
+    <value>Apply Color</value>
+  </data>
+  <data name="HexColor" xml:space="preserve">
+    <value>Hex Color</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

@@ -32,7 +32,7 @@ public class FrontedRenderer(
         var buildContext = new FrontedControlBuildContext
         {
             Services = services,
-            SharedDataService = sharedDataService,
+            SharedDataService = context.SharedDataServiceOverride ?? sharedDataService,
             ResourceResolver = resourceResolver,
             WindowId = context.WindowId,
             CanvasName = context.CanvasName,

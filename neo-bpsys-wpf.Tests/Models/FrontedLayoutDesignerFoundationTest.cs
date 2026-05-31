@@ -6,6 +6,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Services.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.Windows;
 using System;
 using System.Collections.Generic;
@@ -372,6 +373,34 @@ public class FrontedLayoutDesignerFoundationTest
             .ToArray();
 
         Assert.Equal(["BpOverViewCanvas", "MapBpCanvas", "MapV2Canvas"], widgetsCanvases);
+    }
+
+    [Fact]
+    public void DesignerPreviewSharedDataServiceProvidesIsolatedPlaceholderGame()
+    {
+        var service = new DesignerPreviewSharedDataService();
+
+        Assert.Equal("MainTeam", service.CurrentGame.SurTeam.Name);
+        Assert.Equal("AwayTeam", service.CurrentGame.HunTeam.Name);
+        Assert.Equal("30", service.RemainingSeconds);
+        Assert.Equal(GameProgress.Game1FirstHalf, service.CurrentGame.GameProgress);
+        Assert.Equal(Map.EversleepingTown, service.CurrentGame.PickedMap);
+        Assert.Equal(Map.TheRedChurch, service.CurrentGame.BannedMap);
+        Assert.Equal("Player 1", service.CurrentGame.SurPlayerList[0].Member.Name);
+        Assert.Equal("Player 5", service.CurrentGame.HunPlayer.Member.Name);
+        Assert.Equal("幸运儿", service.CurrentGame.SurPlayerList[0].Character?.Name);
+        Assert.Equal("厂长", service.CurrentGame.HunPlayer.Character?.Name);
+        Assert.True(service.CurrentGame.SurPlayerList[0].Talent.BorrowedTime);
+        Assert.True(service.CurrentGame.SurPlayerList[0].Talent.FlywheelEffect);
+        Assert.True(service.CurrentGame.HunPlayer.Talent.Detention);
+        Assert.True(service.CurrentGame.HunPlayer.Talent.TrumpCard);
+        Assert.Equal(TraitType.Blink, service.CurrentGame.HunPlayer.Trait.TraitName);
+        Assert.Equal(0, service.CurrentGame.MatchScore.HomeTotalMinorScore);
+        Assert.Equal(0, service.CurrentGame.MatchScore.AwayTotalMinorScore);
+        Assert.All(service.CanCurrentSurBannedList, Assert.True);
+        Assert.All(service.CanCurrentHunBannedList, Assert.True);
+        Assert.All(service.CanGlobalSurBannedList, Assert.True);
+        Assert.All(service.CanGlobalHunBannedList, Assert.True);
     }
 
     [Theory]
@@ -750,6 +779,84 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void AddControlUndoRedoRestoresInMemoryDocument()
+    {
+        var document = CreateDocument([]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+
+        viewModel.AddControlCommand.Execute(new FrontedAddControlRequest { ControlType = "Text" });
+        Assert.Single(viewModel.CurrentDocument!.Controls);
+        Assert.True(viewModel.CanUndo);
+
+        viewModel.UndoCommand.Execute(null);
+        Assert.Empty(viewModel.CurrentDocument!.Controls);
+        Assert.True(viewModel.CanRedo);
+
+        viewModel.RedoCommand.Execute(null);
+        Assert.Single(viewModel.CurrentDocument!.Controls);
+    }
+
+    [Fact]
+    public void DeleteControlUndoRestoresControl()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new TextFrontedControlConfig()
+        };
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([title]) };
+        viewModel.SelectDesignItem(title);
+
+        viewModel.DeleteSelectedControlCommand.Execute(null);
+        Assert.Empty(viewModel.CurrentDocument!.Controls);
+
+        viewModel.UndoCommand.Execute(null);
+        Assert.Single(viewModel.CurrentDocument!.Controls);
+        Assert.Equal("Title", viewModel.CurrentDocument!.Controls[0].Name);
+    }
+
+    [Fact]
+    public void PropertyAndGeometryUndoRestorePreviousValuesAndClearRedoOnNewEdit()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new TextFrontedControlConfig { Text = "Old", Left = 10, Top = 20 }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([title]) };
+        viewModel.SelectDesignItem(title);
+
+        viewModel.ApplyPropertyEdit(
+            new FrontedPropertyEditorItem
+            {
+                PropertyName = nameof(TextFrontedControlConfig.Text),
+                EditorKind = FrontedPropertyEditorKind.Text
+            },
+            "New");
+        Assert.Equal("New", ((TextFrontedControlConfig)viewModel.CurrentDocument!.Controls[0].Config).Text);
+
+        viewModel.UndoCommand.Execute(null);
+        Assert.Equal("Old", ((TextFrontedControlConfig)viewModel.CurrentDocument!.Controls[0].Config).Text);
+
+        viewModel.RedoCommand.Execute(null);
+        Assert.Equal("New", ((TextFrontedControlConfig)viewModel.CurrentDocument!.Controls[0].Config).Text);
+
+        viewModel.UndoCommand.Execute(null);
+        viewModel.SelectDesignItem(viewModel.CurrentDocument!.Controls[0]);
+        viewModel.MoveSelectedDesignItemBy(5, 0);
+
+        Assert.False(viewModel.CanRedo);
+        Assert.Equal(15, viewModel.CurrentDocument!.Controls[0].Config.Left);
+
+        viewModel.UndoCommand.Execute(null);
+        Assert.Equal(10, viewModel.CurrentDocument!.Controls[0].Config.Left);
+    }
+
+    [Fact]
     public void LinkedOverlaySynchronizerCopiesTargetGeometryToPickingBorderOverlay()
     {
         var target = new FrontedControlDesignItem
@@ -1068,6 +1175,61 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Equal("#FFFFFFFF", FrontedPropertyColorHelper.ToArgbString(color));
         Assert.False(FrontedPropertyColorHelper.TryParseArgbColor("not-a-color", out var fallback));
         Assert.Equal(FrontedPropertyColorHelper.FallbackColor, fallback);
+    }
+
+    [Fact]
+    public void ColorEditorBufferTracksPickerColorAndCommitsHexExplicitly()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Color = "#FFFFFFFF" }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([item]) };
+        viewModel.SelectDesignItem(item);
+        var row = new FrontedPropertyEditorItem
+        {
+            PropertyName = nameof(TextFrontedControlConfig.Color),
+            EditorKind = FrontedPropertyEditorKind.Color,
+            Value = "#FFFFFFFF",
+            EditText = "#FFFFFFFF"
+        };
+
+        row.ColorValue = Color.FromArgb(0x80, 0x11, 0x22, 0x33);
+
+        Assert.Equal("#80112233", row.EditText);
+        Assert.Equal("#FFFFFFFF", ((TextFrontedControlConfig)item.Config).Color);
+
+        var result = viewModel.ApplyPropertyEdit(row, row.EditText);
+
+        Assert.True(result);
+        Assert.Equal("#80112233", ((TextFrontedControlConfig)item.Config).Color);
+    }
+
+    [Fact]
+    public void InvalidColorCommitKeepsEditBufferAndSetsError()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Color = "#FFFFFFFF" }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([item]) };
+        viewModel.SelectDesignItem(item);
+        var row = new FrontedPropertyEditorItem
+        {
+            PropertyName = nameof(TextFrontedControlConfig.Color),
+            EditorKind = FrontedPropertyEditorKind.Color,
+            Value = "#FFFFFFFF",
+            EditText = "bad-color"
+        };
+
+        var result = viewModel.ApplyPropertyEdit(row, row.EditText);
+
+        Assert.False(result);
+        Assert.Equal("#FFFFFFFF", ((TextFrontedControlConfig)item.Config).Color);
+        Assert.Equal("bad-color", row.EditText);
+        Assert.True(row.HasEditError);
     }
 
     [Fact]
@@ -1620,7 +1782,15 @@ public class FrontedLayoutDesignerFoundationTest
             "DeleteSelectedControl",
             "CannotDeleteRuntimeCriticalControl",
             "CannotDeleteReferencedControl",
-            "ConfirmDeleteControl"
+            "ConfirmDeleteControl",
+            "Undo",
+            "Redo",
+            "CannotUndo",
+            "CannotRedo",
+            "PlaceholderPreview",
+            "DesignerPlaceholderData",
+            "ApplyColor",
+            "HexColor"
         };
 
         foreach (var fileName in new[] { "Lang.resx", "Lang.en-us.resx", "Lang.ja-jp.resx" })
@@ -1689,6 +1859,11 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("AddControlButton_OnClick", text);
         Assert.Contains("AddControlMenuItem_OnClick", text);
         Assert.Contains("DeleteSelectedControlCommand", text);
+        Assert.Contains("UndoCommand", text);
+        Assert.Contains("RedoCommand", text);
+        Assert.Contains("ControlListItem_OnPreviewMouseRightButtonDown", text);
+        Assert.DoesNotContain("DeleteControlMenuItem_OnClick", text);
+        Assert.Contains("ApplyColor", text);
         Assert.Contains("GridSplitter", text);
         Assert.Contains("ResizeDirection=\"Columns\"", text);
         Assert.Contains("Grid.Column=\"3\"", text);
@@ -1698,6 +1873,10 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("Text=\"{Binding EditText", text);
         Assert.Contains("HasEditError", text);
         Assert.DoesNotContain("ItemsSource=\"{Binding ValidationMessages}\"", text);
+        Assert.Contains("ListBox.ContextMenu", text);
+        Assert.Contains("x:Name=\"ControlsListBox\"", text);
+        Assert.Contains("Binding DeleteSelectedControlCommand", text);
+        Assert.DoesNotContain("Setter Property=\"ContextMenu\">", text);
     }
 
     [Fact]

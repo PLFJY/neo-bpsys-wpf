@@ -111,6 +111,11 @@ public class FrontedPropertyEditorItem : ObservableObject
             }
 
             ClearEditError();
+            if (EditorKind == FrontedPropertyEditorKind.Color
+                && FrontedPropertyColorHelper.TryParseArgbColor(value, out var color))
+            {
+                SetProperty(ref _colorValue, color, nameof(ColorValue));
+            }
         }
     }
 
@@ -127,7 +132,9 @@ public class FrontedPropertyEditorItem : ObservableObject
                 return;
             }
 
-            Value = FrontedPropertyColorHelper.ToArgbString(value);
+            var colorText = FrontedPropertyColorHelper.ToArgbString(value);
+            Value = colorText;
+            EditText = colorText;
         }
     }
 
