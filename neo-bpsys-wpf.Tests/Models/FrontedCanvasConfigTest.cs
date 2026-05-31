@@ -392,6 +392,84 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
+    public void ReadsBpWindowBusinessControlConfigs()
+    {
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 810,
+              "CurrentSurBan": {
+                "ControlType": "BanSlotDisplay",
+                "SlotKind": "Current",
+                "Camp": "Sur",
+                "Index": 2,
+                "ShowLockOverlay": true,
+                "SizingMode": "FillContainer",
+                "Stretch": "Uniform",
+                "LockZIndexOffset": 1
+              },
+              "CurrentHunBan": {
+                "ControlType": "BanSlotDisplay",
+                "SlotKind": "Current",
+                "Camp": "Hun",
+                "Index": 1
+              },
+              "GlobalSurBan": {
+                "ControlType": "BanSlotDisplay",
+                "SlotKind": "Global",
+                "Camp": "Sur",
+                "Index": 11
+              },
+              "GlobalHunBan": {
+                "ControlType": "BanSlotDisplay",
+                "SlotKind": "Global",
+                "Camp": "Hun",
+                "Index": 2
+              },
+              "SurPickingBorder0": {
+                "ControlType": "PickingBorderOverlay",
+                "TargetControlName": "SurPick0",
+                "Left": 0,
+                "Top": 620,
+                "Width": 141,
+                "Height": 160,
+                "ZIndex": 2,
+                "InitiallyHidden": true
+              }
+            }
+            """);
+
+        Assert.NotNull(config);
+
+        var currentSurBan = Assert.IsType<BanSlotDisplayControlConfig>(config.Controls["CurrentSurBan"]);
+        Assert.Equal(BanSlotKind.Current, currentSurBan.SlotKind);
+        Assert.Equal(neo_bpsys_wpf.Core.Enums.Camp.Sur, currentSurBan.Camp);
+        Assert.Equal(2, currentSurBan.Index);
+        Assert.True(currentSurBan.ShowLockOverlay);
+        Assert.Equal(ImageSizingMode.FillContainer, currentSurBan.SizingMode);
+        Assert.Equal("Uniform", currentSurBan.Stretch);
+
+        var currentHunBan = Assert.IsType<BanSlotDisplayControlConfig>(config.Controls["CurrentHunBan"]);
+        Assert.Equal(BanSlotKind.Current, currentHunBan.SlotKind);
+        Assert.Equal(neo_bpsys_wpf.Core.Enums.Camp.Hun, currentHunBan.Camp);
+
+        var globalSurBan = Assert.IsType<BanSlotDisplayControlConfig>(config.Controls["GlobalSurBan"]);
+        Assert.Equal(BanSlotKind.Global, globalSurBan.SlotKind);
+        Assert.Equal(neo_bpsys_wpf.Core.Enums.Camp.Sur, globalSurBan.Camp);
+
+        var globalHunBan = Assert.IsType<BanSlotDisplayControlConfig>(config.Controls["GlobalHunBan"]);
+        Assert.Equal(BanSlotKind.Global, globalHunBan.SlotKind);
+        Assert.Equal(neo_bpsys_wpf.Core.Enums.Camp.Hun, globalHunBan.Camp);
+
+        var pickingBorder = Assert.IsType<PickingBorderOverlayControlConfig>(config.Controls["SurPickingBorder0"]);
+        Assert.Equal("PickingBorderOverlay", pickingBorder.ControlType);
+        Assert.Equal("SurPick0", pickingBorder.TargetControlName);
+        Assert.True(pickingBorder.InitiallyHidden);
+    }
+
+    [Fact]
     public void ReadsBuiltInScoreGlobalWindowLayout()
     {
         var config = ReadBuiltInLayout("ScoreGlobalWindow");
@@ -822,15 +900,158 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
+    public void ReadsBuiltInBpWindowLayout()
+    {
+        var config = ReadBuiltInLayout("BpWindow");
+
+        Assert.NotNull(config);
+        Assert.Equal(3, config.Version);
+        Assert.Equal(1440, config.CanvasWidth);
+        Assert.Equal(810, config.CanvasHeight);
+        Assert.Equal("Resources/bp.png", config.BackgroundImage);
+
+        foreach (var controlName in new[]
+                 {
+                     "SurTeamLogo",
+                     "HunTeamLogo",
+                     "SurTeamName",
+                     "HunTeamName",
+                     "SurTeamMajorPoint",
+                     "HunTeamMajorPoint",
+                     "GameScoresSur",
+                     "GameScoresHun",
+                     "Timer",
+                     "HunBanCurrent0",
+                     "HunBanCurrent1",
+                     "SurBanCurrent0",
+                     "SurBanCurrent1",
+                     "SurBanCurrent2",
+                     "SurBanCurrent3",
+                     "SurPick0",
+                     "SurPick1",
+                     "SurPick2",
+                     "SurPick3",
+                     "SurPickingBorder0",
+                     "SurPickingBorder1",
+                     "SurPickingBorder2",
+                     "SurPickingBorder3",
+                     "Map",
+                     "MapName",
+                     "GameProgress",
+                     "HunGlobalBan0",
+                     "HunGlobalBan1",
+                     "HunGlobalBan2",
+                     "SurGlobalBan0",
+                     "SurGlobalBan1",
+                     "SurGlobalBan2",
+                     "SurGlobalBan3",
+                     "SurGlobalBan4",
+                     "SurGlobalBan5",
+                     "SurGlobalBan6",
+                     "SurGlobalBan7",
+                     "SurGlobalBan8",
+                     "SurGlobalBan9",
+                     "SurGlobalBan10",
+                     "SurGlobalBan11",
+                     "HunPick",
+                     "HunPickingBorder",
+                     "SurId0",
+                     "SurId1",
+                     "SurId2",
+                     "SurId3",
+                     "HunId"
+                 })
+        {
+            Assert.Contains(controlName, config.Controls.Keys);
+        }
+
+        AssertTextBinding(config, "SurTeamMajorPoint", "CurrentGame.MatchScore.CurrentSurTeamMajorText");
+        AssertTextBinding(config, "HunTeamMajorPoint", "CurrentGame.MatchScore.CurrentHunTeamMajorText");
+        AssertTextBinding(config, "GameScoresSur", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText");
+        AssertTextBinding(config, "GameScoresHun", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText");
+        AssertTextBinding(config, "Timer", "RemainingSeconds");
+
+        var surLogo = AssertImageBinding(config, "SurTeamLogo", "CurrentGame.SurTeam.Logo");
+        Assert.Equal(ImageSizingMode.FillContainer, surLogo.SizingMode);
+        Assert.Equal("Fill", surLogo.Stretch);
+        Assert.Equal(8, surLogo.CornerRadius);
+        var hunLogo = AssertImageBinding(config, "HunTeamLogo", "CurrentGame.HunTeam.Logo");
+        Assert.Equal(ImageSizingMode.FillContainer, hunLogo.SizingMode);
+        Assert.Equal("Fill", hunLogo.Stretch);
+        Assert.Equal(8, hunLogo.CornerRadius);
+
+        for (var index = 0; index < 4; index++)
+        {
+            var pick = AssertImageBinding(
+                config,
+                $"SurPick{index}",
+                $"CurrentGame.SurPlayerList[{index}].PictureShown");
+            Assert.Equal(ImageSizingMode.OverflowCrop, pick.SizingMode);
+            Assert.Equal("UniformToFill", pick.Stretch);
+            Assert.True(pick.ClipToBounds);
+
+            var border = Assert.IsType<PickingBorderOverlayControlConfig>(config.Controls[$"SurPickingBorder{index}"]);
+            Assert.Equal($"SurPick{index}", border.TargetControlName);
+            Assert.True(border.InitiallyHidden);
+        }
+
+        var hunPick = AssertImageBinding(config, "HunPick", "CurrentGame.HunPlayer.PictureShown");
+        Assert.Equal(ImageSizingMode.Auto, hunPick.SizingMode);
+        Assert.Equal("Uniform", hunPick.Stretch);
+        Assert.Equal("Center", hunPick.HorizontalAlignment);
+        Assert.Equal("Center", hunPick.VerticalAlignment);
+        var hunBorder = Assert.IsType<PickingBorderOverlayControlConfig>(config.Controls["HunPickingBorder"]);
+        Assert.Equal("HunPick", hunBorder.TargetControlName);
+
+        var map = AssertImageBinding(config, "Map", "CurrentGame.PickedMapImageLarge");
+        Assert.Equal(ImageSizingMode.OverflowCrop, map.SizingMode);
+        Assert.Equal("UniformToFill", map.Stretch);
+
+        Assert.IsType<MapNameTextControlConfig>(config.Controls["MapName"]);
+        var gameProgress = Assert.IsType<GameProgressTextControlConfig>(config.Controls["GameProgress"]);
+        Assert.False(gameProgress.UseLineBreak);
+
+        foreach (var controlName in new[]
+                 {
+                     "HunBanCurrent0",
+                     "HunBanCurrent1",
+                     "SurBanCurrent0",
+                     "SurBanCurrent1",
+                     "SurBanCurrent2",
+                     "SurBanCurrent3",
+                     "HunGlobalBan0",
+                     "HunGlobalBan1",
+                     "HunGlobalBan2",
+                     "SurGlobalBan0",
+                     "SurGlobalBan1",
+                     "SurGlobalBan2",
+                     "SurGlobalBan3",
+                     "SurGlobalBan4",
+                     "SurGlobalBan5",
+                     "SurGlobalBan6",
+                     "SurGlobalBan7",
+                     "SurGlobalBan8",
+                     "SurGlobalBan9",
+                     "SurGlobalBan10",
+                     "SurGlobalBan11"
+                 })
+        {
+            Assert.IsType<BanSlotDisplayControlConfig>(config.Controls[controlName]);
+        }
+    }
+
+    [Fact]
     public void BuiltInGameProgressTextLayoutsUseExpectedLineBreakMode()
     {
         var cutScene = ReadBuiltInLayout("CutSceneWindow");
         var gameData = ReadBuiltInLayout("GameDataWindow");
         var widgetsOverview = ReadBuiltInLayout("WidgetsWindow", "BpOverViewCanvas");
+        var bpWindow = ReadBuiltInLayout("BpWindow");
 
         Assert.False(Assert.IsType<GameProgressTextControlConfig>(cutScene.Controls["GameProgress"]).UseLineBreak);
         Assert.False(Assert.IsType<GameProgressTextControlConfig>(gameData.Controls["GameProgress"]).UseLineBreak);
         Assert.True(Assert.IsType<GameProgressTextControlConfig>(widgetsOverview.Controls["GameProgress"]).UseLineBreak);
+        Assert.False(Assert.IsType<GameProgressTextControlConfig>(bpWindow.Controls["GameProgress"]).UseLineBreak);
     }
 
     [Fact]
@@ -853,6 +1074,78 @@ public class FrontedCanvasConfigTest
         Assert.DoesNotContain("CurrentGame.SurTeam.Score.MajorPointsOnFront", layoutText);
         Assert.DoesNotContain("CurrentGame.HunTeam.Score.MajorPointsOnFront", layoutText);
         Assert.DoesNotContain("Team.Score", layoutText);
+    }
+
+    [Fact]
+    public void BpWindowLayoutDoesNotReferenceLegacyTeamScoreBinding()
+    {
+        var layoutText = File.ReadAllText(GetBuiltInLayoutPath("BpWindow"));
+
+        Assert.DoesNotContain("CurrentGame.SurTeam.Score.GameScores", layoutText);
+        Assert.DoesNotContain("CurrentGame.HunTeam.Score.GameScores", layoutText);
+        Assert.DoesNotContain("CurrentGame.SurTeam.Score.MajorPointsOnFront", layoutText);
+        Assert.DoesNotContain("CurrentGame.HunTeam.Score.MajorPointsOnFront", layoutText);
+        Assert.DoesNotContain("Team.Score", layoutText);
+    }
+
+    [Fact]
+    public void FrontedRendererRegistersGeneratedNamesForWindowFindName()
+    {
+        RunOnStaThread(() =>
+        {
+            var sharedDataService = new Mock<ISharedDataService>();
+            var renderer = new FrontedRenderer(
+                EmptyServiceProvider.Instance,
+                sharedDataService.Object,
+                NullFrontedResourceResolver.Instance,
+                new FrontedControlRegistry([new TextFrontedControl()]),
+                NullLogger<FrontedRenderer>.Instance);
+
+            var window = new Window();
+            var canvas = new Canvas { Name = "BaseCanvas" };
+            window.Content = canvas;
+
+            renderer.RenderToCanvas(
+                canvas,
+                new FrontedCanvasConfig
+                {
+                    Version = 3,
+                    CanvasWidth = 100,
+                    CanvasHeight = 100,
+                    Controls =
+                    {
+                        ["GeneratedText"] = new TextFrontedControlConfig
+                        {
+                            Text = "Generated",
+                            Left = 1,
+                            Top = 2
+                        }
+                    }
+                },
+                new FrontedRenderContext
+                {
+                    WindowId = "TestWindow",
+                    CanvasName = "BaseCanvas"
+                });
+
+            Assert.Same(canvas.Children[0], window.FindName("GeneratedText"));
+
+            renderer.RenderToCanvas(
+                canvas,
+                new FrontedCanvasConfig
+                {
+                    Version = 3,
+                    CanvasWidth = 100,
+                    CanvasHeight = 100
+                },
+                new FrontedRenderContext
+                {
+                    WindowId = "TestWindow",
+                    CanvasName = "BaseCanvas"
+                });
+
+            Assert.Null(window.FindName("GeneratedText"));
+        });
     }
 
     [Fact]

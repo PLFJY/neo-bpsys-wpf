@@ -422,7 +422,7 @@ public partial class SharedDataService : ISharedDataService
             if (!int.TryParse(value, out _remainingSeconds))
                 _remainingSeconds = 0;
 
-            CountDownValueChanged?.Invoke(this, EventArgs.Empty);
+            NotifyCountDownValueChanged();
         }
     }
 
@@ -431,7 +431,7 @@ public partial class SharedDataService : ISharedDataService
         if (_remainingSeconds >= 0)
         {
             _remainingSeconds--;
-            CountDownValueChanged?.Invoke(this, EventArgs.Empty);
+            NotifyCountDownValueChanged();
         }
         else
         {
@@ -444,13 +444,19 @@ public partial class SharedDataService : ISharedDataService
         if (seconds == null) return;
         _remainingSeconds = (int)seconds;
         _timer.Start();
-        CountDownValueChanged?.Invoke(this, EventArgs.Empty);
+        NotifyCountDownValueChanged();
     }
 
     public void TimerStop()
     {
         _remainingSeconds = -1;
         _timer.Stop();
+        NotifyCountDownValueChanged();
+    }
+
+    private void NotifyCountDownValueChanged()
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RemainingSeconds)));
         CountDownValueChanged?.Invoke(this, EventArgs.Empty);
     }
 

@@ -32,4 +32,30 @@ public static class FrontedRendererProperties
     {
         element.SetValue(IsGeneratedControlProperty, value);
     }
+
+    /// <summary>
+    /// v3 renderer 注册到 namescope 的名称。
+    /// </summary>
+    public static readonly DependencyProperty RegisteredNameProperty =
+        DependencyProperty.RegisterAttached(
+            "RegisteredName",
+            typeof(string),
+            typeof(FrontedRendererProperties),
+            new PropertyMetadata(string.Empty));
+
+    /// <summary>
+    /// 获取 v3 renderer 注册到 namescope 的名称。
+    /// </summary>
+    public static string GetRegisteredName(DependencyObject element)
+    {
+        return (string)element.GetValue(RegisteredNameProperty);
+    }
+
+    /// <summary>
+    /// 设置 v3 renderer 注册到 namescope 的名称。
+    /// </summary>
+    public static void SetRegisteredName(DependencyObject element, string value)
+    {
+        element.SetValue(RegisteredNameProperty, value);
+    }
 }

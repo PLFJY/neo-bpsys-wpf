@@ -90,7 +90,9 @@ snackbarService.SetSnackbarPresenter(SnbPre);
 
 `FrontedWindowBase` 会把内容自动包进 `Viewbox`，并设置 `Stretch.Fill`。前台窗口内部布局应以固定画布和绑定宽高为基础，不要假设窗口内容原样作为根元素存在。
 
-Designer v3 的 `Image` 控件有 `Auto`、`FillContainer`、`OverflowCrop` 三种 `SizingMode`。旧 XAML 同时存在 direct fixed-size `ui:Image`、`Border + Image + ClipToBounds`、默认 `Border` 内图片和自定义 `MapV2Presenter`，迁移时必须逐个按旧结构选择模式。队标和 MapBp v1 地图通常用 `FillContainer`；角色裁剪图通常用 `OverflowCrop`；GameData 求生者表头头像这类旧默认 `Image` 应保留 `Auto`。`CornerRadius` 只负责圆角裁剪，不应顺手把所有图片改成填满容器。
+Designer v3 的 `Image` 控件有 `Auto`、`FillContainer`、`OverflowCrop` 三种 `SizingMode`。旧 XAML 同时存在 direct fixed-size `ui:Image`、`Border + Image + ClipToBounds`、默认 `Border` 内图片和自定义 `MapV2Presenter`，迁移时必须逐个按旧结构选择模式。队标和 MapBp v1 地图通常用 `FillContainer`；角色裁剪图通常用 `OverflowCrop`；GameData 求生者表头头像这类旧默认 `Image` 应保留 `Auto`。BpWindow 的求生者 pick 使用 `OverflowCrop + UniformToFill`，监管者 pick 保留旧 XAML 中本地 `Stretch="Uniform"` 的效果。`CornerRadius` 只负责圆角裁剪，不应顺手把所有图片改成填满容器。
+
+BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.FindName(...)` 查找 `SurPick0..3`、`HunPick`、`SurPickingBorder0..3` 和 `HunPickingBorder`，因此修改 renderer 名称注册或 BpWindow 默认布局时必须保留这些独立命名根元素。不要把 picking border 藏进 pick 图片控件内部；应继续使用 `PickingBorderOverlay`。
 
 ## 插件 UI
 

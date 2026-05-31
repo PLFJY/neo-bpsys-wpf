@@ -1,10 +1,10 @@
 # Fronted Designer v3 设计文档
 
-本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为低风险 pilot 接入 v3 renderer；Score System v2 Phase 4 已额外将 `ScoreGlobalWindow` 接入 v3 renderer 并新增 `GlobalScoreRow` 控件；Designer v3 Phase 4 已迁移 `CutSceneWindow`；Designer v3 Phase 5 已迁移 `GameDataWindow` 并新增 `LocalizedText`；Designer v3 Phase 6 已迁移多 Canvas 的 `WidgetsWindow`，并新增 `CurrentBanDisplay` / `MapV2Display`。`BpWindow`、独立编辑器和 `.bpui` 转换仍按后续阶段推进。
+本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为低风险 pilot 接入 v3 renderer；Score System v2 Phase 4 已额外将 `ScoreGlobalWindow` 接入 v3 renderer 并新增 `GlobalScoreRow` 控件；Designer v3 Phase 4 已迁移 `CutSceneWindow`；Designer v3 Phase 5 已迁移 `GameDataWindow` 并新增 `LocalizedText`；Designer v3 Phase 6 已迁移多 Canvas 的 `WidgetsWindow`，并新增 `CurrentBanDisplay` / `MapV2Display`；Designer v3 Phase 7 已迁移 `BpWindow`，并新增 `BanSlotDisplay` / `PickingBorderOverlay`。独立编辑器和 `.bpui` 转换仍按后续阶段推进。
 
 ## 1. 背景与目标
 
-当前设计者模式历史上是 XAML-first：前台窗口的具体控件直接写在各窗口 XAML 中，运行时再由 `FrontedWindowService` 扫描 Canvas 子元素并保存/恢复每个 Canvas 的 `ElementInfo`。这些布局文件主要记录 `Left`、`Top`、`Width`、`Height`，而前台自定义图片、文本设置、颜色、字体和窗口设置仍存放在 `config.json`。旧 `.bpui` 包也和 `Config.json`、`CustomUi/`、`FrontElementsConfig/` 等历史结构耦合。当前 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow` 和 `WidgetsWindow` 已接入 v3 renderer，但 `BpWindow` 仍是 XAML-first。
+当前设计者模式历史上是 XAML-first：前台窗口的具体控件直接写在各窗口 XAML 中，运行时再由 `FrontedWindowService` 扫描 Canvas 子元素并保存/恢复每个 Canvas 的 `ElementInfo`。这些布局文件主要记录 `Left`、`Top`、`Width`、`Height`，而前台自定义图片、文本设置、颜色、字体和窗口设置仍存放在 `config.json`。旧 `.bpui` 包也和 `Config.json`、`CustomUi/`、`FrontElementsConfig/` 等历史结构耦合。当前 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 和 `BpWindow` 已接入 v3 renderer。
 
 v3 目标是转向 JSON/config-driven UI：前台窗口 XAML 最终只保留外层 Canvas，控件由 JSON 配置描述，并由已注册的控件工厂创建。这样可以把布局、素材、控件类型和绑定关系放到可迁移、可导入导出的结构中，也为独立编辑窗口、插件扩展控件和新版 `.bpui` 包打基础。
 
@@ -119,6 +119,8 @@ v3 初始内置控件类型建议只包含：
 | `GameProgressText` | `CutSceneWindow` 默认布局控件，集中生成 BO3/BO5 相关的对局进度文本。 |
 | `MapNameText` | `CutSceneWindow` 默认布局控件，按地图 key 生成本地化地图名。 |
 | `CurrentBanDisplay` | `WidgetsWindow` 当前局 Ban 位控件，封装当前 Ban 头像和锁定覆盖层。 |
+| `BanSlotDisplay` | `BpWindow` 当前局/全局 Ban 位控件，封装 Ban 头像和当前/全局锁定覆盖层。 |
+| `PickingBorderOverlay` | `BpWindow` pick 呼吸边框覆盖层，保留 `AnimationService` 查找的独立命名元素。 |
 | `MapV2Display` | `WidgetsWindow` 地图 BP v2 控件，复用 `MapV2Presenter`。 |
 
 ### Text
@@ -183,10 +185,12 @@ new Binding(config.BindingPath)
 | `TalentTraitDisplay` | 求生者 4 个固定天赋、监管者 4 个固定天赋、监管者辅助特质、辅助特质显隐状态，以及黑白图标设置。 |
 | `GameProgressText` | `CurrentGame.GameProgress` + `IsBo3Mode` 的显示文本，显式区分 BO3 第三局加赛与 BO5 第四局；`UseLineBreak = true` 时把 Game / Overtime 和 half 分为两行，当前用于 `WidgetsWindow/BpOverViewCanvas.json`。 |
 | `MapNameText` | 地图 key 到本地化显示名的转换；未配置 `BindingPath` 时默认读取 `CurrentGame.PickedMap`，`WidgetsWindow/MapBpCanvas.json` 用 `BindingPath` 分别显示 picked / banned map。 |
-| `CurrentBanDisplay` | 读取 `CurrentGame.CurrentHunBannedList` / `CurrentGame.CurrentSurBannedList` 和 `CanCurrent*BannedList`，显示当前 Ban 头像及 `Settings.CurrentBanLockImage` 锁定覆盖层。 |
+| `CurrentBanDisplay` | 读取 `CurrentGame.CurrentHunBannedList` / `CurrentGame.CurrentSurBannedList` 和 `CanCurrent*BannedList`，显示当前 Ban 头像及 Widgets 设置中的当前 Ban 锁图。 |
+| `BanSlotDisplay` | 读取 `CurrentGame` 的当前局或全局 Ban 列表，并按 `CanCurrent*BannedList` / `CanGlobal*BannedList` 显示 `BpWindowSettings.CurrentBanLockImage` 或 `GlobalBanLockImage`。 |
+| `PickingBorderOverlay` | 使用 `BpWindowSettings.PickingBorderBrush` 和 `PickingBorderImage` 生成独立覆盖层，默认隐藏，供 `AnimationService` 控制呼吸动画。 |
 | `MapV2Display` | 通过 `MapKey` 读取 `CurrentGame.MapV2Dictionary`，复用 `MapV2Presenter` 并使用 WidgetsWindow 当前 Map BP v2 文本和 picking border 设置。 |
 
-维护 CutScene 默认布局时，不应把四个天赋图标拆成四个普通 `Image` 控件，也不应在 JSON 中复制 BO3/BO5 文本判断；应继续使用这些内置业务控件。维护 GameData 默认布局时，地图名和对局进度也应继续使用 `MapNameText` / `GameProgressText`，表头应使用 `LocalizedText`。维护 Widgets 默认布局时，当前 Ban 槽位应使用 `CurrentBanDisplay`，Map BP v2 九宫位应使用 `MapV2Display`，`BpOverViewCanvas` 比分文本读取 `CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText` / `CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText`，不再读取 `Team.Score.GameScores`。CutScene 和 GameData 大比分文本读取 `CurrentGame.MatchScore.CurrentSurTeamMajorText` / `CurrentGame.MatchScore.CurrentHunTeamMajorText`，不再读取旧 `Team.Score.MajorPointsOnFront`。
+维护 CutScene 默认布局时，不应把四个天赋图标拆成四个普通 `Image` 控件，也不应在 JSON 中复制 BO3/BO5 文本判断；应继续使用这些内置业务控件。维护 GameData 默认布局时，地图名和对局进度也应继续使用 `MapNameText` / `GameProgressText`，表头应使用 `LocalizedText`。维护 Widgets 默认布局时，当前 Ban 槽位应使用 `CurrentBanDisplay`，Map BP v2 九宫位应使用 `MapV2Display`，`BpOverViewCanvas` 比分文本读取 `CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText` / `CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText`，不再读取 `Team.Score.GameScores`。维护 BpWindow 默认布局时，当前局和全局 Ban 槽位应使用 `BanSlotDisplay`，pick 呼吸边框应使用独立的 `PickingBorderOverlay`，比分文本读取 `CurrentGame.MatchScore` 派生字段，不再读取旧 `Team.Score`。CutScene、GameData 和 BpWindow 大比分文本读取 `CurrentGame.MatchScore.CurrentSurTeamMajorText` / `CurrentGame.MatchScore.CurrentHunTeamMajorText`，不再读取旧 `Team.Score.MajorPointsOnFront`。
 
 `MapV2Display` 不应拆成普通 `Image` / `Text` 控件。它有自己的 `MapV2Presenter`，内部包含地图 `ImageBrush Stretch=UniformToFill`、队标、地图名、阵营文本/图标和 picking border 动画；v3 只负责让 `MapV2Presenter` 填满外层宿主尺寸。
 
@@ -203,6 +207,8 @@ new Binding(config.BindingPath)
 | 动画 | 第一实现阶段不要重设计 `AnimationService`，除非收到明确需求。 |
 
 这意味着迁移 `BpWindow` 时，配置驱动渲染器不仅要创建主 pick 图片，还要创建能被现有逻辑找到的 overlay 控件。
+
+Phase 7 后，`BpWindow` 已迁移到 `Resources/FrontedLayouts/BpWindow/BaseCanvas.json`。`BpWindow.xaml` 不再持有 BP 控件，只保留外层 `BaseCanvas`；默认布局中的 `SurPick0..3`、`HunPick`、`SurPickingBorder0..3` 和 `HunPickingBorder` 由 v3 renderer 生成。renderer 会在渲染生成控件时把控件名注册到窗口 namescope，并在清理生成控件前注销已注册名称，因此 `AnimationService` 继续可以通过 `window.FindName(...)` 找到 pick 图和呼吸边框。
 
 ## 7. 插件扩展方向
 
@@ -281,8 +287,9 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 4 | 已迁移 `CutSceneWindow` 到 v3 renderer，并使用 `TalentTraitDisplay`、`GameProgressText`、`MapNameText` 封装天赋/辅助特质、BO3/BO5 进度文本和地图名本地化。Score System v2 已在独立 Phase 4 中先迁移 `ScoreGlobalWindow`。`BpWindow` 尚未迁移，后续迁移仍需保留 PickingBorder、BanLock、BP 动画兼容性。 |
 | Phase 5 | 已迁移 `GameDataWindow` 到 v3 renderer。默认布局位于 `Resources/FrontedLayouts/GameDataWindow/BaseCanvas.json`，表头使用 `LocalizedText`，地图名/对局进度使用 `MapNameText` / `GameProgressText`，比分绑定 `CurrentGame.MatchScore`。 |
 | Phase 6 | 已迁移 `WidgetsWindow` 到 v3 renderer。该窗口有 `MapBpCanvas`、`BpOverViewCanvas`、`MapV2Canvas` 三个独立 Canvas 和三份独立布局文件；新增 `CurrentBanDisplay`、`MapV2Display`，并让 `MapNameText.BindingPath` 支持 picked / banned map。 |
-| Phase 7 | 实现独立前台编辑窗口。 |
-| Phase 8 | 实现 v3 `.bpui` 导出/导入和 legacy `.bpui` 转换。 |
+| Phase 7 | 已迁移 `BpWindow` 到 v3 renderer。新增 `BanSlotDisplay` 封装当前局/全局 Ban 头像和锁定覆盖层，新增 `PickingBorderOverlay` 保留 pick 呼吸边框的独立命名动画目标，v3 renderer 注册生成控件名以兼容 `AnimationService`。 |
+| Phase 8 | 实现独立前台编辑窗口。 |
+| Phase 9 | 实现 v3 `.bpui` 导出/导入和 legacy `.bpui` 转换。 |
 
 每个阶段都应有明确回退策略。涉及用户可见文本时，应同步考虑 `WPFLocalizeExtension` 和 `Locales/*.resx`。
 
@@ -293,7 +300,7 @@ Phase 2 之后仍明确不做以下事情：
 | 非目标 | 说明 |
 | --- | --- |
 | 修改无关运行时行为 | 不改 ViewModel、插件加载逻辑或未迁移窗口的运行逻辑。 |
-| 继续批量迁移 XAML | 当前只迁移 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow` 和 `WidgetsWindow`；`BpWindow` 仍是 XAML-first。 |
+| 继续批量迁移 XAML | 当前已迁移 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 和 `BpWindow`；后续不应顺手改无关窗口。 |
 | 替换旧设计者/编辑器 | 当前 `DesignBehavior`、旧设计者入口和 `FrontedWindowService` 行为保持不变；独立编辑器尚未实现。 |
 | 移除 `config.json` 中的前台设置 | 自定义图片、文本设置、窗口设置仍保留在当前结构中。 |
 | 实现编辑器 UI | 不新增独立编辑窗口、Property Grid 或 Binding browser。 |

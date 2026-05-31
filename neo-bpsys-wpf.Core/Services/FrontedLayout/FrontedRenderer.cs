@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Windows.Markup;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -53,6 +54,7 @@ public class FrontedRenderer(
             {
                 Source = canvas.DataContext
             });
+            RegisterGeneratedName(canvas, name, element);
             canvas.Children.Add(element);
         }
     }
@@ -64,8 +66,60 @@ public class FrontedRenderer(
             if (canvas.Children[i] is DependencyObject dependencyObject
                 && FrontedRendererProperties.GetIsGeneratedControl(dependencyObject))
             {
+                UnregisterGeneratedName(canvas, dependencyObject);
                 canvas.Children.RemoveAt(i);
             }
+        }
+    }
+
+    private static void RegisterGeneratedName(Canvas canvas, string name, FrameworkElement element)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        var nameScopeOwner = GetNameScopeOwner(canvas);
+        EnsureNameScope(nameScopeOwner);
+        TryUnregisterName(nameScopeOwner, name);
+        nameScopeOwner.RegisterName(name, element);
+        FrontedRendererProperties.SetRegisteredName(element, name);
+    }
+
+    private static void UnregisterGeneratedName(Canvas canvas, DependencyObject element)
+    {
+        var name = FrontedRendererProperties.GetRegisteredName(element);
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        TryUnregisterName(GetNameScopeOwner(canvas), name);
+        FrontedRendererProperties.SetRegisteredName(element, string.Empty);
+    }
+
+    private static FrameworkElement GetNameScopeOwner(Canvas canvas)
+    {
+        return (FrameworkElement?)Window.GetWindow(canvas) ?? canvas;
+    }
+
+    private static void EnsureNameScope(FrameworkElement element)
+    {
+        if (NameScope.GetNameScope(element) is null)
+        {
+            NameScope.SetNameScope(element, new NameScope());
+        }
+    }
+
+    private static void TryUnregisterName(FrameworkElement element, string name)
+    {
+        try
+        {
+            element.UnregisterName(name);
+        }
+        catch (ArgumentException)
+        {
+            // Name was not registered in this namescope.
         }
     }
 
