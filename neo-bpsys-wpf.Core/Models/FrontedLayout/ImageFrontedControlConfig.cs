@@ -14,6 +14,11 @@ public class ImageFrontedControlConfig : FrontedControlConfigBase
     }
 
     /// <summary>
+    /// 图片控件的尺寸模式。
+    /// </summary>
+    public ImageSizingMode SizingMode { get; set; } = ImageSizingMode.Auto;
+
+    /// <summary>
     /// 图片拉伸方式。
     /// </summary>
     public string? Stretch { get; set; }

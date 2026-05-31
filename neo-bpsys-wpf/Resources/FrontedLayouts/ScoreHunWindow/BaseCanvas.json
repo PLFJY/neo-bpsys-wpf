@@ -10,6 +10,7 @@
     "Width": 116,
     "Height": 114,
     "BindingPath": "CurrentGame.HunTeam.Logo",
+    "SizingMode": "FillContainer",
     "Stretch": "Fill",
     "CornerRadius": 8,
     "ZIndex": 1

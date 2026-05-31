@@ -10,6 +10,7 @@
     "Width": 290,
     "Height": 138,
     "BindingPath": "CurrentGame.PickedMapImage",
+    "SizingMode": "FillContainer",
     "Stretch": "UniformToFill",
     "CornerRadius": 8,
     "ClipToBounds": true
@@ -98,6 +99,7 @@
     "Width": 290,
     "Height": 138,
     "BindingPath": "CurrentGame.BannedMapImage",
+    "SizingMode": "FillContainer",
     "Stretch": "UniformToFill",
     "CornerRadius": 8,
     "ClipToBounds": true

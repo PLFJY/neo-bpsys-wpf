@@ -10,6 +10,7 @@
     "Width": 85,
     "Height": 85,
     "BindingPath": "CurrentGame.SurTeam.Logo",
+    "SizingMode": "FillContainer",
     "Stretch": "Fill",
     "CornerRadius": 8,
     "ZIndex": 1
@@ -70,6 +71,7 @@
     "Width": 328,
     "Height": 132,
     "BindingPath": "CurrentGame.PickedMapImage",
+    "SizingMode": "OverflowCrop",
     "Stretch": "UniformToFill",
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
@@ -162,6 +164,7 @@
     "Width": 85,
     "Height": 86,
     "BindingPath": "CurrentGame.HunTeam.Logo",
+    "SizingMode": "FillContainer",
     "Stretch": "Fill",
     "CornerRadius": 8,
     "ZIndex": 1
@@ -292,7 +295,7 @@
     "Width": 50,
     "Height": 50,
     "BindingPath": "CurrentGame.SurPlayerList[0].Character.HeaderImage",
-    "Stretch": "Uniform",
+    "SizingMode": "Auto",
     "ZIndex": 1
   },
   "Player1Header": {
@@ -302,7 +305,7 @@
     "Width": 50,
     "Height": 50,
     "BindingPath": "CurrentGame.SurPlayerList[1].Character.HeaderImage",
-    "Stretch": "Uniform",
+    "SizingMode": "Auto",
     "ZIndex": 1
   },
   "Player2Header": {
@@ -312,7 +315,7 @@
     "Width": 50,
     "Height": 50,
     "BindingPath": "CurrentGame.SurPlayerList[2].Character.HeaderImage",
-    "Stretch": "Uniform",
+    "SizingMode": "Auto",
     "ZIndex": 1
   },
   "Player3Header": {
@@ -322,7 +325,7 @@
     "Width": 50,
     "Height": 50,
     "BindingPath": "CurrentGame.SurPlayerList[3].Character.HeaderImage",
-    "Stretch": "Uniform",
+    "SizingMode": "Auto",
     "ZIndex": 1
   },
   "SurId0": {
@@ -720,6 +723,7 @@
     "Width": 314,
     "Height": 96,
     "BindingPath": "CurrentGame.HunPlayer.Character.HalfImage",
+    "SizingMode": "OverflowCrop",
     "Stretch": "UniformToFill",
     "ZIndex": 1
   },

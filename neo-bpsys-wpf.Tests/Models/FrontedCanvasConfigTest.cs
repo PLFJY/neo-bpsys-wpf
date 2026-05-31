@@ -1,8 +1,12 @@
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Controls.FrontedLayout;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System;
@@ -11,6 +15,7 @@ using System.IO;
 using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Threading;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
@@ -57,6 +62,7 @@ public class FrontedCanvasConfigTest
                 "Height": 160,
                 "BindingPath": "CurrentGame.SurPlayerList[1].PictureShown",
                 "ZIndex": 1,
+                "SizingMode": "OverflowCrop",
                 "Stretch": "Fill",
                 "HorizontalAlignment": "Center",
                 "VerticalAlignment": "Top",
@@ -89,6 +95,7 @@ public class FrontedCanvasConfigTest
         var image = Assert.IsType<ImageFrontedControlConfig>(config.Controls["SurPick1"]);
         Assert.Equal(143, image.Left);
         Assert.Equal(160, image.Height);
+        Assert.Equal(ImageSizingMode.OverflowCrop, image.SizingMode);
         Assert.Equal("Fill", image.Stretch);
         Assert.Equal("Center", image.HorizontalAlignment);
         Assert.Equal("Top", image.VerticalAlignment);
@@ -98,6 +105,32 @@ public class FrontedCanvasConfigTest
         Assert.True(image.PickingBorder);
         Assert.Equal("Resources/pickingBorder.png", image.PickingBorderImagePath);
         Assert.True(image.BanLockAvailable);
+    }
+
+    [Theory]
+    [InlineData("Auto", ImageSizingMode.Auto)]
+    [InlineData("FillContainer", ImageSizingMode.FillContainer)]
+    [InlineData("OverflowCrop", ImageSizingMode.OverflowCrop)]
+    public void ReadsImageSizingModeStringValues(string jsonValue, ImageSizingMode expected)
+    {
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            $$"""
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 810,
+              "Logo": {
+                "ControlType": "Image",
+                "Left": 10,
+                "Top": 20,
+                "SizingMode": "{{jsonValue}}"
+              }
+            }
+            """);
+
+        Assert.NotNull(config);
+        var image = Assert.IsType<ImageFrontedControlConfig>(config.Controls["Logo"]);
+        Assert.Equal(expected, image.SizingMode);
     }
 
     [Fact]
@@ -142,6 +175,8 @@ public class FrontedCanvasConfigTest
         Assert.Contains("GameScoresSur", config.Controls.Keys);
 
         var logo = AssertImageBinding(config, "SurTeamLogo", "CurrentGame.SurTeam.Logo");
+        Assert.Equal(ImageSizingMode.FillContainer, logo.SizingMode);
+        Assert.Equal("Fill", logo.Stretch);
         Assert.True(logo.CornerRadius.HasValue);
         Assert.Equal(8, logo.CornerRadius.Value);
         AssertTextBinding(config, "SurTeamName", "CurrentGame.SurTeam.Name");
@@ -166,6 +201,8 @@ public class FrontedCanvasConfigTest
         Assert.Contains("GameScoresHun", config.Controls.Keys);
 
         var logo = AssertImageBinding(config, "HunTeamLogo", "CurrentGame.HunTeam.Logo");
+        Assert.Equal(ImageSizingMode.FillContainer, logo.SizingMode);
+        Assert.Equal("Fill", logo.Stretch);
         Assert.True(logo.CornerRadius.HasValue);
         Assert.Equal(8, logo.CornerRadius.Value);
         AssertTextBinding(config, "HunTeamName", "CurrentGame.HunTeam.Name");
@@ -466,14 +503,32 @@ public class FrontedCanvasConfigTest
             Assert.Contains(controlName, config.Controls.Keys);
         }
 
-        AssertImageBinding(config, "SurTeamLogo", "CurrentGame.SurTeam.Logo");
-        AssertImageBinding(config, "HunTeamLogo", "CurrentGame.HunTeam.Logo");
+        Assert.Equal(
+            ImageSizingMode.FillContainer,
+            AssertImageBinding(config, "SurTeamLogo", "CurrentGame.SurTeam.Logo").SizingMode);
+        Assert.Equal(
+            ImageSizingMode.FillContainer,
+            AssertImageBinding(config, "HunTeamLogo", "CurrentGame.HunTeam.Logo").SizingMode);
         AssertImageBinding(config, "Map", "CurrentGame.PickedMapImage");
-        AssertImageBinding(config, "SurPick0", "CurrentGame.SurPlayerList[0].Character.BigImage");
-        AssertImageBinding(config, "SurPick1", "CurrentGame.SurPlayerList[1].Character.BigImage");
-        AssertImageBinding(config, "SurPick2", "CurrentGame.SurPlayerList[2].Character.BigImage");
-        AssertImageBinding(config, "SurPick3", "CurrentGame.SurPlayerList[3].Character.BigImage");
-        AssertImageBinding(config, "HunPick", "CurrentGame.HunPlayer.Character.BigImage");
+        for (var index = 0; index < 4; index++)
+        {
+            var pick = AssertImageBinding(
+                config,
+                $"SurPick{index}",
+                $"CurrentGame.SurPlayerList[{index}].Character.BigImage");
+            Assert.Equal(ImageSizingMode.OverflowCrop, pick.SizingMode);
+            Assert.Equal("UniformToFill", pick.Stretch);
+            Assert.True(pick.ClipToBounds);
+            Assert.Equal("Center", pick.HorizontalAlignment);
+            Assert.Equal("Top", pick.VerticalAlignment);
+        }
+
+        var hunPick = AssertImageBinding(config, "HunPick", "CurrentGame.HunPlayer.Character.BigImage");
+        Assert.Equal(ImageSizingMode.OverflowCrop, hunPick.SizingMode);
+        Assert.Equal("UniformToFill", hunPick.Stretch);
+        Assert.True(hunPick.ClipToBounds);
+        Assert.Equal("Center", hunPick.HorizontalAlignment);
+        Assert.Equal("Top", hunPick.VerticalAlignment);
 
         AssertTextBinding(config, "SurTeamName", "CurrentGame.SurTeam.Name");
         AssertTextBinding(config, "HunTeamName", "CurrentGame.HunTeam.Name");
@@ -562,10 +617,12 @@ public class FrontedCanvasConfigTest
 
         for (var index = 0; index < 4; index++)
         {
-            AssertImageBinding(
+            var header = AssertImageBinding(
                 config,
                 $"Player{index}Header",
                 $"CurrentGame.SurPlayerList[{index}].Character.HeaderImage");
+            Assert.Equal(ImageSizingMode.Auto, header.SizingMode);
+            Assert.Null(header.Stretch);
             AssertTextBinding(config, $"SurId{index}", $"CurrentGame.SurPlayerList[{index}].Member.Name");
 
             var machineDecoded = AssertTextBinding(
@@ -592,10 +649,18 @@ public class FrontedCanvasConfigTest
                 $"CurrentGame.SurPlayerList[{index}].Data.ContainmentTime");
         }
 
-        AssertImageBinding(config, "SurTeamLogo", "CurrentGame.SurTeam.Logo");
-        AssertImageBinding(config, "HunTeamLogo", "CurrentGame.HunTeam.Logo");
-        AssertImageBinding(config, "Map", "CurrentGame.PickedMapImage");
-        AssertImageBinding(config, "HunImage", "CurrentGame.HunPlayer.Character.HalfImage");
+        Assert.Equal(
+            ImageSizingMode.FillContainer,
+            AssertImageBinding(config, "SurTeamLogo", "CurrentGame.SurTeam.Logo").SizingMode);
+        Assert.Equal(
+            ImageSizingMode.FillContainer,
+            AssertImageBinding(config, "HunTeamLogo", "CurrentGame.HunTeam.Logo").SizingMode);
+        var map = AssertImageBinding(config, "Map", "CurrentGame.PickedMapImage");
+        Assert.Equal(ImageSizingMode.OverflowCrop, map.SizingMode);
+        Assert.Equal("UniformToFill", map.Stretch);
+        var hunImage = AssertImageBinding(config, "HunImage", "CurrentGame.HunPlayer.Character.HalfImage");
+        Assert.Equal(ImageSizingMode.OverflowCrop, hunImage.SizingMode);
+        Assert.Equal("UniformToFill", hunImage.Stretch);
 
         AssertTextBinding(config, "SurTeamName", "CurrentGame.SurTeam.Name");
         AssertTextBinding(config, "HunTeamName", "CurrentGame.HunTeam.Name");
@@ -668,6 +733,14 @@ public class FrontedCanvasConfigTest
         Assert.Equal("CurrentGame.PickedMap", pickedMapName.BindingPath);
         var bannedMapName = Assert.IsType<MapNameTextControlConfig>(mapBpCanvas.Controls["BannedMapName"]);
         Assert.Equal("CurrentGame.BannedMap", bannedMapName.BindingPath);
+        foreach (var controlName in new[] { "PickedMap", "BannedMap" })
+        {
+            var mapImage = Assert.IsType<ImageFrontedControlConfig>(mapBpCanvas.Controls[controlName]);
+            Assert.Equal(ImageSizingMode.FillContainer, mapImage.SizingMode);
+            Assert.Equal("UniformToFill", mapImage.Stretch);
+            Assert.True(mapImage.ClipToBounds);
+            Assert.Equal(8, mapImage.CornerRadius);
+        }
 
         Assert.Equal(1132, bpOverViewCanvas.CanvasWidth);
         Assert.Equal(182, bpOverViewCanvas.CanvasHeight);
@@ -701,6 +774,20 @@ public class FrontedCanvasConfigTest
         var gameProgress = Assert.IsType<GameProgressTextControlConfig>(bpOverViewCanvas.Controls["GameProgress"]);
         Assert.Equal("GameProgressText", gameProgress.ControlType);
         Assert.True(gameProgress.UseLineBreak);
+        Assert.Equal(
+            ImageSizingMode.FillContainer,
+            Assert.IsType<ImageFrontedControlConfig>(bpOverViewCanvas.Controls["SurTeamLogo"]).SizingMode);
+        Assert.Equal(
+            ImageSizingMode.FillContainer,
+            Assert.IsType<ImageFrontedControlConfig>(bpOverViewCanvas.Controls["HunTeamLogo"]).SizingMode);
+        foreach (var controlName in new[] { "SurPick0", "SurPick1", "SurPick2", "SurPick3", "HunPick" })
+        {
+            var pick = Assert.IsType<ImageFrontedControlConfig>(bpOverViewCanvas.Controls[controlName]);
+            Assert.Equal(ImageSizingMode.OverflowCrop, pick.SizingMode);
+            Assert.Equal("UniformToFill", pick.Stretch);
+            Assert.True(pick.ClipToBounds);
+        }
+
         AssertTextBinding(bpOverViewCanvas, "GameScoresSur", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText");
         AssertTextBinding(bpOverViewCanvas, "GameScoresHun", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText");
 
@@ -940,6 +1027,158 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
+    public void ImageFrontedControlFillContainerBindsImageToOuterBorderSize()
+    {
+        RunOnStaThread(() =>
+        {
+            var control = new ImageFrontedControl();
+            var element = control.Create(
+                "Logo",
+                new ImageFrontedControlConfig
+                {
+                    Width = 85,
+                    Height = 85,
+                    SizingMode = ImageSizingMode.FillContainer,
+                    Stretch = "Fill"
+                },
+                CreateBuildContext());
+
+            var border = Assert.IsType<Border>(element);
+            var image = Assert.IsType<Image>(border.Child);
+            Assert.Equal(Stretch.Fill, image.Stretch);
+            Assert.Equal(HorizontalAlignment.Stretch, image.HorizontalAlignment);
+            Assert.Equal(VerticalAlignment.Stretch, image.VerticalAlignment);
+
+            var widthBinding = BindingOperations.GetBinding(image, FrameworkElement.WidthProperty);
+            var heightBinding = BindingOperations.GetBinding(image, FrameworkElement.HeightProperty);
+            Assert.NotNull(widthBinding);
+            Assert.NotNull(heightBinding);
+            Assert.Equal(nameof(Border.ActualWidth), widthBinding.Path.Path);
+            Assert.Equal(nameof(Border.ActualHeight), heightBinding.Path.Path);
+            Assert.Same(border, widthBinding.Source);
+            Assert.Same(border, heightBinding.Source);
+        });
+    }
+
+    [Fact]
+    public void ImageFrontedControlOverflowCropPreservesAlignmentAndDoesNotBindSize()
+    {
+        RunOnStaThread(() =>
+        {
+            var control = new ImageFrontedControl();
+            var element = control.Create(
+                "Pick",
+                new ImageFrontedControlConfig
+                {
+                    SizingMode = ImageSizingMode.OverflowCrop,
+                    Stretch = "UniformToFill",
+                    HorizontalAlignment = "Center",
+                    VerticalAlignment = "Top",
+                    ClipToBounds = true
+                },
+                CreateBuildContext());
+
+            var border = Assert.IsType<Border>(element);
+            var image = Assert.IsType<Image>(border.Child);
+            Assert.True(border.ClipToBounds);
+            Assert.Equal(Stretch.UniformToFill, image.Stretch);
+            Assert.Equal(HorizontalAlignment.Center, image.HorizontalAlignment);
+            Assert.Equal(VerticalAlignment.Top, image.VerticalAlignment);
+            Assert.Null(BindingOperations.GetBinding(image, FrameworkElement.WidthProperty));
+            Assert.Null(BindingOperations.GetBinding(image, FrameworkElement.HeightProperty));
+        });
+    }
+
+    [Fact]
+    public void ImageFrontedControlAutoDoesNotBindSizeOrOverrideDefaults()
+    {
+        RunOnStaThread(() =>
+        {
+            var control = new ImageFrontedControl();
+            var element = control.Create(
+                "Header",
+                new ImageFrontedControlConfig
+                {
+                    SizingMode = ImageSizingMode.Auto
+                },
+                CreateBuildContext());
+
+            var border = Assert.IsType<Border>(element);
+            var image = Assert.IsType<Image>(border.Child);
+            Assert.Equal(Stretch.Uniform, image.Stretch);
+            Assert.Equal(HorizontalAlignment.Stretch, image.HorizontalAlignment);
+            Assert.Equal(VerticalAlignment.Stretch, image.VerticalAlignment);
+            Assert.Null(BindingOperations.GetBinding(image, FrameworkElement.WidthProperty));
+            Assert.Null(BindingOperations.GetBinding(image, FrameworkElement.HeightProperty));
+        });
+    }
+
+    [Fact]
+    public void MapV2DisplayDeserializesMapKeyAndPresenterFillsOuterHost()
+    {
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 160,
+              "Arms_Factory": {
+                "ControlType": "MapV2Display",
+                "Left": 50.5,
+                "Top": 0,
+                "Width": 149,
+                "Height": 160,
+                "MapKey": "ArmsFactory"
+              }
+            }
+            """);
+
+        Assert.NotNull(config);
+        var mapConfig = Assert.IsType<MapV2DisplayControlConfig>(config.Controls["Arms_Factory"]);
+        Assert.Equal("ArmsFactory", mapConfig.MapKey);
+
+        RunOnStaThread(() =>
+        {
+            var sharedDataService = new Mock<ISharedDataService>();
+            sharedDataService
+                .SetupGet(service => service.CurrentGame)
+                .Returns(new Game(
+                    new Team(Camp.Sur, TeamType.HomeTeam),
+                    new Team(Camp.Hun, TeamType.AwayTeam),
+                    GameProgress.Game1FirstHalf));
+
+            var settingsHostService = new Mock<ISettingsHostService>();
+            settingsHostService
+                .SetupGet(service => service.Settings)
+                .Returns(new Settings());
+
+            var serviceProvider = new ServiceCollection()
+                .AddSingleton(settingsHostService.Object)
+                .BuildServiceProvider();
+
+            var control = new MapV2DisplayFrontedControl();
+            var element = control.Create(
+                "Arms_Factory",
+                mapConfig,
+                CreateBuildContext(sharedDataService.Object, serviceProvider));
+
+            var border = Assert.IsAssignableFrom<Border>(element);
+            var presenter = Assert.IsType<MapV2Presenter>(border.Child);
+            Assert.Equal(HorizontalAlignment.Stretch, presenter.HorizontalAlignment);
+            Assert.Equal(VerticalAlignment.Stretch, presenter.VerticalAlignment);
+
+            var widthBinding = BindingOperations.GetBinding(presenter, FrameworkElement.WidthProperty);
+            var heightBinding = BindingOperations.GetBinding(presenter, FrameworkElement.HeightProperty);
+            Assert.NotNull(widthBinding);
+            Assert.NotNull(heightBinding);
+            Assert.Equal(nameof(Border.ActualWidth), widthBinding.Path.Path);
+            Assert.Equal(nameof(Border.ActualHeight), heightBinding.Path.Path);
+            Assert.Same(border, widthBinding.Source);
+            Assert.Same(border, heightBinding.Source);
+        });
+    }
+
+    [Fact]
     public void LocalizedTextFallbackUsesFallbackWhenKeyIsMissing()
     {
         Assert.Equal(
@@ -981,11 +1220,13 @@ public class FrontedCanvasConfigTest
         return directory.FullName;
     }
 
-    private static FrontedControlBuildContext CreateBuildContext(ISharedDataService sharedDataService = null)
+    private static FrontedControlBuildContext CreateBuildContext(
+        ISharedDataService sharedDataService = null,
+        IServiceProvider services = null)
     {
         return new FrontedControlBuildContext
         {
-            Services = EmptyServiceProvider.Instance,
+            Services = services ?? EmptyServiceProvider.Instance,
             SharedDataService = sharedDataService ?? new Mock<ISharedDataService>().Object,
             ResourceResolver = NullFrontedResourceResolver.Instance,
             WindowId = "TestWindow",

@@ -42,24 +42,115 @@ public class ImageFrontedControl : IFrontedControl
             });
         }
 
-        FrontedControlFactoryHelper.TryApplyEnum<Stretch>(
-            imageConfig.Stretch,
-            value => image.Stretch = value,
-            context,
-            nameof(imageConfig.Stretch));
-        FrontedControlFactoryHelper.TryApplyEnum<HorizontalAlignment>(
-            imageConfig.HorizontalAlignment,
-            value => image.HorizontalAlignment = value,
-            context,
-            nameof(imageConfig.HorizontalAlignment));
-        FrontedControlFactoryHelper.TryApplyEnum<VerticalAlignment>(
-            imageConfig.VerticalAlignment,
-            value => image.VerticalAlignment = value,
-            context,
-            nameof(imageConfig.VerticalAlignment));
+        ApplyImageLayout(border, image, imageConfig, context);
 
         border.Child = image;
         return border;
+    }
+
+    private static void ApplyImageLayout(
+        Border border,
+        Image image,
+        ImageFrontedControlConfig config,
+        FrontedControlBuildContext context)
+    {
+        ApplyStretch(image, config, context);
+
+        switch (config.SizingMode)
+        {
+            case ImageSizingMode.FillContainer:
+                BindImageToBorderSize(border, image);
+                ApplyHorizontalAlignment(
+                    image,
+                    config,
+                    context,
+                    HorizontalAlignment.Stretch);
+                ApplyVerticalAlignment(
+                    image,
+                    config,
+                    context,
+                    VerticalAlignment.Stretch);
+                break;
+            case ImageSizingMode.OverflowCrop:
+                ApplyHorizontalAlignment(
+                    image,
+                    config,
+                    context,
+                    HorizontalAlignment.Center);
+                ApplyVerticalAlignment(
+                    image,
+                    config,
+                    context,
+                    VerticalAlignment.Center);
+                break;
+            case ImageSizingMode.Auto:
+            default:
+                ApplyHorizontalAlignment(image, config, context);
+                ApplyVerticalAlignment(image, config, context);
+                break;
+        }
+    }
+
+    private static void BindImageToBorderSize(Border border, Image image)
+    {
+        BindingOperations.SetBinding(image, FrameworkElement.WidthProperty, new Binding(nameof(Border.ActualWidth))
+        {
+            Source = border
+        });
+        BindingOperations.SetBinding(image, FrameworkElement.HeightProperty, new Binding(nameof(Border.ActualHeight))
+        {
+            Source = border
+        });
+    }
+
+    private static void ApplyStretch(
+        Image image,
+        ImageFrontedControlConfig config,
+        FrontedControlBuildContext context)
+    {
+        FrontedControlFactoryHelper.TryApplyEnum<Stretch>(
+            config.Stretch,
+            value => image.Stretch = value,
+            context,
+            nameof(config.Stretch));
+    }
+
+    private static void ApplyHorizontalAlignment(
+        Image image,
+        ImageFrontedControlConfig config,
+        FrontedControlBuildContext context,
+        HorizontalAlignment? defaultValue = null)
+    {
+        if (string.IsNullOrWhiteSpace(config.HorizontalAlignment) && defaultValue is not null)
+        {
+            image.HorizontalAlignment = defaultValue.Value;
+            return;
+        }
+
+        FrontedControlFactoryHelper.TryApplyEnum<HorizontalAlignment>(
+            config.HorizontalAlignment,
+            value => image.HorizontalAlignment = value,
+            context,
+            nameof(config.HorizontalAlignment));
+    }
+
+    private static void ApplyVerticalAlignment(
+        Image image,
+        ImageFrontedControlConfig config,
+        FrontedControlBuildContext context,
+        VerticalAlignment? defaultValue = null)
+    {
+        if (string.IsNullOrWhiteSpace(config.VerticalAlignment) && defaultValue is not null)
+        {
+            image.VerticalAlignment = defaultValue.Value;
+            return;
+        }
+
+        FrontedControlFactoryHelper.TryApplyEnum<VerticalAlignment>(
+            config.VerticalAlignment,
+            value => image.VerticalAlignment = value,
+            context,
+            nameof(config.VerticalAlignment));
     }
 
     private static void ApplyCornerRadius(Border border, Image image, double? cornerRadius)

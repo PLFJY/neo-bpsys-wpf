@@ -10,6 +10,7 @@
     "Width": 115,
     "Height": 114,
     "BindingPath": "CurrentGame.SurTeam.Logo",
+    "SizingMode": "FillContainer",
     "Stretch": "Fill",
     "CornerRadius": 8,
     "ZIndex": 1

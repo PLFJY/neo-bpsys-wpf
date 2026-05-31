@@ -80,6 +80,17 @@ public class MapV2DisplayFrontedControl(ILogger<MapV2DisplayFrontedControl>? log
                 Source = sharedDataService
             });
 
+            _presenter.HorizontalAlignment = HorizontalAlignment.Stretch;
+            _presenter.VerticalAlignment = VerticalAlignment.Stretch;
+            BindingOperations.SetBinding(_presenter, WidthProperty, new Binding(nameof(ActualWidth))
+            {
+                Source = this
+            });
+            BindingOperations.SetBinding(_presenter, HeightProperty, new Binding(nameof(ActualHeight))
+            {
+                Source = this
+            });
+
             Child = _presenter;
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;

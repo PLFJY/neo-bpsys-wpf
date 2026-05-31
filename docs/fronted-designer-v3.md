@@ -156,6 +156,16 @@ new Binding(config.BindingPath)
 
 `BindingPath` 同样应以 `ISharedDataService` 为 binding `Source`。
 
+`Image` 支持 `SizingMode`，用于保留旧 XAML 中不同的图片布局语义：
+
+| `SizingMode` | 旧 XAML 对应行为 | 使用场景 |
+| --- | --- | --- |
+| `Auto` | 不强制内层 `Image.Width/Height`，只在配置提供时应用 `Stretch` / `HorizontalAlignment` / `VerticalAlignment`，其余交给 WPF 默认测量与排列。 | `Border` 内默认 `Image`，例如 GameData 求生者表头头像；CutScene 地图这类旧 XAML 未给内层图片写固定尺寸的区域也应优先审计后使用。 |
+| `FillContainer` | 内层 `Image` 跟随外层 `Border.ActualWidth/ActualHeight`，缺省对齐为 `Stretch`。 | 旧 direct fixed-size `ui:Image`，例如队标；MapBp v1 picked / banned 地图图。 |
+| `OverflowCrop` | 不绑定内层 `Image.Width/Height`，外层 `Border` 通过 `ClipToBounds` 裁剪溢出内容，缺省对齐为 `Center` / `Center`。 | 旧 `Border + Image + ClipToBounds + UniformToFill` 的角色图裁剪，例如 CutScene pick 图和 BpOverview pick 图。 |
+
+迁移布局时必须先看旧 XAML 的具体写法，不要把所有 `Image` 都设成 `FillContainer`，也不要统一改 `Stretch`。`CornerRadius > 0` 只表示外层 `Border` 需要圆角和裁剪，不等于图片必须填满容器。
+
 如果 `PickingBorder` 为 `true`，应创建独立覆盖控件；该覆盖控件必须与原始 `Border` 对齐。不要把 picking border 放进图片 `Border` 内部。
 
 `BanLockAvailable` 是布尔值，用于允许 Ban 位显示锁定覆盖层。它应驱动独立 overlay 或视觉状态，不应混入主 `Image` 控件。
@@ -177,6 +187,8 @@ new Binding(config.BindingPath)
 | `MapV2Display` | 通过 `MapKey` 读取 `CurrentGame.MapV2Dictionary`，复用 `MapV2Presenter` 并使用 WidgetsWindow 当前 Map BP v2 文本和 picking border 设置。 |
 
 维护 CutScene 默认布局时，不应把四个天赋图标拆成四个普通 `Image` 控件，也不应在 JSON 中复制 BO3/BO5 文本判断；应继续使用这些内置业务控件。维护 GameData 默认布局时，地图名和对局进度也应继续使用 `MapNameText` / `GameProgressText`，表头应使用 `LocalizedText`。维护 Widgets 默认布局时，当前 Ban 槽位应使用 `CurrentBanDisplay`，Map BP v2 九宫位应使用 `MapV2Display`，`BpOverViewCanvas` 比分文本读取 `CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText` / `CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText`，不再读取 `Team.Score.GameScores`。CutScene 和 GameData 大比分文本读取 `CurrentGame.MatchScore.CurrentSurTeamMajorText` / `CurrentGame.MatchScore.CurrentHunTeamMajorText`，不再读取旧 `Team.Score.MajorPointsOnFront`。
+
+`MapV2Display` 不应拆成普通 `Image` / `Text` 控件。它有自己的 `MapV2Presenter`，内部包含地图 `ImageBrush Stretch=UniformToFill`、队标、地图名、阵营文本/图标和 picking border 动画；v3 只负责让 `MapV2Presenter` 填满外层宿主尺寸。
 
 ## 6. PickingBorder / BanLockAvailable 兼容策略
 
