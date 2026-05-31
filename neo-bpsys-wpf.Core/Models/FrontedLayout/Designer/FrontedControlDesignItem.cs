@@ -11,6 +11,10 @@ public class FrontedControlDesignItem : ObservableObject
     private FrontedControlConfigBase _config = new();
     private bool _isSelected;
     private bool _isRuntimeCritical;
+    private bool _isSelectableInEditor = true;
+    private bool _isEditableInEditor = true;
+    private bool _isLinkedOverlay;
+    private string? _linkedTargetControlName;
     private IReadOnlyList<FrontedLayoutValidationMessage> _validationMessages = [];
 
     /// <summary>
@@ -47,6 +51,42 @@ public class FrontedControlDesignItem : ObservableObject
     {
         get => _isRuntimeCritical;
         set => SetProperty(ref _isRuntimeCritical, value);
+    }
+
+    /// <summary>
+    /// 是否能在编辑器主控件列表和 Canvas hitbox 中被选中。
+    /// </summary>
+    public bool IsSelectableInEditor
+    {
+        get => _isSelectableInEditor;
+        set => SetProperty(ref _isSelectableInEditor, value);
+    }
+
+    /// <summary>
+    /// 是否能在编辑器中直接移动或缩放。
+    /// </summary>
+    public bool IsEditableInEditor
+    {
+        get => _isEditableInEditor;
+        set => SetProperty(ref _isEditableInEditor, value);
+    }
+
+    /// <summary>
+    /// 是否是跟随其他控件几何的联动覆盖层。
+    /// </summary>
+    public bool IsLinkedOverlay
+    {
+        get => _isLinkedOverlay;
+        set => SetProperty(ref _isLinkedOverlay, value);
+    }
+
+    /// <summary>
+    /// 联动覆盖层跟随的目标控件名。
+    /// </summary>
+    public string? LinkedTargetControlName
+    {
+        get => _linkedTargetControlName;
+        set => SetProperty(ref _linkedTargetControlName, value);
     }
 
     /// <summary>

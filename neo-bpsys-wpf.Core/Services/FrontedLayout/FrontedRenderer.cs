@@ -39,6 +39,7 @@ public class FrontedRenderer(
             Logger = logger
         };
 
+        var renderedElements = new Dictionary<string, FrameworkElement>(StringComparer.Ordinal);
         foreach (var (name, controlConfig) in config.Controls.OrderBy(x => x.Value.ZIndex))
         {
             var factory = controlRegistry.GetControl(controlConfig.ControlType);
@@ -56,7 +57,57 @@ public class FrontedRenderer(
             });
             RegisterGeneratedName(canvas, name, element);
             canvas.Children.Add(element);
+            renderedElements[name] = element;
         }
+
+        SyncLinkedPickingBorderOverlays(config, renderedElements);
+    }
+
+    private static void SyncLinkedPickingBorderOverlays(
+        FrontedCanvasConfig config,
+        IReadOnlyDictionary<string, FrameworkElement> renderedElements)
+    {
+        foreach (var (overlayName, controlConfig) in config.Controls)
+        {
+            if (controlConfig is not PickingBorderOverlayControlConfig overlayConfig
+                || string.IsNullOrWhiteSpace(overlayConfig.TargetControlName)
+                || !config.Controls.TryGetValue(overlayConfig.TargetControlName, out var targetConfig)
+                || !renderedElements.TryGetValue(overlayConfig.TargetControlName, out var target)
+                || !renderedElements.TryGetValue(overlayName, out var overlay))
+            {
+                continue;
+            }
+
+            Canvas.SetLeft(overlay, Canvas.GetLeft(target));
+            Canvas.SetTop(overlay, Canvas.GetTop(target));
+
+            var width = ResolveRenderedSize(target.Width, target.ActualWidth, targetConfig.Width);
+            if (width.HasValue)
+            {
+                overlay.Width = width.Value;
+            }
+
+            var height = ResolveRenderedSize(target.Height, target.ActualHeight, targetConfig.Height);
+            if (height.HasValue)
+            {
+                overlay.Height = height.Value;
+            }
+        }
+    }
+
+    private static double? ResolveRenderedSize(double explicitSize, double actualSize, double? fallbackSize)
+    {
+        if (!double.IsNaN(explicitSize) && !double.IsInfinity(explicitSize) && explicitSize > 0D)
+        {
+            return explicitSize;
+        }
+
+        if (!double.IsNaN(actualSize) && !double.IsInfinity(actualSize) && actualSize > 0D)
+        {
+            return actualSize;
+        }
+
+        return fallbackSize;
     }
 
     private static void ClearGeneratedControls(Canvas canvas)

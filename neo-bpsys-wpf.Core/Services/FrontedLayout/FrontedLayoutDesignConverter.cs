@@ -24,12 +24,12 @@ public class FrontedLayoutDesignConverter
             CanvasName = canvasName,
             CanvasConfig = config,
             Controls = new ObservableCollection<FrontedControlDesignItem>(
-                config.Controls.Select(control => new FrontedControlDesignItem
-                {
-                    Name = control.Key,
-                    Config = control.Value,
-                    IsRuntimeCritical = runtimeContracts.IsRuntimeCritical(windowTypeName, canvasName, control.Key)
-                }))
+                config.Controls.Select(control => CreateDesignItem(
+                    windowTypeName,
+                    canvasName,
+                    control.Key,
+                    control.Value,
+                    runtimeContracts)))
         };
     }
 
@@ -49,5 +49,30 @@ public class FrontedLayoutDesignConverter
                 item => item.Config,
                 StringComparer.Ordinal)
         };
+    }
+
+    private static FrontedControlDesignItem CreateDesignItem(
+        string windowTypeName,
+        string canvasName,
+        string name,
+        FrontedControlConfigBase config,
+        FrontedLayoutRuntimeContractCatalog runtimeContracts)
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = name,
+            Config = config,
+            IsRuntimeCritical = runtimeContracts.IsRuntimeCritical(windowTypeName, canvasName, name)
+        };
+
+        if (config is PickingBorderOverlayControlConfig pickingBorder)
+        {
+            item.IsSelectableInEditor = false;
+            item.IsEditableInEditor = false;
+            item.IsLinkedOverlay = true;
+            item.LinkedTargetControlName = pickingBorder.TargetControlName;
+        }
+
+        return item;
     }
 }

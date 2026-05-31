@@ -283,54 +283,62 @@
                 BorderThickness="1"
                 CornerRadius="4">
                 <ScrollViewer
-                    x:Name="PreviewViewport"
+                    x:Name="PreviewScrollViewer"
                     HorizontalScrollBarVisibility="Auto"
+                    PreviewMouseLeftButtonDown="PreviewScrollViewer_OnPreviewMouseLeftButtonDown"
+                    PreviewMouseLeftButtonUp="PreviewScrollViewer_OnPreviewMouseLeftButtonUp"
+                    PreviewMouseMove="PreviewScrollViewer_OnPreviewMouseMove"
+                    PreviewMouseRightButtonDown="PreviewScrollViewer_OnPreviewMouseRightButtonDown"
+                    PreviewMouseRightButtonUp="PreviewScrollViewer_OnPreviewMouseRightButtonUp"
+                    PreviewMouseWheel="PreviewScrollViewer_OnPreviewMouseWheel"
+                    SizeChanged="PreviewScrollViewer_OnSizeChanged"
                     VerticalScrollBarVisibility="Auto">
                     <Grid
+                        x:Name="PreviewWorkspace"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
                         MinWidth="640"
                         MinHeight="420"
                         Background="{DynamicResource SolidBackgroundFillColorSecondaryBrush}">
-                        <Viewbox
-                            MaxWidth="{Binding ActualWidth, ElementName=PreviewViewport}"
-                            MaxHeight="{Binding ActualHeight, ElementName=PreviewViewport}"
-                            Stretch="{Binding PreviewStretch}">
-                            <Border
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
-                                BorderThickness="1">
-                                <Border.LayoutTransform>
-                                    <ScaleTransform ScaleX="{Binding ZoomScale}" ScaleY="{Binding ZoomScale}" />
-                                </Border.LayoutTransform>
-                                <Grid
-                                    x:Name="DesignSurfaceGrid"
+                        <Border
+                            x:Name="PreviewZoomHost"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                            BorderThickness="1">
+                            <Border.LayoutTransform>
+                                <ScaleTransform ScaleX="{Binding ZoomScale}" ScaleY="{Binding ZoomScale}" />
+                            </Border.LayoutTransform>
+                            <Grid
+                                x:Name="DesignSurfaceGrid"
+                                Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=640}"
+                                Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=360}"
+                                ClipToBounds="True"
+                                Focusable="True"
+                                KeyDown="DesignSurface_OnKeyDown"
+                                MouseLeftButtonDown="DesignSurface_OnMouseLeftButtonDown"
+                                SnapsToDevicePixels="True">
+                                <Canvas
+                                    x:Name="PreviewCanvas"
                                     Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=640}"
                                     Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=360}"
                                     ClipToBounds="True"
+                                    SnapsToDevicePixels="True" />
+                                <Canvas
+                                    x:Name="InteractionLayer"
+                                    Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=640}"
+                                    Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=360}"
+                                    Background="Transparent"
                                     Focusable="True"
+                                    IsHitTestVisible="True"
                                     KeyDown="DesignSurface_OnKeyDown"
-                                    MouseLeftButtonDown="DesignSurface_OnMouseLeftButtonDown"
-                                    SnapsToDevicePixels="True">
-                                    <Canvas
-                                        x:Name="PreviewCanvas"
-                                        Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=640}"
-                                        Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=360}"
-                                        ClipToBounds="True"
-                                        SnapsToDevicePixels="True" />
-                                    <Canvas
-                                        x:Name="InteractionLayer"
-                                        Width="{Binding CurrentDocument.CanvasConfig.CanvasWidth, FallbackValue=640}"
-                                        Height="{Binding CurrentDocument.CanvasConfig.CanvasHeight, FallbackValue=360}"
-                                        Background="Transparent"
-                                        Focusable="True"
-                                        IsHitTestVisible="True"
-                                        KeyDown="DesignSurface_OnKeyDown"
-                                        MouseLeftButtonDown="InteractionLayer_OnMouseLeftButtonDown"
-                                        MouseLeftButtonUp="InteractionLayer_OnMouseLeftButtonUp"
-                                        MouseMove="InteractionLayer_OnMouseMove" />
-                                </Grid>
-                            </Border>
-                        </Viewbox>
+                                    MouseLeftButtonDown="InteractionLayer_OnMouseLeftButtonDown"
+                                    MouseLeftButtonUp="InteractionLayer_OnMouseLeftButtonUp"
+                                    MouseMove="InteractionLayer_OnMouseMove"
+                                    MouseRightButtonDown="InteractionLayer_OnMouseRightButtonDown"
+                                    MouseRightButtonUp="InteractionLayer_OnMouseRightButtonUp" />
+                            </Grid>
+                        </Border>
                     </Grid>
                 </ScrollViewer>
             </Border>

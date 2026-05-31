@@ -9,7 +9,6 @@ using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Windows.Media;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
@@ -25,12 +24,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly ILogger<FrontedDesignerWindowViewModel> _logger;
     private IReadOnlyList<FrontedLayoutValidationMessage> _lastValidationMessages = [];
     private bool _isChangingZoomPreset;
+    private double _lastPreviewViewportWidth;
+    private double _lastPreviewViewportHeight;
 
 #pragma warning disable CS8618
     public FrontedDesignerWindowViewModel()
 #pragma warning restore CS8618
     {
         // Decorative constructor for design-time only.
+        InitializeZoomPresets();
     }
 
     public FrontedDesignerWindowViewModel(
@@ -55,14 +57,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             WindowOptions.Add(group);
         }
 
-        ZoomPresets.Add(new FrontedDesignerZoomPreset("Fit", 0D, isFit: true));
-        ZoomPresets.Add(new FrontedDesignerZoomPreset("25%", 0.25D));
-        ZoomPresets.Add(new FrontedDesignerZoomPreset("50%", 0.5D));
-        ZoomPresets.Add(new FrontedDesignerZoomPreset("75%", 0.75D));
-        ZoomPresets.Add(new FrontedDesignerZoomPreset("100%", 1D));
-        ZoomPresets.Add(new FrontedDesignerZoomPreset("125%", 1.25D));
-        ZoomPresets.Add(new FrontedDesignerZoomPreset("150%", 1.5D));
-        ZoomPresets.Add(new FrontedDesignerZoomPreset("200%", 2D));
+        InitializeZoomPresets();
         SelectedZoomPreset = ZoomPresets.FirstOrDefault();
         SelectedWindow = WindowOptions.FirstOrDefault();
     }
@@ -113,7 +108,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private string _zoomDisplay = "Fit";
 
     [ObservableProperty]
-    private Stretch _previewStretch = Stretch.Uniform;
+    private bool _isFitMode = true;
 
     [ObservableProperty]
     private FrontedDesignerZoomPreset? _selectedZoomPreset;
@@ -180,6 +175,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     partial void OnCurrentDocumentChanged(FrontedCanvasDesignDocument? value)
     {
         RebuildFilteredDesignItems();
+        UpdateFitZoomFromCurrentDocument();
     }
 
     partial void OnSelectedDesignItemChanged(FrontedControlDesignItem? value)
@@ -323,6 +319,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public void SelectDesignItem(FrontedControlDesignItem? item)
     {
+        if (item?.IsSelectableInEditor == false)
+        {
+            item = null;
+        }
+
         SelectedDesignItem = item;
     }
 
@@ -350,6 +351,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             deltaX,
             deltaY,
             CurrentDocument);
+        SyncLinkedOverlays(SelectedDesignItem);
         OnDesignItemGeometryChanged(renderPreview);
     }
 
@@ -361,6 +363,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         FrontedDesignerGeometryHelper.MoveBy(SelectedDesignItem, deltaX, deltaY, CurrentDocument);
+        SyncLinkedOverlays(SelectedDesignItem);
         OnDesignItemGeometryChanged(renderPreview: true);
     }
 
@@ -389,7 +392,25 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             deltaX,
             deltaY,
             CurrentDocument);
+        SyncLinkedOverlays(SelectedDesignItem);
         OnDesignItemGeometryChanged(renderPreview);
+    }
+
+    public IReadOnlyList<FrontedControlDesignItem> SyncLinkedOverlays(
+        FrontedControlDesignItem changedTarget,
+        FrontedDesignerResolvedBounds? targetBounds = null)
+    {
+        if (CurrentDocument is null)
+        {
+            return [];
+        }
+
+        return targetBounds.HasValue
+            ? FrontedLayoutLinkedOverlaySynchronizer.SyncLinkedOverlays(
+                CurrentDocument,
+                changedTarget,
+                targetBounds.Value)
+            : FrontedLayoutLinkedOverlaySynchronizer.SyncLinkedOverlays(CurrentDocument, changedTarget);
     }
 
     public void CommitDesignItemGeometryEdit()
@@ -498,7 +519,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         var filter = ControlFilterText?.Trim();
         var controls = CurrentDocument.Controls
             .Select((item, index) => new { Item = item, Index = index })
-            .Where(entry => MatchesControlFilter(entry.Item, filter))
+            .Where(entry => entry.Item.IsSelectableInEditor && MatchesControlFilter(entry.Item, filter))
             .OrderByDescending(entry => entry.Item.Config.ZIndex)
             .ThenBy(entry => entry.Index)
             .Select(entry => entry.Item);
@@ -511,6 +532,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public static bool MatchesControlFilter(FrontedControlDesignItem item, string? filter)
     {
+        if (!item.IsSelectableInEditor)
+        {
+            return false;
+        }
+
         if (string.IsNullOrWhiteSpace(filter))
         {
             return true;
@@ -564,9 +590,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (preset.IsFit)
         {
-            PreviewStretch = Stretch.Uniform;
-            ZoomScale = 1D;
-            ZoomDisplay = I18nHelper.GetLocalizedString("Fit");
+            IsFitMode = true;
+            UpdateFitZoomFromCurrentDocument();
         }
         else
         {
@@ -579,13 +604,66 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private void ApplyManualZoom(double scale)
     {
         var normalizedScale = Math.Clamp(scale, 0.25D, 2D);
-        PreviewStretch = Stretch.None;
+        IsFitMode = false;
         ZoomScale = normalizedScale;
         ZoomDisplay = $"{normalizedScale:P0}";
 
         var matchingPreset = ZoomPresets.FirstOrDefault(
             preset => !preset.IsFit && Math.Abs(preset.Scale - normalizedScale) < 0.001D);
         SetSelectedZoomPreset(matchingPreset);
+    }
+
+    public void ZoomByWheelDelta(int delta)
+    {
+        if (delta == 0)
+        {
+            return;
+        }
+
+        var multiplier = delta > 0 ? 1.1D : 1D / 1.1D;
+        ApplyManualZoom(ZoomScale * multiplier);
+    }
+
+    public void UpdateFitZoom(double viewportWidth, double viewportHeight)
+    {
+        _lastPreviewViewportWidth = viewportWidth;
+        _lastPreviewViewportHeight = viewportHeight;
+        UpdateFitZoomFromCurrentDocument();
+    }
+
+    public void UpdateFitZoom(
+        double viewportWidth,
+        double viewportHeight,
+        double canvasWidth,
+        double canvasHeight)
+    {
+        _lastPreviewViewportWidth = viewportWidth;
+        _lastPreviewViewportHeight = viewportHeight;
+
+        if (!IsFitMode)
+        {
+            return;
+        }
+
+        ApplyFitZoom(viewportWidth, viewportHeight, canvasWidth, canvasHeight);
+    }
+
+    public static double CalculateFitZoom(
+        double viewportWidth,
+        double viewportHeight,
+        double canvasWidth,
+        double canvasHeight,
+        double padding = 0D)
+    {
+        if (canvasWidth <= 0D || canvasHeight <= 0D)
+        {
+            return 1D;
+        }
+
+        var availableWidth = Math.Max(1D, viewportWidth - padding);
+        var availableHeight = Math.Max(1D, viewportHeight - padding);
+        var scale = Math.Min(availableWidth / canvasWidth, availableHeight / canvasHeight);
+        return Math.Clamp(scale, 0.05D, 4D);
     }
 
     private double GetNextManualZoom(double currentScale)
@@ -602,6 +680,55 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             .Where(preset => !preset.IsFit && preset.Scale < currentScale - 0.001D)
             .OrderByDescending(preset => preset.Scale)
             .FirstOrDefault()?.Scale ?? 0.25D;
+    }
+
+    private void InitializeZoomPresets()
+    {
+        if (ZoomPresets.Count > 0)
+        {
+            return;
+        }
+
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("Fit", 0D, isFit: true));
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("25%", 0.25D));
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("50%", 0.5D));
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("75%", 0.75D));
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("100%", 1D));
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("125%", 1.25D));
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("150%", 1.5D));
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("200%", 2D));
+    }
+
+    private void UpdateFitZoomFromCurrentDocument()
+    {
+        if (!IsFitMode)
+        {
+            return;
+        }
+
+        var canvas = CurrentDocument?.CanvasConfig;
+        if (canvas is null)
+        {
+            ZoomScale = 1D;
+            ZoomDisplay = I18nHelper.GetLocalizedString("Fit");
+            return;
+        }
+
+        ApplyFitZoom(
+            _lastPreviewViewportWidth,
+            _lastPreviewViewportHeight,
+            canvas.CanvasWidth,
+            canvas.CanvasHeight);
+    }
+
+    private void ApplyFitZoom(
+        double viewportWidth,
+        double viewportHeight,
+        double canvasWidth,
+        double canvasHeight)
+    {
+        ZoomScale = CalculateFitZoom(viewportWidth, viewportHeight, canvasWidth, canvasHeight);
+        ZoomDisplay = $"{I18nHelper.GetLocalizedString("Fit")} ({ZoomScale:P0})";
     }
 
     private void SetSelectedZoomPreset(FrontedDesignerZoomPreset? preset)

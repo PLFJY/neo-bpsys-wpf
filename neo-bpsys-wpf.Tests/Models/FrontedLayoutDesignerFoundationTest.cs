@@ -53,6 +53,63 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void FromConfigClassifiesPickingBorderOverlayAsReadonlyLinkedOverlay()
+    {
+        var config = new FrontedCanvasConfig
+        {
+            CanvasWidth = 100,
+            CanvasHeight = 50,
+            Controls =
+            {
+                ["SurPick0"] = new ImageFrontedControlConfig { Width = 141, Height = 160 },
+                ["SurPickingBorder0"] = new PickingBorderOverlayControlConfig
+                {
+                    TargetControlName = "SurPick0",
+                    Width = 141,
+                    Height = 160
+                }
+            }
+        };
+
+        var document = new FrontedLayoutDesignConverter().FromConfig(
+            "BpWindow",
+            "BaseCanvas",
+            config,
+            new FrontedLayoutRuntimeContractCatalog());
+
+        var overlay = document.Controls.Single(item => item.Name == "SurPickingBorder0");
+        Assert.True(overlay.IsLinkedOverlay);
+        Assert.False(overlay.IsSelectableInEditor);
+        Assert.False(overlay.IsEditableInEditor);
+        Assert.Equal("SurPick0", overlay.LinkedTargetControlName);
+    }
+
+    [Fact]
+    public void FromConfigKeepsBanSlotDisplaySelectableAndEditable()
+    {
+        var config = new FrontedCanvasConfig
+        {
+            CanvasWidth = 100,
+            CanvasHeight = 50,
+            Controls =
+            {
+                ["SurBanCurrent0"] = new BanSlotDisplayControlConfig { Width = 44.5, Height = 44.5 }
+            }
+        };
+
+        var document = new FrontedLayoutDesignConverter().FromConfig(
+            "BpWindow",
+            "BaseCanvas",
+            config,
+            new FrontedLayoutRuntimeContractCatalog());
+
+        var banSlot = Assert.Single(document.Controls);
+        Assert.True(banSlot.IsSelectableInEditor);
+        Assert.True(banSlot.IsEditableInEditor);
+        Assert.False(banSlot.IsLinkedOverlay);
+    }
+
+    [Fact]
     public void ToConfigWritesDesignItemNameBackAsDictionaryKeyWithoutAddingNameToConfig()
     {
         var document = new FrontedCanvasDesignDocument
@@ -482,6 +539,88 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void LinkedOverlaySynchronizerCopiesTargetGeometryToPickingBorderOverlay()
+    {
+        var target = new FrontedControlDesignItem
+        {
+            Name = "SurPick0",
+            Config = new ImageFrontedControlConfig
+            {
+                Left = 10,
+                Top = 20,
+                Width = 141,
+                Height = 160
+            }
+        };
+        var overlay = new FrontedControlDesignItem
+        {
+            Name = "SurPickingBorder0",
+            Config = new PickingBorderOverlayControlConfig
+            {
+                TargetControlName = "SurPick0",
+                Left = 0,
+                Top = 0,
+                Width = 1,
+                Height = 1
+            }
+        };
+        var document = CreateDocument([target, overlay]);
+
+        FrontedDesignerGeometryHelper.Move(target, 10, 20, 5, 6, document);
+        FrontedDesignerGeometryHelper.Resize(
+            target,
+            FrontedDesignerResizeHandleKind.BottomRight,
+            target.Config.Left,
+            target.Config.Top,
+            target.Config.Width!.Value,
+            target.Config.Height!.Value,
+            9,
+            10,
+            document);
+        var changed = FrontedLayoutLinkedOverlaySynchronizer.SyncLinkedOverlays(document, target);
+
+        var overlayConfig = Assert.IsType<PickingBorderOverlayControlConfig>(overlay.Config);
+        Assert.Single(changed);
+        Assert.Equal(target.Config.Left, overlayConfig.Left);
+        Assert.Equal(target.Config.Top, overlayConfig.Top);
+        Assert.Equal(target.Config.Width, overlayConfig.Width);
+        Assert.Equal(target.Config.Height, overlayConfig.Height);
+        Assert.True(document.IsDirty);
+    }
+
+    [Fact]
+    public void LinkedOverlaySynchronizerDoesNotLetOverlayDriveTarget()
+    {
+        var target = new FrontedControlDesignItem
+        {
+            Name = "SurPick0",
+            Config = new ImageFrontedControlConfig { Left = 10, Top = 20, Width = 141, Height = 160 }
+        };
+        var overlay = new FrontedControlDesignItem
+        {
+            Name = "SurPickingBorder0",
+            IsLinkedOverlay = true,
+            Config = new PickingBorderOverlayControlConfig
+            {
+                TargetControlName = "SurPick0",
+                Left = 99,
+                Top = 88,
+                Width = 77,
+                Height = 66
+            }
+        };
+        var document = CreateDocument([target, overlay]);
+
+        var changed = FrontedLayoutLinkedOverlaySynchronizer.SyncLinkedOverlays(document, overlay);
+
+        Assert.Empty(changed);
+        Assert.Equal(10, target.Config.Left);
+        Assert.Equal(20, target.Config.Top);
+        Assert.Equal(141, target.Config.Width);
+        Assert.Equal(160, target.Config.Height);
+    }
+
+    [Fact]
     public void DesignerControlFilterMatchesNameAndControlType()
     {
         var textItem = new FrontedControlDesignItem
@@ -503,6 +642,17 @@ public class FrontedLayoutDesignerFoundationTest
     [Fact]
     public void DesignerViewModelFiltersControlsAndClearsFilterOnDocumentClear()
     {
+        var overlay = new FrontedControlDesignItem
+        {
+            Name = "SurPickingBorder0",
+            IsSelectableInEditor = false,
+            Config = new PickingBorderOverlayControlConfig
+            {
+                ControlType = "PickingBorderOverlay",
+                TargetControlName = "Logo",
+                ZIndex = 3
+            }
+        };
         var viewModel = new FrontedDesignerWindowViewModel
         {
             CurrentDocument = CreateDocument(
@@ -516,11 +666,13 @@ public class FrontedLayoutDesignerFoundationTest
                 {
                     Name = "Logo",
                     Config = new ImageFrontedControlConfig { ControlType = "Image", ZIndex = 2 }
-                }
+                },
+                overlay
             ])
         };
 
         Assert.Equal(["Logo", "Title"], viewModel.FilteredDesignItems.Select(item => item.Name));
+        Assert.DoesNotContain(overlay, viewModel.FilteredDesignItems);
 
         viewModel.ControlFilterText = "text";
 
@@ -552,6 +704,76 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Same(item, viewModel.SelectedDesignItem);
         Assert.True(item.IsSelected);
+    }
+
+    [Fact]
+    public void DesignerViewModelDoesNotSelectReadonlyLinkedOverlay()
+    {
+        var overlay = new FrontedControlDesignItem
+        {
+            Name = "SurPickingBorder0",
+            IsSelectableInEditor = false,
+            Config = new PickingBorderOverlayControlConfig { TargetControlName = "SurPick0" }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([overlay])
+        };
+
+        viewModel.SelectDesignItem(overlay);
+
+        Assert.Null(viewModel.SelectedDesignItem);
+        Assert.False(overlay.IsSelected);
+    }
+
+    [Fact]
+    public void DesignerViewModelZoomByWheelDeltaAppliesManualZoom()
+    {
+        var viewModel = new FrontedDesignerWindowViewModel();
+        viewModel.UpdateFitZoom(720, 405, 1440, 810);
+
+        viewModel.ZoomByWheelDelta(120);
+
+        Assert.Equal(0.55D, viewModel.ZoomScale, precision: 3);
+        Assert.False(viewModel.IsFitMode);
+
+        viewModel.ZoomByWheelDelta(-120);
+
+        Assert.Equal(0.5D, viewModel.ZoomScale, precision: 3);
+    }
+
+    [Fact]
+    public void DesignerViewModelFitZoomUsesViewportAndCanvasSize()
+    {
+        Assert.Equal(
+            0.5D,
+            FrontedDesignerWindowViewModel.CalculateFitZoom(720, 405, 1440, 810),
+            precision: 3);
+        Assert.Equal(
+            1D,
+            FrontedDesignerWindowViewModel.CalculateFitZoom(1440, 810, 1440, 810),
+            precision: 3);
+        Assert.True(FrontedDesignerWindowViewModel.CalculateFitZoom(1, 1, 1440, 810) > 0D);
+    }
+
+    [Fact]
+    public void DesignerViewModelManualWheelZoomClampsAndExitsFitMode()
+    {
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            ZoomScale = 2D
+        };
+
+        viewModel.ZoomByWheelDelta(120);
+
+        Assert.Equal(2D, viewModel.ZoomScale, precision: 3);
+        Assert.False(viewModel.IsFitMode);
+
+        viewModel.ZoomScale = 0.25D;
+        viewModel.ZoomByWheelDelta(-120);
+
+        Assert.Equal(0.25D, viewModel.ZoomScale, precision: 3);
+        Assert.False(viewModel.IsFitMode);
     }
 
     [Fact]
@@ -685,7 +907,7 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void FrontedDesignerWindowUsesProjectShellAndViewBoxPreview()
+    public void FrontedDesignerWindowUsesProjectShellAndZoomHostPreview()
     {
         var text = File.ReadAllText(GetRepositoryPath(
             "neo-bpsys-wpf",
@@ -696,7 +918,11 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("<ui:FluentWindow", text);
         Assert.Contains("controls:CustomTitleBar", text);
         Assert.Contains("IsThemeChangeVisible=\"False\"", text);
-        Assert.Contains("<Viewbox", text);
+        Assert.DoesNotContain("<Viewbox", text);
+        Assert.DoesNotContain("MaxWidth=\"{Binding ActualWidth, ElementName=PreviewScrollViewer}\"", text);
+        Assert.Contains("x:Name=\"PreviewScrollViewer\"", text);
+        Assert.Contains("x:Name=\"PreviewZoomHost\"", text);
+        Assert.Contains("ScaleX=\"{Binding ZoomScale}\"", text);
         Assert.Contains("ZoomPresets", text);
         Assert.Contains("FitToWindowCommand", text);
         Assert.Contains("InteractionLayer", text);
@@ -713,7 +939,8 @@ public class FrontedLayoutDesignerFoundationTest
             "FrontedDesignerWindowViewModel.cs"));
 
         Assert.Contains("FrontedDesignerZoomPreset(\"Fit\"", text);
-        Assert.Contains("PreviewStretch = Stretch.Uniform", text);
+        Assert.Contains("private bool _isFitMode = true", text);
+        Assert.Contains("CalculateFitZoom", text);
         Assert.Contains("private string _zoomDisplay = \"Fit\"", text);
     }
 

@@ -100,8 +100,8 @@ BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.
 
 1. 编辑器窗口应使用 WPF-UI `FluentWindow` 和项目既有 `CustomTitleBar`，标题栏必须单独占一行。不要把 toolbar、preview 或验证面板放到标题栏同一行；否则关闭按钮会被内容覆盖。编辑器默认隐藏 `CustomTitleBar` 的主题切换按钮，保留最小化、最大化和关闭。
 2. 不要把真实前台窗口当作设计 surface。原生标题栏、窗口 chrome 和 `FrontedWindowBase` 的 `Viewbox` 包裹会让坐标混入内容区以外的高度，造成纵向偏移。编辑器应使用纯 `Canvas`，尺寸精确等于 `FrontedCanvasConfig.CanvasWidth` / `CanvasHeight`。
-3. Phase 8C 预览用 `ViewBox` 包裹 `PreviewCanvas`。默认 Fit 模式应能完整显示 1440x810 的 `BpWindow/BaseCanvas`，手动缩放只改变视觉比例，不改变 layout 坐标。
-4. Phase 8D 预览 surface 是同一 `ViewBox` 内的双层结构：`PreviewCanvas` 负责真实渲染，`InteractionLayer` 负责 hitbox、选择框、拖拽、缩放和键盘微调。两层尺寸都必须等于 `FrontedCanvasConfig.CanvasWidth` / `CanvasHeight`，鼠标位置使用 `e.GetPosition(InteractionLayer)` 得到逻辑 Canvas 坐标，不要乘除 zoom，也不要把窗口标题栏或真实前台窗口尺寸纳入坐标计算。
+3. Phase 8D zoom/pan 修正后，编辑器预览不再用 `ViewBox` 控制 Fit 或手动缩放。结构应为 `ScrollViewer -> PreviewWorkspace -> PreviewZoomHost -> DesignSurfaceGrid`，`PreviewZoomHost.LayoutTransform` 绑定唯一缩放来源 `ZoomScale`，这样放大后 `ScrollViewer` 才能获得真实可滚动 extent。
+4. `PreviewCanvas` 负责真实渲染，`InteractionLayer` 负责 hitbox、选择框、拖拽、缩放和键盘微调。两层尺寸都必须等于 `FrontedCanvasConfig.CanvasWidth` / `CanvasHeight`，鼠标位置使用 `e.GetPosition(InteractionLayer)` 得到逻辑 Canvas 坐标，不要乘除 zoom，也不要把窗口标题栏或真实前台窗口尺寸纳入坐标计算。
 5. 透明或空内容控件不可靠。空 `Text`、`Source = null` 的 `Image`、透明 `Border`、初始隐藏的 `PickingBorderOverlay` 和没有当前业务数据的控件都可能难以命中。编辑器应在独立 `InteractionLayer` 为每个设计项创建透明 hitbox；hitbox 是 editor-only，不写入 layout JSON。
 6. v3 JSON 的 root-level 控件 key 就是控件名。该名称同时参与 `FrameworkElement.Name` 和 WPF namescope 注册。不要在 config 类里再加 `Name` 字段，也不要让编辑器只改生成控件的 `Name` 而忘记 dictionary key。
 7. 空图片和空文本在 preview 中应通过编辑器 overlay 或设计时 placeholder 辅助识别。placeholder 只属于编辑器预览，不应写入 layout JSON 或运行时设置。
@@ -111,6 +111,9 @@ BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.
 11. 被选中控件的 hitbox、outline 和 handles 会使用 editor-only 高 ZIndex 放在其他 hitbox 上方，以便拖动重叠下层控件。该值不能写入 v3 JSON，也不能改变 preview/runtime `ZIndex`。
 12. 拖拽和缩放过程中要同步更新生成 preview root element 的 `Canvas.Left` / `Canvas.Top` / `Width` / `Height`，不要等 mouse-up 重渲染后才看到真实预览移动。mouse-up 可再重渲染一次保证一致。
 13. 选择边界优先使用显式 `Width` / `Height`；缺失时使用渲染 root element 的 `ActualWidth` / `ActualHeight`；再不可用才回退到 `40x24`。这对无 `Height` 的文本控件尤其重要。
+14. `PickingBorderOverlay` 是 linked runtime overlay：编辑器中不生成普通 hitbox、不进入普通控件列表、不允许直接拖拽或缩放。移动/缩放它的 `TargetControlName` 目标控件时同步 overlay 几何，保持运行时独立命名目标不变。
+15. `BanSlotDisplay` 的锁定覆盖层是控件内部视觉层，不是独立设计项。不要把 ban lock overlay 拆成单独控件或单独 hitbox。
+16. 视口导航优先于选择：Fit 模式根据 `ScrollViewer` viewport 和 Canvas 尺寸计算 `ZoomScale`；`Ctrl + mouse wheel` 进入手动缩放并保持 25% 到 200%；右键拖拽或 `Space + left mouse drag` 只平移 `ScrollViewer` offset。这些操作不能写回 layout 坐标，也不能改变当前选中控件。
 
 ## 插件 UI
 

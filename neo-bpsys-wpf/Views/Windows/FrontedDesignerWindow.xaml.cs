@@ -38,6 +38,11 @@ public partial class FrontedDesignerWindow : FluentWindow
     private double _originalTop;
     private double _originalWidth;
     private double _originalHeight;
+    private bool _isPanningViewport;
+    private Point _panStartViewportPosition;
+    private double _panStartHorizontalOffset;
+    private double _panStartVerticalOffset;
+    private Cursor? _cursorBeforePan;
 
     public FrontedDesignerWindow()
     {
@@ -169,6 +174,8 @@ public partial class FrontedDesignerWindow : FluentWindow
         PreviewCanvas.Height = height;
         InteractionLayer.Width = width;
         InteractionLayer.Height = height;
+        UpdatePreviewWorkspaceSize();
+        _viewModel?.UpdateFitZoom(PreviewScrollViewer.ViewportWidth, PreviewScrollViewer.ViewportHeight, width, height);
     }
 
     private void RebuildInteractionLayer()
@@ -186,6 +193,11 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         foreach (var entry in _viewModel.CurrentDocument.Controls.Select((item, index) => new { Item = item, Index = index }))
         {
+            if (!entry.Item.IsSelectableInEditor)
+            {
+                continue;
+            }
+
             var hitbox = CreateHitbox(entry.Item, entry.Index);
             _hitboxes[entry.Item] = hitbox;
             InteractionLayer.Children.Add(hitbox);
@@ -350,6 +362,13 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void Hitbox_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        if (IsSpacePressed())
+        {
+            BeginViewportPan(e);
+            e.Handled = true;
+            return;
+        }
+
         if (sender is not FrameworkElement { Tag: FrontedControlDesignItem item } hitbox
             || _viewModel is null)
         {
@@ -377,12 +396,25 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void InteractionLayer_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        if (IsSpacePressed())
+        {
+            BeginViewportPan(e);
+            e.Handled = true;
+            return;
+        }
+
         if (ReferenceEquals(e.OriginalSource, InteractionLayer))
         {
             FocusDesignSurface();
             BeginPendingEmptyClick(e.GetPosition(InteractionLayer));
             e.Handled = true;
         }
+    }
+
+    private void InteractionLayer_OnMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        BeginViewportPan(e);
+        e.Handled = true;
     }
 
     private void DesignSurface_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -392,6 +424,13 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void InteractionLayer_OnMouseMove(object sender, MouseEventArgs e)
     {
+        if (_isPanningViewport)
+        {
+            UpdateViewportPan(e);
+            e.Handled = true;
+            return;
+        }
+
         if (_capturedElement is null || e.LeftButton != MouseButtonState.Pressed)
         {
             return;
@@ -461,6 +500,13 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void InteractionLayer_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
+        if (_isPanningViewport)
+        {
+            EndViewportPan();
+            e.Handled = true;
+            return;
+        }
+
         if (_capturedElement is null)
         {
             return;
@@ -493,6 +539,92 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         ResetPointerInteraction();
         e.Handled = true;
+    }
+
+    private void InteractionLayer_OnMouseRightButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_isPanningViewport)
+        {
+            EndViewportPan();
+            e.Handled = true;
+        }
+    }
+
+    private void PreviewScrollViewer_OnPreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        BeginViewportPan(e);
+        e.Handled = true;
+    }
+
+    private void PreviewScrollViewer_OnPreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_isPanningViewport)
+        {
+            EndViewportPan();
+            e.Handled = true;
+        }
+    }
+
+    private void PreviewScrollViewer_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (!IsSpacePressed())
+        {
+            return;
+        }
+
+        BeginViewportPan(e);
+        e.Handled = true;
+    }
+
+    private void PreviewScrollViewer_OnPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_isPanningViewport)
+        {
+            EndViewportPan();
+            e.Handled = true;
+        }
+    }
+
+    private void PreviewScrollViewer_OnPreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_isPanningViewport)
+        {
+            return;
+        }
+
+        UpdateViewportPan(e);
+        e.Handled = true;
+    }
+
+    private void PreviewScrollViewer_OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (_viewModel is null || !Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+        {
+            return;
+        }
+
+        var oldScale = _viewModel.ZoomScale;
+        var cursorPosition = e.GetPosition(PreviewScrollViewer);
+        var oldHorizontalOffset = PreviewScrollViewer.HorizontalOffset;
+        var oldVerticalOffset = PreviewScrollViewer.VerticalOffset;
+
+        _viewModel.ZoomByWheelDelta(e.Delta);
+        PreviewScrollViewer.UpdateLayout();
+
+        if (oldScale > 0D && Math.Abs(_viewModel.ZoomScale - oldScale) > 0.0001D)
+        {
+            var ratio = _viewModel.ZoomScale / oldScale;
+            PreviewScrollViewer.ScrollToHorizontalOffset((oldHorizontalOffset + cursorPosition.X) * ratio - cursorPosition.X);
+            PreviewScrollViewer.ScrollToVerticalOffset((oldVerticalOffset + cursorPosition.Y) * ratio - cursorPosition.Y);
+        }
+
+        e.Handled = true;
+    }
+
+    private void PreviewScrollViewer_OnSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        UpdatePreviewWorkspaceSize();
+        _viewModel?.UpdateFitZoom(PreviewScrollViewer.ViewportWidth, PreviewScrollViewer.ViewportHeight);
     }
 
     private void DesignSurface_OnKeyDown(object sender, KeyEventArgs e)
@@ -559,6 +691,45 @@ public partial class FrontedDesignerWindow : FluentWindow
         element.CaptureMouse();
     }
 
+    private void BeginViewportPan(MouseEventArgs e)
+    {
+        if (_capturedElement is not null && _capturedElement.IsMouseCaptured)
+        {
+            _capturedElement.ReleaseMouseCapture();
+        }
+
+        ResetPointerInteraction();
+        _isPanningViewport = true;
+        _panStartViewportPosition = e.GetPosition(PreviewScrollViewer);
+        _panStartHorizontalOffset = PreviewScrollViewer.HorizontalOffset;
+        _panStartVerticalOffset = PreviewScrollViewer.VerticalOffset;
+        _capturedElement = PreviewScrollViewer;
+        _cursorBeforePan = PreviewScrollViewer.Cursor;
+        PreviewScrollViewer.Cursor = Cursors.SizeAll;
+        PreviewScrollViewer.CaptureMouse();
+        FocusDesignSurface();
+    }
+
+    private void UpdateViewportPan(MouseEventArgs e)
+    {
+        var currentPosition = e.GetPosition(PreviewScrollViewer);
+        var deltaX = currentPosition.X - _panStartViewportPosition.X;
+        var deltaY = currentPosition.Y - _panStartViewportPosition.Y;
+        PreviewScrollViewer.ScrollToHorizontalOffset(_panStartHorizontalOffset - deltaX);
+        PreviewScrollViewer.ScrollToVerticalOffset(_panStartVerticalOffset - deltaY);
+    }
+
+    private void EndViewportPan()
+    {
+        if (_capturedElement is not null)
+        {
+            _capturedElement.ReleaseMouseCapture();
+        }
+
+        PreviewScrollViewer.Cursor = _cursorBeforePan;
+        ResetPointerInteraction();
+    }
+
     private void BeginPendingHitboxClick(
         FrontedControlDesignItem item,
         Point startMousePosition,
@@ -594,6 +765,14 @@ public partial class FrontedDesignerWindow : FluentWindow
         _isPendingEmptyClick = false;
         _hasExceededClickThreshold = false;
         _hasStartedDrag = false;
+        _isPanningViewport = false;
+        _cursorBeforePan = null;
+    }
+
+    private void UpdatePreviewWorkspaceSize()
+    {
+        PreviewWorkspace.MinWidth = Math.Max(640D, PreviewScrollViewer.ViewportWidth);
+        PreviewWorkspace.MinHeight = Math.Max(420D, PreviewScrollViewer.ViewportHeight);
     }
 
     private FrontedDesignerResolvedBounds ResolveItemBounds(FrontedControlDesignItem item)
@@ -613,6 +792,35 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
+        var element = FindPreviewElement(item.Name);
+        if (element is null)
+        {
+            return;
+        }
+
+        Canvas.SetLeft(element, item.Config.Left);
+        Canvas.SetTop(element, item.Config.Top);
+
+        if (item.Config.Width.HasValue)
+        {
+            element.Width = item.Config.Width.Value;
+        }
+
+        if (item.Config.Height.HasValue)
+        {
+            element.Height = item.Config.Height.Value;
+        }
+
+        var bounds = ResolveItemBounds(item);
+        var linkedOverlays = _viewModel?.SyncLinkedOverlays(item, bounds) ?? [];
+        foreach (var linkedOverlay in linkedOverlays)
+        {
+            UpdatePreviewElement(linkedOverlay);
+        }
+    }
+
+    private void UpdatePreviewElement(FrontedControlDesignItem item)
+    {
         var element = FindPreviewElement(item.Name);
         if (element is null)
         {
@@ -715,6 +923,11 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
 
         return FrontedDesignerGeometryHelper.CoordinateStep;
+    }
+
+    private static bool IsSpacePressed()
+    {
+        return Keyboard.IsKeyDown(Key.Space);
     }
 
     private static bool ShouldIgnoreKeyboardInput()
