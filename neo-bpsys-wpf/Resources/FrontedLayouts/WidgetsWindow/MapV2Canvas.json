@@ -1,0 +1,78 @@
+{
+  "Version": 3,
+  "CanvasWidth": 1440,
+  "CanvasHeight": 160,
+  "BackgroundImage": "Resources/mapBpV2.png",
+  "Arms_Factory": {
+    "ControlType": "MapV2Display",
+    "Left": 50.5,
+    "Top": 0,
+    "Width": 149,
+    "Height": 160,
+    "MapKey": "ArmsFactory"
+  },
+  "The_Red_Church": {
+    "ControlType": "MapV2Display",
+    "Left": 204,
+    "Top": 0,
+    "Width": 151,
+    "Height": 160,
+    "MapKey": "TheRedChurch"
+  },
+  "Sacred_Heart_Hospital": {
+    "ControlType": "MapV2Display",
+    "Left": 359,
+    "Top": 0,
+    "Width": 151,
+    "Height": 160,
+    "MapKey": "SacredHeartHospital"
+  },
+  "Leo_s_Memory": {
+    "ControlType": "MapV2Display",
+    "Left": 514,
+    "Top": 0,
+    "Width": 151,
+    "Height": 160,
+    "MapKey": "LeosMemory"
+  },
+  "Moonlit_River_Park": {
+    "ControlType": "MapV2Display",
+    "Left": 669,
+    "Top": 0,
+    "Width": 151,
+    "Height": 160,
+    "MapKey": "MoonlitRiverPark"
+  },
+  "Lakeside_Village": {
+    "ControlType": "MapV2Display",
+    "Left": 824,
+    "Top": 0,
+    "Width": 151,
+    "Height": 160,
+    "MapKey": "LakesideVillage"
+  },
+  "Eversleeping_Town": {
+    "ControlType": "MapV2Display",
+    "Left": 979,
+    "Top": 0,
+    "Width": 151,
+    "Height": 160,
+    "MapKey": "EversleepingTown"
+  },
+  "Chinatown": {
+    "ControlType": "MapV2Display",
+    "Left": 1134,
+    "Top": 0,
+    "Width": 151,
+    "Height": 160,
+    "MapKey": "ChinaTown"
+  },
+  "Darkwoods": {
+    "ControlType": "MapV2Display",
+    "Left": 1289,
+    "Top": 0,
+    "Width": 151,
+    "Height": 160,
+    "MapKey": "Darkwoods"
+  }
+}

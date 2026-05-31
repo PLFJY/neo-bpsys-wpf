@@ -1,5 +1,7 @@
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Helpers;
+using System.Globalization;
+using WPFLocalizeExtension.Engine;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Models;
@@ -17,15 +19,29 @@ public class CutSceneBusinessDisplayHelperTest
         bool isBo3Mode,
         string expected)
     {
+        UseEnglishCulture();
+
         Assert.Equal(expected, GameProgressDisplayHelper.Format(progress, isBo3Mode));
     }
 
     [Fact]
     public void GameProgressDisplayHelperSupportsLineBreak()
     {
+        UseEnglishCulture();
+
         Assert.Equal(
             "GAME 3 OVERTIME\nFIRST HALF",
             GameProgressDisplayHelper.Format(GameProgress.Game4FirstHalf, isBo3Mode: true, useLineBreak: true));
+    }
+
+    [Fact]
+    public void GameProgressDisplayHelperKeepsSingleLineWhenLineBreakIsDisabled()
+    {
+        UseEnglishCulture();
+
+        Assert.Equal(
+            "GAME 3 OVERTIME FIRST HALF",
+            GameProgressDisplayHelper.Format(GameProgress.Game4FirstHalf, isBo3Mode: true, useLineBreak: false));
     }
 
     [Fact]
@@ -40,5 +56,10 @@ public class CutSceneBusinessDisplayHelperTest
     public void MapNameDisplayHelperUsesEmptyTextWhenMapIsNull()
     {
         Assert.Equal("-", MapNameDisplayHelper.Format(null, "-"));
+    }
+
+    private static void UseEnglishCulture()
+    {
+        LocalizeDictionary.Instance.Culture = CultureInfo.GetCultureInfo("en-US");
     }
 }

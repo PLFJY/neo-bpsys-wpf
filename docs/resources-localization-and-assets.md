@@ -28,7 +28,7 @@
 
 `ImageHelper` 使用 `AppConstants.ResourcesPath` 拼接这些目录，按文件路径加载。新增运行时图片时，应确认文件被放在 `Resources` 下并能复制到输出目录。
 
-CutScene v3 默认布局位于 `Resources/FrontedLayouts/CutSceneWindow/BaseCanvas.json`，背景使用 `Resources/cutScene.png`（解析到运行目录 `Resources/bpui/cutScene.png`）。GameData v3 默认布局位于 `Resources/FrontedLayouts/GameDataWindow/BaseCanvas.json`，背景使用 `Resources/gameData_withText.png`（解析到运行目录 `Resources/bpui/gameData_withText.png`）。内置业务控件复用这些资源目录：`TalentTraitDisplay` 通过 `ImageHelper.GetTalentImageSource` / `GetTraitImageSource` 读取 `Resources/talent` 和 `Resources/trait`，并跟随 `CutSceneWindowSettings.IsBlackTalentAndTraitEnable` 切换黑白图标。不要在 v3 JSON 中硬编码单个天赋或辅助特质图片路径。
+CutScene v3 默认布局位于 `Resources/FrontedLayouts/CutSceneWindow/BaseCanvas.json`，背景使用 `Resources/cutScene.png`（解析到运行目录 `Resources/bpui/cutScene.png`）。GameData v3 默认布局位于 `Resources/FrontedLayouts/GameDataWindow/BaseCanvas.json`，背景使用 `Resources/gameData_withText.png`（解析到运行目录 `Resources/bpui/gameData_withText.png`）。WidgetsWindow v3 是多 Canvas 布局，默认文件为 `Resources/FrontedLayouts/WidgetsWindow/MapBpCanvas.json`、`Resources/FrontedLayouts/WidgetsWindow/BpOverViewCanvas.json`、`Resources/FrontedLayouts/WidgetsWindow/MapV2Canvas.json`，背景分别使用 `Resources/mapBp.png`、`Resources/bpOverview.png`、`Resources/mapBpV2.png`。内置业务控件复用这些资源目录：`TalentTraitDisplay` 通过 `ImageHelper.GetTalentImageSource` / `GetTraitImageSource` 读取 `Resources/talent` 和 `Resources/trait`，并跟随 `CutSceneWindowSettings.IsBlackTalentAndTraitEnable` 切换黑白图标；`CurrentBanDisplay` 读取角色 `HeaderImageSingleColor` 并使用 WidgetsWindow 设置中的 `CurrentBanLockImage`；`MapV2Display` 复用现有 `MapV2Presenter` 和 Map BP v2 设置。不要在 v3 JSON 中硬编码单个天赋、辅助特质或 Map BP v2 展示控件内部图片路径。
 
 ## Assets 与字体
 
@@ -80,7 +80,7 @@ I18nHelper.GetLocalizedString("SomeKey")
 
 `I18nHelper` 找不到 key 时返回原始 key，便于界面降级显示和定位缺失翻译。新增用户可见文本时至少添加默认 `Lang.resx`，并尽量补齐英文、日文资源，避免用户看到裸 key。
 
-`GameProgressText` 使用集中 helper 和资源 key 生成 `FREE GAME`、`GAME {n} FIRST HALF`、`GAME {n} OVERTIME SECOND HALF` 等文本，避免 BO3/BO5 进度文案散落在窗口 XAML 或 JSON 中。`MapNameText` 把 `CurrentGame.PickedMap` 枚举名作为本地化 key 查询地图名；新增地图时要同步补齐地图资源 key。`LocalizedText` 用 `LocalizationKey` 查询普通 resx 文案，适合 GameData 表头等静态标签；如果 key 缺失会显示 `FallbackText` 或 key 本身。普通 `Text.Text` 仍是原样静态文本，不会自动本地化。
+`GameProgressText` 使用集中 helper 和资源 key 生成 `FREE GAME`、`GAME {n} FIRST HALF`、`GAME {n} OVERTIME SECOND HALF` 等文本，避免 BO3/BO5 进度文案散落在窗口 XAML 或 JSON 中。默认是单行文本；`WidgetsWindow/BpOverViewCanvas.json` 使用 `UseLineBreak=true` 把 Game / Overtime 和 half 分为两行。`MapNameText` 默认把 `CurrentGame.PickedMap` 枚举名作为本地化 key 查询地图名，也可以通过 `BindingPath` 指向其他地图字段，例如 WidgetsWindow 的 picked / banned map 名称；新增地图时要同步补齐地图资源 key。`LocalizedText` 用 `LocalizationKey` 查询普通 resx 文案，适合 GameData 表头等静态标签；如果 key 缺失会显示 `FallbackText` 或 key 本身。普通 `Text.Text` 仍是原样静态文本，不会自动本地化。
 
 ## 添加新素材
 

@@ -35,7 +35,7 @@ public static class GameProgressDisplayHelper
 
     private static string FormatHalf(int gameNumber, bool isOvertime, string halfKey, bool useLineBreak)
     {
-        var halfText = I18nHelper.GetLocalizedString(halfKey);
+        var halfText = GetHalfText(halfKey);
 
         if (useLineBreak)
         {
@@ -61,5 +61,21 @@ public static class GameProgressDisplayHelper
             I18nHelper.GetLocalizedString(formatKey),
             gameNumber,
             halfText);
+    }
+
+    private static string GetHalfText(string halfKey)
+    {
+        var halfText = I18nHelper.GetLocalizedString(halfKey);
+        if (halfText != halfKey)
+        {
+            return halfText;
+        }
+
+        return halfKey switch
+        {
+            "FirstHalf" => "FIRST HALF",
+            "SecondHalf" => "SECOND HALF",
+            _ => halfText
+        };
     }
 }

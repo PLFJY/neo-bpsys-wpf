@@ -6,6 +6,7 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.ExceptionServices;
 using System.Text.Json;
@@ -287,6 +288,70 @@ public class FrontedCanvasConfigTest
         Assert.Equal("MapNameText", mapName.ControlType);
         Assert.Equal(24, mapName.FontSize);
         Assert.Equal(string.Empty, mapName.EmptyText);
+    }
+
+    [Fact]
+    public void ReadsWidgetsWindowBusinessControlConfigs()
+    {
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1132,
+              "CanvasHeight": 182,
+              "Ban": {
+                "ControlType": "CurrentBanDisplay",
+                "Left": 193,
+                "Top": 5,
+                "Width": 68,
+                "Height": 35,
+                "Camp": "Sur",
+                "Index": 2,
+                "ShowLockOverlay": true,
+                "Stretch": "Uniform"
+              },
+              "Map": {
+                "ControlType": "MapV2Display",
+                "Left": 50.5,
+                "Top": 0,
+                "Width": 149,
+                "Height": 160,
+                "MapKey": "ArmsFactory"
+              },
+              "PickedMapName": {
+                "ControlType": "MapNameText",
+                "Left": 38,
+                "Top": 149,
+                "Width": 232,
+                "BindingPath": "CurrentGame.PickedMap"
+              },
+              "BannedMapName": {
+                "ControlType": "MapNameText",
+                "Left": 38,
+                "Top": 475,
+                "Width": 232,
+                "BindingPath": "CurrentGame.BannedMap"
+              }
+            }
+            """);
+
+        Assert.NotNull(config);
+
+        var ban = Assert.IsType<CurrentBanDisplayControlConfig>(config.Controls["Ban"]);
+        Assert.Equal("CurrentBanDisplay", ban.ControlType);
+        Assert.Equal(neo_bpsys_wpf.Core.Enums.Camp.Sur, ban.Camp);
+        Assert.Equal(2, ban.Index);
+        Assert.True(ban.ShowLockOverlay);
+        Assert.Equal("Uniform", ban.Stretch);
+
+        var map = Assert.IsType<MapV2DisplayControlConfig>(config.Controls["Map"]);
+        Assert.Equal("MapV2Display", map.ControlType);
+        Assert.Equal("ArmsFactory", map.MapKey);
+
+        var pickedMapName = Assert.IsType<MapNameTextControlConfig>(config.Controls["PickedMapName"]);
+        Assert.Equal("CurrentGame.PickedMap", pickedMapName.BindingPath);
+        var bannedMapName = Assert.IsType<MapNameTextControlConfig>(config.Controls["BannedMapName"]);
+        Assert.Equal("CurrentGame.BannedMap", bannedMapName.BindingPath);
     }
 
     [Fact]
@@ -574,6 +639,114 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
+    public void ReadsBuiltInWidgetsWindowLayouts()
+    {
+        var mapBpCanvas = ReadBuiltInLayout("WidgetsWindow", "MapBpCanvas");
+        var bpOverViewCanvas = ReadBuiltInLayout("WidgetsWindow", "BpOverViewCanvas");
+        var mapV2Canvas = ReadBuiltInLayout("WidgetsWindow", "MapV2Canvas");
+
+        Assert.Equal(308, mapBpCanvas.CanvasWidth);
+        Assert.Equal(554, mapBpCanvas.CanvasHeight);
+        Assert.Equal("Resources/mapBp.png", mapBpCanvas.BackgroundImage);
+        foreach (var controlName in new[]
+                 {
+                     "PickedMap",
+                     "PickedMapName",
+                     "PickWord",
+                     "SurTeamName",
+                     "VS_Word",
+                     "HunTeamName",
+                     "BannedMap",
+                     "BannedMapName",
+                     "BanWord"
+                 })
+        {
+            Assert.Contains(controlName, mapBpCanvas.Controls.Keys);
+        }
+
+        var pickedMapName = Assert.IsType<MapNameTextControlConfig>(mapBpCanvas.Controls["PickedMapName"]);
+        Assert.Equal("CurrentGame.PickedMap", pickedMapName.BindingPath);
+        var bannedMapName = Assert.IsType<MapNameTextControlConfig>(mapBpCanvas.Controls["BannedMapName"]);
+        Assert.Equal("CurrentGame.BannedMap", bannedMapName.BindingPath);
+
+        Assert.Equal(1132, bpOverViewCanvas.CanvasWidth);
+        Assert.Equal(182, bpOverViewCanvas.CanvasHeight);
+        Assert.Equal("Resources/bpOverview.png", bpOverViewCanvas.BackgroundImage);
+        foreach (var controlName in new[]
+                 {
+                     "SurTeamLogo",
+                     "HunTeamLogo",
+                     "SurTeamNameInOverview",
+                     "HunTeamNameInOverview",
+                     "HunBanCurrent0",
+                     "HunBanCurrent1",
+                     "SurBanCurrent0",
+                     "SurBanCurrent1",
+                     "SurBanCurrent2",
+                     "SurBanCurrent3",
+                     "SurPick0",
+                     "SurPick1",
+                     "SurPick2",
+                     "SurPick3",
+                     "GameProgress",
+                     "GameScoresSur",
+                     "RatioChar",
+                     "GameScoresHun",
+                     "HunPick"
+                 })
+        {
+            Assert.Contains(controlName, bpOverViewCanvas.Controls.Keys);
+        }
+
+        var gameProgress = Assert.IsType<GameProgressTextControlConfig>(bpOverViewCanvas.Controls["GameProgress"]);
+        Assert.Equal("GameProgressText", gameProgress.ControlType);
+        Assert.True(gameProgress.UseLineBreak);
+        AssertTextBinding(bpOverViewCanvas, "GameScoresSur", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText");
+        AssertTextBinding(bpOverViewCanvas, "GameScoresHun", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText");
+
+        var bpOverViewCanvasText = File.ReadAllText(GetBuiltInLayoutPath("WidgetsWindow", "BpOverViewCanvas"));
+        Assert.DoesNotContain("Team.Score", bpOverViewCanvasText);
+        Assert.DoesNotContain("CurrentGame.SurTeam.Score", bpOverViewCanvasText);
+        Assert.DoesNotContain("CurrentGame.HunTeam.Score", bpOverViewCanvasText);
+
+        Assert.Equal(1440, mapV2Canvas.CanvasWidth);
+        Assert.Equal(160, mapV2Canvas.CanvasHeight);
+        Assert.Equal("Resources/mapBpV2.png", mapV2Canvas.BackgroundImage);
+
+        var expectedMapKeys = new Dictionary<string, string>
+        {
+            ["Arms_Factory"] = "ArmsFactory",
+            ["The_Red_Church"] = "TheRedChurch",
+            ["Sacred_Heart_Hospital"] = "SacredHeartHospital",
+            ["Leo_s_Memory"] = "LeosMemory",
+            ["Moonlit_River_Park"] = "MoonlitRiverPark",
+            ["Lakeside_Village"] = "LakesideVillage",
+            ["Eversleeping_Town"] = "EversleepingTown",
+            ["Chinatown"] = "ChinaTown",
+            ["Darkwoods"] = "Darkwoods"
+        };
+
+        foreach (var (controlName, mapKey) in expectedMapKeys)
+        {
+            var display = Assert.IsType<MapV2DisplayControlConfig>(mapV2Canvas.Controls[controlName]);
+            Assert.Equal("MapV2Display", display.ControlType);
+            Assert.Equal(mapKey, display.MapKey);
+        }
+    }
+
+    [Fact]
+    public void BuiltInGameProgressTextLayoutsUseExpectedLineBreakMode()
+    {
+        var cutScene = ReadBuiltInLayout("CutSceneWindow");
+        var gameData = ReadBuiltInLayout("GameDataWindow");
+        var widgetsOverview = ReadBuiltInLayout("WidgetsWindow", "BpOverViewCanvas");
+
+        Assert.False(Assert.IsType<GameProgressTextControlConfig>(cutScene.Controls["GameProgress"]).UseLineBreak);
+        Assert.False(Assert.IsType<GameProgressTextControlConfig>(gameData.Controls["GameProgress"]).UseLineBreak);
+        Assert.True(Assert.IsType<GameProgressTextControlConfig>(widgetsOverview.Controls["GameProgress"]).UseLineBreak);
+    }
+
+    [Fact]
     public void GameDataWindowLayoutDoesNotReferenceLegacyTeamScoreBinding()
     {
         var layoutText = File.ReadAllText(GetBuiltInLayoutPath("GameDataWindow"));
@@ -842,9 +1015,9 @@ public class FrontedCanvasConfigTest
         exception?.Throw();
     }
 
-    private static FrontedCanvasConfig ReadBuiltInLayout(string windowTypeName)
+    private static FrontedCanvasConfig ReadBuiltInLayout(string windowTypeName, string canvasName = "BaseCanvas")
     {
-        var path = GetBuiltInLayoutPath(windowTypeName);
+        var path = GetBuiltInLayoutPath(windowTypeName, canvasName);
 
         Assert.True(File.Exists(path), path);
 
@@ -853,12 +1026,12 @@ public class FrontedCanvasConfigTest
         return config;
     }
 
-    private static string GetBuiltInLayoutPath(string windowTypeName) =>
+    private static string GetBuiltInLayoutPath(string windowTypeName, string canvasName = "BaseCanvas") =>
         Path.Combine(
             AppConstants.ResourcesPath,
             "FrontedLayouts",
             windowTypeName,
-            "BaseCanvas.json");
+            $"{canvasName}.json");
 
     private static TextFrontedControlConfig AssertTextBinding(
         FrontedCanvasConfig config,

@@ -1,12 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace neo_bpsys_wpf.Controls.FrontedLayout;
 
@@ -45,12 +45,23 @@ public class MapNameTextFrontedControl(ILogger<MapNameTextFrontedControl>? logge
 
     private sealed class MapNameTextElement : Border
     {
+        public static readonly DependencyProperty MapValueProperty =
+            DependencyProperty.Register(
+                nameof(MapValue),
+                typeof(object),
+                typeof(MapNameTextElement),
+                new PropertyMetadata(null, OnMapValueChanged));
+
         private readonly MapNameTextControlConfig _config;
-        private readonly ISharedDataService _sharedDataService;
         private readonly ISettingsHostService _settingsHostService;
         private readonly TextBlock _textBlock = new();
-        private Game? _subscribedGame;
         private bool _isSubscribed;
+
+        public object? MapValue
+        {
+            get => GetValue(MapValueProperty);
+            set => SetValue(MapValueProperty, value);
+        }
 
         public MapNameTextElement(
             string name,
@@ -60,7 +71,6 @@ public class MapNameTextFrontedControl(ILogger<MapNameTextFrontedControl>? logge
             ILogger? logger)
         {
             _config = config;
-            _sharedDataService = sharedDataService;
             _settingsHostService = settingsHostService;
 
             var outer = CutSceneFrontedControlHelper.CreateOuterBorder(name, config);
@@ -83,6 +93,10 @@ public class MapNameTextFrontedControl(ILogger<MapNameTextFrontedControl>? logge
                 logger);
 
             Child = _textBlock;
+            BindingOperations.SetBinding(this, MapValueProperty, new Binding(GetBindingPath(config))
+            {
+                Source = sharedDataService
+            });
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
         }
@@ -95,10 +109,7 @@ public class MapNameTextFrontedControl(ILogger<MapNameTextFrontedControl>? logge
             }
 
             _isSubscribed = true;
-            _sharedDataService.CurrentGameChanged += OnCurrentGameChanged;
-            _sharedDataService.PickedMapChanged += OnPickedMapChanged;
             _settingsHostService.LanguageSettingChanged += OnLanguageSettingChanged;
-            SubscribeGame(_sharedDataService.CurrentGame);
             UpdateText();
         }
 
@@ -110,55 +121,42 @@ public class MapNameTextFrontedControl(ILogger<MapNameTextFrontedControl>? logge
             }
 
             _isSubscribed = false;
-            _sharedDataService.CurrentGameChanged -= OnCurrentGameChanged;
-            _sharedDataService.PickedMapChanged -= OnPickedMapChanged;
             _settingsHostService.LanguageSettingChanged -= OnLanguageSettingChanged;
-            SubscribeGame(null);
         }
-
-        private void OnCurrentGameChanged(object? sender, EventArgs args)
-        {
-            SubscribeGame(_sharedDataService.CurrentGame);
-            UpdateText();
-        }
-
-        private void OnPickedMapChanged(object? sender, EventArgs args) => UpdateText();
 
         private void OnLanguageSettingChanged(object? sender, EventArgs args) => UpdateText();
 
-        private void OnCurrentGamePropertyChanged(object? sender, PropertyChangedEventArgs args)
+        private static string GetBindingPath(MapNameTextControlConfig config)
         {
-            if (string.IsNullOrEmpty(args.PropertyName) || args.PropertyName == nameof(Game.PickedMap))
-            {
-                UpdateText();
-            }
+            return string.IsNullOrWhiteSpace(config.BindingPath)
+                ? "CurrentGame.PickedMap"
+                : config.BindingPath;
         }
 
-        private void SubscribeGame(Game? game)
+        private static void OnMapValueChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs args)
         {
-            if (_subscribedGame == game)
+            if (dependencyObject is MapNameTextElement element)
             {
-                return;
-            }
-
-            if (_subscribedGame != null)
-            {
-                _subscribedGame.PropertyChanged -= OnCurrentGamePropertyChanged;
-            }
-
-            _subscribedGame = game;
-
-            if (_subscribedGame != null)
-            {
-                _subscribedGame.PropertyChanged += OnCurrentGamePropertyChanged;
+                element.UpdateText();
             }
         }
 
         private void UpdateText()
         {
             _textBlock.Text = MapNameDisplayHelper.Format(
-                _sharedDataService.CurrentGame.PickedMap,
+                CoerceMap(MapValue),
                 _config.EmptyText);
+        }
+
+        private static Map? CoerceMap(object? value)
+        {
+            return value switch
+            {
+                null => null,
+                Map map => map,
+                string text when Enum.TryParse<Map>(text, true, out var map) => map,
+                _ => null
+            };
         }
     }
 }
