@@ -381,7 +381,7 @@ public class FrontedLayoutDesignerFoundationTest
     {
         var service = new DesignerPreviewSharedDataService();
 
-        Assert.Equal("MainTeam", service.CurrentGame.SurTeam.Name);
+        Assert.Equal("HomeTeam", service.CurrentGame.SurTeam.Name);
         Assert.Equal("AwayTeam", service.CurrentGame.HunTeam.Name);
         Assert.Equal("30", service.RemainingSeconds);
         Assert.Equal(GameProgress.Game1FirstHalf, service.CurrentGame.GameProgress);

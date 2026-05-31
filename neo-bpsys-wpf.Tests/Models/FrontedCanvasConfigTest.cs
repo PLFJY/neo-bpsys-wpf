@@ -481,19 +481,19 @@ public class FrontedCanvasConfigTest
         Assert.Equal(195, config.CanvasHeight);
         Assert.Equal("Resources/scoreGlobal.png", config.BackgroundImage);
 
-        Assert.Contains("MainTeamName", config.Controls.Keys);
+        Assert.Contains("HomeTeamName", config.Controls.Keys);
         Assert.Contains("AwayTeamName", config.Controls.Keys);
-        Assert.Contains("MainScoreTotal", config.Controls.Keys);
+        Assert.Contains("HomeScoreTotal", config.Controls.Keys);
         Assert.Contains("AwayScoreTotal", config.Controls.Keys);
-        Assert.Contains("MainGlobalScoreRow", config.Controls.Keys);
+        Assert.Contains("HomeGlobalScoreRow", config.Controls.Keys);
         Assert.Contains("AwayGlobalScoreRow", config.Controls.Keys);
 
-        AssertTextBinding(config, "MainTeamName", "HomeTeam.Name");
+        AssertTextBinding(config, "HomeTeamName", "HomeTeam.Name");
         AssertTextBinding(config, "AwayTeamName", "AwayTeam.Name");
-        AssertTextBinding(config, "MainScoreTotal", "CurrentGame.MatchScore.HomeTotalMinorScore");
+        AssertTextBinding(config, "HomeScoreTotal", "CurrentGame.MatchScore.HomeTotalMinorScore");
         AssertTextBinding(config, "AwayScoreTotal", "CurrentGame.MatchScore.AwayTotalMinorScore");
 
-        var mainRow = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["MainGlobalScoreRow"]);
+        var mainRow = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["HomeGlobalScoreRow"]);
         var awayRow = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["AwayGlobalScoreRow"]);
         Assert.Equal(neo_bpsys_wpf.Core.Enums.TeamType.HomeTeam, mainRow.TeamType);
         Assert.Equal(neo_bpsys_wpf.Core.Enums.TeamType.AwayTeam, awayRow.TeamType);

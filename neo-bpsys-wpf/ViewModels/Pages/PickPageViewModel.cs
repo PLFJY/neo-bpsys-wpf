@@ -159,7 +159,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
         }
     }
 
-    public Team MainTeam => _sharedDataService.HomeTeam;
+    public Team HomeTeam => _sharedDataService.HomeTeam;
     public Team AwayTeam => _sharedDataService.AwayTeam;
 
     public ObservableCollection<bool> SurPickingBorderList { get; set; } =

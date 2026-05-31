@@ -25,8 +25,8 @@
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </Page.Resources>
     <WrapPanel Orientation="Horizontal">
-        <!--  main team  -->
-        <Border DataContext="{Binding MainTeamInfoViewModel}" Style="{StaticResource Card}">
+        <!--  home team  -->
+        <Border DataContext="{Binding HomeTeamInfoViewModel}" Style="{StaticResource Card}">
             <!--  basic info  -->
             <StackPanel>
                 <StackPanel Orientation="Horizontal">

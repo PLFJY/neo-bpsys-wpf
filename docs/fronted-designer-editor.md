@@ -326,7 +326,7 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
 | 无绑定和无静态文本的 `Text` | overlay 标签 `[Text]` |
 | 无图片源的 `Image` | overlay 标签 `[Image]` |
 
-Phase 8F foundation 修复后，`FrontedDesignerWindow` 渲染 preview 时通过 `FrontedRenderContext.SharedDataServiceOverride` 使用 `DesignerPreviewSharedDataService`，不会调用真实 `ISharedDataService.NewGame()`，也不会修改真实运行时 `CurrentGame`。真实前台窗口仍使用 DI 中的全局 `ISharedDataService`。当前 placeholder 值包括：`MainTeam` / `AwayTeam`、应用 `Assets/icon.png` 队标、求生者 `幸运儿`、监管者 `厂长`、比分 0、选手 `Player 1` 到 `Player 5`、赛后数据 0、`GameProgress.Game1FirstHalf`、倒计时 `30`、禁用地图 `TheRedChurch`、选择地图 `EversleepingTown`、求生者天赋 `BorrowedTime` / `FlywheelEffect`、监管者天赋 `Detention` / `TrumpCard`、辅助特质 `Blink`，以及默认可见的当前/全局 Ban 位。
+Phase 8F foundation 修复后，`FrontedDesignerWindow` 渲染 preview 时通过 `FrontedRenderContext.SharedDataServiceOverride` 使用 `DesignerPreviewSharedDataService`，不会调用真实 `ISharedDataService.NewGame()`，也不会修改真实运行时 `CurrentGame`。真实前台窗口仍使用 DI 中的全局 `ISharedDataService`。当前 placeholder 值包括：`HomeTeam` / `AwayTeam`、应用 `Assets/icon.png` 队标、求生者 `幸运儿`、监管者 `厂长`、比分 0、选手 `Player 1` 到 `Player 5`、赛后数据 0、`GameProgress.Game1FirstHalf`、倒计时 `30`、禁用地图 `TheRedChurch`、选择地图 `EversleepingTown`、求生者天赋 `BorrowedTime` / `FlywheelEffect`、监管者天赋 `Detention` / `TrumpCard`、辅助特质 `Blink`，以及默认可见的当前/全局 Ban 位。
 
 `InteractionLayer` 可以显示 fallback overlay 标签，帮助用户定位空控件：
 

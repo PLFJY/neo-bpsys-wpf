@@ -3,7 +3,7 @@
   "CanvasWidth": 1440,
   "CanvasHeight": 195,
   "BackgroundImage": "Resources/scoreGlobal.png",
-  "MainTeamName": {
+  "HomeTeamName": {
     "ControlType": "Text",
     "Left": 13,
     "Top": 96,
@@ -37,7 +37,7 @@
     "FontSize": 24,
     "ZIndex": 2
   },
-  "MainScoreTotal": {
+  "HomeScoreTotal": {
     "ControlType": "Text",
     "Left": 1303,
     "Top": 89,
@@ -69,7 +69,7 @@
     "FontSize": 40,
     "ZIndex": 2
   },
-  "MainGlobalScoreRow": {
+  "HomeGlobalScoreRow": {
     "ControlType": "GlobalScoreRow",
     "Left": 175,
     "Top": 93,

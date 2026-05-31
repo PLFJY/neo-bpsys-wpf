@@ -15,7 +15,7 @@ namespace neo_bpsys_wpf.Services.FrontedDesigner;
 /// </summary>
 public sealed class DesignerPreviewSharedDataService : ISharedDataService
 {
-    public const string MainTeamName = "MainTeam";
+    public const string HomeTeamName = "HomeTeam";
     public const string AwayTeamName = "AwayTeam";
     public const string SurvivorCharacterName = "幸运儿";
     public const string HunterCharacterName = "厂长";
@@ -35,7 +35,7 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
             [hunter.Name] = hunter
         };
 
-        HomeTeam = CreateTeam(Camp.Sur, TeamType.HomeTeam, MainTeamName, icon, 1);
+        HomeTeam = CreateTeam(Camp.Sur, TeamType.HomeTeam, HomeTeamName, icon, 1);
         AwayTeam = CreateTeam(Camp.Hun, TeamType.AwayTeam, AwayTeamName, icon, 5);
 
         CurrentGame = new Game(

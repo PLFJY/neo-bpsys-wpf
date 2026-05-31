@@ -77,7 +77,7 @@ public partial class ScoreWindowViewModel :
 
     public Game CurrentGame => _sharedDataService.CurrentGame;
 
-    public Team MainTeam => _sharedDataService.HomeTeam;
+    public Team HomeTeam => _sharedDataService.HomeTeam;
     public Team AwayTeam => _sharedDataService.AwayTeam;
 
     public ScoreWindowSettings Settings => _settingsHostService.Settings.ScoreWindowSettings;

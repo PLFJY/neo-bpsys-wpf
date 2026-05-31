@@ -1,0 +1,226 @@
+diff --git a/docs/fronted-designer-editor.md b/docs/fronted-designer-editor.md
+index 371e259..d773283 100644
+--- a/docs/fronted-designer-editor.md
++++ b/docs/fronted-designer-editor.md
+@@ -326,7 +326,7 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
+ | 无绑定和无静态文本的 `Text` | overlay 标签 `[Text]` |
+ | 无图片源的 `Image` | overlay 标签 `[Image]` |
+ 
+-Phase 8F foundation 修复后，`FrontedDesignerWindow` 渲染 preview 时通过 `FrontedRenderContext.SharedDataServiceOverride` 使用 `DesignerPreviewSharedDataService`，不会调用真实 `ISharedDataService.NewGame()`，也不会修改真实运行时 `CurrentGame`。真实前台窗口仍使用 DI 中的全局 `ISharedDataService`。当前 placeholder 值包括：`MainTeam` / `AwayTeam`、应用 `Assets/icon.png` 队标、求生者 `幸运儿`、监管者 `厂长`、比分 0、选手 `Player 1` 到 `Player 5`、赛后数据 0、`GameProgress.Game1FirstHalf`、倒计时 `30`、禁用地图 `TheRedChurch`、选择地图 `EversleepingTown`、求生者天赋 `BorrowedTime` / `FlywheelEffect`、监管者天赋 `Detention` / `TrumpCard`、辅助特质 `Blink`，以及默认可见的当前/全局 Ban 位。
++Phase 8F foundation 修复后，`FrontedDesignerWindow` 渲染 preview 时通过 `FrontedRenderContext.SharedDataServiceOverride` 使用 `DesignerPreviewSharedDataService`，不会调用真实 `ISharedDataService.NewGame()`，也不会修改真实运行时 `CurrentGame`。真实前台窗口仍使用 DI 中的全局 `ISharedDataService`。当前 placeholder 值包括：`HomeTeam` / `AwayTeam`、应用 `Assets/icon.png` 队标、求生者 `幸运儿`、监管者 `厂长`、比分 0、选手 `Player 1` 到 `Player 5`、赛后数据 0、`GameProgress.Game1FirstHalf`、倒计时 `30`、禁用地图 `TheRedChurch`、选择地图 `EversleepingTown`、求生者天赋 `BorrowedTime` / `FlywheelEffect`、监管者天赋 `Detention` / `TrumpCard`、辅助特质 `Blink`，以及默认可见的当前/全局 Ban 位。
+ 
+ `InteractionLayer` 可以显示 fallback overlay 标签，帮助用户定位空控件：
+ 
+diff --git a/neo-bpsys-wpf.PluginSdk/README.md b/neo-bpsys-wpf.PluginSdk/README.md
+index 1bc3ca3..131a9ad 100644
+--- a/neo-bpsys-wpf.PluginSdk/README.md
++++ b/neo-bpsys-wpf.PluginSdk/README.md
+@@ -512,13 +512,13 @@ public partial class MainPageViewModel : ObservableObject
+ ##### 队伍数据
+ 
+ ```csharp
+-// 主队
+-Team mainTeam = _sharedDataService.MainTeam;
+-_sharedDataService.MainTeam = newMainTeam;
++// 主队（只读）
++Team homeTeam = _sharedDataService.HomeTeam;
++// 注意：队伍信息修改请使用 homeTeam.ImportTeamInfo(newTeamInfo);
+ 
+-// 客队
++// 客队（只读）
+ Team awayTeam = _sharedDataService.AwayTeam;
+-_sharedDataService.AwayTeam = newAwayTeam;
++// 注意：队伍信息修改请使用 awayTeam.ImportTeamInfo(newTeamInfo);
+ ```
+ 
+ ##### 对局数据
+diff --git a/neo-bpsys-wpf.Tests/Models/FrontedCanvasConfigTest.cs b/neo-bpsys-wpf.Tests/Models/FrontedCanvasConfigTest.cs
+index b988aa9..2e7086e 100644
+--- a/neo-bpsys-wpf.Tests/Models/FrontedCanvasConfigTest.cs
++++ b/neo-bpsys-wpf.Tests/Models/FrontedCanvasConfigTest.cs
+@@ -481,19 +481,19 @@ public class FrontedCanvasConfigTest
+         Assert.Equal(195, config.CanvasHeight);
+         Assert.Equal("Resources/scoreGlobal.png", config.BackgroundImage);
+ 
+-        Assert.Contains("MainTeamName", config.Controls.Keys);
++        Assert.Contains("HomeTeamName", config.Controls.Keys);
+         Assert.Contains("AwayTeamName", config.Controls.Keys);
+-        Assert.Contains("MainScoreTotal", config.Controls.Keys);
++        Assert.Contains("HomeScoreTotal", config.Controls.Keys);
+         Assert.Contains("AwayScoreTotal", config.Controls.Keys);
+-        Assert.Contains("MainGlobalScoreRow", config.Controls.Keys);
++        Assert.Contains("HomeGlobalScoreRow", config.Controls.Keys);
+         Assert.Contains("AwayGlobalScoreRow", config.Controls.Keys);
+ 
+-        AssertTextBinding(config, "MainTeamName", "HomeTeam.Name");
++        AssertTextBinding(config, "HomeTeamName", "HomeTeam.Name");
+         AssertTextBinding(config, "AwayTeamName", "AwayTeam.Name");
+-        AssertTextBinding(config, "MainScoreTotal", "CurrentGame.MatchScore.HomeTotalMinorScore");
++        AssertTextBinding(config, "HomeScoreTotal", "CurrentGame.MatchScore.HomeTotalMinorScore");
+         AssertTextBinding(config, "AwayScoreTotal", "CurrentGame.MatchScore.AwayTotalMinorScore");
+ 
+-        var mainRow = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["MainGlobalScoreRow"]);
++        var mainRow = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["HomeGlobalScoreRow"]);
+         var awayRow = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["AwayGlobalScoreRow"]);
+         Assert.Equal(neo_bpsys_wpf.Core.Enums.TeamType.HomeTeam, mainRow.TeamType);
+         Assert.Equal(neo_bpsys_wpf.Core.Enums.TeamType.AwayTeam, awayRow.TeamType);
+diff --git a/neo-bpsys-wpf.Tests/Models/FrontedLayoutDesignerFoundationTest.cs b/neo-bpsys-wpf.Tests/Models/FrontedLayoutDesignerFoundationTest.cs
+index c4c5980..7b00ffe 100644
+--- a/neo-bpsys-wpf.Tests/Models/FrontedLayoutDesignerFoundationTest.cs
++++ b/neo-bpsys-wpf.Tests/Models/FrontedLayoutDesignerFoundationTest.cs
+@@ -381,7 +381,7 @@ public class FrontedLayoutDesignerFoundationTest
+     {
+         var service = new DesignerPreviewSharedDataService();
+ 
+-        Assert.Equal("MainTeam", service.CurrentGame.SurTeam.Name);
++        Assert.Equal("HomeTeam", service.CurrentGame.SurTeam.Name);
+         Assert.Equal("AwayTeam", service.CurrentGame.HunTeam.Name);
+         Assert.Equal("30", service.RemainingSeconds);
+         Assert.Equal(GameProgress.Game1FirstHalf, service.CurrentGame.GameProgress);
+diff --git a/neo-bpsys-wpf/Resources/FrontedDefaultPositions/ScoreGlobalWindowConfig-BaseCanvas.default.json b/neo-bpsys-wpf/Resources/FrontedDefaultPositions/ScoreGlobalWindowConfig-BaseCanvas.default.json
+index ff24927..e347377 100644
+--- a/neo-bpsys-wpf/Resources/FrontedDefaultPositions/ScoreGlobalWindowConfig-BaseCanvas.default.json
++++ b/neo-bpsys-wpf/Resources/FrontedDefaultPositions/ScoreGlobalWindowConfig-BaseCanvas.default.json
+@@ -1,5 +1,5 @@
+ {
+-  "MainTeamName": {
++  "HomeTeamName": {
+     "Width": 144,
+     "Height": 26,
+     "Left": 13,
+@@ -11,7 +11,7 @@
+     "Left": 13,
+     "Top": 155
+   },
+-  "MainScoreTotal": {
++  "HomeScoreTotal": {
+     "Width": 86,
+     "Height": null,
+     "Left": 1303,
+diff --git a/neo-bpsys-wpf/Resources/FrontedLayouts/ScoreGlobalWindow/BaseCanvas.json b/neo-bpsys-wpf/Resources/FrontedLayouts/ScoreGlobalWindow/BaseCanvas.json
+index 1c1ea5e..afe2a21 100644
+--- a/neo-bpsys-wpf/Resources/FrontedLayouts/ScoreGlobalWindow/BaseCanvas.json
++++ b/neo-bpsys-wpf/Resources/FrontedLayouts/ScoreGlobalWindow/BaseCanvas.json
+@@ -3,7 +3,7 @@
+   "CanvasWidth": 1440,
+   "CanvasHeight": 195,
+   "BackgroundImage": "Resources/scoreGlobal.png",
+-  "MainTeamName": {
++  "HomeTeamName": {
+     "ControlType": "Text",
+     "Left": 13,
+     "Top": 96,
+@@ -37,7 +37,7 @@
+     "FontSize": 24,
+     "ZIndex": 2
+   },
+-  "MainScoreTotal": {
++  "HomeScoreTotal": {
+     "ControlType": "Text",
+     "Left": 1303,
+     "Top": 89,
+@@ -69,7 +69,7 @@
+     "FontSize": 40,
+     "ZIndex": 2
+   },
+-  "MainGlobalScoreRow": {
++  "HomeGlobalScoreRow": {
+     "ControlType": "GlobalScoreRow",
+     "Left": 175,
+     "Top": 93,
+diff --git a/neo-bpsys-wpf/Services/FrontedDesigner/DesignerPreviewSharedDataService.cs b/neo-bpsys-wpf/Services/FrontedDesigner/DesignerPreviewSharedDataService.cs
+index 341ca7c..5bd4a3a 100644
+--- a/neo-bpsys-wpf/Services/FrontedDesigner/DesignerPreviewSharedDataService.cs
++++ b/neo-bpsys-wpf/Services/FrontedDesigner/DesignerPreviewSharedDataService.cs
+@@ -15,7 +15,7 @@ namespace neo_bpsys_wpf.Services.FrontedDesigner;
+ /// </summary>
+ public sealed class DesignerPreviewSharedDataService : ISharedDataService
+ {
+-    public const string MainTeamName = "MainTeam";
++    public const string HomeTeamName = "HomeTeam";
+     public const string AwayTeamName = "AwayTeam";
+     public const string SurvivorCharacterName = "幸运儿";
+     public const string HunterCharacterName = "厂长";
+@@ -35,7 +35,7 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
+             [hunter.Name] = hunter
+         };
+ 
+-        HomeTeam = CreateTeam(Camp.Sur, TeamType.HomeTeam, MainTeamName, icon, 1);
++        HomeTeam = CreateTeam(Camp.Sur, TeamType.HomeTeam, HomeTeamName, icon, 1);
+         AwayTeam = CreateTeam(Camp.Hun, TeamType.AwayTeam, AwayTeamName, icon, 5);
+ 
+         CurrentGame = new Game(
+diff --git a/neo-bpsys-wpf/ViewModels/Pages/PickPageViewModel.cs b/neo-bpsys-wpf/ViewModels/Pages/PickPageViewModel.cs
+index f26d282..b7a2a58 100644
+--- a/neo-bpsys-wpf/ViewModels/Pages/PickPageViewModel.cs
++++ b/neo-bpsys-wpf/ViewModels/Pages/PickPageViewModel.cs
+@@ -159,7 +159,7 @@ public partial class PickPageViewModel : ViewModelBase, IRecipient<HighlightMess
+         }
+     }
+ 
+-    public Team MainTeam => _sharedDataService.HomeTeam;
++    public Team HomeTeam => _sharedDataService.HomeTeam;
+     public Team AwayTeam => _sharedDataService.AwayTeam;
+ 
+     public ObservableCollection<bool> SurPickingBorderList { get; set; } =
+diff --git a/neo-bpsys-wpf/ViewModels/Pages/TeamInfoPageViewModel.cs b/neo-bpsys-wpf/ViewModels/Pages/TeamInfoPageViewModel.cs
+index cfe8c8a..05744dc 100644
+--- a/neo-bpsys-wpf/ViewModels/Pages/TeamInfoPageViewModel.cs
++++ b/neo-bpsys-wpf/ViewModels/Pages/TeamInfoPageViewModel.cs
+@@ -19,7 +19,7 @@ public partial class TeamInfoPageViewModel : ViewModelBase
+     public TeamInfoPageViewModel(ISharedDataService sharedDataService, IFilePickerService filePickerService)
+     {
+         var sharedDataService1 = sharedDataService;
+-        MainTeamInfoViewModel =
++        HomeTeamInfoViewModel =
+             new TeamInfoViewModel(sharedDataService1.HomeTeam, filePickerService);
+         AwayTeamInfoViewModel =
+             new TeamInfoViewModel(sharedDataService1.AwayTeam, filePickerService);
+@@ -28,7 +28,7 @@ public partial class TeamInfoPageViewModel : ViewModelBase
+         OnFieldHunPlayerVm = new OnFieldHunPlayerViewModel(sharedDataService1);
+     }
+ 
+-    public TeamInfoViewModel MainTeamInfoViewModel { get; }
++    public TeamInfoViewModel HomeTeamInfoViewModel { get; }
+ 
+     public TeamInfoViewModel AwayTeamInfoViewModel { get; }
+ 
+diff --git a/neo-bpsys-wpf/ViewModels/Windows/ScoreWindowViewModel.cs b/neo-bpsys-wpf/ViewModels/Windows/ScoreWindowViewModel.cs
+index 6b4b0c5..d616527 100644
+--- a/neo-bpsys-wpf/ViewModels/Windows/ScoreWindowViewModel.cs
++++ b/neo-bpsys-wpf/ViewModels/Windows/ScoreWindowViewModel.cs
+@@ -77,7 +77,7 @@ public partial class ScoreWindowViewModel :
+ 
+     public Game CurrentGame => _sharedDataService.CurrentGame;
+ 
+-    public Team MainTeam => _sharedDataService.HomeTeam;
++    public Team HomeTeam => _sharedDataService.HomeTeam;
+     public Team AwayTeam => _sharedDataService.AwayTeam;
+ 
+     public ScoreWindowSettings Settings => _settingsHostService.Settings.ScoreWindowSettings;
+diff --git a/neo-bpsys-wpf/Views/Pages/PickPage.xaml b/neo-bpsys-wpf/Views/Pages/PickPage.xaml
+index 3e2e81a..c898a89 100644
+--- a/neo-bpsys-wpf/Views/Pages/PickPage.xaml
++++ b/neo-bpsys-wpf/Views/Pages/PickPage.xaml
+@@ -209,7 +209,7 @@
+                         <TextBlock.Text>
+                             <MultiBinding StringFormat="{}{0}: {1}">
+                                 <lex:BLoc Key="HomeTeam" />
+-                                <Binding Path="MainTeam.Name" />
++                                <Binding Path="HomeTeam.Name" />
+                             </MultiBinding>
+                         </TextBlock.Text>
+                     </TextBlock>
+diff --git a/neo-bpsys-wpf/Views/Pages/TeamInfoPage.xaml b/neo-bpsys-wpf/Views/Pages/TeamInfoPage.xaml
+index 2a70470..589d7f8 100644
+--- a/neo-bpsys-wpf/Views/Pages/TeamInfoPage.xaml
++++ b/neo-bpsys-wpf/Views/Pages/TeamInfoPage.xaml
+@@ -26,7 +26,7 @@
+     </Page.Resources>
+     <WrapPanel Orientation="Horizontal">
+         <!--  home team  -->
+-        <Border DataContext="{Binding MainTeamInfoViewModel}" Style="{StaticResource Card}">
++        <Border DataContext="{Binding HomeTeamInfoViewModel}" Style="{StaticResource Card}">
+             <!--  basic info  -->
+             <StackPanel>
+                 <StackPanel Orientation="Horizontal">

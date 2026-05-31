@@ -209,7 +209,7 @@
                         <TextBlock.Text>
                             <MultiBinding StringFormat="{}{0}: {1}">
                                 <lex:BLoc Key="HomeTeam" />
-                                <Binding Path="MainTeam.Name" />
+                                <Binding Path="HomeTeam.Name" />
                             </MultiBinding>
                         </TextBlock.Text>
                     </TextBlock>

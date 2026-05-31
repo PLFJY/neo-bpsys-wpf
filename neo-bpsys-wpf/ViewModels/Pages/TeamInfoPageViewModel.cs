@@ -19,7 +19,7 @@ public partial class TeamInfoPageViewModel : ViewModelBase
     public TeamInfoPageViewModel(ISharedDataService sharedDataService, IFilePickerService filePickerService)
     {
         var sharedDataService1 = sharedDataService;
-        MainTeamInfoViewModel =
+        HomeTeamInfoViewModel =
             new TeamInfoViewModel(sharedDataService1.HomeTeam, filePickerService);
         AwayTeamInfoViewModel =
             new TeamInfoViewModel(sharedDataService1.AwayTeam, filePickerService);
@@ -28,7 +28,7 @@ public partial class TeamInfoPageViewModel : ViewModelBase
         OnFieldHunPlayerVm = new OnFieldHunPlayerViewModel(sharedDataService1);
     }
 
-    public TeamInfoViewModel MainTeamInfoViewModel { get; }
+    public TeamInfoViewModel HomeTeamInfoViewModel { get; }
 
     public TeamInfoViewModel AwayTeamInfoViewModel { get; }
 

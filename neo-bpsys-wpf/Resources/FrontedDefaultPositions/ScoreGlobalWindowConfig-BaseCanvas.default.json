@@ -1,5 +1,5 @@
 {
-  "MainTeamName": {
+  "HomeTeamName": {
     "Width": 144,
     "Height": 26,
     "Left": 13,
@@ -11,7 +11,7 @@
     "Left": 13,
     "Top": 155
   },
-  "MainScoreTotal": {
+  "HomeScoreTotal": {
     "Width": 86,
     "Height": null,
     "Left": 1303,

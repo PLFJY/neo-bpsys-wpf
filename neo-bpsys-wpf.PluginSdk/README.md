@@ -512,13 +512,13 @@ public partial class MainPageViewModel : ObservableObject
 ##### 队伍数据
 
 ```csharp
-// 主队
-Team mainTeam = _sharedDataService.MainTeam;
-_sharedDataService.MainTeam = newMainTeam;
+// 主队（只读）
+Team homeTeam = _sharedDataService.HomeTeam;
+// 注意：队伍信息修改请使用 homeTeam.ImportTeamInfo(newTeamInfo);
 
-// 客队
+// 客队（只读）
 Team awayTeam = _sharedDataService.AwayTeam;
-_sharedDataService.AwayTeam = newAwayTeam;
+// 注意：队伍信息修改请使用 awayTeam.ImportTeamInfo(newTeamInfo);
 ```
 
 ##### 对局数据
