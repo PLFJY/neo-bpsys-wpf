@@ -1,6 +1,6 @@
 # Designer v3 `.bpui` 布局包标准
 
-本文定义 Designer v3 使用的 `.bpui v3` 前台布局包格式。它是后续导入、导出、包管理、资源复制、热切换和 legacy 转换的规格依据；当前 Phase 9A 只落地文档，不实现代码。
+本文定义 Designer v3 使用的 `.bpui v3` 前台布局包格式。它是导入、导出、包管理、资源复制、热切换和 legacy 转换的规格依据；Phase 9C 已实现 v3 包导出，导入、安装和 legacy 转换仍在后续阶段。
 
 ## 1. 目的
 
@@ -706,7 +706,7 @@ legacy 转换是后续阶段，不在 Phase 9A 实现。Phase 9A 不修改旧导
 | Phase 9A | 文档和规格 only。 |
 | Phase 9B.0: Canvas Properties GUI, local bpui resource normalization, toolbar cleanup, and Window Options foundation | 已实现 Canvas Properties GUI、本地 `bpui://local` 图片规范化、`bpui://` resolver、工具栏二级菜单和窗口级 `AllowTransparency` 选项基础。 |
 | Phase 9B.1: FrontManagePage Layout Package Manager UI skeleton | 已新增 `FrontManagePage` 的 `Frontend Windows` / `Layout Packages` 顶层 tabs、Layout Packages UI skeleton、布局包列表服务基础和活动包状态文件读取/写入骨架。独立编辑器入口保留在 `Frontend Windows` 页，不单独占用 tab。导入、导出、legacy 转换和资源打包仍未实现。 |
-| Phase 9C | v3 包导出。 |
+| Phase 9C | 已实现 v3 `.bpui` 包导出、导出 manifest 对话框、All Frontend Layouts 导出范围、资源收集/重写和包管理器 UI 打磨。导出包不会包含 `Config.json`、`CustomUi/` 或 `FrontElementsConfig/`；`Resources/...` 与 `pack://application:,,,/...` 保持原样，`bpui://local/...`、其他已安装包资源和绝对路径资源会复制到包内并重写为当前 `PackageId`。导入/安装仍未实现。 |
 | Phase 9D | v3 包导入、激活和删除。 |
 | Phase 9E | legacy 包检测。 |
 | Phase 9F | legacy 到 v3 转换器。 |

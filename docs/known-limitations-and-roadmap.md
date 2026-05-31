@@ -36,20 +36,20 @@
 
 Fronted Designer v3 当前已完成基础设施阶段，并将 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、多 Canvas 的 `WidgetsWindow` 和 `BpWindow` 接入 v3 renderer；这些窗口的内置默认布局比分文本已绑定 `CurrentGame.MatchScore`。`CutSceneWindow` 默认布局使用 `TalentTraitDisplay`、`GameProgressText`、`MapNameText` 封装天赋/辅助特质显示、BO3/BO5 进度文本和地图名本地化；`GameDataWindow` 默认布局使用 `LocalizedText` 处理赛后数据表头，并使用 `GameProgressText`、`MapNameText` 处理业务/i18n 文本；`WidgetsWindow` 使用三份独立布局文件，`BpOverViewCanvas` 的 `GameProgressText` 使用 `UseLineBreak=true`，`MapBpCanvas` 通过 `MapNameText.BindingPath` 显示 picked / banned map，`MapV2Canvas` 使用 `MapV2Display`；`BpWindow` 使用 `BanSlotDisplay` 处理当前局/全局 Ban 头像和锁定覆盖层，并使用 `PickingBorderOverlay` 保留 pick 呼吸动画的独立命名目标。Phase 8A 已完成独立编辑器设计规格，Phase 8B 已实现设计期模型、layout validator、引用扫描、设计项转换、运行时关键名称 catalog 和 converter 阶段重复 JSON key 检测，Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、layout source 状态、只读预览、缩放控制和校验面板，Phase 8D 已新增同坐标系 `InteractionLayer`、透明 hitbox、选择框、拖拽、缩放控制点和方向键微调，并在 owner validation 后补齐左侧控件列表/筛选、单击选择与拖拽分离、重叠控件 editor-only 提层、拖拽/缩放 preview live update、无显式尺寸时使用渲染实际尺寸；Phase 8D zoom/pan 修正后，编辑预览使用 `ScrollViewer + PreviewZoomHost + LayoutTransform`，Fit 根据 viewport/canvas 计算 `ZoomScale`，手动缩放让 `ScrollViewer` 获得真实 extent，右键拖拽和 `Space + left mouse drag` 只改变 scroll offset 且不改 layout 坐标；Phase 8E 已实现基础 Property Grid，支持选中控件的文本、数字、布尔、枚举、字符串选项 ComboBox 和 ColorPicker 编辑；Phase 8F 已实现 Add Control 菜单、默认 config 工厂、唯一命名、视口中心放置和 `FontFamily` 字体 ComboBox，内置字体继续保存 pack URI 原值。Phase 8F owner validation 后补齐 Delete Control，`Name` / `BindingPath` / 文本属性改为 Enter 或 Apply 按钮显式提交，失败提交保留输入并显示红色边框，FontFamily 下拉不再被 LostFocus 抢提交，右侧 Property Grid 可通过 `GridSplitter` 拖拽宽度。Phase 8F foundation 修复后，设计器预览使用独立 placeholder shared data service（`MainTeam` / `AwayTeam`、应用 icon、`幸运儿` / `厂长`、比分和赛后数据 0、`Player 1-5`、`Game1FirstHalf`、倒计时 30、`TheRedChurch` / `EversleepingTown`、`BorrowedTime` / `FlywheelEffect`、`Detention` / `TrumpCard` / `Blink`），不会污染真实运行时共享状态；ColorPicker 只同步 Hex 缓冲并由 Apply/Enter 提交；Delete Control 当前保留在 Edit menu 和左侧控件列表右键菜单，右侧 Property Grid 底部 Delete 已在 Phase 9B.1 移除；工具栏和快捷键提供基础内存 Undo/Redo。Phase 8G 已新增 Binding Browser 和 Resource Browser：绑定浏览器使用 curated `ISharedDataService` 树和固定常用索引，并按当前属性行类型过滤候选路径；资源浏览器列出 `Resources/bpui` 并可选择绝对路径图片；两者选择都只写入属性行缓冲，Apply/Enter 前不会修改 config 或 Undo 栈。Phase 8H 已新增用户布局保存/重置/打开目录，运行时和编辑器都按用户布局优先、内置布局兜底加载；保存只写 AppData 用户布局，重置会删除当前 Canvas 的用户布局。切换窗口/Canvas、reload、reset 和关闭编辑器前会通过 `MessageBoxHelper` 对 dirty 文档提示 Save / Discard / Cancel；关闭路径会先取消 `Closing` 再异步显示宽版本地化 helper 对话框，避免 WPF closing 期间弹窗或再次关闭导致崩溃。吸附默认关闭，工具栏 ToggleSwitch 开启持久吸附，Shift 只临时启用吸附并更新状态文字，不修改 ToggleSwitch。owner validation 后，顶部工具栏改为可换行布局并限制长路径宽度，验证详情从右侧面板移入底部验证摘要打开的非模态窗口且随父窗口安全关闭；属性网格重建期间抑制编辑提交，拖拽/缩放 live edit 不再重建 Property Grid 或重复完整校验，见 [fronted-designer-editor.md](fronted-designer-editor.md)。编辑器入口位于 `FrontManagePage`；窗口使用 `FluentWindow` + 项目 `CustomTitleBar`，隐藏主题切换按钮。当前预览和交互层都使用 layout config 的纯 Canvas 尺寸，`ZoomScale` 不改变写回坐标，避免真实前台窗口标题栏高度偏移；但 `.bpui` v3 转换仍未实现。旧设计者模式、旧 `config.json` 前台设置和旧 XAML-first 运行时仍保留。
 
-Phase 8H 仍有明确边界：Resource Browser 不复制/导入外部图片，`.bpui` 资源打包仍属后续阶段；`.bpui` import/export 和 legacy `.bpui` 转换仍未实现；旧 `config.json` 前台设置仍保留；Canvas 级 `BackgroundImage` 等到 Canvas 属性编辑后再进入 Property Grid；运行时关键控件名称只读且不能删除；被其他控件引用的普通控件在 reference-aware rename/delete 实现前阻止改名和删除；`PickingBorderOverlay` 不作为普通可选/可编辑/可添加控件。
+Phase 8H 仍有明确边界：Resource Browser 不复制/导入外部图片；Phase 9C 已实现 `.bpui v3` 导出和资源打包，但 `.bpui` 导入/安装和 legacy `.bpui` 转换仍未实现；旧 `config.json` 前台设置仍保留；Canvas 级 `BackgroundImage` 等到 Canvas 属性编辑后再进入 Property Grid；运行时关键控件名称只读且不能删除；被其他控件引用的普通控件在 reference-aware rename/delete 实现前阻止改名和删除；`PickingBorderOverlay` 不作为普通可选/可编辑/可添加控件。
 
-Phase 9A 已新增 `.bpui v3` 标准文档，见 [bpui-package-v3.md](bpui-package-v3.md)，但仍是规格阶段，不代表功能已完成。当前边界：
+Phase 9A 已新增 `.bpui v3` 标准文档，Phase 9C 已实现导出。当前边界：
 
-1. `.bpui v3` 导入/导出代码尚未实现。
-2. `FrontManagePage` 的 Layout Packages 管理页已有 UI skeleton 和包枚举/活动状态骨架，导入、导出、legacy 转换和资源打包尚未实现。
+1. `.bpui v3` 导出已实现；导入/安装仍未实现，Import 按钮仍提示 Phase 9D。
+2. `FrontManagePage` 的 Layout Packages 管理页已完成紧凑 UI 打磨、包枚举/活动状态骨架和导出入口；legacy 转换仍未实现。
 3. Phase 9B.0 已实现 Canvas Properties GUI，可编辑 `CanvasWidth`、`CanvasHeight` 和 `BackgroundImage`，并支持本地背景图片复制为 `bpui://local/...`。
-4. Phase 9B.0 已实现 `bpui://local` 和 `bpui://{PackageId}` 文件资源解析；完整 v3 package import/export 仍未实现。
+4. Phase 9B.0 已实现 `bpui://local` 和 `bpui://{PackageId}` 文件资源解析；Phase 9C 导出会把 `bpui://local/...`、其他包资源和绝对路径资源复制进导出包并重写为当前 `PackageId`，同时保持 `Resources/...` 和 `pack://application:,,,/...` 原样。
 5. Phase 9B.0 已新增窗口级 `AllowTransparency` 选项基础，保存到 `FrontedLayouts/{WindowTypeName}/window.json`；它不是 Canvas 属性，不会写入 `FrontedCanvasConfig`。当前运行时前台窗口仍保留旧 `config.json` 透明设置绑定，读取 `window.json` 并在 `Show()` 前应用透明窗口选项留到后续清理阶段。
-6. Phase 9B.1 已新增 `FrontManagePage` 的 `Frontend Windows` / `Layout Packages` 顶层 tabs 和 Layout Packages 管理器 UI skeleton；独立编辑器入口仍在 `Frontend Windows` 页。当前能列出 `builtin`、普通已安装包和活动包状态，Import/Export 仍只显示未实现状态。
+6. Phase 9C 后，`FrontManagePage` 的 Layout Packages 页能列出 `builtin`、普通已安装包和活动包状态，并能导出 All Frontend Layouts `.bpui`；Current Canvas/Current Window 范围暂未接入设计器上下文。
 7. legacy `.bpui` 检测和 legacy 到 v3 转换尚未实现。
 8. SettingPage 中现有 `.bpui` 导入/导出仍是 legacy 流程，会处理 `Config.json`、`CustomUi/` 和 `FrontElementsConfig`，暂时保留。
 9. Phase 9B.1 清理了 `FrontedDesignerWindow` 的重复入口：Delete 保留在 Edit menu 和左侧控件列表右键菜单，右侧 Property Grid 底部 Delete 已移除；`AllowTransparency` 保留在右侧 Window Options，不再出现在顶部 Window menu。
-10. v3 包标准明确禁止 v3 包包含或覆盖全局 `Config.json`，但该规则尚未由导入器执行，因为导入器还未实现。
+10. v3 导出器不会写入全局 `Config.json`、`CustomUi/` 或 `FrontElementsConfig/`；导入器校验这些禁止内容仍待 Phase 9D 实现。
 
 ## 文档边界
 

@@ -2468,7 +2468,7 @@
     <value>刷新布局包</value>
   </data>
   <data name="PackageNotImplemented" xml:space="preserve">
-    <value>布局包导入/导出尚未实现。</value>
+    <value>v3 布局包导入将在 Phase 9D 实现。</value>
   </data>
   <data name="CannotDeleteBuiltinPackage" xml:space="preserve">
     <value>不能删除系统内置包。</value>
@@ -2499,5 +2499,65 @@
   </data>
   <data name="ShortcutSave" xml:space="preserve">
     <value>保存布局 (Ctrl+S)</value>
+  </data>
+  <data name="ExportPackageDialogTitle" xml:space="preserve">
+    <value>导出布局包</value>
+  </data>
+  <data name="ExportScope" xml:space="preserve">
+    <value>导出范围</value>
+  </data>
+  <data name="ExportCurrentCanvas" xml:space="preserve">
+    <value>当前 Canvas</value>
+  </data>
+  <data name="ExportCurrentWindow" xml:space="preserve">
+    <value>当前窗口</value>
+  </data>
+  <data name="ExportAllFrontendLayouts" xml:space="preserve">
+    <value>全部前台布局</value>
+  </data>
+  <data name="OutputPath" xml:space="preserve">
+    <value>输出路径</value>
+  </data>
+  <data name="BrowseOutputPath" xml:space="preserve">
+    <value>浏览输出路径</value>
+  </data>
+  <data name="PackageExportSucceeded" xml:space="preserve">
+    <value>布局包导出成功</value>
+  </data>
+  <data name="PackageExportFailed" xml:space="preserve">
+    <value>布局包导出失败</value>
+  </data>
+  <data name="InvalidPackageId" xml:space="preserve">
+    <value>PackageId 只能包含小写字母、数字、点、短横线和下划线，且不能包含空白、路径分隔符、冒号或 ..。</value>
+  </data>
+  <data name="PackageNameRequired" xml:space="preserve">
+    <value>包名称必填。</value>
+  </data>
+  <data name="OutputPathRequired" xml:space="preserve">
+    <value>输出路径必填。</value>
+  </data>
+  <data name="ConfirmOverwriteFile" xml:space="preserve">
+    <value>输出文件已存在，是否覆盖？</value>
+  </data>
+  <data name="ExportedLayoutCount" xml:space="preserve">
+    <value>导出布局数</value>
+  </data>
+  <data name="ExportedResourceCount" xml:space="preserve">
+    <value>导出资源数</value>
+  </data>
+  <data name="CompactPackageList" xml:space="preserve">
+    <value>紧凑包列表</value>
+  </data>
+  <data name="PackageBasicInfo" xml:space="preserve">
+    <value>基本信息</value>
+  </data>
+  <data name="PackageContents" xml:space="preserve">
+    <value>内容</value>
+  </data>
+  <data name="PackageLocation" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="PackageValidation" xml:space="preserve">
+    <value>校验</value>
   </data>
 </root>

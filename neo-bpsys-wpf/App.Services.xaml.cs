@@ -89,6 +89,7 @@ public partial class App
         services.AddSingleton<IFrontedUserLayoutStore, FrontedUserLayoutStore>();
         services.AddSingleton<IFrontedWindowLayoutOptionsService, FrontedWindowLayoutOptionsService>();
         services.AddSingleton<IFrontedLayoutPackageManager, FrontedLayoutPackageManager>();
+        services.AddSingleton<IFrontedLayoutPackageExporter, FrontedLayoutPackageExporter>();
         services.AddSingleton<IFrontedControl, TextFrontedControl>();
         services.AddSingleton<IFrontedControl, LocalizedTextFrontedControl>();
         services.AddSingleton<IFrontedControl, ImageFrontedControl>();
@@ -134,6 +135,8 @@ public partial class App
         services.AddTransient<FrontedBindingBrowserWindow>();
         services.AddTransient<FrontedResourceBrowserWindowViewModel>();
         services.AddTransient<FrontedResourceBrowserWindow>();
+        services.AddTransient<FrontedLayoutPackageExportWindowViewModel>();
+        services.AddTransient<FrontedLayoutPackageExportWindow>();
 
         //Pages
         //Internal

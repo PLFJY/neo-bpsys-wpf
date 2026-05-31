@@ -2402,7 +2402,7 @@
   <data name="DeletePackage" xml:space="preserve"><value>パッケージを削除</value></data>
   <data name="OpenPackageFolder" xml:space="preserve"><value>パッケージフォルダーを開く</value></data>
   <data name="RefreshPackages" xml:space="preserve"><value>パッケージを更新</value></data>
-  <data name="PackageNotImplemented" xml:space="preserve"><value>パッケージのインポート/エクスポートはまだ実装されていません。</value></data>
+  <data name="PackageNotImplemented" xml:space="preserve"><value>v3 パッケージのインポートは Phase 9D で実装予定です。</value></data>
   <data name="CannotDeleteBuiltinPackage" xml:space="preserve"><value>内蔵パッケージは削除できません。</value></data>
   <data name="CannotDeleteLocalPackage" xml:space="preserve"><value>ローカルリソースパッケージは削除できません。</value></data>
   <data name="PackageDeleted" xml:space="preserve"><value>パッケージを削除しました。</value></data>
@@ -2413,4 +2413,24 @@
   <data name="ShortcutRedo" xml:space="preserve"><value>やり直し (Ctrl+Y / Ctrl+Shift+Z)</value></data>
   <data name="ShortcutDelete" xml:space="preserve"><value>削除 (Del)</value></data>
   <data name="ShortcutSave" xml:space="preserve"><value>レイアウトを保存 (Ctrl+S)</value></data>
+  <data name="ExportPackageDialogTitle" xml:space="preserve"><value>レイアウトパッケージをエクスポート</value></data>
+  <data name="ExportScope" xml:space="preserve"><value>エクスポート範囲</value></data>
+  <data name="ExportCurrentCanvas" xml:space="preserve"><value>現在の Canvas</value></data>
+  <data name="ExportCurrentWindow" xml:space="preserve"><value>現在のウィンドウ</value></data>
+  <data name="ExportAllFrontendLayouts" xml:space="preserve"><value>すべてのフロントレイアウト</value></data>
+  <data name="OutputPath" xml:space="preserve"><value>出力先</value></data>
+  <data name="BrowseOutputPath" xml:space="preserve"><value>出力先を参照</value></data>
+  <data name="PackageExportSucceeded" xml:space="preserve"><value>パッケージのエクスポートに成功しました</value></data>
+  <data name="PackageExportFailed" xml:space="preserve"><value>パッケージのエクスポートに失敗しました</value></data>
+  <data name="InvalidPackageId" xml:space="preserve"><value>PackageId は小文字、数字、ドット、ハイフン、アンダースコアのみ使用でき、空白、パス区切り、コロン、.. は使えません。</value></data>
+  <data name="PackageNameRequired" xml:space="preserve"><value>パッケージ名は必須です。</value></data>
+  <data name="OutputPathRequired" xml:space="preserve"><value>出力先は必須です。</value></data>
+  <data name="ConfirmOverwriteFile" xml:space="preserve"><value>出力ファイルは既に存在します。上書きしますか？</value></data>
+  <data name="ExportedLayoutCount" xml:space="preserve"><value>エクスポートしたレイアウト数</value></data>
+  <data name="ExportedResourceCount" xml:space="preserve"><value>エクスポートしたリソース数</value></data>
+  <data name="CompactPackageList" xml:space="preserve"><value>コンパクトパッケージ一覧</value></data>
+  <data name="PackageBasicInfo" xml:space="preserve"><value>基本情報</value></data>
+  <data name="PackageContents" xml:space="preserve"><value>内容</value></data>
+  <data name="PackageLocation" xml:space="preserve"><value>場所</value></data>
+  <data name="PackageValidation" xml:space="preserve"><value>検証</value></data>
 </root>

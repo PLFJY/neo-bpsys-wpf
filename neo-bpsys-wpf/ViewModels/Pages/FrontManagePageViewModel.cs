@@ -34,6 +34,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
     private readonly ISharedDataService _sharedDataService;
     private readonly IServiceProvider? _serviceProvider;
     private readonly IFrontedLayoutPackageManager? _packageManager;
+    private readonly IFrontedLayoutPackageExporter? _packageExporter;
     private readonly ILogger<FrontManagePageViewModel>? _logger;
     private FrontedDesignerWindow? _frontedDesignerWindow;
 
@@ -41,12 +42,14 @@ public partial class FrontManagePageViewModel : ViewModelBase
         IFrontedWindowService frontedWindowService,
         ISharedDataService sharedDataService,
         IFrontedLayoutPackageManager packageManager,
+        IFrontedLayoutPackageExporter packageExporter,
         IServiceProvider serviceProvider,
         ILogger<FrontManagePageViewModel> logger)
     {
         _frontedWindowService = frontedWindowService;
         _sharedDataService = sharedDataService;
         _packageManager = packageManager;
+        _packageExporter = packageExporter;
         _serviceProvider = serviceProvider;
         _logger = logger;
         ExternalFrontedWindows = new ObservableCollection<FrontedWindowInfo>(FrontedWindowRegistryService.RegisteredWindow
@@ -152,9 +155,51 @@ public partial class FrontManagePageViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ExportPackage()
+    private async Task ExportPackageAsync()
     {
-        PackageManagerStatus = I18nHelper.GetLocalizedString("PackageNotImplemented");
+        if (_serviceProvider is null || _packageExporter is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var window = ActivatorUtilities.CreateInstance<FrontedLayoutPackageExportWindow>(_serviceProvider);
+            window.Owner = Application.Current.MainWindow;
+            if (window.ShowDialog() != true || window.ExportRequest is null)
+            {
+                return;
+            }
+
+            var request = window.ExportRequest;
+            if (File.Exists(request.OutputPath)
+                && !await MessageBoxHelper.ShowConfirmAsync(
+                    I18nHelper.GetLocalizedString("ConfirmOverwriteFile"),
+                    I18nHelper.GetLocalizedString("Tips"),
+                    I18nHelper.GetLocalizedString("Confirm"),
+                    I18nHelper.GetLocalizedString("Cancel")))
+            {
+                return;
+            }
+
+            var result = await _packageExporter.ExportAsync(request);
+            if (result.Success)
+            {
+                PackageManagerStatus =
+                    $"{I18nHelper.GetLocalizedString("PackageExportSucceeded")}: {result.OutputPath} "
+                    + $"{I18nHelper.GetLocalizedString("ExportedLayoutCount")}: {result.LayoutCount}, "
+                    + $"{I18nHelper.GetLocalizedString("ExportedResourceCount")}: {result.ResourceCount}";
+            }
+            else
+            {
+                PackageManagerStatus = $"{I18nHelper.GetLocalizedString("PackageExportFailed")}: {result.ErrorMessage}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to export fronted layout package.");
+            PackageManagerStatus = $"{I18nHelper.GetLocalizedString("PackageExportFailed")}: {ex.Message}";
+        }
     }
 
     [RelayCommand]

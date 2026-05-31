@@ -1,0 +1,123 @@
+<ui:FluentWindow
+    x:Class="neo_bpsys_wpf.Views.Windows.FrontedLayoutPackageExportWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="{lex:Loc ExportPackageDialogTitle}"
+    Width="640"
+    Height="620"
+    MinWidth="560"
+    MinHeight="520"
+    lex:LocalizeDictionary.DesignCulture="zh"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Lang"
+    Background="{DynamicResource ApplicationBackgroundBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    WindowStartupLocation="CenterOwner">
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="35"
+            CornerRadius="8"
+            GlassFrameThickness="0"
+            ResizeBorderThickness="5"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <controls:CustomTitleBar
+            Grid.Row="0"
+            Icon="/Assets/icon.png"
+            IsMaximizeVisible="False"
+            IsMinimizeVisible="False"
+            IsThemeChangeVisible="False"
+            IsTopMostVisible="False" />
+        <ui:DynamicScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid Margin="18">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="160" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc PackageId}" />
+                <ui:TextBox Grid.Row="0" Grid.Column="1" Margin="0,0,0,10" Text="{Binding PackageId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc PackageName}" />
+                <ui:TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,0,10" Text="{Binding PackageName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Top" Text="{lex:Loc PackageDescription}" />
+                <ui:TextBox
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    MinHeight="84"
+                    Margin="0,0,0,10"
+                    AcceptsReturn="True"
+                    Text="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc PackageAuthor}" />
+                <ui:TextBox Grid.Row="3" Grid.Column="1" Margin="0,0,0,10" Text="{Binding Author, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc PackageMinVersion}" />
+                <ui:TextBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,10" Text="{Binding MinVersion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Grid.Row="5" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc ExportScope}" />
+                <ComboBox
+                    Grid.Row="5"
+                    Grid.Column="1"
+                    Margin="0,0,0,10"
+                    DisplayMemberPath="DisplayName"
+                    IsSynchronizedWithCurrentItem="False"
+                    ItemsSource="{Binding ScopeOptions}"
+                    SelectedItem="{Binding SelectedScopeOption, Mode=TwoWay}">
+                    <ComboBox.ItemContainerStyle>
+                        <Style TargetType="ComboBoxItem">
+                            <Setter Property="IsEnabled" Value="{Binding IsEnabled}" />
+                        </Style>
+                    </ComboBox.ItemContainerStyle>
+                </ComboBox>
+
+                <TextBlock Grid.Row="6" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc OutputPath}" />
+                <Grid Grid.Row="6" Grid.Column="1" Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBox Grid.Column="0" Text="{Binding OutputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <ui:Button
+                        Grid.Column="1"
+                        MinWidth="110"
+                        Margin="8,0,0,0"
+                        Command="{Binding BrowseOutputPathCommand}"
+                        Content="{lex:Loc BrowseOutputPath}" />
+                </Grid>
+
+                <TextBlock
+                    Grid.Row="7"
+                    Grid.Column="1"
+                    Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                    Text="{Binding ValidationMessage}"
+                    TextWrapping="Wrap" />
+            </Grid>
+        </ui:DynamicScrollViewer>
+        <StackPanel Grid.Row="2" Margin="18,0,18,18" HorizontalAlignment="Right" Orientation="Horizontal">
+            <ui:Button MinWidth="96" Click="Ok_OnClick" Content="{lex:Loc Confirm}" />
+            <ui:Button MinWidth="96" Margin="8,0,0,0" Click="Cancel_OnClick" Content="{lex:Loc Cancel}" />
+        </StackPanel>
+    </Grid>
+</ui:FluentWindow>

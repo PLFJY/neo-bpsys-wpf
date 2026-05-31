@@ -2399,7 +2399,7 @@
   <data name="DeletePackage" xml:space="preserve"><value>Delete Package</value></data>
   <data name="OpenPackageFolder" xml:space="preserve"><value>Open Package Folder</value></data>
   <data name="RefreshPackages" xml:space="preserve"><value>Refresh Packages</value></data>
-  <data name="PackageNotImplemented" xml:space="preserve"><value>Package import/export is not implemented yet.</value></data>
+  <data name="PackageNotImplemented" xml:space="preserve"><value>v3 package import will be implemented in Phase 9D.</value></data>
   <data name="CannotDeleteBuiltinPackage" xml:space="preserve"><value>Cannot delete the built-in package.</value></data>
   <data name="CannotDeleteLocalPackage" xml:space="preserve"><value>Cannot delete the local resource package.</value></data>
   <data name="PackageDeleted" xml:space="preserve"><value>Package deleted.</value></data>
@@ -2410,4 +2410,24 @@
   <data name="ShortcutRedo" xml:space="preserve"><value>Redo (Ctrl+Y / Ctrl+Shift+Z)</value></data>
   <data name="ShortcutDelete" xml:space="preserve"><value>Delete (Del)</value></data>
   <data name="ShortcutSave" xml:space="preserve"><value>Save Layout (Ctrl+S)</value></data>
+  <data name="ExportPackageDialogTitle" xml:space="preserve"><value>Export Layout Package</value></data>
+  <data name="ExportScope" xml:space="preserve"><value>Export Scope</value></data>
+  <data name="ExportCurrentCanvas" xml:space="preserve"><value>Current Canvas</value></data>
+  <data name="ExportCurrentWindow" xml:space="preserve"><value>Current Window</value></data>
+  <data name="ExportAllFrontendLayouts" xml:space="preserve"><value>All Frontend Layouts</value></data>
+  <data name="OutputPath" xml:space="preserve"><value>Output Path</value></data>
+  <data name="BrowseOutputPath" xml:space="preserve"><value>Browse Output Path</value></data>
+  <data name="PackageExportSucceeded" xml:space="preserve"><value>Package export succeeded</value></data>
+  <data name="PackageExportFailed" xml:space="preserve"><value>Package export failed</value></data>
+  <data name="InvalidPackageId" xml:space="preserve"><value>PackageId may contain only lowercase letters, numbers, dot, dash, and underscore, with no whitespace, path separators, colon, or ...</value></data>
+  <data name="PackageNameRequired" xml:space="preserve"><value>Package name is required.</value></data>
+  <data name="OutputPathRequired" xml:space="preserve"><value>Output path is required.</value></data>
+  <data name="ConfirmOverwriteFile" xml:space="preserve"><value>The output file already exists. Overwrite it?</value></data>
+  <data name="ExportedLayoutCount" xml:space="preserve"><value>Exported layouts</value></data>
+  <data name="ExportedResourceCount" xml:space="preserve"><value>Exported resources</value></data>
+  <data name="CompactPackageList" xml:space="preserve"><value>Compact Package List</value></data>
+  <data name="PackageBasicInfo" xml:space="preserve"><value>Basic</value></data>
+  <data name="PackageContents" xml:space="preserve"><value>Contents</value></data>
+  <data name="PackageLocation" xml:space="preserve"><value>Location</value></data>
+  <data name="PackageValidation" xml:space="preserve"><value>Validation</value></data>
 </root>

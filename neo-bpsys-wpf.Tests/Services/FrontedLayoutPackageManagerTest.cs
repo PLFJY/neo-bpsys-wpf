@@ -4,6 +4,8 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -147,6 +149,160 @@ public class FrontedLayoutPackageManagerTest
         }
     }
 
+    [Theory]
+    [InlineData("plfjy.default-layout.2026")]
+    [InlineData("package_id")]
+    [InlineData("package-id")]
+    public void ExporterPackageIdValidationAcceptsSafeIds(string packageId)
+    {
+        Assert.True(FrontedLayoutPackageExporter.IsSafePackageId(packageId));
+    }
+
+    [Theory]
+    [InlineData("../evil")]
+    [InlineData("a/b")]
+    [InlineData("a\\b")]
+    [InlineData("a:b")]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void ExporterPackageIdValidationRejectsUnsafeIds(string packageId)
+    {
+        Assert.False(FrontedLayoutPackageExporter.IsSafePackageId(packageId));
+    }
+
+    [Fact]
+    public void ManifestSerializesBpuiV3RootFieldsWithoutAppObject()
+    {
+        var manifest = new FrontedLayoutPackageManifest
+        {
+            PackageId = "plfjy.default-layout.2026",
+            Name = "Default Layout",
+            MinVersion = "3.0.0"
+        };
+
+        var json = JsonSerializer.Serialize(manifest);
+
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+        Assert.Equal("neo-bpsys-bpui", root.GetProperty("Format").GetString());
+        Assert.Equal(3, root.GetProperty("FormatVersion").GetInt32());
+        Assert.Equal(3, root.GetProperty("LayoutSchemaVersion").GetInt32());
+        Assert.Equal("3.0.0", root.GetProperty("MinVersion").GetString());
+        Assert.False(root.TryGetProperty("App", out _));
+    }
+
+    [Fact]
+    public async Task ExportAllLayoutsCreatesSafeBpuiZipAndRewritesCopiedResources()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            var userRoot = Path.Combine(root, "user");
+            var packageRoot = Path.Combine(root, "packages");
+            var tempRoot = Path.Combine(root, "temp");
+            var outputPath = Path.Combine(root, "export.bpui");
+            var localImagePath = Path.Combine(packageRoot, "local", "resources", "images", "local.png");
+            var absoluteImagePath = Path.Combine(root, "absolute.png");
+            Directory.CreateDirectory(Path.GetDirectoryName(localImagePath)!);
+            File.WriteAllBytes(localImagePath, [1, 2, 3]);
+            File.WriteAllBytes(absoluteImagePath, [4, 5, 6]);
+
+            var catalog = new FrontedDesignerLayoutCatalog();
+            WriteCatalogLayouts(
+                catalog,
+                builtInRoot,
+                "Resources/foo.png",
+                "bpui://local/resources/images/local.png",
+                absoluteImagePath);
+            var layoutService = new FrontedLayoutService(
+                new FrontedUserLayoutStore(userRoot),
+                builtInRoot,
+                null);
+            var optionsService = new FrontedWindowLayoutOptionsService(userRoot);
+            var exporter = new FrontedLayoutPackageExporter(
+                catalog,
+                layoutService,
+                optionsService,
+                packageRoot,
+                tempRoot);
+
+            var result = await exporter.ExportAsync(new FrontedLayoutPackageExportRequest
+            {
+                PackageId = "plfjy.default-layout.2026",
+                Name = "Default Layout",
+                Author = "PLFJY",
+                MinVersion = "3.0.0",
+                OutputPath = outputPath,
+                ExportScope = FrontedLayoutPackageExportScope.AllFrontendLayouts
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.True(File.Exists(outputPath));
+            using var archive = ZipFile.OpenRead(outputPath);
+            var entryNames = archive.Entries.Select(entry => entry.FullName.Replace('\\', '/')).ToArray();
+            Assert.Contains("manifest.json", entryNames);
+            Assert.Contains("layouts/BpWindow/BaseCanvas.json", entryNames);
+            Assert.DoesNotContain("Config.json", entryNames);
+            Assert.DoesNotContain(entryNames, name => name.StartsWith("CustomUi/", StringComparison.OrdinalIgnoreCase));
+            Assert.DoesNotContain(entryNames, name => name.StartsWith("FrontElementsConfig/", StringComparison.OrdinalIgnoreCase));
+            Assert.DoesNotContain(entryNames, name => Path.IsPathRooted(name) || name.Contains("..", StringComparison.Ordinal));
+            Assert.Contains(entryNames, name => name.StartsWith("resources/images/local-", StringComparison.Ordinal));
+            Assert.Contains(entryNames, name => name.StartsWith("resources/images/absolute-", StringComparison.Ordinal));
+
+            var manifest = ReadManifest(archive);
+            Assert.Equal(result.LayoutCount, manifest.Content.Layouts.Count);
+            Assert.Equal(result.ResourceCount, manifest.Content.Resources.Count);
+            Assert.Equal(2, manifest.Content.Resources.Count);
+            Assert.All(manifest.Content.Resources, resource => Assert.False(string.IsNullOrWhiteSpace(resource.Sha256)));
+
+            var builtInLayoutJson = ReadZipEntry(archive, "layouts/ScoreSurWindow/BaseCanvas.json");
+            Assert.Contains("\"BackgroundImage\": \"Resources/foo.png\"", builtInLayoutJson);
+            var localLayoutJson = ReadZipEntry(archive, "layouts/ScoreHunWindow/BaseCanvas.json");
+            Assert.Contains("bpui://plfjy.default-layout.2026/resources/images/local-", localLayoutJson);
+            var absoluteLayoutJson = ReadZipEntry(archive, "layouts/ScoreGlobalWindow/BaseCanvas.json");
+            Assert.Contains("bpui://plfjy.default-layout.2026/resources/images/absolute-", absoluteLayoutJson);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task MissingAbsoluteImageCausesClearExportFailure()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            var missingPath = Path.Combine(root, "missing.png");
+            var catalog = new FrontedDesignerLayoutCatalog();
+            WriteCatalogLayouts(catalog, builtInRoot, missingPath, "Resources/foo.png", "Resources/bar.png");
+            var exporter = new FrontedLayoutPackageExporter(
+                catalog,
+                new FrontedLayoutService(new FrontedUserLayoutStore(Path.Combine(root, "user")), builtInRoot, null),
+                new FrontedWindowLayoutOptionsService(Path.Combine(root, "user")),
+                Path.Combine(root, "packages"),
+                Path.Combine(root, "temp"));
+
+            var result = await exporter.ExportAsync(new FrontedLayoutPackageExportRequest
+            {
+                PackageId = "package-id",
+                Name = "Package",
+                OutputPath = Path.Combine(root, "export.bpui"),
+                ExportScope = FrontedLayoutPackageExportScope.AllFrontendLayouts
+            }, TestContext.Current.CancellationToken);
+
+            Assert.False(result.Success);
+            Assert.Contains("Referenced resource file was not found", result.ErrorMessage);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
     [Fact]
     public async Task DeleteInstalledPackageDeletesOnlyPackageDirectory()
     {
@@ -242,7 +398,9 @@ public class FrontedLayoutPackageManagerTest
         Assert.Contains("ItemsSource=\"{Binding LayoutPackages}\"", text);
         Assert.Contains("OpenFrontedDesignerCommand", text);
         Assert.Contains("RefreshPackagesCommand", text);
-        Assert.Contains("<ui:CardExpander>", text);
+        Assert.Contains("CompactPackageList", text);
+        Assert.Contains("PackageBasicInfo", text);
+        Assert.Contains("ExportPackageCommand", text);
         Assert.Contains("<ui:DynamicScrollViewer", text);
         Assert.DoesNotContain("<ui:DataGrid", text);
     }
@@ -269,6 +427,67 @@ public class FrontedLayoutPackageManagerTest
         File.WriteAllText(
             Path.Combine(folder, "manifest.json"),
             JsonSerializer.Serialize(manifest));
+    }
+
+    private static void WriteCatalogLayouts(
+        FrontedDesignerLayoutCatalog catalog,
+        string builtInRoot,
+        string firstBackgroundImage,
+        string secondBackgroundImage,
+        string thirdBackgroundImage)
+    {
+        var index = 0;
+        foreach (var entry in catalog.GetEntries())
+        {
+            var background = index switch
+            {
+                0 => firstBackgroundImage,
+                1 => secondBackgroundImage,
+                2 => thirdBackgroundImage,
+                _ => "Resources/foo.png"
+            };
+            var path = Path.Combine(builtInRoot, entry.WindowTypeName, $"{entry.CanvasName}.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, $$"""
+                                      {
+                                        "Version": 3,
+                                        "CanvasWidth": 100,
+                                        "CanvasHeight": 100,
+                                        "BackgroundImage": "{{JsonEncodedText(background)}}",
+                                        "Image1": {
+                                          "ControlType": "Image",
+                                          "Left": 0,
+                                          "Top": 0,
+                                          "Width": 10,
+                                          "Height": 10,
+                                          "BanLockImagePath": "Resources/lock.png"
+                                        }
+                                      }
+                                      """);
+            index++;
+        }
+    }
+
+    private static string JsonEncodedText(string value)
+    {
+        return value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal);
+    }
+
+    private static FrontedLayoutPackageManifest ReadManifest(ZipArchive archive)
+    {
+        var json = ReadZipEntry(archive, "manifest.json");
+        return JsonSerializer.Deserialize<FrontedLayoutPackageManifest>(json, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        })!;
+    }
+
+    private static string ReadZipEntry(ZipArchive archive, string entryName)
+    {
+        var entry = archive.GetEntry(entryName) ?? throw new InvalidOperationException($"Missing zip entry {entryName}.");
+        using var stream = entry.Open();
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 
     private static string CreateTempDirectory()
