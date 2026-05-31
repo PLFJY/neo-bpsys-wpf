@@ -98,10 +98,12 @@ BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.
 
 独立编辑器的详细规格见 [fronted-designer-editor.md](fronted-designer-editor.md)。实现时特别注意这些 WPF 坑点：
 
-1. 不要把真实前台窗口当作设计 surface。原生标题栏、窗口 chrome 和 `FrontedWindowBase` 的 `Viewbox` 包裹会让坐标混入内容区以外的高度，造成纵向偏移。编辑器应使用纯 `Canvas`，尺寸精确等于 `FrontedCanvasConfig.CanvasWidth` / `CanvasHeight`。
-2. 透明或空内容控件不可靠。空 `Text`、`Source = null` 的 `Image`、透明 `Border`、初始隐藏的 `PickingBorderOverlay` 和没有当前业务数据的控件都可能难以命中。编辑器应在独立 `InteractionLayer` 为每个设计项创建透明 hitbox。
-3. v3 JSON 的 root-level 控件 key 就是控件名。该名称同时参与 `FrameworkElement.Name` 和 WPF namescope 注册。不要在 config 类里再加 `Name` 字段，也不要让编辑器只改生成控件的 `Name` 而忘记 dictionary key。
-4. 空图片和空文本在 preview 中应通过编辑器 overlay 或设计时 placeholder 辅助识别。placeholder 只属于编辑器预览，不应写入 layout JSON 或运行时设置。
+1. 编辑器窗口应使用 WPF-UI `FluentWindow` 和项目既有 `CustomTitleBar`，标题栏必须单独占一行。不要把 toolbar、preview 或验证面板放到标题栏同一行；否则关闭按钮会被内容覆盖。编辑器默认隐藏 `CustomTitleBar` 的主题切换按钮，保留最小化、最大化和关闭。
+2. 不要把真实前台窗口当作设计 surface。原生标题栏、窗口 chrome 和 `FrontedWindowBase` 的 `Viewbox` 包裹会让坐标混入内容区以外的高度，造成纵向偏移。编辑器应使用纯 `Canvas`，尺寸精确等于 `FrontedCanvasConfig.CanvasWidth` / `CanvasHeight`。
+3. Phase 8C 预览用 `ViewBox` 包裹 `PreviewCanvas`。默认 Fit 模式应能完整显示 1440x810 的 `BpWindow/BaseCanvas`，手动缩放只改变视觉比例，不改变 layout 坐标。
+4. 透明或空内容控件不可靠。空 `Text`、`Source = null` 的 `Image`、透明 `Border`、初始隐藏的 `PickingBorderOverlay` 和没有当前业务数据的控件都可能难以命中。编辑器应在独立 `InteractionLayer` 为每个设计项创建透明 hitbox。
+5. v3 JSON 的 root-level 控件 key 就是控件名。该名称同时参与 `FrameworkElement.Name` 和 WPF namescope 注册。不要在 config 类里再加 `Name` 字段，也不要让编辑器只改生成控件的 `Name` 而忘记 dictionary key。
+6. 空图片和空文本在 preview 中应通过编辑器 overlay 或设计时 placeholder 辅助识别。placeholder 只属于编辑器预览，不应写入 layout JSON 或运行时设置。
 
 ## 插件 UI
 

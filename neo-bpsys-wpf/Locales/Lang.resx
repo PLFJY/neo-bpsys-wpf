@@ -2002,6 +2002,24 @@
   <data name="MissingLayout" xml:space="preserve">
     <value>缺失布局</value>
   </data>
+  <data name="Zoom" xml:space="preserve">
+    <value>缩放</value>
+  </data>
+  <data name="ZoomIn" xml:space="preserve">
+    <value>放大</value>
+  </data>
+  <data name="ZoomOut" xml:space="preserve">
+    <value>缩小</value>
+  </data>
+  <data name="FitToWindow" xml:space="preserve">
+    <value>适应窗口</value>
+  </data>
+  <data name="Fit" xml:space="preserve">
+    <value>适应</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>预览</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

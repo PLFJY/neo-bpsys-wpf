@@ -1,7 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core;
@@ -11,7 +9,6 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
-using neo_bpsys_wpf.Views.Windows;
 using neo_bpsys_wpf.Services.Abstractions;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -52,16 +49,12 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly IFilePickerService _filePickerService;
     private readonly ISharedDataService _sharedDataService;
     private readonly IPluginMarketService _pluginMarketService;
-    private readonly IServiceProvider? _serviceProvider;
-    private readonly ILogger<SettingPageViewModel> _logger;
     public IUpdaterService UpdaterService { get; }
 
     public SettingPageViewModel(IUpdaterService updaterService, ISettingsHostService settingsHostService,
         ITextSettingsNavigationService textSettingsNavigationService, IFrontedWindowService frontedWindowService,
         IFilePickerService filePickerService, ISharedDataService sharedDataService,
-        IPluginMarketService pluginMarketService,
-        IServiceProvider serviceProvider,
-        ILogger<SettingPageViewModel> logger)
+        IPluginMarketService pluginMarketService)
     {
         AppVersion = AppConstants.AppVersion;
         UpdaterService = updaterService;
@@ -71,8 +64,6 @@ public partial class SettingPageViewModel : ViewModelBase
         _filePickerService = filePickerService;
         _sharedDataService = sharedDataService;
         _pluginMarketService = pluginMarketService;
-        _serviceProvider = serviceProvider;
-        _logger = logger;
 
         UpdaterService.DownloadStateChanged += UpdaterService_DownloadStateChanged;
         RefreshUpdateDownloadState();
@@ -270,31 +261,6 @@ public partial class SettingPageViewModel : ViewModelBase
     {
         var path = Path.Combine(AppConstants.AppOutputPath, "GameInfoOutput");
         Process.Start("explorer.exe", path);
-    }
-
-    /// <summary>
-    /// 打开独立前台编辑器。
-    /// </summary>
-    [RelayCommand]
-    private void OpenFrontedDesigner()
-    {
-        if (_serviceProvider is null)
-        {
-            return;
-        }
-
-        try
-        {
-            var window = ActivatorUtilities.CreateInstance<FrontedDesignerWindow>(_serviceProvider);
-            window.Owner = Application.Current.MainWindow;
-            window.Show();
-            window.Activate();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to open fronted designer window.");
-            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("WindowLaunchError")}\n{ex.Message}");
-        }
     }
 
     #endregion

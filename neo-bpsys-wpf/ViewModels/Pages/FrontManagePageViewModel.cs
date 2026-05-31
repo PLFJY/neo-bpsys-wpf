@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Attributes;
@@ -7,8 +9,10 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Services.Registry;
+using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Views.Windows;
 using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -23,11 +27,20 @@ public partial class FrontManagePageViewModel : ViewModelBase
 
     private readonly IFrontedWindowService _frontedWindowService;
     private readonly ISharedDataService _sharedDataService;
+    private readonly IServiceProvider? _serviceProvider;
+    private readonly ILogger<FrontManagePageViewModel>? _logger;
+    private FrontedDesignerWindow? _frontedDesignerWindow;
 
-    public FrontManagePageViewModel(IFrontedWindowService frontedWindowService, ISharedDataService sharedDataService)
+    public FrontManagePageViewModel(
+        IFrontedWindowService frontedWindowService,
+        ISharedDataService sharedDataService,
+        IServiceProvider serviceProvider,
+        ILogger<FrontManagePageViewModel> logger)
     {
         _frontedWindowService = frontedWindowService;
         _sharedDataService = sharedDataService;
+        _serviceProvider = serviceProvider;
+        _logger = logger;
         ExternalFrontedWindows = new ObservableCollection<FrontedWindowInfo>(FrontedWindowRegistryService.RegisteredWindow
             .Where(x => !x.IsBuiltIn)
             .ToList());
@@ -45,6 +58,39 @@ public partial class FrontManagePageViewModel : ViewModelBase
     private void HideAllWindows()
     {
         _frontedWindowService.AllWindowHide();
+    }
+
+    /// <summary>
+    /// 打开独立前台编辑器。
+    /// </summary>
+    [RelayCommand]
+    private void OpenFrontedDesigner()
+    {
+        if (_serviceProvider is null)
+        {
+            return;
+        }
+
+        if (_frontedDesignerWindow is { IsLoaded: true })
+        {
+            _frontedDesignerWindow.Activate();
+            return;
+        }
+
+        try
+        {
+            var window = ActivatorUtilities.CreateInstance<FrontedDesignerWindow>(_serviceProvider);
+            window.Owner = Application.Current.MainWindow;
+            window.Closed += (_, _) => _frontedDesignerWindow = null;
+            _frontedDesignerWindow = window;
+            window.Show();
+            window.Activate();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to open fronted designer window.");
+            _ = MessageBoxHelper.ShowErrorAsync($"{I18nHelper.GetLocalizedString("WindowLaunchError")}\n{ex.Message}");
+        }
     }
 
     [RelayCommand]

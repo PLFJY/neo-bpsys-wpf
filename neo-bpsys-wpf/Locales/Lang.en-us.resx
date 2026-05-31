@@ -1984,6 +1984,24 @@
   <data name="MissingLayout" xml:space="preserve">
     <value>Missing Layout</value>
   </data>
+  <data name="Zoom" xml:space="preserve">
+    <value>Zoom</value>
+  </data>
+  <data name="ZoomIn" xml:space="preserve">
+    <value>Zoom In</value>
+  </data>
+  <data name="ZoomOut" xml:space="preserve">
+    <value>Zoom Out</value>
+  </data>
+  <data name="FitToWindow" xml:space="preserve">
+    <value>Fit to Window</value>
+  </data>
+  <data name="Fit" xml:space="preserve">
+    <value>Fit</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

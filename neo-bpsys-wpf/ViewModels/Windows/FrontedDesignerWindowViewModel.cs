@@ -9,6 +9,7 @@ using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Windows.Media;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
@@ -23,6 +24,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly FrontedLayoutValidator _validator;
     private readonly ILogger<FrontedDesignerWindowViewModel> _logger;
     private IReadOnlyList<FrontedLayoutValidationMessage> _lastValidationMessages = [];
+    private bool _isChangingZoomPreset;
 
 #pragma warning disable CS8618
     public FrontedDesignerWindowViewModel()
@@ -53,6 +55,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             WindowOptions.Add(group);
         }
 
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("Fit", 0D, isFit: true));
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("25%", 0.25D));
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("50%", 0.5D));
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("75%", 0.75D));
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("100%", 1D));
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("125%", 1.25D));
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("150%", 1.5D));
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("200%", 2D));
+        SelectedZoomPreset = ZoomPresets.FirstOrDefault();
         SelectedWindow = WindowOptions.FirstOrDefault();
     }
 
@@ -66,6 +77,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public ObservableCollection<FrontedDesignerLayoutCatalogEntry> CanvasOptions { get; } = [];
 
     public ObservableCollection<FrontedLayoutValidationMessage> ValidationMessages { get; } = [];
+
+    public ObservableCollection<FrontedDesignerZoomPreset> ZoomPresets { get; } = [];
 
     [ObservableProperty]
     private FrontedDesignerWindowOption? _selectedWindow;
@@ -95,7 +108,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private double _zoomScale = 1D;
 
     [ObservableProperty]
-    private string _zoomDisplay = "100%";
+    private string _zoomDisplay = "Fit";
+
+    [ObservableProperty]
+    private Stretch _previewStretch = Stretch.Uniform;
+
+    [ObservableProperty]
+    private FrontedDesignerZoomPreset? _selectedZoomPreset;
 
     [ObservableProperty]
     private int _errorCount;
@@ -122,6 +141,16 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         SelectedCanvas = CanvasOptions.FirstOrDefault();
+    }
+
+    partial void OnSelectedZoomPresetChanged(FrontedDesignerZoomPreset? value)
+    {
+        if (_isChangingZoomPreset || value is null)
+        {
+            return;
+        }
+
+        ApplyZoomPreset(value);
     }
 
     [RelayCommand]
@@ -188,6 +217,28 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         ApplyValidationMessages(_validator.Validate(CurrentDocument));
+    }
+
+    [RelayCommand]
+    private void ZoomIn()
+    {
+        ApplyManualZoom(GetNextManualZoom(ZoomScale));
+    }
+
+    [RelayCommand]
+    private void ZoomOut()
+    {
+        ApplyManualZoom(GetPreviousManualZoom(ZoomScale));
+    }
+
+    [RelayCommand]
+    private void FitToWindow()
+    {
+        var fitPreset = ZoomPresets.FirstOrDefault(preset => preset.IsFit);
+        if (fitPreset is not null)
+        {
+            ApplyZoomPreset(fitPreset);
+        }
     }
 
     /// <summary>
@@ -273,6 +324,57 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                     }));
     }
 
+    private void ApplyZoomPreset(FrontedDesignerZoomPreset preset)
+    {
+        if (preset.IsFit)
+        {
+            PreviewStretch = Stretch.Uniform;
+            ZoomScale = 1D;
+            ZoomDisplay = I18nHelper.GetLocalizedString("Fit");
+        }
+        else
+        {
+            ApplyManualZoom(preset.Scale);
+        }
+
+        SetSelectedZoomPreset(preset);
+    }
+
+    private void ApplyManualZoom(double scale)
+    {
+        var normalizedScale = Math.Clamp(scale, 0.25D, 2D);
+        PreviewStretch = Stretch.None;
+        ZoomScale = normalizedScale;
+        ZoomDisplay = $"{normalizedScale:P0}";
+
+        var matchingPreset = ZoomPresets.FirstOrDefault(
+            preset => !preset.IsFit && Math.Abs(preset.Scale - normalizedScale) < 0.001D);
+        SetSelectedZoomPreset(matchingPreset);
+    }
+
+    private double GetNextManualZoom(double currentScale)
+    {
+        return ZoomPresets
+            .Where(preset => !preset.IsFit && preset.Scale > currentScale + 0.001D)
+            .OrderBy(preset => preset.Scale)
+            .FirstOrDefault()?.Scale ?? 2D;
+    }
+
+    private double GetPreviousManualZoom(double currentScale)
+    {
+        return ZoomPresets
+            .Where(preset => !preset.IsFit && preset.Scale < currentScale - 0.001D)
+            .OrderByDescending(preset => preset.Scale)
+            .FirstOrDefault()?.Scale ?? 0.25D;
+    }
+
+    private void SetSelectedZoomPreset(FrontedDesignerZoomPreset? preset)
+    {
+        _isChangingZoomPreset = true;
+        SelectedZoomPreset = preset;
+        _isChangingZoomPreset = false;
+    }
+
     private static FrontedLayoutValidationMessage CreateMessage(
         FrontedLayoutValidationSeverity severity,
         string code,
@@ -297,6 +399,15 @@ public sealed class FrontedDesignerWindowOption(
     public string DisplayName { get; } = displayName;
 
     public IReadOnlyList<FrontedDesignerLayoutCatalogEntry> Canvases { get; } = canvases;
+}
+
+public sealed class FrontedDesignerZoomPreset(string displayName, double scale, bool isFit = false)
+{
+    public string DisplayName { get; } = displayName;
+
+    public double Scale { get; } = scale;
+
+    public bool IsFit { get; } = isFit;
 }
 
 public sealed class FrontedDesignerPreviewRenderRequestedEventArgs(

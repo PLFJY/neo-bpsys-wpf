@@ -1,6 +1,6 @@
 # Fronted Designer v3 设计文档
 
-本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为低风险 pilot 接入 v3 renderer；Score System v2 Phase 4 已额外将 `ScoreGlobalWindow` 接入 v3 renderer 并新增 `GlobalScoreRow` 控件；Designer v3 Phase 4 已迁移 `CutSceneWindow`；Designer v3 Phase 5 已迁移 `GameDataWindow` 并新增 `LocalizedText`；Designer v3 Phase 6 已迁移多 Canvas 的 `WidgetsWindow`，并新增 `CurrentBanDisplay` / `MapV2Display`；Designer v3 Phase 7 已迁移 `BpWindow`，并新增 `BanSlotDisplay` / `PickingBorderOverlay`。Phase 8A 已补充独立编辑器设计规格，Phase 8B 已新增设计期模型、layout validator、runtime contract catalog、引用扫描和设计项转换，Phase 8C 已新增独立编辑器 shell、窗口/Canvas 选择器、只读预览和校验面板，见 [fronted-designer-editor.md](fronted-designer-editor.md)。交互层、Property Grid、Add Control、保存用户布局和 `.bpui` 转换仍按后续阶段推进。
+本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为低风险 pilot 接入 v3 renderer；Score System v2 Phase 4 已额外将 `ScoreGlobalWindow` 接入 v3 renderer 并新增 `GlobalScoreRow` 控件；Designer v3 Phase 4 已迁移 `CutSceneWindow`；Designer v3 Phase 5 已迁移 `GameDataWindow` 并新增 `LocalizedText`；Designer v3 Phase 6 已迁移多 Canvas 的 `WidgetsWindow`，并新增 `CurrentBanDisplay` / `MapV2Display`；Designer v3 Phase 7 已迁移 `BpWindow`，并新增 `BanSlotDisplay` / `PickingBorderOverlay`。Phase 8A 已补充独立编辑器设计规格，Phase 8B 已新增设计期模型、layout validator、runtime contract catalog、引用扫描和设计项转换，Phase 8C 已新增独立编辑器 shell、窗口/Canvas 选择器、ViewBox 只读预览、缩放控制和校验面板，见 [fronted-designer-editor.md](fronted-designer-editor.md)。交互层、Property Grid、Add Control、保存用户布局和 `.bpui` 转换仍按后续阶段推进。
 
 ## 1. 背景与目标
 
@@ -236,7 +236,7 @@ public interface IFrontedControl
 
 新版编辑器应是独立窗口，而不是直接编辑被 OBS 捕获的真实前台窗口。详细设计见 [fronted-designer-editor.md](fronted-designer-editor.md)。编辑器依赖 v3 的硬规则：JSON key 等于控件名；加载时把 `Dictionary<string, FrontedControlConfigBase>` 转成设计项集合，保存时再以设计项 `Name` 写回 dictionary key。
 
-Phase 8C 的 `FrontedDesignerWindow` 是后台侧独立编辑器窗口。它通过固定的 `FrontedDesignerLayoutCatalog` 暴露已迁移的 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 三个 Canvas 和 `BpWindow`，按窗口/Canvas 选择读取 v3 layout JSON，使用 `FrontedLayoutDesignConverter` 和 `FrontedLayoutValidator` 显示设计文档与校验结果，并调用现有 `IFrontedRenderer` 把真实 v3 布局渲染到自己的 `PreviewCanvas`。该阶段只读，不创建真实前台输出窗口，不保存用户布局，也不实现交互层。
+Phase 8C 的 `FrontedDesignerWindow` 是后台侧独立编辑器窗口，入口在 `FrontManagePage`，不在设置页。它通过固定的 `FrontedDesignerLayoutCatalog` 暴露已迁移的 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 三个 Canvas 和 `BpWindow`，按窗口/Canvas 选择读取 v3 layout JSON，使用 `FrontedLayoutDesignConverter` 和 `FrontedLayoutValidator` 显示设计文档与校验结果，并调用现有 `IFrontedRenderer` 把真实 v3 布局渲染到自己的 `PreviewCanvas`。编辑器窗口使用 `FluentWindow` + 项目 `CustomTitleBar`，标题栏隐藏主题切换按钮且不被内容覆盖；预览 Canvas 放在 `ViewBox` 中，默认 Fit，并提供 PowerPoint 风格的缩放预设、放大、缩小和适应窗口按钮。该阶段只读，不创建真实前台输出窗口，不保存用户布局，也不实现交互层。
 
 | 区域/能力 | 设计要求 |
 | --- | --- |
@@ -300,7 +300,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 7 | 已迁移 `BpWindow` 到 v3 renderer。新增 `BanSlotDisplay` 封装当前局/全局 Ban 头像和锁定覆盖层，新增 `PickingBorderOverlay` 保留 pick 呼吸边框的独立命名动画目标，v3 renderer 注册生成控件名以兼容 `AnimationService`。 |
 | Phase 8A | 已完成独立编辑器设计规格文档，见 [fronted-designer-editor.md](fronted-designer-editor.md)。不实现 UI、不改 renderer、不迁移 `.bpui`。 |
 | Phase 8B | 已实现设计期基础：`FrontedControlDesignItem`、`FrontedCanvasDesignDocument`、设计项与 dictionary 转换、layout validator、引用扫描、运行时关键名称 catalog，以及 converter 阶段的重复 JSON key 检测。不实现 UI、不改 renderer、不迁移 `.bpui`。 |
-| Phase 8C | 已实现独立编辑器 shell、窗口/Canvas 选择器、layout source 显示、只读 preview surface 和 validator 消息面板。预览 Canvas 使用 layout config 的 `CanvasWidth` / `CanvasHeight`，不使用真实窗口尺寸。 |
+| Phase 8C | 已实现独立编辑器 shell、窗口/Canvas 选择器、layout source 显示、ViewBox 只读 preview surface、缩放控制和 validator 消息面板。预览 Canvas 使用 layout config 的 `CanvasWidth` / `CanvasHeight`，不使用真实窗口尺寸。 |
 | Phase 8D-8H | 按编辑器设计规格逐步实现 interaction layer、Property Grid、Add Control、Binding/Resource Browser、用户布局保存和重置。 |
 | Phase 9 | 实现 v3 `.bpui` 导出/导入和 legacy `.bpui` 转换。 |
 

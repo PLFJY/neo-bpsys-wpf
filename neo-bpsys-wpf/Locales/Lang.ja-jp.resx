@@ -1987,6 +1987,24 @@
   <data name="MissingLayout" xml:space="preserve">
     <value>レイアウトなし</value>
   </data>
+  <data name="Zoom" xml:space="preserve">
+    <value>ズーム</value>
+  </data>
+  <data name="ZoomIn" xml:space="preserve">
+    <value>拡大</value>
+  </data>
+  <data name="ZoomOut" xml:space="preserve">
+    <value>縮小</value>
+  </data>
+  <data name="FitToWindow" xml:space="preserve">
+    <value>ウィンドウに合わせる</value>
+  </data>
+  <data name="Fit" xml:space="preserve">
+    <value>合わせる</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>プレビュー</value>
+  </data>
   <data name="GameProgressFree" xml:space="preserve">
     <value>FREE GAME</value>
   </data>

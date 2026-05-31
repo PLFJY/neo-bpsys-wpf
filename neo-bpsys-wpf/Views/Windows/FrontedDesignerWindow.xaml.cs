@@ -89,6 +89,8 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         try
         {
+            PreviewCanvas.Width = e.Config.CanvasWidth;
+            PreviewCanvas.Height = e.Config.CanvasHeight;
             _renderer.RenderToCanvas(PreviewCanvas, e.Config, e.Context);
         }
         catch (Exception ex)

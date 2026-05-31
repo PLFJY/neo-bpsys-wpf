@@ -373,7 +373,13 @@ public class FrontedLayoutDesignerFoundationTest
             "ValidateLayout",
             "BuiltInLayout",
             "UserLayout",
-            "MissingLayout"
+            "MissingLayout",
+            "Zoom",
+            "ZoomIn",
+            "ZoomOut",
+            "FitToWindow",
+            "Fit",
+            "Preview"
         };
 
         foreach (var fileName in new[] { "Lang.resx", "Lang.en-us.resx", "Lang.ja-jp.resx" })
@@ -389,6 +395,62 @@ public class FrontedLayoutDesignerFoundationTest
                 Assert.Contains(key, names);
             }
         }
+    }
+
+    [Fact]
+    public void FrontManagePageViewModelExposesOpenFrontedDesignerCommand()
+    {
+        var text = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "ViewModels",
+            "Pages",
+            "FrontManagePageViewModel.cs"));
+
+        Assert.Contains("OpenFrontedDesigner", text);
+        Assert.Contains("[RelayCommand]", text);
+    }
+
+    [Fact]
+    public void SettingPageNoLongerContainsFrontedDesignerEntry()
+    {
+        var text = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Pages",
+            "SettingPage.xaml"));
+
+        Assert.DoesNotContain("OpenFrontedDesignerCommand", text);
+    }
+
+    [Fact]
+    public void FrontedDesignerWindowUsesProjectShellAndViewBoxPreview()
+    {
+        var text = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Windows",
+            "FrontedDesignerWindow.xaml"));
+
+        Assert.Contains("<ui:FluentWindow", text);
+        Assert.Contains("controls:CustomTitleBar", text);
+        Assert.Contains("IsThemeChangeVisible=\"False\"", text);
+        Assert.Contains("<Viewbox", text);
+        Assert.Contains("ZoomPresets", text);
+        Assert.Contains("FitToWindowCommand", text);
+    }
+
+    [Fact]
+    public void FrontedDesignerViewModelDefaultsZoomToFit()
+    {
+        var text = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "ViewModels",
+            "Windows",
+            "FrontedDesignerWindowViewModel.cs"));
+
+        Assert.Contains("FrontedDesignerZoomPreset(\"Fit\"", text);
+        Assert.Contains("PreviewStretch = Stretch.Uniform", text);
+        Assert.Contains("private string _zoomDisplay = \"Fit\"", text);
     }
 
     private static FrontedCanvasDesignDocument CreateDocument(IList<FrontedControlDesignItem> controls)
@@ -433,10 +495,13 @@ public class FrontedLayoutDesignerFoundationTest
         string first,
         string second,
         string third,
+        string? fourth = null,
         [CallerFilePath] string sourceFilePath = "")
     {
         var repositoryRoot = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourceFilePath)!, "..", ".."));
-        return Path.Combine(repositoryRoot, first, second, third);
+        return fourth is null
+            ? Path.Combine(repositoryRoot, first, second, third)
+            : Path.Combine(repositoryRoot, first, second, third, fourth);
     }
 
     private sealed class KnownFrontedControlRegistry : IFrontedControlRegistry
