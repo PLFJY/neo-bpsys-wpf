@@ -73,4 +73,55 @@ public static class MessageBoxHelper
 
         return result == MessageBoxResult.Primary;
     }
+
+    /// <summary>
+    /// 显示三选项对话框。
+    /// </summary>
+    /// <param name="message">消息内容</param>
+    /// <param name="title">标题</param>
+    /// <param name="primaryButtonText">主按钮文本</param>
+    /// <param name="secondaryButtonText">次按钮文本</param>
+    /// <param name="closeButtonText">关闭按钮文本</param>
+    /// <param name="width">对话框宽度</param>
+    /// <param name="minWidth">对话框最小宽度</param>
+    /// <param name="primaryButtonIcon">主按钮图标</param>
+    /// <param name="secondaryButtonIcon">次按钮图标</param>
+    /// <param name="closeButtonIcon">关闭按钮图标</param>
+    /// <returns>用户选择的按钮</returns>
+    public static async Task<MessageBoxResult> ShowThreeOptionAsync(
+        string message,
+        string title,
+        string primaryButtonText,
+        string secondaryButtonText,
+        string closeButtonText,
+        double? width = null,
+        double? minWidth = null,
+        SymbolRegular primaryButtonIcon = SymbolRegular.Checkmark24,
+        SymbolRegular secondaryButtonIcon = SymbolRegular.Dismiss24,
+        SymbolRegular closeButtonIcon = SymbolRegular.Dismiss24)
+    {
+        var messageBox = new MessageBox()
+        {
+            Title = title,
+            Content = message,
+            PrimaryButtonText = primaryButtonText,
+            SecondaryButtonText = secondaryButtonText,
+            CloseButtonText = closeButtonText,
+            PrimaryButtonIcon = new SymbolIcon() { Symbol = primaryButtonIcon },
+            SecondaryButtonIcon = new SymbolIcon() { Symbol = secondaryButtonIcon },
+            CloseButtonIcon = new SymbolIcon() { Symbol = closeButtonIcon }
+        };
+
+        if (width.HasValue)
+        {
+            messageBox.Width = width.Value;
+        }
+
+        if (minWidth.HasValue)
+        {
+            messageBox.MinWidth = minWidth.Value;
+        }
+
+        return await messageBox.ShowDialogAsync();
+    }
 }

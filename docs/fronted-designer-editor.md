@@ -634,7 +634,9 @@ neo-bpsys-wpf/Resources/FrontedLayouts/{WindowName}/{CanvasName}.json
 
 Phase 8H 起，Save 只写入 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowName}/{CanvasName}.json`，绝不覆盖源码或发布目录中的 `Resources/FrontedLayouts`。Reset to Built-in 会删除当前 Canvas 的用户布局文件并重新加载内置布局，清空 undo/redo、选择和筛选。Open Layout Folder 打开当前用户布局文件所在目录，目录不存在时会先创建。
 
-窗口/Canvas 切换、Reload、Reset to Built-in 和关闭编辑器时，如果当前文档 dirty，会提示 Save / Discard / Cancel。Save 会先执行完整校验，存在 Error 时阻止保存并取消切换或关闭；Warning/Info 不阻止保存。
+窗口/Canvas 切换、Reload、Reset to Built-in 和关闭编辑器时，如果当前文档 dirty，会通过 `MessageBoxHelper` 提示 Save / Discard / Cancel。Save 会先执行完整校验，存在 Error 时阻止保存并取消切换或关闭；Warning/Info 不阻止保存。关闭窗口的 dirty prompt 必须先在 `Closing` 中设置 `e.Cancel = true`，再通过 Dispatcher 异步显示本地化的宽版 helper 对话框；用户选择 Save 且保存成功或选择 Discard 后，设置强制关闭标记并再次调用 `Close()`。这样避免 WPF 在窗口已经进入 closing 状态时执行 `ShowDialog` / `Close` 触发异常。验证详情窗口是非模态子窗口，父编辑器关闭时只做受保护关闭，已关闭或正在关闭时不能让异常冒泡。
+
+顶部工具栏从 Phase 8H owner validation 修正后使用 `ScrollViewer + WrapPanel`，窗口选择器、Canvas 选择器、Add/Delete、Undo/Redo、保存/重置/打开目录、reload/validate、缩放、吸附和 dirty/path 状态都允许在窄窗口下自动换行。长 layout path 只显示省略文本并通过 tooltip 查看完整路径，不能把工具栏撑出窗口右侧。
 
 吸附行为从 Phase 8H 开始改为默认关闭：`SnapEnabled` 是工具栏 ToggleSwitch 的持久开关，`IsShiftSnapActive` 只表示编辑 surface 中 Shift 当前按下，`EffectiveSnapEnabled = SnapEnabled || IsShiftSnapActive`。Shift 临时吸附只更新状态文字，例如“临时吸附”，不会修改 ToggleSwitch 的 `IsChecked`，避免 KeyDown/KeyUp 时反复刷新开关。鼠标拖拽和缩放在 `EffectiveSnapEnabled` 为 true 时按默认 10 px 网格吸附；关闭时仍按 0.5 坐标精度归一化。方向键在吸附开启时使用网格步长，普通模式保留 0.5/修饰键微调语义。
 

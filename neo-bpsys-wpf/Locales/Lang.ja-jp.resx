@@ -2173,6 +2173,12 @@
   <data name="Unsaved" xml:space="preserve">
     <value>未保存</value>
   </data>
+  <data name="UnsavedChanges" xml:space="preserve">
+    <value>未保存の変更</value>
+  </data>
+  <data name="UnsavedChangesMessage" xml:space="preserve">
+    <value>現在のレイアウトに未保存の変更があります。</value>
+  </data>
   <data name="LayoutSourceUser" xml:space="preserve">
     <value>ユーザー</value>
   </data>

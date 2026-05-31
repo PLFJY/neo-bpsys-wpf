@@ -133,6 +133,8 @@ BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.
 33. Binding Browser 使用 curated `ISharedDataService` 树和固定常用集合索引，不应对任意对象做无边界深反射。绑定树节点必须保留真实 `ValueType`，树过滤和搜索都要使用同一 `FrontedBindingTypeFilter`：文本控件只允许字符串/数字，图片控件只允许 `ImageSource` 兼容值，`GameProgressText` 只允许 `GameProgress`，`MapNameText` 只允许 `Map` / `Map?`。浏览器选择仍只能写入属性行 `EditText`，不能绕过 Apply/Enter 直接提交 config。Resource Browser 读取 `Resources/bpui` 时缩略图必须用 `BitmapImage.CacheOption=OnLoad` 等方式避免锁文件；外部绝对路径只引用原文件，Phase 8G 不复制到用户布局目录或 `.bpui` 包。
 34. Phase 8H 的吸附开关分为持久 `SnapEnabled` 和临时 `IsShiftSnapActive`。ToggleSwitch 只能绑定 `SnapEnabled`；Shift KeyDown/KeyUp 只更新临时状态和状态文字，不能反向修改 ToggleSwitch，否则拖拽时会造成开关频繁刷新和输入延迟。
 35. Phase 8H 的保存只写用户 AppData 布局，不能覆盖 `Resources/FrontedLayouts`。切换窗口/Canvas、reload、reset 和关闭窗口前都要处理 dirty prompt；Save 因校验 Error 失败时必须取消原动作。
+36. WPF 不允许在窗口已经继续 closing 的过程中调用 `Show`、`ShowDialog`、`Close` 或 `EnsureHandle`。编辑器关闭时如果要询问未保存修改，必须先取消 `Closing`，再用 Dispatcher 异步显示提示；确认 Save/Discard 后用强制关闭标记再次关闭。非模态验证详情窗口随父窗口关闭时也要 try/catch `InvalidOperationException`。
+37. 编辑器顶部工具栏不能使用单行固定列布局承载全部命令。窗口/Canvas 选择器、缩放、吸附状态和 layout path 应放在可换行容器中；长路径必须限制宽度并省略显示，完整路径放到 tooltip。
 
 ## 插件 UI
 

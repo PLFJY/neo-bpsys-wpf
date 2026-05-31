@@ -2188,6 +2188,12 @@
   <data name="Unsaved" xml:space="preserve">
     <value>未保存</value>
   </data>
+  <data name="UnsavedChanges" xml:space="preserve">
+    <value>未保存的修改</value>
+  </data>
+  <data name="UnsavedChangesMessage" xml:space="preserve">
+    <value>当前布局有未保存修改。</value>
+  </data>
   <data name="LayoutSourceUser" xml:space="preserve">
     <value>用户布局</value>
   </data>

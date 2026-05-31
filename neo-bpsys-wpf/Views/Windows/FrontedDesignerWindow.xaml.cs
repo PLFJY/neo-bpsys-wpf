@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -53,7 +54,8 @@ public partial class FrontedDesignerWindow : FluentWindow
     private Cursor? _cursorBeforePan;
     private bool _selectorReloadScheduled;
     private bool _suppressSelectorReload;
-    private bool _isClosingAfterDirtyPrompt;
+    private bool _forceCloseAfterDirtyPrompt;
+    private bool _isDirtyClosePromptOpen;
     private FrontedDesignerWindowOption? _lastAcceptedWindow;
     private FrontedDesignerLayoutCatalogEntry? _lastAcceptedCanvas;
 
@@ -98,7 +100,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             _viewModel.PropertyEditorItems.CollectionChanged -= PropertyEditorItems_OnCollectionChanged;
         }
 
-        _validationDetailsWindow?.Close();
+        CloseValidationDetailsWindowSafely();
         _validationDetailsWindow = null;
     }
 
@@ -518,12 +520,46 @@ public partial class FrontedDesignerWindow : FluentWindow
                 Owner = this,
                 DataContext = _viewModel
             };
-            _validationDetailsWindow.Closed += (_, _) => _validationDetailsWindow = null;
+            _validationDetailsWindow.Closed += ValidationDetailsWindow_OnClosed;
             _validationDetailsWindow.Show();
             return;
         }
 
         _validationDetailsWindow.Activate();
+    }
+
+    private void ValidationDetailsWindow_OnClosed(object? sender, EventArgs e)
+    {
+        if (sender is ValidationDetailsWindow window && ReferenceEquals(window, _validationDetailsWindow))
+        {
+            window.Closed -= ValidationDetailsWindow_OnClosed;
+            _validationDetailsWindow = null;
+        }
+    }
+
+    private void CloseValidationDetailsWindowSafely()
+    {
+        var window = _validationDetailsWindow;
+        if (window is null)
+        {
+            return;
+        }
+
+        window.Closed -= ValidationDetailsWindow_OnClosed;
+        if (!window.IsVisible)
+        {
+            return;
+        }
+
+        try
+        {
+            window.Owner = null;
+            window.Close();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger?.LogWarning(ex, "Failed to close fronted designer validation details window safely.");
+        }
     }
 
     private void AddControlButton_OnClick(object sender, RoutedEventArgs e)
@@ -596,21 +632,48 @@ public partial class FrontedDesignerWindow : FluentWindow
         _lastAcceptedCanvas = _viewModel.SelectedCanvas;
     }
 
-    private async void OnClosing(object? sender, CancelEventArgs e)
+    private void OnClosing(object? sender, CancelEventArgs e)
     {
-        if (_isClosingAfterDirtyPrompt || _viewModel?.CurrentDocument?.IsDirty != true)
+        if (_forceCloseAfterDirtyPrompt || _viewModel?.CurrentDocument?.IsDirty != true)
         {
             return;
         }
 
         e.Cancel = true;
-        if (!await ConfirmDirtyDocumentCanContinueAsync("SaveBeforeClose"))
+        if (_isDirtyClosePromptOpen)
         {
             return;
         }
 
-        _isClosingAfterDirtyPrompt = true;
-        Close();
+        _isDirtyClosePromptOpen = true;
+        Dispatcher.BeginInvoke(
+            new Action(async () => await PromptDirtyCloseAfterCancelAsync()),
+            DispatcherPriority.Background);
+    }
+
+    private async Task PromptDirtyCloseAfterCancelAsync()
+    {
+        try
+        {
+            var result = await ShowDirtyPromptAsync("SaveBeforeClose");
+            if (result == MessageBoxResult.Primary)
+            {
+                if (_viewModel is not null && await _viewModel.SaveCurrentLayoutAsync())
+                {
+                    _forceCloseAfterDirtyPrompt = true;
+                    Close();
+                }
+            }
+            else if (result == MessageBoxResult.Secondary)
+            {
+                _forceCloseAfterDirtyPrompt = true;
+                Close();
+            }
+        }
+        finally
+        {
+            _isDirtyClosePromptOpen = false;
+        }
     }
 
     private async Task<bool> ConfirmDirtyDocumentCanContinueAsync(string messageKey)
@@ -620,26 +683,28 @@ public partial class FrontedDesignerWindow : FluentWindow
             return true;
         }
 
-        var messageBox = new Wpf.Ui.Controls.MessageBox
-        {
-            Owner = this,
-            Title = I18nHelper.GetLocalizedString("Unsaved"),
-            Content = I18nHelper.GetLocalizedString(messageKey),
-            PrimaryButtonText = I18nHelper.GetLocalizedString("Save"),
-            PrimaryButtonIcon = new SymbolIcon { Symbol = SymbolRegular.Save24 },
-            SecondaryButtonText = I18nHelper.GetLocalizedString("DiscardChanges"),
-            SecondaryButtonIcon = new SymbolIcon { Symbol = SymbolRegular.Delete24 },
-            CloseButtonText = I18nHelper.GetLocalizedString("Cancel"),
-            CloseButtonIcon = new SymbolIcon { Symbol = SymbolRegular.Dismiss24 }
-        };
-
-        var result = await messageBox.ShowDialogAsync();
+        var result = await ShowDirtyPromptAsync(messageKey);
         if (result == MessageBoxResult.Primary)
         {
             return await _viewModel.SaveCurrentLayoutAsync();
         }
 
         return result == MessageBoxResult.Secondary;
+    }
+
+    private Task<MessageBoxResult> ShowDirtyPromptAsync(string messageKey)
+    {
+        return MessageBoxHelper.ShowThreeOptionAsync(
+            I18nHelper.GetLocalizedString(messageKey),
+            I18nHelper.GetLocalizedString("UnsavedChanges"),
+            I18nHelper.GetLocalizedString("Save"),
+            I18nHelper.GetLocalizedString("DiscardChanges"),
+            I18nHelper.GetLocalizedString("Cancel"),
+            width: 600,
+            minWidth: 560,
+            primaryButtonIcon: SymbolRegular.Save24,
+            secondaryButtonIcon: SymbolRegular.Delete24,
+            closeButtonIcon: SymbolRegular.Dismiss24);
     }
 
     private async Task<bool> ConfirmResetToBuiltInAsync()

@@ -1755,6 +1755,61 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void FrontedDesignerToolbarUsesWrappingAndTrimsLongLayoutPath()
+    {
+        var xaml = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Windows",
+            "FrontedDesignerWindow.xaml"));
+
+        Assert.Contains("<ScrollViewer", xaml, StringComparison.Ordinal);
+        Assert.Contains("MaxHeight=\"120\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("<WrapPanel Orientation=\"Horizontal\">", xaml, StringComparison.Ordinal);
+        Assert.Contains("MaxWidth=\"280\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("TextTrimming=\"CharacterEllipsis\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("ToolTip=\"{Binding LayoutSourcePath}\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("IsReadOnly=\"True\"\r\n                        Text=\"{Binding LayoutSourcePath}\"", xaml, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MessageBoxHelperSupportsWidthSafeThreeOptionPrompt()
+    {
+        var code = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf.Core",
+            "Helpers",
+            "MessageBoxHelper.cs"));
+
+        Assert.Contains("ShowThreeOptionAsync", code, StringComparison.Ordinal);
+        Assert.Contains("PrimaryButtonText = primaryButtonText", code, StringComparison.Ordinal);
+        Assert.Contains("SecondaryButtonText = secondaryButtonText", code, StringComparison.Ordinal);
+        Assert.Contains("CloseButtonText = closeButtonText", code, StringComparison.Ordinal);
+        Assert.Contains("messageBox.Width = width.Value", code, StringComparison.Ordinal);
+        Assert.Contains("messageBox.MinWidth = minWidth.Value", code, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void FrontedDesignerCloseFlowCancelsClosingBeforeShowingDirtyPrompt()
+    {
+        var code = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Windows",
+            "FrontedDesignerWindow.xaml.cs"));
+
+        Assert.Contains("private void OnClosing", code, StringComparison.Ordinal);
+        Assert.Contains("e.Cancel = true;", code, StringComparison.Ordinal);
+        Assert.Contains("Dispatcher.BeginInvoke(", code, StringComparison.Ordinal);
+        Assert.Contains("PromptDirtyCloseAfterCancelAsync", code, StringComparison.Ordinal);
+        Assert.Contains("MessageBoxHelper.ShowThreeOptionAsync", code, StringComparison.Ordinal);
+        Assert.Contains("_forceCloseAfterDirtyPrompt = true;", code, StringComparison.Ordinal);
+        Assert.Contains("_isDirtyClosePromptOpen", code, StringComparison.Ordinal);
+        Assert.Contains("CloseValidationDetailsWindowSafely();", code, StringComparison.Ordinal);
+        Assert.Contains("catch (InvalidOperationException ex)", code, StringComparison.Ordinal);
+        Assert.DoesNotContain("FrontedDesignerDirtyPromptWindow", code, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void TextPropertyEditFailureKeepsEditBufferAndSetsErrorState()
     {
         var item = new FrontedControlDesignItem
@@ -2051,6 +2106,8 @@ public class FrontedLayoutDesignerFoundationTest
             "ResetToBuiltIn",
             "OpenLayoutFolder",
             "Unsaved",
+            "UnsavedChanges",
+            "UnsavedChangesMessage",
             "LayoutSourceUser",
             "LayoutSourceBuiltIn",
             "LayoutSourceError",

@@ -2170,6 +2170,12 @@
   <data name="Unsaved" xml:space="preserve">
     <value>Unsaved</value>
   </data>
+  <data name="UnsavedChanges" xml:space="preserve">
+    <value>Unsaved changes</value>
+  </data>
+  <data name="UnsavedChangesMessage" xml:space="preserve">
+    <value>The current layout has unsaved changes.</value>
+  </data>
   <data name="LayoutSourceUser" xml:space="preserve">
     <value>User</value>
   </data>
