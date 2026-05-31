@@ -1766,10 +1766,11 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("<ScrollViewer", xaml, StringComparison.Ordinal);
         Assert.Contains("MaxHeight=\"120\"", xaml, StringComparison.Ordinal);
         Assert.Contains("<WrapPanel Orientation=\"Horizontal\">", xaml, StringComparison.Ordinal);
-        Assert.Contains("MaxWidth=\"280\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("MaxWidth=\"260\"", xaml, StringComparison.Ordinal);
         Assert.Contains("TextTrimming=\"CharacterEllipsis\"", xaml, StringComparison.Ordinal);
         Assert.Contains("ToolTip=\"{Binding LayoutSourcePath}\"", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("IsReadOnly=\"True\"\r\n                        Text=\"{Binding LayoutSourcePath}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Menu", xaml, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -2182,7 +2183,7 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("x:Name=\"PreviewScrollViewer\"", text);
         Assert.Contains("x:Name=\"PreviewZoomHost\"", text);
         Assert.Contains("ScaleX=\"{Binding ZoomScale}\"", text);
-        Assert.Contains("ZoomPresets", text);
+        Assert.Contains("SetZoomPresetCommand", text);
         Assert.Contains("FitToWindowCommand", text);
         Assert.Contains("InteractionLayer", text);
         Assert.Contains("DesignSurfaceGrid", text);
@@ -2442,6 +2443,40 @@ public class FrontedLayoutDesignerFoundationTest
             snapGridSize: 10);
         Assert.Equal(60, item.Config.Width);
         Assert.Equal(50, item.Config.Height);
+    }
+
+    [Fact]
+    public void CanvasPropertiesSizeEditValidatesAndMarksDirty()
+    {
+        var document = CreateDocument([]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+
+        Assert.False(viewModel.ApplyCanvasSizeEdit("0", "810"));
+        Assert.Equal(1440, document.CanvasConfig.CanvasWidth);
+
+        Assert.True(viewModel.ApplyCanvasSizeEdit("1920", "1080"));
+        Assert.Equal(1920, document.CanvasConfig.CanvasWidth);
+        Assert.Equal(1080, document.CanvasConfig.CanvasHeight);
+        Assert.True(document.IsDirty);
+    }
+
+    [Fact]
+    public void CanvasPropertiesBackgroundEditAndClearAreUndoable()
+    {
+        var document = CreateDocument([]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+
+        Assert.True(viewModel.ApplyCanvasBackgroundEdit("Resources/bg.png"));
+        Assert.Equal("Resources/bg.png", document.CanvasConfig.BackgroundImage);
+        Assert.True(document.IsDirty);
+        Assert.DoesNotContain(document.Controls, item => item.Name.Contains("Background", StringComparison.OrdinalIgnoreCase));
+
+        viewModel.UndoCommand.Execute(null);
+        Assert.True(string.IsNullOrEmpty(viewModel.CurrentDocument?.CanvasConfig.BackgroundImage));
+
+        Assert.True(viewModel.ApplyCanvasBackgroundEdit("Resources/bg.png"));
+        Assert.True(viewModel.ClearCanvasBackground());
+        Assert.True(string.IsNullOrEmpty(viewModel.CurrentDocument?.CanvasConfig.BackgroundImage));
     }
 
     private static FrontedCanvasDesignDocument CreateDocument(

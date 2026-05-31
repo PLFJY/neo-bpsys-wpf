@@ -705,8 +705,8 @@ legacy 转换是后续阶段，不在 Phase 9A 实现。Phase 9A 不修改旧导
 | 阶段 | 范围 |
 | --- | --- |
 | Phase 9A | 文档和规格 only。 |
-| Phase 8I 或 9B-prep | Canvas Properties GUI 和本地 `bpui://local` 资源规范化。 |
-| Phase 9B | `FrontManagePage` tabs 下 Layout Package Manager UI skeleton。 |
+| Phase 9B.0: Canvas Properties GUI, local bpui resource normalization, toolbar cleanup, and Window Options foundation | 已实现 Canvas Properties GUI、本地 `bpui://local` 图片规范化、`bpui://` resolver、工具栏二级菜单和窗口级 `AllowTransparency` 选项基础。 |
+| Phase 9B.1: FrontManagePage Layout Package Manager UI skeleton | `FrontManagePage` tabs 下 Layout Package Manager UI skeleton。 |
 | Phase 9C | v3 包导出。 |
 | Phase 9D | v3 包导入、激活和删除。 |
 | Phase 9E | legacy 包检测。 |

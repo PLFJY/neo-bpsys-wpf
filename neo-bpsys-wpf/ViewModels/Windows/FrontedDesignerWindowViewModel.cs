@@ -37,6 +37,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly FrontedControlDefaultConfigFactory _defaultConfigFactory;
     private readonly FrontedControlNameGenerator _controlNameGenerator;
     private readonly ISharedDataService _designerPreviewSharedDataService;
+    private readonly IFrontedLocalResourceStore? _localResourceStore;
+    private readonly IFrontedWindowLayoutOptionsService? _windowLayoutOptionsService;
     private readonly ILogger<FrontedDesignerWindowViewModel> _logger;
     private readonly Dictionary<string, string> _propertyEditErrors = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _propertyEditBuffers = new(StringComparer.Ordinal);
@@ -46,6 +48,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private bool _isChangingZoomPreset;
     private bool _isRebuildingPropertyGrid;
     private bool _isRestoringSnapshot;
+    private bool _isLoadingWindowOptions;
     private double _lastPreviewViewportWidth;
     private double _lastPreviewViewportHeight;
 
@@ -65,6 +68,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _defaultConfigFactory = new FrontedControlDefaultConfigFactory();
         _controlNameGenerator = new FrontedControlNameGenerator();
         _designerPreviewSharedDataService = new DesignerPreviewSharedDataService();
+        _localResourceStore = null;
+        _windowLayoutOptionsService = null;
         _logger = NullLogger<FrontedDesignerWindowViewModel>.Instance;
         InitializeZoomPresets();
     }
@@ -80,6 +85,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         FrontedControlDefaultConfigFactory defaultConfigFactory,
         FrontedControlNameGenerator controlNameGenerator,
         DesignerPreviewSharedDataService designerPreviewSharedDataService,
+        IFrontedLocalResourceStore localResourceStore,
+        IFrontedWindowLayoutOptionsService windowLayoutOptionsService,
         ILogger<FrontedDesignerWindowViewModel> logger)
     {
         _layoutService = layoutService;
@@ -91,6 +98,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _defaultConfigFactory = defaultConfigFactory;
         _controlNameGenerator = controlNameGenerator;
         _designerPreviewSharedDataService = designerPreviewSharedDataService;
+        _localResourceStore = localResourceStore;
+        _windowLayoutOptionsService = windowLayoutOptionsService;
         _logger = logger;
 
         foreach (var group in layoutCatalog.GetEntries()
@@ -234,6 +243,30 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     [ObservableProperty]
     private int _infoCount;
 
+    [ObservableProperty]
+    private string _canvasWidthEditText = string.Empty;
+
+    [ObservableProperty]
+    private string _canvasHeightEditText = string.Empty;
+
+    [ObservableProperty]
+    private string _backgroundImageEditText = string.Empty;
+
+    [ObservableProperty]
+    private string _canvasPropertiesStatus = string.Empty;
+
+    [ObservableProperty]
+    private string _windowOptionsWindowTypeName = string.Empty;
+
+    [ObservableProperty]
+    private bool _windowAllowTransparency;
+
+    [ObservableProperty]
+    private bool _windowOptionsRestartRequired;
+
+    [ObservableProperty]
+    private string _windowOptionsStatus = string.Empty;
+
     partial void OnSelectedWindowChanged(FrontedDesignerWindowOption? value)
     {
         ControlFilterText = string.Empty;
@@ -252,6 +285,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         SelectedCanvas = CanvasOptions.FirstOrDefault();
+        LoadWindowOptions(value.WindowTypeName);
     }
 
     partial void OnSelectedCanvasChanged(FrontedDesignerLayoutCatalogEntry? value)
@@ -267,6 +301,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             ClearUndoRedo();
         }
+        RefreshCanvasPropertyBuffers();
         RebuildFilteredDesignItems();
         RebuildPropertyEditorItems();
         UpdateFitZoomFromCurrentDocument();
@@ -316,6 +351,16 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         ApplyZoomPreset(value);
+    }
+
+    partial void OnWindowAllowTransparencyChanged(bool value)
+    {
+        if (_isLoadingWindowOptions || _windowLayoutOptionsService is null || SelectedWindow is null)
+        {
+            return;
+        }
+
+        _ = SaveWindowOptionsAsync(value);
     }
 
     [RelayCommand]
@@ -593,6 +638,18 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void SetZoomPreset(object? parameter)
+    {
+        var displayName = Convert.ToString(parameter, CultureInfo.InvariantCulture);
+        var preset = ZoomPresets.FirstOrDefault(item =>
+            string.Equals(item.DisplayName, displayName, StringComparison.OrdinalIgnoreCase));
+        if (preset is not null)
+        {
+            ApplyZoomPreset(preset);
+        }
+    }
+
+    [RelayCommand]
     private void AddControl(object? parameter)
     {
         if (CurrentDocument is null)
@@ -677,6 +734,112 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ValidateCurrentDocument();
         RequestPreviewRenderCurrentDocument();
         StatusMessage = $"{I18nHelper.GetLocalizedString("DeleteSelectedControl")}: {item.Name}";
+    }
+
+    [RelayCommand]
+    private void ApplyCanvasSize()
+    {
+        ApplyCanvasSizeEdit(CanvasWidthEditText, CanvasHeightEditText);
+    }
+
+    public bool ApplyCanvasSizeEdit(string widthText, string heightText)
+    {
+        if (CurrentDocument is null)
+        {
+            return false;
+        }
+
+        if (!TryParsePositiveDouble(widthText, out var width)
+            || !TryParsePositiveDouble(heightText, out var height))
+        {
+            CanvasPropertiesStatus = I18nHelper.GetLocalizedString("CanvasSizeMustBePositive");
+            return false;
+        }
+
+        if (Math.Abs(CurrentDocument.CanvasConfig.CanvasWidth - width) < 0.0001D
+            && Math.Abs(CurrentDocument.CanvasConfig.CanvasHeight - height) < 0.0001D)
+        {
+            RefreshCanvasPropertyBuffers();
+            return true;
+        }
+
+        CaptureUndoSnapshot();
+        CurrentDocument.CanvasConfig.CanvasWidth = width;
+        CurrentDocument.CanvasConfig.CanvasHeight = height;
+        CurrentDocument.IsDirty = true;
+        RefreshCanvasPropertyBuffers();
+        FinishCanvasConfigEdit(I18nHelper.GetLocalizedString("CanvasPropertiesApplied"));
+        return true;
+    }
+
+    [RelayCommand]
+    private void ApplyBackgroundImage()
+    {
+        ApplyCanvasBackgroundEdit(BackgroundImageEditText);
+    }
+
+    public bool ApplyCanvasBackgroundEdit(string? backgroundImage)
+    {
+        if (CurrentDocument is null)
+        {
+            return false;
+        }
+
+        var normalizedValue = string.IsNullOrWhiteSpace(backgroundImage) ? null : backgroundImage.Trim();
+        if (string.Equals(CurrentDocument.CanvasConfig.BackgroundImage, normalizedValue, StringComparison.Ordinal))
+        {
+            BackgroundImageEditText = normalizedValue ?? string.Empty;
+            return true;
+        }
+
+        CaptureUndoSnapshot();
+        CurrentDocument.CanvasConfig.BackgroundImage = normalizedValue;
+        CurrentDocument.IsDirty = true;
+        BackgroundImageEditText = normalizedValue ?? string.Empty;
+        FinishCanvasConfigEdit(I18nHelper.GetLocalizedString("CanvasPropertiesApplied"));
+        return true;
+    }
+
+    [RelayCommand]
+    private void ClearBackgroundImage()
+    {
+        ClearCanvasBackground();
+    }
+
+    public bool ClearCanvasBackground()
+    {
+        return ApplyCanvasBackgroundEdit(null);
+    }
+
+    public bool StoreLocalBackgroundImage(string sourcePath)
+    {
+        if (_localResourceStore is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            var uri = _localResourceStore.StoreImage(sourcePath);
+            return ApplyCanvasBackgroundEdit(uri);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to store local fronted canvas background image.");
+            CanvasPropertiesStatus = $"{I18nHelper.GetLocalizedString("FailedToApplyPicture")}: {ex.Message}";
+            return false;
+        }
+    }
+
+    [RelayCommand]
+    private void ResetWindowOptions()
+    {
+        if (_windowLayoutOptionsService is null || SelectedWindow is null)
+        {
+            return;
+        }
+
+        _ = ResetWindowOptionsAsync();
     }
 
     /// <summary>
@@ -1117,6 +1280,100 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ValidateCurrentDocument();
         RequestPreviewRenderCurrentDocument();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
+    }
+
+    private void FinishCanvasConfigEdit(string statusMessage)
+    {
+        CanvasPropertiesStatus = statusMessage;
+        RefreshDirtyState();
+        ValidateCurrentDocument();
+        RequestPreviewRenderCurrentDocument();
+        UpdateFitZoomFromCurrentDocument();
+    }
+
+    private void RefreshCanvasPropertyBuffers()
+    {
+        if (CurrentDocument is null)
+        {
+            CanvasWidthEditText = string.Empty;
+            CanvasHeightEditText = string.Empty;
+            BackgroundImageEditText = string.Empty;
+            return;
+        }
+
+        CanvasWidthEditText = CurrentDocument.CanvasConfig.CanvasWidth.ToString("0.##", CultureInfo.InvariantCulture);
+        CanvasHeightEditText = CurrentDocument.CanvasConfig.CanvasHeight.ToString("0.##", CultureInfo.InvariantCulture);
+        BackgroundImageEditText = CurrentDocument.CanvasConfig.BackgroundImage ?? string.Empty;
+    }
+
+    private void LoadWindowOptions(string windowTypeName)
+    {
+        WindowOptionsWindowTypeName = windowTypeName;
+        WindowOptionsRestartRequired = false;
+
+        if (_windowLayoutOptionsService is null)
+        {
+            WindowAllowTransparency = false;
+            return;
+        }
+
+        _isLoadingWindowOptions = true;
+        try
+        {
+            var options = _windowLayoutOptionsService.LoadOptions(windowTypeName);
+            WindowAllowTransparency = options.AllowTransparency;
+            WindowOptionsStatus = string.Empty;
+        }
+        finally
+        {
+            _isLoadingWindowOptions = false;
+        }
+    }
+
+    private async Task SaveWindowOptionsAsync(bool allowTransparency)
+    {
+        if (_windowLayoutOptionsService is null || SelectedWindow is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _windowLayoutOptionsService.SaveOptionsAsync(
+                SelectedWindow.WindowTypeName,
+                new FrontedWindowLayoutOptions
+                {
+                    AllowTransparency = allowTransparency
+                });
+            WindowOptionsRestartRequired = true;
+            WindowOptionsStatus = I18nHelper.GetLocalizedString("RestartRequired");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to save fronted window layout options.");
+            WindowOptionsStatus = ex.Message;
+        }
+    }
+
+    private async Task ResetWindowOptionsAsync()
+    {
+        if (_windowLayoutOptionsService is null || SelectedWindow is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _windowLayoutOptionsService.ResetOptionsAsync(SelectedWindow.WindowTypeName);
+            LoadWindowOptions(SelectedWindow.WindowTypeName);
+            WindowOptionsRestartRequired = true;
+            WindowOptionsStatus = I18nHelper.GetLocalizedString("RestartRequired");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to reset fronted window layout options.");
+            WindowOptionsStatus = ex.Message;
+        }
     }
 
     private void OnDesignItemGeometryChanged(bool renderPreview)
@@ -1587,6 +1844,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         return value;
+    }
+
+    private static bool TryParsePositiveDouble(string text, out double value)
+    {
+        return double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value)
+               && double.IsFinite(value)
+               && value > 0D;
     }
 
     private static bool ValuesEqual(object? left, object? right)

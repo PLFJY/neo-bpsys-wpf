@@ -260,16 +260,6 @@
                         SelectionChanged="Selector_OnSelectionChanged" />
                     <ui:Button
                         Margin="0,0,8,8"
-                        Click="ReloadLayoutButton_OnClick"
-                        Content="{lex:Loc ReloadLayout}"
-                        Icon="{ui:SymbolIcon Symbol=ArrowClockwise24}" />
-                    <ui:Button
-                        Margin="0,0,8,8"
-                        Command="{Binding ValidateLayoutCommand}"
-                        Content="{lex:Loc ValidateLayout}"
-                        Icon="{ui:SymbolIcon Symbol=CheckmarkCircle24}" />
-                    <ui:Button
-                        Margin="0,0,8,8"
                         Command="{Binding UndoCommand}"
                         Icon="{ui:SymbolIcon Symbol=ArrowUndo24}"
                         ToolTip="{lex:Loc Undo}" />
@@ -348,71 +338,59 @@
                         Content="{lex:Loc SaveLayout}"
                         Icon="{ui:SymbolIcon Symbol=Save24}"
                         IsEnabled="{Binding CanSaveLayout}" />
-                    <ui:Button
-                        Margin="0,0,8,8"
-                        Click="ResetToBuiltInButton_OnClick"
-                        Content="{lex:Loc ResetToBuiltIn}"
-                        Icon="{ui:SymbolIcon Symbol=ArrowClockwise24}"
-                        IsEnabled="{Binding CanResetToBuiltIn}" />
-                    <ui:Button
-                        Margin="0,0,8,8"
-                        Command="{Binding OpenLayoutFolderCommand}"
-                        Content="{lex:Loc OpenLayoutFolder}"
-                        Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
-                    <StackPanel Margin="0,0,8,8" Orientation="Horizontal">
-                        <TextBlock
-                            Margin="8,0,0,0"
-                            VerticalAlignment="Center"
-                            Text="{Binding ZoomDisplay}" />
-                        <TextBlock
-                            Margin="8,0,0,0"
-                            VerticalAlignment="Center"
-                            Text="{lex:Loc Zoom}" />
-                        <ui:Button
-                            Margin="8,0,0,0"
-                            Command="{Binding ZoomOutCommand}"
-                            Icon="{ui:SymbolIcon Symbol=Subtract24}"
-                            ToolTip="{lex:Loc ZoomOut}" />
-                        <ComboBox
-                            Width="90"
-                            Margin="8,0,0,0"
-                            DisplayMemberPath="DisplayName"
-                            ItemsSource="{Binding ZoomPresets}"
-                            SelectedItem="{Binding SelectedZoomPreset}" />
-                        <ui:Button
-                            Margin="8,0,0,0"
-                            Command="{Binding ZoomInCommand}"
-                            Icon="{ui:SymbolIcon Symbol=Add24}"
-                            ToolTip="{lex:Loc ZoomIn}" />
-                        <ui:Button
-                            Margin="8,0,0,0"
-                            Command="{Binding FitToWindowCommand}"
-                            Content="{lex:Loc Fit}"
-                            Icon="{ui:SymbolIcon Symbol=FullScreenMaximize24}"
-                            ToolTip="{lex:Loc FitToWindow}" />
-                    </StackPanel>
-                    <StackPanel Margin="0,0,8,8" Orientation="Horizontal">
-                        <TextBlock
-                            Margin="8,0,0,0"
-                            VerticalAlignment="Center"
-                            Text="{lex:Loc LayoutSource}" />
-                        <TextBlock
-                            Margin="8,0,0,0"
-                            VerticalAlignment="Center"
-                            Text="{Binding LayoutSourceDisplay}" />
-                        <TextBox
-                            MaxWidth="280"
-                            Margin="8,0,0,0"
-                            VerticalAlignment="Center"
-                            IsReadOnly="True"
-                            Text="{Binding LayoutSourcePath}"
-                            ToolTip="{Binding LayoutSourcePath}" />
-                    </StackPanel>
-                    <ui:ToggleSwitch
+                    <Menu Margin="0,0,8,8" VerticalAlignment="Center">
+                        <MenuItem Header="{lex:Loc Layout}">
+                            <MenuItem Click="SaveLayoutButton_OnClick" Header="{lex:Loc SaveLayout}" />
+                            <MenuItem Click="ReloadLayoutButton_OnClick" Header="{lex:Loc ReloadLayout}" />
+                            <MenuItem Click="ResetToBuiltInButton_OnClick" Header="{lex:Loc ResetToBuiltIn}" />
+                            <Separator />
+                            <MenuItem Command="{Binding OpenLayoutFolderCommand}" Header="{lex:Loc OpenLayoutFolder}" />
+                            <MenuItem Command="{Binding ValidateLayoutCommand}" Header="{lex:Loc ValidationDetails}" />
+                        </MenuItem>
+                        <MenuItem Header="{lex:Loc Edit}">
+                            <MenuItem Command="{Binding UndoCommand}" Header="{lex:Loc Undo}" />
+                            <MenuItem Command="{Binding RedoCommand}" Header="{lex:Loc Redo}" />
+                            <MenuItem Header="{lex:Loc AddControl}">
+                                <MenuItem Click="AddControlMenuItem_OnClick" Header="Text" Tag="Text" />
+                                <MenuItem Click="AddControlMenuItem_OnClick" Header="LocalizedText" Tag="LocalizedText" />
+                                <MenuItem Click="AddControlMenuItem_OnClick" Header="Image" Tag="Image" />
+                            </MenuItem>
+                            <MenuItem Command="{Binding DeleteSelectedControlCommand}" Header="{lex:Loc DeleteControl}" />
+                        </MenuItem>
+                        <MenuItem Header="{lex:Loc View}">
+                            <MenuItem Command="{Binding FitToWindowCommand}" Header="{lex:Loc Fit}" />
+                            <MenuItem Command="{Binding ZoomInCommand}" Header="{lex:Loc ZoomIn}" />
+                            <MenuItem Command="{Binding ZoomOutCommand}" Header="{lex:Loc ZoomOut}" />
+                            <Separator />
+                            <MenuItem Command="{Binding SetZoomPresetCommand}" CommandParameter="25%" Header="25%" />
+                            <MenuItem Command="{Binding SetZoomPresetCommand}" CommandParameter="50%" Header="50%" />
+                            <MenuItem Command="{Binding SetZoomPresetCommand}" CommandParameter="75%" Header="75%" />
+                            <MenuItem Command="{Binding SetZoomPresetCommand}" CommandParameter="100%" Header="100%" />
+                            <MenuItem Command="{Binding SetZoomPresetCommand}" CommandParameter="125%" Header="125%" />
+                            <MenuItem Command="{Binding SetZoomPresetCommand}" CommandParameter="150%" Header="150%" />
+                            <MenuItem Command="{Binding SetZoomPresetCommand}" CommandParameter="200%" Header="200%" />
+                            <Separator />
+                            <MenuItem Header="{lex:Loc Snap}" IsCheckable="True" IsChecked="{Binding SnapEnabled, Mode=TwoWay}" />
+                        </MenuItem>
+                        <MenuItem Header="{lex:Loc Window}">
+                            <MenuItem Header="{lex:Loc WindowOptions}" IsEnabled="False" />
+                            <MenuItem Header="{lex:Loc AllowTransparency}" IsCheckable="True" IsChecked="{Binding WindowAllowTransparency, Mode=TwoWay}" />
+                            <MenuItem Click="RestartNowButton_OnClick" Header="{lex:Loc RestartNow}" />
+                        </MenuItem>
+                    </Menu>
+                    <TextBlock
+                        MaxWidth="260"
                         Margin="0,0,8,8"
                         VerticalAlignment="Center"
-                        Content="{lex:Loc Snap}"
-                        IsChecked="{Binding SnapEnabled, Mode=TwoWay}" />
+                        FontSize="12"
+                        Text="{Binding LayoutSourcePath}"
+                        TextTrimming="CharacterEllipsis"
+                        ToolTip="{Binding LayoutSourcePath}" />
+                    <TextBlock
+                        Margin="0,0,8,8"
+                        VerticalAlignment="Center"
+                        FontSize="12"
+                        Text="{Binding ZoomDisplay}" />
                     <TextBlock
                         Margin="0,0,8,8"
                         VerticalAlignment="Center"
@@ -633,6 +611,8 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <StackPanel>
                         <TextBlock
@@ -750,8 +730,104 @@
                             </TextBlock.Style>
                         </TextBlock>
                     </Grid>
-                    <ui:Button
+                    <Expander
                         Grid.Row="3"
+                        Margin="0,4,0,8"
+                        Header="{lex:Loc CanvasProperties}"
+                        IsExpanded="True">
+                        <StackPanel Margin="0,8,0,0">
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="112" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc CanvasWidth}" />
+                                <ui:TextBox
+                                    Grid.Column="1"
+                                    MinHeight="30"
+                                    Text="{Binding CanvasWidthEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </Grid>
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="112" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc CanvasHeight}" />
+                                <ui:TextBox
+                                    Grid.Column="1"
+                                    MinHeight="30"
+                                    Text="{Binding CanvasHeightEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            </Grid>
+                            <ui:Button
+                                Margin="112,0,0,8"
+                                HorizontalAlignment="Stretch"
+                                Command="{Binding ApplyCanvasSizeCommand}"
+                                Content="{lex:Loc Apply}" />
+                            <TextBlock
+                                Margin="0,0,0,6"
+                                FontWeight="SemiBold"
+                                Text="{lex:Loc BackgroundImage}" />
+                            <ui:TextBox
+                                MinHeight="30"
+                                Text="{Binding BackgroundImageEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <WrapPanel Margin="0,8,0,0">
+                                <ui:Button
+                                    Margin="0,0,6,6"
+                                    Command="{Binding ApplyBackgroundImageCommand}"
+                                    Content="{lex:Loc Apply}" />
+                                <ui:Button
+                                    Margin="0,0,6,6"
+                                    Click="BrowseCanvasBackgroundResourceButton_OnClick"
+                                    Content="{lex:Loc BrowseResource}" />
+                                <ui:Button
+                                    Margin="0,0,6,6"
+                                    Click="ChooseLocalCanvasBackgroundButton_OnClick"
+                                    Content="{lex:Loc ChooseLocalImage}" />
+                                <ui:Button
+                                    Margin="0,0,6,6"
+                                    Command="{Binding ClearBackgroundImageCommand}"
+                                    Content="{lex:Loc ClearBackground}" />
+                            </WrapPanel>
+                            <TextBlock
+                                FontSize="12"
+                                Opacity="0.78"
+                                Text="{Binding CanvasPropertiesStatus}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Expander>
+                    <Expander
+                        Grid.Row="4"
+                        Margin="0,0,0,8"
+                        Header="{lex:Loc WindowOptions}"
+                        IsExpanded="False">
+                        <StackPanel Margin="0,8,0,0">
+                            <TextBlock
+                                Margin="0,0,0,6"
+                                FontWeight="SemiBold"
+                                Text="{Binding WindowOptionsWindowTypeName}" />
+                            <ui:ToggleSwitch
+                                Content="{lex:Loc AllowTransparency}"
+                                IsChecked="{Binding WindowAllowTransparency, Mode=TwoWay}" />
+                            <TextBlock
+                                Margin="0,6,0,0"
+                                FontSize="12"
+                                Opacity="0.78"
+                                Text="{Binding WindowOptionsStatus}"
+                                TextWrapping="Wrap" />
+                            <WrapPanel Margin="0,8,0,0">
+                                <ui:Button
+                                    Margin="0,0,6,6"
+                                    Click="RestartNowButton_OnClick"
+                                    Content="{lex:Loc RestartNow}" />
+                                <ui:Button
+                                    Margin="0,0,6,6"
+                                    Command="{Binding ResetWindowOptionsCommand}"
+                                    Content="{lex:Loc Reset}" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </Expander>
+                    <ui:Button
+                        Grid.Row="5"
                         HorizontalAlignment="Stretch"
                         Command="{Binding DeleteSelectedControlCommand}"
                         Content="{lex:Loc DeleteControl}"

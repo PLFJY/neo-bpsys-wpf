@@ -457,7 +457,7 @@ Phase 8F owner validation 后，文本类属性使用显式提交模型。`Name`
 
 Phase 8G 起，`BindingPath` 仍是可手写文本框，但旁边新增 Browse button。Binding Browser 使用 curated `ISharedDataService` 树，包含 `CurrentGame`、队伍、固定索引的 `SurPlayerList[0..3]`、`HunPlayer`、`MatchScore`、当前/全局 Ban 列表和倒计时等常用路径；搜索可按显示名或完整绑定路径过滤。Binding Browser 现在按当前属性行的目标类型过滤候选路径：`Text` / `LocalizedText` 只显示字符串和数字，`Image` 只显示 `ImageSource` / `BitmapSource` / `BitmapImage` 兼容值，`GameProgressText.BindingPath` 只显示 `GameProgress`，`MapNameText.BindingPath` 只显示 `Map` / `Map?`。不匹配的叶子节点会从树和搜索结果中隐藏，父节点只在仍有可用子节点时保留。选择结果只更新该行 `EditText`，不会立即写入 config，不会调用真实 `ISharedDataService`，也不会推入 Undo；用户后续按 Apply 或 Enter 后才走 `ApplyPropertyEdit`、校验、预览刷新和 Undo snapshot。
 
-Phase 8G 起，图片/资源路径字段旁新增 Resource Browser。当前资源来源包括内置运行时文件 `Resources/bpui`，返回值使用 resolver 约定的 `Resources/<fileName>`；也支持通过 “Browse file...” 选择 png/jpg/jpeg/webp/bmp 绝对路径。外部文件不会被复制或导入布局包，后续 `.bpui` / 资源管理阶段再处理打包。`Assets/icon.png` 是 WPF pack resource，当前 `IFrontedResourceResolver` 不解析 pack URI，因此不作为资源路径浏览结果提供。Canvas 级 `BackgroundImage` 目前没有 Property Grid，后续 Canvas Properties GUI 应接入同一 Resource Browser，并编辑 `CanvasWidth`、`CanvasHeight` 和 `BackgroundImage`。选择本地图片时应复制到 editor-local resource store，layout JSON 写为 `bpui://local/...`；导出包时再复制进包资源并重写为 `bpui://{PackageId}/...`。
+Phase 8G 起，图片/资源路径字段旁新增 Resource Browser。当前资源来源包括内置运行时文件 `Resources/bpui`，返回值使用 resolver 约定的 `Resources/<fileName>`；也支持通过 “Browse file...” 选择 png/jpg/jpeg/webp/bmp 绝对路径。控件级 Resource Browser 选择外部文件仍只写入编辑缓冲。Phase 9B.0 已在 Canvas Properties 中提供 `CanvasWidth`、`CanvasHeight`、`BackgroundImage`、清除背景、浏览资源和选择本地图片；选择本地图片会复制到 editor-local resource store，layout JSON 写为 `bpui://local/...`。导出包时再复制进包资源并重写为 `bpui://{PackageId}/...`。
 
 `FontFamily` 行仍使用可编辑 ComboBox，但不再依赖 `SelectedValue` 双向绑定。下拉打开期间不会触发 LostFocus 提交或重建 Property Grid；用户从下拉中选择时写入对应 `FrontedFontFamilyOption.Value`，因此内置字体继续保存 `pack://application:,,,/Assets/Fonts/#...` 原值；用户手写自定义字体时按 Enter 或真正失焦提交 `ComboBox.Text`。下拉项继续使用各自的 `PreviewFontFamily` 显示，保持旧 `TextSettingsEditControl` 的字体预览语义。
 
@@ -655,8 +655,8 @@ Phase 8H 起，Save 只写入 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowNam
 | Phase 8F | 已实现：Add Control 菜单、默认 config factory、唯一命名、视口中心放置、独立 placeholder preview data、FontFamily 字体 ComboBox、ColorPicker Hex 缓冲显式提交、左侧右键/Property Grid 底部删除、基础内存 Undo/Redo；仍只改内存，不保存用户布局 |
 | Phase 8G | Binding Browser、Resource Browser |
 | Phase 8H | 已实现：用户 layout save/reset/load priority、validation-driven save、打开布局目录、dirty prompt 和 snap-to-grid |
-| Phase 8I 或 9B-prep | 计划：Canvas Properties GUI，包含 `CanvasWidth`、`CanvasHeight`、`BackgroundImage`，并将本地图片规范化为 `bpui://local/...` |
-| Phase 9B+ | 计划：`FrontManagePage` 的 Layout Packages tab、v3 package import/export/activate/delete；规格见 [bpui-package-v3.md](bpui-package-v3.md) |
+| Phase 9B.0: Canvas Properties GUI, local bpui resource normalization, toolbar cleanup, and Window Options foundation | 已实现：Canvas Properties GUI，包含 `CanvasWidth`、`CanvasHeight`、`BackgroundImage`，并将本地图片规范化为 `bpui://local/...`；工具栏整理为主按钮和二级菜单；新增窗口级 Window Options 基础。 |
+| Phase 9B.1: FrontManagePage Layout Package Manager UI skeleton | 计划：`FrontManagePage` 的 Layout Packages tab skeleton；规格见 [bpui-package-v3.md](bpui-package-v3.md) |
 
 ## 17. 非目标
 

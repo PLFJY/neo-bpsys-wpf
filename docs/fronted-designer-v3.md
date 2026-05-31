@@ -309,7 +309,9 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 8G | 已实现 Binding Browser 与 Resource Browser。浏览器选择只写入属性行 `EditText` 缓冲，仍需 Apply/Enter 提交；Resource Browser 支持 `Resources/bpui` 与绝对路径图片，但不复制外部资源。 |
 | Phase 8H | 已实现用户 layout save/reset/load priority、validation-driven save、打开用户布局目录、切换/重载/关闭脏状态提示，以及默认无吸附、Shift 临时吸附、工具栏持久吸附开关。 |
 | Phase 9A | 已完成文档规格：Designer v3 `.bpui` 布局包标准，见 [bpui-package-v3.md](bpui-package-v3.md)。不实现导入、导出、包管理 UI 或 legacy 转换。 |
-| Phase 9B+ | 实现 v3 `.bpui` 包管理、导出、导入、激活、删除和 legacy `.bpui` 转换。 |
+| Phase 9B.0 | 已实现 Canvas Properties GUI、本地 `bpui://local` 资源规范化、`bpui://{PackageId}` resolver、顶部工具栏整理和窗口级 Window Options 基础。`AllowTransparency` 是窗口级选项，不写入 `FrontedCanvasConfig`。 |
+| Phase 9B.1 | `FrontManagePage` Layout Package Manager UI skeleton。 |
+| Phase 9C+ | 实现 v3 `.bpui` 导出、导入、激活、删除和 legacy `.bpui` 转换。 |
 
 每个阶段都应有明确回退策略。涉及用户可见文本时，应同步考虑 `WPFLocalizeExtension` 和 `Locales/*.resx`。
 

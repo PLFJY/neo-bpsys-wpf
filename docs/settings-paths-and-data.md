@@ -12,7 +12,9 @@
 | `AppTempPath` | `%TEMP%\neo-bpsys-wpf` |
 | `CustomUiPath` | `%APPDATA%\neo-bpsys-wpf\CustomUi` |
 | `FrontedLayoutsPath` | `%APPDATA%\neo-bpsys-wpf\FrontedLayouts` |
-| v3 layout package root | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages`，当前为 Phase 9A 规格路径，常量尚未实现 |
+| `FrontedLayoutPackagesPath` | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages` |
+| `FrontedLayoutLocalPackagePath` | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\local` |
+| `FrontedLayoutLocalImagesPath` | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\local\resources\images` |
 | `LogPath` | `%APPDATA%\neo-bpsys-wpf\Log` |
 | `ResourcesPath` | `{AppBaseDirectory}\Resources` |
 | `PluginPath` | `%APPDATA%\neo-bpsys-wpf\Plugins` |
@@ -81,6 +83,8 @@
 | 插件市场临时下载 | `%TEMP%\neo-bpsys-wpf\PluginMarket\...` |
 
 v3 前台布局的加载优先级是用户布局优先、内置默认布局兜底。`IFrontedUserLayoutStore` 负责 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts` 下的用户布局读写；`IFrontedLayoutService` 会先尝试用户布局，如果用户 JSON 不可读或无效，会记录警告并回退到内置 `Resources\FrontedLayouts`。独立 Fronted Designer 编辑器保存普通用户改动时只写入 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json`，不应直接覆盖安装目录或源码中的 `Resources\FrontedLayouts`。多 Canvas 窗口按 `{CanvasName}.json` 分文件保存；“重置为内置”会删除当前 Canvas 对应的用户布局文件。
+
+Phase 9B.0 起，窗口级选项保存到 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\window.json`，当前包含 `AllowTransparency`。该文件是窗口级，不属于任意单个 Canvas；重置某个 Canvas 布局不会删除 `window.json`。
 
 Designer v3 `.bpui` 包路径标准见 [bpui-package-v3.md](bpui-package-v3.md)。已安装包资源应放在各自包目录内，例如 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}\resources\`，不要合并到共享资源目录。若旧讨论或临时代码提到 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutResources\`，应视为已被包隔离方案取代，不作为新实现的首选路径。
 

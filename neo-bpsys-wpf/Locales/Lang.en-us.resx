@@ -2323,4 +2323,55 @@
   <data name="UseSelected" xml:space="preserve">
     <value>Use Selected</value>
   </data>
+  <data name="View" xml:space="preserve">
+    <value>View</value>
+  </data>
+  <data name="Window" xml:space="preserve">
+    <value>Window</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Reset" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="CanvasProperties" xml:space="preserve">
+    <value>Canvas Properties</value>
+  </data>
+  <data name="WindowOptions" xml:space="preserve">
+    <value>Window Options</value>
+  </data>
+  <data name="AllowTransparency" xml:space="preserve">
+    <value>Allow Transparency</value>
+  </data>
+  <data name="RestartNow" xml:space="preserve">
+    <value>Restart Now</value>
+  </data>
+  <data name="RestartRequired" xml:space="preserve">
+    <value>Restart required</value>
+  </data>
+  <data name="ChooseLocalImage" xml:space="preserve">
+    <value>Choose Local Image</value>
+  </data>
+  <data name="ClearBackground" xml:space="preserve">
+    <value>Clear Background</value>
+  </data>
+  <data name="BackgroundImage" xml:space="preserve">
+    <value>Background Image</value>
+  </data>
+  <data name="CanvasWidth" xml:space="preserve">
+    <value>Canvas Width</value>
+  </data>
+  <data name="CanvasHeight" xml:space="preserve">
+    <value>Canvas Height</value>
+  </data>
+  <data name="CanvasSizeMustBePositive" xml:space="preserve">
+    <value>Canvas width and height must be greater than 0</value>
+  </data>
+  <data name="CanvasPropertiesApplied" xml:space="preserve">
+    <value>Canvas properties applied</value>
+  </data>
+  <data name="SaveBeforeRestart" xml:space="preserve">
+    <value>Save the current layout before restarting?</value>
+  </data>
 </root>

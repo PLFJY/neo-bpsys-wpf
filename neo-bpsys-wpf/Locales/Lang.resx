@@ -2341,4 +2341,55 @@
   <data name="UseSelected" xml:space="preserve">
     <value>使用所选</value>
   </data>
+  <data name="View" xml:space="preserve">
+    <value>视图</value>
+  </data>
+  <data name="Window" xml:space="preserve">
+    <value>窗口</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>应用</value>
+  </data>
+  <data name="Reset" xml:space="preserve">
+    <value>重置</value>
+  </data>
+  <data name="CanvasProperties" xml:space="preserve">
+    <value>Canvas 属性</value>
+  </data>
+  <data name="WindowOptions" xml:space="preserve">
+    <value>窗口选项</value>
+  </data>
+  <data name="AllowTransparency" xml:space="preserve">
+    <value>允许透明</value>
+  </data>
+  <data name="RestartNow" xml:space="preserve">
+    <value>立即重启</value>
+  </data>
+  <data name="RestartRequired" xml:space="preserve">
+    <value>需要重启后生效</value>
+  </data>
+  <data name="ChooseLocalImage" xml:space="preserve">
+    <value>选择本地图片</value>
+  </data>
+  <data name="ClearBackground" xml:space="preserve">
+    <value>清除背景</value>
+  </data>
+  <data name="BackgroundImage" xml:space="preserve">
+    <value>背景图片</value>
+  </data>
+  <data name="CanvasWidth" xml:space="preserve">
+    <value>Canvas 宽度</value>
+  </data>
+  <data name="CanvasHeight" xml:space="preserve">
+    <value>Canvas 高度</value>
+  </data>
+  <data name="CanvasSizeMustBePositive" xml:space="preserve">
+    <value>Canvas 宽度和高度必须大于 0</value>
+  </data>
+  <data name="CanvasPropertiesApplied" xml:space="preserve">
+    <value>Canvas 属性已应用</value>
+  </data>
+  <data name="SaveBeforeRestart" xml:space="preserve">
+    <value>重启前是否保存当前布局？</value>
+  </data>
 </root>

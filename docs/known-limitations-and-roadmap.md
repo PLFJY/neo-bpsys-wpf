@@ -42,11 +42,13 @@ Phase 9A 已新增 `.bpui v3` 标准文档，见 [bpui-package-v3.md](bpui-packa
 
 1. `.bpui v3` 导入/导出代码尚未实现。
 2. `FrontManagePage` 的 Layout Packages 管理页尚未实现。
-3. Canvas Background GUI 尚未实现，`CanvasWidth`、`CanvasHeight`、`BackgroundImage` 还没有 Canvas Properties 面板。
-4. 窗口级 `AllowTransparency` 开关和重启提示流程尚未实现。
-5. legacy `.bpui` 检测和 legacy 到 v3 转换尚未实现。
-6. SettingPage 中现有 `.bpui` 导入/导出仍是 legacy 流程，会处理 `Config.json`、`CustomUi/` 和 `FrontElementsConfig/`，暂时保留。
-7. v3 包标准明确禁止 v3 包包含或覆盖全局 `Config.json`，但该规则尚未由导入器执行，因为导入器还未实现。
+3. Phase 9B.0 已实现 Canvas Properties GUI，可编辑 `CanvasWidth`、`CanvasHeight` 和 `BackgroundImage`，并支持本地背景图片复制为 `bpui://local/...`。
+4. Phase 9B.0 已实现 `bpui://local` 和 `bpui://{PackageId}` 文件资源解析；完整 v3 package import/export 仍未实现。
+5. Phase 9B.0 已新增窗口级 `AllowTransparency` 选项基础，保存到 `FrontedLayouts/{WindowTypeName}/window.json`；它不是 Canvas 属性，不会写入 `FrontedCanvasConfig`。当前运行时前台窗口仍保留旧 `config.json` 透明设置绑定，读取 `window.json` 并在 `Show()` 前应用透明窗口选项留到后续清理阶段。
+6. Phase 9B.1 的 `FrontManagePage` Layout Package Manager UI skeleton 尚未实现。
+7. legacy `.bpui` 检测和 legacy 到 v3 转换尚未实现。
+8. SettingPage 中现有 `.bpui` 导入/导出仍是 legacy 流程，会处理 `Config.json`、`CustomUi/` 和 `FrontElementsConfig`，暂时保留。
+9. v3 包标准明确禁止 v3 包包含或覆盖全局 `Config.json`，但该规则尚未由导入器执行，因为导入器还未实现。
 
 ## 文档边界
 

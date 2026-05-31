@@ -2326,4 +2326,55 @@
   <data name="UseSelected" xml:space="preserve">
     <value>選択を使用</value>
   </data>
+  <data name="View" xml:space="preserve">
+    <value>表示</value>
+  </data>
+  <data name="Window" xml:space="preserve">
+    <value>ウィンドウ</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>適用</value>
+  </data>
+  <data name="Reset" xml:space="preserve">
+    <value>リセット</value>
+  </data>
+  <data name="CanvasProperties" xml:space="preserve">
+    <value>Canvas プロパティ</value>
+  </data>
+  <data name="WindowOptions" xml:space="preserve">
+    <value>ウィンドウオプション</value>
+  </data>
+  <data name="AllowTransparency" xml:space="preserve">
+    <value>透過を許可</value>
+  </data>
+  <data name="RestartNow" xml:space="preserve">
+    <value>今すぐ再起動</value>
+  </data>
+  <data name="RestartRequired" xml:space="preserve">
+    <value>再起動が必要です</value>
+  </data>
+  <data name="ChooseLocalImage" xml:space="preserve">
+    <value>ローカル画像を選択</value>
+  </data>
+  <data name="ClearBackground" xml:space="preserve">
+    <value>背景をクリア</value>
+  </data>
+  <data name="BackgroundImage" xml:space="preserve">
+    <value>背景画像</value>
+  </data>
+  <data name="CanvasWidth" xml:space="preserve">
+    <value>Canvas 幅</value>
+  </data>
+  <data name="CanvasHeight" xml:space="preserve">
+    <value>Canvas 高さ</value>
+  </data>
+  <data name="CanvasSizeMustBePositive" xml:space="preserve">
+    <value>Canvas の幅と高さは 0 より大きい必要があります</value>
+  </data>
+  <data name="CanvasPropertiesApplied" xml:space="preserve">
+    <value>Canvas プロパティを適用しました</value>
+  </data>
+  <data name="SaveBeforeRestart" xml:space="preserve">
+    <value>再起動前に現在のレイアウトを保存しますか？</value>
+  </data>
 </root>

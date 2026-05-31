@@ -55,6 +55,22 @@ public static class AppConstants
     public static readonly string FrontedLayoutsPath = Path.Combine(AppDataPath, "FrontedLayouts");
 
     /// <summary>
+    /// v3 前台布局包路径。
+    /// </summary>
+    public static readonly string FrontedLayoutPackagesPath = Path.Combine(AppDataPath, "FrontedLayoutPackages");
+
+    /// <summary>
+    /// v3 本地布局资源包路径。
+    /// </summary>
+    public static readonly string FrontedLayoutLocalPackagePath = Path.Combine(FrontedLayoutPackagesPath, "local");
+
+    /// <summary>
+    /// v3 本地布局图片资源路径。
+    /// </summary>
+    public static readonly string FrontedLayoutLocalImagesPath =
+        Path.Combine(FrontedLayoutLocalPackagePath, "resources", "images");
+
+    /// <summary>
     /// 日志路径
     /// </summary>
     public static readonly string LogPath = Path.Combine(AppDataPath, "Log");

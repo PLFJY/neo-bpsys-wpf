@@ -15,6 +15,7 @@ using System.IO;
 using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -1526,6 +1527,122 @@ public class FrontedCanvasConfigTest
             CanvasName = "BaseCanvas",
             Logger = NullLogger.Instance
         };
+    }
+
+    [Fact]
+    public void FrontedLocalResourceStoreCopiesImageAndReturnsLocalBpuiUri()
+    {
+        var root = CreateTempFolder();
+        try
+        {
+            var source = Path.Combine(root, "bad name .. image.png");
+            File.WriteAllBytes(source, [1, 2, 3, 4]);
+            var store = new FrontedLocalResourceStore(Path.Combine(root, "local", "resources", "images"));
+
+            var uri = store.StoreImage(source);
+
+            Assert.StartsWith("bpui://local/resources/images/bad-name-image-", uri);
+            Assert.DoesNotContain(Path.GetPathRoot(root)!, uri);
+            var fileName = uri["bpui://local/resources/images/".Length..];
+            Assert.True(File.Exists(Path.Combine(root, "local", "resources", "images", fileName)));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void FrontedLocalResourceStoreRejectsUnsupportedExtension()
+    {
+        var root = CreateTempFolder();
+        try
+        {
+            var source = Path.Combine(root, "image.svg");
+            File.WriteAllText(source, "<svg />");
+            var store = new FrontedLocalResourceStore(Path.Combine(root, "images"));
+
+            Assert.Throws<NotSupportedException>(() => store.StoreImage(source));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void FrontedResourceResolverResolvesBpuiLocalAndPackageResources()
+    {
+        var packageRoot = AppConstants.FrontedLayoutPackagesPath;
+        var localFolder = Path.Combine(packageRoot, "local", "resources", "images");
+        var packageFolder = Path.Combine(packageRoot, "package-id", "resources", "images");
+        Directory.CreateDirectory(localFolder);
+        Directory.CreateDirectory(packageFolder);
+        var localFile = Path.Combine(localFolder, "foo.png");
+        var packageFile = Path.Combine(packageFolder, "foo.png");
+        File.WriteAllBytes(localFile, [1]);
+        File.WriteAllBytes(packageFile, [2]);
+
+        try
+        {
+            var resolver = new FrontedResourceResolver(NullLogger<FrontedResourceResolver>.Instance);
+
+            Assert.Equal(localFile, resolver.ResolveImagePath("bpui://local/resources/images/foo.png"));
+            Assert.Equal(packageFile, resolver.ResolveImagePath("bpui://package-id/resources/images/foo.png"));
+            Assert.Null(resolver.ResolveImagePath("bpui://package-id/resources/../foo.png"));
+            Assert.Null(resolver.ResolveImagePath("bpui://bad%2fid/resources/images/foo.png"));
+            Assert.Null(resolver.ResolveImagePath("bpui://package-id/resources/images/missing.png"));
+        }
+        finally
+        {
+            File.Delete(localFile);
+            File.Delete(packageFile);
+        }
+    }
+
+    [Fact]
+    public async Task FrontedWindowLayoutOptionsServiceSavesLoadsAndResetsWindowJson()
+    {
+        var root = CreateTempFolder();
+        try
+        {
+            var service = new FrontedWindowLayoutOptionsService(root);
+
+            Assert.False(service.LoadOptions("WidgetsWindow").AllowTransparency);
+            await service.SaveOptionsAsync(
+                "WidgetsWindow",
+                new FrontedWindowLayoutOptions { AllowTransparency = true });
+
+            var path = Path.Combine(root, "WidgetsWindow", "window.json");
+            Assert.True(File.Exists(path));
+            Assert.True(service.LoadOptions("WidgetsWindow").AllowTransparency);
+
+            await service.ResetOptionsAsync("WidgetsWindow");
+            Assert.False(File.Exists(path));
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void FrontedCanvasConfigDoesNotSerializeAllowTransparency()
+    {
+        var json = JsonSerializer.Serialize(new FrontedCanvasConfig
+        {
+            CanvasWidth = 100,
+            CanvasHeight = 100
+        });
+
+        Assert.DoesNotContain("AllowTransparency", json, StringComparison.Ordinal);
+    }
+
+    private static string CreateTempFolder()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(path);
+        return path;
     }
 
     private static void RunOnStaThread(Action action)

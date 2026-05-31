@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
@@ -24,6 +25,7 @@ namespace neo_bpsys_wpf.Views.Windows;
 public partial class FrontedDesignerWindow : FluentWindow
 {
     private readonly IFrontedRenderer? _renderer;
+    private readonly IFilePickerService? _filePickerService;
     private readonly FrontedBindingBrowserProvider? _bindingBrowserProvider;
     private readonly FrontedResourceBrowserProvider? _resourceBrowserProvider;
     private readonly ILogger<FrontedDesignerWindow>? _logger;
@@ -67,11 +69,13 @@ public partial class FrontedDesignerWindow : FluentWindow
     public FrontedDesignerWindow(
         FrontedDesignerWindowViewModel viewModel,
         IFrontedRenderer renderer,
+        IFilePickerService filePickerService,
         FrontedBindingBrowserProvider bindingBrowserProvider,
         FrontedResourceBrowserProvider resourceBrowserProvider,
         ILogger<FrontedDesignerWindow> logger)
     {
         _renderer = renderer;
+        _filePickerService = filePickerService;
         _bindingBrowserProvider = bindingBrowserProvider;
         _resourceBrowserProvider = resourceBrowserProvider;
         _logger = logger;
@@ -311,6 +315,41 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             item.EditText = window.SelectedResourcePath;
             _viewModel?.ClearPropertyEditErrorForBufferUpdate(item.PropertyName);
+        }
+    }
+
+    private void BrowseCanvasBackgroundResourceButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_resourceBrowserProvider is null || _viewModel is null)
+        {
+            return;
+        }
+
+        var viewModel = new FrontedResourceBrowserWindowViewModel(_resourceBrowserProvider);
+        var window = new FrontedResourceBrowserWindow
+        {
+            Owner = this,
+            DataContext = viewModel
+        };
+        window.InitializeSelection(_viewModel.BackgroundImageEditText);
+
+        if (window.ShowDialog() == true && !string.IsNullOrWhiteSpace(window.SelectedResourcePath))
+        {
+            _viewModel.BackgroundImageEditText = window.SelectedResourcePath;
+        }
+    }
+
+    private void ChooseLocalCanvasBackgroundButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_filePickerService is null || _viewModel is null)
+        {
+            return;
+        }
+
+        var file = _filePickerService.PickImage();
+        if (!string.IsNullOrWhiteSpace(file))
+        {
+            _viewModel.StoreLocalBackgroundImage(file);
         }
     }
 
@@ -721,6 +760,16 @@ public partial class FrontedDesignerWindow : FluentWindow
         };
 
         return await messageBox.ShowDialogAsync() == MessageBoxResult.Primary;
+    }
+
+    private async void RestartNowButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (!await ConfirmDirtyDocumentCanContinueAsync("SaveBeforeRestart"))
+        {
+            return;
+        }
+
+        AppBase.Current.Restart();
     }
 
     private void UpdateShiftSnapState()
