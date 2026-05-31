@@ -2434,4 +2434,22 @@
   <data name="PackageLocation" xml:space="preserve"><value>場所</value></data>
   <data name="PackageValidation" xml:space="preserve"><value>検証</value></data>
   <data name="FrontendLayoutPackageDefaultName" xml:space="preserve"><value>フロントレイアウトパッケージ</value></data>
+  <data name="PackageImportSucceeded" xml:space="preserve"><value>レイアウトパッケージをインポートしました</value></data>
+  <data name="PackageImportFailed" xml:space="preserve"><value>レイアウトパッケージのインポートに失敗しました</value></data>
+  <data name="PackageAlreadyExists" xml:space="preserve"><value>パッケージは既に存在します</value></data>
+  <data name="ReplaceExistingPackage" xml:space="preserve"><value>同じ PackageId のパッケージが既に存在します。置き換えますか？</value></data>
+  <data name="ActivateImportedPackage" xml:space="preserve"><value>パッケージをインポートしました。今すぐ有効化しますか？</value></data>
+  <data name="LegacyPackageDetected" xml:space="preserve"><value>旧形式の .bpui パッケージを検出しました</value></data>
+  <data name="LegacyPackageConversionNotImplemented" xml:space="preserve"><value>旧形式 .bpui の変換はまだ実装されていません。</value></data>
+  <data name="InvalidPackageManifest" xml:space="preserve"><value>パッケージ manifest が無効です。</value></data>
+  <data name="InvalidPackageArchive" xml:space="preserve"><value>パッケージアーカイブが無効です。</value></data>
+  <data name="PackageRequiresNewerVersion" xml:space="preserve"><value>このパッケージには新しいアプリバージョンが必要です。</value></data>
+  <data name="CrossPackageResourceReference" xml:space="preserve"><value>パッケージに別パッケージへのリソース参照があります。</value></data>
+  <data name="MissingPackageResource" xml:space="preserve"><value>パッケージのリソースファイルが不足しています。</value></data>
+  <data name="ConfirmActivatePackage" xml:space="preserve"><value>このパッケージを有効化すると現在のユーザーフロントレイアウトが上書きされます。続行しますか？</value></data>
+  <data name="ConfirmDeleteActivePackage" xml:space="preserve"><value>このパッケージは有効です。削除して組み込みレイアウトに切り替えますか？</value></data>
+  <data name="ConfirmDeletePackage" xml:space="preserve"><value>このレイアウトパッケージを削除しますか？</value></data>
+  <data name="SwitchToBuiltIn" xml:space="preserve"><value>組み込みに切り替え</value></data>
+  <data name="PackageActivatedBuiltin" xml:space="preserve"><value>組み込みレイアウトに切り替えました</value></data>
+  <data name="PackageActivatedInstalled" xml:space="preserve"><value>レイアウトパッケージを有効化しました</value></data>
 </root>

@@ -32,24 +32,30 @@ public partial class FrontManagePageViewModel : ViewModelBase
 
     private readonly IFrontedWindowService _frontedWindowService;
     private readonly ISharedDataService _sharedDataService;
+    private readonly IFilePickerService? _filePickerService;
     private readonly IServiceProvider? _serviceProvider;
     private readonly IFrontedLayoutPackageManager? _packageManager;
     private readonly IFrontedLayoutPackageExporter? _packageExporter;
+    private readonly IFrontedLayoutPackageImporter? _packageImporter;
     private readonly ILogger<FrontManagePageViewModel>? _logger;
     private FrontedDesignerWindow? _frontedDesignerWindow;
 
     public FrontManagePageViewModel(
         IFrontedWindowService frontedWindowService,
         ISharedDataService sharedDataService,
+        IFilePickerService filePickerService,
         IFrontedLayoutPackageManager packageManager,
         IFrontedLayoutPackageExporter packageExporter,
+        IFrontedLayoutPackageImporter packageImporter,
         IServiceProvider serviceProvider,
         ILogger<FrontManagePageViewModel> logger)
     {
         _frontedWindowService = frontedWindowService;
         _sharedDataService = sharedDataService;
+        _filePickerService = filePickerService;
         _packageManager = packageManager;
         _packageExporter = packageExporter;
+        _packageImporter = packageImporter;
         _serviceProvider = serviceProvider;
         _logger = logger;
         ExternalFrontedWindows = new ObservableCollection<FrontedWindowInfo>(FrontedWindowRegistryService.RegisteredWindow
@@ -149,9 +155,90 @@ public partial class FrontManagePageViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void ImportPackage()
+    private async Task ImportPackageAsync()
     {
-        PackageManagerStatus = I18nHelper.GetLocalizedString("PackageNotImplemented");
+        if (_filePickerService is null || _packageImporter is null || _packageManager is null)
+        {
+            return;
+        }
+
+        var path = _filePickerService.PickBpuiFile();
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return;
+        }
+
+        try
+        {
+            var result = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = path
+            });
+
+            if (result.PackageAlreadyExists && !string.IsNullOrWhiteSpace(result.PackageId))
+            {
+                var replace = await MessageBoxHelper.ShowConfirmAsync(
+                    I18nHelper.GetLocalizedString("ReplaceExistingPackage"),
+                    I18nHelper.GetLocalizedString("PackageAlreadyExists"),
+                    I18nHelper.GetLocalizedString("Confirm"),
+                    I18nHelper.GetLocalizedString("Cancel"));
+                if (!replace)
+                {
+                    return;
+                }
+
+                result = await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
+                {
+                    PackagePath = path,
+                    ReplaceExisting = true
+                });
+            }
+
+            if (result.IsLegacyPackage)
+            {
+                PackageManagerStatus = I18nHelper.GetLocalizedString("LegacyPackageConversionNotImplemented");
+                await MessageBoxHelper.ShowInfoAsync(PackageManagerStatus);
+                return;
+            }
+
+            if (result.RequiresNewerApp)
+            {
+                PackageManagerStatus = I18nHelper.GetLocalizedString("PackageRequiresNewerVersion");
+                return;
+            }
+
+            if (!result.Success)
+            {
+                PackageManagerStatus = $"{I18nHelper.GetLocalizedString("PackageImportFailed")}: {result.ErrorMessage}";
+                return;
+            }
+
+            await RefreshPackagesAsync();
+            SelectedPackage = LayoutPackages.FirstOrDefault(package => package.PackageId == result.PackageId) ?? SelectedPackage;
+            PackageManagerStatus =
+                $"{I18nHelper.GetLocalizedString("PackageImportSucceeded")}: {result.PackageId} "
+                + $"{I18nHelper.GetLocalizedString("LayoutCount")}: {result.LayoutCount}, "
+                + $"{I18nHelper.GetLocalizedString("ResourceCount")}: {result.ResourceCount}";
+
+            if (await MessageBoxHelper.ShowConfirmAsync(
+                    I18nHelper.GetLocalizedString("ActivateImportedPackage"),
+                    I18nHelper.GetLocalizedString("Tips"),
+                    I18nHelper.GetLocalizedString("Confirm"),
+                    I18nHelper.GetLocalizedString("Cancel"))
+                && !string.IsNullOrWhiteSpace(result.PackageId))
+            {
+                await _packageManager.ActivatePackageAsync(result.PackageId);
+                await _frontedWindowService.ReloadFrontedLayoutsAsync();
+                await RefreshPackagesAsync();
+                SelectedPackage = LayoutPackages.FirstOrDefault(package => package.PackageId == result.PackageId) ?? SelectedPackage;
+                PackageManagerStatus = $"{I18nHelper.GetLocalizedString("PackageActivatedInstalled")}: {result.PackageId}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to import fronted layout package.");
+            PackageManagerStatus = $"{I18nHelper.GetLocalizedString("PackageImportFailed")}: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -218,8 +305,21 @@ public partial class FrontManagePageViewModel : ViewModelBase
 
         try
         {
+            if (!SelectedPackage.IsActive
+                && !await MessageBoxHelper.ShowConfirmAsync(
+                    I18nHelper.GetLocalizedString("ConfirmActivatePackage"),
+                    I18nHelper.GetLocalizedString("Tips"),
+                    I18nHelper.GetLocalizedString("Confirm"),
+                    I18nHelper.GetLocalizedString("Cancel")))
+            {
+                return;
+            }
+
             await _packageManager.ActivatePackageAsync(SelectedPackage.PackageId);
-            PackageManagerStatus = I18nHelper.GetLocalizedString("PackageActivated");
+            await _frontedWindowService.ReloadFrontedLayoutsAsync();
+            PackageManagerStatus = SelectedPackage.IsBuiltin
+                ? I18nHelper.GetLocalizedString("PackageActivatedBuiltin")
+                : $"{I18nHelper.GetLocalizedString("PackageActivatedInstalled")}: {SelectedPackage.PackageId}";
             await RefreshPackagesAsync();
         }
         catch (Exception ex)
@@ -252,7 +352,20 @@ public partial class FrontManagePageViewModel : ViewModelBase
         var packageId = SelectedPackage.PackageId;
         try
         {
+            var confirmMessage = SelectedPackage.IsActive
+                ? I18nHelper.GetLocalizedString("ConfirmDeleteActivePackage")
+                : I18nHelper.GetLocalizedString("ConfirmDeletePackage");
+            if (!await MessageBoxHelper.ShowConfirmAsync(
+                    confirmMessage,
+                    I18nHelper.GetLocalizedString("Tips"),
+                    I18nHelper.GetLocalizedString("Confirm"),
+                    I18nHelper.GetLocalizedString("Cancel")))
+            {
+                return;
+            }
+
             await _packageManager.DeletePackageAsync(packageId);
+            await _frontedWindowService.ReloadFrontedLayoutsAsync();
             PackageManagerStatus = I18nHelper.GetLocalizedString("PackageDeleted");
             SelectedPackage = null;
             await RefreshPackagesAsync();

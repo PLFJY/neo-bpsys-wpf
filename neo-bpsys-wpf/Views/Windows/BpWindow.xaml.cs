@@ -46,6 +46,16 @@ public partial class BpWindow : FrontedWindowBase
 
         _hasRendered = true;
 
+        await ReloadFrontedLayoutAsync();
+    }
+
+    public async Task ReloadFrontedLayoutAsync()
+    {
+        if (_layoutService is null || _renderer is null)
+        {
+            return;
+        }
+
         try
         {
             var config = await _layoutService.LoadCanvasConfigAsync(nameof(BpWindow), BaseCanvasName);

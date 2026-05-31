@@ -47,6 +47,16 @@ public partial class WidgetsWindow : FrontedWindowBase
 
         _hasRendered = true;
 
+        await ReloadFrontedLayoutAsync();
+    }
+
+    public async Task ReloadFrontedLayoutAsync()
+    {
+        if (_layoutService is null || _renderer is null)
+        {
+            return;
+        }
+
         var canvases = new (string CanvasName, Canvas Canvas)[]
         {
             ("MapBpCanvas", MapBpCanvas),

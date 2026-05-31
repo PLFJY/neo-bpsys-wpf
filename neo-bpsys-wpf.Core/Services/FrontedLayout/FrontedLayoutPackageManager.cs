@@ -24,6 +24,7 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
 
     private readonly string _packageRoot;
     private readonly string _builtInLayoutRoot;
+    private readonly string _userLayoutRoot;
     private readonly ILogger<FrontedLayoutPackageManager> _logger;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -36,6 +37,7 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         : this(
             AppConstants.FrontedLayoutPackagesPath,
             Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts"),
+            AppConstants.FrontedLayoutsPath,
             NullLogger<FrontedLayoutPackageManager>.Instance)
     {
     }
@@ -44,6 +46,7 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         : this(
             AppConstants.FrontedLayoutPackagesPath,
             Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts"),
+            AppConstants.FrontedLayoutsPath,
             logger)
     {
     }
@@ -51,10 +54,12 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
     public FrontedLayoutPackageManager(
         string packageRoot,
         string builtInLayoutRoot,
+        string? userLayoutRoot = null,
         ILogger<FrontedLayoutPackageManager>? logger = null)
     {
         _packageRoot = packageRoot;
         _builtInLayoutRoot = builtInLayoutRoot;
+        _userLayoutRoot = userLayoutRoot ?? AppConstants.FrontedLayoutsPath;
         _logger = logger ?? NullLogger<FrontedLayoutPackageManager>.Instance;
     }
 
@@ -132,6 +137,8 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
                 File.Delete(statePath);
             }
 
+            ClearUserLayouts();
+
             return;
         }
 
@@ -147,6 +154,14 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             throw new DirectoryNotFoundException(packagePath);
         }
 
+        var manifestPath = Path.Combine(packagePath, ManifestFileName);
+        if (!File.Exists(manifestPath))
+        {
+            throw new FileNotFoundException("Package manifest is missing.", manifestPath);
+        }
+
+        await CopyPackageLayoutsToUserStoreAsync(packagePath, cancellationToken);
+
         Directory.CreateDirectory(_packageRoot);
         var state = new FrontedLayoutActivePackageState
         {
@@ -157,7 +172,7 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         await File.WriteAllTextAsync(GetActivePackageStatePath(), json, cancellationToken);
     }
 
-    public Task DeletePackageAsync(string packageId, CancellationToken cancellationToken = default)
+    public async Task DeletePackageAsync(string packageId, CancellationToken cancellationToken = default)
     {
         if (string.Equals(packageId, BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
         {
@@ -173,7 +188,7 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         var packagePath = GetInstalledPackagePath(packageId);
         if (!Directory.Exists(packagePath))
         {
-            return Task.CompletedTask;
+            return;
         }
 
         var fullRoot = EnsureTrailingSeparator(Path.GetFullPath(_packageRoot));
@@ -183,8 +198,13 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
             throw new InvalidOperationException("Package directory escaped the package root.");
         }
 
+        var activeState = await GetActivePackageStateAsync(cancellationToken);
+        if (string.Equals(activeState.PackageId, packageId, StringComparison.OrdinalIgnoreCase))
+        {
+            await ActivatePackageAsync(BuiltInPackageId, cancellationToken);
+        }
+
         Directory.Delete(fullPackagePath, recursive: true);
-        return Task.CompletedTask;
     }
 
     public string GetPackageRootFolder()
@@ -314,6 +334,57 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
     private string GetActivePackageStatePath()
     {
         return Path.Combine(_packageRoot, ActivePackageFileName);
+    }
+
+    private async Task CopyPackageLayoutsToUserStoreAsync(string packagePath, CancellationToken cancellationToken)
+    {
+        var layoutsRoot = Path.Combine(packagePath, "layouts");
+        if (!Directory.Exists(layoutsRoot))
+        {
+            throw new DirectoryNotFoundException(layoutsRoot);
+        }
+
+        ClearUserLayouts();
+
+        foreach (var file in Directory.EnumerateFiles(layoutsRoot, "*.json", SearchOption.AllDirectories))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var relativePath = Path.GetRelativePath(layoutsRoot, file);
+            if (relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                .Any(segment => segment is "." or ".." || string.IsNullOrWhiteSpace(segment)))
+            {
+                throw new InvalidOperationException("Package layout path is not safe.");
+            }
+
+            var targetPath = Path.Combine(_userLayoutRoot, relativePath);
+            var fullRoot = EnsureTrailingSeparator(Path.GetFullPath(_userLayoutRoot));
+            var fullTargetPath = Path.GetFullPath(targetPath);
+            if (!fullTargetPath.StartsWith(fullRoot, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("User layout target escaped layout root.");
+            }
+
+            Directory.CreateDirectory(Path.GetDirectoryName(fullTargetPath)!);
+            File.Copy(file, fullTargetPath, overwrite: true);
+            await Task.CompletedTask;
+        }
+    }
+
+    private void ClearUserLayouts()
+    {
+        var fullRoot = Path.GetFullPath(_userLayoutRoot);
+        if (!Directory.Exists(fullRoot))
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(fullRoot)
+            || string.Equals(Path.GetPathRoot(fullRoot), fullRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Refusing to clear unsafe user layout root.");
+        }
+
+        Directory.Delete(fullRoot, recursive: true);
     }
 
     private static bool IsReservedPackageEntry(string name)

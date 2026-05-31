@@ -60,7 +60,7 @@ Phase 9B.0 起，`FrontedResourceResolver` 支持 `bpui://local/resources/images
 
 删除普通布局包时，应删除整个 `%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/{PackageId}/` 目录，从而删除该包资源。不要只根据 manifest 逐个删除资源文件。`builtin` 是内置布局/资源的虚拟包 ID，`local` 是编辑器本地资源命名空间，二者都不能通过普通包删除流程删除。
 
-第一版导入校验应拒绝跨包资源引用。包 `package-a` 中的布局可以引用 `bpui://package-a/...`、`Resources/...`、`pack://application:,,,/...`；不应引用 `bpui://package-b/...`。导出前存在的 `bpui://local/...` 必须重写为导出包自己的 `PackageId`。
+Phase 9D 的导入校验会拒绝跨包资源引用和 `bpui://local/...` 引用。包 `package-a` 中的布局可以引用 `bpui://package-a/...`、`Resources/...`、`pack://application:,,,/...`；不应引用 `bpui://package-b/...`。导出前存在的 `bpui://local/...` 必须重写为导出包自己的 `PackageId`。导入安装时资源保持在 `%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/{PackageId}/resources/`，不会合并到共享目录。
 
 ## Assets 与字体
 

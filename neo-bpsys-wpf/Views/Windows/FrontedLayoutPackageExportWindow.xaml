@@ -51,7 +51,6 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc PackageId}" />
@@ -76,24 +75,8 @@
                 <TextBlock Grid.Row="4" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc PackageMinVersion}" />
                 <ui:TextBox Grid.Row="4" Grid.Column="1" Margin="0,0,0,10" Text="{Binding MinVersion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-                <TextBlock Grid.Row="5" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc ExportScope}" />
-                <ComboBox
-                    Grid.Row="5"
-                    Grid.Column="1"
-                    Margin="0,0,0,10"
-                    DisplayMemberPath="DisplayName"
-                    IsSynchronizedWithCurrentItem="False"
-                    ItemsSource="{Binding ScopeOptions}"
-                    SelectedItem="{Binding SelectedScopeOption, Mode=TwoWay}">
-                    <ComboBox.ItemContainerStyle>
-                        <Style TargetType="ComboBoxItem">
-                            <Setter Property="IsEnabled" Value="{Binding IsEnabled}" />
-                        </Style>
-                    </ComboBox.ItemContainerStyle>
-                </ComboBox>
-
-                <TextBlock Grid.Row="6" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc OutputPath}" />
-                <Grid Grid.Row="6" Grid.Column="1" Margin="0,0,0,10">
+                <TextBlock Grid.Row="5" Grid.Column="0" Margin="0,0,12,10" VerticalAlignment="Center" Text="{lex:Loc OutputPath}" />
+                <Grid Grid.Row="5" Grid.Column="1" Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -108,7 +91,7 @@
                 </Grid>
 
                 <TextBlock
-                    Grid.Row="7"
+                    Grid.Row="6"
                     Grid.Column="1"
                     Foreground="{DynamicResource SystemFillColorCriticalBrush}"
                     Text="{Binding ValidationMessage}"

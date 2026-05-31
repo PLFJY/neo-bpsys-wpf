@@ -40,13 +40,13 @@ Phase 8H 仍有明确边界：Resource Browser 不复制/导入外部图片；Ph
 
 Phase 9A 已新增 `.bpui v3` 标准文档，Phase 9C 已实现导出。当前边界：
 
-1. `.bpui v3` 导出已实现；导入/安装仍未实现，Import 按钮仍提示 Phase 9D。
-2. `FrontManagePage` 的 Layout Packages 管理页已完成紧凑 UI 打磨、包枚举/活动状态骨架和导出入口；legacy 转换仍未实现。
+1. `.bpui v3` 导出、导入/安装、激活复制和删除已实现；导出固定为全部前台布局。
+2. `FrontManagePage` 的 Layout Packages 管理页已完成紧凑 UI 打磨、包枚举/活动状态、导入、导出、激活和删除入口；legacy 转换仍未实现。
 3. Phase 9B.0 已实现 Canvas Properties GUI，可编辑 `CanvasWidth`、`CanvasHeight` 和 `BackgroundImage`，并支持本地背景图片复制为 `bpui://local/...`。
 4. Phase 9B.0 已实现 `bpui://local` 和 `bpui://{PackageId}` 文件资源解析；Phase 9C 导出会把 `bpui://local/...`、其他包资源和绝对路径资源复制进导出包并重写为当前 `PackageId`，同时保持 `Resources/...` 和 `pack://application:,,,/...` 原样。
 5. Phase 9B.0 已新增窗口级 `AllowTransparency` 选项基础，保存到 `FrontedLayouts/{WindowTypeName}/window.json`；它不是 Canvas 属性，不会写入 `FrontedCanvasConfig`。当前运行时前台窗口仍保留旧 `config.json` 透明设置绑定，读取 `window.json` 并在 `Show()` 前应用透明窗口选项留到后续清理阶段。
-6. Phase 9C 后，`FrontManagePage` 的 Layout Packages 页能列出 `builtin`、普通已安装包和活动包状态，并能导出 All Frontend Layouts `.bpui`；Current Canvas/Current Window 范围暂未接入设计器上下文。
-7. legacy `.bpui` 检测和 legacy 到 v3 转换尚未实现。
+6. Phase 9D 后，`FrontManagePage` 的 Layout Packages 页能列出 `builtin`、普通已安装包和活动包状态，并能导入/导出 All Frontend Layouts `.bpui`；Current Canvas/Current Window 导出范围已从 UI 移除。
+7. legacy `.bpui` 检测已用于导入提示，但 legacy 到 v3 转换尚未实现。
 8. SettingPage 中现有 `.bpui` 导入/导出仍是 legacy 流程，会处理 `Config.json`、`CustomUi/` 和 `FrontElementsConfig`，暂时保留。
 9. Phase 9B.1 清理了 `FrontedDesignerWindow` 的重复入口：Delete 保留在 Edit menu 和左侧控件列表右键菜单，右侧 Property Grid 底部 Delete 已移除；`AllowTransparency` 保留在右侧 Window Options，不再出现在顶部 Window menu。
 10. v3 导出器不会写入全局 `Config.json`、`CustomUi/` 或 `FrontElementsConfig/`；导入器校验这些禁止内容仍待 Phase 9D 实现。

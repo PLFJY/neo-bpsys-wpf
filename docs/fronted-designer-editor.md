@@ -634,7 +634,7 @@ neo-bpsys-wpf/Resources/FrontedLayouts/{WindowName}/{CanvasName}.json
 
 Phase 8H 起，Save 只写入 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowName}/{CanvasName}.json`，绝不覆盖源码或发布目录中的 `Resources/FrontedLayouts`。Reset to Built-in 会删除当前 Canvas 的用户布局文件并重新加载内置布局，清空 undo/redo、选择和筛选。Open Layout Folder 打开当前用户布局文件所在目录，目录不存在时会先创建。
 
-`.bpui v3` package 导出已在 Phase 9C 放到 `FrontManagePage` 的 `Layout Packages` tab。导出会打开 manifest 对话框，并可导出全部已迁移前台布局；导入/安装仍是 Phase 9D。SettingPage 中现有 `.bpui` 导入导出是 legacy 流程，会覆盖全局 `Config.json`，不能作为 Designer v3 包管理入口。
+`.bpui v3` package 导出/导入已放到 `FrontManagePage` 的 `Layout Packages` tab。导出会打开 manifest 对话框，并固定导出全部已迁移前台布局；导入会安装 v3 包并可立即激活。SettingPage 中现有 `.bpui` 导入导出是 legacy 流程，会覆盖全局 `Config.json`，不能作为 Designer v3 包管理入口。
 
 `AllowTransparency` 是窗口级选项，不是普通控件属性。单 Canvas 窗口可以在 Canvas Properties 附近显示该开关，多 Canvas 窗口则对整个窗口生效。由于 WPF 透明窗口行为可能需要重新创建窗口或重启应用，开关变化后应提示需要重启；如果用户选择立即重启，必须先处理设计器未保存修改，提供 Save / Discard / Cancel。
 
@@ -657,7 +657,8 @@ Phase 8H 起，Save 只写入 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowNam
 | Phase 8H | 已实现：用户 layout save/reset/load priority、validation-driven save、打开布局目录、dirty prompt 和 snap-to-grid |
 | Phase 9B.0: Canvas Properties GUI, local bpui resource normalization, toolbar cleanup, and Window Options foundation | 已实现：Canvas Properties GUI，包含 `CanvasWidth`、`CanvasHeight`、`BackgroundImage`，并将本地图片规范化为 `bpui://local/...`；工具栏整理为主按钮和二级菜单；新增窗口级 Window Options 基础。 |
 | Phase 9B.1: FrontManagePage Layout Package Manager UI skeleton | 已实现：`FrontManagePage` 的 `Frontend Windows` / `Layout Packages` 顶层 tabs、Layout Packages tab skeleton、布局包枚举服务基础、活动包状态读取/写入骨架，以及设计器工具栏/菜单重复项清理；独立编辑器入口保留在 `Frontend Windows` 页，不单独占用 tab。 |
-| Phase 9C: v3 package export | 已实现：Layout Package Manager 紧凑 UI、导出 manifest 对话框、All Frontend Layouts 导出、manifest 生成、layout/window options 打包、资源复制和 URI 重写。导入/安装和 legacy 转换仍是后续阶段。 |
+| Phase 9C: v3 package export | 已实现：Layout Package Manager 紧凑 UI、导出 manifest 对话框、All Frontend Layouts 导出、manifest 生成、layout/window options 打包、资源复制和 URI 重写。 |
+| Phase 9D: v3 package import/activation/delete | 已实现：v3 `.bpui` 导入安装、重复包替换确认、激活复制到用户布局目录、切回内置、删除普通包和删除活动包时先切回内置。legacy 转换仍是后续阶段。 |
 
 ## 17. 非目标
 

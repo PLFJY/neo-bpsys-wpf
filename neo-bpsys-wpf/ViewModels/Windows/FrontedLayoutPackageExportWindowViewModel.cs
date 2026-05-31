@@ -30,25 +30,7 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
         MinVersion = GetDefaultMinVersion();
         PackageId = CreateDefaultPackageId(Author);
         PackageName = I18nHelper.GetLocalizedString("FrontendLayoutPackageDefaultName");
-        ScopeOptions =
-        [
-            new FrontedLayoutPackageExportScopeOption(
-                FrontedLayoutPackageExportScope.CurrentCanvas,
-                I18nHelper.GetLocalizedString("ExportCurrentCanvas"),
-                false),
-            new FrontedLayoutPackageExportScopeOption(
-                FrontedLayoutPackageExportScope.CurrentWindow,
-                I18nHelper.GetLocalizedString("ExportCurrentWindow"),
-                false),
-            new FrontedLayoutPackageExportScopeOption(
-                FrontedLayoutPackageExportScope.AllFrontendLayouts,
-                I18nHelper.GetLocalizedString("ExportAllFrontendLayouts"),
-                true)
-        ];
-        SelectedScopeOption = ScopeOptions.First(option => option.Scope == FrontedLayoutPackageExportScope.AllFrontendLayouts);
     }
-
-    public IReadOnlyList<FrontedLayoutPackageExportScopeOption> ScopeOptions { get; }
 
     [ObservableProperty]
     private string _packageId = string.Empty;
@@ -70,9 +52,6 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _validationMessage = string.Empty;
-
-    [ObservableProperty]
-    private FrontedLayoutPackageExportScopeOption? _selectedScopeOption;
 
     [RelayCommand]
     private void BrowseOutputPath()
@@ -106,7 +85,7 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
             Description = Description.Trim(),
             Author = Author.Trim(),
             MinVersion = MinVersion.Trim(),
-            ExportScope = SelectedScopeOption?.Scope ?? FrontedLayoutPackageExportScope.AllFrontendLayouts,
+            ExportScope = FrontedLayoutPackageExportScope.AllFrontendLayouts,
             OutputPath = OutputPath.Trim()
         };
     }
@@ -200,8 +179,3 @@ public partial class FrontedLayoutPackageExportWindowViewModel : ViewModelBase
         return $"{safeName}.layout.{DateTime.Now:yyyyMMddHHmm}";
     }
 }
-
-public sealed record FrontedLayoutPackageExportScopeOption(
-    FrontedLayoutPackageExportScope Scope,
-    string DisplayName,
-    bool IsEnabled);

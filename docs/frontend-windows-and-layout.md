@@ -106,7 +106,9 @@ neo-bpsys-wpf/Resources/FrontedLayouts/{WindowTypeName}/{CanvasName}.json
 
 v3 独立编辑器保存用户布局时应写入 AppData 的 `FrontedLayouts` 目录；“重置为内置”应删除或忽略用户布局，再回落到 `Resources/FrontedLayouts` 下的默认布局。
 
-Phase 9C 后，`FrontManagePage` 使用顶层 tabs：`Frontend Windows` 保留现有前台窗口打开/关闭/设计模式、独立编辑器入口与重置能力，`Layout Packages` 提供 v3 布局包管理器。包列表使用紧凑两栏布局，右侧详情按 Basic、Contents、Location、Validation 分组。当前可列出系统内置包、已安装包和活动包状态，并可导出 v3 `.bpui` 包；导入/安装、legacy 转换和完整激活复制仍是后续阶段。
+Phase 9D 后，`FrontManagePage` 使用顶层 tabs：`Frontend Windows` 保留现有前台窗口打开/关闭/设计模式、独立编辑器入口与重置能力，`Layout Packages` 提供 v3 布局包管理器。包列表使用紧凑两栏布局，右侧详情按 Basic、Contents、Location、Validation 分组。当前可列出系统内置包、已安装包和活动包状态，并可导入、导出、激活和删除 v3 `.bpui` 包。导出固定为全部前台布局；导入 legacy `.bpui` 只提示转换尚未实现，不覆盖全局配置。
+
+激活普通包时，包内 `layouts/{WindowTypeName}/{CanvasName}.json` 会复制到 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json`，可选 `layouts/{WindowTypeName}/window.json` 也会复制到同一窗口目录。激活内置布局或删除活动包会清空 `FrontedLayouts` 用户布局目录并回退到内置 `Resources/FrontedLayouts`。已打开的前台窗口会尝试重新渲染 v3 布局。
 
 注意：v3 布局读取用户布局优先。如果用户目录下已有旧的 `ScoreSurWindow` / `ScoreHunWindow` / `ScoreGlobalWindow` / `CutSceneWindow` / `GameDataWindow` / `WidgetsWindow` v3 JSON，且其中比分字段仍绑定旧字段、缺少 `GlobalScoreRow`、没有业务控件、把本地化表头写成普通静态 `Text`，或 Widgets overview 仍读取 `Team.Score`，运行时会继续使用用户布局；需要恢复默认布局或后续迁移工具才能切换到当前内置布局。
 

@@ -90,6 +90,7 @@ public partial class App
         services.AddSingleton<IFrontedWindowLayoutOptionsService, FrontedWindowLayoutOptionsService>();
         services.AddSingleton<IFrontedLayoutPackageManager, FrontedLayoutPackageManager>();
         services.AddSingleton<IFrontedLayoutPackageExporter, FrontedLayoutPackageExporter>();
+        services.AddSingleton<IFrontedLayoutPackageImporter, FrontedLayoutPackageImporter>();
         services.AddSingleton<IFrontedControl, TextFrontedControl>();
         services.AddSingleton<IFrontedControl, LocalizedTextFrontedControl>();
         services.AddSingleton<IFrontedControl, ImageFrontedControl>();

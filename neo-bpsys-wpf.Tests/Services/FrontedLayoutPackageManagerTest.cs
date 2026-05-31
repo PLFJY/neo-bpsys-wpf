@@ -209,20 +209,19 @@ public class FrontedLayoutPackageManagerTest
     }
 
     [Fact]
-    public void ExportWindowViewModelDefaultsScopeAuthorAndMinVersion()
+    public void ExportWindowViewModelDefaultsAuthorAndMinVersionWithoutScopeOptions()
     {
         var viewModel = new FrontedLayoutPackageExportWindowViewModel(new FakeFilePickerService(null));
 
-        Assert.Equal(3, viewModel.ScopeOptions.Count);
-        Assert.False(viewModel.ScopeOptions.Single(option => option.Scope == FrontedLayoutPackageExportScope.CurrentCanvas).IsEnabled);
-        Assert.False(viewModel.ScopeOptions.Single(option => option.Scope == FrontedLayoutPackageExportScope.CurrentWindow).IsEnabled);
-        Assert.True(viewModel.ScopeOptions.Single(option => option.Scope == FrontedLayoutPackageExportScope.AllFrontendLayouts).IsEnabled);
-        Assert.Equal(FrontedLayoutPackageExportScope.AllFrontendLayouts, viewModel.SelectedScopeOption?.Scope);
         Assert.Equal(Environment.UserName ?? string.Empty, viewModel.Author);
         Assert.False(string.IsNullOrWhiteSpace(viewModel.MinVersion));
         Assert.False(string.IsNullOrWhiteSpace(viewModel.PackageId));
         Assert.False(string.IsNullOrWhiteSpace(viewModel.PackageName));
         Assert.True(FrontedLayoutPackageExporter.IsSafePackageId(viewModel.PackageId));
+
+        var type = typeof(FrontedLayoutPackageExportWindowViewModel);
+        Assert.Null(type.GetProperty("ScopeOptions"));
+        Assert.Null(type.GetProperty("SelectedScopeOption"));
     }
 
     [Fact]
@@ -383,6 +382,148 @@ public class FrontedLayoutPackageManagerTest
     }
 
     [Fact]
+    public async Task ValidV3PackageImportsResourcesUnderPackageDirectory()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var packageRoot = Path.Combine(root, "packages");
+            var archivePath = Path.Combine(root, "package.bpui");
+            CreateBpuiArchive(archivePath, "package-a", "bpui://package-a/resources/images/bg.png");
+            var importer = new FrontedLayoutPackageImporter(packageRoot, Path.Combine(root, "temp"));
+
+            var result = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.Equal("package-a", result.PackageId);
+            Assert.True(File.Exists(Path.Combine(packageRoot, "package-a", "manifest.json")));
+            Assert.True(File.Exists(Path.Combine(packageRoot, "package-a", "resources", "images", "bg.png")));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task LegacyPackageIsDetectedWithoutInstalling()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            using (var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create))
+            {
+                var entry = archive.CreateEntry("Config.json");
+                await using var stream = entry.Open();
+                await using var writer = new StreamWriter(stream);
+                await writer.WriteAsync("{}");
+            }
+
+            var importer = new FrontedLayoutPackageImporter(Path.Combine(root, "packages"), Path.Combine(root, "temp"));
+
+            var result = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.False(result.Success);
+            Assert.True(result.IsLegacyPackage);
+            Assert.False(Directory.Exists(Path.Combine(root, "packages")));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ImportRejectsCrossPackageLocalAndMissingResourceReferences()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var importer = new FrontedLayoutPackageImporter(Path.Combine(root, "packages"), Path.Combine(root, "temp"));
+
+            var crossPackage = Path.Combine(root, "cross.bpui");
+            CreateBpuiArchive(crossPackage, "package-a", "bpui://package-b/resources/images/bg.png");
+            var crossResult = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = crossPackage
+            }, TestContext.Current.CancellationToken);
+            Assert.False(crossResult.Success);
+            Assert.Contains("Cross-package", crossResult.ErrorMessage);
+
+            var localPackage = Path.Combine(root, "local.bpui");
+            CreateBpuiArchive(localPackage, "package-a", "bpui://local/resources/images/bg.png");
+            var localResult = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = localPackage
+            }, TestContext.Current.CancellationToken);
+            Assert.False(localResult.Success);
+            Assert.Contains("bpui://local", localResult.ErrorMessage);
+
+            var missingPackage = Path.Combine(root, "missing.bpui");
+            CreateBpuiArchive(missingPackage, "package-a", "bpui://package-a/resources/images/missing.png", includeResource: false);
+            var missingResult = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = missingPackage
+            }, TestContext.Current.CancellationToken);
+            Assert.False(missingResult.Success);
+            Assert.Contains("Missing package resource", missingResult.ErrorMessage);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ExistingPackageRequiresReplaceAndFailedReplaceKeepsOldPackage()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var packageRoot = Path.Combine(root, "packages");
+            var archivePath = Path.Combine(root, "package.bpui");
+            CreateBpuiArchive(archivePath, "package-a", "bpui://package-a/resources/images/bg.png");
+            var importer = new FrontedLayoutPackageImporter(packageRoot, Path.Combine(root, "temp"));
+
+            var first = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+            Assert.True(first.Success, first.ErrorMessage);
+
+            var duplicate = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+            Assert.False(duplicate.Success);
+            Assert.True(duplicate.PackageAlreadyExists);
+
+            var oldMarker = Path.Combine(packageRoot, "package-a", "old.txt");
+            File.WriteAllText(oldMarker, "old");
+            var invalidReplacement = Path.Combine(root, "invalid.bpui");
+            CreateBpuiArchive(invalidReplacement, "package-a", "bpui://package-b/resources/images/bg.png");
+            var failedReplace = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = invalidReplacement,
+                ReplaceExisting = true
+            }, TestContext.Current.CancellationToken);
+            Assert.False(failedReplace.Success);
+            Assert.True(File.Exists(oldMarker));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
     public async Task DeleteInstalledPackageDeletesOnlyPackageDirectory()
     {
         var root = CreateTempDirectory();
@@ -417,11 +558,15 @@ public class FrontedLayoutPackageManagerTest
         try
         {
             var packageRoot = Path.Combine(root, "packages");
-            WriteManifest(Path.Combine(packageRoot, "package-a"), new
+            var packageFolder = Path.Combine(packageRoot, "package-a");
+            WriteManifest(packageFolder, new
             {
                 PackageId = "package-a",
                 Name = "Package A"
             });
+            var layoutPath = Path.Combine(packageFolder, "layouts", "BpWindow", "BaseCanvas.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(layoutPath)!);
+            File.WriteAllText(layoutPath, """{"Version":3,"CanvasWidth":100,"CanvasHeight":100}""");
             var manager = new FrontedLayoutPackageManager(packageRoot, Path.Combine(root, "builtIn"));
 
             await manager.ActivatePackageAsync("package-a", TestContext.Current.CancellationToken);
@@ -455,7 +600,8 @@ public class FrontedLayoutPackageManagerTest
         Assert.Contains("ToolTip=\"{lex:Loc ShortcutRedo}\"", text);
         Assert.Contains("ToolTip=\"{lex:Loc ShortcutSave}\"", text);
         Assert.Contains("ListBox.ContextMenu", text);
-        Assert.Contains("Command=\"{Binding DeleteSelectedControlCommand}\" Header=\"{lex:Loc DeleteControl}\" InputGestureText=\"Del\"", text);
+        Assert.Contains("Command=\"{Binding DeleteSelectedControlCommand}\"", text);
+        Assert.Contains("Header=\"{lex:Loc DeleteControl}\"", text);
         Assert.Contains("Content=\"{lex:Loc AllowTransparency}\"", text);
         Assert.DoesNotContain("Header=\"{lex:Loc AllowTransparency}\"", text);
         Assert.DoesNotContain("Header=\"{lex:Loc Window}\"", text);
@@ -482,6 +628,79 @@ public class FrontedLayoutPackageManagerTest
         Assert.Contains("ExportPackageCommand", text);
         Assert.Contains("<ui:DynamicScrollViewer", text);
         Assert.DoesNotContain("<ui:DataGrid", text);
+    }
+
+    [Fact]
+    public async Task ActivatingPackageCopiesLayoutsAndBuiltinClearsUserLayouts()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var packageRoot = Path.Combine(root, "packages");
+            var userRoot = Path.Combine(root, "userLayouts");
+            var packageFolder = Path.Combine(packageRoot, "package-a");
+            WriteManifest(packageFolder, new
+            {
+                PackageId = "package-a",
+                Name = "Package A"
+            });
+            var layoutPath = Path.Combine(packageFolder, "layouts", "BpWindow", "BaseCanvas.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(layoutPath)!);
+            File.WriteAllText(layoutPath, """{"Version":3,"CanvasWidth":100,"CanvasHeight":100}""");
+            File.WriteAllText(Path.Combine(packageFolder, "layouts", "BpWindow", "window.json"), """{"Version":3,"AllowTransparency":true}""");
+            var manager = new FrontedLayoutPackageManager(packageRoot, Path.Combine(root, "builtIn"), userRoot);
+
+            await manager.ActivatePackageAsync("package-a", TestContext.Current.CancellationToken);
+
+            Assert.True(File.Exists(Path.Combine(userRoot, "BpWindow", "BaseCanvas.json")));
+            Assert.True(File.Exists(Path.Combine(userRoot, "BpWindow", "window.json")));
+            var active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
+            Assert.Equal("package-a", active.PackageId);
+
+            await manager.ActivatePackageAsync("builtin", TestContext.Current.CancellationToken);
+
+            Assert.False(Directory.Exists(userRoot));
+            active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
+            Assert.Equal("builtin", active.PackageId);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task DeletingActivePackageSwitchesBuiltinAndDoesNotDeleteSiblings()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var packageRoot = Path.Combine(root, "packages");
+            var userRoot = Path.Combine(root, "userLayouts");
+            foreach (var id in new[] { "package-a", "package-b" })
+            {
+                var folder = Path.Combine(packageRoot, id);
+                WriteManifest(folder, new { PackageId = id, Name = id });
+                var layoutPath = Path.Combine(folder, "layouts", "BpWindow", "BaseCanvas.json");
+                Directory.CreateDirectory(Path.GetDirectoryName(layoutPath)!);
+                File.WriteAllText(layoutPath, """{"Version":3,"CanvasWidth":100,"CanvasHeight":100}""");
+            }
+
+            var manager = new FrontedLayoutPackageManager(packageRoot, Path.Combine(root, "builtIn"), userRoot);
+            await manager.ActivatePackageAsync("package-a", TestContext.Current.CancellationToken);
+
+            await manager.DeletePackageAsync("package-a", TestContext.Current.CancellationToken);
+
+            Assert.False(Directory.Exists(Path.Combine(packageRoot, "package-a")));
+            Assert.True(Directory.Exists(Path.Combine(packageRoot, "package-b")));
+            Assert.False(Directory.Exists(userRoot));
+            var active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
+            Assert.Equal("builtin", active.PackageId);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
     }
 
     [Fact]
@@ -545,6 +764,75 @@ public class FrontedLayoutPackageManagerTest
                                       """);
             index++;
         }
+    }
+
+    private static void CreateBpuiArchive(
+        string archivePath,
+        string packageId,
+        string backgroundImage,
+        bool includeResource = true)
+    {
+        if (File.Exists(archivePath))
+        {
+            File.Delete(archivePath);
+        }
+
+        using var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create);
+        WriteZipEntry(archive, "manifest.json", JsonSerializer.Serialize(new FrontedLayoutPackageManifest
+        {
+            PackageId = packageId,
+            Name = packageId,
+            MinVersion = "0.0.1",
+            Content = new FrontedLayoutPackageManifestContent
+            {
+                Layouts =
+                [
+                    new FrontedLayoutPackageLayoutEntry
+                    {
+                        Window = "BpWindow",
+                        Canvas = "BaseCanvas",
+                        Path = "layouts/BpWindow/BaseCanvas.json"
+                    }
+                ],
+                Resources = includeResource
+                    ?
+                    [
+                        new FrontedLayoutPackageResourceEntry
+                        {
+                            Id = "bg",
+                            Kind = "Image",
+                            Path = "resources/images/bg.png",
+                            Uri = $"bpui://{packageId}/resources/images/bg.png"
+                        }
+                    ]
+                    : []
+            }
+        }));
+        WriteZipEntry(
+            archive,
+            "layouts/BpWindow/BaseCanvas.json",
+            $$"""
+              {
+                "Version": 3,
+                "CanvasWidth": 100,
+                "CanvasHeight": 100,
+                "BackgroundImage": "{{JsonEncodedText(backgroundImage)}}"
+              }
+              """);
+        if (includeResource)
+        {
+            var resource = archive.CreateEntry("resources/images/bg.png");
+            using var stream = resource.Open();
+            stream.Write([1, 2, 3]);
+        }
+    }
+
+    private static void WriteZipEntry(ZipArchive archive, string entryName, string text)
+    {
+        var entry = archive.CreateEntry(entryName);
+        using var stream = entry.Open();
+        using var writer = new StreamWriter(stream);
+        writer.Write(text);
     }
 
     private static string JsonEncodedText(string value)

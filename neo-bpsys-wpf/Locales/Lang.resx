@@ -2563,4 +2563,22 @@
   <data name="FrontendLayoutPackageDefaultName" xml:space="preserve">
     <value>前台布局包</value>
   </data>
+  <data name="PackageImportSucceeded" xml:space="preserve"><value>布局包导入成功</value></data>
+  <data name="PackageImportFailed" xml:space="preserve"><value>布局包导入失败</value></data>
+  <data name="PackageAlreadyExists" xml:space="preserve"><value>布局包已存在</value></data>
+  <data name="ReplaceExistingPackage" xml:space="preserve"><value>已存在相同 PackageId 的布局包，是否替换？</value></data>
+  <data name="ActivateImportedPackage" xml:space="preserve"><value>布局包已导入，是否立即激活？</value></data>
+  <data name="LegacyPackageDetected" xml:space="preserve"><value>检测到旧版 .bpui 包</value></data>
+  <data name="LegacyPackageConversionNotImplemented" xml:space="preserve"><value>旧版 .bpui 转换尚未实现。</value></data>
+  <data name="InvalidPackageManifest" xml:space="preserve"><value>无效的布局包 manifest。</value></data>
+  <data name="InvalidPackageArchive" xml:space="preserve"><value>无效的布局包归档。</value></data>
+  <data name="PackageRequiresNewerVersion" xml:space="preserve"><value>该布局包需要更新版本的软件。</value></data>
+  <data name="CrossPackageResourceReference" xml:space="preserve"><value>布局包包含跨包资源引用。</value></data>
+  <data name="MissingPackageResource" xml:space="preserve"><value>布局包缺少资源文件。</value></data>
+  <data name="ConfirmActivatePackage" xml:space="preserve"><value>激活布局包会覆盖当前用户前台布局，是否继续？</value></data>
+  <data name="ConfirmDeleteActivePackage" xml:space="preserve"><value>此布局包正在使用。是否删除并切换到内置布局？</value></data>
+  <data name="ConfirmDeletePackage" xml:space="preserve"><value>是否删除此布局包？</value></data>
+  <data name="SwitchToBuiltIn" xml:space="preserve"><value>切换到内置布局</value></data>
+  <data name="PackageActivatedBuiltin" xml:space="preserve"><value>已切换到内置布局</value></data>
+  <data name="PackageActivatedInstalled" xml:space="preserve"><value>已激活布局包</value></data>
 </root>

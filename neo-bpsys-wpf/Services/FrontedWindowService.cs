@@ -365,6 +365,30 @@ public class FrontedWindowService : IFrontedWindowService
         }
     }
 
+    public async Task ReloadFrontedLayoutsAsync()
+    {
+        foreach (var window in FrontedWindows.Values)
+        {
+            var method = window.GetType().GetMethod("ReloadFrontedLayoutAsync");
+            if (method is null)
+            {
+                continue;
+            }
+
+            try
+            {
+                if (method.Invoke(window, null) is Task task)
+                {
+                    await task;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to reload fronted v3 layout for {WindowType}.", window.GetType().Name);
+            }
+        }
+    }
+
     #endregion
 
     #region 设计者模式

@@ -2431,4 +2431,22 @@
   <data name="PackageLocation" xml:space="preserve"><value>Location</value></data>
   <data name="PackageValidation" xml:space="preserve"><value>Validation</value></data>
   <data name="FrontendLayoutPackageDefaultName" xml:space="preserve"><value>Frontend Layout Package</value></data>
+  <data name="PackageImportSucceeded" xml:space="preserve"><value>Layout package imported</value></data>
+  <data name="PackageImportFailed" xml:space="preserve"><value>Layout package import failed</value></data>
+  <data name="PackageAlreadyExists" xml:space="preserve"><value>Package already exists</value></data>
+  <data name="ReplaceExistingPackage" xml:space="preserve"><value>A package with the same PackageId already exists. Replace it?</value></data>
+  <data name="ActivateImportedPackage" xml:space="preserve"><value>The package was imported. Activate it now?</value></data>
+  <data name="LegacyPackageDetected" xml:space="preserve"><value>Legacy .bpui package detected</value></data>
+  <data name="LegacyPackageConversionNotImplemented" xml:space="preserve"><value>Legacy .bpui conversion is not implemented yet.</value></data>
+  <data name="InvalidPackageManifest" xml:space="preserve"><value>Invalid package manifest.</value></data>
+  <data name="InvalidPackageArchive" xml:space="preserve"><value>Invalid package archive.</value></data>
+  <data name="PackageRequiresNewerVersion" xml:space="preserve"><value>This package requires a newer app version.</value></data>
+  <data name="CrossPackageResourceReference" xml:space="preserve"><value>The package contains a cross-package resource reference.</value></data>
+  <data name="MissingPackageResource" xml:space="preserve"><value>The package is missing a resource file.</value></data>
+  <data name="ConfirmActivatePackage" xml:space="preserve"><value>Activating this package will overwrite current user frontend layouts. Continue?</value></data>
+  <data name="ConfirmDeleteActivePackage" xml:space="preserve"><value>This package is active. Delete it and switch to the built-in layout?</value></data>
+  <data name="ConfirmDeletePackage" xml:space="preserve"><value>Delete this layout package?</value></data>
+  <data name="SwitchToBuiltIn" xml:space="preserve"><value>Switch to built-in</value></data>
+  <data name="PackageActivatedBuiltin" xml:space="preserve"><value>Switched to built-in layout</value></data>
+  <data name="PackageActivatedInstalled" xml:space="preserve"><value>Layout package activated</value></data>
 </root>

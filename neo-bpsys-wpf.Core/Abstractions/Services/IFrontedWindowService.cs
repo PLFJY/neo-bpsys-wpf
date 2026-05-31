@@ -63,6 +63,11 @@ public interface IFrontedWindowService
     /// <param name="windowId">窗口 GUID</param>
     void ShowWindow(string windowId);
 
+    /// <summary>
+    /// Reloads v3 layouts in currently registered frontend windows when they support it.
+    /// </summary>
+    Task ReloadFrontedLayoutsAsync();
+
     #endregion
 
     #region Animation Effects
