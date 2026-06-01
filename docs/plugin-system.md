@@ -75,6 +75,108 @@
 
 `Assembly.LoadFrom` 使用入口程序集路径加载插件。依赖解析依赖 .NET 默认加载上下文、插件输出目录和宿主已有程序集；插件包漏掉自身直接依赖时，常见表现是入口程序集加载失败或 `Initialize` 中类型解析失败。
 
+## Designer v3 插件前台控件规划
+
+Phase 13A 只定义文档和 schema，不实现完整插件控件运行时。后续 Phase 13B 起，插件可以贡献 Designer v3 前台控件，让这些控件像内置 `Text`、`Image`、`BorderedImage` 一样被 v3 renderer 和独立编辑器识别；控件运行时行为、config 类型、默认 config 和属性元数据由插件提供。
+
+插件控件的 `ControlType` 必须使用命名空间：
+
+```text
+plugin:<PackageId>/<ControlTypeName>
+```
+
+示例：
+
+```text
+plugin:top.plfjy.example.fronted/TeamCard
+```
+
+`PackageId` 必须匹配插件 `manifest.yml` 的 `id`，`ControlTypeName` 在插件内唯一。完整 `ControlType` 是稳定序列化 schema，不本地化，不使用显示名，也不能 shadow 内置控件类型。`.bpui v3` 中的 Canvas `RequiredPlugins` 和 manifest `PluginDependencies` 规则见 [bpui-package-v3.md](bpui-package-v3.md)。
+
+建议的 Phase 13B API 形状如下，具体命名和命名空间以后续实现为准：
+
+```csharp
+public interface IFrontedControlPluginContributor
+{
+    void RegisterFrontedControls(IFrontedControlPluginRegistry registry);
+}
+
+public interface IFrontedControlPluginRegistry
+{
+    void Register<TConfig>(FrontedPluginControlDescriptor<TConfig> descriptor)
+        where TConfig : FrontedControlConfigBase;
+}
+
+public sealed class FrontedPluginControlDescriptor<TConfig>
+    where TConfig : FrontedControlConfigBase
+{
+    public required string PackageId { get; init; }
+    public required string ControlTypeName { get; init; }
+    public string FullControlType => $"plugin:{PackageId}/{ControlTypeName}";
+    public required Type ConfigType { get; init; }
+    public required Func<string, TConfig, FrontedControlBuildContext, FrameworkElement> CreateControl { get; init; }
+    public Func<TConfig>? CreateDefaultConfig { get; init; }
+    public IReadOnlyList<FrontedPluginPropertyDescriptor>? Properties { get; init; }
+    public Func<TConfig, IEnumerable<FrontedLayoutValidationMessage>>? Validate { get; init; }
+    public string? DisplayNameKey { get; init; }
+    public string? DescriptionKey { get; init; }
+    public string? Icon { get; init; }
+    public Version? MinHostVersion { get; init; }
+    public int ConfigSchemaVersion { get; init; } = 1;
+}
+```
+
+属性元数据建议先采用声明式描述，而不是允许插件提供任意 PropertyGrid WPF 控件：
+
+```csharp
+public sealed class FrontedPluginPropertyDescriptor
+{
+    public required string PropertyName { get; init; }
+    public string? DisplayNameKey { get; init; }
+    public string? DescriptionKey { get; init; }
+    public string GroupName { get; init; } = "Plugin";
+    public FrontedPropertyEditorKind? EditorKind { get; init; }
+    public IReadOnlyList<FrontedPropertyEditorOption>? Options { get; init; }
+    public FrontedBindingTargetKind BindingTargetKind { get; init; } = FrontedBindingTargetKind.Any;
+    public bool IsVisible { get; init; } = true;
+    public bool IsReadOnly { get; init; }
+}
+```
+
+这样可以保持编辑器 UI 一致、继续使用 Designer i18n、集中验证属性值，并减少插件直接注入任意编辑器控件带来的维护和安全风险。默认 fallback 可以反射公开 config 属性，但插件应优先提供明确属性元数据。
+
+插件控件 config 建议：
+
+1. 继承 `FrontedControlConfigBase`。
+2. 构造函数设置完整插件 `ControlType`。
+3. 插件专属属性必须能被 `System.Text.Json` 序列化。
+4. 布局 JSON 不保存可执行状态。
+5. 避免保存绝对本地路径；图片等资源优先使用 `.bpui` 支持的资源 URI。
+6. `BindingPath` 保存原始不变量路径，不本地化。
+
+示例：
+
+```csharp
+public sealed class TeamCardFrontedControlConfig : FrontedControlConfigBase
+{
+    public TeamCardFrontedControlConfig()
+    {
+        ControlType = "plugin:top.plfjy.example.fronted/TeamCard";
+        Width = 260;
+        Height = 96;
+    }
+
+    public string? TeamNameBindingPath { get; set; } = "CurrentGame.HomeTeam.Name";
+    public string? LogoBindingPath { get; set; } = "CurrentGame.HomeTeam.Logo";
+    public string BackgroundColor { get; set; } = "#AA000000";
+    public string ForegroundColor { get; set; } = "#FFFFFFFF";
+    public double CornerRadius { get; set; } = 12;
+    public double LogoSize { get; set; } = 64;
+    public double FontSize { get; set; } = 24;
+    public string FontWeight { get; set; } = "Bold";
+}
+```
+
 ## 重启要求
 
 插件安装或更新后需要重启，原因是插件向 DI 注入页面、窗口、服务发生在 Host build 前。当前进程的 DI 容器已经构建后，不能把新插件完整接入 WPF-UI 导航和前台窗口服务。
@@ -96,6 +198,20 @@ neo-bpsys-wpf.PluginSdk;neo-bpsys-wpf.Core
 ```
 
 这意味着由 SDK/Core 带入的宿主已有依赖会被排除，但插件自己直接引用的第三方包会被保留，避免误删插件真正需要的运行时文件。
+
+`.bpui v3` 布局包不得包含插件 DLL 或插件 zip。布局包只声明插件依赖；插件安装、更新、校验和重启提示必须走插件系统 / 插件市场流程。
+
+## `.bpui` 依赖和安全边界
+
+插件控件是可执行代码。导入 `.bpui` 布局包时，即使布局文件只包含 JSON，也可能引用插件控件；宿主必须把“安装插件”和“导入布局”分开处理：
+
+1. `.bpui` 不能静默安装、更新或启用插件。
+2. `.bpui` 不能携带插件二进制。
+3. 插件市场或插件安装 UI 必须展示插件身份、版本、来源、权限信息（如果未来支持）、hash / signature 校验信息（如果支持）。
+4. 用户确认后才能安装或更新插件。
+5. 安装或更新插件后仍遵守当前加载模型，通常需要重启后插件控件才会变为可用。
+
+这与现有全信任模型一致：插件不是沙箱，安装插件意味着信任该代码。布局导入器只能做依赖预检、安装引导、取消导入或强制导入并删除缺失插件控件，不能绕过插件生命周期。
 
 ## 内置插件
 

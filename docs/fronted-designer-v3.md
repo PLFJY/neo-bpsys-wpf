@@ -244,7 +244,96 @@ public interface IFrontedControl
 
 `FrontedControlBuildContext` 承载 `ISharedDataService`、资源 resolver、窗口/Canvas 元信息、服务提供器和可选日志。`FrontedControlRegistry` 从 DI 收集所有 `IFrontedControl`，因此后续插件可以通过 DI 注册自定义控件工厂。
 
-插件最终应能通过 DI 注册新的前台控件工厂，使宿主在读取 v3 Canvas 配置时按 `ControlType` 分派创建控件。这是未来实现目标，不是 Phase 0 代码；Phase 0 不新增接口、不改 PluginSdk，也不调整插件加载流程。
+Phase 13A 起，第三方插件前台控件采用明确命名空间，内置控件仍使用简单 `ControlType`，例如 `Text`、`Image`、`BorderedImage`；插件控件必须使用：
+
+```text
+plugin:<PackageId>/<ControlTypeName>
+```
+
+示例：
+
+```text
+plugin:top.plfjy.example.fronted/TeamCard
+```
+
+`PackageId` 必须匹配插件 `manifest.yml` 的 `id`，`ControlTypeName` 在插件内唯一。完整字符串是稳定 layout schema，不本地化，不使用显示名，也不能 shadow 内置控件类型。Canvas 通过 `RequiredPlugins` 声明本 Canvas 依赖，`.bpui` manifest 通过 `PluginDependencies` 汇总包级依赖；完整 schema 和缺失插件导入策略见 [bpui-package-v3.md](bpui-package-v3.md)。
+
+Phase 13A 仍是文档和 schema 规划，不实现完整插件控件 runtime、不实现 Designer Add Control 插件 UI、不实现插件市场安装。后续 Phase 13B 建议引入插件控件贡献接口和 descriptor registry：
+
+```csharp
+public interface IFrontedControlPluginContributor
+{
+    void RegisterFrontedControls(IFrontedControlPluginRegistry registry);
+}
+
+public interface IFrontedControlPluginRegistry
+{
+    void Register<TConfig>(FrontedPluginControlDescriptor<TConfig> descriptor)
+        where TConfig : FrontedControlConfigBase;
+}
+
+public sealed class FrontedPluginControlDescriptor<TConfig>
+    where TConfig : FrontedControlConfigBase
+{
+    public required string PackageId { get; init; }
+    public required string ControlTypeName { get; init; }
+    public string FullControlType => $"plugin:{PackageId}/{ControlTypeName}";
+    public required Type ConfigType { get; init; }
+    public required Func<string, TConfig, FrontedControlBuildContext, FrameworkElement> CreateControl { get; init; }
+    public Func<TConfig>? CreateDefaultConfig { get; init; }
+    public IReadOnlyList<FrontedPluginPropertyDescriptor>? Properties { get; init; }
+    public Func<TConfig, IEnumerable<FrontedLayoutValidationMessage>>? Validate { get; init; }
+    public string? DisplayNameKey { get; init; }
+    public string? DescriptionKey { get; init; }
+    public string? Icon { get; init; }
+    public Version? MinHostVersion { get; init; }
+    public int ConfigSchemaVersion { get; init; } = 1;
+}
+```
+
+插件属性元数据第一版应使用声明式 descriptor，而不是让插件提供任意 PropertyGrid WPF 控件：
+
+```csharp
+public sealed class FrontedPluginPropertyDescriptor
+{
+    public required string PropertyName { get; init; }
+    public string? DisplayNameKey { get; init; }
+    public string? DescriptionKey { get; init; }
+    public string GroupName { get; init; } = "Plugin";
+    public FrontedPropertyEditorKind? EditorKind { get; init; }
+    public IReadOnlyList<FrontedPropertyEditorOption>? Options { get; init; }
+    public FrontedBindingTargetKind BindingTargetKind { get; init; } = FrontedBindingTargetKind.Any;
+    public bool IsVisible { get; init; } = true;
+    public bool IsReadOnly { get; init; }
+}
+```
+
+这样可以保持编辑器一致性、i18n、验证和安全边界。没有元数据时可以反射公开 config 属性作为 fallback，但推荐插件显式提供属性描述。
+
+插件 config 类型应继承 `FrontedControlConfigBase`，构造函数设置完整插件 `ControlType`，插件专属属性必须能被 `System.Text.Json` 序列化。布局 JSON 不保存可执行状态，不保存本地绝对路径作为长期依赖；资源应使用 `.bpui` 支持的资源 URI，`BindingPath` 保存原始不变量路径。
+
+```csharp
+public sealed class TeamCardFrontedControlConfig : FrontedControlConfigBase
+{
+    public TeamCardFrontedControlConfig()
+    {
+        ControlType = "plugin:top.plfjy.example.fronted/TeamCard";
+        Width = 260;
+        Height = 96;
+    }
+
+    public string? TeamNameBindingPath { get; set; } = "CurrentGame.HomeTeam.Name";
+    public string? LogoBindingPath { get; set; } = "CurrentGame.HomeTeam.Logo";
+    public string BackgroundColor { get; set; } = "#AA000000";
+    public string ForegroundColor { get; set; } = "#FFFFFFFF";
+    public double CornerRadius { get; set; } = 12;
+    public double LogoSize { get; set; } = 64;
+    public double FontSize { get; set; } = 24;
+    public string FontWeight { get; set; } = "Bold";
+}
+```
+
+运行时缺失插件控件时必须跳过并记录 warning，不能让前台窗口崩溃，也不应在直播前台默认渲染占位符。Designer 可以对已有用户布局显示 MissingPlugin 占位符，展示 `PackageId`、`ControlTypeName` 和完整 `ControlType`，允许删除和打开安装引导；没有插件元数据时不能编辑插件专属属性。包强制导入时应删除缺失插件控件，而不是把占位符写入活动布局。
 
 ## 8. 前台编辑窗口设计
 
@@ -328,6 +417,13 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 9C | 已实现 v3 `.bpui` 导出、manifest 对话框、包管理器 UI 打磨和资源重写。 |
 | Phase 9D | 已实现 v3 `.bpui` 导入、安装、激活复制和删除完善。 |
 | Phase 9E+ | 已实现 legacy `.bpui` 转换入口和转换器；后续仍可扩展更完整的字段映射 UI。 |
+| Phase 13A | 文档和 schema：插件前台控件 `ControlType` 命名、Canvas `RequiredPlugins`、manifest `PluginDependencies`、缺失插件行为和安全边界。 |
+| Phase 13B | 插件前台控件 registry 和 descriptor API。 |
+| Phase 13C | Designer 插件控件支持，包括 Add Control、属性元数据和 MissingPlugin 占位符。 |
+| Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
+| Phase 13D | `.bpui` 依赖扫描、导入、导出和强制导入删除缺失控件。 |
+| Phase 13E | 插件市场交互式安装 / 更新引导。 |
+| Phase 13F | 安全、版本兼容和测试收口。 |
 
 每个阶段都应有明确回退策略。涉及用户可见文本时，应同步考虑 `WPFLocalizeExtension` 和 `Locales/*.resx`。
 
