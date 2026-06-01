@@ -10,10 +10,8 @@
     "Width": 290,
     "Height": 138,
     "BindingPath": "CurrentGame.PickedMapImage",
-    "SizingMode": "FillContainer",
     "Stretch": "UniformToFill",
-    "CornerRadius": 8,
-    "ClipToBounds": true
+    "CornerRadius": 8
   },
   "PickedMapName": {
     "ControlType": "MapNameText",
@@ -99,10 +97,8 @@
     "Width": 290,
     "Height": 138,
     "BindingPath": "CurrentGame.BannedMapImage",
-    "SizingMode": "FillContainer",
     "Stretch": "UniformToFill",
-    "CornerRadius": 8,
-    "ClipToBounds": true
+    "CornerRadius": 8
   },
   "BannedMapName": {
     "ControlType": "MapNameText",

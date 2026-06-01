@@ -29,17 +29,11 @@ public class BorderedImageFrontedControl : IFrontedControl
         }
 
         var border = FrontedControlFactoryHelper.CreateOuterBorder(name, imageConfig);
-        border.ClipToBounds = imageConfig.ClipToBounds || imageConfig.SizingMode != ImageSizingMode.Auto;
+        border.ClipToBounds = imageConfig.ClipToBounds;
         if (imageConfig.CornerRadius is > 0)
         {
             border.CornerRadius = new CornerRadius(imageConfig.CornerRadius.Value);
         }
-
-        var host = new Grid
-        {
-            ClipToBounds = imageConfig.ClipToBounds || imageConfig.SizingMode != ImageSizingMode.Auto
-        };
-        ImageFrontedControlLayoutHelper.ApplyCornerRadiusClip(host, imageConfig.CornerRadius);
 
         var image = new Image();
         if (imageConfig.ImageWidth.HasValue)
@@ -61,8 +55,7 @@ public class BorderedImageFrontedControl : IFrontedControl
         }
 
         ImageFrontedControlLayoutHelper.ApplyImageLayout(image, imageConfig, context);
-        host.Children.Add(image);
-        border.Child = host;
+        border.Child = image;
         return border;
     }
 }

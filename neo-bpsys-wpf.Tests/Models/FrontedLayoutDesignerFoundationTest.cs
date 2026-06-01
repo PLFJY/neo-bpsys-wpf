@@ -1183,6 +1183,31 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Equal("Image", rows.Single(row => row.PropertyName == nameof(BorderedImageFrontedControlConfig.ImageWidth)).GroupName);
         Assert.Equal("Image", rows.Single(row => row.PropertyName == nameof(BorderedImageFrontedControlConfig.ImageHeight)).GroupName);
         Assert.Equal("Image", rows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.Stretch)).GroupName);
+        Assert.DoesNotContain(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorder));
+        Assert.DoesNotContain(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.BanLockAvailable));
+    }
+
+    [Fact]
+    public void PropertyGridBuilderHidesPureImageNoOpRows()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Map",
+            Config = new ImageFrontedControlConfig
+            {
+                SizingMode = ImageSizingMode.FillContainer,
+                Stretch = "UniformToFill",
+                PickingBorder = true,
+                BanLockAvailable = true
+            }
+        };
+
+        var rows = BuildPropertyRows(CreateDocument([item]), item);
+
+        Assert.DoesNotContain(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.SizingMode));
+        Assert.DoesNotContain(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorder));
+        Assert.DoesNotContain(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.BanLockAvailable));
+        Assert.Contains(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.Stretch));
     }
 
     [Fact]
@@ -1224,9 +1249,9 @@ public class FrontedLayoutDesignerFoundationTest
         var image = new FrontedControlDesignItem
         {
             Name = "Logo",
-            Config = new ImageFrontedControlConfig
+            Config = new BorderedImageFrontedControlConfig
             {
-                PickingBorder = true,
+                ClipToBounds = true,
                 SizingMode = ImageSizingMode.FillContainer
             }
         };
@@ -1248,7 +1273,7 @@ public class FrontedLayoutDesignerFoundationTest
             textRows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.FontFamily)).EditorKind);
         Assert.Equal(
             FrontedPropertyEditorKind.Boolean,
-            imageRows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorder)).EditorKind);
+            imageRows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.ClipToBounds)).EditorKind);
         Assert.Equal(
             FrontedPropertyEditorKind.Enum,
             imageRows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.SizingMode)).EditorKind);
@@ -1920,23 +1945,31 @@ public class FrontedLayoutDesignerFoundationTest
     [Fact]
     public void PropertyGridMarksBindingAndResourcePathRows()
     {
-        var item = new FrontedControlDesignItem
+        var imageItem = new FrontedControlDesignItem
         {
             Name = "SurPick",
             Config = new ImageFrontedControlConfig
             {
-                BindingPath = "CurrentGame.SurPlayerList[0].PictureShown",
-                PickingBorderImagePath = "Resources/pickingBorder.png"
+                BindingPath = "CurrentGame.SurPlayerList[0].PictureShown"
             }
         };
 
-        var rows = BuildPropertyRows(CreateDocument([item]), item);
+        var rows = BuildPropertyRows(CreateDocument([imageItem]), imageItem);
 
         var bindingRow = Assert.Single(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.BindingPath));
         Assert.True(bindingRow.CanBrowseBinding);
         Assert.False(bindingRow.CanBrowseResource);
 
-        var resourceRow = Assert.Single(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorderImagePath));
+        var banSlotItem = new FrontedControlDesignItem
+        {
+            Name = "BanSlot",
+            Config = new BanSlotDisplayControlConfig
+            {
+                LockImageSource = "Resources/currentBanLock.png"
+            }
+        };
+        var banSlotRows = BuildPropertyRows(CreateDocument([banSlotItem]), banSlotItem);
+        var resourceRow = Assert.Single(banSlotRows, row => row.PropertyName == nameof(BanSlotDisplayControlConfig.LockImageSource));
         Assert.True(resourceRow.CanBrowseResource);
         Assert.False(resourceRow.CanBrowseBinding);
         Assert.Equal("Resource", resourceRow.GroupName);

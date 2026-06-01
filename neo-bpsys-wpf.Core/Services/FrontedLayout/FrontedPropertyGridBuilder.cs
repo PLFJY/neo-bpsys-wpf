@@ -218,6 +218,11 @@ public class FrontedPropertyGridBuilder
                 continue;
             }
 
+            if (!IsVisibleProperty(selectedItem.Config, property.Name))
+            {
+                continue;
+            }
+
             var kind = ResolveEditorKind(property);
             var isReadOnly = !selectedItem.IsEditableInEditor || !property.CanWrite;
             var groupName = ResolveGroupName(property.Name, selectedItem.Config);
@@ -420,6 +425,14 @@ public class FrontedPropertyGridBuilder
     {
         if (config is BorderedImageFrontedControlConfig)
         {
+            if (propertyName is nameof(ImageFrontedControlConfig.PickingBorder)
+                or nameof(ImageFrontedControlConfig.PickingBorderImagePath)
+                or nameof(ImageFrontedControlConfig.BanLockAvailable)
+                or nameof(ImageFrontedControlConfig.BanLockImagePath))
+            {
+                return "Overlay";
+            }
+
             if (propertyName is nameof(FrontedControlConfigBase.Left)
                 or nameof(FrontedControlConfigBase.Top)
                 or nameof(FrontedControlConfigBase.Width)
@@ -465,6 +478,28 @@ public class FrontedPropertyGridBuilder
         return AppearancePropertyNames.Contains(propertyName)
             ? "Appearance"
             : "ControlSpecific";
+    }
+
+    private static bool IsVisibleProperty(FrontedControlConfigBase config, string propertyName)
+    {
+        if (config is ImageFrontedControlConfig and not BorderedImageFrontedControlConfig)
+        {
+            return propertyName is not nameof(ImageFrontedControlConfig.SizingMode)
+                and not nameof(ImageFrontedControlConfig.PickingBorder)
+                and not nameof(ImageFrontedControlConfig.PickingBorderImagePath)
+                and not nameof(ImageFrontedControlConfig.BanLockAvailable)
+                and not nameof(ImageFrontedControlConfig.BanLockImagePath);
+        }
+
+        if (config is BorderedImageFrontedControlConfig)
+        {
+            return propertyName is not nameof(ImageFrontedControlConfig.PickingBorder)
+                and not nameof(ImageFrontedControlConfig.PickingBorderImagePath)
+                and not nameof(ImageFrontedControlConfig.BanLockAvailable)
+                and not nameof(ImageFrontedControlConfig.BanLockImagePath);
+        }
+
+        return true;
     }
 
     private static bool IsBindingPathProperty(string propertyName) =>

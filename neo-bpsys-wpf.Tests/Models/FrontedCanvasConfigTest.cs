@@ -21,6 +21,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using Xunit;
+using WpfUiImage = Wpf.Ui.Controls.Image;
 
 namespace neo_bpsys_wpf.Tests.Models;
 
@@ -615,32 +616,40 @@ public class FrontedCanvasConfigTest
             Assert.Contains(controlName, config.Controls.Keys);
         }
 
-        Assert.Equal(
-            ImageSizingMode.FillContainer,
-            AssertImageBinding(config, "SurTeamLogo", "CurrentGame.SurTeam.Logo").SizingMode);
-        Assert.Equal(
-            ImageSizingMode.FillContainer,
-            AssertImageBinding(config, "HunTeamLogo", "CurrentGame.HunTeam.Logo").SizingMode);
-        AssertImageBinding(config, "Map", "CurrentGame.PickedMapImage");
+        Assert.Equal("Image", AssertImageBinding(config, "SurTeamLogo", "CurrentGame.SurTeam.Logo").ControlType);
+        Assert.Equal("Image", AssertImageBinding(config, "HunTeamLogo", "CurrentGame.HunTeam.Logo").ControlType);
+        var map = Assert.IsType<BorderedImageFrontedControlConfig>(config.Controls["Map"]);
+        Assert.Equal("BorderedImage", map.ControlType);
+        Assert.Equal("CurrentGame.PickedMapImage", map.BindingPath);
+        Assert.Equal(488, map.Left);
+        Assert.Equal(0, map.Top);
+        Assert.Equal(463, map.Width);
+        Assert.Equal(112, map.Height);
+        Assert.Equal(-1, map.ZIndex);
+        Assert.Equal("Center", map.HorizontalAlignment);
+        Assert.Equal("Center", map.VerticalAlignment);
         for (var index = 0; index < 4; index++)
         {
-            var pick = AssertImageBinding(
-                config,
-                $"SurPick{index}",
-                $"CurrentGame.SurPlayerList[{index}].Character.BigImage");
+            var pick = Assert.IsType<BorderedImageFrontedControlConfig>(config.Controls[$"SurPick{index}"]);
+            Assert.Equal($"CurrentGame.SurPlayerList[{index}].Character.BigImage", pick.BindingPath);
             Assert.Equal(ImageSizingMode.OverflowCrop, pick.SizingMode);
             Assert.Equal("UniformToFill", pick.Stretch);
             Assert.True(pick.ClipToBounds);
             Assert.Equal("Center", pick.HorizontalAlignment);
             Assert.Equal("Top", pick.VerticalAlignment);
+            Assert.Null(pick.ImageWidth);
+            Assert.Null(pick.ImageHeight);
         }
 
-        var hunPick = AssertImageBinding(config, "HunPick", "CurrentGame.HunPlayer.Character.BigImage");
+        var hunPick = Assert.IsType<BorderedImageFrontedControlConfig>(config.Controls["HunPick"]);
+        Assert.Equal("CurrentGame.HunPlayer.Character.BigImage", hunPick.BindingPath);
         Assert.Equal(ImageSizingMode.OverflowCrop, hunPick.SizingMode);
         Assert.Equal("UniformToFill", hunPick.Stretch);
         Assert.True(hunPick.ClipToBounds);
         Assert.Equal("Center", hunPick.HorizontalAlignment);
         Assert.Equal("Top", hunPick.VerticalAlignment);
+        Assert.Null(hunPick.ImageWidth);
+        Assert.Null(hunPick.ImageHeight);
 
         AssertTextBinding(config, "SurTeamName", "CurrentGame.SurTeam.Name");
         AssertTextBinding(config, "HunTeamName", "CurrentGame.HunTeam.Name");
@@ -849,9 +858,10 @@ public class FrontedCanvasConfigTest
         {
             var mapImage = Assert.IsType<ImageFrontedControlConfig>(mapBpCanvas.Controls[controlName]);
             Assert.Equal("Image", mapImage.ControlType);
-            Assert.Equal(ImageSizingMode.FillContainer, mapImage.SizingMode);
+            Assert.Equal(290, mapImage.Width);
+            Assert.Equal(138, mapImage.Height);
             Assert.Equal("UniformToFill", mapImage.Stretch);
-            Assert.True(mapImage.ClipToBounds);
+            Assert.False(mapImage.ClipToBounds);
             Assert.Equal(8, mapImage.CornerRadius);
         }
 
@@ -1462,7 +1472,7 @@ public class FrontedCanvasConfigTest
                 },
                 CreateBuildContext());
 
-            var image = Assert.IsType<Image>(element);
+            var image = Assert.IsType<WpfUiImage>(element);
             Assert.Equal(10, Canvas.GetLeft(image));
             Assert.Equal(20, Canvas.GetTop(image));
             Assert.Equal(85, image.Width);
@@ -1490,9 +1500,9 @@ public class FrontedCanvasConfigTest
                 },
                 CreateBuildContext(sharedDataService));
 
-            var image = Assert.IsType<Image>(element);
+            var image = Assert.IsType<WpfUiImage>(element);
             Assert.Equal(Stretch.UniformToFill, image.Stretch);
-            var binding = BindingOperations.GetBinding(image, Image.SourceProperty);
+            var binding = BindingOperations.GetBinding(image, WpfUiImage.SourceProperty);
             Assert.NotNull(binding);
             Assert.Equal("CurrentGame.PickedMapImage", binding.Path.Path);
             Assert.Same(sharedDataService, binding.Source);
@@ -1528,8 +1538,7 @@ public class FrontedCanvasConfigTest
             Assert.Equal(80, border.Height);
             Assert.Equal(5, Panel.GetZIndex(border));
 
-            var host = Assert.IsType<Grid>(border.Child);
-            var image = Assert.IsType<Image>(Assert.Single(host.Children));
+            var image = Assert.IsType<Image>(border.Child);
             Assert.Equal(64, image.Width);
             Assert.Equal(48, image.Height);
             Assert.Equal(Stretch.UniformToFill, image.Stretch);

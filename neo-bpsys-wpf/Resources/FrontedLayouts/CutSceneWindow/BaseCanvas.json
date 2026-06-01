@@ -10,7 +10,6 @@
     "Width": 85,
     "Height": 85,
     "BindingPath": "CurrentGame.SurTeam.Logo",
-    "SizingMode": "FillContainer",
     "Stretch": "Fill",
     "CornerRadius": 8,
     "ZIndex": 1
@@ -22,7 +21,6 @@
     "Width": 84,
     "Height": 85,
     "BindingPath": "CurrentGame.HunTeam.Logo",
-    "SizingMode": "FillContainer",
     "Stretch": "Fill",
     "CornerRadius": 8,
     "ZIndex": 1
@@ -94,7 +92,7 @@
     "ZIndex": 2
   },
   "Map": {
-    "ControlType": "Image",
+    "ControlType": "BorderedImage",
     "Left": 488,
     "Top": 0,
     "Width": 463,

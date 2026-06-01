@@ -2,7 +2,7 @@
   "Version": 3,
   "CanvasWidth": 1440,
   "CanvasHeight": 810,
-  "BackgroundImage": "Resources/gameData_withText.png",
+  "BackgroundImage": "Resources/gameData.png",
   "SurTeamLogo": {
     "ControlType": "Image",
     "Left": 96,
