@@ -221,7 +221,9 @@ neo-bpsys-wpf.PluginSdk;neo-bpsys-wpf.Core
 
 Phase 13D 新增 DEBUG-only 示例插件 `Built-inPlugins/neo-bpsys-wpf.ExampleFrontedControls`，插件 ID 为 `top.plfjy.example.fronted`，注册示例控件 `plugin:top.plfjy.example.fronted/TeamCard`。主项目只在 `Debug` 配置下把它加入 `BuiltinPlugin` 并复制到输出目录；Release、Beta、Preview 默认不包含该示例插件。该插件用于手工验证 Designer v3 插件控件作者体验，不是发行功能。TeamCard 默认绑定使用当前 Binding Browser 可选路径 `CurrentGame.SurTeam.Name` 和 `CurrentGame.SurTeam.Logo`，便于设计预览中直接显示示例数据。
 
-Phase 13E 起，Designer 保存和 `.bpui` 导出会在插件已安装 / 已加载时把 Canvas `RequiredPlugins.MinVersion` 和 manifest `PluginDependencies.MinVersion` 写成插件 `manifest.yml` 中的插件自身 `version`，例如 `1.0.0.0`。这不是 descriptor 的 `MinHostVersion`，也不是插件 API 版本。导入 `.bpui` 时如果已安装版本低于 `MinVersion`，会进入插件市场安装 / 更新引导或强制导入流程。
+Phase 13E 起，Designer 保存和 `.bpui` 导出会在插件已安装 / 已加载时把 Canvas `RequiredPlugins.MinVersion` 和 manifest `PluginDependencies.MinVersion` 写成插件 `manifest.yml` 中的插件自身 `version`，例如 `1.0.0.0`。这不是 descriptor 的 `MinHostVersion`，也不是插件 API 版本。导入 `.bpui` 时如果已安装版本低于 `MinVersion`，会进入插件市场安装 / 更新引导或强制导入流程。Phase 13F 起，安装引导会在下载 / 安装队列结束后校验所有待处理插件都已安装或暂存；失败项会显示插件 ID 和错误信息，未完成项不会被当作成功。
+
+`.bpui` 只传输布局、资源和依赖元数据，不传输插件 DLL、安装包或脚本。插件安装仍必须走现有插件系统 / 插件市场流程，并在需要时通过重启让 Host build 前的 DI 注入生效。
 
 ## 加载失败检查清单
 

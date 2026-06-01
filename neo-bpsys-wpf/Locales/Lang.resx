@@ -3235,6 +3235,45 @@
   <data name="RemovedPluginControlsReport" xml:space="preserve">
     <value>强制导入已删除的插件控件</value>
   </data>
+  <data name="PluginDependencyInstallAvailableMessage" xml:space="preserve">
+    <value>可从插件市场安装或更新的插件需要用户确认。</value>
+  </data>
+  <data name="PluginDependencyInstallButton" xml:space="preserve">
+    <value>安装/更新插件</value>
+  </data>
+  <data name="PluginDependencyForceImportMessage" xml:space="preserve">
+    <value>可选择强制导入并删除这些插件控件，原始 .bpui 文件不会被修改。</value>
+  </data>
+  <data name="PluginDependencyMarketOffline" xml:space="preserve">
+    <value>插件市场离线</value>
+  </data>
+  <data name="PluginDependencyMarketAvailable" xml:space="preserve">
+    <value>插件市场可用</value>
+  </data>
+  <data name="PluginDependencyUpdateRequired" xml:space="preserve">
+    <value>需要更新</value>
+  </data>
+  <data name="PluginDependencyNotFoundInMarket" xml:space="preserve">
+    <value>市场中未找到</value>
+  </data>
+  <data name="PluginDependencyInstalledVersion" xml:space="preserve">
+    <value>已安装版本</value>
+  </data>
+  <data name="PluginDependencyMinVersion" xml:space="preserve">
+    <value>最低版本</value>
+  </data>
+  <data name="PluginDependencyAffectedControls" xml:space="preserve">
+    <value>受影响控件</value>
+  </data>
+  <data name="PluginDependencyInstallRestartNotice" xml:space="preserve">
+    <value>安装或更新插件后通常需要重启，当前导入不会自动继续。</value>
+  </data>
+  <data name="PluginDependencyInstallIncomplete" xml:space="preserve">
+    <value>插件安装队列结束，但仍有依赖未完成</value>
+  </data>
+  <data name="PluginDependencyInstallFailed" xml:space="preserve">
+    <value>插件安装失败</value>
+  </data>
   <data name="ExamplePlugin.TeamCard.DisplayName" xml:space="preserve">
     <value>示例队伍卡片</value>
   </data>

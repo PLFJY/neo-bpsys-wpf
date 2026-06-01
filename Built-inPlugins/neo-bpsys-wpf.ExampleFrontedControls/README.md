@@ -5,6 +5,7 @@ This DEBUG-only built-in plugin demonstrates how a plugin registers Designer v3 
 ## What it registers
 
 - Plugin id: `top.plfjy.example.fronted`
+- Plugin version: read from this plugin's `manifest.yml`
 - Control: `plugin:top.plfjy.example.fronted/TeamCard`
 - Contributor: `TeamCardFrontedControlContributor`
 - Config: `TeamCardFrontedControlConfig`, inheriting `FrontedControlConfigBase`
@@ -31,7 +32,7 @@ Plugins/top.plfjy.example.fronted
 ```
 
 Start the app, open `FrontedDesignerWindow`, open Add Control, and add `TeamCard` from the plugin controls group.
-Saving or exporting a layout that contains `TeamCard` should write `RequiredPlugins.MinVersion` / `PluginDependencies.MinVersion` from this plugin's `manifest.yml` version. The exported `.bpui` package must only contain layout metadata and resources; it must not contain this plugin's DLLs or zip package.
+Saving or exporting a layout that contains `TeamCard` writes Canvas `RequiredPlugins.MinVersion` and package manifest `PluginDependencies.MinVersion` from the currently loaded plugin `manifest.yml` version. The exported `.bpui` package must only contain layout metadata and resources; it must not contain this plugin's DLLs, zip package, installer, or scripts.
 
 The sample is not included in Release, Beta, or Preview output by default.
 

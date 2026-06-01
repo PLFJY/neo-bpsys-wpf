@@ -377,7 +377,7 @@
                         VerticalAlignment="Center"
                         FontSize="12"
                         IsReadOnly="True"
-                        Text="{Binding LayoutSourcePath, Mode=OneWay}"
+                        Text="{Binding LayoutSourcePath}"
                         ToolTip="{Binding LayoutSourcePath}" />
                     <TextBlock
                         Margin="0,0,8,8"

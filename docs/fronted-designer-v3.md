@@ -258,7 +258,7 @@ plugin:top.plfjy.example.fronted/TeamCard
 
 `PackageId` 必须匹配插件 `manifest.yml` 的 `id`，`ControlTypeName` 在插件内唯一。完整字符串是稳定 layout schema，不本地化，不使用显示名，也不能 shadow 内置控件类型。Canvas 通过 `RequiredPlugins` 声明本 Canvas 依赖，`.bpui` manifest 通过 `PluginDependencies` 汇总包级依赖；完整 schema 和缺失插件导入策略见 [bpui-package-v3.md](bpui-package-v3.md)。
 
-Phase 13B 已实现插件控件 registry 和 descriptor API：插件可在启动期间通过 DI 注册 `IFrontedControlPluginContributor`，contributor 向 `IFrontedControlPluginRegistry` 注册 descriptor，宿主把 descriptor 适配为现有 `IFrontedControl` 工厂。Phase 13B 仍不实现 Designer Add Control 插件 UI、Property Grid 插件元数据渲染、`.bpui` 依赖扫描/导入导出或插件市场安装。
+Phase 13B 已实现插件控件 registry 和 descriptor API：插件可在启动期间通过 DI 注册 `IFrontedControlPluginContributor`，contributor 向 `IFrontedControlPluginRegistry` 注册 descriptor，宿主把 descriptor 适配为现有 `IFrontedControl` 工厂。Phase 13C-13F 已补齐 Designer Add Control、声明式 Property Grid 元数据、缺失插件占位符、`.bpui` 依赖扫描 / 导入 / 导出、插件市场安装 / 更新引导、`MinVersion` 写入和包安全校验。
 
 ```csharp
 public interface IFrontedControlPluginContributor
@@ -423,7 +423,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
 | Phase 13D | 已实现 `.bpui` 依赖扫描、导出 manifest `PluginDependencies`、导入缺失插件预检和强制导入删除缺失控件；新增 DEBUG-only `ExampleFrontedControls` 示例插件。 |
 | Phase 13E | 已实现插件市场交互式安装 / 更新引导，且保存 / 导出会从已加载插件 manifest 版本写入插件依赖 `MinVersion`。 |
-| Phase 13F | 安全、版本兼容和测试收口。 |
+| Phase 13F | 已完成安全、版本兼容、i18n 和测试收口。缺失插件导入 UI 已本地化，安装 / 更新引导会校验下载队列是否全部完成，`.bpui` 导入拒绝插件二进制和可执行脚本。 |
 
 每个阶段都应有明确回退策略。涉及用户可见文本时，应同步考虑 `WPFLocalizeExtension` 和 `Locales/*.resx`。
 

@@ -602,6 +602,11 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                 throw new InvalidDataException($"Unsafe zip entry: {entry.FullName}");
             }
 
+            if (IsForbiddenPluginPayloadEntry(entryName))
+            {
+                throw new InvalidDataException($"Forbidden plugin or executable payload in bpui package: {entry.FullName}");
+            }
+
             var destinationPath = Path.GetFullPath(Path.Combine(stagingRoot, entryName.Replace('/', Path.DirectorySeparatorChar)));
             if (!destinationPath.StartsWith(fullStagingRoot, StringComparison.OrdinalIgnoreCase))
             {
@@ -618,6 +623,57 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             entry.ExtractToFile(destinationPath, overwrite: false);
         }
     }
+
+    private static bool IsForbiddenPluginPayloadEntry(string entryName)
+    {
+        var segments = entryName.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (segments.Any(segment =>
+                string.Equals(segment, "Plugins", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(segment, "Plugin", StringComparison.OrdinalIgnoreCase)))
+        {
+            return true;
+        }
+
+        if (entryName.EndsWith("/", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var extension = Path.GetExtension(entryName);
+        if (ForbiddenExecutableExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        var pluginLookingFolder = segments.Take(Math.Max(0, segments.Length - 1))
+            .Any(segment => segment.Contains("plugin", StringComparison.OrdinalIgnoreCase));
+        return pluginLookingFolder
+               && ForbiddenPluginArchiveExtensions.Contains(extension, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static readonly string[] ForbiddenExecutableExtensions =
+    [
+        ".dll",
+        ".exe",
+        ".msi",
+        ".ps1",
+        ".bat",
+        ".cmd",
+        ".sh",
+        ".vbs",
+        ".js",
+        ".jar"
+    ];
+
+    private static readonly string[] ForbiddenPluginArchiveExtensions =
+    [
+        ".zip",
+        ".nupkg",
+        ".7z",
+        ".rar",
+        ".tar",
+        ".gz"
+    ];
 
     private static bool IsImageResource(string path)
     {

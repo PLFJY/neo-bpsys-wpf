@@ -3217,6 +3217,45 @@
   <data name="RemovedPluginControlsReport" xml:space="preserve">
     <value>Plugin controls removed by force import</value>
   </data>
+  <data name="PluginDependencyInstallAvailableMessage" xml:space="preserve">
+    <value>Plugins that can be installed or updated from the plugin market require user confirmation.</value>
+  </data>
+  <data name="PluginDependencyInstallButton" xml:space="preserve">
+    <value>Install/update plugin</value>
+  </data>
+  <data name="PluginDependencyForceImportMessage" xml:space="preserve">
+    <value>You can force import and remove these plugin controls. The original .bpui file will not be modified.</value>
+  </data>
+  <data name="PluginDependencyMarketOffline" xml:space="preserve">
+    <value>market offline</value>
+  </data>
+  <data name="PluginDependencyMarketAvailable" xml:space="preserve">
+    <value>market available</value>
+  </data>
+  <data name="PluginDependencyUpdateRequired" xml:space="preserve">
+    <value>update required</value>
+  </data>
+  <data name="PluginDependencyNotFoundInMarket" xml:space="preserve">
+    <value>not found in market</value>
+  </data>
+  <data name="PluginDependencyInstalledVersion" xml:space="preserve">
+    <value>installed</value>
+  </data>
+  <data name="PluginDependencyMinVersion" xml:space="preserve">
+    <value>min</value>
+  </data>
+  <data name="PluginDependencyAffectedControls" xml:space="preserve">
+    <value>affected controls</value>
+  </data>
+  <data name="PluginDependencyInstallRestartNotice" xml:space="preserve">
+    <value>Installing or updating plugins usually requires a restart, and the current import will not continue automatically.</value>
+  </data>
+  <data name="PluginDependencyInstallIncomplete" xml:space="preserve">
+    <value>The plugin install queue ended with unfinished dependencies</value>
+  </data>
+  <data name="PluginDependencyInstallFailed" xml:space="preserve">
+    <value>Plugin dependency install failed</value>
+  </data>
   <data name="ExamplePlugin.TeamCard.DisplayName" xml:space="preserve">
     <value>Example Team Card</value>
   </data>

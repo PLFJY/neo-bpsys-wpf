@@ -9,10 +9,16 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.ExampleFrontedControls;
+using neo_bpsys_wpf.Models.Plugins;
+using neo_bpsys_wpf.Services.Abstractions;
+using neo_bpsys_wpf.ViewModels.Pages;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Threading;
@@ -378,6 +384,188 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
         }
     }
 
+    [Fact]
+    public async Task ImportRejectsBpuiWithPluginDllPayload()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "plugin-dll.bpui");
+            CreateBasicBpuiArchive(archivePath, archive =>
+                WriteZipEntry(archive, "Plugins/top.plfjy.example.fronted/foo.dll", "binary"));
+
+            var result = await CreateImporter(root).ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.False(result.Success);
+            Assert.Contains("Forbidden plugin or executable payload", result.ErrorMessage);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ImportRejectsBpuiWithExecutableScript()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "script.bpui");
+            CreateBasicBpuiArchive(archivePath, archive =>
+                WriteZipEntry(archive, "docs/install.ps1", "Write-Host unsafe"));
+
+            var result = await CreateImporter(root).ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.False(result.Success);
+            Assert.Contains("Forbidden plugin or executable payload", result.ErrorMessage);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ImportAllowsNormalLayoutsAndUnlistedImageResources()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "resources.bpui");
+            CreateBasicBpuiArchive(archivePath, archive =>
+                WriteZipEntry(archive, "resources/images/a.png", Convert.FromBase64String(
+                    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=")));
+
+            var result = await CreateImporter(root).ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.True(File.Exists(Path.Combine(root, "packages", "basic-package", "resources", "images", "a.png")));
+            Assert.True(File.Exists(Path.Combine(root, "packages", "basic-package", "layouts", "BpWindow", "BaseCanvas.json")));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ImportZipSlipCheckStillRejectsEscapedEntry()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "zip-slip.bpui");
+            CreateBasicBpuiArchive(archivePath, archive =>
+                WriteZipEntry(archive, "layouts/../evil.json", "{}"));
+
+            var result = await CreateImporter(root).ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.False(result.Success);
+            Assert.Contains("Unsafe zip entry", result.ErrorMessage);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task InstallMarketDependenciesCompletedDownloadRemovesPendingId()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var market = new FakePluginMarketService(root, completeDownloads: true);
+            var install = new FakePluginInstallService();
+            var viewModel = CreateFrontManagePageViewModel(market, install);
+
+            await InvokeInstallMarketDependenciesAsync(viewModel, [new PluginMarketItem { Id = "plugin.ok", Name = "Plugin OK" }]);
+
+            Assert.Equal(["plugin.ok"], install.InstalledPluginIds);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task InstallMarketDependenciesFailedDownloadThrowsPluginIdAndError()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var market = new FakePluginMarketService(root, failDownloads: true, failureMessage: "network failed");
+            var viewModel = CreateFrontManagePageViewModel(market, new FakePluginInstallService());
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                InvokeInstallMarketDependenciesAsync(viewModel, [new PluginMarketItem { Id = "plugin.fail", Name = "Plugin Fail" }]));
+
+            Assert.Contains("plugin.fail", ex.Message);
+            Assert.Contains("network failed", ex.Message);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task InstallMarketDependenciesQueueEndsWithPendingIdThrows()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var market = new FakePluginMarketService(root);
+            var viewModel = CreateFrontManagePageViewModel(market, new FakePluginInstallService());
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                InvokeInstallMarketDependenciesAsync(viewModel, [new PluginMarketItem { Id = "plugin.pending", Name = "Plugin Pending" }]));
+
+            Assert.Contains("plugin.pending", ex.Message);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task InstallMarketDependenciesInstallExceptionSurfacesPluginIdAndMessage()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var market = new FakePluginMarketService(root, completeDownloads: true);
+            var viewModel = CreateFrontManagePageViewModel(
+                market,
+                new FakePluginInstallService(new InvalidOperationException("manifest invalid")));
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                InvokeInstallMarketDependenciesAsync(viewModel, [new PluginMarketItem { Id = "plugin.bad", Name = "Plugin Bad" }]));
+
+            Assert.Contains("plugin.bad", ex.Message);
+            Assert.Contains("manifest invalid", ex.Message);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
     private static FrontedControlRegistry CreateRegistryWithExamplePlugin()
     {
         return new FrontedControlRegistry(
@@ -495,12 +683,95 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
               """);
     }
 
+    private static void CreateBasicBpuiArchive(string archivePath, Action<ZipArchive>? addExtraEntries = null)
+    {
+        using var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create);
+        WriteZipEntry(archive, "manifest.json", JsonSerializer.Serialize(new FrontedLayoutPackageManifest
+        {
+            PackageId = "basic-package",
+            Name = "Basic Package",
+            Content = new FrontedLayoutPackageManifestContent
+            {
+                Layouts =
+                [
+                    new FrontedLayoutPackageLayoutEntry
+                    {
+                        Window = "BpWindow",
+                        Canvas = "BaseCanvas",
+                        Path = "layouts/BpWindow/BaseCanvas.json"
+                    }
+                ]
+            }
+        }));
+        WriteZipEntry(
+            archive,
+            "layouts/BpWindow/BaseCanvas.json",
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 100,
+              "CanvasHeight": 100,
+              "Title": {
+                "ControlType": "Text",
+                "Text": "Built-in"
+              }
+            }
+            """);
+        addExtraEntries?.Invoke(archive);
+    }
+
     private static void WriteZipEntry(ZipArchive archive, string entryName, string text)
     {
         var entry = archive.CreateEntry(entryName);
         using var stream = entry.Open();
         using var writer = new StreamWriter(stream);
         writer.Write(text);
+    }
+
+    private static void WriteZipEntry(ZipArchive archive, string entryName, byte[] bytes)
+    {
+        var entry = archive.CreateEntry(entryName);
+        using var stream = entry.Open();
+        stream.Write(bytes);
+    }
+
+    private static FrontedLayoutPackageImporter CreateImporter(string root)
+    {
+        return new FrontedLayoutPackageImporter(
+            Path.Combine(root, "packages"),
+            Path.Combine(root, "temp"),
+            controlRegistry: new FrontedControlRegistry([new TextFrontedControl()]));
+    }
+
+    private static FrontManagePageViewModel CreateFrontManagePageViewModel(
+        IPluginMarketService pluginMarketService,
+        IPluginInstallService pluginInstallService)
+    {
+        return new FrontManagePageViewModel(
+            Mock.Of<IFrontedWindowService>(),
+            Mock.Of<ISharedDataService>(),
+            Mock.Of<IFilePickerService>(),
+            Mock.Of<IFrontedLayoutPackageManager>(),
+            Mock.Of<IFrontedLayoutPackageExporter>(),
+            Mock.Of<IFrontedLayoutPackageImporter>(),
+            Mock.Of<IFrontedLayoutPackageLegacyConverter>(),
+            pluginMarketService,
+            pluginInstallService,
+            new ServiceCollection().BuildServiceProvider(),
+            NullLogger<FrontManagePageViewModel>.Instance);
+    }
+
+    private static async Task InvokeInstallMarketDependenciesAsync(
+        FrontManagePageViewModel viewModel,
+        IReadOnlyList<PluginMarketItem> marketItems)
+    {
+        var method = typeof(FrontManagePageViewModel).GetMethod(
+            "InstallMarketDependenciesAsync",
+            BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new MissingMethodException(nameof(FrontManagePageViewModel), "InstallMarketDependenciesAsync");
+
+        var task = (Task)method.Invoke(viewModel, [marketItems])!;
+        await task;
     }
 
     private static FrontedLayoutPackageManifest ReadManifest(ZipArchive archive)
@@ -558,6 +829,130 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
     {
         var repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
         return Path.Combine([repositoryRoot, .. parts]);
+    }
+
+    private sealed class FakePluginMarketService : IPluginMarketService
+    {
+        private readonly string _root;
+        private readonly bool _completeDownloads;
+        private readonly bool _failDownloads;
+        private readonly string _failureMessage;
+        private readonly ObservableCollection<PluginDownloadQueueItem> _queue = [];
+        private readonly Queue<PluginPackageDownloadResult> _completedDownloads = [];
+
+        public FakePluginMarketService(
+            string root,
+            bool completeDownloads = false,
+            bool failDownloads = false,
+            string failureMessage = "")
+        {
+            _root = root;
+            _completeDownloads = completeDownloads;
+            _failDownloads = failDownloads;
+            _failureMessage = failureMessage;
+            DownloadQueue = new ReadOnlyObservableCollection<PluginDownloadQueueItem>(_queue);
+        }
+
+        public ReadOnlyObservableCollection<PluginDownloadQueueItem> DownloadQueue { get; }
+
+        public bool IsDownloading => false;
+
+        public bool IsDownloadFinished => _completedDownloads.Count > 0;
+
+        public double DownloadProgress => 0;
+
+        public double DownloadBytesPerSecond => 0;
+
+        public string CurrentDownloadPluginId => string.Empty;
+
+        public event EventHandler? DownloadStateChanged;
+
+        public Task<IReadOnlyList<PluginMarketItem>> GetMarketPluginsAsync(CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<IReadOnlyList<PluginMarketItem>>([]);
+        }
+
+        public Task<string> GetReadmeMarkdownAsync(PluginMarketItem item, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(string.Empty);
+        }
+
+        public Task<bool> QueuePluginDownloadAsync(PluginMarketItem item, CancellationToken cancellationToken = default)
+        {
+            var queueItem = new PluginDownloadQueueItem
+            {
+                PluginId = item.Id,
+                PluginName = item.Name,
+                PluginVersion = item.Version
+            };
+            _queue.Add(queueItem);
+
+            if (_failDownloads)
+            {
+                queueItem.Status = PluginDownloadQueueStatus.QueueFailed;
+                queueItem.ErrorMessage = _failureMessage;
+            }
+            else if (_completeDownloads)
+            {
+                queueItem.Status = PluginDownloadQueueStatus.QueueDownloaded;
+                var extractedDirectory = Path.Combine(_root, "download", item.Id);
+                Directory.CreateDirectory(extractedDirectory);
+                _completedDownloads.Enqueue(new PluginPackageDownloadResult
+                {
+                    ExtractedDirectoryPath = extractedDirectory,
+                    QueueItem = queueItem
+                });
+            }
+            else
+            {
+                queueItem.Status = PluginDownloadQueueStatus.QueueCanceled;
+            }
+
+            DownloadStateChanged?.Invoke(this, EventArgs.Empty);
+            return Task.FromResult(true);
+        }
+
+        public PluginPackageDownloadResult? ConsumeCompletedDownload()
+        {
+            return _completedDownloads.Count == 0 ? null : _completedDownloads.Dequeue();
+        }
+
+        public void CancelDownload()
+        {
+        }
+
+        public void CancelDownload(string queueId)
+        {
+        }
+
+        public void ResetMirrorCache()
+        {
+        }
+    }
+
+    private sealed class FakePluginInstallService(Exception? exception = null) : IPluginInstallService
+    {
+        public List<string> InstalledPluginIds { get; } = [];
+
+        public PluginInstallResult InstallFromExtractedDirectory(string extractedDirectoryPath)
+        {
+            if (exception is not null)
+            {
+                throw exception;
+            }
+
+            var id = Path.GetFileName(extractedDirectoryPath);
+            InstalledPluginIds.Add(id);
+            return new PluginInstallResult
+            {
+                Manifest = new neo_bpsys_wpf.Core.Models.PluginManifest
+                {
+                    Id = id,
+                    Version = "1.0.0"
+                },
+                RestartRequired = true
+            };
+        }
     }
 
     private sealed class FakePluginMetadataProvider(params (string Id, string Version, string DisplayName)[] plugins)

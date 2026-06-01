@@ -2670,6 +2670,45 @@
   <data name="RemovedPluginControlsReport" xml:space="preserve">
     <value>強制インポートで削除されたプラグインコントロール</value>
   </data>
+  <data name="PluginDependencyInstallAvailableMessage" xml:space="preserve">
+    <value>プラグインマーケットからインストールまたは更新できるプラグインは、ユーザーの確認が必要です。</value>
+  </data>
+  <data name="PluginDependencyInstallButton" xml:space="preserve">
+    <value>プラグインをインストール/更新</value>
+  </data>
+  <data name="PluginDependencyForceImportMessage" xml:space="preserve">
+    <value>強制インポートしてこれらのプラグインコントロールを削除できます。元の .bpui ファイルは変更されません。</value>
+  </data>
+  <data name="PluginDependencyMarketOffline" xml:space="preserve">
+    <value>マーケットはオフライン</value>
+  </data>
+  <data name="PluginDependencyMarketAvailable" xml:space="preserve">
+    <value>マーケットで利用可能</value>
+  </data>
+  <data name="PluginDependencyUpdateRequired" xml:space="preserve">
+    <value>更新が必要</value>
+  </data>
+  <data name="PluginDependencyNotFoundInMarket" xml:space="preserve">
+    <value>マーケットに見つかりません</value>
+  </data>
+  <data name="PluginDependencyInstalledVersion" xml:space="preserve">
+    <value>インストール済み</value>
+  </data>
+  <data name="PluginDependencyMinVersion" xml:space="preserve">
+    <value>最小バージョン</value>
+  </data>
+  <data name="PluginDependencyAffectedControls" xml:space="preserve">
+    <value>影響を受けるコントロール</value>
+  </data>
+  <data name="PluginDependencyInstallRestartNotice" xml:space="preserve">
+    <value>プラグインのインストールまたは更新後は通常再起動が必要で、現在のインポートは自動的には続行されません。</value>
+  </data>
+  <data name="PluginDependencyInstallIncomplete" xml:space="preserve">
+    <value>プラグインのインストールキューが終了しましたが、未完了の依存関係があります</value>
+  </data>
+  <data name="PluginDependencyInstallFailed" xml:space="preserve">
+    <value>プラグイン依存関係のインストールに失敗しました</value>
+  </data>
   <data name="ExamplePlugin.TeamCard.DisplayName" xml:space="preserve">
     <value>Example Team Card</value>
   </data>

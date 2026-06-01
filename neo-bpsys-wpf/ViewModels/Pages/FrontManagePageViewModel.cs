@@ -389,11 +389,13 @@ public partial class FrontManagePageViewModel : ViewModelBase
                                  + preview
                                  + Environment.NewLine
                                  + Environment.NewLine
-                                 + "可从插件市场安装或更新的插件需要用户确认。安装或更新插件后通常需要重启，当前导入不会自动继续。";
+                                 + I18nHelper.GetLocalizedString("PluginDependencyInstallAvailableMessage")
+                                 + Environment.NewLine
+                                 + I18nHelper.GetLocalizedString("PluginDependencyInstallRestartNotice");
             var install = await MessageBoxHelper.ShowConfirmAsync(
                 installMessage,
                 I18nHelper.GetLocalizedString("MissingPluginImportTitle"),
-                "安装/更新插件",
+                I18nHelper.GetLocalizedString("PluginDependencyInstallButton"),
                 I18nHelper.GetLocalizedString("Cancel"));
             if (install)
             {
@@ -421,7 +423,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
                       + preview
                       + Environment.NewLine
                       + Environment.NewLine
-                      + "可选择强制导入并删除这些插件控件，原始 .bpui 文件不会被修改。";
+                      + I18nHelper.GetLocalizedString("PluginDependencyForceImportMessage");
 
         var force = await MessageBoxHelper.ShowConfirmAsync(
             message,
@@ -515,17 +517,18 @@ public partial class FrontManagePageViewModel : ViewModelBase
             .Select(dependency =>
             {
                 var status = dependency.IsMarketUnavailable
-                    ? "market offline"
+                    ? I18nHelper.GetLocalizedString("PluginDependencyMarketOffline")
                     : dependency.IsAvailableInMarket
-                        ? "market available"
+                        ? I18nHelper.GetLocalizedString("PluginDependencyMarketAvailable")
                         : dependency.IsInstalled && !dependency.IsVersionSatisfied
-                            ? "update required"
-                            : "not found in market";
+                            ? I18nHelper.GetLocalizedString("PluginDependencyUpdateRequired")
+                            : I18nHelper.GetLocalizedString("PluginDependencyNotFoundInMarket");
                 var controls = dependency.AffectedControls.Count > 0
                     ? string.Join(", ", dependency.AffectedControls.Take(3).Select(control => $"{control.Window}/{control.Canvas} {control.ControlName}"))
                     : string.Join(", ", dependency.RequiredBy.Take(3));
                 return $"{dependency.DisplayName ?? dependency.PackageId} [{dependency.PackageId}] "
-                       + $"min={dependency.MinVersion ?? "-"} installed={dependency.InstalledVersion ?? "-"} {status}"
+                       + $"{I18nHelper.GetLocalizedString("PluginDependencyMinVersion")}={dependency.MinVersion ?? "-"} "
+                       + $"{I18nHelper.GetLocalizedString("PluginDependencyInstalledVersion")}={dependency.InstalledVersion ?? "-"} {status}"
                        + (string.IsNullOrWhiteSpace(controls) ? string.Empty : $"{Environment.NewLine}  {controls}");
             })
             .ToList();
@@ -571,6 +574,18 @@ public partial class FrontManagePageViewModel : ViewModelBase
                         download.QueueItem.SpeedText = string.Empty;
                     }
                 }
+                catch (Exception ex)
+                {
+                    var pluginId = download.QueueItem?.PluginId;
+                    if (string.IsNullOrWhiteSpace(pluginId))
+                    {
+                        pluginId = Path.GetFileName(download.ExtractedDirectoryPath);
+                    }
+
+                    throw new InvalidOperationException(
+                        $"{I18nHelper.GetLocalizedString("PluginDependencyInstallFailed")}: {pluginId} {ex.Message}",
+                        ex);
+                }
                 finally
                 {
                     CleanupDownloadedPluginPackageResidue(download.ExtractedDirectoryPath);
@@ -582,7 +597,8 @@ public partial class FrontManagePageViewModel : ViewModelBase
                 && item.Status == PluginDownloadQueueStatus.QueueFailed);
             if (failed != null)
             {
-                throw new InvalidOperationException(failed.ErrorMessage);
+                throw new InvalidOperationException(
+                    $"{I18nHelper.GetLocalizedString("PluginDependencyInstallFailed")}: {failed.PluginId} {failed.ErrorMessage}");
             }
 
             if (!_pluginMarketService.IsDownloading
@@ -592,6 +608,12 @@ public partial class FrontManagePageViewModel : ViewModelBase
             }
 
             await Task.Delay(250);
+        }
+
+        if (pendingIds.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"{I18nHelper.GetLocalizedString("PluginDependencyInstallIncomplete")}: {string.Join(", ", pendingIds.OrderBy(id => id, StringComparer.OrdinalIgnoreCase))}");
         }
     }
 
