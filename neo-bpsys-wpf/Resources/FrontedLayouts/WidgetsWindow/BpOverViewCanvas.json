@@ -118,7 +118,7 @@
     "ZIndex": 1
   },
   "SurPick0": {
-    "ControlType": "Image",
+    "ControlType": "BorderedImage",
     "Left": 193,
     "Top": 65,
     "Width": 68,
@@ -131,7 +131,7 @@
     "VerticalAlignment": "Center"
   },
   "SurPick1": {
-    "ControlType": "Image",
+    "ControlType": "BorderedImage",
     "Left": 265,
     "Top": 65,
     "Width": 71,
@@ -144,7 +144,7 @@
     "VerticalAlignment": "Center"
   },
   "SurPick2": {
-    "ControlType": "Image",
+    "ControlType": "BorderedImage",
     "Left": 340,
     "Top": 65,
     "Width": 72,
@@ -157,7 +157,7 @@
     "VerticalAlignment": "Center"
   },
   "SurPick3": {
-    "ControlType": "Image",
+    "ControlType": "BorderedImage",
     "Left": 416,
     "Top": 65,
     "Width": 68,
@@ -234,7 +234,7 @@
     "ZIndex": 1
   },
   "HunPick": {
-    "ControlType": "Image",
+    "ControlType": "BorderedImage",
     "Left": 644,
     "Top": 45,
     "Width": 291,

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
-/// v3 图片控件的外层 Border 与内层 Image 尺寸关系。
+/// v3 带外层容器图片控件的外层 Border 与内层 Image 尺寸关系。
 /// </summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ImageSizingMode
@@ -14,7 +14,7 @@ public enum ImageSizingMode
     Auto,
 
     /// <summary>
-    /// 内层 Image 跟随外层 Border 的实际宽高。
+    /// 内层 Image 填满外层容器分配的布局槽。
     /// </summary>
     FillContainer,
 

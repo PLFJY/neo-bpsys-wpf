@@ -220,7 +220,7 @@ public class FrontedPropertyGridBuilder
 
             var kind = ResolveEditorKind(property);
             var isReadOnly = !selectedItem.IsEditableInEditor || !property.CanWrite;
-            var groupName = ResolveGroupName(property.Name);
+            var groupName = ResolveGroupName(property.Name, selectedItem.Config);
             var validationErrors = GetPropertyMessages(messages, selectedItem.Name, property.Name).ToList();
             var value = property.GetValue(selectedItem.Config);
 
@@ -416,8 +416,33 @@ public class FrontedPropertyGridBuilder
             .ToArray();
     }
 
-    private static string ResolveGroupName(string propertyName)
+    private static string ResolveGroupName(string propertyName, FrontedControlConfigBase config)
     {
+        if (config is BorderedImageFrontedControlConfig)
+        {
+            if (propertyName is nameof(FrontedControlConfigBase.Left)
+                or nameof(FrontedControlConfigBase.Top)
+                or nameof(FrontedControlConfigBase.Width)
+                or nameof(FrontedControlConfigBase.Height)
+                or nameof(FrontedControlConfigBase.ZIndex)
+                or nameof(ImageFrontedControlConfig.CornerRadius)
+                or nameof(ImageFrontedControlConfig.ClipToBounds))
+            {
+                return "Border";
+            }
+
+            if (propertyName is nameof(FrontedControlConfigBase.BindingPath)
+                or nameof(BorderedImageFrontedControlConfig.ImageWidth)
+                or nameof(BorderedImageFrontedControlConfig.ImageHeight)
+                or nameof(ImageFrontedControlConfig.SizingMode)
+                or nameof(ImageFrontedControlConfig.Stretch)
+                or nameof(ImageFrontedControlConfig.HorizontalAlignment)
+                or nameof(ImageFrontedControlConfig.VerticalAlignment))
+            {
+                return "Image";
+            }
+        }
+
         if (propertyName is nameof(FrontedControlConfigBase.Left)
             or nameof(FrontedControlConfigBase.Top)
             or nameof(FrontedControlConfigBase.Width)

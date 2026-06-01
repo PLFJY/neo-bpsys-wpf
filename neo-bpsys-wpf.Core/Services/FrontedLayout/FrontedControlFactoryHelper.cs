@@ -12,21 +12,26 @@ internal static class FrontedControlFactoryHelper
     public static Border CreateOuterBorder(string name, FrontedControlConfigBase config)
     {
         var border = new Border { Name = name };
-        Canvas.SetLeft(border, config.Left);
-        Canvas.SetTop(border, config.Top);
-        Panel.SetZIndex(border, config.ZIndex);
+        ApplyCanvasLayout(border, config);
+
+        return border;
+    }
+
+    public static void ApplyCanvasLayout(FrameworkElement element, FrontedControlConfigBase config)
+    {
+        Canvas.SetLeft(element, config.Left);
+        Canvas.SetTop(element, config.Top);
+        Panel.SetZIndex(element, config.ZIndex);
 
         if (config.Width is not null)
         {
-            border.Width = config.Width.Value;
+            element.Width = config.Width.Value;
         }
 
         if (config.Height is not null)
         {
-            border.Height = config.Height.Value;
+            element.Height = config.Height.Value;
         }
-
-        return border;
     }
 
     public static void TryApplyEnum<T>(

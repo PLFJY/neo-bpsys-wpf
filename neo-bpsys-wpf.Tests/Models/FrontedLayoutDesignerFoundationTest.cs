@@ -575,6 +575,7 @@ public class FrontedLayoutDesignerFoundationTest
     [InlineData("Text", typeof(TextFrontedControlConfig), 160, 40)]
     [InlineData("LocalizedText", typeof(LocalizedTextControlConfig), 200, 40)]
     [InlineData("Image", typeof(ImageFrontedControlConfig), 120, 120)]
+    [InlineData("BorderedImage", typeof(BorderedImageFrontedControlConfig), 120, 120)]
     [InlineData("MapNameText", typeof(MapNameTextControlConfig), 240, 40)]
     [InlineData("GameProgressText", typeof(GameProgressTextControlConfig), 260, 56)]
     [InlineData("TalentTraitDisplay", typeof(TalentTraitDisplayControlConfig), 180, 40)]
@@ -1095,6 +1096,47 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void DesignerViewModelCanResizeBorderedImageInnerImage()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Pick",
+            Config = new BorderedImageFrontedControlConfig
+            {
+                Left = 10,
+                Top = 20,
+                Width = 120,
+                Height = 80,
+                ImageWidth = 60,
+                ImageHeight = 40
+            }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([item])
+        };
+
+        viewModel.SelectDesignItem(item);
+        viewModel.BorderedImageResizeTarget = FrontedDesignerResizeTarget.Image;
+        viewModel.ResizeSelectedDesignItem(
+            FrontedDesignerResizeHandleKind.BottomRight,
+            originalLeft: 10,
+            originalTop: 20,
+            originalWidth: 60,
+            originalHeight: 40,
+            deltaX: 15,
+            deltaY: 10,
+            renderPreview: false);
+
+        var config = Assert.IsType<BorderedImageFrontedControlConfig>(item.Config);
+        Assert.Equal(120, config.Width);
+        Assert.Equal(80, config.Height);
+        Assert.Equal(75, config.ImageWidth);
+        Assert.Equal(50, config.ImageHeight);
+        Assert.True(viewModel.CurrentDocument!.IsDirty);
+    }
+
+    [Fact]
     public void PropertyGridBuilderCreatesIdentityAndLayoutRows()
     {
         var item = new FrontedControlDesignItem
@@ -1118,6 +1160,29 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.Width));
         Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.Height));
         Assert.Contains(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.ZIndex));
+    }
+
+    [Fact]
+    public void PropertyGridBuilderSeparatesBorderedImageBorderAndImageRows()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Pick",
+            Config = new BorderedImageFrontedControlConfig
+            {
+                ImageWidth = 60,
+                ImageHeight = 40,
+                Stretch = "UniformToFill"
+            }
+        };
+
+        var rows = BuildPropertyRows(CreateDocument([item]), item);
+
+        Assert.Equal("Border", rows.Single(row => row.PropertyName == nameof(FrontedControlConfigBase.Width)).GroupName);
+        Assert.Equal("Border", rows.Single(row => row.PropertyName == nameof(FrontedControlConfigBase.Height)).GroupName);
+        Assert.Equal("Image", rows.Single(row => row.PropertyName == nameof(BorderedImageFrontedControlConfig.ImageWidth)).GroupName);
+        Assert.Equal("Image", rows.Single(row => row.PropertyName == nameof(BorderedImageFrontedControlConfig.ImageHeight)).GroupName);
+        Assert.Equal("Image", rows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.Stretch)).GroupName);
     }
 
     [Fact]
@@ -1884,6 +1949,7 @@ public class FrontedLayoutDesignerFoundationTest
     [Theory]
     [InlineData("Text", typeof(TextFrontedControlConfig), FrontedBindingTargetKind.Text)]
     [InlineData("Image", typeof(ImageFrontedControlConfig), FrontedBindingTargetKind.Image)]
+    [InlineData("BorderedImage", typeof(BorderedImageFrontedControlConfig), FrontedBindingTargetKind.Image)]
     [InlineData("GameProgressText", typeof(GameProgressTextControlConfig), FrontedBindingTargetKind.GameProgress)]
     [InlineData("MapNameText", typeof(MapNameTextControlConfig), FrontedBindingTargetKind.Map)]
     public void PropertyGridBuilderSetsBindingTargetKind(
@@ -2759,6 +2825,7 @@ public class FrontedLayoutDesignerFoundationTest
         typeof(TextFrontedControlConfig),
         typeof(LocalizedTextControlConfig),
         typeof(ImageFrontedControlConfig),
+        typeof(BorderedImageFrontedControlConfig),
         typeof(GameProgressTextControlConfig),
         typeof(MapNameTextControlConfig),
         typeof(TalentTraitDisplayControlConfig),
@@ -2939,6 +3006,7 @@ public class FrontedLayoutDesignerFoundationTest
             new KnownFrontedControl("Text", typeof(TextFrontedControlConfig)),
             new KnownFrontedControl("LocalizedText", typeof(LocalizedTextControlConfig)),
             new KnownFrontedControl("Image", typeof(ImageFrontedControlConfig)),
+            new KnownFrontedControl("BorderedImage", typeof(BorderedImageFrontedControlConfig)),
             new KnownFrontedControl("GlobalScoreRow", typeof(GlobalScoreRowControlConfig)),
             new KnownFrontedControl("TalentTraitDisplay", typeof(TalentTraitDisplayControlConfig)),
             new KnownFrontedControl("GameProgressText", typeof(GameProgressTextControlConfig)),

@@ -118,7 +118,8 @@ v3 初始内置控件类型建议只包含：
 | --- | --- |
 | `Text` | 文本、队名、比分、倒计时等。 |
 | `LocalizedText` | 根据本地化资源 key 显示静态文本，主要用于表头、标签等不应写死在 JSON 中的用户可见文本。 |
-| `Image` | 角色图、队标、地图、背景元素等。 |
+| `Image` | 直接图片控件，根元素就是 WPF `Image`，用于旧 direct XAML Image 行为、队标、地图、背景元素等。 |
+| `BorderedImage` | 外层 `Border` + 内层 `Image` 的图片控件，用于需要独立外框、容器裁剪或由外框承接 resize 的图片区域。 |
 | `GlobalScoreRow` | `ScoreGlobalWindow` 的全局比分行，根据 `CurrentGame.MatchScore` 生成每半场比分格和阵营图标。 |
 | `TalentTraitDisplay` | `CutSceneWindow` 默认布局控件，封装求生者/监管者固定天赋图标和监管者辅助特质图标。 |
 | `GameProgressText` | `CutSceneWindow` 默认布局控件，集中生成 BO3/BO5 相关的对局进度文本。 |
@@ -154,26 +155,31 @@ Designer v3 的本地化只作用于编辑器显示层。`ControlType`、`Bindin
 
 `LocalizedText` 使用外层 `Border` 和内层 `TextBlock`，布局和字体字段与 `Text` 基本一致，但文本来源是 `LocalizationKey`。如果资源 key 缺失，则显示 `FallbackText`；`FallbackText` 为空时显示 key 本身。`LocalizedText` 会在语言设置变化时刷新文本。`Text.Text` 仍表示原样静态文本，不承担本地化语义。
 
-### Image
+### Image / BorderedImage
 
-`Image` 控件同样建议使用外层 `Border` 和内层 `Image`：
+Phase 12 后，内置图片控件拆为 `Image` 和 `BorderedImage`：
 
 | 层级 | 接收属性 |
 | --- | --- |
-| 外层 `Border` | `Canvas.Left`、`Canvas.Top`、`Width`、`Height`、`Panel.ZIndex`。 |
-| 内层 `Image` | `Source` 绑定、样式、`Stretch` 等图片展示属性。 |
+| `Image` | 根元素就是 `Image`，`Canvas.Left`、`Canvas.Top`、`Width`、`Height`、`Panel.ZIndex`、`Source`、`Stretch`、水平/垂直对齐都直接作用于它。 |
+| `BorderedImage` 外层 `Border` | `Canvas.Left`、`Canvas.Top`、`Width`、`Height`、`Panel.ZIndex`，设计器默认 resize handles 作用于这一层。 |
+| `BorderedImage` 内层 `Image` | `Source` 绑定、`ImageWidth`、`ImageHeight`、`Stretch`、`HorizontalAlignment`、`VerticalAlignment` 等图片展示属性。 |
 
 `BindingPath` 同样应以 `ISharedDataService` 为 binding `Source`。
 
-`Image` 支持 `SizingMode`，用于保留旧 XAML 中不同的图片布局语义：
+`Image` 用于旧 XAML 中直接 `Image` / `ui:Image` 的布局语义，例如 `WidgetsWindow/MapBpCanvas.json` 中 MapV1 的 `PickedMap` / `BannedMap`。这两个控件保持 `"ControlType": "Image"`、`Width = 290`、`Height = 138`、`Stretch = "UniformToFill"` 和 `CornerRadius = 8`，根元素本身就是图片框，避免外层 Border + 内层尺寸绑定造成裁剪偏移。
+
+`BorderedImage` 支持 `SizingMode`，用于保留旧 XAML 中需要外层容器的图片布局语义：
 
 | `SizingMode` | 旧 XAML 对应行为 | 使用场景 |
 | --- | --- | --- |
 | `Auto` | 不强制内层 `Image.Width/Height`，只在配置提供时应用 `Stretch` / `HorizontalAlignment` / `VerticalAlignment`，其余交给 WPF 默认测量与排列。 | `Border` 内默认 `Image`，例如 GameData 求生者表头头像；CutScene 地图这类旧 XAML 未给内层图片写固定尺寸的区域也应优先审计后使用。 |
-| `FillContainer` | 内层 `Image` 跟随外层 `Border.ActualWidth/ActualHeight`，缺省对齐为 `Stretch`。 | 旧 direct fixed-size `ui:Image`，例如队标；MapBp v1 picked / banned 地图图。 |
+| `FillContainer` | 内层 `Image` 获取外层容器分配的完整布局槽，缺省对齐为 `Stretch`；不要把内层 `Image.Width/Height` 绑定到外层 `ActualWidth/ActualHeight`。 | 明确需要外层框架的图片容器。 |
 | `OverflowCrop` | 不绑定内层 `Image.Width/Height`，外层 `Border` 通过 `ClipToBounds` 裁剪溢出内容，缺省对齐为 `Center` / `Center`。 | 旧 `Border + Image + ClipToBounds + UniformToFill` 的角色图裁剪，例如 CutScene pick 图和 BpOverview pick 图。 |
 
-迁移布局时必须先看旧 XAML 的具体写法，不要把所有 `Image` 都设成 `FillContainer`，也不要统一改 `Stretch`。`CornerRadius > 0` 只表示外层 `Border` 需要圆角和裁剪，不等于图片必须填满容器。
+迁移布局时必须先看旧 XAML 的具体写法，不要把所有 `Image` 都改成 `BorderedImage`，也不要统一改 `Stretch`。旧 direct Image 行为保留 `Image`；只有明确需要外层框、外层裁剪容器、或 resize handles 操作容器框时才使用 `BorderedImage`。`ControlType`、`SizingMode`、`Stretch` 等 schema 值仍保存原始英文契约值，不写入本地化显示文本。
+
+Designer v3 的 Property Grid 会把 `BorderedImage` 属性分成“外框”和“内部图片”两组。`Width` / `Height` 是外框尺寸，`ImageWidth` / `ImageHeight` 是内层 `Image` 的显式尺寸；二者为空时仍按 WPF 布局槽自然排列。选中 `BorderedImage` 时，Property Grid 顶部提供互斥的 resize target 切换：`Border` 模式下 thumbs 调整外框 `Width` / `Height`，`Image` 模式下 thumbs 调整内层 `ImageWidth` / `ImageHeight`，外框位置和尺寸保持不变。
 
 如果 `PickingBorder` 为 `true`，应创建独立覆盖控件；该覆盖控件必须与原始 `Border` 对齐。不要把 picking border 放进图片 `Border` 内部。
 

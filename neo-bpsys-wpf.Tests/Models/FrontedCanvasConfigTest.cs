@@ -135,6 +135,39 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
+    public void ReadsBorderedImageControl()
+    {
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 810,
+              "Pick": {
+                "ControlType": "BorderedImage",
+                "Left": 10,
+                "Top": 20,
+                "Width": 120,
+                "Height": 160,
+                "BindingPath": "CurrentGame.SurPlayerList[0].PictureShown",
+                "ImageWidth": 96,
+                "ImageHeight": 128,
+                "SizingMode": "OverflowCrop",
+                "Stretch": "UniformToFill"
+              }
+            }
+            """);
+
+        Assert.NotNull(config);
+        var image = Assert.IsType<BorderedImageFrontedControlConfig>(config.Controls["Pick"]);
+        Assert.Equal("BorderedImage", image.ControlType);
+        Assert.Equal("CurrentGame.SurPlayerList[0].PictureShown", image.BindingPath);
+        Assert.Equal(96, image.ImageWidth);
+        Assert.Equal(128, image.ImageHeight);
+        Assert.Equal(ImageSizingMode.OverflowCrop, image.SizingMode);
+    }
+
+    [Fact]
     public void ReadsTextControlStaticText()
     {
         var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
@@ -815,6 +848,7 @@ public class FrontedCanvasConfigTest
         foreach (var controlName in new[] { "PickedMap", "BannedMap" })
         {
             var mapImage = Assert.IsType<ImageFrontedControlConfig>(mapBpCanvas.Controls[controlName]);
+            Assert.Equal("Image", mapImage.ControlType);
             Assert.Equal(ImageSizingMode.FillContainer, mapImage.SizingMode);
             Assert.Equal("UniformToFill", mapImage.Stretch);
             Assert.True(mapImage.ClipToBounds);
@@ -861,7 +895,7 @@ public class FrontedCanvasConfigTest
             Assert.IsType<ImageFrontedControlConfig>(bpOverViewCanvas.Controls["HunTeamLogo"]).SizingMode);
         foreach (var controlName in new[] { "SurPick0", "SurPick1", "SurPick2", "SurPick3", "HunPick" })
         {
-            var pick = Assert.IsType<ImageFrontedControlConfig>(bpOverViewCanvas.Controls[controlName]);
+            var pick = Assert.IsType<BorderedImageFrontedControlConfig>(bpOverViewCanvas.Controls[controlName]);
             Assert.Equal(ImageSizingMode.OverflowCrop, pick.SizingMode);
             Assert.Equal("UniformToFill", pick.Stretch);
             Assert.True(pick.ClipToBounds);
@@ -1150,6 +1184,85 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
+    public void FrontedRendererSyncsPickingBorderOverlayToImageAndBorderedImageGeometry()
+    {
+        RunOnStaThread(() =>
+        {
+            var settingsHostService = new Mock<ISettingsHostService>();
+            settingsHostService
+                .SetupGet(service => service.Settings)
+                .Returns(new Settings());
+            var serviceProvider = new ServiceCollection()
+                .AddSingleton(settingsHostService.Object)
+                .BuildServiceProvider();
+
+            var renderer = new FrontedRenderer(
+                serviceProvider,
+                new Mock<ISharedDataService>().Object,
+                NullFrontedResourceResolver.Instance,
+                new FrontedControlRegistry(
+                [
+                    new ImageFrontedControl(),
+                    new BorderedImageFrontedControl(),
+                    new PickingBorderOverlayFrontedControl()
+                ]),
+                NullLogger<FrontedRenderer>.Instance);
+
+            var canvas = new Canvas { Name = "BaseCanvas" };
+            renderer.RenderToCanvas(
+                canvas,
+                new FrontedCanvasConfig
+                {
+                    Version = 3,
+                    CanvasWidth = 400,
+                    CanvasHeight = 300,
+                    Controls =
+                    {
+                        ["DirectImage"] = new ImageFrontedControlConfig
+                        {
+                            Left = 10,
+                            Top = 20,
+                            Width = 120,
+                            Height = 80
+                        },
+                        ["DirectOverlay"] = new PickingBorderOverlayControlConfig
+                        {
+                            TargetControlName = "DirectImage"
+                        },
+                        ["FramedImage"] = new BorderedImageFrontedControlConfig
+                        {
+                            Left = 150,
+                            Top = 30,
+                            Width = 90,
+                            Height = 70
+                        },
+                        ["FramedOverlay"] = new PickingBorderOverlayControlConfig
+                        {
+                            TargetControlName = "FramedImage"
+                        }
+                    }
+                },
+                new FrontedRenderContext
+                {
+                    WindowId = "TestWindow",
+                    CanvasName = "BaseCanvas"
+                });
+
+            var directOverlay = Assert.IsAssignableFrom<Border>(canvas.Children[1]);
+            Assert.Equal(10, Canvas.GetLeft(directOverlay));
+            Assert.Equal(20, Canvas.GetTop(directOverlay));
+            Assert.Equal(120, directOverlay.Width);
+            Assert.Equal(80, directOverlay.Height);
+
+            var framedOverlay = Assert.IsAssignableFrom<Border>(canvas.Children[3]);
+            Assert.Equal(150, Canvas.GetLeft(framedOverlay));
+            Assert.Equal(30, Canvas.GetTop(framedOverlay));
+            Assert.Equal(90, framedOverlay.Width);
+            Assert.Equal(70, framedOverlay.Height);
+        });
+    }
+
+    [Fact]
     public void UnknownControlTypeReportsControlNameAndType()
     {
         var exception = Assert.Throws<FrontedLayoutConfigException>(() =>
@@ -1321,7 +1434,14 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
-    public void ImageFrontedControlFillContainerBindsImageToOuterBorderSize()
+    public void ImageAndBorderedImageControlTypesAreStable()
+    {
+        Assert.Equal("Image", new ImageFrontedControl().ControlType);
+        Assert.Equal("BorderedImage", new BorderedImageFrontedControl().ControlType);
+    }
+
+    [Fact]
+    public void ImageFrontedControlCreatesDirectImageRoot()
     {
         RunOnStaThread(() =>
         {
@@ -1330,76 +1450,89 @@ public class FrontedCanvasConfigTest
                 "Logo",
                 new ImageFrontedControlConfig
                 {
+                    Left = 10,
+                    Top = 20,
                     Width = 85,
                     Height = 85,
                     SizingMode = ImageSizingMode.FillContainer,
-                    Stretch = "Fill"
+                    Stretch = "Fill",
+                    HorizontalAlignment = "Center",
+                    VerticalAlignment = "Top",
+                    ZIndex = 3
                 },
                 CreateBuildContext());
 
-            var border = Assert.IsType<Border>(element);
-            var image = Assert.IsType<Image>(border.Child);
+            var image = Assert.IsType<Image>(element);
+            Assert.Equal(10, Canvas.GetLeft(image));
+            Assert.Equal(20, Canvas.GetTop(image));
+            Assert.Equal(85, image.Width);
+            Assert.Equal(85, image.Height);
+            Assert.Equal(3, Panel.GetZIndex(image));
             Assert.Equal(Stretch.Fill, image.Stretch);
-            Assert.Equal(HorizontalAlignment.Stretch, image.HorizontalAlignment);
-            Assert.Equal(VerticalAlignment.Stretch, image.VerticalAlignment);
-
-            var widthBinding = BindingOperations.GetBinding(image, FrameworkElement.WidthProperty);
-            var heightBinding = BindingOperations.GetBinding(image, FrameworkElement.HeightProperty);
-            Assert.NotNull(widthBinding);
-            Assert.NotNull(heightBinding);
-            Assert.Equal(nameof(Border.ActualWidth), widthBinding.Path.Path);
-            Assert.Equal(nameof(Border.ActualHeight), heightBinding.Path.Path);
-            Assert.Same(border, widthBinding.Source);
-            Assert.Same(border, heightBinding.Source);
+            Assert.Equal(HorizontalAlignment.Center, image.HorizontalAlignment);
+            Assert.Equal(VerticalAlignment.Top, image.VerticalAlignment);
         });
     }
 
     [Fact]
-    public void ImageFrontedControlOverflowCropPreservesAlignmentAndDoesNotBindSize()
+    public void ImageFrontedControlBindsSourceToSharedDataService()
     {
         RunOnStaThread(() =>
         {
+            var sharedDataService = new Mock<ISharedDataService>().Object;
             var control = new ImageFrontedControl();
             var element = control.Create(
                 "Pick",
                 new ImageFrontedControlConfig
                 {
-                    SizingMode = ImageSizingMode.OverflowCrop,
-                    Stretch = "UniformToFill",
-                    HorizontalAlignment = "Center",
-                    VerticalAlignment = "Top",
-                    ClipToBounds = true
+                    BindingPath = "CurrentGame.PickedMapImage",
+                    Stretch = "UniformToFill"
                 },
-                CreateBuildContext());
+                CreateBuildContext(sharedDataService));
 
-            var border = Assert.IsType<Border>(element);
-            var image = Assert.IsType<Image>(border.Child);
-            Assert.True(border.ClipToBounds);
+            var image = Assert.IsType<Image>(element);
             Assert.Equal(Stretch.UniformToFill, image.Stretch);
-            Assert.Equal(HorizontalAlignment.Center, image.HorizontalAlignment);
-            Assert.Equal(VerticalAlignment.Top, image.VerticalAlignment);
-            Assert.Null(BindingOperations.GetBinding(image, FrameworkElement.WidthProperty));
-            Assert.Null(BindingOperations.GetBinding(image, FrameworkElement.HeightProperty));
+            var binding = BindingOperations.GetBinding(image, Image.SourceProperty);
+            Assert.NotNull(binding);
+            Assert.Equal("CurrentGame.PickedMapImage", binding.Path.Path);
+            Assert.Same(sharedDataService, binding.Source);
         });
     }
 
     [Fact]
-    public void ImageFrontedControlAutoDoesNotBindSizeOrOverrideDefaults()
+    public void BorderedImageFrontedControlUsesOuterBorderAndDoesNotBindInnerSize()
     {
         RunOnStaThread(() =>
         {
-            var control = new ImageFrontedControl();
+            var control = new BorderedImageFrontedControl();
             var element = control.Create(
                 "Header",
-                new ImageFrontedControlConfig
+                new BorderedImageFrontedControlConfig
                 {
-                    SizingMode = ImageSizingMode.Auto
+                    Left = 10,
+                    Top = 20,
+                    Width = 120,
+                    Height = 80,
+                    ImageWidth = 64,
+                    ImageHeight = 48,
+                    ZIndex = 5,
+                    SizingMode = ImageSizingMode.FillContainer,
+                    Stretch = "UniformToFill"
                 },
                 CreateBuildContext());
 
             var border = Assert.IsType<Border>(element);
-            var image = Assert.IsType<Image>(border.Child);
-            Assert.Equal(Stretch.Uniform, image.Stretch);
+            Assert.Equal(10, Canvas.GetLeft(border));
+            Assert.Equal(20, Canvas.GetTop(border));
+            Assert.Equal(120, border.Width);
+            Assert.Equal(80, border.Height);
+            Assert.Equal(5, Panel.GetZIndex(border));
+
+            var host = Assert.IsType<Grid>(border.Child);
+            var image = Assert.IsType<Image>(Assert.Single(host.Children));
+            Assert.Equal(64, image.Width);
+            Assert.Equal(48, image.Height);
+            Assert.Equal(Stretch.UniformToFill, image.Stretch);
             Assert.Equal(HorizontalAlignment.Stretch, image.HorizontalAlignment);
             Assert.Equal(VerticalAlignment.Stretch, image.VerticalAlignment);
             Assert.Null(BindingOperations.GetBinding(image, FrameworkElement.WidthProperty));
@@ -1707,7 +1840,7 @@ public class FrontedCanvasConfigTest
         string controlName,
         string bindingPath)
     {
-        var control = Assert.IsType<ImageFrontedControlConfig>(config.Controls[controlName]);
+        var control = Assert.IsAssignableFrom<ImageFrontedControlConfig>(config.Controls[controlName]);
         Assert.Equal(bindingPath, control.BindingPath);
         return control;
     }

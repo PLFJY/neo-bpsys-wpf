@@ -2788,6 +2788,12 @@
   <data name="Designer.Property.CornerRadius" xml:space="preserve">
     <value>Corner Radius</value>
   </data>
+  <data name="Designer.Property.ImageWidth" xml:space="preserve">
+    <value>Inner Image Width</value>
+  </data>
+  <data name="Designer.Property.ImageHeight" xml:space="preserve">
+    <value>Inner Image Height</value>
+  </data>
   <data name="Designer.Property.PickingBorderImagePath" xml:space="preserve">
     <value>Picking Border Image</value>
   </data>
@@ -2893,6 +2899,15 @@
   <data name="Designer.PropertyGroup.ControlSpecific" xml:space="preserve">
     <value>Control Specific</value>
   </data>
+  <data name="Designer.PropertyGroup.Border" xml:space="preserve">
+    <value>Border</value>
+  </data>
+  <data name="Designer.PropertyGroup.Image" xml:space="preserve">
+    <value>Inner Image</value>
+  </data>
+  <data name="ResizeTarget" xml:space="preserve">
+    <value>Resize Target</value>
+  </data>
   <data name="Designer.ControlType.Text" xml:space="preserve">
     <value>Text</value>
   </data>
@@ -2901,6 +2916,9 @@
   </data>
   <data name="Designer.ControlType.Image" xml:space="preserve">
     <value>Image</value>
+  </data>
+  <data name="Designer.ControlType.BorderedImage" xml:space="preserve">
+    <value>Bordered Image</value>
   </data>
   <data name="Designer.ControlType.GameProgressText" xml:space="preserve">
     <value>Game Progress</value>

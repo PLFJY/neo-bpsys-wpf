@@ -222,9 +222,51 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedDesignItem))]
     [NotifyPropertyChangedFor(nameof(CanDeleteSelectedControl))]
+    [NotifyPropertyChangedFor(nameof(IsBorderedImageSelected))]
     private FrontedControlDesignItem? _selectedDesignItem;
 
     public bool HasSelectedDesignItem => SelectedDesignItem is not null;
+
+    public bool IsBorderedImageSelected => SelectedDesignItem?.Config is BorderedImageFrontedControlConfig;
+
+    private FrontedDesignerResizeTarget _borderedImageResizeTarget = FrontedDesignerResizeTarget.Border;
+
+    public FrontedDesignerResizeTarget BorderedImageResizeTarget
+    {
+        get => _borderedImageResizeTarget;
+        set
+        {
+            if (SetProperty(ref _borderedImageResizeTarget, value))
+            {
+                OnPropertyChanged(nameof(IsBorderResizeTargetSelected));
+                OnPropertyChanged(nameof(IsImageResizeTargetSelected));
+            }
+        }
+    }
+
+    public bool IsBorderResizeTargetSelected
+    {
+        get => BorderedImageResizeTarget == FrontedDesignerResizeTarget.Border;
+        set
+        {
+            if (value)
+            {
+                BorderedImageResizeTarget = FrontedDesignerResizeTarget.Border;
+            }
+        }
+    }
+
+    public bool IsImageResizeTargetSelected
+    {
+        get => BorderedImageResizeTarget == FrontedDesignerResizeTarget.Image;
+        set
+        {
+            if (value)
+            {
+                BorderedImageResizeTarget = FrontedDesignerResizeTarget.Image;
+            }
+        }
+    }
 
     public bool CanDeleteSelectedControl =>
         SelectedDesignItem is { IsSelectableInEditor: true, IsEditableInEditor: true };
@@ -364,6 +406,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RebuildPropertyEditorItems();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
         CopySelectedControlCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(IsBorderedImageSelected));
+        OnPropertyChanged(nameof(IsBorderResizeTargetSelected));
+        OnPropertyChanged(nameof(IsImageResizeTargetSelected));
     }
 
     partial void OnControlFilterTextChanged(string value)
@@ -1043,6 +1088,21 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
+        if (SelectedDesignItem.Config is BorderedImageFrontedControlConfig imageConfig
+            && BorderedImageResizeTarget == FrontedDesignerResizeTarget.Image)
+        {
+            ResizeSelectedBorderedImageInnerImage(
+                imageConfig,
+                handle,
+                originalWidth,
+                originalHeight,
+                deltaX,
+                deltaY);
+            CurrentDocument.IsDirty = true;
+            OnDesignItemGeometryChanged(renderPreview);
+            return;
+        }
+
         FrontedDesignerGeometryHelper.Resize(
             SelectedDesignItem,
             handle,
@@ -1057,6 +1117,51 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             SnapGridSize);
         SyncLinkedOverlays(SelectedDesignItem);
         OnDesignItemGeometryChanged(renderPreview);
+    }
+
+    private void ResizeSelectedBorderedImageInnerImage(
+        BorderedImageFrontedControlConfig config,
+        FrontedDesignerResizeHandleKind handle,
+        double originalWidth,
+        double originalHeight,
+        double deltaX,
+        double deltaY)
+    {
+        var widthDelta = handle is FrontedDesignerResizeHandleKind.Left
+            or FrontedDesignerResizeHandleKind.TopLeft
+            or FrontedDesignerResizeHandleKind.BottomLeft
+            ? -deltaX
+            : handle is FrontedDesignerResizeHandleKind.Right
+                or FrontedDesignerResizeHandleKind.TopRight
+                or FrontedDesignerResizeHandleKind.BottomRight
+                ? deltaX
+                : 0D;
+        var heightDelta = handle is FrontedDesignerResizeHandleKind.Top
+            or FrontedDesignerResizeHandleKind.TopLeft
+            or FrontedDesignerResizeHandleKind.TopRight
+            ? -deltaY
+            : handle is FrontedDesignerResizeHandleKind.Bottom
+                or FrontedDesignerResizeHandleKind.BottomLeft
+                or FrontedDesignerResizeHandleKind.BottomRight
+                ? deltaY
+                : 0D;
+
+        var width = originalWidth + widthDelta;
+        var height = originalHeight + heightDelta;
+
+        if (EffectiveSnapEnabled)
+        {
+            width = FrontedDesignerGeometryHelper.NormalizeCoordinate(width, effectiveSnapEnabled: true, SnapGridSize);
+            height = FrontedDesignerGeometryHelper.NormalizeCoordinate(height, effectiveSnapEnabled: true, SnapGridSize);
+        }
+        else
+        {
+            width = FrontedDesignerGeometryHelper.Snap(width);
+            height = FrontedDesignerGeometryHelper.Snap(height);
+        }
+
+        config.ImageWidth = Math.Max(FrontedDesignerGeometryHelper.MinResizeWidth, width);
+        config.ImageHeight = Math.Max(FrontedDesignerGeometryHelper.MinResizeHeight, height);
     }
 
     public IReadOnlyList<FrontedControlDesignItem> SyncLinkedOverlays(
@@ -2028,7 +2133,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         if (propertyName is nameof(FrontedControlConfigBase.Width)
-            or nameof(FrontedControlConfigBase.Height))
+            or nameof(FrontedControlConfigBase.Height)
+            or nameof(BorderedImageFrontedControlConfig.ImageWidth)
+            or nameof(BorderedImageFrontedControlConfig.ImageHeight))
         {
             return Math.Max(
                 FrontedDesignerGeometryHelper.MinResizeWidth,

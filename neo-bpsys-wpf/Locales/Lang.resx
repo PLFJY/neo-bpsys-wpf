@@ -2806,6 +2806,12 @@
   <data name="Designer.Property.CornerRadius" xml:space="preserve">
     <value>圆角</value>
   </data>
+  <data name="Designer.Property.ImageWidth" xml:space="preserve">
+    <value>内部图片宽度</value>
+  </data>
+  <data name="Designer.Property.ImageHeight" xml:space="preserve">
+    <value>内部图片高度</value>
+  </data>
   <data name="Designer.Property.PickingBorderImagePath" xml:space="preserve">
     <value>选择框图片</value>
   </data>
@@ -2911,6 +2917,15 @@
   <data name="Designer.PropertyGroup.ControlSpecific" xml:space="preserve">
     <value>控件特定</value>
   </data>
+  <data name="Designer.PropertyGroup.Border" xml:space="preserve">
+    <value>外框</value>
+  </data>
+  <data name="Designer.PropertyGroup.Image" xml:space="preserve">
+    <value>内部图片</value>
+  </data>
+  <data name="ResizeTarget" xml:space="preserve">
+    <value>缩放对象</value>
+  </data>
   <data name="Designer.ControlType.Text" xml:space="preserve">
     <value>文本</value>
   </data>
@@ -2919,6 +2934,9 @@
   </data>
   <data name="Designer.ControlType.Image" xml:space="preserve">
     <value>图片</value>
+  </data>
+  <data name="Designer.ControlType.BorderedImage" xml:space="preserve">
+    <value>带边框图片</value>
   </data>
   <data name="Designer.ControlType.GameProgressText" xml:space="preserve">
     <value>对局进度</value>

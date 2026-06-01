@@ -274,6 +274,8 @@ JSON 结构保持当前 v3 root-level dictionary 模式：
 }
 ```
 
+图片控件 schema 值保持原始 `ControlType` 字符串：`Image` 表示 direct image，根元素就是 WPF `Image`，用于旧 direct XAML Image 行为和简单图片；`BorderedImage` 表示外层 `Border` + 内层 `Image`，用于需要外层容器、裁剪框或由外框承接设计器 resize 的图片区域。`BorderedImage` 的 `HorizontalAlignment` / `VerticalAlignment` / `Stretch` / `ImageWidth` / `ImageHeight` 作用于内层 `Image`，`Left` / `Top` / `Width` / `Height` / `ZIndex` 作用于外层 `Border`。包导入、导出和 roundtrip 不应翻译或重命名这些 `ControlType` 值。
+
 ## 8. 资源 URI 规则
 
 允许的资源路径形式如下。

@@ -125,6 +125,9 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
                         $"Control '{controlName}' could not be read as LocalizedText."),
                 "Image" => JsonSerializer.Deserialize<ImageFrontedControlConfig>(json, options)
                     ?? throw new FrontedLayoutConfigException($"Control '{controlName}' could not be read as Image."),
+                "BorderedImage" => JsonSerializer.Deserialize<BorderedImageFrontedControlConfig>(json, options)
+                    ?? throw new FrontedLayoutConfigException(
+                        $"Control '{controlName}' could not be read as BorderedImage."),
                 "GlobalScoreRow" => JsonSerializer.Deserialize<GlobalScoreRowControlConfig>(json, options)
                     ?? throw new FrontedLayoutConfigException(
                         $"Control '{controlName}' could not be read as GlobalScoreRow."),

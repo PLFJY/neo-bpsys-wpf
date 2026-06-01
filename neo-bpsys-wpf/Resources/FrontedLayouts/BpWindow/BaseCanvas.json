@@ -194,7 +194,7 @@
     "Height": 44.5
   },
   "SurPick0": {
-    "ControlType": "Image",
+    "ControlType": "BorderedImage",
     "Left": 0,
     "Top": 620,
     "Width": 141,
@@ -207,7 +207,7 @@
     "ClipToBounds": true
   },
   "SurPick1": {
-    "ControlType": "Image",
+    "ControlType": "BorderedImage",
     "Left": 143,
     "Top": 620,
     "Width": 141,
@@ -220,7 +220,7 @@
     "ClipToBounds": true
   },
   "SurPick2": {
-    "ControlType": "Image",
+    "ControlType": "BorderedImage",
     "Left": 286,
     "Top": 620,
     "Width": 141,
@@ -233,7 +233,7 @@
     "ClipToBounds": true
   },
   "SurPick3": {
-    "ControlType": "Image",
+    "ControlType": "BorderedImage",
     "Left": 428,
     "Top": 620,
     "Width": 140,
@@ -286,7 +286,7 @@
     "InitiallyHidden": true
   },
   "Map": {
-    "ControlType": "Image",
+    "ControlType": "BorderedImage",
     "Left": 572,
     "Top": 616,
     "Width": 297,

@@ -65,7 +65,7 @@
     "ZIndex": 2
   },
   "Map": {
-    "ControlType": "Image",
+    "ControlType": "BorderedImage",
     "Left": 556,
     "Top": 151,
     "Width": 328,
@@ -717,7 +717,7 @@
     "ZIndex": 2
   },
   "HunImage": {
-    "ControlType": "Image",
+    "ControlType": "BorderedImage",
     "Left": 1075,
     "Top": 295,
     "Width": 314,

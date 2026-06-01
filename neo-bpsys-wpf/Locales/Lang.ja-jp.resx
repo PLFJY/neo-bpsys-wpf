@@ -2515,6 +2515,8 @@
   <data name="Designer.Property.SizingMode" xml:space="preserve"><value>サイズモード</value></data>
   <data name="Designer.Property.ClipToBounds" xml:space="preserve"><value>範囲外をクリップ</value></data>
   <data name="Designer.Property.CornerRadius" xml:space="preserve"><value>角丸</value></data>
+  <data name="Designer.Property.ImageWidth" xml:space="preserve"><value>内部画像の幅</value></data>
+  <data name="Designer.Property.ImageHeight" xml:space="preserve"><value>内部画像の高さ</value></data>
   <data name="Designer.Property.PickingBorderImagePath" xml:space="preserve"><value>選択枠画像</value></data>
   <data name="Designer.Property.BanLockImagePath" xml:space="preserve"><value>Ban ロック画像</value></data>
   <data name="Designer.Property.LocalizationKey" xml:space="preserve"><value>ローカライズキー</value></data>
@@ -2550,9 +2552,13 @@
   <data name="Designer.PropertyGroup.Advanced" xml:space="preserve"><value>詳細</value></data>
   <data name="Designer.PropertyGroup.Validation" xml:space="preserve"><value>検証</value></data>
   <data name="Designer.PropertyGroup.ControlSpecific" xml:space="preserve"><value>コントロール固有</value></data>
+  <data name="Designer.PropertyGroup.Border" xml:space="preserve"><value>外枠</value></data>
+  <data name="Designer.PropertyGroup.Image" xml:space="preserve"><value>内部画像</value></data>
+  <data name="ResizeTarget" xml:space="preserve"><value>リサイズ対象</value></data>
   <data name="Designer.ControlType.Text" xml:space="preserve"><value>テキスト</value></data>
   <data name="Designer.ControlType.LocalizedText" xml:space="preserve"><value>ローカライズ済みテキスト</value></data>
   <data name="Designer.ControlType.Image" xml:space="preserve"><value>画像</value></data>
+  <data name="Designer.ControlType.BorderedImage" xml:space="preserve"><value>枠付き画像</value></data>
   <data name="Designer.ControlType.GameProgressText" xml:space="preserve"><value>ゲーム進行</value></data>
   <data name="Designer.ControlType.MapNameText" xml:space="preserve"><value>マップ名</value></data>
   <data name="Designer.ControlType.TalentTraitDisplay" xml:space="preserve"><value>人格 / 補助特質</value></data>

@@ -15,6 +15,7 @@ public class FrontedControlDefaultConfigFactory
             "Text",
             "LocalizedText",
             "Image",
+            "BorderedImage",
             "MapNameText",
             "GameProgressText",
             "TalentTraitDisplay",
@@ -83,6 +84,14 @@ public class FrontedControlDefaultConfigFactory
                 Height = 120,
                 SizingMode = ImageSizingMode.Auto,
                 Stretch = "Uniform"
+            },
+            "BorderedImage" => new BorderedImageFrontedControlConfig
+            {
+                Width = 120,
+                Height = 120,
+                SizingMode = ImageSizingMode.FillContainer,
+                Stretch = "UniformToFill",
+                ClipToBounds = true
             },
             "MapNameText" => new MapNameTextControlConfig
             {

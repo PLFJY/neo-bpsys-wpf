@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -554,6 +555,12 @@ public partial class FrontedDesignerWindow : FluentWindow
         if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.SelectedDesignItem))
         {
             SuppressPropertyEditorCommitForLayoutPass();
+            RebuildInteractionLayer();
+            FocusDesignSurface();
+        }
+
+        if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.BorderedImageResizeTarget))
+        {
             RebuildInteractionLayer();
             FocusDesignSurface();
         }
@@ -1348,12 +1355,22 @@ public partial class FrontedDesignerWindow : FluentWindow
         _originalLeft = item.Config.Left;
         _originalTop = item.Config.Top;
         var bounds = ResolveItemBounds(item);
-        if (!item.Config.Width.HasValue)
+        if (item.Config is BorderedImageFrontedControlConfig imageConfig
+            && _viewModel?.BorderedImageResizeTarget == FrontedDesignerResizeTarget.Image)
+        {
+            imageConfig.ImageWidth ??= bounds.Width;
+            imageConfig.ImageHeight ??= bounds.Height;
+        }
+        else if (!item.Config.Width.HasValue)
         {
             item.Config.Width = bounds.Width;
-        }
 
-        if (!item.Config.Height.HasValue)
+            if (!item.Config.Height.HasValue)
+            {
+                item.Config.Height = bounds.Height;
+            }
+        }
+        else if (!item.Config.Height.HasValue)
         {
             item.Config.Height = bounds.Height;
         }
@@ -1451,10 +1468,54 @@ public partial class FrontedDesignerWindow : FluentWindow
     private FrontedDesignerResolvedBounds ResolveItemBounds(FrontedControlDesignItem item)
     {
         var previewElement = FindPreviewElement(item.Name);
+        if (item.Config is BorderedImageFrontedControlConfig imageConfig
+            && _viewModel?.BorderedImageResizeTarget == FrontedDesignerResizeTarget.Image)
+        {
+            return ResolveBorderedImageInnerBounds(
+                imageConfig,
+                previewElement?.ActualWidth,
+                previewElement?.ActualHeight);
+        }
+
         return FrontedDesignerBoundsResolver.Resolve(
             item.Config,
             previewElement?.ActualWidth,
             previewElement?.ActualHeight);
+    }
+
+    private static FrontedDesignerResolvedBounds ResolveBorderedImageInnerBounds(
+        BorderedImageFrontedControlConfig config,
+        double? actualWidth,
+        double? actualHeight)
+    {
+        var borderBounds = FrontedDesignerBoundsResolver.Resolve(config, actualWidth, actualHeight);
+        var imageWidth = config.ImageWidth ?? borderBounds.Width;
+        var imageHeight = config.ImageHeight ?? borderBounds.Height;
+        var offsetX = ResolveAlignedOffset(borderBounds.Width, imageWidth, config.HorizontalAlignment, isHorizontal: true);
+        var offsetY = ResolveAlignedOffset(borderBounds.Height, imageHeight, config.VerticalAlignment, isHorizontal: false);
+
+        return new FrontedDesignerResolvedBounds(
+            borderBounds.Left + offsetX,
+            borderBounds.Top + offsetY,
+            imageWidth,
+            imageHeight);
+    }
+
+    private static double ResolveAlignedOffset(double slotSize, double elementSize, string? alignment, bool isHorizontal)
+    {
+        var normalized = alignment?.Trim();
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            normalized = "Center";
+        }
+
+        return normalized switch
+        {
+            "Right" when isHorizontal => slotSize - elementSize,
+            "Bottom" when !isHorizontal => slotSize - elementSize,
+            "Center" => (slotSize - elementSize) / 2D,
+            _ => 0D
+        };
     }
 
     private void UpdateSelectedPreviewElement()
@@ -1484,11 +1545,38 @@ public partial class FrontedDesignerWindow : FluentWindow
             element.Height = item.Config.Height.Value;
         }
 
+        if (item.Config is BorderedImageFrontedControlConfig imageConfig
+            && _viewModel?.BorderedImageResizeTarget == FrontedDesignerResizeTarget.Image)
+        {
+            UpdateBorderedImageInnerPreviewElement(element, imageConfig);
+        }
+
         var bounds = ResolveItemBounds(item);
         var linkedOverlays = _viewModel?.SyncLinkedOverlays(item, bounds) ?? [];
         foreach (var linkedOverlay in linkedOverlays)
         {
             UpdatePreviewElement(linkedOverlay);
+        }
+    }
+
+    private static void UpdateBorderedImageInnerPreviewElement(
+        FrameworkElement rootElement,
+        BorderedImageFrontedControlConfig config)
+    {
+        var innerImage = FindDescendant<System.Windows.Controls.Image>(rootElement);
+        if (innerImage is null)
+        {
+            return;
+        }
+
+        if (config.ImageWidth.HasValue)
+        {
+            innerImage.Width = config.ImageWidth.Value;
+        }
+
+        if (config.ImageHeight.HasValue)
+        {
+            innerImage.Height = config.ImageHeight.Value;
         }
     }
 
@@ -1548,6 +1636,28 @@ public partial class FrontedDesignerWindow : FluentWindow
             }
 
             var nested = FindGeneratedPreviewElement(child, name);
+            if (nested is not null)
+            {
+                return nested;
+            }
+        }
+
+        return null;
+    }
+
+    private static T? FindDescendant<T>(DependencyObject parent)
+        where T : DependencyObject
+    {
+        var childCount = VisualTreeHelper.GetChildrenCount(parent);
+        for (var i = 0; i < childCount; i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is T match)
+            {
+                return match;
+            }
+
+            var nested = FindDescendant<T>(child);
             if (nested is not null)
             {
                 return nested;
