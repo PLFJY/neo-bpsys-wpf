@@ -52,8 +52,8 @@
                 <ui:TextBox
                     Grid.Column="0"
                     MinHeight="30"
-                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
                     KeyDown="PropertyTextBox_OnKeyDown"
+                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
                     Text="{Binding EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}">
                     <ui:TextBox.Style>
                         <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="{x:Type ui:TextBox}">
@@ -148,8 +148,8 @@
                 <ui:TextBox
                     Grid.Column="1"
                     MinHeight="30"
-                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
                     KeyDown="PropertyTextBox_OnKeyDown"
+                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
                     Text="{Binding EditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}">
                     <ui:TextBox.Style>
                         <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="{x:Type ui:TextBox}">
@@ -428,14 +428,16 @@
                                 IsChecked="{Binding SnapEnabled, Mode=TwoWay}" />
                         </MenuItem>
                     </Menu>
-                    <TextBlock
+                    <!--  Do NOT change this TextBox to TextBlock  -->
+                    <TextBox
                         MaxWidth="260"
                         Margin="0,0,8,8"
                         VerticalAlignment="Center"
                         FontSize="12"
+                        IsReadOnly="True"
                         Text="{Binding LayoutSourcePath}"
-                        TextTrimming="CharacterEllipsis"
                         ToolTip="{Binding LayoutSourcePath}" />
+                    <!--  Do NOT change this TextBox to TextBlock  -->
                     <TextBlock
                         Margin="0,0,8,8"
                         VerticalAlignment="Center"
