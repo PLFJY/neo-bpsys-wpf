@@ -16,6 +16,8 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
@@ -45,12 +47,16 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly Dictionary<string, string> _propertyEditBuffers = new(StringComparer.Ordinal);
     private readonly Stack<string> _undoStack = new();
     private readonly Stack<string> _redoStack = new();
-    private FrontedControlDesignItem? _copiedControl;
+    private FrontedDesignerClipboardPayload? _copiedControl;
     private IReadOnlyList<FrontedLayoutValidationMessage> _lastValidationMessages = [];
     private bool _isChangingZoomPreset;
     private bool _isRebuildingPropertyGrid;
     private bool _isRestoringSnapshot;
     private bool _isLoadingWindowOptions;
+    private bool _scheduledValidationAndPreviewPending;
+    private bool _scheduledValidationRequested;
+    private bool _scheduledPreviewRequested;
+    private FrontedControlDesignItem? _lastSelectedDesignItem;
     private double _lastPreviewViewportWidth;
     private double _lastPreviewViewportHeight;
 
@@ -278,6 +284,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public bool CanPasteControl => CurrentDocument is not null && _copiedControl is not null;
 
+    public bool HasPendingScheduledDesignerWork => _scheduledValidationAndPreviewPending;
+
+    public int ScheduledDesignerValidationExecutionCount { get; private set; }
+
+    public int ScheduledDesignerPreviewExecutionCount { get; private set; }
+
     public bool CanUndo => _undoStack.Count > 0;
 
     public bool CanRedo => _redoStack.Count > 0;
@@ -371,6 +383,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             ClearUndoRedo();
         }
+        NormalizeSelectionState();
         RefreshCanvasPropertyBuffers();
         RebuildFilteredDesignItems();
         RebuildPropertyEditorItems();
@@ -397,13 +410,18 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         _propertyEditErrors.Clear();
         _propertyEditBuffers.Clear();
-        if (CurrentDocument is not null)
+        if (_lastSelectedDesignItem is not null
+            && !ReferenceEquals(_lastSelectedDesignItem, value))
         {
-            foreach (var control in CurrentDocument.Controls)
-            {
-                control.IsSelected = ReferenceEquals(control, value);
-            }
+            _lastSelectedDesignItem.IsSelected = false;
         }
+
+        if (value is not null)
+        {
+            value.IsSelected = true;
+        }
+
+        _lastSelectedDesignItem = value;
 
         RefreshSelectedControlDisplay();
         RebuildPropertyEditorItems();
@@ -670,14 +688,18 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
+        var total = StartDesignerPerfTrace();
+        LogDesignerPerf("Undo", "start");
         var currentSnapshot = CreateSnapshot();
+        LogDesignerPerf("Undo", "create current snapshot", Elapsed(total));
         if (currentSnapshot is not null)
         {
             _redoStack.Push(currentSnapshot);
         }
 
-        RestoreSnapshot(_undoStack.Pop());
+        RestoreSnapshot(_undoStack.Pop(), scheduleValidationAndPreview: true, traceOperation: "Undo");
         StatusMessage = I18nHelper.GetLocalizedString("Undo");
+        LogDesignerPerf("Undo", "total", Elapsed(total));
     }
 
     [RelayCommand(CanExecute = nameof(CanRedo))]
@@ -689,14 +711,18 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
+        var total = StartDesignerPerfTrace();
+        LogDesignerPerf("Redo", "start");
         var currentSnapshot = CreateSnapshot();
+        LogDesignerPerf("Redo", "create current snapshot", Elapsed(total));
         if (currentSnapshot is not null)
         {
             _undoStack.Push(currentSnapshot);
         }
 
-        RestoreSnapshot(_redoStack.Pop());
+        RestoreSnapshot(_redoStack.Pop(), scheduleValidationAndPreview: true, traceOperation: "Redo");
         StatusMessage = I18nHelper.GetLocalizedString("Redo");
+        LogDesignerPerf("Redo", "total", Elapsed(total));
     }
 
     [RelayCommand]
@@ -795,7 +821,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
-        _copiedControl = SelectedDesignItem;
+        _copiedControl = FrontedDesignerClipboardPayload.Create(SelectedDesignItem!);
         PasteControlCommand.NotifyCanExecuteChanged();
         StatusMessage = I18nHelper.GetLocalizedString("CopyControl");
     }
@@ -815,7 +841,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
-        var clonedConfig = CloneControlConfig(_copiedControl.Config);
+        var total = StartDesignerPerfTrace();
+        LogDesignerPerf("Paste", "start");
+        var clonedConfig = _copiedControl.CreateConfig();
+        LogDesignerPerf("Paste", "clone config", Elapsed(total));
         clonedConfig.Left += 10D;
         clonedConfig.Top += 10D;
         clonedConfig.ZIndex = CurrentDocument.Controls.Count == 0
@@ -824,22 +853,28 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var item = new FrontedControlDesignItem
         {
-            Name = GeneratePasteName(_copiedControl.Name, _copiedControl.Config.ControlType, CurrentDocument),
+            Name = GeneratePasteName(_copiedControl.SourceName, _copiedControl.ControlType, CurrentDocument),
             Config = clonedConfig,
             IsSelectableInEditor = true,
             IsEditableInEditor = true
         };
+        LogDesignerPerf("Paste", "name/z-index preparation", Elapsed(total));
 
         CaptureUndoSnapshot();
+        LogDesignerPerf("Paste", "undo snapshot capture", Elapsed(total));
         CurrentDocument.Controls.Add(item);
+        LogDesignerPerf("Paste", "add control", Elapsed(total));
         CurrentDocument.IsDirty = true;
         RefreshDirtyState();
-        ControlFilterText = string.Empty;
-        RebuildFilteredDesignItems();
+        AddFilteredDesignItemIfVisible(item);
+        LogDesignerPerf("Paste", "filtered list update", Elapsed(total));
         SelectDesignItem(item);
-        ValidateCurrentDocument();
-        RequestPreviewRenderCurrentDocument();
+        LogDesignerPerf("Paste", "selection update", Elapsed(total));
+        ScheduleValidationAndPreviewRender("Paste");
+        LogDesignerPerf("Paste", "validation scheduling", Elapsed(total));
+        LogDesignerPerf("Paste", "preview render scheduling", Elapsed(total));
         StatusMessage = $"{I18nHelper.GetLocalizedString("PasteControl")}: {item.Name}";
+        LogDesignerPerf("Paste", "total", Elapsed(total));
     }
 
     [RelayCommand(CanExecute = nameof(CanDeleteSelectedControl))]
@@ -870,16 +905,24 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
+        var total = StartDesignerPerfTrace();
+        LogDesignerPerf("Delete", "start");
         CaptureUndoSnapshot();
+        LogDesignerPerf("Delete", "undo snapshot capture", Elapsed(total));
         CurrentDocument.Controls.Remove(item);
+        LogDesignerPerf("Delete", "remove control", Elapsed(total));
         CurrentDocument.IsDirty = true;
         RefreshDirtyState();
         SelectDesignItem(null);
-        RebuildFilteredDesignItems();
+        RemoveFilteredDesignItem(item);
+        LogDesignerPerf("Delete", "filtered list update", Elapsed(total));
         RebuildPropertyEditorItems();
-        ValidateCurrentDocument();
-        RequestPreviewRenderCurrentDocument();
+        LogDesignerPerf("Delete", "selection/property update", Elapsed(total));
+        ScheduleValidationAndPreviewRender("Delete");
+        LogDesignerPerf("Delete", "validation scheduling", Elapsed(total));
+        LogDesignerPerf("Delete", "preview render scheduling", Elapsed(total));
         StatusMessage = $"{I18nHelper.GetLocalizedString("DeleteSelectedControl")}: {item.Name}";
+        LogDesignerPerf("Delete", "total", Elapsed(total));
     }
 
     [RelayCommand]
@@ -1447,6 +1490,67 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ApplyValidationMessages(_validator.Validate(CurrentDocument));
     }
 
+    private void ScheduleValidationAndPreviewRender(string reason)
+    {
+        _scheduledValidationRequested = true;
+        _scheduledPreviewRequested = true;
+        if (_scheduledValidationAndPreviewPending)
+        {
+            LogDesignerPerf(reason, "validation/preview already scheduled");
+            return;
+        }
+
+        _scheduledValidationAndPreviewPending = true;
+        var dispatcher = Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
+        dispatcher.BeginInvoke(
+            new Action(ExecuteScheduledValidationAndPreviewRender),
+            DispatcherPriority.Background);
+    }
+
+    public void ExecuteScheduledDesignerWorkForTests()
+    {
+        if (!_scheduledValidationAndPreviewPending)
+        {
+            return;
+        }
+
+        ExecuteScheduledValidationAndPreviewRender();
+    }
+
+    private void ExecuteScheduledValidationAndPreviewRender()
+    {
+        if (!_scheduledValidationAndPreviewPending)
+        {
+            return;
+        }
+
+        _scheduledValidationAndPreviewPending = false;
+        var shouldValidate = _scheduledValidationRequested;
+        var shouldPreview = _scheduledPreviewRequested;
+        _scheduledValidationRequested = false;
+        _scheduledPreviewRequested = false;
+
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        var total = StartDesignerPerfTrace();
+        if (shouldValidate)
+        {
+            ValidateCurrentDocument();
+            ScheduledDesignerValidationExecutionCount++;
+            LogDesignerPerf("ScheduledDesignerWork", "validation execution", Elapsed(total));
+        }
+
+        if (shouldPreview)
+        {
+            RequestPreviewRenderCurrentDocument();
+            ScheduledDesignerPreviewExecutionCount++;
+            LogDesignerPerf("ScheduledDesignerWork", "preview render execution", Elapsed(total));
+        }
+    }
+
     private void RebuildPropertyEditorItems()
     {
         _isRebuildingPropertyGrid = true;
@@ -1679,6 +1783,122 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
     }
 
+    private void AddFilteredDesignItemIfVisible(FrontedControlDesignItem item)
+    {
+        var filter = ControlFilterText?.Trim();
+        if (!MatchesControlFilter(item, filter))
+        {
+            return;
+        }
+
+        var insertIndex = GetFilteredInsertIndex(item);
+        FilteredDesignItems.Insert(insertIndex, item);
+    }
+
+    private void RemoveFilteredDesignItem(FrontedControlDesignItem item)
+    {
+        var index = FilteredDesignItems.IndexOf(item);
+        if (index >= 0)
+        {
+            FilteredDesignItems.RemoveAt(index);
+        }
+    }
+
+    private void RefreshFilteredDesignItemPosition(FrontedControlDesignItem item)
+    {
+        RemoveFilteredDesignItem(item);
+        AddFilteredDesignItemIfVisible(item);
+    }
+
+    private int GetFilteredInsertIndex(FrontedControlDesignItem item)
+    {
+        if (CurrentDocument is null)
+        {
+            return FilteredDesignItems.Count;
+        }
+
+        for (var index = 0; index < FilteredDesignItems.Count; index++)
+        {
+            if (CompareFilteredOrder(item, FilteredDesignItems[index]) < 0)
+            {
+                return index;
+            }
+        }
+
+        return FilteredDesignItems.Count;
+    }
+
+    private int CompareFilteredOrder(FrontedControlDesignItem left, FrontedControlDesignItem right)
+    {
+        var zIndexCompare = right.Config.ZIndex.CompareTo(left.Config.ZIndex);
+        if (zIndexCompare != 0)
+        {
+            return zIndexCompare;
+        }
+
+        if (CurrentDocument is null)
+        {
+            return 0;
+        }
+
+        return CurrentDocument.Controls.IndexOf(left).CompareTo(CurrentDocument.Controls.IndexOf(right));
+    }
+
+    private void NormalizeSelectionState()
+    {
+        if (_lastSelectedDesignItem is not null)
+        {
+            _lastSelectedDesignItem.IsSelected = false;
+        }
+
+        _lastSelectedDesignItem = null;
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        foreach (var control in CurrentDocument.Controls)
+        {
+            control.IsSelected = ReferenceEquals(control, SelectedDesignItem);
+            if (control.IsSelected)
+            {
+                _lastSelectedDesignItem = control;
+            }
+        }
+    }
+
+    private Stopwatch? StartDesignerPerfTrace()
+    {
+        return _logger.IsEnabled(LogLevel.Debug) ? Stopwatch.StartNew() : null;
+    }
+
+    private static TimeSpan Elapsed(Stopwatch? stopwatch)
+    {
+        return stopwatch?.Elapsed ?? TimeSpan.Zero;
+    }
+
+    [Conditional("DEBUG")]
+    private void LogDesignerPerf(string operation, string stage)
+    {
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug("FrontedDesigner perf {Operation}: {Stage}", operation, stage);
+        }
+    }
+
+    [Conditional("DEBUG")]
+    private void LogDesignerPerf(string operation, string stage, TimeSpan elapsed)
+    {
+        if (_logger.IsEnabled(LogLevel.Debug))
+        {
+            _logger.LogDebug(
+                "FrontedDesigner perf {Operation}: {Stage} at {ElapsedMilliseconds:F2} ms",
+                operation,
+                stage,
+                elapsed.TotalMilliseconds);
+        }
+    }
+
     public static bool MatchesControlFilter(FrontedControlDesignItem item, string? filter)
     {
         if (!item.IsSelectableInEditor)
@@ -1766,13 +1986,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         } && item.Config is not PickingBorderOverlayControlConfig;
     }
 
-    private static FrontedControlConfigBase CloneControlConfig(FrontedControlConfigBase config)
-    {
-        var json = JsonSerializer.Serialize(config, config.GetType());
-        return (FrontedControlConfigBase?)JsonSerializer.Deserialize(json, config.GetType())
-               ?? throw new InvalidOperationException("Failed to clone control config.");
-    }
-
     private static string GeneratePasteName(string sourceName, string controlType, FrontedCanvasDesignDocument document)
     {
         var match = Regex.Match(sourceName, "^(.*?)(\\d+)$", RegexOptions.CultureInvariant);
@@ -1822,17 +2035,22 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         return clamped;
     }
 
-    private void RestoreSnapshot(string snapshot)
+    private void RestoreSnapshot(
+        string snapshot,
+        bool scheduleValidationAndPreview = false,
+        string traceOperation = "RestoreSnapshot")
     {
         if (CurrentDocument is null)
         {
             return;
         }
 
+        var total = StartDesignerPerfTrace();
         var selectedName = SelectedDesignItem?.Name;
         var windowTypeName = CurrentDocument.WindowTypeName;
         var canvasName = CurrentDocument.CanvasName;
         var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(snapshot);
+        LogDesignerPerf(traceOperation, "restore snapshot deserialize", Elapsed(total));
         if (config is null)
         {
             return;
@@ -1846,13 +2064,28 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 canvasName,
                 config,
                 _runtimeContracts);
+            LogDesignerPerf(traceOperation, "design document rebuild", Elapsed(total));
             document.IsDirty = true;
             CurrentDocument = document;
             SelectDesignItem(document.Controls.FirstOrDefault(control =>
                 string.Equals(control.Name, selectedName, StringComparison.Ordinal)));
-            ApplyValidationMessages(_validator.Validate(document));
-            RequestPreviewRender(config, SelectedCanvas);
+            NormalizeSelectionState();
+            if (scheduleValidationAndPreview)
+            {
+                ScheduleValidationAndPreviewRender(traceOperation);
+                LogDesignerPerf(traceOperation, "validation scheduling", Elapsed(total));
+                LogDesignerPerf(traceOperation, "preview render scheduling", Elapsed(total));
+            }
+            else
+            {
+                ApplyValidationMessages(_validator.Validate(document));
+                LogDesignerPerf(traceOperation, "validation execution", Elapsed(total));
+                RequestPreviewRender(config, SelectedCanvas);
+                LogDesignerPerf(traceOperation, "preview render execution", Elapsed(total));
+            }
+
             RefreshDirtyState();
+            LogDesignerPerf(traceOperation, "total", Elapsed(total));
         }
         finally
         {
@@ -2217,6 +2450,37 @@ public sealed class FrontedDesignerZoomPreset(string displayName, double scale, 
     public double Scale { get; } = scale;
 
     public bool IsFit { get; } = isFit;
+}
+
+public sealed class FrontedDesignerClipboardPayload(
+    string sourceName,
+    string controlType,
+    string configJson,
+    Type configType)
+{
+    public string SourceName { get; } = sourceName;
+
+    public string ControlType { get; } = controlType;
+
+    public string ConfigJson { get; } = configJson;
+
+    public Type ConfigType { get; } = configType;
+
+    public static FrontedDesignerClipboardPayload Create(FrontedControlDesignItem item)
+    {
+        var configType = item.Config.GetType();
+        return new FrontedDesignerClipboardPayload(
+            item.Name,
+            item.Config.ControlType,
+            JsonSerializer.Serialize(item.Config, configType),
+            configType);
+    }
+
+    public FrontedControlConfigBase CreateConfig()
+    {
+        return (FrontedControlConfigBase?)JsonSerializer.Deserialize(ConfigJson, ConfigType)
+               ?? throw new InvalidOperationException("Failed to deserialize copied control config.");
+    }
 }
 
 public sealed class FrontedDesignerPreviewRenderRequestedEventArgs(

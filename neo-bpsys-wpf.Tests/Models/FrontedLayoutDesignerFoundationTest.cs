@@ -921,6 +921,94 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Same(pasted, viewModel.SelectedDesignItem);
         Assert.True(document.IsDirty);
         Assert.True(viewModel.CanUndo);
+        Assert.True(viewModel.HasPendingScheduledDesignerWork);
+    }
+
+    [Fact]
+    public void PasteSchedulesValidationAndPreviewAndCoalescesRapidPastes()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Text1",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new TextFrontedControlConfig { Text = "A" }
+        };
+        var document = CreateDocument([title]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        var previewRequests = 0;
+        viewModel.PreviewRenderRequested += (_, _) => previewRequests++;
+        viewModel.SelectDesignItem(title);
+        viewModel.CopySelectedControlCommand.Execute(null);
+
+        viewModel.PasteControlCommand.Execute(null);
+        viewModel.PasteControlCommand.Execute(null);
+
+        Assert.Equal(3, document.Controls.Count);
+        Assert.Equal(0, previewRequests);
+        Assert.True(viewModel.HasPendingScheduledDesignerWork);
+
+        viewModel.ExecuteScheduledDesignerWorkForTests();
+
+        Assert.Equal(1, previewRequests);
+        Assert.Equal(1, viewModel.ScheduledDesignerValidationExecutionCount);
+        Assert.Equal(1, viewModel.ScheduledDesignerPreviewExecutionCount);
+        Assert.False(viewModel.HasPendingScheduledDesignerWork);
+    }
+
+    [Fact]
+    public void CopyPasteUsesImmutableClipboardPayload()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Text1",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new TextFrontedControlConfig { Text = "Copied" }
+        };
+        var document = CreateDocument([title]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(title);
+
+        viewModel.CopySelectedControlCommand.Execute(null);
+        ((TextFrontedControlConfig)title.Config).Text = "Edited";
+        viewModel.PasteControlCommand.Execute(null);
+
+        var pasted = Assert.Single(document.Controls, control => control.Name == "Text2");
+        Assert.Equal("Copied", Assert.IsType<TextFrontedControlConfig>(pasted.Config).Text);
+    }
+
+    [Fact]
+    public void PastePreservesPluginConfigAndExtensionData()
+    {
+        using var extensionJson = JsonDocument.Parse("""{ "Title": "Home", "Nested": { "Enabled": true } }""");
+        var plugin = new FrontedControlDesignItem
+        {
+            Name = "TeamCard1",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new PluginFrontedControlConfig
+            {
+                ControlType = "plugin:top.plfjy.missing/TeamCard",
+                ExtensionData =
+                {
+                    ["Title"] = extensionJson.RootElement.GetProperty("Title").Clone(),
+                    ["Nested"] = extensionJson.RootElement.GetProperty("Nested").Clone()
+                }
+            }
+        };
+        var document = CreateDocument([plugin]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(plugin);
+
+        viewModel.CopySelectedControlCommand.Execute(null);
+        viewModel.PasteControlCommand.Execute(null);
+
+        var pasted = Assert.Single(document.Controls, control => control.Name == "TeamCard2");
+        var config = Assert.IsType<PluginFrontedControlConfig>(pasted.Config);
+        Assert.Equal("plugin:top.plfjy.missing/TeamCard", config.ControlType);
+        Assert.Equal("Home", config.ExtensionData["Title"].GetString());
+        Assert.True(config.ExtensionData["Nested"].GetProperty("Enabled").GetBoolean());
     }
 
     [Fact]
@@ -953,6 +1041,9 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.True(document.IsDirty);
         Assert.Null(viewModel.SelectedDesignItem);
         Assert.DoesNotContain(title, viewModel.FilteredDesignItems);
+        Assert.Equal(0, previewRequests);
+        Assert.True(viewModel.HasPendingScheduledDesignerWork);
+        viewModel.ExecuteScheduledDesignerWorkForTests();
         Assert.True(previewRequests > 0);
     }
 
@@ -1008,6 +1099,7 @@ public class FrontedLayoutDesignerFoundationTest
         viewModel.UndoCommand.Execute(null);
         Assert.Empty(viewModel.CurrentDocument!.Controls);
         Assert.True(viewModel.CanRedo);
+        Assert.True(viewModel.HasPendingScheduledDesignerWork);
 
         viewModel.RedoCommand.Execute(null);
         Assert.Single(viewModel.CurrentDocument!.Controls);
@@ -1032,6 +1124,7 @@ public class FrontedLayoutDesignerFoundationTest
         viewModel.UndoCommand.Execute(null);
         Assert.Single(viewModel.CurrentDocument!.Controls);
         Assert.Equal("Title", viewModel.CurrentDocument!.Controls[0].Name);
+        Assert.True(viewModel.HasPendingScheduledDesignerWork);
     }
 
     [Fact]
@@ -1219,6 +1312,72 @@ public class FrontedLayoutDesignerFoundationTest
         viewModel.CurrentDocument = null;
         viewModel.ControlFilterText = string.Empty;
         Assert.Empty(viewModel.FilteredDesignItems);
+    }
+
+    [Fact]
+    public void PasteUpdatesFilteredDesignItemsWithoutFullFilterReset()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Text1",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new TextFrontedControlConfig { ControlType = "Text", ZIndex = 1 }
+        };
+        var logo = new FrontedControlDesignItem
+        {
+            Name = "Logo",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new ImageFrontedControlConfig { ControlType = "Image", ZIndex = 3 }
+        };
+        var document = CreateDocument([title, logo]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(title);
+        viewModel.CopySelectedControlCommand.Execute(null);
+
+        viewModel.PasteControlCommand.Execute(null);
+
+        Assert.Equal(["Text2", "Logo", "Text1"], viewModel.FilteredDesignItems.Select(item => item.Name));
+
+        viewModel.ControlFilterText = "logo";
+        viewModel.SelectDesignItem(title);
+        viewModel.CopySelectedControlCommand.Execute(null);
+        viewModel.PasteControlCommand.Execute(null);
+
+        Assert.Equal("logo", viewModel.ControlFilterText);
+        Assert.Equal(["Logo"], viewModel.FilteredDesignItems.Select(item => item.Name));
+    }
+
+    [Fact]
+    public void SelectionChangeOnlyTogglesPreviousAndCurrentItems()
+    {
+        var first = new FrontedControlDesignItem
+        {
+            Name = "First",
+            IsSelectableInEditor = true,
+            Config = new TextFrontedControlConfig()
+        };
+        var second = new FrontedControlDesignItem
+        {
+            Name = "Second",
+            IsSelectableInEditor = true,
+            Config = new TextFrontedControlConfig()
+        };
+        var document = CreateDocument([first, second]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+
+        viewModel.SelectDesignItem(first);
+        viewModel.SelectDesignItem(second);
+
+        Assert.False(first.IsSelected);
+        Assert.True(second.IsSelected);
+
+        first.IsSelected = true;
+        viewModel.CurrentDocument = CreateDocument([first, second]);
+
+        Assert.False(first.IsSelected);
+        Assert.True(second.IsSelected);
     }
 
     [Fact]

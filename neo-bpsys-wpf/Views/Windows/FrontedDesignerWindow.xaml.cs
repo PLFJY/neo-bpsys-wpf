@@ -9,6 +9,7 @@ using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ViewModels.Windows;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -844,24 +845,54 @@ public partial class FrontedDesignerWindow : FluentWindow
         object? sender,
         FrontedDesignerPreviewRenderRequestedEventArgs e)
     {
+        var total = StartDesignerPerfTrace();
         if (_renderer is null || e.Config is null || e.Context is null)
         {
             ClearPreviewCanvas();
+            LogDesignerPerf("PreviewRender", "clear", Elapsed(total));
             return;
         }
 
         try
         {
             ConfigureDesignSurface(e.Config.CanvasWidth, e.Config.CanvasHeight);
+            LogDesignerPerf("PreviewRender", "configure surface", Elapsed(total));
             _renderer.RenderToCanvas(PreviewCanvas, e.Config, e.Context);
+            LogDesignerPerf("PreviewRender", "render canvas", Elapsed(total));
             PreviewCanvas.UpdateLayout();
+            LogDesignerPerf("PreviewRender", "update layout", Elapsed(total));
             RebuildInteractionLayer();
+            LogDesignerPerf("PreviewRender", "rebuild interaction layer", Elapsed(total));
+            LogDesignerPerf("PreviewRender", "total", Elapsed(total));
         }
         catch (Exception ex)
         {
             _logger?.LogError(ex, "Failed to render fronted designer preview.");
             ClearPreviewCanvas();
             _viewModel?.ReportRenderFailure(ex);
+        }
+    }
+
+    private Stopwatch? StartDesignerPerfTrace()
+    {
+        return _logger?.IsEnabled(LogLevel.Debug) == true ? Stopwatch.StartNew() : null;
+    }
+
+    private static TimeSpan Elapsed(Stopwatch? stopwatch)
+    {
+        return stopwatch?.Elapsed ?? TimeSpan.Zero;
+    }
+
+    [Conditional("DEBUG")]
+    private void LogDesignerPerf(string operation, string stage, TimeSpan elapsed)
+    {
+        if (_logger?.IsEnabled(LogLevel.Debug) == true)
+        {
+            _logger.LogDebug(
+                "FrontedDesigner perf {Operation}: {Stage} at {ElapsedMilliseconds:F2} ms",
+                operation,
+                stage,
+                elapsed.TotalMilliseconds);
         }
     }
 
