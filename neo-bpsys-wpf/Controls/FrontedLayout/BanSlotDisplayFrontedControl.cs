@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
@@ -215,7 +216,7 @@ public class BanSlotDisplayFrontedControl(ILogger<BanSlotDisplayFrontedControl>?
             }
 
             _lockImage.Source = !string.IsNullOrWhiteSpace(_config.LockImageSource)
-                ? _resourceResolver.ResolveImage(_config.LockImageSource)
+                ? _resourceResolver.ResolveImage(_config.LockImageSource, FrontedImagePurpose.UiElement)
                 : _config.SlotKind == BanSlotKind.Current
                     ? _settingsHostService.Settings.BpWindowSettings.CurrentBanLockImage
                     : _settingsHostService.Settings.BpWindowSettings.GlobalBanLockImage;

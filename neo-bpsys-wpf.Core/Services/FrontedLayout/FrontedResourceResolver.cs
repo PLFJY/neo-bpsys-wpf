@@ -139,7 +139,9 @@ public class FrontedResourceResolver : IFrontedResourceResolver
     }
 
     /// <inheritdoc />
-    public ImageSource? ResolveImage(string? path)
+    public ImageSource? ResolveImage(
+        string? path,
+        FrontedImagePurpose purpose = FrontedImagePurpose.PackageResource)
     {
         var resolvedPath = ResolveImagePath(path);
         if (resolvedPath is null)
@@ -152,7 +154,7 @@ public class FrontedResourceResolver : IFrontedResourceResolver
             return null;
         }
 
-        var validation = _imageSafetyService.ValidateFile(resolvedPath, FrontedImagePurpose.PackageResource);
+        var validation = _imageSafetyService.ValidateFile(resolvedPath, purpose);
         if (!validation.IsValid)
         {
             _logger.LogWarning(

@@ -44,6 +44,12 @@ public class ImageFrontedControl : IFrontedControl
                 Source = context.SharedDataService
             });
         }
+        else if (!string.IsNullOrWhiteSpace(imageConfig.ImagePath))
+        {
+            image.Source = context.ResourceResolver.ResolveImage(
+                imageConfig.ImagePath,
+                FrontedImagePurpose.UiElement);
+        }
 
         FrontedControlFactoryHelper.TryApplyEnum<Stretch>(
             imageConfig.Stretch,

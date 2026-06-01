@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -187,7 +188,7 @@ public class PickingBorderOverlayFrontedControl(
             Background = ResolveFill();
 
             var imageSource = !string.IsNullOrWhiteSpace(_config.BorderImagePath)
-                ? _resourceResolver.ResolveImage(_config.BorderImagePath)
+                ? _resourceResolver.ResolveImage(_config.BorderImagePath, FrontedImagePurpose.UiElement)
                 : _settingsHostService.Settings.BpWindowSettings.PickingBorderImage;
 
             OpacityMask = imageSource is null

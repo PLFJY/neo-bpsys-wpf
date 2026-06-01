@@ -511,7 +511,7 @@ Phase 8G 起，`BindingPath` 仍是可手写文本框，但旁边新增 Browse b
 
 Phase 12/12B 起，Binding Browser 的标题、搜索、按钮、空状态、期望类型和节点显示名可以本地化，但完整 `BindingPath` 始终作为原始路径在树、搜索结果或选中路径区域可见。选择后写回的仍是 `CurrentGame.SurTeam.Name` 这类原始路径，绝不写入“主队名称”等显示文本。
 
-Phase 8G 起，图片/资源路径字段旁新增 Resource Browser。当前资源来源包括内置运行时文件 `Resources/bpui`，返回值使用 resolver 约定的 `Resources/<fileName>`；也支持通过 “Browse file...” 选择 png/jpg/jpeg/webp/bmp 绝对路径。控件级 Resource Browser 选择外部文件仍只写入编辑缓冲。Phase 9B.0 已在 Canvas Properties 中提供 `CanvasWidth`、`CanvasHeight`、`BackgroundImage`、清除背景、浏览资源和选择本地图片；选择本地图片会复制到 editor-local resource store，layout JSON 写为 `bpui://local/...`。导出包时再复制进包资源并重写为 `bpui://{PackageId}/...`。
+Phase 8G 起，图片/资源路径字段旁新增 Resource Browser。当前资源来源包括内置运行时文件 `Resources/bpui`，返回值使用 resolver 约定的 `Resources/<fileName>`；也支持通过 “Browse file...” 选择 png/jpg/jpeg/webp/bmp 绝对路径。`Image` / `BorderedImage` 的静态图片选择写入 `ImagePath`，动态数据仍通过 `BindingPath` 和 Binding Browser 选择；两者同时存在时运行时以 `BindingPath` 为准。控件级 Resource Browser 选择外部文件仍只写入编辑缓冲。Phase 9B.0 已在 Canvas Properties 中提供 `CanvasWidth`、`CanvasHeight`、`BackgroundImage`、清除背景、浏览资源和选择本地图片；选择本地图片会复制到 editor-local resource store，layout JSON 写为 `bpui://local/...`。导出包时再复制进包资源并重写为 `bpui://{PackageId}/...`。
 
 Phase 12B 起，Resource Browser 的标题、搜索、按钮、空状态和来源/类型显示可本地化，但选中区域必须保留原始资源 URI 或文件路径。写回配置的仍是 `Resources/foo.png`、`bpui://...` 或绝对路径原值，不写入本地化显示文本。
 

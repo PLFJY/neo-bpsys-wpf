@@ -627,6 +627,7 @@ public class FrontedPropertyGridBuilder
             }
 
             if (propertyName is nameof(FrontedControlConfigBase.BindingPath)
+                or nameof(ImageFrontedControlConfig.ImagePath)
                 or nameof(BorderedImageFrontedControlConfig.ImageWidth)
                 or nameof(BorderedImageFrontedControlConfig.ImageHeight)
                 or nameof(ImageFrontedControlConfig.SizingMode)

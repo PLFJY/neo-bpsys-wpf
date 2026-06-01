@@ -3,6 +3,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Data;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -30,6 +31,28 @@ internal static class ImageFrontedControlLayoutHelper
                 ApplyHorizontalAlignment(image, config, context);
                 ApplyVerticalAlignment(image, config, context);
                 break;
+        }
+    }
+
+    public static void ApplyImageSource(
+        Image image,
+        ImageFrontedControlConfig config,
+        FrontedControlBuildContext context)
+    {
+        if (!string.IsNullOrWhiteSpace(config.BindingPath))
+        {
+            BindingOperations.SetBinding(image, Image.SourceProperty, new Binding(config.BindingPath)
+            {
+                Source = context.SharedDataService
+            });
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(config.ImagePath))
+        {
+            image.Source = context.ResourceResolver.ResolveImage(
+                config.ImagePath,
+                FrontedImagePurpose.UiElement);
         }
     }
 

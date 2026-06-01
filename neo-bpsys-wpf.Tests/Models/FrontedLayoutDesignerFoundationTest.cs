@@ -378,6 +378,85 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void ValidatorWarnsWhenStaticImagePathCannotResolve()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Logo",
+            Config = new ImageFrontedControlConfig { ImagePath = "Resources/missing.png" }
+        };
+        var validator = new FrontedLayoutValidator(
+            new KnownFrontedControlRegistry(),
+            new FixedPathFrontedResourceResolver());
+
+        var messages = validator.Validate(CreateDocument([item]));
+
+        Assert.Contains(
+            messages,
+            message => message.Code == "ImagePathUnresolved"
+                       && message.ControlName == "Logo"
+                       && message.PropertyName == nameof(ImageFrontedControlConfig.ImagePath)
+                       && message.Severity == FrontedLayoutValidationSeverity.Warning);
+        Assert.DoesNotContain(messages, message => message.Severity == FrontedLayoutValidationSeverity.Error);
+    }
+
+    [Fact]
+    public void ValidatorDoesNotErrorWhenBindingPathOverridesImagePath()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Logo",
+            Config = new ImageFrontedControlConfig
+            {
+                BindingPath = "CurrentGame.SurTeam.Logo",
+                ImagePath = "Resources/logo.png"
+            }
+        };
+
+        var messages = CreateValidator().Validate(CreateDocument([item]));
+
+        Assert.Contains(
+            messages,
+            message => message.Code == "ImagePathIgnored"
+                       && message.ControlName == "Logo"
+                       && message.Severity == FrontedLayoutValidationSeverity.Info);
+        Assert.DoesNotContain(messages, message => message.Severity == FrontedLayoutValidationSeverity.Error);
+    }
+
+    [Fact]
+    public void ValidatorWarnsWhenStaticImagePathFailsSafetyValidation()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var imagePath = Path.Combine(root, "logo.png");
+            WriteTinyPng(imagePath);
+            var item = new FrontedControlDesignItem
+            {
+                Name = "Logo",
+                Config = new ImageFrontedControlConfig { ImagePath = "Resources/logo.png" }
+            };
+            var validator = new FrontedLayoutValidator(
+                new KnownFrontedControlRegistry(),
+                new FixedPathFrontedResourceResolver(imagePath),
+                new RejectingImageSafetyService());
+
+            var messages = validator.Validate(CreateDocument([item]));
+
+            Assert.Contains(
+                messages,
+                message => message.Code == "ImagePathUnsafe"
+                           && message.ControlName == "Logo"
+                           && message.PropertyName == nameof(ImageFrontedControlConfig.ImagePath)
+                           && message.Severity == FrontedLayoutValidationSeverity.Warning);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
     public void ValidatorErrorsWhenPickingBorderOverlayTargetControlNameIsMissing()
     {
         var document = CreateDocument(
@@ -1506,6 +1585,7 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Equal("Border", rows.Single(row => row.PropertyName == nameof(FrontedControlConfigBase.Width)).GroupName);
         Assert.Equal("Border", rows.Single(row => row.PropertyName == nameof(FrontedControlConfigBase.Height)).GroupName);
+        Assert.Equal("Image", rows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.ImagePath)).GroupName);
         Assert.Equal("Image", rows.Single(row => row.PropertyName == nameof(BorderedImageFrontedControlConfig.ImageWidth)).GroupName);
         Assert.Equal("Image", rows.Single(row => row.PropertyName == nameof(BorderedImageFrontedControlConfig.ImageHeight)).GroupName);
         Assert.Equal("Image", rows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.Stretch)).GroupName);
@@ -1534,6 +1614,29 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.DoesNotContain(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.PickingBorder));
         Assert.DoesNotContain(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.BanLockAvailable));
         Assert.Contains(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.Stretch));
+    }
+
+    [Theory]
+    [InlineData("Image", typeof(ImageFrontedControlConfig), "Resource")]
+    [InlineData("BorderedImage", typeof(BorderedImageFrontedControlConfig), "Image")]
+    public void PropertyGridBuilderExposesImagePathAsResourceBrowser(
+        string name,
+        Type configType,
+        string expectedGroup)
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = name,
+            Config = (FrontedControlConfigBase)Activator.CreateInstance(configType)!
+        };
+
+        var rows = BuildPropertyRows(CreateDocument([item]), item);
+        var imagePathRow = Assert.Single(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.ImagePath));
+
+        Assert.True(imagePathRow.CanBrowseResource);
+        Assert.False(imagePathRow.CanBrowseBinding);
+        Assert.Equal(expectedGroup, imagePathRow.GroupName);
+        Assert.Equal(FrontedPropertyEditorKind.Text, imagePathRow.EditorKind);
     }
 
     [Fact]
@@ -3702,6 +3805,30 @@ public class FrontedLayoutDesignerFoundationTest
             };
     }
 
+    private sealed class RejectingImageSafetyService : IFrontedImageSafetyService
+    {
+        public FrontedImageValidationResult ValidateFile(
+            string path,
+            FrontedImagePurpose purpose,
+            bool knownBackgroundImage = false,
+            bool knownUiImage = false) =>
+            new()
+            {
+                IsValid = false,
+                ErrorCode = "ImageTooLarge",
+                ErrorMessage = "Image file is too large."
+            };
+    }
+
+    private sealed class FixedPathFrontedResourceResolver(string? resolvedPath = null) : IFrontedResourceResolver
+    {
+        public string? ResolveImagePath(string? path) => resolvedPath;
+
+        public ImageSource? ResolveImage(
+            string? path,
+            FrontedImagePurpose purpose = FrontedImagePurpose.PackageResource) => null;
+    }
+
     private static IEnumerable<FrontedBindingTreeNode> FlattenBindingTree(
         IEnumerable<FrontedBindingTreeNode> nodes)
     {
@@ -3771,6 +3898,14 @@ public class FrontedLayoutDesignerFoundationTest
             Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(path);
         return path;
+    }
+
+    private static void WriteTinyPng(string path)
+    {
+        File.WriteAllBytes(
+            path,
+            Convert.FromBase64String(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="));
     }
 
     private static void DeleteTempDirectory(string path)

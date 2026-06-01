@@ -63,6 +63,7 @@ public class FrontedCanvasConfigTest
                 "Width": 141,
                 "Height": 160,
                 "BindingPath": "CurrentGame.SurPlayerList[1].PictureShown",
+                "ImagePath": "Resources/static.png",
                 "ZIndex": 1,
                 "SizingMode": "OverflowCrop",
                 "Stretch": "Fill",
@@ -97,6 +98,7 @@ public class FrontedCanvasConfigTest
         var image = Assert.IsType<ImageFrontedControlConfig>(config.Controls["SurPick1"]);
         Assert.Equal(143, image.Left);
         Assert.Equal(160, image.Height);
+        Assert.Equal("Resources/static.png", image.ImagePath);
         Assert.Equal(ImageSizingMode.OverflowCrop, image.SizingMode);
         Assert.Equal("Fill", image.Stretch);
         Assert.Equal("Center", image.HorizontalAlignment);
@@ -151,6 +153,7 @@ public class FrontedCanvasConfigTest
                 "Width": 120,
                 "Height": 160,
                 "BindingPath": "CurrentGame.SurPlayerList[0].PictureShown",
+                "ImagePath": "Resources/static-pick.png",
                 "ImageWidth": 96,
                 "ImageHeight": 128,
                 "SizingMode": "OverflowCrop",
@@ -163,6 +166,7 @@ public class FrontedCanvasConfigTest
         var image = Assert.IsType<BorderedImageFrontedControlConfig>(config.Controls["Pick"]);
         Assert.Equal("BorderedImage", image.ControlType);
         Assert.Equal("CurrentGame.SurPlayerList[0].PictureShown", image.BindingPath);
+        Assert.Equal("Resources/static-pick.png", image.ImagePath);
         Assert.Equal(96, image.ImageWidth);
         Assert.Equal(128, image.ImageHeight);
         Assert.Equal(ImageSizingMode.OverflowCrop, image.SizingMode);
@@ -1915,15 +1919,17 @@ public class FrontedCanvasConfigTest
         RunOnStaThread(() =>
         {
             var sharedDataService = new Mock<ISharedDataService>().Object;
+            var resolver = new RecordingFrontedResourceResolver { ThrowOnResolveImage = true };
             var control = new ImageFrontedControl();
             var element = control.Create(
                 "Pick",
                 new ImageFrontedControlConfig
                 {
                     BindingPath = "CurrentGame.PickedMapImage",
+                    ImagePath = "Resources/static.png",
                     Stretch = "UniformToFill"
                 },
-                CreateBuildContext(sharedDataService));
+                CreateBuildContext(sharedDataService, resourceResolver: resolver));
 
             var image = Assert.IsType<WpfUiImage>(element);
             Assert.Equal(Stretch.UniformToFill, image.Stretch);
@@ -1931,6 +1937,34 @@ public class FrontedCanvasConfigTest
             Assert.NotNull(binding);
             Assert.Equal("CurrentGame.PickedMapImage", binding.Path.Path);
             Assert.Same(sharedDataService, binding.Source);
+            Assert.Null(image.Source);
+            Assert.Null(resolver.LastResolvedImagePath);
+        });
+    }
+
+    [Fact]
+    public void ImageFrontedControlUsesStaticImagePathWhenBindingPathIsEmpty()
+    {
+        RunOnStaThread(() =>
+        {
+            var source = new DrawingImage();
+            source.Freeze();
+            var resolver = new RecordingFrontedResourceResolver { ImageSource = source };
+            var control = new ImageFrontedControl();
+
+            var element = control.Create(
+                "Logo",
+                new ImageFrontedControlConfig
+                {
+                    ImagePath = "Resources/logo.png"
+                },
+                CreateBuildContext(resourceResolver: resolver));
+
+            var image = Assert.IsType<WpfUiImage>(element);
+            Assert.Same(source, image.Source);
+            Assert.Null(BindingOperations.GetBinding(image, WpfUiImage.SourceProperty));
+            Assert.Equal("Resources/logo.png", resolver.LastResolvedImagePath);
+            Assert.Equal(FrontedImagePurpose.UiElement, resolver.LastPurpose);
         });
     }
 
@@ -1975,11 +2009,39 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
+    public void BorderedImageFrontedControlUsesStaticImagePathWhenBindingPathIsEmpty()
+    {
+        RunOnStaThread(() =>
+        {
+            var source = new DrawingImage();
+            source.Freeze();
+            var resolver = new RecordingFrontedResourceResolver { ImageSource = source };
+            var control = new BorderedImageFrontedControl();
+
+            var element = control.Create(
+                "Pick",
+                new BorderedImageFrontedControlConfig
+                {
+                    ImagePath = "Resources/pick.png"
+                },
+                CreateBuildContext(resourceResolver: resolver));
+
+            var border = Assert.IsType<Border>(element);
+            var image = Assert.IsType<Image>(border.Child);
+            Assert.Same(source, image.Source);
+            Assert.Null(BindingOperations.GetBinding(image, Image.SourceProperty));
+            Assert.Equal("Resources/pick.png", resolver.LastResolvedImagePath);
+            Assert.Equal(FrontedImagePurpose.UiElement, resolver.LastPurpose);
+        });
+    }
+
+    [Fact]
     public void BorderedImageFrontedControlReproducesLegacyBorderImageStructure()
     {
         RunOnStaThread(() =>
         {
             var sharedDataService = new Mock<ISharedDataService>().Object;
+            var resolver = new RecordingFrontedResourceResolver { ThrowOnResolveImage = true };
             var control = new BorderedImageFrontedControl();
             var element = control.Create(
                 "SurPick0",
@@ -1990,6 +2052,7 @@ public class FrontedCanvasConfigTest
                     Width = 346,
                     Height = 308.5,
                     BindingPath = "CurrentGame.SurPlayerList[0].Character.BigImage",
+                    ImagePath = "Resources/static.png",
                     SizingMode = ImageSizingMode.OverflowCrop,
                     Stretch = "UniformToFill",
                     HorizontalAlignment = "Center",
@@ -1998,7 +2061,7 @@ public class FrontedCanvasConfigTest
                     CornerRadius = 8,
                     ZIndex = 3
                 },
-                CreateBuildContext(sharedDataService));
+                CreateBuildContext(sharedDataService, resourceResolver: resolver));
 
             var border = Assert.IsType<Border>(element);
             Assert.Equal("SurPick0", border.Name);
@@ -2021,6 +2084,27 @@ public class FrontedCanvasConfigTest
             Assert.NotNull(binding);
             Assert.Equal("CurrentGame.SurPlayerList[0].Character.BigImage", binding.Path.Path);
             Assert.Same(sharedDataService, binding.Source);
+            Assert.Null(image.Source);
+            Assert.Null(resolver.LastResolvedImagePath);
+        });
+    }
+
+    [Fact]
+    public void StaticImagePathResolveFailureDoesNotCrash()
+    {
+        RunOnStaThread(() =>
+        {
+            var control = new ImageFrontedControl();
+            var element = control.Create(
+                "Missing",
+                new ImageFrontedControlConfig
+                {
+                    ImagePath = "Resources/missing.png"
+                },
+                CreateBuildContext(resourceResolver: new RecordingFrontedResourceResolver()));
+
+            var image = Assert.IsType<WpfUiImage>(element);
+            Assert.Null(image.Source);
         });
     }
 
@@ -2133,13 +2217,14 @@ public class FrontedCanvasConfigTest
 
     private static FrontedControlBuildContext CreateBuildContext(
         ISharedDataService sharedDataService = null,
-        IServiceProvider services = null)
+        IServiceProvider services = null,
+        IFrontedResourceResolver resourceResolver = null)
     {
         return new FrontedControlBuildContext
         {
             Services = services ?? EmptyServiceProvider.Instance,
             SharedDataService = sharedDataService ?? new Mock<ISharedDataService>().Object,
-            ResourceResolver = NullFrontedResourceResolver.Instance,
+            ResourceResolver = resourceResolver ?? NullFrontedResourceResolver.Instance,
             WindowId = "TestWindow",
             CanvasName = "BaseCanvas",
             Logger = NullLogger.Instance
@@ -2400,6 +2485,35 @@ public class FrontedCanvasConfigTest
 
         public string ResolveImagePath(string path) => null;
 
-        public ImageSource ResolveImage(string path) => null;
+        public ImageSource ResolveImage(
+            string path,
+            FrontedImagePurpose purpose = FrontedImagePurpose.PackageResource) => null;
+    }
+
+    private sealed class RecordingFrontedResourceResolver : IFrontedResourceResolver
+    {
+        public ImageSource ImageSource { get; init; }
+
+        public bool ThrowOnResolveImage { get; init; }
+
+        public string LastResolvedImagePath { get; private set; }
+
+        public FrontedImagePurpose? LastPurpose { get; private set; }
+
+        public string ResolveImagePath(string path) => null;
+
+        public ImageSource ResolveImage(
+            string path,
+            FrontedImagePurpose purpose = FrontedImagePurpose.PackageResource)
+        {
+            if (ThrowOnResolveImage)
+            {
+                throw new InvalidOperationException("ResolveImage should not be called.");
+            }
+
+            LastResolvedImagePath = path;
+            LastPurpose = purpose;
+            return ImageSource;
+        }
     }
 }

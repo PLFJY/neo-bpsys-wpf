@@ -2,7 +2,6 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -47,13 +46,7 @@ public class BorderedImageFrontedControl : IFrontedControl
             image.Height = imageConfig.ImageHeight.Value;
         }
 
-        if (!string.IsNullOrWhiteSpace(imageConfig.BindingPath))
-        {
-            BindingOperations.SetBinding(image, Image.SourceProperty, new Binding(imageConfig.BindingPath)
-            {
-                Source = context.SharedDataService
-            });
-        }
+        ImageFrontedControlLayoutHelper.ApplyImageSource(image, imageConfig, context);
 
         ImageFrontedControlLayoutHelper.ApplyImageLayout(image, imageConfig, context);
         border.Child = image;

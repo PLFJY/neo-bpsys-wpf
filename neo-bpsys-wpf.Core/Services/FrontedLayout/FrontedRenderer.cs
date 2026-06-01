@@ -221,7 +221,7 @@ public class FrontedRenderer(
 
     private ImageBrush? CreateBackground(string? backgroundImage)
     {
-        var imageSource = resourceResolver.ResolveImage(backgroundImage);
+        var imageSource = resourceResolver.ResolveImage(backgroundImage, FrontedImagePurpose.Background);
         return imageSource is null
             ? null
             : new ImageBrush(imageSource) { Stretch = Stretch.Fill };

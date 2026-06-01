@@ -165,7 +165,7 @@ Phase 12 后，内置图片控件拆为 `Image` 和 `BorderedImage`：
 | `BorderedImage` 外层 `Border` | `Canvas.Left`、`Canvas.Top`、`Width`、`Height`、`Panel.ZIndex`，设计器默认 resize handles 作用于这一层。 |
 | `BorderedImage` 内层 `Image` | `Source` 绑定、`ImageWidth`、`ImageHeight`、`Stretch`、`HorizontalAlignment`、`VerticalAlignment` 等图片展示属性。 |
 
-`BindingPath` 同样应以 `ISharedDataService` 为 binding `Source`。
+`BindingPath` 同样应以 `ISharedDataService` 为 binding `Source`。图片控件还支持 `ImagePath` 作为静态图片资源路径，适合在 Designer 中通过 Resource Browser 选择固定图。`BindingPath` 与 `ImagePath` 同时存在时，`BindingPath` 优先，静态 `ImagePath` 保留但不会生效；清空 `BindingPath` 后会重新使用 `ImagePath`。`ImagePath` 应使用 `Resources/foo.png`、`bpui://...` 等 v3 资源路径，不应长期保存任意绝对本地路径。
 
 `Image` 用于旧 XAML 中直接 `Image` / `ui:Image` 的布局语义，例如 `WidgetsWindow/MapBpCanvas.json` 中 MapV1 的 `PickedMap` / `BannedMap`。这两个控件保持 `"ControlType": "Image"`、`Width = 290`、`Height = 138`、`Stretch = "UniformToFill"` 和 `CornerRadius = 8`，根元素本身就是图片框，避免外层 Border + 内层尺寸绑定造成裁剪偏移。
 

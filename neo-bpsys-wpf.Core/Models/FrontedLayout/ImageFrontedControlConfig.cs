@@ -19,6 +19,11 @@ public class ImageFrontedControlConfig : FrontedControlConfigBase
     public ImageSizingMode SizingMode { get; set; } = ImageSizingMode.Auto;
 
     /// <summary>
+    /// 静态图片路径，仅在 BindingPath 为空时使用。
+    /// </summary>
+    public string? ImagePath { get; set; }
+
+    /// <summary>
     /// 图片拉伸方式。
     /// </summary>
     public string? Stretch { get; set; }

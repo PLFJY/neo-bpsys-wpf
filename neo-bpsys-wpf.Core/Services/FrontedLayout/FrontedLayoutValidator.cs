@@ -17,6 +17,7 @@ public class FrontedLayoutValidator
 
     private readonly IFrontedControlRegistry? _controlRegistry;
     private readonly IFrontedResourceResolver? _resourceResolver;
+    private readonly IFrontedImageSafetyService _imageSafetyService;
     private readonly FrontedLayoutRuntimeContractCatalog _runtimeContracts;
     private readonly FrontedLayoutReferenceScanner _referenceScanner;
 
@@ -26,11 +27,13 @@ public class FrontedLayoutValidator
     public FrontedLayoutValidator(
         IFrontedControlRegistry? controlRegistry = null,
         IFrontedResourceResolver? resourceResolver = null,
+        IFrontedImageSafetyService? imageSafetyService = null,
         FrontedLayoutRuntimeContractCatalog? runtimeContracts = null,
         FrontedLayoutReferenceScanner? referenceScanner = null)
     {
         _controlRegistry = controlRegistry;
         _resourceResolver = resourceResolver;
+        _imageSafetyService = imageSafetyService ?? new FrontedImageSafetyService();
         _runtimeContracts = runtimeContracts ?? new FrontedLayoutRuntimeContractCatalog();
         _referenceScanner = referenceScanner ?? new FrontedLayoutReferenceScanner();
     }
@@ -323,7 +326,7 @@ public class FrontedLayoutValidator
         }
     }
 
-    private static void ValidateKnownControlConfig(
+    private void ValidateKnownControlConfig(
         FrontedControlDesignItem item,
         ICollection<FrontedLayoutValidationMessage> messages)
     {
@@ -358,15 +361,27 @@ public class FrontedLayoutValidator
                 break;
 
             case ImageFrontedControlConfig image:
+                ValidateTextLength(item.Name, nameof(ImageFrontedControlConfig.ImagePath), image.ImagePath, FrontedLayoutLimits.MaxResourcePathLength, "ResourcePathTooLong", messages);
                 ValidateTextLength(item.Name, nameof(ImageFrontedControlConfig.PickingBorderImagePath), image.PickingBorderImagePath, FrontedLayoutLimits.MaxResourcePathLength, "ResourcePathTooLong", messages);
                 ValidateTextLength(item.Name, nameof(ImageFrontedControlConfig.BanLockImagePath), image.BanLockImagePath, FrontedLayoutLimits.MaxResourcePathLength, "ResourcePathTooLong", messages);
-                if (string.IsNullOrWhiteSpace(image.BindingPath))
+                ValidateImagePath(item.Name, image);
+                if (string.IsNullOrWhiteSpace(image.BindingPath)
+                    && string.IsNullOrWhiteSpace(image.ImagePath))
                 {
                     messages.Add(Warning(
                         "EmptyVisibleContent",
-                        $"Image control '{item.Name}' has no BindingPath.",
+                        $"Image control '{item.Name}' has no BindingPath or ImagePath.",
                         item.Name,
-                        nameof(ImageFrontedControlConfig.BindingPath)));
+                        nameof(ImageFrontedControlConfig.ImagePath)));
+                }
+                else if (!string.IsNullOrWhiteSpace(image.BindingPath)
+                         && !string.IsNullOrWhiteSpace(image.ImagePath))
+                {
+                    messages.Add(Info(
+                        "ImagePathIgnored",
+                        $"Image control '{item.Name}' ImagePath is ignored because BindingPath is set.",
+                        item.Name,
+                        nameof(ImageFrontedControlConfig.ImagePath)));
                 }
 
                 break;
@@ -419,6 +434,35 @@ public class FrontedLayoutValidator
                 }
 
                 break;
+        }
+
+        void ValidateImagePath(string controlName, ImageFrontedControlConfig config)
+        {
+            if (string.IsNullOrWhiteSpace(config.ImagePath) || _resourceResolver is null)
+            {
+                return;
+            }
+
+            var resolvedPath = _resourceResolver.ResolveImagePath(config.ImagePath);
+            if (resolvedPath is null)
+            {
+                messages.Add(Warning(
+                    "ImagePathUnresolved",
+                    $"ImagePath '{config.ImagePath}' could not be resolved.",
+                    controlName,
+                    nameof(ImageFrontedControlConfig.ImagePath)));
+                return;
+            }
+
+            var validation = _imageSafetyService.ValidateFile(resolvedPath, FrontedImagePurpose.UiElement);
+            if (!validation.IsValid)
+            {
+                messages.Add(Warning(
+                    "ImagePathUnsafe",
+                    $"ImagePath '{config.ImagePath}' was rejected by image safety validation: {validation.ErrorCode}.",
+                    controlName,
+                    nameof(ImageFrontedControlConfig.ImagePath)));
+            }
         }
     }
 
@@ -591,6 +635,15 @@ public class FrontedLayoutValidator
         string? propertyName = null)
     {
         return Create(FrontedLayoutValidationSeverity.Warning, code, message, controlName, propertyName);
+    }
+
+    private static FrontedLayoutValidationMessage Info(
+        string code,
+        string message,
+        string? controlName = null,
+        string? propertyName = null)
+    {
+        return Create(FrontedLayoutValidationSeverity.Info, code, message, controlName, propertyName);
     }
 
     private static FrontedLayoutValidationMessage Create(

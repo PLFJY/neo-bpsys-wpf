@@ -44,7 +44,7 @@
             Grid.Row="1"
             Margin="12,8,12,0"
             VerticalScrollBarVisibility="Auto">
-            <StackPanel MaxWidth="700">
+            <StackPanel>
                 <ItemsControl ItemsSource="{Binding Sections, RelativeSource={RelativeSource AncestorType={x:Type local:FrontedDesignerHelpWindow}}}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type local:HelpSection}">
@@ -104,6 +104,108 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </Border>
+
+                <TextBlock
+                    Margin="0,0,0,8"
+                    FontSize="16"
+                    FontWeight="SemiBold"
+                    Text="{Binding BuiltInControlsTitle, RelativeSource={RelativeSource AncestorType={x:Type local:FrontedDesignerHelpWindow}}}"
+                    TextWrapping="Wrap" />
+                <Border
+                    Margin="0,0,0,20"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4">
+                    <StackPanel>
+                        <Grid Background="{DynamicResource ControlFillColorSecondaryBrush}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="130" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                Grid.Column="0"
+                                Padding="8"
+                                FontWeight="SemiBold"
+                                Text="{Binding BuiltInControlsControlHeader, RelativeSource={RelativeSource AncestorType={x:Type local:FrontedDesignerHelpWindow}}}"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Grid.Column="1"
+                                Padding="8"
+                                FontWeight="SemiBold"
+                                Text="{Binding BuiltInControlsUsageHeader, RelativeSource={RelativeSource AncestorType={x:Type local:FrontedDesignerHelpWindow}}}"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Grid.Column="2"
+                                Padding="8"
+                                FontWeight="SemiBold"
+                                Text="{Binding BuiltInControlsNotesHeader, RelativeSource={RelativeSource AncestorType={x:Type local:FrontedDesignerHelpWindow}}}"
+                                TextWrapping="Wrap" />
+                        </Grid>
+                        <ItemsControl ItemsSource="{Binding BuiltInControls, RelativeSource={RelativeSource AncestorType={x:Type local:FrontedDesignerHelpWindow}}}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type local:HelpBuiltInControlRow}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="130" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border
+                                            Grid.Column="0"
+                                            Padding="8"
+                                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                            BorderThickness="0,1,1,0">
+                                            <TextBlock
+                                                FontFamily="Consolas"
+                                                FontWeight="SemiBold"
+                                                Text="{Binding ControlType}"
+                                                TextWrapping="Wrap" />
+                                        </Border>
+                                        <Border
+                                            Grid.Column="1"
+                                            Padding="8"
+                                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                            BorderThickness="0,1,1,0">
+                                            <TextBlock Text="{Binding Usage}" TextWrapping="Wrap" />
+                                        </Border>
+                                        <Border
+                                            Grid.Column="2"
+                                            Padding="8"
+                                            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                            BorderThickness="0,1,0,0">
+                                            <TextBlock Text="{Binding Notes}" TextWrapping="Wrap" />
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <ItemsControl ItemsSource="{Binding PostShortcutSections, RelativeSource={RelativeSource AncestorType={x:Type local:FrontedDesignerHelpWindow}}}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type local:HelpSection}">
+                            <StackPanel Margin="0,0,0,20">
+                                <TextBlock
+                                    FontSize="16"
+                                    FontWeight="SemiBold"
+                                    Text="{Binding Title}"
+                                    TextWrapping="Wrap" />
+                                <ItemsControl Margin="0,6,0,0" ItemsSource="{Binding Items}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock
+                                                Margin="0,0,0,4"
+                                                Text="{Binding}"
+                                                TextWrapping="Wrap" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </StackPanel>
         </ScrollViewer>
 

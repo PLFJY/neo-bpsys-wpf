@@ -17,16 +17,30 @@ public sealed class HelpShortcut
     public string Description { get; set; } = string.Empty;
 }
 
+public sealed class HelpBuiltInControlRow
+{
+    public string ControlType { get; set; } = string.Empty;
+    public string Usage { get; set; } = string.Empty;
+    public string Notes { get; set; } = string.Empty;
+}
+
 public partial class FrontedDesignerHelpWindow : FluentWindow
 {
     public ObservableCollection<HelpSection> Sections { get; } = [];
     public ObservableCollection<HelpShortcut> Shortcuts { get; } = [];
+    public ObservableCollection<HelpBuiltInControlRow> BuiltInControls { get; } = [];
+    public ObservableCollection<HelpSection> PostShortcutSections { get; } = [];
+
+    public string BuiltInControlsTitle { get; private set; } = string.Empty;
+    public string BuiltInControlsControlHeader { get; private set; } = string.Empty;
+    public string BuiltInControlsUsageHeader { get; private set; } = string.Empty;
+    public string BuiltInControlsNotesHeader { get; private set; } = string.Empty;
 
     public FrontedDesignerHelpWindow()
     {
         InitializeComponent();
-        DataContext = this;
         LoadHelpContent();
+        DataContext = this;
     }
 
     private void LoadHelpContent()
@@ -37,12 +51,6 @@ public partial class FrontedDesignerHelpWindow : FluentWindow
         AddSection("Designer.Help.Snapping.Title", "Designer.Help.Snapping.Content");
         AddSection("Designer.Help.LayerPanel.Title", "Designer.Help.LayerPanel.Content");
         AddSection("Designer.Help.PropertyGrid.Title", "Designer.Help.PropertyGrid.Content");
-        AddSection("Designer.Help.AddDeleteCopyPaste.Title", "Designer.Help.AddDeleteCopyPaste.Content");
-        AddSection("Designer.Help.CanvasWindowSettings.Title", "Designer.Help.CanvasWindowSettings.Content");
-        AddSection("Designer.Help.Validation.Title", "Designer.Help.Validation.Content");
-        AddSection("Designer.Help.PluginControls.Title", "Designer.Help.PluginControls.Content");
-        AddSection("Designer.Help.LayoutPackages.Title", "Designer.Help.LayoutPackages.Content");
-        AddSection("Designer.Help.Troubleshooting.Title", "Designer.Help.Troubleshooting.Content");
 
         AddShortcut("Designer.Help.Shortcut.Save");
         AddShortcut("Designer.Help.Shortcut.Copy");
@@ -54,6 +62,14 @@ public partial class FrontedDesignerHelpWindow : FluentWindow
         AddShortcut("Designer.Help.Shortcut.PanSpace");
         AddShortcut("Designer.Help.Shortcut.PanRight");
         AddShortcut("Designer.Help.Shortcut.SnapShift");
+
+        AddBuiltInControls();
+        AddPostShortcutSection("Designer.Help.AddDeleteCopyPaste.Title", "Designer.Help.AddDeleteCopyPaste.Content");
+        AddPostShortcutSection("Designer.Help.CanvasWindowSettings.Title", "Designer.Help.CanvasWindowSettings.Content");
+        AddPostShortcutSection("Designer.Help.Validation.Title", "Designer.Help.Validation.Content");
+        AddPostShortcutSection("Designer.Help.PluginControls.Title", "Designer.Help.PluginControls.Content");
+        AddPostShortcutSection("Designer.Help.LayoutPackages.Title", "Designer.Help.LayoutPackages.Content");
+        AddPostShortcutSection("Designer.Help.Troubleshooting.Title", "Designer.Help.Troubleshooting.Content");
     }
 
     private void AddSection(string titleKey, string contentKey)
@@ -72,6 +88,49 @@ public partial class FrontedDesignerHelpWindow : FluentWindow
         }
 
         Sections.Add(section);
+    }
+
+    private void AddPostShortcutSection(string titleKey, string contentKey)
+    {
+        var title = I18nHelper.GetLocalizedString(titleKey);
+        var content = I18nHelper.GetLocalizedString(contentKey);
+        var section = new HelpSection { Title = title };
+
+        foreach (var line in content.Split(new[] { "\\n" }, StringSplitOptions.None))
+        {
+            var trimmed = line.Trim();
+            if (trimmed.Length > 0)
+            {
+                section.Items.Add($"• {trimmed}");
+            }
+        }
+
+        PostShortcutSections.Add(section);
+    }
+
+    private void AddBuiltInControls()
+    {
+        BuiltInControlsTitle = I18nHelper.GetLocalizedString("Designer.Help.BuiltInControls.Title");
+        BuiltInControlsControlHeader = I18nHelper.GetLocalizedString("Designer.Help.BuiltInControls.Column.Control");
+        BuiltInControlsUsageHeader = I18nHelper.GetLocalizedString("Designer.Help.BuiltInControls.Column.Usage");
+        BuiltInControlsNotesHeader = I18nHelper.GetLocalizedString("Designer.Help.BuiltInControls.Column.Notes");
+
+        var content = I18nHelper.GetLocalizedString("Designer.Help.BuiltInControls.Content");
+        foreach (var line in content.Split(new[] { "\\n" }, StringSplitOptions.None))
+        {
+            var parts = line.Split('|', 3);
+            if (parts.Length != 3)
+            {
+                continue;
+            }
+
+            BuiltInControls.Add(new HelpBuiltInControlRow
+            {
+                ControlType = parts[0].Trim(),
+                Usage = parts[1].Trim(),
+                Notes = parts[2].Trim()
+            });
+        }
     }
 
     private void AddShortcut(string key)

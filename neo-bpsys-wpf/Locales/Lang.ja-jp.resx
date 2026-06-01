@@ -2525,6 +2525,9 @@
   <data name="Designer.Property.Height" xml:space="preserve"><value>高さ</value></data>
   <data name="Designer.Property.ZIndex" xml:space="preserve"><value>レイヤー</value></data>
   <data name="Designer.Property.BindingPath" xml:space="preserve"><value>バインドパス</value></data>
+  <data name="Designer.Property.ImagePath" xml:space="preserve"><value>静的画像パス</value></data>
+  <data name="Designer.PropertyDescription.BindingPath" xml:space="preserve"><value>設定すると ImagePath より優先されます。</value></data>
+  <data name="Designer.PropertyDescription.ImagePath" xml:space="preserve"><value>静的画像パス。BindingPath が空の場合のみ使用されます。</value></data>
   <data name="Designer.Property.HorizontalAlignment" xml:space="preserve"><value>水平配置</value></data>
   <data name="Designer.Property.VerticalAlignment" xml:space="preserve"><value>垂直配置</value></data>
   <data name="Designer.Property.TextAlignment" xml:space="preserve"><value>テキスト配置</value></data>
@@ -2787,6 +2790,12 @@
   <data name="Designer.Help.Shortcuts.Title" xml:space="preserve">
     <value>キーボードショートカット</value>
   </data>
+  <data name="Designer.Help.BuiltInControls.Title" xml:space="preserve">
+    <value>組み込みコントロールと使い方</value>
+  </data>
+  <data name="Designer.Help.BuiltInControls.Column.Control" xml:space="preserve"><value>コントロール</value></data>
+  <data name="Designer.Help.BuiltInControls.Column.Usage" xml:space="preserve"><value>用途</value></data>
+  <data name="Designer.Help.BuiltInControls.Column.Notes" xml:space="preserve"><value>注意事項</value></data>
   <data name="Designer.Help.Snapping.Title" xml:space="preserve">
     <value>スナップ動作</value>
   </data>
@@ -2861,6 +2870,9 @@
   </data>
   <data name="Designer.Help.PropertyGrid.Content" xml:space="preserve">
     <value>Name and BindingPath require Enter or apply button to commit;\nInvalid values keep the text and show red border;\nColorPicker updates Hex text; apply button commits;\nComboBox properties commit raw values while displaying localized names;\nBinding browser helps choose valid BindingPath;\nResource browser helps choose bpui/resource URI;\nBorderedImage has separate Border/Image properties;\nBorderedImage resize target can switch between outer border and inner image.</value>
+  </data>
+  <data name="Designer.Help.BuiltInControls.Content" xml:space="preserve">
+    <value>Text|通常のテキストコントロール。BindingPath が設定されている場合は動的テキストをバインドし、空の場合は静的な Text を表示します。|StringFormat はバインド値にのみ適用されます。業務/i18n 文言には専用コントロールを優先してください。\nLocalizedText|静的なローカライズテキストコントロール。LocalizationKey で resx を検索し、見つからない場合は FallbackText または key を表示します。|表ヘッダーや固定ラベルに適しています。保存されるのは key で、ローカライズ後の表示文字列ではありません。\nImage|ルート要素が Image の直接画像コントロール。チームロゴ、マップ、単純な画像、旧 direct Image の意味を保つ場合に使います。|BindingPath は ImageSource をバインドします。ImagePath は BindingPath が空の時だけ使われます。バインドが優先され、ImagePath は自動削除されません。\nBorderedImage|外側 Border + 内側 Image。枠、クリップ、角丸、内部画像サイズ、リサイズ対象の切り替えが必要な画像領域に使います。|BindingPath と ImagePath の優先順位は Image と同じです。Width/Height は外枠、ImageWidth/ImageHeight は内部画像に作用します。\nGameProgressText|現在のゲーム、ハーフ、BO3/BO5、延長ルールから対局進行テキストを生成します。|2 行表示が必要な場合は UseLineBreak を使います。この種の業務文言を通常の Text に直接書かないでください。\nMapNameText|マップ enum/key をローカライズ済みマップ名に変換します。既定では選択マップを読み、BindingPath で picked/banned map フィールドを指定できます。|EmptyText はマップが空の時の表示です。BindingPath は Map/Map? フィールドを指すべきです。\nGlobalScoreRow|全体スコア行コントロール。MatchScore を読み、BO3/BO5 の順序でハーフ別スコアセルと陣営アイコンを作成します。|通常は ScoreGlobalWindow で使います。手書きのスコア Text に分解しないでください。\nTalentTraitDisplay|CutScene の天賦/補助特質表示。DisplayKind と PlayerIndex に応じて固定の業務データを読みます。|補助特質の表示設定にも従えます。JSON に個別の天賦アイコンを直接書かないでください。\nCurrentBanDisplay|WidgetsWindow の現在 Ban 表示。Camp と Index により現在 Ban リストと利用可能状態を読みます。|現在 Ban ウィジェット向けです。業務データは共有状態から来ます。\nBanSlotDisplay|BpWindow の Ban 枠表示。SlotKind、Camp、Index により現在局またはグローバル Ban を読みます。|LockImageSource でロックオーバーレイを表示できます。リソースパスは Resource Browser で選んでください。\nMapV2Display|Map BP v2 表示。MapKey を使い、MapV2Presenter を再利用します。|WidgetsWindow の Map BP v2 レイアウト向けです。内部の Map BP v2 表示要素を手作りしないでください。\nPickingBorderOverlay|高度なオーバーレイコントロール。通常は既定レイアウトで TargetControlName と組み合わせて使います。|対象 pick 画像の位置とサイズに追従します。独立した画像コントロールとしては編集しません。\n共通注意|動的データの BindingPath は Binding Browser で選びます。ImagePath、BackgroundImage、LockImageSource などのリソースパスは Resource Browser で選びます。|静的リソースは Resources/xxx.png または bpui://... を優先し、任意の絶対パスへ長期依存しないでください。画像が欠落または上限超過しても警告または空表示に留め、前台ウィンドウをクラッシュさせない設計です。</value>
   </data>
   <data name="Designer.Help.AddDeleteCopyPaste.Content" xml:space="preserve">
     <value>Add Control inserts built-in/plugin controls;\nCopied control gets unique numbered name on paste;\nPaste offsets the new control;\nRuntime-critical/generated overlays may not be copyable/deletable;\nUndo/Redo can restore add, delete, paste, reorder operations.</value>

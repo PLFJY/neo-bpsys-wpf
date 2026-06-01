@@ -1,4 +1,5 @@
 using System.Windows.Media;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
@@ -15,5 +16,7 @@ public interface IFrontedResourceResolver
     /// <summary>
     /// 解析图片资源。
     /// </summary>
-    ImageSource? ResolveImage(string? path);
+    ImageSource? ResolveImage(
+        string? path,
+        FrontedImagePurpose purpose = FrontedImagePurpose.PackageResource);
 }
