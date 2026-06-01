@@ -3313,4 +3313,118 @@
   <data name="ExamplePlugin.TeamCard.FontWeight" xml:space="preserve">
     <value>Font weight</value>
   </data>
+  <data name="Designer.Help.Title" xml:space="preserve">
+    <value>Designer Help</value>
+  </data>
+  <data name="Designer.Help.Open" xml:space="preserve">
+    <value>Help</value>
+  </data>
+  <data name="Designer.Help.Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Designer.Help.BasicWorkflow.Title" xml:space="preserve">
+    <value>Basic Workflow</value>
+  </data>
+  <data name="Designer.Help.CanvasNavigation.Title" xml:space="preserve">
+    <value>Canvas Navigation</value>
+  </data>
+  <data name="Designer.Help.Selection.Title" xml:space="preserve">
+    <value>Selecting and Editing Controls</value>
+  </data>
+  <data name="Designer.Help.Shortcuts.Title" xml:space="preserve">
+    <value>Keyboard Shortcuts</value>
+  </data>
+  <data name="Designer.Help.Snapping.Title" xml:space="preserve">
+    <value>Snap Behavior</value>
+  </data>
+  <data name="Designer.Help.LayerPanel.Title" xml:space="preserve">
+    <value>Layer Panel</value>
+  </data>
+  <data name="Designer.Help.PropertyGrid.Title" xml:space="preserve">
+    <value>PropertyGrid</value>
+  </data>
+  <data name="Designer.Help.AddDeleteCopyPaste.Title" xml:space="preserve">
+    <value>Add / Delete / Copy / Paste</value>
+  </data>
+  <data name="Designer.Help.CanvasWindowSettings.Title" xml:space="preserve">
+    <value>Canvas / Window Settings</value>
+  </data>
+  <data name="Designer.Help.Validation.Title" xml:space="preserve">
+    <value>Validation</value>
+  </data>
+  <data name="Designer.Help.PluginControls.Title" xml:space="preserve">
+    <value>Plugin Controls</value>
+  </data>
+  <data name="Designer.Help.LayoutPackages.Title" xml:space="preserve">
+    <value>Layout Packages</value>
+  </data>
+  <data name="Designer.Help.Troubleshooting.Title" xml:space="preserve">
+    <value>Tips &amp; Troubleshooting</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Save" xml:space="preserve">
+    <value>Ctrl+S: Save layout</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Copy" xml:space="preserve">
+    <value>Ctrl+C: Copy selected control</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Paste" xml:space="preserve">
+    <value>Ctrl+V: Paste copied control</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Delete" xml:space="preserve">
+    <value>Delete: Delete selected control</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Undo" xml:space="preserve">
+    <value>Ctrl+Z: Undo</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Redo" xml:space="preserve">
+    <value>Ctrl+Y / Ctrl+Shift+Z: Redo</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Zoom" xml:space="preserve">
+    <value>Ctrl+Mouse Wheel: Zoom</value>
+  </data>
+  <data name="Designer.Help.Shortcut.PanSpace" xml:space="preserve">
+    <value>Space+Left Drag: Pan canvas</value>
+  </data>
+  <data name="Designer.Help.Shortcut.PanRight" xml:space="preserve">
+    <value>Right Drag: Pan canvas</value>
+  </data>
+  <data name="Designer.Help.Shortcut.SnapShift" xml:space="preserve">
+    <value>Shift: Temporary snap</value>
+  </data>
+  <data name="Designer.Help.BasicWorkflow.Content" xml:space="preserve">
+    <value>Choose window and canvas from top selectors;\nAdd built-in or plugin controls from Add Control;\nSelect controls from canvas or layer panel;\nEdit properties from PropertyGrid;\nSave layout;\nValidate layout;\nReset/reload layout.</value>
+  </data>
+  <data name="Designer.Help.CanvasNavigation.Content" xml:space="preserve">
+    <value>Mouse wheel / scrollbars to navigate;\nRight mouse drag pans the canvas;\nHold Space + left mouse drag pans the canvas;\nCtrl + mouse wheel zooms;\nBottom Zoom ComboBox accepts 100, 100%, 1x, 1.25x;\nSlider changes zoom;\nFit button fits canvas to current viewport.</value>
+  </data>
+  <data name="Designer.Help.Selection.Content" xml:space="preserve">
+    <value>Click control on canvas to select;\nClick item in layer panel to select;\nDrag selected control on canvas to move;\nResize with handles;\nSelected control name label appears above selection;\nTransparent/empty controls may be selected through hitbox or layer panel.</value>
+  </data>
+  <data name="Designer.Help.Snapping.Content" xml:space="preserve">
+    <value>Snap switch enables snapping;\nHolding Shift temporarily enables snapping without toggling the switch;\nSnap affects move/resize operations;\nSnap does not directly change stored values unless operation is committed.</value>
+  </data>
+  <data name="Designer.Help.LayerPanel.Content" xml:space="preserve">
+    <value>Controls are grouped by ZIndex;\nHigher ZIndex is visually above lower ZIndex;\nDrag within same layer to change same-ZIndex order;\nDrag into another layer to change ZIndex;\nDrag to top edge to create new top layer;\nDrag to bottom edge to create new bottom layer;\nNear top/bottom edge auto-scrolls;\nFiltering disables layer reorder; clear filter to reorder;\nLinked overlay controls are not independently editable or draggable.</value>
+  </data>
+  <data name="Designer.Help.PropertyGrid.Content" xml:space="preserve">
+    <value>Name and BindingPath require Enter or apply button to commit;\nInvalid values keep the text and show red border;\nColorPicker updates Hex text; apply button commits;\nComboBox properties commit raw values while displaying localized names;\nBinding browser helps choose valid BindingPath;\nResource browser helps choose bpui/resource URI;\nBorderedImage has separate Border/Image properties;\nBorderedImage resize target can switch between outer border and inner image.</value>
+  </data>
+  <data name="Designer.Help.AddDeleteCopyPaste.Content" xml:space="preserve">
+    <value>Add Control inserts built-in/plugin controls;\nCopied control gets unique numbered name on paste;\nPaste offsets the new control;\nRuntime-critical/generated overlays may not be copyable/deletable;\nUndo/Redo can restore add, delete, paste, reorder operations.</value>
+  </data>
+  <data name="Designer.Help.CanvasWindowSettings.Content" xml:space="preserve">
+    <value>Canvas Width/Height edit canvas design size;\nBackground image supports bpui resource URI;\nAllowTransparency is a window-level option and may require restart;\nRestart prompt should ask to save changes.</value>
+  </data>
+  <data name="Designer.Help.Validation.Content" xml:space="preserve">
+    <value>Status button opens validation details;\nErrors may block saving/import/export where appropriate;\nWarnings do not always block but should be reviewed;\nMissing plugin controls are shown as warnings in Designer.</value>
+  </data>
+  <data name="Designer.Help.PluginControls.Content" xml:space="preserve">
+    <value>Plugin controls appear in Add Control when plugin is installed;\nPlugin controls behave like built-in controls in Designer;\nMissing plugin controls show placeholder in Designer;\nRuntime skips missing plugin controls instead of crashing;\n.bpui packages declare required plugins;\nImporting a package with missing plugins will guide install/update or allow force import that removes missing controls.</value>
+  </data>
+  <data name="Designer.Help.LayoutPackages.Content" xml:space="preserve">
+    <value>Export writes layout package;\n.bpui does not include plugin binaries;\nImport checks plugin dependencies;\nForce import removes controls that depend on missing plugins;\nOriginal package file remains unchanged.</value>
+  </data>
+  <data name="Designer.Help.Troubleshooting.Content" xml:space="preserve">
+    <value>If a control cannot be selected visually, use the layer panel;\nIf drag reorder is unavailable, clear search filter;\nIf a property appears invalid, check validation details;\nIf plugin control is missing, install/enable the plugin and restart if required;\nIf Fit makes labels too small, selected label should still stay readable after recent polish.</value>
+  </data>
 </root>

@@ -1,0 +1,118 @@
+<ui:FluentWindow
+    x:Class="neo_bpsys_wpf.Views.Windows.FrontedDesignerHelpWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Windows"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="{lex:Loc Designer.Help.Title}"
+    Width="760"
+    Height="640"
+    MinWidth="640"
+    MinHeight="480"
+    lex:LocalizeDictionary.DesignCulture="zh"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Lang"
+    Background="{DynamicResource ApplicationBackgroundBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    WindowStartupLocation="CenterOwner">
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="35"
+            CornerRadius="8"
+            GlassFrameThickness="0"
+            ResizeBorderThickness="5"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <controls:CustomTitleBar
+            Grid.Row="0"
+            Icon="/Assets/icon.png"
+            IsMaximizeVisible="True"
+            IsMinimizeVisible="True"
+            IsThemeChangeVisible="False"
+            IsTopMostVisible="False" />
+
+        <ScrollViewer
+            Grid.Row="1"
+            Margin="12,8,12,0"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel MaxWidth="700">
+                <ItemsControl ItemsSource="{Binding Sections, RelativeSource={RelativeSource AncestorType={x:Type local:FrontedDesignerHelpWindow}}}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type local:HelpSection}">
+                            <StackPanel Margin="0,0,0,20">
+                                <TextBlock
+                                    FontSize="16"
+                                    FontWeight="SemiBold"
+                                    Text="{Binding Title}"
+                                    TextWrapping="Wrap" />
+                                <ItemsControl Margin="0,6,0,0" ItemsSource="{Binding Items}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock
+                                                Margin="0,0,0,4"
+                                                Text="{Binding}"
+                                                TextWrapping="Wrap" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock
+                    Margin="0,0,0,8"
+                    FontSize="16"
+                    FontWeight="SemiBold"
+                    Text="{lex:Loc Designer.Help.Shortcuts.Title}" />
+                <Border
+                    Margin="0,0,0,20"
+                    Padding="12"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4">
+                    <ItemsControl ItemsSource="{Binding Shortcuts, RelativeSource={RelativeSource AncestorType={x:Type local:FrontedDesignerHelpWindow}}}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type local:HelpShortcut}">
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="220" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        FontFamily="Consolas"
+                                        FontWeight="SemiBold"
+                                        Text="{Binding Shortcut}"
+                                        TextWrapping="Wrap" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Text="{Binding Description}"
+                                        TextWrapping="Wrap" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <ui:Button
+            Grid.Row="2"
+            Margin="12,8,12,12"
+            HorizontalAlignment="Right"
+            Click="Close_OnClick"
+            Content="{lex:Loc Designer.Help.Close}"
+            Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
+    </Grid>
+</ui:FluentWindow>

@@ -1060,10 +1060,20 @@
                         Content="{lex:Loc Fit}"
                         ToolTip="{lex:Loc Fit}" />
                 </StackPanel>
-                <TextBlock
+                <StackPanel
                     Grid.Column="2"
                     VerticalAlignment="Center"
-                    Text="{Binding CurrentWindowCanvasDisplay}" />
+                    Orientation="Horizontal">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Text="{Binding CurrentWindowCanvasDisplay}" />
+                    <ui:Button
+                        Margin="10,0,0,0"
+                        Padding="6,4"
+                        Click="OpenDesignerHelp_OnClick"
+                        Icon="{ui:SymbolIcon Symbol=QuestionCircle24}"
+                        ToolTip="{lex:Loc Designer.Help.Open}" />
+                </StackPanel>
             </Grid>
         </Border>
     </Grid>

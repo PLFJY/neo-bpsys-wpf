@@ -3331,4 +3331,118 @@
   <data name="ExamplePlugin.TeamCard.FontWeight" xml:space="preserve">
     <value>字重</value>
   </data>
+  <data name="Designer.Help.Title" xml:space="preserve">
+    <value>设计器帮助</value>
+  </data>
+  <data name="Designer.Help.Open" xml:space="preserve">
+    <value>帮助</value>
+  </data>
+  <data name="Designer.Help.Close" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="Designer.Help.BasicWorkflow.Title" xml:space="preserve">
+    <value>基本操作流程</value>
+  </data>
+  <data name="Designer.Help.CanvasNavigation.Title" xml:space="preserve">
+    <value>画布导航</value>
+  </data>
+  <data name="Designer.Help.Selection.Title" xml:space="preserve">
+    <value>选择和编辑控件</value>
+  </data>
+  <data name="Designer.Help.Shortcuts.Title" xml:space="preserve">
+    <value>键盘快捷键</value>
+  </data>
+  <data name="Designer.Help.Snapping.Title" xml:space="preserve">
+    <value>吸附行为</value>
+  </data>
+  <data name="Designer.Help.LayerPanel.Title" xml:space="preserve">
+    <value>图层面板</value>
+  </data>
+  <data name="Designer.Help.PropertyGrid.Title" xml:space="preserve">
+    <value>属性面板</value>
+  </data>
+  <data name="Designer.Help.AddDeleteCopyPaste.Title" xml:space="preserve">
+    <value>添加 / 删除 / 复制 / 粘贴</value>
+  </data>
+  <data name="Designer.Help.CanvasWindowSettings.Title" xml:space="preserve">
+    <value>画布 / 窗口设置</value>
+  </data>
+  <data name="Designer.Help.Validation.Title" xml:space="preserve">
+    <value>验证</value>
+  </data>
+  <data name="Designer.Help.PluginControls.Title" xml:space="preserve">
+    <value>插件控件</value>
+  </data>
+  <data name="Designer.Help.LayoutPackages.Title" xml:space="preserve">
+    <value>布局包</value>
+  </data>
+  <data name="Designer.Help.Troubleshooting.Title" xml:space="preserve">
+    <value>提示与故障排除</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Save" xml:space="preserve">
+    <value>Ctrl+S：保存布局</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Copy" xml:space="preserve">
+    <value>Ctrl+C：复制选中的控件</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Paste" xml:space="preserve">
+    <value>Ctrl+V：粘贴复制的控件</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Delete" xml:space="preserve">
+    <value>Delete：删除选中的控件</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Undo" xml:space="preserve">
+    <value>Ctrl+Z：撤销</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Redo" xml:space="preserve">
+    <value>Ctrl+Y / Ctrl+Shift+Z：重做</value>
+  </data>
+  <data name="Designer.Help.Shortcut.Zoom" xml:space="preserve">
+    <value>Ctrl+鼠标滚轮：缩放</value>
+  </data>
+  <data name="Designer.Help.Shortcut.PanSpace" xml:space="preserve">
+    <value>Space+左键拖拽：平移画布</value>
+  </data>
+  <data name="Designer.Help.Shortcut.PanRight" xml:space="preserve">
+    <value>鼠标右键拖拽：平移画布</value>
+  </data>
+  <data name="Designer.Help.Shortcut.SnapShift" xml:space="preserve">
+    <value>Shift：临时启用吸附</value>
+  </data>
+  <data name="Designer.Help.BasicWorkflow.Content" xml:space="preserve">
+    <value>从顶部选择器选择窗口和画布；\n从"添加控件"按钮添加内置或插件控件；\n从画布或图层面板选择控件；\n从属性面板编辑属性；\n保存布局；\n验证布局；\n重置/重新加载布局。</value>
+  </data>
+  <data name="Designer.Help.CanvasNavigation.Content" xml:space="preserve">
+    <value>鼠标滚轮或滚动条导航画布；\n鼠标右键拖拽平移画布；\n按住 Space + 鼠标左键拖拽平移画布；\nCtrl + 鼠标滚轮缩放；\n底部缩放组合框支持输入 100、100%、1x、1.25x；\n滑块调整缩放比例；\n"适应"按钮将画布适配到当前视口。</value>
+  </data>
+  <data name="Designer.Help.Selection.Content" xml:space="preserve">
+    <value>点击画布上的控件进行选择；\n点击图层面板中的条目进行选择；\n拖拽选中的控件进行移动；\n通过拖拽手柄调整大小；\n选中控件名称标签显示在选中框上方；\n透明/空控件可通过点击框或图层面板选择。</value>
+  </data>
+  <data name="Designer.Help.Snapping.Content" xml:space="preserve">
+    <value>吸附开关启用吸附功能；\n按住 Shift 临时启用吸附，无需切换开关；\n吸附影响移动和调整大小操作；\n吸附不会直接改变存储值，除非操作已提交。</value>
+  </data>
+  <data name="Designer.Help.LayerPanel.Content" xml:space="preserve">
+    <value>控件按 ZIndex 分组；\n较高的 ZIndex 在视觉上位于较低 ZIndex 的上方；\n在同一图层内拖拽以更改同 ZIndex 顺序；\n拖拽到另一图层以更改 ZIndex；\n拖拽到顶部边缘创建新顶层；\n拖拽到底部边缘创建新底层；\n靠近顶部/底部边缘时自动滚动；\n筛选会禁用图层重新排序；清除筛选后可重新排序；\n链接的覆盖层控件不可独立编辑或拖拽。</value>
+  </data>
+  <data name="Designer.Help.PropertyGrid.Content" xml:space="preserve">
+    <value>名称和绑定路径需要按 Enter 或点击应用按钮提交；\n无效值会保留文本并显示红色边框；\n颜色选择器更新 Hex 文本；应用按钮提交；\n组合框属性在显示本地化名称的同时提交原始值；\n绑定浏览器帮助选择合适的绑定路径；\n资源浏览器帮助选择 bpui/资源 URI；\nBorderedImage 有独立的边框/图片属性；\nBorderedImage 的调整大小目标可在外边框和内图片之间切换。</value>
+  </data>
+  <data name="Designer.Help.AddDeleteCopyPaste.Content" xml:space="preserve">
+    <value>"添加控件"插入内置/插件控件；\n复制的控件在粘贴时获得唯一编号名称；\n粘贴时会偏移新控件的位置；\n运行时关键/生成的覆盖层可能不可复制/删除；\n撤销/重做可恢复添加、删除、粘贴、重新排序操作。</value>
+  </data>
+  <data name="Designer.Help.CanvasWindowSettings.Content" xml:space="preserve">
+    <value>画布宽/高可编辑画布设计尺寸；\n背景图片支持 bpui 资源 URI；\nAllowTransparency 是窗口级选项，可能需要重启；\n重启提示应询问是否保存更改。</value>
+  </data>
+  <data name="Designer.Help.Validation.Content" xml:space="preserve">
+    <value>状态按钮打开验证详情；\n错误可能阻止保存/导入/导出；\n警告通常不阻止但应审查；\n缺失的插件控件在设计器中显示为警告。</value>
+  </data>
+  <data name="Designer.Help.PluginControls.Content" xml:space="preserve">
+    <value>安装插件后，插件控件出现在"添加控件"中；\n插件控件在设计器中的行为与内置控件类似；\n缺失的插件控件在设计器中显示占位符；\n运行时跳过缺失的插件控件而不是崩溃；\n.bpui 包声明所需的插件；\n导入包含缺失插件的包时会引导安装/更新或允许强制导入删除缺失控件。</value>
+  </data>
+  <data name="Designer.Help.LayoutPackages.Content" xml:space="preserve">
+    <value>导出写入布局包；\n.bpui 不包含插件二进制文件；\n导入检查插件依赖关系；\n强制导入会移除依赖缺失插件的控件；\n原始包文件保持不变。</value>
+  </data>
+  <data name="Designer.Help.Troubleshooting.Content" xml:space="preserve">
+    <value>如果无法在画布上视觉选择控件，请使用图层面板；\n如果拖拽重新排序不可用，请清除搜索筛选；\n如果属性显示无效，请检查验证详情；\n如果插件控件缺失，请安装/启用插件并根据需要重启；\n如果"适应"使标签过小，选中标签在经过优化后仍应保持可读。</value>
+  </data>
 </root>

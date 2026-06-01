@@ -37,6 +37,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private bool _suppressPropertyEditorCommit;
     private FrontedDesignerWindowViewModel? _viewModel;
     private ValidationDetailsWindow? _validationDetailsWindow;
+    private FrontedDesignerHelpWindow? _helpWindow;
     private readonly Dictionary<FrontedControlDesignItem, Border> _hitboxes = new();
     private readonly Dictionary<FrontedDesignerResizeHandleKind, Border> _resizeHandles = new();
     private Border? _selectionOutline;
@@ -120,6 +121,8 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         CloseValidationDetailsWindowSafely();
         _validationDetailsWindow = null;
+        CloseHelpWindowSafely();
+        _helpWindow = null;
     }
 
     private async Task LoadInitialLayoutAsync()
@@ -1015,6 +1018,56 @@ public partial class FrontedDesignerWindow : FluentWindow
         catch (InvalidOperationException ex)
         {
             _logger?.LogWarning(ex, "Failed to close fronted designer validation details window safely.");
+        }
+    }
+
+    private void OpenDesignerHelp_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_helpWindow is null || !_helpWindow.IsVisible)
+        {
+            _helpWindow = new FrontedDesignerHelpWindow
+            {
+                Owner = this
+            };
+            _helpWindow.Closed += HelpWindow_OnClosed;
+            _helpWindow.Show();
+            return;
+        }
+
+        _helpWindow.Activate();
+    }
+
+    private void HelpWindow_OnClosed(object? sender, EventArgs e)
+    {
+        if (sender is FrontedDesignerHelpWindow window && ReferenceEquals(window, _helpWindow))
+        {
+            window.Closed -= HelpWindow_OnClosed;
+            _helpWindow = null;
+        }
+    }
+
+    private void CloseHelpWindowSafely()
+    {
+        var window = _helpWindow;
+        if (window is null)
+        {
+            return;
+        }
+
+        window.Closed -= HelpWindow_OnClosed;
+        if (!window.IsVisible)
+        {
+            return;
+        }
+
+        try
+        {
+            window.Owner = null;
+            window.Close();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger?.LogWarning(ex, "Failed to close fronted designer help window safely.");
         }
     }
 

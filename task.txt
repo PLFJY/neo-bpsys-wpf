@@ -1,0 +1,326 @@
+You are working on repository:
+
+PLFJY/neo-bpsys-wpf
+
+Branch:
+dev-refactor/Designer-v3
+
+Task:
+Add a Help button to the bottom-right of FrontedDesignerWindow.
+
+Context:
+Phase 14A/B/C are done.
+The Designer now has:
+- optimized paste/delete/undo/redo
+- left layer panel grouped by ZIndex
+- bottom status bar with Status -> Zoom ComboBox -> Slider -> Fit
+- layer drag/drop
+- plugin controls
+- missing plugin placeholders
+- property grid
+- package import/export
+
+Goal:
+Add a bottom-right Help button in FrontedDesignerWindow.
+Clicking it opens a scrollable help window/dialog that explains all editor operations and keyboard shortcuts.
+
+Do NOT:
+- Do not change `.bpui` schema.
+- Do not touch plugin package import/export logic.
+- Do not break bottom zoom controls.
+- Do not break 14A performance optimizations.
+- Do not break 14B layer panel.
+- Do not break 14C zoom UI.
+- Do not restore legacy real-window designer.
+- Do not use external packages.
+
+Files to inspect:
+- neo-bpsys-wpf/Views/Windows/FrontedDesignerWindow.xaml
+- neo-bpsys-wpf/Views/Windows/FrontedDesignerWindow.xaml.cs
+- neo-bpsys-wpf/ViewModels/Windows/FrontedDesignerWindowViewModel.cs
+- localization files:
+  - Lang.resx
+  - Lang.en-us.resx
+  - Lang.ja-jp.resx
+- existing helper windows/dialogs:
+  - ValidationDetailsWindow
+  - FrontedBindingBrowserWindow
+  - FrontedResourceBrowserWindow
+  - MessageBoxHelper if useful
+
+Part A: Add bottom-right Help button
+
+In FrontedDesignerWindow bottom status bar:
+- keep current left order:
+  Status button -> Zoom ComboBox -> Zoom Slider -> Fit button
+- keep CurrentWindowCanvasDisplay right-aligned.
+- add a Help button at the far right or immediately next to CurrentWindowCanvasDisplay.
+
+Preferred right-side order:
+<CurrentWindowCanvasDisplay> <Help button>
+
+Button:
+- compact icon button.
+- icon: QuestionCircle24 / Info24 / Help24 if available.
+- tooltip: DesignerHelp / Help.
+- click handler: OpenDesignerHelp_OnClick.
+- should not consume much horizontal space.
+
+Part B: Create help window/dialog
+
+Create a dedicated scrollable help window, recommended:
+- FrontedDesignerHelpWindow.xaml
+- FrontedDesignerHelpWindow.xaml.cs
+
+Alternative:
+- use a WPF-UI MessageBox only if it supports enough scrollable content.
+But because content is long, dedicated window is preferred.
+
+Window requirements:
+- Owner = FrontedDesignerWindow.
+- Width around 760.
+- Height around 640.
+- MinWidth around 640.
+- MinHeight around 480.
+- ScrollViewer content.
+- Close button.
+- Use FluentWindow or normal Window consistent with project style.
+- Do not block app shutdown.
+- Reuse existing custom title bar style if project has one.
+- If already open, activate existing help window instead of opening duplicates.
+
+Part C: Help content sections
+
+The help dialog should be structured and easy to scan.
+
+Include these sections:
+
+1. Basic workflow
+- choose Window and Canvas from top selectors.
+- add controls from Add Control.
+- select controls from canvas or layer panel.
+- edit properties from PropertyGrid.
+- save layout.
+- validate layout.
+- reset/reload layout.
+
+2. Canvas navigation
+- mouse wheel / scrollbars to navigate.
+- right mouse drag pans the canvas.
+- hold Space + left mouse drag pans the canvas.
+- Ctrl + mouse wheel zooms.
+- bottom Zoom ComboBox accepts 100, 100%, 1x, 1.25x.
+- Slider changes zoom.
+- Fit button fits the canvas to current viewport.
+
+3. Selecting and editing controls
+- click control on canvas to select.
+- click item in layer panel to select.
+- drag selected control on canvas to move.
+- resize with handles.
+- selected control name label appears above selection.
+- transparent/empty controls may be selected through hitbox or layer panel.
+
+4. Keyboard shortcuts
+Include at least:
+- Ctrl+S: Save
+- Ctrl+C: Copy selected control
+- Ctrl+V: Paste copied control
+- Delete: Delete selected control
+- Ctrl+Z: Undo
+- Ctrl+Y: Redo
+- Ctrl+Shift+Z: Redo
+- Ctrl + Mouse Wheel: Zoom
+- Shift: temporarily enable snapping while dragging/resizing
+- Space + Left Drag: Pan canvas
+- Right Drag: Pan canvas
+
+If the editor supports arrow-key movement, inspect current code and include exact behavior:
+- Arrow keys move selected control.
+- Ctrl / Shift / Alt modifiers change step size if implemented.
+Only document these if actually implemented.
+
+5. Snap behavior
+- Snap switch enables snapping.
+- Holding Shift temporarily enables snapping without toggling the switch.
+- Snap affects move/resize operations.
+- Snap does not directly change stored values unless operation is committed.
+
+6. Layer panel
+- controls are grouped by ZIndex.
+- higher ZIndex is visually above lower ZIndex.
+- drag within same layer to change same-ZIndex order.
+- drag into another layer to change ZIndex.
+- drag to top edge to create new top layer.
+- drag to bottom edge to create new bottom layer.
+- near top/bottom edge auto-scrolls.
+- filtering disables layer reorder; clear filter to reorder.
+- linked overlay controls are not independently editable/draggable.
+
+7. PropertyGrid
+- Name and BindingPath require Enter or apply button to commit.
+- invalid values keep the text and show red border.
+- ColorPicker updates Hex text; apply button commits.
+- ComboBox properties commit raw values while displaying localized names.
+- Binding browser helps choose valid BindingPath.
+- Resource browser helps choose bpui/resource URI.
+- BorderedImage has separate Border/Image properties.
+- BorderedImage resize target can switch between outer border and inner image if available.
+
+8. Add/delete/copy/paste
+- Add Control inserts built-in/plugin controls.
+- copied control gets unique numbered name on paste.
+- paste offsets the new control.
+- runtime-critical/generated overlays may not be copyable/deletable.
+- Undo/Redo can restore add/delete/paste/reorder operations.
+
+9. Canvas/window settings
+- Canvas Width/Height edit canvas design size.
+- Background image supports bpui resource URI.
+- AllowTransparency is a window-level option and may require restart.
+- Restart prompt should ask to save changes.
+
+10. Validation
+- status button opens validation details.
+- errors may block saving/import/export where appropriate.
+- warnings do not always block but should be reviewed.
+- missing plugin controls are shown as warnings in Designer.
+
+11. Plugin controls
+- plugin controls appear in Add Control when plugin is installed.
+- plugin controls behave like built-in controls in Designer.
+- missing plugin controls show placeholder in Designer.
+- runtime skips missing plugin controls instead of crashing.
+- .bpui packages declare required plugins.
+- importing a package with missing plugins will guide install/update or allow force import that removes missing controls.
+
+12. Layout packages
+- export writes layout package.
+- .bpui does not include plugin binaries.
+- import checks plugin dependencies.
+- force import removes controls that depend on missing plugins.
+- original package file remains unchanged.
+
+13. Tips / troubleshooting
+- if a control cannot be selected visually, use the layer panel.
+- if drag reorder is unavailable, clear search filter.
+- if a property appears invalid, check validation details.
+- if plugin control is missing, install/enable the plugin and restart if required.
+- if Fit makes labels too small, selected label should still stay readable after recent polish.
+
+Part D: Content implementation
+
+Prefer maintainable implementation:
+Option 1:
+- Use XAML with localized section headers and bullet text.
+- Good for visual design but many localization keys.
+
+Option 2, acceptable:
+- Create a small help model in code-behind/ViewModel:
+  - Title
+  - Sections
+  - Items
+  - Shortcut rows
+- Build UI with ItemsControl.
+- Text still comes from localization resources.
+
+Do not hardcode only Chinese strings in XAML/code.
+Add localization keys to:
+- Lang.resx
+- Lang.en-us.resx
+- Lang.ja-jp.resx
+
+If full Japanese translation is too much:
+- provide reasonable English fallback or simple Japanese text.
+- do not leave missing resource keys visible.
+
+Suggested keys:
+- Designer.Help.Title
+- Designer.Help.Open
+- Designer.Help.Close
+- Designer.Help.BasicWorkflow.Title
+- Designer.Help.CanvasNavigation.Title
+- Designer.Help.Selection.Title
+- Designer.Help.Shortcuts.Title
+- Designer.Help.Snapping.Title
+- Designer.Help.LayerPanel.Title
+- Designer.Help.PropertyGrid.Title
+- Designer.Help.AddDeleteCopyPaste.Title
+- Designer.Help.CanvasWindowSettings.Title
+- Designer.Help.Validation.Title
+- Designer.Help.PluginControls.Title
+- Designer.Help.LayoutPackages.Title
+- Designer.Help.Troubleshooting.Title
+
+Shortcut row keys:
+- Designer.Help.Shortcut.Save
+- Designer.Help.Shortcut.Copy
+- Designer.Help.Shortcut.Paste
+- Designer.Help.Shortcut.Delete
+- Designer.Help.Shortcut.Undo
+- Designer.Help.Shortcut.Redo
+- Designer.Help.Shortcut.Zoom
+- Designer.Help.Shortcut.PanSpace
+- Designer.Help.Shortcut.PanRight
+- Designer.Help.Shortcut.SnapShift
+
+Part E: UI details
+
+Help window layout:
+- top title.
+- optional search/filter box if easy, not required.
+- sections with bold header.
+- bullet list or two-column shortcut table.
+- shortcuts should be aligned:
+  Shortcut | Action
+- use ScrollViewer.
+- close button at bottom-right.
+
+Keep it readable:
+- avoid walls of text.
+- use section spacing.
+- use TextWrapping.
+- use max width.
+
+Part F: Tests
+
+Add/update tests:
+1. FrontedDesignerWindow bottom status bar contains Help button.
+2. Help button click handler exists.
+3. Help window XAML exists.
+4. Help window contains ScrollViewer.
+5. Help content includes shortcut section.
+6. Help content includes layer panel section.
+7. Help content includes plugin controls section.
+8. localization keys exist in Lang.resx, Lang.en-us.resx, Lang.ja-jp.resx.
+9. opening help twice activates existing window instead of creating duplicate if implemented.
+10. top/bottom zoom controls remain in bottom bar.
+
+Part G: Manual validation
+
+Run:
+- git diff --check
+- dotnet build
+- dotnet test
+
+Manual:
+1. Open FrontedDesignerWindow.
+2. Confirm Help button is at bottom-right.
+3. Click Help.
+4. Help window opens.
+5. Content is scrollable.
+6. Shortcuts are listed clearly.
+7. Layer panel drag/drop explanation is present.
+8. Zoom controls explanation is present.
+9. Plugin/missing-plugin explanation is present.
+10. Click Help again; existing window activates or duplicate behavior is acceptable only if project convention allows it.
+11. Close help window.
+12. Designer remains usable.
+13. Bottom status/zoom layout is not broken.
+
+Final response:
+- summarize where Help button was added.
+- summarize help window/dialog implementation.
+- summarize major help sections.
+- summarize localization updates.
+- report build/test result.
