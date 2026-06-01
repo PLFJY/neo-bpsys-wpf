@@ -93,6 +93,7 @@ public partial class App
         services.AddSingleton<IFrontedLayoutPackageExporter, FrontedLayoutPackageExporter>();
         services.AddSingleton<IFrontedLayoutPackageImporter, FrontedLayoutPackageImporter>();
         services.AddSingleton<IFrontedLayoutPackageLegacyConverter, FrontedLayoutPackageLegacyConverter>();
+        services.AddSingleton<IFrontedPluginMetadataProvider, FrontedPluginMetadataProvider>();
         services.AddSingleton<IFrontedDesignerLocalizationService, FrontedDesignerI18nLocalizationService>();
         services.AddSingleton<IFrontedControl, TextFrontedControl>();
         services.AddSingleton<IFrontedControl, LocalizedTextFrontedControl>();
@@ -124,6 +125,7 @@ public partial class App
         services.AddSingleton<ITextSettingsNavigationService, TextSettingsNavigationService>();
         services.AddSingleton<IPluginService, PluginService>();
         services.AddSingleton<IPluginMarketService, PluginMarketService>();
+        services.AddSingleton<IPluginInstallService, PluginInstallService>();
 
         //Views and ViewModels
         //Windows

@@ -23,6 +23,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     private readonly FrontedLayoutValidator _validator;
     private readonly IFrontedImageSafetyService _imageSafetyService;
     private readonly IFrontedControlRegistry? _controlRegistry;
+    private readonly IFrontedPluginMetadataProvider? _pluginMetadataProvider;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -38,13 +39,15 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     public FrontedLayoutPackageImporter(
         IFrontedLayoutPackageManager packageManager,
         ILogger<FrontedLayoutPackageImporter> logger,
-        IFrontedControlRegistry? controlRegistry = null)
+        IFrontedControlRegistry? controlRegistry = null,
+        IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
         : this(
             AppConstants.FrontedLayoutPackagesPath,
             Path.Combine(AppConstants.AppTempPath, "bpui-import"),
             packageManager,
             logger,
-            controlRegistry)
+            controlRegistry,
+            pluginMetadataProvider)
     {
     }
 
@@ -53,13 +56,15 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         string tempRoot,
         IFrontedLayoutPackageManager? packageManager = null,
         ILogger<FrontedLayoutPackageImporter>? logger = null,
-        IFrontedControlRegistry? controlRegistry = null)
+        IFrontedControlRegistry? controlRegistry = null,
+        IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
     {
         _packageRoot = packageRoot;
         _tempRoot = tempRoot;
         _packageManager = packageManager;
         _logger = logger ?? NullLogger<FrontedLayoutPackageImporter>.Instance;
         _controlRegistry = controlRegistry;
+        _pluginMetadataProvider = pluginMetadataProvider;
         _validator = new FrontedLayoutValidator(controlRegistry);
         _imageSafetyService = new FrontedImageSafetyService();
     }
@@ -120,7 +125,12 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             var missingPluginControls = FrontedLayoutPluginDependencyScanner.FindMissingPluginControls(
                 packageLayouts.Select(layout => (layout.Window, layout.Canvas, layout.Config)),
                 _controlRegistry);
-            if (missingPluginControls.Count > 0
+            var unsatisfiedPluginDependencies = FrontedLayoutPluginDependencyScanner.FindUnsatisfiedPluginDependencies(
+                packageLayouts.Select(layout => (layout.Window, layout.Canvas, layout.Config)),
+                manifest!.PluginDependencies,
+                _controlRegistry,
+                _pluginMetadataProvider);
+            if ((missingPluginControls.Count > 0 || unsatisfiedPluginDependencies.Count > 0)
                 && request.MissingPluginPolicy != FrontedLayoutPackageMissingPluginPolicy.ForceRemoveMissingControls)
             {
                 return new FrontedLayoutPackageImportResult
@@ -128,16 +138,18 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                     Success = false,
                     PackageId = manifest!.PackageId,
                     ErrorMessage = "MissingPluginDependencies",
-                    MissingPluginControls = missingPluginControls
+                    MissingPluginControls = missingPluginControls,
+                    UnsatisfiedPluginDependencies = unsatisfiedPluginDependencies
                 };
             }
 
             List<FrontedLayoutPackageRemovedPluginControl> removedPluginControls = [];
-            if (missingPluginControls.Count > 0)
+            if (missingPluginControls.Count > 0 || unsatisfiedPluginDependencies.Count > 0)
             {
                 removedPluginControls = FrontedLayoutPluginDependencyScanner.RemoveMissingPluginControls(
                     packageLayouts.Select(layout => (layout.Window, layout.Canvas, layout.Config)),
-                    _controlRegistry);
+                    _controlRegistry,
+                    unsatisfiedPluginDependencies.Select(issue => issue.PackageId).ToHashSet(StringComparer.OrdinalIgnoreCase));
                 manifest!.PluginDependencies = FrontedLayoutPluginDependencyScanner.MergePackageDependencies(
                     packageLayouts.Select(layout => (layout.Window, layout.Canvas, layout.Config)),
                     manifest.PluginDependencies,

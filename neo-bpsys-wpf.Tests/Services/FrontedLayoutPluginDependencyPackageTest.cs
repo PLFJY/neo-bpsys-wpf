@@ -76,6 +76,59 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
     }
 
     [Fact]
+    public void ExampleTeamCardDefaultBindingPathsExistInBindingCatalog()
+    {
+        var config = new TeamCardFrontedControlConfig();
+        var provider = new FrontedBindingBrowserProvider();
+        var allPaths = provider.BuildTree()
+            .SelectMany(node => node.Flatten())
+            .Select(node => node.FullPath)
+            .ToHashSet(StringComparer.Ordinal);
+
+        Assert.Contains(config.TeamNameBindingPath, allPaths);
+        Assert.Contains(config.LogoBindingPath, allPaths);
+    }
+
+    [Fact]
+    public void DesignConverterWritesRequiredPluginMinVersionFromInstalledPluginManifest()
+    {
+        var registry = CreateRegistryWithExamplePlugin();
+        var converter = new FrontedLayoutDesignConverter(
+            registry,
+            new FakePluginMetadataProvider(("top.plfjy.example.fronted", "1.0.0.0", "Example Fronted Controls")));
+        var document = new FrontedCanvasDesignDocument
+        {
+            WindowTypeName = "BpWindow",
+            CanvasName = "BaseCanvas",
+            CanvasConfig = new FrontedCanvasConfig
+            {
+                RequiredPlugins =
+                [
+                    new FrontedPluginDependency
+                    {
+                        PackageId = "top.plfjy.example.fronted",
+                        MinVersion = "0.9.0"
+                    }
+                ]
+            },
+            Controls =
+            [
+                new FrontedControlDesignItem
+                {
+                    Name = "TeamCard1",
+                    Config = new TeamCardFrontedControlConfig()
+                }
+            ]
+        };
+
+        var config = converter.ToConfig(document);
+
+        var dependency = Assert.Single(config.RequiredPlugins);
+        Assert.Equal("1.0.0.0", dependency.MinVersion);
+        Assert.Equal("Example Fronted Controls", dependency.DisplayName);
+    }
+
+    [Fact]
     public void ExampleTeamCardRuntimeControlCanBeCreated()
     {
         RunOnStaThread(() =>
@@ -138,6 +191,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             var manifest = ReadManifest(archive);
             var dependency = Assert.Single(manifest.PluginDependencies);
             Assert.Equal("top.plfjy.example.fronted", dependency.PackageId);
+            Assert.Null(dependency.MinVersion);
             Assert.Contains("plugin:top.plfjy.example.fronted/TeamCard", dependency.Controls);
             Assert.Contains("ScoreSurWindow/BaseCanvas", dependency.RequiredBy);
 
@@ -145,6 +199,108 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                 ReadZipEntry(archive, "layouts/ScoreSurWindow/BaseCanvas.json"))!;
             var canvasDependency = Assert.Single(layout.RequiredPlugins);
             Assert.Equal("top.plfjy.example.fronted", canvasDependency.PackageId);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ExportWritesPluginDependencyMinVersionFromInstalledPluginManifest()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            var outputPath = Path.Combine(root, "package.bpui");
+            WriteAllCatalogLayouts(builtInRoot, includePluginOnFirstLayout: true);
+
+            var exporter = new FrontedLayoutPackageExporter(
+                new FrontedDesignerLayoutCatalog(),
+                new FrontedLayoutService(new FrontedUserLayoutStore(Path.Combine(root, "user")), builtInRoot, null),
+                new FrontedWindowLayoutOptionsService(Path.Combine(root, "user")),
+                Path.Combine(root, "packages"),
+                Path.Combine(root, "temp"),
+                controlRegistry: CreateRegistryWithExamplePlugin(),
+                pluginMetadataProvider: new FakePluginMetadataProvider(("top.plfjy.example.fronted", "1.0.0.0", "Example Fronted Controls")));
+
+            var result = await exporter.ExportAsync(new FrontedLayoutPackageExportRequest
+            {
+                PackageId = "package-with-plugin-version",
+                Name = "Package With Plugin Version",
+                OutputPath = outputPath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            using var archive = ZipFile.OpenRead(outputPath);
+            var manifestDependency = Assert.Single(ReadManifest(archive).PluginDependencies);
+            Assert.Equal("1.0.0.0", manifestDependency.MinVersion);
+
+            var layout = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+                ReadZipEntry(archive, "layouts/ScoreSurWindow/BaseCanvas.json"))!;
+            Assert.Equal("1.0.0.0", Assert.Single(layout.RequiredPlugins).MinVersion);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ImportInstalledPluginLowerThanMinVersionRequiresAction()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "needs-update.bpui");
+            CreatePluginBpuiArchive(archivePath, includeActualPluginControl: true, minVersion: "1.2.0");
+            var importer = new FrontedLayoutPackageImporter(
+                Path.Combine(root, "packages"),
+                Path.Combine(root, "temp"),
+                controlRegistry: CreateRegistryWithExamplePlugin(),
+                pluginMetadataProvider: new FakePluginMetadataProvider(("top.plfjy.example.fronted", "1.0.0", "Example Fronted Controls")));
+
+            var result = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.False(result.Success);
+            Assert.Empty(result.MissingPluginControls);
+            var dependency = Assert.Single(result.UnsatisfiedPluginDependencies);
+            Assert.True(dependency.IsInstalled);
+            Assert.False(dependency.IsVersionSatisfied);
+            Assert.Equal("1.2.0", dependency.MinVersion);
+            Assert.Equal("1.0.0", dependency.InstalledVersion);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ImportInstalledPluginSatisfyingMinVersionPasses()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "satisfied.bpui");
+            CreatePluginBpuiArchive(archivePath, includeActualPluginControl: true, minVersion: "1.0.0");
+            var importer = new FrontedLayoutPackageImporter(
+                Path.Combine(root, "packages"),
+                Path.Combine(root, "temp"),
+                controlRegistry: CreateRegistryWithExamplePlugin(),
+                pluginMetadataProvider: new FakePluginMetadataProvider(("top.plfjy.example.fronted", "1.0.0.0", "Example Fronted Controls")));
+
+            var result = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.Empty(result.UnsatisfiedPluginDependencies);
         }
         finally
         {
@@ -266,7 +422,10 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
         }
     }
 
-    private static void CreatePluginBpuiArchive(string archivePath, bool includeActualPluginControl)
+    private static void CreatePluginBpuiArchive(
+        string archivePath,
+        bool includeActualPluginControl,
+        string? minVersion = null)
     {
         using var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create);
         WriteZipEntry(archive, "manifest.json", JsonSerializer.Serialize(new FrontedLayoutPackageManifest
@@ -278,6 +437,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                 new FrontedPluginDependency
                 {
                     PackageId = "top.plfjy.example.fronted",
+                    MinVersion = minVersion,
                     DisplayName = "Example Fronted Controls",
                     MarketplaceId = "top.plfjy.example.fronted",
                     Controls = includeActualPluginControl
@@ -323,6 +483,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                 "RequiredPlugins": [
                   {
                     "PackageId": "top.plfjy.example.fronted",
+                    "MinVersion": {{JsonSerializer.Serialize(minVersion)}},
                     "Controls": {{(includeActualPluginControl ? "[\"plugin:top.plfjy.example.fronted/TeamCard\"]" : "[]")}}
                   }
                 ],
@@ -397,5 +558,28 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
     {
         var repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
         return Path.Combine([repositoryRoot, .. parts]);
+    }
+
+    private sealed class FakePluginMetadataProvider(params (string Id, string Version, string DisplayName)[] plugins)
+        : IFrontedPluginMetadataProvider
+    {
+        public bool IsPluginInstalled(string packageId)
+        {
+            return plugins.Any(plugin => string.Equals(plugin.Id, packageId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public bool TryGetPluginVersion(string packageId, out string version)
+        {
+            var plugin = plugins.FirstOrDefault(plugin => string.Equals(plugin.Id, packageId, StringComparison.OrdinalIgnoreCase));
+            version = plugin.Version ?? string.Empty;
+            return !string.IsNullOrWhiteSpace(version);
+        }
+
+        public bool TryGetPluginDisplayName(string packageId, out string displayName)
+        {
+            var plugin = plugins.FirstOrDefault(plugin => string.Equals(plugin.Id, packageId, StringComparison.OrdinalIgnoreCase));
+            displayName = plugin.DisplayName ?? string.Empty;
+            return !string.IsNullOrWhiteSpace(displayName);
+        }
     }
 }

@@ -77,7 +77,7 @@
 
 ## Designer v3 插件前台控件规划
 
-Phase 13B 已实现插件控件 registry 和 descriptor API。插件可以在启动期间通过 DI 注册 Designer v3 前台控件，让这些控件像内置 `Text`、`Image`、`BorderedImage` 一样被 v3 renderer 识别；控件运行时行为、config 类型、默认 config 和属性元数据由插件提供。Phase 13C 起，Designer 会在 Add Control 中列出已注册插件控件，并通过声明式 property metadata 生成 Property Grid 行。Phase 13D 已实现 `.bpui` 导出/导入依赖扫描、缺失插件预检和强制导入删除缺失控件；插件市场安装引导仍属于 Phase 13E。
+Phase 13B 已实现插件控件 registry 和 descriptor API。插件可以在启动期间通过 DI 注册 Designer v3 前台控件，让这些控件像内置 `Text`、`Image`、`BorderedImage` 一样被 v3 renderer 识别；控件运行时行为、config 类型、默认 config 和属性元数据由插件提供。Phase 13C 起，Designer 会在 Add Control 中列出已注册插件控件，并通过声明式 property metadata 生成 Property Grid 行。Phase 13D 已实现 `.bpui` 导出/导入依赖扫描、缺失插件预检和强制导入删除缺失控件；Phase 13E 已实现插件市场安装 / 更新引导。
 
 插件控件的 `ControlType` 必须使用命名空间：
 
@@ -168,8 +168,8 @@ public sealed class TeamCardFrontedControlConfig : FrontedControlConfigBase
         Height = 96;
     }
 
-    public string? TeamNameBindingPath { get; set; } = "CurrentGame.HomeTeam.Name";
-    public string? LogoBindingPath { get; set; } = "CurrentGame.HomeTeam.Logo";
+    public string? TeamNameBindingPath { get; set; } = "CurrentGame.SurTeam.Name";
+    public string? LogoBindingPath { get; set; } = "CurrentGame.SurTeam.Logo";
     public string BackgroundColor { get; set; } = "#AA000000";
     public string ForegroundColor { get; set; } = "#FFFFFFFF";
     public double CornerRadius { get; set; } = 12;
@@ -219,7 +219,9 @@ neo-bpsys-wpf.PluginSdk;neo-bpsys-wpf.Core
 
 主项目 csproj 中通过 `BuiltinPlugin` 构建并复制 `TeamJsonMaker` 到输出/发布目录的 `Plugins\top.plfjy.bpsys.TeamJsonMaker`。它和用户插件使用同一加载机制，只是来源路径不同。
 
-Phase 13D 新增 DEBUG-only 示例插件 `Built-inPlugins/neo-bpsys-wpf.ExampleFrontedControls`，插件 ID 为 `top.plfjy.example.fronted`，注册示例控件 `plugin:top.plfjy.example.fronted/TeamCard`。主项目只在 `Debug` 配置下把它加入 `BuiltinPlugin` 并复制到输出目录；Release、Beta、Preview 默认不包含该示例插件。该插件用于手工验证 Designer v3 插件控件作者体验，不是发行功能。
+Phase 13D 新增 DEBUG-only 示例插件 `Built-inPlugins/neo-bpsys-wpf.ExampleFrontedControls`，插件 ID 为 `top.plfjy.example.fronted`，注册示例控件 `plugin:top.plfjy.example.fronted/TeamCard`。主项目只在 `Debug` 配置下把它加入 `BuiltinPlugin` 并复制到输出目录；Release、Beta、Preview 默认不包含该示例插件。该插件用于手工验证 Designer v3 插件控件作者体验，不是发行功能。TeamCard 默认绑定使用当前 Binding Browser 可选路径 `CurrentGame.SurTeam.Name` 和 `CurrentGame.SurTeam.Logo`，便于设计预览中直接显示示例数据。
+
+Phase 13E 起，Designer 保存和 `.bpui` 导出会在插件已安装 / 已加载时把 Canvas `RequiredPlugins.MinVersion` 和 manifest `PluginDependencies.MinVersion` 写成插件 `manifest.yml` 中的插件自身 `version`，例如 `1.0.0.0`。这不是 descriptor 的 `MinHostVersion`，也不是插件 API 版本。导入 `.bpui` 时如果已安装版本低于 `MinVersion`，会进入插件市场安装 / 更新引导或强制导入流程。
 
 ## 加载失败检查清单
 

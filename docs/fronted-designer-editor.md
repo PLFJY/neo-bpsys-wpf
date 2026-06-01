@@ -723,7 +723,7 @@ Phase 10 起，编辑器 typed/pasted input 会按集中限制截断：搜索 12
 | Phase 13C | 已实现 Designer Add Control 插件 UI、插件声明式属性元数据渲染、缺失插件占位符和安装引导 stub。 |
 | Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
 | Phase 13D | 已实现 `.bpui` 依赖扫描、导出 manifest `PluginDependencies`、导入缺失插件预检和强制导入删除缺失控件；新增 DEBUG-only `ExampleFrontedControls` 示例插件。 |
-| Phase 13E | 插件市场交互式安装 / 更新引导。 |
+| Phase 13E | 已实现插件市场交互式安装 / 更新引导；`.bpui` 导入不会静默安装插件，安装或更新后通常需要重启再重新导入。 |
 | Phase 13F | 安全、版本兼容和测试收口。 |
 
 ## 18. 非目标

@@ -48,6 +48,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
     private readonly ILogger<FrontedLayoutPackageExporter> _logger;
     private readonly IFrontedImageSafetyService _imageSafetyService;
     private readonly IFrontedControlRegistry? _controlRegistry;
+    private readonly IFrontedPluginMetadataProvider? _pluginMetadataProvider;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         WriteIndented = true,
@@ -60,7 +61,8 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         IFrontedLayoutService layoutService,
         IFrontedWindowLayoutOptionsService windowLayoutOptionsService,
         ILogger<FrontedLayoutPackageExporter> logger,
-        IFrontedControlRegistry? controlRegistry = null)
+        IFrontedControlRegistry? controlRegistry = null,
+        IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
         : this(
             layoutCatalog,
             layoutService,
@@ -68,7 +70,8 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             AppConstants.FrontedLayoutPackagesPath,
             Path.Combine(AppConstants.AppTempPath, "bpui-export"),
             logger,
-            controlRegistry)
+            controlRegistry,
+            pluginMetadataProvider)
     {
     }
 
@@ -79,7 +82,8 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         string packageRoot,
         string tempRoot,
         ILogger<FrontedLayoutPackageExporter>? logger = null,
-        IFrontedControlRegistry? controlRegistry = null)
+        IFrontedControlRegistry? controlRegistry = null,
+        IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
     {
         _layoutCatalog = layoutCatalog;
         _layoutService = layoutService;
@@ -89,6 +93,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         _logger = logger ?? NullLogger<FrontedLayoutPackageExporter>.Instance;
         _imageSafetyService = new FrontedImageSafetyService();
         _controlRegistry = controlRegistry;
+        _pluginMetadataProvider = pluginMetadataProvider;
     }
 
     public async Task<FrontedLayoutPackageExportResult> ExportAsync(
@@ -197,7 +202,8 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                 config,
                 entry.WindowTypeName,
                 entry.CanvasName,
-                _controlRegistry);
+                _controlRegistry,
+                _pluginMetadataProvider);
             exportedLayouts.Add((entry.WindowTypeName, entry.CanvasName, config));
 
             var layoutJson = JsonSerializer.Serialize(config, _jsonSerializerOptions);
@@ -222,7 +228,8 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         manifest.PluginDependencies = FrontedLayoutPluginDependencyScanner.MergePackageDependencies(
             exportedLayouts,
             manifest.PluginDependencies,
-            _controlRegistry);
+            _controlRegistry,
+            _pluginMetadataProvider);
     }
 
     private async Task ExportWindowOptionsAsync(

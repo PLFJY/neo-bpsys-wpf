@@ -9,8 +9,6 @@ using neo_bpsys_wpf.Models.Plugins;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -594,80 +592,35 @@ public partial class PluginPageViewModel
     /// <summary>
     /// 安装一个已经解压好的插件包。
     /// </summary>
-    private void InstallPluginFromExtractedDirectory(string tempFolderPath)
+    private void InstallPluginAndUpdateLocalState(string tempFolderPath)
     {
-        var manifestPath = Path.Combine(tempFolderPath, "manifest.yml");
-
-        if (!File.Exists(manifestPath))
+        var result = _pluginInstallService.InstallFromExtractedDirectory(tempFolderPath);
+        var manifest = result.Manifest;
+        var local = PluginsCollection.FirstOrDefault(x => x.Manifest.Id == manifest.Id);
+        if (result.IsUpdate)
         {
-            throw new Exception(I18nHelper.GetLocalizedString("CannotFindManifest"));
-        }
-
-        var manifestYml = File.ReadAllText(manifestPath);
-        var deserializer = new DeserializerBuilder()
-            .IgnoreUnmatchedProperties()
-            .WithNamingConvention(CamelCaseNamingConvention.Instance)
-            .Build();
-
-        var manifest = deserializer.Deserialize<PluginManifest?>(manifestYml);
-        if (manifest == null)
-        {
-            throw new Exception(I18nHelper.GetLocalizedString("ManifestNotValid"));
-        }
-
-        var compatibility = PluginApiVersionHelper.Evaluate(manifest.ApiVersion);
-        if (!compatibility.IsCompatible)
-        {
-            throw new InvalidOperationException(compatibility.IsTooHigh
-                ? I18nHelper.GetLocalizedString("PluginMarketInstallBlockedHostVersionTooLow")
-                : compatibility.Message);
-        }
-
-        var pluginFolderPath = Path.Combine(AppConstants.PluginPath, manifest.Id);
-        if (Directory.Exists(pluginFolderPath))
-        {
-            pluginFolderPath = Path.Combine(AppConstants.PluginPath, ".new", manifest.Id);
-            if (!Directory.Exists(Path.Combine(AppConstants.PluginPath, ".new")))
-            {
-                Directory.CreateDirectory(Path.Combine(AppConstants.PluginPath, ".new"));
-            }
-
-            if (Directory.Exists(pluginFolderPath))
-            {
-                Directory.Delete(pluginFolderPath, true);
-            }
-
-            Directory.Move(tempFolderPath, pluginFolderPath);
-
-            var local = PluginsCollection.FirstOrDefault(x => x.Manifest.Id == manifest.Id);
             if (local != null)
             {
                 local.IsRestartRequired = true;
                 local.NewVersion = manifest.Version;
                 local.IsNewVersionInstalled = true;
             }
-            else
-            {
-                _logger.LogWarning(
-                    "Plugin directory already exists for {PluginId}, but no matching plugin info was found in the current collection. Update was staged and will apply after restart.",
-                    manifest.Id);
-            }
-
             IsRestartNeeded = true;
             return;
         }
 
-        var info = new PluginInfo
+        if (local == null)
         {
-            Manifest = manifest,
-            IsLocal = true,
-            PluginFolderPath = pluginFolderPath,
-            RealIconPath = Path.Combine(Path.GetFullPath(pluginFolderPath), manifest.Icon),
-            IsRestartRequired = true
-        };
-
-        Directory.Move(tempFolderPath, pluginFolderPath);
-        PluginsCollection.Add(info);
+            var pluginFolderPath = Path.Combine(AppConstants.PluginPath, manifest.Id);
+            PluginsCollection.Add(new PluginInfo
+            {
+                Manifest = manifest,
+                IsLocal = true,
+                PluginFolderPath = pluginFolderPath,
+                RealIconPath = Path.Combine(Path.GetFullPath(pluginFolderPath), manifest.Icon),
+                IsRestartRequired = true
+            });
+        }
         IsRestartNeeded = true;
     }
 
@@ -790,7 +743,7 @@ public partial class PluginPageViewModel
 
             try
             {
-                InstallPluginFromExtractedDirectory(result.ExtractedDirectoryPath);
+                InstallPluginAndUpdateLocalState(result.ExtractedDirectoryPath);
                 if (result.QueueItem != null)
                 {
                     result.QueueItem.Status = PluginDownloadQueueStatus.QueueInstalledRestartRequired;

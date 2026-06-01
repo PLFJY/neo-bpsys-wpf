@@ -44,6 +44,10 @@ public sealed class FrontedLayoutPackageImportResult
 
     public List<FrontedLayoutPackagePluginControlIssue> MissingPluginControls { get; set; } = [];
 
+    public bool HasUnsatisfiedPluginDependencies => UnsatisfiedPluginDependencies.Count > 0;
+
+    public List<FrontedLayoutPackagePluginDependencyIssue> UnsatisfiedPluginDependencies { get; set; } = [];
+
     public List<FrontedLayoutPackageRemovedPluginControl> RemovedPluginControls { get; set; } = [];
 }
 
@@ -61,5 +65,32 @@ public class FrontedLayoutPackagePluginControlIssue
 }
 
 public sealed class FrontedLayoutPackageRemovedPluginControl : FrontedLayoutPackagePluginControlIssue;
+
+public sealed class FrontedLayoutPackagePluginDependencyIssue
+{
+    public string PackageId { get; set; } = string.Empty;
+
+    public string? DisplayName { get; set; }
+
+    public string? MinVersion { get; set; }
+
+    public string? InstalledVersion { get; set; }
+
+    public string? MarketplaceId { get; set; }
+
+    public bool IsInstalled { get; set; }
+
+    public bool IsVersionSatisfied { get; set; }
+
+    public bool IsAvailableInMarket { get; set; }
+
+    public bool IsMarketUnavailable { get; set; }
+
+    public List<string> Controls { get; set; } = [];
+
+    public List<string> RequiredBy { get; set; } = [];
+
+    public List<FrontedLayoutPackagePluginControlIssue> AffectedControls { get; set; } = [];
+}
 
 #pragma warning restore CS1591

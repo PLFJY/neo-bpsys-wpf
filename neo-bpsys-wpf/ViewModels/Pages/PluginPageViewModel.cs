@@ -13,8 +13,6 @@ using neo_bpsys_wpf.Services;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Compression;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
@@ -26,6 +24,7 @@ public partial class PluginPageViewModel : ViewModelBase
     private readonly ISettingsHostService _settingsHostService;
     private readonly IPluginMarketService _pluginMarketService;
     private readonly IInfoBarService _infoBarService;
+    private readonly IPluginInstallService _pluginInstallService;
 
 #pragma warning disable CS8618 
     public PluginPageViewModel()
@@ -37,7 +36,8 @@ public partial class PluginPageViewModel : ViewModelBase
 
     public PluginPageViewModel(IPluginService pluginService, IFilePickerService filePickerService,
         ILogger<PluginPageViewModel> logger, ISettingsHostService settingsHostService, IPluginMarketService pluginMarketService,
-        IInfoBarService infoBarService)
+        IInfoBarService infoBarService,
+        IPluginInstallService pluginInstallService)
     {
         _pluginService = pluginService;
         _filePickerService = filePickerService;
@@ -45,6 +45,7 @@ public partial class PluginPageViewModel : ViewModelBase
         _settingsHostService = settingsHostService;
         _pluginMarketService = pluginMarketService;
         _infoBarService = infoBarService;
+        _pluginInstallService = pluginInstallService;
         PluginsCollection = new ObservableCollection<PluginInfo>(IPluginService.LoadedPlugins);
         MarketPluginsCollection = [];
         InitializePluginMarket();
@@ -115,7 +116,7 @@ public partial class PluginPageViewModel : ViewModelBase
         {
             //解压压缩包
             ZipFile.ExtractToDirectory(pluginFile, tempFolderPath);
-            InstallPluginFromExtractedDirectory(tempFolderPath);
+            InstallPluginAndUpdateLocalState(tempFolderPath);
         }
         catch (Exception e)
         {

@@ -11,6 +11,8 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Models.Plugins;
+using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.Views.Windows;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -35,6 +37,8 @@ public partial class FrontManagePageViewModel : ViewModelBase
     private readonly IFrontedLayoutPackageExporter? _packageExporter;
     private readonly IFrontedLayoutPackageImporter? _packageImporter;
     private readonly IFrontedLayoutPackageLegacyConverter? _legacyPackageConverter;
+    private readonly IPluginMarketService? _pluginMarketService;
+    private readonly IPluginInstallService? _pluginInstallService;
     private readonly ILogger<FrontManagePageViewModel>? _logger;
     private FrontedDesignerWindow? _frontedDesignerWindow;
 
@@ -46,6 +50,8 @@ public partial class FrontManagePageViewModel : ViewModelBase
         IFrontedLayoutPackageExporter packageExporter,
         IFrontedLayoutPackageImporter packageImporter,
         IFrontedLayoutPackageLegacyConverter legacyPackageConverter,
+        IPluginMarketService pluginMarketService,
+        IPluginInstallService pluginInstallService,
         IServiceProvider serviceProvider,
         ILogger<FrontManagePageViewModel> logger)
     {
@@ -56,6 +62,8 @@ public partial class FrontManagePageViewModel : ViewModelBase
         _packageExporter = packageExporter;
         _packageImporter = packageImporter;
         _legacyPackageConverter = legacyPackageConverter;
+        _pluginMarketService = pluginMarketService;
+        _pluginInstallService = pluginInstallService;
         _serviceProvider = serviceProvider;
         _logger = logger;
         ExternalFrontedWindows = new ObservableCollection<FrontedWindowInfo>(FrontedWindowRegistryService.RegisteredWindow
@@ -348,19 +356,63 @@ public partial class FrontManagePageViewModel : ViewModelBase
         FrontedLayoutPackageImportResult result,
         bool replaceExisting)
     {
-        if (_packageImporter is null || !result.HasMissingPluginControls)
+        if (_packageImporter is null
+            || (!result.HasMissingPluginControls && !result.HasUnsatisfiedPluginDependencies))
         {
             return result;
         }
 
-        var preview = string.Join(
-            Environment.NewLine,
-            result.MissingPluginControls
-                .Take(8)
-                .Select(control => $"{control.Window}/{control.Canvas} {control.ControlName}: {control.ControlType}"));
-        if (result.MissingPluginControls.Count > 8)
+        var dependencies = BuildDependencyIssues(result);
+        IReadOnlyList<PluginMarketItem> marketItems = [];
+        var marketUnavailable = false;
+        if (_pluginMarketService is not null)
         {
-            preview += Environment.NewLine + $"... +{result.MissingPluginControls.Count - 8}";
+            try
+            {
+                marketItems = await _pluginMarketService.GetMarketPluginsAsync();
+            }
+            catch (Exception ex)
+            {
+                marketUnavailable = true;
+                _logger?.LogWarning(ex, "Failed to load plugin market while importing layout package.");
+            }
+        }
+
+        var installableItems = ClassifyDependencyMarketState(dependencies, marketItems, marketUnavailable);
+        var preview = FormatDependencyPreview(dependencies);
+
+        if (installableItems.Count > 0 && _pluginMarketService is not null && _pluginInstallService is not null)
+        {
+            var installMessage = I18nHelper.GetLocalizedString("MissingPluginImportMessage")
+                                 + Environment.NewLine
+                                 + Environment.NewLine
+                                 + preview
+                                 + Environment.NewLine
+                                 + Environment.NewLine
+                                 + "可从插件市场安装或更新的插件需要用户确认。安装或更新插件后通常需要重启，当前导入不会自动继续。";
+            var install = await MessageBoxHelper.ShowConfirmAsync(
+                installMessage,
+                I18nHelper.GetLocalizedString("MissingPluginImportTitle"),
+                "安装/更新插件",
+                I18nHelper.GetLocalizedString("Cancel"));
+            if (install)
+            {
+                try
+                {
+                    await InstallMarketDependenciesAsync(installableItems);
+                    await MessageBoxHelper.ShowInfoAsync(
+                        I18nHelper.GetLocalizedString("SomeSettingsRequireRestartingTheApplication"),
+                        I18nHelper.GetLocalizedString("RestartNeeded"),
+                        I18nHelper.GetLocalizedString("Confirm"));
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, "Failed to install market plugin dependencies for layout import.");
+                    await MessageBoxHelper.ShowErrorAsync(ex.Message);
+                }
+
+                return result;
+            }
         }
 
         var message = I18nHelper.GetLocalizedString("MissingPluginImportMessage")
@@ -369,7 +421,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
                       + preview
                       + Environment.NewLine
                       + Environment.NewLine
-                      + I18nHelper.GetLocalizedString("MissingPluginMarketLater");
+                      + "可选择强制导入并删除这些插件控件，原始 .bpui 文件不会被修改。";
 
         var force = await MessageBoxHelper.ShowConfirmAsync(
             message,
@@ -387,6 +439,211 @@ public partial class FrontManagePageViewModel : ViewModelBase
             ReplaceExisting = replaceExisting,
             MissingPluginPolicy = FrontedLayoutPackageMissingPluginPolicy.ForceRemoveMissingControls
         });
+    }
+
+    private static List<FrontedLayoutPackagePluginDependencyIssue> BuildDependencyIssues(
+        FrontedLayoutPackageImportResult result)
+    {
+        var dependencies = result.UnsatisfiedPluginDependencies.ToList();
+        foreach (var group in result.MissingPluginControls.GroupBy(control => control.PackageId, StringComparer.OrdinalIgnoreCase))
+        {
+            var dependency = dependencies.FirstOrDefault(item =>
+                string.Equals(item.PackageId, group.Key, StringComparison.OrdinalIgnoreCase));
+            if (dependency == null)
+            {
+                dependency = new FrontedLayoutPackagePluginDependencyIssue
+                {
+                    PackageId = group.Key,
+                    DisplayName = group.Key,
+                    MarketplaceId = group.Key,
+                    IsInstalled = false,
+                    IsVersionSatisfied = false
+                };
+                dependencies.Add(dependency);
+            }
+
+            dependency.AffectedControls = dependency.AffectedControls
+                .Concat(group)
+                .GroupBy(control => $"{control.Window}/{control.Canvas}/{control.ControlName}", StringComparer.Ordinal)
+                .Select(grouped => grouped.First())
+                .ToList();
+        }
+
+        return dependencies;
+    }
+
+    private static List<PluginMarketItem> ClassifyDependencyMarketState(
+        List<FrontedLayoutPackagePluginDependencyIssue> dependencies,
+        IReadOnlyList<PluginMarketItem> marketItems,
+        bool marketUnavailable)
+    {
+        var installable = new List<PluginMarketItem>();
+        foreach (var dependency in dependencies)
+        {
+            dependency.IsMarketUnavailable = marketUnavailable;
+            if (marketUnavailable)
+            {
+                continue;
+            }
+
+            var marketId = string.IsNullOrWhiteSpace(dependency.MarketplaceId)
+                ? dependency.PackageId
+                : dependency.MarketplaceId;
+            var item = marketItems.FirstOrDefault(item =>
+                string.Equals(item.Id, marketId, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(item.Id, dependency.PackageId, StringComparison.OrdinalIgnoreCase));
+            if (item == null || !IsMarketVersionSuitable(item.Version, dependency.MinVersion))
+            {
+                dependency.IsAvailableInMarket = false;
+                continue;
+            }
+
+            dependency.IsAvailableInMarket = true;
+            installable.Add(item);
+        }
+
+        return installable
+            .GroupBy(item => item.Id, StringComparer.OrdinalIgnoreCase)
+            .Select(group => group.First())
+            .ToList();
+    }
+
+    private static string FormatDependencyPreview(IReadOnlyList<FrontedLayoutPackagePluginDependencyIssue> dependencies)
+    {
+        var lines = dependencies
+            .Take(8)
+            .Select(dependency =>
+            {
+                var status = dependency.IsMarketUnavailable
+                    ? "market offline"
+                    : dependency.IsAvailableInMarket
+                        ? "market available"
+                        : dependency.IsInstalled && !dependency.IsVersionSatisfied
+                            ? "update required"
+                            : "not found in market";
+                var controls = dependency.AffectedControls.Count > 0
+                    ? string.Join(", ", dependency.AffectedControls.Take(3).Select(control => $"{control.Window}/{control.Canvas} {control.ControlName}"))
+                    : string.Join(", ", dependency.RequiredBy.Take(3));
+                return $"{dependency.DisplayName ?? dependency.PackageId} [{dependency.PackageId}] "
+                       + $"min={dependency.MinVersion ?? "-"} installed={dependency.InstalledVersion ?? "-"} {status}"
+                       + (string.IsNullOrWhiteSpace(controls) ? string.Empty : $"{Environment.NewLine}  {controls}");
+            })
+            .ToList();
+        if (dependencies.Count > 8)
+        {
+            lines.Add($"... +{dependencies.Count - 8}");
+        }
+
+        return string.Join(Environment.NewLine, lines);
+    }
+
+    private async Task InstallMarketDependenciesAsync(IReadOnlyList<PluginMarketItem> marketItems)
+    {
+        if (_pluginMarketService is null || _pluginInstallService is null)
+        {
+            return;
+        }
+
+        var pendingIds = marketItems.Select(item => item.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in marketItems)
+        {
+            await _pluginMarketService.QueuePluginDownloadAsync(item);
+        }
+
+        while (pendingIds.Count > 0)
+        {
+            while (true)
+            {
+                var download = _pluginMarketService.ConsumeCompletedDownload();
+                if (download == null)
+                {
+                    break;
+                }
+
+                try
+                {
+                    var install = _pluginInstallService.InstallFromExtractedDirectory(download.ExtractedDirectoryPath);
+                    pendingIds.Remove(install.Manifest.Id);
+                    if (download.QueueItem != null)
+                    {
+                        download.QueueItem.Status = PluginDownloadQueueStatus.QueueInstalledRestartRequired;
+                        download.QueueItem.CanCancel = false;
+                        download.QueueItem.SpeedText = string.Empty;
+                    }
+                }
+                finally
+                {
+                    CleanupDownloadedPluginPackageResidue(download.ExtractedDirectoryPath);
+                }
+            }
+
+            var failed = _pluginMarketService.DownloadQueue.FirstOrDefault(item =>
+                pendingIds.Contains(item.PluginId)
+                && item.Status == PluginDownloadQueueStatus.QueueFailed);
+            if (failed != null)
+            {
+                throw new InvalidOperationException(failed.ErrorMessage);
+            }
+
+            if (!_pluginMarketService.IsDownloading
+                && !_pluginMarketService.DownloadQueue.Any(item => pendingIds.Contains(item.PluginId) && item.IsInProgress))
+            {
+                break;
+            }
+
+            await Task.Delay(250);
+        }
+    }
+
+    private static bool IsMarketVersionSuitable(string marketVersion, string? minVersion)
+    {
+        if (string.IsNullOrWhiteSpace(minVersion))
+        {
+            return true;
+        }
+
+        return TryParseVersion(marketVersion, out var market)
+               && TryParseVersion(minVersion, out var required)
+               && market >= required;
+    }
+
+    private static bool TryParseVersion(string value, out Version version)
+    {
+        var normalized = value.Trim();
+        if (normalized.StartsWith('v') || normalized.StartsWith('V'))
+        {
+            normalized = normalized[1..];
+        }
+
+        var metadataIndex = normalized.IndexOfAny(['+', '-']);
+        if (metadataIndex > 0)
+        {
+            normalized = normalized[..metadataIndex];
+        }
+
+        return Version.TryParse(normalized, out version!);
+    }
+
+    private static void CleanupDownloadedPluginPackageResidue(string extractedDirectoryPath)
+    {
+        try
+        {
+            if (Directory.Exists(extractedDirectoryPath))
+            {
+                Directory.Delete(extractedDirectoryPath, true);
+            }
+
+            var sessionDirectory = Directory.GetParent(extractedDirectoryPath)?.FullName;
+            if (!string.IsNullOrWhiteSpace(sessionDirectory)
+                && Directory.Exists(sessionDirectory)
+                && !Directory.EnumerateFileSystemEntries(sessionDirectory).Any())
+            {
+                Directory.Delete(sessionDirectory, true);
+            }
+        }
+        catch
+        {
+        }
     }
 
     [RelayCommand]

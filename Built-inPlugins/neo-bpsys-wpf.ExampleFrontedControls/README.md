@@ -17,6 +17,11 @@ The plugin registers an `IFrontedControlPluginContributor` during `Plugin.Initia
 - display and description localization keys
 - declarative property metadata for binding, color, number, and enum editors
 
+`TeamCardFrontedControlConfig` defaults to Binding Browser paths that exist in the current Designer v3 catalog:
+
+- `CurrentGame.SurTeam.Name`
+- `CurrentGame.SurTeam.Logo`
+
 ## Test in Debug
 
 Build the main app in `Debug`. The main project copies this plugin to:
@@ -26,6 +31,7 @@ Plugins/top.plfjy.example.fronted
 ```
 
 Start the app, open `FrontedDesignerWindow`, open Add Control, and add `TeamCard` from the plugin controls group.
+Saving or exporting a layout that contains `TeamCard` should write `RequiredPlugins.MinVersion` / `PluginDependencies.MinVersion` from this plugin's `manifest.yml` version. The exported `.bpui` package must only contain layout metadata and resources; it must not contain this plugin's DLLs or zip package.
 
 The sample is not included in Release, Beta, or Preview output by default.
 

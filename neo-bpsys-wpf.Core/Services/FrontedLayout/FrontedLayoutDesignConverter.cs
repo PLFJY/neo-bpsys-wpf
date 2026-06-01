@@ -11,6 +11,7 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 public class FrontedLayoutDesignConverter
 {
     private readonly IFrontedControlRegistry? _controlRegistry;
+    private readonly IFrontedPluginMetadataProvider? _pluginMetadataProvider;
 
     public FrontedLayoutDesignConverter()
     {
@@ -19,6 +20,14 @@ public class FrontedLayoutDesignConverter
     public FrontedLayoutDesignConverter(IFrontedControlRegistry controlRegistry)
     {
         _controlRegistry = controlRegistry;
+    }
+
+    public FrontedLayoutDesignConverter(
+        IFrontedControlRegistry controlRegistry,
+        IFrontedPluginMetadataProvider pluginMetadataProvider)
+    {
+        _controlRegistry = controlRegistry;
+        _pluginMetadataProvider = pluginMetadataProvider;
     }
 
     /// <summary>
@@ -94,8 +103,8 @@ public class FrontedLayoutDesignConverter
                 return new FrontedPluginDependency
                 {
                     PackageId = group.Key,
-                    MinVersion = existing?.MinVersion,
-                    DisplayName = existing?.DisplayName ?? descriptor?.PackageId ?? group.Key,
+                    MinVersion = ResolveMinVersion(group.Key, existing),
+                    DisplayName = ResolveDisplayName(group.Key, existing, descriptor),
                     MarketplaceId = existing?.MarketplaceId,
                     Controls = controls
                 };
@@ -104,6 +113,28 @@ public class FrontedLayoutDesignConverter
 
         document.CanvasConfig.RequiredPlugins = dependencies;
         return dependencies;
+    }
+
+    private string? ResolveMinVersion(string packageId, FrontedPluginDependency? existing)
+    {
+        return _pluginMetadataProvider?.TryGetPluginVersion(packageId, out var version) == true
+            && !string.IsNullOrWhiteSpace(version)
+            ? version
+            : existing?.MinVersion;
+    }
+
+    private string ResolveDisplayName(
+        string packageId,
+        FrontedPluginDependency? existing,
+        IFrontedPluginControlDescriptor? descriptor)
+    {
+        if (_pluginMetadataProvider?.TryGetPluginDisplayName(packageId, out var displayName) == true
+            && !string.IsNullOrWhiteSpace(displayName))
+        {
+            return displayName;
+        }
+
+        return existing?.DisplayName ?? descriptor?.PackageId ?? packageId;
     }
 
     private static FrontedControlDesignItem CreateDesignItem(
