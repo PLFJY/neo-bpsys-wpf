@@ -291,7 +291,8 @@ Phase 8D owner validation 后的选择规则：
 1. `Image` 是 direct image 控件，设计器透明 hitbox、选中框和 resize handles 对齐并修改根 `Image` 的 `Left` / `Top` / `Width` / `Height`。
 2. `BorderedImage` 是外层 `Border` + 内层 `Image`，Property Grid 把外框和内部图片属性分组显示；`Width` / `Height` 是外框尺寸，`ImageWidth` / `ImageHeight` 是内层图片尺寸。
 3. 选中 `BorderedImage` 时，Property Grid 顶部提供互斥的 resize target 切换。`Border` 模式下 thumbs 调整外层 `Border`，`Image` 模式下 thumbs 调整内层 `ImageWidth` / `ImageHeight`；`Stretch`、`HorizontalAlignment`、`VerticalAlignment` 仍作用于内层 `Image`。
-4. MapV1 的 `PickedMap` / `BannedMap` 使用 direct `Image`，保持旧 XAML `ui:Image` 的填充与裁剪行为；角色 pick 大图等需要外层裁剪框的控件使用 `BorderedImage`。
+4. `BorderedImage` 的运行时树保持旧 XAML 的 `Border -> Image` 语义，不插入中间 layout host；未配置 `ImageWidth` / `ImageHeight` 时，内层图片继续由 WPF 的 `Image` 测量和 `Stretch` 规则决定尺寸。
+5. MapV1 的 `PickedMap` / `BannedMap` 使用 direct `Image`，保持旧 XAML `ui:Image` 的填充与裁剪行为；CutScene 的 Map、SurPick0-3、HunPick 来自 `v2.1.1+af0a4be` 旧 XAML 的 `Border -> Image`，因此使用 `BorderedImage`。
 
 Phase 8D 视口导航修正后：
 

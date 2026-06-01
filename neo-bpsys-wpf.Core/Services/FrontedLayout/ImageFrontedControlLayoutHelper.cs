@@ -55,6 +55,7 @@ internal static class ImageFrontedControlLayoutHelper
                 radius);
         }
 
+        element.Loaded += (_, _) => UpdateClip();
         element.SizeChanged += (_, _) => UpdateClip();
     }
 

@@ -628,10 +628,24 @@ public class FrontedCanvasConfigTest
         Assert.Equal(-1, map.ZIndex);
         Assert.Equal("Center", map.HorizontalAlignment);
         Assert.Equal("Center", map.VerticalAlignment);
+        Assert.Equal(ImageSizingMode.Auto, map.SizingMode);
+
+        var expectedSurPickGeometry = new[]
+        {
+            (Left: 1D, Top: 115D, Width: 346D, Height: 308.5D),
+            (Left: 351D, Top: 115D, Width: 346D, Height: 308.5D),
+            (Left: 1D, Top: 465D, Width: 346D, Height: 306.5D),
+            (Left: 350D, Top: 465D, Width: 346D, Height: 306.5D)
+        };
+
         for (var index = 0; index < 4; index++)
         {
             var pick = Assert.IsType<BorderedImageFrontedControlConfig>(config.Controls[$"SurPick{index}"]);
             Assert.Equal($"CurrentGame.SurPlayerList[{index}].Character.BigImage", pick.BindingPath);
+            Assert.Equal(expectedSurPickGeometry[index].Left, pick.Left);
+            Assert.Equal(expectedSurPickGeometry[index].Top, pick.Top);
+            Assert.Equal(expectedSurPickGeometry[index].Width, pick.Width);
+            Assert.Equal(expectedSurPickGeometry[index].Height, pick.Height);
             Assert.Equal(ImageSizingMode.OverflowCrop, pick.SizingMode);
             Assert.Equal("UniformToFill", pick.Stretch);
             Assert.True(pick.ClipToBounds);
@@ -643,6 +657,10 @@ public class FrontedCanvasConfigTest
 
         var hunPick = Assert.IsType<BorderedImageFrontedControlConfig>(config.Controls["HunPick"]);
         Assert.Equal("CurrentGame.HunPlayer.Character.BigImage", hunPick.BindingPath);
+        Assert.Equal(702, hunPick.Left);
+        Assert.Equal(114.5, hunPick.Top);
+        Assert.Equal(739, hunPick.Width);
+        Assert.Equal(635, hunPick.Height);
         Assert.Equal(ImageSizingMode.OverflowCrop, hunPick.SizingMode);
         Assert.Equal("UniformToFill", hunPick.Stretch);
         Assert.True(hunPick.ClipToBounds);
@@ -695,7 +713,7 @@ public class FrontedCanvasConfigTest
         Assert.Equal(3, config.Version);
         Assert.Equal(1440, config.CanvasWidth);
         Assert.Equal(810, config.CanvasHeight);
-        Assert.Equal("Resources/gameData_withText.png", config.BackgroundImage);
+        Assert.Equal("Resources/gameData.png", config.BackgroundImage);
 
         var expectedControls = new[]
         {
@@ -1546,6 +1564,56 @@ public class FrontedCanvasConfigTest
             Assert.Equal(VerticalAlignment.Stretch, image.VerticalAlignment);
             Assert.Null(BindingOperations.GetBinding(image, FrameworkElement.WidthProperty));
             Assert.Null(BindingOperations.GetBinding(image, FrameworkElement.HeightProperty));
+        });
+    }
+
+    [Fact]
+    public void BorderedImageFrontedControlReproducesLegacyBorderImageStructure()
+    {
+        RunOnStaThread(() =>
+        {
+            var sharedDataService = new Mock<ISharedDataService>().Object;
+            var control = new BorderedImageFrontedControl();
+            var element = control.Create(
+                "SurPick0",
+                new BorderedImageFrontedControlConfig
+                {
+                    Left = 1,
+                    Top = 115,
+                    Width = 346,
+                    Height = 308.5,
+                    BindingPath = "CurrentGame.SurPlayerList[0].Character.BigImage",
+                    SizingMode = ImageSizingMode.OverflowCrop,
+                    Stretch = "UniformToFill",
+                    HorizontalAlignment = "Center",
+                    VerticalAlignment = "Top",
+                    ClipToBounds = true,
+                    CornerRadius = 8,
+                    ZIndex = 3
+                },
+                CreateBuildContext(sharedDataService));
+
+            var border = Assert.IsType<Border>(element);
+            Assert.Equal("SurPick0", border.Name);
+            Assert.Equal(1, Canvas.GetLeft(border));
+            Assert.Equal(115, Canvas.GetTop(border));
+            Assert.Equal(346, border.Width);
+            Assert.Equal(308.5, border.Height);
+            Assert.Equal(3, Panel.GetZIndex(border));
+            Assert.True(border.ClipToBounds);
+            Assert.Equal(new CornerRadius(8), border.CornerRadius);
+
+            var image = Assert.IsType<Image>(border.Child);
+            Assert.True(double.IsNaN(image.Width));
+            Assert.True(double.IsNaN(image.Height));
+            Assert.Equal(Stretch.UniformToFill, image.Stretch);
+            Assert.Equal(HorizontalAlignment.Center, image.HorizontalAlignment);
+            Assert.Equal(VerticalAlignment.Top, image.VerticalAlignment);
+
+            var binding = BindingOperations.GetBinding(image, Image.SourceProperty);
+            Assert.NotNull(binding);
+            Assert.Equal("CurrentGame.SurPlayerList[0].Character.BigImage", binding.Path.Path);
+            Assert.Same(sharedDataService, binding.Source);
         });
     }
 

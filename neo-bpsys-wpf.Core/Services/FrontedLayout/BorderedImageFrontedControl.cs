@@ -33,6 +33,7 @@ public class BorderedImageFrontedControl : IFrontedControl
         if (imageConfig.CornerRadius is > 0)
         {
             border.CornerRadius = new CornerRadius(imageConfig.CornerRadius.Value);
+            ImageFrontedControlLayoutHelper.ApplyCornerRadiusClip(border, imageConfig.CornerRadius);
         }
 
         var image = new Image();

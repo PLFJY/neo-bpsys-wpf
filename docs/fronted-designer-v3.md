@@ -169,6 +169,8 @@ Phase 12 后，内置图片控件拆为 `Image` 和 `BorderedImage`：
 
 `Image` 用于旧 XAML 中直接 `Image` / `ui:Image` 的布局语义，例如 `WidgetsWindow/MapBpCanvas.json` 中 MapV1 的 `PickedMap` / `BannedMap`。这两个控件保持 `"ControlType": "Image"`、`Width = 290`、`Height = 138`、`Stretch = "UniformToFill"` 和 `CornerRadius = 8`，根元素本身就是图片框，避免外层 Border + 内层尺寸绑定造成裁剪偏移。
 
+`BorderedImage` 的默认运行时结构必须保持为外层 `Border` 直接包含内层 `Image`，用于复现旧 XAML 中的 `Border -> Image`。外层 `Width` / `Height` 只作用于 `Border`，内层 `ImageWidth` / `ImageHeight` 只在配置显式提供时作用于 `Image.Width` / `Image.Height`；如果为空，不应把内层图片宽高绑定到外层 `ActualWidth` / `ActualHeight`，也不应通过中间 `Grid` 改变旧的测量和裁剪语义。CutScene 默认布局已按 `v2.1.1+af0a4be` 恢复：队标仍是 direct `Image`，Map、SurPick0-3 和 HunPick 是 `BorderedImage`，其中角色图使用 `ClipToBounds=true`、`Stretch=UniformToFill`、`HorizontalAlignment=Center`、`VerticalAlignment=Top`。
+
 `BorderedImage` 支持 `SizingMode`，用于保留旧 XAML 中需要外层容器的图片布局语义：
 
 | `SizingMode` | 旧 XAML 对应行为 | 使用场景 |
