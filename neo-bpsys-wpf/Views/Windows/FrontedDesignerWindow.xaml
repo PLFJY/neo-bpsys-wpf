@@ -444,7 +444,7 @@
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
-                        <Grid Grid.Row="1">
+                        <Grid x:Name="LayerPanelHostGrid" Grid.Row="1">
                             <ScrollViewer
                                 x:Name="LayerPanelScrollViewer"
                                 AllowDrop="True"
@@ -608,6 +608,42 @@
                                     FontSize="12"
                                     FontWeight="SemiBold"
                                     Text="{lex:Loc Designer.LayerPanel.MoveToNewBottomLayer}" />
+                            </Border>
+                            <Border
+                                x:Name="LayerDragGhost"
+                                MinWidth="130"
+                                MaxWidth="190"
+                                Padding="6,4"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                IsHitTestVisible="False"
+                                Opacity="0.82"
+                                Visibility="Collapsed">
+                                <Border.RenderTransform>
+                                    <TranslateTransform x:Name="LayerDragGhostTransform" />
+                                </Border.RenderTransform>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock
+                                        x:Name="LayerDragGhostNameText"
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <TextBlock
+                                        x:Name="LayerDragGhostMetaText"
+                                        Grid.Row="1"
+                                        Margin="0,1,0,0"
+                                        FontSize="11"
+                                        Opacity="0.78"
+                                        TextTrimming="CharacterEllipsis" />
+                                </Grid>
                             </Border>
                         </Grid>
                         <TextBlock

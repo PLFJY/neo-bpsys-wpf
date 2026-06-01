@@ -14,7 +14,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Documents;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using Wpf.Ui.Controls;
@@ -71,7 +70,6 @@ public partial class FrontedDesignerWindow : FluentWindow
     private readonly DispatcherTimer _layerAutoScrollTimer;
     private double _layerAutoScrollVelocity;
     private Point? _lastLayerDragPosition;
-    private LayerDragPreviewAdorner? _layerDragPreviewAdorner;
 
     public FrontedDesignerWindow()
     {
@@ -111,7 +109,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void OnClosed(object? sender, EventArgs e)
     {
-        RemoveLayerDragPreview();
+        HideLayerDragGhost();
         StopLayerAutoScroll();
         if (_viewModel is not null)
         {
@@ -283,7 +281,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _activeLayerDragItem = _pendingLayerDragItem;
         _pendingLayerDragItem = null;
         var data = new DataObject(typeof(FrontedControlDesignItem), _activeLayerDragItem);
-        TryStartLayerDragPreview(_activeLayerDragItem, currentPosition);
+        ShowLayerDragGhost(_activeLayerDragItem, e.GetPosition(LayerPanelHostGrid));
         try
         {
             DragDrop.DoDragDrop(dragSource, data, DragDropEffects.Move);
@@ -291,7 +289,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         finally
         {
             _activeLayerDragItem = null;
-            RemoveLayerDragPreview();
+            HideLayerDragGhost();
             StopLayerAutoScroll();
             HideLayerDropZones();
         }
@@ -414,7 +412,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         e.Effects = DragDropEffects.Move;
         UpdateLayerAutoScroll(e.GetPosition(LayerPanelScrollViewer));
-        TryUpdateLayerDragPreview(e.GetPosition(this));
+        UpdateLayerDragGhost(e.GetPosition(LayerPanelHostGrid));
         e.Handled = true;
     }
 
@@ -466,42 +464,67 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void StopLayerDrag(DragEventArgs e)
     {
-        RemoveLayerDragPreview();
+        HideLayerDragGhost();
         StopLayerAutoScroll();
         HideLayerDropZones();
         e.Handled = true;
     }
 
-    private void TryStartLayerDragPreview(FrontedControlDesignItem item, Point windowPosition)
+    private void ShowLayerDragGhost(FrontedControlDesignItem item, Point panelPosition)
     {
-        RemoveLayerDragPreview();
+        LayerDragGhostNameText.Text = item.Name;
+        LayerDragGhostMetaText.Text = $"{GetControlTypeDisplay(item.Config.ControlType)}  {I18nHelper.GetLocalizedString("ZIndexShort")} {item.Config.ZIndex}";
+        LayerDragGhost.Visibility = Visibility.Visible;
+        UpdateLayerDragGhost(panelPosition);
+    }
 
-        var layer = AdornerLayer.GetAdornerLayer(this);
-        if (layer is null)
+    private void UpdateLayerDragGhost(Point panelPosition)
+    {
+        if (LayerDragGhost.Visibility != Visibility.Visible)
         {
             return;
         }
 
-        _layerDragPreviewAdorner = new LayerDragPreviewAdorner(this, item);
-        layer.Add(_layerDragPreviewAdorner);
-        _layerDragPreviewAdorner.SetPosition(windowPosition);
-    }
+        LayerDragGhost.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        var ghostWidth = LayerDragGhost.DesiredSize.Width;
+        var ghostHeight = LayerDragGhost.DesiredSize.Height;
 
-    private void TryUpdateLayerDragPreview(Point windowPosition)
-    {
-        _layerDragPreviewAdorner?.SetPosition(windowPosition);
-    }
+        var x = panelPosition.X - ghostWidth / 2D;
+        var y = panelPosition.Y - ghostHeight / 2D;
 
-    private void RemoveLayerDragPreview()
-    {
-        if (_layerDragPreviewAdorner is null)
+        if (LayerPanelHostGrid.ActualWidth > 0D && ghostWidth > 0D)
         {
-            return;
+            x = Math.Clamp(x, 0D, Math.Max(0D, LayerPanelHostGrid.ActualWidth - ghostWidth));
         }
 
-        var layer = AdornerLayer.GetAdornerLayer(this);
-        layer?.Remove(_layerDragPreviewAdorner);
-        _layerDragPreviewAdorner = null;
+        if (LayerPanelHostGrid.ActualHeight > 0D && ghostHeight > 0D)
+        {
+            y = Math.Clamp(y, 0D, Math.Max(0D, LayerPanelHostGrid.ActualHeight - ghostHeight));
+        }
+
+        LayerDragGhostTransform.X = x;
+        LayerDragGhostTransform.Y = y;
+    }
+
+    private void HideLayerDragGhost()
+    {
+        LayerDragGhost.Visibility = Visibility.Collapsed;
+        LayerDragGhostTransform.X = 0D;
+        LayerDragGhostTransform.Y = 0D;
+        LayerDragGhostNameText.Text = string.Empty;
+        LayerDragGhostMetaText.Text = string.Empty;
+    }
+
+    private static string GetControlTypeDisplay(string? controlType)
+    {
+        if (string.IsNullOrWhiteSpace(controlType))
+        {
+            return string.Empty;
+        }
+
+        var key = $"Designer.ControlType.{controlType}";
+        var localized = I18nHelper.GetLocalizedString(key);
+        return string.Equals(localized, key, StringComparison.Ordinal) ? controlType : localized;
     }
 
     private void StopLayerAutoScroll()

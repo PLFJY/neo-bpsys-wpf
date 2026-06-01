@@ -10,6 +10,7 @@ using neo_bpsys_wpf.Services.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.Windows;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -2826,42 +2827,70 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void FrontedDesignerLayerDragGhostUsesAdornerWithoutMutatingDuringDragOver()
+    public void FrontedDesignerLayerDragGhostUsesPanelOverlayWithoutMutatingDuringDragOver()
     {
         var codeBehind = File.ReadAllText(GetRepositoryPath(
             "neo-bpsys-wpf",
             "Views",
             "Windows",
             "FrontedDesignerWindow.xaml.cs"));
+        var xaml = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Windows",
+            "FrontedDesignerWindow.xaml"));
 
-        Assert.Contains("LayerDragPreviewAdorner", codeBehind);
-        Assert.Contains("TryStartLayerDragPreview", codeBehind);
-        Assert.Contains("TryUpdateLayerDragPreview", codeBehind);
-        Assert.Contains("RemoveLayerDragPreview", codeBehind);
-        Assert.Contains("AdornerLayer.GetAdornerLayer(this)", codeBehind);
-        Assert.Contains("TryUpdateLayerDragPreview(e.GetPosition(this))", codeBehind);
+        Assert.DoesNotContain("LayerDrag" + "PreviewAdorner", codeBehind);
+        Assert.DoesNotContain("AdornerLayer.Get" + "AdornerLayer(this)", codeBehind);
+        Assert.DoesNotContain("TryStartLayer" + "DragPreview", codeBehind);
+        Assert.DoesNotContain("TryUpdateLayer" + "DragPreview", codeBehind);
+        Assert.DoesNotContain("RemoveLayer" + "DragPreview", codeBehind);
+        Assert.Contains("ShowLayerDragGhost(_activeLayerDragItem, e.GetPosition(LayerPanelHostGrid))", codeBehind);
+        Assert.Contains("UpdateLayerDragGhost(e.GetPosition(LayerPanelHostGrid))", codeBehind);
+        Assert.Contains("UpdateLayerAutoScroll(e.GetPosition(LayerPanelScrollViewer))", codeBehind);
+        Assert.Contains("HideLayerDragGhost();", codeBehind);
+        Assert.Contains("finally", codeBehind);
+        Assert.Contains("x:Name=\"LayerPanelHostGrid\"", xaml);
+        Assert.Contains("x:Name=\"LayerDragGhost\"", xaml);
+        Assert.True(ReadLayerDragGhostDoubleAttribute(xaml, "MinWidth") <= 140D);
+        Assert.True(ReadLayerDragGhostDoubleAttribute(xaml, "MaxWidth") <= 200D);
+        Assert.Contains("IsHitTestVisible=\"False\"", xaml);
+        Assert.Contains("var x = panelPosition.X - ghostWidth / 2D;", codeBehind);
+        Assert.Contains("var y = panelPosition.Y - ghostHeight / 2D;", codeBehind);
+        Assert.Contains("Math.Clamp(x, 0D, Math.Max(0D, LayerPanelHostGrid.ActualWidth - ghostWidth))", codeBehind);
+        Assert.Contains("Math.Clamp(y, 0D, Math.Max(0D, LayerPanelHostGrid.ActualHeight - ghostHeight))", codeBehind);
+
         var dragOverMethod = codeBehind[
             codeBehind.IndexOf("private void UpdateLayerDragOver", StringComparison.Ordinal)..];
         var dragOverMethodEnd = dragOverMethod.IndexOf("private void UpdateLayerAutoScroll", StringComparison.Ordinal);
         Assert.True(dragOverMethodEnd > 0);
         Assert.DoesNotContain("CommitLayerDrop", dragOverMethod[..dragOverMethodEnd]);
-        Assert.Contains("RemoveLayerDragPreview();", codeBehind);
-        Assert.Contains("finally", codeBehind);
+    }
+
+    private static double ReadLayerDragGhostDoubleAttribute(string xaml, string attributeName)
+    {
+        var ghostIndex = xaml.IndexOf("x:Name=\"LayerDragGhost\"", StringComparison.Ordinal);
+        Assert.True(ghostIndex >= 0);
+
+        var attributePrefix = $"{attributeName}=\"";
+        var attributeIndex = xaml.IndexOf(attributePrefix, ghostIndex, StringComparison.Ordinal);
+        Assert.True(attributeIndex >= 0);
+
+        var valueStart = attributeIndex + attributePrefix.Length;
+        var valueEnd = xaml.IndexOf('"', valueStart);
+        Assert.True(valueEnd > valueStart);
+
+        return double.Parse(xaml[valueStart..valueEnd], CultureInfo.InvariantCulture);
     }
 
     [Fact]
-    public void LayerDragPreviewAdornerIsHitTestInvisibleAndSemiTransparent()
+    public void LayerDragGhostAdornerFileIsNotPresent()
     {
-        var adornerCode = File.ReadAllText(GetRepositoryPath(
+        Assert.False(File.Exists(GetRepositoryPath(
             "neo-bpsys-wpf",
             "Views",
             "Windows",
-            "LayerDragPreviewAdorner.cs"));
-
-        Assert.Contains(": Adorner", adornerCode);
-        Assert.Contains("IsHitTestVisible = false", adornerCode);
-        Assert.Contains("Opacity = 0.75", adornerCode);
-        Assert.Contains("SetPosition", adornerCode);
+            "LayerDrag" + "PreviewAdorner.cs")));
     }
 
     [Fact]
@@ -3067,10 +3096,12 @@ public class FrontedLayoutDesignerFoundationTest
         var scrollViewerClose = xaml.IndexOf("</ScrollViewer>", StringComparison.Ordinal);
         var topZone = xaml.IndexOf("x:Name=\"LayerTopDropZone\"", StringComparison.Ordinal);
         var bottomZone = xaml.IndexOf("x:Name=\"LayerBottomDropZone\"", StringComparison.Ordinal);
+        var ghost = xaml.IndexOf("x:Name=\"LayerDragGhost\"", StringComparison.Ordinal);
 
         Assert.True(scrollViewerClose > 0);
         Assert.True(topZone > scrollViewerClose);
         Assert.True(bottomZone > scrollViewerClose);
+        Assert.True(ghost > bottomZone);
         Assert.Contains("VerticalAlignment=\"Top\"", xaml);
         Assert.Contains("VerticalAlignment=\"Bottom\"", xaml);
         Assert.Contains("DragOver=\"LayerItem_OnDragOver\"", xaml);
