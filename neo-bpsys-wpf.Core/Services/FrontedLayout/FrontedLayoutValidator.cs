@@ -43,7 +43,10 @@ public class FrontedLayoutValidator
         string canvasName,
         FrontedCanvasConfig config)
     {
-        var document = new FrontedLayoutDesignConverter()
+        var converter = _controlRegistry is null
+            ? new FrontedLayoutDesignConverter()
+            : new FrontedLayoutDesignConverter(_controlRegistry);
+        var document = converter
             .FromConfig(windowTypeName, canvasName, config, _runtimeContracts);
 
         return Validate(document);
@@ -204,6 +207,36 @@ public class FrontedLayoutValidator
 
             ValidateCommonControlFields(item, messages);
             ValidateKnownControlConfig(item, messages);
+            ValidatePluginControlConfig(item, messages);
+        }
+    }
+
+    private void ValidatePluginControlConfig(
+        FrontedControlDesignItem item,
+        ICollection<FrontedLayoutValidationMessage> messages)
+    {
+        if (_controlRegistry?.GetPluginDescriptor(item.Config.ControlType) is not { } descriptor)
+        {
+            return;
+        }
+
+        var validate = descriptor.GetType()
+            .GetProperty(nameof(FrontedPluginControlDescriptor<FrontedControlConfigBase>.Validate))
+            ?.GetValue(descriptor) as Delegate;
+        if (validate is null)
+        {
+            return;
+        }
+
+        if (validate.DynamicInvoke(item.Config) is not IEnumerable<FrontedLayoutValidationMessage> pluginMessages)
+        {
+            return;
+        }
+
+        foreach (var message in pluginMessages)
+        {
+            message.ControlName ??= item.Name;
+            messages.Add(message);
         }
     }
 
@@ -231,11 +264,17 @@ public class FrontedLayoutValidator
         }
         else if (_controlRegistry is not null && _controlRegistry.GetControl(item.Config.ControlType) is null)
         {
-            messages.Add(Error(
-                "ControlTypeUnknown",
-                $"Control '{item.Name}' has unknown ControlType '{item.Config.ControlType}'.",
-                item.Name,
-                nameof(FrontedControlConfigBase.ControlType)));
+            messages.Add(FrontedPluginControlType.IsPluginControlType(item.Config.ControlType)
+                ? Warning(
+                    "PluginControlMissing",
+                    $"Control '{item.Name}' uses missing plugin ControlType '{item.Config.ControlType}'.",
+                    item.Name,
+                    nameof(FrontedControlConfigBase.ControlType))
+                : Error(
+                    "ControlTypeUnknown",
+                    $"Control '{item.Name}' has unknown ControlType '{item.Config.ControlType}'.",
+                    item.Name,
+                    nameof(FrontedControlConfigBase.ControlType)));
         }
 
         if (FrontedTextLimitHelper.IsTooLong(item.Config.ControlType, FrontedLayoutLimits.MaxControlTypeLength))

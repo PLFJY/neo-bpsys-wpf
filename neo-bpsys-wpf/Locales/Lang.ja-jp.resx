@@ -2554,6 +2554,13 @@
   <data name="Designer.PropertyGroup.ControlSpecific" xml:space="preserve"><value>コントロール固有</value></data>
   <data name="Designer.PropertyGroup.Border" xml:space="preserve"><value>外枠</value></data>
   <data name="Designer.PropertyGroup.Image" xml:space="preserve"><value>内部画像</value></data>
+  <data name="Designer.PluginControls" xml:space="preserve"><value>プラグインコントロール</value></data>
+  <data name="Designer.MissingPluginControl" xml:space="preserve"><value>不足しているプラグイン</value></data>
+  <data name="Designer.MissingPluginPackage" xml:space="preserve"><value>パッケージ</value></data>
+  <data name="Designer.MissingPluginType" xml:space="preserve"><value>プラグインコントロールタイプ</value></data>
+  <data name="Designer.PluginInstallGuidance" xml:space="preserve"><value>このプラグインはインストールされていません。インストール案内は Phase 13E で提供予定です。</value></data>
+  <data name="Designer.PluginControlUnavailable" xml:space="preserve"><value>プラグインコントロールを追加できません</value></data>
+  <data name="Designer.PropertyGroup.Plugin" xml:space="preserve"><value>プラグイン</value></data>
   <data name="ResizeTarget" xml:space="preserve"><value>リサイズ対象</value></data>
   <data name="Designer.ControlType.Text" xml:space="preserve"><value>テキスト</value></data>
   <data name="Designer.ControlType.LocalizedText" xml:space="preserve"><value>ローカライズ済みテキスト</value></data>

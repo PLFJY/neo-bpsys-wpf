@@ -15,12 +15,13 @@ public class FrontedPropertyGridBuilder
 {
     private readonly FrontedFontFamilyOptionProvider _fontFamilyOptionProvider;
     private readonly IFrontedDesignerLocalizationService _localizationService;
+    private readonly IFrontedControlRegistry? _controlRegistry;
 
     /// <summary>
     /// Initializes a property grid builder with default font options.
     /// </summary>
     public FrontedPropertyGridBuilder()
-        : this(new FrontedFontFamilyOptionProvider(), new FrontedDesignerLocalizationService())
+        : this(new FrontedFontFamilyOptionProvider(), new FrontedDesignerLocalizationService(), null)
     {
     }
 
@@ -28,7 +29,7 @@ public class FrontedPropertyGridBuilder
     /// Initializes a property grid builder with a custom font option provider.
     /// </summary>
     public FrontedPropertyGridBuilder(FrontedFontFamilyOptionProvider fontFamilyOptionProvider)
-        : this(fontFamilyOptionProvider, new FrontedDesignerLocalizationService())
+        : this(fontFamilyOptionProvider, new FrontedDesignerLocalizationService(), null)
     {
     }
 
@@ -37,10 +38,12 @@ public class FrontedPropertyGridBuilder
     /// </summary>
     public FrontedPropertyGridBuilder(
         FrontedFontFamilyOptionProvider fontFamilyOptionProvider,
-        IFrontedDesignerLocalizationService localizationService)
+        IFrontedDesignerLocalizationService localizationService,
+        IFrontedControlRegistry? controlRegistry = null)
     {
         _fontFamilyOptionProvider = fontFamilyOptionProvider;
         _localizationService = localizationService;
+        _controlRegistry = controlRegistry;
     }
 
     private static readonly HashSet<string> CommonPropertyNames = new(StringComparer.Ordinal)
@@ -206,6 +209,19 @@ public class FrontedPropertyGridBuilder
         FrontedControlDesignItem selectedItem,
         IReadOnlyList<FrontedLayoutValidationMessage> messages)
     {
+        var pluginDescriptor = _controlRegistry?.GetPluginDescriptor(selectedItem.Config.ControlType);
+        if (selectedItem.Config is PluginFrontedControlConfig missingPlugin && pluginDescriptor is null)
+        {
+            AddMissingPluginRows(rows, selectedItem, missingPlugin, messages);
+            return;
+        }
+
+        if (pluginDescriptor is not null && pluginDescriptor.Properties?.Count > 0)
+        {
+            AddPluginMetadataRows(rows, selectedItem, pluginDescriptor, messages);
+            return;
+        }
+
         var properties = selectedItem.Config.GetType()
             .GetProperties(BindingFlags.Instance | BindingFlags.Public)
             .Where(IsSupportedProperty)
@@ -277,6 +293,170 @@ public class FrontedPropertyGridBuilder
             });
         }
     }
+
+    private void AddPluginMetadataRows(
+        ICollection<FrontedPropertyEditorItem> rows,
+        FrontedControlDesignItem selectedItem,
+        IFrontedPluginControlDescriptor descriptor,
+        IReadOnlyList<FrontedLayoutValidationMessage> messages)
+    {
+        var added = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var propertyName in new[]
+                 {
+                     nameof(FrontedControlConfigBase.Left),
+                     nameof(FrontedControlConfigBase.Top),
+                     nameof(FrontedControlConfigBase.Width),
+                     nameof(FrontedControlConfigBase.Height),
+                     nameof(FrontedControlConfigBase.ZIndex),
+                     nameof(FrontedControlConfigBase.BindingPath)
+                 })
+        {
+            var property = selectedItem.Config.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+            if (property is not null && IsSupportedProperty(property))
+            {
+                AddPropertyRow(rows, selectedItem, messages, property, null);
+                added.Add(property.Name);
+            }
+        }
+
+        foreach (var metadata in descriptor.Properties?.Where(property => property.IsVisible) ?? [])
+        {
+            if (!added.Add(metadata.PropertyName))
+            {
+                continue;
+            }
+
+            var property = selectedItem.Config.GetType().GetProperty(metadata.PropertyName, BindingFlags.Instance | BindingFlags.Public);
+            if (property is null || !IsSupportedProperty(property))
+            {
+                continue;
+            }
+
+            AddPropertyRow(rows, selectedItem, messages, property, metadata);
+        }
+    }
+
+    private void AddMissingPluginRows(
+        ICollection<FrontedPropertyEditorItem> rows,
+        FrontedControlDesignItem selectedItem,
+        PluginFrontedControlConfig config,
+        IReadOnlyList<FrontedLayoutValidationMessage> messages)
+    {
+        foreach (var propertyName in new[]
+                 {
+                     nameof(FrontedControlConfigBase.Left),
+                     nameof(FrontedControlConfigBase.Top),
+                     nameof(FrontedControlConfigBase.Width),
+                     nameof(FrontedControlConfigBase.Height),
+                     nameof(FrontedControlConfigBase.ZIndex),
+                     nameof(FrontedControlConfigBase.BindingPath)
+                 })
+        {
+            var property = selectedItem.Config.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+            if (property is not null && IsSupportedProperty(property))
+            {
+                AddPropertyRow(rows, selectedItem, messages, property, null);
+            }
+        }
+
+        AddReadOnlyInfoRow(rows, "PackageId", config.PackageId, "Plugin");
+        AddReadOnlyInfoRow(rows, "ControlTypeName", config.ControlTypeName, "Plugin");
+        if (config.ExtensionData.Count > 0)
+        {
+            AddReadOnlyInfoRow(rows, "PluginExtensionData", string.Join(", ", config.ExtensionData.Keys.OrderBy(key => key, StringComparer.Ordinal)), "Plugin");
+        }
+
+        AddReadOnlyInfoRow(
+            rows,
+            "PluginInstallGuidance",
+            _localizationService.GetDesignerText(
+                "Designer.PluginInstallGuidance",
+                "This plugin is not installed. Install guidance will be available in Phase 13E."),
+            "Plugin");
+    }
+
+    private void AddReadOnlyInfoRow(
+        ICollection<FrontedPropertyEditorItem> rows,
+        string propertyName,
+        object? value,
+        string groupName)
+    {
+        rows.Add(new FrontedPropertyEditorItem
+        {
+            DisplayName = _localizationService.GetPropertyDisplayName(propertyName),
+            PropertyName = propertyName,
+            PropertyType = typeof(string),
+            EditorKind = FrontedPropertyEditorKind.ReadOnly,
+            Value = value,
+            DisplayValue = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+            IsReadOnly = true,
+            GroupName = groupName
+        });
+    }
+
+    private void AddPropertyRow(
+        ICollection<FrontedPropertyEditorItem> rows,
+        FrontedControlDesignItem selectedItem,
+        IReadOnlyList<FrontedLayoutValidationMessage> messages,
+        PropertyInfo property,
+        FrontedPluginPropertyDescriptor? metadata)
+    {
+        var kind = metadata?.EditorKind ?? ResolveEditorKind(property);
+        var isReadOnly = !selectedItem.IsEditableInEditor || !property.CanWrite || metadata?.IsReadOnly == true;
+        var groupName = metadata?.GroupName ?? ResolveGroupName(property.Name, selectedItem.Config);
+        var validationErrors = GetPropertyMessages(messages, selectedItem.Name, property.Name).ToList();
+        var value = property.GetValue(selectedItem.Config);
+
+        if (kind == FrontedPropertyEditorKind.Color
+            && value is string color
+            && !string.IsNullOrWhiteSpace(color)
+            && !ArgbColorRegex.IsMatch(color))
+        {
+            validationErrors.Add(_localizationService.GetDesignerText(
+                "Designer.Validation.InvalidArgbColor",
+                "Invalid color. Use #AARRGGBB."));
+        }
+
+        var canBrowseBinding = !isReadOnly && IsBindingPathProperty(property.Name);
+        var canBrowseResource = !isReadOnly
+                                && !canBrowseBinding
+                                && IsResourcePathProperty(property.Name);
+        var bindingTargetKind = canBrowseBinding
+            ? metadata?.BindingTargetKind ?? ResolveBindingTargetKind(selectedItem.Config, property)
+            : FrontedBindingTargetKind.Any;
+
+        rows.Add(new FrontedPropertyEditorItem
+        {
+            DisplayName = ResolveMetadataText(metadata?.DisplayNameKey, _localizationService.GetPropertyDisplayName(property.Name)),
+            PropertyName = property.Name,
+            Description = ResolveMetadataText(metadata?.DescriptionKey, NullIfEmpty(_localizationService.GetPropertyDescription(property.Name)) ?? string.Empty),
+            PropertyType = property.PropertyType,
+            EditorKind = isReadOnly ? FrontedPropertyEditorKind.ReadOnly : kind,
+            Value = value,
+            DisplayValue = GetDisplayValue(value, isReadOnly),
+            EditText = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+            IsReadOnly = isReadOnly,
+            IsRequired = property.Name is nameof(FrontedControlConfigBase.Left)
+                or nameof(FrontedControlConfigBase.Top),
+            Options = metadata?.Options?.Cast<object>().ToArray() ?? ResolveOptions(property, kind),
+            GroupName = groupName,
+            ValidationErrors = validationErrors,
+            CanBrowseBinding = canBrowseBinding,
+            CanBrowseResource = canBrowseResource,
+            BrowseButtonText = "...",
+            BrowseDialogTitle = canBrowseBinding
+                ? _localizationService.GetDesignerText("Designer.Editor.BindingBrowser", "Binding Browser")
+                : canBrowseResource
+                    ? _localizationService.GetDesignerText("Designer.Editor.ResourceBrowser", "Resource Browser")
+                    : null,
+            BindingTargetKind = bindingTargetKind,
+            ExpectedBindingTypeName = _localizationService.GetBindingTypeDisplayName(ResolveBindingTargetTypeName(bindingTargetKind)),
+            AllowedBindingTypeNames = ResolveAllowedBindingTypeNames(bindingTargetKind)
+        });
+    }
+
+    private string ResolveMetadataText(string? key, string fallback) =>
+        string.IsNullOrWhiteSpace(key) ? fallback : _localizationService.GetDesignerText(key, fallback);
 
     private static FrontedBindingTargetKind ResolveBindingTargetKind(
         FrontedControlConfigBase config,

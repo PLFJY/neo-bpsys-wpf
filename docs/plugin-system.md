@@ -77,7 +77,7 @@
 
 ## Designer v3 插件前台控件规划
 
-Phase 13B 已实现插件控件 registry 和 descriptor API。插件可以在启动期间通过 DI 注册 Designer v3 前台控件，让这些控件像内置 `Text`、`Image`、`BorderedImage` 一样被 v3 renderer 识别；控件运行时行为、config 类型、默认 config 和属性元数据由插件提供。Designer Add Control 插件 UI、Property Grid 插件元数据渲染、`.bpui` 依赖扫描/导入导出和插件市场安装引导仍分别属于 Phase 13C、13D、13E。
+Phase 13B 已实现插件控件 registry 和 descriptor API。插件可以在启动期间通过 DI 注册 Designer v3 前台控件，让这些控件像内置 `Text`、`Image`、`BorderedImage` 一样被 v3 renderer 识别；控件运行时行为、config 类型、默认 config 和属性元数据由插件提供。Phase 13C 起，Designer 会在 Add Control 中列出已注册插件控件，并通过声明式 property metadata 生成 Property Grid 行。`.bpui` 依赖扫描/导入导出和插件市场安装引导仍分别属于 Phase 13D、13E。
 
 插件控件的 `ControlType` 必须使用命名空间：
 
@@ -126,7 +126,7 @@ public sealed class FrontedPluginControlDescriptor<TConfig>
 }
 ```
 
-属性元数据建议先采用声明式描述，而不是允许插件提供任意 PropertyGrid WPF 控件：
+属性元数据采用声明式描述，而不是允许插件提供任意 PropertyGrid WPF 控件：
 
 ```csharp
 public sealed class FrontedPluginPropertyDescriptor
@@ -143,7 +143,7 @@ public sealed class FrontedPluginPropertyDescriptor
 }
 ```
 
-这样可以保持编辑器 UI 一致、继续使用 Designer i18n、集中验证属性值，并减少插件直接注入任意编辑器控件带来的维护和安全风险。默认 fallback 可以反射公开 config 属性，但插件应优先提供明确属性元数据。
+这样可以保持编辑器 UI 一致、继续使用 Designer i18n、集中验证属性值，并减少插件直接注入任意编辑器控件带来的维护和安全风险。默认 fallback 可以反射公开 config 属性，但插件应优先提供明确属性元数据。要出现在 Designer Add Control 中，插件控件应提供 `CreateDefaultConfig`；如果没有提供，宿主只会在 config 类型有安全公共无参构造函数且能写入完整 `ControlType` 时才允许添加。
 
 插件控件 config 建议：
 

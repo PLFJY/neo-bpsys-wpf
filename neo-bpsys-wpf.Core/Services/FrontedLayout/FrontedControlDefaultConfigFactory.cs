@@ -1,6 +1,8 @@
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
+using System.Reflection;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -9,6 +11,9 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 /// </summary>
 public class FrontedControlDefaultConfigFactory
 {
+    private readonly IFrontedControlRegistry? _controlRegistry;
+    private readonly IFrontedDesignerLocalizationService _localizationService;
+
     private static readonly IReadOnlySet<string> AddableControlTypes =
         new HashSet<string>(StringComparer.Ordinal)
         {
@@ -25,6 +30,19 @@ public class FrontedControlDefaultConfigFactory
             "MapV2Display"
         };
 
+    public FrontedControlDefaultConfigFactory()
+        : this(null, new FrontedDesignerLocalizationService())
+    {
+    }
+
+    public FrontedControlDefaultConfigFactory(
+        IFrontedControlRegistry? controlRegistry,
+        IFrontedDesignerLocalizationService? localizationService = null)
+    {
+        _controlRegistry = controlRegistry;
+        _localizationService = localizationService ?? new FrontedDesignerLocalizationService();
+    }
+
     /// <summary>
     /// Gets built-in control types exposed by normal Add Control.
     /// </summary>
@@ -33,7 +51,41 @@ public class FrontedControlDefaultConfigFactory
     /// <summary>
     /// Returns whether a ControlType can be created by normal Add Control.
     /// </summary>
-    public bool CanCreate(string controlType) => AddableControlTypes.Contains(controlType);
+    public bool CanCreate(string controlType) =>
+        AddableControlTypes.Contains(controlType)
+        || CanCreatePlugin(controlType);
+
+    public IReadOnlyList<FrontedAddControlCatalogGroup> GetCatalog()
+    {
+        var builtIn = new FrontedAddControlCatalogGroup
+        {
+            DisplayName = _localizationService.GetDesignerText("BasicControls", "Basic Controls"),
+            Items = AddableControlTypes
+                .Select(controlType => new FrontedAddControlCatalogItem
+                {
+                    ControlType = controlType,
+                    DisplayName = _localizationService.GetControlTypeDisplayName(controlType),
+                    IsAvailable = true
+                })
+                .ToArray()
+        };
+
+        var pluginGroups = (_controlRegistry?.GetPluginDescriptors() ?? [])
+            .Select(CreatePluginCatalogItem)
+            .Where(item => item.IsAvailable)
+            .GroupBy(item => item.PackageId ?? string.Empty, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
+            .Select(group => new FrontedAddControlCatalogGroup
+            {
+                DisplayName = group.First().PluginDisplayName ?? group.Key,
+                PackageId = group.Key,
+                IsPlugin = true,
+                Items = group.OrderBy(item => item.DisplayName, StringComparer.OrdinalIgnoreCase).ToArray()
+            })
+            .ToArray();
+
+        return [builtIn, .. pluginGroups];
+    }
 
     /// <summary>
     /// Creates a default config and places it around the requested logical center.
@@ -49,10 +101,91 @@ public class FrontedControlDefaultConfigFactory
             throw new NotSupportedException($"Unsupported control type '{controlType}'.");
         }
 
-        var config = CreateDefault(controlType);
+        var config = FrontedPluginControlType.IsPluginControlType(controlType)
+            ? CreatePluginDefault(controlType)
+            : CreateDefault(controlType);
         config.ZIndex = GetNextZIndex(document);
         ApplyPlacement(config, document, centerX, centerY);
         return config;
+    }
+
+    private bool CanCreatePlugin(string controlType)
+    {
+        return _controlRegistry?.GetPluginDescriptor(controlType) is { } descriptor
+               && TryCreatePluginDefault(descriptor, out _);
+    }
+
+    private FrontedControlConfigBase CreatePluginDefault(string controlType)
+    {
+        var descriptor = _controlRegistry?.GetPluginDescriptor(controlType)
+            ?? throw new NotSupportedException($"Unsupported plugin control type '{controlType}'.");
+
+        if (TryCreatePluginDefault(descriptor, out var config))
+        {
+            return config;
+        }
+
+        throw new NotSupportedException($"Plugin control type '{controlType}' does not provide a safe default config.");
+    }
+
+    private FrontedAddControlCatalogItem CreatePluginCatalogItem(IFrontedPluginControlDescriptor descriptor)
+    {
+        var isAvailable = TryCreatePluginDefault(descriptor, out _);
+        var displayName = ResolveDescriptorText(descriptor.DisplayNameKey, descriptor.ControlTypeName);
+        return new FrontedAddControlCatalogItem
+        {
+            ControlType = descriptor.FullControlType,
+            DisplayName = displayName,
+            Description = ResolveDescriptorText(descriptor.DescriptionKey, string.Empty),
+            Icon = descriptor.Icon,
+            IsPlugin = true,
+            PackageId = descriptor.PackageId,
+            PluginDisplayName = descriptor.PackageId,
+            IsAvailable = isAvailable,
+            UnavailableReason = isAvailable
+                ? null
+                : _localizationService.GetDesignerText("Designer.PluginControlUnavailable", "Plugin control unavailable")
+        };
+    }
+
+    private string ResolveDescriptorText(string? key, string fallback)
+    {
+        return string.IsNullOrWhiteSpace(key)
+            ? fallback
+            : _localizationService.GetDesignerText(key, fallback);
+    }
+
+    private static bool TryCreatePluginDefault(
+        IFrontedPluginControlDescriptor descriptor,
+        out FrontedControlConfigBase config)
+    {
+        config = null!;
+        var createDefaultConfig = descriptor.GetType()
+            .GetProperty(nameof(FrontedPluginControlDescriptor<FrontedControlConfigBase>.CreateDefaultConfig), BindingFlags.Instance | BindingFlags.Public)
+            ?.GetValue(descriptor) as Delegate;
+
+        if (createDefaultConfig is not null)
+        {
+            if (createDefaultConfig.DynamicInvoke() is FrontedControlConfigBase created)
+            {
+                created.ControlType = descriptor.FullControlType;
+                config = created;
+                return true;
+            }
+
+            return false;
+        }
+
+        if (descriptor.ConfigType.GetConstructor(Type.EmptyTypes) is null
+            || !typeof(FrontedControlConfigBase).IsAssignableFrom(descriptor.ConfigType))
+        {
+            return false;
+        }
+
+        config = (FrontedControlConfigBase)(Activator.CreateInstance(descriptor.ConfigType)
+            ?? throw new InvalidOperationException($"Plugin config '{descriptor.ConfigType.Name}' could not be created."));
+        config.ControlType = descriptor.FullControlType;
+        return true;
     }
 
     private static FrontedControlConfigBase CreateDefault(string controlType)

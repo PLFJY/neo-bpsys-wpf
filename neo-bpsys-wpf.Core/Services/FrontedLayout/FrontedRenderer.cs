@@ -45,6 +45,16 @@ public class FrontedRenderer(
             {
                 if (FrontedPluginControlType.IsPluginControlType(controlConfig.ControlType))
                 {
+                    if (context.RenderMissingPluginPlaceholders)
+                    {
+                        var placeholder = CreateMissingPluginPlaceholder(name, controlConfig);
+                        FrontedRendererProperties.SetIsGeneratedControl(placeholder, true);
+                        RegisterGeneratedName(canvas, name, placeholder);
+                        canvas.Children.Add(placeholder);
+                        renderedElements[name] = placeholder;
+                        continue;
+                    }
+
                     logger.LogWarning(
                         "Skipping fronted plugin control {ControlName} because ControlType {ControlType} is not registered.",
                         name,
@@ -64,6 +74,36 @@ public class FrontedRenderer(
         }
 
         SyncLinkedPickingBorderOverlays(config, renderedElements);
+    }
+
+    private static FrameworkElement CreateMissingPluginPlaceholder(string name, FrontedControlConfigBase config)
+    {
+        FrontedPluginControlType.TryParse(config.ControlType, out var parsed);
+        var border = new Border
+        {
+            Name = name,
+            Width = config.Width ?? FrontedDesignerGeometryHelper.MinHitWidth,
+            Height = config.Height ?? FrontedDesignerGeometryHelper.MinHitHeight,
+            BorderBrush = Brushes.OrangeRed,
+            BorderThickness = new Thickness(2),
+            Background = new SolidColorBrush(Color.FromArgb(96, 60, 20, 20)),
+            Child = new TextBlock
+            {
+                Text = $"Missing Plugin\n{parsed.PackageId}\n{parsed.ControlTypeName}\n{config.ControlType}",
+                Foreground = Brushes.White,
+                FontSize = 12,
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new Thickness(6),
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                TextAlignment = TextAlignment.Center
+            }
+        };
+
+        Canvas.SetLeft(border, config.Left);
+        Canvas.SetTop(border, config.Top);
+        Panel.SetZIndex(border, config.ZIndex);
+        return border;
     }
 
     private static void SyncLinkedPickingBorderOverlays(

@@ -19,4 +19,9 @@ public class FrontedRenderContext
     /// Optional shared data override for isolated preview rendering.
     /// </summary>
     public ISharedDataService? SharedDataServiceOverride { get; init; }
+
+    /// <summary>
+    /// Whether missing plugin controls should render Designer-only placeholders.
+    /// </summary>
+    public bool RenderMissingPluginPlaceholders { get; init; }
 }

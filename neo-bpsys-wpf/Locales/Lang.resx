@@ -2923,6 +2923,27 @@
   <data name="Designer.PropertyGroup.Image" xml:space="preserve">
     <value>内部图片</value>
   </data>
+  <data name="Designer.PluginControls" xml:space="preserve">
+    <value>插件控件</value>
+  </data>
+  <data name="Designer.MissingPluginControl" xml:space="preserve">
+    <value>缺失插件控件</value>
+  </data>
+  <data name="Designer.MissingPluginPackage" xml:space="preserve">
+    <value>插件包</value>
+  </data>
+  <data name="Designer.MissingPluginType" xml:space="preserve">
+    <value>插件控件类型</value>
+  </data>
+  <data name="Designer.PluginInstallGuidance" xml:space="preserve">
+    <value>此插件未安装。插件安装引导将在 Phase 13E 提供。</value>
+  </data>
+  <data name="Designer.PluginControlUnavailable" xml:space="preserve">
+    <value>插件控件不可添加</value>
+  </data>
+  <data name="Designer.PropertyGroup.Plugin" xml:space="preserve">
+    <value>插件</value>
+  </data>
   <data name="ResizeTarget" xml:space="preserve">
     <value>缩放对象</value>
   </data>

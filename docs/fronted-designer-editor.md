@@ -649,7 +649,7 @@ Phase 8G 已实现控件级资源路径浏览。Resource Browser 面向图片和
 
 ### Copy/Paste
 
-Phase 10 已实现内部控件复制/粘贴。`Ctrl+C` 复制当前选中的普通可编辑控件，`Ctrl+V` 粘贴到当前 Canvas；该剪贴板只存在于编辑器 ViewModel 内，不使用系统剪贴板。运行时关键控件、`PickingBorderOverlay`、不可选/不可编辑控件不能复制。粘贴时深拷贝 config，名称按尾部数字递增并避开冲突，`Left` / `Top` 偏移 `+10`，`ZIndex` 设为当前最大值加 1，并正常进入 dirty、undo、validation、preview 刷新流程。焦点位于 `TextBox`、可编辑 `ComboBox`、ColorPicker 文本区域等文本输入时，窗口不会拦截 `Ctrl+C` / `Ctrl+V`，保留普通文本复制粘贴。
+Phase 10 已实现内部控件复制/粘贴。`Ctrl+C` 复制当前选中的普通可编辑控件，`Ctrl+V` 粘贴到当前 Canvas；该剪贴板只存在于编辑器 ViewModel 内，不使用系统剪贴板。运行时关键控件、`PickingBorderOverlay`、不可选/不可编辑控件不能复制。粘贴时深拷贝 config，名称按尾部数字递增并避开冲突，`Left` / `Top` 偏移 `+10`，`ZIndex` 设为当前最大值加 1，并正常进入 dirty、undo、validation、preview 刷新流程。Phase 13C 起，已安装插件控件的 typed config 和缺失插件控件的 `PluginFrontedControlConfig.ExtensionData` 都按同一 JSON 深拷贝路径保留；插件控件新增或粘贴后的默认名称使用 `ControlTypeName`，例如 `TeamCard1`，而不是完整 `plugin:...` 字符串。焦点位于 `TextBox`、可编辑 `ComboBox`、ColorPicker 文本区域等文本输入时，窗口不会拦截 `Ctrl+C` / `Ctrl+V`，保留普通文本复制粘贴。
 
 ### Undo/Redo
 
@@ -720,7 +720,7 @@ Phase 10 起，编辑器 typed/pasted input 会按集中限制截断：搜索 12
 | Phase 12: Designer v3 i18n display layer | 已实现：通过 `IFrontedDesignerLocalizationService` 本地化编辑器显示层；Property Grid 的只读布尔值和颜色校验提示、Binding Browser / Resource Browser 文案也走 Designer i18n。`PropertyName`、`GroupName`、`ControlType`、`BindingPath`、资源 URI、`FontFamily` 和控件 `Name` 保存值保持原始契约值。 |
 | Phase 13A | 文档和 schema：插件 `ControlType` 命名、MissingPlugin 编辑器策略、声明式属性元数据方向。 |
 | Phase 13B | 已实现插件控件 registry、descriptor API、通用 plugin config roundtrip 和 runtime renderer 缺失插件跳过。 |
-| Phase 13C | Designer Add Control 插件 UI、插件属性元数据渲染、缺失插件占位符和安装引导。 |
+| Phase 13C | 已实现 Designer Add Control 插件 UI、插件声明式属性元数据渲染、缺失插件占位符和安装引导 stub。`.bpui` 依赖扫描/导入导出仍是 Phase 13D，插件市场安装仍是 Phase 13E。 |
 | Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
 | Phase 13D | `.bpui` 依赖扫描、导入、导出和强制导入删除缺失控件。 |
 | Phase 13E | 插件市场交互式安装 / 更新引导。 |

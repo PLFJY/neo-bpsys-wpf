@@ -333,7 +333,7 @@ public sealed class TeamCardFrontedControlConfig : FrontedControlConfigBase
 }
 ```
 
-Phase 13B 起，layout JSON 中的 `plugin:*` 控件会先反序列化为通用 `PluginFrontedControlConfig` 并保留插件专属 JSON 属性；插件已安装且 descriptor 已注册时，runtime adapter 会把通用 config 转换为插件声明的 typed config 并创建控件。运行时缺失插件控件时会跳过并记录 warning，不能让前台窗口崩溃，也不应在直播前台默认渲染占位符。Designer 可以在后续 Phase 13C 对已有用户布局显示 MissingPlugin 占位符，展示 `PackageId`、`ControlTypeName` 和完整 `ControlType`，允许删除和打开安装引导；没有插件元数据时不能编辑插件专属属性。包强制导入时应删除缺失插件控件，而不是把占位符写入活动布局。
+Phase 13B 起，layout JSON 中的 `plugin:*` 控件会先反序列化为通用 `PluginFrontedControlConfig` 并保留插件专属 JSON 属性；插件已安装且 descriptor 已注册时，runtime adapter 会把通用 config 转换为插件声明的 typed config 并创建控件。Phase 13C 起，Designer 加载布局时也会在 registry 可用后把通用 config materialize 为 typed config，使 Add Control、Property Grid、复制粘贴、保存和校验可以沿用普通控件路径。运行时缺失插件控件时仍会跳过并记录 warning，不能让前台窗口崩溃，也不在直播前台默认渲染占位符；Designer preview 会显示 MissingPlugin 占位符，展示 `PackageId`、`ControlTypeName` 和完整 `ControlType`，允许选择、移动、缩放和删除底层插件控件配置。没有插件元数据时，编辑器只显示基础布局字段和只读插件信息，不允许直接编辑 `JsonExtensionData` 中的插件专属属性。包强制导入时应删除缺失插件控件，而不是把占位符写入活动布局。
 
 ## 8. 前台编辑窗口设计
 
@@ -419,7 +419,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 9E+ | 已实现 legacy `.bpui` 转换入口和转换器；后续仍可扩展更完整的字段映射 UI。 |
 | Phase 13A | 文档和 schema：插件前台控件 `ControlType` 命名、Canvas `RequiredPlugins`、manifest `PluginDependencies`、缺失插件行为和安全边界。 |
 | Phase 13B | 已实现插件前台控件 registry、descriptor API、`PluginFrontedControlConfig` roundtrip 和 runtime renderer 缺失插件跳过。 |
-| Phase 13C | Designer 插件控件支持，包括 Add Control、属性元数据和 MissingPlugin 占位符。 |
+| Phase 13C | 已实现 Designer 插件控件支持：Add Control 显示已注册插件控件，插件 typed config 可通过声明式属性元数据编辑，Canvas `RequiredPlugins` 会按控件同步，缺失插件在 Designer preview 显示 MissingPlugin 占位符。 |
 | Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
 | Phase 13D | `.bpui` 依赖扫描、导入、导出和强制导入删除缺失控件。 |
 | Phase 13E | 插件市场交互式安装 / 更新引导。 |

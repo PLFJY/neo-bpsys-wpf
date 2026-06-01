@@ -634,8 +634,45 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
+        RebuildAddControlContextMenu();
         AddControlButton.ContextMenu.PlacementTarget = AddControlButton;
         AddControlButton.ContextMenu.IsOpen = true;
+    }
+
+    private void RebuildAddControlContextMenu()
+    {
+        if (_viewModel is null || AddControlButton.ContextMenu is null)
+        {
+            return;
+        }
+
+        AddControlButton.ContextMenu.Items.Clear();
+        foreach (var group in _viewModel.AddControlCatalogGroups)
+        {
+            if (AddControlButton.ContextMenu.Items.Count > 0)
+            {
+                AddControlButton.ContextMenu.Items.Add(new Separator());
+            }
+
+            AddControlButton.ContextMenu.Items.Add(new System.Windows.Controls.MenuItem
+            {
+                Header = group.DisplayName,
+                IsEnabled = false
+            });
+
+            foreach (var item in group.Items)
+            {
+                var menuItem = new System.Windows.Controls.MenuItem
+                {
+                    Header = item.DisplayName,
+                    Tag = item.ControlType,
+                    ToolTip = string.IsNullOrWhiteSpace(item.Description) ? item.ControlType : item.Description,
+                    IsEnabled = item.IsAvailable
+                };
+                menuItem.Click += AddControlMenuItem_OnClick;
+                AddControlButton.ContextMenu.Items.Add(menuItem);
+            }
+        }
     }
 
     private void AddControlMenuItem_OnClick(object sender, RoutedEventArgs e)

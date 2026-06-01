@@ -132,6 +132,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         InitializeZoomPresets();
+        RebuildAddControlCatalog();
         SelectedZoomPreset = ZoomPresets.FirstOrDefault();
         SelectedWindow = WindowOptions.FirstOrDefault();
     }
@@ -152,6 +153,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public ObservableCollection<FrontedControlDesignItem> FilteredDesignItems { get; } = [];
 
     public ObservableCollection<FrontedPropertyEditorItem> PropertyEditorItems { get; } = [];
+
+    public ObservableCollection<FrontedAddControlCatalogGroup> AddControlCatalogGroups { get; } = [];
 
     public bool IsRebuildingPropertyGrid => _isRebuildingPropertyGrid;
 
@@ -761,7 +764,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             request?.CenterY);
         var item = new FrontedControlDesignItem
         {
-            Name = _controlNameGenerator.Generate(controlType, CurrentDocument),
+            Name = _controlNameGenerator.Generate(GetNameSeed(controlType), CurrentDocument),
             Config = config,
             IsSelectableInEditor = true,
             IsEditableInEditor = true
@@ -821,7 +824,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var item = new FrontedControlDesignItem
         {
-            Name = GeneratePasteName(_copiedControl.Name, CurrentDocument),
+            Name = GeneratePasteName(_copiedControl.Name, _copiedControl.Config.ControlType, CurrentDocument),
             Config = clonedConfig,
             IsSelectableInEditor = true,
             IsEditableInEditor = true
@@ -1729,8 +1732,18 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                     {
                         WindowId = entry.WindowId,
                         CanvasName = entry.CanvasName,
-                        SharedDataServiceOverride = _designerPreviewSharedDataService
+                        SharedDataServiceOverride = _designerPreviewSharedDataService,
+                        RenderMissingPluginPlaceholders = true
                     }));
+    }
+
+    private void RebuildAddControlCatalog()
+    {
+        AddControlCatalogGroups.Clear();
+        foreach (var group in _defaultConfigFactory.GetCatalog())
+        {
+            AddControlCatalogGroups.Add(group);
+        }
     }
 
     private string? CreateSnapshot()
@@ -1760,10 +1773,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                ?? throw new InvalidOperationException("Failed to clone control config.");
     }
 
-    private static string GeneratePasteName(string sourceName, FrontedCanvasDesignDocument document)
+    private static string GeneratePasteName(string sourceName, string controlType, FrontedCanvasDesignDocument document)
     {
         var match = Regex.Match(sourceName, "^(.*?)(\\d+)$", RegexOptions.CultureInvariant);
-        var baseName = match.Success ? match.Groups[1].Value : sourceName;
+        var baseName = match.Success ? match.Groups[1].Value : GetNameSeed(controlType);
         var index = match.Success && int.TryParse(match.Groups[2].Value, out var parsed) ? parsed + 1 : 1;
         var existingNames = document.Controls.Select(control => control.Name).ToHashSet(StringComparer.Ordinal);
 
@@ -1777,6 +1790,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
             index++;
         }
+    }
+
+    private static string GetNameSeed(string controlType)
+    {
+        return FrontedPluginControlType.TryParse(controlType, out var parsed)
+            ? parsed.ControlTypeName
+            : controlType;
     }
 
     private static object? ClampEditorPropertyValue(

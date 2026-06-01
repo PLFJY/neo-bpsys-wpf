@@ -1,6 +1,5 @@
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
-using System.Text.Json;
 using System.Windows;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
@@ -43,23 +42,9 @@ public sealed class FrontedPluginControlAdapter<TConfig>(
                 $"Control '{name}' with ControlType '{ControlType}' uses config type '{config.GetType().Name}', expected '{ConfigType.Name}'.");
         }
 
-        try
-        {
-            var json = JsonSerializer.Serialize(config, config.GetType());
-            var converted = (FrontedControlConfigBase?)JsonSerializer.Deserialize(json, ConfigType);
-            if (converted is TConfig result)
-            {
-                return result;
-            }
-        }
-        catch (JsonException ex)
-        {
-            throw new FrontedLayoutConfigException(
-                $"Control '{name}' with ControlType '{ControlType}' could not be converted to plugin config '{ConfigType.Name}'.",
-                ex);
-        }
-
-        throw new FrontedLayoutConfigException(
-            $"Control '{name}' with ControlType '{ControlType}' could not be converted to plugin config '{ConfigType.Name}'.");
+        return FrontedPluginControlConfigMaterializer.Materialize(name, (PluginFrontedControlConfig)config, descriptor) is TConfig result
+            ? result
+            : throw new FrontedLayoutConfigException(
+                $"Control '{name}' with ControlType '{ControlType}' could not be converted to plugin config '{ConfigType.Name}'.");
     }
 }

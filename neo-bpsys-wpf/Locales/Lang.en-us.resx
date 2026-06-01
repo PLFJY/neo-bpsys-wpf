@@ -2905,6 +2905,27 @@
   <data name="Designer.PropertyGroup.Image" xml:space="preserve">
     <value>Inner Image</value>
   </data>
+  <data name="Designer.PluginControls" xml:space="preserve">
+    <value>Plugin Controls</value>
+  </data>
+  <data name="Designer.MissingPluginControl" xml:space="preserve">
+    <value>Missing Plugin</value>
+  </data>
+  <data name="Designer.MissingPluginPackage" xml:space="preserve">
+    <value>Package</value>
+  </data>
+  <data name="Designer.MissingPluginType" xml:space="preserve">
+    <value>Plugin Control Type</value>
+  </data>
+  <data name="Designer.PluginInstallGuidance" xml:space="preserve">
+    <value>This plugin is not installed. Install guidance will be available in Phase 13E.</value>
+  </data>
+  <data name="Designer.PluginControlUnavailable" xml:space="preserve">
+    <value>Plugin control unavailable</value>
+  </data>
+  <data name="Designer.PropertyGroup.Plugin" xml:space="preserve">
+    <value>Plugin</value>
+  </data>
   <data name="ResizeTarget" xml:space="preserve">
     <value>Resize Target</value>
   </data>

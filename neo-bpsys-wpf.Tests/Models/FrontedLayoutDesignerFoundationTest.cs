@@ -17,6 +17,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Xml.Linq;
 using Xunit;
@@ -112,6 +113,171 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.True(banSlot.IsSelectableInEditor);
         Assert.True(banSlot.IsEditableInEditor);
         Assert.False(banSlot.IsLinkedOverlay);
+    }
+
+    [Fact]
+    public void DesignConverterPreservesAndSyncsPluginRequiredPlugins()
+    {
+        var registry = new PluginFrontedControlRegistryForTests();
+        var config = new FrontedCanvasConfig
+        {
+            CanvasWidth = 100,
+            CanvasHeight = 50,
+            RequiredPlugins =
+            [
+                new FrontedPluginDependency
+                {
+                    PackageId = "top.plfjy.example.fronted",
+                    MinVersion = "1.2.3",
+                    Controls = ["plugin:top.plfjy.example.fronted/TeamCard"]
+                }
+            ],
+            Controls =
+            {
+                ["TeamCard1"] = new PluginFrontedControlConfig
+                {
+                    ControlType = "plugin:top.plfjy.example.fronted/TeamCard",
+                    Width = 100,
+                    Height = 40
+                }
+            }
+        };
+
+        var converter = new FrontedLayoutDesignConverter(registry);
+        var document = converter.FromConfig("TestWindow", "BaseCanvas", config, new FrontedLayoutRuntimeContractCatalog());
+        var roundTrip = converter.ToConfig(document);
+
+        var dependency = Assert.Single(roundTrip.RequiredPlugins);
+        Assert.Equal("top.plfjy.example.fronted", dependency.PackageId);
+        Assert.Equal("1.2.3", dependency.MinVersion);
+        Assert.Equal(["plugin:top.plfjy.example.fronted/TeamCard"], dependency.Controls);
+        Assert.DoesNotContain("RequiredPlugins", roundTrip.Controls.Keys);
+    }
+
+    [Fact]
+    public void GenericPluginConfigMaterializesToTypedConfigWhenDescriptorExists()
+    {
+        var generic = JsonSerializer.Deserialize<PluginFrontedControlConfig>(
+            """
+            {
+              "ControlType": "plugin:top.plfjy.example.fronted/TeamCard",
+              "Left": 10,
+              "Top": 20,
+              "Title": "Home",
+              "AccentColor": "#FF112233",
+              "Mode": "Compact"
+            }
+            """);
+
+        Assert.NotNull(generic);
+        var materialized = FrontedPluginControlConfigMaterializer.Materialize(
+            "TeamCard1",
+            generic,
+            new PluginFrontedControlRegistryForTests());
+
+        var typed = Assert.IsType<TestPluginDesignerConfig>(materialized);
+        Assert.Equal("plugin:top.plfjy.example.fronted/TeamCard", typed.ControlType);
+        Assert.Equal(10, typed.Left);
+        Assert.Equal("Home", typed.Title);
+        Assert.Equal("#FF112233", typed.AccentColor);
+        Assert.Equal("Compact", typed.Mode);
+    }
+
+    [Fact]
+    public void AddControlCatalogIncludesPluginControlsWithDefaultConfig()
+    {
+        var factory = new FrontedControlDefaultConfigFactory(
+            new PluginFrontedControlRegistryForTests(),
+            new FrontedDesignerLocalizationService());
+
+        var pluginItem = factory.GetCatalog()
+            .SelectMany(group => group.Items)
+            .Single(item => item.ControlType == "plugin:top.plfjy.example.fronted/TeamCard");
+
+        Assert.True(pluginItem.IsPlugin);
+        Assert.True(pluginItem.IsAvailable);
+
+        var document = new FrontedCanvasDesignDocument
+        {
+            CanvasConfig = new FrontedCanvasConfig { CanvasWidth = 400, CanvasHeight = 300 }
+        };
+        var config = Assert.IsType<TestPluginDesignerConfig>(
+            factory.Create("plugin:top.plfjy.example.fronted/TeamCard", document));
+        Assert.Equal("plugin:top.plfjy.example.fronted/TeamCard", config.ControlType);
+        Assert.Equal("Default", config.Title);
+    }
+
+    [Fact]
+    public void PropertyGridUsesPluginDescriptorMetadata()
+    {
+        var document = new FrontedCanvasDesignDocument
+        {
+            WindowTypeName = "TestWindow",
+            CanvasName = "BaseCanvas",
+            CanvasConfig = new FrontedCanvasConfig { CanvasWidth = 400, CanvasHeight = 300 },
+            Controls =
+            {
+                new FrontedControlDesignItem
+                {
+                    Name = "TeamCard1",
+                    Config = new TestPluginDesignerConfig(),
+                    IsSelectableInEditor = true,
+                    IsEditableInEditor = true
+                }
+            }
+        };
+
+        var builder = new FrontedPropertyGridBuilder(
+            new FrontedFontFamilyOptionProvider(),
+            new FrontedDesignerLocalizationService(),
+            new PluginFrontedControlRegistryForTests());
+
+        var rows = builder.Build(
+            document,
+            document.Controls[0],
+            new FrontedLayoutValidator(new PluginFrontedControlRegistryForTests()),
+            new FrontedLayoutReferenceScanner(),
+            new FrontedLayoutRuntimeContractCatalog());
+
+        var mode = rows.Single(row => row.PropertyName == nameof(TestPluginDesignerConfig.Mode));
+        Assert.Equal(FrontedPropertyEditorKind.Enum, mode.EditorKind);
+        Assert.Equal(FrontedBindingTargetKind.Any, mode.BindingTargetKind);
+        Assert.Equal("Plugin", mode.GroupName);
+        Assert.NotNull(mode.Options);
+
+        var titleBinding = rows.Single(row => row.PropertyName == nameof(TestPluginDesignerConfig.TitleBindingPath));
+        Assert.True(titleBinding.CanBrowseBinding);
+        Assert.Equal(FrontedBindingTargetKind.Text, titleBinding.BindingTargetKind);
+    }
+
+    [Fact]
+    public void MissingPluginValidatorWarningDoesNotMaskUnknownBuiltInError()
+    {
+        var validator = new FrontedLayoutValidator(new KnownFrontedControlRegistry());
+        var document = new FrontedCanvasDesignDocument
+        {
+            WindowTypeName = "TestWindow",
+            CanvasName = "BaseCanvas",
+            CanvasConfig = new FrontedCanvasConfig { CanvasWidth = 400, CanvasHeight = 300 },
+            Controls =
+            {
+                new FrontedControlDesignItem
+                {
+                    Name = "MissingPlugin",
+                    Config = new PluginFrontedControlConfig { ControlType = "plugin:top.plfjy.missing/TeamCard" }
+                },
+                new FrontedControlDesignItem
+                {
+                    Name = "Unknown",
+                    Config = new FrontedControlConfigBase { ControlType = "UnknownBuiltIn" }
+                }
+            }
+        };
+
+        var messages = validator.Validate(document);
+
+        Assert.Contains(messages, message => message.Code == "PluginControlMissing" && message.Severity == FrontedLayoutValidationSeverity.Warning);
+        Assert.Contains(messages, message => message.Code == "ControlTypeUnknown" && message.Severity == FrontedLayoutValidationSeverity.Error);
     }
 
     [Fact]
@@ -3148,7 +3314,7 @@ public class FrontedLayoutDesignerFoundationTest
         return (bounds.Width, bounds.Height);
     }
 
-    private sealed class KnownFrontedControlRegistry : IFrontedControlRegistry
+    private class KnownFrontedControlRegistry : IFrontedControlRegistry
     {
         private static readonly IReadOnlyCollection<IFrontedControl> Controls =
         [
@@ -3166,15 +3332,121 @@ public class FrontedLayoutDesignerFoundationTest
             new KnownFrontedControl("MapV2Display", typeof(MapV2DisplayControlConfig))
         ];
 
-        public IFrontedControl? GetControl(string controlType)
+        public virtual IFrontedControl? GetControl(string controlType)
         {
             return Controls.FirstOrDefault(control => control.ControlType == controlType);
         }
 
-        public IReadOnlyCollection<IFrontedControl> GetControls()
+        public virtual IReadOnlyCollection<IFrontedControl> GetControls()
         {
             return Controls;
         }
+
+        public virtual IFrontedPluginControlDescriptor? GetPluginDescriptor(string fullControlType)
+        {
+            return null;
+        }
+
+        public virtual IReadOnlyCollection<IFrontedPluginControlDescriptor> GetPluginDescriptors()
+        {
+            return [];
+        }
+    }
+
+    private sealed class PluginFrontedControlRegistryForTests : KnownFrontedControlRegistry
+    {
+        private readonly FrontedPluginControlDescriptor<TestPluginDesignerConfig> _descriptor = new()
+        {
+            PackageId = "top.plfjy.example.fronted",
+            ControlTypeName = "TeamCard",
+            ConfigType = typeof(TestPluginDesignerConfig),
+            DisplayNameKey = "Designer.ControlType.TeamCard",
+            DescriptionKey = "Designer.ControlType.TeamCard.Description",
+            CreateDefaultConfig = () => new TestPluginDesignerConfig { Title = "Default" },
+            Properties =
+            [
+                new FrontedPluginPropertyDescriptor
+                {
+                    PropertyName = nameof(TestPluginDesignerConfig.Title),
+                    GroupName = "Plugin"
+                },
+                new FrontedPluginPropertyDescriptor
+                {
+                    PropertyName = nameof(TestPluginDesignerConfig.TitleBindingPath),
+                    GroupName = "Plugin",
+                    BindingTargetKind = FrontedBindingTargetKind.Text
+                },
+                new FrontedPluginPropertyDescriptor
+                {
+                    PropertyName = nameof(TestPluginDesignerConfig.AccentColor),
+                    GroupName = "Plugin",
+                    EditorKind = FrontedPropertyEditorKind.Color
+                },
+                new FrontedPluginPropertyDescriptor
+                {
+                    PropertyName = nameof(TestPluginDesignerConfig.Mode),
+                    GroupName = "Plugin",
+                    EditorKind = FrontedPropertyEditorKind.Enum,
+                    Options =
+                    [
+                        new FrontedPropertyEditorOption { Value = "Compact", DisplayName = "Compact" },
+                        new FrontedPropertyEditorOption { Value = "Expanded", DisplayName = "Expanded" }
+                    ]
+                }
+            ],
+            Validate = config => string.IsNullOrWhiteSpace(config.Title)
+                ? [new FrontedLayoutValidationMessage
+                {
+                    Severity = FrontedLayoutValidationSeverity.Warning,
+                    Code = "PluginTitleEmpty",
+                    PropertyName = nameof(TestPluginDesignerConfig.Title),
+                    Message = "Title is empty."
+                }]
+                : [],
+            CreateControl = (name, _, _) => new Border { Name = name }
+        };
+
+        public override IFrontedControl? GetControl(string controlType)
+        {
+            return controlType == _descriptor.FullControlType
+                ? new KnownFrontedControl(_descriptor.FullControlType, typeof(TestPluginDesignerConfig))
+                : base.GetControl(controlType);
+        }
+
+        public override IReadOnlyCollection<IFrontedControl> GetControls()
+        {
+            return [.. base.GetControls(), new KnownFrontedControl(_descriptor.FullControlType, typeof(TestPluginDesignerConfig))];
+        }
+
+        public override IFrontedPluginControlDescriptor? GetPluginDescriptor(string fullControlType)
+        {
+            return string.Equals(fullControlType, _descriptor.FullControlType, StringComparison.OrdinalIgnoreCase)
+                ? _descriptor
+                : null;
+        }
+
+        public override IReadOnlyCollection<IFrontedPluginControlDescriptor> GetPluginDescriptors()
+        {
+            return [_descriptor];
+        }
+    }
+
+    private sealed class TestPluginDesignerConfig : FrontedControlConfigBase
+    {
+        public TestPluginDesignerConfig()
+        {
+            ControlType = "plugin:top.plfjy.example.fronted/TeamCard";
+            Width = 220;
+            Height = 80;
+        }
+
+        public string? Title { get; set; }
+
+        public string? TitleBindingPath { get; set; }
+
+        public string AccentColor { get; set; } = "#FFFFFFFF";
+
+        public string Mode { get; set; } = "Compact";
     }
 
     private sealed class KnownFrontedControl(string controlType, Type configType) : IFrontedControl
