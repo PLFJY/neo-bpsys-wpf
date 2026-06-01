@@ -1314,6 +1314,191 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
+    public void ParsesPluginControlType()
+    {
+        var parsed = FrontedPluginControlType.Parse("plugin:top.plfjy.example.fronted/TeamCard");
+
+        Assert.Equal("top.plfjy.example.fronted", parsed.PackageId);
+        Assert.Equal("TeamCard", parsed.ControlTypeName);
+        Assert.Equal("plugin:top.plfjy.example.fronted/TeamCard", parsed.ToString());
+        Assert.False(FrontedPluginControlType.IsPluginControlType("Text"));
+    }
+
+    [Theory]
+    [InlineData("plugin:TeamCard")]
+    [InlineData("plugin:/TeamCard")]
+    [InlineData("plugin:top.plfjy.example.fronted/")]
+    [InlineData("plugin:top plfjy/TeamCard")]
+    [InlineData("plugin:top.plfjy/Team Card")]
+    public void RejectsInvalidPluginControlType(string controlType)
+    {
+        Assert.False(FrontedPluginControlType.TryParse(controlType, out _));
+        Assert.Throws<FrontedLayoutConfigException>(() => FrontedPluginControlType.Parse(controlType));
+    }
+
+    [Fact]
+    public void FrontedPluginDependencySerializesAndDeserializes()
+    {
+        var dependency = new FrontedPluginDependency
+        {
+            PackageId = "top.plfjy.example.fronted",
+            MinVersion = "1.0.0",
+            DisplayName = "Example Fronted Controls",
+            MarketplaceId = "top.plfjy.example.fronted",
+            Controls = ["plugin:top.plfjy.example.fronted/TeamCard"],
+            RequiredBy = ["CutSceneWindow/BaseCanvas"]
+        };
+
+        var json = JsonSerializer.Serialize(dependency);
+        var roundTrip = JsonSerializer.Deserialize<FrontedPluginDependency>(json);
+
+        Assert.NotNull(roundTrip);
+        Assert.Equal(dependency.PackageId, roundTrip.PackageId);
+        Assert.Equal(dependency.Controls, roundTrip.Controls);
+        Assert.Equal(dependency.RequiredBy, roundTrip.RequiredBy);
+    }
+
+    [Fact]
+    public void RequiredPluginsIsReservedAndRoundTrips()
+    {
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 810,
+              "RequiredPlugins": [
+                {
+                  "PackageId": "top.plfjy.example.fronted",
+                  "MinVersion": "1.0.0",
+                  "DisplayName": "Example Fronted Controls",
+                  "Controls": [
+                    "plugin:top.plfjy.example.fronted/TeamCard"
+                  ]
+                }
+              ],
+              "Title": {
+                "ControlType": "Text",
+                "Left": 10,
+                "Top": 20,
+                "Text": "Title"
+              }
+            }
+            """);
+
+        Assert.NotNull(config);
+        Assert.Single(config.RequiredPlugins);
+        Assert.Equal("top.plfjy.example.fronted", config.RequiredPlugins[0].PackageId);
+        Assert.False(config.Controls.ContainsKey("RequiredPlugins"));
+
+        var json = JsonSerializer.Serialize(config);
+        using var document = JsonDocument.Parse(json);
+        Assert.True(document.RootElement.TryGetProperty("RequiredPlugins", out var requiredPlugins));
+        Assert.Equal(JsonValueKind.Array, requiredPlugins.ValueKind);
+
+        var roundTrip = JsonSerializer.Deserialize<FrontedCanvasConfig>(json);
+        Assert.NotNull(roundTrip);
+        Assert.Single(roundTrip.RequiredPlugins);
+        Assert.True(roundTrip.Controls.ContainsKey("Title"));
+    }
+
+    [Fact]
+    public void FrontedCanvasConfigWithoutRequiredPluginsStillWorksAndOmitsEmptyRequiredPlugins()
+    {
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 810
+            }
+            """);
+
+        Assert.NotNull(config);
+        Assert.Empty(config.RequiredPlugins);
+
+        var json = JsonSerializer.Serialize(config);
+        Assert.DoesNotContain("RequiredPlugins", json, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PluginControlJsonDeserializesAsGenericConfigAndPreservesExtensionData()
+    {
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 810,
+              "TeamCard1": {
+                "ControlType": "plugin:top.plfjy.example.fronted/TeamCard",
+                "Left": 100,
+                "Top": 100,
+                "Width": 260,
+                "Height": 96,
+                "TeamNameBindingPath": "CurrentGame.HomeTeam.Name",
+                "AccentColor": "#FFFFFFFF"
+              }
+            }
+            """);
+
+        Assert.NotNull(config);
+        var plugin = Assert.IsType<PluginFrontedControlConfig>(config.Controls["TeamCard1"]);
+        Assert.Equal("top.plfjy.example.fronted", plugin.PackageId);
+        Assert.Equal("TeamCard", plugin.ControlTypeName);
+        Assert.Equal("CurrentGame.HomeTeam.Name", plugin.ExtensionData["TeamNameBindingPath"].GetString());
+
+        var json = JsonSerializer.Serialize(config);
+        Assert.Contains("TeamNameBindingPath", json, StringComparison.Ordinal);
+        Assert.Contains("AccentColor", json, StringComparison.Ordinal);
+
+        var roundTrip = JsonSerializer.Deserialize<FrontedCanvasConfig>(json);
+        Assert.NotNull(roundTrip);
+        var roundTripPlugin = Assert.IsType<PluginFrontedControlConfig>(roundTrip.Controls["TeamCard1"]);
+        Assert.Equal("#FFFFFFFF", roundTripPlugin.ExtensionData["AccentColor"].GetString());
+    }
+
+    [Fact]
+    public void UnknownBuiltInLikeControlTypeStillFails()
+    {
+        Assert.Throws<FrontedLayoutConfigException>(() =>
+            JsonSerializer.Deserialize<FrontedCanvasConfig>(
+                """
+                {
+                  "Version": 3,
+                  "CanvasWidth": 1440,
+                  "CanvasHeight": 810,
+                  "TeamCard1": {
+                    "ControlType": "TeamCard",
+                    "Left": 100,
+                    "Top": 100
+                  }
+                }
+                """));
+    }
+
+    [Fact]
+    public void InvalidPluginControlTypeInLayoutFailsClearly()
+    {
+        var exception = Assert.Throws<FrontedLayoutConfigException>(() =>
+            JsonSerializer.Deserialize<FrontedCanvasConfig>(
+                """
+                {
+                  "Version": 3,
+                  "CanvasWidth": 1440,
+                  "CanvasHeight": 810,
+                  "TeamCard1": {
+                    "ControlType": "plugin:TeamCard",
+                    "Left": 100,
+                    "Top": 100
+                  }
+                }
+                """));
+
+        Assert.Contains("invalid plugin ControlType", exception.Message);
+    }
+
+    [Fact]
     public void NumericFieldsRejectJsonStrings()
     {
         Assert.Throws<FrontedLayoutConfigException>(() =>
@@ -1466,6 +1651,228 @@ public class FrontedCanvasConfigTest
     {
         Assert.Equal("Image", new ImageFrontedControl().ControlType);
         Assert.Equal("BorderedImage", new BorderedImageFrontedControl().ControlType);
+    }
+
+    [Fact]
+    public void FrontedControlRegistryResolvesBuiltInControls()
+    {
+        var registry = new FrontedControlRegistry([new TextFrontedControl()]);
+
+        Assert.NotNull(registry.GetControl("Text"));
+        Assert.Empty(registry.GetPluginDescriptors());
+    }
+
+    [Fact]
+    public void PluginContributorRegistersDescriptorAndFactory()
+    {
+        var registry = new FrontedControlRegistry(
+            [new TextFrontedControl()],
+            [new TestPluginControlContributor()],
+            NullLogger<FrontedControlRegistry>.Instance);
+
+        var descriptor = registry.GetPluginDescriptor("plugin:top.plfjy.example.fronted/TeamCard");
+        Assert.NotNull(descriptor);
+        Assert.True(registry.IsPluginControlRegistered("plugin:top.plfjy.example.fronted/TeamCard"));
+        Assert.Equal(typeof(TestPluginControlConfig), descriptor.ConfigType);
+        Assert.NotNull(registry.GetControl("plugin:top.plfjy.example.fronted/TeamCard"));
+        Assert.Contains(registry.GetControls(), control => control.ControlType == "Text");
+        Assert.Contains(
+            registry.GetControls(),
+            control => control.ControlType == "plugin:top.plfjy.example.fronted/TeamCard");
+    }
+
+    [Fact]
+    public void DuplicatePluginControlTypeFails()
+    {
+        Assert.Throws<FrontedLayoutConfigException>(() =>
+            new FrontedControlRegistry(
+                [new TextFrontedControl()],
+                [new TestPluginControlContributor(), new TestPluginControlContributor()],
+                NullLogger<FrontedControlRegistry>.Instance));
+    }
+
+    [Fact]
+    public void PluginDescriptorCannotShadowExistingControlType()
+    {
+        Assert.Throws<FrontedLayoutConfigException>(() =>
+            new FrontedControlRegistry(
+                [new FakeFrontedControl("plugin:top.plfjy.example.fronted/TeamCard")],
+                [new TestPluginControlContributor()],
+                NullLogger<FrontedControlRegistry>.Instance));
+    }
+
+    [Fact]
+    public void DuplicateBuiltInControlTypeFails()
+    {
+        Assert.Throws<FrontedLayoutConfigException>(() =>
+            new FrontedControlRegistry(
+                [new FakeFrontedControl("Text"), new FakeFrontedControl("Text")],
+                [],
+                NullLogger<FrontedControlRegistry>.Instance));
+    }
+
+    [Fact]
+    public void PluginAdapterConvertsGenericConfigAndCallsCreateControl()
+    {
+        RunOnStaThread(() =>
+        {
+            var contributor = new TestPluginControlContributor();
+            var registry = new FrontedControlRegistry(
+                [new TextFrontedControl()],
+                [contributor],
+                NullLogger<FrontedControlRegistry>.Instance);
+
+            var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+                """
+                {
+                  "Version": 3,
+                  "CanvasWidth": 1440,
+                  "CanvasHeight": 810,
+                  "TeamCard1": {
+                    "ControlType": "plugin:top.plfjy.example.fronted/TeamCard",
+                    "Left": 100,
+                    "Top": 120,
+                    "Width": 260,
+                    "Height": 96,
+                    "TeamNameBindingPath": "CurrentGame.HomeTeam.Name",
+                    "Count": 5
+                  }
+                }
+                """);
+
+            Assert.NotNull(config);
+            var factory = Assert.IsType<FrontedPluginControlAdapter<TestPluginControlConfig>>(
+                registry.GetControl("plugin:top.plfjy.example.fronted/TeamCard"));
+            var element = factory.Create(
+                "TeamCard1",
+                config.Controls["TeamCard1"],
+                CreateBuildContext());
+
+            var border = Assert.IsType<Border>(element);
+            Assert.Equal("TeamCard1", border.Name);
+            Assert.Equal("CurrentGame.HomeTeam.Name", contributor.LastConfig?.TeamNameBindingPath);
+            Assert.Equal(5, contributor.LastConfig?.Count);
+            Assert.Equal("TeamCard1", contributor.LastName);
+        });
+    }
+
+    [Fact]
+    public void PluginAdapterInvalidGenericConfigConversionThrowsClearException()
+    {
+        RunOnStaThread(() =>
+        {
+            var registry = new FrontedControlRegistry(
+                [new TextFrontedControl()],
+                [new TestPluginControlContributor()],
+                NullLogger<FrontedControlRegistry>.Instance);
+
+            var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+                """
+                {
+                  "Version": 3,
+                  "CanvasWidth": 1440,
+                  "CanvasHeight": 810,
+                  "TeamCard1": {
+                    "ControlType": "plugin:top.plfjy.example.fronted/TeamCard",
+                    "Left": 100,
+                    "Top": 120,
+                    "Count": "not-a-number"
+                  }
+                }
+                """);
+
+            Assert.NotNull(config);
+            var factory = registry.GetControl("plugin:top.plfjy.example.fronted/TeamCard");
+            Assert.NotNull(factory);
+            var exception = Assert.Throws<FrontedLayoutConfigException>(() =>
+                factory.Create("TeamCard1", config.Controls["TeamCard1"], CreateBuildContext()));
+
+            Assert.Contains("could not be converted", exception.Message);
+            Assert.Contains(nameof(TestPluginControlConfig), exception.Message);
+        });
+    }
+
+    [Fact]
+    public void FrontedRendererSkipsMissingPluginControlAndStillRendersBuiltInControls()
+    {
+        RunOnStaThread(() =>
+        {
+            var renderer = new FrontedRenderer(
+                EmptyServiceProvider.Instance,
+                new Mock<ISharedDataService>().Object,
+                NullFrontedResourceResolver.Instance,
+                new FrontedControlRegistry([new TextFrontedControl()]),
+                NullLogger<FrontedRenderer>.Instance);
+            var canvas = new Canvas();
+
+            renderer.RenderToCanvas(
+                canvas,
+                new FrontedCanvasConfig
+                {
+                    CanvasWidth = 1440,
+                    CanvasHeight = 810,
+                    Controls =
+                    {
+                        ["MissingPlugin"] = new PluginFrontedControlConfig
+                        {
+                            ControlType = "plugin:top.plfjy.missing/TeamCard",
+                            Left = 0,
+                            Top = 0
+                        },
+                        ["Title"] = new TextFrontedControlConfig
+                        {
+                            Text = "Title",
+                            Left = 10,
+                            Top = 10
+                        }
+                    }
+                },
+                new FrontedRenderContext
+                {
+                    WindowId = "TestWindow",
+                    CanvasName = "BaseCanvas"
+                });
+
+            Assert.Single(canvas.Children);
+            Assert.IsType<Border>(canvas.Children[0]);
+        });
+    }
+
+    [Fact]
+    public void FrontedRendererStillThrowsForUnknownBuiltInControl()
+    {
+        RunOnStaThread(() =>
+        {
+            var renderer = new FrontedRenderer(
+                EmptyServiceProvider.Instance,
+                new Mock<ISharedDataService>().Object,
+                NullFrontedResourceResolver.Instance,
+                new FrontedControlRegistry([new TextFrontedControl()]),
+                NullLogger<FrontedRenderer>.Instance);
+
+            Assert.Throws<FrontedLayoutConfigException>(() =>
+                renderer.RenderToCanvas(
+                    new Canvas(),
+                    new FrontedCanvasConfig
+                    {
+                        CanvasWidth = 1440,
+                        CanvasHeight = 810,
+                        Controls =
+                        {
+                            ["TeamCard"] = new FrontedControlConfigBase
+                            {
+                                ControlType = "TeamCard",
+                                Left = 0,
+                                Top = 0
+                            }
+                        }
+                    },
+                    new FrontedRenderContext
+                    {
+                        WindowId = "TestWindow",
+                        CanvasName = "BaseCanvas"
+                    }));
+        });
     }
 
     [Fact]
@@ -1920,6 +2327,64 @@ public class FrontedCanvasConfigTest
         var control = Assert.IsAssignableFrom<ImageFrontedControlConfig>(config.Controls[controlName]);
         Assert.Equal(bindingPath, control.BindingPath);
         return control;
+    }
+
+    private sealed class TestPluginControlConfig : FrontedControlConfigBase
+    {
+        public string TeamNameBindingPath { get; set; }
+
+        public int Count { get; set; }
+    }
+
+    private sealed class TestPluginControlContributor : IFrontedControlPluginContributor
+    {
+        public string LastName { get; private set; }
+
+        public TestPluginControlConfig LastConfig { get; private set; }
+
+        public void RegisterFrontedControls(IFrontedControlPluginRegistry registry)
+        {
+            registry.Register(new FrontedPluginControlDescriptor<TestPluginControlConfig>
+            {
+                PackageId = "top.plfjy.example.fronted",
+                ControlTypeName = "TeamCard",
+                ConfigType = typeof(TestPluginControlConfig),
+                DisplayNameKey = "TeamCard",
+                Properties =
+                [
+                    new FrontedPluginPropertyDescriptor
+                    {
+                        PropertyName = nameof(TestPluginControlConfig.TeamNameBindingPath)
+                    }
+                ],
+                CreateControl = (name, config, _) =>
+                {
+                    LastName = name;
+                    LastConfig = config;
+                    return new Border
+                    {
+                        Name = name,
+                        Width = config.Width ?? 0,
+                        Height = config.Height ?? 0
+                    };
+                }
+            });
+        }
+    }
+
+    private sealed class FakeFrontedControl(string controlType) : IFrontedControl
+    {
+        public string ControlType { get; } = controlType;
+
+        public Type ConfigType => typeof(FrontedControlConfigBase);
+
+        public FrameworkElement Create(
+            string name,
+            FrontedControlConfigBase config,
+            FrontedControlBuildContext context)
+        {
+            return new Border { Name = name };
+        }
     }
 
     private sealed class EmptyServiceProvider : IServiceProvider

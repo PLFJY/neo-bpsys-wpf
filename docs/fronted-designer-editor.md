@@ -401,13 +401,13 @@ Phase 8F owner validation 后，工具栏新增 Delete Control。删除只影响
 
 ## 11. 插件控件编辑器策略
 
-Phase 13A 只定义插件前台控件的 schema 和编辑器策略，不实现 Add Control 插件 UI。插件控件的 `ControlType` 必须是：
+Phase 13B 已实现插件控件 registry、descriptor API 和运行时创建管线，但 Designer Add Control 插件 UI、插件属性元数据渲染、MissingPlugin 占位符和安装引导仍属于 Phase 13C。插件控件的 `ControlType` 必须是：
 
 ```text
 plugin:<PackageId>/<ControlTypeName>
 ```
 
-Designer 读取布局时应把它识别为插件控件，而不是未知内置控件。内置控件仍使用 `Text`、`Image`、`BorderedImage` 等简单值；插件控件不能 shadow 内置 `ControlType`，也不能用本地化显示名作为保存值。
+Designer 和运行时读取布局时应把它识别为插件控件，而不是未知内置控件。Phase 13B 中，layout JSON 的 `plugin:*` 控件会反序列化为 `PluginFrontedControlConfig` 并保留插件专属 JSON 属性；已安装插件注册 descriptor 后，runtime adapter 再转换为插件 typed config。内置控件仍使用 `Text`、`Image`、`BorderedImage` 等简单值；插件控件不能 shadow 内置 `ControlType`，也不能用本地化显示名作为保存值。
 
 后续 Phase 13C 的 Add Control UI 应从插件 control descriptor 生成菜单项，显示插件提供的本地化名称、图标和描述，但保存到 JSON 的仍是完整 `plugin:<PackageId>/<ControlTypeName>`。如果插件未安装或版本不满足，Add Control 不应展示可添加入口，已有布局则走 MissingPlugin 占位符。
 
@@ -719,7 +719,7 @@ Phase 10 起，编辑器 typed/pasted input 会按集中限制截断：搜索 12
 | Phase 9D: v3 package import/activation/delete | 已实现：v3 `.bpui` 导入安装、重复包替换确认、激活复制到用户布局目录、切回内置、删除普通包和删除活动包时先切回内置。legacy 转换仍是后续阶段。 |
 | Phase 12: Designer v3 i18n display layer | 已实现：通过 `IFrontedDesignerLocalizationService` 本地化编辑器显示层；Property Grid 的只读布尔值和颜色校验提示、Binding Browser / Resource Browser 文案也走 Designer i18n。`PropertyName`、`GroupName`、`ControlType`、`BindingPath`、资源 URI、`FontFamily` 和控件 `Name` 保存值保持原始契约值。 |
 | Phase 13A | 文档和 schema：插件 `ControlType` 命名、MissingPlugin 编辑器策略、声明式属性元数据方向。 |
-| Phase 13B | 插件控件 registry 和 descriptor API。 |
+| Phase 13B | 已实现插件控件 registry、descriptor API、通用 plugin config roundtrip 和 runtime renderer 缺失插件跳过。 |
 | Phase 13C | Designer Add Control 插件 UI、插件属性元数据渲染、缺失插件占位符和安装引导。 |
 | Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
 | Phase 13D | `.bpui` 依赖扫描、导入、导出和强制导入删除缺失控件。 |

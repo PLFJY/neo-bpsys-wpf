@@ -43,6 +43,15 @@ public class FrontedRenderer(
             var factory = controlRegistry.GetControl(controlConfig.ControlType);
             if (factory is null)
             {
+                if (FrontedPluginControlType.IsPluginControlType(controlConfig.ControlType))
+                {
+                    logger.LogWarning(
+                        "Skipping fronted plugin control {ControlName} because ControlType {ControlType} is not registered.",
+                        name,
+                        controlConfig.ControlType);
+                    continue;
+                }
+
                 throw new FrontedLayoutConfigException(
                     $"Control '{name}' has no registered factory for ControlType '{controlConfig.ControlType}'.");
             }

@@ -30,6 +30,11 @@ public class FrontedCanvasConfig
     public string? BackgroundImage { get; set; }
 
     /// <summary>
+    /// Canvas 使用的插件依赖元数据。
+    /// </summary>
+    public List<FrontedPluginDependency> RequiredPlugins { get; set; } = [];
+
+    /// <summary>
     /// 控件配置，key 为控件名。
     /// </summary>
     public Dictionary<string, FrontedControlConfigBase> Controls { get; set; } = [];

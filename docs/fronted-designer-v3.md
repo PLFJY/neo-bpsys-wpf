@@ -4,7 +4,7 @@
 
 ## 1. 背景与目标
 
-当前设计者模式历史上是 XAML-first：前台窗口的具体控件直接写在各窗口 XAML 中，运行时再由 `FrontedWindowService` 扫描 Canvas 子元素并保存/恢复每个 Canvas 的 `ElementInfo`。这些布局文件主要记录 `Left`、`Top`、`Width`、`Height`，而前台自定义图片、文本设置、颜色、字体和窗口设置仍存放在 `config.json`。旧 `.bpui` 包也和 `Config.json`、`CustomUi/`、`FrontElementsConfig/` 等历史结构耦合。当前 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 和 `BpWindow` 已接入 v3 renderer。
+当前设计者模式历史上是 XAML-first：前台窗口的具体控件直接写在各窗口 XAML 中，运行时再由 `FrontedWindowService` 扫描 Canvas 子元素并保存/恢复每个 Canvas 的 `ElementInfo`。这些旧版文件和 `Config.json` 前台自定义字段现在只作为 legacy 转换、迁移对照或运行时兼容上下文存在；当前运行时和编辑器路径是 Designer v3 + `FrontedLayouts`。SettingPage 旧前台自定义入口已移除，旧版真实窗口设计器也已移除。旧 `.bpui` 包与 `Config.json`、`CustomUi/`、`FrontElementsConfig/` 等历史结构的耦合只由 legacy 转换流程处理。当前 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 和 `BpWindow` 已接入 v3 renderer。
 
 v3 目标是转向 JSON/config-driven UI：前台窗口 XAML 最终只保留外层 Canvas，控件由 JSON 配置描述，并由已注册的控件工厂创建。这样可以把布局、素材、控件类型和绑定关系放到可迁移、可导入导出的结构中，也为独立编辑窗口、插件扩展控件和新版 `.bpui` 包打基础。
 
@@ -258,7 +258,7 @@ plugin:top.plfjy.example.fronted/TeamCard
 
 `PackageId` 必须匹配插件 `manifest.yml` 的 `id`，`ControlTypeName` 在插件内唯一。完整字符串是稳定 layout schema，不本地化，不使用显示名，也不能 shadow 内置控件类型。Canvas 通过 `RequiredPlugins` 声明本 Canvas 依赖，`.bpui` manifest 通过 `PluginDependencies` 汇总包级依赖；完整 schema 和缺失插件导入策略见 [bpui-package-v3.md](bpui-package-v3.md)。
 
-Phase 13A 仍是文档和 schema 规划，不实现完整插件控件 runtime、不实现 Designer Add Control 插件 UI、不实现插件市场安装。后续 Phase 13B 建议引入插件控件贡献接口和 descriptor registry：
+Phase 13B 已实现插件控件 registry 和 descriptor API：插件可在启动期间通过 DI 注册 `IFrontedControlPluginContributor`，contributor 向 `IFrontedControlPluginRegistry` 注册 descriptor，宿主把 descriptor 适配为现有 `IFrontedControl` 工厂。Phase 13B 仍不实现 Designer Add Control 插件 UI、Property Grid 插件元数据渲染、`.bpui` 依赖扫描/导入导出或插件市场安装。
 
 ```csharp
 public interface IFrontedControlPluginContributor
@@ -333,7 +333,7 @@ public sealed class TeamCardFrontedControlConfig : FrontedControlConfigBase
 }
 ```
 
-运行时缺失插件控件时必须跳过并记录 warning，不能让前台窗口崩溃，也不应在直播前台默认渲染占位符。Designer 可以对已有用户布局显示 MissingPlugin 占位符，展示 `PackageId`、`ControlTypeName` 和完整 `ControlType`，允许删除和打开安装引导；没有插件元数据时不能编辑插件专属属性。包强制导入时应删除缺失插件控件，而不是把占位符写入活动布局。
+Phase 13B 起，layout JSON 中的 `plugin:*` 控件会先反序列化为通用 `PluginFrontedControlConfig` 并保留插件专属 JSON 属性；插件已安装且 descriptor 已注册时，runtime adapter 会把通用 config 转换为插件声明的 typed config 并创建控件。运行时缺失插件控件时会跳过并记录 warning，不能让前台窗口崩溃，也不应在直播前台默认渲染占位符。Designer 可以在后续 Phase 13C 对已有用户布局显示 MissingPlugin 占位符，展示 `PackageId`、`ControlTypeName` 和完整 `ControlType`，允许删除和打开安装引导；没有插件元数据时不能编辑插件专属属性。包强制导入时应删除缺失插件控件，而不是把占位符写入活动布局。
 
 ## 8. 前台编辑窗口设计
 
@@ -418,7 +418,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 9D | 已实现 v3 `.bpui` 导入、安装、激活复制和删除完善。 |
 | Phase 9E+ | 已实现 legacy `.bpui` 转换入口和转换器；后续仍可扩展更完整的字段映射 UI。 |
 | Phase 13A | 文档和 schema：插件前台控件 `ControlType` 命名、Canvas `RequiredPlugins`、manifest `PluginDependencies`、缺失插件行为和安全边界。 |
-| Phase 13B | 插件前台控件 registry 和 descriptor API。 |
+| Phase 13B | 已实现插件前台控件 registry、descriptor API、`PluginFrontedControlConfig` roundtrip 和 runtime renderer 缺失插件跳过。 |
 | Phase 13C | Designer 插件控件支持，包括 Add Control、属性元数据和 MissingPlugin 占位符。 |
 | Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
 | Phase 13D | `.bpui` 依赖扫描、导入、导出和强制导入删除缺失控件。 |

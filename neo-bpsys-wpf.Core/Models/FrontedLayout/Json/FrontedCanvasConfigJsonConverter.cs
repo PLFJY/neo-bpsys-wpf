@@ -13,7 +13,8 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
         nameof(FrontedCanvasConfig.Version),
         nameof(FrontedCanvasConfig.CanvasWidth),
         nameof(FrontedCanvasConfig.CanvasHeight),
-        nameof(FrontedCanvasConfig.BackgroundImage)
+        nameof(FrontedCanvasConfig.BackgroundImage),
+        nameof(FrontedCanvasConfig.RequiredPlugins)
     ];
 
     /// <inheritdoc />
@@ -36,7 +37,11 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
             Version = ReadRequiredInt(root, nameof(FrontedCanvasConfig.Version)),
             CanvasWidth = ReadRequiredDouble(root, nameof(FrontedCanvasConfig.CanvasWidth)),
             CanvasHeight = ReadRequiredDouble(root, nameof(FrontedCanvasConfig.CanvasHeight)),
-            BackgroundImage = ReadOptionalString(root, nameof(FrontedCanvasConfig.BackgroundImage))
+            BackgroundImage = ReadOptionalString(root, nameof(FrontedCanvasConfig.BackgroundImage)),
+            RequiredPlugins = ReadOptionalList<FrontedPluginDependency>(
+                root,
+                nameof(FrontedCanvasConfig.RequiredPlugins),
+                options)
         };
 
         if (config.Version != 3)
@@ -87,6 +92,12 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
             writer.WriteString(nameof(FrontedCanvasConfig.BackgroundImage), value.BackgroundImage);
         }
 
+        if (value.RequiredPlugins.Count > 0)
+        {
+            writer.WritePropertyName(nameof(FrontedCanvasConfig.RequiredPlugins));
+            JsonSerializer.Serialize(writer, value.RequiredPlugins, options);
+        }
+
         foreach (var (name, control) in value.Controls)
         {
             writer.WritePropertyName(name);
@@ -116,6 +127,19 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
         var json = element.GetRawText();
         try
         {
+            if (FrontedPluginControlType.IsPluginControlType(controlType))
+            {
+                if (!FrontedPluginControlType.TryParse(controlType, out _))
+                {
+                    throw new FrontedLayoutConfigException(
+                        $"Control '{controlName}' has invalid plugin ControlType '{controlType}'.");
+                }
+
+                return JsonSerializer.Deserialize<PluginFrontedControlConfig>(json, options)
+                    ?? throw new FrontedLayoutConfigException(
+                        $"Control '{controlName}' could not be read as plugin control.");
+            }
+
             return controlType switch
             {
                 "Text" => JsonSerializer.Deserialize<TextFrontedControlConfig>(json, options)
@@ -211,5 +235,30 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
         }
 
         return property.GetString();
+    }
+
+    private static List<T> ReadOptionalList<T>(
+        JsonElement root,
+        string propertyName,
+        JsonSerializerOptions options)
+    {
+        if (!root.TryGetProperty(propertyName, out var property) || property.ValueKind == JsonValueKind.Null)
+        {
+            return [];
+        }
+
+        if (property.ValueKind != JsonValueKind.Array)
+        {
+            throw new FrontedLayoutConfigException($"Property '{propertyName}' must be a JSON array or null.");
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<T>>(property.GetRawText(), options) ?? [];
+        }
+        catch (JsonException ex)
+        {
+            throw new FrontedLayoutConfigException($"Property '{propertyName}' has invalid JSON shape.", ex);
+        }
     }
 }

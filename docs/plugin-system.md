@@ -77,7 +77,7 @@
 
 ## Designer v3 插件前台控件规划
 
-Phase 13A 只定义文档和 schema，不实现完整插件控件运行时。后续 Phase 13B 起，插件可以贡献 Designer v3 前台控件，让这些控件像内置 `Text`、`Image`、`BorderedImage` 一样被 v3 renderer 和独立编辑器识别；控件运行时行为、config 类型、默认 config 和属性元数据由插件提供。
+Phase 13B 已实现插件控件 registry 和 descriptor API。插件可以在启动期间通过 DI 注册 Designer v3 前台控件，让这些控件像内置 `Text`、`Image`、`BorderedImage` 一样被 v3 renderer 识别；控件运行时行为、config 类型、默认 config 和属性元数据由插件提供。Designer Add Control 插件 UI、Property Grid 插件元数据渲染、`.bpui` 依赖扫描/导入导出和插件市场安装引导仍分别属于 Phase 13C、13D、13E。
 
 插件控件的 `ControlType` 必须使用命名空间：
 
@@ -93,7 +93,7 @@ plugin:top.plfjy.example.fronted/TeamCard
 
 `PackageId` 必须匹配插件 `manifest.yml` 的 `id`，`ControlTypeName` 在插件内唯一。完整 `ControlType` 是稳定序列化 schema，不本地化，不使用显示名，也不能 shadow 内置控件类型。`.bpui v3` 中的 Canvas `RequiredPlugins` 和 manifest `PluginDependencies` 规则见 [bpui-package-v3.md](bpui-package-v3.md)。
 
-建议的 Phase 13B API 形状如下，具体命名和命名空间以后续实现为准：
+Phase 13B API 入口如下：
 
 ```csharp
 public interface IFrontedControlPluginContributor
@@ -153,6 +153,8 @@ public sealed class FrontedPluginPropertyDescriptor
 4. 布局 JSON 不保存可执行状态。
 5. 避免保存绝对本地路径；图片等资源优先使用 `.bpui` 支持的资源 URI。
 6. `BindingPath` 保存原始不变量路径，不本地化。
+
+运行时读取布局时，`plugin:*` 控件即使插件未安装也会反序列化为 `PluginFrontedControlConfig`，并通过 `JsonExtensionData` 保留插件专属属性，确保可读取、保存和 roundtrip。插件 descriptor 可用时，宿主 adapter 会把通用 config 序列化后再反序列化为 descriptor 声明的 typed config，然后调用 `CreateControl`。如果插件缺失，前台 renderer 跳过该控件并记录 warning；未知非插件 `ControlType` 仍按无效内置控件处理并报错。
 
 示例：
 
