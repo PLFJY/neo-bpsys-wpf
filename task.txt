@@ -1,250 +1,289 @@
-你正在修改仓库：
+You are working on repository:
 
 PLFJY/neo-bpsys-wpf
 
-分支：
+Branch:
 dev-refactor/Designer-v3
 
-任务：
-继续清理旧真实窗口设计器残留。这次重点删除旧“前台元素位置保存/恢复”服务层 API 和实现。
+Task:
+Implement Phase 14C:
+Move FrontedDesignerWindow zoom controls to the bottom status bar.
 
-背景：
-上一轮已经删除：
-- DesignBehavior.cs
-- CanvasAdorner.cs
-- DesignerModeChangedMessage.cs
-- FrontManagePage 旧设计模式 Toggle
-- SettingPage 旧前台自定义 UI
-- SettingPageViewModel.FrontedUiCustom.cs
-- SettingPageViewModel.UiPackage.cs
-- AppConstants.CustomUiPath
+Current state:
+- Top toolbar still shows a ZoomDisplay TextBlock.
+- View menu already contains Fit / ZoomIn / ZoomOut / zoom preset menu items.
+- Bottom status bar currently shows:
+  - left status button
+  - right current window/canvas display
+- ViewModel already has ZoomScale, ZoomDisplay, IsFitMode, ZoomPresets, SelectedZoomPreset, FitToWindowCommand, SetZoomPresetCommand, ZoomInCommand, ZoomOutCommand.
 
-但现在仍残留旧设计器时代的“真实前台窗口元素位置保存/恢复”逻辑：
-- IFrontedWindowService 仍暴露 RestoreInitialPositions / SaveWindowElementsPosition 等 API
-- FrontedWindowService 仍有 #region 设计者模式
-- 仍读写旧文件：
-  - AppData/{WindowName}Config-{CanvasName}.json
-  - Resources/FrontedDefaultPositions/{WindowName}Config-{CanvasName}.default.json
+Goal:
+Move visible zoom controls to bottom-left, immediately to the right of the status button.
 
-Designer v3 当前使用：
-- FrontedDesignerWindow 独立编辑器
-- FrontedLayouts/{WindowTypeName}/{CanvasName}.json
-- Resources/FrontedLayouts/{WindowTypeName}/{CanvasName}.json
-- FrontedLayoutPackages
-- Layout Packages
+Desired bottom status bar order:
+<Status button> <Editable ComboBox for zoom> <Slider> <Fit Button> ... <right-aligned current Window/Canvas text>
 
-所以旧位置保存/恢复路径要删除。
+Top toolbar:
+- remove the standalone ZoomDisplay TextBlock from the top toolbar.
+- keep the View menu zoom commands and preset menu items.
 
-重要原则：
-1. 删除旧真实窗口设计器的位置保存/恢复 API。
-2. 不要删除 v3 layout renderer。
-3. 不要删除 FrontedDesignerWindow。
-4. 不要删除 Layout Packages。
-5. 不要删除前台窗口正常显示/隐藏/拖动。
-6. 不要删除插件前台窗口注册和注入控件能力。
-7. 不要删除动画兼容 no-op。
-8. 不要删除 Score System v2 兼容 no-op。
-9. 不要删除 legacy .bpui converter 里读取 FrontElementsConfig 的逻辑。
-10. runtime service 不应再读写旧位置文件。
+Do NOT:
+- Do not change renderer architecture.
+- Do not re-render canvas when only zoom scale changes.
+- Do not break Ctrl + MouseWheel zoom.
+- Do not break View menu zoom commands.
+- Do not break FitToWindow behavior.
+- Do not break existing ZoomScale LayoutTransform binding.
+- Do not break 14A performance optimizations.
+- Do not break 14B layer panel.
+- Do not change `.bpui` schema.
+- Do not touch plugin import/export.
 
-一、清理 IFrontedWindowService
+Files to inspect:
+- neo-bpsys-wpf/Views/Windows/FrontedDesignerWindow.xaml
+- neo-bpsys-wpf/Views/Windows/FrontedDesignerWindow.xaml.cs
+- neo-bpsys-wpf/ViewModels/Windows/FrontedDesignerWindowViewModel.cs
+- localization files:
+  - Lang.resx
+  - Lang.en-us.resx
+  - Lang.ja-jp.resx
+- tests touching FrontedDesignerWindow XAML / zoom behavior
 
-文件：
-neo-bpsys-wpf.Core/Abstractions/Services/IFrontedWindowService.cs
+Part A: Move visible zoom UI to bottom status bar
 
-删除整个旧 Window Position Management 区域，包括：
+Current bottom status bar is Grid.Row=3 with DockPanel:
+- Status button docked left
+- CurrentWindowCanvasDisplay text right
 
-- Task RestoreInitialPositions(FrontedWindowType windowType, string canvasName = "BaseCanvas");
-- Task RestoreInitialPositions(string windowId, string canvasName = "BaseCanvas");
-- void SaveAllWindowElementsPosition();
-- void SaveWindowCanvasElementsPosition(FrontedWindowType windowType, string canvasName = "BaseCanvas");
-- void SaveWindowCanvasElementsPosition(string windowId, string canvasName = "BaseCanvas");
-- void SaveWindowElementsPosition(FrontedWindowType windowType);
-- void SaveWindowElementsPosition(string windowId);
+Change it to:
+- status button on the left
+- zoom ComboBox to the right of status button
+- zoom Slider after ComboBox
+- Fit button after Slider
+- CurrentWindowCanvasDisplay remains right-aligned
 
-如果 region 只剩这些内容，就删掉整个 region。
+Suggested layout:
+Use Grid or DockPanel with a left StackPanel and right TextBlock.
 
-不要删除：
-- FrontedCanvas
-- FrontedWindows
-- FrontedWindowStates
-- RegisterFrontedWindowAndCanvas
-- ReloadFrontedLayoutsAsync
-- ShowWindow / HideWindow / AllWindowShow / AllWindowHide
-- GetInjectedControl
-- SetGlobalScore / ResetGlobalScore 兼容 no-op
-- 动画兼容方法
+Example structure:
+<Grid>
+  <Grid.ColumnDefinitions>
+    <ColumnDefinition Width="Auto"/>
+    <ColumnDefinition Width="*"/>
+    <ColumnDefinition Width="Auto"/>
+  </Grid.ColumnDefinitions>
 
-二、清理 FrontedWindowService 旧实现
+  <StackPanel Grid.Column="0" Orientation="Horizontal">
+    <ui:Button Content="{Binding StatusMessage}" ... />
+    <ComboBox ... />
+    <Slider ... />
+    <ui:Button Command="{Binding FitToWindowCommand}" Content="{lex:Loc Fit}" />
+  </StackPanel>
 
-文件：
-neo-bpsys-wpf/Services/FrontedWindowService.cs
+  <TextBlock Grid.Column="2" Text="{Binding CurrentWindowCanvasDisplay}" />
+</Grid>
 
-删除旧 #region 设计者模式 中的位置保存/恢复代码：
+Keep status button as the left-most item.
+Do not make the status text too wide; use reasonable MaxWidth/TextTrimming if necessary.
 
-- RecordInitialPositions
-- GetElementsPositions
-- SaveWindowCanvasElementsPosition(FrontedWindowType...)
-- SaveWindowCanvasElementsPosition(string...)
-- SaveWindowElementsPosition(FrontedWindowType...)
-- SaveWindowElementsPosition(string...)
-- SaveAllWindowElementsPosition
-- LoadWindowElementsPositionOnStartupAsync
-- LoadElementsPositions
-- RestoreInitialPositions(FrontedWindowType...)
-- RestoreInitialPositions(string...)
+Part B: Remove top toolbar ZoomDisplay TextBlock
 
-同时删除只被这些方法使用的字段 / using：
-- JsonSerializerOptions，如果只用于旧位置保存
-- System.Text.Json，如果只用于旧位置保存
-- ElementInfo using，如果只用于旧位置保存
-- 旧 default position 相关 using
-- I18n / MessageBoxHelper 调用，如果只由这坨使用
+Top toolbar currently has a TextBlock bound to ZoomDisplay.
+Remove that top-level visible TextBlock.
 
-注意：
-- 如果 JsonSerializerOptions 还被其它方法用，不要删。
-- 如果 _externalControlDefaultPosition 只用于旧位置恢复，就删除。
-- 如果 LoadInjectedControl 里还记录 _externalControlDefaultPosition，且没有别处读取，也一起删。
-- 不要删插件注入控件逻辑。
+Keep:
+- View menu Fit/ZoomIn/ZoomOut.
+- View menu zoom presets.
+- SnapStatusText.
+- DirtyIndicatorText.
+- LayoutSourcePath.
 
-三、保留插件注入控件能力
+Part C: Editable zoom ComboBox
 
-检查：
-- LoadInjectedControl
-- GetInjectedControl
-- InjectedControlInfo
-- ElementInfo
-- FrontedWindowHelper.InjectControlToFrontedWindow
+Add an editable ComboBox in bottom bar.
 
-要求：
-- 插件/外部控件仍能注入到指定 window/canvas。
-- 可以设置 Width / Height / Left / Top。
-- 可以加入 Canvas。
-- 只是不要再参与旧位置保存/恢复。
+Requirements:
+- Shows current zoom text.
+- User can type:
+  - `100`
+  - `100%`
+  - `1x`
+  - `1.25x`
+  - `Fit`
+- Press Enter or lose focus commits typed value.
+- Dropdown contains presets:
+  - Fit
+  - 25%
+  - 50%
+  - 75%
+  - 100%
+  - 125%
+  - 150%
+  - 200%
+- Selecting a preset applies it.
+- Editing a manual value exits Fit mode.
+- Invalid input should not crash.
+- Invalid input should restore current ZoomDisplay and optionally set StatusMessage.
+- Clamp to current allowed range:
+  - minimum 25%
+  - maximum 200%
+unless existing ViewModel already defines a different range.
 
-如果 ElementInfo 只给旧位置保存/恢复用，可以删除。
-如果 InjectedControlInfo 仍用 ElementInfo 表示位置，则保留 ElementInfo 或改成必要结构，不要破坏注入。
+Implementation options:
+1. Add ViewModel property:
+   - ZoomEditText
+   - ZoomPercentValue
+   - CommitZoomTextCommand
+   - ApplyZoomPercentCommand
+2. Or handle ComboBox events in code-behind and call ViewModel methods.
 
-四、清理旧运行时引用
+Prefer ViewModel methods for testability:
+- `bool TryApplyZoomText(string? text)`
+- `void ApplyZoomPercent(double percent)`
+- `void UpdateZoomEditTextFromCurrentZoom()`
 
-全仓搜索并清理 runtime 引用：
+Ensure ZoomEditText updates when:
+- ZoomScale changes.
+- FitToWindow recalculates zoom.
+- menu preset changes zoom.
+- Ctrl+MouseWheel changes zoom.
 
-- FrontedDefaultPositions
-- FrontElementsConfig
-- Config-{canvasName}
-- Config-BaseCanvas
-- RestoreInitialPositions
-- SaveWindowElementsPosition
-- SaveWindowCanvasElementsPosition
-- LoadWindowElementsPositionOnStartupAsync
-- RecordInitialPositions
-- LoadElementsPositions
+Part D: Zoom Slider
 
-要求：
-- 运行时代码不再引用 Resources/FrontedDefaultPositions。
-- 运行时代码不再读写 AppData 下的 {WindowName}Config-{CanvasName}.json。
-- FrontElementsConfig 只能出现在 legacy converter / legacy docs / migration notes 中。
-- FrontedDefaultPositions 如果保留资源目录，也不能被 runtime service 读取。
+Add a Slider after ComboBox.
 
-是否删除 Resources/FrontedDefaultPositions：
-- 如果没有任何引用，可以删除。
-- 如果 legacy converter 测试或文档还需要样例，可暂时保留。
-- 优先目标是删除 runtime 引用，不强制删资源目录。
+Requirements:
+- Min = 25
+- Max = 200
+- SmallChange = 5
+- LargeChange = 25
+- TickFrequency = 25 or 5
+- Value = ZoomScale * 100
+- Dragging slider updates ZoomScale live.
+- Slider update exits Fit mode.
+- Slider should not cause full preview re-render; it should only update zoom transform.
+- Slider and ComboBox must stay in sync.
 
-五、清理 localization key
+Implementation:
+- Add ViewModel property `ZoomPercent`.
+- Getter returns ZoomScale * 100.
+- Setter clamps value, updates ZoomScale = value / 100, sets IsFitMode = false, updates ZoomDisplay/ZoomEditText.
+- Avoid recursive property change loops.
+- Raise OnPropertyChanged for ZoomPercent when ZoomScale changes.
 
-搜索旧位置保存/恢复相关 key：
+Part E: Fit Button behavior
 
-- ConfigurationFileSaveError
-- SaveFrontendConfigurationFileFailed
-- ConfigurationFileLoadingError
-- FrontendDefaultConfigurationRestoreError
-- ConfigurationResetConfirmation
-- ReadFrontendDefaultConfigurationError
-- CannotFindDefaultLayoutConfigurationFromWindowProvider
-- ErrorWhenGeneratingFrontendConfigurationFile
-- ResetLayout
-- ResetMapBPLayout
-- ResetBPOverviewLayout
-- ResetMapBPV2Layout
-- ResetSurvivorScoreLayoutInGame
-- ResetHunterScoreLayoutInGame
-- ResetScoreStatisticsLayout
+Add a bottom Fit button after the slider.
 
-只删除“无引用且只服务旧设计器”的 key。
-不要盲删仍被其它功能使用的 key。
+Requirements:
+- Command = FitToWindowCommand.
+- Tooltip = Fit.
+- Button can use text "Fit" or icon + text.
+- Clicking Fit:
+  - sets IsFitMode = true.
+  - recalculates ZoomScale based on viewport/canvas.
+  - updates ComboBox text.
+  - updates Slider value.
+- If Fit mode displays something like `Fit (87%)`, keep it readable.
+- If current ZoomDisplay is just `Fit`, consider adding a secondary computed text or use ZoomEditText to show actual percent.
 
-六、更新文档
+Do not break existing SizeChanged fit recalculation.
 
-更新：
-- docs/frontend-windows-and-layout.md
-- docs/fronted-designer-v3.md
-- docs/known-limitations-and-roadmap.md
-- docs/settings-paths-and-data.md
-- docs/bpui-package-v3.md，如有必要
+Part F: Existing input gestures
 
-写明：
-- runtime 不再读取 FrontedDefaultPositions。
-- runtime 不再保存/恢复 {WindowName}Config-{CanvasName}.json。
-- 当前前台布局状态来源是 v3 FrontedLayouts。
-- 重置布局通过 Layout Packages 激活 builtin 或删除用户布局实现。
-- 旧位置文件只属于 legacy .bpui / migration 语境。
-- FrontManagePage 的 Reset Layout 旧按钮已删除。
+Ensure existing controls remain functional:
+- Ctrl + MouseWheel zoom still works.
+- View menu preset zoom still works.
+- View menu Fit still works.
+- ZoomIn/ZoomOut commands still work.
 
-七、测试
+If those paths currently call ApplyManualZoom / ApplyZoomPreset:
+- make sure they update ZoomPercent and ZoomEditText notifications.
 
-增加或更新测试：
-1. IFrontedWindowService 不再暴露 RestoreInitialPositions。
-2. IFrontedWindowService 不再暴露 SaveWindowElementsPosition。
-3. IFrontedWindowService 不再暴露 SaveWindowCanvasElementsPosition。
-4. FrontedWindowService 不再读写 {WindowName}Config-{CanvasName}.json。
-5. FrontedWindowService 不再引用 Resources/FrontedDefaultPositions。
-6. RegisterFrontedWindowAndCanvas 仍可用。
-7. ShowWindow / HideWindow 仍可用。
-8. ReloadFrontedLayoutsAsync 仍可用。
-9. 插件 injected control 仍能加入 Canvas。
-10. legacy converter 如果存在，仍能识别 legacy FrontElementsConfig。
+Part G: Localization
 
-八、最终搜索确认
+Add localization keys if missing:
+- Designer.Zoom
+- Designer.ZoomPercent
+- Designer.ZoomInvalid
+- Fit tooltip can reuse existing Fit key.
+- ZoomIn/ZoomOut can reuse existing keys.
 
-修改后搜索：
+Add to:
+- Lang.resx
+- Lang.en-us.resx
+- Lang.ja-jp.resx
 
-- RestoreInitialPositions
-- SaveWindowElementsPosition
-- SaveWindowCanvasElementsPosition
-- SaveAllWindowElementsPosition
-- LoadWindowElementsPositionOnStartupAsync
-- RecordInitialPositions
-- GetElementsPositions
-- LoadElementsPositions
-- FrontedDefaultPositions
-- FrontElementsConfig
+Do not translate raw percent values.
 
-期望：
-- 生产 runtime 代码中不再有旧位置保存/恢复 API。
-- FrontElementsConfig 只允许出现在 legacy converter / legacy docs / migration notes 中。
-- FrontedDefaultPositions 如果仍出现，只能是 docs/migration/test，不能是 runtime 读取路径。
+Part H: Visual details
 
-九、验证
+Bottom bar should remain compact:
+- ComboBox width around 86-100.
+- Slider width around 140-180.
+- Fit button compact.
+- Align vertically center.
+- Keep status button left-most.
+- Keep current window/canvas right-aligned.
+- If window is narrow, zoom controls should not completely crush status text; use MaxWidth/TextTrimming.
 
-运行：
+Part I: Tests
+
+Add/update tests:
+
+XAML structure:
+1. Top toolbar no longer contains the standalone ZoomDisplay TextBlock.
+2. Bottom status bar contains zoom ComboBox.
+3. Bottom status bar contains zoom Slider.
+4. Bottom status bar contains Fit button.
+5. View menu zoom commands still exist.
+
+ViewModel:
+6. TryApplyZoomText parses `100`.
+7. TryApplyZoomText parses `100%`.
+8. TryApplyZoomText parses `1x`.
+9. TryApplyZoomText parses `1.25x`.
+10. TryApplyZoomText handles `Fit`.
+11. invalid zoom text does not change ZoomScale and returns false.
+12. ZoomPercent setter updates ZoomScale.
+13. ZoomScale change updates ZoomPercent notification.
+14. FitToWindow updates ZoomEditText / ZoomPercent.
+15. ZoomIn/ZoomOut update ZoomEditText / ZoomPercent.
+
+Regression:
+16. Ctrl+MouseWheel path still calls zoom logic.
+17. View menu preset SetZoomPreset still works.
+18. IsFitMode becomes false after manual ComboBox/Slider zoom.
+19. IsFitMode remains true after Fit.
+
+Part J: Manual validation
+
+Run:
 - git diff --check
 - dotnet build
 - dotnet test
 
-手动验证：
-1. 应用能启动。
-2. FrontManagePage 能打开/关闭前台窗口。
-3. 前台窗口能正常拖动。
-4. FrontedDesignerWindow 能打开。
-5. 修改 v3 layout 后保存，前台能 reload。
-6. Layout Packages 导入/导出/激活/删除正常。
-7. 插件前台窗口或 injected control 如有入口，仍能显示。
+Manual:
+1. Open FrontedDesignerWindow.
+2. Confirm visible zoom controls are now bottom-left:
+   Status -> ComboBox -> Slider -> Fit.
+3. Confirm top toolbar no longer has ZoomDisplay text.
+4. View menu zoom commands still exist.
+5. Type `100` in ComboBox and press Enter; zoom becomes 100%.
+6. Type `150%`; zoom becomes 150%.
+7. Type `1.25x`; zoom becomes 125%.
+8. Select 75% from dropdown.
+9. Drag slider; canvas zooms live.
+10. Click Fit; canvas fits viewport.
+11. Resize window; if Fit mode is active, zoom updates.
+12. Ctrl + MouseWheel still zooms.
+13. Layer panel from 14B still works.
+14. Paste/delete/undo/redo from 14A still feels responsive.
 
-最终回复：
-1. 删除了 IFrontedWindowService 哪些旧 API。
-2. 删除了 FrontedWindowService 哪些旧实现。
-3. 是否保留 FrontedDefaultPositions 资源目录，为什么。
-4. FrontElementsConfig 是否还存在，是否仅 legacy 用途。
-5. 插件注入控件能力是否保留。
-6. build/test 结果。
+Final response:
+- summarize bottom status bar zoom UI
+- summarize ComboBox parsing
+- summarize Slider behavior
+- summarize Fit behavior
+- confirm top ZoomDisplay removed but View menu retained
+- report build/test result
