@@ -26,6 +26,8 @@ namespace neo_bpsys_wpf.Views.Windows;
 /// </summary>
 public partial class FrontedDesignerWindow : FluentWindow
 {
+    private const double LayerDropZoneEdgeSize = 40D;
+    private const double LayerAutoScrollMaxVelocity = 18D;
     private readonly IFrontedRenderer? _renderer;
     private readonly IFilePickerService? _filePickerService;
     private readonly FrontedBindingBrowserProvider? _bindingBrowserProvider;
@@ -62,10 +64,17 @@ public partial class FrontedDesignerWindow : FluentWindow
     private bool _isDirtyClosePromptOpen;
     private FrontedDesignerWindowOption? _lastAcceptedWindow;
     private FrontedDesignerLayoutCatalogEntry? _lastAcceptedCanvas;
+    private Point _layerDragStartPoint;
+    private FrontedControlDesignItem? _pendingLayerDragItem;
+    private FrontedControlDesignItem? _activeLayerDragItem;
+    private readonly DispatcherTimer _layerAutoScrollTimer;
+    private double _layerAutoScrollVelocity;
+    private Point? _lastLayerDragPosition;
 
     public FrontedDesignerWindow()
     {
         InitializeComponent();
+        _layerAutoScrollTimer = CreateLayerAutoScrollTimer();
     }
 
     public FrontedDesignerWindow(
@@ -83,6 +92,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _logger = logger;
 
         InitializeComponent();
+        _layerAutoScrollTimer = CreateLayerAutoScrollTimer();
         DataContext = viewModel;
         Loaded += OnLoaded;
         Closed += OnClosed;
@@ -99,6 +109,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        StopLayerAutoScroll();
         if (_viewModel is not null)
         {
             _viewModel.PreviewRenderRequested -= OnPreviewRenderRequested;
@@ -208,6 +219,284 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             _viewModel?.SelectDesignItem(item);
         }
+    }
+
+    private DispatcherTimer CreateLayerAutoScrollTimer()
+    {
+        var timer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(24)
+        };
+        timer.Tick += (_, _) =>
+        {
+            if (Math.Abs(_layerAutoScrollVelocity) < 0.01D)
+            {
+                return;
+            }
+
+            LayerPanelScrollViewer.ScrollToVerticalOffset(
+                LayerPanelScrollViewer.VerticalOffset + _layerAutoScrollVelocity);
+            UpdateLayerDropZoneVisibility();
+        };
+        return timer;
+    }
+
+    private void LayerItem_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: FrontedControlDesignItem item })
+        {
+            return;
+        }
+
+        _viewModel?.SelectDesignItem(item);
+        _pendingLayerDragItem = item;
+        _layerDragStartPoint = e.GetPosition(this);
+    }
+
+    private void LayerItem_OnMouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed
+            || _viewModel is null
+            || _pendingLayerDragItem is null
+            || sender is not FrameworkElement dragSource)
+        {
+            return;
+        }
+
+        var currentPosition = e.GetPosition(this);
+        if (Math.Abs(currentPosition.X - _layerDragStartPoint.X) < SystemParameters.MinimumHorizontalDragDistance
+            && Math.Abs(currentPosition.Y - _layerDragStartPoint.Y) < SystemParameters.MinimumVerticalDragDistance)
+        {
+            return;
+        }
+
+        if (!_viewModel.CanReorderLayers || !_viewModel.IsLayerReorderable(_pendingLayerDragItem))
+        {
+            _viewModel.StatusMessage = I18nHelper.GetLocalizedString("Designer.LayerPanel.ReorderBlocked");
+            _pendingLayerDragItem = null;
+            return;
+        }
+
+        _activeLayerDragItem = _pendingLayerDragItem;
+        _pendingLayerDragItem = null;
+        var data = new DataObject(typeof(FrontedControlDesignItem), _activeLayerDragItem);
+        try
+        {
+            DragDrop.DoDragDrop(dragSource, data, DragDropEffects.Move);
+        }
+        finally
+        {
+            _activeLayerDragItem = null;
+            StopLayerAutoScroll();
+            HideLayerDropZones();
+        }
+    }
+
+    private void LayerItem_OnPreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: FrontedControlDesignItem item })
+        {
+            _viewModel?.SelectDesignItem(item);
+        }
+    }
+
+    private void LayerControlDeleteMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        var contextMenu = (sender as System.Windows.Controls.MenuItem)?.Parent as ContextMenu;
+        if (contextMenu?.PlacementTarget is FrameworkElement { DataContext: FrontedControlDesignItem item })
+        {
+            _viewModel?.SelectDesignItem(item);
+            _viewModel?.DeleteSelectedControlCommand.Execute(null);
+        }
+    }
+
+    private void LayerItem_OnDrop(object sender, DragEventArgs e)
+    {
+        if (_viewModel is null
+            || sender is not FrameworkElement { DataContext: FrontedControlDesignItem targetItem }
+            || !TryGetLayerDragItem(e, out var source))
+        {
+            return;
+        }
+
+        var position = e.GetPosition((IInputElement)sender);
+        var insertAfter = sender is FrameworkElement element && position.Y > element.ActualHeight / 2D;
+        _viewModel.CommitLayerDrop(source, targetItem.Config.ZIndex, targetItem, insertAfter);
+        StopLayerDrag(e);
+    }
+
+    private void LayerItem_OnDragOver(object sender, DragEventArgs e)
+    {
+        UpdateLayerDragOver(e);
+    }
+
+    private void LayerGroup_OnDragOver(object sender, DragEventArgs e)
+    {
+        UpdateLayerDragOver(e);
+    }
+
+    private void LayerGroup_OnDrop(object sender, DragEventArgs e)
+    {
+        if (_viewModel is null
+            || sender is not FrameworkElement { DataContext: FrontedLayerGroup group }
+            || !TryGetLayerDragItem(e, out var source))
+        {
+            return;
+        }
+
+        _viewModel.CommitLayerDrop(source, group.ZIndex, null, insertAfter: true);
+        StopLayerDrag(e);
+    }
+
+    private void LayerPanel_OnDragOver(object sender, DragEventArgs e)
+    {
+        UpdateLayerDragOver(e);
+    }
+
+    private void LayerPanel_OnDrop(object sender, DragEventArgs e)
+    {
+        StopLayerDrag(e);
+    }
+
+    private void LayerPanel_OnDragLeave(object sender, DragEventArgs e)
+    {
+        // WPF DragDrop can raise transient DragLeave while moving between nested layer elements.
+        // Cleanup is handled by Drop and the DoDragDrop finally block to avoid flicker loops.
+        e.Handled = true;
+    }
+
+    private void LayerTopDropZone_OnDragOver(object sender, DragEventArgs e)
+    {
+        UpdateLayerDragOver(e);
+    }
+
+    private void LayerTopDropZone_OnDrop(object sender, DragEventArgs e)
+    {
+        if (_viewModel is not null && TryGetLayerDragItem(e, out var source))
+        {
+            _viewModel.CommitLayerDrop(source, null, null, insertAfter: false, moveToNewTopLayer: true);
+        }
+
+        StopLayerDrag(e);
+    }
+
+    private void LayerBottomDropZone_OnDragOver(object sender, DragEventArgs e)
+    {
+        UpdateLayerDragOver(e);
+    }
+
+    private void LayerBottomDropZone_OnDrop(object sender, DragEventArgs e)
+    {
+        if (_viewModel is not null && TryGetLayerDragItem(e, out var source))
+        {
+            _viewModel.CommitLayerDrop(source, null, null, insertAfter: true, moveToNewBottomLayer: true);
+        }
+
+        StopLayerDrag(e);
+    }
+
+    private void UpdateLayerDragOver(DragEventArgs e)
+    {
+        if (_viewModel is null
+            || !_viewModel.CanReorderLayers
+            || !TryGetLayerDragItem(e, out var source)
+            || !_viewModel.IsLayerReorderable(source))
+        {
+            e.Effects = DragDropEffects.None;
+            e.Handled = true;
+            return;
+        }
+
+        e.Effects = DragDropEffects.Move;
+        UpdateLayerAutoScroll(e.GetPosition(LayerPanelScrollViewer));
+        e.Handled = true;
+    }
+
+    private void UpdateLayerAutoScroll(Point position)
+    {
+        _lastLayerDragPosition = position;
+        _layerAutoScrollVelocity = 0D;
+
+        if (position.Y < LayerDropZoneEdgeSize)
+        {
+            _layerAutoScrollVelocity = -LayerAutoScrollMaxVelocity
+                                       * (1D - Math.Max(0D, position.Y) / LayerDropZoneEdgeSize);
+        }
+        else if (position.Y > LayerPanelScrollViewer.ViewportHeight - LayerDropZoneEdgeSize)
+        {
+            var distance = Math.Max(0D, LayerPanelScrollViewer.ViewportHeight - position.Y);
+            _layerAutoScrollVelocity = LayerAutoScrollMaxVelocity
+                                       * (1D - Math.Min(LayerDropZoneEdgeSize, distance) / LayerDropZoneEdgeSize);
+        }
+
+        if (Math.Abs(_layerAutoScrollVelocity) > 0.01D && !_layerAutoScrollTimer.IsEnabled)
+        {
+            _layerAutoScrollTimer.Start();
+        }
+        else
+        {
+            StopLayerAutoScroll();
+        }
+
+        UpdateLayerDropZoneVisibility();
+    }
+
+    private void UpdateLayerDropZoneVisibility()
+    {
+        var isDragging = _activeLayerDragItem is not null;
+        var hasPointer = _lastLayerDragPosition is { } pointer;
+        var showTop = isDragging
+                      && hasPointer
+                      && pointer.Y <= LayerDropZoneEdgeSize
+                      && LayerPanelScrollViewer.VerticalOffset <= 0.1D;
+        var showBottom = isDragging
+                         && hasPointer
+                         && pointer.Y >= LayerPanelScrollViewer.ViewportHeight - LayerDropZoneEdgeSize
+                         && LayerPanelScrollViewer.VerticalOffset >= LayerPanelScrollViewer.ScrollableHeight - 0.1D;
+
+        SetDropZoneVisibility(LayerTopDropZone, showTop);
+        SetDropZoneVisibility(LayerBottomDropZone, showBottom);
+    }
+
+    private void StopLayerDrag(DragEventArgs e)
+    {
+        StopLayerAutoScroll();
+        HideLayerDropZones();
+        e.Handled = true;
+    }
+
+    private void StopLayerAutoScroll()
+    {
+        _layerAutoScrollVelocity = 0D;
+        _layerAutoScrollTimer.Stop();
+    }
+
+    private void HideLayerDropZones()
+    {
+        _lastLayerDragPosition = null;
+        SetDropZoneVisibility(LayerTopDropZone, false);
+        SetDropZoneVisibility(LayerBottomDropZone, false);
+    }
+
+    private static void SetDropZoneVisibility(Border zone, bool visible)
+    {
+        var desiredVisibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        if (zone.Visibility != desiredVisibility)
+        {
+            zone.Visibility = desiredVisibility;
+        }
+    }
+
+    private static bool TryGetLayerDragItem(DragEventArgs e, out FrontedControlDesignItem item)
+    {
+        item = null!;
+        if (!e.Data.GetDataPresent(typeof(FrontedControlDesignItem)))
+        {
+            return false;
+        }
+
+        item = (FrontedControlDesignItem)e.Data.GetData(typeof(FrontedControlDesignItem))!;
+        return item is not null;
     }
 
     private void Window_OnPreviewKeyDown(object sender, KeyEventArgs e)

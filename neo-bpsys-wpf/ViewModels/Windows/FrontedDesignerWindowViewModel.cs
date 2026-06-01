@@ -158,6 +158,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public ObservableCollection<FrontedControlDesignItem> FilteredDesignItems { get; } = [];
 
+    public ObservableCollection<FrontedLayerGroup> LayerGroups { get; } = [];
+
     public ObservableCollection<FrontedPropertyEditorItem> PropertyEditorItems { get; } = [];
 
     public ObservableCollection<FrontedAddControlCatalogGroup> AddControlCatalogGroups { get; } = [];
@@ -299,7 +301,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public bool CanResetToBuiltIn => CurrentDocument is not null;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanReorderLayers))]
     private string _controlFilterText = string.Empty;
+
+    public bool CanReorderLayers => CurrentDocument is not null && string.IsNullOrWhiteSpace(ControlFilterText);
+
+    public string LayerReorderHint => CanReorderLayers
+        ? string.Empty
+        : I18nHelper.GetLocalizedString("Designer.LayerPanel.ClearFilterToReorder");
 
     [ObservableProperty]
     private string _selectedControlDisplay = string.Empty;
@@ -386,6 +395,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         NormalizeSelectionState();
         RefreshCanvasPropertyBuffers();
         RebuildFilteredDesignItems();
+        OnPropertyChanged(nameof(CanReorderLayers));
+        OnPropertyChanged(nameof(LayerReorderHint));
         RebuildPropertyEditorItems();
         UpdateFitZoomFromCurrentDocument();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
@@ -443,6 +454,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         RebuildFilteredDesignItems();
+        OnPropertyChanged(nameof(CanReorderLayers));
+        OnPropertyChanged(nameof(LayerReorderHint));
     }
 
     partial void OnSelectedZoomPresetChanged(FrontedDesignerZoomPreset? value)
@@ -1227,6 +1240,108 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             : FrontedLayoutLinkedOverlaySynchronizer.SyncLinkedOverlays(CurrentDocument, changedTarget);
     }
 
+    public bool IsLayerReorderable(FrontedControlDesignItem? item)
+    {
+        return item is
+        {
+            IsSelectableInEditor: true,
+            IsEditableInEditor: true,
+            IsLinkedOverlay: false
+        } && item.Config is not PickingBorderOverlayControlConfig;
+    }
+
+    public bool CommitLayerDrop(
+        FrontedControlDesignItem source,
+        int? targetZIndex,
+        FrontedControlDesignItem? targetItem,
+        bool insertAfter,
+        bool moveToNewTopLayer = false,
+        bool moveToNewBottomLayer = false)
+    {
+        if (CurrentDocument is null || !CanReorderLayers || !IsLayerReorderable(source))
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("Designer.LayerPanel.ReorderBlocked");
+            return false;
+        }
+
+        if (targetItem is not null && !IsLayerReorderable(targetItem))
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("Designer.LayerPanel.ReorderBlocked");
+            return false;
+        }
+
+        var reorderableItems = CurrentDocument.Controls
+            .Where(IsLayerReorderable)
+            .ToList();
+        if (!reorderableItems.Contains(source))
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("Designer.LayerPanel.ReorderBlocked");
+            return false;
+        }
+
+        var oldSnapshot = CreateSnapshot();
+        var targetLayer = ResolveDropTargetZIndex(targetZIndex, moveToNewTopLayer, moveToNewBottomLayer);
+        var desiredGroups = reorderableItems
+            .Where(item => !ReferenceEquals(item, source))
+            .GroupBy(item => item.Config.ZIndex)
+            .ToDictionary(
+                group => group.Key,
+                group => group.ToList());
+
+        if (!desiredGroups.TryGetValue(targetLayer, out var targetGroupItems))
+        {
+            targetGroupItems = [];
+            desiredGroups[targetLayer] = targetGroupItems;
+        }
+
+        source.Config.ZIndex = targetLayer;
+        var insertIndex = targetGroupItems.Count;
+        if (targetItem is not null)
+        {
+            var targetIndex = targetGroupItems.IndexOf(targetItem);
+            if (targetIndex >= 0)
+            {
+                insertIndex = targetIndex + (insertAfter ? 1 : 0);
+            }
+        }
+
+        targetGroupItems.Insert(Math.Clamp(insertIndex, 0, targetGroupItems.Count), source);
+
+        var desiredReorderable = desiredGroups
+            .OrderByDescending(group => group.Key)
+            .SelectMany(group => group.Value)
+            .ToList();
+        RebuildDocumentControlOrder(desiredReorderable);
+
+        var newSnapshot = CreateSnapshot();
+        if (oldSnapshot == newSnapshot)
+        {
+            RebuildFilteredDesignItems();
+            SelectDesignItem(source);
+            StatusMessage = I18nHelper.GetLocalizedString("Designer.LayerPanel.ReorderBlocked");
+            return false;
+        }
+
+        if (oldSnapshot is not null)
+        {
+            if (!_undoStack.TryPeek(out var previous) || previous != oldSnapshot)
+            {
+                _undoStack.Push(oldSnapshot);
+            }
+
+            _redoStack.Clear();
+            NotifyUndoRedoCommands();
+        }
+
+        CurrentDocument.IsDirty = true;
+        RefreshDirtyState();
+        RebuildFilteredDesignItems();
+        SelectDesignItem(source);
+        ScheduleValidationAndPreviewRender("LayerReorder");
+        StatusMessage = I18nHelper.GetLocalizedString("Designer.LayerPanel.Reordered");
+        return true;
+    }
+
     public void CaptureUndoSnapshot()
     {
         var snapshot = CreateSnapshot();
@@ -1760,9 +1875,91 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RequestPreviewRender(_designConverter.ToConfig(CurrentDocument), SelectedCanvas);
     }
 
+    private int ResolveDropTargetZIndex(
+        int? targetZIndex,
+        bool moveToNewTopLayer,
+        bool moveToNewBottomLayer)
+    {
+        if (CurrentDocument is null || CurrentDocument.Controls.Count == 0)
+        {
+            return targetZIndex ?? 0;
+        }
+
+        if (moveToNewTopLayer)
+        {
+            return CurrentDocument.Controls.Max(control => control.Config.ZIndex) + 1;
+        }
+
+        if (moveToNewBottomLayer)
+        {
+            return CurrentDocument.Controls.Min(control => control.Config.ZIndex) - 1;
+        }
+
+        return targetZIndex ?? 0;
+    }
+
+    private void RebuildDocumentControlOrder(IReadOnlyList<FrontedControlDesignItem> desiredReorderable)
+    {
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        var originalControls = CurrentDocument.Controls.ToList();
+        var added = new HashSet<FrontedControlDesignItem>();
+        var rebuilt = new List<FrontedControlDesignItem>(originalControls.Count);
+
+        foreach (var item in desiredReorderable)
+        {
+            AddControlAndLinkedOverlays(item, originalControls, rebuilt, added);
+        }
+
+        foreach (var item in originalControls)
+        {
+            if (added.Contains(item))
+            {
+                continue;
+            }
+
+            rebuilt.Add(item);
+            added.Add(item);
+        }
+
+        CurrentDocument.Controls.Clear();
+        foreach (var item in rebuilt)
+        {
+            CurrentDocument.Controls.Add(item);
+        }
+    }
+
+    private static void AddControlAndLinkedOverlays(
+        FrontedControlDesignItem item,
+        IReadOnlyList<FrontedControlDesignItem> originalControls,
+        ICollection<FrontedControlDesignItem> rebuilt,
+        ISet<FrontedControlDesignItem> added)
+    {
+        if (!added.Add(item))
+        {
+            return;
+        }
+
+        rebuilt.Add(item);
+        foreach (var overlay in originalControls.Where(control =>
+                     control.Config is PickingBorderOverlayControlConfig overlayConfig
+                     && string.Equals(overlayConfig.TargetControlName, item.Name, StringComparison.Ordinal)))
+        {
+            overlay.Config.ZIndex = item.Config.ZIndex;
+            if (added.Add(overlay))
+            {
+                rebuilt.Add(overlay);
+            }
+        }
+    }
+
     private void RebuildFilteredDesignItems()
     {
         FilteredDesignItems.Clear();
+        LayerGroups.Clear();
 
         if (CurrentDocument is null)
         {
@@ -1781,18 +1978,21 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             FilteredDesignItems.Add(item);
         }
+
+        RebuildLayerGroups();
     }
 
     private void AddFilteredDesignItemIfVisible(FrontedControlDesignItem item)
     {
         var filter = ControlFilterText?.Trim();
-        if (!MatchesControlFilter(item, filter))
+        if (!item.IsSelectableInEditor || !MatchesControlFilter(item, filter))
         {
             return;
         }
 
         var insertIndex = GetFilteredInsertIndex(item);
         FilteredDesignItems.Insert(insertIndex, item);
+        RebuildLayerGroups();
     }
 
     private void RemoveFilteredDesignItem(FrontedControlDesignItem item)
@@ -1801,6 +2001,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         if (index >= 0)
         {
             FilteredDesignItems.RemoveAt(index);
+            RebuildLayerGroups();
         }
     }
 
@@ -1808,6 +2009,28 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         RemoveFilteredDesignItem(item);
         AddFilteredDesignItemIfVisible(item);
+    }
+
+    private void RebuildLayerGroups()
+    {
+        LayerGroups.Clear();
+        foreach (var group in FilteredDesignItems
+                     .GroupBy(item => item.Config.ZIndex)
+                     .OrderByDescending(group => group.Key))
+        {
+            var layerGroup = new FrontedLayerGroup
+            {
+                ZIndex = group.Key,
+                DisplayName = $"{I18nHelper.GetLocalizedString("Designer.LayerPanel.Layer")} {group.Key}"
+            };
+
+            foreach (var item in group.OrderBy(item => CurrentDocument?.Controls.IndexOf(item) ?? 0))
+            {
+                layerGroup.Items.Add(item);
+            }
+
+            LayerGroups.Add(layerGroup);
+        }
     }
 
     private int GetFilteredInsertIndex(FrontedControlDesignItem item)

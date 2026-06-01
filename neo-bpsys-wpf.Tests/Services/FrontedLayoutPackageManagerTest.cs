@@ -842,7 +842,8 @@ public class FrontedLayoutPackageManagerTest
         Assert.Contains("ToolTip=\"{lex:Loc ShortcutUndo}\"", text);
         Assert.Contains("ToolTip=\"{lex:Loc ShortcutRedo}\"", text);
         Assert.Contains("ToolTip=\"{lex:Loc ShortcutSave}\"", text);
-        Assert.Contains("ListBox.ContextMenu", text);
+        Assert.Contains("LayerControlDeleteMenuItem_OnClick", text);
+        Assert.Contains("ItemsSource=\"{Binding LayerGroups}\"", text);
         Assert.Contains("Command=\"{Binding DeleteSelectedControlCommand}\"", text);
         Assert.Contains("Header=\"{lex:Loc DeleteControl}\"", text);
         Assert.Contains("Content=\"{lex:Loc AllowTransparency}\"", text);

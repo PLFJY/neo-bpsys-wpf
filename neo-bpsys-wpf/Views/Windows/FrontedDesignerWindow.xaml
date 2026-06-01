@@ -429,71 +429,192 @@
                         PlaceholderText="{lex:Loc FilterControls}"
                         Text="{Binding ControlFilterText, UpdateSourceTrigger=PropertyChanged}" />
                     <Grid Grid.Row="2">
-                        <ListBox
-                            x:Name="ControlsListBox"
-                            ItemsSource="{Binding FilteredDesignItems}"
-                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                            SelectionChanged="ControlList_OnSelectionChanged">
-                            <ListBox.ContextMenu>
-                                <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-                                    <MenuItem Command="{Binding DeleteSelectedControlCommand}" Header="{lex:Loc DeleteControl}" />
-                                </ContextMenu>
-                            </ListBox.ContextMenu>
-                            <ListBox.ItemContainerStyle>
-                                <Style TargetType="ListBoxItem">
-                                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=OneWay}" />
-                                    <EventSetter Event="PreviewMouseRightButtonDown" Handler="ControlListItem_OnPreviewMouseRightButtonDown" />
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock
+                            Margin="0,0,0,8"
+                            FontSize="12"
+                            Opacity="0.78"
+                            Text="{Binding LayerReorderHint}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CanReorderLayers}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
                                 </Style>
-                            </ListBox.ItemContainerStyle>
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="0,4">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
-                                        <TextBlock
-                                            FontWeight="SemiBold"
-                                            Text="{Binding Name}"
-                                            TextTrimming="CharacterEllipsis" />
-                                        <WrapPanel Grid.Row="1" Margin="0,2,0,0">
-                                            <TextBlock
-                                                FontSize="12"
-                                                Opacity="0.78"
-                                                Text="{Binding Config.ControlType, Converter={StaticResource DesignerControlTypeDisplayConverter}}"
-                                                ToolTip="{Binding Config.ControlType}" />
-                                            <TextBlock
-                                                Margin="10,0,0,0"
-                                                FontSize="12"
-                                                Opacity="0.78"
-                                                Text="{lex:Loc ZIndexShort}" />
-                                            <TextBlock
-                                                Margin="3,0,0,0"
-                                                FontSize="12"
-                                                Opacity="0.78"
-                                                Text="{Binding Config.ZIndex}" />
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <Grid Grid.Row="1">
+                            <ScrollViewer
+                                x:Name="LayerPanelScrollViewer"
+                                AllowDrop="True"
+                                DragLeave="LayerPanel_OnDragLeave"
+                                DragOver="LayerPanel_OnDragOver"
+                                Drop="LayerPanel_OnDrop"
+                                HorizontalScrollBarVisibility="Disabled"
+                                VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                <ItemsControl ItemsSource="{Binding LayerGroups}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type designer:FrontedLayerGroup}">
                                             <Border
-                                                Margin="10,0,0,0"
-                                                Padding="4,0"
+                                                Margin="0,0,0,10"
+                                                Padding="8"
+                                                AllowDrop="True"
                                                 Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                                                CornerRadius="2">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsRuntimeCritical}" Value="True">
-                                                                <Setter Property="Visibility" Value="Visible" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                                <TextBlock FontSize="11" Text="{lex:Loc RuntimeCriticalControl}" />
+                                                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="4"
+                                                DragOver="LayerGroup_OnDragOver"
+                                                Drop="LayerGroup_OnDrop">
+                                                <StackPanel>
+                                                    <DockPanel Margin="0,0,0,6">
+                                                        <TextBlock
+                                                            DockPanel.Dock="Left"
+                                                            FontWeight="SemiBold"
+                                                            Text="{Binding DisplayName}" />
+                                                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding Count}" />
+                                                            <TextBlock Margin="4,0,0,0" Text="{lex:Loc Designer.LayerPanel.ControlsCount}" />
+                                                        </StackPanel>
+                                                    </DockPanel>
+                                                    <ItemsControl ItemsSource="{Binding Items}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate DataType="{x:Type designer:FrontedControlDesignItem}">
+                                                                <Border
+                                                                    Margin="0,3"
+                                                                    Padding="8,6"
+                                                                    AllowDrop="True"
+                                                                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                                                                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="3"
+                                                                    DragOver="LayerItem_OnDragOver"
+                                                                    Drop="LayerItem_OnDrop"
+                                                                    MouseLeftButtonDown="LayerItem_OnMouseLeftButtonDown"
+                                                                    MouseMove="LayerItem_OnMouseMove"
+                                                                    PreviewMouseRightButtonDown="LayerItem_OnPreviewMouseRightButtonDown"
+                                                                    Tag="{Binding}">
+                                                                    <Border.ContextMenu>
+                                                                        <ContextMenu>
+                                                                            <MenuItem Click="LayerControlDeleteMenuItem_OnClick" Header="{lex:Loc DeleteControl}" />
+                                                                        </ContextMenu>
+                                                                    </Border.ContextMenu>
+                                                                    <Border.Style>
+                                                                        <Style TargetType="Border">
+                                                                            <Setter Property="Opacity" Value="1" />
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                                    <Setter Property="BorderBrush" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Border.Style>
+                                                                    <Grid>
+                                                                        <Grid.RowDefinitions>
+                                                                            <RowDefinition Height="Auto" />
+                                                                            <RowDefinition Height="Auto" />
+                                                                        </Grid.RowDefinitions>
+                                                                        <TextBlock
+                                                                            FontWeight="SemiBold"
+                                                                            Text="{Binding Name}"
+                                                                            TextTrimming="CharacterEllipsis" />
+                                                                        <WrapPanel Grid.Row="1" Margin="0,2,0,0">
+                                                                            <TextBlock
+                                                                                FontSize="12"
+                                                                                Opacity="0.78"
+                                                                                Text="{Binding Config.ControlType, Converter={StaticResource DesignerControlTypeDisplayConverter}}"
+                                                                                ToolTip="{Binding Config.ControlType}" />
+                                                                            <TextBlock
+                                                                                Margin="10,0,0,0"
+                                                                                FontSize="12"
+                                                                                Opacity="0.78"
+                                                                                Text="{lex:Loc ZIndexShort}" />
+                                                                            <TextBlock
+                                                                                Margin="3,0,0,0"
+                                                                                FontSize="12"
+                                                                                Opacity="0.78"
+                                                                                Text="{Binding Config.ZIndex}" />
+                                                                            <Border
+                                                                                Margin="10,0,0,0"
+                                                                                Padding="4,0"
+                                                                                Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                                                                CornerRadius="2">
+                                                                                <Border.Style>
+                                                                                    <Style TargetType="Border">
+                                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                                        <Style.Triggers>
+                                                                                            <DataTrigger Binding="{Binding IsRuntimeCritical}" Value="True">
+                                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                                            </DataTrigger>
+                                                                                        </Style.Triggers>
+                                                                                    </Style>
+                                                                                </Border.Style>
+                                                                                <TextBlock FontSize="11" Text="{lex:Loc RuntimeCriticalControl}" />
+                                                                            </Border>
+                                                                        </WrapPanel>
+                                                                    </Grid>
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
                                             </Border>
-                                        </WrapPanel>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                            </ScrollViewer>
+                            <Border
+                                x:Name="LayerTopDropZone"
+                                Height="36"
+                                Margin="4"
+                                Padding="8"
+                                VerticalAlignment="Top"
+                                AllowDrop="True"
+                                Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                BorderBrush="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                DragOver="LayerTopDropZone_OnDragOver"
+                                Drop="LayerTopDropZone_OnDrop"
+                                Opacity="0.94"
+                                Visibility="Collapsed">
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc Designer.LayerPanel.MoveToNewTopLayer}" />
+                            </Border>
+                            <Border
+                                x:Name="LayerBottomDropZone"
+                                Height="36"
+                                Margin="4"
+                                Padding="8"
+                                VerticalAlignment="Bottom"
+                                AllowDrop="True"
+                                Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                BorderBrush="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                DragOver="LayerBottomDropZone_OnDragOver"
+                                Drop="LayerBottomDropZone_OnDrop"
+                                Opacity="0.94"
+                                Visibility="Collapsed">
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc Designer.LayerPanel.MoveToNewBottomLayer}" />
+                            </Border>
+                        </Grid>
                         <TextBlock
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
@@ -503,7 +624,7 @@
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding FilteredDesignItems.Count}" Value="0">
+                                        <DataTrigger Binding="{Binding LayerGroups.Count}" Value="0">
                                             <Setter Property="Visibility" Value="Visible" />
                                         </DataTrigger>
                                     </Style.Triggers>

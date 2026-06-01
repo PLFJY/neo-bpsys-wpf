@@ -2029,6 +2029,30 @@
   <data name="NoControlsFound" xml:space="preserve">
     <value>No controls found</value>
   </data>
+  <data name="Designer.LayerPanel.Layer" xml:space="preserve">
+    <value>Layer</value>
+  </data>
+  <data name="Designer.LayerPanel.ControlsCount" xml:space="preserve">
+    <value>controls</value>
+  </data>
+  <data name="Designer.LayerPanel.ClearFilterToReorder" xml:space="preserve">
+    <value>Clear filter to reorder layers</value>
+  </data>
+  <data name="Designer.LayerPanel.MoveToNewTopLayer" xml:space="preserve">
+    <value>Move to new top layer</value>
+  </data>
+  <data name="Designer.LayerPanel.MoveToNewBottomLayer" xml:space="preserve">
+    <value>Move to new bottom layer</value>
+  </data>
+  <data name="Designer.LayerPanel.DropHere" xml:space="preserve">
+    <value>Drop here</value>
+  </data>
+  <data name="Designer.LayerPanel.Reordered" xml:space="preserve">
+    <value>Layer order updated</value>
+  </data>
+  <data name="Designer.LayerPanel.ReorderBlocked" xml:space="preserve">
+    <value>This control cannot be reordered</value>
+  </data>
   <data name="Properties" xml:space="preserve">
     <value>Properties</value>
   </data>

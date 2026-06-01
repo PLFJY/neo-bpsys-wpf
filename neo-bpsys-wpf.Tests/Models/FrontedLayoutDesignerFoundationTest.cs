@@ -2951,7 +2951,7 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("DeleteSelectedControlCommand", text);
         Assert.Contains("UndoCommand", text);
         Assert.Contains("RedoCommand", text);
-        Assert.Contains("ControlListItem_OnPreviewMouseRightButtonDown", text);
+        Assert.Contains("LayerItem_OnPreviewMouseRightButtonDown", text);
         Assert.DoesNotContain("DeleteControlMenuItem_OnClick", text);
         Assert.Contains("ApplyColor", text);
         Assert.Contains("GridSplitter", text);
@@ -2963,10 +2963,38 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("Text=\"{Binding EditText", text);
         Assert.Contains("HasEditError", text);
         Assert.DoesNotContain("ItemsSource=\"{Binding ValidationMessages}\"", text);
-        Assert.Contains("ListBox.ContextMenu", text);
-        Assert.Contains("x:Name=\"ControlsListBox\"", text);
+        Assert.Contains("ItemsSource=\"{Binding LayerGroups}\"", text);
+        Assert.Contains("x:Name=\"LayerPanelScrollViewer\"", text);
         Assert.Contains("Binding DeleteSelectedControlCommand", text);
         Assert.DoesNotContain("Setter Property=\"ContextMenu\">", text);
+    }
+
+    [Fact]
+    public void FrontedDesignerLayerDropZonesAreOverlayedOutsideScrollContent()
+    {
+        var xaml = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Windows",
+            "FrontedDesignerWindow.xaml"));
+        var codeBehind = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Windows",
+            "FrontedDesignerWindow.xaml.cs"));
+
+        var scrollViewerClose = xaml.IndexOf("</ScrollViewer>", StringComparison.Ordinal);
+        var topZone = xaml.IndexOf("x:Name=\"LayerTopDropZone\"", StringComparison.Ordinal);
+        var bottomZone = xaml.IndexOf("x:Name=\"LayerBottomDropZone\"", StringComparison.Ordinal);
+
+        Assert.True(scrollViewerClose > 0);
+        Assert.True(topZone > scrollViewerClose);
+        Assert.True(bottomZone > scrollViewerClose);
+        Assert.Contains("VerticalAlignment=\"Top\"", xaml);
+        Assert.Contains("VerticalAlignment=\"Bottom\"", xaml);
+        Assert.Contains("DragOver=\"LayerItem_OnDragOver\"", xaml);
+        Assert.Contains("SetDropZoneVisibility", codeBehind);
+        Assert.DoesNotContain("LayerPanelScrollViewer.IsMouseOver", codeBehind);
     }
 
     [Fact]
@@ -3234,6 +3262,192 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.True(viewModel.ApplyCanvasBackgroundEdit("Resources/bg.png"));
         Assert.True(viewModel.ClearCanvasBackground());
         Assert.True(string.IsNullOrEmpty(viewModel.CurrentDocument?.CanvasConfig.BackgroundImage));
+    }
+
+    [Fact]
+    public void LayerGroupsFollowZIndexDescendingAndDocumentOrderWithinLayer()
+    {
+        var first = new FrontedControlDesignItem { Name = "First", Config = new TextFrontedControlConfig { ZIndex = 2 } };
+        var second = new FrontedControlDesignItem { Name = "Second", Config = new ImageFrontedControlConfig { ZIndex = 1 } };
+        var third = new FrontedControlDesignItem { Name = "Third", Config = new TextFrontedControlConfig { ZIndex = 2 } };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([first, second, third])
+        };
+
+        Assert.Equal([2, 1], viewModel.LayerGroups.Select(group => group.ZIndex));
+        Assert.Equal(["First", "Third"], viewModel.LayerGroups[0].Items.Select(item => item.Name));
+        Assert.Equal(["Second"], viewModel.LayerGroups[1].Items.Select(item => item.Name));
+    }
+
+    [Fact]
+    public void LayerGroupsRespectControlFilter()
+    {
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument(
+            [
+                new FrontedControlDesignItem { Name = "Title", Config = new TextFrontedControlConfig { ZIndex = 2 } },
+                new FrontedControlDesignItem { Name = "Logo", Config = new ImageFrontedControlConfig { ZIndex = 1 } }
+            ])
+        };
+
+        viewModel.ControlFilterText = "Logo";
+
+        var group = Assert.Single(viewModel.LayerGroups);
+        Assert.Equal(1, group.ZIndex);
+        Assert.Equal("Logo", Assert.Single(group.Items).Name);
+        Assert.False(viewModel.CanReorderLayers);
+    }
+
+    [Fact]
+    public void LayerDropInsideSameGroupReordersDocumentWithoutChangingZIndex()
+    {
+        var first = new FrontedControlDesignItem { Name = "First", Config = new TextFrontedControlConfig { ZIndex = 1 } };
+        var second = new FrontedControlDesignItem { Name = "Second", Config = new ImageFrontedControlConfig { ZIndex = 1 } };
+        var third = new FrontedControlDesignItem { Name = "Third", Config = new TextFrontedControlConfig { ZIndex = 1 } };
+        var document = CreateDocument([first, second, third]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+
+        Assert.True(viewModel.CommitLayerDrop(third, 1, first, insertAfter: false));
+
+        Assert.Equal(["Third", "First", "Second"], document.Controls.Select(item => item.Name));
+        Assert.All(document.Controls, item => Assert.Equal(1, item.Config.ZIndex));
+    }
+
+    [Fact]
+    public void LayerDropIntoDifferentGroupChangesZIndexAndOrder()
+    {
+        var top = new FrontedControlDesignItem { Name = "Top", Config = new TextFrontedControlConfig { ZIndex = 5 } };
+        var middle = new FrontedControlDesignItem { Name = "Middle", Config = new ImageFrontedControlConfig { ZIndex = 3 } };
+        var bottom = new FrontedControlDesignItem { Name = "Bottom", Config = new TextFrontedControlConfig { ZIndex = 1 } };
+        var document = CreateDocument([top, middle, bottom]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+
+        Assert.True(viewModel.CommitLayerDrop(bottom, 5, top, insertAfter: true));
+
+        Assert.Equal(5, bottom.Config.ZIndex);
+        Assert.Equal(["Top", "Bottom", "Middle"], document.Controls.Select(item => item.Name));
+    }
+
+    [Fact]
+    public void LayerDropToTopAndBottomZonesCreatesNewZIndex()
+    {
+        var top = new FrontedControlDesignItem { Name = "Top", Config = new TextFrontedControlConfig { ZIndex = 5 } };
+        var bottom = new FrontedControlDesignItem { Name = "Bottom", Config = new TextFrontedControlConfig { ZIndex = 1 } };
+        var document = CreateDocument([top, bottom]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+
+        Assert.True(viewModel.CommitLayerDrop(bottom, null, null, insertAfter: false, moveToNewTopLayer: true));
+        Assert.Equal(6, bottom.Config.ZIndex);
+
+        Assert.True(viewModel.CommitLayerDrop(top, null, null, insertAfter: true, moveToNewBottomLayer: true));
+        Assert.Equal(4, top.Config.ZIndex);
+    }
+
+    [Fact]
+    public void LayerDropIsUndoableAndRedoable()
+    {
+        var first = new FrontedControlDesignItem { Name = "First", Config = new TextFrontedControlConfig { ZIndex = 1 } };
+        var second = new FrontedControlDesignItem { Name = "Second", Config = new TextFrontedControlConfig { ZIndex = 1 } };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([first, second])
+        };
+
+        Assert.True(viewModel.CommitLayerDrop(second, 1, first, insertAfter: false));
+        Assert.Equal(["Second", "First"], viewModel.CurrentDocument!.Controls.Select(item => item.Name));
+
+        viewModel.UndoCommand.Execute(null);
+        viewModel.ExecuteScheduledDesignerWorkForTests();
+        Assert.Equal(["First", "Second"], viewModel.CurrentDocument!.Controls.Select(item => item.Name));
+
+        viewModel.RedoCommand.Execute(null);
+        viewModel.ExecuteScheduledDesignerWorkForTests();
+        Assert.Equal(["Second", "First"], viewModel.CurrentDocument!.Controls.Select(item => item.Name));
+    }
+
+    [Fact]
+    public void LayerDropIsDisabledWhenFilterIsActive()
+    {
+        var first = new FrontedControlDesignItem { Name = "First", Config = new TextFrontedControlConfig { ZIndex = 1 } };
+        var second = new FrontedControlDesignItem { Name = "Second", Config = new TextFrontedControlConfig { ZIndex = 1 } };
+        var document = CreateDocument([first, second]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+
+        viewModel.ControlFilterText = "First";
+
+        Assert.False(viewModel.CommitLayerDrop(second, 1, first, insertAfter: false));
+        Assert.Equal(["First", "Second"], document.Controls.Select(item => item.Name));
+    }
+
+    [Fact]
+    public void LinkedOverlayIsNotLayerReorderableAndFollowsHostZIndex()
+    {
+        var host = new FrontedControlDesignItem { Name = "Host", Config = new ImageFrontedControlConfig { ZIndex = 1 } };
+        var other = new FrontedControlDesignItem { Name = "Other", Config = new TextFrontedControlConfig { ZIndex = 5 } };
+        var overlay = new FrontedControlDesignItem
+        {
+            Name = "HostOverlay",
+            Config = new PickingBorderOverlayControlConfig { TargetControlName = "Host", ZIndex = 1 },
+            IsSelectableInEditor = false,
+            IsEditableInEditor = false,
+            IsLinkedOverlay = true,
+            LinkedTargetControlName = "Host"
+        };
+        var document = CreateDocument([other, host, overlay]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+
+        Assert.False(viewModel.IsLayerReorderable(overlay));
+        Assert.True(viewModel.CommitLayerDrop(host, 5, other, insertAfter: true));
+
+        Assert.Equal(5, host.Config.ZIndex);
+        Assert.Equal(5, overlay.Config.ZIndex);
+        Assert.Equal(["Other", "Host", "HostOverlay"], document.Controls.Select(item => item.Name));
+    }
+
+    [Fact]
+    public void MissingPluginPlaceholderCanBeReorderedWhenEditable()
+    {
+        var text = new FrontedControlDesignItem { Name = "Text", Config = new TextFrontedControlConfig { ZIndex = 1 } };
+        var plugin = new FrontedControlDesignItem
+        {
+            Name = "MissingTeamCard",
+            Config = new PluginFrontedControlConfig
+            {
+                ControlType = "plugin:top.plfjy.missing/TeamCard",
+                ZIndex = 1
+            },
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true
+        };
+        var document = CreateDocument([text, plugin]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+
+        Assert.True(viewModel.CommitLayerDrop(plugin, 1, text, insertAfter: false));
+
+        Assert.Equal(["MissingTeamCard", "Text"], document.Controls.Select(item => item.Name));
+    }
+
+    [Fact]
+    public void LayerDropSchedulesOneValidationAndPreviewRender()
+    {
+        var first = new FrontedControlDesignItem { Name = "First", Config = new TextFrontedControlConfig { ZIndex = 1 } };
+        var second = new FrontedControlDesignItem { Name = "Second", Config = new TextFrontedControlConfig { ZIndex = 1 } };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([first, second])
+        };
+
+        Assert.True(viewModel.CommitLayerDrop(second, 1, first, insertAfter: false));
+        Assert.True(viewModel.HasPendingScheduledDesignerWork);
+        Assert.Equal(0, viewModel.ScheduledDesignerValidationExecutionCount);
+        Assert.Equal(0, viewModel.ScheduledDesignerPreviewExecutionCount);
+
+        viewModel.ExecuteScheduledDesignerWorkForTests();
+
+        Assert.Equal(1, viewModel.ScheduledDesignerValidationExecutionCount);
+        Assert.Equal(1, viewModel.ScheduledDesignerPreviewExecutionCount);
     }
 
     private static FrontedCanvasDesignDocument CreateDocument(

@@ -2032,6 +2032,30 @@
   <data name="NoControlsFound" xml:space="preserve">
     <value>コントロールが見つかりません</value>
   </data>
+  <data name="Designer.LayerPanel.Layer" xml:space="preserve">
+    <value>レイヤー</value>
+  </data>
+  <data name="Designer.LayerPanel.ControlsCount" xml:space="preserve">
+    <value>個のコントロール</value>
+  </data>
+  <data name="Designer.LayerPanel.ClearFilterToReorder" xml:space="preserve">
+    <value>レイヤー順を変更するには絞り込みを解除してください</value>
+  </data>
+  <data name="Designer.LayerPanel.MoveToNewTopLayer" xml:space="preserve">
+    <value>新しい最前面レイヤーへ移動</value>
+  </data>
+  <data name="Designer.LayerPanel.MoveToNewBottomLayer" xml:space="preserve">
+    <value>新しい最背面レイヤーへ移動</value>
+  </data>
+  <data name="Designer.LayerPanel.DropHere" xml:space="preserve">
+    <value>ここにドロップ</value>
+  </data>
+  <data name="Designer.LayerPanel.Reordered" xml:space="preserve">
+    <value>レイヤー順を更新しました</value>
+  </data>
+  <data name="Designer.LayerPanel.ReorderBlocked" xml:space="preserve">
+    <value>このコントロールはレイヤー順を変更できません</value>
+  </data>
   <data name="Properties" xml:space="preserve">
     <value>プロパティ</value>
   </data>

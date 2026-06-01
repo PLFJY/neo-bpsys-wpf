@@ -2047,6 +2047,30 @@
   <data name="NoControlsFound" xml:space="preserve">
     <value>未找到控件</value>
   </data>
+  <data name="Designer.LayerPanel.Layer" xml:space="preserve">
+    <value>层级</value>
+  </data>
+  <data name="Designer.LayerPanel.ControlsCount" xml:space="preserve">
+    <value>个控件</value>
+  </data>
+  <data name="Designer.LayerPanel.ClearFilterToReorder" xml:space="preserve">
+    <value>清空筛选后可调整图层顺序</value>
+  </data>
+  <data name="Designer.LayerPanel.MoveToNewTopLayer" xml:space="preserve">
+    <value>移动到新的顶层</value>
+  </data>
+  <data name="Designer.LayerPanel.MoveToNewBottomLayer" xml:space="preserve">
+    <value>移动到新的底层</value>
+  </data>
+  <data name="Designer.LayerPanel.DropHere" xml:space="preserve">
+    <value>拖放到此处</value>
+  </data>
+  <data name="Designer.LayerPanel.Reordered" xml:space="preserve">
+    <value>图层顺序已更新</value>
+  </data>
+  <data name="Designer.LayerPanel.ReorderBlocked" xml:space="preserve">
+    <value>当前控件不能调整图层顺序</value>
+  </data>
   <data name="Properties" xml:space="preserve">
     <value>属性</value>
   </data>
