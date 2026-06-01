@@ -47,6 +47,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
     private readonly string _tempRoot;
     private readonly ILogger<FrontedLayoutPackageExporter> _logger;
     private readonly IFrontedImageSafetyService _imageSafetyService;
+    private readonly IFrontedControlRegistry? _controlRegistry;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         WriteIndented = true,
@@ -58,14 +59,16 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         FrontedDesignerLayoutCatalog layoutCatalog,
         IFrontedLayoutService layoutService,
         IFrontedWindowLayoutOptionsService windowLayoutOptionsService,
-        ILogger<FrontedLayoutPackageExporter> logger)
+        ILogger<FrontedLayoutPackageExporter> logger,
+        IFrontedControlRegistry? controlRegistry = null)
         : this(
             layoutCatalog,
             layoutService,
             windowLayoutOptionsService,
             AppConstants.FrontedLayoutPackagesPath,
             Path.Combine(AppConstants.AppTempPath, "bpui-export"),
-            logger)
+            logger,
+            controlRegistry)
     {
     }
 
@@ -75,7 +78,8 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         IFrontedWindowLayoutOptionsService windowLayoutOptionsService,
         string packageRoot,
         string tempRoot,
-        ILogger<FrontedLayoutPackageExporter>? logger = null)
+        ILogger<FrontedLayoutPackageExporter>? logger = null,
+        IFrontedControlRegistry? controlRegistry = null)
     {
         _layoutCatalog = layoutCatalog;
         _layoutService = layoutService;
@@ -84,6 +88,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         _tempRoot = tempRoot;
         _logger = logger ?? NullLogger<FrontedLayoutPackageExporter>.Instance;
         _imageSafetyService = new FrontedImageSafetyService();
+        _controlRegistry = controlRegistry;
     }
 
     public async Task<FrontedLayoutPackageExportResult> ExportAsync(
@@ -167,6 +172,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         ResourceExportState resourceState,
         CancellationToken cancellationToken)
     {
+        var exportedLayouts = new List<(string Window, string Canvas, FrontedCanvasConfig Config)>();
         foreach (var entry in entries)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -187,6 +193,13 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                     $"Layout {entry.WindowTypeName}/{entry.CanvasName} has unsupported Version {config.Version}.");
             }
 
+            FrontedLayoutPluginDependencyScanner.SyncCanvasRequiredPlugins(
+                config,
+                entry.WindowTypeName,
+                entry.CanvasName,
+                _controlRegistry);
+            exportedLayouts.Add((entry.WindowTypeName, entry.CanvasName, config));
+
             var layoutJson = JsonSerializer.Serialize(config, _jsonSerializerOptions);
             var node = JsonNode.Parse(layoutJson)
                        ?? throw new InvalidOperationException(
@@ -205,6 +218,11 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                 Path = relativePath
             });
         }
+
+        manifest.PluginDependencies = FrontedLayoutPluginDependencyScanner.MergePackageDependencies(
+            exportedLayouts,
+            manifest.PluginDependencies,
+            _controlRegistry);
     }
 
     private async Task ExportWindowOptionsAsync(

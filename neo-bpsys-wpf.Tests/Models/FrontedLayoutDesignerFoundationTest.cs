@@ -2788,7 +2788,7 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("PropertyEditorContentControlStyle", text);
         Assert.Contains("OpenValidationDetails_OnClick", text);
         Assert.Contains("AddControlButton_OnClick", text);
-        Assert.Contains("AddControlMenuItem_OnClick", text);
+        Assert.Contains("<ContextMenu />", text);
         Assert.Contains("DeleteSelectedControlCommand", text);
         Assert.Contains("UndoCommand", text);
         Assert.Contains("RedoCommand", text);

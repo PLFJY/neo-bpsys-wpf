@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\neo-bpsys-wpf\neo-bpsys-wpf.csproj" />
+    <ProjectReference Include="..\Built-inPlugins\neo-bpsys-wpf.ExampleFrontedControls\neo-bpsys-wpf.ExampleFrontedControls.csproj" />
   </ItemGroup>
   
 </Project>

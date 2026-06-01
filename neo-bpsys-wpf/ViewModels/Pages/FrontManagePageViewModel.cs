@@ -172,6 +172,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
             {
                 PackagePath = path
             });
+            result = await HandleMissingPluginImportAsync(path, result, replaceExisting: false);
 
             if (result.PackageAlreadyExists && !string.IsNullOrWhiteSpace(result.PackageId))
             {
@@ -190,6 +191,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
                     PackagePath = path,
                     ReplaceExisting = true
                 });
+                result = await HandleMissingPluginImportAsync(path, result, replaceExisting: true);
             }
 
             if (result.IsLegacyPackage)
@@ -237,6 +239,10 @@ public partial class FrontManagePageViewModel : ViewModelBase
                 {
                     PackagePath = convertResult.ConvertedPackagePath
                 });
+                result = await HandleMissingPluginImportAsync(
+                    convertResult.ConvertedPackagePath,
+                    result,
+                    replaceExisting: false);
 
                 if (result.PackageAlreadyExists && !string.IsNullOrWhiteSpace(result.PackageId))
                 {
@@ -255,6 +261,10 @@ public partial class FrontManagePageViewModel : ViewModelBase
                         PackagePath = convertResult.ConvertedPackagePath,
                         ReplaceExisting = true
                     });
+                    result = await HandleMissingPluginImportAsync(
+                        convertResult.ConvertedPackagePath,
+                        result,
+                        replaceExisting: true);
                 }
 
                 if (convertResult.Warnings.Count > 0)
@@ -299,6 +309,18 @@ public partial class FrontManagePageViewModel : ViewModelBase
                 $"{I18nHelper.GetLocalizedString("PackageImportSucceeded")}: {result.PackageId} "
                 + $"{I18nHelper.GetLocalizedString("LayoutCount")}: {result.LayoutCount}, "
                 + $"{I18nHelper.GetLocalizedString("ResourceCount")}: {result.ResourceCount}";
+            if (result.RemovedPluginControls.Count > 0)
+            {
+                PackageManagerStatus += $", {I18nHelper.GetLocalizedString("RemovedPluginControlCount")}: {result.RemovedPluginControls.Count}";
+                await MessageBoxHelper.ShowInfoAsync(
+                    string.Join(
+                        Environment.NewLine,
+                        result.RemovedPluginControls
+                            .Take(12)
+                            .Select(control => $"{control.Window}/{control.Canvas} {control.ControlName}: {control.ControlType}")),
+                    I18nHelper.GetLocalizedString("RemovedPluginControlsReport"),
+                    I18nHelper.GetLocalizedString("Close"));
+            }
 
             if (await MessageBoxHelper.ShowConfirmAsync(
                     I18nHelper.GetLocalizedString(importedFromLegacy ? "ActivateConvertedPackage" : "ActivateImportedPackage"),
@@ -319,6 +341,52 @@ public partial class FrontManagePageViewModel : ViewModelBase
             _logger?.LogWarning(ex, "Failed to import fronted layout package.");
             PackageManagerStatus = $"{I18nHelper.GetLocalizedString("PackageImportFailed")}: {ex.Message}";
         }
+    }
+
+    private async Task<FrontedLayoutPackageImportResult> HandleMissingPluginImportAsync(
+        string packagePath,
+        FrontedLayoutPackageImportResult result,
+        bool replaceExisting)
+    {
+        if (_packageImporter is null || !result.HasMissingPluginControls)
+        {
+            return result;
+        }
+
+        var preview = string.Join(
+            Environment.NewLine,
+            result.MissingPluginControls
+                .Take(8)
+                .Select(control => $"{control.Window}/{control.Canvas} {control.ControlName}: {control.ControlType}"));
+        if (result.MissingPluginControls.Count > 8)
+        {
+            preview += Environment.NewLine + $"... +{result.MissingPluginControls.Count - 8}";
+        }
+
+        var message = I18nHelper.GetLocalizedString("MissingPluginImportMessage")
+                      + Environment.NewLine
+                      + Environment.NewLine
+                      + preview
+                      + Environment.NewLine
+                      + Environment.NewLine
+                      + I18nHelper.GetLocalizedString("MissingPluginMarketLater");
+
+        var force = await MessageBoxHelper.ShowConfirmAsync(
+            message,
+            I18nHelper.GetLocalizedString("MissingPluginImportTitle"),
+            I18nHelper.GetLocalizedString("ForceImportRemoveMissingControls"),
+            I18nHelper.GetLocalizedString("Cancel"));
+        if (!force)
+        {
+            return result;
+        }
+
+        return await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
+        {
+            PackagePath = packagePath,
+            ReplaceExisting = replaceExisting,
+            MissingPluginPolicy = FrontedLayoutPackageMissingPluginPolicy.ForceRemoveMissingControls
+        });
     }
 
     [RelayCommand]

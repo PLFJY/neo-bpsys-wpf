@@ -1,0 +1,401 @@
+#nullable enable
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.ExampleFrontedControls;
+using System;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Runtime.ExceptionServices;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Controls;
+using Xunit;
+
+namespace neo_bpsys_wpf.Tests.Services;
+
+public sealed class FrontedLayoutPluginDependencyPackageTest
+{
+    [Fact]
+    public void DebugCsprojIncludesExamplePluginOnlyForDebug()
+    {
+        var text = File.ReadAllText(GetRepositoryPath("neo-bpsys-wpf", "neo-bpsys-wpf.csproj"));
+
+        Assert.Contains("Condition=\"'$(Configuration)'=='Debug'\"", text);
+        Assert.Contains("neo-bpsys-wpf.ExampleFrontedControls.csproj", text);
+        Assert.Contains("<FolderName>top.plfjy.example.fronted</FolderName>", text);
+    }
+
+    [Fact]
+    public void ExamplePluginManifestAndContributorRegisterTeamCard()
+    {
+        var manifest = File.ReadAllText(GetRepositoryPath(
+            "Built-inPlugins",
+            "neo-bpsys-wpf.ExampleFrontedControls",
+            "manifest.yml"));
+        Assert.Contains("id: top.plfjy.example.fronted", manifest);
+
+        var registry = CreateRegistryWithExamplePlugin();
+        var descriptor = registry.GetPluginDescriptor(TeamCardFrontedControlContributor.FullControlType);
+
+        Assert.NotNull(descriptor);
+        Assert.Equal("plugin:top.plfjy.example.fronted/TeamCard", descriptor.FullControlType);
+        Assert.Equal(typeof(TeamCardFrontedControlConfig), descriptor.ConfigType);
+        Assert.Contains(descriptor.Properties ?? [], property =>
+            property.PropertyName == nameof(TeamCardFrontedControlConfig.TeamNameBindingPath)
+            && property.BindingTargetKind == FrontedBindingTargetKind.Text);
+        Assert.Contains(descriptor.Properties ?? [], property =>
+            property.PropertyName == nameof(TeamCardFrontedControlConfig.BackgroundColor)
+            && property.EditorKind == FrontedPropertyEditorKind.Color);
+        Assert.Contains(descriptor.Properties ?? [], property =>
+            property.PropertyName == nameof(TeamCardFrontedControlConfig.FontSize)
+            && property.EditorKind == FrontedPropertyEditorKind.Number);
+        Assert.Contains(descriptor.Properties ?? [], property =>
+            property.PropertyName == nameof(TeamCardFrontedControlConfig.FontWeight)
+            && property.EditorKind == FrontedPropertyEditorKind.Enum);
+
+        var factory = new FrontedControlDefaultConfigFactory(registry);
+        var created = factory.Create(
+            TeamCardFrontedControlContributor.FullControlType,
+            new FrontedCanvasDesignDocument
+            {
+                CanvasConfig = new FrontedCanvasConfig { CanvasWidth = 400, CanvasHeight = 300 }
+            });
+
+        var config = Assert.IsType<TeamCardFrontedControlConfig>(created);
+        Assert.Equal(260, config.Width);
+        Assert.Equal(96, config.Height);
+    }
+
+    [Fact]
+    public void ExampleTeamCardRuntimeControlCanBeCreated()
+    {
+        RunOnStaThread(() =>
+        {
+            var registry = CreateRegistryWithExamplePlugin();
+            var control = registry.GetControl(TeamCardFrontedControlContributor.FullControlType);
+            Assert.NotNull(control);
+
+            var element = control.Create(
+                "TeamCard1",
+                new TeamCardFrontedControlConfig(),
+                new FrontedControlBuildContext
+                {
+                    Services = new ServiceCollection().BuildServiceProvider(),
+                    SharedDataService = new Mock<ISharedDataService>().Object,
+                    ResourceResolver = new Mock<IFrontedResourceResolver>().Object,
+                    WindowId = "TestWindow",
+                    CanvasName = "BaseCanvas",
+                    Logger = NullLogger.Instance
+                });
+
+            Assert.IsType<Border>(element);
+            Assert.Equal("TeamCard1", element.Name);
+        });
+    }
+
+    [Fact]
+    public async Task ExportScansPluginControlsWritesDependenciesAndDoesNotIncludePluginBinaries()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            var packageRoot = Path.Combine(root, "packages");
+            var tempRoot = Path.Combine(root, "temp");
+            var outputPath = Path.Combine(root, "package.bpui");
+            WriteAllCatalogLayouts(builtInRoot, includePluginOnFirstLayout: true);
+
+            var exporter = new FrontedLayoutPackageExporter(
+                new FrontedDesignerLayoutCatalog(),
+                new FrontedLayoutService(new FrontedUserLayoutStore(Path.Combine(root, "user")), builtInRoot, null),
+                new FrontedWindowLayoutOptionsService(Path.Combine(root, "user")),
+                packageRoot,
+                tempRoot,
+                controlRegistry: CreateRegistryWithExamplePlugin());
+
+            var result = await exporter.ExportAsync(new FrontedLayoutPackageExportRequest
+            {
+                PackageId = "package-with-plugin",
+                Name = "Package With Plugin",
+                OutputPath = outputPath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            using var archive = ZipFile.OpenRead(outputPath);
+            Assert.DoesNotContain(archive.Entries, entry =>
+                entry.FullName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
+                || entry.FullName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase));
+
+            var manifest = ReadManifest(archive);
+            var dependency = Assert.Single(manifest.PluginDependencies);
+            Assert.Equal("top.plfjy.example.fronted", dependency.PackageId);
+            Assert.Contains("plugin:top.plfjy.example.fronted/TeamCard", dependency.Controls);
+            Assert.Contains("ScoreSurWindow/BaseCanvas", dependency.RequiredBy);
+
+            var layout = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+                ReadZipEntry(archive, "layouts/ScoreSurWindow/BaseCanvas.json"))!;
+            var canvasDependency = Assert.Single(layout.RequiredPlugins);
+            Assert.Equal("top.plfjy.example.fronted", canvasDependency.PackageId);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ImportMissingPluginRequiresActionAndForceRemoveKeepsBuiltIns()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "missing-plugin.bpui");
+            CreatePluginBpuiArchive(archivePath, includeActualPluginControl: true);
+            var packageRoot = Path.Combine(root, "packages");
+            var importer = new FrontedLayoutPackageImporter(
+                packageRoot,
+                Path.Combine(root, "temp"),
+                controlRegistry: new FrontedControlRegistry([new TextFrontedControl()]));
+
+            var blocked = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.False(blocked.Success);
+            var missing = Assert.Single(blocked.MissingPluginControls);
+            Assert.Equal("TeamCard1", missing.ControlName);
+            Assert.False(Directory.Exists(Path.Combine(packageRoot, "package-with-plugin")));
+
+            var forced = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath,
+                MissingPluginPolicy = FrontedLayoutPackageMissingPluginPolicy.ForceRemoveMissingControls
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(forced.Success, forced.ErrorMessage);
+            Assert.Single(forced.RemovedPluginControls);
+            var importedLayoutPath = Path.Combine(packageRoot, "package-with-plugin", "layouts", "BpWindow", "BaseCanvas.json");
+            var imported = JsonSerializer.Deserialize<FrontedCanvasConfig>(File.ReadAllText(importedLayoutPath))!;
+            Assert.False(imported.Controls.ContainsKey("TeamCard1"));
+            Assert.True(imported.Controls.ContainsKey("Title"));
+            Assert.Empty(imported.RequiredPlugins);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ManifestOnlyDependencyWithoutPluginControlsDoesNotBlockImport()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var archivePath = Path.Combine(root, "manifest-only.bpui");
+            CreatePluginBpuiArchive(archivePath, includeActualPluginControl: false);
+            var importer = new FrontedLayoutPackageImporter(
+                Path.Combine(root, "packages"),
+                Path.Combine(root, "temp"),
+                controlRegistry: new FrontedControlRegistry([new TextFrontedControl()]));
+
+            var result = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            {
+                PackagePath = archivePath
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    private static FrontedControlRegistry CreateRegistryWithExamplePlugin()
+    {
+        return new FrontedControlRegistry(
+            [new TextFrontedControl()],
+            [new TeamCardFrontedControlContributor()],
+            NullLogger<FrontedControlRegistry>.Instance);
+    }
+
+    private static void WriteAllCatalogLayouts(string builtInRoot, bool includePluginOnFirstLayout)
+    {
+        var first = true;
+        foreach (var entry in new FrontedDesignerLayoutCatalog().GetEntries())
+        {
+            var path = Path.Combine(builtInRoot, entry.WindowTypeName, $"{entry.CanvasName}.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            var pluginJson = first && includePluginOnFirstLayout
+                ? """
+                  ,
+                    "TeamCard1": {
+                      "ControlType": "plugin:top.plfjy.example.fronted/TeamCard",
+                      "Left": 12,
+                      "Top": 24,
+                      "Width": 260,
+                      "Height": 96
+                    }
+                  """
+                : string.Empty;
+            File.WriteAllText(
+                path,
+                $$"""
+                  {
+                    "Version": 3,
+                    "CanvasWidth": 100,
+                    "CanvasHeight": 100,
+                    "Title": {
+                      "ControlType": "Text",
+                      "Text": "Built-in"
+                    }{{pluginJson}}
+                  }
+                  """);
+            first = false;
+        }
+    }
+
+    private static void CreatePluginBpuiArchive(string archivePath, bool includeActualPluginControl)
+    {
+        using var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create);
+        WriteZipEntry(archive, "manifest.json", JsonSerializer.Serialize(new FrontedLayoutPackageManifest
+        {
+            PackageId = "package-with-plugin",
+            Name = "Package With Plugin",
+            PluginDependencies =
+            [
+                new FrontedPluginDependency
+                {
+                    PackageId = "top.plfjy.example.fronted",
+                    DisplayName = "Example Fronted Controls",
+                    MarketplaceId = "top.plfjy.example.fronted",
+                    Controls = includeActualPluginControl
+                        ? ["plugin:top.plfjy.example.fronted/TeamCard"]
+                        : [],
+                    RequiredBy = ["BpWindow/BaseCanvas"]
+                }
+            ],
+            Content = new FrontedLayoutPackageManifestContent
+            {
+                Layouts =
+                [
+                    new FrontedLayoutPackageLayoutEntry
+                    {
+                        Window = "BpWindow",
+                        Canvas = "BaseCanvas",
+                        Path = "layouts/BpWindow/BaseCanvas.json"
+                    }
+                ]
+            }
+        }));
+
+        var pluginJson = includeActualPluginControl
+            ? """
+              ,
+                "TeamCard1": {
+                  "ControlType": "plugin:top.plfjy.example.fronted/TeamCard",
+                  "Left": 10,
+                  "Top": 10,
+                  "Width": 260,
+                  "Height": 96
+                }
+              """
+            : string.Empty;
+        WriteZipEntry(
+            archive,
+            "layouts/BpWindow/BaseCanvas.json",
+            $$"""
+              {
+                "Version": 3,
+                "CanvasWidth": 100,
+                "CanvasHeight": 100,
+                "RequiredPlugins": [
+                  {
+                    "PackageId": "top.plfjy.example.fronted",
+                    "Controls": {{(includeActualPluginControl ? "[\"plugin:top.plfjy.example.fronted/TeamCard\"]" : "[]")}}
+                  }
+                ],
+                "Title": {
+                  "ControlType": "Text",
+                  "Text": "Built-in"
+                }{{pluginJson}}
+              }
+              """);
+    }
+
+    private static void WriteZipEntry(ZipArchive archive, string entryName, string text)
+    {
+        var entry = archive.CreateEntry(entryName);
+        using var stream = entry.Open();
+        using var writer = new StreamWriter(stream);
+        writer.Write(text);
+    }
+
+    private static FrontedLayoutPackageManifest ReadManifest(ZipArchive archive)
+    {
+        return JsonSerializer.Deserialize<FrontedLayoutPackageManifest>(
+            ReadZipEntry(archive, "manifest.json"),
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+    }
+
+    private static string ReadZipEntry(ZipArchive archive, string entryName)
+    {
+        var entry = archive.GetEntry(entryName) ?? throw new InvalidOperationException($"Missing zip entry {entryName}.");
+        using var stream = entry.Open();
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
+    }
+
+    private static string CreateTempDirectory()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(path);
+        return path;
+    }
+
+    private static void DeleteTempDirectory(string path)
+    {
+        if (Directory.Exists(path))
+        {
+            Directory.Delete(path, recursive: true);
+        }
+    }
+
+    private static void RunOnStaThread(Action action)
+    {
+        ExceptionDispatchInfo? exception = null;
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception ex)
+            {
+                exception = ExceptionDispatchInfo.Capture(ex);
+            }
+        });
+
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        thread.Join();
+        exception?.Throw();
+    }
+
+    private static string GetRepositoryPath(params string[] parts)
+    {
+        var repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
+        return Path.Combine([repositoryRoot, .. parts]);
+    }
+}

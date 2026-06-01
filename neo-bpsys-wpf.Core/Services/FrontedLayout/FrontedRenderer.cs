@@ -18,6 +18,8 @@ public class FrontedRenderer(
     IFrontedControlRegistry controlRegistry,
     ILogger<FrontedRenderer> logger) : IFrontedRenderer
 {
+    internal const string MissingPluginPlaceholderTitle = "Missing Plugin";
+
     /// <inheritdoc />
     public void RenderToCanvas(Canvas canvas, FrontedCanvasConfig config, FrontedRenderContext context)
     {
@@ -89,7 +91,7 @@ public class FrontedRenderer(
             Background = new SolidColorBrush(Color.FromArgb(96, 60, 20, 20)),
             Child = new TextBlock
             {
-                Text = $"Missing Plugin\n{parsed.PackageId}\n{parsed.ControlTypeName}\n{config.ControlType}",
+                Text = $"{MissingPluginPlaceholderTitle}\n{parsed.PackageId}\n{parsed.ControlTypeName}\n{config.ControlType}",
                 Foreground = Brushes.White,
                 FontSize = 12,
                 TextWrapping = TextWrapping.Wrap,

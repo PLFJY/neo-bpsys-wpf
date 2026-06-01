@@ -1,0 +1,9 @@
+id: top.plfjy.example.fronted
+name: Example Fronted Controls
+description: DEBUG-only Designer v3 plugin fronted controls for manual testing and author reference.
+entranceAssembly: neo-bpsys-wpf.ExampleFrontedControls.dll
+url: https://github.com/PLFJY/neo-bpsys-wpf/
+version: 1.0.0.0
+apiVersion: 2.0.0.0
+author: Zero PLFJY
+icon: icon.png

@@ -2652,4 +2652,52 @@
   <data name="Designer.ControlType.GameProgress" xml:space="preserve"><value>ゲーム進行</value></data>
   <data name="Designer.ControlType.MapName" xml:space="preserve"><value>マップ名</value></data>
   <data name="Designer.ControlType.PickingBorderOverlay" xml:space="preserve"><value>選択枠オーバーレイ</value></data>
+  <data name="MissingPluginImportTitle" xml:space="preserve">
+    <value>不足しているプラグインコントロール</value>
+  </data>
+  <data name="MissingPluginImportMessage" xml:space="preserve">
+    <value>このレイアウトパッケージは現在登録されていないプラグインコントロールを参照しています。不足しているコントロールはレンダリングされません。インポートをキャンセルするか、強制インポートして削除できます。</value>
+  </data>
+  <data name="MissingPluginMarketLater" xml:space="preserve">
+    <value>プラグインマーケットからのインストール/更新案内は Phase 13E で対応します。この段階ではプラグインを自動ダウンロードまたはインストールしません。</value>
+  </data>
+  <data name="ForceImportRemoveMissingControls" xml:space="preserve">
+    <value>強制インポートして不足コントロールを削除</value>
+  </data>
+  <data name="RemovedPluginControlCount" xml:space="preserve">
+    <value>削除されたプラグインコントロール</value>
+  </data>
+  <data name="RemovedPluginControlsReport" xml:space="preserve">
+    <value>強制インポートで削除されたプラグインコントロール</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.DisplayName" xml:space="preserve">
+    <value>Example Team Card</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.Description" xml:space="preserve">
+    <value>共有データのバインディングからチーム名とロゴを表示する DEBUG 用サンプルプラグインコントロール。</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.TeamNameBindingPath" xml:space="preserve">
+    <value>チーム名バインディング</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.LogoBindingPath" xml:space="preserve">
+    <value>ロゴバインディング</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.BackgroundColor" xml:space="preserve">
+    <value>背景色</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.ForegroundColor" xml:space="preserve">
+    <value>文字色</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.CornerRadius" xml:space="preserve">
+    <value>角丸</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.LogoSize" xml:space="preserve">
+    <value>ロゴサイズ</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.FontSize" xml:space="preserve">
+    <value>フォントサイズ</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.FontWeight" xml:space="preserve">
+    <value>フォントウェイト</value>
+  </data>
 </root>

@@ -421,7 +421,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 13B | 已实现插件前台控件 registry、descriptor API、`PluginFrontedControlConfig` roundtrip 和 runtime renderer 缺失插件跳过。 |
 | Phase 13C | 已实现 Designer 插件控件支持：Add Control 显示已注册插件控件，插件 typed config 可通过声明式属性元数据编辑，Canvas `RequiredPlugins` 会按控件同步，缺失插件在 Designer preview 显示 MissingPlugin 占位符。 |
 | Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
-| Phase 13D | `.bpui` 依赖扫描、导入、导出和强制导入删除缺失控件。 |
+| Phase 13D | 已实现 `.bpui` 依赖扫描、导出 manifest `PluginDependencies`、导入缺失插件预检和强制导入删除缺失控件；新增 DEBUG-only `ExampleFrontedControls` 示例插件。 |
 | Phase 13E | 插件市场交互式安装 / 更新引导。 |
 | Phase 13F | 安全、版本兼容和测试收口。 |
 

@@ -68,6 +68,13 @@
         </BuiltinPlugin>
     </ItemGroup>
 
+    <ItemGroup Condition="'$(Configuration)'=='Debug'">
+        <BuiltinPlugin Include="..\Built-inPlugins\neo-bpsys-wpf.ExampleFrontedControls\neo-bpsys-wpf.ExampleFrontedControls.csproj">
+            <FolderName>top.plfjy.example.fronted</FolderName>
+            <PluginTargetFramework>net9.0-windows</PluginTargetFramework>
+        </BuiltinPlugin>
+    </ItemGroup>
+
     <!-- 1) Restore and build plugins before main Build -->
     <Target Name="BuildBuiltinPlugins" BeforeTargets="Build" Condition="@(BuiltinPlugin) != ''">
         <MSBuild Projects="@(BuiltinPlugin)" Targets="Restore;Build" BuildInParallel="true" Properties="Configuration=$(Configuration)" />

@@ -3217,4 +3217,52 @@
   <data name="Designer.ControlType.PickingBorderOverlay" xml:space="preserve">
     <value>选择边框覆盖层</value>
   </data>
+  <data name="MissingPluginImportTitle" xml:space="preserve">
+    <value>缺少插件控件</value>
+  </data>
+  <data name="MissingPluginImportMessage" xml:space="preserve">
+    <value>此布局包引用了当前未注册的插件控件。缺失控件不会在前台窗口渲染；你可以取消导入，或强制导入并删除这些控件。</value>
+  </data>
+  <data name="MissingPluginMarketLater" xml:space="preserve">
+    <value>插件市场安装/更新引导会在 Phase 13E 实现；本阶段不会自动下载或安装插件。</value>
+  </data>
+  <data name="ForceImportRemoveMissingControls" xml:space="preserve">
+    <value>强制导入并删除缺失控件</value>
+  </data>
+  <data name="RemovedPluginControlCount" xml:space="preserve">
+    <value>已删除插件控件</value>
+  </data>
+  <data name="RemovedPluginControlsReport" xml:space="preserve">
+    <value>强制导入已删除的插件控件</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.DisplayName" xml:space="preserve">
+    <value>示例队伍卡片</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.Description" xml:space="preserve">
+    <value>DEBUG 示例插件控件，用绑定数据显示队伍名称和队标。</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.TeamNameBindingPath" xml:space="preserve">
+    <value>队名绑定</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.LogoBindingPath" xml:space="preserve">
+    <value>队标绑定</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.BackgroundColor" xml:space="preserve">
+    <value>背景颜色</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.ForegroundColor" xml:space="preserve">
+    <value>文字颜色</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.CornerRadius" xml:space="preserve">
+    <value>圆角</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.LogoSize" xml:space="preserve">
+    <value>队标尺寸</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.FontSize" xml:space="preserve">
+    <value>字体大小</value>
+  </data>
+  <data name="ExamplePlugin.TeamCard.FontWeight" xml:space="preserve">
+    <value>字重</value>
+  </data>
 </root>

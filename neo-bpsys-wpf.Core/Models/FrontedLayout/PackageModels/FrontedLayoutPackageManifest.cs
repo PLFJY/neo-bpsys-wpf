@@ -1,5 +1,7 @@
 #pragma warning disable CS1591
 
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
+
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 
 public sealed class FrontedLayoutPackageManifest
@@ -21,6 +23,8 @@ public sealed class FrontedLayoutPackageManifest
     public string MinVersion { get; set; } = string.Empty;
 
     public int LayoutSchemaVersion { get; set; } = 3;
+
+    public List<FrontedPluginDependency> PluginDependencies { get; set; } = [];
 
     public FrontedLayoutPackageManifestContent Content { get; set; } = new();
 

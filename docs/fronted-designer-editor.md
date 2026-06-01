@@ -720,9 +720,9 @@ Phase 10 起，编辑器 typed/pasted input 会按集中限制截断：搜索 12
 | Phase 12: Designer v3 i18n display layer | 已实现：通过 `IFrontedDesignerLocalizationService` 本地化编辑器显示层；Property Grid 的只读布尔值和颜色校验提示、Binding Browser / Resource Browser 文案也走 Designer i18n。`PropertyName`、`GroupName`、`ControlType`、`BindingPath`、资源 URI、`FontFamily` 和控件 `Name` 保存值保持原始契约值。 |
 | Phase 13A | 文档和 schema：插件 `ControlType` 命名、MissingPlugin 编辑器策略、声明式属性元数据方向。 |
 | Phase 13B | 已实现插件控件 registry、descriptor API、通用 plugin config roundtrip 和 runtime renderer 缺失插件跳过。 |
-| Phase 13C | 已实现 Designer Add Control 插件 UI、插件声明式属性元数据渲染、缺失插件占位符和安装引导 stub。`.bpui` 依赖扫描/导入导出仍是 Phase 13D，插件市场安装仍是 Phase 13E。 |
+| Phase 13C | 已实现 Designer Add Control 插件 UI、插件声明式属性元数据渲染、缺失插件占位符和安装引导 stub。 |
 | Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
-| Phase 13D | `.bpui` 依赖扫描、导入、导出和强制导入删除缺失控件。 |
+| Phase 13D | 已实现 `.bpui` 依赖扫描、导出 manifest `PluginDependencies`、导入缺失插件预检和强制导入删除缺失控件；新增 DEBUG-only `ExampleFrontedControls` 示例插件。 |
 | Phase 13E | 插件市场交互式安装 / 更新引导。 |
 | Phase 13F | 安全、版本兼容和测试收口。 |
 

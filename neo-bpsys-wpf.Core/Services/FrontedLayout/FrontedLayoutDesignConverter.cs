@@ -95,7 +95,7 @@ public class FrontedLayoutDesignConverter
                 {
                     PackageId = group.Key,
                     MinVersion = existing?.MinVersion,
-                    DisplayName = descriptor?.ControlTypeName ?? existing?.DisplayName,
+                    DisplayName = existing?.DisplayName ?? descriptor?.PackageId ?? group.Key,
                     MarketplaceId = existing?.MarketplaceId,
                     Controls = controls
                 };

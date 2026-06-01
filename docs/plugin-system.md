@@ -77,7 +77,7 @@
 
 ## Designer v3 插件前台控件规划
 
-Phase 13B 已实现插件控件 registry 和 descriptor API。插件可以在启动期间通过 DI 注册 Designer v3 前台控件，让这些控件像内置 `Text`、`Image`、`BorderedImage` 一样被 v3 renderer 识别；控件运行时行为、config 类型、默认 config 和属性元数据由插件提供。Phase 13C 起，Designer 会在 Add Control 中列出已注册插件控件，并通过声明式 property metadata 生成 Property Grid 行。`.bpui` 依赖扫描/导入导出和插件市场安装引导仍分别属于 Phase 13D、13E。
+Phase 13B 已实现插件控件 registry 和 descriptor API。插件可以在启动期间通过 DI 注册 Designer v3 前台控件，让这些控件像内置 `Text`、`Image`、`BorderedImage` 一样被 v3 renderer 识别；控件运行时行为、config 类型、默认 config 和属性元数据由插件提供。Phase 13C 起，Designer 会在 Add Control 中列出已注册插件控件，并通过声明式 property metadata 生成 Property Grid 行。Phase 13D 已实现 `.bpui` 导出/导入依赖扫描、缺失插件预检和强制导入删除缺失控件；插件市场安装引导仍属于 Phase 13E。
 
 插件控件的 `ControlType` 必须使用命名空间：
 
@@ -218,6 +218,8 @@ neo-bpsys-wpf.PluginSdk;neo-bpsys-wpf.Core
 ## 内置插件
 
 主项目 csproj 中通过 `BuiltinPlugin` 构建并复制 `TeamJsonMaker` 到输出/发布目录的 `Plugins\top.plfjy.bpsys.TeamJsonMaker`。它和用户插件使用同一加载机制，只是来源路径不同。
+
+Phase 13D 新增 DEBUG-only 示例插件 `Built-inPlugins/neo-bpsys-wpf.ExampleFrontedControls`，插件 ID 为 `top.plfjy.example.fronted`，注册示例控件 `plugin:top.plfjy.example.fronted/TeamCard`。主项目只在 `Debug` 配置下把它加入 `BuiltinPlugin` 并复制到输出目录；Release、Beta、Preview 默认不包含该示例插件。该插件用于手工验证 Designer v3 插件控件作者体验，不是发行功能。
 
 ## 加载失败检查清单
 

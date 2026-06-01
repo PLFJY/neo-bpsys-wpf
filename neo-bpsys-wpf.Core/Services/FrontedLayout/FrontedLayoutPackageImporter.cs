@@ -7,6 +7,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using System.IO;
 using System.IO.Compression;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -21,20 +22,29 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     private readonly ILogger<FrontedLayoutPackageImporter> _logger;
     private readonly FrontedLayoutValidator _validator;
     private readonly IFrontedImageSafetyService _imageSafetyService;
+    private readonly IFrontedControlRegistry? _controlRegistry;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
         MaxDepth = FrontedLayoutLimits.MaxJsonDepth
     };
+    private readonly JsonSerializerOptions _writeJsonSerializerOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        MaxDepth = FrontedLayoutLimits.MaxJsonDepth
+    };
 
     public FrontedLayoutPackageImporter(
         IFrontedLayoutPackageManager packageManager,
-        ILogger<FrontedLayoutPackageImporter> logger)
+        ILogger<FrontedLayoutPackageImporter> logger,
+        IFrontedControlRegistry? controlRegistry = null)
         : this(
             AppConstants.FrontedLayoutPackagesPath,
             Path.Combine(AppConstants.AppTempPath, "bpui-import"),
             packageManager,
-            logger)
+            logger,
+            controlRegistry)
     {
     }
 
@@ -42,13 +52,15 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         string packageRoot,
         string tempRoot,
         IFrontedLayoutPackageManager? packageManager = null,
-        ILogger<FrontedLayoutPackageImporter>? logger = null)
+        ILogger<FrontedLayoutPackageImporter>? logger = null,
+        IFrontedControlRegistry? controlRegistry = null)
     {
         _packageRoot = packageRoot;
         _tempRoot = tempRoot;
         _packageManager = packageManager;
         _logger = logger ?? NullLogger<FrontedLayoutPackageImporter>.Instance;
-        _validator = new FrontedLayoutValidator();
+        _controlRegistry = controlRegistry;
+        _validator = new FrontedLayoutValidator(controlRegistry);
         _imageSafetyService = new FrontedImageSafetyService();
     }
 
@@ -104,6 +116,35 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                 return validation;
             }
 
+            var packageLayouts = await LoadPackageLayoutsAsync(stagingRoot, manifest!, cancellationToken);
+            var missingPluginControls = FrontedLayoutPluginDependencyScanner.FindMissingPluginControls(
+                packageLayouts.Select(layout => (layout.Window, layout.Canvas, layout.Config)),
+                _controlRegistry);
+            if (missingPluginControls.Count > 0
+                && request.MissingPluginPolicy != FrontedLayoutPackageMissingPluginPolicy.ForceRemoveMissingControls)
+            {
+                return new FrontedLayoutPackageImportResult
+                {
+                    Success = false,
+                    PackageId = manifest!.PackageId,
+                    ErrorMessage = "MissingPluginDependencies",
+                    MissingPluginControls = missingPluginControls
+                };
+            }
+
+            List<FrontedLayoutPackageRemovedPluginControl> removedPluginControls = [];
+            if (missingPluginControls.Count > 0)
+            {
+                removedPluginControls = FrontedLayoutPluginDependencyScanner.RemoveMissingPluginControls(
+                    packageLayouts.Select(layout => (layout.Window, layout.Canvas, layout.Config)),
+                    _controlRegistry);
+                manifest!.PluginDependencies = FrontedLayoutPluginDependencyScanner.MergePackageDependencies(
+                    packageLayouts.Select(layout => (layout.Window, layout.Canvas, layout.Config)),
+                    manifest.PluginDependencies,
+                    _controlRegistry);
+                await RewritePackageLayoutsAsync(stagingRoot, packageLayouts, manifest, cancellationToken);
+            }
+
             var packageId = manifest!.PackageId;
             var installPath = GetInstalledPackagePath(packageId);
             if (Directory.Exists(installPath) && !request.ReplaceExisting)
@@ -144,7 +185,8 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                 PackageId = packageId,
                 InstalledPath = installPath,
                 LayoutCount = manifest.Content.Layouts.Count,
-                ResourceCount = manifest.Content.Resources.Count
+                ResourceCount = manifest.Content.Resources.Count,
+                RemovedPluginControls = removedPluginControls
             };
         }
         catch (InvalidDataException ex)
@@ -161,6 +203,46 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
         {
             TryDeleteDirectory(stagingRoot);
         }
+    }
+
+    private async Task<List<PackageLayoutState>> LoadPackageLayoutsAsync(
+        string stagingRoot,
+        FrontedLayoutPackageManifest manifest,
+        CancellationToken cancellationToken)
+    {
+        var layouts = new List<PackageLayoutState>();
+        foreach (var layout in manifest.Content.Layouts)
+        {
+            var path = CombineInsideRoot(stagingRoot, layout.Path);
+            var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+                await File.ReadAllTextAsync(path, cancellationToken),
+                _jsonSerializerOptions)
+                ?? throw new FrontedLayoutConfigException($"Layout JSON is invalid: {layout.Path}");
+            layouts.Add(new PackageLayoutState(layout.Window, layout.Canvas, layout.Path, config));
+        }
+
+        manifest.PluginDependencies = FrontedLayoutPluginDependencyScanner.MergePackageDependencies(
+            layouts.Select(layout => (layout.Window, layout.Canvas, layout.Config)),
+            manifest.PluginDependencies,
+            _controlRegistry);
+        return layouts;
+    }
+
+    private async Task RewritePackageLayoutsAsync(
+        string stagingRoot,
+        IReadOnlyList<PackageLayoutState> layouts,
+        FrontedLayoutPackageManifest manifest,
+        CancellationToken cancellationToken)
+    {
+        foreach (var layout in layouts)
+        {
+            var path = CombineInsideRoot(stagingRoot, layout.Path);
+            var json = JsonSerializer.Serialize(layout.Config, _writeJsonSerializerOptions);
+            await File.WriteAllTextAsync(path, json, cancellationToken);
+        }
+
+        var manifestJson = JsonSerializer.Serialize(manifest, _writeJsonSerializerOptions);
+        await File.WriteAllTextAsync(Path.Combine(stagingRoot, ManifestFileName), manifestJson, cancellationToken);
     }
 
     private async Task<FrontedLayoutPackageImportResult> ValidatePackageAsync(
@@ -662,6 +744,12 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             // Best effort cleanup.
         }
     }
+
+    private sealed record PackageLayoutState(
+        string Window,
+        string Canvas,
+        string Path,
+        FrontedCanvasConfig Config);
 }
 
 #pragma warning restore CS1591
