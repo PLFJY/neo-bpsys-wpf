@@ -2783,6 +2783,87 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.True(FrontedDesignerEditorVisualHelper.HandleVisualSize <= 6);
     }
 
+    [Theory]
+    [InlineData(1D, 11D)]
+    [InlineData(0.5D, 22D)]
+    [InlineData(2D, 11D)]
+    public void SelectionLabelFontSizeScalesWithZoomForReadability(double zoomScale, double expectedFontSize)
+    {
+        Assert.Equal(expectedFontSize, FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelFontSize(zoomScale));
+    }
+
+    [Theory]
+    [InlineData(double.NaN, 11D)]
+    [InlineData(double.PositiveInfinity, 11D)]
+    [InlineData(0D, 11D)]
+    [InlineData(-1D, 11D)]
+    public void SelectionLabelFontSizeFallsBackSafelyForInvalidZoom(double zoomScale, double expectedFontSize)
+    {
+        Assert.Equal(expectedFontSize, FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelFontSize(zoomScale));
+        Assert.Equal(FrontedDesignerEditorVisualHelper.SelectionLabelBaseOffset, FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelTopOffset(zoomScale));
+    }
+
+    [Fact]
+    public void SelectionLabelTopOffsetGrowsWhenZoomedOut()
+    {
+        Assert.Equal(18D, FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelTopOffset(1D));
+        Assert.Equal(36D, FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelTopOffset(0.5D));
+    }
+
+    [Fact]
+    public void FrontedDesignerWindowUpdatesSelectionOnZoomScaleChange()
+    {
+        var codeBehind = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Windows",
+            "FrontedDesignerWindow.xaml.cs"));
+
+        Assert.Contains("if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.ZoomScale))", codeBehind);
+        Assert.Contains("UpdateSelectedInteractionVisuals();", codeBehind);
+        Assert.Contains("ApplySelectionLabelZoomMetrics", codeBehind);
+        Assert.Contains("GetEffectiveSelectionLabelFontSize", codeBehind);
+    }
+
+    [Fact]
+    public void FrontedDesignerLayerDragGhostUsesAdornerWithoutMutatingDuringDragOver()
+    {
+        var codeBehind = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Windows",
+            "FrontedDesignerWindow.xaml.cs"));
+
+        Assert.Contains("LayerDragPreviewAdorner", codeBehind);
+        Assert.Contains("TryStartLayerDragPreview", codeBehind);
+        Assert.Contains("TryUpdateLayerDragPreview", codeBehind);
+        Assert.Contains("RemoveLayerDragPreview", codeBehind);
+        Assert.Contains("AdornerLayer.GetAdornerLayer(this)", codeBehind);
+        Assert.Contains("TryUpdateLayerDragPreview(e.GetPosition(this))", codeBehind);
+        var dragOverMethod = codeBehind[
+            codeBehind.IndexOf("private void UpdateLayerDragOver", StringComparison.Ordinal)..];
+        var dragOverMethodEnd = dragOverMethod.IndexOf("private void UpdateLayerAutoScroll", StringComparison.Ordinal);
+        Assert.True(dragOverMethodEnd > 0);
+        Assert.DoesNotContain("CommitLayerDrop", dragOverMethod[..dragOverMethodEnd]);
+        Assert.Contains("RemoveLayerDragPreview();", codeBehind);
+        Assert.Contains("finally", codeBehind);
+    }
+
+    [Fact]
+    public void LayerDragPreviewAdornerIsHitTestInvisibleAndSemiTransparent()
+    {
+        var adornerCode = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Windows",
+            "LayerDragPreviewAdorner.cs"));
+
+        Assert.Contains(": Adorner", adornerCode);
+        Assert.Contains("IsHitTestVisible = false", adornerCode);
+        Assert.Contains("Opacity = 0.75", adornerCode);
+        Assert.Contains("SetPosition", adornerCode);
+    }
+
     [Fact]
     public void FrontedDesignerLocalizationKeysExistInAllResxFiles()
     {

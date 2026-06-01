@@ -14,6 +14,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Documents;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using Wpf.Ui.Controls;
@@ -70,6 +71,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private readonly DispatcherTimer _layerAutoScrollTimer;
     private double _layerAutoScrollVelocity;
     private Point? _lastLayerDragPosition;
+    private LayerDragPreviewAdorner? _layerDragPreviewAdorner;
 
     public FrontedDesignerWindow()
     {
@@ -109,6 +111,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        RemoveLayerDragPreview();
         StopLayerAutoScroll();
         if (_viewModel is not null)
         {
@@ -280,6 +283,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _activeLayerDragItem = _pendingLayerDragItem;
         _pendingLayerDragItem = null;
         var data = new DataObject(typeof(FrontedControlDesignItem), _activeLayerDragItem);
+        TryStartLayerDragPreview(_activeLayerDragItem, currentPosition);
         try
         {
             DragDrop.DoDragDrop(dragSource, data, DragDropEffects.Move);
@@ -287,6 +291,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         finally
         {
             _activeLayerDragItem = null;
+            RemoveLayerDragPreview();
             StopLayerAutoScroll();
             HideLayerDropZones();
         }
@@ -409,6 +414,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         e.Effects = DragDropEffects.Move;
         UpdateLayerAutoScroll(e.GetPosition(LayerPanelScrollViewer));
+        TryUpdateLayerDragPreview(e.GetPosition(this));
         e.Handled = true;
     }
 
@@ -460,9 +466,42 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void StopLayerDrag(DragEventArgs e)
     {
+        RemoveLayerDragPreview();
         StopLayerAutoScroll();
         HideLayerDropZones();
         e.Handled = true;
+    }
+
+    private void TryStartLayerDragPreview(FrontedControlDesignItem item, Point windowPosition)
+    {
+        RemoveLayerDragPreview();
+
+        var layer = AdornerLayer.GetAdornerLayer(this);
+        if (layer is null)
+        {
+            return;
+        }
+
+        _layerDragPreviewAdorner = new LayerDragPreviewAdorner(this, item);
+        layer.Add(_layerDragPreviewAdorner);
+        _layerDragPreviewAdorner.SetPosition(windowPosition);
+    }
+
+    private void TryUpdateLayerDragPreview(Point windowPosition)
+    {
+        _layerDragPreviewAdorner?.SetPosition(windowPosition);
+    }
+
+    private void RemoveLayerDragPreview()
+    {
+        if (_layerDragPreviewAdorner is null)
+        {
+            return;
+        }
+
+        var layer = AdornerLayer.GetAdornerLayer(this);
+        layer?.Remove(_layerDragPreviewAdorner);
+        _layerDragPreviewAdorner = null;
     }
 
     private void StopLayerAutoScroll()
@@ -853,6 +892,11 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             RebuildInteractionLayer();
             FocusDesignSurface();
+        }
+
+        if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.ZoomScale))
+        {
+            UpdateSelectedInteractionVisuals();
         }
     }
 
@@ -1326,13 +1370,11 @@ public partial class FrontedDesignerWindow : FluentWindow
             Child = new System.Windows.Controls.TextBlock
             {
                 Text = item.Name,
-                FontSize = 11,
+                FontSize = FrontedDesignerEditorVisualHelper.SelectionLabelBaseFontSize,
                 Foreground = Brushes.White
             },
             IsHitTestVisible = false
         };
-        Canvas.SetLeft(_selectionLabel, bounds.Left);
-        Canvas.SetTop(_selectionLabel, Math.Max(0, bounds.Top - 18));
         Panel.SetZIndex(_selectionLabel, FrontedDesignerEditorVisualHelper.SelectedOutlineZIndex + 1);
         InteractionLayer.Children.Add(_selectionLabel);
 
@@ -1399,11 +1441,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             Canvas.SetTop(_selectionOutline, bounds.Top);
         }
 
-        if (_selectionLabel is not null)
-        {
-            Canvas.SetLeft(_selectionLabel, bounds.Left);
-            Canvas.SetTop(_selectionLabel, Math.Max(0, bounds.Top - 18));
-        }
+        ApplySelectionLabelZoomMetrics(bounds);
 
         SetHandlePosition(FrontedDesignerResizeHandleKind.TopLeft, bounds.Left, bounds.Top);
         SetHandlePosition(FrontedDesignerResizeHandleKind.Top, bounds.Left + bounds.Width / 2, bounds.Top);
@@ -1413,6 +1451,24 @@ public partial class FrontedDesignerWindow : FluentWindow
         SetHandlePosition(FrontedDesignerResizeHandleKind.BottomLeft, bounds.Left, bounds.Top + bounds.Height);
         SetHandlePosition(FrontedDesignerResizeHandleKind.Bottom, bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height);
         SetHandlePosition(FrontedDesignerResizeHandleKind.BottomRight, bounds.Left + bounds.Width, bounds.Top + bounds.Height);
+    }
+
+    private void ApplySelectionLabelZoomMetrics(FrontedDesignerResolvedBounds bounds)
+    {
+        if (_selectionLabel is null)
+        {
+            return;
+        }
+
+        var zoomScale = _viewModel?.ZoomScale ?? 1D;
+        if (_selectionLabel.Child is System.Windows.Controls.TextBlock textBlock)
+        {
+            textBlock.FontSize = FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelFontSize(zoomScale);
+        }
+
+        var topOffset = FrontedDesignerEditorVisualHelper.GetEffectiveSelectionLabelTopOffset(zoomScale);
+        Canvas.SetLeft(_selectionLabel, bounds.Left);
+        Canvas.SetTop(_selectionLabel, Math.Max(0, bounds.Top - topOffset));
     }
 
     private void SetHandlePosition(FrontedDesignerResizeHandleKind handle, double x, double y)
