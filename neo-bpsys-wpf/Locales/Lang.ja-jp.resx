@@ -2002,6 +2002,9 @@
   <data name="Fit" xml:space="preserve">
     <value>合わせる</value>
   </data>
+  <data name="Designer.ZoomInvalid" xml:space="preserve">
+    <value>無効なズーム値</value>
+  </data>
   <data name="Preview" xml:space="preserve">
     <value>プレビュー</value>
   </data>

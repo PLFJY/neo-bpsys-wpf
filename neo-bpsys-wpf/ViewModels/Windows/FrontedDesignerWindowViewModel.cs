@@ -50,6 +50,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private FrontedDesignerClipboardPayload? _copiedControl;
     private IReadOnlyList<FrontedLayoutValidationMessage> _lastValidationMessages = [];
     private bool _isChangingZoomPreset;
+    private bool _suppressZoomEditTextUpdate;
     private bool _isRebuildingPropertyGrid;
     private bool _isRestoringSnapshot;
     private bool _isLoadingWindowOptions;
@@ -226,6 +227,19 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _isFitMode = true;
+
+    [ObservableProperty]
+    private string _zoomEditText = "Fit";
+
+    public double ZoomPercent
+    {
+        get => ZoomScale * 100;
+        set
+        {
+            var clamped = Math.Clamp(value, 25D, 200D);
+            ApplyManualZoom(clamped / 100D);
+        }
+    }
 
     [ObservableProperty]
     private FrontedDesignerZoomPreset? _selectedZoomPreset;
@@ -415,6 +429,23 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(EffectiveSnapEnabled));
         OnPropertyChanged(nameof(SnapStatusText));
+    }
+
+    partial void OnZoomScaleChanged(double value)
+    {
+        OnPropertyChanged(nameof(ZoomPercent));
+        if (!_suppressZoomEditTextUpdate)
+        {
+            UpdateZoomEditTextFromCurrentZoom();
+        }
+    }
+
+    partial void OnIsFitModeChanged(bool value)
+    {
+        if (!_suppressZoomEditTextUpdate)
+        {
+            UpdateZoomEditTextFromCurrentZoom();
+        }
     }
 
     partial void OnSelectedDesignItemChanged(FrontedControlDesignItem? value)
@@ -2358,7 +2389,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         SetSelectedZoomPreset(preset);
     }
 
-    private void ApplyManualZoom(double scale)
+    public void ApplyManualZoom(double scale)
     {
         var normalizedScale = Math.Clamp(scale, 0.25D, 2D);
         IsFitMode = false;
@@ -2493,6 +2524,85 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _isChangingZoomPreset = true;
         SelectedZoomPreset = preset;
         _isChangingZoomPreset = false;
+    }
+
+    public bool TryApplyZoomText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            UpdateZoomEditTextFromCurrentZoom();
+            return false;
+        }
+
+        text = text.Trim();
+
+        var fitKey = I18nHelper.GetLocalizedString("Fit");
+        if (string.Equals(text, fitKey, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(text, "Fit", StringComparison.OrdinalIgnoreCase))
+        {
+            FitToWindow();
+            return true;
+        }
+
+        double scale;
+        if (text.EndsWith("x", StringComparison.OrdinalIgnoreCase))
+        {
+            var numericPart = text.AsSpan(0, text.Length - 1).Trim();
+            if (double.TryParse(numericPart, NumberStyles.Float, CultureInfo.InvariantCulture, out var multiplier) && multiplier > 0D)
+            {
+                scale = multiplier;
+            }
+            else
+            {
+                StatusMessage = I18nHelper.GetLocalizedString("Designer.ZoomInvalid");
+                UpdateZoomEditTextFromCurrentZoom();
+                return false;
+            }
+        }
+        else if (text.EndsWith("%", StringComparison.Ordinal))
+        {
+            var numericPart = text.AsSpan(0, text.Length - 1).Trim();
+            if (double.TryParse(numericPart, NumberStyles.Float, CultureInfo.InvariantCulture, out var percent) && percent > 0D)
+            {
+                scale = percent / 100D;
+            }
+            else
+            {
+                StatusMessage = I18nHelper.GetLocalizedString("Designer.ZoomInvalid");
+                UpdateZoomEditTextFromCurrentZoom();
+                return false;
+            }
+        }
+        else if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var plainNumber) && plainNumber > 0D)
+        {
+            scale = plainNumber / 100D;
+        }
+        else
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("Designer.ZoomInvalid");
+            UpdateZoomEditTextFromCurrentZoom();
+            return false;
+        }
+
+        ApplyManualZoom(scale);
+        return true;
+    }
+
+    public void ApplyZoomPercent(double percent)
+    {
+        ZoomPercent = percent;
+    }
+
+    private void UpdateZoomEditTextFromCurrentZoom()
+    {
+        if (IsFitMode)
+        {
+            ZoomEditText = I18nHelper.GetLocalizedString("Fit");
+        }
+        else
+        {
+            ZoomEditText = $"{ZoomScale:P0}";
+        }
     }
 
     private static FrontedLayoutValidationMessage CreateMessage(

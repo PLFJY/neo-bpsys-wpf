@@ -883,6 +883,40 @@ public partial class FrontedDesignerWindow : FluentWindow
         _validationDetailsWindow.Activate();
     }
 
+    private void ZoomComboBox_OnKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && sender is ComboBox comboBox)
+        {
+            _viewModel?.TryApplyZoomText(comboBox.Text);
+            e.Handled = true;
+        }
+    }
+
+    private void ZoomComboBox_OnLostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        if (sender is ComboBox comboBox)
+        {
+            _viewModel?.TryApplyZoomText(comboBox.Text);
+        }
+    }
+
+    private void ZoomComboBox_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count > 0
+            && e.AddedItems[0] is FrontedDesignerZoomPreset preset
+            && sender is ComboBox)
+        {
+            if (preset.IsFit)
+            {
+                _viewModel?.FitToWindowCommand.Execute(null);
+            }
+            else
+            {
+                _viewModel?.ApplyManualZoom(preset.Scale);
+            }
+        }
+    }
+
     private void ValidationDetailsWindow_OnClosed(object? sender, EventArgs e)
     {
         if (sender is ValidationDetailsWindow window && ReferenceEquals(window, _validationDetailsWindow))

@@ -1999,6 +1999,9 @@
   <data name="Fit" xml:space="preserve">
     <value>Fit</value>
   </data>
+  <data name="Designer.ZoomInvalid" xml:space="preserve">
+    <value>Invalid zoom value</value>
+  </data>
   <data name="Preview" xml:space="preserve">
     <value>Preview</value>
   </data>

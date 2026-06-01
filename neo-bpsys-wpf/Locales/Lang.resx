@@ -2017,6 +2017,9 @@
   <data name="Fit" xml:space="preserve">
     <value>适应</value>
   </data>
+  <data name="Designer.ZoomInvalid" xml:space="preserve">
+    <value>无效缩放值</value>
+  </data>
   <data name="Preview" xml:space="preserve">
     <value>预览</value>
   </data>

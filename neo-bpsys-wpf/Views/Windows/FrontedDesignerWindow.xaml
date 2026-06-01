@@ -383,11 +383,6 @@
                         Margin="0,0,8,8"
                         VerticalAlignment="Center"
                         FontSize="12"
-                        Text="{Binding ZoomDisplay}" />
-                    <TextBlock
-                        Margin="0,0,8,8"
-                        VerticalAlignment="Center"
-                        FontSize="12"
                         Text="{Binding SnapStatusText}" />
                     <TextBlock
                         Margin="0,0,8,8"
@@ -984,16 +979,56 @@
             Padding="12,8"
             BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
             BorderThickness="0,1,0,0">
-            <DockPanel LastChildFill="True">
-                <ui:Button
-                    Padding="8,4"
-                    Click="OpenValidationDetails_OnClick"
-                    Content="{Binding StatusMessage}"
-                    DockPanel.Dock="Left"
-                    Icon="{ui:SymbolIcon Symbol=Info24}"
-                    ToolTip="{lex:Loc OpenValidationDetails}" />
-                <TextBlock HorizontalAlignment="Right" Text="{Binding CurrentWindowCanvasDisplay}" />
-            </DockPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <ui:Button
+                        Padding="8,4"
+                        Click="OpenValidationDetails_OnClick"
+                        Content="{Binding StatusMessage}"
+                        Icon="{ui:SymbolIcon Symbol=Info24}"
+                        MaxWidth="200"
+                        ToolTip="{lex:Loc OpenValidationDetails}" />
+                    <ComboBox
+                        Width="90"
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"
+                        DisplayMemberPath="DisplayName"
+                        IsEditable="True"
+                        ItemsSource="{Binding ZoomPresets}"
+                        KeyDown="ZoomComboBox_OnKeyDown"
+                        LostKeyboardFocus="ZoomComboBox_OnLostKeyboardFocus"
+                        SelectionChanged="ZoomComboBox_OnSelectionChanged"
+                        Text="{Binding ZoomEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Slider
+                        Width="160"
+                        Margin="8,0,0,0"
+                        VerticalAlignment="Center"
+                        IsSnapToTickEnabled="True"
+                        LargeChange="25"
+                        Maximum="200"
+                        Minimum="25"
+                        SmallChange="5"
+                        TickFrequency="25"
+                        Value="{Binding ZoomPercent, Mode=TwoWay}" />
+                    <ui:Button
+                        Margin="8,0,0,0"
+                        Command="{Binding FitToWindowCommand}"
+                        Content="{lex:Loc Fit}"
+                        ToolTip="{lex:Loc Fit}" />
+                </StackPanel>
+                <TextBlock
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    Text="{Binding CurrentWindowCanvasDisplay}" />
+            </Grid>
         </Border>
     </Grid>
 </ui:FluentWindow>
