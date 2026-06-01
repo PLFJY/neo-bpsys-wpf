@@ -15,6 +15,15 @@ public sealed class FrontedResourceBrowserItem
 
     public string Category { get; init; } = string.Empty;
 
+    public string SourceDisplayName { get; init; } = string.Empty;
+
+    public string TypeDisplayName { get; init; } = string.Empty;
+
+    public string SourceAndTypeDisplayName =>
+        string.IsNullOrWhiteSpace(TypeDisplayName)
+            ? SourceDisplayName
+            : $"{SourceDisplayName} / {TypeDisplayName}";
+
     public ImageSource? Thumbnail { get; init; }
 
     public bool IsAbsoluteFile { get; init; }

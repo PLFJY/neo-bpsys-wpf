@@ -180,7 +180,7 @@ public class FrontedPropertyGridBuilder
             PropertyType = typeof(bool),
             EditorKind = FrontedPropertyEditorKind.ReadOnly,
             Value = selectedItem.IsRuntimeCritical,
-            DisplayValue = Convert.ToString(selectedItem.IsRuntimeCritical, System.Globalization.CultureInfo.InvariantCulture),
+            DisplayValue = GetDisplayValue(selectedItem.IsRuntimeCritical, isReadOnly: true),
             IsReadOnly = true,
             GroupName = "Identity"
         });
@@ -234,7 +234,9 @@ public class FrontedPropertyGridBuilder
                 && !string.IsNullOrWhiteSpace(color)
                 && !ArgbColorRegex.IsMatch(color))
             {
-                validationErrors.Add("Invalid color. Use #AARRGGBB.");
+                validationErrors.Add(_localizationService.GetDesignerText(
+                    "Designer.Validation.InvalidArgbColor",
+                    "Invalid color. Use #AARRGGBB."));
             }
 
             var canBrowseBinding = !isReadOnly && IsBindingPathProperty(property.Name);
@@ -253,7 +255,7 @@ public class FrontedPropertyGridBuilder
                 PropertyType = property.PropertyType,
                 EditorKind = isReadOnly ? FrontedPropertyEditorKind.ReadOnly : kind,
                 Value = value,
-                DisplayValue = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
+                DisplayValue = GetDisplayValue(value, isReadOnly),
                 EditText = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty,
                 IsReadOnly = isReadOnly,
                 IsRequired = property.Name is nameof(FrontedControlConfigBase.Left)
@@ -265,9 +267,9 @@ public class FrontedPropertyGridBuilder
                 CanBrowseResource = canBrowseResource,
                 BrowseButtonText = "...",
                 BrowseDialogTitle = canBrowseBinding
-                    ? "BindingBrowser"
+                    ? _localizationService.GetDesignerText("Designer.Editor.BindingBrowser", "Binding Browser")
                     : canBrowseResource
-                        ? "ResourceBrowser"
+                        ? _localizationService.GetDesignerText("Designer.Editor.ResourceBrowser", "Resource Browser")
                         : null,
                 BindingTargetKind = bindingTargetKind,
                 ExpectedBindingTypeName = _localizationService.GetBindingTypeDisplayName(ResolveBindingTargetTypeName(bindingTargetKind)),
@@ -568,6 +570,18 @@ public class FrontedPropertyGridBuilder
             Value = value,
             DisplayName = _localizationService.GetOptionDisplayName(propertyName, value)
         };
+
+    private string GetDisplayValue(object? value, bool isReadOnly)
+    {
+        if (isReadOnly && value is bool boolValue)
+        {
+            return _localizationService.GetDesignerText(
+                boolValue ? "Designer.Value.True" : "Designer.Value.False",
+                boolValue ? "True" : "False");
+        }
+
+        return Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty;
+    }
 
     private static string? NullIfEmpty(string value) =>
         string.IsNullOrWhiteSpace(value) ? null : value;

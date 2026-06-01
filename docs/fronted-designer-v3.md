@@ -1,6 +1,6 @@
 # Fronted Designer v3 设计文档
 
-本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为低风险 pilot 接入 v3 renderer；Score System v2 Phase 4 已额外将 `ScoreGlobalWindow` 接入 v3 renderer 并新增 `GlobalScoreRow` 控件；Designer v3 Phase 4 已迁移 `CutSceneWindow`；Designer v3 Phase 5 已迁移 `GameDataWindow` 并新增 `LocalizedText`；Designer v3 Phase 6 已迁移多 Canvas 的 `WidgetsWindow`，并新增 `CurrentBanDisplay` / `MapV2Display`；Designer v3 Phase 7 已迁移 `BpWindow`，并新增 `BanSlotDisplay` / `PickingBorderOverlay`。Phase 8A 已补充独立编辑器设计规格，Phase 8B 已新增设计期模型、layout validator、runtime contract catalog、引用扫描和设计项转换，Phase 8C 已新增独立编辑器 shell、窗口/Canvas 选择器、ViewBox 只读预览、缩放控制和校验面板，Phase 8D 已新增编辑器内存交互层、透明 hitbox、selection adorner、拖拽、缩放和键盘微调，Phase 8E 已新增基础 Property Grid，Phase 8F 已新增 Add Control 菜单、默认 config 工厂和 FontFamily 字体 ComboBox，Phase 8G 已新增 Binding Browser 与 Resource Browser，Phase 8H 已新增用户布局保存/重置/运行时加载优先级、脏状态提示和默认关闭的吸附网格，见 [fronted-designer-editor.md](fronted-designer-editor.md)。Phase 9A 已新增 `.bpui v3` 布局包标准，见 [bpui-package-v3.md](bpui-package-v3.md)；Phase 9C/9D 已实现 v3 package 导出、导入、安装、激活复制和删除，Phase 9F 已实现 legacy 转换。Phase 12 已新增 Designer v3 显示层 i18n，编辑器 UI 可显示本地化属性名、组选项、控件类型、窗口/Canvas 名和 Binding Browser 节点，但 v3 JSON schema 与运行时契约保持不变。
+本文是前台窗口设计者模式 v3 重构的设计文档。Phase 1 已增加主设置 `Settings.Version = 3` 和 legacy `config.json` 迁移骨架；Phase 2 已增加 v3 layout model、资源 resolver、Text/Image 控件工厂、registry、layout service 和 renderer skeleton。Phase 3 已将 `ScoreSurWindow` 和 `ScoreHunWindow` 作为低风险 pilot 接入 v3 renderer；Score System v2 Phase 4 已额外将 `ScoreGlobalWindow` 接入 v3 renderer 并新增 `GlobalScoreRow` 控件；Designer v3 Phase 4 已迁移 `CutSceneWindow`；Designer v3 Phase 5 已迁移 `GameDataWindow` 并新增 `LocalizedText`；Designer v3 Phase 6 已迁移多 Canvas 的 `WidgetsWindow`，并新增 `CurrentBanDisplay` / `MapV2Display`；Designer v3 Phase 7 已迁移 `BpWindow`，并新增 `BanSlotDisplay` / `PickingBorderOverlay`。Phase 8A 已补充独立编辑器设计规格，Phase 8B 已新增设计期模型、layout validator、runtime contract catalog、引用扫描和设计项转换，Phase 8C 已新增独立编辑器 shell、窗口/Canvas 选择器、ViewBox 只读预览、缩放控制和校验面板，Phase 8D 已新增编辑器内存交互层、透明 hitbox、selection adorner、拖拽、缩放和键盘微调，Phase 8E 已新增基础 Property Grid，Phase 8F 已新增 Add Control 菜单、默认 config 工厂和 FontFamily 字体 ComboBox，Phase 8G 已新增 Binding Browser 与 Resource Browser，Phase 8H 已新增用户布局保存/重置/运行时加载优先级、脏状态提示和默认关闭的吸附网格，见 [fronted-designer-editor.md](fronted-designer-editor.md)。Phase 9A 已新增 `.bpui v3` 布局包标准，见 [bpui-package-v3.md](bpui-package-v3.md)；Phase 9C/9D 已实现 v3 package 导出、导入、安装、激活复制和删除，Phase 9F 已实现 legacy 转换。Phase 12/12B 已完成 Designer v3 显示层 i18n 收尾，编辑器 UI 可显示本地化属性名、组选项、控件类型、窗口/Canvas 名、只读布尔值、校验提示和浏览器文案，但 v3 JSON schema 与运行时契约保持不变。
 
 ## 1. 背景与目标
 
@@ -169,7 +169,7 @@ Phase 12 后，内置图片控件拆为 `Image` 和 `BorderedImage`：
 
 `Image` 用于旧 XAML 中直接 `Image` / `ui:Image` 的布局语义，例如 `WidgetsWindow/MapBpCanvas.json` 中 MapV1 的 `PickedMap` / `BannedMap`。这两个控件保持 `"ControlType": "Image"`、`Width = 290`、`Height = 138`、`Stretch = "UniformToFill"` 和 `CornerRadius = 8`，根元素本身就是图片框，避免外层 Border + 内层尺寸绑定造成裁剪偏移。
 
-`BorderedImage` 的默认运行时结构必须保持为外层 `Border` 直接包含内层 `Image`，用于复现旧 XAML 中的 `Border -> Image`。外层 `Width` / `Height` 只作用于 `Border`，内层 `ImageWidth` / `ImageHeight` 只在配置显式提供时作用于 `Image.Width` / `Image.Height`；如果为空，不应把内层图片宽高绑定到外层 `ActualWidth` / `ActualHeight`，也不应通过中间 `Grid` 改变旧的测量和裁剪语义。CutScene 默认布局已按 `v2.1.1+af0a4be` 恢复：队标仍是 direct `Image`，Map、SurPick0-3 和 HunPick 是 `BorderedImage`，其中角色图使用 `ClipToBounds=true`、`Stretch=UniformToFill`、`HorizontalAlignment=Center`、`VerticalAlignment=Top`。
+`BorderedImage` 的默认运行时结构必须保持为外层 `Border` 直接包含内层 `Image`，用于复现旧 XAML 中的 `Border -> Image`。外层 `Width` / `Height` 只作用于 `Border`，内层 `ImageWidth` / `ImageHeight` 只在配置显式提供时作用于 `Image.Width` / `Image.Height`；如果为空，不应把内层图片宽高绑定到外层 `ActualWidth` / `ActualHeight`，也不应通过中间 `Grid` 改变旧的测量和裁剪语义。CutScene 默认布局已按 `v2.1.1+af0a4be` 恢复：队标仍是 direct `Image`，Map、SurPick0-3 和 HunPick 是 `BorderedImage`。其中 SurPick0-3 的角色图显式设置 `ImageWidth=556.5`、`ImageHeight=null`，并使用 `ClipToBounds=true`、`Stretch=UniformToFill`、`HorizontalAlignment=Center`、`VerticalAlignment=Top`；不要把该显式内层宽度当作无效属性删除。
 
 `BorderedImage` 支持 `SizingMode`，用于保留旧 XAML 中需要外层容器的图片布局语义：
 
@@ -182,6 +182,8 @@ Phase 12 后，内置图片控件拆为 `Image` 和 `BorderedImage`：
 迁移布局时必须先看旧 XAML 的具体写法，不要把所有 `Image` 都改成 `BorderedImage`，也不要统一改 `Stretch`。旧 direct Image 行为保留 `Image`；只有明确需要外层框、外层裁剪容器、或 resize handles 操作容器框时才使用 `BorderedImage`。`ControlType`、`SizingMode`、`Stretch` 等 schema 值仍保存原始英文契约值，不写入本地化显示文本。
 
 Designer v3 的 Property Grid 会把 `BorderedImage` 属性分成“外框”和“内部图片”两组。`Width` / `Height` 是外框尺寸，`ImageWidth` / `ImageHeight` 是内层 `Image` 的显式尺寸；二者为空时仍按 WPF 布局槽自然排列。选中 `BorderedImage` 时，Property Grid 顶部提供互斥的 resize target 切换：`Border` 模式下 thumbs 调整外框 `Width` / `Height`，`Image` 模式下 thumbs 调整内层 `ImageWidth` / `ImageHeight`，外框位置和尺寸保持不变。
+
+Phase 12B 审计后，direct `Image` 的 Property Grid 不显示 `ImageWidth` / `ImageHeight`，也隐藏对 direct image 无效的 `SizingMode` 和旧 overlay 声明字段。`BorderedImage` 继续按外框、内部图片和覆盖层语义分组；生成/链接型 overlay 不作为普通图片属性直接编辑。
 
 如果 `PickingBorder` 为 `true`，应创建独立覆盖控件；该覆盖控件必须与原始 `Border` 对齐。不要把 picking border 放进图片 `Border` 内部。
 
@@ -318,7 +320,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 8E | 已实现基础 Property Grid：编辑选中设计项与 config 简单属性、保守 Name 改名、运行时关键名称只读、被引用控件改名阻止；仍只改内存，不保存用户布局。 |
 | Phase 8F | 已实现 Add Control 菜单、默认 config factory、唯一命名、基础 placeholder 策略和 `FontFamily` 字体 ComboBox；仍只改内存，不保存用户布局。 |
 | Phase 8G | 已实现 Binding Browser 与 Resource Browser。浏览器选择只写入属性行 `EditText` 缓冲，仍需 Apply/Enter 提交；Resource Browser 支持 `Resources/bpui` 与绝对路径图片，但不复制外部资源。 |
-| Phase 12 | 已实现 Designer v3 显示层 i18n。`IFrontedDesignerLocalizationService` 负责属性名、属性组、控件类型、窗口/Canvas、ComboBox 选项、Binding Browser 节点和绑定类型的友好显示；schema key、`ControlType`、`BindingPath`、资源路径和包导入/导出格式保持原样。 |
+| Phase 12 | 已实现 Designer v3 显示层 i18n。`IFrontedDesignerLocalizationService` 负责属性名、属性组、控件类型、窗口/Canvas、ComboBox 选项、只读布尔值、颜色校验提示、Binding Browser / Resource Browser 文案、Binding Browser 节点和绑定类型的友好显示；schema key、`ControlType`、`BindingPath`、资源 URI、`FontFamily` 和包导入/导出格式保持原样。 |
 | Phase 8H | 已实现用户 layout save/reset/load priority、validation-driven save、打开用户布局目录、切换/重载/关闭脏状态提示，以及默认无吸附、Shift 临时吸附、工具栏持久吸附开关。 |
 | Phase 9A | 已完成文档规格：Designer v3 `.bpui` 布局包标准，见 [bpui-package-v3.md](bpui-package-v3.md)。不实现导入、导出、包管理 UI 或 legacy 转换。 |
 | Phase 9B.0 | 已实现 Canvas Properties GUI、本地 `bpui://local` 资源规范化、`bpui://{PackageId}` resolver、顶部工具栏整理和窗口级 Window Options 基础。`AllowTransparency` 是窗口级选项，不写入 `FrontedCanvasConfig`。 |

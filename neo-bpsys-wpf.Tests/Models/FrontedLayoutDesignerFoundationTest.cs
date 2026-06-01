@@ -1413,13 +1413,106 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void PropertyGridInvalidColorMessageUsesDesignerLocalization()
+    {
+        var localizer = new TestDesignerLocalizationService(
+            designerTexts: new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["Designer.Validation.InvalidArgbColor"] = "颜色格式不正确"
+            });
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Color = "red" }
+        };
+
+        var rows = BuildPropertyRows(CreateDocument([item]), item, localizer);
+        var colorRow = rows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.Color));
+
+        Assert.Contains("颜色格式不正确", colorRow.ValidationErrors);
+        Assert.DoesNotContain("Invalid color. Use #AARRGGBB.", colorRow.ValidationErrors);
+    }
+
+    [Fact]
+    public void PropertyGridReadOnlyBoolDisplayUsesDesignerLocalization()
+    {
+        var localizer = new TestDesignerLocalizationService(
+            designerTexts: new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["Designer.Value.True"] = "是",
+                ["Designer.Value.False"] = "否"
+            });
+        var item = new FrontedControlDesignItem
+        {
+            Name = "SurPick0",
+            Config = new ImageFrontedControlConfig()
+        };
+        var document = CreateDocument([item], "BpWindow");
+
+        var rows = BuildPropertyRows(document, item, localizer);
+        var runtimeCritical = rows.Single(row => row.PropertyName == "RuntimeCritical");
+
+        Assert.Equal(true, runtimeCritical.Value);
+        Assert.Equal("是", runtimeCritical.DisplayValue);
+    }
+
+    [Fact]
+    public void ResourceBrowserLocalizationKeepsRawResourceUriVisible()
+    {
+        var localizer = new TestDesignerLocalizationService(
+            designerTexts: new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["Designer.Editor.Source.BuiltInResources"] = "内置资源",
+                ["Designer.Editor.Type.Image"] = "图片"
+            });
+        var root = CreateTempDirectory();
+        try
+        {
+            var bpui = Path.Combine(root, "bpui");
+            Directory.CreateDirectory(bpui);
+            var imagePath = Path.Combine(bpui, "sample.png");
+            File.WriteAllText(imagePath, "not a real image");
+            var provider = new FrontedResourceBrowserProvider(
+                root,
+                new AllowAllImageSafetyService(),
+                localizer);
+
+            var item = Assert.Single(provider.Search("sample"));
+
+            Assert.Equal("sample.png", item.DisplayName);
+            Assert.Equal("内置资源 / 图片", item.SourceAndTypeDisplayName);
+            Assert.Equal("Resources/sample.png", item.SelectedPath);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
     public void DesignerPropertyGridLocalizationKeysCoverBuiltInConfigPropertiesAndOptions()
     {
         var requiredKeys = new HashSet<string>(StringComparer.Ordinal)
         {
             "Designer.Property.Name",
             "Designer.Property.RuntimeCritical",
-            "Designer.Property.LinkedTargetControlName"
+            "Designer.Property.LinkedTargetControlName",
+            "Designer.Value.True",
+            "Designer.Value.False",
+            "Designer.Editor.Search",
+            "Designer.Editor.Select",
+            "Designer.Editor.Cancel",
+            "Designer.Editor.NoResults",
+            "Designer.Editor.RawPath",
+            "Designer.Editor.RawUri",
+            "Designer.Editor.ExpectedType",
+            "Designer.Editor.BindingBrowser",
+            "Designer.Editor.ResourceBrowser",
+            "Designer.Validation.InvalidArgbColor",
+            "Designer.PropertyGroup.Overlay",
+            "Designer.ControlType.GameProgress",
+            "Designer.ControlType.MapName",
+            "Designer.ControlType.PickingBorderOverlay"
         };
 
         foreach (var type in BuiltInConfigTypes())
@@ -2093,7 +2186,7 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void FrontedDesignerToolbarUsesWrappingAndTrimsLongLayoutPath()
+    public void FrontedDesignerToolbarUsesWrappingAndCopyableLayoutPath()
     {
         var xaml = File.ReadAllText(GetRepositoryPath(
             "neo-bpsys-wpf",
@@ -2105,9 +2198,10 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("MaxHeight=\"120\"", xaml, StringComparison.Ordinal);
         Assert.Contains("<WrapPanel Orientation=\"Horizontal\">", xaml, StringComparison.Ordinal);
         Assert.Contains("MaxWidth=\"260\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("TextTrimming=\"CharacterEllipsis\"", xaml, StringComparison.Ordinal);
         Assert.Contains("ToolTip=\"{Binding LayoutSourcePath}\"", xaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("IsReadOnly=\"True\"\r\n                        Text=\"{Binding LayoutSourcePath}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("<TextBox", xaml, StringComparison.Ordinal);
+        Assert.Contains("IsReadOnly=\"True\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"{Binding LayoutSourcePath}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("<Menu", xaml, StringComparison.Ordinal);
     }
 
@@ -2889,6 +2983,7 @@ public class FrontedLayoutDesignerFoundationTest
         private readonly IReadOnlyDictionary<string, string> _windows;
         private readonly IReadOnlyDictionary<string, string> _canvases;
         private readonly IReadOnlyDictionary<string, string> _bindings;
+        private readonly IReadOnlyDictionary<string, string> _designerTexts;
 
         public TestDesignerLocalizationService(
             IReadOnlyDictionary<string, string>? propertyNames = null,
@@ -2897,7 +2992,8 @@ public class FrontedLayoutDesignerFoundationTest
             IReadOnlyDictionary<string, string>? controlTypes = null,
             IReadOnlyDictionary<string, string>? windows = null,
             IReadOnlyDictionary<string, string>? canvases = null,
-            IReadOnlyDictionary<string, string>? bindings = null)
+            IReadOnlyDictionary<string, string>? bindings = null,
+            IReadOnlyDictionary<string, string>? designerTexts = null)
         {
             _propertyNames = propertyNames ?? new Dictionary<string, string>();
             _groupNames = groupNames ?? new Dictionary<string, string>();
@@ -2906,6 +3002,7 @@ public class FrontedLayoutDesignerFoundationTest
             _windows = windows ?? new Dictionary<string, string>();
             _canvases = canvases ?? new Dictionary<string, string>();
             _bindings = bindings ?? new Dictionary<string, string>();
+            _designerTexts = designerTexts ?? new Dictionary<string, string>();
         }
 
         public override string GetPropertyDisplayName(string propertyName) =>
@@ -2933,6 +3030,25 @@ public class FrontedLayoutDesignerFoundationTest
             fullPath is not null && _bindings.TryGetValue(fullPath, out var displayName)
                 ? displayName
                 : pathOrPropertyName;
+
+        public override string GetDesignerText(string key, string fallback) =>
+            _designerTexts.GetValueOrDefault(key, fallback);
+    }
+
+    private sealed class AllowAllImageSafetyService : IFrontedImageSafetyService
+    {
+        public FrontedImageValidationResult ValidateFile(
+            string path,
+            FrontedImagePurpose purpose,
+            bool knownBackgroundImage = false,
+            bool knownUiImage = false) =>
+            new()
+            {
+                IsValid = true,
+                FileBytes = File.Exists(path) ? new FileInfo(path).Length : 0,
+                PixelWidth = 1,
+                PixelHeight = 1
+            };
     }
 
     private static IEnumerable<FrontedBindingTreeNode> FlattenBindingTree(

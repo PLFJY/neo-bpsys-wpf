@@ -46,6 +46,12 @@ public class LegacyScorePathCleanupTest
         Assert.DoesNotContain("GlobalScoreControlsReg", source, StringComparison.Ordinal);
         Assert.DoesNotContain("AddScoreGlobalControlToCanvas", source, StringComparison.Ordinal);
         Assert.DoesNotContain("RegisterScoreGlobalControl", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("RestoreInitialPositions", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("SaveWindowElementsPosition", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("AttachWindowSizeHandlers", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("_externalControlDefaultPosition", source, StringComparison.Ordinal);
+        Assert.Contains("GetInjectedControl", source, StringComparison.Ordinal);
+        Assert.Contains("InjectControl", source, StringComparison.Ordinal);
         Assert.Contains("Compatibility adapter", source, StringComparison.Ordinal);
         Assert.Contains("CurrentGame.MatchScore", source, StringComparison.Ordinal);
     }

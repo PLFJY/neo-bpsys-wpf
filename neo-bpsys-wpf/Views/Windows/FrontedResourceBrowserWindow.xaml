@@ -7,7 +7,7 @@
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:limits="clr-namespace:neo_bpsys_wpf.Core.Services.FrontedLayout;assembly=neo-bpsys-wpf.Core"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
-    Title="{lex:Loc ResourceBrowser}"
+    Title="{lex:Loc Designer.Editor.ResourceBrowser}"
     Width="760"
     Height="620"
     MinWidth="560"
@@ -50,7 +50,7 @@
             <ui:TextBox
                 Grid.Column="0"
                 MaxLength="{x:Static limits:FrontedLayoutLimits.MaxSearchTextLength}"
-                PlaceholderText="{lex:Loc SearchResources}"
+                PlaceholderText="{lex:Loc Designer.Editor.Search}"
                 Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             <ui:Button
                 Grid.Column="1"
@@ -96,7 +96,7 @@
                                 <TextBlock
                                     Grid.Row="2"
                                     Opacity="0.7"
-                                    Text="{Binding SelectedPath}"
+                                    Text="{Binding SourceAndTypeDisplayName}"
                                     TextTrimming="CharacterEllipsis" />
                             </Grid>
                         </Border>
@@ -107,7 +107,7 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Opacity="0.65"
-                Text="{lex:Loc NoResourceResults}">
+                Text="{lex:Loc Designer.Editor.NoResults}">
                 <TextBlock.Style>
                     <Style TargetType="TextBlock">
                         <Setter Property="Visibility" Value="Collapsed" />
@@ -121,7 +121,7 @@
             </TextBlock>
         </Grid>
         <StackPanel Grid.Row="3" Margin="12,0,12,12">
-            <TextBlock FontWeight="SemiBold" Text="{lex:Loc SelectedPath}" />
+            <TextBlock FontWeight="SemiBold" Text="{lex:Loc Designer.Editor.RawUri}" />
             <ui:TextBox
                 Margin="0,6,0,0"
                 IsReadOnly="True"
@@ -142,12 +142,12 @@
             <ui:Button
                 MinWidth="96"
                 Click="UseSelected_OnClick"
-                Content="{lex:Loc UseSelected}" />
+                Content="{lex:Loc Designer.Editor.Select}" />
             <ui:Button
                 MinWidth="96"
                 Margin="8,0,0,0"
                 Click="Cancel_OnClick"
-                Content="{lex:Loc Cancel}" />
+                Content="{lex:Loc Designer.Editor.Cancel}" />
         </StackPanel>
     </Grid>
 </ui:FluentWindow>

@@ -2626,4 +2626,23 @@
   <data name="Designer.BindingType.Int32" xml:space="preserve"><value>数値</value></data>
   <data name="Designer.BindingType.ImageSource" xml:space="preserve"><value>画像ソース</value></data>
   <data name="Designer.BindingType.GameProgress" xml:space="preserve"><value>ゲーム進行</value></data>
+  <data name="Designer.Value.True" xml:space="preserve"><value>はい</value></data>
+  <data name="Designer.Value.False" xml:space="preserve"><value>いいえ</value></data>
+  <data name="Designer.Editor.Search" xml:space="preserve"><value>検索</value></data>
+  <data name="Designer.Editor.Select" xml:space="preserve"><value>選択</value></data>
+  <data name="Designer.Editor.Cancel" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="Designer.Editor.NoResults" xml:space="preserve"><value>結果がありません</value></data>
+  <data name="Designer.Editor.RawPath" xml:space="preserve"><value>元のパス</value></data>
+  <data name="Designer.Editor.RawUri" xml:space="preserve"><value>元の URI</value></data>
+  <data name="Designer.Editor.ExpectedType" xml:space="preserve"><value>想定タイプ</value></data>
+  <data name="Designer.Editor.BindingBrowser" xml:space="preserve"><value>バインドブラウザー</value></data>
+  <data name="Designer.Editor.ResourceBrowser" xml:space="preserve"><value>リソースブラウザー</value></data>
+  <data name="Designer.Editor.Source.BuiltInResources" xml:space="preserve"><value>組み込みリソース</value></data>
+  <data name="Designer.Editor.Source.AbsoluteFile" xml:space="preserve"><value>絶対パスファイル</value></data>
+  <data name="Designer.Editor.Type.Image" xml:space="preserve"><value>画像</value></data>
+  <data name="Designer.Validation.InvalidArgbColor" xml:space="preserve"><value>色が無効です。#AARRGGBB を使用してください。</value></data>
+  <data name="Designer.PropertyGroup.Overlay" xml:space="preserve"><value>オーバーレイ</value></data>
+  <data name="Designer.ControlType.GameProgress" xml:space="preserve"><value>ゲーム進行</value></data>
+  <data name="Designer.ControlType.MapName" xml:space="preserve"><value>マップ名</value></data>
+  <data name="Designer.ControlType.PickingBorderOverlay" xml:space="preserve"><value>選択枠オーバーレイ</value></data>
 </root>

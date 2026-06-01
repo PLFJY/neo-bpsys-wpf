@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using System.IO;
 using System.Windows.Media;
@@ -22,6 +23,7 @@ public sealed class FrontedResourceBrowserProvider
 
     private readonly string _resourcesRoot;
     private readonly IFrontedImageSafetyService _imageSafetyService;
+    private readonly IFrontedDesignerLocalizationService _localizationService;
 
     public FrontedResourceBrowserProvider()
         : this(AppConstants.ResourcesPath)
@@ -38,10 +40,26 @@ public sealed class FrontedResourceBrowserProvider
     {
     }
 
+    public FrontedResourceBrowserProvider(
+        IFrontedImageSafetyService imageSafetyService,
+        IFrontedDesignerLocalizationService localizationService)
+        : this(AppConstants.ResourcesPath, imageSafetyService, localizationService)
+    {
+    }
+
     public FrontedResourceBrowserProvider(string resourcesRoot, IFrontedImageSafetyService imageSafetyService)
+        : this(resourcesRoot, imageSafetyService, new FrontedDesignerLocalizationService())
+    {
+    }
+
+    public FrontedResourceBrowserProvider(
+        string resourcesRoot,
+        IFrontedImageSafetyService imageSafetyService,
+        IFrontedDesignerLocalizationService localizationService)
     {
         _resourcesRoot = resourcesRoot;
         _imageSafetyService = imageSafetyService;
+        _localizationService = localizationService;
     }
 
     public IReadOnlyList<FrontedResourceBrowserItem> ListBuiltInResources()
@@ -61,6 +79,10 @@ public sealed class FrontedResourceBrowserProvider
                 SelectedPath = $"Resources/{Path.GetFileName(path)}",
                 FilePath = path,
                 Category = "BuiltInResources",
+                SourceDisplayName = _localizationService.GetDesignerText(
+                    "Designer.Editor.Source.BuiltInResources",
+                    "Built-in resources"),
+                TypeDisplayName = _localizationService.GetDesignerText("Designer.Editor.Type.Image", "Image"),
                 Thumbnail = LoadThumbnail(path, _imageSafetyService)
             })
             .ToArray();
@@ -89,6 +111,10 @@ public sealed class FrontedResourceBrowserProvider
             SelectedPath = path,
             FilePath = path,
             Category = "AbsoluteFile",
+            SourceDisplayName = _localizationService.GetDesignerText(
+                "Designer.Editor.Source.AbsoluteFile",
+                "Absolute file"),
+            TypeDisplayName = _localizationService.GetDesignerText("Designer.Editor.Type.Image", "Image"),
             Thumbnail = LoadThumbnail(path, _imageSafetyService),
             IsAbsoluteFile = true
         };

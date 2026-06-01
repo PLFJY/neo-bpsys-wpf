@@ -3139,4 +3139,61 @@
   <data name="Designer.BindingType.GameProgress" xml:space="preserve">
     <value>对局进度</value>
   </data>
+  <data name="Designer.Value.True" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="Designer.Value.False" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="Designer.Editor.Search" xml:space="preserve">
+    <value>搜索</value>
+  </data>
+  <data name="Designer.Editor.Select" xml:space="preserve">
+    <value>选择</value>
+  </data>
+  <data name="Designer.Editor.Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Designer.Editor.NoResults" xml:space="preserve">
+    <value>没有结果</value>
+  </data>
+  <data name="Designer.Editor.RawPath" xml:space="preserve">
+    <value>原始路径</value>
+  </data>
+  <data name="Designer.Editor.RawUri" xml:space="preserve">
+    <value>原始 URI</value>
+  </data>
+  <data name="Designer.Editor.ExpectedType" xml:space="preserve">
+    <value>期望类型</value>
+  </data>
+  <data name="Designer.Editor.BindingBrowser" xml:space="preserve">
+    <value>绑定浏览器</value>
+  </data>
+  <data name="Designer.Editor.ResourceBrowser" xml:space="preserve">
+    <value>资源浏览器</value>
+  </data>
+  <data name="Designer.Editor.Source.BuiltInResources" xml:space="preserve">
+    <value>内置资源</value>
+  </data>
+  <data name="Designer.Editor.Source.AbsoluteFile" xml:space="preserve">
+    <value>绝对路径文件</value>
+  </data>
+  <data name="Designer.Editor.Type.Image" xml:space="preserve">
+    <value>图片</value>
+  </data>
+  <data name="Designer.Validation.InvalidArgbColor" xml:space="preserve">
+    <value>颜色无效。请使用 #AARRGGBB。</value>
+  </data>
+  <data name="Designer.PropertyGroup.Overlay" xml:space="preserve">
+    <value>覆盖层</value>
+  </data>
+  <data name="Designer.ControlType.GameProgress" xml:space="preserve">
+    <value>对局进度</value>
+  </data>
+  <data name="Designer.ControlType.MapName" xml:space="preserve">
+    <value>地图名称</value>
+  </data>
+  <data name="Designer.ControlType.PickingBorderOverlay" xml:space="preserve">
+    <value>选择边框覆盖层</value>
+  </data>
 </root>

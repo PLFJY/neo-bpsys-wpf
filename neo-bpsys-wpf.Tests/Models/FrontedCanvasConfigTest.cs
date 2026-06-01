@@ -651,7 +651,7 @@ public class FrontedCanvasConfigTest
             Assert.True(pick.ClipToBounds);
             Assert.Equal("Center", pick.HorizontalAlignment);
             Assert.Equal("Top", pick.VerticalAlignment);
-            Assert.Null(pick.ImageWidth);
+            Assert.Equal(556.5, pick.ImageWidth);
             Assert.Null(pick.ImageHeight);
         }
 

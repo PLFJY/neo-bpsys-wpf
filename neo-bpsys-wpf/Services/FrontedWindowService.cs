@@ -10,7 +10,6 @@ using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ViewModels.Windows;
 using neo_bpsys_wpf.Views.Windows;
 using System.IO;
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -40,14 +39,7 @@ public class FrontedWindowService : IFrontedWindowService
     /// </summary>
     public List<(string, string)> FrontedCanvas { get; private set; } = []; // 窗口ID, 画布名称
 
-    /// <summary>
-    /// 外部控件默认位置列表
-    /// </summary>
-    private readonly Dictionary<FrameworkElement, ElementInfo> _externalControlDefaultPosition = [];
-
-    private readonly ISettingsHostService _settingsHostService;
     private readonly ILogger<FrontedWindowService> _logger;
-    private Settings? _windowSizeSettings;
 
     public FrontedWindowService(
         BpWindow bpWindow,
@@ -62,7 +54,6 @@ public class FrontedWindowService : IFrontedWindowService
         ILogger<FrontedWindowService> logger
     )
     {
-        _settingsHostService = settingsHostService;
         _logger = logger;
         if (!Directory.Exists(AppConstants.AppDataPath)) Directory.CreateDirectory(AppConstants.AppDataPath);
 
@@ -140,92 +131,6 @@ public class FrontedWindowService : IFrontedWindowService
         return control;
     }
 
-    //private void AttachWindowSizeHandlers(Settings settings)
-    //{
-    //    if (_windowSizeSettings != null)
-    //    {
-    //        _windowSizeSettings.BpWindowSettings.PropertyChanged -= OnBpWindowSettingsChanged;
-    //        _windowSizeSettings.CutSceneWindowSettings.PropertyChanged -= OnCutSceneWindowSettingsChanged;
-    //        _windowSizeSettings.GameDataWindowSettings.PropertyChanged -= OnGameDataWindowSettingsChanged;
-    //        _windowSizeSettings.WidgetsWindowSettings.PropertyChanged -= OnWidgetsWindowSettingsChanged;
-    //        _windowSizeSettings.ScoreWindowSettings.PropertyChanged -= OnScoreWindowSettingsChanged;
-    //    }
-
-    //    _windowSizeSettings = settings;
-    //    settings.BpWindowSettings.PropertyChanged += OnBpWindowSettingsChanged;
-    //    settings.CutSceneWindowSettings.PropertyChanged += OnCutSceneWindowSettingsChanged;
-    //    settings.GameDataWindowSettings.PropertyChanged += OnGameDataWindowSettingsChanged;
-    //    settings.WidgetsWindowSettings.PropertyChanged += OnWidgetsWindowSettingsChanged;
-    //    settings.ScoreWindowSettings.PropertyChanged += OnScoreWindowSettingsChanged;
-
-    //    ApplyWindowSizes(settings);
-    //}
-
-    //private void ApplyWindowSizes(Settings settings)
-    //{
-    //    UpdateWindowSize(FrontedWindowType.BpWindow, settings.BpWindowSettings.WindowSize);
-    //    UpdateWindowSize(FrontedWindowType.CutSceneWindow, settings.CutSceneWindowSettings.WindowSize);
-    //    UpdateWindowSize(FrontedWindowType.GameDataWindow, settings.GameDataWindowSettings.WindowSize);
-    //    UpdateWindowSize(FrontedWindowType.WidgetsWindow, settings.WidgetsWindowSettings.WindowSize);
-    //    UpdateWindowSize(FrontedWindowType.ScoreGlobalWindow, settings.ScoreWindowSettings.ScoreGlobalWindowSize);
-    //    UpdateWindowSize(FrontedWindowType.ScoreSurWindow, settings.ScoreWindowSettings.ScoreInGameWindowSize);
-    //    UpdateWindowSize(FrontedWindowType.ScoreHunWindow, settings.ScoreWindowSettings.ScoreInGameWindowSize);
-    //}
-
-    //private void OnBpWindowSettingsChanged(object? sender, PropertyChangedEventArgs e)
-    //{
-    //    if (e.PropertyName == nameof(BpWindowSettings.WindowSize))
-    //        UpdateWindowSize(FrontedWindowType.BpWindow, _settingsHostService.Settings.BpWindowSettings.WindowSize);
-    //}
-
-    //private void OnCutSceneWindowSettingsChanged(object? sender, PropertyChangedEventArgs e)
-    //{
-    //    if (e.PropertyName == nameof(CutSceneWindowSettings.WindowSize))
-    //        UpdateWindowSize(FrontedWindowType.CutSceneWindow, _settingsHostService.Settings.CutSceneWindowSettings.WindowSize);
-    //}
-
-    //private void OnGameDataWindowSettingsChanged(object? sender, PropertyChangedEventArgs e)
-    //{
-    //    if (e.PropertyName == nameof(GameDataWindowSettings.WindowSize))
-    //        UpdateWindowSize(FrontedWindowType.GameDataWindow, _settingsHostService.Settings.GameDataWindowSettings.WindowSize);
-    //}
-
-    //private void OnWidgetsWindowSettingsChanged(object? sender, PropertyChangedEventArgs e)
-    //{
-    //    if (e.PropertyName == nameof(WidgetsWindowSettings.WindowSize))
-    //        UpdateWindowSize(FrontedWindowType.WidgetsWindow, _settingsHostService.Settings.WidgetsWindowSettings.WindowSize);
-    //}
-
-    //private void OnScoreWindowSettingsChanged(object? sender, PropertyChangedEventArgs e)
-    //{
-    //    if (e.PropertyName == nameof(ScoreWindowSettings.ScoreInGameWindowSize))
-    //    {
-    //        var size = _settingsHostService.Settings.ScoreWindowSettings.ScoreInGameWindowSize;
-    //        UpdateWindowSize(FrontedWindowType.ScoreSurWindow, size);
-    //        UpdateWindowSize(FrontedWindowType.ScoreHunWindow, size);
-    //    }
-
-    //    if (e.PropertyName == nameof(ScoreWindowSettings.ScoreGlobalWindowSize))
-    //        UpdateWindowSize(FrontedWindowType.ScoreGlobalWindow, _settingsHostService.Settings.ScoreWindowSettings.ScoreGlobalWindowSize);
-    //}
-
-    //private void UpdateWindowSize(FrontedWindowType windowType, Size size)
-    //{
-    //    if (!FrontedWindows.TryGetValue(GetFrontedWindowGuid(windowType), out var window))
-    //        return;
-
-    //    void ApplySize()
-    //    {
-    //        window.Width = size.Width;
-    //        window.Height = size.Height;
-    //    }
-
-    //    if (window.Dispatcher.CheckAccess())
-    //        ApplySize();
-    //    else
-    //        window.Dispatcher.Invoke(ApplySize);
-    //}
-
     /// <summary>
     /// 注入控件
     /// </summary>
@@ -246,7 +151,6 @@ public class FrontedWindowService : IFrontedWindowService
                 Canvas.SetTop(control, (double)defaultInfo.Top);
             if (defaultInfo.Left != null)
                 Canvas.SetLeft(control, (double)defaultInfo.Left);
-            _externalControlDefaultPosition[control] = defaultInfo;
 
             canvas?.Children.Add(control);
         }

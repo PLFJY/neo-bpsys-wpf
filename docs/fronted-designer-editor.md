@@ -292,7 +292,7 @@ Phase 8D owner validation 后的选择规则：
 2. `BorderedImage` 是外层 `Border` + 内层 `Image`，Property Grid 把外框和内部图片属性分组显示；`Width` / `Height` 是外框尺寸，`ImageWidth` / `ImageHeight` 是内层图片尺寸。
 3. 选中 `BorderedImage` 时，Property Grid 顶部提供互斥的 resize target 切换。`Border` 模式下 thumbs 调整外层 `Border`，`Image` 模式下 thumbs 调整内层 `ImageWidth` / `ImageHeight`；`Stretch`、`HorizontalAlignment`、`VerticalAlignment` 仍作用于内层 `Image`。
 4. `BorderedImage` 的运行时树保持旧 XAML 的 `Border -> Image` 语义，不插入中间 layout host；未配置 `ImageWidth` / `ImageHeight` 时，内层图片继续由 WPF 的 `Image` 测量和 `Stretch` 规则决定尺寸。
-5. MapV1 的 `PickedMap` / `BannedMap` 使用 direct `Image`，保持旧 XAML `ui:Image` 的填充与裁剪行为；CutScene 的 Map、SurPick0-3、HunPick 来自 `v2.1.1+af0a4be` 旧 XAML 的 `Border -> Image`，因此使用 `BorderedImage`。
+5. MapV1 的 `PickedMap` / `BannedMap` 使用 direct `Image`，保持旧 XAML `ui:Image` 的填充与裁剪行为；CutScene 的 Map、SurPick0-3、HunPick 来自 `v2.1.1+af0a4be` 旧 XAML 的 `Border -> Image`，因此使用 `BorderedImage`。SurPick0-3 显式保留 `ImageWidth=556.5`、`ImageHeight=null`，不要把该内层宽度按无效属性清理。
 
 Phase 8D 视口导航修正后：
 
@@ -467,9 +467,11 @@ Phase 8F owner validation 后，文本类属性使用显式提交模型。`Name`
 
 Phase 8G 起，`BindingPath` 仍是可手写文本框，但旁边新增 Browse button。Binding Browser 使用 curated `ISharedDataService` 树，包含 `CurrentGame`、队伍、固定索引的 `SurPlayerList[0..3]`、`HunPlayer`、`MatchScore`、当前/全局 Ban 列表和倒计时等常用路径；搜索可按显示名或完整绑定路径过滤。Binding Browser 现在按当前属性行的目标类型过滤候选路径：`Text` / `LocalizedText` 只显示字符串和数字，`Image` 只显示 `ImageSource` / `BitmapSource` / `BitmapImage` 兼容值，`GameProgressText.BindingPath` 只显示 `GameProgress`，`MapNameText.BindingPath` 只显示 `Map` / `Map?`。不匹配的叶子节点会从树和搜索结果中隐藏，父节点只在仍有可用子节点时保留。选择结果只更新该行 `EditText`，不会立即写入 config，不会调用真实 `ISharedDataService`，也不会推入 Undo；用户后续按 Apply 或 Enter 后才走 `ApplyPropertyEdit`、校验、预览刷新和 Undo snapshot。
 
-Phase 12 起，Binding Browser 的节点显示名和期望类型名可以本地化，但完整 `BindingPath` 始终作为原始路径在树、搜索结果或选中路径区域可见。选择后写回的仍是 `CurrentGame.SurTeam.Name` 这类原始路径，绝不写入“主队名称”等显示文本。
+Phase 12/12B 起，Binding Browser 的标题、搜索、按钮、空状态、期望类型和节点显示名可以本地化，但完整 `BindingPath` 始终作为原始路径在树、搜索结果或选中路径区域可见。选择后写回的仍是 `CurrentGame.SurTeam.Name` 这类原始路径，绝不写入“主队名称”等显示文本。
 
 Phase 8G 起，图片/资源路径字段旁新增 Resource Browser。当前资源来源包括内置运行时文件 `Resources/bpui`，返回值使用 resolver 约定的 `Resources/<fileName>`；也支持通过 “Browse file...” 选择 png/jpg/jpeg/webp/bmp 绝对路径。控件级 Resource Browser 选择外部文件仍只写入编辑缓冲。Phase 9B.0 已在 Canvas Properties 中提供 `CanvasWidth`、`CanvasHeight`、`BackgroundImage`、清除背景、浏览资源和选择本地图片；选择本地图片会复制到 editor-local resource store，layout JSON 写为 `bpui://local/...`。导出包时再复制进包资源并重写为 `bpui://{PackageId}/...`。
+
+Phase 12B 起，Resource Browser 的标题、搜索、按钮、空状态和来源/类型显示可本地化，但选中区域必须保留原始资源 URI 或文件路径。写回配置的仍是 `Resources/foo.png`、`bpui://...` 或绝对路径原值，不写入本地化显示文本。
 
 `FontFamily` 行仍使用可编辑 ComboBox，但不再依赖 `SelectedValue` 双向绑定。下拉打开期间不会触发 LostFocus 提交或重建 Property Grid；用户从下拉中选择时写入对应 `FrontedFontFamilyOption.Value`，因此内置字体继续保存 `pack://application:,,,/Assets/Fonts/#...` 原值；用户手写自定义字体时按 Enter 或真正失焦提交 `ComboBox.Text`。下拉项继续使用各自的 `PreviewFontFamily` 显示，保持旧 `TextSettingsEditControl` 的字体预览语义。
 
@@ -673,7 +675,7 @@ Phase 10 起，编辑器 typed/pasted input 会按集中限制截断：搜索 12
 | Phase 9B.1: FrontManagePage Layout Package Manager UI skeleton | 已实现：`FrontManagePage` 的 `Frontend Windows` / `Layout Packages` 顶层 tabs、Layout Packages tab skeleton、布局包枚举服务基础、活动包状态读取/写入骨架，以及设计器工具栏/菜单重复项清理；独立编辑器入口保留在 `Frontend Windows` 页，不单独占用 tab。 |
 | Phase 9C: v3 package export | 已实现：Layout Package Manager 紧凑 UI、导出 manifest 对话框、All Frontend Layouts 导出、manifest 生成、layout/window options 打包、资源复制和 URI 重写。 |
 | Phase 9D: v3 package import/activation/delete | 已实现：v3 `.bpui` 导入安装、重复包替换确认、激活复制到用户布局目录、切回内置、删除普通包和删除活动包时先切回内置。legacy 转换仍是后续阶段。 |
-| Phase 12: Designer v3 i18n display layer | 已实现：通过 `IFrontedDesignerLocalizationService` 本地化编辑器显示层；Property Grid 的 `PropertyName`、`GroupName`、`ControlType`、`BindingPath`、资源 URI、`FontFamily` 和控件 `Name` 保存值保持原始契约值。 |
+| Phase 12: Designer v3 i18n display layer | 已实现：通过 `IFrontedDesignerLocalizationService` 本地化编辑器显示层；Property Grid 的只读布尔值和颜色校验提示、Binding Browser / Resource Browser 文案也走 Designer i18n。`PropertyName`、`GroupName`、`ControlType`、`BindingPath`、资源 URI、`FontFamily` 和控件 `Name` 保存值保持原始契约值。 |
 
 ## 17. 非目标
 

@@ -40,5 +40,8 @@ public class FrontedDesignerLocalizationService : IFrontedDesignerLocalizationSe
     public virtual string GetBindingTypeDisplayName(string typeName) =>
         GetLocalizedOrFallback($"Designer.BindingType.{typeName}", typeName);
 
+    public virtual string GetDesignerText(string key, string fallback) =>
+        GetLocalizedOrFallback(key, fallback);
+
     protected virtual string GetLocalizedOrFallback(string key, string fallback) => fallback;
 }

@@ -22,4 +22,6 @@ public interface IFrontedDesignerLocalizationService
     string GetBindingNodeDisplayName(string pathOrPropertyName, string? fullPath = null);
 
     string GetBindingTypeDisplayName(string typeName);
+
+    string GetDesignerText(string key, string fallback);
 }

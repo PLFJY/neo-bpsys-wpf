@@ -3121,4 +3121,61 @@
   <data name="Designer.BindingType.GameProgress" xml:space="preserve">
     <value>Game Progress</value>
   </data>
+  <data name="Designer.Value.True" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Designer.Value.False" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Designer.Editor.Search" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Designer.Editor.Select" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="Designer.Editor.Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Designer.Editor.NoResults" xml:space="preserve">
+    <value>No results</value>
+  </data>
+  <data name="Designer.Editor.RawPath" xml:space="preserve">
+    <value>Raw path</value>
+  </data>
+  <data name="Designer.Editor.RawUri" xml:space="preserve">
+    <value>Raw URI</value>
+  </data>
+  <data name="Designer.Editor.ExpectedType" xml:space="preserve">
+    <value>Expected type</value>
+  </data>
+  <data name="Designer.Editor.BindingBrowser" xml:space="preserve">
+    <value>Binding Browser</value>
+  </data>
+  <data name="Designer.Editor.ResourceBrowser" xml:space="preserve">
+    <value>Resource Browser</value>
+  </data>
+  <data name="Designer.Editor.Source.BuiltInResources" xml:space="preserve">
+    <value>Built-in resources</value>
+  </data>
+  <data name="Designer.Editor.Source.AbsoluteFile" xml:space="preserve">
+    <value>Absolute file</value>
+  </data>
+  <data name="Designer.Editor.Type.Image" xml:space="preserve">
+    <value>Image</value>
+  </data>
+  <data name="Designer.Validation.InvalidArgbColor" xml:space="preserve">
+    <value>Invalid color. Use #AARRGGBB.</value>
+  </data>
+  <data name="Designer.PropertyGroup.Overlay" xml:space="preserve">
+    <value>Overlay</value>
+  </data>
+  <data name="Designer.ControlType.GameProgress" xml:space="preserve">
+    <value>Game Progress</value>
+  </data>
+  <data name="Designer.ControlType.MapName" xml:space="preserve">
+    <value>Map Name</value>
+  </data>
+  <data name="Designer.ControlType.PickingBorderOverlay" xml:space="preserve">
+    <value>Picking Border Overlay</value>
+  </data>
 </root>
