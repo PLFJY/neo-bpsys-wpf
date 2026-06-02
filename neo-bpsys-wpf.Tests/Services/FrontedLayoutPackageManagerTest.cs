@@ -506,6 +506,8 @@ public class FrontedLayoutPackageManagerTest
             Assert.True(File.Exists(result.ConvertedPackagePath));
             Assert.Equal(1, result.LayoutCount);
             Assert.Equal(1, result.ResourceCount);
+            Assert.Contains(result.Infos, info => info.Contains("Legacy resource copied", StringComparison.Ordinal));
+            Assert.DoesNotContain(result.Warnings, warning => warning.Contains("Legacy resource copied", StringComparison.Ordinal));
             Assert.Contains(result.Warnings, warning => warning.Contains("Unknown legacy layout file", StringComparison.OrdinalIgnoreCase));
 
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
@@ -539,6 +541,69 @@ public class FrontedLayoutPackageManagerTest
             Assert.Equal(22, control.Top);
             Assert.Equal(33, control.Width);
             Assert.Equal(44, control.Height);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task LegacyConverterMapsScoreGlobalAliasesAndAggregatesCells()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            WriteBuiltInScoreGlobalLayoutForLegacyConversion(builtInRoot);
+            var legacyArchive = Path.Combine(root, "legacy-score-global.bpui");
+            CreateLegacyScoreGlobalBpuiArchive(legacyArchive);
+            var converter = new FrontedLayoutPackageLegacyConverter(
+                builtInRoot,
+                Path.Combine(root, "temp"));
+
+            var result = await converter.ConvertAsync(new FrontedLayoutPackageLegacyConvertRequest
+            {
+                LegacyPackagePath = legacyArchive,
+                PackageId = "converted.legacy.score-global",
+                Name = "score global"
+            }, TestContext.Current.CancellationToken);
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.Empty(result.Warnings);
+            Assert.Contains(result.Infos, info => info.Contains("Legacy resource copied", StringComparison.Ordinal));
+            Assert.Contains(result.Infos, info => info.Contains("HomeTeamGame*", StringComparison.Ordinal));
+            Assert.Contains(result.Infos, info => info.Contains("AwayTeamGame*", StringComparison.Ordinal));
+
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var layoutJson = ReadZipEntry(archive, "layouts/ScoreGlobalWindow/BaseCanvas.json");
+            var layout = JsonSerializer.Deserialize<neo_bpsys_wpf.Core.Models.FrontedLayout.FrontedCanvasConfig>(layoutJson)!;
+
+            Assert.StartsWith("bpui://converted.legacy.score-global/resources/images/global-", layout.BackgroundImage);
+            var homeName = layout.Controls["HomeTeamName"];
+            Assert.Equal(10, homeName.Left);
+            Assert.Equal(20, homeName.Top);
+            Assert.Equal(30, homeName.Width);
+            Assert.Equal(40, homeName.Height);
+            var homeTotal = layout.Controls["HomeScoreTotal"];
+            Assert.Equal(1300, homeTotal.Left);
+            Assert.Equal(21, homeTotal.Top);
+            var awayName = layout.Controls["AwayTeamName"];
+            Assert.Equal(12, awayName.Left);
+
+            var homeRow = Assert.IsType<neo_bpsys_wpf.Core.Models.FrontedLayout.GlobalScoreRowControlConfig>(
+                layout.Controls["HomeGlobalScoreRow"]);
+            Assert.Equal(180, homeRow.Left);
+            Assert.Equal(90, homeRow.Top);
+            Assert.Equal(90, homeRow.HalfGameGap);
+            Assert.Equal(180, homeRow.MajorGameGap);
+
+            var awayRow = Assert.IsType<neo_bpsys_wpf.Core.Models.FrontedLayout.GlobalScoreRowControlConfig>(
+                layout.Controls["AwayGlobalScoreRow"]);
+            Assert.Equal(180, awayRow.Left);
+            Assert.Equal(150, awayRow.Top);
+            Assert.Equal(90, awayRow.HalfGameGap);
+            Assert.Equal(180, awayRow.MajorGameGap);
         }
         finally
         {
@@ -1133,8 +1198,92 @@ public class FrontedLayoutPackageManagerTest
             WriteZipEntry(
                 archive,
                 "FrontElementsConfig/UnknownWindowConfig-BaseCanvas.json",
-                "{}");
+            "{}");
         }
+    }
+
+    private static void CreateLegacyScoreGlobalBpuiArchive(string archivePath)
+    {
+        if (File.Exists(archivePath))
+        {
+            File.Delete(archivePath);
+        }
+
+        using var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create);
+        WriteZipEntry(
+            archive,
+            "Config.json",
+            """
+            {
+              "ScoreWindowSettings": {
+                "GlobalScoreBgImageUri": "C:\\legacy\\global.png"
+              }
+            }
+            """);
+
+        var resource = archive.CreateEntry("CustomUi/global.png");
+        using (var stream = resource.Open())
+        {
+            stream.Write(TinyPngBytes);
+        }
+
+        WriteZipEntry(
+            archive,
+            "FrontElementsConfig/ScoreGlobalWindowConfig-BaseCanvas.json",
+            """
+            {
+              "MainTeamName": {
+                "Width": 30,
+                "Height": 40,
+                "Left": 10,
+                "Top": 20
+              },
+              "MainScoreTotal": {
+                "Left": 1300,
+                "Top": 21
+              },
+              "AwayTeamName": {
+                "Left": 12,
+                "Top": 150
+              },
+              "AwayScoreTotal": {
+                "Left": 1302,
+                "Top": 151
+              },
+              "HomeTeamGame1FirstHalf": {
+                "Left": 180,
+                "Top": 90
+              },
+              "HomeTeamGame1SecondHalf": {
+                "Left": 270,
+                "Top": 90
+              },
+              "HomeTeamGame2FirstHalf": {
+                "Left": 360,
+                "Top": 90
+              },
+              "HomeTeamGame2SecondHalf": {
+                "Left": 450,
+                "Top": 90
+              },
+              "AwayTeamGame1FirstHalf": {
+                "Left": 180,
+                "Top": 150
+              },
+              "AwayTeamGame1SecondHalf": {
+                "Left": 270,
+                "Top": 150
+              },
+              "AwayTeamGame2FirstHalf": {
+                "Left": 360,
+                "Top": 150
+              },
+              "AwayTeamGame2SecondHalf": {
+                "Left": 450,
+                "Top": 150
+              }
+            }
+            """);
     }
 
     private static void WriteBuiltInLayoutForLegacyConversion(string builtInRoot)
@@ -1156,6 +1305,70 @@ public class FrontedLayoutPackageManagerTest
                 "Width": 3,
                 "Height": 4,
                 "Text": "Team"
+              }
+            }
+            """);
+    }
+
+    private static void WriteBuiltInScoreGlobalLayoutForLegacyConversion(string builtInRoot)
+    {
+        var layoutPath = Path.Combine(builtInRoot, "ScoreGlobalWindow", "BaseCanvas.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(layoutPath)!);
+        File.WriteAllText(
+            layoutPath,
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 195,
+              "BackgroundImage": "Resources/scoreGlobal.png",
+              "HomeTeamName": {
+                "ControlType": "Text",
+                "Left": 1,
+                "Top": 2,
+                "Width": 3,
+                "Height": 4,
+                "BindingPath": "HomeTeam.Name"
+              },
+              "AwayTeamName": {
+                "ControlType": "Text",
+                "Left": 1,
+                "Top": 2,
+                "Width": 3,
+                "Height": 4,
+                "BindingPath": "AwayTeam.Name"
+              },
+              "HomeScoreTotal": {
+                "ControlType": "Text",
+                "Left": 1,
+                "Top": 2,
+                "Width": 3,
+                "Height": 4,
+                "BindingPath": "CurrentGame.MatchScore.HomeTotalMinorScore"
+              },
+              "AwayScoreTotal": {
+                "ControlType": "Text",
+                "Left": 1,
+                "Top": 2,
+                "Width": 3,
+                "Height": 4,
+                "BindingPath": "CurrentGame.MatchScore.AwayTotalMinorScore"
+              },
+              "HomeGlobalScoreRow": {
+                "ControlType": "GlobalScoreRow",
+                "Left": 175,
+                "Top": 93,
+                "TeamType": "HomeTeam",
+                "MajorGameGap": 180,
+                "HalfGameGap": 90
+              },
+              "AwayGlobalScoreRow": {
+                "ControlType": "GlobalScoreRow",
+                "Left": 175,
+                "Top": 150,
+                "TeamType": "AwayTeam",
+                "MajorGameGap": 180,
+                "HalfGameGap": 90
               }
             }
             """);

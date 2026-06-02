@@ -38,7 +38,7 @@
 | `Language` | `System` 或具体语言枚举 |
 | `CultureInfo` | 由 `Language` 推导，JSON 忽略 |
 
-窗口设置包括 `BpWindowSettings`、`CutSceneWindowSettings`、`ScoreWindowSettings`、`GameDataWindowSettings`、`WidgetsWindowSettings`。
+active `Settings.cs` 不再包含旧前台窗口设置。旧 `BpWindowSettings`、`CutSceneWindowSettings`、`ScoreWindowSettings`、`GameDataWindowSettings`、`WidgetsWindowSettings` 只由 legacy DTO 在迁移 / `.bpui` 转换流程读取。
 
 启动加载 `Config.json` 时会先检查 raw JSON root：`Version` 缺失或为 `null` 时按 legacy 配置处理，先备份为 `Config.json.v2.backup` 或带时间戳的同类文件，再写回 `Version = 3`。这个 Phase 1 迁移只更新主设置版本并保留现有字段，不迁移前台布局文件，也不删除旧前台窗口设置。
 
@@ -64,7 +64,7 @@
 | `FontWeight` | 通过自定义 JSON converter 序列化 |
 | `FontSize` | 字号 |
 
-`Foreground` 和 `FontFamily` 是运行时属性，不直接写入 JSON。
+`Foreground` 和 `FontFamily` 是 legacy 兼容属性，不直接写入 JSON。
 
 ## 其他用户数据
 

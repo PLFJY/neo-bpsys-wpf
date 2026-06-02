@@ -4,7 +4,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using TextSettings = neo_bpsys_wpf.Core.Models.TextSettings;
+using TextSettings = neo_bpsys_wpf.Core.Models.Legacy.LegacyTextSettings;
 
 namespace neo_bpsys_wpf.Controls;
 

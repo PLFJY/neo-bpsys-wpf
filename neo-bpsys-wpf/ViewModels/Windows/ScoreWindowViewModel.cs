@@ -1,5 +1,3 @@
-﻿using System.ComponentModel;
-using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -18,12 +16,11 @@ public partial class ScoreWindowViewModel : ViewModelBase
     }
 
     private readonly ISharedDataService _sharedDataService;
-    private readonly ISettingsHostService _settingsHostService;
+    private readonly FrontedWindowRuntimeSettings _settings = new();
 
     public ScoreWindowViewModel(ISharedDataService sharedDataService, ISettingsHostService settingsHostService)
     {
         _sharedDataService = sharedDataService;
-        _settingsHostService = settingsHostService;
         sharedDataService.CurrentGameChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(CurrentGame));
@@ -31,35 +28,16 @@ public partial class ScoreWindowViewModel : ViewModelBase
         sharedDataService.IsBo3ModeChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(IsBo3Mode));
-            OnPropertyChanged(nameof(ScoreGlobalImage));
         };
-        settingsHostService.SettingsChanged += (_, _) => OnPropertyChanged(nameof(Settings));
-        settingsHostService.Settings.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName != nameof(settingsHostService.Settings.ScoreWindowSettings)) return;
-            OnPropertyChanged(nameof(Settings));
-            Settings.PropertyChanged += SettingsOnPropertyChanged;
-        };
-        Settings.PropertyChanged += SettingsOnPropertyChanged;
     }
-
-    private void SettingsOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName is nameof(Settings.GlobalScoreBgImage) or nameof(Settings.GlobalScoreBgImageBo3))
-        {
-            OnPropertyChanged(nameof(ScoreGlobalImage));
-        }
-    }
-
-
-    public ImageSource? ScoreGlobalImage => IsBo3Mode ? Settings.GlobalScoreBgImageBo3 : Settings.GlobalScoreBgImage;
 
     public bool IsBo3Mode => _sharedDataService.IsBo3Mode;
 
     public Game CurrentGame => _sharedDataService.CurrentGame;
 
     public Team HomeTeam => _sharedDataService.HomeTeam;
+
     public Team AwayTeam => _sharedDataService.AwayTeam;
 
-    public ScoreWindowSettings Settings => _settingsHostService.Settings.ScoreWindowSettings;
+    public FrontedWindowRuntimeSettings Settings => _settings;
 }

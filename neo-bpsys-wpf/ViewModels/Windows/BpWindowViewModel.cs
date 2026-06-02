@@ -17,23 +17,16 @@ public partial class BpWindowViewModel : ViewModelBase
     }
 
     private readonly ISharedDataService _sharedDataService;
-    private readonly ISettingsHostService _settingsHostService;
+    private readonly FrontedWindowRuntimeSettings _settings = new();
 
-    public BpWindowSettings Settings => _settingsHostService.Settings.BpWindowSettings;
+    public FrontedWindowRuntimeSettings Settings => _settings;
 
     public BpWindowViewModel(ISharedDataService sharedDataService, ISettingsHostService settingsHostService)
     {
         _sharedDataService = sharedDataService;
-        _settingsHostService = settingsHostService;
         sharedDataService.CurrentGameChanged += (_, _) => OnPropertyChanged(nameof(CurrentGame));
         sharedDataService.IsBo3ModeChanged += (_, e) => OnPropertyChanged(nameof(IsBo3Mode));
         sharedDataService.CountDownValueChanged += (sender, _) => OnPropertyChanged(nameof(RemainingSeconds));
-        settingsHostService.SettingsChanged += (_, _) => OnPropertyChanged(nameof(Settings));
-        settingsHostService.Settings.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == nameof(settingsHostService.Settings.BpWindowSettings))
-                OnPropertyChanged(nameof(Settings));
-        };
     }
 
     public bool IsBo3Mode => _sharedDataService.IsBo3Mode;

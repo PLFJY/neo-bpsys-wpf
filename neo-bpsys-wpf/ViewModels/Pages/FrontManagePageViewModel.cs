@@ -9,6 +9,7 @@ using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models.Plugins;
@@ -275,10 +276,20 @@ public partial class FrontManagePageViewModel : ViewModelBase
                         replaceExisting: true);
                 }
 
-                if (convertResult.Warnings.Count > 0)
+                var technicalDetails = LegacyConversionMessageFormatter.BuildTechnicalDetails(convertResult);
+                if (!string.IsNullOrWhiteSpace(technicalDetails))
+                {
+                    _logger?.LogInformation(
+                        "Legacy layout package conversion details for {PackageId}:{NewLine}{Details}",
+                        packageId,
+                        Environment.NewLine,
+                        technicalDetails);
+                }
+
+                if (LegacyConversionMessageFormatter.HasUserFacingWarnings(convertResult))
                 {
                     await MessageBoxHelper.ShowInfoAsync(
-                        string.Join(Environment.NewLine, convertResult.Warnings.Take(12)),
+                        LegacyConversionMessageFormatter.BuildUserSummary(convertResult),
                         I18nHelper.GetLocalizedString("LegacyPackageConvertWarnings"));
                 }
 

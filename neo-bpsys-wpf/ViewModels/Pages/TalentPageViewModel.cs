@@ -20,12 +20,10 @@ public partial class TalentPageViewModel : ViewModelBase, IRecipient<HighlightMe
     }
 
     private readonly ISharedDataService _sharedDataService;
-    private readonly ISettingsHostService _settingsHostService;
 
     public TalentPageViewModel(ISharedDataService sharedDataService, ISettingsHostService settingsHostService)
     {
         _sharedDataService = sharedDataService;
-        _settingsHostService = settingsHostService;
         sharedDataService.IsTraitVisibleChanged += (_, _) => IsTraitVisible = sharedDataService.IsTraitVisible;
         sharedDataService.CurrentGameChanged += (_, _) =>
         {
@@ -42,8 +40,7 @@ public partial class TalentPageViewModel : ViewModelBase, IRecipient<HighlightMe
         set => SetPropertyWithAction(ref _selectedTrait, value,
             _ =>
             {
-                _sharedDataService.CurrentGame.HunPlayer.Trait = new Trait(_selectedTrait,
-                    _settingsHostService.Settings.CutSceneWindowSettings.IsBlackTalentAndTraitEnable);
+                _sharedDataService.CurrentGame.HunPlayer.Trait = new Trait(_selectedTrait, false);
             });
     }
 

@@ -4,7 +4,6 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
 using System.Collections.ObjectModel;
 using Game = neo_bpsys_wpf.Core.Models.Game;
-using WidgetsWindowSettings = neo_bpsys_wpf.Core.Models.WidgetsWindowSettings;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
@@ -17,20 +16,13 @@ public partial class WidgetsWindowViewModel : ViewModelBase
     }
 
     private readonly ISharedDataService _sharedDataService;
-    private readonly ISettingsHostService _settingsHostService;
+    private readonly FrontedWindowRuntimeSettings _settings = new() { WindowSize = new(1440, 716) };
 
     public WidgetsWindowViewModel(ISharedDataService sharedDataService, ISettingsHostService settingsHostService)
     {
         _sharedDataService = sharedDataService;
-        _settingsHostService = settingsHostService;
         sharedDataService.CurrentGameChanged += (_, _) => OnPropertyChanged(nameof(CurrentGame));
         sharedDataService.IsBo3ModeChanged += (_, _) => OnPropertyChanged(nameof(IsBo3Mode));
-        settingsHostService.SettingsChanged += (_, _) => OnPropertyChanged(nameof(Settings));
-        settingsHostService.Settings.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == nameof(settingsHostService.Settings.WidgetsWindowSettings))
-                OnPropertyChanged(nameof(Settings));
-        };
     }
 
     public bool IsBo3Mode => _sharedDataService.IsBo3Mode;
@@ -39,5 +31,5 @@ public partial class WidgetsWindowViewModel : ViewModelBase
 
     public ObservableCollection<bool> CanCurrentSurBanned => _sharedDataService.CanCurrentSurBannedList;
     public ObservableCollection<bool> CanCurrentHunBanned => _sharedDataService.CanCurrentHunBannedList;
-    public WidgetsWindowSettings Settings => _settingsHostService.Settings.WidgetsWindowSettings;
+    public FrontedWindowRuntimeSettings Settings => _settings;
 }

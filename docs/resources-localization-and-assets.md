@@ -28,7 +28,7 @@
 
 `ImageHelper` 使用 `AppConstants.ResourcesPath` 拼接这些目录，按文件路径加载。新增运行时图片时，应确认文件被放在 `Resources` 下并能复制到输出目录。
 
-CutScene v3 默认布局位于 `Resources/FrontedLayouts/CutSceneWindow/BaseCanvas.json`，背景使用 `Resources/cutScene.png`（解析到运行目录 `Resources/bpui/cutScene.png`）。GameData v3 默认布局位于 `Resources/FrontedLayouts/GameDataWindow/BaseCanvas.json`，背景使用 `Resources/gameData.png`（解析到运行目录 `Resources/bpui/gameData.png`）。WidgetsWindow v3 是多 Canvas 布局，默认文件为 `Resources/FrontedLayouts/WidgetsWindow/MapBpCanvas.json`、`Resources/FrontedLayouts/WidgetsWindow/BpOverViewCanvas.json`、`Resources/FrontedLayouts/WidgetsWindow/MapV2Canvas.json`，背景分别使用 `Resources/mapBp.png`、`Resources/bpOverview.png`、`Resources/mapBpV2.png`。BpWindow v3 默认布局位于 `Resources/FrontedLayouts/BpWindow/BaseCanvas.json`，背景使用 `Resources/bp.png`。内置业务控件复用这些资源目录：`TalentTraitDisplay` 通过 `ImageHelper.GetTalentImageSource` / `GetTraitImageSource` 读取 `Resources/talent` 和 `Resources/trait`，并跟随 `CutSceneWindowSettings.IsBlackTalentAndTraitEnable` 切换黑白图标；`CurrentBanDisplay` 读取角色 `HeaderImageSingleColor` 并使用 WidgetsWindow 设置中的 `CurrentBanLockImage`；`BanSlotDisplay` 读取当前局/全局 Ban 角色 `HeaderImageSingleColor` 并使用 BpWindow 设置中的 `CurrentBanLockImage` / `GlobalBanLockImage`；`PickingBorderOverlay` 使用 BpWindow 设置中的 `PickingBorderImage` 和 `PickingBorderBrush`；`MapV2Display` 复用现有 `MapV2Presenter` 和 Map BP v2 设置。不要在 v3 JSON 中硬编码单个天赋、辅助特质、Ban 锁覆盖层或 Map BP v2 展示控件内部图片路径。
+CutScene v3 默认布局位于 `Resources/FrontedLayouts/CutSceneWindow/BaseCanvas.json`，背景使用 `Resources/cutScene.png`（解析到运行目录 `Resources/bpui/cutScene.png`）。GameData v3 默认布局位于 `Resources/FrontedLayouts/GameDataWindow/BaseCanvas.json`，背景使用 `Resources/gameData.png`（解析到运行目录 `Resources/bpui/gameData.png`）。WidgetsWindow v3 是多 Canvas 布局，默认文件为 `Resources/FrontedLayouts/WidgetsWindow/MapBpCanvas.json`、`Resources/FrontedLayouts/WidgetsWindow/BpOverViewCanvas.json`、`Resources/FrontedLayouts/WidgetsWindow/MapV2Canvas.json`，背景分别使用 `Resources/mapBp.png`、`Resources/bpOverview.png`、`Resources/mapBpV2.png`。BpWindow v3 默认布局位于 `Resources/FrontedLayouts/BpWindow/BaseCanvas.json`，背景使用 `Resources/bp.png`。内置业务控件复用这些资源目录：`TalentTraitDisplay` 通过 `ImageHelper.GetTalentImageSource` / `GetTraitImageSource` 读取 `Resources/talent` 和 `Resources/trait`；`CurrentBanDisplay` / `BanSlotDisplay` 读取角色 `HeaderImageSingleColor`，锁定覆盖层优先使用 v3 控件配置中的 `LockImageSource`，为空时回退内置锁图；`PickingBorderOverlay` 优先使用 v3 控件配置中的 `BorderImagePath` / `FillColor`，为空时回退内置 BP 选择边框图和白色；`MapV2Display` 复用现有 `MapV2Presenter` 并使用 v3 运行时默认样式。旧 Config.json 中可映射的图片会迁移到 v3 layout，旧前台设置不再作为 active Settings 运行时来源。
 
 普通图片展示有两个内置控件类型：`Image` 和 `BorderedImage`。`Image` 是 direct image，`Canvas.Left` / `Canvas.Top` / `Width` / `Height` / `ZIndex` 直接作用于根 `Image`，适合旧 direct XAML Image 行为，例如 `WidgetsWindow/MapBpCanvas.json` 的 `PickedMap` / `BannedMap`。`BorderedImage` 是外层 `Border` + 内层 `Image`，适合需要外层容器裁剪、外框 resize 或内层对齐控制的图片区域，例如角色 pick 图。两者的图片路径解析规则相同：`BindingPath` 绑定到 `ISharedDataService` 上的动态 `ImageSource`，`ImagePath` 保存静态资源图片路径。`BindingPath` 非空时优先使用绑定并忽略 `ImagePath`；`BindingPath` 为空且 `ImagePath` 非空时，运行时按 v3 资源 resolver 加载静态图。
 
@@ -88,7 +88,7 @@ pack://application:,,,/Assets/Fonts/#华康POP1体W5
 pack://application:,,,/Assets/Fonts/#汉仪第五人格体简
 ```
 
-`Settings.TextSettings.FontFamily` 会根据 `FontFamilySite` 创建 `FontFamily`。新增字体时要同时确认：
+legacy `LegacyTextSettings.FontFamily` 会根据 `FontFamilySite` 创建 `FontFamily`，仅供旧 Config.json 迁移和旧工具控件兼容使用。新增字体时要同时确认：
 
 1. `.ttf` 被加入 csproj 的 `Resource Include`。
 2. pack URI 路径正确。

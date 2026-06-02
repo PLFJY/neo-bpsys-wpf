@@ -100,22 +100,10 @@ public partial class App : AppBase
 
         CurrentLifetime = ApplicationLifetime.StartingOnline;
         //添加不同颜色的icon到resources里面
-        Current.Resources["scoreGlobal_surIcon"] = ImageHelper.GetUiImageSource(
-            settingsHostService.Settings.ScoreWindowSettings.IsCampIconBlackVerEnabled
-                ? "surIcon_black"
-                : "surIcon");
-        Current.Resources["scoreGlobal_hunIcon"] = ImageHelper.GetUiImageSource(
-            settingsHostService.Settings.ScoreWindowSettings.IsCampIconBlackVerEnabled
-                ? "hunIcon_black"
-                : "hunIcon");
-        Current.Resources["mapBpV2_surIcon"] = ImageHelper.GetUiImageSource(
-            settingsHostService.Settings.ScoreWindowSettings.IsCampIconBlackVerEnabled
-                ? "surIcon_black"
-                : "surIcon");
-        Current.Resources["mapBpV2_hunIcon"] = ImageHelper.GetUiImageSource(
-            settingsHostService.Settings.ScoreWindowSettings.IsCampIconBlackVerEnabled
-                ? "hunIcon_black"
-                : "hunIcon");
+        Current.Resources["scoreGlobal_surIcon"] = ImageHelper.GetUiImageSource("surIcon");
+        Current.Resources["scoreGlobal_hunIcon"] = ImageHelper.GetUiImageSource("hunIcon");
+        Current.Resources["mapBpV2_surIcon"] = ImageHelper.GetUiImageSource("surIcon");
+        Current.Resources["mapBpV2_hunIcon"] = ImageHelper.GetUiImageSource("hunIcon");
         //设置图标切换跟随主题
         ApplicationThemeManager.Changed += (currentApplicationTheme, _) =>
         {

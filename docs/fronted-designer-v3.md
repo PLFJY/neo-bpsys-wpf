@@ -4,7 +4,7 @@
 
 ## 1. 背景与目标
 
-当前设计者模式历史上是 XAML-first：前台窗口的具体控件直接写在各窗口 XAML 中，运行时再由 `FrontedWindowService` 扫描 Canvas 子元素并保存/恢复每个 Canvas 的 `ElementInfo`。这些旧版文件和 `Config.json` 前台自定义字段现在只作为 legacy 转换、迁移对照或运行时兼容上下文存在；当前运行时和编辑器路径是 Designer v3 + `FrontedLayouts`。SettingPage 旧前台自定义入口已移除，旧版真实窗口设计器也已移除。旧 `.bpui` 包与 `Config.json`、`CustomUi/`、`FrontElementsConfig/` 等历史结构的耦合只由 legacy 转换流程处理。当前 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 和 `BpWindow` 已接入 v3 renderer。
+当前设计者模式历史上是 XAML-first：前台窗口的具体控件直接写在各窗口 XAML 中，运行时再由 `FrontedWindowService` 扫描 Canvas 子元素并保存/恢复每个 Canvas 的 `ElementInfo`。这些旧版文件和 `Config.json` 前台自定义字段现在只作为 legacy 转换、迁移对照存在；当前运行时和编辑器路径是 Designer v3 + `FrontedLayouts`。SettingPage 旧前台自定义入口已移除，旧版真实窗口设计器也已移除。旧 `.bpui` 包与 `Config.json`、`CustomUi/`、`FrontElementsConfig/` 等历史结构的耦合只由 legacy 转换流程处理。当前 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 和 `BpWindow` 已接入 v3 renderer。
 
 v3 目标是转向 JSON/config-driven UI：前台窗口 XAML 最终只保留外层 Canvas，控件由 JSON 配置描述，并由已注册的控件工厂创建。这样可以把布局、素材、控件类型和绑定关系放到可迁移、可导入导出的结构中，也为独立编辑窗口、插件扩展控件和新版 `.bpui` 包打基础。
 
@@ -203,8 +203,8 @@ Phase 12B 审计后，direct `Image` 的 Property Grid 不显示 `ImageWidth` / 
 | `GameProgressText` | `CurrentGame.GameProgress` + `IsBo3Mode` 的显示文本，显式区分 BO3 第三局加赛与 BO5 第四局；`UseLineBreak = true` 时把 Game / Overtime 和 half 分为两行，当前用于 `WidgetsWindow/BpOverViewCanvas.json`。 |
 | `MapNameText` | 地图 key 到本地化显示名的转换；未配置 `BindingPath` 时默认读取 `CurrentGame.PickedMap`，`WidgetsWindow/MapBpCanvas.json` 用 `BindingPath` 分别显示 picked / banned map。 |
 | `CurrentBanDisplay` | 读取 `CurrentGame.CurrentHunBannedList` / `CurrentGame.CurrentSurBannedList` 和 `CanCurrent*BannedList`，显示当前 Ban 头像及 Widgets 设置中的当前 Ban 锁图。 |
-| `BanSlotDisplay` | 读取 `CurrentGame` 的当前局或全局 Ban 列表，并按 `CanCurrent*BannedList` / `CanGlobal*BannedList` 显示 `BpWindowSettings.CurrentBanLockImage` 或 `GlobalBanLockImage`。 |
-| `PickingBorderOverlay` | 使用 `BpWindowSettings.PickingBorderBrush` 和 `PickingBorderImage` 生成独立覆盖层，默认隐藏，供 `AnimationService` 控制呼吸动画。 |
+| `BanSlotDisplay` | 读取 `CurrentGame` 的当前局或全局 Ban 列表，并按 `CanCurrent*BannedList` / `CanGlobal*BannedList` 显示控件配置 `LockImageSource` 或内置默认锁图。 |
+| `PickingBorderOverlay` | 使用控件配置 `FillColor` 和 `BorderImagePath` 生成独立覆盖层，默认隐藏，供 `AnimationService` 控制呼吸动画；为空时回退内置默认样式。 |
 | `MapV2Display` | 通过 `MapKey` 读取 `CurrentGame.MapV2Dictionary`，复用 `MapV2Presenter` 并使用 WidgetsWindow 当前 Map BP v2 文本和 picking border 设置。 |
 
 维护 CutScene 默认布局时，不应把四个天赋图标拆成四个普通 `Image` 控件，也不应在 JSON 中复制 BO3/BO5 文本判断；应继续使用这些内置业务控件。维护 GameData 默认布局时，地图名和对局进度也应继续使用 `MapNameText` / `GameProgressText`，表头应使用 `LocalizedText`。维护 Widgets 默认布局时，当前 Ban 槽位应使用 `CurrentBanDisplay`，Map BP v2 九宫位应使用 `MapV2Display`，`BpOverViewCanvas` 比分文本读取 `CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText` / `CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText`，不再读取 `Team.Score.GameScores`。维护 BpWindow 默认布局时，当前局和全局 Ban 槽位应使用 `BanSlotDisplay`，pick 呼吸边框应使用独立的 `PickingBorderOverlay`，比分文本读取 `CurrentGame.MatchScore` 派生字段，不再读取旧 `Team.Score`。CutScene、GameData 和 BpWindow 大比分文本读取 `CurrentGame.MatchScore.CurrentSurTeamMajorText` / `CurrentGame.MatchScore.CurrentHunTeamMajorText`，不再读取旧 `Team.Score.MajorPointsOnFront`。
@@ -388,7 +388,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 ```
 
 转换服务负责理解旧 `Config.json`、`CustomUi/` 和 `FrontElementsConfig/` 的历史关系，并产出 v3 Canvas 布局与包元数据。
-当前转换策略是保守迁移：每个目标布局先加载当前内置 v3 layout，再只复制旧 `ElementInfo` 中同名控件的 `Left`、`Top`、`Width`、`Height`。旧 `CustomUi/` 图片复制到包内 `resources/images/` 并生成 `bpui://{PackageId}/...` URI；旧 `Config.json` 只读取明确的前台图片字段用于背景等安全映射，不覆盖全局设置。无法识别的旧文件或字段记录 warning，不进入运行时。
+当前转换策略是保守迁移：每个目标布局先加载当前内置 v3 layout，再按“精确控件名、窗口限定别名、聚合控件、已知旧 overlay 消费、规范化匹配、技术候选诊断”顺序迁移旧 `ElementInfo` 的 `Left`、`Top`、`Width`、`Height`。`ScoreGlobalWindow/BaseCanvas` 额外兼容旧 `MainTeamName` / `MainScoreTotal` 到 v3 `HomeTeamName` / `HomeScoreTotal`，并把旧 `HomeTeamGame*FirstHalf` / `SecondHalf`、`AwayTeamGame*FirstHalf` / `SecondHalf` 以及 `Game*Overtime*Half` 半场格子聚合或消费到 `HomeGlobalScoreRow` / `AwayGlobalScoreRow`，从旧普通半场格子推导行位置、`HalfGameGap` 和 `MajorGameGap`。`WidgetsWindow/BpOverViewCanvas` 等旧 `HunBanCurrentLock*` / `SurBanCurrentLock*` 锁定遮罩几何会合并到对应 v3 `CurrentBanDisplay`，不作为未知控件提示。旧 `CustomUi/` 图片复制到包内 `resources/images/` 并生成 `bpui://{PackageId}/...` URI；成功复制资源、规则内聚合、间距近似、overtime 消费和锁 overlay 消费属于 `Infos` / `Diagnostics`，不作为普通用户弹窗 warning 展示。旧 `Config.json` 只读取明确的前台图片/颜色字段用于背景、Ban 锁图、BP picking border 等安全映射，不覆盖全局设置。无法识别的旧文件或字段只在确实可能造成可见损失时进入用户摘要，技术细节进入日志或转换详情，不进入运行时。
 
 ## 10. 分阶段计划
 
@@ -437,9 +437,9 @@ Phase 2 之后仍明确不做以下事情：
 | 修改无关运行时行为 | 不改 ViewModel、插件加载逻辑或未迁移窗口的运行逻辑。 |
 | 继续批量迁移 XAML | 当前已迁移 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow` 和 `BpWindow`；后续不应顺手改无关窗口。 |
 | 替换旧设计者/编辑器 | ~~当前 `DesignBehavior`、旧设计者入口和 `FrontedWindowService` 行为保持不变；独立编辑器尚未实现。~~ **Phase 10+ 已完成**：旧版真实窗口设计器模式已移除。`DesignBehavior`、`CanvasAdorner`、`DesignerModeChangedMessage` 和 `FrontManagePage` 的 `ChangeDesignerMode` 命令已删除。Designer v3 独立编辑器（`FrontedDesignerWindow`）是当前唯一支持的设计编辑器。 |
-| 移除 `config.json` 中的前台设置 | ~~自定义图片、文本设置、窗口设置仍保留在当前结构中。~~ **Phase 10+ 已完成**：旧前台自定义 UI 已从 SettingPage 删除，`SettingPageViewModel.FrontedUiCustom.cs` 已删除。旧 Config 字段仍保留在模型中用于运行时控件，但不再作为用户编辑入口。 |
+| 移除 `config.json` 中的前台设置 | ~~自定义图片、文本设置、窗口设置仍保留在当前结构中。~~ **Phase 10+ 已完成**：旧前台自定义 UI 已从 SettingPage 删除，`SettingPageViewModel.FrontedUiCustom.cs` 已删除。旧 Config 字段已移入 legacy DTO / 迁移 / 转换代码，不再作为 active `Settings.cs` 运行时模型。 |
 | 实现完整编辑器 UI | 当前已新增 Phase 8C shell、Phase 8D 交互层和 Phase 8E 基础 Property Grid；仍不实现 Add Control、Binding browser、Resource browser 或保存。 |
-| 实现 legacy `.bpui` 转换 | ~~Phase 9D 已实现 v3 `.bpui` 导入/安装，但仍不转换旧 `.bpui`，也不修改现有 SettingPage legacy `.bpui` import/export 流程。~~ **Phase 10+ 已完成**：Phase 9D 已实现 v3 `.bpui` 导入/安装和 legacy `.bpui` 转换。`SettingPageViewModel.UiPackage.cs` 已删除。旧 `.bpui` 现在通过 `FrontManagePage` 的 Layout Packages 管理，不再通过 SettingPage 覆盖 Config.json。旧 Config 字段仍保留在模型中用于运行时控件，但不再作为用户编辑入口。 |
+| 实现 legacy `.bpui` 转换 | ~~Phase 9D 已实现 v3 `.bpui` 导入/安装，但仍不转换旧 `.bpui`，也不修改现有 SettingPage legacy `.bpui` import/export 流程。~~ **Phase 10+ 已完成**：Phase 9D 已实现 v3 `.bpui` 导入/安装和 legacy `.bpui` 转换。`SettingPageViewModel.UiPackage.cs` 已删除。旧 `.bpui` 现在通过 `FrontManagePage` 的 Layout Packages 管理，不再通过 SettingPage 覆盖 Config.json。旧 Config 字段已移入 legacy DTO / 迁移 / 转换代码，不再作为 active `Settings.cs` 运行时模型。 |
 | 保留旧位置保存/恢复 API | ~~旧 `IFrontedWindowService.RestoreInitialPositions` / `SaveWindowElementsPosition` 等 API 仍可用。~~ **Phase 10+ 已完成**：旧版位置保存/恢复 API 已从 `IFrontedWindowService` 和 `FrontedWindowService` 删除。运行时不再读写 `{WindowName}Config-{CanvasName}.json` 或读取 `Resources/FrontedDefaultPositions`。前台布局状态完全由 v3 `FrontedLayouts` 驱动。重置布局通过 Layout Packages 激活内置布局或删除用户布局实现。旧 `ElementInfo` 只保留用于插件注入控件的默认位置。 |
 
 ## 12. 与 Score System v2 的关系

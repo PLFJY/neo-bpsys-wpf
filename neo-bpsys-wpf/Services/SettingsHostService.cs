@@ -11,8 +11,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
-using BpWindowSettings = neo_bpsys_wpf.Core.Models.BpWindowSettings;
-using WidgetsWindowSettings = neo_bpsys_wpf.Core.Models.WidgetsWindowSettings;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -200,147 +198,17 @@ public class SettingsHostService : ISettingsHostService
             switch (windowType)
             {
                 case FrontedWindowType.BpWindow:
-                    try
-                    {
-                        if (Settings.BpWindowSettings.BgImageUri != null &&
-                            File.Exists(Settings.BpWindowSettings.BgImageUri))
-                        {
-                            File.Delete(Settings.BpWindowSettings.BgImageUri);
-                        }
-
-                        if (Settings.BpWindowSettings.PickingBorderImageUri != null &&
-                            File.Exists(Settings.BpWindowSettings.PickingBorderImageUri))
-                        {
-                            File.Delete(Settings.BpWindowSettings.PickingBorderImageUri);
-                        }
-
-                        if (Settings.BpWindowSettings.GlobalBanLockImageUri != null &&
-                            File.Exists(Settings.BpWindowSettings.GlobalBanLockImageUri))
-                        {
-                            File.Delete(Settings.BpWindowSettings.GlobalBanLockImageUri);
-                        }
-
-                        if (Settings.BpWindowSettings.CurrentBanLockImageUri != null &&
-                            File.Exists(Settings.BpWindowSettings.CurrentBanLockImageUri))
-                        {
-                            File.Delete(Settings.BpWindowSettings.CurrentBanLockImageUri);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Error when deleting pictures about settings");
-                    }
-
-                    Settings.BpWindowSettings = new BpWindowSettings();
                     break;
                 case FrontedWindowType.CutSceneWindow:
-                    try
-                    {
-                        if (Settings.CutSceneWindowSettings.BgUri != null &&
-                            File.Exists(Settings.CutSceneWindowSettings.BgUri))
-                        {
-                            File.Delete(Settings.CutSceneWindowSettings.BgUri);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Error when deleting pictures about CutSceneWindow");
-                    }
-
-                    Settings.CutSceneWindowSettings = new CutSceneWindowSettings();
                     break;
                 case FrontedWindowType.ScoreWindow:
                 case FrontedWindowType.ScoreGlobalWindow:
                 case FrontedWindowType.ScoreSurWindow:
                 case FrontedWindowType.ScoreHunWindow:
-                    try
-                    {
-                        if (Settings.ScoreWindowSettings.SurScoreBgImageUri != null &&
-                            File.Exists(Settings.ScoreWindowSettings.SurScoreBgImageUri))
-                        {
-                            File.Delete(Settings.ScoreWindowSettings.SurScoreBgImageUri);
-                        }
-
-                        if (Settings.ScoreWindowSettings.HunScoreBgImageUri != null &&
-                            File.Exists(Settings.ScoreWindowSettings.HunScoreBgImageUri))
-                        {
-                            File.Delete(Settings.ScoreWindowSettings.HunScoreBgImageUri);
-                        }
-
-                        if (Settings.ScoreWindowSettings.GlobalScoreBgImageUri != null &&
-                            File.Exists(Settings.ScoreWindowSettings.GlobalScoreBgImageUri))
-                        {
-                            File.Delete(Settings.ScoreWindowSettings.GlobalScoreBgImageUri);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Error when deleting pictures about ScoreWindow settings");
-                    }
-
-                    Settings.ScoreWindowSettings = new ScoreWindowSettings();
                     break;
                 case FrontedWindowType.GameDataWindow:
-                    try
-                    {
-                        if (Settings.GameDataWindowSettings.BgImageUri != null &&
-                            File.Exists(Settings.GameDataWindowSettings.BgImageUri))
-                        {
-                            File.Delete(Settings.GameDataWindowSettings.BgImageUri);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Error when deleting pictures about GameDataWindow settings");
-                    }
-
-                    Settings.GameDataWindowSettings = new GameDataWindowSettings();
                     break;
                 case FrontedWindowType.WidgetsWindow:
-                    try
-                    {
-                        if (Settings.WidgetsWindowSettings.MapBpBgUri != null &&
-                            File.Exists(Settings.WidgetsWindowSettings.MapBpBgUri))
-                        {
-                            File.Delete(Settings.WidgetsWindowSettings.MapBpBgUri);
-                        }
-
-                        if (Settings.WidgetsWindowSettings.MapBpV2BgUri != null &&
-                            File.Exists(Settings.WidgetsWindowSettings.MapBpV2BgUri))
-                        {
-                            File.Delete(Settings.WidgetsWindowSettings.MapBpV2BgUri);
-                        }
-
-                        if (Settings.WidgetsWindowSettings.MapBpV2PickingBorderImageUri != null &&
-                            File.Exists(Settings.WidgetsWindowSettings.MapBpV2PickingBorderImageUri))
-                        {
-                            File.Delete(Settings.WidgetsWindowSettings.MapBpV2PickingBorderImageUri);
-                        }
-
-                        if (Settings.WidgetsWindowSettings.BpOverviewBgUri != null &&
-                            File.Exists(Settings.WidgetsWindowSettings.BpOverviewBgUri))
-                        {
-                            File.Delete(Settings.WidgetsWindowSettings.BpOverviewBgUri);
-                        }
-
-                        if (Settings.WidgetsWindowSettings.CurrentBanLockImageUri != null &&
-                            File.Exists(Settings.WidgetsWindowSettings.CurrentBanLockImageUri))
-                        {
-                            File.Delete(Settings.WidgetsWindowSettings.CurrentBanLockImageUri);
-                        }
-
-                        if (Settings.WidgetsWindowSettings.GlobalBanLockImageUri != null &&
-                            File.Exists(Settings.WidgetsWindowSettings.GlobalBanLockImageUri))
-                        {
-                            File.Delete(Settings.WidgetsWindowSettings.GlobalBanLockImageUri);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Error when deleting pictures about WidgetsWindow settings");
-                    }
-
-                    Settings.WidgetsWindowSettings = new WidgetsWindowSettings();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(windowType), windowType, null);

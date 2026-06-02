@@ -15,22 +15,15 @@ public partial class CutSceneWindowViewModel : ViewModelBase
     }
 
     private readonly ISharedDataService _sharedDataService;
-    private readonly ISettingsHostService _settingsHostService;
+    private readonly FrontedWindowRuntimeSettings _settings = new();
 
     public CutSceneWindowViewModel(ISharedDataService sharedDataService, ISettingsHostService settingsHostService)
     {
         _sharedDataService = sharedDataService;
-        _settingsHostService = settingsHostService;
         sharedDataService.CurrentGameChanged += (_, _) => OnPropertyChanged(nameof(CurrentGame));
-        settingsHostService.SettingsChanged += (_, _) => OnPropertyChanged(nameof(Settings));
-        settingsHostService.Settings.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == nameof(settingsHostService.Settings.CutSceneWindowSettings))
-                OnPropertyChanged(nameof(Settings));
-        };
     }
 
     public Game CurrentGame => _sharedDataService.CurrentGame;
 
-    public CutSceneWindowSettings Settings => _settingsHostService.Settings.CutSceneWindowSettings;
+    public FrontedWindowRuntimeSettings Settings => _settings;
 }

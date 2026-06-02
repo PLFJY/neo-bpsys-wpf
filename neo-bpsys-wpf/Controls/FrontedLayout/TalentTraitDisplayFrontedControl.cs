@@ -65,11 +65,9 @@ public class TalentTraitDisplayFrontedControl(ILogger<TalentTraitDisplayFrontedC
 
         private readonly TalentTraitDisplayControlConfig _config;
         private readonly ISharedDataService _sharedDataService;
-        private readonly ISettingsHostService _settingsHostService;
         private readonly ILogger? _logger;
         private Player? _subscribedPlayer;
         private Talent? _subscribedTalent;
-        private CutSceneWindowSettings? _subscribedSettings;
         private bool _isSubscribed;
 
         public TalentTraitDisplayElement(
@@ -82,7 +80,6 @@ public class TalentTraitDisplayFrontedControl(ILogger<TalentTraitDisplayFrontedC
             Name = name;
             _config = config;
             _sharedDataService = sharedDataService;
-            _settingsHostService = settingsHostService;
             _logger = logger;
 
             Canvas.SetLeft(this, config.Left);
@@ -103,9 +100,6 @@ public class TalentTraitDisplayFrontedControl(ILogger<TalentTraitDisplayFrontedC
             Unloaded += OnUnloaded;
         }
 
-        private bool IsBlackTalentAndTraitEnable =>
-            _settingsHostService.Settings.CutSceneWindowSettings.IsBlackTalentAndTraitEnable;
-
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             if (_isSubscribed)
@@ -116,8 +110,6 @@ public class TalentTraitDisplayFrontedControl(ILogger<TalentTraitDisplayFrontedC
             _isSubscribed = true;
             _sharedDataService.CurrentGameChanged += OnCurrentGameChanged;
             _sharedDataService.IsTraitVisibleChanged += OnTraitVisibilityChanged;
-            _settingsHostService.SettingsChanged += OnSettingsChanged;
-            SubscribeSettings(_settingsHostService.Settings.CutSceneWindowSettings);
             SubscribePlayer(ResolvePlayer());
             Render();
         }
@@ -132,8 +124,6 @@ public class TalentTraitDisplayFrontedControl(ILogger<TalentTraitDisplayFrontedC
             _isSubscribed = false;
             _sharedDataService.CurrentGameChanged -= OnCurrentGameChanged;
             _sharedDataService.IsTraitVisibleChanged -= OnTraitVisibilityChanged;
-            _settingsHostService.SettingsChanged -= OnSettingsChanged;
-            SubscribeSettings(null);
             SubscribePlayer(null);
         }
 
@@ -144,21 +134,6 @@ public class TalentTraitDisplayFrontedControl(ILogger<TalentTraitDisplayFrontedC
         }
 
         private void OnTraitVisibilityChanged(object? sender, EventArgs args) => Render();
-
-        private void OnSettingsChanged(object? sender, Settings settings)
-        {
-            SubscribeSettings(settings.CutSceneWindowSettings);
-            Render();
-        }
-
-        private void OnCutSceneSettingsPropertyChanged(object? sender, PropertyChangedEventArgs args)
-        {
-            if (string.IsNullOrEmpty(args.PropertyName)
-                || args.PropertyName == nameof(CutSceneWindowSettings.IsBlackTalentAndTraitEnable))
-            {
-                Render();
-            }
-        }
 
         private void OnPlayerPropertyChanged(object? sender, PropertyChangedEventArgs args)
         {
@@ -172,26 +147,6 @@ public class TalentTraitDisplayFrontedControl(ILogger<TalentTraitDisplayFrontedC
         }
 
         private void OnTalentPropertyChanged(object? sender, PropertyChangedEventArgs args) => Render();
-
-        private void SubscribeSettings(CutSceneWindowSettings? settings)
-        {
-            if (_subscribedSettings == settings)
-            {
-                return;
-            }
-
-            if (_subscribedSettings != null)
-            {
-                _subscribedSettings.PropertyChanged -= OnCutSceneSettingsPropertyChanged;
-            }
-
-            _subscribedSettings = settings;
-
-            if (_subscribedSettings != null)
-            {
-                _subscribedSettings.PropertyChanged += OnCutSceneSettingsPropertyChanged;
-            }
-        }
 
         private void SubscribePlayer(Player? player)
         {
@@ -311,7 +266,7 @@ public class TalentTraitDisplayFrontedControl(ILogger<TalentTraitDisplayFrontedC
                     ImageHelper.GetTalentImageSource(
                         definition.Camp,
                         definition.TalentName,
-                        IsBlackTalentAndTraitEnable),
+                        false),
                     visibleIconIndex);
                 panel.Children.Add(image);
                 visibleIconIndex++;
@@ -331,7 +286,7 @@ public class TalentTraitDisplayFrontedControl(ILogger<TalentTraitDisplayFrontedC
 
             image.Source = ImageHelper.GetTraitImageSource(
                 _subscribedPlayer?.Trait.TraitName,
-                IsBlackTalentAndTraitEnable);
+                false);
             return image;
         }
 

@@ -24,6 +24,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
     private static readonly Regex SafeFileNameChars = new("[^A-Za-z0-9._-]+", RegexOptions.Compiled);
 
+    private static readonly Regex LegacyScoreGlobalCellName = new(
+        @"^(Home|Away)TeamGame(?<game>\d+)(?<overtime>Overtime)?(?<half>FirstHalf|SecondHalf)$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    private static readonly Regex LegacyCurrentBanLockOverlayName = new(
+        @"^(Hun|Sur)BanCurrentLock(?<index>\d+)$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
     private static readonly HashSet<string> ImageExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".png",
@@ -96,6 +104,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         FrontedLayoutPackageLegacyConvertRequest request,
         CancellationToken cancellationToken = default)
     {
+        var infos = new List<string>();
+        var diagnostics = new List<string>();
         var warnings = new List<string>();
         var extractionRoot = Path.Combine(_tempRoot, "extract", Guid.NewGuid().ToString("N"));
         var stagingRoot = Path.Combine(_tempRoot, "staging", Guid.NewGuid().ToString("N"));
@@ -105,7 +115,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         {
             if (string.IsNullOrWhiteSpace(request.LegacyPackagePath) || !File.Exists(request.LegacyPackagePath))
             {
-                return Fail("Legacy package archive was not found.", warnings);
+                return Fail("Legacy package archive was not found.", infos, diagnostics, warnings);
             }
 
             var packageId = string.IsNullOrWhiteSpace(request.PackageId)
@@ -115,7 +125,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 || string.Equals(packageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(packageId, FrontedLayoutPackageManager.LocalPackageId, StringComparison.OrdinalIgnoreCase))
             {
-                return Fail("PackageId is invalid.", warnings);
+                return Fail("PackageId is invalid.", infos, diagnostics, warnings);
             }
 
             Directory.CreateDirectory(extractionRoot);
@@ -123,25 +133,27 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             ExtractZipSafely(request.LegacyPackagePath, extractionRoot);
             if (!DetectLegacyPackage(extractionRoot))
             {
-                return Fail("Archive is not a legacy .bpui package.", warnings);
+                return Fail("Archive is not a legacy .bpui package.", infos, diagnostics, warnings);
             }
 
-            var resourceState = CopyCustomUiResources(extractionRoot, stagingRoot, packageId, warnings);
+            var resourceState = CopyCustomUiResources(extractionRoot, stagingRoot, packageId, infos);
             var manifest = CreateManifest(request, packageId);
             manifest.Content.Resources = resourceState.Resources;
 
-            var configImageMap = ReadFrontendConfigImageMap(extractionRoot, resourceState, warnings);
+            var configValueMap = ReadFrontendConfigValueMap(extractionRoot, resourceState, diagnostics, warnings);
             var layoutEntries = await ConvertFrontElementsConfigsAsync(
                 extractionRoot,
                 stagingRoot,
                 manifest,
                 resourceState,
-                configImageMap,
+                configValueMap,
+                infos,
+                diagnostics,
                 warnings,
                 cancellationToken);
             if (layoutEntries == 0)
             {
-                return Fail("No mappable legacy FrontElementsConfig files were converted.", warnings);
+                return Fail("No mappable legacy FrontElementsConfig files were converted.", infos, diagnostics, warnings);
             }
 
             var manifestJson = JsonSerializer.Serialize(manifest, _jsonOptions);
@@ -157,6 +169,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 ConvertedPackagePath = outputPath,
                 LayoutCount = manifest.Content.Layouts.Count,
                 ResourceCount = manifest.Content.Resources.Count,
+                Infos = infos.ToArray(),
+                Diagnostics = diagnostics.ToArray(),
                 Warnings = warnings.ToArray()
             };
 
@@ -178,12 +192,12 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         catch (InvalidDataException ex)
         {
             _logger.LogWarning(ex, "Invalid legacy bpui archive.");
-            return Fail($"Invalid legacy package archive: {ex.Message}", warnings);
+            return Fail($"Invalid legacy package archive: {ex.Message}", infos, diagnostics, warnings);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to convert legacy bpui package.");
-            return Fail(ex.Message, warnings);
+            return Fail(ex.Message, infos, diagnostics, warnings);
         }
         finally
         {
@@ -197,7 +211,9 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         string stagingRoot,
         FrontedLayoutPackageManifest manifest,
         ResourceConvertState resourceState,
-        IReadOnlyDictionary<string, string> configImageMap,
+        IReadOnlyDictionary<string, string> configValueMap,
+        ICollection<string> infos,
+        ICollection<string> diagnostics,
         ICollection<string> warnings,
         CancellationToken cancellationToken)
     {
@@ -220,8 +236,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             }
 
             var config = await LoadBuiltInConfigAsync(window, canvas, cancellationToken);
-            ApplyFrontendConfigImages(config, window, canvas, configImageMap, warnings);
-            ApplyLegacyGeometry(file, config, warnings);
+            ApplyFrontendConfigValues(config, window, canvas, configValueMap, infos, diagnostics);
+            ApplyLegacyGeometry(file, window, canvas, config, infos, diagnostics, warnings);
             RewriteKnownResourceStrings(config, resourceState);
             config.Version = 3;
 
@@ -276,7 +292,11 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
     private static void ApplyLegacyGeometry(
         string legacyFile,
+        string window,
+        string canvas,
         FrontedCanvasConfig config,
+        ICollection<string> infos,
+        ICollection<string> diagnostics,
         ICollection<string> warnings)
     {
         Dictionary<string, ElementInfo>? legacyPositions;
@@ -307,41 +327,297 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             return;
         }
 
+        var consumedControls = new HashSet<string>(StringComparer.Ordinal);
+        ApplyScoreGlobalAggregateGeometry(window, canvas, config, legacyPositions, consumedControls, infos, diagnostics);
+        ConsumeLegacyLockOverlayGeometry(window, canvas, config, legacyPositions, consumedControls, diagnostics);
+
         foreach (var (controlName, legacy) in legacyPositions)
         {
-            if (!config.Controls.TryGetValue(controlName, out var control))
+            if (consumedControls.Contains(controlName))
             {
-                warnings.Add($"Legacy control geometry ignored because no v3 control matches: {controlName}");
                 continue;
             }
 
-            if (legacy.Left.HasValue)
+            if (!LegacyFrontedControlNameMapper.TryResolve(
+                    window,
+                    canvas,
+                    controlName,
+                    config.Controls,
+                    out var resolvedName,
+                    out var usedFuzzyMatch)
+                || !config.Controls.TryGetValue(resolvedName, out var control))
             {
-                control.Left = legacy.Left.Value;
+                var candidates = LegacyFrontedControlNameMapper.GetClosestCandidates(controlName, config.Controls.Keys);
+                warnings.Add(candidates.Count > 0
+                    ? $"Legacy control geometry ignored because no v3 control matches: {window}/{canvas}/{controlName}. Closest candidates: {string.Join(", ", candidates)}"
+                    : $"Legacy control geometry ignored because no v3 control matches: {window}/{canvas}/{controlName}");
+                continue;
             }
 
-            if (legacy.Top.HasValue)
+            if (usedFuzzyMatch)
             {
-                control.Top = legacy.Top.Value;
+                infos.Add($"Legacy control geometry fuzzy-matched: {window}/{canvas}/{controlName} -> {resolvedName}");
             }
 
-            if (legacy.Width.HasValue)
-            {
-                control.Width = legacy.Width.Value;
-            }
-
-            if (legacy.Height.HasValue)
-            {
-                control.Height = legacy.Height.Value;
-            }
+            ApplyGeometry(control, legacy);
         }
+    }
+
+    private static void ApplyScoreGlobalAggregateGeometry(
+        string window,
+        string canvas,
+        FrontedCanvasConfig config,
+        IReadOnlyDictionary<string, ElementInfo> legacyPositions,
+        ISet<string> consumedControls,
+        ICollection<string> infos,
+        ICollection<string> diagnostics)
+    {
+        if (!string.Equals(window, "ScoreGlobalWindow", StringComparison.Ordinal)
+            || !string.Equals(canvas, "BaseCanvas", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        ApplyScoreGlobalRowGeometry(
+            "Home",
+            "HomeGlobalScoreRow",
+            config,
+            legacyPositions,
+            consumedControls,
+            infos,
+            diagnostics);
+        ApplyScoreGlobalRowGeometry(
+            "Away",
+            "AwayGlobalScoreRow",
+            config,
+            legacyPositions,
+            consumedControls,
+            infos,
+            diagnostics);
+    }
+
+    private static void ApplyScoreGlobalRowGeometry(
+        string teamPrefix,
+        string targetControlName,
+        FrontedCanvasConfig config,
+        IReadOnlyDictionary<string, ElementInfo> legacyPositions,
+        ISet<string> consumedControls,
+        ICollection<string> infos,
+        ICollection<string> diagnostics)
+    {
+        if (!config.Controls.TryGetValue(targetControlName, out var control)
+            || control is not GlobalScoreRowControlConfig row)
+        {
+            return;
+        }
+
+        var cells = legacyPositions
+            .Select(item => TryParseScoreGlobalCell(item.Key, out var team, out var game, out var half, out var isOvertime)
+                ? new ScoreGlobalCell(item.Key, team, game, half, isOvertime, item.Value)
+                : null)
+            .Where(cell => cell is not null
+                           && string.Equals(cell.Team, teamPrefix, StringComparison.Ordinal))
+            .Cast<ScoreGlobalCell>()
+            .ToArray();
+        if (cells.Length == 0)
+        {
+            return;
+        }
+
+        foreach (var cell in cells)
+        {
+            consumedControls.Add(cell.ControlName);
+        }
+
+        if (cells.Any(cell => cell.IsOvertime))
+        {
+            diagnostics.Add(
+                "Legacy overtime score cells were consumed; v3 GlobalScoreRow does not expose separate overtime cell geometry.");
+        }
+
+        var firstHalfByGame = cells
+            .Where(cell => !cell.IsOvertime && cell.Half == "FirstHalf" && cell.Info.Left.HasValue)
+            .GroupBy(cell => cell.Game)
+            .ToDictionary(group => group.Key, group => group.First().Info);
+        var secondHalfByGame = cells
+            .Where(cell => !cell.IsOvertime && cell.Half == "SecondHalf" && cell.Info.Left.HasValue)
+            .GroupBy(cell => cell.Game)
+            .ToDictionary(group => group.Key, group => group.First().Info);
+
+        var gameOneFirstHalf = firstHalfByGame.GetValueOrDefault(1);
+        var left = gameOneFirstHalf?.Left
+                   ?? cells.Select(cell => cell.Info.Left).Where(value => value.HasValue).Min();
+        if (left.HasValue)
+        {
+            row.Left = left.Value;
+        }
+
+        var top = gameOneFirstHalf?.Top
+                  ?? GetMedian(cells.Select(cell => cell.Info.Top).Where(value => value.HasValue).Select(value => value!.Value))
+                  ?? cells.Select(cell => cell.Info.Top).FirstOrDefault(value => value.HasValue);
+        if (top.HasValue)
+        {
+            row.Top = top.Value;
+        }
+
+        var halfGaps = firstHalfByGame
+            .Where(item => secondHalfByGame.TryGetValue(item.Key, out var secondHalf)
+                           && item.Value.Left.HasValue
+                           && secondHalf.Left.HasValue)
+            .Select(item => secondHalfByGame[item.Key].Left!.Value - item.Value.Left!.Value)
+            .Where(gap => gap > 0)
+            .ToArray();
+        var halfGap = GetMedian(halfGaps);
+        if (halfGap.HasValue)
+        {
+            row.HalfGameGap = halfGap.Value;
+        }
+
+        var gameLefts = firstHalfByGame
+            .Where(item => item.Value.Left.HasValue)
+            .OrderBy(item => item.Key)
+            .Select(item => new { Game = item.Key, Left = item.Value.Left!.Value })
+            .ToArray();
+        var majorGaps = gameLefts
+            .Zip(gameLefts.Skip(1), (previous, next) => next.Game == previous.Game + 1
+                ? next.Left - previous.Left
+                : (double?)null)
+            .Where(gap => gap.HasValue && gap.Value > 0)
+            .Select(gap => gap!.Value)
+            .ToArray();
+        var majorGap = GetMedian(majorGaps);
+        if (majorGap.HasValue)
+        {
+            row.MajorGameGap = majorGap.Value;
+        }
+
+        var approximate = IsIrregular(halfGaps) || IsIrregular(majorGaps);
+        var message =
+            $"Legacy global score cells aggregated: ScoreGlobalWindow/BaseCanvas/{teamPrefix}TeamGame* -> {targetControlName}.";
+        if (approximate)
+        {
+            diagnostics.Add(message + " Irregular cell spacing was approximated by median gaps.");
+        }
+        else
+        {
+            infos.Add(message);
+        }
+    }
+
+    private static bool TryParseScoreGlobalCell(
+        string controlName,
+        out string team,
+        out int game,
+        out string half,
+        out bool isOvertime)
+    {
+        team = string.Empty;
+        game = 0;
+        half = string.Empty;
+        isOvertime = false;
+        var match = LegacyScoreGlobalCellName.Match(controlName);
+        if (!match.Success)
+        {
+            return false;
+        }
+
+        team = match.Groups[1].Value;
+        game = int.Parse(match.Groups["game"].Value);
+        half = match.Groups["half"].Value;
+        isOvertime = match.Groups["overtime"].Success;
+        return true;
+    }
+
+    private static void ConsumeLegacyLockOverlayGeometry(
+        string window,
+        string canvas,
+        FrontedCanvasConfig config,
+        IReadOnlyDictionary<string, ElementInfo> legacyPositions,
+        ISet<string> consumedControls,
+        ICollection<string> diagnostics)
+    {
+        foreach (var (legacyName, legacy) in legacyPositions)
+        {
+            if (!TryMapLegacyLockOverlayName(legacyName, out var targetName)
+                || !config.Controls.TryGetValue(targetName, out var target))
+            {
+                continue;
+            }
+
+            consumedControls.Add(legacyName);
+            diagnostics.Add($"Legacy lock overlay geometry consumed: {legacyName} -> {targetName}");
+
+            if (legacyPositions.ContainsKey(targetName))
+            {
+                continue;
+            }
+
+            ApplyGeometry(target, legacy);
+            diagnostics.Add($"Legacy lock overlay fallback geometry applied: {window}/{canvas}/{legacyName} -> {targetName}");
+        }
+    }
+
+    private static bool TryMapLegacyLockOverlayName(string legacyName, out string targetName)
+    {
+        targetName = string.Empty;
+        var match = LegacyCurrentBanLockOverlayName.Match(legacyName);
+        if (!match.Success)
+        {
+            return false;
+        }
+
+        targetName = $"{match.Groups[1].Value}BanCurrent{match.Groups["index"].Value}";
+        return true;
+    }
+
+    private static void ApplyGeometry(FrontedControlConfigBase control, ElementInfo legacy)
+    {
+        if (legacy.Left.HasValue)
+        {
+            control.Left = legacy.Left.Value;
+        }
+
+        if (legacy.Top.HasValue)
+        {
+            control.Top = legacy.Top.Value;
+        }
+
+        if (legacy.Width.HasValue)
+        {
+            control.Width = legacy.Width.Value;
+        }
+
+        if (legacy.Height.HasValue)
+        {
+            control.Height = legacy.Height.Value;
+        }
+    }
+
+    private static double? GetMedian(IEnumerable<double> values)
+    {
+        var ordered = values.Order().ToArray();
+        if (ordered.Length == 0)
+        {
+            return null;
+        }
+
+        var middle = ordered.Length / 2;
+        return ordered.Length % 2 == 0
+            ? (ordered[middle - 1] + ordered[middle]) / 2
+            : ordered[middle];
+    }
+
+    private static bool IsIrregular(IReadOnlyList<double> values)
+    {
+        return values.Count > 1
+               && values.Max() - values.Min() > 1;
     }
 
     private static ResourceConvertState CopyCustomUiResources(
         string extractionRoot,
         string stagingRoot,
         string packageId,
-        ICollection<string> warnings)
+        ICollection<string> infos)
     {
         var state = new ResourceConvertState(packageId);
         var customUiRoot = Path.Combine(extractionRoot, "CustomUi");
@@ -371,15 +647,16 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             var uri = $"bpui://{packageId}/{relativePath}";
 
             state.Add(fullFile, uri, relativePath, kind, sha256, safeName);
-            warnings.Add($"Legacy resource copied: {Path.GetFileName(fullFile)}");
+            infos.Add($"Legacy resource copied: {Path.GetFileName(fullFile)}");
         }
 
         return state;
     }
 
-    private static IReadOnlyDictionary<string, string> ReadFrontendConfigImageMap(
+    private static IReadOnlyDictionary<string, string> ReadFrontendConfigValueMap(
         string extractionRoot,
         ResourceConvertState resourceState,
+        ICollection<string> diagnostics,
         ICollection<string> warnings)
     {
         var configPath = Path.Combine(extractionRoot, "Config.json");
@@ -421,11 +698,16 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         AddMappedImage(root, "BpWindowSettings", "CurrentBanLockImageUri", "BpWindow/BaseCanvas/CurrentBanLockImage", resourceState, result, warnings);
         AddMappedImage(root, "BpWindowSettings", "GlobalBanLockImageUri", "BpWindow/BaseCanvas/GlobalBanLockImage", resourceState, result, warnings);
         AddMappedImage(root, "BpWindowSettings", "PickingBorderImageUri", "BpWindow/BaseCanvas/PickingBorderImage", resourceState, result, warnings);
+        AddMappedValue(root, "BpWindowSettings", "PickingBorderColor", "BpWindow/BaseCanvas/PickingBorderColor", result);
+        AddMappedImage(root, "WidgetsWindowSettings", "CurrentBanLockImageUri", "WidgetsWindow/BpOverViewCanvas/CurrentBanLockImage", resourceState, result, warnings);
+        AddMappedImage(root, "WidgetsWindowSettings", "GlobalBanLockImageUri", "WidgetsWindow/BpOverViewCanvas/GlobalBanLockImage", resourceState, result, warnings);
+        AddMappedImage(root, "WidgetsWindowSettings", "MapBpV2PickingBorderImageUri", "WidgetsWindow/MapV2Canvas/MapBpV2PickingBorderImage", resourceState, result, warnings);
+        AddMappedValue(root, "WidgetsWindowSettings", "MapBpV2_PickingBorderColor", "WidgetsWindow/MapV2Canvas/MapBpV2PickingBorderColor", result);
 
         foreach (var ignored in EnumeratePotentialFrontendImageFields(root)
                      .Where(field => !KnownConfigImageFields.Contains(field, StringComparer.Ordinal)))
         {
-            warnings.Add($"Legacy field ignored: {ignored}");
+            diagnostics.Add($"Legacy field ignored: {ignored}");
         }
 
         return result;
@@ -456,6 +738,20 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         warnings.Add($"Legacy resource missing or not packaged for field {field}: {value}");
     }
 
+    private static void AddMappedValue(
+        JsonNode? root,
+        string settingsObject,
+        string propertyName,
+        string key,
+        IDictionary<string, string> result)
+    {
+        var value = root?[settingsObject]?[propertyName]?.GetValue<string>();
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            result[key] = value.Trim();
+        }
+    }
+
     private static readonly HashSet<string> KnownConfigImageFields =
     [
         "BpWindowSettings.BgImageUri",
@@ -469,7 +765,12 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         "WidgetsWindowSettings.MapBpV2BgUri",
         "BpWindowSettings.CurrentBanLockImageUri",
         "BpWindowSettings.GlobalBanLockImageUri",
-        "BpWindowSettings.PickingBorderImageUri"
+        "BpWindowSettings.PickingBorderImageUri",
+        "BpWindowSettings.PickingBorderColor",
+        "WidgetsWindowSettings.CurrentBanLockImageUri",
+        "WidgetsWindowSettings.GlobalBanLockImageUri",
+        "WidgetsWindowSettings.MapBpV2PickingBorderImageUri",
+        "WidgetsWindowSettings.MapBpV2_PickingBorderColor"
     ];
 
     private static IEnumerable<string> EnumeratePotentialFrontendImageFields(JsonNode? node)
@@ -492,7 +793,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 if (property.Value is JsonValue value
                     && value.TryGetValue<string>(out _)
                     && (property.Key.EndsWith("Uri", StringComparison.Ordinal)
-                        || property.Key.EndsWith("ImageUri", StringComparison.Ordinal)))
+                        || property.Key.EndsWith("ImageUri", StringComparison.Ordinal)
+                        || property.Key.EndsWith("Color", StringComparison.Ordinal)))
                 {
                     yield return $"{settings.Key}.{property.Key}";
                 }
@@ -500,15 +802,16 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         }
     }
 
-    private static void ApplyFrontendConfigImages(
+    private static void ApplyFrontendConfigValues(
         FrontedCanvasConfig config,
         string window,
         string canvas,
-        IReadOnlyDictionary<string, string> imageMap,
-        ICollection<string> warnings)
+        IReadOnlyDictionary<string, string> valueMap,
+        ICollection<string> infos,
+        ICollection<string> diagnostics)
     {
         var prefix = $"{window}/{canvas}/";
-        if (imageMap.TryGetValue($"{prefix}BackgroundImage", out var background))
+        if (valueMap.TryGetValue($"{prefix}BackgroundImage", out var background))
         {
             config.BackgroundImage = background;
         }
@@ -522,23 +825,47 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                     var key = banSlot.SlotKind == BanSlotKind.Global
                         ? $"{prefix}GlobalBanLockImage"
                         : $"{prefix}CurrentBanLockImage";
-                    if (imageMap.TryGetValue(key, out var lockUri))
+                    if (valueMap.TryGetValue(key, out var lockUri))
                     {
                         banSlot.LockImageSource = lockUri;
+                        infos.Add($"Legacy lock image merged into v3 BanSlotDisplay: {key}");
                     }
                 }
-                else if (control is PickingBorderOverlayControlConfig pickingBorder
-                         && imageMap.TryGetValue($"{prefix}PickingBorderImage", out var borderUri))
+                else if (control is PickingBorderOverlayControlConfig pickingBorder)
                 {
-                    pickingBorder.BorderImagePath = borderUri;
+                    if (valueMap.TryGetValue($"{prefix}PickingBorderImage", out var borderUri))
+                    {
+                        pickingBorder.BorderImagePath = borderUri;
+                    }
+
+                    if (valueMap.TryGetValue($"{prefix}PickingBorderColor", out var borderColor))
+                    {
+                        pickingBorder.FillColor = borderColor;
+                    }
                 }
             }
         }
 
-        if (imageMap.Keys.Any(key => key.StartsWith(prefix, StringComparison.Ordinal))
-            && string.IsNullOrWhiteSpace(config.BackgroundImage))
+        if (window == "WidgetsWindow" && canvas == "BpOverViewCanvas")
         {
-            warnings.Add($"Legacy frontend image settings found for {window}/{canvas}, but no explicit v3 target was available.");
+            foreach (var control in config.Controls.Values.OfType<CurrentBanDisplayControlConfig>())
+            {
+                var key = $"{prefix}CurrentBanLockImage";
+                if (valueMap.TryGetValue(key, out var lockUri))
+                {
+                    control.LockImageSource = lockUri;
+                    infos.Add($"Legacy lock image merged into v3 CurrentBanDisplay: {key}");
+                }
+            }
+        }
+
+        if (window == "WidgetsWindow" && canvas == "MapV2Canvas")
+        {
+            if (valueMap.ContainsKey($"{prefix}MapBpV2PickingBorderImage")
+                || valueMap.ContainsKey($"{prefix}MapBpV2PickingBorderColor"))
+            {
+                diagnostics.Add("Legacy WidgetsWindow Map BP v2 picking border settings were read, but MapV2Display has no v3 image/color config.");
+            }
         }
     }
 
@@ -608,13 +935,20 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         var expanded = Environment.ExpandEnvironmentVariables(value).Replace('\\', '/');
         var fileName = Path.GetFileName(expanded);
         if (!string.IsNullOrWhiteSpace(fileName)
-            && resourceState.ByFileName.TryGetValue(fileName, out uri))
+            && resourceState.ByFileName.TryGetValue(fileName, out var fileUri))
         {
+            uri = fileUri;
             return true;
         }
 
         var normalized = expanded.TrimStart('/');
-        return resourceState.ByLegacyRelativePath.TryGetValue(normalized, out uri);
+        if (resourceState.ByLegacyRelativePath.TryGetValue(normalized, out var relativeUri))
+        {
+            uri = relativeUri;
+            return true;
+        }
+
+        return false;
     }
 
     private static bool ShouldInspectResourceProperty(string propertyName)
@@ -821,12 +1155,16 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
     private static FrontedLayoutPackageLegacyConvertResult Fail(
         string message,
+        IReadOnlyList<string> infos,
+        IReadOnlyList<string> diagnostics,
         IReadOnlyList<string> warnings)
     {
         return new FrontedLayoutPackageLegacyConvertResult
         {
             Success = false,
             ErrorMessage = message,
+            Infos = infos.ToArray(),
+            Diagnostics = diagnostics.ToArray(),
             Warnings = warnings.ToArray()
         };
     }
@@ -872,6 +1210,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             ByLegacyRelativePath[$"CustomUi/{Path.GetFileName(sourcePath)}"] = uri;
         }
     }
+
+    private sealed record ScoreGlobalCell(
+        string ControlName,
+        string Team,
+        int Game,
+        string Half,
+        bool IsOvertime,
+        ElementInfo Info);
 }
 
 #pragma warning restore CS1591

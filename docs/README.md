@@ -13,6 +13,7 @@
 | [fronted-designer-v3.md](fronted-designer-v3.md) | Fronted Designer v3 的配置驱动重构设计、兼容策略和分阶段计划 |
 | [fronted-designer-editor.md](fronted-designer-editor.md) | Designer v3 独立编辑器技术设计，包括 JSON key = 控件名、多 Canvas、透明 hitbox、Property Grid、Binding/Resource Browser 和保存策略 |
 | [bpui-package-v3.md](bpui-package-v3.md) | Designer v3 `.bpui` 布局包标准，包括 manifest、资源 URI、包隔离、导入导出与包管理规格 |
+| [legacy-fronted-layout-migration.md](legacy-fronted-layout-migration.md) | 旧 `Config.json` 前台字段和旧 `.bpui` 到 Designer v3 布局的迁移规则 |
 | [backend-pages-and-navigation.md](backend-pages-and-navigation.md) | 后台页面注册、WPF-UI 导航约定 |
 | [game-guidance.md](game-guidance.md) | 引导式 BP 的规则文件和工作流 |
 | [smartbp-and-ocr.md](smartbp-and-ocr.md) | SmartBP、赛后数据 OCR、模型和区域配置 |

@@ -15,25 +15,18 @@ public partial class GameDataWindowViewModel : ViewModelBase
     }
 
     private readonly ISharedDataService _sharedDataService;
-    private readonly ISettingsHostService _settingsHostService;
+    private readonly FrontedWindowRuntimeSettings _settings = new();
 
     public GameDataWindowViewModel(ISharedDataService sharedDataService, ISettingsHostService settingsHostService)
     {
         _sharedDataService = sharedDataService;
-        _settingsHostService = settingsHostService;
         sharedDataService.CurrentGameChanged += (_, _) => OnPropertyChanged(nameof(CurrentGame));
         sharedDataService.IsBo3ModeChanged += (_, _) => OnPropertyChanged(nameof(IsBo3Mode));
-        settingsHostService.SettingsChanged += (_, _) => OnPropertyChanged(nameof(Settings));
-        settingsHostService.Settings.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == nameof(settingsHostService.Settings.GameDataWindowSettings))
-                OnPropertyChanged(nameof(Settings));
-        };
     }
 
     public Game CurrentGame => _sharedDataService.CurrentGame;
 
     public bool IsBo3Mode => _sharedDataService.IsBo3Mode;
 
-    public GameDataWindowSettings Settings => _settingsHostService.Settings.GameDataWindowSettings;
+    public FrontedWindowRuntimeSettings Settings => _settings;
 }

@@ -56,7 +56,7 @@ public class BanSlotDisplayControlConfig : FrontedControlConfigBase
     public ImageSizingMode SizingMode { get; set; } = ImageSizingMode.Auto;
 
     /// <summary>
-    /// 锁定覆盖层图片路径。为空时使用 BpWindowSettings 默认锁图。
+    /// 锁定覆盖层图片路径。为空时使用内置默认锁图。
     /// </summary>
     public string? LockImageSource { get; set; }
 

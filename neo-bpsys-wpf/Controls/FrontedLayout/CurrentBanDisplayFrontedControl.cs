@@ -2,8 +2,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows;
@@ -43,6 +45,7 @@ public class CurrentBanDisplayFrontedControl(ILogger<CurrentBanDisplayFrontedCon
             banConfig,
             context.SharedDataService,
             settingsHostService,
+            context.ResourceResolver,
             _logger ?? context.Logger);
     }
 
@@ -50,19 +53,20 @@ public class CurrentBanDisplayFrontedControl(ILogger<CurrentBanDisplayFrontedCon
     {
         private static readonly BooleanToReverseVisibilityConverter ReverseVisibilityConverter = new();
 
-        private readonly ISettingsHostService _settingsHostService;
+        private readonly IFrontedResourceResolver _resourceResolver;
+        private readonly CurrentBanDisplayControlConfig _config;
         private readonly Image? _lockImage;
-        private WidgetsWindowSettings? _subscribedSettings;
-        private bool _isSubscribed;
 
         public CurrentBanDisplayElement(
             string name,
             CurrentBanDisplayControlConfig config,
             ISharedDataService sharedDataService,
             ISettingsHostService settingsHostService,
+            IFrontedResourceResolver resourceResolver,
             ILogger? logger)
         {
-            _settingsHostService = settingsHostService;
+            _config = config;
+            _resourceResolver = resourceResolver;
 
             var outer = CutSceneFrontedControlHelper.CreateOuterBorder(name, config);
             Name = outer.Name;
@@ -97,80 +101,19 @@ public class CurrentBanDisplayFrontedControl(ILogger<CurrentBanDisplayFrontedCon
                 });
                 Panel.SetZIndex(_lockImage, 1);
                 grid.Children.Add(_lockImage);
-
-                Loaded += OnLoaded;
-                Unloaded += OnUnloaded;
+                UpdateLockImage();
             }
 
             Child = grid;
-        }
-
-        private void OnLoaded(object sender, RoutedEventArgs e)
-        {
-            if (_isSubscribed)
-            {
-                return;
-            }
-
-            _isSubscribed = true;
-            _settingsHostService.SettingsChanged += OnSettingsChanged;
-            SubscribeSettings(_settingsHostService.Settings.WidgetsWindowSettings);
-            UpdateLockImage();
-        }
-
-        private void OnUnloaded(object sender, RoutedEventArgs e)
-        {
-            if (!_isSubscribed)
-            {
-                return;
-            }
-
-            _isSubscribed = false;
-            _settingsHostService.SettingsChanged -= OnSettingsChanged;
-            SubscribeSettings(null);
-        }
-
-        private void OnSettingsChanged(object? sender, Settings settings)
-        {
-            SubscribeSettings(settings.WidgetsWindowSettings);
-            UpdateLockImage();
-        }
-
-        private void OnSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (string.IsNullOrEmpty(e.PropertyName)
-                || e.PropertyName == nameof(WidgetsWindowSettings.CurrentBanLockImage)
-                || e.PropertyName == nameof(WidgetsWindowSettings.CurrentBanLockImageUri))
-            {
-                UpdateLockImage();
-            }
-        }
-
-        private void SubscribeSettings(WidgetsWindowSettings? settings)
-        {
-            if (_subscribedSettings == settings)
-            {
-                return;
-            }
-
-            if (_subscribedSettings != null)
-            {
-                _subscribedSettings.PropertyChanged -= OnSettingsPropertyChanged;
-            }
-
-            _subscribedSettings = settings;
-
-            if (_subscribedSettings != null)
-            {
-                _subscribedSettings.PropertyChanged += OnSettingsPropertyChanged;
-            }
         }
 
         private void UpdateLockImage()
         {
             if (_lockImage != null)
             {
-                _lockImage.Source = _settingsHostService.Settings.WidgetsWindowSettings.CurrentBanLockImage;
+                _lockImage.Source = !string.IsNullOrWhiteSpace(_config.LockImageSource)
+                    ? _resourceResolver.ResolveImage(_config.LockImageSource, FrontedImagePurpose.UiElement)
+                    : ImageHelper.GetUiImageSource("CurrentBanLock");
             }
         }
 

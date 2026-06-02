@@ -33,7 +33,20 @@ public sealed class FrontedLayoutPackageLegacyConvertResult
 
     public int ResourceCount { get; set; }
 
+    public IReadOnlyList<string> Infos { get; set; } = [];
+
     public IReadOnlyList<string> Warnings { get; set; } = [];
+
+    public IReadOnlyList<string> Diagnostics { get; set; } = [];
+
+    public IReadOnlyList<string> UnsupportedProperties { get; set; } = [];
+
+    public IReadOnlyList<string> MissingResources { get; set; } = [];
+
+    public bool HasWarnings =>
+        Warnings.Count > 0
+        || UnsupportedProperties.Count > 0
+        || MissingResources.Count > 0;
 
     public string? ErrorMessage { get; set; }
 }

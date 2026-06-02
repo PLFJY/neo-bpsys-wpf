@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Core.Helpers;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
@@ -52,12 +53,8 @@ public class BanSlotDisplayFrontedControl(ILogger<BanSlotDisplayFrontedControl>?
         private static readonly BooleanToReverseVisibilityConverter ReverseVisibilityConverter = new();
 
         private readonly BanSlotDisplayControlConfig _config;
-        private readonly ISettingsHostService _settingsHostService;
         private readonly IFrontedResourceResolver _resourceResolver;
         private readonly Image? _lockImage;
-        private Settings? _subscribedSettings;
-        private BpWindowSettings? _subscribedBpWindowSettings;
-        private bool _isSubscribed;
 
         public BanSlotDisplayElement(
             string name,
@@ -68,7 +65,6 @@ public class BanSlotDisplayFrontedControl(ILogger<BanSlotDisplayFrontedControl>?
             ILogger? logger)
         {
             _config = config;
-            _settingsHostService = settingsHostService;
             _resourceResolver = resourceResolver;
 
             var outer = CutSceneFrontedControlHelper.CreateOuterBorder(name, config);
@@ -105,107 +101,10 @@ public class BanSlotDisplayFrontedControl(ILogger<BanSlotDisplayFrontedControl>?
                 });
                 Panel.SetZIndex(_lockImage, config.LockZIndexOffset);
                 grid.Children.Add(_lockImage);
-
-                Loaded += OnLoaded;
-                Unloaded += OnUnloaded;
+                UpdateLockImage();
             }
 
             Child = grid;
-        }
-
-        private void OnLoaded(object sender, RoutedEventArgs e)
-        {
-            if (_isSubscribed)
-            {
-                return;
-            }
-
-            _isSubscribed = true;
-            _settingsHostService.SettingsChanged += OnSettingsChanged;
-            SubscribeSettings(_settingsHostService.Settings);
-            UpdateLockImage();
-        }
-
-        private void OnUnloaded(object sender, RoutedEventArgs e)
-        {
-            if (!_isSubscribed)
-            {
-                return;
-            }
-
-            _isSubscribed = false;
-            _settingsHostService.SettingsChanged -= OnSettingsChanged;
-            SubscribeSettings(null);
-        }
-
-        private void OnSettingsChanged(object? sender, Settings settings)
-        {
-            SubscribeSettings(settings);
-            UpdateLockImage();
-        }
-
-        private void OnSettingsPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (string.IsNullOrEmpty(e.PropertyName)
-                || e.PropertyName == nameof(Settings.BpWindowSettings))
-            {
-                SubscribeBpWindowSettings(_subscribedSettings?.BpWindowSettings);
-                UpdateLockImage();
-            }
-        }
-
-        private void OnBpWindowSettingsPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (string.IsNullOrEmpty(e.PropertyName)
-                || e.PropertyName == nameof(BpWindowSettings.CurrentBanLockImage)
-                || e.PropertyName == nameof(BpWindowSettings.CurrentBanLockImageUri)
-                || e.PropertyName == nameof(BpWindowSettings.GlobalBanLockImage)
-                || e.PropertyName == nameof(BpWindowSettings.GlobalBanLockImageUri))
-            {
-                UpdateLockImage();
-            }
-        }
-
-        private void SubscribeSettings(Settings? settings)
-        {
-            if (_subscribedSettings == settings)
-            {
-                return;
-            }
-
-            if (_subscribedSettings != null)
-            {
-                _subscribedSettings.PropertyChanged -= OnSettingsPropertyChanged;
-            }
-
-            _subscribedSettings = settings;
-
-            if (_subscribedSettings != null)
-            {
-                _subscribedSettings.PropertyChanged += OnSettingsPropertyChanged;
-            }
-
-            SubscribeBpWindowSettings(_subscribedSettings?.BpWindowSettings);
-        }
-
-        private void SubscribeBpWindowSettings(BpWindowSettings? settings)
-        {
-            if (_subscribedBpWindowSettings == settings)
-            {
-                return;
-            }
-
-            if (_subscribedBpWindowSettings != null)
-            {
-                _subscribedBpWindowSettings.PropertyChanged -= OnBpWindowSettingsPropertyChanged;
-            }
-
-            _subscribedBpWindowSettings = settings;
-
-            if (_subscribedBpWindowSettings != null)
-            {
-                _subscribedBpWindowSettings.PropertyChanged += OnBpWindowSettingsPropertyChanged;
-            }
         }
 
         private void UpdateLockImage()
@@ -217,9 +116,9 @@ public class BanSlotDisplayFrontedControl(ILogger<BanSlotDisplayFrontedControl>?
 
             _lockImage.Source = !string.IsNullOrWhiteSpace(_config.LockImageSource)
                 ? _resourceResolver.ResolveImage(_config.LockImageSource, FrontedImagePurpose.UiElement)
-                : _config.SlotKind == BanSlotKind.Current
-                    ? _settingsHostService.Settings.BpWindowSettings.CurrentBanLockImage
-                    : _settingsHostService.Settings.BpWindowSettings.GlobalBanLockImage;
+                : ImageHelper.GetUiImageSource(_config.SlotKind == BanSlotKind.Current
+                    ? "CurrentBanLock"
+                    : "GlobalBanLock");
         }
 
         private static bool HasValidIndex(

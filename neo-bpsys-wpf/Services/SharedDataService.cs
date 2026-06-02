@@ -66,7 +66,7 @@ public partial class SharedDataService : ISharedDataService
         CanGlobalHunBannedList.CollectionChanged += (_, e) =>
             HandleBanCollectionChanged(BanListName.CanGlobalHunBanned, e);
 
-        GlobalScoreTotalMargin = _settingsHostService.Settings.ScoreWindowSettings.GlobalScoreTotalMargin;
+        GlobalScoreTotalMargin = 370;
         _timer.Interval = TimeSpan.FromSeconds(1);
         _timer.Tick += Timer_Tick;
 

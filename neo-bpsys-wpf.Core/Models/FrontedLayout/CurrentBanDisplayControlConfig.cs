@@ -44,4 +44,9 @@ public class CurrentBanDisplayControlConfig : FrontedControlConfigBase
     /// 图片垂直对齐。
     /// </summary>
     public string? VerticalAlignment { get; set; }
+
+    /// <summary>
+    /// 锁定覆盖层图片路径。为空时使用内置默认锁图。
+    /// </summary>
+    public string? LockImageSource { get; set; }
 }

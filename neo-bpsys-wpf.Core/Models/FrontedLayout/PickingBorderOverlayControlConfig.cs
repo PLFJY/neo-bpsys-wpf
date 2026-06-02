@@ -19,12 +19,12 @@ public class PickingBorderOverlayControlConfig : FrontedControlConfigBase
     public string TargetControlName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 边框图片路径。为空时使用 BpWindowSettings.PickingBorderImage。
+    /// 边框图片路径。为空时使用内置默认 BP 选择边框图。
     /// </summary>
     public string? BorderImagePath { get; set; }
 
     /// <summary>
-    /// 边框填充色。为空时使用 BpWindowSettings.PickingBorderBrush。
+    /// 边框填充色。为空时使用白色。
     /// </summary>
     public string? FillColor { get; set; }
 

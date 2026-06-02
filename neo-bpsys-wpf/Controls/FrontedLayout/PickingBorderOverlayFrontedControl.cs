@@ -1,10 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -48,12 +48,8 @@ public class PickingBorderOverlayFrontedControl(
     private sealed class PickingBorderOverlayElement : Border
     {
         private readonly PickingBorderOverlayControlConfig _config;
-        private readonly ISettingsHostService _settingsHostService;
         private readonly IFrontedResourceResolver _resourceResolver;
         private readonly ILogger? _logger;
-        private Settings? _subscribedSettings;
-        private BpWindowSettings? _subscribedBpWindowSettings;
-        private bool _isSubscribed;
 
         public PickingBorderOverlayElement(
             string name,
@@ -63,7 +59,6 @@ public class PickingBorderOverlayFrontedControl(
             ILogger? logger)
         {
             _config = config;
-            _settingsHostService = settingsHostService;
             _resourceResolver = resourceResolver;
             _logger = logger;
 
@@ -84,103 +79,7 @@ public class PickingBorderOverlayFrontedControl(
 
             Visibility = config.InitiallyHidden ? Visibility.Hidden : Visibility.Visible;
 
-            Loaded += OnLoaded;
-            Unloaded += OnUnloaded;
-        }
-
-        private void OnLoaded(object sender, RoutedEventArgs e)
-        {
-            if (_isSubscribed)
-            {
-                return;
-            }
-
-            _isSubscribed = true;
-            _settingsHostService.SettingsChanged += OnSettingsChanged;
-            SubscribeSettings(_settingsHostService.Settings);
             UpdateVisuals();
-        }
-
-        private void OnUnloaded(object sender, RoutedEventArgs e)
-        {
-            if (!_isSubscribed)
-            {
-                return;
-            }
-
-            _isSubscribed = false;
-            _settingsHostService.SettingsChanged -= OnSettingsChanged;
-            SubscribeSettings(null);
-        }
-
-        private void OnSettingsChanged(object? sender, Settings settings)
-        {
-            SubscribeSettings(settings);
-            UpdateVisuals();
-        }
-
-        private void OnSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (string.IsNullOrEmpty(e.PropertyName)
-                || e.PropertyName == nameof(Settings.BpWindowSettings))
-            {
-                SubscribeBpWindowSettings(_subscribedSettings?.BpWindowSettings);
-                UpdateVisuals();
-            }
-        }
-
-        private void OnBpWindowSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (string.IsNullOrEmpty(e.PropertyName)
-                || e.PropertyName == nameof(BpWindowSettings.PickingBorderImage)
-                || e.PropertyName == nameof(BpWindowSettings.PickingBorderImageUri)
-                || e.PropertyName == nameof(BpWindowSettings.PickingBorderBrush)
-                || e.PropertyName == nameof(BpWindowSettings.PickingBorderColor))
-            {
-                UpdateVisuals();
-            }
-        }
-
-        private void SubscribeSettings(Settings? settings)
-        {
-            if (_subscribedSettings == settings)
-            {
-                return;
-            }
-
-            if (_subscribedSettings != null)
-            {
-                _subscribedSettings.PropertyChanged -= OnSettingsPropertyChanged;
-            }
-
-            _subscribedSettings = settings;
-
-            if (_subscribedSettings != null)
-            {
-                _subscribedSettings.PropertyChanged += OnSettingsPropertyChanged;
-            }
-
-            SubscribeBpWindowSettings(_subscribedSettings?.BpWindowSettings);
-        }
-
-        private void SubscribeBpWindowSettings(BpWindowSettings? settings)
-        {
-            if (_subscribedBpWindowSettings == settings)
-            {
-                return;
-            }
-
-            if (_subscribedBpWindowSettings != null)
-            {
-                _subscribedBpWindowSettings.PropertyChanged -= OnBpWindowSettingsPropertyChanged;
-            }
-
-            _subscribedBpWindowSettings = settings;
-
-            if (_subscribedBpWindowSettings != null)
-            {
-                _subscribedBpWindowSettings.PropertyChanged += OnBpWindowSettingsPropertyChanged;
-            }
         }
 
         private void UpdateVisuals()
@@ -189,7 +88,7 @@ public class PickingBorderOverlayFrontedControl(
 
             var imageSource = !string.IsNullOrWhiteSpace(_config.BorderImagePath)
                 ? _resourceResolver.ResolveImage(_config.BorderImagePath, FrontedImagePurpose.UiElement)
-                : _settingsHostService.Settings.BpWindowSettings.PickingBorderImage;
+                : ImageHelper.GetUiImageSource("pickingBorder");
 
             OpacityMask = imageSource is null
                 ? null
@@ -200,7 +99,7 @@ public class PickingBorderOverlayFrontedControl(
         {
             if (string.IsNullOrWhiteSpace(_config.FillColor))
             {
-                return _settingsHostService.Settings.BpWindowSettings.PickingBorderBrush;
+                return Brushes.White;
             }
 
             try
@@ -214,7 +113,7 @@ public class PickingBorderOverlayFrontedControl(
                     "Invalid PickingBorderOverlay FillColor. Control: {TargetControlName}, FillColor: {FillColor}",
                     _config.TargetControlName,
                     _config.FillColor);
-                return _settingsHostService.Settings.BpWindowSettings.PickingBorderBrush;
+                return Brushes.White;
             }
         }
     }

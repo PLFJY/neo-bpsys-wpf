@@ -1,0 +1,519 @@
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace neo_bpsys_wpf.Tests.Services;
+
+public sealed class LegacyFrontedLayoutConversionPolishTest
+{
+    [Fact]
+    public void FormatterKeepsBenignDiagnosticsOutOfUserWarnings()
+    {
+        var result = new FrontedLayoutPackageLegacyConvertResult
+        {
+            Success = true,
+            Infos =
+            [
+                "Legacy resource copied: CurrentBanLock.png",
+                "Legacy global score cells aggregated: ScoreGlobalWindow/BaseCanvas/HomeTeamGame* -> HomeGlobalScoreRow.",
+                "Legacy control geometry fuzzy-matched: A -> B"
+            ],
+            Diagnostics =
+            [
+                "Legacy overtime score cells were consumed; v3 GlobalScoreRow does not expose separate overtime cell geometry.",
+                "Legacy lock overlay geometry consumed: HunBanCurrentLock0 -> HunBanCurrent0",
+                "Legacy global score cells aggregated: ScoreGlobalWindow/BaseCanvas/HomeTeamGame* -> HomeGlobalScoreRow. Irregular cell spacing was approximated by median gaps."
+            ]
+        };
+
+        Assert.False(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
+        Assert.Equal(string.Empty, LegacyConversionMessageFormatter.BuildUserSummary(result));
+        Assert.Contains("Legacy lock overlay geometry consumed", LegacyConversionMessageFormatter.BuildTechnicalDetails(result));
+    }
+
+    [Fact]
+    public void FormatterSummarizesActionableWarningsWithoutClosestCandidates()
+    {
+        var result = new FrontedLayoutPackageLegacyConvertResult
+        {
+            Success = true,
+            Warnings =
+            [
+                "Legacy resource missing or not packaged for field BpWindowSettings.CurrentBanLockImageUri: C:\\legacy\\missing.png",
+                "Legacy control geometry ignored because no v3 control matches: WidgetsWindow/BpOverViewCanvas/LegacyOnly. Closest candidates: A, B, C",
+                "Unknown legacy layout file skipped: UnknownWindowConfig-BaseCanvas.json",
+                "Converted layout BpWindow/BaseCanvas has validation errors: bad"
+            ]
+        };
+
+        var summary = LegacyConversionMessageFormatter.BuildUserSummary(result);
+
+        Assert.True(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
+        Assert.DoesNotContain("Closest candidates", summary, StringComparison.OrdinalIgnoreCase);
+        Assert.True(summary.Split(Environment.NewLine).Count(line => line.StartsWith("- ", StringComparison.Ordinal)) <= 3);
+        Assert.Contains("Closest candidates", LegacyConversionMessageFormatter.BuildTechnicalDetails(result));
+    }
+
+    [Fact]
+    public async Task ConverterConsumesScoreGlobalOvertimeCellsWithoutUnmatchedWarnings()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            WriteBuiltInScoreGlobalLayout(builtInRoot);
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            CreateLegacyArchive(
+                archivePath,
+                configJson: "{}",
+                customResources: [],
+                layouts: new Dictionary<string, string>
+                {
+                    ["FrontElementsConfig/ScoreGlobalWindowConfig-BaseCanvas.json"] =
+                        """
+                        {
+                          "HomeTeamGame5OvertimeFirstHalf": { "Left": 900, "Top": 90 },
+                          "HomeTeamGame5OvertimeSecondHalf": { "Left": 990, "Top": 90 },
+                          "AwayTeamGame5OvertimeFirstHalf": { "Left": 900, "Top": 150 },
+                          "AwayTeamGame5OvertimeSecondHalf": { "Left": 990, "Top": 150 }
+                        }
+                        """
+                });
+
+            var result = await ConvertAsync(builtInRoot, root, archivePath, "converted.legacy.overtime");
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.DoesNotContain(result.Warnings, warning => warning.Contains("Overtime", StringComparison.Ordinal));
+            Assert.DoesNotContain(result.Warnings, warning => warning.Contains("no v3 control matches", StringComparison.OrdinalIgnoreCase));
+            Assert.Contains(result.Diagnostics, item => item.Contains("Legacy overtime score cells were consumed", StringComparison.Ordinal));
+            Assert.False(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ConverterConsumesLegacyCurrentBanLockOverlayGeometry()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            WriteBuiltInWidgetsOverviewLayout(builtInRoot);
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            CreateLegacyArchive(
+                archivePath,
+                configJson: "{}",
+                customResources: [],
+                layouts: new Dictionary<string, string>
+                {
+                    ["FrontElementsConfig/WidgetsWindowConfig-BpOverViewCanvas.json"] =
+                        """
+                        {
+                          "HunBanCurrentLock0": { "Left": 11, "Top": 22, "Width": 33, "Height": 44 },
+                          "SurBanCurrent0": { "Left": 100, "Top": 200, "Width": 300, "Height": 400 },
+                          "SurBanCurrentLock0": { "Left": 1, "Top": 2, "Width": 3, "Height": 4 }
+                        }
+                        """
+                });
+
+            var result = await ConvertAsync(builtInRoot, root, archivePath, "converted.legacy.lock-geometry");
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.DoesNotContain(result.Warnings, warning => warning.Contains("BanCurrentLock", StringComparison.Ordinal));
+            Assert.Contains(result.Diagnostics, item => item.Contains("HunBanCurrentLock0 -> HunBanCurrent0", StringComparison.Ordinal));
+            Assert.False(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
+
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var layout = ReadLayout(archive, "layouts/WidgetsWindow/BpOverViewCanvas.json");
+            var hun = Assert.IsType<CurrentBanDisplayControlConfig>(layout.Controls["HunBanCurrent0"]);
+            Assert.Equal(11, hun.Left);
+            Assert.Equal(22, hun.Top);
+            Assert.Equal(33, hun.Width);
+            Assert.Equal(44, hun.Height);
+            var sur = Assert.IsType<CurrentBanDisplayControlConfig>(layout.Controls["SurBanCurrent0"]);
+            Assert.Equal(100, sur.Left);
+            Assert.Equal(200, sur.Top);
+            Assert.Equal(300, sur.Width);
+            Assert.Equal(400, sur.Height);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task ConverterMigratesLockAndPickingBorderResourcesIntoV3Config()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            WriteBuiltInBpLayout(builtInRoot);
+            WriteBuiltInWidgetsOverviewLayout(builtInRoot);
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            CreateLegacyArchive(
+                archivePath,
+                configJson:
+                """
+                {
+                  "BpWindowSettings": {
+                    "CurrentBanLockImageUri": "C:\\legacy\\CurrentBanLock.png",
+                    "GlobalBanLockImageUri": "C:\\legacy\\GlobalBanLock.png",
+                    "PickingBorderImageUri": "C:\\legacy\\PickingBorder.png",
+                    "PickingBorderColor": "#FF112233"
+                  },
+                  "WidgetsWindowSettings": {
+                    "CurrentBanLockImageUri": "C:\\legacy\\WidgetCurrentBanLock.png",
+                    "MapBpV2PickingBorderImageUri": "C:\\legacy\\PickingBorder.png",
+                    "MapBpV2_PickingBorderColor": "#FF445566"
+                  }
+                }
+                """,
+                customResources:
+                [
+                    "CurrentBanLock.png",
+                    "GlobalBanLock.png",
+                    "PickingBorder.png",
+                    "WidgetCurrentBanLock.png"
+                ],
+                layouts: new Dictionary<string, string>
+                {
+                    ["FrontElementsConfig/BpWindowConfig-BaseCanvas.json"] = "{}",
+                    ["FrontElementsConfig/WidgetsWindowConfig-BpOverViewCanvas.json"] = "{}"
+                });
+
+            var result = await ConvertAsync(builtInRoot, root, archivePath, "converted.legacy.assets");
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.DoesNotContain(result.Warnings, warning => warning.Contains("CurrentBanLock", StringComparison.Ordinal));
+
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var bpLayout = ReadLayout(archive, "layouts/BpWindow/BaseCanvas.json");
+            var current = Assert.IsType<BanSlotDisplayControlConfig>(bpLayout.Controls["SurBanCurrent0"]);
+            var global = Assert.IsType<BanSlotDisplayControlConfig>(bpLayout.Controls["SurBanGlobal0"]);
+            var border = Assert.IsType<PickingBorderOverlayControlConfig>(bpLayout.Controls["SurPickingBorder0"]);
+            Assert.StartsWith("bpui://converted.legacy.assets/resources/images/CurrentBanLock-", current.LockImageSource);
+            Assert.StartsWith("bpui://converted.legacy.assets/resources/images/GlobalBanLock-", global.LockImageSource);
+            Assert.StartsWith("bpui://converted.legacy.assets/resources/images/PickingBorder-", border.BorderImagePath);
+            Assert.Equal("#FF112233", border.FillColor);
+
+            var widgetsLayout = ReadLayout(archive, "layouts/WidgetsWindow/BpOverViewCanvas.json");
+            var widgetsCurrent = Assert.IsType<CurrentBanDisplayControlConfig>(widgetsLayout.Controls["HunBanCurrent0"]);
+            Assert.StartsWith("bpui://converted.legacy.assets/resources/images/WidgetCurrentBanLock-", widgetsCurrent.LockImageSource);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task MissingLegacyLockResourceDoesNotCrashConversion()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            WriteBuiltInBpLayout(builtInRoot);
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            CreateLegacyArchive(
+                archivePath,
+                configJson:
+                """
+                {
+                  "BpWindowSettings": {
+                    "CurrentBanLockImageUri": "C:\\legacy\\MissingLock.png"
+                  }
+                }
+                """,
+                customResources: [],
+                layouts: new Dictionary<string, string>
+                {
+                    ["FrontElementsConfig/BpWindowConfig-BaseCanvas.json"] = "{}"
+                });
+
+            var result = await ConvertAsync(builtInRoot, root, archivePath, "converted.legacy.missing-lock");
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.Contains(result.Warnings, warning => warning.Contains("MissingLock.png", StringComparison.Ordinal));
+            Assert.True(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    private static Task<FrontedLayoutPackageLegacyConvertResult> ConvertAsync(
+        string builtInRoot,
+        string root,
+        string archivePath,
+        string packageId)
+    {
+        var converter = new FrontedLayoutPackageLegacyConverter(builtInRoot, Path.Combine(root, "temp"));
+        return converter.ConvertAsync(new FrontedLayoutPackageLegacyConvertRequest
+        {
+            LegacyPackagePath = archivePath,
+            PackageId = packageId,
+            Name = packageId
+        }, TestContext.Current.CancellationToken);
+    }
+
+    private static void WriteBuiltInScoreGlobalLayout(string builtInRoot)
+    {
+        WriteFile(
+            Path.Combine(builtInRoot, "ScoreGlobalWindow", "BaseCanvas.json"),
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 195,
+              "BackgroundImage": "Resources/scoreGlobal.png",
+              "HomeGlobalScoreRow": {
+                "ControlType": "GlobalScoreRow",
+                "Left": 175,
+                "Top": 93,
+                "TeamType": "HomeTeam",
+                "MajorGameGap": 180,
+                "HalfGameGap": 90
+              },
+              "AwayGlobalScoreRow": {
+                "ControlType": "GlobalScoreRow",
+                "Left": 175,
+                "Top": 150,
+                "TeamType": "AwayTeam",
+                "MajorGameGap": 180,
+                "HalfGameGap": 90
+              }
+            }
+            """);
+    }
+
+    private static void WriteBuiltInWidgetsOverviewLayout(string builtInRoot)
+    {
+        WriteFile(
+            Path.Combine(builtInRoot, "WidgetsWindow", "BpOverViewCanvas.json"),
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 810,
+              "BackgroundImage": "Resources/bpOverview.png",
+              "HunBanCurrent0": {
+                "ControlType": "CurrentBanDisplay",
+                "Camp": "Hun",
+                "Index": 0,
+                "Left": 1,
+                "Top": 2,
+                "Width": 3,
+                "Height": 4
+              },
+              "SurBanCurrent0": {
+                "ControlType": "CurrentBanDisplay",
+                "Camp": "Sur",
+                "Index": 0,
+                "Left": 5,
+                "Top": 6,
+                "Width": 7,
+                "Height": 8
+              }
+            }
+            """);
+    }
+
+    private static void WriteBuiltInBpLayout(string builtInRoot)
+    {
+        WriteFile(
+            Path.Combine(builtInRoot, "BpWindow", "BaseCanvas.json"),
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 810,
+              "BackgroundImage": "Resources/bp.png",
+              "SurBanCurrent0": {
+                "ControlType": "BanSlotDisplay",
+                "SlotKind": "Current",
+                "Camp": "Sur",
+                "Index": 0,
+                "Left": 10,
+                "Top": 20,
+                "Width": 30,
+                "Height": 40
+              },
+              "SurBanGlobal0": {
+                "ControlType": "BanSlotDisplay",
+                "SlotKind": "Global",
+                "Camp": "Sur",
+                "Index": 0,
+                "Left": 50,
+                "Top": 60,
+                "Width": 70,
+                "Height": 80
+              },
+              "SurPick0": {
+                "ControlType": "Image",
+                "Left": 90,
+                "Top": 100,
+                "Width": 110,
+                "Height": 120,
+                "BindingPath": "CurrentGame.SurPlayerList[0].PictureShown"
+              },
+              "SurPick1": {
+                "ControlType": "Image",
+                "Left": 90,
+                "Top": 100,
+                "Width": 110,
+                "Height": 120,
+                "BindingPath": "CurrentGame.SurPlayerList[1].PictureShown"
+              },
+              "SurPick2": {
+                "ControlType": "Image",
+                "Left": 90,
+                "Top": 100,
+                "Width": 110,
+                "Height": 120,
+                "BindingPath": "CurrentGame.SurPlayerList[2].PictureShown"
+              },
+              "SurPick3": {
+                "ControlType": "Image",
+                "Left": 90,
+                "Top": 100,
+                "Width": 110,
+                "Height": 120,
+                "BindingPath": "CurrentGame.SurPlayerList[3].PictureShown"
+              },
+              "HunPick": {
+                "ControlType": "Image",
+                "Left": 90,
+                "Top": 100,
+                "Width": 110,
+                "Height": 120,
+                "BindingPath": "CurrentGame.HunPlayer.PictureShown"
+              },
+              "SurPickingBorder0": {
+                "ControlType": "PickingBorderOverlay",
+                "TargetControlName": "SurPick0",
+                "Left": 90,
+                "Top": 100,
+                "Width": 110,
+                "Height": 120
+              },
+              "SurPickingBorder1": {
+                "ControlType": "PickingBorderOverlay",
+                "TargetControlName": "SurPick1",
+                "Left": 90,
+                "Top": 100,
+                "Width": 110,
+                "Height": 120
+              },
+              "SurPickingBorder2": {
+                "ControlType": "PickingBorderOverlay",
+                "TargetControlName": "SurPick2",
+                "Left": 90,
+                "Top": 100,
+                "Width": 110,
+                "Height": 120
+              },
+              "SurPickingBorder3": {
+                "ControlType": "PickingBorderOverlay",
+                "TargetControlName": "SurPick3",
+                "Left": 90,
+                "Top": 100,
+                "Width": 110,
+                "Height": 120
+              },
+              "HunPickingBorder": {
+                "ControlType": "PickingBorderOverlay",
+                "TargetControlName": "HunPick",
+                "Left": 90,
+                "Top": 100,
+                "Width": 110,
+                "Height": 120
+              }
+            }
+            """);
+    }
+
+    private static void CreateLegacyArchive(
+        string archivePath,
+        string configJson,
+        IReadOnlyList<string> customResources,
+        IReadOnlyDictionary<string, string> layouts)
+    {
+        using var archive = ZipFile.Open(archivePath, ZipArchiveMode.Create);
+        WriteZipEntry(archive, "Config.json", configJson);
+        foreach (var resourceName in customResources)
+        {
+            var entry = archive.CreateEntry($"CustomUi/{resourceName}");
+            using var stream = entry.Open();
+            stream.Write(TinyPngBytes);
+        }
+
+        foreach (var (entryName, json) in layouts)
+        {
+            WriteZipEntry(archive, entryName, json);
+        }
+    }
+
+    private static FrontedCanvasConfig ReadLayout(ZipArchive archive, string entryName)
+    {
+        return JsonSerializer.Deserialize<FrontedCanvasConfig>(ReadZipEntry(archive, entryName), new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        })!;
+    }
+
+    private static void WriteFile(string path, string text)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, text);
+    }
+
+    private static void WriteZipEntry(ZipArchive archive, string entryName, string text)
+    {
+        var entry = archive.CreateEntry(entryName);
+        using var stream = entry.Open();
+        using var writer = new StreamWriter(stream);
+        writer.Write(text);
+    }
+
+    private static string ReadZipEntry(ZipArchive archive, string entryName)
+    {
+        var entry = archive.GetEntry(entryName) ?? throw new InvalidOperationException($"Missing zip entry {entryName}.");
+        using var stream = entry.Open();
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
+    }
+
+    private static string CreateTempDirectory()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "neo-bpsys-wpf-tests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(path);
+        return path;
+    }
+
+    private static void DeleteTempDirectory(string path)
+    {
+        if (Directory.Exists(path))
+        {
+            Directory.Delete(path, recursive: true);
+        }
+    }
+
+    private static byte[] TinyPngBytes =>
+        Convert.FromBase64String(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=");
+}
