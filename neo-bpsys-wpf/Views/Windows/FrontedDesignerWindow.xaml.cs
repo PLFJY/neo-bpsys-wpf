@@ -40,6 +40,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private FrontedDesignerHelpWindow? _helpWindow;
     private readonly Dictionary<FrontedControlDesignItem, Border> _hitboxes = new();
     private readonly Dictionary<FrontedDesignerResizeHandleKind, Border> _resizeHandles = new();
+    private readonly List<Line> _snapGuideLines = [];
     private Border? _selectionOutline;
     private Border? _selectionLabel;
     private FrameworkElement? _capturedElement;
@@ -643,6 +644,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private void OnDeactivated(object? sender, EventArgs e)
     {
         _viewModel?.UpdateShiftSnapActive(false);
+        _viewModel?.ClearActiveSnapGuides();
     }
 
     private void BrowseBindingButton_OnClick(object sender, RoutedEventArgs e)
@@ -923,6 +925,12 @@ public partial class FrontedDesignerWindow : FluentWindow
         if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.ZoomScale))
         {
             UpdateSelectedInteractionVisuals();
+            RenderSnapGuides();
+        }
+
+        if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.ActiveSnapGuides))
+        {
+            RenderSnapGuides();
         }
     }
 
@@ -1341,10 +1349,12 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void ClearPreviewCanvas()
     {
+        _viewModel?.ClearActiveSnapGuides();
         PreviewCanvas.Children.Clear();
         PreviewCanvas.Background = null;
         ConfigureDesignSurface(640, 360);
         InteractionLayer.Children.Clear();
+        _snapGuideLines.Clear();
         _hitboxes.Clear();
         _resizeHandles.Clear();
         _selectionOutline = null;
@@ -1366,7 +1376,9 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void RebuildInteractionLayer()
     {
+        _viewModel?.ClearActiveSnapGuides();
         InteractionLayer.Children.Clear();
+        _snapGuideLines.Clear();
         _hitboxes.Clear();
         _resizeHandles.Clear();
         _selectionOutline = null;
@@ -1527,6 +1539,59 @@ public partial class FrontedDesignerWindow : FluentWindow
         SetHandlePosition(FrontedDesignerResizeHandleKind.BottomLeft, bounds.Left, bounds.Top + bounds.Height);
         SetHandlePosition(FrontedDesignerResizeHandleKind.Bottom, bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height);
         SetHandlePosition(FrontedDesignerResizeHandleKind.BottomRight, bounds.Left + bounds.Width, bounds.Top + bounds.Height);
+    }
+
+    private void RenderSnapGuides()
+    {
+        ClearSnapGuideLines();
+
+        if (_viewModel?.ActiveSnapGuides.Count is null or 0)
+        {
+            return;
+        }
+
+        var brush = TryFindResource("AccentFillColorDefaultBrush") as Brush ?? Brushes.DeepSkyBlue;
+        var thickness = Math.Max(1D, 1D / Math.Max(0.01D, _viewModel.ZoomScale));
+        foreach (var guide in _viewModel.ActiveSnapGuides)
+        {
+            var line = new Line
+            {
+                Stroke = brush,
+                StrokeThickness = thickness,
+                StrokeDashArray = new DoubleCollection { 4D, 2D },
+                IsHitTestVisible = false,
+                SnapsToDevicePixels = true
+            };
+
+            if (guide.Orientation == FrontedDesignerSnapGuideOrientation.Vertical)
+            {
+                line.X1 = guide.Position;
+                line.X2 = guide.Position;
+                line.Y1 = guide.Start;
+                line.Y2 = guide.End;
+            }
+            else
+            {
+                line.X1 = guide.Start;
+                line.X2 = guide.End;
+                line.Y1 = guide.Position;
+                line.Y2 = guide.Position;
+            }
+
+            Panel.SetZIndex(line, FrontedDesignerEditorVisualHelper.SelectedOutlineZIndex - 1);
+            _snapGuideLines.Add(line);
+            InteractionLayer.Children.Add(line);
+        }
+    }
+
+    private void ClearSnapGuideLines()
+    {
+        foreach (var line in _snapGuideLines)
+        {
+            InteractionLayer.Children.Remove(line);
+        }
+
+        _snapGuideLines.Clear();
     }
 
     private void ApplySelectionLabelZoomMetrics(FrontedDesignerResolvedBounds bounds)
@@ -1971,6 +2036,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void ResetPointerInteraction()
     {
+        _viewModel?.ClearActiveSnapGuides();
         _capturedElement = null;
         _interactionMode = InteractionMode.None;
         _activeResizeHandle = null;

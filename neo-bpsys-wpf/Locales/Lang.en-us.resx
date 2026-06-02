@@ -3422,7 +3422,7 @@
     <value>Click control on canvas to select;\nClick item in layer panel to select;\nDrag selected control on canvas to move;\nResize with handles;\nSelected control name label appears above selection;\nTransparent/empty controls may be selected through hitbox or layer panel.</value>
   </data>
   <data name="Designer.Help.Snapping.Content" xml:space="preserve">
-    <value>Snap switch enables snapping;\nHolding Shift temporarily enables snapping without toggling the switch;\nSnap affects move/resize operations;\nSnap does not directly change stored values unless operation is committed.</value>
+    <value>Snap switch enables grid and object alignment snapping;\nHolding Shift temporarily enables snapping without toggling the switch;\nMoving or resizing near canvas edges, centers, or other control edges/centers shows alignment guide lines;\nSnap does not directly change stored values unless operation is committed.</value>
   </data>
   <data name="Designer.Help.LayerPanel.Content" xml:space="preserve">
     <value>Controls are grouped by ZIndex;\nHigher ZIndex is visually above lower ZIndex;\nDrag within same layer to change same-ZIndex order;\nDrag into another layer to change ZIndex;\nDrag to top edge to create new top layer;\nDrag to bottom edge to create new bottom layer;\nNear top/bottom edge auto-scrolls;\nFiltering disables layer reorder; clear filter to reorder;\nLinked overlay controls are not independently editable or draggable.</value>

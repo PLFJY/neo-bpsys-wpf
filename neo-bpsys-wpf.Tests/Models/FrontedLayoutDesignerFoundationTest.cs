@@ -3446,6 +3446,255 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void SmartSnapMoveAlignsControlEdgesAndProducesGuides()
+    {
+        var active = CreateSnapItem("Active", 10, 20, 100, 50);
+        var target = CreateSnapItem("Target", 205, 100, 100, 50);
+        var document = CreateDocument([active, target]);
+
+        var result = FrontedDesignerSmartSnapHelper.Move(
+            active,
+            document,
+            10,
+            20,
+            100,
+            50,
+            95,
+            4,
+            effectiveSnapEnabled: true,
+            snapGridSize: 10,
+            logicalTolerance: 6);
+
+        Assert.Equal(105, result.Left);
+        Assert.Equal(20, result.Top);
+        var guide = Assert.Single(result.Guides);
+        Assert.Equal(FrontedDesignerSnapGuideOrientation.Vertical, guide.Orientation);
+        Assert.Equal(205, guide.Position);
+        Assert.Equal(FrontedDesignerSnapGuideSource.Control, guide.Source);
+    }
+
+    [Fact]
+    public void SmartSnapMoveAlignsControlCenters()
+    {
+        var active = CreateSnapItem("Active", 10, 20, 100, 50);
+        var target = CreateSnapItem("Target", 300, 100, 120, 60);
+        var document = CreateDocument([active, target]);
+
+        var result = FrontedDesignerSmartSnapHelper.Move(
+            active,
+            document,
+            10,
+            20,
+            100,
+            50,
+            300,
+            85,
+            effectiveSnapEnabled: true,
+            snapGridSize: 10,
+            logicalTolerance: 6);
+
+        Assert.Equal(310, result.Left);
+        Assert.Equal(105, result.Top);
+        Assert.Contains(result.Guides, guide => guide.Orientation == FrontedDesignerSnapGuideOrientation.Vertical
+                                               && guide.Position == 360);
+        Assert.Contains(result.Guides, guide => guide.Orientation == FrontedDesignerSnapGuideOrientation.Horizontal
+                                               && guide.Position == 130);
+    }
+
+    [Fact]
+    public void SmartSnapUsesCanvasCandidatesAndNearestCandidateWins()
+    {
+        var active = CreateSnapItem("Active", 10, 20, 100, 50);
+        var near = CreateSnapItem("Near", 716, 100, 50, 50);
+        var document = CreateDocument([active, near]);
+
+        var result = FrontedDesignerSmartSnapHelper.Move(
+            active,
+            document,
+            10,
+            20,
+            100,
+            50,
+            606,
+            -17,
+            effectiveSnapEnabled: true,
+            snapGridSize: 10,
+            logicalTolerance: 6);
+
+        Assert.Equal(616, result.Left);
+        Assert.Equal(0, result.Top);
+        Assert.Contains(result.Guides, guide => guide.Orientation == FrontedDesignerSnapGuideOrientation.Vertical
+                                               && guide.Position == 716
+                                               && guide.Source == FrontedDesignerSnapGuideSource.Control);
+        Assert.Contains(result.Guides, guide => guide.Orientation == FrontedDesignerSnapGuideOrientation.Horizontal
+                                               && guide.Position == 0
+                                               && guide.Source == FrontedDesignerSnapGuideSource.Canvas);
+    }
+
+    [Fact]
+    public void SmartSnapFallsBackToGridOrHalfStepWhenNoSmartCandidateExists()
+    {
+        var active = CreateSnapItem("Active", 10, 20, 100, 50);
+        var target = CreateSnapItem("Target", 300, 100, 100, 50);
+        var document = CreateDocument([active, target]);
+
+        var snapResult = FrontedDesignerSmartSnapHelper.Move(
+            active,
+            document,
+            10,
+            20,
+            100,
+            50,
+            13,
+            14,
+            effectiveSnapEnabled: true,
+            snapGridSize: 10,
+            logicalTolerance: 2);
+
+        Assert.Equal(20, snapResult.Left);
+        Assert.Equal(30, snapResult.Top);
+        Assert.Empty(snapResult.Guides);
+
+        var freeResult = FrontedDesignerSmartSnapHelper.Move(
+            active,
+            document,
+            10,
+            20,
+            100,
+            50,
+            0.24,
+            0.25,
+            effectiveSnapEnabled: false,
+            snapGridSize: 10,
+            logicalTolerance: 6);
+
+        Assert.Equal(10, freeResult.Left);
+        Assert.Equal(20.5, freeResult.Top);
+        Assert.Empty(freeResult.Guides);
+    }
+
+    [Fact]
+    public void SmartSnapResizeSnapsAffectedEdgesAndKeepsMinimumSize()
+    {
+        var active = CreateSnapItem("Active", 100, 100, 100, 50);
+        var target = CreateSnapItem("Target", 250, 25, 100, 50);
+        var document = CreateDocument([active, target]);
+
+        var right = FrontedDesignerSmartSnapHelper.Resize(
+            active,
+            document,
+            FrontedDesignerResizeHandleKind.Right,
+            100,
+            100,
+            100,
+            50,
+            148,
+            0,
+            effectiveSnapEnabled: true,
+            snapGridSize: 10,
+            logicalTolerance: 6);
+
+        Assert.Equal(350, right.Left + right.Width);
+        Assert.Contains(right.Guides, guide => guide.Orientation == FrontedDesignerSnapGuideOrientation.Vertical
+                                              && guide.Position == 350);
+
+        var left = FrontedDesignerSmartSnapHelper.Resize(
+            active,
+            document,
+            FrontedDesignerResizeHandleKind.Left,
+            100,
+            100,
+            100,
+            50,
+            296,
+            0,
+            effectiveSnapEnabled: true,
+            snapGridSize: 10,
+            logicalTolerance: 6);
+
+        Assert.Equal(200, left.Left);
+        Assert.Equal(1, left.Width);
+    }
+
+    [Fact]
+    public void SmartSnapSkipsLinkedOverlaysButUsesPluginPlaceholders()
+    {
+        var active = CreateSnapItem("Active", 10, 20, 100, 50);
+        var overlay = CreateSnapItem("Overlay", 205, 80, 100, 50);
+        overlay.IsLinkedOverlay = true;
+        var plugin = new FrontedControlDesignItem
+        {
+            Name = "MissingTeamCard",
+            Config = new PluginFrontedControlConfig
+            {
+                ControlType = "plugin:top.plfjy.missing/TeamCard",
+                Left = 220,
+                Top = 100,
+                Width = 100,
+                Height = 60
+            },
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true
+        };
+        var document = CreateDocument([active, overlay, plugin]);
+
+        var result = FrontedDesignerSmartSnapHelper.Move(
+            active,
+            document,
+            10,
+            20,
+            100,
+            50,
+            110,
+            0,
+            effectiveSnapEnabled: true,
+            snapGridSize: 10,
+            logicalTolerance: 6);
+
+        Assert.Equal(120, result.Left);
+        Assert.Contains(result.Guides, guide => guide.Label == "MissingTeamCard");
+        Assert.DoesNotContain(result.Guides, guide => guide.Label == "Overlay");
+    }
+
+    [Fact]
+    public void ViewModelMoveAndResizeUpdateAndClearActiveSnapGuides()
+    {
+        var active = CreateSnapItem("Active", 10, 20, 100, 50);
+        var target = CreateSnapItem("Target", 205, 100, 100, 50);
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([active, target]),
+            SelectedDesignItem = active,
+            SnapEnabled = true
+        };
+
+        viewModel.MoveSelectedDesignItem(10, 20, 103, 0, renderPreview: false);
+
+        Assert.NotEmpty(viewModel.ActiveSnapGuides);
+        Assert.Equal(105, active.Config.Left);
+
+        viewModel.ClearActiveSnapGuides();
+
+        Assert.Empty(viewModel.ActiveSnapGuides);
+
+        viewModel.ResizeSelectedDesignItem(
+            FrontedDesignerResizeHandleKind.Right,
+            105,
+            20,
+            100,
+            50,
+            50,
+            0,
+            renderPreview: false);
+
+        Assert.NotEmpty(viewModel.ActiveSnapGuides);
+
+        viewModel.SnapEnabled = false;
+
+        Assert.Empty(viewModel.ActiveSnapGuides);
+    }
+
+    [Fact]
     public void CanvasPropertiesSizeEditValidatesAndMarksDirty()
     {
         var document = CreateDocument([]);
@@ -3680,6 +3929,28 @@ public class FrontedLayoutDesignerFoundationTest
                 CanvasHeight = 810
             },
             Controls = new(controls)
+        };
+    }
+
+    private static FrontedControlDesignItem CreateSnapItem(
+        string name,
+        double left,
+        double top,
+        double width,
+        double height)
+    {
+        return new FrontedControlDesignItem
+        {
+            Name = name,
+            Config = new ImageFrontedControlConfig
+            {
+                Left = left,
+                Top = top,
+                Width = width,
+                Height = height
+            },
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true
         };
     }
 

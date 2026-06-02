@@ -200,6 +200,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private bool _isShiftSnapActive;
 
     [ObservableProperty]
+    private IReadOnlyList<FrontedDesignerSnapGuide> _activeSnapGuides = [];
+
+    [ObservableProperty]
     private double _snapGridSize = FrontedDesignerGeometryHelper.DefaultSnapGridSize;
 
     public bool EffectiveSnapEnabled => SnapEnabled || IsShiftSnapActive;
@@ -423,12 +426,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(EffectiveSnapEnabled));
         OnPropertyChanged(nameof(SnapStatusText));
+        if (!EffectiveSnapEnabled)
+        {
+            ClearActiveSnapGuides();
+        }
     }
 
     partial void OnIsShiftSnapActiveChanged(bool value)
     {
         OnPropertyChanged(nameof(EffectiveSnapEnabled));
         OnPropertyChanged(nameof(SnapStatusText));
+        if (!EffectiveSnapEnabled)
+        {
+            ClearActiveSnapGuides();
+        }
     }
 
     partial void OnZoomScaleChanged(double value)
@@ -450,6 +461,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     partial void OnSelectedDesignItemChanged(FrontedControlDesignItem? value)
     {
+        ClearActiveSnapGuides();
         _propertyEditErrors.Clear();
         _propertyEditBuffers.Clear();
         if (_lastSelectedDesignItem is not null
@@ -1131,15 +1143,24 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
-        FrontedDesignerGeometryHelper.Move(
+        var bounds = FrontedDesignerBoundsResolver.Resolve(SelectedDesignItem.Config);
+        var result = FrontedDesignerSmartSnapHelper.Move(
             SelectedDesignItem,
+            CurrentDocument,
             originalLeft,
             originalTop,
+            bounds.Width,
+            bounds.Height,
             deltaX,
             deltaY,
-            CurrentDocument,
             EffectiveSnapEnabled,
-            SnapGridSize);
+            SnapGridSize,
+            FrontedDesignerSmartSnapHelper.CalculateLogicalTolerance(ZoomScale));
+
+        SelectedDesignItem.Config.Left = result.Left;
+        SelectedDesignItem.Config.Top = result.Top;
+        CurrentDocument.IsDirty = true;
+        ActiveSnapGuides = EffectiveSnapEnabled ? result.Guides : [];
         SyncLinkedOverlays(SelectedDesignItem);
         OnDesignItemGeometryChanged(renderPreview);
     }
@@ -1152,6 +1173,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         CaptureUndoSnapshot();
+        ClearActiveSnapGuides();
         FrontedDesignerGeometryHelper.MoveBy(
             SelectedDesignItem,
             deltaX,
@@ -1181,6 +1203,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         if (SelectedDesignItem.Config is BorderedImageFrontedControlConfig imageConfig
             && BorderedImageResizeTarget == FrontedDesignerResizeTarget.Image)
         {
+            ClearActiveSnapGuides();
             ResizeSelectedBorderedImageInnerImage(
                 imageConfig,
                 handle,
@@ -1193,8 +1216,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
-        FrontedDesignerGeometryHelper.Resize(
+        var result = FrontedDesignerSmartSnapHelper.Resize(
             SelectedDesignItem,
+            CurrentDocument,
             handle,
             originalLeft,
             originalTop,
@@ -1202,11 +1226,26 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             originalHeight,
             deltaX,
             deltaY,
-            CurrentDocument,
             EffectiveSnapEnabled,
-            SnapGridSize);
+            SnapGridSize,
+            FrontedDesignerSmartSnapHelper.CalculateLogicalTolerance(ZoomScale));
+
+        SelectedDesignItem.Config.Left = result.Left;
+        SelectedDesignItem.Config.Top = result.Top;
+        SelectedDesignItem.Config.Width = result.Width;
+        SelectedDesignItem.Config.Height = result.Height;
+        CurrentDocument.IsDirty = true;
+        ActiveSnapGuides = EffectiveSnapEnabled ? result.Guides : [];
         SyncLinkedOverlays(SelectedDesignItem);
         OnDesignItemGeometryChanged(renderPreview);
+    }
+
+    public void ClearActiveSnapGuides()
+    {
+        if (ActiveSnapGuides.Count > 0)
+        {
+            ActiveSnapGuides = [];
+        }
     }
 
     private void ResizeSelectedBorderedImageInnerImage(

@@ -3440,7 +3440,7 @@
     <value>点击画布上的控件进行选择；\n点击图层面板中的条目进行选择；\n拖拽选中的控件进行移动；\n通过拖拽手柄调整大小；\n选中控件名称标签显示在选中框上方；\n透明/空控件可通过点击框或图层面板选择。</value>
   </data>
   <data name="Designer.Help.Snapping.Content" xml:space="preserve">
-    <value>吸附开关启用吸附功能；\n按住 Shift 临时启用吸附，无需切换开关；\n吸附影响移动和调整大小操作；\n吸附不会直接改变存储值，除非操作已提交。</value>
+    <value>吸附开关启用网格和对象对齐吸附；\n按住 Shift 临时启用吸附，无需切换开关；\n移动或调整大小时，如果命中画布边缘、中心线或其他控件边缘/中心，会显示对齐辅助线；\n吸附不会直接改变存储值，除非操作已提交。</value>
   </data>
   <data name="Designer.Help.LayerPanel.Content" xml:space="preserve">
     <value>控件按 ZIndex 分组；\n较高的 ZIndex 在视觉上位于较低 ZIndex 的上方；\n在同一图层内拖拽以更改同 ZIndex 顺序；\n拖拽到另一图层以更改 ZIndex；\n拖拽到顶部边缘创建新顶层；\n拖拽到底部边缘创建新底层；\n靠近顶部/底部边缘时自动滚动；\n筛选会禁用图层重新排序；清除筛选后可重新排序；\n链接的覆盖层控件不可独立编辑或拖拽。</value>

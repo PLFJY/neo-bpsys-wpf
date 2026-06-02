@@ -698,7 +698,7 @@ Phase 8H 起，Save 只写入 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowNam
 
 顶部工具栏从 Phase 8H owner validation 修正后使用 `ScrollViewer + WrapPanel`，窗口选择器、Canvas 选择器、Add/Delete、Undo/Redo、保存/重置/打开目录、reload/validate、缩放、吸附和 dirty/path 状态都允许在窄窗口下自动换行。长 layout path 只显示省略文本并通过 tooltip 查看完整路径，不能把工具栏撑出窗口右侧。
 
-吸附行为从 Phase 8H 开始改为默认关闭：`SnapEnabled` 是工具栏 ToggleSwitch 的持久开关，`IsShiftSnapActive` 只表示编辑 surface 中 Shift 当前按下，`EffectiveSnapEnabled = SnapEnabled || IsShiftSnapActive`。Shift 临时吸附只更新状态文字，例如“临时吸附”，不会修改 ToggleSwitch 的 `IsChecked`，避免 KeyDown/KeyUp 时反复刷新开关。鼠标拖拽和缩放在 `EffectiveSnapEnabled` 为 true 时按默认 10 px 网格吸附；关闭时仍按 0.5 坐标精度归一化。方向键在吸附开启时使用网格步长，普通模式保留 0.5/修饰键微调语义。
+吸附行为从 Phase 8H 开始改为默认关闭：`SnapEnabled` 是工具栏 ToggleSwitch 的持久开关，`IsShiftSnapActive` 只表示编辑 surface 中 Shift 当前按下，`EffectiveSnapEnabled = SnapEnabled || IsShiftSnapActive`。Shift 临时吸附只更新状态文字，例如“临时吸附”，不会修改 ToggleSwitch 的 `IsChecked`，避免 KeyDown/KeyUp 时反复刷新开关。鼠标拖拽和缩放在 `EffectiveSnapEnabled` 为 true 时优先尝试智能对齐：活动控件的 left/center/right 或 top/center/bottom 可吸附到画布边缘、画布中心线以及其他可选择、可编辑、非 linked overlay 控件的边缘/中心；未命中智能候选的轴继续按默认 10 px 网格吸附。关闭时仍按 0.5 坐标精度归一化。方向键在吸附开启时使用网格步长，普通模式保留 0.5/修饰键微调语义。智能吸附产生的辅助线只作为 `InteractionLayer` 上的临时 `Line` 元素显示，不写入 `PreviewCanvas`，也不会序列化到 v3 layout 或 `.bpui`。
 
 Phase 10 起，编辑器 typed/pasted input 会按集中限制截断：搜索 128 字符，控件名 64，`BindingPath` 256，资源路径和 Canvas `BackgroundImage` 1024，`FontFamily` 256，静态 `Text` 512。发生截断时显示 `InputTruncated`。这些限制只适用于编辑器输入；外部导入 `.bpui`、layout JSON 或 manifest 时，超长字段会被拒绝，不会截断。Add Control 在当前 Canvas 已有 256 个控件时拒绝新增并显示 `ControlCountLimitReached`；保存仍由 validator 阻止硬限制错误。
 
