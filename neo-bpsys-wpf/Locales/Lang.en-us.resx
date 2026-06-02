@@ -3482,4 +3482,40 @@
   <data name="Designer.Option.CampNameFontWeight.SemiBold" xml:space="preserve"><value>Semi Bold</value></data>
   <data name="Designer.Option.CampNameFontWeight.Bold" xml:space="preserve"><value>Bold</value></data>
   <data name="Designer.Option.CampNameFontWeight.ExtraBold" xml:space="preserve"><value>Extra Bold</value></data>
+  <data name="ClassicMode" xml:space="preserve">
+    <value>Classic Mode</value>
+  </data>
+  <data name="ClassicModeDescription" xml:space="preserve">
+    <value>Restart the app for backend shell mode changes to take effect.</value>
+  </data>
+  <data name="ClassicModeRestartRequired" xml:space="preserve">
+    <value>Restart the app for backend shell mode changes to take effect. Restart now?</value>
+  </data>
+  <data name="ClassicBackendShell" xml:space="preserve">
+    <value>Classic Backend Shell</value>
+  </data>
+  <data name="ModernBackendShell" xml:space="preserve">
+    <value>Modern Backend Shell</value>
+  </data>
+  <data name="FrontendQuickControls" xml:space="preserve">
+    <value>Frontend quick controls</value>
+  </data>
+  <data name="ScoreSurWindow" xml:space="preserve">
+    <value>Survivor score</value>
+  </data>
+  <data name="ScoreHunWindow" xml:space="preserve">
+    <value>Hunter score</value>
+  </data>
+  <data name="ScoreGlobalWindow" xml:space="preserve">
+    <value>Score statistics</value>
+  </data>
+  <data name="GameDataWindow" xml:space="preserve">
+    <value>Game data window</value>
+  </data>
+  <data name="WidgetsWindow" xml:space="preserve">
+    <value>Widgets window</value>
+  </data>
+  <data name="Talent" xml:space="preserve">
+    <value>Talent</value>
+  </data>
 </root>

@@ -3500,4 +3500,40 @@
   <data name="Designer.Option.CampNameFontWeight.SemiBold" xml:space="preserve"><value>半粗</value></data>
   <data name="Designer.Option.CampNameFontWeight.Bold" xml:space="preserve"><value>粗体</value></data>
   <data name="Designer.Option.CampNameFontWeight.ExtraBold" xml:space="preserve"><value>特粗</value></data>
+  <data name="ClassicMode" xml:space="preserve">
+    <value>经典模式</value>
+  </data>
+  <data name="ClassicModeDescription" xml:space="preserve">
+    <value>切换后台界面模式后需要重启应用生效。</value>
+  </data>
+  <data name="ClassicModeRestartRequired" xml:space="preserve">
+    <value>切换后台界面模式后需要重启应用生效。是否立即重启？</value>
+  </data>
+  <data name="ClassicBackendShell" xml:space="preserve">
+    <value>经典导播台</value>
+  </data>
+  <data name="ModernBackendShell" xml:space="preserve">
+    <value>现代后台</value>
+  </data>
+  <data name="FrontendQuickControls" xml:space="preserve">
+    <value>前台窗口快捷控制</value>
+  </data>
+  <data name="ScoreSurWindow" xml:space="preserve">
+    <value>求生者比分</value>
+  </data>
+  <data name="ScoreHunWindow" xml:space="preserve">
+    <value>监管者比分</value>
+  </data>
+  <data name="ScoreGlobalWindow" xml:space="preserve">
+    <value>比分统计</value>
+  </data>
+  <data name="GameDataWindow" xml:space="preserve">
+    <value>赛后数据窗口</value>
+  </data>
+  <data name="WidgetsWindow" xml:space="preserve">
+    <value>小组件窗口</value>
+  </data>
+  <data name="Talent" xml:space="preserve">
+    <value>天赋</value>
+  </data>
 </root>

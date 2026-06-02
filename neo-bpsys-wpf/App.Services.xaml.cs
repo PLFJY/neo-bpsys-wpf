@@ -39,7 +39,7 @@ public partial class App
         services.AddSingleton<IUpdaterService, UpdaterService>();
 
         // Service containing navigation, same as INavigationWindow... but without window
-        services.AddSingleton<INavigationService, Services.NavigationService>();
+        services.AddSingleton<INavigationService, neo_bpsys_wpf.Services.NavigationService>();
 
         //_sharedDataService
         services.AddSingleton<ISharedDataService, SharedDataService>();
@@ -59,6 +59,7 @@ public partial class App
             DataContext = sp.GetRequiredService<MainWindowViewModel>(),
         });
         services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<ClassicBackWindow>();
 
         //FrontedWindowService
         services.AddSingleton<IFrontedWindowService, FrontedWindowService>();

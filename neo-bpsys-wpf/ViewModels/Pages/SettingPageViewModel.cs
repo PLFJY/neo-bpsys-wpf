@@ -6,6 +6,7 @@ using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.Abstractions;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -45,6 +46,49 @@ public partial class SettingPageViewModel : ViewModelBase
         _isSyncingLogLevel = true;
         SelectedLogLevel = _settingsHostService.Settings.LogLevel;
         _isSyncingLogLevel = false;
+    }
+
+    public bool IsClassicMode
+    {
+        get => _settingsHostService.Settings.IsClassicMode;
+        set
+        {
+            if (_settingsHostService.Settings.IsClassicMode == value)
+            {
+                return;
+            }
+
+            _settingsHostService.Settings.IsClassicMode = value;
+            OnPropertyChanged();
+            _ = SaveClassicModeAndOfferRestartAsync();
+        }
+    }
+
+    private async Task SaveClassicModeAndOfferRestartAsync()
+    {
+        await _settingsHostService.SaveConfigAsync();
+
+        var shouldRestart = await MessageBoxHelper.ShowConfirmAsync(
+            I18nHelper.GetLocalizedString("ClassicModeRestartRequired"),
+            I18nHelper.GetLocalizedString("Warning"),
+            I18nHelper.GetLocalizedString("RestartNow"),
+            I18nHelper.GetLocalizedString("Cancel"));
+
+        if (!shouldRestart)
+        {
+            return;
+        }
+
+        var executablePath = Environment.ProcessPath;
+        if (!string.IsNullOrWhiteSpace(executablePath))
+        {
+            Process.Start(new ProcessStartInfo(executablePath)
+            {
+                UseShellExecute = true
+            });
+        }
+
+        Application.Current.Shutdown();
     }
 
     private void Settings_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

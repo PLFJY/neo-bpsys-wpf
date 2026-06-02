@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Views.Pages;
 using neo_bpsys_wpf.Views.Windows;
 using System.Windows;
@@ -14,6 +15,7 @@ namespace neo_bpsys_wpf.Services;
 public class ApplicationHostService(IServiceProvider serviceProvider) : IHostedService
 {
     private INavigationWindow? _navigationWindow;
+    private ClassicBackWindow? _classicBackWindow;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -29,7 +31,21 @@ public class ApplicationHostService(IServiceProvider serviceProvider) : IHostedS
     {
         await Task.CompletedTask;
 
-        if (!Application.Current.Windows.OfType<MainWindow>().Any())
+        var settingsHostService = serviceProvider.GetRequiredService<ISettingsHostService>();
+        if (settingsHostService.Settings.IsClassicMode)
+        {
+            if (!Application.Current.Windows.OfType<ClassicBackWindow>().Any()
+                && !Application.Current.Windows.OfType<MainWindow>().Any())
+            {
+                _classicBackWindow = serviceProvider.GetRequiredService<ClassicBackWindow>();
+                _classicBackWindow.Show();
+            }
+
+            return;
+        }
+
+        if (!Application.Current.Windows.OfType<MainWindow>().Any()
+            && !Application.Current.Windows.OfType<ClassicBackWindow>().Any())
         {
             _navigationWindow = serviceProvider.GetRequiredService<INavigationWindow>();
             _navigationWindow.ShowWindow();

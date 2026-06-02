@@ -22,6 +22,8 @@ public partial class Settings : ObservableObjectBase
 
     public bool IsRecordGlobalBan { get; set; } = true;
 
+    public bool IsClassicMode { get; set; } = false;
+
     public string? OcrModelKey { get; set; }
 
     [ObservableProperty]

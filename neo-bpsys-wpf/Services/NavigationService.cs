@@ -6,13 +6,16 @@
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 
 namespace neo_bpsys_wpf.Services;
 
 /// <summary>
 /// A service that provides methods related to navigation.
 /// </summary>
-public partial class NavigationService(INavigationViewPageProvider pageProvider) : INavigationService
+public partial class NavigationService(
+    INavigationViewPageProvider pageProvider,
+    ISettingsHostService settingsHostService) : INavigationService
 {
     /// <summary>
     /// Gets or sets the control representing navigation.
@@ -22,12 +25,22 @@ public partial class NavigationService(INavigationViewPageProvider pageProvider)
     /// <inheritdoc />
     public INavigationView GetNavigationControl()
     {
+        if (IsClassicMode)
+        {
+            throw new ArgumentNullException(nameof(NavigationControl));
+        }
+
         return NavigationControl ?? throw new ArgumentNullException(nameof(NavigationControl));
     }
 
     /// <inheritdoc />
     public void SetNavigationControl(INavigationView navigation)
     {
+        if (IsClassicMode)
+        {
+            return;
+        }
+
         NavigationControl = navigation;
         NavigationControl.SetPageProviderService(pageProvider);
     }
@@ -35,6 +48,11 @@ public partial class NavigationService(INavigationViewPageProvider pageProvider)
     /// <inheritdoc />
     public bool Navigate(Type pageType)
     {
+        if (IsClassicMode)
+        {
+            return false;
+        }
+
         ThrowIfNavigationControlIsNull();
 
         return NavigationControl!.Navigate(pageType);
@@ -43,6 +61,11 @@ public partial class NavigationService(INavigationViewPageProvider pageProvider)
     /// <inheritdoc />
     public bool Navigate(Type pageType, object? dataContext)
     {
+        if (IsClassicMode)
+        {
+            return false;
+        }
+
         ThrowIfNavigationControlIsNull();
 
         return NavigationControl!.Navigate(pageType, dataContext);
@@ -51,6 +74,11 @@ public partial class NavigationService(INavigationViewPageProvider pageProvider)
     /// <inheritdoc />
     public bool Navigate(string pageTag)
     {
+        if (IsClassicMode)
+        {
+            return false;
+        }
+
         ThrowIfNavigationControlIsNull();
 
         return NavigationControl!.Navigate(pageTag);
@@ -59,6 +87,11 @@ public partial class NavigationService(INavigationViewPageProvider pageProvider)
     /// <inheritdoc />
     public bool Navigate(string pageTag, object? dataContext)
     {
+        if (IsClassicMode)
+        {
+            return false;
+        }
+
         ThrowIfNavigationControlIsNull();
 
         return NavigationControl!.Navigate(pageTag, dataContext);
@@ -67,6 +100,11 @@ public partial class NavigationService(INavigationViewPageProvider pageProvider)
     /// <inheritdoc />
     public bool GoBack()
     {
+        if (IsClassicMode)
+        {
+            return false;
+        }
+
         ThrowIfNavigationControlIsNull();
 
         return NavigationControl!.GoBack();
@@ -75,6 +113,11 @@ public partial class NavigationService(INavigationViewPageProvider pageProvider)
     /// <inheritdoc />
     public bool NavigateWithHierarchy(Type pageType)
     {
+        if (IsClassicMode)
+        {
+            return false;
+        }
+
         ThrowIfNavigationControlIsNull();
 
         return NavigationControl!.NavigateWithHierarchy(pageType);
@@ -83,6 +126,11 @@ public partial class NavigationService(INavigationViewPageProvider pageProvider)
     /// <inheritdoc />
     public bool NavigateWithHierarchy(Type pageType, object? dataContext)
     {
+        if (IsClassicMode)
+        {
+            return false;
+        }
+
         ThrowIfNavigationControlIsNull();
 
         return NavigationControl!.NavigateWithHierarchy(pageType, dataContext);
@@ -95,4 +143,6 @@ public partial class NavigationService(INavigationViewPageProvider pageProvider)
             throw new ArgumentNullException(nameof(NavigationControl));
         }
     }
+
+    private bool IsClassicMode => settingsHostService.Settings.IsClassicMode;
 }
