@@ -118,15 +118,22 @@
                     <ui:ListView
                         Grid.Row="1"
                         Margin="0,10,0,0"
-                        ItemsSource="{Binding PluginsCollection}">
+                        ItemsSource="{Binding PluginsCollection}"
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ui:ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="Padding" Value="0" />
+                            </Style>
+                        </ui:ListView.ItemContainerStyle>
                         <ui:ListView.ItemTemplate>
                             <DataTemplate>
-                                <ui:CardExpander>
+                                <ui:CardExpander HorizontalAlignment="Stretch">
                                     <ui:CardExpander.Header>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" MinWidth="0" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
                                             <ui:Image
@@ -136,23 +143,27 @@
                                                 Margin="0,0,15,0"
                                                 CornerRadius="8"
                                                 Source="{Binding RealIconPath}" />
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <StackPanel Grid.Column="1" MinWidth="0" VerticalAlignment="Center">
                                                 <TextBlock
                                                     FontSize="18"
                                                     FontWeight="SemiBold"
-                                                    Text="{Binding Manifest.Name}" />
+                                                    Text="{Binding Manifest.Name}"
+                                                    TextTrimming="CharacterEllipsis"
+                                                    ToolTip="{Binding Manifest.Name}" />
                                                 <TextBlock
                                                     Margin="0,5,0,0"
                                                     FontSize="14"
                                                     Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                                                     Text="{Binding Manifest.Description}"
+                                                    TextTrimming="CharacterEllipsis"
                                                     TextWrapping="Wrap" />
                                                 <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
                                                     <TextBlock
                                                         VerticalAlignment="Center"
                                                         FontSize="12"
                                                         Foreground="{DynamicResource TextFillColorTertiaryBrush}"
-                                                        Text="{Binding Manifest.Author, StringFormat='By {0}'}" />
+                                                        Text="{Binding Manifest.Author, StringFormat='By {0}'}"
+                                                        TextTrimming="CharacterEllipsis" />
                                                     <TextBlock
                                                         Margin="10,0,0,0"
                                                         VerticalAlignment="Center"
@@ -164,17 +175,20 @@
                                                         FontSize="12"
                                                         Foreground="DarkOrange"
                                                         Text="{Binding NewVersion, StringFormat=' -> v{0}'}"
+                                                        TextTrimming="CharacterEllipsis"
                                                         Visibility="{Binding IsNewVersionInstalled, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                                 </StackPanel>
                                                 <TextBlock
                                                     Margin="0,5,0,0"
                                                     Foreground="Orange"
                                                     Text="{lex:Loc RestartToApplyChanges}"
+                                                    TextTrimming="CharacterEllipsis"
                                                     Visibility="{Binding IsRestartRequired, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                             </StackPanel>
 
                                             <StackPanel
                                                 Grid.Column="2"
+                                                
                                                 Margin="0,0,10,0"
                                                 VerticalAlignment="Center"
                                                 Orientation="Horizontal">
@@ -183,15 +197,17 @@
                                                     Margin="0,0,10,0"
                                                     Command="{Binding DataContext.ToggleEnableCommand, RelativeSource={RelativeSource AncestorType=ui:ListView}}"
                                                     CommandParameter="{Binding}"
-                                                    Content="{lex:Loc Enable}"
-                                                    IsChecked="{Binding IsEnabled, Mode=OneWay}" />
+                                                    IsChecked="{Binding IsEnabled, Mode=OneWay}"
+                                                    ToolTip="{lex:Loc Enable}" />
 
                                                 <ui:Button
+                                                    MinWidth="36"
                                                     Appearance="Danger"
                                                     Command="{Binding DataContext.ToggleUninstallCommand, RelativeSource={RelativeSource AncestorType=ui:ListView}}"
                                                     CommandParameter="{Binding}"
-                                                    Icon="{ui:SymbolIcon Delete24}">
-                                                    <TextBlock>
+                                                    Icon="{ui:SymbolIcon Delete24}"
+                                                    ToolTip="{lex:Loc Uninstall}">
+                                                    <TextBlock TextTrimming="CharacterEllipsis">
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock">
                                                                 <Setter Property="Text" Value="{lex:Loc Uninstall}" />
@@ -212,16 +228,25 @@
                                     </ui:CardExpander.Header>
                                     <StackPanel>
                                         <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" MinWidth="0" />
+                                            </Grid.ColumnDefinitions>
                                             <TextBlock
+                                                Grid.Column="0"
                                                 HorizontalAlignment="Left"
                                                 VerticalAlignment="Center"
                                                 Text="{lex:Loc ProjectUrl}" />
                                             <ui:HyperlinkButton
-                                                HorizontalAlignment="Right"
-                                                Content="{Binding Manifest.Url}"
-                                                NavigateUri="{Binding Manifest.Url}" />
+                                                Grid.Column="1"
+                                                NavigateUri="{Binding Manifest.Url}"
+                                                ToolTip="{Binding Manifest.Url}">
+                                                <TextBlock
+                                                    Text="{Binding Manifest.Url}"
+                                                    TextTrimming="CharacterEllipsis" />
+                                            </ui:HyperlinkButton>
                                         </Grid>
-                                        <TextBlock TextWrapping="WrapWithOverflow">
+                                        <TextBlock TextTrimming="CharacterEllipsis" TextWrapping="WrapWithOverflow">
                                             <Run Text="{lex:Loc PluginStatus}" />
                                             <Run Text="{lex:Loc {Binding ExceptionText}, FallbackBehavior=Key}" />
                                         </TextBlock>
@@ -255,12 +280,12 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock
                             Grid.Column="0"
-                            Width="520"
+                            MaxWidth="520"
                             Margin="0,6,0,0"
                             HorizontalAlignment="Left"
                             Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                             Text="{lex:Loc PluginsThirdPartyWarning}"
-                            TextWrapping="WrapWithOverflow" />
+                            TextWrapping="Wrap" />
                         <StackPanel
                             Grid.Column="1"
                             HorizontalAlignment="Right"

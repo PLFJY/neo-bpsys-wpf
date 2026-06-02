@@ -362,6 +362,27 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void LayerPanel_OnDrop(object sender, DragEventArgs e)
     {
+        if (_viewModel is not null
+            && TryGetLayerDragItem(e, out var source)
+            && _viewModel.CanReorderLayers
+            && _viewModel.IsLayerReorderable(source))
+        {
+            var position = e.GetPosition(LayerPanelScrollViewer);
+            var isTop = position.Y <= LayerDropZoneEdgeSize
+                        && LayerPanelScrollViewer.VerticalOffset <= 0.1D;
+            var isBottom = position.Y >= LayerPanelScrollViewer.ViewportHeight - LayerDropZoneEdgeSize
+                           && LayerPanelScrollViewer.VerticalOffset >= LayerPanelScrollViewer.ScrollableHeight - 0.1D;
+
+            if (isTop)
+            {
+                _viewModel.CommitLayerDrop(source, null, null, insertAfter: false, moveToNewTopLayer: true);
+            }
+            else if (isBottom)
+            {
+                _viewModel.CommitLayerDrop(source, null, null, insertAfter: true, moveToNewBottomLayer: true);
+            }
+        }
+
         StopLayerDrag(e);
     }
 
