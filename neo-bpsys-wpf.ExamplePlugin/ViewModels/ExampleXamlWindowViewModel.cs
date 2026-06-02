@@ -3,6 +3,6 @@ using neo_bpsys_wpf.Core.Abstractions;
 
 namespace neo_bpsys_wpf.ExamplePlugin.ViewModels;
 
-public partial class MainWindowViewModel : ViewModelBase
+public partial class ExampleXamlWindowViewModel : ViewModelBase
 {
 }

@@ -37,7 +37,7 @@ public class LegacyScorePathCleanupTest
     }
 
     [Fact]
-    public void FrontedWindowServiceOnlyKeepsDocumentedGlobalScoreCompatibilityAdapters()
+    public void FrontedWindowServiceHasNoObsoleteFrontendCompatibilityMethods()
     {
         var source = ReadRepoFile("neo-bpsys-wpf", "Services", "FrontedWindowService.cs");
 
@@ -52,7 +52,14 @@ public class LegacyScorePathCleanupTest
         Assert.DoesNotContain("_externalControlDefaultPosition", source, StringComparison.Ordinal);
         Assert.DoesNotContain("GetInjectedControl", source, StringComparison.Ordinal);
         Assert.DoesNotContain("InjectControl(", source, StringComparison.Ordinal);
-        Assert.Contains("CurrentGame.MatchScore", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("SetGlobalScore", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("SetGlobalScoreToBar", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("ResetGlobalScore", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("FadeInAnimation", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("FadeOutAnimation", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("BreathingStart", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("BreathingStop", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("[Obsolete", source, StringComparison.Ordinal);
     }
 
     private static string ReadRepoFile(params string[] pathParts) =>

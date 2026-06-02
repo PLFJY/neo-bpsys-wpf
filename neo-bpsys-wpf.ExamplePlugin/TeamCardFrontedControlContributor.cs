@@ -7,13 +7,13 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace neo_bpsys_wpf.ExampleFrontedControls;
+namespace neo_bpsys_wpf.ExamplePlugin;
 
 public sealed class TeamCardFrontedControlContributor : IFrontedControlPluginContributor
 {
-    public const string PackageId = "top.plfjy.example.fronted";
+    public const string PackageId = "plfjy.ExamplePlugin";
     public const string ControlTypeName = "TeamCard";
-    public const string FullControlType = "plugin:top.plfjy.example.fronted/TeamCard";
+    public const string FullControlType = "plugin:plfjy.ExamplePlugin/TeamCard";
 
     public void RegisterFrontedControls(IFrontedControlPluginRegistry registry)
     {
@@ -171,7 +171,6 @@ public sealed class TeamCardFrontedControlContributor : IFrontedControlPluginCon
         }
         catch
         {
-            // Keep the sample plugin forgiving during manual testing.
         }
     }
 
@@ -186,7 +185,6 @@ public sealed class TeamCardFrontedControlContributor : IFrontedControlPluginCon
         }
         catch
         {
-            // Keep the sample plugin forgiving during manual testing.
         }
     }
 }

@@ -65,7 +65,7 @@ Phase 9A 已新增 `.bpui v3` 标准文档，Phase 9C 已实现导出。当前�
 | Phase 13B | 已实现插件控件 registry、descriptor API、通用 plugin config roundtrip 和 runtime renderer 缺失插件跳过。 |
 | Phase 13C | 已实现 Designer 插件控件支持，包括 Add Control、属性元数据、MissingPlugin 占位符和安装引导 stub。 |
 | Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
-| Phase 13D/15 | 已实现 `.bpui` 依赖扫描、导入、导出、缺失插件窗口/控件保留和 Designer 缺失控件占位符；新增 DEBUG-only 示例前台控件插件。 |
+| Phase 13D/15 | 已实现 `.bpui` 依赖扫描、导入、导出、缺失插件窗口/控件保留和 Designer 缺失控件占位符。`ExamplePlugin` 已整合为全功能参考插件。 |
 | Phase 13E | 已实现插件市场交互式安装 / 更新引导，以及插件依赖 `MinVersion` 从已安装插件 manifest version 自动写入。 |
 | Phase 13F | 已完成安全、版本兼容、i18n 和自动测试收口；剩余改进仅限未来更细的插件权限展示、签名策略或更完整的市场 UX。 |
 

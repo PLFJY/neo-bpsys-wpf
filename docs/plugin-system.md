@@ -87,7 +87,7 @@ plugin:<PackageId>/<ControlTypeName>
 示例：
 
 ```text
-plugin:top.plfjy.example.fronted/TeamCard
+plugin:plfjy.ExamplePlugin/TeamCard
 ```
 
 `PackageId` 必须匹配插件 `manifest.yml` 的 `id`，`ControlTypeName` 在插件内唯一。完整 `ControlType` 是稳定序列化 schema，不本地化，不使用显示名，也不能 shadow 内置控件类型。`.bpui v3` 中的 Canvas `RequiredPlugins` 和 manifest `PluginDependencies` 规则见 [bpui-package-v3.md](bpui-package-v3.md)。
@@ -177,7 +177,7 @@ public sealed class TeamCardFrontedControlConfig : FrontedControlConfigBase
 {
     public TeamCardFrontedControlConfig()
     {
-        ControlType = "plugin:top.plfjy.example.fronted/TeamCard";
+        ControlType = "plugin:plfjy.ExamplePlugin/TeamCard";
         Width = 260;
         Height = 96;
     }
@@ -233,7 +233,7 @@ neo-bpsys-wpf.PluginSdk;neo-bpsys-wpf.Core
 
 主项目 csproj 中通过 `BuiltinPlugin` 构建并复制 `TeamJsonMaker` 到输出/发布目录的 `Plugins\top.plfjy.bpsys.TeamJsonMaker`。它和用户插件使用同一加载机制，只是来源路径不同。
 
-Phase 13D 新增 DEBUG-only 示例插件 `Built-inPlugins/neo-bpsys-wpf.ExampleFrontedControls`，插件 ID 为 `top.plfjy.example.fronted`，注册示例控件 `plugin:top.plfjy.example.fronted/TeamCard`。主项目只在 `Debug` 配置下把它加入 `BuiltinPlugin` 并复制到输出目录；Release、Beta、Preview 默认不包含该示例插件。该插件用于手工验证 Designer v3 插件控件作者体验，不是发行功能。TeamCard 默认绑定使用当前 Binding Browser 可选路径 `CurrentGame.SurTeam.Name` 和 `CurrentGame.SurTeam.Logo`，便于设计预览中直接显示示例数据。
+`ExamplePlugin`（插件 ID `plfjy.ExamplePlugin`）是全功能参考插件，整合了原先的 `ExampleFrontedControls`，作为插件前台控件、插件前台窗口、Designer v3 集成和 `.bpui` 依赖管理的完整示例。该插件注册示例控件（如 `plugin:plfjy.ExamplePlugin/TeamCard`），主项目在 `Debug` 配置下把它加入 `BuiltinPlugin` 并复制到输出目录；Release、Beta、Preview 默认不包含该示例插件。该插件用于手工验证 Designer v3 插件全流程作者体验，不是发行功能。
 
 Designer 保存和 `.bpui` 导出会在插件已安装 / 已加载时把 Canvas `RequiredPlugins.MinVersion` 和 manifest `PluginDependencies.MinVersion` 写成插件 `manifest.yml` 中的插件自身 `version`，例如 `1.0.0.0`。这不是 descriptor 的 `MinHostVersion`，也不是插件 API 版本。导入 `.bpui` 时如果已安装版本低于 `MinVersion`，会进入插件市场安装 / 更新引导；导入本身仍可成功并保留缺失插件内容。安装引导会在下载 / 安装队列结束后校验所有待处理插件都已安装或暂存；失败项会显示插件 ID 和错误信息，未完成项不会被当作成功。
 

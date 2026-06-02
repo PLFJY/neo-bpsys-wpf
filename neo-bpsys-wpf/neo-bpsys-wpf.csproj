@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net9.0-windows10.0.20348</TargetFramework>
@@ -69,8 +69,8 @@
     </ItemGroup>
 
     <ItemGroup Condition="'$(Configuration)'=='Debug'">
-        <BuiltinPlugin Include="..\Built-inPlugins\neo-bpsys-wpf.ExampleFrontedControls\neo-bpsys-wpf.ExampleFrontedControls.csproj">
-            <FolderName>top.plfjy.example.fronted</FolderName>
+        <BuiltinPlugin Include="..\neo-bpsys-wpf.ExamplePlugin\neo-bpsys-wpf.ExamplePlugin.csproj">
+            <FolderName>plfjy.ExamplePlugin</FolderName>
             <PluginTargetFramework>net9.0-windows</PluginTargetFramework>
         </BuiltinPlugin>
     </ItemGroup>

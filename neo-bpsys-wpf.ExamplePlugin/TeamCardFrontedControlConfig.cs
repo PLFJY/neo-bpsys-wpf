@@ -1,6 +1,6 @@
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 
-namespace neo_bpsys_wpf.ExampleFrontedControls;
+namespace neo_bpsys_wpf.ExamplePlugin;
 
 public sealed class TeamCardFrontedControlConfig : FrontedControlConfigBase
 {

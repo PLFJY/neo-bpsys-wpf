@@ -2,17 +2,19 @@
 
 本包用于开发 `neo-bpsys-wpf` 插件。3.0 版本起，插件 API 版本为 `3.0.0.0`，旧前台注入 API 已移除；旧插件需要迁移到 v3 descriptor / Designer v3 布局模型。
 
+完整参考示例请查看 `neo-bpsys-wpf.ExamplePlugin` 项目（插件 ID `plfjy.ExamplePlugin`），它是一个综合示例，演示了所有当前插件能力。
+
 ## manifest.yml
 
 ```yaml
-id: top.plfjy.example
-name: Example Plugin
+id: plfjy.ExamplePlugin
+name: ExamplePlugin
 description: Example plugin.
-entranceAssembly: Example.Plugin.dll
-url: https://example.com
+entranceAssembly: neo-bpsys-wpf.ExamplePlugin.dll
+url: https://github.com/PLFJY/neo-bpsys-wpf
 version: 1.0.0.0
 apiVersion: 3.0.0.0
-author: Example
+author: Zero PLFJY
 icon: icon.png
 ```
 
@@ -26,6 +28,23 @@ services.AddBackendPage<MainPage, MainPageViewModel>();
 
 插件安装、更新、启用状态在 Host build 前处理，新增页面、服务、前台窗口通常需要重启后生效。
 
+## 插件服务/配置
+
+```csharp
+public class ExamplePlugin : PluginBase
+{
+    public PluginSettings Settings { get; set; } = new();
+
+    public override void Initialize(HostBuilderContext context, IServiceCollection services)
+    {
+        services.AddSingleton<IExampleService, ExampleService>();
+
+        Settings = ConfigureFileHelper.LoadConfig<PluginSettings>(
+            Path.Combine(PluginConfigFolder, "Settings.json"));
+    }
+}
+```
+
 ## Designer v3 插件控件
 
 插件前台控件注册到 Designer v3 控件 registry，不再注入到内置窗口的 WPF Canvas。
@@ -35,7 +54,7 @@ public sealed class Plugin : PluginBase
 {
     public override void Initialize(HostBuilderContext context, IServiceCollection services)
     {
-        services.AddFrontedPluginControlContributor<TeamCardContributor>();
+        services.AddFrontedPluginControlContributor<TeamCardFrontedControlContributor>();
     }
 }
 ```
@@ -45,6 +64,8 @@ public sealed class Plugin : PluginBase
 ```text
 plugin:{PackageId}/{ControlTypeName}
 ```
+
+示例：`plugin:plfjy.ExamplePlugin/TeamCard`
 
 控件配置继承 `FrontedControlConfigBase`，构造函数写入完整 `ControlType`。插件 descriptor 提供控件创建函数、默认配置和 PropertyGrid 元数据。`.bpui` 会保存控件 JSON 和插件依赖，不会包含插件 DLL。
 
@@ -57,19 +78,19 @@ v3 提供两类插件前台窗口，均通过 `IFrontedWindowPluginContributor` 
 插件提供自己的 WPF `Window` 类型，宿主只负责创建、注册、显示和隐藏。它会出现在 FrontManage，不默认进入 Designer。
 
 ```csharp
-public sealed class ExampleWindowContributor : IFrontedWindowPluginContributor
+public sealed class ExampleFrontedWindowContributor : IFrontedWindowPluginContributor
 {
     public IEnumerable<FrontedPluginWindowDescriptor> GetFrontedWindows()
     {
         yield return new FrontedPluginWindowDescriptor
         {
-            PackageId = "top.plfjy.example",
+            PackageId = "plfjy.ExamplePlugin",
             WindowId = "3363BFE1-1393-4765-B926-001B6848FAF7",
             WindowTypeName = "ExampleXamlWindow",
             DisplayName = "Example XAML Window",
             Kind = FrontedWindowKind.PluginXaml,
-            WindowType = typeof(ExampleWindow),
-            ViewModelType = typeof(ExampleWindowViewModel)
+            WindowType = typeof(ExampleXamlWindow),
+            ViewModelType = typeof(ExampleXamlWindowViewModel)
         };
     }
 }
@@ -82,7 +103,7 @@ public sealed class ExampleWindowContributor : IFrontedWindowPluginContributor
 ```csharp
 yield return new FrontedPluginWindowDescriptor
 {
-    PackageId = "top.plfjy.example",
+    PackageId = "plfjy.ExamplePlugin",
     WindowId = "B11F63A4-1765-4870-9E36-0AE654026421",
     WindowTypeName = "ExampleLayoutOverlay",
     DisplayName = "Example Layout Overlay",
@@ -122,7 +143,7 @@ FrontedLayouts/{WindowTypeName}/{CanvasName}.json
 
 ```text
 FrontedLayouts/BpWindow/BaseCanvas.json
-FrontedLayouts/plugin/top.plfjy.example/ExampleLayoutOverlay/BaseCanvas.json
+FrontedLayouts/plugin/plfjy.ExamplePlugin/ExampleLayoutOverlay/BaseCanvas.json
 ```
 
 ## 缺失插件行为
@@ -135,8 +156,10 @@ FrontedLayouts/plugin/top.plfjy.example/ExampleLayoutOverlay/BaseCanvas.json
 
 ## 迁移说明
 
-旧的“把 WPF 控件直接塞进现有前台窗口”能力已经移除，不提供 Obsolete shim。旧插件应迁移为：
+旧的"把 WPF 控件直接塞进现有前台窗口"能力已经移除，不提供 Obsolete shim。旧插件应迁移为：
 
 1. Designer v3 插件控件，用于可编辑 overlay 元素。
 2. Plugin XAML Window，用于插件完全控制 XAML/行为的前台窗口。
 3. Plugin v3 Layout Window，用于宿主托管的可编辑 layout 窗口。
+
+参照 `neo-bpsys-wpf.ExamplePlugin` 项目获取完整迁移示例。

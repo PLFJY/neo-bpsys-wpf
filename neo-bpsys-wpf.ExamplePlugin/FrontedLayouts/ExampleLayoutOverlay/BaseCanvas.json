@@ -5,16 +5,16 @@
   "BackgroundImage": null,
   "RequiredPlugins": [
     {
-      "PackageId": "top.plfjy.example.fronted",
+      "PackageId": "plfjy.ExamplePlugin",
       "MinVersion": "1.0.0.0",
-      "DisplayName": "Example Fronted Controls",
-      "MarketplaceId": "top.plfjy.example.fronted",
+      "DisplayName": "ExamplePlugin",
+      "MarketplaceId": "plfjy.ExamplePlugin",
       "Reason": "Both",
       "Controls": [
-        "plugin:top.plfjy.example.fronted/TeamCard"
+        "plugin:plfjy.ExamplePlugin/TeamCard"
       ],
       "RequiredBy": [
-        "plugin:top.plfjy.example.fronted/ExampleLayoutOverlay/BaseCanvas"
+        "plugin:plfjy.ExamplePlugin/ExampleLayoutOverlay/BaseCanvas"
       ]
     }
   ],
@@ -31,14 +31,14 @@
     "FontWeight": "SemiBold"
   },
   "HomeTeamCard": {
-    "ControlType": "plugin:top.plfjy.example.fronted/TeamCard",
+    "ControlType": "plugin:plfjy.ExamplePlugin/TeamCard",
     "Left": 96,
     "Top": 176,
     "Width": 420,
     "Height": 120,
     "ZIndex": 2,
-    "TeamNameBindingPath": "CurrentGame.HomeTeam.Name",
-    "LogoBindingPath": "CurrentGame.HomeTeam.Logo",
+    "TeamNameBindingPath": "CurrentGame.SurTeam.Name",
+    "LogoBindingPath": "CurrentGame.SurTeam.Logo",
     "BackgroundColor": "#CC111827",
     "ForegroundColor": "#FFFFFFFF",
     "CornerRadius": 10,

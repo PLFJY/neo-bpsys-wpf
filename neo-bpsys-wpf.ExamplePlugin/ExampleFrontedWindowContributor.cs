@@ -17,8 +17,8 @@ public sealed class ExampleFrontedWindowContributor : IFrontedWindowPluginContri
             DisplayName = "Example XAML Window",
             Description = "Example plugin-provided WPF fronted window.",
             Kind = FrontedWindowKind.PluginXaml,
-            WindowType = typeof(MainWindow),
-            ViewModelType = typeof(MainWindowViewModel)
+            WindowType = typeof(ExampleXamlWindow),
+            ViewModelType = typeof(ExampleXamlWindowViewModel)
         };
     }
 }

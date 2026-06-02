@@ -8,7 +8,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
-using neo_bpsys_wpf.ExampleFrontedControls;
+using neo_bpsys_wpf.ExamplePlugin;
 using neo_bpsys_wpf.Models.Plugins;
 using neo_bpsys_wpf.Services.Abstractions;
 using neo_bpsys_wpf.ViewModels.Pages;
@@ -36,24 +36,23 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
         var text = File.ReadAllText(GetRepositoryPath("neo-bpsys-wpf", "neo-bpsys-wpf.csproj"));
 
         Assert.Contains("Condition=\"'$(Configuration)'=='Debug'\"", text);
-        Assert.Contains("neo-bpsys-wpf.ExampleFrontedControls.csproj", text);
-        Assert.Contains("<FolderName>top.plfjy.example.fronted</FolderName>", text);
+        Assert.Contains("neo-bpsys-wpf.ExamplePlugin.csproj", text);
+        Assert.Contains("<FolderName>plfjy.ExamplePlugin</FolderName>", text);
     }
 
     [Fact]
     public void ExamplePluginManifestAndContributorRegisterTeamCard()
     {
         var manifest = File.ReadAllText(GetRepositoryPath(
-            "Built-inPlugins",
-            "neo-bpsys-wpf.ExampleFrontedControls",
+            "neo-bpsys-wpf.ExamplePlugin",
             "manifest.yml"));
-        Assert.Contains("id: top.plfjy.example.fronted", manifest);
+        Assert.Contains("id: plfjy.ExamplePlugin", manifest);
 
         var registry = CreateRegistryWithExamplePlugin();
         var descriptor = registry.GetPluginDescriptor(TeamCardFrontedControlContributor.FullControlType);
 
         Assert.NotNull(descriptor);
-        Assert.Equal("plugin:top.plfjy.example.fronted/TeamCard", descriptor.FullControlType);
+        Assert.Equal("plugin:plfjy.ExamplePlugin/TeamCard", descriptor.FullControlType);
         Assert.Equal(typeof(TeamCardFrontedControlConfig), descriptor.ConfigType);
         Assert.Contains(descriptor.Properties ?? [], property =>
             property.PropertyName == nameof(TeamCardFrontedControlConfig.TeamNameBindingPath)
@@ -101,7 +100,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
         var registry = CreateRegistryWithExamplePlugin();
         var converter = new FrontedLayoutDesignConverter(
             registry,
-            new FakePluginMetadataProvider(("top.plfjy.example.fronted", "1.0.0.0", "Example Fronted Controls")));
+            new FakePluginMetadataProvider(("plfjy.ExamplePlugin", "1.0.0.0", "ExamplePlugin")));
         var document = new FrontedCanvasDesignDocument
         {
             WindowTypeName = "BpWindow",
@@ -112,7 +111,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                 [
                     new FrontedPluginDependency
                     {
-                        PackageId = "top.plfjy.example.fronted",
+                        PackageId = "plfjy.ExamplePlugin",
                         MinVersion = "0.9.0"
                     }
                 ]
@@ -131,7 +130,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
 
         var dependency = Assert.Single(config.RequiredPlugins);
         Assert.Equal("1.0.0.0", dependency.MinVersion);
-        Assert.Equal("Example Fronted Controls", dependency.DisplayName);
+        Assert.Equal("ExamplePlugin", dependency.DisplayName);
     }
 
     [Fact]
@@ -196,15 +195,15 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
 
             var manifest = ReadManifest(archive);
             var dependency = Assert.Single(manifest.PluginDependencies);
-            Assert.Equal("top.plfjy.example.fronted", dependency.PackageId);
+            Assert.Equal("plfjy.ExamplePlugin", dependency.PackageId);
             Assert.Null(dependency.MinVersion);
-            Assert.Contains("plugin:top.plfjy.example.fronted/TeamCard", dependency.Controls);
+            Assert.Contains("plugin:plfjy.ExamplePlugin/TeamCard", dependency.Controls);
             Assert.Contains("ScoreSurWindow/BaseCanvas", dependency.RequiredBy);
 
             var layout = JsonSerializer.Deserialize<FrontedCanvasConfig>(
                 ReadZipEntry(archive, "layouts/ScoreSurWindow/BaseCanvas.json"))!;
             var canvasDependency = Assert.Single(layout.RequiredPlugins);
-            Assert.Equal("top.plfjy.example.fronted", canvasDependency.PackageId);
+            Assert.Equal("plfjy.ExamplePlugin", canvasDependency.PackageId);
         }
         finally
         {
@@ -229,7 +228,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                 Path.Combine(root, "packages"),
                 Path.Combine(root, "temp"),
                 controlRegistry: CreateRegistryWithExamplePlugin(),
-                pluginMetadataProvider: new FakePluginMetadataProvider(("top.plfjy.example.fronted", "1.0.0.0", "Example Fronted Controls")));
+                pluginMetadataProvider: new FakePluginMetadataProvider(("plfjy.ExamplePlugin", "1.0.0.0", "ExamplePlugin")));
 
             var result = await exporter.ExportAsync(new FrontedLayoutPackageExportRequest
             {
@@ -265,7 +264,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                 Path.Combine(root, "packages"),
                 Path.Combine(root, "temp"),
                 controlRegistry: CreateRegistryWithExamplePlugin(),
-                pluginMetadataProvider: new FakePluginMetadataProvider(("top.plfjy.example.fronted", "1.0.0", "Example Fronted Controls")));
+                pluginMetadataProvider: new FakePluginMetadataProvider(("plfjy.ExamplePlugin", "1.0.0", "ExamplePlugin")));
 
             var result = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
             {
@@ -298,7 +297,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                 Path.Combine(root, "packages"),
                 Path.Combine(root, "temp"),
                 controlRegistry: CreateRegistryWithExamplePlugin(),
-                pluginMetadataProvider: new FakePluginMetadataProvider(("top.plfjy.example.fronted", "1.0.0.0", "Example Fronted Controls")));
+                pluginMetadataProvider: new FakePluginMetadataProvider(("plfjy.ExamplePlugin", "1.0.0.0", "ExamplePlugin")));
 
             var result = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
             {
@@ -382,7 +381,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
         {
             var archivePath = Path.Combine(root, "plugin-dll.bpui");
             CreateBasicBpuiArchive(archivePath, archive =>
-                WriteZipEntry(archive, "Plugins/top.plfjy.example.fronted/foo.dll", "binary"));
+                WriteZipEntry(archive, "Plugins/plfjy.ExamplePlugin/foo.dll", "binary"));
 
             var result = await CreateImporter(root).ImportAsync(new FrontedLayoutPackageImportRequest
             {
@@ -575,7 +574,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                 ? """
                   ,
                     "TeamCard1": {
-                      "ControlType": "plugin:top.plfjy.example.fronted/TeamCard",
+                      "ControlType": "plugin:plfjy.ExamplePlugin/TeamCard",
                       "Left": 12,
                       "Top": 24,
                       "Width": 260,
@@ -614,12 +613,12 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             [
                 new FrontedPluginDependency
                 {
-                    PackageId = "top.plfjy.example.fronted",
+                    PackageId = "plfjy.ExamplePlugin",
                     MinVersion = minVersion,
-                    DisplayName = "Example Fronted Controls",
-                    MarketplaceId = "top.plfjy.example.fronted",
+                    DisplayName = "ExamplePlugin",
+                    MarketplaceId = "plfjy.ExamplePlugin",
                     Controls = includeActualPluginControl
-                        ? ["plugin:top.plfjy.example.fronted/TeamCard"]
+                        ? ["plugin:plfjy.ExamplePlugin/TeamCard"]
                         : [],
                     RequiredBy = ["BpWindow/BaseCanvas"]
                 }
@@ -642,7 +641,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             ? """
               ,
                 "TeamCard1": {
-                  "ControlType": "plugin:top.plfjy.example.fronted/TeamCard",
+                  "ControlType": "plugin:plfjy.ExamplePlugin/TeamCard",
                   "Left": 10,
                   "Top": 10,
                   "Width": 260,
@@ -660,9 +659,9 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                 "CanvasHeight": 100,
                 "RequiredPlugins": [
                   {
-                    "PackageId": "top.plfjy.example.fronted",
+                    "PackageId": "plfjy.ExamplePlugin",
                     "MinVersion": {{JsonSerializer.Serialize(minVersion)}},
-                    "Controls": {{(includeActualPluginControl ? "[\"plugin:top.plfjy.example.fronted/TeamCard\"]" : "[]")}}
+                    "Controls": {{(includeActualPluginControl ? "[\"plugin:plfjy.ExamplePlugin/TeamCard\"]" : "[]")}}
                   }
                 ],
                 "Title": {

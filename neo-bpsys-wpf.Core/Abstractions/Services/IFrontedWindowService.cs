@@ -70,103 +70,6 @@ public interface IFrontedWindowService
 
     #endregion
 
-    #region Animation Effects
-
-    /// <summary>
-    /// 呼吸灯启动
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    /// <returns></returns>
-    [Obsolete("请使用 IAnimationService.BreathingStart 替代。此方法将在未来版本中移除。")]
-    Task BreathingStart(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
-        string controlNameFooter);
-
-    /// <summary>
-    /// 呼吸灯启动
-    /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    /// <returns></returns>
-    [Obsolete("请使用 IAnimationService.BreathingStart 替代。此方法将在未来版本中移除。")]
-    Task BreathingStart(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter);
-
-    /// <summary>
-    /// 呼吸灯停止
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    /// <returns></returns>
-    [Obsolete("请使用 IAnimationService.BreathingStop 替代。此方法将在未来版本中移除。")]
-    Task BreathingStop(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
-        string controlNameFooter);
-
-    /// <summary>
-    /// 呼吸灯停止
-    /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    /// <returns></returns>
-    [Obsolete("请使用 IAnimationService.BreathingStop 替代。此方法将在未来版本中移除。")]
-    Task BreathingStop(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter);
-
-    /// <summary>
-    /// 渐显动画
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    /// <returns></returns>
-    [Obsolete("请使用 IAnimationService.FadeInAnimation 替代。此方法将在未来版本中移除。")]
-    void FadeInAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
-        string controlNameFooter);
-
-    /// <summary>
-    /// 渐显动画
-    /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    /// <returns></returns>
-    [Obsolete("请使用 IAnimationService.FadeInAnimation 替代。此方法将在 3.0.0 中移除。")]
-    void FadeInAnimation(string windowId, string controlNameHeader, int controlIndex, string controlNameFooter);
-
-    /// <summary>
-    /// 渐隐动画
-    /// </summary>
-    /// <param name="windowType">窗口类型</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    /// <returns></returns>
-    [Obsolete("请使用 IAnimationService.FadeOutAnimation 替代。此方法将在 3.0.0 中移除。")]
-    void FadeOutAnimation(FrontedWindowType windowType, string controlNameHeader, int controlIndex,
-        string controlNameFooter);
-
-    /// <summary>
-    /// 渐隐动画
-    /// </summary>
-    /// <param name="windowId">窗口 GUID</param>
-    /// <param name="controlNameHeader">控件名称头</param>
-    /// <param name="controlIndex">控件索引(-1表示没有)</param>
-    /// <param name="controlNameFooter">控件名称尾</param>
-    /// <returns></returns>
-    [Obsolete("请使用 IAnimationService.FadeOutAnimation 替代。此方法将在未来版本中移除。")]
-    void FadeOutAnimation(string windowId, string controlNameHeader, int controlIndex,
-        string controlNameFooter);
-
-    #endregion
-
     #region Window Registration
 
     /// <summary>
@@ -194,34 +97,6 @@ public interface IFrontedWindowService
     /// <param name="windowId">窗口 GUID</param>
     /// <returns></returns>
     string? GetWindowName(string windowId);
-
-    #endregion
-
-    #region Score Management
-
-    /// <summary>
-    /// 兼容旧调用：全局比分状态现在由 CurrentGame.MatchScore 驱动，此方法不再修改 UI 状态。
-    /// </summary>
-    [Obsolete("全局比分状态由 CurrentGame.MatchScore 驱动。请通过 IMatchScoreService 修改比分。")]
-    void ResetGlobalScore();
-
-    /// <summary>
-    /// 兼容旧调用：全局比分状态现在由 CurrentGame.MatchScore 驱动，此方法不再修改 UI 状态。
-    /// </summary>
-    /// <param name="team">队伍</param>
-    /// <param name="gameProgress">游戏进度</param>
-    /// <param name="camp">阵营</param>
-    /// <param name="score">分数</param>
-    [Obsolete("全局比分状态由 CurrentGame.MatchScore 驱动。请通过 IMatchScoreService 修改比分。")]
-    void SetGlobalScore(TeamType team, GameProgress gameProgress, Camp camp, int score);
-
-    /// <summary>
-    /// 兼容旧调用：全局比分状态现在由 CurrentGame.MatchScore 驱动，此方法不再修改 UI 状态。
-    /// </summary>
-    /// <param name="team">队伍</param>
-    /// <param name="gameProgress">对局进度</param>
-    [Obsolete("全局比分状态由 CurrentGame.MatchScore 驱动。请通过 IMatchScoreService 修改比分。")]
-    void SetGlobalScoreToBar(TeamType team, GameProgress gameProgress);
 
     #endregion
 }

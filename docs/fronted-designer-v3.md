@@ -421,7 +421,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 13B | 已实现插件前台控件 registry、descriptor API、`PluginFrontedControlConfig` roundtrip 和 runtime renderer 缺失插件跳过。 |
 | Phase 13C | 已实现 Designer 插件控件支持：Add Control 显示已注册插件控件，插件 typed config 可通过声明式属性元数据编辑，Canvas `RequiredPlugins` 会按控件同步，缺失插件在 Designer preview 显示 MissingPlugin 占位符。 |
 | Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
-| Phase 13D/15 | 已实现 `.bpui` 依赖扫描、导出 manifest `PluginDependencies`、缺失插件窗口/控件保留、Designer 缺失控件占位符；新增 DEBUG-only `ExampleFrontedControls` 示例插件。 |
+| Phase 13D/15 | 已实现 `.bpui` 依赖扫描、导出 manifest `PluginDependencies`、缺失插件窗口/控件保留、Designer 缺失控件占位符。`ExamplePlugin` 已整合为全功能参考插件，替代原 DEBUG-only `ExampleFrontedControls`。 |
 | Phase 13E | 已实现插件市场交互式安装 / 更新引导，且保存 / 导出会从已加载插件 manifest 版本写入插件依赖 `MinVersion`。 |
 | Phase 13F | 已完成安全、版本兼容、i18n 和测试收口。缺失插件导入 UI 已本地化，安装 / 更新引导会校验下载队列是否全部完成，`.bpui` 导入拒绝插件二进制和可执行脚本。 |
 | Phase 14B | 已实现 FrontedDesignerWindow 左侧图层面板：控件按 `ZIndex` 降序分组，同层内保持 `CurrentDocument.Controls` 顺序；无筛选时可拖拽控件调整同层顺序或移动到其他层，顶/底投放区会生成 `max ZIndex + 1` / `min ZIndex - 1`；筛选状态下禁用重排但保留选择、右键删除、复制粘贴和 undo/redo。`PickingBorderOverlay` 等联动覆盖层不作为独立可拖拽图层项，宿主移动层级时覆盖层继续跟随宿主顺序和层级。 |

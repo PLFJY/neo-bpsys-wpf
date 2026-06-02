@@ -16,21 +16,18 @@ public class ExamplePlugin : PluginBase
 
     public override void Initialize(HostBuilderContext context, IServiceCollection services)
     {
-        //注册后台页面
         services.AddBackendPage<MainPage, ViewModels.MainPageViewModel>();
 
-        //注册 v3 插件前台窗口描述符
         services.AddFrontedWindowPluginContributor<ExampleFrontedWindowContributor>();
+        services.AddFrontedWindowPluginContributor<ExampleLayoutWindowContributor>();
 
-        //注册服务
+        services.AddFrontedPluginControlContributor<TeamCardFrontedControlContributor>();
+
         services.AddSingleton<IExampleService, ExampleService>();
 
-        // 加载配置文件
         Settings = ConfigureFileHelper.LoadConfig<PluginSettings>(Path.Combine(PluginConfigFolder, "Settings.json"));
-        //监听属性变化
         Settings.PropertyChanged += (sender, args) =>
         {
-            // 保存配置文件
             ConfigureFileHelper.SaveConfig<PluginSettings>(Path.Combine(PluginConfigFolder, "Settings.json"), Settings);
         };
     }
