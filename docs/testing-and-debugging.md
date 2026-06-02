@@ -83,7 +83,7 @@ Documents\neo-bpsys-wpf\OCRModels
 1. OBS 捕获前先确认窗口已通过后台显示。
 2. 布局异常时检查 `%APPDATA%\neo-bpsys-wpf\*Config-*.json`。
 3. 恢复默认布局会从内置 `Resources/FrontedDefaultPositions` 或插件 `FrontedDefaultPositions` 读取。
-4. 插件注入控件不显示时检查目标窗口 GUID、Canvas 名称、控件 `Name`、默认位置和插件是否已重启加载。
+4. 插件 v3 控件不显示时检查 `plugin:{PackageId}/{ControlTypeName}`、插件是否已加载、layout 是否包含该控件，以及安装后是否已重启。
 
 ## 提交前检查
 

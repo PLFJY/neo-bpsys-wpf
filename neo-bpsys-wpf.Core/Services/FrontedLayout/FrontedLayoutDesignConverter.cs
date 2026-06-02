@@ -106,10 +106,44 @@ public class FrontedLayoutDesignConverter
                     MinVersion = ResolveMinVersion(group.Key, existing),
                     DisplayName = ResolveDisplayName(group.Key, existing, descriptor),
                     MarketplaceId = existing?.MarketplaceId,
-                    Controls = controls
+                    Reason = FrontedPluginDependencyReason.FrontedControl,
+                    Controls = controls,
+                    RequiredBy = [$"{document.WindowTypeName}/{document.CanvasName}"]
                 };
             })
             .ToList();
+
+        if (FrontedLayoutWindowPathHelper.TryParsePluginFullWindowType(
+                document.WindowTypeName,
+                out var windowPackageId,
+                out _))
+        {
+            previous.TryGetValue(windowPackageId, out var existing);
+            var windowDependency = dependencies.FirstOrDefault(dependency =>
+                string.Equals(dependency.PackageId, windowPackageId, StringComparison.OrdinalIgnoreCase));
+            if (windowDependency is null)
+            {
+                dependencies.Add(new FrontedPluginDependency
+                {
+                    PackageId = windowPackageId,
+                    MinVersion = ResolveMinVersion(windowPackageId, existing),
+                    DisplayName = _pluginMetadataProvider?.TryGetPluginDisplayName(windowPackageId, out var displayName) == true
+                        ? displayName
+                        : existing?.DisplayName ?? windowPackageId,
+                    MarketplaceId = existing?.MarketplaceId,
+                    Reason = FrontedPluginDependencyReason.FrontedWindow,
+                    RequiredBy = [$"{document.WindowTypeName}/{document.CanvasName}"]
+                });
+            }
+            else
+            {
+                windowDependency.Reason = FrontedPluginDependencyReason.Both;
+                if (!windowDependency.RequiredBy.Contains($"{document.WindowTypeName}/{document.CanvasName}", StringComparer.Ordinal))
+                {
+                    windowDependency.RequiredBy.Add($"{document.WindowTypeName}/{document.CanvasName}");
+                }
+            }
+        }
 
         document.CanvasConfig.RequiredPlugins = dependencies;
         return dependencies;

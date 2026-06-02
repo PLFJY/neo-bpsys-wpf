@@ -722,7 +722,7 @@ Phase 10 起，编辑器 typed/pasted input 会按集中限制截断：搜索 12
 | Phase 13B | 已实现插件控件 registry、descriptor API、通用 plugin config roundtrip 和 runtime renderer 缺失插件跳过。 |
 | Phase 13C | 已实现 Designer Add Control 插件 UI、插件声明式属性元数据渲染、缺失插件占位符和安装引导 stub。 |
 | Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
-| Phase 13D | 已实现 `.bpui` 依赖扫描、导出 manifest `PluginDependencies`、导入缺失插件预检和强制导入删除缺失控件；新增 DEBUG-only `ExampleFrontedControls` 示例插件。 |
+| Phase 13D/15 | 已实现 `.bpui` 依赖扫描、导出 manifest `PluginDependencies`、缺失插件窗口/控件保留、Designer 缺失控件占位符；新增 DEBUG-only `ExampleFrontedControls` 示例插件。 |
 | Phase 13E | 已实现插件市场交互式安装 / 更新引导；`.bpui` 导入不会静默安装插件，安装或更新后通常需要重启再重新导入。 |
 | Phase 13F | 已完成安全、版本兼容、i18n 和测试收口：插件 Add Control / Property Grid / 缺失占位符行为保持现有 Designer v3 路径，`.bpui` 依赖安装引导不会热加载插件，强制导入会删除缺失或版本不满足的插件控件。 |
 

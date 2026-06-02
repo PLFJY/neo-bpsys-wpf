@@ -104,4 +104,4 @@ var recognizedData = await Task.Run(
 3. 后台任务要支持取消令牌，至少不要吞掉 `OperationCanceledException` 后留下错误状态。
 4. 使用锁保护共享状态时，不要在锁内执行长时间下载、OCR、弹窗或 Dispatcher 同步等待。
 5. 新增事件订阅时考虑 singleton 生命周期和解绑。
-6. 前台窗口和插件注入控件的创建/访问应在 UI 线程完成。
+6. 前台窗口和插件 v3 控件的创建/访问应在 UI 线程完成。

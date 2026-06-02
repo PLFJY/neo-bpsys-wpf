@@ -1,5 +1,7 @@
 #pragma warning disable CS1591
 
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
+
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 
 public sealed class FrontedLayoutPackageImportRequest
@@ -10,14 +12,7 @@ public sealed class FrontedLayoutPackageImportRequest
 
     public bool ActivateAfterImport { get; set; }
 
-    public FrontedLayoutPackageMissingPluginPolicy MissingPluginPolicy { get; set; } =
-        FrontedLayoutPackageMissingPluginPolicy.Cancel;
-}
-
-public enum FrontedLayoutPackageMissingPluginPolicy
-{
-    Cancel,
-    ForceRemoveMissingControls
+    public bool PreserveMissingPlugins { get; set; } = true;
 }
 
 public sealed class FrontedLayoutPackageImportResult
@@ -48,7 +43,6 @@ public sealed class FrontedLayoutPackageImportResult
 
     public List<FrontedLayoutPackagePluginDependencyIssue> UnsatisfiedPluginDependencies { get; set; } = [];
 
-    public List<FrontedLayoutPackageRemovedPluginControl> RemovedPluginControls { get; set; } = [];
 }
 
 public class FrontedLayoutPackagePluginControlIssue
@@ -63,8 +57,6 @@ public class FrontedLayoutPackagePluginControlIssue
 
     public string PackageId { get; set; } = string.Empty;
 }
-
-public sealed class FrontedLayoutPackageRemovedPluginControl : FrontedLayoutPackagePluginControlIssue;
 
 public sealed class FrontedLayoutPackagePluginDependencyIssue
 {
@@ -87,6 +79,8 @@ public sealed class FrontedLayoutPackagePluginDependencyIssue
     public bool IsMarketUnavailable { get; set; }
 
     public List<string> Controls { get; set; } = [];
+
+    public FrontedPluginDependencyReason Reason { get; set; } = FrontedPluginDependencyReason.Unknown;
 
     public List<string> RequiredBy { get; set; } = [];
 

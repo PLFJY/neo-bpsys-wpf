@@ -25,4 +25,12 @@ public sealed class FrontedPluginMetadataProvider : IFrontedPluginMetadataProvid
         displayName = plugin?.Manifest.Name ?? string.Empty;
         return !string.IsNullOrWhiteSpace(displayName);
     }
+
+    public bool TryGetPluginFolder(string packageId, out string folder)
+    {
+        var plugin = IPluginService.LoadedPlugins.FirstOrDefault(plugin =>
+            string.Equals(plugin.Manifest.Id, packageId, StringComparison.OrdinalIgnoreCase));
+        folder = plugin?.PluginFolderPath ?? string.Empty;
+        return !string.IsNullOrWhiteSpace(folder);
+    }
 }

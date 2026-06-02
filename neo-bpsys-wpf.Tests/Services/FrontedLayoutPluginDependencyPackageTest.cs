@@ -272,7 +272,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                 PackagePath = archivePath
             }, TestContext.Current.CancellationToken);
 
-            Assert.False(result.Success);
+            Assert.True(result.Success, result.ErrorMessage);
             Assert.Empty(result.MissingPluginControls);
             var dependency = Assert.Single(result.UnsatisfiedPluginDependencies);
             Assert.True(dependency.IsInstalled);
@@ -315,7 +315,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
     }
 
     [Fact]
-    public async Task ImportMissingPluginRequiresActionAndForceRemoveKeepsBuiltIns()
+    public async Task ImportMissingPluginSucceedsAndPreservesPluginControls()
     {
         var root = CreateTempDirectory();
         try
@@ -328,29 +328,19 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
                 Path.Combine(root, "temp"),
                 controlRegistry: new FrontedControlRegistry([new TextFrontedControl()]));
 
-            var blocked = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
+            var result = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
             {
                 PackagePath = archivePath
             }, TestContext.Current.CancellationToken);
 
-            Assert.False(blocked.Success);
-            var missing = Assert.Single(blocked.MissingPluginControls);
+            Assert.True(result.Success, result.ErrorMessage);
+            var missing = Assert.Single(result.MissingPluginControls);
             Assert.Equal("TeamCard1", missing.ControlName);
-            Assert.False(Directory.Exists(Path.Combine(packageRoot, "package-with-plugin")));
-
-            var forced = await importer.ImportAsync(new FrontedLayoutPackageImportRequest
-            {
-                PackagePath = archivePath,
-                MissingPluginPolicy = FrontedLayoutPackageMissingPluginPolicy.ForceRemoveMissingControls
-            }, TestContext.Current.CancellationToken);
-
-            Assert.True(forced.Success, forced.ErrorMessage);
-            Assert.Single(forced.RemovedPluginControls);
             var importedLayoutPath = Path.Combine(packageRoot, "package-with-plugin", "layouts", "BpWindow", "BaseCanvas.json");
             var imported = JsonSerializer.Deserialize<FrontedCanvasConfig>(File.ReadAllText(importedLayoutPath))!;
-            Assert.False(imported.Controls.ContainsKey("TeamCard1"));
+            Assert.True(imported.Controls.ContainsKey("TeamCard1"));
             Assert.True(imported.Controls.ContainsKey("Title"));
-            Assert.Empty(imported.RequiredPlugins);
+            Assert.NotEmpty(imported.RequiredPlugins);
         }
         finally
         {
@@ -757,6 +747,7 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             Mock.Of<IFrontedLayoutPackageLegacyConverter>(),
             pluginMarketService,
             pluginInstallService,
+            Mock.Of<IFrontedWindowRegistry>(),
             new ServiceCollection().BuildServiceProvider(),
             NullLogger<FrontManagePageViewModel>.Instance);
     }
@@ -827,8 +818,19 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
 
     private static string GetRepositoryPath(params string[] parts)
     {
-        var repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
-        return Path.Combine([repositoryRoot, .. parts]);
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "AGENTS.md"))
+                && File.Exists(Path.Combine(directory.FullName, "neo-bpsys-wpf.slnx")))
+            {
+                return Path.Combine([directory.FullName, .. parts]);
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Could not locate repository root.");
     }
 
     private sealed class FakePluginMarketService : IPluginMarketService
@@ -975,6 +977,12 @@ public sealed class FrontedLayoutPluginDependencyPackageTest
             var plugin = plugins.FirstOrDefault(plugin => string.Equals(plugin.Id, packageId, StringComparison.OrdinalIgnoreCase));
             displayName = plugin.DisplayName ?? string.Empty;
             return !string.IsNullOrWhiteSpace(displayName);
+        }
+
+        public bool TryGetPluginFolder(string packageId, out string folder)
+        {
+            folder = string.Empty;
+            return false;
         }
     }
 }

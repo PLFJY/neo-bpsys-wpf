@@ -4,14 +4,14 @@
 
 ## 导航和 DI
 
-后台页面、前台窗口、ViewModel 和多数服务都通过 DI 注册。不要绕开：
+后台页面、内置前台窗口、ViewModel 和多数服务都通过 DI 注册。不要绕开：
 
 ```csharp
 services.AddBackendPage<MyPage, MyViewModel>();
 services.AddFrontedWindow<MyWindow, MyWindowViewModel>();
 ```
 
-手动 `new Page()` 或 `new Window()` 会丢失 DataContext、服务注入、注册表信息和 WPF-UI page provider 集成。插件也应使用这些扩展。
+手动 `new Page()` 或 `new Window()` 会丢失 DataContext、服务注入、注册表信息和 WPF-UI page provider 集成。插件 v3 前台窗口应通过 `IFrontedWindowPluginContributor` 和 `FrontedPluginWindowDescriptor` 声明，再用 `AddFrontedWindowPluginContributor<T>()` 注册 contributor。
 
 ## 生命周期
 
@@ -140,9 +140,9 @@ BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.
 
 插件注册的页面/窗口也进入同一 DI 和 WPF UI 环境。插件作者应：
 
-1. 使用 `BackendPageInfo` / `FrontedWindowInfo`。
+1. 后台页面使用 `BackendPageInfo`，前台窗口使用 `IFrontedWindowPluginContributor`。
 2. 避免和宿主或其他插件重复 ID。
-3. 注入控件时给控件稳定 `Name` 和合理默认 `ElementInfo`。
+3. 插件 v3 控件应使用稳定控件名和合理默认几何。
 4. 用户可见文本同样考虑本地化。
 
 ## NavigationView

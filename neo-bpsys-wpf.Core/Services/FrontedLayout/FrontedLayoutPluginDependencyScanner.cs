@@ -40,10 +40,41 @@ internal static class FrontedLayoutPluginDependencyScanner
                     MinVersion = ResolveMinVersion(group.Key, existing, pluginMetadataProvider),
                     DisplayName = ResolveDisplayName(existing, controls, controlRegistry, pluginMetadataProvider),
                     MarketplaceId = string.IsNullOrWhiteSpace(existing?.MarketplaceId) ? group.Key : existing.MarketplaceId,
+                    Reason = FrontedPluginDependencyReason.FrontedControl,
                     Controls = controls,
                     RequiredBy = [$"{windowTypeName}/{canvasName}"]
                 };
             })
+            .ToList();
+
+        if (FrontedLayoutWindowPathHelper.TryParsePluginFullWindowType(windowTypeName, out var windowPackageId, out _))
+        {
+            var existing = existingByPackage.GetValueOrDefault(windowPackageId);
+            var windowDependency = dependencies.FirstOrDefault(dependency =>
+                string.Equals(dependency.PackageId, windowPackageId, StringComparison.OrdinalIgnoreCase));
+            if (windowDependency is null)
+            {
+                dependencies.Add(new FrontedPluginDependency
+                {
+                    PackageId = windowPackageId,
+                    MinVersion = ResolveMinVersion(windowPackageId, existing, pluginMetadataProvider),
+                    DisplayName = pluginMetadataProvider?.TryGetPluginDisplayName(windowPackageId, out var displayName) == true
+                        ? displayName
+                        : existing?.DisplayName ?? windowPackageId,
+                    MarketplaceId = string.IsNullOrWhiteSpace(existing?.MarketplaceId) ? windowPackageId : existing.MarketplaceId,
+                    RequiredBy = [$"{windowTypeName}/{canvasName}"],
+                    Reason = FrontedPluginDependencyReason.FrontedWindow
+                });
+            }
+            else
+            {
+                AddDistinct(windowDependency.RequiredBy, [$"{windowTypeName}/{canvasName}"]);
+                windowDependency.Reason = FrontedPluginDependencyReason.Both;
+            }
+        }
+
+        dependencies = dependencies
+            .OrderBy(dependency => dependency.PackageId, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
         config.RequiredPlugins = dependencies;
@@ -77,7 +108,8 @@ internal static class FrontedLayoutPluginDependencyScanner
                     {
                         PackageId = dependency.PackageId,
                         MarketplaceId = dependency.MarketplaceId,
-                        DisplayName = dependency.DisplayName
+                        DisplayName = dependency.DisplayName,
+                        Reason = dependency.Reason
                     };
                     packageSummaries.Add(summary.PackageId, summary);
                 }
@@ -89,6 +121,7 @@ internal static class FrontedLayoutPluginDependencyScanner
                 summary.MarketplaceId = string.IsNullOrWhiteSpace(summary.MarketplaceId)
                     ? dependency.MarketplaceId
                     : summary.MarketplaceId;
+                summary.Reason = MergeReason(summary.Reason, dependency.Reason);
                 AddDistinct(summary.Controls, dependency.Controls);
                 AddDistinct(summary.RequiredBy, dependency.RequiredBy);
             }
@@ -139,7 +172,7 @@ internal static class FrontedLayoutPluginDependencyScanner
         IFrontedPluginMetadataProvider? pluginMetadataProvider)
     {
         var layoutList = layouts.ToList();
-        var dependencies = MergePackageDependencies(layoutList, manifestDependencies, controlRegistry);
+        var dependencies = MergePackageDependencies(layoutList, manifestDependencies, controlRegistry, pluginMetadataProvider);
         var missingControls = FindMissingPluginControls(layoutList, controlRegistry);
         var issues = new List<FrontedLayoutPackagePluginDependencyIssue>();
 
@@ -151,7 +184,9 @@ internal static class FrontedLayoutPluginDependencyScanner
             var affectedControls = missingControls
                 .Where(control => string.Equals(control.PackageId, dependency.PackageId, StringComparison.OrdinalIgnoreCase))
                 .ToList();
-            if (dependency.Controls.Count == 0 && affectedControls.Count == 0)
+            if (dependency.Controls.Count == 0
+                && affectedControls.Count == 0
+                && dependency.Reason != FrontedPluginDependencyReason.FrontedWindow)
             {
                 continue;
             }
@@ -172,6 +207,7 @@ internal static class FrontedLayoutPluginDependencyScanner
                 IsInstalled = isInstalled,
                 IsVersionSatisfied = versionSatisfied,
                 Controls = [.. dependency.Controls],
+                Reason = dependency.Reason,
                 RequiredBy = [.. dependency.RequiredBy],
                 AffectedControls = affectedControls
             });
@@ -180,48 +216,6 @@ internal static class FrontedLayoutPluginDependencyScanner
         return issues
             .OrderBy(issue => issue.PackageId, StringComparer.OrdinalIgnoreCase)
             .ToList();
-    }
-
-    public static List<FrontedLayoutPackageRemovedPluginControl> RemoveMissingPluginControls(
-        IEnumerable<(string Window, string Canvas, FrontedCanvasConfig Config)> layouts,
-        IFrontedControlRegistry? controlRegistry,
-        IReadOnlySet<string>? unsatisfiedPackageIds = null)
-    {
-        var removed = new List<FrontedLayoutPackageRemovedPluginControl>();
-        foreach (var (window, canvas, config) in layouts)
-        {
-            var missingControlNames = config.Controls
-                .Where(control => FrontedPluginControlType.IsPluginControlType(control.Value.ControlType))
-                .Where(control =>
-                {
-                    var parsed = FrontedPluginControlType.Parse(control.Value.ControlType);
-                    return controlRegistry?.IsPluginControlRegistered(control.Value.ControlType) != true
-                           || unsatisfiedPackageIds?.Contains(parsed.PackageId) == true;
-                })
-                .Select(control =>
-                {
-                    var parsed = FrontedPluginControlType.Parse(control.Value.ControlType);
-                    removed.Add(new FrontedLayoutPackageRemovedPluginControl
-                    {
-                        Window = window,
-                        Canvas = canvas,
-                        ControlName = control.Key,
-                        ControlType = control.Value.ControlType,
-                        PackageId = parsed.PackageId
-                    });
-                    return control.Key;
-                })
-                .ToArray();
-
-            foreach (var name in missingControlNames)
-            {
-                config.Controls.Remove(name);
-            }
-
-            SyncCanvasRequiredPlugins(config, window, canvas, controlRegistry);
-        }
-
-        return removed;
     }
 
     private static bool IsVersionSatisfied(string? installedVersion, string? minVersion)
@@ -292,10 +286,9 @@ internal static class FrontedLayoutPluginDependencyScanner
         FrontedPluginDependency? existing,
         IFrontedPluginMetadataProvider? pluginMetadataProvider)
     {
-        return pluginMetadataProvider?.TryGetPluginVersion(packageId, out var version) == true
-            && !string.IsNullOrWhiteSpace(version)
-            ? version
-            : existing?.MinVersion;
+        var installedVersion = string.Empty;
+        pluginMetadataProvider?.TryGetPluginVersion(packageId, out installedVersion);
+        return ChooseHigherVersion(existing?.MinVersion, installedVersion);
     }
 
     private static string? ResolveSummaryMinVersion(
@@ -304,13 +297,30 @@ internal static class FrontedLayoutPluginDependencyScanner
         string? incoming,
         IFrontedPluginMetadataProvider? pluginMetadataProvider)
     {
-        if (pluginMetadataProvider?.TryGetPluginVersion(packageId, out var version) == true
-            && !string.IsNullOrWhiteSpace(version))
+        var installedVersion = string.Empty;
+        pluginMetadataProvider?.TryGetPluginVersion(packageId, out installedVersion);
+        return ChooseHigherVersion(ChooseHigherVersion(current, incoming), installedVersion);
+    }
+
+    private static string? ChooseHigherVersion(string? first, string? second)
+    {
+        if (string.IsNullOrWhiteSpace(first))
         {
-            return version;
+            return string.IsNullOrWhiteSpace(second) ? null : second;
         }
 
-        return string.IsNullOrWhiteSpace(current) ? incoming : current;
+        if (string.IsNullOrWhiteSpace(second))
+        {
+            return first;
+        }
+
+        if (TryParseVersion(first, out var firstVersion)
+            && TryParseVersion(second, out var secondVersion))
+        {
+            return secondVersion > firstVersion ? second : first;
+        }
+
+        return first;
     }
 
     private static FrontedPluginDependency CloneDependency(FrontedPluginDependency dependency)
@@ -321,6 +331,7 @@ internal static class FrontedLayoutPluginDependencyScanner
             MinVersion = dependency.MinVersion,
             DisplayName = dependency.DisplayName,
             MarketplaceId = dependency.MarketplaceId,
+            Reason = dependency.Reason,
             Controls = [.. dependency.Controls],
             RequiredBy = [.. dependency.RequiredBy]
         });
@@ -334,6 +345,13 @@ internal static class FrontedLayoutPluginDependencyScanner
         dependency.DisplayName = string.IsNullOrWhiteSpace(dependency.DisplayName)
             ? dependency.PackageId
             : dependency.DisplayName;
+        if (dependency.Reason == FrontedPluginDependencyReason.Unknown)
+        {
+            dependency.Reason = dependency.Controls.Count > 0
+                ? FrontedPluginDependencyReason.FrontedControl
+                : FrontedPluginDependencyReason.Unknown;
+        }
+
         dependency.Controls = dependency.Controls
             .Where(value => !string.IsNullOrWhiteSpace(value))
             .Distinct(StringComparer.Ordinal)
@@ -345,6 +363,28 @@ internal static class FrontedLayoutPluginDependencyScanner
             .OrderBy(value => value, StringComparer.Ordinal)
             .ToList();
         return dependency;
+    }
+
+    private static FrontedPluginDependencyReason MergeReason(
+        FrontedPluginDependencyReason left,
+        FrontedPluginDependencyReason right)
+    {
+        if (left == right)
+        {
+            return left;
+        }
+
+        if (left == FrontedPluginDependencyReason.Unknown)
+        {
+            return right;
+        }
+
+        if (right == FrontedPluginDependencyReason.Unknown)
+        {
+            return left;
+        }
+
+        return FrontedPluginDependencyReason.Both;
     }
 
     private static void AddDistinct(List<string> target, IEnumerable<string> values)

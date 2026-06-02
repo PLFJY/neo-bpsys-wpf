@@ -9,7 +9,7 @@
 | [project-positioning.md](project-positioning.md) | 项目定位、社区名称、后台/前台术语 |
 | [runtime-architecture.md](runtime-architecture.md) | 启动流程、Generic Host、DI、日志、插件初始化时机 |
 | [module-overview.md](module-overview.md) | 解决方案内各项目和目录的职责 |
-| [frontend-windows-and-layout.md](frontend-windows-and-layout.md) | 前台窗口、OBS 捕获、布局保存/恢复、插件注入控件 |
+| [frontend-windows-and-layout.md](frontend-windows-and-layout.md) | 前台窗口、OBS 捕获、v3 布局、插件前台窗口 |
 | [fronted-designer-v3.md](fronted-designer-v3.md) | Fronted Designer v3 的配置驱动重构设计、兼容策略和分阶段计划 |
 | [fronted-designer-editor.md](fronted-designer-editor.md) | Designer v3 独立编辑器技术设计，包括 JSON key = 控件名、多 Canvas、透明 hitbox、Property Grid、Binding/Resource Browser 和保存策略 |
 | [bpui-package-v3.md](bpui-package-v3.md) | Designer v3 `.bpui` 布局包标准，包括 manifest、资源 URI、包隔离、导入导出与包管理规格 |

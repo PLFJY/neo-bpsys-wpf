@@ -39,7 +39,7 @@ public static class PluginApiVersionHelper
                 IsCompatible = false,
                 IsFormatValid = true,
                 IsTooLow = true,
-                Message = $"Plugin API version is too low: {parsedVersion}. The minimum required API version is {minApiVersion}."
+                Message = $"Plugin API version is incompatible. Please migrate to v3 plugin APIs. Plugin API version is too low: {parsedVersion}. The minimum required API version is {minApiVersion}."
             };
         }
 

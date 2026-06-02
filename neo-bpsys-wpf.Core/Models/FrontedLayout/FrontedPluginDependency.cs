@@ -13,6 +13,8 @@ public class FrontedPluginDependency
 
     public string? MarketplaceId { get; set; }
 
+    public FrontedPluginDependencyReason Reason { get; set; } = FrontedPluginDependencyReason.Unknown;
+
     public List<string> Controls { get; set; } = [];
 
     public List<string> RequiredBy { get; set; } = [];

@@ -130,33 +130,6 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                 manifest!.PluginDependencies,
                 _controlRegistry,
                 _pluginMetadataProvider);
-            if ((missingPluginControls.Count > 0 || unsatisfiedPluginDependencies.Count > 0)
-                && request.MissingPluginPolicy != FrontedLayoutPackageMissingPluginPolicy.ForceRemoveMissingControls)
-            {
-                return new FrontedLayoutPackageImportResult
-                {
-                    Success = false,
-                    PackageId = manifest!.PackageId,
-                    ErrorMessage = "MissingPluginDependencies",
-                    MissingPluginControls = missingPluginControls,
-                    UnsatisfiedPluginDependencies = unsatisfiedPluginDependencies
-                };
-            }
-
-            List<FrontedLayoutPackageRemovedPluginControl> removedPluginControls = [];
-            if (missingPluginControls.Count > 0 || unsatisfiedPluginDependencies.Count > 0)
-            {
-                removedPluginControls = FrontedLayoutPluginDependencyScanner.RemoveMissingPluginControls(
-                    packageLayouts.Select(layout => (layout.Window, layout.Canvas, layout.Config)),
-                    _controlRegistry,
-                    unsatisfiedPluginDependencies.Select(issue => issue.PackageId).ToHashSet(StringComparer.OrdinalIgnoreCase));
-                manifest!.PluginDependencies = FrontedLayoutPluginDependencyScanner.MergePackageDependencies(
-                    packageLayouts.Select(layout => (layout.Window, layout.Canvas, layout.Config)),
-                    manifest.PluginDependencies,
-                    _controlRegistry);
-                await RewritePackageLayoutsAsync(stagingRoot, packageLayouts, manifest, cancellationToken);
-            }
-
             var packageId = manifest!.PackageId;
             var installPath = GetInstalledPackagePath(packageId);
             if (Directory.Exists(installPath) && !request.ReplaceExisting)
@@ -198,7 +171,8 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
                 InstalledPath = installPath,
                 LayoutCount = manifest.Content.Layouts.Count,
                 ResourceCount = manifest.Content.Resources.Count,
-                RemovedPluginControls = removedPluginControls
+                MissingPluginControls = missingPluginControls,
+                UnsatisfiedPluginDependencies = unsatisfiedPluginDependencies
             };
         }
         catch (InvalidDataException ex)
@@ -238,23 +212,6 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             manifest.PluginDependencies,
             _controlRegistry);
         return layouts;
-    }
-
-    private async Task RewritePackageLayoutsAsync(
-        string stagingRoot,
-        IReadOnlyList<PackageLayoutState> layouts,
-        FrontedLayoutPackageManifest manifest,
-        CancellationToken cancellationToken)
-    {
-        foreach (var layout in layouts)
-        {
-            var path = CombineInsideRoot(stagingRoot, layout.Path);
-            var json = JsonSerializer.Serialize(layout.Config, _writeJsonSerializerOptions);
-            await File.WriteAllTextAsync(path, json, cancellationToken);
-        }
-
-        var manifestJson = JsonSerializer.Serialize(manifest, _writeJsonSerializerOptions);
-        await File.WriteAllTextAsync(Path.Combine(stagingRoot, ManifestFileName), manifestJson, cancellationToken);
     }
 
     private async Task<FrontedLayoutPackageImportResult> ValidatePackageAsync(
@@ -326,10 +283,10 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
             return Fail("TooManyResources");
         }
 
-        foreach (var layout in manifest.Content.Layouts)
-        {
-            if (!IsSafeRelativePath(layout.Path)
-                || !IsSafePathSegment(layout.Window)
+            foreach (var layout in manifest.Content.Layouts)
+            {
+                if (!IsSafeRelativePath(layout.Path)
+                || !FrontedLayoutWindowPathHelper.IsSafeFullWindowType(layout.Window)
                 || !IsSafePathSegment(layout.Canvas))
             {
                 return Fail("Layout path is not safe.");

@@ -107,6 +107,6 @@ Application.Current.Resources["CurrentLanguage"] =
 PluginService.InitializePlugins(context, services);
 ```
 
-插件的 `Initialize(context, services)` 能注册后台页面、前台窗口、注入控件、自定义服务等。这些注册必须发生在 `Host.Build()` 前，否则 DI 容器已经冻结，插件无法参与 WPF-UI 页面提供器、窗口构造和服务解析。
+插件的 `Initialize(context, services)` 能注册后台页面、插件前台窗口 descriptor、Designer v3 插件控件、自定义服务等。这些注册必须发生在 `Host.Build()` 前，否则 DI 容器已经冻结，插件无法参与 WPF-UI 页面提供器、窗口构造和服务解析。
 
 因此插件安装/更新后通常需要重启应用。插件包被复制到插件目录不等于它已经进入当前进程的 DI 容器。

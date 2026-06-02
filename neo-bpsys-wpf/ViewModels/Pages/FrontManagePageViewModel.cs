@@ -5,12 +5,11 @@ using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
-using neo_bpsys_wpf.Core.Services.Registry;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Models.Plugins;
 using neo_bpsys_wpf.Services.Abstractions;
@@ -40,6 +39,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
     private readonly IFrontedLayoutPackageLegacyConverter? _legacyPackageConverter;
     private readonly IPluginMarketService? _pluginMarketService;
     private readonly IPluginInstallService? _pluginInstallService;
+    private readonly IFrontedWindowRegistry? _frontedWindowRegistry;
     private readonly ILogger<FrontManagePageViewModel>? _logger;
     private FrontedDesignerWindow? _frontedDesignerWindow;
 
@@ -53,6 +53,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
         IFrontedLayoutPackageLegacyConverter legacyPackageConverter,
         IPluginMarketService pluginMarketService,
         IPluginInstallService pluginInstallService,
+        IFrontedWindowRegistry frontedWindowRegistry,
         IServiceProvider serviceProvider,
         ILogger<FrontManagePageViewModel> logger)
     {
@@ -65,15 +66,19 @@ public partial class FrontManagePageViewModel : ViewModelBase
         _legacyPackageConverter = legacyPackageConverter;
         _pluginMarketService = pluginMarketService;
         _pluginInstallService = pluginInstallService;
+        _frontedWindowRegistry = frontedWindowRegistry;
         _serviceProvider = serviceProvider;
         _logger = logger;
-        ExternalFrontedWindows = new ObservableCollection<FrontedWindowInfo>(FrontedWindowRegistryService.RegisteredWindow
-            .Where(x => !x.IsBuiltIn)
-            .ToList());
+        var pluginWindows = frontedWindowRegistry.GetPluginWindows() ?? [];
+        foreach (var descriptor in pluginWindows)
+        {
+            ExternalFrontedWindows.Add(FrontedWindowManageItem.FromDescriptor(descriptor));
+        }
+
         _ = RefreshPackagesAsync();
     }
 
-    public ObservableCollection<FrontedWindowInfo> ExternalFrontedWindows { get; } = [];
+    public ObservableCollection<FrontedWindowManageItem> ExternalFrontedWindows { get; } = [];
 
     public ObservableCollection<FrontedLayoutPackageInfo> LayoutPackages { get; } = [];
 
@@ -328,19 +333,6 @@ public partial class FrontManagePageViewModel : ViewModelBase
                 $"{I18nHelper.GetLocalizedString("PackageImportSucceeded")}: {result.PackageId} "
                 + $"{I18nHelper.GetLocalizedString("LayoutCount")}: {result.LayoutCount}, "
                 + $"{I18nHelper.GetLocalizedString("ResourceCount")}: {result.ResourceCount}";
-            if (result.RemovedPluginControls.Count > 0)
-            {
-                PackageManagerStatus += $", {I18nHelper.GetLocalizedString("RemovedPluginControlCount")}: {result.RemovedPluginControls.Count}";
-                await MessageBoxHelper.ShowInfoAsync(
-                    string.Join(
-                        Environment.NewLine,
-                        result.RemovedPluginControls
-                            .Take(12)
-                            .Select(control => $"{control.Window}/{control.Canvas} {control.ControlName}: {control.ControlType}")),
-                    I18nHelper.GetLocalizedString("RemovedPluginControlsReport"),
-                    I18nHelper.GetLocalizedString("Close"));
-            }
-
             if (await MessageBoxHelper.ShowConfirmAsync(
                     I18nHelper.GetLocalizedString(importedFromLegacy ? "ActivateConvertedPackage" : "ActivateImportedPackage"),
                     I18nHelper.GetLocalizedString("Tips"),
@@ -367,7 +359,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
         FrontedLayoutPackageImportResult result,
         bool replaceExisting)
     {
-        if (_packageImporter is null
+        if (!result.Success
             || (!result.HasMissingPluginControls && !result.HasUnsatisfiedPluginDependencies))
         {
             return result;
@@ -423,35 +415,18 @@ public partial class FrontManagePageViewModel : ViewModelBase
                     _logger?.LogWarning(ex, "Failed to install market plugin dependencies for layout import.");
                     await MessageBoxHelper.ShowErrorAsync(ex.Message);
                 }
-
-                return result;
             }
         }
 
-        var message = I18nHelper.GetLocalizedString("MissingPluginImportMessage")
+        var message = "Layout imported. Some plugin windows are unavailable until their plugins are installed."
                       + Environment.NewLine
                       + Environment.NewLine
-                      + preview
-                      + Environment.NewLine
-                      + Environment.NewLine
-                      + I18nHelper.GetLocalizedString("PluginDependencyForceImportMessage");
-
-        var force = await MessageBoxHelper.ShowConfirmAsync(
+                      + preview;
+        await MessageBoxHelper.ShowInfoAsync(
             message,
             I18nHelper.GetLocalizedString("MissingPluginImportTitle"),
-            I18nHelper.GetLocalizedString("ForceImportRemoveMissingControls"),
-            I18nHelper.GetLocalizedString("Cancel"));
-        if (!force)
-        {
-            return result;
-        }
-
-        return await _packageImporter.ImportAsync(new FrontedLayoutPackageImportRequest
-        {
-            PackagePath = packagePath,
-            ReplaceExisting = replaceExisting,
-            MissingPluginPolicy = FrontedLayoutPackageMissingPluginPolicy.ForceRemoveMissingControls
-        });
+            I18nHelper.GetLocalizedString("Close"));
+        return result;
     }
 
     private static List<FrontedLayoutPackagePluginDependencyIssue> BuildDependencyIssues(
@@ -866,5 +841,38 @@ public partial class FrontManagePageViewModel : ViewModelBase
                 _frontedWindowService.HideWindow(id);
                 break;
         }
+    }
+}
+
+public sealed class FrontedWindowManageItem
+{
+    public string WindowId { get; init; } = string.Empty;
+
+    public string DisplayName { get; init; } = string.Empty;
+
+    public string KindDisplay { get; init; } = string.Empty;
+
+    public string FullWindowType { get; init; } = string.Empty;
+
+    public bool CanCustomize { get; init; }
+
+    public static FrontedWindowManageItem FromDescriptor(IFrontedWindowDescriptor descriptor)
+    {
+        return new FrontedWindowManageItem
+        {
+            WindowId = descriptor.WindowId,
+            DisplayName = string.IsNullOrWhiteSpace(descriptor.DisplayName)
+                ? descriptor.WindowTypeName
+                : descriptor.DisplayName,
+            FullWindowType = descriptor.FullWindowType,
+            KindDisplay = descriptor.Kind switch
+            {
+                FrontedWindowKind.PluginXaml => "Plugin XAML",
+                FrontedWindowKind.PluginLayout => "Plugin Layout",
+                _ => "Built-in"
+            },
+            CanCustomize = descriptor.Kind == FrontedWindowKind.PluginLayout
+                           && descriptor.Canvases.Any(canvas => canvas.Customizable)
+        };
     }
 }

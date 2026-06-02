@@ -89,6 +89,7 @@ public partial class App
         services.AddSingleton<IFrontedLocalResourceStore, FrontedLocalResourceStore>();
         services.AddSingleton<IFrontedUserLayoutStore, FrontedUserLayoutStore>();
         services.AddSingleton<IFrontedWindowLayoutOptionsService, FrontedWindowLayoutOptionsService>();
+        services.AddSingleton<IFrontedWindowRegistry, neo_bpsys_wpf.Core.Services.Registry.FrontedWindowRegistryService>();
         services.AddSingleton<IFrontedLayoutPackageManager, FrontedLayoutPackageManager>();
         services.AddSingleton<IFrontedLayoutPackageExporter, FrontedLayoutPackageExporter>();
         services.AddSingleton<IFrontedLayoutPackageImporter, FrontedLayoutPackageImporter>();

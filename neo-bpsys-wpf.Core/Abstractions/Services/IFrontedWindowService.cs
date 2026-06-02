@@ -197,17 +197,6 @@ public interface IFrontedWindowService
 
     #endregion
 
-    #region Control Injection
-
-    /// <summary>
-    /// 获取注入的控件
-    /// </summary>
-    /// <param name="guid">控件 GUID</param>
-    /// <returns>控件实例</returns>
-    public FrameworkElement GetInjectedControl(string guid);
-
-    #endregion
-
     #region Score Management
 
     /// <summary>

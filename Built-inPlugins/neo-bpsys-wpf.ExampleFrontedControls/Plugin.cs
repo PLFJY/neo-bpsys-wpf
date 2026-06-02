@@ -10,5 +10,6 @@ public sealed class Plugin : PluginBase
     public override void Initialize(HostBuilderContext context, IServiceCollection services)
     {
         services.AddFrontedPluginControlContributor<TeamCardFrontedControlContributor>();
+        services.AddFrontedWindowPluginContributor<ExampleLayoutWindowContributor>();
     }
 }

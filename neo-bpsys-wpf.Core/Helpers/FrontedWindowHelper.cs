@@ -1,12 +1,9 @@
-﻿using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.Core.Models;
-using neo_bpsys_wpf.Core.Services.Registry;
-using System.Windows;
+using neo_bpsys_wpf.Core.Enums;
 
 namespace neo_bpsys_wpf.Core.Helpers;
 
 /// <summary>
-/// 前台窗口辅助类
+/// 前台窗口辅助类。
 /// </summary>
 public static class FrontedWindowHelper
 {
@@ -23,47 +20,12 @@ public static class FrontedWindowHelper
     };
 
     /// <summary>
-    /// 获取内置前台窗口GUID
+    /// 获取内置前台窗口 GUID。FrontedWindowType 只表示内置窗口。
     /// </summary>
-    /// <param name="windowType">前台窗口类型</param>
-    /// <returns>GUID</returns>
-    /// <exception cref="ArgumentException">参数无效</exception>
     public static string GetFrontedWindowGuid(FrontedWindowType windowType)
     {
         return FrontedWindowGuidDict.TryGetValue(windowType, out var guid)
             ? guid
-            : throw new ArgumentException($"{windowType} is not a valid FrontedWindowType");
-    }
-
-    /// <summary>
-    /// 添加控件到前台窗口
-    /// </summary>
-    /// <param name="id">控件ID</param>
-    /// <param name="control">控件</param>
-    /// <param name="targetWindowType">目标窗口类型</param>
-    /// <param name="targetCanvas">目标画布</param>
-    /// <param name="defaultInfo">默认信息</param>
-    public static void InjectControlToFrontedWindow(string id, FrameworkElement control,
-        FrontedWindowType targetWindowType,
-        string targetCanvas,
-        ElementInfo defaultInfo)
-    {
-        InjectControlToFrontedWindow(id, control, GetFrontedWindowGuid(targetWindowType), targetCanvas, defaultInfo);
-    }
-
-    /// <summary>
-    /// 添加控件到前台窗口
-    /// </summary>
-    /// <param name="id">控件ID</param>
-    /// <param name="control">控件</param>
-    /// <param name="targetWindowId">目标窗口 GUID</param>
-    /// <param name="targetCanvas">目标画布</param>
-    /// <param name="defaultPosition">默认信息</param>
-    public static void InjectControlToFrontedWindow(string id, FrameworkElement control, string targetWindowId,
-        string targetCanvas,
-        ElementInfo defaultPosition)
-    {
-        var newControlInfo = new InjectedControlInfo(id, control, targetWindowId, targetCanvas, defaultPosition);
-        FrontedWindowRegistryService.InjectedControls.Add(newControlInfo);
+            : throw new ArgumentException($"{windowType} is not a valid built-in FrontedWindowType");
     }
 }

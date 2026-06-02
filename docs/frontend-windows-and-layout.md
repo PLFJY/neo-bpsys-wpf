@@ -6,36 +6,36 @@
 
 内置前台窗口包括 BP、过场、求生者/监管者比分、全局比分、赛后数据、小组件等。OBS 工作流通常是：后台控制数据，前台窗口显示画面，OBS 捕获前台窗口。
 
-## 注册
+## 注册模型
 
-前台窗口类通过 `FrontedWindowInfo` 标注：
+内置前台窗口仍通过 `FrontedWindowInfo` 标注，并在宿主启动时注册：
 
 ```csharp
 [FrontedWindowInfo("窗口 GUID", "窗口显示名称", new[] { "BaseCanvas", "MapBpCanvas|地图 BP" })]
-```
-
-注册使用：
-
-```csharp
 services.AddFrontedWindow<TView, TViewModel>();
 ```
 
-`AddFrontedWindow` 会：
+插件前台窗口不再通过 `FrontedWindowInfo` 反射扫描。v3 插件应实现 `IFrontedWindowPluginContributor`，通过 `FrontedPluginWindowDescriptor` 声明窗口：
 
-1. 读取 `FrontedWindowInfo`。
-2. 检查窗口 ID 是否重复。
-3. 把信息写入 `FrontedWindowRegistryService.RegisteredWindow`。
-4. 以 singleton 注册 ViewModel 和 Window。
-5. 构造 Window 后设置 `DataContext`。
+```csharp
+services.AddFrontedWindowPluginContributor<MyFrontedWindowContributor>();
+```
 
-插件也使用同一扩展注册前台窗口。
+descriptor 使用稳定 `WindowId`，并用 `FullWindowType = plugin:{PackageId}/{WindowTypeName}` 作为布局、`.bpui` manifest 和用户目录中的窗口身份。插件窗口分为两类：
+
+| 类型 | 说明 |
+| --- | --- |
+| `PluginXaml` | 插件提供真实 WPF `Window` 类型，可选 ViewModel，由宿主统一显示/隐藏 |
+| `PluginLayout` | 插件只声明 Canvas 和默认 `FrontedLayouts/{WindowTypeName}/{CanvasName}.json`，宿主用 `FrontedPluginLayoutWindow` 承载 v3 renderer |
 
 ## FrontedWindowService
 
 `FrontedWindowService` 在构造时接收内置窗口实例，然后：
 
-1. 从 `FrontedWindowRegistryService.RegisteredWindow` 注册所有窗口和 Canvas。
-2. 加载插件或宿主注入的外部控件。
+1. 从 `IFrontedWindowRegistry` 读取内置窗口和插件窗口 descriptor。
+2. 注册内置窗口 singleton。
+3. 注册插件 XAML 窗口或创建插件 v3 Layout 承载窗口。
+4. 为所有可定制 Canvas 建立布局刷新入口。
 
 核心状态：
 
@@ -43,8 +43,7 @@ services.AddFrontedWindow<TView, TViewModel>();
 | --- | --- |
 | `FrontedWindows` | `windowId -> Window` |
 | `FrontedWindowStates` | 窗口是否已显示 |
-| `FrontedCanvas` | `(windowId, canvasName)` 列表 |
-| `InjectedControls` | 来自 Core 注册表的插件/宿主注入控件 |
+| `FrontedCanvas` | descriptor 声明的 `(windowId, canvasName)` 列表 |
 
 > **注意**：Phase 10+ 已删除旧 `FrontedWindowService` 的位置保存/恢复逻辑。运行时不再从 `AppData` 读写 `{WindowName}Config-{CanvasName}.json`，也不再从 `Resources/FrontedDefaultPositions` 读取默认位置。前台布局状态现在完全由 v3 `FrontedLayouts` 驱动。
 
@@ -107,27 +106,11 @@ Phase 9D 后，`FrontManagePage` 使用顶层 tabs：`Frontend Windows` 提供�
 
 注意：v3 布局读取用户布局优先。如果用户目录下已有旧的 `ScoreSurWindow` / `ScoreHunWindow` / `ScoreGlobalWindow` / `CutSceneWindow` / `GameDataWindow` / `WidgetsWindow` v3 JSON，且其中比分字段仍绑定旧字段、缺少 `GlobalScoreRow`、没有业务控件、把本地化表头写成普通静态 `Text`，或 Widgets overview 仍读取 `Team.Score`，运行时会继续使用用户布局；需要恢复默认布局或后续迁移工具才能切换到当前内置布局。
 
-## 插件注入控件
+## 插件前台窗口和控件
 
-插件可调用：
+旧的“向现有内置前台窗口注入 WPF 控件”能力已移除。插件应使用 Designer v3 插件控件、Plugin XAML Window 或 Plugin v3 Layout Window。
 
-```csharp
-FrontedWindowHelper.InjectControlToFrontedWindow(
-    "control-id",
-    control,
-    FrontedWindowType.BpWindow,
-    "BaseCanvas",
-    new ElementInfo(width, height, left, top));
-```
-
-该调用只是把 `InjectedControlInfo` 放入静态注册表。真正加入 Canvas 发生在 `FrontedWindowService.LoadInjectedControl()`。
-
-注意：
-
-1. 注入控件需要稳定、唯一的 ID。
-2. 控件应有 `Name`，否则布局保存时不会记录。
-3. 布局保存会跳过 `Tag == "nv"` 的元素。
-4. 插件新增窗口或注入控件通常需要重启宿主才能进入当前 DI/注册表。
+`WindowId` 是运行时身份，必须稳定；`FullWindowType` 是 layout / `.bpui` 身份。内置窗口使用 `BpWindow` 等短名，插件窗口使用 `plugin:{PackageId}/{WindowTypeName}`。磁盘路径会转换为安全目录，例如 `FrontedLayouts/plugin/top.plfjy.demo/ExampleLayoutOverlay/BaseCanvas.json`。
 
 ## 透明背景
 

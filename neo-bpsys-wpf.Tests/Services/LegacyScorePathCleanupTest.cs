@@ -50,9 +50,8 @@ public class LegacyScorePathCleanupTest
         Assert.DoesNotContain("SaveWindowElementsPosition", source, StringComparison.Ordinal);
         Assert.DoesNotContain("AttachWindowSizeHandlers", source, StringComparison.Ordinal);
         Assert.DoesNotContain("_externalControlDefaultPosition", source, StringComparison.Ordinal);
-        Assert.Contains("GetInjectedControl", source, StringComparison.Ordinal);
-        Assert.Contains("InjectControl", source, StringComparison.Ordinal);
-        Assert.Contains("Compatibility adapter", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("GetInjectedControl", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("InjectControl(", source, StringComparison.Ordinal);
         Assert.Contains("CurrentGame.MatchScore", source, StringComparison.Ordinal);
     }
 

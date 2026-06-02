@@ -10,4 +10,6 @@ public interface IFrontedPluginMetadataProvider
     bool TryGetPluginVersion(string packageId, out string version);
 
     bool TryGetPluginDisplayName(string packageId, out string displayName);
+
+    bool TryGetPluginFolder(string packageId, out string folder);
 }

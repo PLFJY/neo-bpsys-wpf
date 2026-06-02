@@ -3,7 +3,6 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -12,10 +11,6 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 /// </summary>
 public class FrontedWindowLayoutOptionsService : IFrontedWindowLayoutOptionsService
 {
-    private static readonly Regex SafeWindowTypeNameRegex = new(
-        "^[A-Za-z_][A-Za-z0-9_]*$",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
     private readonly string _frontedLayoutsRoot;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -74,12 +69,7 @@ public class FrontedWindowLayoutOptionsService : IFrontedWindowLayoutOptionsServ
 
     public string GetUserOptionsPath(string windowTypeName)
     {
-        if (!SafeWindowTypeNameRegex.IsMatch(windowTypeName))
-        {
-            throw new ArgumentException("Window type name is not safe.", nameof(windowTypeName));
-        }
-
-        return Path.Combine(_frontedLayoutsRoot, windowTypeName, "window.json");
+        return Path.Combine(_frontedLayoutsRoot, FrontedLayoutWindowPathHelper.GetWindowOptionsRelativePath(windowTypeName));
     }
 
     public Task ResetOptionsAsync(string windowTypeName, CancellationToken cancellationToken = default)

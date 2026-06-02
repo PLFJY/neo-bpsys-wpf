@@ -290,7 +290,7 @@ JSON 结构保持当前 v3 root-level dictionary 模式：
 
 ## 8. 插件前台控件依赖
 
-Phase 13B 已实现第三方插件前台控件的 core registry/runtime plumbing：布局 JSON 可读取 `plugin:*` 控件并保留插件专属属性，已安装插件可通过 descriptor/contributor API 注册运行时控件，缺失插件控件在前台 runtime 中跳过并记录 warning。Phase 13C 已实现 Designer Add Control 插件 UI、插件声明式属性编辑、Canvas `RequiredPlugins` 同步和缺失插件 Designer 占位符。Phase 13D 已实现 `.bpui` 依赖扫描、导出 manifest `PluginDependencies`、导入预检和强制导入删除缺失插件控件。Phase 13E 已实现插件市场安装 / 更新引导。
+Phase 15 起，`.bpui` 支持 Designer v3 插件控件和插件 Layout 窗口依赖。布局 JSON 可读取 `plugin:*` 控件并保留插件专属属性，已安装插件可通过 descriptor/contributor API 注册运行时控件；缺失插件控件在 Designer 显示占位符、在前台 runtime 中跳过并记录 warning。导入遇到缺失插件窗口或控件时保留 layout、资源和依赖元数据，不再删除缺失控件。插件市场安装 / 更新引导仍可用，但不会静默安装。
 
 ### 8.1 ControlType 命名标准
 
@@ -910,6 +910,6 @@ Phase 9F 起，`FrontManagePage` 导入 legacy `.bpui` 时会先询问是否转�
 | Phase 13B | 已实现插件前台控件 registry、描述符 API、通用 plugin config roundtrip 和 runtime renderer 缺失插件跳过。 |
 | Phase 13C | 已实现 Designer 插件控件支持，包括 Add Control、属性元数据、Canvas `RequiredPlugins` 同步和缺失插件占位符。 |
 | Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
-| Phase 13D | 已实现 `.bpui` 依赖扫描、导入、导出和强制导入删除缺失控件；新增 DEBUG-only 示例前台控件插件。 |
+| Phase 13D/15 | 已实现 `.bpui` 依赖扫描、导入、导出、缺失插件窗口/控件保留和 Designer 缺失控件占位符；新增 DEBUG-only 示例前台控件插件。 |
 | Phase 13E | 已实现插件市场交互式安装 / 更新引导，安装 / 更新后仍遵守插件系统重启要求。 |
 | Phase 13F | 已完成安全、版本兼容、i18n 和自动测试收口：缺失插件导入 UI 使用本地化资源，市场安装队列会校验未完成依赖，`.bpui` 导入拒绝插件二进制 / 脚本，`MinVersion` 从已安装插件 manifest version 写入。 |

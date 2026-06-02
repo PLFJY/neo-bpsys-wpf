@@ -89,7 +89,7 @@ public class FrontedUserLayoutStore : IFrontedUserLayoutStore
 
     public string GetLayoutFolder(string windowTypeName, string canvasName)
     {
-        return Path.Combine(_rootFolder, windowTypeName);
+        return Path.Combine(_rootFolder, FrontedLayoutWindowPathHelper.GetLayoutFolderRelativePath(windowTypeName));
     }
 
     public string GetRootFolder()

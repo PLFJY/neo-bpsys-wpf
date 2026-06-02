@@ -181,7 +181,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         foreach (var entry in entries)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            EnsureSafePathSegment(entry.WindowTypeName, nameof(entry.WindowTypeName));
+            EnsureSafeFullWindowType(entry.WindowTypeName, nameof(entry.WindowTypeName));
             EnsureSafePathSegment(entry.CanvasName, nameof(entry.CanvasName));
 
             var loadResult = await _layoutService.LoadCanvasConfigWithMetadataAsync(
@@ -212,7 +212,10 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                            $"Layout {entry.WindowTypeName}/{entry.CanvasName} serialized to empty JSON.");
             RewriteResourcePaths(node, null, staging, resourceState);
 
-            var relativePath = ToZipPath("layouts", entry.WindowTypeName, $"{entry.CanvasName}.json");
+            var relativePath = ToZipPath(
+                "layouts",
+                FrontedLayoutWindowPathHelper.GetLayoutRelativePath(entry.WindowTypeName, entry.CanvasName)
+                    .Replace('\\', '/'));
             var targetPath = Path.Combine(staging, relativePath.Replace('/', Path.DirectorySeparatorChar));
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
             await File.WriteAllTextAsync(targetPath, node.ToJsonString(_jsonSerializerOptions), cancellationToken);
@@ -251,7 +254,9 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                 continue;
             }
 
-            var relativePath = ToZipPath("layouts", windowTypeName, "window.json");
+            var relativePath = ToZipPath(
+                "layouts",
+                FrontedLayoutWindowPathHelper.GetWindowOptionsRelativePath(windowTypeName).Replace('\\', '/'));
             var targetPath = Path.Combine(staging, relativePath.Replace('/', Path.DirectorySeparatorChar));
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
             var json = JsonSerializer.Serialize(options, _jsonSerializerOptions);
@@ -546,6 +551,14 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             || value.Contains('\\', StringComparison.Ordinal)
             || value.Contains(':', StringComparison.Ordinal)
             || value.Contains("..", StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException($"{name} is not safe: {value}");
+        }
+    }
+
+    private static void EnsureSafeFullWindowType(string value, string name)
+    {
+        if (!FrontedLayoutWindowPathHelper.IsSafeFullWindowType(value))
         {
             throw new InvalidOperationException($"{name} is not safe: {value}");
         }

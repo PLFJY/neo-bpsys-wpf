@@ -34,7 +34,7 @@ v3 目标是转向 JSON/config-driven UI：前台窗口 XAML 最终只保留外�
 | 内置默认布局 | `Resources\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` |
 | 插件默认布局 | `{PluginFolder}\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` |
 
-每个前台 Canvas 使用独立布局配置文件。`{WindowTypeName}` 使用窗口类型名，例如 `BpWindow`；`{CanvasName}` 使用 `FrontedWindowInfo` 中声明的 Canvas 名称，例如 `BaseCanvas`。
+每个前台 Canvas 使用独立布局配置文件。内置窗口的 `{WindowTypeName}` 使用窗口类型名，例如 `BpWindow`；插件窗口使用 `plugin:{PackageId}/{WindowTypeName}`，保存到用户目录时会映射为安全子路径。`{CanvasName}` 使用窗口 descriptor 声明的 Canvas 名称，例如 `BaseCanvas`。
 
 以下路径属于 legacy 格式，Phase 10+ 后仅由 legacy `.bpui` 转换流程使用，不再被运行时读取：
 
@@ -421,7 +421,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 13B | 已实现插件前台控件 registry、descriptor API、`PluginFrontedControlConfig` roundtrip 和 runtime renderer 缺失插件跳过。 |
 | Phase 13C | 已实现 Designer 插件控件支持：Add Control 显示已注册插件控件，插件 typed config 可通过声明式属性元数据编辑，Canvas `RequiredPlugins` 会按控件同步，缺失插件在 Designer preview 显示 MissingPlugin 占位符。 |
 | Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
-| Phase 13D | 已实现 `.bpui` 依赖扫描、导出 manifest `PluginDependencies`、导入缺失插件预检和强制导入删除缺失控件；新增 DEBUG-only `ExampleFrontedControls` 示例插件。 |
+| Phase 13D/15 | 已实现 `.bpui` 依赖扫描、导出 manifest `PluginDependencies`、缺失插件窗口/控件保留、Designer 缺失控件占位符；新增 DEBUG-only `ExampleFrontedControls` 示例插件。 |
 | Phase 13E | 已实现插件市场交互式安装 / 更新引导，且保存 / 导出会从已加载插件 manifest 版本写入插件依赖 `MinVersion`。 |
 | Phase 13F | 已完成安全、版本兼容、i18n 和测试收口。缺失插件导入 UI 已本地化，安装 / 更新引导会校验下载队列是否全部完成，`.bpui` 导入拒绝插件二进制和可执行脚本。 |
 | Phase 14B | 已实现 FrontedDesignerWindow 左侧图层面板：控件按 `ZIndex` 降序分组，同层内保持 `CurrentDocument.Controls` 顺序；无筛选时可拖拽控件调整同层顺序或移动到其他层，顶/底投放区会生成 `max ZIndex + 1` / `min ZIndex - 1`；筛选状态下禁用重排但保留选择、右键删除、复制粘贴和 undo/redo。`PickingBorderOverlay` 等联动覆盖层不作为独立可拖拽图层项，宿主移动层级时覆盖层继续跟随宿主顺序和层级。 |
@@ -440,7 +440,7 @@ Phase 2 之后仍明确不做以下事情：
 | 移除 `config.json` 中的前台设置 | ~~自定义图片、文本设置、窗口设置仍保留在当前结构中。~~ **Phase 10+ 已完成**：旧前台自定义 UI 已从 SettingPage 删除，`SettingPageViewModel.FrontedUiCustom.cs` 已删除。旧 Config 字段已移入 legacy DTO / 迁移 / 转换代码，不再作为 active `Settings.cs` 运行时模型。 |
 | 实现完整编辑器 UI | 当前已新增 Phase 8C shell、Phase 8D 交互层和 Phase 8E 基础 Property Grid；仍不实现 Add Control、Binding browser、Resource browser 或保存。 |
 | 实现 legacy `.bpui` 转换 | ~~Phase 9D 已实现 v3 `.bpui` 导入/安装，但仍不转换旧 `.bpui`，也不修改现有 SettingPage legacy `.bpui` import/export 流程。~~ **Phase 10+ 已完成**：Phase 9D 已实现 v3 `.bpui` 导入/安装和 legacy `.bpui` 转换。`SettingPageViewModel.UiPackage.cs` 已删除。旧 `.bpui` 现在通过 `FrontManagePage` 的 Layout Packages 管理，不再通过 SettingPage 覆盖 Config.json。旧 Config 字段已移入 legacy DTO / 迁移 / 转换代码，不再作为 active `Settings.cs` 运行时模型。 |
-| 保留旧位置保存/恢复 API | ~~旧 `IFrontedWindowService.RestoreInitialPositions` / `SaveWindowElementsPosition` 等 API 仍可用。~~ **Phase 10+ 已完成**：旧版位置保存/恢复 API 已从 `IFrontedWindowService` 和 `FrontedWindowService` 删除。运行时不再读写 `{WindowName}Config-{CanvasName}.json` 或读取 `Resources/FrontedDefaultPositions`。前台布局状态完全由 v3 `FrontedLayouts` 驱动。重置布局通过 Layout Packages 激活内置布局或删除用户布局实现。旧 `ElementInfo` 只保留用于插件注入控件的默认位置。 |
+| 保留旧位置保存/恢复 API | ~~旧 `IFrontedWindowService.RestoreInitialPositions` / `SaveWindowElementsPosition` 等 API 仍可用。~~ **Phase 10+ 已完成**：旧版位置保存/恢复 API 已从 `IFrontedWindowService` 和 `FrontedWindowService` 删除。运行时不再读写 `{WindowName}Config-{CanvasName}.json` 或读取 `Resources/FrontedDefaultPositions`。前台布局状态完全由 v3 `FrontedLayouts` 驱动。重置布局通过 Layout Packages 激活内置布局或删除用户布局实现。 |
 
 ## 12. 与 Score System v2 的关系
 

@@ -55,18 +55,17 @@
 7. 检查插件 API 兼容性。
 8. `Assembly.LoadFrom(entranceAssembly)`。
 9. 查找直接继承 `PluginBase` 的入口类型。
-10. 扫描带 `FrontedWindowInfo` 的窗口类型，用于之后恢复插件默认布局。
-11. 创建入口实例，设置 `Info` 和 `PluginConfigFolder`。
-12. 调用 `Initialize(context, services)`。
-13. 把插件实例注册为 singleton。
+10. 创建入口实例，设置 `Info` 和 `PluginConfigFolder`。
+11. 调用 `Initialize(context, services)`。
+12. 把插件实例注册为 singleton。
 
 插件的 `Initialize` 可以注册：
 
 | 能力 | API |
 | --- | --- |
 | 后台页面 | `services.AddBackendPage<TPage,TViewModel>()` |
-| 前台窗口 | `services.AddFrontedWindow<TWindow,TViewModel>()` |
-| 注入控件 | `FrontedWindowHelper.InjectControlToFrontedWindow(...)` |
+| 插件前台窗口 | `services.AddFrontedWindowPluginContributor<TContributor>()` |
+| Designer v3 插件控件 | `services.AddFrontedPluginControlContributor<TContributor>()` |
 | 自定义服务 | 常规 `services.AddSingleton/AddTransient/...` |
 | 配置文件 | `PluginBase.PluginConfigFolder` + `ConfigureFileHelper` |
 | 共享数据访问 | 注入 `ISharedDataService` |
@@ -77,7 +76,7 @@
 
 ## Designer v3 插件前台控件规划
 
-Phase 13B 已实现插件控件 registry 和 descriptor API。插件可以在启动期间通过 DI 注册 Designer v3 前台控件，让这些控件像内置 `Text`、`Image`、`BorderedImage` 一样被 v3 renderer 识别；控件运行时行为、config 类型、默认 config 和属性元数据由插件提供。Phase 13C 起，Designer 会在 Add Control 中列出已注册插件控件，并通过声明式 property metadata 生成 Property Grid 行。Phase 13D 已实现 `.bpui` 导出/导入依赖扫描、缺失插件预检和强制导入删除缺失控件；Phase 13E 已实现插件市场安装 / 更新引导。
+Phase 15 起，插件前台系统围绕 Designer v3 / FrontedLayout v3 工作。旧的前台控件注入 API 已移除；插件前台能力分为 Designer v3 插件控件、Plugin XAML Window 和 Plugin v3 Layout Window。`.bpui` 导入遇到缺失插件窗口或插件控件时会保留 layout、资源和依赖元数据，不再物理删除缺失插件控件。
 
 插件控件的 `ControlType` 必须使用命名空间：
 
@@ -154,7 +153,22 @@ public sealed class FrontedPluginPropertyDescriptor
 5. 避免保存绝对本地路径；图片等资源优先使用 `.bpui` 支持的资源 URI。
 6. `BindingPath` 保存原始不变量路径，不本地化。
 
-运行时读取布局时，`plugin:*` 控件即使插件未安装也会反序列化为 `PluginFrontedControlConfig`，并通过 `JsonExtensionData` 保留插件专属属性，确保可读取、保存和 roundtrip。插件 descriptor 可用时，宿主 adapter 会把通用 config 序列化后再反序列化为 descriptor 声明的 typed config，然后调用 `CreateControl`。如果插件缺失，前台 renderer 跳过该控件并记录 warning；未知非插件 `ControlType` 仍按无效内置控件处理并报错。
+运行时读取布局时，`plugin:*` 控件即使插件未安装也会反序列化为 `PluginFrontedControlConfig`，并通过 `JsonExtensionData` 保留插件专属属性，确保可读取、保存和 roundtrip。插件 descriptor 可用时，宿主 adapter 会把通用 config 序列化后再反序列化为 descriptor 声明的 typed config，然后调用 `CreateControl`。如果插件缺失，Designer 显示 Missing Plugin placeholder，前台 renderer 跳过该控件并记录 warning；未知非插件 `ControlType` 仍按无效内置控件处理并报错。
+
+## 插件前台窗口 v3
+
+插件窗口通过 `IFrontedWindowPluginContributor.GetFrontedWindows()` 返回 `FrontedPluginWindowDescriptor`。`FrontedWindowType` enum 只表示内置窗口；插件窗口不扩展该 enum。
+
+标识模型：
+
+| 名称 | 说明 |
+| --- | --- |
+| `WindowId` | 运行时窗口身份，稳定 GUID/string |
+| `WindowTypeName` | 插件内短语义窗口类型名 |
+| `FullWindowType` | 布局 / `.bpui` 身份；内置为 `BpWindow`，插件为 `plugin:{PackageId}/{WindowTypeName}` |
+| `PackageId` | 插件 `manifest.yml` 的 `id` |
+
+Plugin XAML Window 由插件提供 WPF `Window` 类型，出现在 FrontManage，不默认进入 Designer。Plugin v3 Layout Window 由宿主标准 layout host 渲染，默认布局来自 `Plugins/{PackageId}/FrontedLayouts/{WindowTypeName}/{CanvasName}.json`；`Customizable=true` 的 Canvas 会进入 Designer。
 
 示例：
 
@@ -213,7 +227,7 @@ neo-bpsys-wpf.PluginSdk;neo-bpsys-wpf.Core
 4. 用户确认后才能安装或更新插件。
 5. 安装或更新插件后仍遵守当前加载模型，通常需要重启后插件控件才会变为可用。
 
-这与现有全信任模型一致：插件不是沙箱，安装插件意味着信任该代码。布局导入器只能做依赖预检、安装引导、取消导入或强制导入并删除缺失插件控件，不能绕过插件生命周期。
+这与现有全信任模型一致：插件不是沙箱，安装插件意味着信任该代码。布局导入器只能做依赖预检和安装引导，不能绕过插件生命周期，也不能静默安装插件。缺失插件窗口和缺失插件控件会被保留，用户可在 Designer 中手动删除 placeholder。
 
 ## 内置插件
 
@@ -221,7 +235,7 @@ neo-bpsys-wpf.PluginSdk;neo-bpsys-wpf.Core
 
 Phase 13D 新增 DEBUG-only 示例插件 `Built-inPlugins/neo-bpsys-wpf.ExampleFrontedControls`，插件 ID 为 `top.plfjy.example.fronted`，注册示例控件 `plugin:top.plfjy.example.fronted/TeamCard`。主项目只在 `Debug` 配置下把它加入 `BuiltinPlugin` 并复制到输出目录；Release、Beta、Preview 默认不包含该示例插件。该插件用于手工验证 Designer v3 插件控件作者体验，不是发行功能。TeamCard 默认绑定使用当前 Binding Browser 可选路径 `CurrentGame.SurTeam.Name` 和 `CurrentGame.SurTeam.Logo`，便于设计预览中直接显示示例数据。
 
-Phase 13E 起，Designer 保存和 `.bpui` 导出会在插件已安装 / 已加载时把 Canvas `RequiredPlugins.MinVersion` 和 manifest `PluginDependencies.MinVersion` 写成插件 `manifest.yml` 中的插件自身 `version`，例如 `1.0.0.0`。这不是 descriptor 的 `MinHostVersion`，也不是插件 API 版本。导入 `.bpui` 时如果已安装版本低于 `MinVersion`，会进入插件市场安装 / 更新引导或强制导入流程。Phase 13F 起，安装引导会在下载 / 安装队列结束后校验所有待处理插件都已安装或暂存；失败项会显示插件 ID 和错误信息，未完成项不会被当作成功。
+Designer 保存和 `.bpui` 导出会在插件已安装 / 已加载时把 Canvas `RequiredPlugins.MinVersion` 和 manifest `PluginDependencies.MinVersion` 写成插件 `manifest.yml` 中的插件自身 `version`，例如 `1.0.0.0`。这不是 descriptor 的 `MinHostVersion`，也不是插件 API 版本。导入 `.bpui` 时如果已安装版本低于 `MinVersion`，会进入插件市场安装 / 更新引导；导入本身仍可成功并保留缺失插件内容。安装引导会在下载 / 安装队列结束后校验所有待处理插件都已安装或暂存；失败项会显示插件 ID 和错误信息，未完成项不会被当作成功。
 
 `.bpui` 只传输布局、资源和依赖元数据，不传输插件 DLL、安装包或脚本。插件安装仍必须走现有插件系统 / 插件市场流程，并在需要时通过重启让 Host build 前的 DI 注入生效。
 

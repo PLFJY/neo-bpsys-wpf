@@ -7,7 +7,7 @@ public interface IAppHost
     /// <summary>
     /// 核心库版本
     /// </summary>
-    public static readonly Version CoreVersion = new(2, 0, 0, 0);
+    public static readonly Version CoreVersion = new(3, 0, 0, 0);
 
     /// <summary>
     /// 应用主机
