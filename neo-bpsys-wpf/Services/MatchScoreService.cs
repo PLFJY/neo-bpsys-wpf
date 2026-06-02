@@ -8,12 +8,20 @@ using System.Globalization;
 
 namespace neo_bpsys_wpf.Services;
 
+/// <summary>
+/// <see cref="IMatchScoreService"/> 的默认实现，桥接当前共享赛事状态和 Score System v2 模型。
+/// </summary>
 public class MatchScoreService : IMatchScoreService
 {
     private readonly ISharedDataService _sharedDataService;
     private readonly ILogger<MatchScoreService> _logger;
     private Game? _subscribedGame;
 
+    /// <summary>
+    /// 初始化比分服务并订阅当前赛事、赛制和阵营切换事件。
+    /// </summary>
+    /// <param name="sharedDataService">共享赛事状态服务。</param>
+    /// <param name="logger">日志记录器。</param>
     public MatchScoreService(ISharedDataService sharedDataService, ILogger<MatchScoreService> logger)
     {
         _sharedDataService = sharedDataService;
@@ -23,16 +31,22 @@ public class MatchScoreService : IMatchScoreService
         _sharedDataService.IsBo3ModeChanged += OnIsBo3ModeChanged;
     }
 
+    /// <inheritdoc />
     public MatchScoreState Current => _sharedDataService.CurrentGame.MatchScore;
 
+    /// <inheritdoc />
     public ScoreHalf? CurrentHalf => GetHalf(_sharedDataService.CurrentGame.GameProgress);
 
+    /// <inheritdoc />
     public ScoreGame? CurrentGameScore => GetGame(_sharedDataService.CurrentGame.GameProgress);
 
+    /// <inheritdoc />
     public ScoreHalf? GetHalf(GameProgress progress) => Current.GetHalf(progress, _sharedDataService.IsBo3Mode);
 
+    /// <inheritdoc />
     public ScoreGame? GetGame(GameProgress progress) => Current.GetGame(progress, _sharedDataService.IsBo3Mode);
 
+    /// <inheritdoc />
     public void SetCurrentHalfResult(GameResult? result)
     {
         var half = CurrentHalf;
@@ -61,10 +75,13 @@ public class MatchScoreService : IMatchScoreService
         SyncLegacyTeamScoreMirror();
     }
 
+    /// <inheritdoc />
     public void ClearCurrentHalfResult() => SetCurrentHalfResult(null);
 
+    /// <inheritdoc />
     public void Recalculate() => Current.Recalculate();
 
+    /// <inheritdoc />
     public void RefreshCurrentProgress()
     {
         Current.RefreshCurrentDisplay(
@@ -74,6 +91,7 @@ public class MatchScoreService : IMatchScoreService
             _sharedDataService.IsBo3Mode);
     }
 
+    /// <inheritdoc />
     public void SyncLegacyTeamScoreMirror()
     {
         var currentGame = _sharedDataService.CurrentGame;

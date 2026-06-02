@@ -12,8 +12,14 @@ using System.Windows.Media;
 namespace neo_bpsys_wpf.Views.Windows;
 
 /// <summary>
-/// Standard host window for plugin-declared Designer v3 fronted layouts.
+/// Host WPF output window for plugin-declared Designer v3 layouts.
 /// </summary>
+/// <remarks>
+/// This window renders <see cref="FrontedWindowKind.PluginLayout"/> descriptors with the host v3 renderer.
+/// It loads user layouts by <see cref="FrontedPluginWindowDescriptor.FullWindowType"/> first, then falls back
+/// to JSON files under the plugin folder. Plugin XAML windows use their own WPF window type and do not use
+/// this host.
+/// </remarks>
 public sealed class FrontedPluginLayoutWindow : FrontedWindowBase
 {
     private readonly FrontedPluginWindowDescriptor _descriptor;
@@ -28,6 +34,9 @@ public sealed class FrontedPluginLayoutWindow : FrontedWindowBase
         MaxDepth = FrontedLayoutLimits.MaxJsonDepth
     };
 
+    /// <summary>
+    /// Creates a host window for one plugin layout descriptor.
+    /// </summary>
     public FrontedPluginLayoutWindow(
         FrontedPluginWindowDescriptor descriptor,
         IFrontedLayoutService layoutService,
@@ -78,6 +87,9 @@ public sealed class FrontedPluginLayoutWindow : FrontedWindowBase
         await ReloadFrontedLayoutAsync();
     }
 
+    /// <summary>
+    /// Reloads and renders all canvases declared by the plugin layout descriptor.
+    /// </summary>
     public async Task ReloadFrontedLayoutAsync()
     {
         foreach (var canvasDescriptor in _descriptor.Canvases)
@@ -136,6 +148,7 @@ public sealed class FrontedPluginLayoutWindow : FrontedWindowBase
             _descriptor.DefaultLayoutRoot,
             _descriptor.WindowTypeName,
             $"{canvasDescriptor.CanvasName}.json");
+        // Plugin defaults live beside the plugin manifest/DLL so packaged plugin windows do not depend on app Resources.
         if (!File.Exists(path))
         {
             return null;

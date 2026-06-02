@@ -333,7 +333,7 @@ public sealed class TeamCardFrontedControlConfig : FrontedControlConfigBase
 }
 ```
 
-Phase 13B 起，layout JSON 中的 `plugin:*` 控件会先反序列化为通用 `PluginFrontedControlConfig` 并保留插件专属 JSON 属性；插件已安装且 descriptor 已注册时，runtime adapter 会把通用 config 转换为插件声明的 typed config 并创建控件。Phase 13C 起，Designer 加载布局时也会在 registry 可用后把通用 config materialize 为 typed config，使 Add Control、Property Grid、复制粘贴、保存和校验可以沿用普通控件路径。运行时缺失插件控件时仍会跳过并记录 warning，不能让前台窗口崩溃，也不在直播前台默认渲染占位符；Designer preview 会显示 MissingPlugin 占位符，展示 `PackageId`、`ControlTypeName` 和完整 `ControlType`，允许选择、移动、缩放和删除底层插件控件配置。没有插件元数据时，编辑器只显示基础布局字段和只读插件信息，不允许直接编辑 `JsonExtensionData` 中的插件专属属性。包强制导入时应删除缺失插件控件，而不是把占位符写入活动布局。
+Phase 13B 起，layout JSON 中的 `plugin:*` 控件会先反序列化为通用 `PluginFrontedControlConfig` 并保留插件专属 JSON 属性；插件已安装且 descriptor 已注册时，runtime adapter 会把通用 config 转换为插件声明的 typed config 并创建控件。Phase 13C 起，Designer 加载布局时也会在 registry 可用后把通用 config materialize 为 typed config，使 Add Control、Property Grid、复制粘贴、保存和校验可以沿用普通控件路径。运行时缺失插件控件时仍会跳过并记录 warning，不能让前台窗口崩溃，也不在直播前台默认渲染占位符；Designer preview 会显示 MissingPlugin 占位符，展示 `PackageId`、`ControlTypeName` 和完整 `ControlType`，允许选择、移动、缩放和删除底层插件控件配置。没有插件元数据时，编辑器只显示基础布局字段和只读插件信息，不允许直接编辑 `JsonExtensionData` 中的插件专属属性。Phase 15 后缺失插件窗口布局和控件配置默认保留，等待用户安装插件并重启后恢复完整渲染。
 
 ## 8. 前台编辑窗口设计
 

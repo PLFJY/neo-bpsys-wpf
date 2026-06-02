@@ -446,17 +446,16 @@ Canvas layout JSON 可以声明本 Canvas 中插件控件依赖：
 1. `.bpui` 不能静默安装插件。
 2. `.bpui` 不能携带插件 DLL。
 3. 安装或更新插件可能要求重启，因为当前插件系统在启动期间、Host build 前加载插件。
-4. 如果重启后插件才能生效，导入流程应说明：布局导入只能在插件可用后完整继续；用户也可以选择强制导入并删除缺失插件控件。
+4. 如果重启后插件才能生效，导入流程应说明：插件安装后通常需要重启；用户也可以继续导入并保留缺失插件布局 / 控件配置。
 5. Phase 13E 会查询插件市场，但只做引导，不会静默安装、更新或热加载插件。
 
-强制导入行为：
+继续导入并保留缺失插件行为：
 
-1. 删除所有依赖缺失插件的控件。
-2. 删除所有依赖已安装但版本低于 `MinVersion` 的插件控件。
-3. 保留其他控件。
-4. 从导入后的活动布局 `RequiredPlugins` 中移除已不再满足或已无控件引用的依赖项。
-5. 显示导入报告，列出被删除的控件名、完整 `ControlType` 和依赖插件。
-6. 保持原始 `.bpui` 包或 archive 不变，方便用户以后安装插件后重新导入。
+1. 保留所有依赖缺失插件或版本暂不满足的插件控件配置。
+2. 保留插件窗口 layout、资源和 `RequiredPlugins` / `PluginDependencies` 元数据。
+3. Designer preview 显示 MissingPlugin 占位符，允许用户定位、移动、缩放或删除底层配置。
+4. 直播前台 runtime 跳过缺失插件控件并记录 warning，不渲染占位符。
+5. 安装插件并重启后，保留的原始 `plugin:*` 配置可重新 materialize 为插件 typed config。
 
 ### 8.5 运行时和编辑器缺失插件行为
 
@@ -474,7 +473,7 @@ Designer：
 4. 允许打开插件安装引导。
 5. 在没有插件元数据时，不允许编辑插件专属属性。
 
-包强制导入时应删除缺失插件控件，而不是把占位符写入导入后的活动布局。
+占位符只是 Designer 视图，不会作为新的控件类型写入活动布局；活动布局保存的仍是原始 `plugin:*` 控件配置。
 
 ### 8.6 安全模型
 
@@ -833,7 +832,7 @@ WPF 的 `AllowsTransparency` / 透明窗口行为可能需要重新创建窗口�
 10. 合并 manifest `PluginDependencies`、Canvas `RequiredPlugins` 和实际插件 `ControlType` 扫描结果，执行插件依赖预检。
 11. 校验资源存在。
 12. 校验没有跨包引用。
-13. 如果有插件依赖未满足，进入第 8.4 节的安装 / 跳过 / 取消 / 强制导入流程。
+13. 如果有插件依赖未满足，进入第 8.4 节的安装 / 继续保留 / 取消流程。
 14. 如果 `PackageId` 已存在，询问是否替换或更新。
 15. 用户确认后，在校验成功的前提下原子替换包目录。
 16. 不覆盖全局 `Config.json`。
@@ -873,7 +872,7 @@ v3 `.bpui` 包不得包含：
 | manifest 未知字段 | Warning 并忽略 |
 | layout 未知内置 `ControlType` | Error。 |
 | 插件 `ControlType` 格式无效 | Error，例如 `plugin:TeamCard` 或空 `PackageId`。 |
-| 插件 `ControlType` 格式有效但依赖未满足 | RequiresPlugin / Warning，按导入选择进入安装、跳过、取消或强制导入流程。 |
+| 插件 `ControlType` 格式有效但依赖未满足 | RequiresPlugin / Warning，按导入选择进入安装、继续保留或取消流程。 |
 
 layout 层校验仍应遵守现有 Designer v3 规则：Canvas 尺寸必须有效，`Version` 必须为 3，root-level 控件 key 是控件名，运行时关键控件名不能静默丢失。
 
@@ -912,4 +911,4 @@ Phase 9F 起，`FrontManagePage` 导入 legacy `.bpui` 时会先询问是否转�
 | Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
 | Phase 13D/15 | 已实现 `.bpui` 依赖扫描、导入、导出、缺失插件窗口/控件保留和 Designer 缺失控件占位符；新增 DEBUG-only 示例前台控件插件。 |
 | Phase 13E | 已实现插件市场交互式安装 / 更新引导，安装 / 更新后仍遵守插件系统重启要求。 |
-| Phase 13F | 已完成安全、版本兼容、i18n 和自动测试收口：缺失插件导入 UI 使用本地化资源，市场安装队列会校验未完成依赖，`.bpui` 导入拒绝插件二进制 / 脚本，`MinVersion` 从已安装插件 manifest version 写入。 |
+| Phase 13F/15 | 已完成安全、版本兼容、i18n 和自动测试收口：缺失插件导入 UI 使用本地化资源，市场安装队列会校验未完成依赖，`.bpui` 导入拒绝插件二进制 / 脚本，`MinVersion` 从已安装插件 manifest version 写入，缺失插件窗口布局和控件配置会保留。 |

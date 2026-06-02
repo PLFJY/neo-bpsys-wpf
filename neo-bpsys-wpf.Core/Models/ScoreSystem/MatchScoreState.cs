@@ -8,6 +8,13 @@ using System.Text.Json.Serialization;
 
 namespace neo_bpsys_wpf.Core.Models.ScoreSystem;
 
+/// <summary>
+/// Score System v2 的权威整场比分状态，由 <see cref="Game.MatchScore"/> 持有并随对局导入导出。
+/// </summary>
+/// <remarks>
+/// 此类型保存可序列化的半场结果与记录时阵营映射，并派生大比分、总小比分和当前前台显示文本。
+/// 迁移期的 <see cref="Score"/> / <c>Team.Score</c> 只是兼容镜像，不能作为新比分数据源。
+/// </remarks>
 public partial class MatchScoreState : ObservableObjectBase
 {
     private ObservableCollection<ScoreGame> _games;
@@ -28,6 +35,10 @@ public partial class MatchScoreState : ObservableObjectBase
     private TeamType _currentDisplayHunTeamType = TeamType.AwayTeam;
     private bool _currentDisplayIsBo3Mode;
 
+    /// <summary>
+    /// 创建比分状态。未提供 <paramref name="games"/> 时会创建 BO3/BO5 支持的默认比分单元。
+    /// </summary>
+    /// <param name="games">可序列化的比分单元集合。</param>
     [JsonConstructor]
     public MatchScoreState(ObservableCollection<ScoreGame>? games = null)
     {
@@ -36,6 +47,9 @@ public partial class MatchScoreState : ObservableObjectBase
         Recalculate();
     }
 
+    /// <summary>
+    /// 可序列化的比分单元集合，包括普通局和加赛局。
+    /// </summary>
     public ObservableCollection<ScoreGame> Games
     {
         get => _games;
@@ -51,6 +65,9 @@ public partial class MatchScoreState : ObservableObjectBase
         }
     }
 
+    /// <summary>
+    /// 主队大比分胜场数。
+    /// </summary>
     [JsonIgnore]
     public int HomeMajorWin
     {
@@ -58,6 +75,9 @@ public partial class MatchScoreState : ObservableObjectBase
         private set => SetProperty(ref _homeMajorWin, value);
     }
 
+    /// <summary>
+    /// 主队大比分平局数。
+    /// </summary>
     [JsonIgnore]
     public int HomeMajorTie
     {
@@ -65,6 +85,9 @@ public partial class MatchScoreState : ObservableObjectBase
         private set => SetProperty(ref _homeMajorTie, value);
     }
 
+    /// <summary>
+    /// 客队大比分胜场数。
+    /// </summary>
     [JsonIgnore]
     public int AwayMajorWin
     {
@@ -72,6 +95,9 @@ public partial class MatchScoreState : ObservableObjectBase
         private set => SetProperty(ref _awayMajorWin, value);
     }
 
+    /// <summary>
+    /// 客队大比分平局数。
+    /// </summary>
     [JsonIgnore]
     public int AwayMajorTie
     {
@@ -79,6 +105,9 @@ public partial class MatchScoreState : ObservableObjectBase
         private set => SetProperty(ref _awayMajorTie, value);
     }
 
+    /// <summary>
+    /// 主队前台大比分文本，例如 <c>W1  D0</c>。
+    /// </summary>
     [JsonIgnore]
     public string HomeMajorText
     {
@@ -86,6 +115,9 @@ public partial class MatchScoreState : ObservableObjectBase
         private set => SetProperty(ref _homeMajorText, value);
     }
 
+    /// <summary>
+    /// 客队前台大比分文本，例如 <c>W1  D0</c>。
+    /// </summary>
     [JsonIgnore]
     public string AwayMajorText
     {
@@ -93,6 +125,9 @@ public partial class MatchScoreState : ObservableObjectBase
         private set => SetProperty(ref _awayMajorText, value);
     }
 
+    /// <summary>
+    /// 主队已记录半场的小比分总和。
+    /// </summary>
     [JsonIgnore]
     public int HomeTotalMinorScore
     {
@@ -100,6 +135,9 @@ public partial class MatchScoreState : ObservableObjectBase
         private set => SetProperty(ref _homeTotalMinorScore, value);
     }
 
+    /// <summary>
+    /// 客队已记录半场的小比分总和。
+    /// </summary>
     [JsonIgnore]
     public int AwayTotalMinorScore
     {
@@ -107,6 +145,9 @@ public partial class MatchScoreState : ObservableObjectBase
         private set => SetProperty(ref _awayTotalMinorScore, value);
     }
 
+    /// <summary>
+    /// 当前求生者队伍在局内比分窗口应显示的上一半小比分。
+    /// </summary>
     [JsonIgnore]
     public string CurrentSurTeamPreHalfMinorScoreText
     {
@@ -114,6 +155,9 @@ public partial class MatchScoreState : ObservableObjectBase
         private set => SetProperty(ref _currentSurTeamPreHalfMinorScoreText, value);
     }
 
+    /// <summary>
+    /// 当前监管者队伍在局内比分窗口应显示的上一半小比分。
+    /// </summary>
     [JsonIgnore]
     public string CurrentHunTeamPreHalfMinorScoreText
     {
@@ -121,6 +165,9 @@ public partial class MatchScoreState : ObservableObjectBase
         private set => SetProperty(ref _currentHunTeamPreHalfMinorScoreText, value);
     }
 
+    /// <summary>
+    /// 当前求生者队伍对应的大比分文本。
+    /// </summary>
     [JsonIgnore]
     public string CurrentSurTeamMajorText
     {
@@ -128,6 +175,9 @@ public partial class MatchScoreState : ObservableObjectBase
         private set => SetProperty(ref _currentSurTeamMajorText, value);
     }
 
+    /// <summary>
+    /// 当前监管者队伍对应的大比分文本。
+    /// </summary>
     [JsonIgnore]
     public string CurrentHunTeamMajorText
     {
@@ -135,8 +185,14 @@ public partial class MatchScoreState : ObservableObjectBase
         private set => SetProperty(ref _currentHunTeamMajorText, value);
     }
 
+    /// <summary>
+    /// 创建包含所有受支持比分单元的默认空比分状态。
+    /// </summary>
     public static MatchScoreState CreateDefault() => new(CreateDefaultGames());
 
+    /// <summary>
+    /// 创建独立可变副本，避免新旧 <see cref="Game"/> 共享同一比分实例。
+    /// </summary>
     public MatchScoreState Clone()
     {
         var games = new ObservableCollection<ScoreGame>(
@@ -154,16 +210,32 @@ public partial class MatchScoreState : ObservableObjectBase
         return clone;
     }
 
+    /// <summary>
+    /// 根据对局进度解析比分单元。缺少 BO3/BO5 上下文时，重叠 enum 值按 BO5 第四局处理。
+    /// </summary>
     public ScoreGame? GetGame(GameProgress progress) => GetGame(progress, isBo3Mode: false);
 
+    /// <summary>
+    /// 根据对局进度和 BO3/BO5 上下文解析比分单元。
+    /// </summary>
+    /// <param name="progress">当前对局进度。</param>
+    /// <param name="isBo3Mode">是否按 BO3 解析 Game3 overtime 和 Game4 重叠值。</param>
     public ScoreGame? GetGame(GameProgress progress, bool isBo3Mode)
     {
         var key = ResolveScoreGameKey(progress, isBo3Mode);
         return key == null ? null : Games.FirstOrDefault(game => game.Key == key.Value);
     }
 
+    /// <summary>
+    /// 根据对局进度解析半场。缺少 BO3/BO5 上下文时，重叠 enum 值按 BO5 第四局处理。
+    /// </summary>
     public ScoreHalf? GetHalf(GameProgress progress) => GetHalf(progress, isBo3Mode: false);
 
+    /// <summary>
+    /// 根据对局进度和 BO3/BO5 上下文解析半场。
+    /// </summary>
+    /// <param name="progress">当前对局进度。</param>
+    /// <param name="isBo3Mode">是否按 BO3 解析 Game3 overtime 和 Game4 重叠值。</param>
     public ScoreHalf? GetHalf(GameProgress progress, bool isBo3Mode)
     {
         var game = GetGame(progress, isBo3Mode);
@@ -179,6 +251,9 @@ public partial class MatchScoreState : ObservableObjectBase
         };
     }
 
+    /// <summary>
+    /// 从所有已记录半场重新派生大比分、总小比分和当前显示文本。
+    /// </summary>
     public void Recalculate()
     {
         var homeMajorWin = 0;
@@ -222,11 +297,17 @@ public partial class MatchScoreState : ObservableObjectBase
         UpdateCurrentDisplay();
     }
 
+    /// <summary>
+    /// 刷新当前局内比分显示。缺少 BO3/BO5 上下文时，重叠 enum 值按 BO5 第四局处理。
+    /// </summary>
     public void RefreshCurrentDisplay(GameProgress progress, TeamType currentSurTeamType, TeamType currentHunTeamType)
     {
         RefreshCurrentDisplay(progress, currentSurTeamType, currentHunTeamType, isBo3Mode: false);
     }
 
+    /// <summary>
+    /// 结合当前进度、当前阵营映射和 BO3/BO5 上下文刷新局内比分显示。
+    /// </summary>
     public void RefreshCurrentDisplay(
         GameProgress progress,
         TeamType currentSurTeamType,

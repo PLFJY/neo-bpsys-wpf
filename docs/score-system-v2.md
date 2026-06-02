@@ -332,7 +332,7 @@ ScorePage button
 | 场景 | 行为 |
 | --- | --- |
 | 导出对局 | 序列化 `Game.MatchScore`。 |
-| 导入对局 | 从 JSON 恢复 `Game.MatchScore`，并在队伍信息导入后保持历史半场的阵营映射。 |
+| 导入对局 | 从 JSON 恢复 `Game.MatchScore`，并在队伍信息导入后保持历史半场的阵营映射；有效 `MatchScore` 不会被旧 `Team.Score` 镜像覆盖。 |
 | 新建对局 | 从旧 `CurrentGame.MatchScore` clone/carry 到新 `Game`。 |
 | 回溯对局 | 不依赖页面 ViewModel 是否还存在，不依赖前台窗口是否打开。 |
 
@@ -374,5 +374,5 @@ ScorePage button
 | --- | --- |
 | `Free` 模式是否允许手动写比分 | 暂不支持，记录为设计缺口。暂时在Free下禁用相关按钮，且对外显示全部为 0 |
 | BO3 中第三场加赛与 BO5 第四场的持久化 key | 使用 `ScoreGameKey`，避免只靠 `GameProgress` 数值。 |
-| 旧 `Team.Score` 镜像何时删除 | 等 `BpWindow`、`WidgetsWindow` 等旧绑定迁移后再删除。旧记录中的 `Team.Score` 只能保留兼容显示，无法安全还原完整 per-Game/per-Half 历史。 |
+| 旧 `Team.Score` 镜像何时删除 | 等 `BpWindow`、`WidgetsWindow` 等旧绑定迁移后再删除。旧记录中的 `Team.Score` 只能保留兼容显示，无法安全还原完整 per-Game/per-Half 历史；导入器不会伪造半场结果。 |
 | 全局比分 v3 控件类型 | 已新增内置 `GlobalScoreRow`，通过 `IFrontedControl` 注册并由 JSON `ControlType = "GlobalScoreRow"` 使用。 |

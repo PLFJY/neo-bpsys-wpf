@@ -420,7 +420,7 @@ Designer 和运行时读取布局时应把它识别为插件控件，而不是�
 5. 允许打开插件安装引导。
 6. 在没有插件 descriptor 和 config 元数据时，不允许编辑插件专属属性。
 
-`.bpui` 强制导入和普通编辑器占位符不同：强制导入应删除缺失插件控件，并从活动布局 `RequiredPlugins` 中移除不再满足或不再被控件引用的项；不要把 MissingPlugin 占位符写入导入后的活动布局。
+`.bpui` 导入和普通编辑器占位符使用同一保留策略：缺失插件控件的原始配置保留在活动布局中，Designer preview 显示 MissingPlugin 占位符，runtime 前台跳过该控件并记录 warning。占位符本身只是编辑器视图，不会作为新的控件类型写入 JSON；安装插件并重启后，原始 `plugin:*` 配置可以重新 materialize 为插件 typed config。
 
 插件属性第一版应由插件提供声明式 metadata，而不是任意 WPF PropertyGrid 控件：
 
@@ -724,7 +724,7 @@ Phase 10 起，编辑器 typed/pasted input 会按集中限制截断：搜索 12
 | Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
 | Phase 13D/15 | 已实现 `.bpui` 依赖扫描、导出 manifest `PluginDependencies`、缺失插件窗口/控件保留、Designer 缺失控件占位符。`ExamplePlugin` 已整合为全功能参考插件，替代原 DEBUG-only `ExampleFrontedControls`。 |
 | Phase 13E | 已实现插件市场交互式安装 / 更新引导；`.bpui` 导入不会静默安装插件，安装或更新后通常需要重启再重新导入。 |
-| Phase 13F | 已完成安全、版本兼容、i18n 和测试收口：插件 Add Control / Property Grid / 缺失占位符行为保持现有 Designer v3 路径，`.bpui` 依赖安装引导不会热加载插件，强制导入会删除缺失或版本不满足的插件控件。 |
+| Phase 13F/15 | 已完成安全、版本兼容、i18n 和测试收口：插件 Add Control / Property Grid / 缺失占位符行为保持现有 Designer v3 路径，`.bpui` 依赖安装引导不会热加载插件，缺失或版本不满足的插件窗口布局和控件配置会保留，等待插件安装并重启后恢复。 |
 
 ## 18. 非目标
 

@@ -7,5 +7,8 @@ namespace neo_bpsys_wpf.Core.Abstractions.Services;
 /// </summary>
 public interface IFrontedWindowPluginContributor
 {
+    /// <summary>
+    /// Returns plugin fronted window descriptors. The host validates these during startup before the registry is built.
+    /// </summary>
     IEnumerable<FrontedPluginWindowDescriptor> GetFrontedWindows();
 }

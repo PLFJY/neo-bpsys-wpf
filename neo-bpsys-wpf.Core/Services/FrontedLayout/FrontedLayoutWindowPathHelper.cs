@@ -4,12 +4,23 @@ using System.IO;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Converts v3 FullWindowType identities to filesystem-safe layout paths.
+/// Converts v3 <c>FullWindowType</c> identities to filesystem-safe layout paths.
 /// </summary>
+/// <remarks>
+/// Built-in identities map directly, for example <c>BpWindow</c> to <c>FrontedLayouts/BpWindow</c>.
+/// Plugin identities map from <c>plugin:{PackageId}/{WindowTypeName}</c> to
+/// <c>FrontedLayouts/plugin/{PackageId}/{WindowTypeName}</c>.
+/// </remarks>
 public static partial class FrontedLayoutWindowPathHelper
 {
+    /// <summary>
+    /// Prefix used by plugin fronted window layout identities.
+    /// </summary>
     public const string PluginPrefix = "plugin:";
 
+    /// <summary>
+    /// Gets the safe folder path relative to the fronted layout root for a full window type.
+    /// </summary>
     public static string GetLayoutFolderRelativePath(string fullWindowType)
     {
         if (TryParsePluginFullWindowType(fullWindowType, out var packageId, out var windowTypeName))
@@ -23,17 +34,26 @@ public static partial class FrontedLayoutWindowPathHelper
         return fullWindowType;
     }
 
+    /// <summary>
+    /// Gets the safe canvas layout JSON path relative to the fronted layout root.
+    /// </summary>
     public static string GetLayoutRelativePath(string fullWindowType, string canvasName)
     {
         EnsureSafePathSegment(canvasName, nameof(canvasName));
         return Path.Combine(GetLayoutFolderRelativePath(fullWindowType), $"{canvasName}.json");
     }
 
+    /// <summary>
+    /// Gets the safe window options JSON path relative to the fronted layout root.
+    /// </summary>
     public static string GetWindowOptionsRelativePath(string fullWindowType)
     {
         return Path.Combine(GetLayoutFolderRelativePath(fullWindowType), "window.json");
     }
 
+    /// <summary>
+    /// Converts a safe relative layout folder back to the corresponding full window type.
+    /// </summary>
     public static string ToFullWindowTypeFromRelativeFolder(string relativeFolder)
     {
         var parts = relativeFolder
@@ -55,6 +75,9 @@ public static partial class FrontedLayoutWindowPathHelper
         throw new ArgumentException("Layout folder is not a valid FullWindowType path.", nameof(relativeFolder));
     }
 
+    /// <summary>
+    /// Returns whether a full window type can be safely mapped to a layout path.
+    /// </summary>
     public static bool IsSafeFullWindowType(string fullWindowType)
     {
         try
@@ -68,6 +91,9 @@ public static partial class FrontedLayoutWindowPathHelper
         }
     }
 
+    /// <summary>
+    /// Parses a plugin full window type in the form <c>plugin:{PackageId}/{WindowTypeName}</c>.
+    /// </summary>
     public static bool TryParsePluginFullWindowType(
         string fullWindowType,
         out string packageId,
@@ -93,6 +119,9 @@ public static partial class FrontedLayoutWindowPathHelper
         return IsSafePathSegment(packageId) && IsSafePathSegment(windowTypeName);
     }
 
+    /// <summary>
+    /// Returns whether a value is safe for one layout path segment.
+    /// </summary>
     public static bool IsSafePathSegment(string value)
     {
         return !string.IsNullOrWhiteSpace(value)

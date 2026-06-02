@@ -15,6 +15,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Windows.Threading;
 using Game = neo_bpsys_wpf.Core.Models.Game;
@@ -197,6 +198,8 @@ public partial class SharedDataService : ISharedDataService
         try
         {
             var json = await File.ReadAllTextAsync(filePath);
+            var hasSerializedMatchScore = HasSerializedMatchScore(json);
+            var legacyScoreSnapshot = LegacyScoreSnapshot.FromJson(json);
 
             // Use a custom converter to resolve Character instances to the global shared instances
             var options = new JsonSerializerOptions(_jsonSerializerOptions);
@@ -233,19 +236,44 @@ public partial class SharedDataService : ISharedDataService
 
             foreach (var pair in CurrentGame.MapV2Dictionary)
             {
-                pair.Value.IsPicked = importedGame.MapV2Dictionary[pair.Key].IsPicked;
-                pair.Value.IsBanned = importedGame.MapV2Dictionary[pair.Key].IsBanned;
-                pair.Value.IsCampVisible = importedGame.MapV2Dictionary[pair.Key].IsCampVisible;
-                pair.Value.IsBreathing = importedGame.MapV2Dictionary[pair.Key].IsBreathing;
-                pair.Value.OperationTeam = importedGame.MapV2Dictionary[pair.Key].OperationTeam;
+                if (!importedGame.MapV2Dictionary.TryGetValue(pair.Key, out var importedMapV2))
+                {
+                    _logger.LogWarning(
+                        "Imported game {FilePath} is missing MapV2 key {MapKey}; keeping current default map state.",
+                        filePath,
+                        pair.Key);
+                    continue;
+                }
+
+                pair.Value.IsPicked = importedMapV2.IsPicked;
+                pair.Value.IsBanned = importedMapV2.IsBanned;
+                pair.Value.IsCampVisible = importedMapV2.IsCampVisible;
+                pair.Value.IsBreathing = importedMapV2.IsBreathing;
+                pair.Value.OperationTeam = importedMapV2.OperationTeam;
+            }
+
+            var importedMatchScore = importedGame.MatchScore.Clone();
+            var shouldKeepLegacyScoreMirror = !hasSerializedMatchScore || !HasRecordedMatchScore(importedMatchScore);
+            if (shouldKeepLegacyScoreMirror && legacyScoreSnapshot.HasScore)
+            {
+                _logger.LogWarning(
+                    "Imported game {FilePath} contains legacy Team.Score without usable MatchScore. " +
+                    "Keeping MatchScore default because per-half history cannot be reconstructed; legacy score mirror is preserved.",
+                    filePath);
             }
 
             CurrentGame = new Game(surTeam, hunTeam, importedGame.GameProgress, importedGame.PickedMap,
                 importedGame.BannedMap,
                 CurrentGame.MapV2Dictionary, importedGame.Guid, importedGame.StartTime,
                 importedGame.SurPlayersData, importedGame.HunPlayerData,
-                importedGame.CurrentSurBannedList, importedGame.CurrentHunBannedList,
-                importedGame.MatchScore.Clone());
+                NormalizeBanList(importedGame.CurrentSurBannedList),
+                NormalizeBanList(importedGame.CurrentHunBannedList),
+                importedMatchScore);
+
+            if (shouldKeepLegacyScoreMirror)
+            {
+                legacyScoreSnapshot.ApplyTo(CurrentGame);
+            }
 
             _logger.LogInformation("Game imported successfully from {FilePath}", filePath);
         }
@@ -424,6 +452,77 @@ public partial class SharedDataService : ISharedDataService
 
             NotifyCountDownValueChanged();
         }
+    }
+
+    private static ObservableCollection<Character?>? NormalizeBanList(ObservableCollection<Character?>? banList) =>
+        banList is { Count: > 0 } ? banList : null;
+
+    private static bool HasSerializedMatchScore(string json)
+    {
+        var root = JsonNode.Parse(json)?.AsObject();
+        return root?.ContainsKey(nameof(Game.MatchScore)) == true;
+    }
+
+    private static bool HasRecordedMatchScore(neo_bpsys_wpf.Core.Models.ScoreSystem.MatchScoreState matchScore) =>
+        matchScore.Games
+            .SelectMany(game => new[] { game.FirstHalf, game.SecondHalf })
+            .Any(half => half.Result != null);
+
+    private sealed record LegacyScoreSnapshot(ScoreSnapshot? SurScore, ScoreSnapshot? HunScore)
+    {
+        public bool HasScore => SurScore?.HasScore == true || HunScore?.HasScore == true;
+
+        public static LegacyScoreSnapshot FromJson(string json)
+        {
+            try
+            {
+                var root = JsonNode.Parse(json)?.AsObject();
+                return new LegacyScoreSnapshot(
+                    ScoreSnapshot.FromTeamNode(root?[nameof(Game.SurTeam)]),
+                    ScoreSnapshot.FromTeamNode(root?[nameof(Game.HunTeam)]));
+            }
+            catch (JsonException)
+            {
+                return new LegacyScoreSnapshot(null, null);
+            }
+        }
+
+        public void ApplyTo(Game game)
+        {
+            SurScore?.ApplyTo(game.SurTeam.Score);
+            HunScore?.ApplyTo(game.HunTeam.Score);
+        }
+    }
+
+    private sealed record ScoreSnapshot(int Win, int Tie, int GameScores)
+    {
+        public bool HasScore => Win != 0 || Tie != 0 || GameScores != 0;
+
+        public static ScoreSnapshot? FromTeamNode(JsonNode? teamNode)
+        {
+            var scoreNode = teamNode?["Score"];
+            if (scoreNode is null)
+            {
+                return null;
+            }
+
+            return new ScoreSnapshot(
+                ReadInt(scoreNode["Win"]),
+                ReadInt(scoreNode["Tie"]),
+                ReadInt(scoreNode["GameScores"]));
+        }
+
+        public void ApplyTo(Score score)
+        {
+            score.Win = Win;
+            score.Tie = Tie;
+            score.GameScores = GameScores;
+        }
+
+        private static int ReadInt(JsonNode? node) =>
+            node is JsonValue jsonValue && jsonValue.TryGetValue<int>(out var value)
+                ? value
+                : 0;
     }
 
     private void Timer_Tick(object? sender, EventArgs e)

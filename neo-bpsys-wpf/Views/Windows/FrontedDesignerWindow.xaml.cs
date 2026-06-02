@@ -27,6 +27,7 @@ namespace neo_bpsys_wpf.Views.Windows;
 public partial class FrontedDesignerWindow : FluentWindow
 {
     private const double LayerDropZoneEdgeSize = 40D;
+    // Reserved top/bottom strips let users drop into a new outer layer without reviving overlay drop zones.
     private const double LayerDropZoneStripHeight = 44D;
     private const double LayerAutoScrollMaxVelocity = 18D;
     private readonly IFrontedRenderer? _renderer;
@@ -437,6 +438,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
 
         e.Effects = DragDropEffects.Move;
+        // DragOver is preview-only: mutating the document here would reorder layers while the pointer is still exploring.
         UpdateLayerAutoScroll(e.GetPosition(LayerPanelScrollViewer));
         UpdateLayerDragGhost(e.GetPosition(LayerPanelHostGrid));
         e.Handled = true;
@@ -577,6 +579,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             zone.Visibility = desiredVisibility;
         }
 
+        // Rows collapse to zero when idle so the ScrollViewer keeps the full layer panel height.
         var desiredHeight = visible
             ? new GridLength(LayerDropZoneStripHeight)
             : new GridLength(0D);

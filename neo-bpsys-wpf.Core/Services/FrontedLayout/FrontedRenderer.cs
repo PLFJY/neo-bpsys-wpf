@@ -49,6 +49,7 @@ public class FrontedRenderer(
                 {
                     if (context.RenderMissingPluginPlaceholders)
                     {
+                        // Designer preview preserves missing plugin controls as selectable placeholders; live fronted windows skip them.
                         var placeholder = CreateMissingPluginPlaceholder(name, controlConfig);
                         FrontedRendererProperties.SetIsGeneratedControl(placeholder, true);
                         RegisterGeneratedName(canvas, name, placeholder);

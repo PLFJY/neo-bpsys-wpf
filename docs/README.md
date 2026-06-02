@@ -28,6 +28,7 @@
 | [wpf-ui-pitfalls.md](wpf-ui-pitfalls.md) | WPF-UI、DI、i18n、图标、资源和透明窗口坑点 |
 | [build-release-and-versioning.md](build-release-and-versioning.md) | 构建、安装包、版本号、配置 |
 | [testing-and-debugging.md](testing-and-debugging.md) | 测试现状、日志、SmartBP/OCR/插件调试 |
+| [testing-guidelines.md](testing-guidelines.md) | 单元测试边界、XAML smoke test 规则、UI 变更时如何处理脆弱测试 |
 | [known-limitations-and-roadmap.md](known-limitations-and-roadmap.md) | 已知边界、TODO、不要误判的路线图提醒 |
 
 按主题快速阅读：
@@ -39,7 +40,7 @@
 | 业务流程 | `game-guidance.md`、`smartbp-and-ocr.md`、`shared-data-and-state.md`、`score-system-v2.md` |
 | 插件 | `plugin-system.md`、`plugin-market.md` |
 | 资源 / 本地化 | `resources-localization-and-assets.md`、`settings-paths-and-data.md`、`bpui-package-v3.md` |
-| 构建 / 打包 / 更新 / 调试 | `build-release-and-versioning.md`、`bpui-package-v3.md`、`updater-and-downloads.md`、`testing-and-debugging.md` |
+| 构建 / 打包 / 更新 / 调试 | `build-release-and-versioning.md`、`bpui-package-v3.md`、`updater-and-downloads.md`、`testing-and-debugging.md`、`testing-guidelines.md` |
 
 阅读方式：
 

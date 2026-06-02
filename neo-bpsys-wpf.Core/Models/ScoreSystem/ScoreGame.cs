@@ -4,12 +4,25 @@ using System.Text.Json.Serialization;
 
 namespace neo_bpsys_wpf.Core.Models.ScoreSystem;
 
+/// <summary>
+/// Score System v2 中的一个计分 Game，例如 Game 1、Game 3 Overtime 或 Game 5 Overtime。
+/// </summary>
+/// <remarks>
+/// 一个 <see cref="ScoreGame"/> 由上下两个 <see cref="ScoreHalf"/> 组成。只有两半都有结果且主客队小比分都能派生时，
+/// 此 Game 才参与大比分胜负计算。
+/// </remarks>
 public partial class ScoreGame : ObservableObjectBase
 {
     private ScoreGameKey _key;
     private ScoreHalf _firstHalf;
     private ScoreHalf _secondHalf;
 
+    /// <summary>
+    /// 创建一个计分 Game。
+    /// </summary>
+    /// <param name="key">稳定定位该 Game 的 key。</param>
+    /// <param name="firstHalf">第一半比分。</param>
+    /// <param name="secondHalf">第二半比分。</param>
     [JsonConstructor]
     public ScoreGame(ScoreGameKey key, ScoreHalf firstHalf, ScoreHalf secondHalf)
     {
@@ -21,12 +34,18 @@ public partial class ScoreGame : ObservableObjectBase
         SubscribeHalf(_secondHalf);
     }
 
+    /// <summary>
+    /// 稳定定位该比分单元的 key。
+    /// </summary>
     public ScoreGameKey Key
     {
         get => _key;
         set => SetPropertyWithDerivedRefresh(ref _key, value);
     }
 
+    /// <summary>
+    /// 第一半比分。
+    /// </summary>
     public ScoreHalf FirstHalf
     {
         get => _firstHalf;
@@ -41,6 +60,9 @@ public partial class ScoreGame : ObservableObjectBase
         }
     }
 
+    /// <summary>
+    /// 第二半比分。
+    /// </summary>
     public ScoreHalf SecondHalf
     {
         get => _secondHalf;
@@ -55,6 +77,9 @@ public partial class ScoreGame : ObservableObjectBase
         }
     }
 
+    /// <summary>
+    /// 两半是否都已记录并能派生主客队小比分。
+    /// </summary>
     [JsonIgnore]
     public bool IsComplete =>
         FirstHalf.HasResult &&
@@ -64,14 +89,23 @@ public partial class ScoreGame : ObservableObjectBase
         SecondHalf.HomeMinorScore.HasValue &&
         SecondHalf.AwayMinorScore.HasValue;
 
+    /// <summary>
+    /// 该 Game 完整时的主队小比分；未完整时为 <see langword="null"/>。
+    /// </summary>
     [JsonIgnore]
     public int? HomeMinorScore =>
         IsComplete ? FirstHalf.HomeMinorScore + SecondHalf.HomeMinorScore : null;
 
+    /// <summary>
+    /// 该 Game 完整时的客队小比分；未完整时为 <see langword="null"/>。
+    /// </summary>
     [JsonIgnore]
     public int? AwayMinorScore =>
         IsComplete ? FirstHalf.AwayMinorScore + SecondHalf.AwayMinorScore : null;
 
+    /// <summary>
+    /// 该 Game 完整时派生出的大比分胜负结果。
+    /// </summary>
     [JsonIgnore]
     public ScoreGameMajorResult? MajorResult
     {

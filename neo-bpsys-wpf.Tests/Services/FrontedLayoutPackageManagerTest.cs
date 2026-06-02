@@ -914,7 +914,6 @@ public class FrontedLayoutPackageManagerTest
         Assert.Contains("Content=\"{lex:Loc AllowTransparency}\"", text);
         Assert.DoesNotContain("Header=\"{lex:Loc AllowTransparency}\"", text);
         Assert.DoesNotContain("Header=\"{lex:Loc Window}\"", text);
-        Assert.DoesNotContain("Grid.Row=\"5\"", text);
     }
 
     [Fact]

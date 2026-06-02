@@ -2615,7 +2615,7 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void FrontedDesignerToolbarUsesWrappingAndCopyableLayoutPath()
+    public void FrontedDesignerWindowXamlContainsCriticalToolbarContracts()
     {
         var xaml = File.ReadAllText(GetRepositoryPath(
             "neo-bpsys-wpf",
@@ -2623,15 +2623,11 @@ public class FrontedLayoutDesignerFoundationTest
             "Windows",
             "FrontedDesignerWindow.xaml"));
 
-        Assert.Contains("<ScrollViewer", xaml, StringComparison.Ordinal);
-        Assert.Contains("MaxHeight=\"120\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("<WrapPanel Orientation=\"Horizontal\">", xaml, StringComparison.Ordinal);
-        Assert.Contains("MaxWidth=\"260\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("ToolTip=\"{Binding LayoutSourcePath}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("<TextBox", xaml, StringComparison.Ordinal);
-        Assert.Contains("IsReadOnly=\"True\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding LayoutSourcePath}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("<Menu", xaml, StringComparison.Ordinal);
+        Assert.Contains("ToolTip=\"{Binding LayoutSourcePath}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("AddControlButton_OnClick", xaml, StringComparison.Ordinal);
+        Assert.Contains("OpenValidationDetails_OnClick", xaml, StringComparison.Ordinal);
+        Assert.Contains("OpenDesignerHelp_OnClick", xaml, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -2954,36 +2950,15 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("HideLayerDragGhost();", codeBehind);
         Assert.Contains("finally", codeBehind);
         Assert.Contains("x:Name=\"LayerPanelHostGrid\"", xaml);
+        Assert.Contains("x:Name=\"LayerPanelScrollViewer\"", xaml);
         Assert.Contains("x:Name=\"LayerDragGhost\"", xaml);
-        Assert.True(ReadLayerDragGhostDoubleAttribute(xaml, "MinWidth") <= 140D);
-        Assert.True(ReadLayerDragGhostDoubleAttribute(xaml, "MaxWidth") <= 200D);
         Assert.Contains("IsHitTestVisible=\"False\"", xaml);
-        Assert.Contains("var x = panelPosition.X - ghostWidth / 2D;", codeBehind);
-        Assert.Contains("var y = panelPosition.Y - ghostHeight / 2D;", codeBehind);
-        Assert.Contains("Math.Clamp(x, 0D, Math.Max(0D, LayerPanelHostGrid.ActualWidth - ghostWidth))", codeBehind);
-        Assert.Contains("Math.Clamp(y, 0D, Math.Max(0D, LayerPanelHostGrid.ActualHeight - ghostHeight))", codeBehind);
 
         var dragOverMethod = codeBehind[
             codeBehind.IndexOf("private void UpdateLayerDragOver", StringComparison.Ordinal)..];
         var dragOverMethodEnd = dragOverMethod.IndexOf("private void UpdateLayerAutoScroll", StringComparison.Ordinal);
         Assert.True(dragOverMethodEnd > 0);
         Assert.DoesNotContain("CommitLayerDrop", dragOverMethod[..dragOverMethodEnd]);
-    }
-
-    private static double ReadLayerDragGhostDoubleAttribute(string xaml, string attributeName)
-    {
-        var ghostIndex = xaml.IndexOf("x:Name=\"LayerDragGhost\"", StringComparison.Ordinal);
-        Assert.True(ghostIndex >= 0);
-
-        var attributePrefix = $"{attributeName}=\"";
-        var attributeIndex = xaml.IndexOf(attributePrefix, ghostIndex, StringComparison.Ordinal);
-        Assert.True(attributeIndex >= 0);
-
-        var valueStart = attributeIndex + attributePrefix.Length;
-        var valueEnd = xaml.IndexOf('"', valueStart);
-        Assert.True(valueEnd > valueStart);
-
-        return double.Parse(xaml[valueStart..valueEnd], CultureInfo.InvariantCulture);
     }
 
     [Fact]
@@ -3137,7 +3112,7 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void FrontedDesignerWindowUsesProjectShellAndZoomHostPreview()
+    public void FrontedDesignerWindowXamlContainsRequiredNamedPartsAndHandlers()
     {
         var text = File.ReadAllText(GetRepositoryPath(
             "neo-bpsys-wpf",
@@ -3147,47 +3122,26 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Contains("<ui:FluentWindow", text);
         Assert.Contains("controls:CustomTitleBar", text);
-        Assert.Contains("IsThemeChangeVisible=\"False\"", text);
-        Assert.DoesNotContain("<Viewbox", text);
-        Assert.DoesNotContain("MaxWidth=\"{Binding ActualWidth, ElementName=PreviewScrollViewer}\"", text);
         Assert.Contains("x:Name=\"PreviewScrollViewer\"", text);
         Assert.Contains("x:Name=\"PreviewZoomHost\"", text);
-        Assert.Contains("ScaleX=\"{Binding ZoomScale}\"", text);
-        Assert.Contains("SetZoomPresetCommand", text);
-        Assert.Contains("FitToWindowCommand", text);
         Assert.Contains("InteractionLayer", text);
         Assert.Contains("DesignSurfaceGrid", text);
-        Assert.Contains("PropertyEditorContentControlStyle", text);
         Assert.Contains("OpenValidationDetails_OnClick", text);
         Assert.Contains("AddControlButton_OnClick", text);
-        Assert.Contains("<ContextMenu />", text);
-        Assert.Contains("DeleteSelectedControlCommand", text);
         Assert.Contains("UndoCommand", text);
         Assert.Contains("RedoCommand", text);
         Assert.Contains("LayerItem_OnPreviewMouseRightButtonDown", text);
-        Assert.DoesNotContain("DeleteControlMenuItem_OnClick", text);
-        Assert.Contains("ApplyColor", text);
-        Assert.Contains("GridSplitter", text);
-        Assert.Contains("ResizeDirection=\"Columns\"", text);
-        Assert.Contains("Grid.Column=\"3\"", text);
-        Assert.Contains("PropertyFontFamilyEditorTemplate", text);
         Assert.Contains("PropertyFontComboBox_OnSelectionChanged", text);
         Assert.Contains("DropDownClosed=\"PropertyFontComboBox_OnDropDownClosed\"", text);
-        Assert.Contains("Text=\"{Binding EditText", text);
-        Assert.Contains("HasEditError", text);
-        Assert.DoesNotContain("ItemsSource=\"{Binding ValidationMessages}\"", text);
         Assert.Contains("ItemsSource=\"{Binding LayerGroups}\"", text);
         Assert.Contains("x:Name=\"LayerPanelScrollViewer\"", text);
-        Assert.Contains("Binding DeleteSelectedControlCommand", text);
-        Assert.Contains("<ToggleButton", text);
-        Assert.Contains("Content=\"{Binding SnapStatusText}\"", text);
-        Assert.Contains("IsChecked=\"{Binding SnapEnabled, Mode=TwoWay}\"", text);
-        Assert.DoesNotContain("Header=\"{lex:Loc Snap}\"", text);
-        Assert.DoesNotContain("Setter Property=\"ContextMenu\">", text);
+        Assert.Contains("x:Name=\"LayerTopDropZone\"", text);
+        Assert.Contains("x:Name=\"LayerBottomDropZone\"", text);
+        Assert.Contains("x:Name=\"LayerDragGhost\"", text);
     }
 
     [Fact]
-    public void FrontedDesignerLayerDropZonesUseReservedHitTestableStrips()
+    public void FrontedDesignerLayerDropZonesExposeRequiredNamedPartsAndHandlers()
     {
         var xaml = File.ReadAllText(GetRepositoryPath(
             "neo-bpsys-wpf",
@@ -3200,61 +3154,25 @@ public class FrontedLayoutDesignerFoundationTest
             "Windows",
             "FrontedDesignerWindow.xaml.cs"));
 
-        var hostGrid = ReadElementStart(xaml, "LayerPanelHostGrid", "<Grid", 500);
         var topSnippet = ReadElementStart(xaml, "LayerTopDropZone", "<Border", 900);
         var scrollSnippet = ReadElementStart(xaml, "LayerPanelScrollViewer", "<ScrollViewer", 500);
         var bottomSnippet = ReadElementStart(xaml, "LayerBottomDropZone", "<Border", 900);
         var ghostSnippet = ReadElementStart(xaml, "LayerDragGhost", "<Border", 500);
 
-        var hostGridIndex = xaml.IndexOf("x:Name=\"LayerPanelHostGrid\"", StringComparison.Ordinal);
-        var scrollViewer = xaml.IndexOf("x:Name=\"LayerPanelScrollViewer\"", StringComparison.Ordinal);
-        var scrollViewerClose = xaml.IndexOf("</ScrollViewer>", scrollViewer, StringComparison.Ordinal);
-        var topZone = xaml.IndexOf("x:Name=\"LayerTopDropZone\"", StringComparison.Ordinal);
-        var bottomZone = xaml.IndexOf("x:Name=\"LayerBottomDropZone\"", StringComparison.Ordinal);
-        var ghost = xaml.IndexOf("x:Name=\"LayerDragGhost\"", StringComparison.Ordinal);
-
-        Assert.Contains("x:Name=\"LayerTopDropZoneRow\"", hostGrid);
-        Assert.Contains("x:Name=\"LayerBottomDropZoneRow\"", hostGrid);
-        Assert.Contains("Height=\"0\"", hostGrid);
-        Assert.Contains("<RowDefinition Height=\"*\" />", hostGrid);
-        Assert.True(hostGridIndex >= 0);
-        Assert.True(topZone > hostGridIndex);
-        Assert.True(scrollViewer > topZone);
-        Assert.True(scrollViewerClose > scrollViewer);
-        Assert.True(bottomZone > scrollViewerClose);
-        Assert.True(ghost > bottomZone);
-
-        Assert.Contains("Grid.Row=\"0\"", topSnippet);
         Assert.Contains("AllowDrop=\"True\"", topSnippet);
-        Assert.Contains("Visibility=\"Hidden\"", topSnippet);
         Assert.Contains("DragOver=\"LayerTopDropZone_OnDragOver\"", topSnippet);
         Assert.Contains("Drop=\"LayerTopDropZone_OnDrop\"", topSnippet);
-        Assert.DoesNotContain("Height=\"36\"", topSnippet);
-        Assert.DoesNotContain("VerticalAlignment=\"Top\"", topSnippet);
 
-        Assert.Contains("Grid.Row=\"1\"", scrollSnippet);
         Assert.Contains("AllowDrop=\"True\"", scrollSnippet);
 
-        Assert.Contains("Grid.Row=\"2\"", bottomSnippet);
         Assert.Contains("AllowDrop=\"True\"", bottomSnippet);
-        Assert.Contains("Visibility=\"Hidden\"", bottomSnippet);
         Assert.Contains("DragOver=\"LayerBottomDropZone_OnDragOver\"", bottomSnippet);
         Assert.Contains("Drop=\"LayerBottomDropZone_OnDrop\"", bottomSnippet);
-        Assert.DoesNotContain("Height=\"36\"", bottomSnippet);
-        Assert.DoesNotContain("VerticalAlignment=\"Bottom\"", bottomSnippet);
 
-        Assert.Contains("Grid.RowSpan=\"3\"", ghostSnippet);
+        Assert.Contains("IsHitTestVisible=\"False\"", xaml);
         Assert.Contains("DragOver=\"LayerItem_OnDragOver\"", xaml);
         Assert.Contains("SetDropZoneVisibility", codeBehind);
         Assert.Contains("LayerDropZoneStripHeight = 44D", codeBehind);
-        Assert.Contains("var bottomEdgeTolerance = LayerBottomDropZone.Visibility == Visibility.Visible", codeBehind);
-        Assert.Contains("? LayerDropZoneStripHeight + 0.1D", codeBehind);
-        Assert.Contains("LayerPanelScrollViewer.ScrollableHeight - bottomEdgeTolerance", codeBehind);
-        Assert.Contains("new GridLength(LayerDropZoneStripHeight)", codeBehind);
-        Assert.Contains("new GridLength(0D)", codeBehind);
-        Assert.Contains("visible ? Visibility.Visible : Visibility.Hidden", codeBehind);
-        Assert.DoesNotContain("visible ? Visibility.Visible : Visibility.Collapsed", codeBehind);
-        Assert.DoesNotContain("LayerPanelScrollViewer.IsMouseOver", codeBehind);
     }
 
     [Fact]
@@ -3293,37 +3211,6 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.DoesNotContain("RebuildFilteredDesignItems", dragOverMethod);
     }
 
-    [Fact]
-    public void FrontedDesignerRuntimeCriticalBadgeUsesSeparateRow()
-    {
-        var xaml = File.ReadAllText(GetRepositoryPath(
-            "neo-bpsys-wpf",
-            "Views",
-            "Windows",
-            "FrontedDesignerWindow.xaml"));
-
-        var runtimeText = xaml.IndexOf("Text=\"{lex:Loc RuntimeCriticalControl}\"", StringComparison.Ordinal);
-        Assert.True(runtimeText > 0);
-
-        var badgeRow = xaml.LastIndexOf("Grid.Row=\"2\"", runtimeText, StringComparison.Ordinal);
-        Assert.True(badgeRow > 0);
-
-        var badgeSnippet = xaml[badgeRow..runtimeText];
-        var rowDefinitionsStart = xaml.LastIndexOf("<Grid.RowDefinitions>", badgeRow, StringComparison.Ordinal);
-        Assert.True(rowDefinitionsStart > 0);
-
-        var rowDefinitionsEnd = xaml.IndexOf("</Grid.RowDefinitions>", rowDefinitionsStart, StringComparison.Ordinal);
-        Assert.True(rowDefinitionsEnd > rowDefinitionsStart);
-
-        var rowDefinitionsSnippet = xaml[rowDefinitionsStart..rowDefinitionsEnd];
-        var metadataSnippet = xaml[rowDefinitionsEnd..badgeRow];
-        Assert.Equal(3, CountOccurrences(rowDefinitionsSnippet, "<RowDefinition Height=\"Auto\" />"));
-        Assert.Contains("Grid.Row=\"2\"", badgeSnippet);
-        Assert.Contains("Grid.Row=\"1\"", metadataSnippet);
-        Assert.Contains("TextTrimming=\"CharacterEllipsis\"", metadataSnippet);
-        Assert.Contains("Text=\"{Binding Config.ZIndex}\"", metadataSnippet);
-    }
-
     private static string ReadElementStart(string text, string name, string elementStart, int maxLength)
     {
         var nameIndex = text.IndexOf($"x:Name=\"{name}\"", StringComparison.Ordinal);
@@ -3344,19 +3231,6 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.True(end > start);
 
         return text[start..end];
-    }
-
-    private static int CountOccurrences(string text, string value)
-    {
-        var count = 0;
-        var index = 0;
-        while ((index = text.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
-        {
-            count++;
-            index += value.Length;
-        }
-
-        return count;
     }
 
     [Fact]

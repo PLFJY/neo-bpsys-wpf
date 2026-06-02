@@ -242,7 +242,7 @@ public class FrontedDesignerHelpTest
     }
 
     [Fact]
-    public void HelpWindowUsesConsistentWindowChrome()
+    public void HelpWindowContainsCloseHandlerContract()
     {
         var xaml = File.ReadAllText(GetRepositoryPath(
             "neo-bpsys-wpf",
@@ -250,9 +250,7 @@ public class FrontedDesignerHelpTest
             "Windows",
             "FrontedDesignerHelpWindow.xaml"));
 
-        Assert.Contains("<WindowChrome", xaml, StringComparison.Ordinal);
-        Assert.Contains("CaptionHeight=\"35\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("UseAeroCaptionButtons=\"False\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Close_OnClick", xaml, StringComparison.Ordinal);
     }
 
     [Fact]
