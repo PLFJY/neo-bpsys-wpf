@@ -363,11 +363,6 @@
                                 Command="{Binding SetZoomPresetCommand}"
                                 CommandParameter="200%"
                                 Header="200%" />
-                            <Separator />
-                            <MenuItem
-                                Header="{lex:Loc Snap}"
-                                IsCheckable="True"
-                                IsChecked="{Binding SnapEnabled, Mode=TwoWay}" />
                         </MenuItem>
                     </Menu>
                     <!--  Keep TextBox: users can select and copy long layout paths.  -->
@@ -379,11 +374,12 @@
                         IsReadOnly="True"
                         Text="{Binding LayoutSourcePath}"
                         ToolTip="{Binding LayoutSourcePath}" />
-                    <TextBlock
+                    <ToggleButton
                         Margin="0,0,8,8"
                         VerticalAlignment="Center"
-                        FontSize="12"
-                        Text="{Binding SnapStatusText}" />
+                        Content="{Binding SnapStatusText}"
+                        IsChecked="{Binding SnapEnabled, Mode=TwoWay}"
+                        ToolTip="{lex:Loc Snap}" />
                     <TextBlock
                         Margin="0,0,8,8"
                         VerticalAlignment="Center"
@@ -448,8 +444,35 @@
                             </TextBlock.Style>
                         </TextBlock>
                         <Grid x:Name="LayerPanelHostGrid" Grid.Row="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition x:Name="LayerTopDropZoneRow" Height="0" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition x:Name="LayerBottomDropZoneRow" Height="0" />
+                            </Grid.RowDefinitions>
+                            <Border
+                                x:Name="LayerTopDropZone"
+                                Grid.Row="0"
+                                Margin="4,0,4,4"
+                                Padding="6,0"
+                                AllowDrop="True"
+                                Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                BorderBrush="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                                BorderThickness="0,1,0,0"
+                                CornerRadius="3"
+                                DragOver="LayerTopDropZone_OnDragOver"
+                                Drop="LayerTopDropZone_OnDrop"
+                                Opacity="0.85"
+                                Visibility="Hidden">
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc Designer.LayerPanel.MoveToNewTopLayer}" />
+                            </Border>
                             <ScrollViewer
                                 x:Name="LayerPanelScrollViewer"
+                                Grid.Row="1"
                                 AllowDrop="True"
                                 DragLeave="LayerPanel_OnDragLeave"
                                 DragOver="LayerPanel_OnDragOver"
@@ -531,6 +554,7 @@
                                                                             <Grid.RowDefinitions>
                                                                                 <RowDefinition Height="Auto" />
                                                                                 <RowDefinition Height="Auto" />
+                                                                                <RowDefinition Height="Auto" />
                                                                             </Grid.RowDefinitions>
                                                                             <TextBlock
                                                                                 FontWeight="SemiBold"
@@ -565,7 +589,7 @@
                                                                                 </StackPanel>
                                                                             </Grid>
                                                                             <Border
-                                                                                Grid.Row="1"
+                                                                                Grid.Row="2"
                                                                                 Margin="0,4,0,0"
                                                                                 Padding="4,0"
                                                                                 HorizontalAlignment="Left"
@@ -596,42 +620,19 @@
                                 </StackPanel>
                             </ScrollViewer>
                             <Border
-                                x:Name="LayerTopDropZone"
-                                Height="36"
-                                Margin="4"
-                                Padding="8"
-                                VerticalAlignment="Top"
-                                AllowDrop="True"
-                                Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                                BorderBrush="{DynamicResource AccentTextFillColorPrimaryBrush}"
-                                BorderThickness="1"
-                                CornerRadius="4"
-                                DragOver="LayerTopDropZone_OnDragOver"
-                                Drop="LayerTopDropZone_OnDrop"
-                                Opacity="0.85"
-                                Visibility="Collapsed">
-                                <TextBlock
-                                    HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    FontSize="12"
-                                    FontWeight="SemiBold"
-                                    Text="{lex:Loc Designer.LayerPanel.MoveToNewTopLayer}" />
-                            </Border>
-                            <Border
                                 x:Name="LayerBottomDropZone"
-                                Height="36"
-                                Margin="4"
-                                Padding="8"
-                                VerticalAlignment="Bottom"
+                                Grid.Row="2"
+                                Margin="4,4,4,0"
+                                Padding="6,0"
                                 AllowDrop="True"
                                 Background="{DynamicResource ControlFillColorSecondaryBrush}"
                                 BorderBrush="{DynamicResource AccentTextFillColorPrimaryBrush}"
-                                BorderThickness="1"
-                                CornerRadius="4"
+                                BorderThickness="0,0,0,1"
+                                CornerRadius="3"
                                 DragOver="LayerBottomDropZone_OnDragOver"
                                 Drop="LayerBottomDropZone_OnDrop"
                                 Opacity="0.85"
-                                Visibility="Collapsed">
+                                Visibility="Hidden">
                                 <TextBlock
                                     HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
@@ -641,6 +642,7 @@
                             </Border>
                             <Border
                                 x:Name="LayerDragGhost"
+                                Grid.RowSpan="3"
                                 MinWidth="130"
                                 MaxWidth="190"
                                 Padding="6,4"
@@ -676,6 +678,7 @@
                                 </Grid>
                             </Border>
                             <TextBlock
+                                Grid.Row="1"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"
                                 Opacity="0.65"

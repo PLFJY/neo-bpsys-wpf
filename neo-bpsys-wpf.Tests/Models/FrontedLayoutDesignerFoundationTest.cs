@@ -3179,11 +3179,15 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("ItemsSource=\"{Binding LayerGroups}\"", text);
         Assert.Contains("x:Name=\"LayerPanelScrollViewer\"", text);
         Assert.Contains("Binding DeleteSelectedControlCommand", text);
+        Assert.Contains("<ToggleButton", text);
+        Assert.Contains("Content=\"{Binding SnapStatusText}\"", text);
+        Assert.Contains("IsChecked=\"{Binding SnapEnabled, Mode=TwoWay}\"", text);
+        Assert.DoesNotContain("Header=\"{lex:Loc Snap}\"", text);
         Assert.DoesNotContain("Setter Property=\"ContextMenu\">", text);
     }
 
     [Fact]
-    public void FrontedDesignerLayerDropZonesAreOverlayedOutsideScrollContent()
+    public void FrontedDesignerLayerDropZonesUseReservedHitTestableStrips()
     {
         var xaml = File.ReadAllText(GetRepositoryPath(
             "neo-bpsys-wpf",
@@ -3196,20 +3200,163 @@ public class FrontedLayoutDesignerFoundationTest
             "Windows",
             "FrontedDesignerWindow.xaml.cs"));
 
-        var scrollViewerClose = xaml.IndexOf("</ScrollViewer>", StringComparison.Ordinal);
+        var hostGrid = ReadElementStart(xaml, "LayerPanelHostGrid", "<Grid", 500);
+        var topSnippet = ReadElementStart(xaml, "LayerTopDropZone", "<Border", 900);
+        var scrollSnippet = ReadElementStart(xaml, "LayerPanelScrollViewer", "<ScrollViewer", 500);
+        var bottomSnippet = ReadElementStart(xaml, "LayerBottomDropZone", "<Border", 900);
+        var ghostSnippet = ReadElementStart(xaml, "LayerDragGhost", "<Border", 500);
+
+        var hostGridIndex = xaml.IndexOf("x:Name=\"LayerPanelHostGrid\"", StringComparison.Ordinal);
+        var scrollViewer = xaml.IndexOf("x:Name=\"LayerPanelScrollViewer\"", StringComparison.Ordinal);
+        var scrollViewerClose = xaml.IndexOf("</ScrollViewer>", scrollViewer, StringComparison.Ordinal);
         var topZone = xaml.IndexOf("x:Name=\"LayerTopDropZone\"", StringComparison.Ordinal);
         var bottomZone = xaml.IndexOf("x:Name=\"LayerBottomDropZone\"", StringComparison.Ordinal);
         var ghost = xaml.IndexOf("x:Name=\"LayerDragGhost\"", StringComparison.Ordinal);
 
-        Assert.True(scrollViewerClose > 0);
-        Assert.True(topZone > scrollViewerClose);
+        Assert.Contains("x:Name=\"LayerTopDropZoneRow\"", hostGrid);
+        Assert.Contains("x:Name=\"LayerBottomDropZoneRow\"", hostGrid);
+        Assert.Contains("Height=\"0\"", hostGrid);
+        Assert.Contains("<RowDefinition Height=\"*\" />", hostGrid);
+        Assert.True(hostGridIndex >= 0);
+        Assert.True(topZone > hostGridIndex);
+        Assert.True(scrollViewer > topZone);
+        Assert.True(scrollViewerClose > scrollViewer);
         Assert.True(bottomZone > scrollViewerClose);
         Assert.True(ghost > bottomZone);
-        Assert.Contains("VerticalAlignment=\"Top\"", xaml);
-        Assert.Contains("VerticalAlignment=\"Bottom\"", xaml);
+
+        Assert.Contains("Grid.Row=\"0\"", topSnippet);
+        Assert.Contains("AllowDrop=\"True\"", topSnippet);
+        Assert.Contains("Visibility=\"Hidden\"", topSnippet);
+        Assert.Contains("DragOver=\"LayerTopDropZone_OnDragOver\"", topSnippet);
+        Assert.Contains("Drop=\"LayerTopDropZone_OnDrop\"", topSnippet);
+        Assert.DoesNotContain("Height=\"36\"", topSnippet);
+        Assert.DoesNotContain("VerticalAlignment=\"Top\"", topSnippet);
+
+        Assert.Contains("Grid.Row=\"1\"", scrollSnippet);
+        Assert.Contains("AllowDrop=\"True\"", scrollSnippet);
+
+        Assert.Contains("Grid.Row=\"2\"", bottomSnippet);
+        Assert.Contains("AllowDrop=\"True\"", bottomSnippet);
+        Assert.Contains("Visibility=\"Hidden\"", bottomSnippet);
+        Assert.Contains("DragOver=\"LayerBottomDropZone_OnDragOver\"", bottomSnippet);
+        Assert.Contains("Drop=\"LayerBottomDropZone_OnDrop\"", bottomSnippet);
+        Assert.DoesNotContain("Height=\"36\"", bottomSnippet);
+        Assert.DoesNotContain("VerticalAlignment=\"Bottom\"", bottomSnippet);
+
+        Assert.Contains("Grid.RowSpan=\"3\"", ghostSnippet);
         Assert.Contains("DragOver=\"LayerItem_OnDragOver\"", xaml);
         Assert.Contains("SetDropZoneVisibility", codeBehind);
+        Assert.Contains("LayerDropZoneStripHeight = 44D", codeBehind);
+        Assert.Contains("var bottomEdgeTolerance = LayerBottomDropZone.Visibility == Visibility.Visible", codeBehind);
+        Assert.Contains("? LayerDropZoneStripHeight + 0.1D", codeBehind);
+        Assert.Contains("LayerPanelScrollViewer.ScrollableHeight - bottomEdgeTolerance", codeBehind);
+        Assert.Contains("new GridLength(LayerDropZoneStripHeight)", codeBehind);
+        Assert.Contains("new GridLength(0D)", codeBehind);
+        Assert.Contains("visible ? Visibility.Visible : Visibility.Hidden", codeBehind);
+        Assert.DoesNotContain("visible ? Visibility.Visible : Visibility.Collapsed", codeBehind);
         Assert.DoesNotContain("LayerPanelScrollViewer.IsMouseOver", codeBehind);
+    }
+
+    [Fact]
+    public void FrontedDesignerLayerDropZonesKeepTopBottomCommitBehavior()
+    {
+        var codeBehind = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Windows",
+            "FrontedDesignerWindow.xaml.cs"));
+
+        var topDropMethod = ReadMethodBody(
+            codeBehind,
+            "private void LayerTopDropZone_OnDrop",
+            "private void LayerBottomDropZone_OnDragOver");
+        var bottomDropMethod = ReadMethodBody(
+            codeBehind,
+            "private void LayerBottomDropZone_OnDrop",
+            "private void UpdateLayerDragOver");
+        var panelDropMethod = ReadMethodBody(
+            codeBehind,
+            "private void LayerPanel_OnDrop",
+            "private void LayerPanel_OnDragLeave");
+        var dragOverMethod = ReadMethodBody(
+            codeBehind,
+            "private void UpdateLayerDragOver",
+            "private void UpdateLayerAutoScroll");
+
+        Assert.Contains("CommitLayerDrop(source, null, null, insertAfter: false, moveToNewTopLayer: true)", topDropMethod);
+        Assert.Contains("StopLayerDrag(e);", topDropMethod);
+        Assert.Contains("CommitLayerDrop(source, null, null, insertAfter: true, moveToNewBottomLayer: true)", bottomDropMethod);
+        Assert.Contains("StopLayerDrag(e);", bottomDropMethod);
+        Assert.Contains("moveToNewTopLayer: true", panelDropMethod);
+        Assert.Contains("moveToNewBottomLayer: true", panelDropMethod);
+        Assert.DoesNotContain("CommitLayerDrop", dragOverMethod);
+        Assert.DoesNotContain("RebuildFilteredDesignItems", dragOverMethod);
+    }
+
+    [Fact]
+    public void FrontedDesignerRuntimeCriticalBadgeUsesSeparateRow()
+    {
+        var xaml = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Windows",
+            "FrontedDesignerWindow.xaml"));
+
+        var runtimeText = xaml.IndexOf("Text=\"{lex:Loc RuntimeCriticalControl}\"", StringComparison.Ordinal);
+        Assert.True(runtimeText > 0);
+
+        var badgeRow = xaml.LastIndexOf("Grid.Row=\"2\"", runtimeText, StringComparison.Ordinal);
+        Assert.True(badgeRow > 0);
+
+        var badgeSnippet = xaml[badgeRow..runtimeText];
+        var rowDefinitionsStart = xaml.LastIndexOf("<Grid.RowDefinitions>", badgeRow, StringComparison.Ordinal);
+        Assert.True(rowDefinitionsStart > 0);
+
+        var rowDefinitionsEnd = xaml.IndexOf("</Grid.RowDefinitions>", rowDefinitionsStart, StringComparison.Ordinal);
+        Assert.True(rowDefinitionsEnd > rowDefinitionsStart);
+
+        var rowDefinitionsSnippet = xaml[rowDefinitionsStart..rowDefinitionsEnd];
+        var metadataSnippet = xaml[rowDefinitionsEnd..badgeRow];
+        Assert.Equal(3, CountOccurrences(rowDefinitionsSnippet, "<RowDefinition Height=\"Auto\" />"));
+        Assert.Contains("Grid.Row=\"2\"", badgeSnippet);
+        Assert.Contains("Grid.Row=\"1\"", metadataSnippet);
+        Assert.Contains("TextTrimming=\"CharacterEllipsis\"", metadataSnippet);
+        Assert.Contains("Text=\"{Binding Config.ZIndex}\"", metadataSnippet);
+    }
+
+    private static string ReadElementStart(string text, string name, string elementStart, int maxLength)
+    {
+        var nameIndex = text.IndexOf($"x:Name=\"{name}\"", StringComparison.Ordinal);
+        Assert.True(nameIndex >= 0);
+
+        var startIndex = text.LastIndexOf(elementStart, nameIndex, StringComparison.Ordinal);
+        Assert.True(startIndex >= 0);
+
+        return text[startIndex..Math.Min(text.Length, startIndex + maxLength)];
+    }
+
+    private static string ReadMethodBody(string text, string startMarker, string endMarker)
+    {
+        var start = text.IndexOf(startMarker, StringComparison.Ordinal);
+        Assert.True(start >= 0);
+
+        var end = text.IndexOf(endMarker, start, StringComparison.Ordinal);
+        Assert.True(end > start);
+
+        return text[start..end];
+    }
+
+    private static int CountOccurrences(string text, string value)
+    {
+        var count = 0;
+        var index = 0;
+        while ((index = text.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += value.Length;
+        }
+
+        return count;
     }
 
     [Fact]

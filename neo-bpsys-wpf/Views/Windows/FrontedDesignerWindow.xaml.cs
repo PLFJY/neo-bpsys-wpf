@@ -27,6 +27,7 @@ namespace neo_bpsys_wpf.Views.Windows;
 public partial class FrontedDesignerWindow : FluentWindow
 {
     private const double LayerDropZoneEdgeSize = 40D;
+    private const double LayerDropZoneStripHeight = 44D;
     private const double LayerAutoScrollMaxVelocity = 18D;
     private readonly IFrontedRenderer? _renderer;
     private readonly IFilePickerService? _filePickerService;
@@ -478,13 +479,16 @@ public partial class FrontedDesignerWindow : FluentWindow
                       && hasPointer
                       && pointer.Y <= LayerDropZoneEdgeSize
                       && LayerPanelScrollViewer.VerticalOffset <= 0.1D;
+        var bottomEdgeTolerance = LayerBottomDropZone.Visibility == Visibility.Visible
+            ? LayerDropZoneStripHeight + 0.1D
+            : 0.1D;
         var showBottom = isDragging
                          && hasPointer
                          && pointer.Y >= LayerPanelScrollViewer.ViewportHeight - LayerDropZoneEdgeSize
-                         && LayerPanelScrollViewer.VerticalOffset >= LayerPanelScrollViewer.ScrollableHeight - 0.1D;
+                         && LayerPanelScrollViewer.VerticalOffset >= LayerPanelScrollViewer.ScrollableHeight - bottomEdgeTolerance;
 
-        SetDropZoneVisibility(LayerTopDropZone, showTop);
-        SetDropZoneVisibility(LayerBottomDropZone, showBottom);
+        SetDropZoneVisibility(LayerTopDropZone, LayerTopDropZoneRow, showTop);
+        SetDropZoneVisibility(LayerBottomDropZone, LayerBottomDropZoneRow, showBottom);
     }
 
     private void StopLayerDrag(DragEventArgs e)
@@ -561,17 +565,31 @@ public partial class FrontedDesignerWindow : FluentWindow
     private void HideLayerDropZones()
     {
         _lastLayerDragPosition = null;
-        SetDropZoneVisibility(LayerTopDropZone, false);
-        SetDropZoneVisibility(LayerBottomDropZone, false);
+        SetDropZoneVisibility(LayerTopDropZone, LayerTopDropZoneRow, false);
+        SetDropZoneVisibility(LayerBottomDropZone, LayerBottomDropZoneRow, false);
     }
 
-    private static void SetDropZoneVisibility(Border zone, bool visible)
+    private static void SetDropZoneVisibility(Border zone, RowDefinition row, bool visible)
     {
-        var desiredVisibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        var desiredVisibility = visible ? Visibility.Visible : Visibility.Hidden;
         if (zone.Visibility != desiredVisibility)
         {
             zone.Visibility = desiredVisibility;
         }
+
+        var desiredHeight = visible
+            ? new GridLength(LayerDropZoneStripHeight)
+            : new GridLength(0D);
+        if (!GridLengthEquals(row.Height, desiredHeight))
+        {
+            row.Height = desiredHeight;
+        }
+    }
+
+    private static bool GridLengthEquals(GridLength first, GridLength second)
+    {
+        return first.GridUnitType == second.GridUnitType
+               && Math.Abs(first.Value - second.Value) < 0.01D;
     }
 
     private static bool TryGetLayerDragItem(DragEventArgs e, out FrontedControlDesignItem item)
