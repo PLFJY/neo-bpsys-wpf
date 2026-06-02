@@ -429,10 +429,13 @@
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <TextBlock
+                            Grid.Row="0"
                             Margin="0,0,0,8"
                             FontSize="12"
                             Opacity="0.78"
-                            Text="{Binding LayerReorderHint}">
+                            Text="{Binding LayerReorderHint}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="Wrap">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="Collapsed" />
@@ -468,15 +471,29 @@
                                                 DragOver="LayerGroup_OnDragOver"
                                                 Drop="LayerGroup_OnDrop">
                                                 <StackPanel>
-                                                    <DockPanel Margin="0,0,0,6">
-                                                        <TextBlock
-                                                            DockPanel.Dock="Left"
-                                                            FontWeight="SemiBold"
-                                                            Text="{Binding DisplayName}" />
-                                                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                                                            <TextBlock Text="{Binding Count}" />
-                                                            <TextBlock Margin="4,0,0,0" Text="{lex:Loc Designer.LayerPanel.ControlsCount}" />
-                                                        </StackPanel>
+                                                    <DockPanel Margin="0,0,0,6" LastChildFill="True">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock
+                                                                Grid.Column="0"
+                                                                MinWidth="0"
+                                                                FontWeight="SemiBold"
+                                                                Text="{Binding DisplayName}"
+                                                                TextTrimming="CharacterEllipsis"
+                                                                ToolTip="{Binding DisplayName}" />
+                                                            <StackPanel
+                                                                Grid.Column="1"
+                                                                Margin="8,0,0,0"
+                                                                HorizontalAlignment="Right"
+                                                                VerticalAlignment="Center"
+                                                                Orientation="Horizontal">
+                                                                <TextBlock Text="{Binding Count}" />
+                                                                <TextBlock Margin="4,0,0,0" Text="{lex:Loc Designer.LayerPanel.ControlsCount}" />
+                                                            </StackPanel>
+                                                        </Grid>
                                                     </DockPanel>
                                                     <ItemsControl ItemsSource="{Binding Items}">
                                                         <ItemsControl.ItemTemplate>
@@ -519,40 +536,53 @@
                                                                             FontWeight="SemiBold"
                                                                             Text="{Binding Name}"
                                                                             TextTrimming="CharacterEllipsis" />
-                                                                        <WrapPanel Grid.Row="1" Margin="0,2,0,0">
+                                                                        <Grid Grid.Row="1" Margin="0,2,0,0">
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="*" />
+                                                                                <ColumnDefinition Width="Auto" />
+                                                                            </Grid.ColumnDefinitions>
                                                                             <TextBlock
+                                                                                Grid.Column="0"
+                                                                                MinWidth="0"
                                                                                 FontSize="12"
                                                                                 Opacity="0.78"
                                                                                 Text="{Binding Config.ControlType, Converter={StaticResource DesignerControlTypeDisplayConverter}}"
+                                                                                TextTrimming="CharacterEllipsis"
                                                                                 ToolTip="{Binding Config.ControlType}" />
-                                                                            <TextBlock
+                                                                            <StackPanel
+                                                                                Grid.Column="1"
                                                                                 Margin="10,0,0,0"
-                                                                                FontSize="12"
-                                                                                Opacity="0.78"
-                                                                                Text="{lex:Loc ZIndexShort}" />
-                                                                            <TextBlock
-                                                                                Margin="3,0,0,0"
-                                                                                FontSize="12"
-                                                                                Opacity="0.78"
-                                                                                Text="{Binding Config.ZIndex}" />
-                                                                            <Border
-                                                                                Margin="10,0,0,0"
-                                                                                Padding="4,0"
-                                                                                Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                                                                                CornerRadius="2">
-                                                                                <Border.Style>
-                                                                                    <Style TargetType="Border">
-                                                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                                                        <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding IsRuntimeCritical}" Value="True">
-                                                                                                <Setter Property="Visibility" Value="Visible" />
-                                                                                            </DataTrigger>
-                                                                                        </Style.Triggers>
-                                                                                    </Style>
-                                                                                </Border.Style>
-                                                                                <TextBlock FontSize="11" Text="{lex:Loc RuntimeCriticalControl}" />
-                                                                            </Border>
-                                                                        </WrapPanel>
+                                                                                Orientation="Horizontal">
+                                                                                <TextBlock
+                                                                                    FontSize="12"
+                                                                                    Opacity="0.78"
+                                                                                    Text="{lex:Loc ZIndexShort}" />
+                                                                                <TextBlock
+                                                                                    Margin="3,0,0,0"
+                                                                                    FontSize="12"
+                                                                                    Opacity="0.78"
+                                                                                    Text="{Binding Config.ZIndex}" />
+                                                                            </StackPanel>
+                                                                        </Grid>
+                                                                        <Border
+                                                                            Grid.Row="1"
+                                                                            Margin="0,4,0,0"
+                                                                            Padding="4,0"
+                                                                            HorizontalAlignment="Left"
+                                                                            Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                                                            CornerRadius="2">
+                                                                            <Border.Style>
+                                                                                <Style TargetType="Border">
+                                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding IsRuntimeCritical}" Value="True">
+                                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </Border.Style>
+                                                                            <TextBlock FontSize="11" Text="{lex:Loc RuntimeCriticalControl}" />
+                                                                        </Border>
                                                                     </Grid>
                                                                 </Border>
                                                             </DataTemplate>
@@ -578,7 +608,7 @@
                                 CornerRadius="4"
                                 DragOver="LayerTopDropZone_OnDragOver"
                                 Drop="LayerTopDropZone_OnDrop"
-                                Opacity="0.94"
+                                Opacity="0.85"
                                 Visibility="Collapsed">
                                 <TextBlock
                                     HorizontalAlignment="Center"
@@ -600,7 +630,7 @@
                                 CornerRadius="4"
                                 DragOver="LayerBottomDropZone_OnDragOver"
                                 Drop="LayerBottomDropZone_OnDrop"
-                                Opacity="0.94"
+                                Opacity="0.85"
                                 Visibility="Collapsed">
                                 <TextBlock
                                     HorizontalAlignment="Center"
@@ -645,23 +675,23 @@
                                         TextTrimming="CharacterEllipsis" />
                                 </Grid>
                             </Border>
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Opacity="0.65"
+                                Text="{lex:Loc NoControlsFound}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding LayerGroups.Count}" Value="0">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                         </Grid>
-                        <TextBlock
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Opacity="0.65"
-                            Text="{lex:Loc NoControlsFound}">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding LayerGroups.Count}" Value="0">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
                     </Grid>
                 </Grid>
             </Border>

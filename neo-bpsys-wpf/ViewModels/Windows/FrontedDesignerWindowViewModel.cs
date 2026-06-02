@@ -117,23 +117,34 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         foreach (var group in layoutCatalog.GetEntries()
                      .Where(entry => entry.IsMigrated && entry.IsEditable)
                      .GroupBy(entry => entry.WindowTypeName)
-                     .Select(group => new FrontedDesignerWindowOption(
-                         group.Key,
-                         _localizationService.GetWindowDisplayName(group.Key),
-                         group
-                             .Select(entry => new FrontedDesignerLayoutCatalogEntry
-                             {
-                                 WindowTypeName = entry.WindowTypeName,
-                                 DisplayName = _localizationService.GetWindowDisplayName(entry.WindowTypeName),
-                                 WindowId = entry.WindowId,
-                                 CanvasName = entry.CanvasName,
-                                 CanvasDisplayName = _localizationService.GetCanvasDisplayName(entry.CanvasName),
-                                 CanvasWidth = entry.CanvasWidth,
-                                 CanvasHeight = entry.CanvasHeight,
-                                 IsMigrated = entry.IsMigrated,
-                                 IsEditable = entry.IsEditable
-                             })
-                             .ToArray())))
+                     .Select(group =>
+                     {
+                         var firstEntry = group.First();
+                         var groupDisplayName = !string.IsNullOrWhiteSpace(firstEntry.DisplayName)
+                             ? firstEntry.DisplayName
+                             : _localizationService.GetWindowDisplayName(group.Key);
+                         return new FrontedDesignerWindowOption(
+                             group.Key,
+                             groupDisplayName,
+                             group
+                                 .Select(entry => new FrontedDesignerLayoutCatalogEntry
+                                 {
+                                     WindowTypeName = entry.WindowTypeName,
+                                     DisplayName = !string.IsNullOrWhiteSpace(entry.DisplayName)
+                                         ? entry.DisplayName
+                                         : _localizationService.GetWindowDisplayName(entry.WindowTypeName),
+                                     WindowId = entry.WindowId,
+                                     CanvasName = entry.CanvasName,
+                                     CanvasDisplayName = !string.IsNullOrWhiteSpace(entry.CanvasDisplayName)
+                                         ? entry.CanvasDisplayName
+                                         : _localizationService.GetCanvasDisplayName(entry.CanvasName),
+                                     CanvasWidth = entry.CanvasWidth,
+                                     CanvasHeight = entry.CanvasHeight,
+                                     IsMigrated = entry.IsMigrated,
+                                     IsEditable = entry.IsEditable
+                                 })
+                                 .ToArray());
+                     }))
         {
             WindowOptions.Add(group);
         }
@@ -539,7 +550,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         var entry = SelectedCanvas;
-        CurrentWindowCanvasDisplay = $"{entry.WindowTypeName} / {entry.CanvasName}";
+        CurrentWindowCanvasDisplay = $"{entry.DisplayName} / {entry.CanvasDisplayName}";
         DirtyIndicatorText = string.Empty;
 
         try
@@ -1592,6 +1603,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             FrontedLayoutSource.User => I18nHelper.GetLocalizedString("LayoutSourceUser"),
             FrontedLayoutSource.BuiltIn => I18nHelper.GetLocalizedString("LayoutSourceBuiltIn"),
+            FrontedLayoutSource.PluginDefault => I18nHelper.GetLocalizedString("LayoutSourceBuiltIn"),
             _ => I18nHelper.GetLocalizedString("LayoutSourceError")
         };
         LayoutSourcePath = loadResult.Path
@@ -1608,7 +1620,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         string canvasName)
     {
         var loadResult = await _layoutService.LoadCanvasConfigWithMetadataAsync(windowTypeName, canvasName);
-        return loadResult.Source == FrontedLayoutSource.BuiltIn ? loadResult.Config : null;
+        return loadResult.Source is FrontedLayoutSource.BuiltIn or FrontedLayoutSource.PluginDefault
+            ? loadResult.Config
+            : null;
     }
 
     private void ClearLoadedLayout(FrontedLayoutValidationMessage message)

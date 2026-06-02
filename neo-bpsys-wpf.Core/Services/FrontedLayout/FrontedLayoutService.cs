@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using System.IO;
 using System.Text.Encodings.Web;
@@ -16,6 +17,7 @@ public class FrontedLayoutService : IFrontedLayoutService
     private readonly IFrontedUserLayoutStore _userLayoutStore;
     private readonly ILogger<FrontedLayoutService> _logger;
     private readonly string _builtInLayoutRoot;
+    private readonly IFrontedWindowRegistry? _windowRegistry;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -28,6 +30,7 @@ public class FrontedLayoutService : IFrontedLayoutService
         : this(
             new FrontedUserLayoutStore(),
             Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts"),
+            null,
             NullLogger<FrontedLayoutService>.Instance)
     {
     }
@@ -38,6 +41,19 @@ public class FrontedLayoutService : IFrontedLayoutService
         : this(
             userLayoutStore,
             Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts"),
+            null,
+            logger)
+    {
+    }
+
+    public FrontedLayoutService(
+        IFrontedUserLayoutStore userLayoutStore,
+        IFrontedWindowRegistry windowRegistry,
+        ILogger<FrontedLayoutService> logger)
+        : this(
+            userLayoutStore,
+            Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts"),
+            windowRegistry,
             logger)
     {
     }
@@ -46,9 +62,19 @@ public class FrontedLayoutService : IFrontedLayoutService
         IFrontedUserLayoutStore userLayoutStore,
         string builtInLayoutRoot,
         ILogger<FrontedLayoutService>? logger)
+        : this(userLayoutStore, builtInLayoutRoot, null, logger)
+    {
+    }
+
+    public FrontedLayoutService(
+        IFrontedUserLayoutStore userLayoutStore,
+        string builtInLayoutRoot,
+        IFrontedWindowRegistry? windowRegistry,
+        ILogger<FrontedLayoutService>? logger)
     {
         _userLayoutStore = userLayoutStore;
         _builtInLayoutRoot = builtInLayoutRoot;
+        _windowRegistry = windowRegistry;
         _logger = logger ?? NullLogger<FrontedLayoutService>.Instance;
     }
 
@@ -105,6 +131,35 @@ public class FrontedLayoutService : IFrontedLayoutService
             }
         }
 
+        if (TryGetPluginDefaultLayout(windowTypeName, canvasName, out var pluginDefaultPath))
+        {
+            try
+            {
+                return new FrontedLayoutLoadResult
+                {
+                    Config = await ReadConfigAsync(pluginDefaultPath, cancellationToken),
+                    Source = FrontedLayoutSource.PluginDefault,
+                    Path = pluginDefaultPath,
+                    Error = userLoadError
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to load plugin default fronted layout. Window: {WindowTypeName}, Canvas: {CanvasName}, Path: {Path}",
+                    windowTypeName,
+                    canvasName,
+                    pluginDefaultPath);
+                return new FrontedLayoutLoadResult
+                {
+                    Source = FrontedLayoutSource.MissingOrError,
+                    Path = pluginDefaultPath,
+                    Error = CombineErrors(userLoadError, ex.Message)
+                };
+            }
+        }
+
         if (File.Exists(builtInPath))
         {
             try
@@ -140,6 +195,43 @@ public class FrontedLayoutService : IFrontedLayoutService
             Path = builtInPath,
             Error = userLoadError
         };
+    }
+
+    private bool TryGetPluginDefaultLayout(
+        string windowTypeName,
+        string canvasName,
+        out string pluginDefaultPath)
+    {
+        pluginDefaultPath = string.Empty;
+        if (_windowRegistry is null)
+        {
+            return false;
+        }
+
+        if (!_windowRegistry.TryGetByFullWindowType(windowTypeName, out var descriptor))
+        {
+            return false;
+        }
+
+        if (descriptor is not FrontedPluginWindowDescriptor pluginDescriptor
+            || pluginDescriptor.Kind != FrontedWindowKind.PluginLayout)
+        {
+            return false;
+        }
+
+        var folder = pluginDescriptor.PluginFolder;
+        if (string.IsNullOrWhiteSpace(folder))
+        {
+            return false;
+        }
+
+        pluginDefaultPath = Path.Combine(
+            folder,
+            pluginDescriptor.DefaultLayoutRoot,
+            pluginDescriptor.WindowTypeName,
+            $"{canvasName}.json");
+
+        return File.Exists(pluginDefaultPath);
     }
 
     /// <inheritdoc />

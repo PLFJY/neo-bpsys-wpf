@@ -7,6 +7,7 @@ public enum FrontedLayoutSource
 {
     User,
     BuiltIn,
+    PluginDefault,
     MissingOrError
 }
 
