@@ -3,7 +3,7 @@ namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 /// <summary>
 /// v3 文本控件配置。
 /// </summary>
-public class TextFrontedControlConfig : FrontedControlConfigBase
+public class TextFrontedControlConfig : FrontedControlConfigBase, IFrontedTextStyleConfig
 {
     /// <summary>
     /// 初始化文本控件配置。

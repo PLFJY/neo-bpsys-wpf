@@ -6,7 +6,7 @@ namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 /// <summary>
 /// v3 全局比分行控件配置。
 /// </summary>
-public class GlobalScoreRowControlConfig : FrontedControlConfigBase
+public class GlobalScoreRowControlConfig : FrontedControlConfigBase, IFrontedTextStyleConfig
 {
     /// <summary>
     /// 初始化全局比分行控件配置。

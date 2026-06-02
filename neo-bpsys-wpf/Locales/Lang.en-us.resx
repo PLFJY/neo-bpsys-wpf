@@ -3451,4 +3451,35 @@
   <data name="Designer.Help.Troubleshooting.Content" xml:space="preserve">
     <value>If a control cannot be selected visually, use the layer panel;\nIf drag reorder is unavailable, clear search filter;\nIf a property appears invalid, check validation details;\nIf plugin control is missing, install/enable the plugin and restart if required;\nIf Fit makes labels too small, selected label should still stay readable after recent polish.</value>
   </data>
+  <data name="Designer.Property.MapNameFontFamily" xml:space="preserve"><value>Map Name Font</value></data>
+  <data name="Designer.Property.MapNameFontWeight" xml:space="preserve"><value>Map Name Font Weight</value></data>
+  <data name="Designer.Property.MapNameColor" xml:space="preserve"><value>Map Name Color</value></data>
+  <data name="Designer.Property.MapNameFontSize" xml:space="preserve"><value>Map Name Font Size</value></data>
+  <data name="Designer.Property.TeamNameFontFamily" xml:space="preserve"><value>Team Name Font</value></data>
+  <data name="Designer.Property.TeamNameFontWeight" xml:space="preserve"><value>Team Name Font Weight</value></data>
+  <data name="Designer.Property.TeamNameColor" xml:space="preserve"><value>Team Name Color</value></data>
+  <data name="Designer.Property.TeamNameFontSize" xml:space="preserve"><value>Team Name Font Size</value></data>
+  <data name="Designer.Property.CampNameFontFamily" xml:space="preserve"><value>Camp Text Font</value></data>
+  <data name="Designer.Property.CampNameFontWeight" xml:space="preserve"><value>Camp Text Font Weight</value></data>
+  <data name="Designer.Property.CampNameColor" xml:space="preserve"><value>Camp Text Color</value></data>
+  <data name="Designer.Property.CampNameFontSize" xml:space="preserve"><value>Camp Text Font Size</value></data>
+  <data name="Designer.Property.PickingBorderFillColor" xml:space="preserve"><value>Picking Border Fill Color</value></data>
+  <data name="Designer.Option.MapNameFontWeight.Light" xml:space="preserve"><value>Light</value></data>
+  <data name="Designer.Option.MapNameFontWeight.Normal" xml:space="preserve"><value>Normal</value></data>
+  <data name="Designer.Option.MapNameFontWeight.Medium" xml:space="preserve"><value>Medium</value></data>
+  <data name="Designer.Option.MapNameFontWeight.SemiBold" xml:space="preserve"><value>Semi Bold</value></data>
+  <data name="Designer.Option.MapNameFontWeight.Bold" xml:space="preserve"><value>Bold</value></data>
+  <data name="Designer.Option.MapNameFontWeight.ExtraBold" xml:space="preserve"><value>Extra Bold</value></data>
+  <data name="Designer.Option.TeamNameFontWeight.Light" xml:space="preserve"><value>Light</value></data>
+  <data name="Designer.Option.TeamNameFontWeight.Normal" xml:space="preserve"><value>Normal</value></data>
+  <data name="Designer.Option.TeamNameFontWeight.Medium" xml:space="preserve"><value>Medium</value></data>
+  <data name="Designer.Option.TeamNameFontWeight.SemiBold" xml:space="preserve"><value>Semi Bold</value></data>
+  <data name="Designer.Option.TeamNameFontWeight.Bold" xml:space="preserve"><value>Bold</value></data>
+  <data name="Designer.Option.TeamNameFontWeight.ExtraBold" xml:space="preserve"><value>Extra Bold</value></data>
+  <data name="Designer.Option.CampNameFontWeight.Light" xml:space="preserve"><value>Light</value></data>
+  <data name="Designer.Option.CampNameFontWeight.Normal" xml:space="preserve"><value>Normal</value></data>
+  <data name="Designer.Option.CampNameFontWeight.Medium" xml:space="preserve"><value>Medium</value></data>
+  <data name="Designer.Option.CampNameFontWeight.SemiBold" xml:space="preserve"><value>Semi Bold</value></data>
+  <data name="Designer.Option.CampNameFontWeight.Bold" xml:space="preserve"><value>Bold</value></data>
+  <data name="Designer.Option.CampNameFontWeight.ExtraBold" xml:space="preserve"><value>Extra Bold</value></data>
 </root>

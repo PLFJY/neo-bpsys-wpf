@@ -3469,4 +3469,35 @@
   <data name="Designer.Help.Troubleshooting.Content" xml:space="preserve">
     <value>如果无法在画布上视觉选择控件，请使用图层面板；\n如果拖拽重新排序不可用，请清除搜索筛选；\n如果属性显示无效，请检查验证详情；\n如果插件控件缺失，请安装/启用插件并根据需要重启；\n如果"适应"使标签过小，选中标签在经过优化后仍应保持可读。</value>
   </data>
+  <data name="Designer.Property.MapNameFontFamily" xml:space="preserve"><value>地图名字体</value></data>
+  <data name="Designer.Property.MapNameFontWeight" xml:space="preserve"><value>地图名字重</value></data>
+  <data name="Designer.Property.MapNameColor" xml:space="preserve"><value>地图名颜色</value></data>
+  <data name="Designer.Property.MapNameFontSize" xml:space="preserve"><value>地图名字号</value></data>
+  <data name="Designer.Property.TeamNameFontFamily" xml:space="preserve"><value>队名字体</value></data>
+  <data name="Designer.Property.TeamNameFontWeight" xml:space="preserve"><value>队名字重</value></data>
+  <data name="Designer.Property.TeamNameColor" xml:space="preserve"><value>队名颜色</value></data>
+  <data name="Designer.Property.TeamNameFontSize" xml:space="preserve"><value>队名字号</value></data>
+  <data name="Designer.Property.CampNameFontFamily" xml:space="preserve"><value>阵营文字字体</value></data>
+  <data name="Designer.Property.CampNameFontWeight" xml:space="preserve"><value>阵营文字字重</value></data>
+  <data name="Designer.Property.CampNameColor" xml:space="preserve"><value>阵营文字颜色</value></data>
+  <data name="Designer.Property.CampNameFontSize" xml:space="preserve"><value>阵营文字字号</value></data>
+  <data name="Designer.Property.PickingBorderFillColor" xml:space="preserve"><value>选择框填充颜色</value></data>
+  <data name="Designer.Option.MapNameFontWeight.Light" xml:space="preserve"><value>细</value></data>
+  <data name="Designer.Option.MapNameFontWeight.Normal" xml:space="preserve"><value>常规</value></data>
+  <data name="Designer.Option.MapNameFontWeight.Medium" xml:space="preserve"><value>中等</value></data>
+  <data name="Designer.Option.MapNameFontWeight.SemiBold" xml:space="preserve"><value>半粗</value></data>
+  <data name="Designer.Option.MapNameFontWeight.Bold" xml:space="preserve"><value>粗体</value></data>
+  <data name="Designer.Option.MapNameFontWeight.ExtraBold" xml:space="preserve"><value>特粗</value></data>
+  <data name="Designer.Option.TeamNameFontWeight.Light" xml:space="preserve"><value>细</value></data>
+  <data name="Designer.Option.TeamNameFontWeight.Normal" xml:space="preserve"><value>常规</value></data>
+  <data name="Designer.Option.TeamNameFontWeight.Medium" xml:space="preserve"><value>中等</value></data>
+  <data name="Designer.Option.TeamNameFontWeight.SemiBold" xml:space="preserve"><value>半粗</value></data>
+  <data name="Designer.Option.TeamNameFontWeight.Bold" xml:space="preserve"><value>粗体</value></data>
+  <data name="Designer.Option.TeamNameFontWeight.ExtraBold" xml:space="preserve"><value>特粗</value></data>
+  <data name="Designer.Option.CampNameFontWeight.Light" xml:space="preserve"><value>细</value></data>
+  <data name="Designer.Option.CampNameFontWeight.Normal" xml:space="preserve"><value>常规</value></data>
+  <data name="Designer.Option.CampNameFontWeight.Medium" xml:space="preserve"><value>中等</value></data>
+  <data name="Designer.Option.CampNameFontWeight.SemiBold" xml:space="preserve"><value>半粗</value></data>
+  <data name="Designer.Option.CampNameFontWeight.Bold" xml:space="preserve"><value>粗体</value></data>
+  <data name="Designer.Option.CampNameFontWeight.ExtraBold" xml:space="preserve"><value>特粗</value></data>
 </root>

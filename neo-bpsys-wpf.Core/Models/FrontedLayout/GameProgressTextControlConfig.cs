@@ -3,7 +3,7 @@ namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 /// <summary>
 /// v3 CutScene 对局进度文本业务控件配置。
 /// </summary>
-public class GameProgressTextControlConfig : FrontedControlConfigBase
+public class GameProgressTextControlConfig : FrontedControlConfigBase, IFrontedTextStyleConfig
 {
     /// <summary>
     /// 初始化对局进度文本控件配置。

@@ -539,18 +539,18 @@ public class FrontedPropertyGridBuilder
     private static FrontedPropertyEditorKind ResolveEditorKind(PropertyInfo property)
     {
         var type = GetCoreType(property.PropertyType);
-        if (property.PropertyType == typeof(string) && ColorPropertyNames.Contains(property.Name))
+        if (property.PropertyType == typeof(string) && IsColorProperty(property.Name))
         {
             return FrontedPropertyEditorKind.Color;
         }
 
         if (property.PropertyType == typeof(string)
-            && string.Equals(property.Name, "FontFamily", StringComparison.Ordinal))
+            && IsFontFamilyProperty(property.Name))
         {
             return FrontedPropertyEditorKind.FontFamily;
         }
 
-        if (property.PropertyType == typeof(string) && StringOptionProperties.ContainsKey(property.Name))
+        if (property.PropertyType == typeof(string) && TryGetStringOptions(property.Name, out _))
         {
             return FrontedPropertyEditorKind.Enum;
         }
@@ -588,10 +588,10 @@ public class FrontedPropertyGridBuilder
         }
 
         if (property.PropertyType == typeof(string)
-            && StringOptionProperties.TryGetValue(property.Name, out var stringOptions))
+            && TryGetStringOptions(property.Name, out var stringOptions))
         {
             return stringOptions
-                .Select(value => CreateOption(property.Name, value))
+                .Select(value => CreateOption(GetOptionPropertyName(property.Name), value))
                 .Cast<object>()
                 .ToArray();
         }
@@ -658,7 +658,7 @@ public class FrontedPropertyGridBuilder
             return "Resource";
         }
 
-        return AppearancePropertyNames.Contains(propertyName)
+        return IsAppearanceProperty(propertyName)
             ? "Appearance"
             : "ControlSpecific";
     }
@@ -698,6 +698,46 @@ public class FrontedPropertyGridBuilder
 
         return ResourcePathPropertyNames.Contains(propertyName)
                || ResourcePathPropertyNames.Any(propertyName.EndsWith);
+    }
+
+    private static bool IsColorProperty(string propertyName) =>
+        ColorPropertyNames.Contains(propertyName) || propertyName.EndsWith("Color", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsFontFamilyProperty(string propertyName) =>
+        propertyName.EndsWith("FontFamily", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsAppearanceProperty(string propertyName) =>
+        AppearancePropertyNames.Contains(propertyName)
+        || propertyName.EndsWith("Color", StringComparison.OrdinalIgnoreCase)
+        || propertyName.EndsWith("FontFamily", StringComparison.OrdinalIgnoreCase)
+        || propertyName.EndsWith("FontWeight", StringComparison.OrdinalIgnoreCase)
+        || propertyName.EndsWith("FontSize", StringComparison.OrdinalIgnoreCase);
+
+    private static bool TryGetStringOptions(string propertyName, out IReadOnlyList<object> options)
+    {
+        if (StringOptionProperties.TryGetValue(propertyName, out options!))
+        {
+            return true;
+        }
+
+        if (propertyName.EndsWith("FontWeight", StringComparison.OrdinalIgnoreCase)
+            && StringOptionProperties.TryGetValue("FontWeight", out options!))
+        {
+            return true;
+        }
+
+        options = [];
+        return false;
+    }
+
+    private static string GetOptionPropertyName(string propertyName)
+    {
+        if (propertyName.EndsWith("FontWeight", StringComparison.OrdinalIgnoreCase))
+        {
+            return "FontWeight";
+        }
+
+        return propertyName;
     }
 
     private static int GetPropertyOrder(PropertyInfo property)

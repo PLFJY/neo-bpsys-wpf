@@ -3,7 +3,7 @@ namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 /// <summary>
 /// v3 CutScene 地图名称文本业务控件配置。
 /// </summary>
-public class MapNameTextControlConfig : FrontedControlConfigBase
+public class MapNameTextControlConfig : FrontedControlConfigBase, IFrontedTextStyleConfig
 {
     /// <summary>
     /// 初始化地图名称文本控件配置。

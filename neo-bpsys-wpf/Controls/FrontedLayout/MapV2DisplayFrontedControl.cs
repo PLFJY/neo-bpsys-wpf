@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -36,12 +37,13 @@ public class MapV2DisplayFrontedControl(ILogger<MapV2DisplayFrontedControl>? log
         }
 
         var settingsHostService = context.Services.GetRequiredService<ISettingsHostService>();
-        return new MapV2DisplayElement(
-            name,
-            mapConfig,
-            context.SharedDataService,
-            settingsHostService,
-            _logger ?? context.Logger);
+            return new MapV2DisplayElement(
+                name,
+                mapConfig,
+                context.SharedDataService,
+                settingsHostService,
+                context.ResourceResolver,
+                _logger ?? context.Logger);
     }
 
     private sealed class MapV2DisplayElement : Border
@@ -53,6 +55,7 @@ public class MapV2DisplayFrontedControl(ILogger<MapV2DisplayFrontedControl>? log
             MapV2DisplayControlConfig config,
             ISharedDataService sharedDataService,
             ISettingsHostService settingsHostService,
+            IFrontedResourceResolver resourceResolver,
             ILogger? logger)
         {
             var outer = CutSceneFrontedControlHelper.CreateOuterBorder(name, config);
@@ -89,27 +92,95 @@ public class MapV2DisplayFrontedControl(ILogger<MapV2DisplayFrontedControl>? log
                 Source = this
             });
 
-            ApplyDefaultPresenterStyle();
+            ApplyPresenterStyle(config, resourceResolver, logger);
             Child = _presenter;
         }
 
-        private void ApplyDefaultPresenterStyle()
+        private void ApplyPresenterStyle(
+            MapV2DisplayControlConfig config,
+            IFrontedResourceResolver resourceResolver,
+            ILogger? logger)
         {
-            var defaultFont = new FontFamily("Arial");
-            _presenter.MapNameForeground = Brushes.White;
-            _presenter.MapNameFontSize = 14;
-            _presenter.MapNameFontFamily = defaultFont;
-            _presenter.MapNameFontWeight = FontWeights.Normal;
-            _presenter.TeamNameForeground = Brushes.White;
-            _presenter.TeamNameFontSize = 18;
-            _presenter.TeamNameFontFamily = defaultFont;
-            _presenter.TeamNameFontWeight = FontWeights.Normal;
-            _presenter.CampNameForeground = Brushes.White;
-            _presenter.CampNameFontSize = 20;
-            _presenter.CampNameFontFamily = defaultFont;
-            _presenter.CampNameFontWeight = FontWeights.Normal;
-            _presenter.PickingBorderBrush = Brushes.White;
-            _presenter.PickingBorderImage = ImageHelper.GetUiImageSource("pickingBorder");
+            _presenter.MapNameForeground = ResolveBrush(config.MapNameColor, logger);
+            _presenter.MapNameFontSize = config.MapNameFontSize > 0 ? config.MapNameFontSize : 14;
+            _presenter.MapNameFontFamily = ResolveFontFamily(config.MapNameFontFamily, logger);
+            _presenter.MapNameFontWeight = ResolveFontWeight(config.MapNameFontWeight, logger);
+
+            _presenter.TeamNameForeground = ResolveBrush(config.TeamNameColor, logger);
+            _presenter.TeamNameFontSize = config.TeamNameFontSize > 0 ? config.TeamNameFontSize : 18;
+            _presenter.TeamNameFontFamily = ResolveFontFamily(config.TeamNameFontFamily, logger);
+            _presenter.TeamNameFontWeight = ResolveFontWeight(config.TeamNameFontWeight, logger);
+
+            _presenter.CampNameForeground = ResolveBrush(config.CampNameColor, logger);
+            _presenter.CampNameFontSize = config.CampNameFontSize > 0 ? config.CampNameFontSize : 20;
+            _presenter.CampNameFontFamily = ResolveFontFamily(config.CampNameFontFamily, logger);
+            _presenter.CampNameFontWeight = ResolveFontWeight(config.CampNameFontWeight, logger);
+
+            _presenter.PickingBorderBrush = ResolveBrush(config.PickingBorderFillColor, logger);
+            _presenter.PickingBorderImage = !string.IsNullOrWhiteSpace(config.PickingBorderImagePath)
+                ? resourceResolver.ResolveImage(config.PickingBorderImagePath, FrontedImagePurpose.UiElement)
+                  ?? ImageHelper.GetUiImageSource("pickingBorder")
+                : ImageHelper.GetUiImageSource("pickingBorder");
+        }
+
+        private static Brush ResolveBrush(string? value, ILogger? logger)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return Brushes.White;
+            }
+
+            try
+            {
+                return (Brush)new BrushConverter().ConvertFromString(value)!;
+            }
+            catch (Exception ex)
+            {
+                logger?.LogWarning(ex, "Invalid MapV2Display color value: {Color}", value);
+                return Brushes.White;
+            }
+        }
+
+        private static FontFamily ResolveFontFamily(string? value, ILogger? logger)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return new FontFamily("Arial");
+            }
+
+            try
+            {
+                return value.Contains("pack://application:,,,", StringComparison.Ordinal)
+                    ? new FontFamily(new Uri(value[..value.IndexOf('#', StringComparison.Ordinal)]), "./" + value[value.IndexOf('#', StringComparison.Ordinal)..])
+                    : new FontFamily(value);
+            }
+            catch (Exception ex)
+            {
+                logger?.LogWarning(ex, "Invalid MapV2Display FontFamily value: {FontFamily}", value);
+                return new FontFamily("Arial");
+            }
+        }
+
+        private static FontWeight ResolveFontWeight(string? value, ILogger? logger)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return FontWeights.Normal;
+            }
+
+            try
+            {
+                if (new FontWeightConverter().ConvertFromString(value) is FontWeight fontWeight)
+                {
+                    return fontWeight;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger?.LogWarning(ex, "Invalid MapV2Display FontWeight value: {FontWeight}", value);
+            }
+
+            return FontWeights.Normal;
         }
     }
 }

@@ -411,6 +411,10 @@ public class FrontedLayoutValidator
                 break;
 
             case MapV2DisplayControlConfig mapV2:
+                ValidateResourceLikeStrings(item.Name, mapV2, messages);
+                ValidateTextLength(item.Name, nameof(MapV2DisplayControlConfig.MapNameFontFamily), mapV2.MapNameFontFamily, FrontedLayoutLimits.MaxFontFamilyLength, "InputTooLong", messages);
+                ValidateTextLength(item.Name, nameof(MapV2DisplayControlConfig.TeamNameFontFamily), mapV2.TeamNameFontFamily, FrontedLayoutLimits.MaxFontFamilyLength, "InputTooLong", messages);
+                ValidateTextLength(item.Name, nameof(MapV2DisplayControlConfig.CampNameFontFamily), mapV2.CampNameFontFamily, FrontedLayoutLimits.MaxFontFamilyLength, "InputTooLong", messages);
                 if (string.IsNullOrWhiteSpace(mapV2.MapKey))
                 {
                     messages.Add(Error(

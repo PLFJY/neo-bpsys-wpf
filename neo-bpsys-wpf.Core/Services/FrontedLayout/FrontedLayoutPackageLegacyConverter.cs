@@ -3,9 +3,11 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Converters;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
+using neo_bpsys_wpf.Core.Models.Legacy;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
@@ -70,7 +72,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         WriteIndented = true,
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         PropertyNameCaseInsensitive = true,
-        MaxDepth = FrontedLayoutLimits.MaxJsonDepth
+        MaxDepth = FrontedLayoutLimits.MaxJsonDepth,
+        Converters = { new FontWeightJsonConverter() }
     };
 
     public FrontedLayoutPackageLegacyConverter(
@@ -141,12 +144,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             manifest.Content.Resources = resourceState.Resources;
 
             var configValueMap = ReadFrontendConfigValueMap(extractionRoot, resourceState, diagnostics, warnings);
+            var legacySettings = ReadLegacySettings(extractionRoot, diagnostics, warnings);
             var layoutEntries = await ConvertFrontElementsConfigsAsync(
                 extractionRoot,
                 stagingRoot,
                 manifest,
                 resourceState,
                 configValueMap,
+                legacySettings,
                 infos,
                 diagnostics,
                 warnings,
@@ -212,6 +217,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         FrontedLayoutPackageManifest manifest,
         ResourceConvertState resourceState,
         IReadOnlyDictionary<string, string> configValueMap,
+        LegacySettings? legacySettings,
         ICollection<string> infos,
         ICollection<string> diagnostics,
         ICollection<string> warnings,
@@ -237,6 +243,11 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
             var config = await LoadBuiltInConfigAsync(window, canvas, cancellationToken);
             ApplyFrontendConfigValues(config, window, canvas, configValueMap, infos, diagnostics);
+            if (legacySettings is not null)
+            {
+                LegacyFrontedTextStyleMigrator.Apply(config, window, canvas, legacySettings, diagnostics);
+            }
+
             ApplyLegacyGeometry(file, window, canvas, config, infos, diagnostics, warnings);
             RewriteKnownResourceStrings(config, resourceState);
             config.Version = 3;
@@ -713,6 +724,34 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         return result;
     }
 
+    private LegacySettings? ReadLegacySettings(
+        string extractionRoot,
+        ICollection<string> diagnostics,
+        ICollection<string> warnings)
+    {
+        var configPath = Path.Combine(extractionRoot, "Config.json");
+        if (!File.Exists(configPath))
+        {
+            return null;
+        }
+
+        try
+        {
+            if (new FileInfo(configPath).Length > FrontedLayoutLimits.MaxLegacyConfigBytes)
+            {
+                warnings.Add("Legacy Config.json is too large; frontend text settings were ignored.");
+                return null;
+            }
+
+            return JsonSerializer.Deserialize<LegacySettings>(File.ReadAllText(configPath), _jsonOptions);
+        }
+        catch (Exception ex)
+        {
+            diagnostics.Add($"Legacy Config.json text settings could not be read: {ex.Message}");
+            return null;
+        }
+    }
+
     private static void AddMappedImage(
         JsonNode? root,
         string settingsObject,
@@ -861,10 +900,17 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
         if (window == "WidgetsWindow" && canvas == "MapV2Canvas")
         {
-            if (valueMap.ContainsKey($"{prefix}MapBpV2PickingBorderImage")
-                || valueMap.ContainsKey($"{prefix}MapBpV2PickingBorderColor"))
+            foreach (var control in config.Controls.Values.OfType<MapV2DisplayControlConfig>())
             {
-                diagnostics.Add("Legacy WidgetsWindow Map BP v2 picking border settings were read, but MapV2Display has no v3 image/color config.");
+                if (valueMap.TryGetValue($"{prefix}MapBpV2PickingBorderImage", out var borderUri))
+                {
+                    control.PickingBorderImagePath = borderUri;
+                }
+
+                if (valueMap.TryGetValue($"{prefix}MapBpV2PickingBorderColor", out var borderColor))
+                {
+                    control.PickingBorderFillColor = borderColor;
+                }
             }
         }
     }

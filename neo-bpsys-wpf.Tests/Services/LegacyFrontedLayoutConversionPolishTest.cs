@@ -14,6 +14,19 @@ namespace neo_bpsys_wpf.Tests.Services;
 
 public sealed class LegacyFrontedLayoutConversionPolishTest
 {
+    private const string LegacyFont = "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简";
+    private const string NotoSansFont = "pack://application:,,,/Assets/Fonts/#Noto Sans";
+
+    [Theory]
+    [InlineData("./#汉仪第五人格体简", "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简")]
+    [InlineData("./#华康POP1体W5", "pack://application:,,,/Assets/Fonts/#华康POP1体W5")]
+    [InlineData("pack://application:,,,/Assets/Fonts/#Noto Sans", "pack://application:,,,/Assets/Fonts/#Noto Sans")]
+    [InlineData("Arial", "Arial")]
+    public void LegacyFontFamilySiteIsNormalized(string value, string expected)
+    {
+        Assert.Equal(expected, LegacyFrontedTextStyleMigrator.NormalizeLegacyFontFamilySite(value));
+    }
+
     [Fact]
     public void FormatterKeepsBenignDiagnosticsOutOfUserWarnings()
     {
@@ -37,6 +50,97 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
         Assert.False(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
         Assert.Equal(string.Empty, LegacyConversionMessageFormatter.BuildUserSummary(result));
         Assert.Contains("Legacy lock overlay geometry consumed", LegacyConversionMessageFormatter.BuildTechnicalDetails(result));
+    }
+
+    [Fact]
+    public async Task ConverterMigratesLegacyTextSettingsIntoV3Layouts()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            WriteBuiltInTextStyleLayouts(builtInRoot);
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            CreateLegacyArchive(
+                archivePath,
+                configJson: LegacyTextSettingsConfigJson,
+                customResources: [],
+                layouts: new Dictionary<string, string>
+                {
+                    ["FrontElementsConfig/BpWindowConfig-BaseCanvas.json"] = """{ "SurTeamName": { "Left": 101 } }""",
+                    ["FrontElementsConfig/CutSceneWindowConfig-BaseCanvas.json"] = "{}",
+                    ["FrontElementsConfig/ScoreSurWindowConfig-BaseCanvas.json"] = "{}",
+                    ["FrontElementsConfig/ScoreHunWindowConfig-BaseCanvas.json"] = "{}",
+                    ["FrontElementsConfig/ScoreGlobalWindowConfig-BaseCanvas.json"] = "{}",
+                    ["FrontElementsConfig/GameDataWindowConfig-BaseCanvas.json"] = "{}",
+                    ["FrontElementsConfig/WidgetsWindowConfig-BpOverViewCanvas.json"] = "{}",
+                    ["FrontElementsConfig/WidgetsWindowConfig-MapV2Canvas.json"] = "{}"
+                });
+
+            var result = await ConvertAsync(builtInRoot, root, archivePath, "converted.legacy.text-style");
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.False(
+                LegacyConversionMessageFormatter.HasUserFacingWarnings(result),
+                string.Join(Environment.NewLine, result.Warnings));
+            Assert.Contains(result.Diagnostics, item => item.Contains("Legacy text style applied", StringComparison.Ordinal));
+
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var bp = ReadLayout(archive, "layouts/BpWindow/BaseCanvas.json");
+            var surTeamName = Assert.IsType<TextFrontedControlConfig>(bp.Controls["SurTeamName"]);
+            Assert.Equal("#FF000000", surTeamName.Color);
+            Assert.Equal("Bold", surTeamName.FontWeight);
+            Assert.Equal(LegacyFont, surTeamName.FontFamily);
+            Assert.Equal(101, surTeamName.Left);
+            var hunTeamName = Assert.IsType<TextFrontedControlConfig>(bp.Controls["HunTeamName"]);
+            Assert.Equal("#FF000000", hunTeamName.Color);
+            Assert.Equal(LegacyFont, hunTeamName.FontFamily);
+            var timer = Assert.IsType<TextFrontedControlConfig>(bp.Controls["Timer"]);
+            Assert.Equal("#FF000000", timer.Color);
+            Assert.Equal(30, timer.FontSize);
+
+            var cutScene = ReadLayout(archive, "layouts/CutSceneWindow/BaseCanvas.json");
+            var cutSurTeamName = Assert.IsType<TextFrontedControlConfig>(cutScene.Controls["SurTeamName"]);
+            Assert.Equal("#FF000000", cutSurTeamName.Color);
+            Assert.Equal(LegacyFont, cutSurTeamName.FontFamily);
+            var cutHunTeamName = Assert.IsType<TextFrontedControlConfig>(cutScene.Controls["HunTeamName"]);
+            Assert.Equal("#FF000000", cutHunTeamName.Color);
+            Assert.Equal(LegacyFont, cutHunTeamName.FontFamily);
+
+            var scoreSur = ReadLayout(archive, "layouts/ScoreSurWindow/BaseCanvas.json");
+            AssertTextStyle(scoreSur.Controls["GameScoresSur"], "#FF000000", "Bold", LegacyFont, 100);
+            var scoreHun = ReadLayout(archive, "layouts/ScoreHunWindow/BaseCanvas.json");
+            AssertTextStyle(scoreHun.Controls["GameScoresHun"], "#FF000000", "Bold", LegacyFont, 100);
+
+            var scoreGlobal = ReadLayout(archive, "layouts/ScoreGlobalWindow/BaseCanvas.json");
+            AssertTextStyle(scoreGlobal.Controls["HomeTeamName"], "#FF000000", "Bold", LegacyFont, 24);
+            AssertTextStyle(scoreGlobal.Controls["AwayTeamName"], "#FF000000", "Bold", LegacyFont, 24);
+            AssertTextStyle(scoreGlobal.Controls["HomeScoreTotal"], "#FF000000", "Bold", LegacyFont, 40);
+            AssertTextStyle(scoreGlobal.Controls["AwayScoreTotal"], "#FF000000", "Bold", LegacyFont, 40);
+            AssertTextStyle(scoreGlobal.Controls["HomeGlobalScoreRow"], "#FF000000", "Bold", LegacyFont, 24);
+            AssertTextStyle(scoreGlobal.Controls["AwayGlobalScoreRow"], "#FF000000", "Bold", LegacyFont, 24);
+
+            var gameData = ReadLayout(archive, "layouts/GameDataWindow/BaseCanvas.json");
+            AssertTextStyle(gameData.Controls["SurId0"], "#FF000000", "Bold", LegacyFont, 22);
+            AssertTextStyle(gameData.Controls["SurDataHeader0"], "#FFFFFFFF", "Normal", NotoSansFont, 16);
+            AssertTextStyle(gameData.Controls["SurData0"], "#FF000000", "Bold", LegacyFont, 22);
+
+            var overview = ReadLayout(archive, "layouts/WidgetsWindow/BpOverViewCanvas.json");
+            AssertTextStyle(overview.Controls["GameProgress"], "#FF000000", "Bold", LegacyFont, 22);
+            AssertTextStyle(overview.Controls["GameScoresSur"], "#FF000000", "Bold", LegacyFont, 20);
+            AssertTextStyle(overview.Controls["GameScoresHun"], "#FF000000", "Bold", LegacyFont, 20);
+
+            var mapV2 = ReadLayout(archive, "layouts/WidgetsWindow/MapV2Canvas.json");
+            var map = Assert.IsType<MapV2DisplayControlConfig>(mapV2.Controls["MapV2Display0"]);
+            Assert.Equal("#FF060606", map.CampNameColor);
+            Assert.Equal("Bold", map.CampNameFontWeight);
+            Assert.Equal(LegacyFont, map.CampNameFontFamily);
+            Assert.Equal(20, map.CampNameFontSize);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
     }
 
     [Fact]
@@ -446,6 +550,147 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             }
             """);
     }
+
+    private static void WriteBuiltInTextStyleLayouts(string builtInRoot)
+    {
+        WriteFile(Path.Combine(builtInRoot, "BpWindow", "BaseCanvas.json"),
+            TextLayout("""
+              "SurTeamName": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "Sur", "Color": "#FFFFFFFF", "FontFamily": "Noto Sans", "FontWeight": "Normal", "FontSize": 16 },
+              "HunTeamName": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "Hun", "Color": "#FFFFFFFF", "FontFamily": "Noto Sans", "FontWeight": "Normal", "FontSize": 16 },
+              "Timer": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "00:00", "Color": "#FFFFFFFF", "FontFamily": "Noto Sans", "FontWeight": "Normal", "FontSize": 16 },
+              "SurPick0": { "ControlType": "Image", "Left": 1, "Top": 1, "Width": 10, "Height": 10, "BindingPath": "CurrentGame.SurPlayerList[0].PictureShown" },
+              "SurPick1": { "ControlType": "Image", "Left": 1, "Top": 1, "Width": 10, "Height": 10, "BindingPath": "CurrentGame.SurPlayerList[1].PictureShown" },
+              "SurPick2": { "ControlType": "Image", "Left": 1, "Top": 1, "Width": 10, "Height": 10, "BindingPath": "CurrentGame.SurPlayerList[2].PictureShown" },
+              "SurPick3": { "ControlType": "Image", "Left": 1, "Top": 1, "Width": 10, "Height": 10, "BindingPath": "CurrentGame.SurPlayerList[3].PictureShown" },
+              "HunPick": { "ControlType": "Image", "Left": 1, "Top": 1, "Width": 10, "Height": 10, "BindingPath": "CurrentGame.HunPlayer.PictureShown" },
+              "SurPickingBorder0": { "ControlType": "PickingBorderOverlay", "TargetControlName": "SurPick0", "Left": 1, "Top": 1, "Width": 10, "Height": 10 },
+              "SurPickingBorder1": { "ControlType": "PickingBorderOverlay", "TargetControlName": "SurPick1", "Left": 1, "Top": 1, "Width": 10, "Height": 10 },
+              "SurPickingBorder2": { "ControlType": "PickingBorderOverlay", "TargetControlName": "SurPick2", "Left": 1, "Top": 1, "Width": 10, "Height": 10 },
+              "SurPickingBorder3": { "ControlType": "PickingBorderOverlay", "TargetControlName": "SurPick3", "Left": 1, "Top": 1, "Width": 10, "Height": 10 },
+              "HunPickingBorder": { "ControlType": "PickingBorderOverlay", "TargetControlName": "HunPick", "Left": 1, "Top": 1, "Width": 10, "Height": 10 }
+            """));
+
+        WriteFile(Path.Combine(builtInRoot, "CutSceneWindow", "BaseCanvas.json"),
+            TextLayout("""
+              "SurTeamName": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "Sur", "Color": "#FFFFFFFF", "FontFamily": "Noto Sans", "FontWeight": "Normal", "FontSize": 28 },
+              "HunTeamName": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "Hun", "Color": "#FFFFFFFF", "FontFamily": "Noto Sans", "FontWeight": "Normal", "FontSize": 28 },
+              "SurId0": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "S0" },
+              "HunId": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "H" }
+            """));
+
+        WriteFile(Path.Combine(builtInRoot, "ScoreSurWindow", "BaseCanvas.json"),
+            TextLayout("""
+              "SurTeamName": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "Sur" },
+              "GameScoresSur": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "0" },
+              "SurTeamMajorPoint": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "0" }
+            """));
+
+        WriteFile(Path.Combine(builtInRoot, "ScoreHunWindow", "BaseCanvas.json"),
+            TextLayout("""
+              "HunTeamName": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "Hun" },
+              "GameScoresHun": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "0" },
+              "HunTeamMajorPoint": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "0" }
+            """));
+
+        WriteFile(Path.Combine(builtInRoot, "ScoreGlobalWindow", "BaseCanvas.json"),
+            TextLayout("""
+              "HomeTeamName": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "Home" },
+              "AwayTeamName": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "Away" },
+              "HomeScoreTotal": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "0" },
+              "AwayScoreTotal": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "0" },
+              "HomeGlobalScoreRow": { "ControlType": "GlobalScoreRow", "Left": 1, "Top": 1, "TeamType": "HomeTeam" },
+              "AwayGlobalScoreRow": { "ControlType": "GlobalScoreRow", "Left": 1, "Top": 1, "TeamType": "AwayTeam" }
+            """));
+
+        WriteFile(Path.Combine(builtInRoot, "GameDataWindow", "BaseCanvas.json"),
+            TextLayout("""
+              "SurTeamName": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "Sur" },
+              "HunTeamName": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "Hun" },
+              "SurId0": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "S0" },
+              "SurDataHeader0": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "Header" },
+              "SurData0": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "Data" }
+            """));
+
+        WriteFile(Path.Combine(builtInRoot, "WidgetsWindow", "BpOverViewCanvas.json"),
+            TextLayout("""
+              "GameProgress": { "ControlType": "GameProgressText", "Left": 1, "Top": 1 },
+              "GameScoresSur": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "0" },
+              "GameScoresHun": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "0" }
+            """));
+
+        WriteFile(Path.Combine(builtInRoot, "WidgetsWindow", "MapV2Canvas.json"),
+            TextLayout("""
+              "MapV2Display0": { "ControlType": "MapV2Display", "Left": 1, "Top": 1, "Width": 100, "Height": 100, "MapKey": "arms" }
+            """));
+    }
+
+    private static string TextLayout(string controls) =>
+        $$"""
+        {
+          "Version": 3,
+          "CanvasWidth": 1440,
+          "CanvasHeight": 810,
+        {{controls}}
+        }
+        """;
+
+    private static void AssertTextStyle(
+        FrontedControlConfigBase control,
+        string color,
+        string fontWeight,
+        string fontFamily,
+        double fontSize)
+    {
+        var text = Assert.IsAssignableFrom<IFrontedTextStyleConfig>(control);
+        Assert.Equal(color, text.Color);
+        Assert.Equal(fontWeight, text.FontWeight);
+        Assert.Equal(fontFamily, text.FontFamily);
+        Assert.Equal(fontSize, text.FontSize);
+    }
+
+    private const string LegacyTextSettingsConfigJson =
+        """
+        {
+          "BpWindowSettings": {
+            "TextSettings": {
+              "TeamName": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 16 },
+              "Timer": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 30 }
+            }
+          },
+          "CutSceneWindowSettings": {
+            "TextSettings": {
+              "TeamName": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 28 },
+              "SurPlayerId": { "Color": "#FFFFFFFF", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 18 },
+              "HunPlayerId": { "Color": "#FFFFFFFF", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 30 }
+            }
+          },
+          "ScoreWindowSettings": {
+            "TextSettings": {
+              "GameScores": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 100 },
+              "MajorPoints": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 38 },
+              "TeamName": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 32 },
+              "ScoreGlobal_TeamName": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 24 },
+              "ScoreGlobal_Data": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 24 },
+              "ScoreGlobal_Total": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 40 }
+            }
+          },
+          "GameDataWindowSettings": {
+            "TextSettings": {
+              "TeamName": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 32 },
+              "PlayerId": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 22 },
+              "SurDataHeader": { "Color": "#FFFFFFFF", "FontFamilySite": "Noto Sans", "FontWeight": "Normal", "FontSize": 16 },
+              "SurData": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 22 }
+            }
+          },
+          "WidgetsWindowSettings": {
+            "TextSettings": {
+              "BpOverview_GameProgress": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 22 },
+              "BpOverview_GameScores": { "Color": "#FF000000", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 20 },
+              "MapBpV2_CampWords": { "Color": "#FF060606", "FontFamilySite": "./#汉仪第五人格体简", "FontWeight": "Bold", "FontSize": 20 }
+            }
+          }
+        }
+        """;
 
     private static void CreateLegacyArchive(
         string archivePath,

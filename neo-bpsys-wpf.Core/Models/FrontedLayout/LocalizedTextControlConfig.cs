@@ -3,7 +3,7 @@ namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 /// <summary>
 /// v3 本地化静态文本控件配置。
 /// </summary>
-public class LocalizedTextControlConfig : FrontedControlConfigBase
+public class LocalizedTextControlConfig : FrontedControlConfigBase, IFrontedTextStyleConfig
 {
     /// <summary>
     /// 初始化本地化静态文本控件配置。
