@@ -2,6 +2,7 @@ using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -79,7 +80,6 @@ public class GlobalScoreRowFrontedControl : IFrontedControl
 
             _isSubscribed = true;
             _sharedDataService.CurrentGameChanged += OnCurrentGameChanged;
-            _sharedDataService.IsBo3ModeChanged += OnIsBo3ModeChanged;
             SubscribeMatchScore(_sharedDataService.CurrentGame.MatchScore);
             RenderCells();
         }
@@ -93,7 +93,6 @@ public class GlobalScoreRowFrontedControl : IFrontedControl
 
             _isSubscribed = false;
             _sharedDataService.CurrentGameChanged -= OnCurrentGameChanged;
-            _sharedDataService.IsBo3ModeChanged -= OnIsBo3ModeChanged;
             SubscribeMatchScore(null);
         }
 
@@ -102,8 +101,6 @@ public class GlobalScoreRowFrontedControl : IFrontedControl
             SubscribeMatchScore(_sharedDataService.CurrentGame.MatchScore);
             RenderCells();
         }
-
-        private void OnIsBo3ModeChanged(object? sender, EventArgs args) => RenderCells();
 
         private void OnMatchScorePropertyChanged(object? sender, PropertyChangedEventArgs args) => RenderCells();
 
@@ -131,56 +128,75 @@ public class GlobalScoreRowFrontedControl : IFrontedControl
         {
             Children.Clear();
 
-            var displays = GlobalScoreRowDisplay.Create(
-                _sharedDataService.CurrentGame.MatchScore,
-                _config.TeamType,
-                _sharedDataService.IsBo3Mode,
-                _config.MajorGameGap,
-                _config.HalfGameGap,
-                _config.ShowCampIcon);
+            var cells = _config.Cells.Count > 0
+                ? _config.Cells
+#pragma warning disable CS0618
+                : GlobalScoreRowDisplay.CreateDefaultCells(
+                    _sharedDataService.CurrentGame.MatchScore,
+                    _sharedDataService.IsBo3Mode,
+                    _config.MajorGameGap,
+                    _config.HalfGameGap);
+#pragma warning restore CS0618
 
-            foreach (var display in displays)
+            foreach (var cell in cells)
             {
-                var presenter = CreatePresenter(display);
+                var display = GlobalScoreRowDisplay.Create(
+                    _sharedDataService.CurrentGame.MatchScore,
+                    _config.TeamType,
+                    cell,
+                    cell.ShowCampIcon ?? _config.ShowCampIcon);
+                var presenter = CreatePresenter(cell, display);
                 Children.Add(presenter);
             }
 
-            if (!_config.Width.HasValue && displays.Count > 0)
+            if (!_config.Width.HasValue && cells.Count > 0)
             {
-                Width = displays.Max(display => display.Left) + DefaultCellWidth;
+                Width = cells.Max(cell => cell.X + cell.Width);
+            }
+
+            if (!_config.Height.HasValue && cells.Count > 0)
+            {
+                Height = cells.Max(cell => cell.Y + cell.Height);
             }
         }
 
-        private GlobalScorePresenter CreatePresenter(GlobalScoreRowCellDisplay display)
+        private GlobalScorePresenter CreatePresenter(GlobalScoreCellConfig cell, GlobalScoreRowCellDisplay display)
         {
             var presenter = new GlobalScorePresenter
             {
-                Name = $"{Name}_{display.GameKey.GameNumber}_{display.GameKey.GameKind}_{display.HalfKind}",
-                Width = DefaultCellWidth,
+                Name = $"{Name}_{SanitizeName(cell.Id, display)}",
+                Width = cell.Width > 0 ? cell.Width : DefaultCellWidth,
+                Height = cell.Height > 0 ? cell.Height : double.NaN,
                 Text = display.Text,
                 IsCampVisible = display.IsCampVisible,
-                IsHunIcon = display.IsHunIcon
+                IsHunIcon = display.IsHunIcon,
+                Visibility = MapVisibility(cell.Visibility)
             };
 
             Canvas.SetLeft(presenter, display.Left);
-            Canvas.SetTop(presenter, 0);
-            ApplyTextStyle(presenter);
+            Canvas.SetTop(presenter, display.Top);
+            ApplyTextStyle(presenter, cell);
             return presenter;
         }
 
-        private void ApplyTextStyle(GlobalScorePresenter presenter)
+        private void ApplyTextStyle(GlobalScorePresenter presenter, GlobalScoreCellConfig cell)
         {
-            if (_config.FontSize > 0)
+            var fontSize = cell.FontSize ?? _config.FontSize;
+            var fontWeightText = cell.FontWeight ?? _config.FontWeight;
+            var colorText = cell.Color ?? _config.Color;
+            var fontFamilyText = cell.FontFamily ?? _config.FontFamily;
+
+            if (fontSize > 0)
             {
-                presenter.FontSize = _config.FontSize;
+                presenter.FontSize = fontSize;
             }
 
-            if (!string.IsNullOrWhiteSpace(_config.FontWeight))
+            if (!string.IsNullOrWhiteSpace(fontWeightText))
             {
                 try
                 {
                     var converter = TypeDescriptor.GetConverter(typeof(FontWeight));
-                    if (converter.ConvertFromString(_config.FontWeight) is FontWeight fontWeight)
+                    if (converter.ConvertFromString(fontWeightText) is FontWeight fontWeight)
                     {
                         presenter.FontWeight = fontWeight;
                     }
@@ -191,12 +207,12 @@ public class GlobalScoreRowFrontedControl : IFrontedControl
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(_config.Color))
+            if (!string.IsNullOrWhiteSpace(colorText))
             {
                 try
                 {
                     var converter = TypeDescriptor.GetConverter(typeof(Brush));
-                    if (converter.ConvertFromString(_config.Color) is Brush brush)
+                    if (converter.ConvertFromString(colorText) is Brush brush)
                     {
                         presenter.Foreground = brush;
                     }
@@ -207,16 +223,40 @@ public class GlobalScoreRowFrontedControl : IFrontedControl
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(_config.FontFamily))
+            if (string.IsNullOrWhiteSpace(fontFamilyText))
             {
                 return;
             }
 
-            presenter.FontFamily = _config.FontFamily.Contains("pack://application:,,,")
+            presenter.FontFamily = fontFamilyText.Contains("pack://application:,,,")
                 ? new FontFamily(
-                    new Uri(_config.FontFamily[.._config.FontFamily.IndexOf('#')]),
-                    "./" + _config.FontFamily[_config.FontFamily.IndexOf('#')..])
-                : new FontFamily(_config.FontFamily);
+                    new Uri(fontFamilyText[..fontFamilyText.IndexOf('#')]),
+                    "./" + fontFamilyText[fontFamilyText.IndexOf('#')..])
+                : new FontFamily(fontFamilyText);
+        }
+
+        private static Visibility MapVisibility(FrontedControlVisibility visibility) =>
+            visibility switch
+            {
+                FrontedControlVisibility.Hidden => Visibility.Hidden,
+                FrontedControlVisibility.Collapsed => Visibility.Collapsed,
+                _ => Visibility.Visible
+            };
+
+        private static string SanitizeName(GlobalScoreRowCellDisplay display) =>
+            $"{display.GameKey.GameNumber}_{display.GameKey.GameKind}_{display.HalfKind}";
+
+        private static string SanitizeName(string? id, GlobalScoreRowCellDisplay display)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return SanitizeName(display);
+            }
+
+            var chars = id
+                .Where(ch => char.IsLetterOrDigit(ch) || ch == '_')
+                .ToArray();
+            return chars.Length > 0 ? new string(chars) : SanitizeName(display);
         }
     }
 }

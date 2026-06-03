@@ -17,7 +17,7 @@ Score System v2 的核心目标是把权威比分状态放回现有 `Core.Models
 | `Team.Score` 同时承载大比分和当前小比分 | `Team.Score.Win`、`Tie`、`GameScores` | 队伍模型既像全场比分，又像当前半场/当前局内临时计分；语义混杂。 |
 | 全局比分记录曾由页面 ViewModel 持有 | `ScorePageViewModel.GameGlobalInfoRecord` | Phase 5 已移除；后台页面不再维护第二份半场完成状态。 |
 | 总小比分曾通过 messenger 推送 | `ScorePageViewModel.UpdateTotalGameScore()` -> `ScoreWindowViewModel.TotalMainGameScore` / `TotalAwayGameScore` | Phase 5 已移除；`ScoreGlobalWindow` 默认布局直接绑定 `MatchScoreState.HomeTotalMinorScore` / `AwayTotalMinorScore`。 |
-| 全局比分 UI 曾由服务动态创建和直接修改 | `FrontedWindowService.GlobalScoreControlsReg()`、`SetGlobalScore()`、`SetGlobalScoreToBar()` | Phase 5 后默认全局比分窗口由 v3 `GlobalScoreRow` 控件从 `CurrentGame.MatchScore` 生成比分格；公共接口中的 `SetGlobalScore*` / `ResetGlobalScore` 仅作为 obsolete no-op 适配器保留。 |
+| 全局比分 UI 曾由服务动态创建和直接修改 | `FrontedWindowService.GlobalScoreControlsReg()`、`SetGlobalScore()`、`SetGlobalScoreToBar()` | Phase 5 后默认全局比分窗口由 v3 `GlobalScoreRow.Cells` 配置比分格，再从 `CurrentGame.MatchScore` 填充文本和阵营图标；公共接口中的 `SetGlobalScore*` / `ResetGlobalScore` 仅作为 obsolete no-op 适配器保留。 |
 | 局内比分窗口已接入 v3 renderer 并完成 Phase 3 绑定迁移 | `ScoreSurWindow/BaseCanvas.json`、`ScoreHunWindow/BaseCanvas.json` | 当前默认布局绑定 `CurrentGame.MatchScore.*` 派生字段；用户旧布局如果仍保留 `CurrentGame.*Team.Score.*`，需要后续布局迁移或手动恢复默认。 |
 
 ## 2. 核心设计决策
@@ -135,6 +135,10 @@ ScoreGame 3 Normal   -> { GameNumber: 3, GameKind: Normal }
 ScoreGame 3 Overtime -> { GameNumber: 3, GameKind: Overtime }
 ScoreGame 5 Overtime -> { GameNumber: 5, GameKind: Overtime }
 ```
+
+### 3.4.1 GlobalScoreRow cell 布局
+
+`ScoreGlobalWindow` 的 v3 `GlobalScoreRow` 不再根据 `MajorGameGap` / `HalfGameGap` 自动展开比分格。布局 JSON 中的父级 `GlobalScoreRowControlConfig` 保存队伍方向和默认样式，`Cells` 中的每个 `GlobalScoreCellConfig` 通过 `GameNumber`、`GameKind`、`HalfKind` 指向一个 `ScoreHalf`，并用相对父行的 `X/Y/Width/Height` 定位。运行时只用这些 key 从 `CurrentGame.MatchScore.Games` 解析显示值；缺失半场或 `Result == null` 时显示 `-`。BO3 与 BO5 的差异由通用 Canvas state 保存，因此 BO3 state 可以有独立的 cell 列表和相对坐标。
 
 ### 3.5 IMatchScoreService / MatchScoreService
 
@@ -323,7 +327,7 @@ ScorePage button
 | 有结果且该队当半为求生者 | 对应小比分 | 显示求生者图标 |
 | 有结果且该队当半为监管者 | 对应小比分 | 显示监管者图标 |
 
-全局比分格表示 `ScoreGame` 内部的 `ScoreHalf` 结果，由内置 v3 控件 `GlobalScoreRow` 生成。总分显示从 `MatchScoreState` 派生，不再从 `ScoreWindowViewModel` 独有字段或 `FrontedWindowService` UI mutation 派生。BO3/BO5 可见性从 `ISharedDataService.IsBo3Mode` 和显式 `ScoreGameKey` 规则派生，避免依赖 `GameProgress` 原始数值。`ScoreGlobalWindow/BaseCanvas` 使用 Designer v3 通用 Canvas BO states：BO5 是 root/default state，BO3 是 `BoModeStates["Bo3"]`，背景、总分位置和控件配置都由对应 state 决定；窗口订阅 `IsBo3ModeChanged` 后会重新应用 v3 布局，让 BO3/BO5 state 即时刷新。
+全局比分格表示 `ScoreGame` 内部的 `ScoreHalf` 结果，由内置 v3 控件 `GlobalScoreRow` 的 `Cells` 显式配置。总分显示从 `MatchScoreState` 派生，不再从 `ScoreWindowViewModel` 独有字段或 `FrontedWindowService` UI mutation 派生。每个 cell 用 `ScoreGameKey` 和 `ScoreHalfKind` 定位比分，避免依赖 `GameProgress` 原始数值。`ScoreGlobalWindow/BaseCanvas` 使用 Designer v3 通用 Canvas BO states：BO5 是 root/default state，BO3 是 `BoModeStates["Bo3"]`，背景、总分位置、父行框和 cell 列表都由对应 state 决定；窗口订阅 `IsBo3ModeChanged` 后会重新应用 v3 布局，让 BO3/BO5 state 即时刷新。
 
 ## 9. 导入、导出与新建对局
 

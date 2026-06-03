@@ -52,7 +52,10 @@ public class FrontedLayoutDesignConverter
                     windowTypeName,
                     canvasName,
                     control.Key,
-                    FrontedPluginControlConfigMaterializer.Materialize(control.Key, control.Value, _controlRegistry),
+                    MaterializeControlConfig(
+                        control.Key,
+                        FrontedPluginControlConfigMaterializer.Materialize(control.Key, control.Value, _controlRegistry),
+                        editingState),
                     runtimeContracts)))
         };
     }
@@ -135,6 +138,21 @@ public class FrontedLayoutDesignConverter
             RequiredPlugins = new List<FrontedPluginDependency>(state.RequiredPlugins),
             Controls = new Dictionary<string, FrontedControlConfigBase>(state.Controls, StringComparer.Ordinal)
         };
+
+    private static FrontedControlConfigBase MaterializeControlConfig(
+        string name,
+        FrontedControlConfigBase config,
+        FrontedCanvasBoModeState editingState)
+    {
+        if (config is GlobalScoreRowControlConfig row)
+        {
+            GlobalScoreRowCellLayoutHelper.EnsureCompleteCells(
+                row,
+                editingState == FrontedCanvasBoModeState.Bo3);
+        }
+
+        return config;
+    }
 
     private List<FrontedPluginDependency> SyncRequiredPlugins(
         FrontedCanvasDesignDocument document,

@@ -15,7 +15,7 @@ public class FrontedLayerGroup : ObservableObject
 
     public string DisplayName { get; init; } = string.Empty;
 
-    public ObservableCollection<FrontedControlDesignItem> Items { get; } = [];
+    public ObservableCollection<DesignerLayerNode> Items { get; } = [];
 
     public int Count => Items.Count;
 

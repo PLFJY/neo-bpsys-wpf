@@ -51,6 +51,7 @@ public partial class FrontedDesignerHelpWindow : FluentWindow
         AddSection("Designer.Help.Snapping.Title", "Designer.Help.Snapping.Content");
         AddSection("Designer.Help.LayerPanel.Title", "Designer.Help.LayerPanel.Content");
         AddSection("Designer.Help.PropertyGrid.Title", "Designer.Help.PropertyGrid.Content");
+        AddSection("Designer.Help.GlobalScoreRow.Title", "Designer.Help.GlobalScoreRow.Content");
 
         AddShortcut("Designer.Help.Shortcut.Save");
         AddShortcut("Designer.Help.Shortcut.Copy");

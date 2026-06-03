@@ -50,6 +50,97 @@ public class GlobalScoreRowDisplayTest
     }
 
     [Fact]
+    public void ExplicitCellResolvesSecondHalfOvertimeMissingAndNullResult()
+    {
+        var matchScore = MatchScoreState.CreateDefault();
+        var game1 = matchScore.Games.Single(game => game.Key == new ScoreGameKey(1, ScoreGameKind.Normal));
+        game1.FirstHalf.Result = GameResult.Escape3;
+        game1.FirstHalf.SurTeamTypeWhenRecorded = TeamType.HomeTeam;
+        game1.FirstHalf.HunTeamTypeWhenRecorded = TeamType.AwayTeam;
+        game1.SecondHalf.Result = GameResult.Out3;
+        game1.SecondHalf.SurTeamTypeWhenRecorded = TeamType.AwayTeam;
+        game1.SecondHalf.HunTeamTypeWhenRecorded = TeamType.HomeTeam;
+
+        var overtime = matchScore.Games.Single(game => game.Key == new ScoreGameKey(5, ScoreGameKind.Overtime));
+        overtime.FirstHalf.Result = GameResult.Tie;
+        overtime.FirstHalf.SurTeamTypeWhenRecorded = TeamType.HomeTeam;
+        overtime.FirstHalf.HunTeamTypeWhenRecorded = TeamType.AwayTeam;
+
+        var firstHalf = GlobalScoreRowDisplay.Create(
+            matchScore,
+            TeamType.HomeTeam,
+            Cell(1, ScoreGameKind.Normal, ScoreHalfKind.FirstHalf),
+            showCampIcon: true);
+        var secondHalf = GlobalScoreRowDisplay.Create(
+            matchScore,
+            TeamType.HomeTeam,
+            Cell(1, ScoreGameKind.Normal, ScoreHalfKind.SecondHalf),
+            showCampIcon: true);
+        var overtimeHalf = GlobalScoreRowDisplay.Create(
+            matchScore,
+            TeamType.HomeTeam,
+            Cell(5, ScoreGameKind.Overtime, ScoreHalfKind.FirstHalf),
+            showCampIcon: true);
+        var missingHalf = GlobalScoreRowDisplay.Create(
+            matchScore,
+            TeamType.HomeTeam,
+            Cell(9, ScoreGameKind.Normal, ScoreHalfKind.FirstHalf),
+            showCampIcon: true);
+        var nullResult = GlobalScoreRowDisplay.Create(
+            matchScore,
+            TeamType.HomeTeam,
+            Cell(2, ScoreGameKind.Normal, ScoreHalfKind.FirstHalf),
+            showCampIcon: true);
+
+        Assert.Equal("3", firstHalf.Text);
+        Assert.True(firstHalf.IsCampVisible);
+        Assert.False(firstHalf.IsHunIcon);
+        Assert.Equal("3", secondHalf.Text);
+        Assert.True(secondHalf.IsCampVisible);
+        Assert.True(secondHalf.IsHunIcon);
+        Assert.Equal("2", overtimeHalf.Text);
+        Assert.Equal("-", missingHalf.Text);
+        Assert.Equal("-", nullResult.Text);
+    }
+
+    [Fact]
+    public void CellStyleNullsInheritParentAndExplicitValuesOverride()
+    {
+        var row = new GlobalScoreRowControlConfig
+        {
+            FontFamily = "Arial",
+            FontWeight = "Bold",
+            Color = "#FFFFFFFF",
+            FontSize = 24,
+            ShowCampIcon = true,
+            Cells =
+            [
+                new GlobalScoreCellConfig { Id = "Inherited" },
+                new GlobalScoreCellConfig
+                {
+                    Id = "Override",
+                    FontFamily = "Tahoma",
+                    FontWeight = "Normal",
+                    Color = "#FF112233",
+                    FontSize = 18,
+                    ShowCampIcon = false
+                }
+            ]
+        };
+
+        Assert.Equal(row.FontFamily, row.Cells[0].FontFamily ?? row.FontFamily);
+        Assert.Equal(row.FontWeight, row.Cells[0].FontWeight ?? row.FontWeight);
+        Assert.Equal(row.Color, row.Cells[0].Color ?? row.Color);
+        Assert.Equal(row.FontSize, row.Cells[0].FontSize ?? row.FontSize);
+        Assert.Equal(row.ShowCampIcon, row.Cells[0].ShowCampIcon ?? row.ShowCampIcon);
+        Assert.Equal("Tahoma", row.Cells[1].FontFamily ?? row.FontFamily);
+        Assert.Equal("Normal", row.Cells[1].FontWeight ?? row.FontWeight);
+        Assert.Equal("#FF112233", row.Cells[1].Color ?? row.Color);
+        Assert.Equal(18, row.Cells[1].FontSize ?? row.FontSize);
+        Assert.False(row.Cells[1].ShowCampIcon ?? row.ShowCampIcon);
+    }
+
+    [Fact]
     public void Bo3AndBo5VisibilityUsesScoreGameKeysInsteadOfRawProgressValues()
     {
         var matchScore = MatchScoreState.CreateDefault();
@@ -81,4 +172,20 @@ public class GlobalScoreRowDisplayTest
         Assert.Contains(new ScoreGameKey(4, ScoreGameKind.Normal), bo5Keys);
         Assert.Contains(new ScoreGameKey(5, ScoreGameKind.Overtime), bo5Keys);
     }
+
+    private static GlobalScoreCellConfig Cell(
+        int gameNumber,
+        ScoreGameKind gameKind,
+        ScoreHalfKind halfKind) =>
+        new()
+        {
+            Id = $"Game{gameNumber}{halfKind}",
+            GameNumber = gameNumber,
+            GameKind = gameKind,
+            HalfKind = halfKind,
+            X = 12,
+            Y = 3,
+            Width = 75,
+            Height = 32
+        };
 }

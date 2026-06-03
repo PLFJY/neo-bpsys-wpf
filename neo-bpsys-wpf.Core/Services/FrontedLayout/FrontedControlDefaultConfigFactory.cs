@@ -256,11 +256,14 @@ public class FrontedControlDefaultConfigFactory
             "GlobalScoreRow" => new GlobalScoreRowControlConfig
             {
                 TeamType = TeamType.HomeTeam,
-                Width = 540,
+                Width = 1080,
                 Height = 40,
+                FontFamily = "Arial",
+                FontWeight = "Bold",
                 FontSize = 24,
                 Color = "#FFFFFFFF",
-                ShowCampIcon = true
+                ShowCampIcon = true,
+                Cells = GlobalScoreRowCellLayoutHelper.CreateCompleteCellTemplate()
             },
             "CurrentBanDisplay" => new CurrentBanDisplayControlConfig
             {

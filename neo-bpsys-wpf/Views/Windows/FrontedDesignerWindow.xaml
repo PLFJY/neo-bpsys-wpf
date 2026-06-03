@@ -7,6 +7,7 @@
     xmlns:converters="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:designer="clr-namespace:neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;assembly=neo-bpsys-wpf.Core"
+    xmlns:frontedLayout="clr-namespace:neo_bpsys_wpf.Core.Models.FrontedLayout;assembly=neo-bpsys-wpf.Core"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:limits="clr-namespace:neo_bpsys_wpf.Core.Services.FrontedLayout;assembly=neo-bpsys-wpf.Core"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -521,7 +522,7 @@
                                                         </DockPanel>
                                                         <ItemsControl ItemsSource="{Binding Items}">
                                                             <ItemsControl.ItemTemplate>
-                                                                <DataTemplate DataType="{x:Type designer:FrontedControlDesignItem}">
+                                                                <DataTemplate DataType="{x:Type designer:DesignerLayerNode}">
                                                                     <Border
                                                                         Margin="0,3"
                                                                         Padding="8,6"
@@ -548,20 +549,30 @@
                                                                                     <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                                                                         <Setter Property="BorderBrush" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
                                                                                     </DataTrigger>
+                                                                                    <DataTrigger Binding="{Binding CanReorder}" Value="False">
+                                                                                        <Setter Property="Opacity" Value="0.9" />
+                                                                                    </DataTrigger>
                                                                                 </Style.Triggers>
                                                                             </Style>
                                                                         </Border.Style>
                                                                         <Grid>
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="*" />
+                                                                            </Grid.ColumnDefinitions>
                                                                             <Grid.RowDefinitions>
                                                                                 <RowDefinition Height="Auto" />
                                                                                 <RowDefinition Height="Auto" />
                                                                                 <RowDefinition Height="Auto" />
                                                                             </Grid.RowDefinitions>
                                                                             <TextBlock
+                                                                                Grid.Column="0"
                                                                                 FontWeight="SemiBold"
-                                                                                Text="{Binding Name}"
+                                                                                Text="{Binding DisplayName}"
                                                                                 TextTrimming="CharacterEllipsis" />
-                                                                            <Grid Grid.Row="1" Margin="0,2,0,0">
+                                                                            <Grid
+                                                                                Grid.Row="1"
+                                                                                Grid.Column="0"
+                                                                                Margin="0,2,0,0">
                                                                                 <Grid.ColumnDefinitions>
                                                                                     <ColumnDefinition Width="*" />
                                                                                     <ColumnDefinition Width="Auto" />
@@ -571,9 +582,9 @@
                                                                                     MinWidth="0"
                                                                                     FontSize="12"
                                                                                     Opacity="0.78"
-                                                                                    Text="{Binding Config.ControlType, Converter={StaticResource DesignerControlTypeDisplayConverter}}"
+                                                                                    Text="{Binding Metadata}"
                                                                                     TextTrimming="CharacterEllipsis"
-                                                                                    ToolTip="{Binding Config.ControlType}" />
+                                                                                    ToolTip="{Binding Metadata}" />
                                                                                 <StackPanel
                                                                                     Grid.Column="1"
                                                                                     Margin="10,0,0,0"
@@ -586,11 +597,12 @@
                                                                                         Margin="3,0,0,0"
                                                                                         FontSize="12"
                                                                                         Opacity="0.78"
-                                                                                        Text="{Binding Config.ZIndex}" />
+                                                                                        Text="{Binding ZIndex}" />
                                                                                 </StackPanel>
                                                                             </Grid>
                                                                             <Border
                                                                                 Grid.Row="2"
+                                                                                Grid.Column="0"
                                                                                 Margin="0,4,0,0"
                                                                                 Padding="4,0"
                                                                                 HorizontalAlignment="Left"
@@ -600,7 +612,7 @@
                                                                                     <Style TargetType="Border">
                                                                                         <Setter Property="Visibility" Value="Collapsed" />
                                                                                         <Style.Triggers>
-                                                                                            <DataTrigger Binding="{Binding IsRuntimeCritical}" Value="True">
+                                                                                            <DataTrigger Binding="{Binding ControlItem.IsRuntimeCritical}" Value="True">
                                                                                                 <Setter Property="Visibility" Value="Visible" />
                                                                                             </DataTrigger>
                                                                                         </Style.Triggers>
@@ -865,6 +877,77 @@
                                     TagNameFontSize="12" />
                             </UniformGrid>
                         </StackPanel>
+                        <Expander
+                            Margin="0,12,0,0"
+                            Header="{lex:Loc Designer.GlobalScoreRow.Cells}"
+                            IsExpanded="True">
+                            <Expander.Style>
+                                <Style BasedOn="{StaticResource {x:Type Expander}}" TargetType="Expander">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasGlobalScoreCellEditor}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Expander.Style>
+                            <StackPanel Margin="0,8,0,0">
+                                <TextBlock
+                                    Margin="0,0,0,8"
+                                    FontSize="12"
+                                    Opacity="0.72"
+                                    Text="{lex:Loc Designer.GlobalScoreRow.CellEditor}"
+                                    TextWrapping="Wrap" />
+                                <ListBox
+                                    MaxHeight="190"
+                                    ItemsSource="{Binding GlobalScoreCellEditorItems}"
+                                    SelectedItem="{Binding SelectedGlobalScoreCell, Mode=TwoWay}"
+                                    SelectionMode="Single">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type frontedLayout:GlobalScoreCellConfig}">
+                                            <Grid Margin="0,2">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0">
+                                                    <TextBlock
+                                                        FontWeight="SemiBold"
+                                                        Text="{Binding Id}"
+                                                        TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock
+                                                        FontSize="12"
+                                                        Opacity="0.72"
+                                                        Text="{Binding Visibility}" />
+                                                </StackPanel>
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    Margin="8,0,0,0"
+                                                    VerticalAlignment="Center"
+                                                    FontSize="12"
+                                                    Opacity="0.72">
+                                                    <Run Text="G" />
+                                                    <Run Text="{Binding GameNumber}" />
+                                                </TextBlock>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                                <StackPanel Margin="0,8,0,0">
+                                    <ui:Button
+                                        Margin="0,0,0,6"
+                                        Command="{Binding AutoArrangeGlobalScoreCellsBySpacingCommand}"
+                                        Content="{lex:Loc Designer.GlobalScoreRow.AutoArrangeBySpacing}" />
+                                    <ui:Button
+                                        Margin="0,0,0,6"
+                                        Command="{Binding ApplyParentStyleToGlobalScoreCellsCommand}"
+                                        Content="{lex:Loc Designer.GlobalScoreRow.ApplyParentStyleToCells}" />
+                                    <ui:Button
+                                        Command="{Binding ClearGlobalScoreCellStyleOverridesCommand}"
+                                        Content="{lex:Loc Designer.GlobalScoreRow.ClearCellStyleOverrides}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Expander>
                     </StackPanel>
                     <TextBlock
                         Grid.Row="1"
@@ -982,9 +1065,7 @@
                                 Margin="0,0,0,8"
                                 Content="{lex:Loc Designer.Canvas.EnableBoModeStates}"
                                 IsChecked="{Binding EnableBoModeStates, Mode=TwoWay}" />
-                            <StackPanel
-                                Margin="0,0,0,8"
-                                Visibility="{Binding IsBoModeStateSelectorVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <StackPanel Margin="0,0,0,8" Visibility="{Binding IsBoModeStateSelectorVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                                 <Grid Margin="0,0,0,8">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="112" />

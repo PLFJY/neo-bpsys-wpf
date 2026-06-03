@@ -3476,7 +3476,7 @@
     <value>名称和绑定路径需要按 Enter 或点击应用按钮提交；\n无效值会保留文本并显示红色边框；\n颜色选择器更新 Hex 文本；应用按钮提交；\n组合框属性在显示本地化名称的同时提交原始值；\n绑定浏览器帮助选择合适的绑定路径；\n资源浏览器帮助选择 bpui/资源 URI；\nBorderedImage 有独立的边框/图片属性；\nBorderedImage 的调整大小目标可在外边框和内图片之间切换。</value>
   </data>
   <data name="Designer.Help.BuiltInControls.Content" xml:space="preserve">
-    <value>Text|普通文本控件；BindingPath 非空时绑定动态文本，BindingPath 为空时显示 Text 静态文本。|StringFormat 只作用于绑定值；需要业务/i18n 文案时优先用专用控件。\nLocalizedText|静态本地化文本控件；使用 LocalizationKey 查找 resx，缺失时显示 FallbackText 或 key。|适合表头和固定标签；保存的是 key，不是本地化后的显示文本。\nImage|直接图片控件，根元素就是 Image；用于队标、地图、简单图片和旧 direct Image 语义。|BindingPath 绑定 ImageSource；BindingPath 为空时才使用 ImagePath 静态资源图；绑定优先，不会自动清空 ImagePath。\nBorderedImage|外层 Border + 内层 Image；用于需要外框、裁剪、圆角、内部图片尺寸或 resize 目标切换的图片区域。|BindingPath 与 ImagePath 优先级和 Image 一样；Width/Height 控制外框，ImageWidth/ImageHeight 控制内部图片。\nGameProgressText|按当前局数、半场、BO3/BO5 和加赛规则生成对局进度文本。|需要换行时使用 UseLineBreak；不要把这类业务文案硬写进普通 Text。\nMapNameText|把地图枚举/key 转成本地化地图名；默认读取当前选图，也可以用 BindingPath 指向 picked/banned map 字段。|EmptyText 用于空地图兜底；BindingPath 应指向 Map/Map? 类型字段。\nGlobalScoreRow|全局比分行控件；读取 MatchScore 并按 BO3/BO5 半场顺序生成比分格和阵营图标。|通常用于 ScoreGlobalWindow；不要拆成手写比分文本。\nTalentTraitDisplay|CutScene 天赋/辅助特质显示控件；按 DisplayKind 和 PlayerIndex 读取固定业务数据。|会跟随辅助特质可见性设置；不要在 JSON 中硬编码单个天赋图标。\nCurrentBanDisplay|WidgetsWindow 当前局 Ban 显示控件；按 Camp 和 Index 读取当前 Ban 列表和可用状态。|适合当前 Ban 小组件；业务数据来自共享状态。\nBanSlotDisplay|BpWindow Ban 位显示控件；按 SlotKind、Camp、Index 读取当前局或全局 Ban。|可用 LockImageSource 显示锁定覆盖层；资源路径应通过 Resource Browser 选择。\nMapV2Display|Map BP v2 展示控件；通过 MapKey 复用 MapV2Presenter。|适合 WidgetsWindow 的地图 BP v2 布局；不要手写内部地图 BP v2 视觉元素。\nPickingBorderOverlay|高级覆盖层控件，通常由默认布局配合 TargetControlName 使用。|跟随目标 pick 图片的位置和尺寸；不作为普通独立图片控件编辑。\n通用注意|BindingPath 用 Binding Browser 选择动态数据；ImagePath、BackgroundImage、LockImageSource 等资源路径用 Resource Browser 选择。|静态资源优先使用 Resources/xxx.png 或 bpui://...，不要长期依赖任意绝对路径；缺失或超限图片只应产生警告/空图，不应让前台崩溃。</value>
+    <value>Text|普通文本控件；BindingPath 非空时绑定动态文本，BindingPath 为空时显示 Text 静态文本。|StringFormat 只作用于绑定值；需要业务/i18n 文案时优先用专用控件。\nLocalizedText|静态本地化文本控件；使用 LocalizationKey 查找 resx，缺失时显示 FallbackText 或 key。|适合表头和固定标签；保存的是 key，不是本地化后的显示文本。\nImage|直接图片控件，根元素就是 Image；用于队标、地图、简单图片和旧 direct Image 语义。|BindingPath 绑定 ImageSource；BindingPath 为空时才使用 ImagePath 静态资源图；绑定优先，不会自动清空 ImagePath。\nBorderedImage|外层 Border + 内层 Image；用于需要外框、裁剪、圆角、内部图片尺寸或 resize 目标切换的图片区域。|BindingPath 与 ImagePath 优先级和 Image 一样；Width/Height 控制外框，ImageWidth/ImageHeight 控制内部图片。\nGameProgressText|按当前局数、半场、BO3/BO5 和加赛规则生成对局进度文本。|需要换行时使用 UseLineBreak；不要把这类业务文案硬写进普通 Text。\nMapNameText|把地图枚举/key 转成本地化地图名；默认读取当前选图，也可以用 BindingPath 指向 picked/banned map 字段。|EmptyText 用于空地图兜底；BindingPath 应指向 Map/Map? 类型字段。\nGlobalScoreRow|全局比分行复合控件；父框内的 Cells 定义每个半场比分格，再读取 MatchScore 填充文本和阵营图标。|通常用于 ScoreGlobalWindow；编辑父行移动整行，编辑子格调整单个比分位置，不要拆成无父级的手写比分文本。\nTalentTraitDisplay|CutScene 天赋/辅助特质显示控件；按 DisplayKind 和 PlayerIndex 读取固定业务数据。|会跟随辅助特质可见性设置；不要在 JSON 中硬编码单个天赋图标。\nCurrentBanDisplay|WidgetsWindow 当前局 Ban 显示控件；按 Camp 和 Index 读取当前 Ban 列表和可用状态。|适合当前 Ban 小组件；业务数据来自共享状态。\nBanSlotDisplay|BpWindow Ban 位显示控件；按 SlotKind、Camp、Index 读取当前局或全局 Ban。|可用 LockImageSource 显示锁定覆盖层；资源路径应通过 Resource Browser 选择。\nMapV2Display|Map BP v2 展示控件；通过 MapKey 复用 MapV2Presenter。|适合 WidgetsWindow 的地图 BP v2 布局；不要手写内部地图 BP v2 视觉元素。\nPickingBorderOverlay|高级覆盖层控件，通常由默认布局配合 TargetControlName 使用。|跟随目标 pick 图片的位置和尺寸；不作为普通独立图片控件编辑。\n通用注意|BindingPath 用 Binding Browser 选择动态数据；ImagePath、BackgroundImage、LockImageSource 等资源路径用 Resource Browser 选择。|静态资源优先使用 Resources/xxx.png 或 bpui://...，不要长期依赖任意绝对路径；缺失或超限图片只应产生警告/空图，不应让前台崩溃。</value>
   </data>
   <data name="Designer.Help.AddDeleteCopyPaste.Content" xml:space="preserve">
     <value>"添加控件"插入内置/插件控件；\n复制的控件在粘贴时获得唯一编号名称；\n粘贴时会偏移新控件的位置；\n运行时关键/生成的覆盖层可能不可复制/删除；\n撤销/重做可恢复添加、删除、粘贴、重新排序操作。</value>
@@ -3595,4 +3595,28 @@
   <data name="Designer.Help.BoModeStatesDescription" xml:space="preserve"><value>这是通用 Canvas 功能；启用后可分别编辑 BO5 与 BO3，运行时按当前 BO 模式选择状态。</value></data>
   <data name="Designer.Help.CopyBo5ToBo3" xml:space="preserve"><value>复制 BO5 到 BO3 可快速建立对齐布局，然后单独调整 BO3。</value></data>
   <data name="Designer.Help.Visibility" xml:space="preserve"><value>Visibility 支持 Visible、Hidden、Collapsed；隐藏或折叠的控件仍保留在图层面板中。</value></data>
+  <data name="Designer.GlobalScoreRow.Cells" xml:space="preserve"><value>比分单元</value></data>
+  <data name="Designer.GlobalScoreRow.CellEditor" xml:space="preserve"><value>子单元是固定内部比分格，不会出现在全局图层中；留空样式字段将继承父级。</value></data>
+  <data name="Designer.GlobalScoreRow.SelectedCell" xml:space="preserve"><value>已选比分单元</value></data>
+  <data name="Designer.GlobalScoreRow.ParentProperties" xml:space="preserve"><value>比分行属性</value></data>
+  <data name="Designer.GlobalScoreRow.CellProperties" xml:space="preserve"><value>比分单元属性</value></data>
+  <data name="Designer.GlobalScoreRow.CellInheritsFromParent" xml:space="preserve"><value>留空时继承父级 GlobalScoreRow 样式。</value></data>
+  <data name="Designer.Help.GlobalScoreRow.Title" xml:space="preserve"><value>GlobalScoreRow 复合编辑</value></data>
+  <data name="Designer.Help.GlobalScoreRow.Content" xml:space="preserve"><value>GlobalScoreRow 是父级比分行框，子格是固定内部比分格，不能删除，也不会出现在全局图层面板中。\n选中父行后，在专用 Score Cells 列表中选择子格；选择子格时 SelectedDesignItem 仍保持父行。\nVisibility 决定该 Canvas state 中子格显示、隐藏或折叠；BO3 与 BO5 state 拥有独立的行和子格布局。\n按间距自动编排使用 MajorGameGap / HalfGameGap 重新排列当前 state 的可见序列，之后仍可手动微调每个子格。\n应用父级样式到所有子格会把父行字体、字重、颜色、字号和阵营图标设置复制到所有子格覆盖值；留空样式字段表示继承父级。</value></data>
+  <data name="Designer.GlobalScoreRow.GenerateBo5Cells" xml:space="preserve"><value>生成 BO5 单元</value></data>
+  <data name="Designer.GlobalScoreRow.GenerateBo3Cells" xml:space="preserve"><value>生成 BO3 单元</value></data>
+  <data name="Designer.GlobalScoreRow.ResetCells" xml:space="preserve"><value>重置比分单元</value></data>
+  <data name="Designer.GlobalScoreRow.AutoArrangeBySpacing" xml:space="preserve"><value>按间距自动编排</value></data>
+  <data name="Designer.GlobalScoreRow.ApplyParentStyleToCells" xml:space="preserve"><value>应用父级样式到所有子格</value></data>
+  <data name="Designer.GlobalScoreRow.ClearCellStyleOverrides" xml:space="preserve"><value>清除子格样式覆盖</value></data>
+  <data name="Designer.GlobalScoreRow.FillMissingCells" xml:space="preserve"><value>补齐缺失单元</value></data>
+  <data name="Designer.GlobalScoreRow.ApplyBo3VisibilityTemplate" xml:space="preserve"><value>应用 BO3 可见性</value></data>
+  <data name="Designer.GlobalScoreRow.ApplyBo5VisibilityTemplate" xml:space="preserve"><value>应用 BO5 可见性</value></data>
+  <data name="Designer.Property.CellId" xml:space="preserve"><value>单元 ID</value></data>
+  <data name="Designer.Property.GameNumber" xml:space="preserve"><value>局号</value></data>
+  <data name="Designer.Property.GameKind" xml:space="preserve"><value>局类型</value></data>
+  <data name="Designer.Property.HalfKind" xml:space="preserve"><value>半场</value></data>
+  <data name="Designer.Property.CellX" xml:space="preserve"><value>单元 X</value></data>
+  <data name="Designer.Property.CellY" xml:space="preserve"><value>单元 Y</value></data>
+  <data name="Designer.Property.ShowCampIconOverride" xml:space="preserve"><value>阵营图标覆盖</value></data>
 </root>

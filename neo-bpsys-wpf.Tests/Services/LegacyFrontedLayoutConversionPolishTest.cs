@@ -1,5 +1,6 @@
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
+using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System;
 using System.Collections.Generic;
@@ -41,7 +42,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             ],
             Diagnostics =
             [
-                "Legacy overtime score cells were consumed; v3 GlobalScoreRow does not expose separate overtime cell geometry.",
+                "Legacy overtime score cells were migrated into GlobalScoreRow child cells.",
                 "Legacy lock overlay geometry consumed: HunBanCurrentLock0 -> HunBanCurrent0",
                 "Legacy global score cells aggregated: ScoreGlobalWindow/BaseCanvas/HomeTeamGame* -> HomeGlobalScoreRow. Irregular cell spacing was approximated by median gaps."
             ]
@@ -189,7 +190,14 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             var row = Assert.IsType<GlobalScoreRowControlConfig>(layout.Controls["HomeGlobalScoreRow"]);
             Assert.Equal(100, row.Left);
             Assert.Equal(12.5, row.Top);
-            Assert.Equal(90, row.HalfGameGap);
+            Assert.Contains(row.Cells, cell => cell is
+            {
+                GameNumber: 1,
+                GameKind: ScoreGameKind.Normal,
+                HalfKind: ScoreHalfKind.FirstHalf,
+                X: 0,
+                Y: 0
+            });
         }
         finally
         {
@@ -251,7 +259,7 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             Assert.True(result.Success, result.ErrorMessage);
             Assert.DoesNotContain(result.Warnings, warning => warning.Contains("Overtime", StringComparison.Ordinal));
             Assert.DoesNotContain(result.Warnings, warning => warning.Contains("no v3 control matches", StringComparison.OrdinalIgnoreCase));
-            Assert.Contains(result.Diagnostics, item => item.Contains("Legacy overtime score cells were consumed", StringComparison.Ordinal));
+            Assert.Contains(result.Diagnostics, item => item.Contains("Legacy overtime score cells were migrated", StringComparison.Ordinal));
             Assert.False(LegacyConversionMessageFormatter.HasUserFacingWarnings(result));
         }
         finally

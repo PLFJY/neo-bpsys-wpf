@@ -92,7 +92,7 @@ Phase 9A 已新增 `.bpui v3` 标准文档，Phase 9C 已实现导出。当前�
 | 边界 | 说明 |
 | --- | --- |
 | `Team.Score` 语义混杂 | 当前仅作为迁移期兼容镜像保留；不要重新让它成为权威状态。新服务中的同步只是 transitional compatibility mirror，不是权威状态，Score 系列默认 v3 布局、CutScene v3 默认布局、GameData v3 默认布局、WidgetsWindow v3 默认布局、BpWindow v3 默认布局和后台 ScorePage 已不再依赖它。 |
-| `ScoreGlobalWindow` BO3/BO5 状态 | v3 已使用通用 Canvas BO states：root/default 是 BO5，`BoModeStates["Bo3"]` 是 BO3。背景、总分位置、比分行和控件可分别编辑；`GlobalScoreRow` 仍按 BO3/BO5 规则生成可见比分格。 |
+| `ScoreGlobalWindow` BO3/BO5 状态 | v3 已使用通用 Canvas BO states：root/default 是 BO5，`BoModeStates["Bo3"]` 是 BO3。背景、总分位置、比分行父框和 `GlobalScoreRow.Cells` 子格可分别编辑；BO3/BO5 的比分格位置、Visibility 和样式覆盖由各自 Canvas state 的完整 cell 列表决定；未使用的格子隐藏/折叠，不从模板中删除。 |
 | `GameProgress.Free` 未定义比分语义 | Score System v2 暂把它记录为设计缺口。 |
 | `Game3Overtime*` 与 `Game4*` enum 数值重叠 | `MatchScoreService` 结合 BO3/BO5 状态解析；缺少上下文的 `MatchScoreState.GetGame(progress)` 保守按 BO5 第四局解析。 |
 | 旧记录 `Team.Score` 无法还原完整历史 | 旧 JSON 没有 `MatchScore` 时会创建默认 `MatchScoreState`，不会从 `Team.Score` 反推出 per-Game/per-Half 结果；导入器会尽量保留旧 `Team.Score` 镜像显示，并且不会覆盖新文件中有效的 `MatchScore`。 |

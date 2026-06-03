@@ -41,15 +41,18 @@ public partial class FrontedDesignerWindow : FluentWindow
     private ValidationDetailsWindow? _validationDetailsWindow;
     private FrontedDesignerHelpWindow? _helpWindow;
     private readonly Dictionary<FrontedControlDesignItem, Border> _hitboxes = new();
+    private readonly Dictionary<GlobalScoreCellHitTarget, Border> _globalScoreCellHitboxes = new();
     private readonly Dictionary<string, FrameworkElement> _previewElementsByControlName = new(StringComparer.Ordinal);
     private readonly Dictionary<FrontedDesignerResizeHandleKind, Border> _resizeHandles = new();
     private readonly List<Line> _snapGuideLines = [];
     private Border? _selectionOutline;
+    private Border? _parentSelectionOutline;
     private Border? _selectionLabel;
     private FrameworkElement? _capturedElement;
     private InteractionMode _interactionMode = InteractionMode.None;
     private FrontedDesignerResizeHandleKind? _activeResizeHandle;
     private FrontedControlDesignItem? _pendingHitCandidate;
+    private GlobalScoreCellHitTarget? _pendingGlobalScoreCellHitCandidate;
     private bool _isPendingEmptyClick;
     private bool _hasExceededClickThreshold;
     private bool _hasStartedDrag;
@@ -73,8 +76,8 @@ public partial class FrontedDesignerWindow : FluentWindow
     private FrontedDesignerWindowOption? _lastAcceptedWindow;
     private FrontedDesignerLayoutCatalogEntry? _lastAcceptedCanvas;
     private Point _layerDragStartPoint;
-    private FrontedControlDesignItem? _pendingLayerDragItem;
-    private FrontedControlDesignItem? _activeLayerDragItem;
+    private DesignerLayerNode? _pendingLayerDragNode;
+    private DesignerLayerNode? _activeLayerDragNode;
     private readonly DispatcherTimer _layerAutoScrollTimer;
     private double _layerAutoScrollVelocity;
     private Point? _lastLayerDragPosition;
@@ -286,13 +289,13 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void LayerItem_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (sender is not FrameworkElement { DataContext: FrontedControlDesignItem item })
+        if (sender is not FrameworkElement { DataContext: DesignerLayerNode node })
         {
             return;
         }
 
-        _viewModel?.SelectDesignItem(item);
-        _pendingLayerDragItem = item;
+        _viewModel?.SelectLayerNode(node);
+        _pendingLayerDragNode = node.CanReorder ? node : null;
         _layerDragStartPoint = e.GetPosition(this);
     }
 
@@ -300,7 +303,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     {
         if (e.LeftButton != MouseButtonState.Pressed
             || _viewModel is null
-            || _pendingLayerDragItem is null
+            || _pendingLayerDragNode is null
             || sender is not FrameworkElement dragSource)
         {
             return;
@@ -313,24 +316,27 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
-        if (!_viewModel.CanReorderLayers || !_viewModel.IsLayerReorderable(_pendingLayerDragItem))
+        if (!_viewModel.CanReorderLayers
+            || !_pendingLayerDragNode.CanReorder
+            || _pendingLayerDragNode.ControlItem is null
+            || !_viewModel.IsLayerReorderable(_pendingLayerDragNode.ControlItem))
         {
             _viewModel.StatusMessage = I18nHelper.GetLocalizedString("Designer.LayerPanel.ReorderBlocked");
-            _pendingLayerDragItem = null;
+            _pendingLayerDragNode = null;
             return;
         }
 
-        _activeLayerDragItem = _pendingLayerDragItem;
-        _pendingLayerDragItem = null;
-        var data = new DataObject(typeof(FrontedControlDesignItem), _activeLayerDragItem);
-        ShowLayerDragGhost(_activeLayerDragItem, e.GetPosition(LayerPanelHostGrid));
+        _activeLayerDragNode = _pendingLayerDragNode;
+        _pendingLayerDragNode = null;
+        var data = new DataObject(typeof(FrontedControlDesignItem), _activeLayerDragNode.ControlItem);
+        ShowLayerDragGhost(_activeLayerDragNode!, e.GetPosition(LayerPanelHostGrid));
         try
         {
             DragDrop.DoDragDrop(dragSource, data, DragDropEffects.Move);
         }
         finally
         {
-            _activeLayerDragItem = null;
+            _activeLayerDragNode = null;
             HideLayerDragGhost();
             StopLayerAutoScroll();
             HideLayerDropZones();
@@ -339,26 +345,49 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void LayerItem_OnPreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (sender is FrameworkElement { DataContext: FrontedControlDesignItem item })
+        if (sender is FrameworkElement { DataContext: DesignerLayerNode node })
         {
-            _viewModel?.SelectDesignItem(item);
+            _viewModel?.SelectLayerNode(node);
         }
     }
 
     private void LayerControlDeleteMenuItem_OnClick(object sender, RoutedEventArgs e)
     {
         var contextMenu = (sender as System.Windows.Controls.MenuItem)?.Parent as ContextMenu;
-        if (contextMenu?.PlacementTarget is FrameworkElement { DataContext: FrontedControlDesignItem item })
+        if (contextMenu?.PlacementTarget is FrameworkElement
+            {
+                DataContext: DesignerLayerNode
+                {
+                    Kind: DesignerLayerNodeKind.Control,
+                    ControlItem: { } item
+                }
+            })
         {
             _viewModel?.SelectDesignItem(item);
             _viewModel?.DeleteSelectedControlCommand.Execute(null);
         }
     }
 
+    private void LayerNodeChevron_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: DesignerLayerNode node })
+        {
+            _viewModel?.ToggleLayerNodeExpansion(node);
+            e.Handled = true;
+        }
+    }
+
     private void LayerItem_OnDrop(object sender, DragEventArgs e)
     {
         if (_viewModel is null
-            || sender is not FrameworkElement { DataContext: FrontedControlDesignItem targetItem }
+            || sender is not FrameworkElement
+            {
+                DataContext: DesignerLayerNode
+                {
+                    Kind: DesignerLayerNodeKind.Control,
+                    ControlItem: { } targetItem
+                } targetNode
+            }
             || !TryGetLayerDragItem(e, out var source))
         {
             return;
@@ -511,7 +540,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void UpdateLayerDropZoneVisibility()
     {
-        var isDragging = _activeLayerDragItem is not null;
+        var isDragging = _activeLayerDragNode is not null;
         var hasPointer = _lastLayerDragPosition is { } pointer;
         var showTop = isDragging
                       && hasPointer
@@ -537,10 +566,10 @@ public partial class FrontedDesignerWindow : FluentWindow
         e.Handled = true;
     }
 
-    private void ShowLayerDragGhost(FrontedControlDesignItem item, Point panelPosition)
+    private void ShowLayerDragGhost(DesignerLayerNode node, Point panelPosition)
     {
-        LayerDragGhostNameText.Text = item.Name;
-        LayerDragGhostMetaText.Text = $"{GetControlTypeDisplay(item.Config.ControlType)}  {I18nHelper.GetLocalizedString("ZIndexShort")} {item.Config.ZIndex}";
+        LayerDragGhostNameText.Text = node.DisplayName;
+        LayerDragGhostMetaText.Text = $"{node.Metadata}  {I18nHelper.GetLocalizedString("ZIndexShort")} {node.ZIndex}";
         LayerDragGhost.Visibility = Visibility.Visible;
         UpdateLayerDragGhost(panelPosition);
     }
@@ -1002,6 +1031,13 @@ public partial class FrontedDesignerWindow : FluentWindow
             FocusDesignSurface();
         }
 
+        if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.SelectedGlobalScoreCell))
+        {
+            SuppressPropertyEditorCommitForLayoutPass();
+            RebuildInteractionLayer();
+            FocusDesignSurface();
+        }
+
         if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.BorderedImageResizeTarget))
         {
             RebuildInteractionLayer();
@@ -1434,6 +1470,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             PreviewCanvas.UpdateLayout();
             LogDesignerPerf("PreviewRender", "update layout", Elapsed(total));
             RebuildInteractionLayer();
+            ScheduleSelectedInteractionVisualRefresh();
             LogDesignerPerf("PreviewRender", "rebuild interaction layer", Elapsed(total));
             LogDesignerPerf("PreviewRender", "total", Elapsed(total));
         }
@@ -1478,8 +1515,10 @@ public partial class FrontedDesignerWindow : FluentWindow
         InteractionLayer.Children.Clear();
         _snapGuideLines.Clear();
         _hitboxes.Clear();
+        _globalScoreCellHitboxes.Clear();
         _resizeHandles.Clear();
         _selectionOutline = null;
+        _parentSelectionOutline = null;
         _selectionLabel = null;
         ResetPointerInteraction();
     }
@@ -1677,8 +1716,10 @@ public partial class FrontedDesignerWindow : FluentWindow
         InteractionLayer.Children.Clear();
         _snapGuideLines.Clear();
         _hitboxes.Clear();
+        _globalScoreCellHitboxes.Clear();
         _resizeHandles.Clear();
         _selectionOutline = null;
+        _parentSelectionOutline = null;
         _selectionLabel = null;
 
         if (_viewModel?.CurrentDocument is null)
@@ -1696,12 +1737,50 @@ public partial class FrontedDesignerWindow : FluentWindow
             var hitbox = CreateHitbox(entry.Item, entry.Index);
             _hitboxes[entry.Item] = hitbox;
             InteractionLayer.Children.Add(hitbox);
+
+            if (entry.Item.Config is GlobalScoreRowControlConfig rowConfig
+                && ReferenceEquals(entry.Item, _viewModel.SelectedDesignItem))
+            {
+                foreach (var cell in rowConfig.Cells)
+                {
+                    var cellTarget = new GlobalScoreCellHitTarget(entry.Item, cell);
+                    var cellHitbox = CreateGlobalScoreCellHitbox(cellTarget, entry.Index);
+                    _globalScoreCellHitboxes[cellTarget] = cellHitbox;
+                    InteractionLayer.Children.Add(cellHitbox);
+                }
+            }
         }
 
         if (_viewModel.SelectedDesignItem is not null)
         {
             AddSelectionAdorner(_viewModel.SelectedDesignItem);
         }
+    }
+
+    private Border CreateGlobalScoreCellHitbox(GlobalScoreCellHitTarget target, int layoutOrder)
+    {
+        var bounds = ResolveGlobalScoreCellBounds(target.Parent, target.Cell);
+        var hitbox = new Border
+        {
+            Background = Brushes.Transparent,
+            BorderBrush = new SolidColorBrush(Color.FromArgb(80, 64, 200, 255)),
+            BorderThickness = new Thickness(1),
+            Width = bounds.Width,
+            Height = bounds.Height,
+            IsHitTestVisible = true,
+            Tag = target
+        };
+
+        Canvas.SetLeft(hitbox, bounds.Left);
+        Canvas.SetTop(hitbox, bounds.Top);
+        Panel.SetZIndex(
+            hitbox,
+            FrontedDesignerEditorVisualHelper.GetHitboxZIndex(
+                target.Parent.Config.ZIndex,
+                layoutOrder,
+                ReferenceEquals(target.Cell, _viewModel?.SelectedGlobalScoreCell)) + 1);
+        hitbox.MouseLeftButtonDown += GlobalScoreCellHitbox_OnMouseLeftButtonDown;
+        return hitbox;
     }
 
     private Border CreateHitbox(FrontedControlDesignItem item, int layoutOrder)
@@ -1732,7 +1811,27 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void AddSelectionAdorner(FrontedControlDesignItem item)
     {
-        var bounds = ResolveItemBounds(item);
+        var parentBounds = ResolveItemBounds(item);
+        var bounds = _viewModel?.SelectedGlobalScoreCell is { } cell
+                     && item.Config is GlobalScoreRowControlConfig
+            ? ResolveGlobalScoreCellBounds(item, cell)
+            : parentBounds;
+
+        if (_viewModel?.SelectedGlobalScoreCell is not null)
+        {
+            _parentSelectionOutline = new Border
+            {
+                Width = parentBounds.Width,
+                Height = parentBounds.Height,
+                BorderBrush = new SolidColorBrush(Color.FromArgb(180, 64, 200, 255)),
+                BorderThickness = new Thickness(1),
+                IsHitTestVisible = false
+            };
+            Canvas.SetLeft(_parentSelectionOutline, parentBounds.Left);
+            Canvas.SetTop(_parentSelectionOutline, parentBounds.Top);
+            Panel.SetZIndex(_parentSelectionOutline, FrontedDesignerEditorVisualHelper.SelectedOutlineZIndex - 1);
+            InteractionLayer.Children.Add(_parentSelectionOutline);
+        }
 
         _selectionOutline = new Border
         {
@@ -1754,7 +1853,9 @@ public partial class FrontedDesignerWindow : FluentWindow
             CornerRadius = new CornerRadius(2),
             Child = new System.Windows.Controls.TextBlock
             {
-                Text = item.Name,
+                Text = _viewModel?.SelectedGlobalScoreCell is { } selectedCell
+                    ? selectedCell.Id
+                    : item.Name,
                 FontSize = FrontedDesignerEditorVisualHelper.SelectionLabelBaseFontSize,
                 Foreground = Brushes.White
             },
@@ -1807,7 +1908,20 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
-        var bounds = ResolveItemBounds(item);
+        var bounds = _viewModel?.SelectedGlobalScoreCell is { } cell
+                     && item.Config is GlobalScoreRowControlConfig
+            ? ResolveGlobalScoreCellBounds(item, cell)
+            : ResolveItemBounds(item);
+        if (_parentSelectionOutline is not null)
+        {
+            var parentBounds = ResolveItemBounds(item);
+            _parentSelectionOutline.Width = parentBounds.Width;
+            _parentSelectionOutline.Height = parentBounds.Height;
+            Canvas.SetLeft(_parentSelectionOutline, parentBounds.Left);
+            Canvas.SetTop(_parentSelectionOutline, parentBounds.Top);
+        }
+
+        UpdateGlobalScoreCellHitboxes(item);
 
         if (_hitboxes.TryGetValue(item, out var hitbox))
         {
@@ -1836,6 +1950,28 @@ public partial class FrontedDesignerWindow : FluentWindow
         SetHandlePosition(FrontedDesignerResizeHandleKind.BottomLeft, bounds.Left, bounds.Top + bounds.Height);
         SetHandlePosition(FrontedDesignerResizeHandleKind.Bottom, bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height);
         SetHandlePosition(FrontedDesignerResizeHandleKind.BottomRight, bounds.Left + bounds.Width, bounds.Top + bounds.Height);
+    }
+
+    private void UpdateGlobalScoreCellHitboxes(FrontedControlDesignItem parent)
+    {
+        if (parent.Config is not GlobalScoreRowControlConfig)
+        {
+            return;
+        }
+
+        foreach (var (target, hitbox) in _globalScoreCellHitboxes)
+        {
+            if (!ReferenceEquals(target.Parent, parent))
+            {
+                continue;
+            }
+
+            var bounds = ResolveGlobalScoreCellBounds(target.Parent, target.Cell);
+            hitbox.Width = bounds.Width;
+            hitbox.Height = bounds.Height;
+            Canvas.SetLeft(hitbox, bounds.Left);
+            Canvas.SetTop(hitbox, bounds.Top);
+        }
     }
 
     private void RenderSnapGuides()
@@ -1940,6 +2076,27 @@ public partial class FrontedDesignerWindow : FluentWindow
         e.Handled = true;
     }
 
+    private void GlobalScoreCellHitbox_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (IsSpacePressed())
+        {
+            BeginViewportPan(e);
+            e.Handled = true;
+            return;
+        }
+
+        if (sender is not FrameworkElement { Tag: GlobalScoreCellHitTarget target } hitbox
+            || _viewModel is null)
+        {
+            return;
+        }
+
+        FocusDesignSurface();
+        _viewModel.SelectGlobalScoreCell(target.Parent, target.Cell);
+        BeginPendingGlobalScoreCellClick(target, e.GetPosition(InteractionLayer), hitbox);
+        e.Handled = true;
+    }
+
     private void ResizeHandle_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (sender is not FrameworkElement { Tag: FrontedDesignerResizeHandleKind handle } element
@@ -2004,6 +2161,10 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             HandlePendingHitboxMove(deltaX, deltaY);
         }
+        else if (_pendingGlobalScoreCellHitCandidate is not null)
+        {
+            HandlePendingGlobalScoreCellMove(deltaX, deltaY);
+        }
         else if (_isPendingEmptyClick)
         {
             _hasExceededClickThreshold |= FrontedDesignerInteractionHelper.ExceedsClickThreshold(deltaX, deltaY);
@@ -2059,6 +2220,38 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
     }
 
+    private void HandlePendingGlobalScoreCellMove(double deltaX, double deltaY)
+    {
+        if (_viewModel?.SelectedGlobalScoreCell is null || _pendingGlobalScoreCellHitCandidate is null)
+        {
+            return;
+        }
+
+        _hasExceededClickThreshold |= FrontedDesignerInteractionHelper.ExceedsClickThreshold(deltaX, deltaY);
+        var action = FrontedDesignerInteractionHelper.ResolvePointerAction(
+            _hasExceededClickThreshold,
+            true,
+            _hasStartedDrag);
+
+        if (action == FrontedDesignerPointerAction.BeginDragSelected)
+        {
+            _viewModel.CaptureUndoSnapshot();
+            _hasStartedDrag = true;
+            _interactionMode = InteractionMode.Drag;
+        }
+
+        if (action is FrontedDesignerPointerAction.BeginDragSelected or FrontedDesignerPointerAction.DragSelected)
+        {
+            _viewModel.MoveSelectedGlobalScoreCell(
+                _originalLeft,
+                _originalTop,
+                deltaX,
+                deltaY,
+                renderPreview: false);
+            UpdateSelectedInteractionVisuals();
+        }
+    }
+
     private void InteractionLayer_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
         if (_isPanningViewport)
@@ -2086,6 +2279,19 @@ public partial class FrontedDesignerWindow : FluentWindow
                 _viewModel?.CommitDesignItemGeometryEdit();
             }
         }
+        else if (_pendingGlobalScoreCellHitCandidate is not null)
+        {
+            if (!_hasExceededClickThreshold)
+            {
+                _viewModel?.SelectGlobalScoreCell(
+                    _pendingGlobalScoreCellHitCandidate.Parent,
+                    _pendingGlobalScoreCellHitCandidate.Cell);
+            }
+            else if (_hasStartedDrag)
+            {
+                _viewModel?.CommitDesignItemGeometryEdit();
+            }
+        }
         else if (_isPendingEmptyClick)
         {
             if (!_hasExceededClickThreshold)
@@ -2099,6 +2305,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
 
         ResetPointerInteraction();
+        ScheduleSelectedInteractionVisualRefresh();
         e.Handled = true;
     }
 
@@ -2221,6 +2428,13 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         if (handled)
         {
+            if (e.Key is Key.Left or Key.Right or Key.Up or Key.Down)
+            {
+                UpdateSelectedInteractionVisuals();
+                UpdateSelectedPreviewElement();
+                RenderSnapGuides();
+            }
+
             FocusDesignSurface();
             e.Handled = true;
         }
@@ -2237,9 +2451,18 @@ public partial class FrontedDesignerWindow : FluentWindow
         _viewModel?.CaptureUndoSnapshot();
         _interactionMode = mode;
         _startMousePosition = startMousePosition;
-        _originalLeft = item.Config.Left;
-        _originalTop = item.Config.Top;
+        _originalLeft = _viewModel?.SelectedGlobalScoreCell?.X ?? item.Config.Left;
+        _originalTop = _viewModel?.SelectedGlobalScoreCell?.Y ?? item.Config.Top;
         var bounds = ResolveItemBounds(item);
+        if (_viewModel?.SelectedGlobalScoreCell is { } selectedCell
+            && item.Config is GlobalScoreRowControlConfig)
+        {
+            bounds = new FrontedDesignerResolvedBounds(
+                item.Config.Left + selectedCell.X,
+                item.Config.Top + selectedCell.Y,
+                selectedCell.Width,
+                selectedCell.Height);
+        }
         if (item.Config is BorderedImageFrontedControlConfig imageConfig
             && _viewModel?.BorderedImageResizeTarget == FrontedDesignerResizeTarget.Image)
         {
@@ -2322,6 +2545,22 @@ public partial class FrontedDesignerWindow : FluentWindow
         element.CaptureMouse();
     }
 
+    private void BeginPendingGlobalScoreCellClick(
+        GlobalScoreCellHitTarget target,
+        Point startMousePosition,
+        FrameworkElement element)
+    {
+        ResetPointerInteraction();
+        _pendingGlobalScoreCellHitCandidate = target;
+        _startMousePosition = startMousePosition;
+        _originalLeft = target.Cell.X;
+        _originalTop = target.Cell.Y;
+        _originalWidth = target.Cell.Width;
+        _originalHeight = target.Cell.Height;
+        _capturedElement = element;
+        element.CaptureMouse();
+    }
+
     private void BeginPendingEmptyClick(Point startMousePosition)
     {
         ResetPointerInteraction();
@@ -2338,11 +2577,34 @@ public partial class FrontedDesignerWindow : FluentWindow
         _interactionMode = InteractionMode.None;
         _activeResizeHandle = null;
         _pendingHitCandidate = null;
+        _pendingGlobalScoreCellHitCandidate = null;
         _isPendingEmptyClick = false;
         _hasExceededClickThreshold = false;
         _hasStartedDrag = false;
         _isPanningViewport = false;
         _cursorBeforePan = null;
+    }
+
+    private void ScheduleSelectedInteractionVisualRefresh()
+    {
+        if (!_isLoaded || _viewModel?.SelectedDesignItem is null)
+        {
+            return;
+        }
+
+        Dispatcher.BeginInvoke(
+            new Action(() =>
+            {
+                if (!_isLoaded || _viewModel?.SelectedDesignItem is null)
+                {
+                    return;
+                }
+
+                UpdateSelectedPreviewElement();
+                UpdateSelectedInteractionVisuals();
+                RenderSnapGuides();
+            }),
+            DispatcherPriority.Loaded);
     }
 
     private void UpdatePreviewWorkspaceSize()
@@ -2368,6 +2630,15 @@ public partial class FrontedDesignerWindow : FluentWindow
             previewElement?.ActualWidth,
             previewElement?.ActualHeight);
     }
+
+    private static FrontedDesignerResolvedBounds ResolveGlobalScoreCellBounds(
+        FrontedControlDesignItem parent,
+        GlobalScoreCellConfig cell) =>
+        new(
+            parent.Config.Left + cell.X,
+            parent.Config.Top + cell.Y,
+            Math.Max(FrontedDesignerGeometryHelper.MinHitWidth, cell.Width),
+            Math.Max(FrontedDesignerGeometryHelper.MinHitHeight, cell.Height));
 
     private static FrontedDesignerResolvedBounds ResolveBorderedImageInnerBounds(
         BorderedImageFrontedControlConfig config,
@@ -2672,4 +2943,8 @@ public partial class FrontedDesignerWindow : FluentWindow
         Drag,
         Resize
     }
+
+    private sealed record GlobalScoreCellHitTarget(
+        FrontedControlDesignItem Parent,
+        GlobalScoreCellConfig Cell);
 }

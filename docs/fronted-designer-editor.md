@@ -357,6 +357,8 @@ Phase 8F 起，工具栏提供 Add Control 按钮和菜单添加控件，并按�
 
 `PickingBorderOverlay` 不应出现在普通 Add Control 列表中。它是跟随 pick 目标控件的 linked runtime overlay，承担 `AnimationService` 的独立命名目标职责，应由宿主控件或未来高级动作创建和维护，而不是作为普通控件直接添加、选中或编辑。
 
+`GlobalScoreRow` 是一个目的明确的复合控件，不应拆成一组无父级的顶层比分控件。编辑器中点击行主体会选中父级比分行，可移动或缩放整行；点击行内比分格 overlay 会选中该子格，同时父级仍作为当前顶层设计项。父级移动只修改 `GlobalScoreRow.Left/Top`，子格相对 `X/Y` 不变；子格移动或缩放只修改对应 `GlobalScoreCellConfig.X/Y/Width/Height`，并在合理范围内夹到父框内。子格属性面板显示 `Id`、`GameNumber`、`GameKind`、`HalfKind`、相对几何、`Visibility` 和样式覆盖项；字体、颜色、字号和 `ShowCampIcon` 留空表示继承父级。图层面板只显示顶层设计控件，`GlobalScoreRow.Cells` 不作为全局图层项。选中父行后，右侧属性面板显示专用 Score Cells 列表；点击列表项会选择对应内部比分格，但 `SelectedDesignItem` 仍保持父行。子格不能删除、复制、粘贴或拖入全局图层面板，也不能参与全局 ZIndex 拖拽、跨层投放或顶/底投放区。子格拖动、缩放和属性编辑都会进入 Designer undo/redo 栈，但这不是通用多选模型。
+
 用户选择控件后：
 
 1. 创建默认 config。

@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System;
 using System.Collections.Generic;
@@ -304,14 +305,30 @@ public class FrontedCanvasConfigTest
                 "Left": 175,
                 "Top": 93,
                 "TeamType": "HomeTeam",
-                "MajorGameGap": 180,
-                "HalfGameGap": 90,
                 "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
                 "FontWeight": "Bold",
                 "Color": "#FFFFFFFF",
                 "FontSize": 24,
                 "ShowCampIcon": true,
-                "ZIndex": 2
+                "ZIndex": 2,
+                "Cells": [
+                  {
+                    "Id": "Game1FirstHalf",
+                    "GameNumber": 1,
+                    "GameKind": "Normal",
+                    "HalfKind": "FirstHalf",
+                    "X": 0,
+                    "Y": 0,
+                    "Width": 75,
+                    "Height": 32,
+                    "Visibility": "Hidden",
+                    "FontFamily": "Arial",
+                    "FontWeight": "Normal",
+                    "Color": "#FF112233",
+                    "FontSize": 18,
+                    "ShowCampIcon": false
+                  }
+                ]
               }
             }
             """);
@@ -322,11 +339,22 @@ public class FrontedCanvasConfigTest
         Assert.Equal(175, row.Left);
         Assert.Equal(93, row.Top);
         Assert.Equal(neo_bpsys_wpf.Core.Enums.TeamType.HomeTeam, row.TeamType);
-        Assert.Equal(180, row.MajorGameGap);
-        Assert.Equal(90, row.HalfGameGap);
         Assert.Equal("Bold", row.FontWeight);
         Assert.Equal(24, row.FontSize);
         Assert.True(row.ShowCampIcon);
+        var cell = Assert.Single(row.Cells);
+        Assert.Equal("Game1FirstHalf", cell.Id);
+        Assert.Equal(1, cell.GameNumber);
+        Assert.Equal(ScoreGameKind.Normal, cell.GameKind);
+        Assert.Equal(ScoreHalfKind.FirstHalf, cell.HalfKind);
+        Assert.Equal(0, cell.X);
+        Assert.Equal(75, cell.Width);
+        Assert.Equal(FrontedControlVisibility.Hidden, cell.Visibility);
+        Assert.Equal("Arial", cell.FontFamily);
+        Assert.Equal("Normal", cell.FontWeight);
+        Assert.Equal("#FF112233", cell.Color);
+        Assert.Equal(18, cell.FontSize);
+        Assert.False(cell.ShowCampIcon);
     }
 
     [Fact]

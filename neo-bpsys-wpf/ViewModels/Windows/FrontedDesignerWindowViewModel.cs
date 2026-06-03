@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
+using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.FrontedDesigner;
@@ -91,6 +92,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private bool _scheduledPreviewRequested;
     private bool _clearRestoreVisualsAfterScheduledPreview;
     private FrontedControlDesignItem? _lastSelectedDesignItem;
+    private DesignerLayerNode? _selectedLayerNode;
     private CancellationTokenSource? _reloadLayoutCancellation;
     private int _reloadLayoutVersion;
     private double _lastPreviewViewportWidth;
@@ -212,6 +214,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public ObservableCollection<FrontedLayerGroup> LayerGroups { get; } = [];
 
+    public ObservableCollection<GlobalScoreCellConfig> GlobalScoreCellEditorItems { get; } = [];
+
+    public DesignerLayerNode? SelectedLayerNode
+    {
+        get => _selectedLayerNode;
+        private set => SetProperty(ref _selectedLayerNode, value);
+    }
+
     public ObservableCollection<FrontedPropertyEditorItem> PropertyEditorItems { get; } = [];
 
     public ObservableCollection<FrontedAddControlCatalogGroup> AddControlCatalogGroups { get; } = [];
@@ -314,6 +324,55 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public bool IsBorderedImageSelected => SelectedDesignItem?.Config is BorderedImageFrontedControlConfig;
 
+    private string? _selectedGlobalScoreCellParentName;
+    private string? _selectedGlobalScoreCellId;
+
+    public string? SelectedGlobalScoreCellParentName
+    {
+        get => _selectedGlobalScoreCellParentName;
+        private set
+        {
+            if (SetProperty(ref _selectedGlobalScoreCellParentName, value))
+            {
+                OnGlobalScoreCellSelectionChanged();
+            }
+        }
+    }
+
+    public string? SelectedGlobalScoreCellId
+    {
+        get => _selectedGlobalScoreCellId;
+        private set
+        {
+            if (SetProperty(ref _selectedGlobalScoreCellId, value))
+            {
+                OnGlobalScoreCellSelectionChanged();
+            }
+        }
+    }
+
+    public GlobalScoreCellConfig? SelectedGlobalScoreCell
+    {
+        get => TryGetSelectedGlobalScoreCell(out _, out _, out var cell) ? cell : null;
+        set
+        {
+            if (value is null)
+            {
+                ClearSelectedGlobalScoreCell();
+                return;
+            }
+
+            if (SelectedDesignItem is not null)
+            {
+                SelectGlobalScoreCell(SelectedDesignItem, value);
+            }
+        }
+    }
+
+    public bool HasSelectedGlobalScoreCell => SelectedGlobalScoreCell is not null;
+
+    public bool HasGlobalScoreCellEditor => SelectedDesignItem?.Config is GlobalScoreRowControlConfig;
+
     private FrontedDesignerResizeTarget _borderedImageResizeTarget = FrontedDesignerResizeTarget.Border;
 
     public FrontedDesignerResizeTarget BorderedImageResizeTarget
@@ -354,9 +413,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     public bool CanDeleteSelectedControl =>
-        SelectedDesignItem is { IsSelectableInEditor: true, IsEditableInEditor: true };
+        !HasSelectedGlobalScoreCell
+        && SelectedDesignItem is { IsSelectableInEditor: true, IsEditableInEditor: true };
 
-    public bool CanCopySelectedControl => CanCopyControl(SelectedDesignItem);
+    public bool CanCopySelectedControl => !HasSelectedGlobalScoreCell && CanCopyControl(SelectedDesignItem);
 
     public bool CanPasteControl => CurrentDocument is not null && _copiedControl is not null;
 
@@ -538,6 +598,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ClearActiveSnapGuides();
         _propertyEditErrors.Clear();
         _propertyEditBuffers.Clear();
+        ClearSelectedGlobalScoreCell();
         if (_lastSelectedDesignItem is not null && !ReferenceEquals(_lastSelectedDesignItem, value))
         {
             _lastSelectedDesignItem.IsSelected = false;
@@ -551,12 +612,46 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _lastSelectedDesignItem = value;
 
         RefreshSelectedControlDisplay();
+        RebuildGlobalScoreCellEditorItems();
         RebuildPropertyEditorItems();
+        RefreshLayerNodeSelection();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
         CopySelectedControlCommand.NotifyCanExecuteChanged();
         OnPropertyChanged(nameof(IsBorderedImageSelected));
         OnPropertyChanged(nameof(IsBorderResizeTargetSelected));
         OnPropertyChanged(nameof(IsImageResizeTargetSelected));
+        OnPropertyChanged(nameof(HasGlobalScoreCellEditor));
+    }
+
+    private void OnGlobalScoreCellSelectionChanged()
+    {
+        if (SelectedGlobalScoreCellParentName is not null
+            && SelectedDesignItem is not null
+            && !string.Equals(SelectedDesignItem.Name, SelectedGlobalScoreCellParentName, StringComparison.Ordinal))
+        {
+            var parent = CurrentDocument?.Controls.FirstOrDefault(control =>
+                string.Equals(control.Name, SelectedGlobalScoreCellParentName, StringComparison.Ordinal));
+            if (parent is not null)
+            {
+                SelectedDesignItem = parent;
+            }
+        }
+
+        if (SelectedGlobalScoreCellParentName is not null
+            && !TryGetSelectedGlobalScoreCell(out _, out _, out _))
+        {
+            ClearSelectedGlobalScoreCell(notify: false);
+        }
+
+        _propertyEditErrors.Clear();
+        _propertyEditBuffers.Clear();
+        OnPropertyChanged(nameof(SelectedGlobalScoreCell));
+        OnPropertyChanged(nameof(HasSelectedGlobalScoreCell));
+        RefreshSelectedControlDisplay();
+        RebuildPropertyEditorItems();
+        RefreshLayerNodeSelection();
+        DeleteSelectedControlCommand.NotifyCanExecuteChanged();
+        CopySelectedControlCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnControlFilterTextChanged(string value)
@@ -1157,6 +1252,118 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private void FillMissingGlobalScoreCells()
+    {
+        if (CurrentDocument is null || SelectedDesignItem?.Config is not GlobalScoreRowControlConfig row)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+        GlobalScoreRowCellLayoutHelper.EnsureCompleteCells(row, CurrentDocument.EditingBoModeState == FrontedCanvasBoModeState.Bo3);
+        FinishGlobalScoreRowAction();
+    }
+
+    [RelayCommand]
+    private void AutoArrangeGlobalScoreCellsBySpacing()
+    {
+        if (CurrentDocument is null || SelectedDesignItem?.Config is not GlobalScoreRowControlConfig row)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+        GlobalScoreRowCellLayoutHelper.AutoArrangeBySpacing(
+            row,
+            CurrentDocument.EditingBoModeState == FrontedCanvasBoModeState.Bo3);
+        FinishGlobalScoreRowAction();
+    }
+
+    [RelayCommand]
+    private void ApplyBo3GlobalScoreVisibilityTemplate()
+    {
+        if (CurrentDocument is null || SelectedDesignItem?.Config is not GlobalScoreRowControlConfig row)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+        GlobalScoreRowCellLayoutHelper.ApplyBo3VisibilityTemplate(row);
+        FinishGlobalScoreRowAction();
+    }
+
+    [RelayCommand]
+    private void ApplyBo5GlobalScoreVisibilityTemplate()
+    {
+        if (CurrentDocument is null || SelectedDesignItem?.Config is not GlobalScoreRowControlConfig row)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+        GlobalScoreRowCellLayoutHelper.ApplyBo5VisibilityTemplate(row);
+        FinishGlobalScoreRowAction();
+    }
+
+    [RelayCommand]
+    private void ApplyParentStyleToGlobalScoreCells()
+    {
+        if (CurrentDocument is null || SelectedDesignItem?.Config is not GlobalScoreRowControlConfig row)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+        GlobalScoreRowCellLayoutHelper.EnsureCompleteCells(row, CurrentDocument.EditingBoModeState == FrontedCanvasBoModeState.Bo3);
+        foreach (var cell in row.Cells)
+        {
+            cell.FontFamily = row.FontFamily;
+            cell.FontWeight = row.FontWeight;
+            cell.Color = row.Color;
+            cell.FontSize = row.FontSize;
+            cell.ShowCampIcon = row.ShowCampIcon;
+        }
+
+        FinishGlobalScoreRowAction();
+    }
+
+    [RelayCommand]
+    private void ClearGlobalScoreCellStyleOverrides()
+    {
+        if (CurrentDocument is null || SelectedDesignItem?.Config is not GlobalScoreRowControlConfig row)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+        foreach (var cell in row.Cells)
+        {
+            cell.FontFamily = null;
+            cell.FontWeight = null;
+            cell.Color = null;
+            cell.FontSize = null;
+            cell.ShowCampIcon = null;
+        }
+
+        FinishGlobalScoreRowAction();
+    }
+
+    private void FinishGlobalScoreRowAction()
+    {
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        CurrentDocument.IsDirty = true;
+        RebuildGlobalScoreCellEditorItems();
+        RefreshGlobalScoreCellSelection();
+        RebuildPropertyEditorItems();
+        RefreshDirtyState();
+        RequestPreviewRenderCurrentDocument();
+    }
+
+    [RelayCommand]
     private void ApplyCanvasSize()
     {
         ApplyCanvasSizeEdit(CanvasWidthEditText, CanvasHeightEditText);
@@ -1373,11 +1580,157 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         SelectedDesignItem = item;
+        ClearSelectedGlobalScoreCell();
+    }
+
+    public void SelectGlobalScoreCell(FrontedControlDesignItem parent, GlobalScoreCellConfig? cell)
+    {
+        if (parent.Config is not GlobalScoreRowControlConfig row || cell is not null && !row.Cells.Contains(cell))
+        {
+            return;
+        }
+
+        if (!ReferenceEquals(SelectedDesignItem, parent))
+        {
+            SelectedDesignItem = parent;
+        }
+
+        if (cell is null)
+        {
+            ClearSelectedGlobalScoreCell();
+            return;
+        }
+
+        RestoreGlobalScoreCellSelectionKeys(parent.Name, cell.Id);
+        OnGlobalScoreCellSelectionChanged();
+    }
+
+    public void SelectLayerNode(DesignerLayerNode? node)
+    {
+        if (node is null || !node.CanSelect)
+        {
+            ClearSelection();
+            return;
+        }
+
+        SelectDesignItem(node.ControlItem);
+    }
+
+    public void ToggleLayerNodeExpansion(DesignerLayerNode node)
+    {
     }
 
     public void ClearSelection()
     {
+        ClearSelectedGlobalScoreCell();
         SelectDesignItem(null);
+    }
+
+    public bool TryGetSelectedGlobalScoreCell(
+        out FrontedControlDesignItem parentItem,
+        out GlobalScoreRowControlConfig row,
+        out GlobalScoreCellConfig cell)
+    {
+        parentItem = null!;
+        row = null!;
+        cell = null!;
+
+        if (CurrentDocument is null
+            || string.IsNullOrWhiteSpace(SelectedGlobalScoreCellParentName)
+            || string.IsNullOrWhiteSpace(SelectedGlobalScoreCellId))
+        {
+            return false;
+        }
+
+        parentItem = CurrentDocument.Controls.FirstOrDefault(item =>
+            string.Equals(item.Name, SelectedGlobalScoreCellParentName, StringComparison.Ordinal))!;
+        if (parentItem?.Config is not GlobalScoreRowControlConfig resolvedRow)
+        {
+            return false;
+        }
+
+        var resolvedCell = resolvedRow.Cells.FirstOrDefault(candidate =>
+            string.Equals(candidate.Id, SelectedGlobalScoreCellId, StringComparison.Ordinal));
+        if (resolvedCell is null)
+        {
+            return false;
+        }
+
+        row = resolvedRow;
+        cell = resolvedCell;
+        return true;
+    }
+
+    public void ClearSelectedGlobalScoreCell(bool notify = true)
+    {
+        var hadSelection = SelectedGlobalScoreCellParentName is not null || SelectedGlobalScoreCellId is not null;
+        _selectedGlobalScoreCellParentName = null;
+        _selectedGlobalScoreCellId = null;
+        if (!notify || !hadSelection)
+        {
+            if (notify)
+            {
+                OnPropertyChanged(nameof(SelectedGlobalScoreCell));
+                OnPropertyChanged(nameof(HasSelectedGlobalScoreCell));
+            }
+
+            return;
+        }
+
+        OnPropertyChanged(nameof(SelectedGlobalScoreCellParentName));
+        OnPropertyChanged(nameof(SelectedGlobalScoreCellId));
+        OnGlobalScoreCellSelectionChanged();
+    }
+
+    private void RebuildGlobalScoreCellEditorItems()
+    {
+        GlobalScoreCellEditorItems.Clear();
+        if (SelectedDesignItem?.Config is not GlobalScoreRowControlConfig row)
+        {
+            return;
+        }
+
+        GlobalScoreRowCellLayoutHelper.EnsureCompleteCells(
+            row,
+            CurrentDocument?.EditingBoModeState == FrontedCanvasBoModeState.Bo3);
+        foreach (var cell in row.Cells)
+        {
+            GlobalScoreCellEditorItems.Add(cell);
+        }
+    }
+
+    private void RefreshGlobalScoreCellSelection()
+    {
+        if (SelectedGlobalScoreCellParentName is null && SelectedGlobalScoreCellId is null)
+        {
+            return;
+        }
+
+        if (!TryGetSelectedGlobalScoreCell(out var parent, out _, out _))
+        {
+            ClearSelectedGlobalScoreCell();
+            return;
+        }
+
+        if (!ReferenceEquals(SelectedDesignItem, parent))
+        {
+            SelectedDesignItem = parent;
+        }
+        else
+        {
+            OnPropertyChanged(nameof(SelectedGlobalScoreCell));
+            OnPropertyChanged(nameof(HasSelectedGlobalScoreCell));
+        }
+    }
+
+    private void RestoreGlobalScoreCellSelectionKeys(string? parentName, string? cellId)
+    {
+        _selectedGlobalScoreCellParentName = parentName;
+        _selectedGlobalScoreCellId = cellId;
+        OnPropertyChanged(nameof(SelectedGlobalScoreCellParentName));
+        OnPropertyChanged(nameof(SelectedGlobalScoreCellId));
+        OnPropertyChanged(nameof(SelectedGlobalScoreCell));
+        OnPropertyChanged(nameof(HasSelectedGlobalScoreCell));
     }
 
     public void MoveSelectedDesignItem(
@@ -1389,6 +1742,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (CurrentDocument is null || SelectedDesignItem is null || IsRebuildingPropertyGrid)
         {
+            return;
+        }
+
+        if (HasSelectedGlobalScoreCell)
+        {
+            MoveSelectedGlobalScoreCell(originalLeft, originalTop, deltaX, deltaY, renderPreview);
             return;
         }
 
@@ -1423,6 +1782,17 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         CaptureUndoSnapshot();
         ClearActiveSnapGuides();
+        if (TryGetSelectedGlobalScoreCell(out _, out _, out var selectedCell))
+        {
+            MoveSelectedGlobalScoreCell(
+                selectedCell.X,
+                selectedCell.Y,
+                deltaX,
+                deltaY,
+                renderPreview: true);
+            return;
+        }
+
         FrontedDesignerGeometryHelper.MoveBy(
             SelectedDesignItem,
             deltaX,
@@ -1430,8 +1800,17 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             CurrentDocument,
             EffectiveSnapEnabled,
             SnapGridSize);
-        SyncLinkedOverlays(SelectedDesignItem);
-        OnDesignItemGeometryChanged(renderPreview: true);
+        var changedItems = new List<FrontedControlDesignItem> { SelectedDesignItem };
+        foreach (var linkedOverlay in SyncLinkedOverlays(SelectedDesignItem))
+        {
+            if (!changedItems.Contains(linkedOverlay))
+            {
+                changedItems.Add(linkedOverlay);
+            }
+        }
+
+        OnDesignItemGeometryChanged(renderPreview: false);
+        RequestDesignerGeometryPatch(changedItems, updateSelection: true);
     }
 
     public void ResizeSelectedDesignItem(
@@ -1446,6 +1825,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     {
         if (CurrentDocument is null || SelectedDesignItem is null)
         {
+            return;
+        }
+
+        if (HasSelectedGlobalScoreCell)
+        {
+            ResizeSelectedGlobalScoreCell(
+                handle,
+                originalLeft,
+                originalTop,
+                originalWidth,
+                originalHeight,
+                deltaX,
+                deltaY,
+                renderPreview);
             return;
         }
 
@@ -1487,6 +1880,120 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ActiveSnapGuides = EffectiveSnapEnabled ? result.Guides : [];
         SyncLinkedOverlays(SelectedDesignItem);
         OnDesignItemGeometryChanged(renderPreview);
+    }
+
+    public void MoveSelectedGlobalScoreCell(
+        double originalX,
+        double originalY,
+        double deltaX,
+        double deltaY,
+        bool renderPreview)
+    {
+        if (CurrentDocument is null
+            || !TryGetSelectedGlobalScoreCell(out var parentItem, out var row, out var cell))
+        {
+            return;
+        }
+
+        var x = FrontedDesignerGeometryHelper.Snap(originalX + deltaX);
+        var y = FrontedDesignerGeometryHelper.Snap(originalY + deltaY);
+        var maxX = Math.Max(0D, (row.Width ?? double.PositiveInfinity) - Math.Max(cell.Width, 0D));
+        var maxY = Math.Max(0D, (row.Height ?? double.PositiveInfinity) - Math.Max(cell.Height, 0D));
+        cell.X = double.IsInfinity(maxX) ? x : Math.Clamp(x, 0D, maxX);
+        cell.Y = double.IsInfinity(maxY) ? y : Math.Clamp(y, 0D, maxY);
+        CurrentDocument.IsDirty = true;
+        SelectedDesignItem = parentItem;
+        OnDesignItemGeometryChanged(renderPreview);
+    }
+
+    public void ResizeSelectedGlobalScoreCell(
+        FrontedDesignerResizeHandleKind handle,
+        double originalX,
+        double originalY,
+        double originalWidth,
+        double originalHeight,
+        double deltaX,
+        double deltaY,
+        bool renderPreview)
+    {
+        if (CurrentDocument is null
+            || !TryGetSelectedGlobalScoreCell(out var parentItem, out var row, out var cell))
+        {
+            return;
+        }
+
+        var left = originalX;
+        var top = originalY;
+        var width = originalWidth;
+        var height = originalHeight;
+
+        if (handle is FrontedDesignerResizeHandleKind.Left
+            or FrontedDesignerResizeHandleKind.TopLeft
+            or FrontedDesignerResizeHandleKind.BottomLeft)
+        {
+            left = originalX + deltaX;
+            width = originalWidth - deltaX;
+        }
+        else if (handle is FrontedDesignerResizeHandleKind.Right
+                 or FrontedDesignerResizeHandleKind.TopRight
+                 or FrontedDesignerResizeHandleKind.BottomRight)
+        {
+            width = originalWidth + deltaX;
+        }
+
+        if (handle is FrontedDesignerResizeHandleKind.Top
+            or FrontedDesignerResizeHandleKind.TopLeft
+            or FrontedDesignerResizeHandleKind.TopRight)
+        {
+            top = originalY + deltaY;
+            height = originalHeight - deltaY;
+        }
+        else if (handle is FrontedDesignerResizeHandleKind.Bottom
+                 or FrontedDesignerResizeHandleKind.BottomLeft
+                 or FrontedDesignerResizeHandleKind.BottomRight)
+        {
+            height = originalHeight + deltaY;
+        }
+
+        width = Math.Max(FrontedDesignerGeometryHelper.MinResizeWidth, FrontedDesignerGeometryHelper.Snap(width));
+        height = Math.Max(FrontedDesignerGeometryHelper.MinResizeHeight, FrontedDesignerGeometryHelper.Snap(height));
+        left = FrontedDesignerGeometryHelper.Snap(left);
+        top = FrontedDesignerGeometryHelper.Snap(top);
+
+        var maxX = Math.Max(0D, row.Width ?? left + width);
+        var maxY = Math.Max(0D, row.Height ?? top + height);
+        cell.X = Math.Clamp(left, 0D, Math.Max(0D, maxX - width));
+        cell.Y = Math.Clamp(top, 0D, Math.Max(0D, maxY - height));
+        cell.Width = Math.Min(width, maxX);
+        cell.Height = Math.Min(height, maxY);
+        CurrentDocument.IsDirty = true;
+        SelectedDesignItem = parentItem;
+        OnDesignItemGeometryChanged(renderPreview);
+    }
+
+    private void ClampSelectedGlobalScoreCell()
+    {
+        if (!TryGetSelectedGlobalScoreCell(out _, out var row, out var cell))
+        {
+            return;
+        }
+
+        cell.Width = Math.Max(FrontedDesignerGeometryHelper.MinResizeWidth, FrontedDesignerGeometryHelper.Snap(cell.Width));
+        cell.Height = Math.Max(FrontedDesignerGeometryHelper.MinResizeHeight, FrontedDesignerGeometryHelper.Snap(cell.Height));
+        cell.X = FrontedDesignerGeometryHelper.Snap(cell.X);
+        cell.Y = FrontedDesignerGeometryHelper.Snap(cell.Y);
+
+        if (row.Width.HasValue)
+        {
+            cell.Width = Math.Min(cell.Width, row.Width.Value);
+            cell.X = Math.Clamp(cell.X, 0D, Math.Max(0D, row.Width.Value - cell.Width));
+        }
+
+        if (row.Height.HasValue)
+        {
+            cell.Height = Math.Min(cell.Height, row.Height.Value);
+            cell.Y = Math.Clamp(cell.Y, 0D, Math.Max(0D, row.Height.Value - cell.Height));
+        }
     }
 
     public void ClearActiveSnapGuides()
@@ -1661,6 +2168,32 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         return true;
     }
 
+    public bool CommitLayerNodeDrop(
+        DesignerLayerNode sourceNode,
+        int? targetZIndex,
+        DesignerLayerNode? targetNode,
+        bool insertAfter,
+        bool moveToNewTopLayer = false,
+        bool moveToNewBottomLayer = false)
+    {
+        if (sourceNode.Kind != DesignerLayerNodeKind.Control
+            || !sourceNode.CanReorder
+            || sourceNode.ControlItem is null
+            || targetNode is not null && (targetNode.Kind != DesignerLayerNodeKind.Control || targetNode.ControlItem is null))
+        {
+            StatusMessage = I18nHelper.GetLocalizedString("Designer.LayerPanel.ReorderBlocked");
+            return false;
+        }
+
+        return CommitLayerDrop(
+            sourceNode.ControlItem,
+            targetZIndex,
+            targetNode?.ControlItem,
+            insertAfter,
+            moveToNewTopLayer,
+            moveToNewBottomLayer);
+    }
+
     public void CaptureUndoSnapshot()
     {
         var snapshot = CreateSnapshot();
@@ -1752,6 +2285,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return ApplyNameEdit(item, newValue);
         }
 
+        if (HasSelectedGlobalScoreCell)
+        {
+            return ApplyGlobalScoreCellPropertyEdit(item, newValue);
+        }
+
         var property = SelectedDesignItem.Config.GetType().GetProperty(
             item.PropertyName,
             BindingFlags.Instance | BindingFlags.Public);
@@ -1793,6 +2331,52 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             StatusMessage = I18nHelper.GetLocalizedString("InputTruncated");
         }
 
+        return true;
+    }
+
+    private bool ApplyGlobalScoreCellPropertyEdit(FrontedPropertyEditorItem item, object? newValue)
+    {
+        if (CurrentDocument is null || !TryGetSelectedGlobalScoreCell(out _, out _, out var cell))
+        {
+            return false;
+        }
+
+        var property = typeof(GlobalScoreCellConfig).GetProperty(
+            item.PropertyName,
+            BindingFlags.Instance | BindingFlags.Public);
+        if (property is null || !property.CanWrite)
+        {
+            return false;
+        }
+
+        if (!TryConvertPropertyValue(property, newValue, out var convertedValue, out var errorMessage))
+        {
+            SetPropertyEditError(item, errorMessage, newValue);
+            return false;
+        }
+
+        var oldValue = property.GetValue(cell);
+        if (ValuesEqual(oldValue, convertedValue))
+        {
+            item.Value = convertedValue;
+            item.EditText = Convert.ToString(convertedValue, CultureInfo.InvariantCulture) ?? string.Empty;
+            return true;
+        }
+
+        CaptureUndoSnapshot();
+        property.SetValue(cell, convertedValue);
+        if (item.PropertyName == nameof(GlobalScoreCellConfig.Id))
+        {
+            RestoreGlobalScoreCellSelectionKeys(
+                SelectedDesignItem?.Name,
+                Convert.ToString(convertedValue, CultureInfo.InvariantCulture));
+            RebuildGlobalScoreCellEditorItems();
+        }
+        ClampSelectedGlobalScoreCell();
+        item.Value = convertedValue;
+        item.EditText = Convert.ToString(convertedValue, CultureInfo.InvariantCulture) ?? string.Empty;
+        CurrentDocument.IsDirty = true;
+        FinishPropertyEdit(item.PropertyName);
         return true;
     }
 
@@ -2075,12 +2659,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 return;
             }
 
-            var rows = _propertyGridBuilder.Build(
-                CurrentDocument,
-                SelectedDesignItem,
-                _validator,
-                _referenceScanner,
-                _runtimeContracts);
+            var rows = TryGetSelectedGlobalScoreCell(out _, out _, out var selectedCell)
+                ? BuildGlobalScoreCellPropertyRows(selectedCell)
+                : _propertyGridBuilder.Build(
+                    CurrentDocument,
+                    SelectedDesignItem,
+                    _validator,
+                    _referenceScanner,
+                    _runtimeContracts);
 
             foreach (var row in rows)
             {
@@ -2506,6 +3092,30 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
     }
 
+    private void RequestDesignerGeometryPatch(
+        IReadOnlyList<FrontedControlDesignItem> changedItems,
+        bool updateSelection)
+    {
+        if (changedItems.Count == 0)
+        {
+            return;
+        }
+
+        var args = new FrontedDesignerGeometryPatchRequestedEventArgs(
+            changedItems,
+            rebuildLayerPanel: false,
+            rebuildInteractionLayer: false,
+            updateSelection,
+            zIndexChanged: false);
+        DesignerGeometryPatchRequested?.Invoke(this, args);
+
+        if (!args.Applied)
+        {
+            ValidateCurrentDocument();
+            RequestPreviewRenderCurrentDocument();
+        }
+    }
+
     private void RefreshDirtyState()
     {
         DirtyIndicatorText = CurrentDocument?.IsDirty == true
@@ -2684,12 +3294,55 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
             foreach (var item in group.OrderBy(item => CurrentDocument?.Controls.IndexOf(item) ?? 0))
             {
-                layerGroup.Items.Add(item);
+                layerGroup.Items.Add(CreateControlLayerNode(item));
             }
 
             LayerGroups.Add(layerGroup);
         }
+
+        RefreshLayerNodeSelection();
     }
+
+    private DesignerLayerNode CreateControlLayerNode(FrontedControlDesignItem item)
+    {
+        return new DesignerLayerNode
+        {
+            Kind = DesignerLayerNodeKind.Control,
+            ControlItem = item,
+            CanSelect = item.IsSelectableInEditor,
+            CanReorder = IsLayerReorderable(item),
+            DisplayName = item.Name,
+            Metadata = _localizationService.GetControlTypeDisplayName(item.Config.ControlType),
+            ZIndex = item.Config.ZIndex
+        };
+    }
+
+    private void RefreshLayerNodeSelection()
+    {
+        DesignerLayerNode? selectedNode = null;
+        foreach (var node in LayerGroups.SelectMany(group => group.Items))
+        {
+            var isSelected = IsSelectedLayerNode(node);
+            node.IsSelected = isSelected;
+            if (isSelected)
+            {
+                selectedNode = node;
+            }
+        }
+
+        SelectedLayerNode = selectedNode;
+    }
+
+    private bool IsSelectedLayerNode(DesignerLayerNode node)
+    {
+        return node.Kind switch
+        {
+            DesignerLayerNodeKind.Control => ReferenceEquals(node.ControlItem, SelectedDesignItem),
+            _ => false
+        };
+    }
+
+    private static string GetLayerNodeExpansionKey(FrontedControlDesignItem item) => item.Name;
 
     private int GetFilteredInsertIndex(FrontedControlDesignItem item)
     {
@@ -2747,7 +3400,106 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 _lastSelectedDesignItem = control;
             }
         }
+
+        RebuildGlobalScoreCellEditorItems();
+        RefreshGlobalScoreCellSelection();
     }
+
+    private ObservableCollection<FrontedPropertyEditorItem> BuildGlobalScoreCellPropertyRows(GlobalScoreCellConfig cell)
+    {
+        var rows = new List<FrontedPropertyEditorItem>
+        {
+            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.Id), typeof(string), FrontedPropertyEditorKind.Text, cell.Id, "Identity"),
+            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.GameNumber), typeof(int), FrontedPropertyEditorKind.Number, cell.GameNumber, "ControlSpecific"),
+            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.GameKind), typeof(ScoreGameKind), FrontedPropertyEditorKind.Enum, cell.GameKind, "ControlSpecific"),
+            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.HalfKind), typeof(ScoreHalfKind), FrontedPropertyEditorKind.Enum, cell.HalfKind, "ControlSpecific"),
+            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.X), typeof(double), FrontedPropertyEditorKind.Number, cell.X, "Layout"),
+            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.Y), typeof(double), FrontedPropertyEditorKind.Number, cell.Y, "Layout"),
+            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.Width), typeof(double), FrontedPropertyEditorKind.Number, cell.Width, "Layout"),
+            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.Height), typeof(double), FrontedPropertyEditorKind.Number, cell.Height, "Layout"),
+            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.Visibility), typeof(FrontedControlVisibility), FrontedPropertyEditorKind.Enum, cell.Visibility, "Layout"),
+            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.FontFamily), typeof(string), FrontedPropertyEditorKind.FontFamily, cell.FontFamily, "Appearance"),
+            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.FontWeight), typeof(string), FrontedPropertyEditorKind.Enum, cell.FontWeight, "Appearance", new object[] { "Normal", "Bold", "SemiBold", "Light", "Medium", "ExtraBold" }),
+            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.Color), typeof(string), FrontedPropertyEditorKind.Color, cell.Color, "Appearance"),
+            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.FontSize), typeof(double?), FrontedPropertyEditorKind.Number, cell.FontSize, "Appearance"),
+            CreateCellPropertyRow(nameof(GlobalScoreCellConfig.ShowCampIcon), typeof(bool?), FrontedPropertyEditorKind.Boolean, cell.ShowCampIcon, "Appearance")
+        };
+
+        string? currentGroup = null;
+        foreach (var row in rows)
+        {
+            row.Description = row.PropertyName is nameof(GlobalScoreCellConfig.FontFamily)
+                or nameof(GlobalScoreCellConfig.FontWeight)
+                or nameof(GlobalScoreCellConfig.Color)
+                or nameof(GlobalScoreCellConfig.FontSize)
+                or nameof(GlobalScoreCellConfig.ShowCampIcon)
+                ? I18nHelper.GetLocalizedString("Designer.GlobalScoreRow.CellInheritsFromParent")
+                : row.Description;
+            row.IsGroupHeaderVisible = row.GroupName != currentGroup;
+            row.GroupDisplayName = _localizationService.GetGroupDisplayName(row.GroupName ?? string.Empty);
+            currentGroup = row.GroupName;
+        }
+
+        return new ObservableCollection<FrontedPropertyEditorItem>(rows);
+    }
+
+    private FrontedPropertyEditorItem CreateCellPropertyRow(
+        string propertyName,
+        Type propertyType,
+        FrontedPropertyEditorKind editorKind,
+        object? value,
+        string groupName,
+        IReadOnlyList<object>? stringOptions = null)
+    {
+        var row = new FrontedPropertyEditorItem
+        {
+            DisplayName = _localizationService.GetPropertyDisplayName(GetGlobalScoreCellPropertyDisplayKey(propertyName)),
+            PropertyName = propertyName,
+            PropertyType = propertyType,
+            EditorKind = editorKind,
+            Value = value,
+            DisplayValue = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty,
+            EditText = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty,
+            GroupName = groupName,
+            IsRequired = propertyName is nameof(GlobalScoreCellConfig.Id)
+                or nameof(GlobalScoreCellConfig.GameNumber)
+                or nameof(GlobalScoreCellConfig.X)
+                or nameof(GlobalScoreCellConfig.Y)
+                or nameof(GlobalScoreCellConfig.Width)
+                or nameof(GlobalScoreCellConfig.Height)
+        };
+
+        if (editorKind == FrontedPropertyEditorKind.Enum)
+        {
+            row.Options = stringOptions is not null
+                ? stringOptions.Select(value => new FrontedPropertyEditorOption
+                {
+                    Value = value,
+                    DisplayName = _localizationService.GetOptionDisplayName(propertyName, value)
+                }).Cast<object>().ToArray()
+                : Enum.GetValues(Nullable.GetUnderlyingType(propertyType) ?? propertyType)
+                    .Cast<object>()
+                    .Select(value => new FrontedPropertyEditorOption
+                    {
+                        Value = value,
+                        DisplayName = _localizationService.GetOptionDisplayName(propertyName, value)
+                    })
+                    .Cast<object>()
+                    .ToArray();
+        }
+
+        return row;
+    }
+
+    private static string GetGlobalScoreCellPropertyDisplayKey(string propertyName) =>
+        propertyName switch
+        {
+            nameof(GlobalScoreCellConfig.Id) => "CellId",
+            nameof(GlobalScoreCellConfig.X) => "CellX",
+            nameof(GlobalScoreCellConfig.Y) => "CellY",
+            nameof(GlobalScoreCellConfig.ShowCampIcon) => "ShowCampIconOverride",
+            _ => propertyName
+        };
 
     private Stopwatch? StartDesignerPerfTrace()
     {
@@ -2810,6 +3562,18 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         var config = SelectedDesignItem.Config;
+        if (TryGetSelectedGlobalScoreCell(out _, out _, out var cell))
+        {
+            SelectedControlDisplay = $"{SelectedDesignItem.Name} / {cell.Id}";
+            SelectedControlTypeDisplay = I18nHelper.GetLocalizedString("Designer.GlobalScoreRow.SelectedCell");
+            SelectedControlGeometryDisplay =
+                $"X {cell.X:0.##}  Y {cell.Y:0.##}  "
+                + $"W {cell.Width:0.##}  H {cell.Height:0.##}";
+            SelectedControlRuntimeCriticalDisplay = string.Empty;
+            SelectedControlValidationMessageCount = SelectedDesignItem.ValidationMessages.Count;
+            return;
+        }
+
         SelectedControlDisplay = SelectedDesignItem.Name;
         SelectedControlTypeDisplay = _localizationService.GetControlTypeDisplayName(config.ControlType);
         SelectedControlGeometryDisplay =
@@ -2930,6 +3694,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var total = StartDesignerPerfTrace();
         var selectedName = SelectedDesignItem?.Name;
+        var selectedCellParentName = SelectedGlobalScoreCellParentName;
+        var selectedCellId = SelectedGlobalScoreCellId;
         var windowTypeName = CurrentDocument.WindowTypeName;
         var canvasName = CurrentDocument.CanvasName;
         var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(snapshot);
@@ -2960,6 +3726,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             CurrentDocument = document;
             SelectDesignItem(document.Controls.FirstOrDefault(control =>
                 string.Equals(control.Name, selectedName, StringComparison.Ordinal)));
+            RestoreGlobalScoreCellSelectionKeys(selectedCellParentName, selectedCellId);
             NormalizeSelectionState();
 
             switch (mode)
@@ -3033,6 +3800,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var currentItemsByName = CurrentDocument.Controls.ToDictionary(item => item.Name, StringComparer.Ordinal);
         var selectedName = SelectedDesignItem?.Name;
+        var selectedCellParentName = SelectedGlobalScoreCellParentName;
+        var selectedCellId = SelectedGlobalScoreCellId;
         var changedItems = new List<FrontedControlDesignItem>();
         var restoreAppliedToPreview = false;
         var shouldKeepRestoreSuppression = false;
@@ -3074,6 +3843,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             if (!ReferenceEquals(SelectedDesignItem, selectedItem))
             {
                 SelectDesignItem(selectedItem);
+                RestoreGlobalScoreCellSelectionKeys(selectedCellParentName, selectedCellId);
             }
             else
             {
@@ -3507,6 +4277,17 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         var text = Convert.ToString(value, CultureInfo.InvariantCulture);
 
         if (Nullable.GetUnderlyingType(property.PropertyType) is not null
+            && string.IsNullOrWhiteSpace(text))
+        {
+            convertedValue = null;
+            return true;
+        }
+
+        if (property.DeclaringType == typeof(GlobalScoreCellConfig)
+            && property.PropertyType == typeof(string)
+            && property.Name is nameof(GlobalScoreCellConfig.FontFamily)
+                or nameof(GlobalScoreCellConfig.FontWeight)
+                or nameof(GlobalScoreCellConfig.Color)
             && string.IsNullOrWhiteSpace(text))
         {
             convertedValue = null;

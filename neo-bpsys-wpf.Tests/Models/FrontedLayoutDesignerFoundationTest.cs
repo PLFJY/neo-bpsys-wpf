@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
+using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Services.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.Windows;
@@ -342,6 +343,67 @@ public class FrontedLayoutDesignerFoundationTest
         var messages = validator.Validate("BpWindow", "BaseCanvas", config);
 
         Assert.DoesNotContain(messages, message => message.Severity == FrontedLayoutValidationSeverity.Error);
+    }
+
+    [Fact]
+    public void BuiltInScoreGlobalLayoutUsesGlobalScoreRowCells()
+    {
+        var config = ReadBuiltInLayout("ScoreGlobalWindow");
+        var json = File.ReadAllText(Path.GetFullPath(Path.Combine(
+            Environment.CurrentDirectory,
+            "..",
+            "..",
+            "..",
+            "..",
+            "neo-bpsys-wpf",
+            "Resources",
+            "FrontedLayouts",
+            "ScoreGlobalWindow",
+            "BaseCanvas.json")));
+
+        var home = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["HomeGlobalScoreRow"]);
+        var away = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["AwayGlobalScoreRow"]);
+        Assert.Equal(14, home.Cells.Count);
+        Assert.Equal(14, away.Cells.Count);
+        Assert.Contains(home.Cells, cell => cell is
+        {
+            Id: "Game5OvertimeSecondHalf",
+            GameNumber: 5,
+            GameKind: ScoreGameKind.Overtime,
+            HalfKind: ScoreHalfKind.SecondHalf,
+            X: 990
+        });
+        Assert.Contains(home.Cells, cell => cell is
+        {
+            Id: "Game3OvertimeSecondHalf",
+            Visibility: FrontedControlVisibility.Collapsed
+        });
+        Assert.DoesNotContain("MajorGameGap", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("HalfGameGap", json, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BuiltInScoreGlobalBo3StateHasIndependentGlobalScoreRowCells()
+    {
+        var config = ReadBuiltInLayout("ScoreGlobalWindow");
+        var bo3 = config.BoModeStates["Bo3"];
+        var home = Assert.IsType<GlobalScoreRowControlConfig>(bo3.Controls["HomeGlobalScoreRow"]);
+
+        Assert.Equal(14, home.Cells.Count);
+        Assert.Contains(home.Cells, cell => cell is
+        {
+            Id: "Game3OvertimeSecondHalf",
+            GameNumber: 3,
+            GameKind: ScoreGameKind.Overtime,
+            HalfKind: ScoreHalfKind.SecondHalf,
+            X: 630
+        });
+        Assert.Contains(home.Cells, cell => cell is
+        {
+            Id: "Game5OvertimeSecondHalf",
+            Visibility: FrontedControlVisibility.Collapsed
+        });
+        Assert.DoesNotContain(config.Controls["HomeGlobalScoreRow"].ToString() ?? string.Empty, home.Cells.Select(cell => cell.Id));
     }
 
     [Fact]
@@ -825,7 +887,7 @@ public class FrontedLayoutDesignerFoundationTest
     [InlineData("MapNameText", typeof(MapNameTextControlConfig), 240, 40)]
     [InlineData("GameProgressText", typeof(GameProgressTextControlConfig), 260, 56)]
     [InlineData("TalentTraitDisplay", typeof(TalentTraitDisplayControlConfig), 180, 40)]
-    [InlineData("GlobalScoreRow", typeof(GlobalScoreRowControlConfig), 540, 40)]
+    [InlineData("GlobalScoreRow", typeof(GlobalScoreRowControlConfig), 1080, 40)]
     [InlineData("CurrentBanDisplay", typeof(CurrentBanDisplayControlConfig), 70, 36)]
     [InlineData("BanSlotDisplay", typeof(BanSlotDisplayControlConfig), 48, 48)]
     [InlineData("MapV2Display", typeof(MapV2DisplayControlConfig), 151, 160)]
@@ -887,6 +949,17 @@ public class FrontedLayoutDesignerFoundationTest
 
         var globalScore = Assert.IsType<GlobalScoreRowControlConfig>(factory.Create("GlobalScoreRow", document));
         Assert.Equal(TeamType.HomeTeam, globalScore.TeamType);
+        Assert.Equal("Arial", globalScore.FontFamily);
+        Assert.Equal("Bold", globalScore.FontWeight);
+        Assert.Equal("#FFFFFFFF", globalScore.Color);
+        Assert.Equal(24, globalScore.FontSize);
+        Assert.True(globalScore.ShowCampIcon);
+        Assert.Equal(14, globalScore.Cells.Count);
+        Assert.All(globalScore.Cells, cell =>
+        {
+            Assert.Equal(75, cell.Width);
+            Assert.Equal(32, cell.Height);
+        });
 
         var currentBan = Assert.IsType<CurrentBanDisplayControlConfig>(factory.Create("CurrentBanDisplay", document));
         Assert.Equal(Camp.Sur, currentBan.Camp);
@@ -1253,6 +1326,7 @@ public class FrontedLayoutDesignerFoundationTest
 
         viewModel.MoveSelectedDesignItemBy(5, 7);
         previewRequests = 0;
+        patchRequests = 0;
 
         viewModel.UndoCommand.Execute(null);
 
@@ -1603,6 +1677,39 @@ public class FrontedLayoutDesignerFoundationTest
 
         viewModel.UndoCommand.Execute(null);
         Assert.Equal(10, viewModel.CurrentDocument!.Controls[0].Config.Left);
+    }
+
+    [Fact]
+    public void KeyboardMoveUsesGeometryPatchInsteadOfFullPreviewRender()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new TextFrontedControlConfig { Left = 10, Top = 20, Width = 100, Height = 30 }
+        };
+        var document = CreateDocument([title]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(title);
+
+        var previewRequests = 0;
+        var patchRequests = 0;
+        viewModel.PreviewRenderRequested += (_, _) => previewRequests++;
+        viewModel.DesignerGeometryPatchRequested += (_, e) =>
+        {
+            patchRequests++;
+            Assert.Contains(title, e.ChangedItems);
+            Assert.False(e.RebuildInteractionLayer);
+            Assert.True(e.UpdateSelection);
+        };
+
+        viewModel.MoveSelectedDesignItemBy(5, 7);
+
+        Assert.Equal(15, title.Config.Left);
+        Assert.Equal(27, title.Config.Top);
+        Assert.Equal(1, patchRequests);
+        Assert.Equal(0, previewRequests);
     }
 
     [Fact]
@@ -2535,6 +2642,84 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void GlobalScoreRowParentMovePreservesChildRelativePositions()
+    {
+        var (viewModel, rowItem, cell) = CreateGlobalScoreRowDesigner();
+        viewModel.SelectDesignItem(rowItem);
+
+        viewModel.MoveSelectedDesignItem(10, 20, 5, 7, renderPreview: false);
+
+        Assert.Equal(15, rowItem.Config.Left);
+        Assert.Equal(27, rowItem.Config.Top);
+        Assert.Equal(12, cell.X);
+        Assert.Equal(4, cell.Y);
+    }
+
+    [Fact]
+    public void GlobalScoreRowChildMoveStoresRelativeCoordinatesOnly()
+    {
+        var (viewModel, rowItem, cell) = CreateGlobalScoreRowDesigner();
+        viewModel.SelectGlobalScoreCell(rowItem, cell);
+
+        viewModel.MoveSelectedGlobalScoreCell(12, 4, 8, 6, renderPreview: false);
+
+        Assert.Equal(10, rowItem.Config.Left);
+        Assert.Equal(20, rowItem.Config.Top);
+        Assert.Equal(20, cell.X);
+        Assert.Equal(8, cell.Y);
+    }
+
+    [Fact]
+    public void GlobalScoreRowChildPropertyEditUpdatesOnlySelectedCell()
+    {
+        var (viewModel, rowItem, cell) = CreateGlobalScoreRowDesigner();
+        var other = ((GlobalScoreRowControlConfig)rowItem.Config).Cells[1];
+        viewModel.SelectGlobalScoreCell(rowItem, cell);
+        var xRow = viewModel.PropertyEditorItems.Single(row => row.PropertyName == nameof(GlobalScoreCellConfig.X));
+
+        Assert.True(viewModel.ApplyPropertyEdit(xRow, "44"));
+
+        Assert.Equal(44, cell.X);
+        Assert.Equal(102, other.X);
+    }
+
+    [Fact]
+    public void GlobalScoreRowChildMoveAndResizeAreUndoable()
+    {
+        var (viewModel, rowItem, cell) = CreateGlobalScoreRowDesigner();
+        viewModel.SelectGlobalScoreCell(rowItem, cell);
+
+        viewModel.CaptureUndoSnapshot();
+        viewModel.MoveSelectedGlobalScoreCell(12, 4, 30, 0, renderPreview: false);
+        viewModel.CommitDesignItemGeometryEdit();
+        Assert.Equal(42, cell.X);
+
+        viewModel.UndoCommand.Execute(null);
+
+        var rowAfterUndo = Assert.IsType<GlobalScoreRowControlConfig>(viewModel.CurrentDocument!.Controls[0].Config);
+        Assert.Equal(12, rowAfterUndo.Cells[0].X);
+
+        viewModel.SelectGlobalScoreCell(viewModel.CurrentDocument.Controls[0], rowAfterUndo.Cells[0]);
+        viewModel.CaptureUndoSnapshot();
+        viewModel.ResizeSelectedGlobalScoreCell(
+            FrontedDesignerResizeHandleKind.BottomRight,
+            12,
+            4,
+            75,
+            32,
+            20,
+            10,
+            renderPreview: false);
+        Assert.Equal(95, rowAfterUndo.Cells[0].Width);
+
+        viewModel.UndoCommand.Execute(null);
+
+        var rowAfterResizeUndo = Assert.IsType<GlobalScoreRowControlConfig>(viewModel.CurrentDocument!.Controls[0].Config);
+        Assert.Equal(75, rowAfterResizeUndo.Cells[0].Width);
+        Assert.Equal(32, rowAfterResizeUndo.Cells[0].Height);
+    }
+
+    [Fact]
     public void ApplyPropertyEditClampsStaticTextAndBindingPath()
     {
         var item = new FrontedControlDesignItem
@@ -3303,7 +3488,7 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.DoesNotContain("TryStartLayer" + "DragPreview", codeBehind);
         Assert.DoesNotContain("TryUpdateLayer" + "DragPreview", codeBehind);
         Assert.DoesNotContain("RemoveLayer" + "DragPreview", codeBehind);
-        Assert.Contains("ShowLayerDragGhost(_activeLayerDragItem, e.GetPosition(LayerPanelHostGrid))", codeBehind);
+        Assert.Contains("ShowLayerDragGhost(_activeLayerDragNode!, e.GetPosition(LayerPanelHostGrid))", codeBehind);
         Assert.Contains("UpdateLayerDragGhost(e.GetPosition(LayerPanelHostGrid))", codeBehind);
         Assert.Contains("UpdateLayerAutoScroll(e.GetPosition(LayerPanelScrollViewer))", codeBehind);
         Assert.Contains("HideLayerDragGhost();", codeBehind);
@@ -4139,8 +4324,8 @@ public class FrontedLayoutDesignerFoundationTest
         };
 
         Assert.Equal([2, 1], viewModel.LayerGroups.Select(group => group.ZIndex));
-        Assert.Equal(["First", "Third"], viewModel.LayerGroups[0].Items.Select(item => item.Name));
-        Assert.Equal(["Second"], viewModel.LayerGroups[1].Items.Select(item => item.Name));
+        Assert.Equal(["First", "Third"], viewModel.LayerGroups[0].Items.Select(item => item.ControlItem?.Name));
+        Assert.Equal(["Second"], viewModel.LayerGroups[1].Items.Select(item => item.ControlItem?.Name));
     }
 
     [Fact]
@@ -4159,8 +4344,106 @@ public class FrontedLayoutDesignerFoundationTest
 
         var group = Assert.Single(viewModel.LayerGroups);
         Assert.Equal(1, group.ZIndex);
-        Assert.Equal("Logo", Assert.Single(group.Items).Name);
+        Assert.Equal("Logo", Assert.Single(group.Items).ControlItem?.Name);
         Assert.False(viewModel.CanReorderLayers);
+    }
+
+    [Fact]
+    public void LayerNodeBuilderCreatesTopLevelControlNodes()
+    {
+        var text = new FrontedControlDesignItem { Name = "Title", Config = new TextFrontedControlConfig { ZIndex = 2 } };
+        var image = new FrontedControlDesignItem { Name = "Logo", Config = new ImageFrontedControlConfig { ZIndex = 1 } };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([text, image])
+        };
+
+        var nodes = viewModel.LayerGroups.SelectMany(group => group.Items).ToArray();
+
+        Assert.All(nodes, node => Assert.Equal(DesignerLayerNodeKind.Control, node.Kind));
+        Assert.Equal(["Title", "Logo"], nodes.Select(node => node.DisplayName));
+        Assert.All(nodes, node => Assert.True(node.CanReorder));
+    }
+
+    [Fact]
+    public void GlobalScoreRowLayerPanelShowsOnlyTopLevelControl()
+    {
+        var (viewModel, rowItem, _) = CreateGlobalScoreRowDesigner();
+
+        var group = Assert.Single(viewModel.LayerGroups);
+        var rowNode = Assert.Single(group.Items);
+
+        Assert.Equal(DesignerLayerNodeKind.Control, rowNode.Kind);
+        Assert.Same(rowItem, rowNode.ControlItem);
+        Assert.True(rowNode.CanReorder);
+        Assert.DoesNotContain(group.Items, node => node.DisplayName.Contains("Game1FirstHalf", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void SelectingGlobalScoreRowExposesDedicatedCellEditorItems()
+    {
+        var (viewModel, rowItem, cell) = CreateGlobalScoreRowDesigner();
+
+        viewModel.SelectDesignItem(rowItem);
+
+        Assert.True(viewModel.HasGlobalScoreCellEditor);
+        Assert.Contains(cell, viewModel.GlobalScoreCellEditorItems);
+        Assert.All(viewModel.LayerGroups.SelectMany(group => group.Items), node =>
+            Assert.Equal(DesignerLayerNodeKind.Control, node.Kind));
+    }
+
+    [Fact]
+    public void SelectingParentLayerNodeClearsSelectedGlobalScoreCell()
+    {
+        var (viewModel, rowItem, cell) = CreateGlobalScoreRowDesigner();
+        var rowNode = viewModel.LayerGroups.Single().Items[0];
+        viewModel.SelectGlobalScoreCell(rowItem, cell);
+
+        viewModel.SelectLayerNode(rowNode);
+
+        Assert.Same(rowItem, viewModel.SelectedDesignItem);
+        Assert.Null(viewModel.SelectedGlobalScoreCell);
+        Assert.True(rowNode.IsSelected);
+    }
+
+    [Fact]
+    public void SelectingDedicatedGlobalScoreCellEditorItemSelectsParentAndCell()
+    {
+        var (viewModel, rowItem, cell) = CreateGlobalScoreRowDesigner();
+
+        viewModel.SelectDesignItem(rowItem);
+        viewModel.SelectedGlobalScoreCell = cell;
+
+        Assert.Same(rowItem, viewModel.SelectedDesignItem);
+        Assert.Same(cell, viewModel.SelectedGlobalScoreCell);
+        Assert.Equal(rowItem.Name, viewModel.SelectedGlobalScoreCellParentName);
+        Assert.Equal(cell.Id, viewModel.SelectedGlobalScoreCellId);
+    }
+
+    [Fact]
+    public void CanvasAndDedicatedEditorGlobalScoreCellSelectionProduceSameViewModelState()
+    {
+        var (viewModel, rowItem, cell) = CreateGlobalScoreRowDesigner();
+
+        viewModel.SelectGlobalScoreCell(rowItem, cell);
+        var canvasSelection = (viewModel.SelectedDesignItem, viewModel.SelectedGlobalScoreCell);
+
+        viewModel.ClearSelection();
+        viewModel.SelectDesignItem(rowItem);
+        viewModel.SelectedGlobalScoreCell = cell;
+
+        Assert.Same(canvasSelection.SelectedDesignItem, viewModel.SelectedDesignItem);
+        Assert.Same(canvasSelection.SelectedGlobalScoreCell, viewModel.SelectedGlobalScoreCell);
+    }
+
+    [Fact]
+    public void GlobalScoreCellDoesNotEnterTopLevelReorderList()
+    {
+        var (viewModel, rowItem, _) = CreateGlobalScoreRowDesigner();
+        var node = Assert.Single(viewModel.LayerGroups.Single().Items);
+
+        Assert.Equal(DesignerLayerNodeKind.Control, node.Kind);
+        Assert.Same(rowItem, node.ControlItem);
     }
 
     [Fact]
@@ -4329,6 +4612,55 @@ public class FrontedLayoutDesignerFoundationTest
             },
             Controls = new(controls)
         };
+    }
+
+    private static (FrontedDesignerWindowViewModel ViewModel, FrontedControlDesignItem RowItem, GlobalScoreCellConfig Cell)
+        CreateGlobalScoreRowDesigner()
+    {
+        var rowConfig = new GlobalScoreRowControlConfig
+        {
+            Left = 10,
+            Top = 20,
+            Width = 220,
+            Height = 40,
+            TeamType = TeamType.HomeTeam,
+            Cells =
+            [
+                new GlobalScoreCellConfig
+                {
+                    Id = "Game1FirstHalf",
+                    GameNumber = 1,
+                    GameKind = ScoreGameKind.Normal,
+                    HalfKind = ScoreHalfKind.FirstHalf,
+                    X = 12,
+                    Y = 4,
+                    Width = 75,
+                    Height = 32
+                },
+                new GlobalScoreCellConfig
+                {
+                    Id = "Game1SecondHalf",
+                    GameNumber = 1,
+                    GameKind = ScoreGameKind.Normal,
+                    HalfKind = ScoreHalfKind.SecondHalf,
+                    X = 102,
+                    Y = 4,
+                    Width = 75,
+                    Height = 32
+                }
+            ]
+        };
+        var rowItem = new FrontedControlDesignItem
+        {
+            Name = "HomeGlobalScoreRow",
+            Config = rowConfig
+        };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([rowItem])
+        };
+
+        return (viewModel, rowItem, rowConfig.Cells[0]);
     }
 
     private static FrontedControlDesignItem CreateSnapItem(

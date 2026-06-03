@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Models.Legacy;
+using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
@@ -443,7 +444,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         if (cells.Any(cell => cell.IsOvertime))
         {
             diagnostics.Add(
-                "Legacy overtime score cells were consumed; v3 GlobalScoreRow does not expose separate overtime cell geometry.");
+                "Legacy overtime score cells were migrated into GlobalScoreRow child cells.");
         }
 
         var firstHalfByGame = cells
@@ -481,7 +482,9 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         var halfGap = GetMedian(halfGaps);
         if (halfGap.HasValue)
         {
+#pragma warning disable CS0618
             row.HalfGameGap = FrontedLayoutNumberNormalizer.Normalize(halfGap.Value);
+#pragma warning restore CS0618
         }
 
         var gameLefts = firstHalfByGame
@@ -499,8 +502,12 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         var majorGap = GetMedian(majorGaps);
         if (majorGap.HasValue)
         {
+#pragma warning disable CS0618
             row.MajorGameGap = FrontedLayoutNumberNormalizer.Normalize(majorGap.Value);
+#pragma warning restore CS0618
         }
+
+        MigrateLegacyScoreCellsToRowCells(row, cells);
 
         var approximate = IsIrregular(halfGaps) || IsIrregular(majorGaps);
         var message =
@@ -512,6 +519,67 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         else
         {
             infos.Add(message);
+        }
+    }
+
+    private static void MigrateLegacyScoreCellsToRowCells(
+        GlobalScoreRowControlConfig row,
+        IReadOnlyList<ScoreGlobalCell> legacyCells)
+    {
+        var existingCells = row.Cells.ToDictionary(
+            cell => (cell.GameNumber, cell.GameKind, cell.HalfKind));
+        var migrated = new List<GlobalScoreCellConfig>();
+
+        foreach (var legacy in legacyCells
+                     .Where(cell => cell.Info.Left.HasValue || cell.Info.Top.HasValue || cell.Info.Width.HasValue || cell.Info.Height.HasValue)
+                     .OrderBy(cell => cell.Game)
+                     .ThenBy(cell => cell.IsOvertime)
+                     .ThenBy(cell => cell.Half == "SecondHalf" ? 1 : 0))
+        {
+            var gameKind = legacy.IsOvertime ? ScoreGameKind.Overtime : ScoreGameKind.Normal;
+            var halfKind = legacy.Half == "SecondHalf" ? ScoreHalfKind.SecondHalf : ScoreHalfKind.FirstHalf;
+            var key = (legacy.Game, gameKind, halfKind);
+            if (!existingCells.TryGetValue(key, out var cell))
+            {
+                cell = new GlobalScoreCellConfig
+                {
+                    Id = $"Game{legacy.Game}{(legacy.IsOvertime ? "Overtime" : string.Empty)}{halfKind}",
+                    GameNumber = legacy.Game,
+                    GameKind = gameKind,
+                    HalfKind = halfKind,
+                    Width = 75,
+                    Height = 32
+                };
+            }
+
+            if (legacy.Info.Left.HasValue)
+            {
+                cell.X = FrontedLayoutNumberNormalizer.Normalize(legacy.Info.Left.Value - row.Left);
+            }
+
+            if (legacy.Info.Top.HasValue)
+            {
+                cell.Y = FrontedLayoutNumberNormalizer.Normalize(legacy.Info.Top.Value - row.Top);
+            }
+
+            if (legacy.Info.Width.HasValue)
+            {
+                cell.Width = FrontedLayoutNumberNormalizer.Normalize(legacy.Info.Width.Value);
+            }
+
+            if (legacy.Info.Height.HasValue)
+            {
+                cell.Height = FrontedLayoutNumberNormalizer.Normalize(legacy.Info.Height.Value);
+            }
+
+            migrated.Add(cell);
+        }
+
+        if (migrated.Count > 0)
+        {
+            row.Cells = migrated;
+            row.Width = Math.Max(row.Width ?? 0D, migrated.Max(cell => cell.X + cell.Width));
+            row.Height = Math.Max(row.Height ?? 0D, migrated.Max(cell => cell.Y + cell.Height));
         }
     }
 

@@ -34,7 +34,7 @@ Designer v3 / `FrontedLayouts` 是当前前台窗口自定义的唯一运行时�
 | `AwayTeamName` | `AwayTeamName` |
 | `AwayScoreTotal` | `AwayScoreTotal` |
 
-`ScoreGlobalWindow` 下还保留一个限定规则：旧名以 `Main` 开头时可映射为 v3 的 `Home` 前缀。旧版 `HomeTeamGame*FirstHalf` / `HomeTeamGame*SecondHalf`、`AwayTeamGame*FirstHalf` / `AwayTeamGame*SecondHalf` 以及 `Game*Overtime*Half` 不再逐个迁移为独立控件，而是聚合或消费到 `HomeGlobalScoreRow` / `AwayGlobalScoreRow`，并从旧普通半场格子推导行位置、`HalfGameGap` 和 `MajorGameGap`。间距不规则、overtime 单元被消费等细节只记录为内部诊断，不再为每个旧半场格子报 unmatched。
+`ScoreGlobalWindow` 下还保留一个限定规则：旧名以 `Main` 开头时可映射为 v3 的 `Home` 前缀。旧版 `HomeTeamGame*FirstHalf` / `HomeTeamGame*SecondHalf`、`AwayTeamGame*FirstHalf` / `AwayTeamGame*SecondHalf` 以及 `Game*Overtime*Half` 不再逐个迁移为顶层控件，而是聚合到 `HomeGlobalScoreRow` / `AwayGlobalScoreRow` 的 `Cells` 子格中，并把旧绝对坐标换算为相对父行的 `X/Y/Width/Height`。间距不规则、overtime 单元迁入子格等细节只记录为内部诊断，不再为每个旧半场格子报 unmatched。
 
 `WidgetsWindow/BpOverViewCanvas` 等旧 `HunBanCurrentLock*` / `SurBanCurrentLock*` 锁定遮罩几何会合并到对应 v3 `HunBanCurrent*` / `SurBanCurrent*`。如果目标本体几何也存在，以目标本体为准；如果只有锁遮罩几何，则用它作为 fallback。旧 Config 中可解析到 `CustomUi/` 的 Ban 锁图和 BpWindow picking border 图片/颜色会写入 v3 控件配置。
 

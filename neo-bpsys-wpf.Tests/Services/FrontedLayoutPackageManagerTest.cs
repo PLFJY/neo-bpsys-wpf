@@ -596,15 +596,15 @@ public class FrontedLayoutPackageManagerTest
                 layout.Controls["HomeGlobalScoreRow"]);
             Assert.Equal(180, homeRow.Left);
             Assert.Equal(90, homeRow.Top);
-            Assert.Equal(90, homeRow.HalfGameGap);
-            Assert.Equal(180, homeRow.MajorGameGap);
+            Assert.Contains(homeRow.Cells, cell => cell.Id == "Game1FirstHalf" && cell.X == 0 && cell.Y == 0);
+            Assert.Contains(homeRow.Cells, cell => cell.Id == "Game1SecondHalf" && cell.X == 90 && cell.Y == 0);
 
             var awayRow = Assert.IsType<neo_bpsys_wpf.Core.Models.FrontedLayout.GlobalScoreRowControlConfig>(
                 layout.Controls["AwayGlobalScoreRow"]);
             Assert.Equal(180, awayRow.Left);
             Assert.Equal(150, awayRow.Top);
-            Assert.Equal(90, awayRow.HalfGameGap);
-            Assert.Equal(180, awayRow.MajorGameGap);
+            Assert.Contains(awayRow.Cells, cell => cell.Id == "Game1FirstHalf" && cell.X == 0 && cell.Y == 0);
+            Assert.Contains(awayRow.Cells, cell => cell.Id == "Game1SecondHalf" && cell.X == 90 && cell.Y == 0);
         }
         finally
         {
