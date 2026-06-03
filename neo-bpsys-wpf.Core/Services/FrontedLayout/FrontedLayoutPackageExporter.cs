@@ -281,8 +281,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
 
                 if (child.Value is JsonValue value
                     && value.TryGetValue<string>(out var text)
-                    && (ShouldInspectResourceProperty(child.Key)
-                        || string.Equals(propertyName, nameof(FrontedCanvasConfig.BackgroundImageVariants), StringComparison.Ordinal)))
+                    && ShouldInspectResourceProperty(child.Key))
                 {
                     obj[child.Key] = RewriteResourcePath(text, staging, resourceState);
                     continue;
@@ -500,7 +499,6 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
     private static bool ShouldInspectResourceProperty(string propertyName)
     {
         return string.Equals(propertyName, nameof(FrontedCanvasConfig.BackgroundImage), StringComparison.Ordinal)
-               || string.Equals(propertyName, nameof(FrontedCanvasConfig.BackgroundImageVariants), StringComparison.Ordinal)
                || propertyName.EndsWith("ImagePath", StringComparison.Ordinal)
                || propertyName.EndsWith("ImageSource", StringComparison.Ordinal)
                || propertyName.EndsWith("ResourcePath", StringComparison.Ordinal)

@@ -66,6 +66,19 @@ public partial class FrontedDesignerHelpWindow : FluentWindow
         AddBuiltInControls();
         AddPostShortcutSection("Designer.Help.AddDeleteCopyPaste.Title", "Designer.Help.AddDeleteCopyPaste.Content");
         AddPostShortcutSection("Designer.Help.CanvasWindowSettings.Title", "Designer.Help.CanvasWindowSettings.Content");
+        AddPostShortcutInlineSection(
+            "Designer.Help.BoModeStates",
+            "Designer.Help.BoModeStatesDescription",
+            "Designer.Help.CopyBo5ToBo3");
+        AddPostShortcutInlineSection(
+            "Designer.Help.Visibility",
+            "Designer.Help.Visibility");
+        AddPostShortcutInlineSection(
+            "Designer.Help.MultiSelect",
+            "Designer.Help.MultiSelect",
+            "Designer.Help.MultiSelectMoveResize",
+            "Designer.Help.MultiSelectCopyPaste",
+            "Designer.Help.UndoGroupOperations");
         AddPostShortcutSection("Designer.Help.Validation.Title", "Designer.Help.Validation.Content");
         AddPostShortcutSection("Designer.Help.PluginControls.Title", "Designer.Help.PluginControls.Content");
         AddPostShortcutSection("Designer.Help.LayoutPackages.Title", "Designer.Help.LayoutPackages.Content");
@@ -88,6 +101,21 @@ public partial class FrontedDesignerHelpWindow : FluentWindow
         }
 
         Sections.Add(section);
+    }
+
+    private void AddPostShortcutInlineSection(string titleKey, params string[] contentKeys)
+    {
+        var section = new HelpSection { Title = I18nHelper.GetLocalizedString(titleKey) };
+        foreach (var contentKey in contentKeys)
+        {
+            var text = I18nHelper.GetLocalizedString(contentKey).Trim();
+            if (text.Length > 0)
+            {
+                section.Items.Add($"• {text}");
+            }
+        }
+
+        PostShortcutSections.Add(section);
     }
 
     private void AddPostShortcutSection(string titleKey, string contentKey)

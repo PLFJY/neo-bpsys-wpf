@@ -16,8 +16,10 @@ public partial class BpWindow : FrontedWindowBase
     private const string BaseCanvasName = "BaseCanvas";
     private readonly IFrontedLayoutService? _layoutService;
     private readonly IFrontedRenderer? _renderer;
+    private readonly ISharedDataService? _sharedDataService;
     private readonly ILogger<BpWindow>? _logger;
     private bool _hasRendered;
+    private bool _isBoModeSubscribed;
 
     public BpWindow()
     {
@@ -27,18 +29,24 @@ public partial class BpWindow : FrontedWindowBase
     public BpWindow(
         IFrontedLayoutService layoutService,
         IFrontedRenderer renderer,
+        ISharedDataService sharedDataService,
         ILogger<BpWindow> logger)
     {
         _layoutService = layoutService;
         _renderer = renderer;
+        _sharedDataService = sharedDataService;
         _logger = logger;
 
         InitializeComponent();
         Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
+        Closed += OnClosed;
     }
 
     private async void OnLoaded(object sender, System.Windows.RoutedEventArgs e)
     {
+        SubscribeBoModeChanged();
+
         if (_hasRendered || _layoutService is null || _renderer is null)
         {
             return;
@@ -48,6 +56,10 @@ public partial class BpWindow : FrontedWindowBase
 
         await ReloadFrontedLayoutAsync();
     }
+
+    private void OnUnloaded(object sender, System.Windows.RoutedEventArgs e) => UnsubscribeBoModeChanged();
+
+    private void OnClosed(object? sender, EventArgs e) => UnsubscribeBoModeChanged();
 
     public async Task ReloadFrontedLayoutAsync()
     {
@@ -71,6 +83,7 @@ public partial class BpWindow : FrontedWindowBase
             _renderer.RenderToCanvas(BaseCanvas, config, new FrontedRenderContext
             {
                 WindowId = FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.BpWindow),
+                WindowTypeName = nameof(BpWindow),
                 CanvasName = BaseCanvasName
             });
         }
@@ -82,5 +95,38 @@ public partial class BpWindow : FrontedWindowBase
                 nameof(BpWindow),
                 BaseCanvasName);
         }
+    }
+
+    private void SubscribeBoModeChanged()
+    {
+        if (_sharedDataService is null || _isBoModeSubscribed)
+        {
+            return;
+        }
+
+        _sharedDataService.IsBo3ModeChanged += OnBoModeChanged;
+        _isBoModeSubscribed = true;
+    }
+
+    private void UnsubscribeBoModeChanged()
+    {
+        if (_sharedDataService is null || !_isBoModeSubscribed)
+        {
+            return;
+        }
+
+        _sharedDataService.IsBo3ModeChanged -= OnBoModeChanged;
+        _isBoModeSubscribed = false;
+    }
+
+    private void OnBoModeChanged(object? sender, EventArgs args)
+    {
+        if (Dispatcher.CheckAccess())
+        {
+            _ = ReloadFrontedLayoutAsync();
+            return;
+        }
+
+        _ = Dispatcher.BeginInvoke(new Action(() => _ = ReloadFrontedLayoutAsync()));
     }
 }

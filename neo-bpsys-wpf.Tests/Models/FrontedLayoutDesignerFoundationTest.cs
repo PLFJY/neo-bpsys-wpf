@@ -4109,25 +4109,22 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void ScoreGlobalBo3BackgroundEditIsVisibleOnlyForScoreGlobalBaseCanvasAndUndoable()
+    public void Bo3StateBackgroundEditIsGenericAndUndoable()
     {
         var document = CreateDocument([], "ScoreGlobalWindow");
         var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
 
-        Assert.True(viewModel.IsScoreGlobalBo3BackgroundVisible);
-        Assert.True(viewModel.ApplyScoreGlobalBo3BackgroundEdit("Resources/scoreGlobalBo3.png"));
+        viewModel.EnableBoModeStates = true;
+        viewModel.SelectedBoModeStateOption = viewModel.BoModeStateOptions.First(option => option.State == FrontedCanvasBoModeState.Bo3);
+        Assert.True(viewModel.IsBoModeStateSelectorVisible);
+        Assert.True(viewModel.ApplyCanvasBackgroundEdit("Resources/scoreGlobalBo3.png"));
         Assert.Equal(
             "Resources/scoreGlobalBo3.png",
-            document.CanvasConfig.BackgroundImageVariants[FrontedCanvasBackgroundVariants.ScoreGlobalBo3]);
-        Assert.True(document.IsDirty);
+            viewModel.CurrentDocument!.CanvasConfig.BoModeStates["Bo3"].BackgroundImage);
+        Assert.True(viewModel.CurrentDocument.IsDirty);
 
         viewModel.UndoCommand.Execute(null);
-        Assert.False(viewModel.CurrentDocument!.CanvasConfig.BackgroundImageVariants.ContainsKey(
-            FrontedCanvasBackgroundVariants.ScoreGlobalBo3));
-
-        viewModel.CurrentDocument = CreateDocument([], "BpWindow");
-        Assert.False(viewModel.IsScoreGlobalBo3BackgroundVisible);
-        Assert.False(viewModel.ApplyScoreGlobalBo3BackgroundEdit("Resources/ignored.png"));
+        Assert.Null(viewModel.CurrentDocument!.CanvasConfig.BoModeStates["Bo3"].BackgroundImage);
     }
 
     [Fact]

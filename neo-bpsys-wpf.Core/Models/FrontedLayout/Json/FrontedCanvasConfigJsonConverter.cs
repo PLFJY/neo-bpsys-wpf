@@ -14,8 +14,16 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
         nameof(FrontedCanvasConfig.CanvasWidth),
         nameof(FrontedCanvasConfig.CanvasHeight),
         nameof(FrontedCanvasConfig.BackgroundImage),
-        nameof(FrontedCanvasConfig.BackgroundImageVariants),
+        nameof(FrontedCanvasConfig.EnableBoModeStates),
+        nameof(FrontedCanvasConfig.BoModeStates),
         nameof(FrontedCanvasConfig.RequiredPlugins)
+    ];
+
+    private static readonly HashSet<string> StateReservedPropertyNames =
+    [
+        nameof(FrontedCanvasStateConfig.BackgroundImage),
+        nameof(FrontedCanvasStateConfig.RequiredPlugins),
+        nameof(FrontedCanvasStateConfig.Controls)
     ];
 
     /// <inheritdoc />
@@ -39,9 +47,10 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
             CanvasWidth = ReadRequiredDouble(root, nameof(FrontedCanvasConfig.CanvasWidth)),
             CanvasHeight = ReadRequiredDouble(root, nameof(FrontedCanvasConfig.CanvasHeight)),
             BackgroundImage = ReadOptionalString(root, nameof(FrontedCanvasConfig.BackgroundImage)),
-            BackgroundImageVariants = ReadOptionalDictionary<string>(
+            EnableBoModeStates = ReadOptionalBoolean(root, nameof(FrontedCanvasConfig.EnableBoModeStates)),
+            BoModeStates = ReadOptionalBoModeStates(
                 root,
-                nameof(FrontedCanvasConfig.BackgroundImageVariants),
+                nameof(FrontedCanvasConfig.BoModeStates),
                 options),
             RequiredPlugins = ReadOptionalList<FrontedPluginDependency>(
                 root,
@@ -97,10 +106,15 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
             writer.WriteString(nameof(FrontedCanvasConfig.BackgroundImage), value.BackgroundImage);
         }
 
-        if (value.BackgroundImageVariants.Count > 0)
+        if (value.EnableBoModeStates)
         {
-            writer.WritePropertyName(nameof(FrontedCanvasConfig.BackgroundImageVariants));
-            JsonSerializer.Serialize(writer, value.BackgroundImageVariants, options);
+            writer.WriteBoolean(nameof(FrontedCanvasConfig.EnableBoModeStates), true);
+        }
+
+        if (value.BoModeStates.Count > 0)
+        {
+            writer.WritePropertyName(nameof(FrontedCanvasConfig.BoModeStates));
+            WriteBoModeStates(writer, value.BoModeStates, options);
         }
 
         if (value.RequiredPlugins.Count > 0)
@@ -113,6 +127,127 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
         {
             writer.WritePropertyName(name);
             JsonSerializer.Serialize(writer, control, control.GetType(), options);
+        }
+
+        writer.WriteEndObject();
+    }
+
+    private static Dictionary<string, FrontedCanvasStateConfig> ReadOptionalBoModeStates(
+        JsonElement root,
+        string propertyName,
+        JsonSerializerOptions options)
+    {
+        if (!root.TryGetProperty(propertyName, out var property) || property.ValueKind == JsonValueKind.Null)
+        {
+            return [];
+        }
+
+        if (property.ValueKind != JsonValueKind.Object)
+        {
+            throw new FrontedLayoutConfigException($"Property '{propertyName}' must be a JSON object or null.");
+        }
+
+        var states = new Dictionary<string, FrontedCanvasStateConfig>(StringComparer.Ordinal);
+        foreach (var stateProperty in property.EnumerateObject())
+        {
+            if (stateProperty.Value.ValueKind != JsonValueKind.Object)
+            {
+                throw new FrontedLayoutConfigException(
+                    $"BO mode state '{stateProperty.Name}' must be a JSON object.");
+            }
+
+            EnsureNoDuplicateRootProperties(stateProperty.Value);
+            var state = new FrontedCanvasStateConfig
+            {
+                BackgroundImage = ReadOptionalString(
+                    stateProperty.Value,
+                    nameof(FrontedCanvasStateConfig.BackgroundImage)),
+                RequiredPlugins = ReadOptionalList<FrontedPluginDependency>(
+                    stateProperty.Value,
+                    nameof(FrontedCanvasStateConfig.RequiredPlugins),
+                    options)
+            };
+
+            if (stateProperty.Value.TryGetProperty(nameof(FrontedCanvasStateConfig.Controls), out var controlsElement))
+            {
+                if (controlsElement.ValueKind is not JsonValueKind.Object and not JsonValueKind.Null)
+                {
+                    throw new FrontedLayoutConfigException(
+                        $"Property '{propertyName}.{stateProperty.Name}.Controls' must be a JSON object or null.");
+                }
+
+                if (controlsElement.ValueKind == JsonValueKind.Object)
+                {
+                    EnsureNoDuplicateRootProperties(controlsElement);
+                    foreach (var controlProperty in controlsElement.EnumerateObject())
+                    {
+                        state.Controls[controlProperty.Name] = ReadControl(
+                            controlProperty.Name,
+                            controlProperty.Value,
+                            options);
+                    }
+                }
+            }
+
+            foreach (var controlProperty in stateProperty.Value.EnumerateObject())
+            {
+                if (StateReservedPropertyNames.Contains(controlProperty.Name))
+                {
+                    continue;
+                }
+
+                state.Controls[controlProperty.Name] = ReadControl(
+                    controlProperty.Name,
+                    controlProperty.Value,
+                    options);
+            }
+
+            states[stateProperty.Name] = state;
+        }
+
+        return states;
+    }
+
+    private static void WriteBoModeStates(
+        Utf8JsonWriter writer,
+        IReadOnlyDictionary<string, FrontedCanvasStateConfig> states,
+        JsonSerializerOptions options)
+    {
+        writer.WriteStartObject();
+        foreach (var (stateName, state) in states)
+        {
+            writer.WritePropertyName(stateName);
+            writer.WriteStartObject();
+
+            if (state.BackgroundImage is null)
+            {
+                writer.WriteNull(nameof(FrontedCanvasStateConfig.BackgroundImage));
+            }
+            else
+            {
+                writer.WriteString(nameof(FrontedCanvasStateConfig.BackgroundImage), state.BackgroundImage);
+            }
+
+            if (state.RequiredPlugins.Count > 0)
+            {
+                writer.WritePropertyName(nameof(FrontedCanvasStateConfig.RequiredPlugins));
+                JsonSerializer.Serialize(writer, state.RequiredPlugins, options);
+            }
+
+            if (state.Controls.Count > 0)
+            {
+                writer.WritePropertyName(nameof(FrontedCanvasStateConfig.Controls));
+                writer.WriteStartObject();
+                foreach (var (name, control) in state.Controls)
+                {
+                    writer.WritePropertyName(name);
+                    JsonSerializer.Serialize(writer, control, control.GetType(), options);
+                }
+
+                writer.WriteEndObject();
+            }
+
+            writer.WriteEndObject();
         }
 
         writer.WriteEndObject();
@@ -246,6 +381,21 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
         }
 
         return property.GetString();
+    }
+
+    private static bool ReadOptionalBoolean(JsonElement root, string propertyName)
+    {
+        if (!root.TryGetProperty(propertyName, out var property) || property.ValueKind == JsonValueKind.Null)
+        {
+            return false;
+        }
+
+        if (property.ValueKind is not JsonValueKind.True and not JsonValueKind.False)
+        {
+            throw new FrontedLayoutConfigException($"Property '{propertyName}' must be a JSON boolean or null.");
+        }
+
+        return property.GetBoolean();
     }
 
     private static List<T> ReadOptionalList<T>(

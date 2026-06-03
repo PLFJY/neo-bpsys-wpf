@@ -218,7 +218,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         if (e.AddedItems[0] is FrontedControlDesignItem item)
         {
-            _viewModel.SelectDesignItem(item);
+            _viewModel.SelectDesignItem(item, Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
         }
     }
 
@@ -257,7 +257,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
-        _viewModel?.SelectDesignItem(item);
+        _viewModel?.SelectDesignItem(item, Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
         _pendingLayerDragItem = item;
         _layerDragStartPoint = e.GetPosition(this);
     }
@@ -762,28 +762,6 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
     }
 
-    private void BrowseScoreGlobalBo3BackgroundResourceButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        if (_resourceBrowserProvider is null || _viewModel is null)
-        {
-            return;
-        }
-
-        var viewModel = new FrontedResourceBrowserWindowViewModel(_resourceBrowserProvider);
-        var window = new FrontedResourceBrowserWindow
-        {
-            Owner = this,
-            DataContext = viewModel
-        };
-        window.InitializeSelection(_viewModel.ScoreGlobalBo3BackgroundImageEditText);
-
-        if (window.ShowDialog() == true && !string.IsNullOrWhiteSpace(window.SelectedResourcePath))
-        {
-            _viewModel.ApplyScoreGlobalBo3BackgroundResourceSelection(window.SelectedResourcePath);
-            FocusDesignSurface();
-        }
-    }
-
     private void ChooseLocalCanvasBackgroundButton_OnClick(object sender, RoutedEventArgs e)
     {
         if (_filePickerService is null || _viewModel is null)
@@ -795,20 +773,6 @@ public partial class FrontedDesignerWindow : FluentWindow
         if (!string.IsNullOrWhiteSpace(file))
         {
             _viewModel.StoreLocalBackgroundImage(file);
-        }
-    }
-
-    private void ChooseLocalScoreGlobalBo3BackgroundButton_OnClick(object sender, RoutedEventArgs e)
-    {
-        if (_filePickerService is null || _viewModel is null)
-        {
-            return;
-        }
-
-        var file = _filePickerService.PickImage();
-        if (!string.IsNullOrWhiteSpace(file))
-        {
-            _viewModel.StoreLocalScoreGlobalBo3BackgroundImage(file);
         }
     }
 
@@ -2054,7 +2018,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             if (!_hasExceededClickThreshold)
             {
-                _viewModel?.SelectDesignItem(_pendingHitCandidate);
+                _viewModel?.SelectDesignItem(_pendingHitCandidate, Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
             }
             else if (_hasStartedDrag)
             {

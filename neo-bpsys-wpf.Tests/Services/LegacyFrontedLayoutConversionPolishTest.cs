@@ -180,9 +180,10 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
             var layout = JsonSerializer.Deserialize<FrontedCanvasConfig>(layoutJson)!;
 
             Assert.StartsWith("bpui://converted.legacy.bo3-bg/resources/images/scoreGlobal-", layout.BackgroundImage);
+            Assert.True(layout.EnableBoModeStates);
             Assert.StartsWith(
                 "bpui://converted.legacy.bo3-bg/resources/images/scoreGlobalBo3-",
-                layout.BackgroundImageVariants[FrontedCanvasBackgroundVariants.ScoreGlobalBo3]);
+                layout.BoModeStates["Bo3"].BackgroundImage);
             Assert.Equal(2, archive.Entries.Count(entry => entry.FullName.StartsWith("resources/images/", StringComparison.Ordinal)));
             Assert.DoesNotContain(".0000000006", layoutJson, StringComparison.Ordinal);
             var row = Assert.IsType<GlobalScoreRowControlConfig>(layout.Controls["HomeGlobalScoreRow"]);

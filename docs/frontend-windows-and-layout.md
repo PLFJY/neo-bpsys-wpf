@@ -69,11 +69,13 @@ v3 renderer 会为生成控件注册 namescope 名称，并在清理生成控件
 
 v3 layout 中 root-level 控件 JSON key 就是控件名。该名称同时作为 `FrontedCanvasConfig.Controls` key、生成控件 `FrameworkElement.Name` 和 namescope 注册名。独立编辑器必须通过设计项 `Name` 编辑 dictionary key，不能给 config 类新增重复 `Name` 字段。详细编辑器规格见 [fronted-designer-editor.md](fronted-designer-editor.md)。
 
+v3 layout 支持通用 BO3/BO5 Canvas states。root-level state 是默认/BO5；`EnableBoModeStates = true` 时，`BoModeStates["Bo3"]` 可保存独立 BO3 背景、插件依赖和控件集合。所有内置 v3 前台窗口和插件 Layout 承载窗口都会在 `ISharedDataService.IsBo3ModeChanged` 后重载布局，renderer 根据当前 BO 模式选择 root/BO5 或 BO3 state；如果启用但缺少 BO3 state，则回退 root/BO5 并记录 warning。`ScoreGlobalWindow` 只是该通用机制的一个使用者，不再使用窗口专用背景切换逻辑。
+
 Designer v3 Phase 8C 已新增后台侧独立 `FrontedDesignerWindow` shell。它通过 `FrontedDesignerLayoutCatalog` 只列出已迁移的内置 v3 窗口和 Canvas：`ScoreSurWindow/BaseCanvas`、`ScoreHunWindow/BaseCanvas`、`ScoreGlobalWindow/BaseCanvas`、`CutSceneWindow/BaseCanvas`、`GameDataWindow/BaseCanvas`、`WidgetsWindow/MapBpCanvas`、`WidgetsWindow/BpOverViewCanvas`、`WidgetsWindow/MapV2Canvas` 和 `BpWindow/BaseCanvas`。选择窗口和 Canvas 后，编辑器按 `IFrontedLayoutService` 的活动布局方案规则加载 JSON，转换成 `FrontedCanvasDesignDocument`，运行 `FrontedLayoutValidator`，再用现有 `IFrontedRenderer` 渲染到编辑器自己的只读 `PreviewCanvas`。如果当前活动方案是 `builtin`，保存时会自动复制出可编辑用户布局方案并激活，避免覆盖内置资源。
 
 该预览 Canvas 的 `Width` 和 `Height` 直接来自 `FrontedCanvasConfig.CanvasWidth` / `CanvasHeight`，不使用真实前台窗口的 `ActualHeight`、外框或标题栏尺寸，因此不会引入标题栏高度偏移。Phase 8F 后，独立编辑器已支持内存交互层、基础 Property Grid 和 Add Control：可选中普通设计项，编辑名称、布局、绑定文本和简单控件属性，把新控件添加到当前内存文档并即时重渲染预览。它仍不创建真实 `BpWindow`、`ScoreWindow`、`CutSceneWindow` 等前台输出窗口作为设计 surface，也不实现 Binding/Resource Browser、保存或重置用户布局。
 
-注意：`ScoreGlobalWindow` 当前没有完整条件布局引擎。BO3 模式下 `GlobalScoreRow` 会隐藏 BO5 后续比分格，但总分位置和背景仍采用固定 v3 layout。
+注意：`ScoreGlobalWindow` 的 BO3/BO5 背景、总分位置和比分行配置现在由通用 Canvas state 控制；BO5 使用 root state，BO3 使用 `BoModeStates["Bo3"]`。
 
 legacy 布局文件命名约定（仅用于 legacy `.bpui` 转换，不再被运行时读取）：
 

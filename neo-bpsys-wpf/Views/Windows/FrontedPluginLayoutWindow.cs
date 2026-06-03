@@ -25,9 +25,11 @@ public sealed class FrontedPluginLayoutWindow : FrontedWindowBase
     private readonly FrontedPluginWindowDescriptor _descriptor;
     private readonly IFrontedLayoutService _layoutService;
     private readonly IFrontedRenderer _renderer;
+    private readonly ISharedDataService _sharedDataService;
     private readonly ILogger<FrontedPluginLayoutWindow> _logger;
     private readonly Dictionary<string, Canvas> _canvases = new(StringComparer.Ordinal);
     private bool _hasRendered;
+    private bool _isBoModeSubscribed;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -41,11 +43,13 @@ public sealed class FrontedPluginLayoutWindow : FrontedWindowBase
         FrontedPluginWindowDescriptor descriptor,
         IFrontedLayoutService layoutService,
         IFrontedRenderer renderer,
+        ISharedDataService sharedDataService,
         ILogger<FrontedPluginLayoutWindow> logger)
     {
         _descriptor = descriptor;
         _layoutService = layoutService;
         _renderer = renderer;
+        _sharedDataService = sharedDataService;
         _logger = logger;
 
         Title = string.IsNullOrWhiteSpace(descriptor.DisplayName)
@@ -74,10 +78,14 @@ public sealed class FrontedPluginLayoutWindow : FrontedWindowBase
         Height = primaryCanvas?.DefaultHeight > 0 ? primaryCanvas.DefaultHeight : 1080D;
         Content = root;
         Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
+        Closed += OnClosed;
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
+        SubscribeBoModeChanged();
+
         if (_hasRendered)
         {
             return;
@@ -86,6 +94,10 @@ public sealed class FrontedPluginLayoutWindow : FrontedWindowBase
         _hasRendered = true;
         await ReloadFrontedLayoutAsync();
     }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e) => UnsubscribeBoModeChanged();
+
+    private void OnClosed(object? sender, EventArgs e) => UnsubscribeBoModeChanged();
 
     /// <summary>
     /// Reloads and renders all canvases declared by the plugin layout descriptor.
@@ -123,6 +135,7 @@ public sealed class FrontedPluginLayoutWindow : FrontedWindowBase
             _renderer.RenderToCanvas(canvas, config, new FrontedRenderContext
             {
                 WindowId = _descriptor.WindowId,
+                WindowTypeName = _descriptor.FullWindowType,
                 CanvasName = canvasDescriptor.CanvasName
             });
         }
@@ -156,5 +169,38 @@ public sealed class FrontedPluginLayoutWindow : FrontedWindowBase
 
         var json = await File.ReadAllTextAsync(path);
         return JsonSerializer.Deserialize<FrontedCanvasConfig>(json, _jsonSerializerOptions);
+    }
+
+    private void SubscribeBoModeChanged()
+    {
+        if (_isBoModeSubscribed)
+        {
+            return;
+        }
+
+        _sharedDataService.IsBo3ModeChanged += OnBoModeChanged;
+        _isBoModeSubscribed = true;
+    }
+
+    private void UnsubscribeBoModeChanged()
+    {
+        if (!_isBoModeSubscribed)
+        {
+            return;
+        }
+
+        _sharedDataService.IsBo3ModeChanged -= OnBoModeChanged;
+        _isBoModeSubscribed = false;
+    }
+
+    private void OnBoModeChanged(object? sender, EventArgs args)
+    {
+        if (Dispatcher.CheckAccess())
+        {
+            _ = ReloadFrontedLayoutAsync();
+            return;
+        }
+
+        _ = Dispatcher.BeginInvoke(new Action(() => _ = ReloadFrontedLayoutAsync()));
     }
 }

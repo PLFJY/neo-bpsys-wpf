@@ -478,8 +478,7 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
 
                 if (child.Value is JsonValue value
                     && value.TryGetValue<string>(out var text)
-                    && (ShouldInspectResourceProperty(child.Key)
-                        || string.Equals(propertyName, "BackgroundImageVariants", StringComparison.Ordinal)))
+                    && ShouldInspectResourceProperty(child.Key))
                 {
                     yield return text;
                     continue;
@@ -511,7 +510,6 @@ public sealed class FrontedLayoutPackageImporter : IFrontedLayoutPackageImporter
     private static bool ShouldInspectResourceProperty(string propertyName)
     {
         return string.Equals(propertyName, "BackgroundImage", StringComparison.Ordinal)
-               || string.Equals(propertyName, "BackgroundImageVariants", StringComparison.Ordinal)
                || string.Equals(propertyName, "ImagePath", StringComparison.Ordinal)
                || string.Equals(propertyName, "ImageSource", StringComparison.Ordinal)
                || string.Equals(propertyName, "ResourcePath", StringComparison.Ordinal)

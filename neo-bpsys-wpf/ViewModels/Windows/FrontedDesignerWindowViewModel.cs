@@ -84,11 +84,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private bool _isRebuildingPropertyGrid;
     private bool _isRestoringSnapshot;
     private bool _isLoadingWindowOptions;
+    private bool _isUpdatingBoModeStateUi;
+    private bool _preserveUndoRedoDuringDocumentSwap;
     private bool _scheduledValidationAndPreviewPending;
     private bool _scheduledValidationRequested;
     private bool _scheduledPreviewRequested;
     private bool _clearRestoreVisualsAfterScheduledPreview;
     private FrontedControlDesignItem? _lastSelectedDesignItem;
+    private FrontedDesignerClipboardGroupPayload? _copiedControlGroup;
     private double _lastPreviewViewportWidth;
     private double _lastPreviewViewportHeight;
 
@@ -212,6 +215,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public ObservableCollection<FrontedAddControlCatalogGroup> AddControlCatalogGroups { get; } = [];
 
+    public ObservableCollection<FrontedControlDesignItem> SelectedDesignItems { get; } = [];
+
+    public ObservableCollection<FrontedCanvasBoModeStateOption> BoModeStateOptions { get; } =
+    [
+        new(FrontedCanvasBoModeState.Bo5, I18nHelper.GetLocalizedString("Designer.Canvas.Bo5State")),
+        new(FrontedCanvasBoModeState.Bo3, I18nHelper.GetLocalizedString("Designer.Canvas.Bo3State"))
+    ];
+
     public bool IsRebuildingPropertyGrid => _isRebuildingPropertyGrid;
 
     [ObservableProperty]
@@ -302,6 +313,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public bool HasSelectedDesignItem => SelectedDesignItem is not null;
 
+    public int SelectedDesignItemCount => SelectedDesignItems.Count;
+
     public bool IsBorderedImageSelected => SelectedDesignItem?.Config is BorderedImageFrontedControlConfig;
 
     private FrontedDesignerResizeTarget _borderedImageResizeTarget = FrontedDesignerResizeTarget.Border;
@@ -346,9 +359,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public bool CanDeleteSelectedControl =>
         SelectedDesignItem is { IsSelectableInEditor: true, IsEditableInEditor: true };
 
-    public bool CanCopySelectedControl => CanCopyControl(SelectedDesignItem);
+    public bool CanCopySelectedControl => GetCopyableSelection().Count > 0;
 
-    public bool CanPasteControl => CurrentDocument is not null && _copiedControl is not null;
+    public bool CanPasteControl => CurrentDocument is not null && (_copiedControl is not null || _copiedControlGroup is not null);
 
     public bool HasPendingScheduledDesignerWork => _scheduledValidationAndPreviewPending;
 
@@ -413,14 +426,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private string _backgroundImageEditText = string.Empty;
 
     [ObservableProperty]
-    private string _scoreGlobalBo3BackgroundImageEditText = string.Empty;
+    private bool _enableBoModeStates;
 
-    public bool IsScoreGlobalBo3BackgroundVisible =>
-        CurrentDocument is
-        {
-            WindowTypeName: "ScoreGlobalWindow",
-            CanvasName: "BaseCanvas"
-        };
+    [ObservableProperty]
+    private FrontedCanvasBoModeStateOption? _selectedBoModeStateOption;
+
+    public bool IsBoModeStateSelectorVisible => EnableBoModeStates;
+
+    public bool CanCopyBo5ToBo3 => CurrentDocument is not null && EnableBoModeStates;
 
     [ObservableProperty]
     private string _canvasPropertiesStatus = string.Empty;
@@ -467,13 +480,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     partial void OnCurrentDocumentChanged(FrontedCanvasDesignDocument? value)
     {
         _propertyEditErrors.Clear();
-        if (!_isRestoringSnapshot)
+        if (!_isRestoringSnapshot && !_preserveUndoRedoDuringDocumentSwap)
         {
             ClearUndoRedo();
         }
         NormalizeSelectionState();
         RefreshCanvasPropertyBuffers();
-        OnPropertyChanged(nameof(IsScoreGlobalBo3BackgroundVisible));
+        OnPropertyChanged(nameof(IsBoModeStateSelectorVisible));
+        OnPropertyChanged(nameof(CanCopyBo5ToBo3));
         RebuildFilteredDesignItems();
         OnPropertyChanged(nameof(CanReorderLayers));
         OnPropertyChanged(nameof(LayerReorderHint));
@@ -528,7 +542,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _propertyEditErrors.Clear();
         _propertyEditBuffers.Clear();
         if (_lastSelectedDesignItem is not null
-            && !ReferenceEquals(_lastSelectedDesignItem, value))
+            && !ReferenceEquals(_lastSelectedDesignItem, value)
+            && !SelectedDesignItems.Contains(_lastSelectedDesignItem))
         {
             _lastSelectedDesignItem.IsSelected = false;
         }
@@ -544,6 +559,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RebuildPropertyEditorItems();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
         CopySelectedControlCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(SelectedDesignItemCount));
         OnPropertyChanged(nameof(IsBorderedImageSelected));
         OnPropertyChanged(nameof(IsBorderResizeTargetSelected));
         OnPropertyChanged(nameof(IsImageResizeTargetSelected));
@@ -582,6 +598,52 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         _ = SaveWindowOptionsAsync(value);
+    }
+
+    partial void OnEnableBoModeStatesChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsBoModeStateSelectorVisible));
+        OnPropertyChanged(nameof(CanCopyBo5ToBo3));
+        CopyBo5ToBo3Command.NotifyCanExecuteChanged();
+
+        if (_isUpdatingBoModeStateUi || CurrentDocument is null)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+        var config = _designConverter.ToConfig(CurrentDocument);
+        config.EnableBoModeStates = value;
+        if (value)
+        {
+            EnsureBo3State(config);
+        }
+
+        var nextState = value ? CurrentDocument.EditingBoModeState : FrontedCanvasBoModeState.Bo5;
+        RebuildDocumentFromConfig(config, nextState, preserveDirty: true, selectedControlName: SelectedDesignItem?.Name);
+        CanvasPropertiesStatus = value
+            ? I18nHelper.GetLocalizedString("Designer.Canvas.BoModeStatesEnabled")
+            : I18nHelper.GetLocalizedString("Designer.Canvas.BoModeStatesDisabledConfirm");
+    }
+
+    partial void OnSelectedBoModeStateOptionChanged(FrontedCanvasBoModeStateOption? value)
+    {
+        if (_isUpdatingBoModeStateUi || CurrentDocument is null || value is null)
+        {
+            return;
+        }
+
+        if (CurrentDocument.EditingBoModeState == value.State)
+        {
+            return;
+        }
+
+        var config = _designConverter.ToConfig(CurrentDocument);
+        RebuildDocumentFromConfig(
+            config,
+            value.State,
+            preserveDirty: CurrentDocument.IsDirty,
+            selectedControlName: SelectedDesignItem?.Name);
     }
 
     [RelayCommand]
@@ -962,13 +1024,24 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanCopySelectedControl))]
     private void CopySelectedControl()
     {
-        if (!CanCopyControl(SelectedDesignItem))
+        var copyable = GetCopyableSelection();
+        if (copyable.Count == 0)
         {
             StatusMessage = I18nHelper.GetLocalizedString("CannotCopyControl");
             return;
         }
 
-        _copiedControl = FrontedDesignerClipboardPayload.Create(SelectedDesignItem!);
+        if (copyable.Count == 1)
+        {
+            _copiedControl = FrontedDesignerClipboardPayload.Create(copyable[0]);
+            _copiedControlGroup = null;
+        }
+        else
+        {
+            _copiedControl = null;
+            _copiedControlGroup = FrontedDesignerClipboardGroupPayload.Create(copyable);
+        }
+
         PasteControlCommand.NotifyCanExecuteChanged();
         StatusMessage = I18nHelper.GetLocalizedString("CopyControl");
     }
@@ -976,15 +1049,22 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanPasteControl))]
     private void PasteControl()
     {
-        if (CurrentDocument is null || _copiedControl is null)
+        if (CurrentDocument is null || (_copiedControl is null && _copiedControlGroup is null))
         {
             StatusMessage = I18nHelper.GetLocalizedString("CannotPasteControl");
             return;
         }
 
-        if (CurrentDocument.Controls.Count >= FrontedLayoutLimits.MaxControlsPerCanvas)
+        var pasteCount = _copiedControlGroup?.Items.Count ?? 1;
+        if (CurrentDocument.Controls.Count + pasteCount > FrontedLayoutLimits.MaxControlsPerCanvas)
         {
             StatusMessage = I18nHelper.GetLocalizedString("ControlCountLimitReached");
+            return;
+        }
+
+        if (_copiedControlGroup is not null)
+        {
+            PasteControlGroup(_copiedControlGroup);
             return;
         }
 
@@ -1024,6 +1104,52 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         LogDesignerPerf("Paste", "total", Elapsed(total));
     }
 
+    private void PasteControlGroup(FrontedDesignerClipboardGroupPayload group)
+    {
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+        var pasted = new List<FrontedControlDesignItem>();
+        var nextZIndex = CurrentDocument.Controls.Count == 0
+            ? 0
+            : CurrentDocument.Controls.Max(control => control.Config.ZIndex) + 1;
+        foreach (var payload in group.Items)
+        {
+            var config = payload.CreateConfig();
+            config.Left += 10D;
+            config.Top += 10D;
+            config.ZIndex = nextZIndex++;
+            var item = new FrontedControlDesignItem
+            {
+                Name = GeneratePasteName(payload.SourceName, payload.ControlType, CurrentDocument),
+                Config = config,
+                IsSelectableInEditor = true,
+                IsEditableInEditor = true
+            };
+            CurrentDocument.Controls.Add(item);
+            pasted.Add(item);
+        }
+
+        CurrentDocument.IsDirty = true;
+        RefreshDirtyState();
+        ControlFilterText = string.Empty;
+        RebuildFilteredDesignItems();
+        SelectedDesignItems.Clear();
+        foreach (var item in pasted)
+        {
+            SelectedDesignItems.Add(item);
+            item.IsSelected = true;
+        }
+
+        SelectedDesignItem = pasted.FirstOrDefault();
+        OnPropertyChanged(nameof(SelectedDesignItemCount));
+        ScheduleValidationAndPreviewRender("PasteGroup");
+        StatusMessage = $"{I18nHelper.GetLocalizedString("PasteControl")}: {pasted.Count}";
+    }
+
     [RelayCommand(CanExecute = nameof(CanDeleteSelectedControl))]
     private void DeleteSelectedControl()
     {
@@ -1032,21 +1158,23 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
-        var item = SelectedDesignItem;
-        if (item.IsRuntimeCritical)
+        var targets = SelectedDesignItems.Count > 1
+            ? SelectedDesignItems.ToList()
+            : [SelectedDesignItem];
+        if (targets.Any(item => item.IsRuntimeCritical))
         {
             StatusMessage = I18nHelper.GetLocalizedString("CannotDeleteRuntimeCriticalControl");
             return;
         }
 
-        if (!item.IsEditableInEditor || !item.IsSelectableInEditor)
+        if (targets.Any(item => !item.IsEditableInEditor || !item.IsSelectableInEditor))
         {
             StatusMessage = I18nHelper.GetLocalizedString("CannotDeleteRuntimeCriticalControl");
             return;
         }
 
         _referenceScanner.SetControls(CurrentDocument.Controls);
-        if (_referenceScanner.GetIncomingReferences(item.Name).Count > 0)
+        if (targets.Any(item => _referenceScanner.GetIncomingReferences(item.Name).Count > 0))
         {
             StatusMessage = I18nHelper.GetLocalizedString("CannotDeleteReferencedControl");
             return;
@@ -1056,19 +1184,25 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         LogDesignerPerf("Delete", "start");
         CaptureUndoSnapshot();
         LogDesignerPerf("Delete", "undo snapshot capture", Elapsed(total));
-        CurrentDocument.Controls.Remove(item);
+        foreach (var item in targets)
+        {
+            CurrentDocument.Controls.Remove(item);
+        }
         LogDesignerPerf("Delete", "remove control", Elapsed(total));
         CurrentDocument.IsDirty = true;
         RefreshDirtyState();
         SelectDesignItem(null);
-        RemoveFilteredDesignItem(item);
+        foreach (var item in targets)
+        {
+            RemoveFilteredDesignItem(item);
+        }
         LogDesignerPerf("Delete", "filtered list update", Elapsed(total));
         RebuildPropertyEditorItems();
         LogDesignerPerf("Delete", "selection/property update", Elapsed(total));
         ScheduleValidationAndPreviewRender("Delete");
         LogDesignerPerf("Delete", "validation scheduling", Elapsed(total));
         LogDesignerPerf("Delete", "preview render scheduling", Elapsed(total));
-        StatusMessage = $"{I18nHelper.GetLocalizedString("DeleteSelectedControl")}: {item.Name}";
+        StatusMessage = $"{I18nHelper.GetLocalizedString("DeleteSelectedControl")}: {targets.Count}";
         LogDesignerPerf("Delete", "total", Elapsed(total));
     }
 
@@ -1135,14 +1269,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             CanvasPropertiesStatus = I18nHelper.GetLocalizedString("InputTruncated");
         }
 
-        if (string.Equals(CurrentDocument.CanvasConfig.BackgroundImage, normalizedValue, StringComparison.Ordinal))
+        if (string.Equals(GetEditingStateBackground(CurrentDocument), normalizedValue, StringComparison.Ordinal))
         {
             BackgroundImageEditText = normalizedValue ?? string.Empty;
             return true;
         }
 
         CaptureUndoSnapshot();
-        CurrentDocument.CanvasConfig.BackgroundImage = normalizedValue;
+        SetEditingStateBackground(CurrentDocument, normalizedValue);
         CurrentDocument.IsDirty = true;
         BackgroundImageEditText = normalizedValue ?? string.Empty;
         FinishCanvasConfigEdit(I18nHelper.GetLocalizedString("CanvasPropertiesApplied"));
@@ -1189,91 +1323,31 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
-    private void ApplyScoreGlobalBo3BackgroundImage()
+    [RelayCommand(CanExecute = nameof(CanCopyBo5ToBo3))]
+    private void CopyBo5ToBo3()
     {
-        ApplyScoreGlobalBo3BackgroundEdit(ScoreGlobalBo3BackgroundImageEditText);
-    }
-
-    [RelayCommand]
-    private void ClearScoreGlobalBo3BackgroundImage()
-    {
-        ApplyScoreGlobalBo3BackgroundEdit(null);
-    }
-
-    public bool ApplyScoreGlobalBo3BackgroundEdit(string? backgroundImage)
-    {
-        if (CurrentDocument is null || !IsScoreGlobalBo3BackgroundVisible)
+        if (CurrentDocument is null)
         {
-            return false;
-        }
-
-        if (IsAbsoluteFilePath(backgroundImage))
-        {
-            return StoreLocalScoreGlobalBo3BackgroundImage(backgroundImage!);
-        }
-
-        var rawValue = string.IsNullOrWhiteSpace(backgroundImage) ? null : backgroundImage.Trim();
-        var normalizedValue = rawValue is null
-            ? null
-            : FrontedTextLimitHelper.Clamp(rawValue, FrontedLayoutLimits.MaxResourcePathLength);
-        if (!string.Equals(rawValue, normalizedValue, StringComparison.Ordinal))
-        {
-            CanvasPropertiesStatus = I18nHelper.GetLocalizedString("InputTruncated");
-        }
-
-        CurrentDocument.CanvasConfig.BackgroundImageVariants.TryGetValue(
-            FrontedCanvasBackgroundVariants.ScoreGlobalBo3,
-            out var currentValue);
-        if (string.Equals(currentValue, normalizedValue, StringComparison.Ordinal))
-        {
-            ScoreGlobalBo3BackgroundImageEditText = normalizedValue ?? string.Empty;
-            return true;
+            return;
         }
 
         CaptureUndoSnapshot();
-        if (normalizedValue is null)
+        var config = _designConverter.ToConfig(CurrentDocument);
+        EnsureBo3State(config);
+        config.EnableBoModeStates = true;
+        config.BoModeStates[FrontedCanvasRuntimeStateResolver.Bo3StateKey] = new FrontedCanvasStateConfig
         {
-            CurrentDocument.CanvasConfig.BackgroundImageVariants.Remove(FrontedCanvasBackgroundVariants.ScoreGlobalBo3);
-        }
-        else
-        {
-            CurrentDocument.CanvasConfig.BackgroundImageVariants[FrontedCanvasBackgroundVariants.ScoreGlobalBo3] = normalizedValue;
-        }
+            BackgroundImage = config.BackgroundImage,
+            RequiredPlugins = DeepClone(config.RequiredPlugins),
+            Controls = CloneControls(config.Controls)
+        };
 
-        CurrentDocument.IsDirty = true;
-        ScoreGlobalBo3BackgroundImageEditText = normalizedValue ?? string.Empty;
-        FinishCanvasConfigEdit(I18nHelper.GetLocalizedString("CanvasPropertiesApplied"));
-        return true;
-    }
-
-    public bool ApplyScoreGlobalBo3BackgroundResourceSelection(string selectedResourcePath)
-    {
-        return IsAbsoluteFilePath(selectedResourcePath)
-            ? StoreLocalScoreGlobalBo3BackgroundImage(selectedResourcePath)
-            : ApplyScoreGlobalBo3BackgroundEdit(selectedResourcePath);
-    }
-
-    public bool StoreLocalScoreGlobalBo3BackgroundImage(string sourcePath)
-    {
-        if (_localResourceStore is null)
-        {
-            return false;
-        }
-
-        try
-        {
-            var result = _localResourceStore.StoreImageWithResult(sourcePath);
-            var applied = ApplyScoreGlobalBo3BackgroundEdit(result.ResourceUri);
-            RecordPendingImportedResource(result, "ScoreGlobal BO3 Background", applied);
-            return applied;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to store local ScoreGlobal BO3 background image.");
-            CanvasPropertiesStatus = $"{I18nHelper.GetLocalizedString("FailedToApplyPicture")}: {ex.Message}";
-            return false;
-        }
+        RebuildDocumentFromConfig(
+            config,
+            FrontedCanvasBoModeState.Bo3,
+            preserveDirty: true,
+            selectedControlName: SelectedDesignItem?.Name);
+        CanvasPropertiesStatus = I18nHelper.GetLocalizedString("Designer.Canvas.Bo3LayoutCopied");
     }
 
     public bool ApplyPropertyResourceSelection(FrontedPropertyEditorItem item, string selectedResourcePath)
@@ -1341,18 +1415,63 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         StatusMessage = exception.Message;
     }
 
-    public void SelectDesignItem(FrontedControlDesignItem? item)
+    public void SelectDesignItem(FrontedControlDesignItem? item, bool toggleSelection = false)
     {
         if (item?.IsSelectableInEditor == false)
         {
             item = null;
         }
 
-        SelectedDesignItem = item;
+        if (!toggleSelection)
+        {
+            SelectedDesignItems.Clear();
+            if (item is not null)
+            {
+                SelectedDesignItems.Add(item);
+            }
+
+            SelectedDesignItem = item;
+            OnPropertyChanged(nameof(SelectedDesignItemCount));
+            return;
+        }
+
+        if (item is null)
+        {
+            return;
+        }
+
+        if (SelectedDesignItems.Contains(item))
+        {
+            SelectedDesignItems.Remove(item);
+            item.IsSelected = false;
+            if (ReferenceEquals(SelectedDesignItem, item))
+            {
+                SelectedDesignItem = SelectedDesignItems.FirstOrDefault();
+            }
+        }
+        else
+        {
+            SelectedDesignItems.Add(item);
+            item.IsSelected = true;
+            SelectedDesignItem = item;
+        }
+
+        OnPropertyChanged(nameof(SelectedDesignItemCount));
+        RefreshSelectedControlDisplay();
+        RebuildPropertyEditorItems();
+        DeleteSelectedControlCommand.NotifyCanExecuteChanged();
+        CopySelectedControlCommand.NotifyCanExecuteChanged();
     }
 
     public void ClearSelection()
     {
+        foreach (var item in SelectedDesignItems)
+        {
+            item.IsSelected = false;
+        }
+
+        SelectedDesignItems.Clear();
+        OnPropertyChanged(nameof(SelectedDesignItemCount));
         SelectDesignItem(null);
     }
 
@@ -1382,8 +1501,17 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             SnapGridSize,
             FrontedDesignerSmartSnapHelper.CalculateLogicalTolerance(ZoomScale));
 
+        var appliedDeltaX = result.Left - SelectedDesignItem.Config.Left;
+        var appliedDeltaY = result.Top - SelectedDesignItem.Config.Top;
         SelectedDesignItem.Config.Left = result.Left;
         SelectedDesignItem.Config.Top = result.Top;
+        foreach (var item in SelectedDesignItems.Where(item => !ReferenceEquals(item, SelectedDesignItem)))
+        {
+            item.Config.Left = FrontedDesignerGeometryHelper.Snap(item.Config.Left + appliedDeltaX);
+            item.Config.Top = FrontedDesignerGeometryHelper.Snap(item.Config.Top + appliedDeltaY);
+            SyncLinkedOverlays(item);
+        }
+
         CurrentDocument.IsDirty = true;
         ActiveSnapGuides = EffectiveSnapEnabled ? result.Guides : [];
         SyncLinkedOverlays(SelectedDesignItem);
@@ -1406,6 +1534,18 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             CurrentDocument,
             EffectiveSnapEnabled,
             SnapGridSize);
+        foreach (var item in SelectedDesignItems.Where(item => !ReferenceEquals(item, SelectedDesignItem)))
+        {
+            FrontedDesignerGeometryHelper.MoveBy(
+                item,
+                deltaX,
+                deltaY,
+                CurrentDocument,
+                EffectiveSnapEnabled,
+                SnapGridSize);
+            SyncLinkedOverlays(item);
+        }
+
         SyncLinkedOverlays(SelectedDesignItem);
         OnDesignItemGeometryChanged(renderPreview: true);
     }
@@ -2122,18 +2262,127 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             CanvasWidthEditText = string.Empty;
             CanvasHeightEditText = string.Empty;
             BackgroundImageEditText = string.Empty;
-            ScoreGlobalBo3BackgroundImageEditText = string.Empty;
+            SetBoModeStateUi(enableBoModeStates: false, FrontedCanvasBoModeState.Bo5);
             return;
         }
 
         CanvasWidthEditText = CurrentDocument.CanvasConfig.CanvasWidth.ToString("0.##", CultureInfo.InvariantCulture);
         CanvasHeightEditText = CurrentDocument.CanvasConfig.CanvasHeight.ToString("0.##", CultureInfo.InvariantCulture);
-        BackgroundImageEditText = CurrentDocument.CanvasConfig.BackgroundImage ?? string.Empty;
-        ScoreGlobalBo3BackgroundImageEditText = CurrentDocument.CanvasConfig.BackgroundImageVariants.TryGetValue(
-            FrontedCanvasBackgroundVariants.ScoreGlobalBo3,
-            out var bo3Background)
-            ? bo3Background
-            : string.Empty;
+        BackgroundImageEditText = GetEditingStateBackground(CurrentDocument) ?? string.Empty;
+        _designerPreviewSharedDataService.IsBo3Mode = CurrentDocument.EditingBoModeState == FrontedCanvasBoModeState.Bo3;
+        SetBoModeStateUi(CurrentDocument.CanvasConfig.EnableBoModeStates, CurrentDocument.EditingBoModeState);
+    }
+
+    private void SetBoModeStateUi(bool enableBoModeStates, FrontedCanvasBoModeState editingState)
+    {
+        _isUpdatingBoModeStateUi = true;
+        try
+        {
+            EnableBoModeStates = enableBoModeStates;
+            SelectedBoModeStateOption = BoModeStateOptions.FirstOrDefault(option => option.State == editingState)
+                                        ?? BoModeStateOptions.FirstOrDefault();
+        }
+        finally
+        {
+            _isUpdatingBoModeStateUi = false;
+        }
+
+        OnPropertyChanged(nameof(IsBoModeStateSelectorVisible));
+        OnPropertyChanged(nameof(CanCopyBo5ToBo3));
+        CopyBo5ToBo3Command.NotifyCanExecuteChanged();
+    }
+
+    private static string? GetEditingStateBackground(FrontedCanvasDesignDocument document)
+    {
+        if (document.EditingBoModeState == FrontedCanvasBoModeState.Bo3
+            && document.CanvasConfig.BoModeStates.TryGetValue(
+                FrontedCanvasRuntimeStateResolver.Bo3StateKey,
+                out var bo3State))
+        {
+            return bo3State.BackgroundImage;
+        }
+
+        return document.CanvasConfig.BackgroundImage;
+    }
+
+    private static void SetEditingStateBackground(FrontedCanvasDesignDocument document, string? value)
+    {
+        if (document.EditingBoModeState == FrontedCanvasBoModeState.Bo3)
+        {
+            EnsureBo3State(document.CanvasConfig).BackgroundImage = value;
+            return;
+        }
+
+        document.CanvasConfig.BackgroundImage = value;
+    }
+
+    private static FrontedCanvasStateConfig EnsureBo3State(FrontedCanvasConfig config)
+    {
+        if (!config.BoModeStates.TryGetValue(FrontedCanvasRuntimeStateResolver.Bo3StateKey, out var state))
+        {
+            state = new FrontedCanvasStateConfig();
+            config.BoModeStates[FrontedCanvasRuntimeStateResolver.Bo3StateKey] = state;
+        }
+
+        return state;
+    }
+
+    private void RebuildDocumentFromConfig(
+        FrontedCanvasConfig config,
+        FrontedCanvasBoModeState editingState,
+        bool preserveDirty,
+        string? selectedControlName)
+    {
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        var document = _designConverter.FromConfig(
+            CurrentDocument.WindowTypeName,
+            CurrentDocument.CanvasName,
+            config,
+            _runtimeContracts,
+            editingState);
+        document.IsDirty = preserveDirty || CurrentDocument.IsDirty;
+
+        _preserveUndoRedoDuringDocumentSwap = true;
+        try
+        {
+            CurrentDocument = document;
+        }
+        finally
+        {
+            _preserveUndoRedoDuringDocumentSwap = false;
+        }
+
+        SelectDesignItem(document.Controls.FirstOrDefault(control =>
+            string.Equals(control.Name, selectedControlName, StringComparison.Ordinal)));
+        RefreshCanvasPropertyBuffers();
+        RefreshDirtyState();
+        ValidateCurrentDocument();
+        RequestPreviewRenderCurrentDocument();
+    }
+
+    private static T DeepClone<T>(T value)
+    {
+        var json = JsonSerializer.Serialize(value);
+        return JsonSerializer.Deserialize<T>(json)
+               ?? throw new InvalidOperationException("Failed to clone fronted layout state.");
+    }
+
+    private static Dictionary<string, FrontedControlConfigBase> CloneControls(
+        IReadOnlyDictionary<string, FrontedControlConfigBase> controls)
+    {
+        var cloned = new Dictionary<string, FrontedControlConfigBase>(StringComparer.Ordinal);
+        foreach (var (name, control) in controls)
+        {
+            var json = JsonSerializer.Serialize(control, control.GetType());
+            cloned[name] = (FrontedControlConfigBase?)JsonSerializer.Deserialize(json, control.GetType())
+                           ?? throw new InvalidOperationException("Failed to clone fronted control config.");
+        }
+
+        return cloned;
     }
 
     public void DiscardPendingResourceImports()
@@ -2586,25 +2835,38 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private void NormalizeSelectionState()
     {
-        if (_lastSelectedDesignItem is not null)
-        {
-            _lastSelectedDesignItem.IsSelected = false;
-        }
-
         _lastSelectedDesignItem = null;
         if (CurrentDocument is null)
         {
+            SelectedDesignItems.Clear();
+            OnPropertyChanged(nameof(SelectedDesignItemCount));
             return;
+        }
+
+        var validSelection = SelectedDesignItems
+            .Where(item => CurrentDocument.Controls.Contains(item))
+            .ToHashSet();
+        if (SelectedDesignItem is not null && !CurrentDocument.Controls.Contains(SelectedDesignItem))
+        {
+            SelectedDesignItem = null;
+        }
+
+        SelectedDesignItems.Clear();
+        foreach (var item in validSelection)
+        {
+            SelectedDesignItems.Add(item);
         }
 
         foreach (var control in CurrentDocument.Controls)
         {
-            control.IsSelected = ReferenceEquals(control, SelectedDesignItem);
+            control.IsSelected = SelectedDesignItems.Contains(control) || ReferenceEquals(control, SelectedDesignItem);
             if (control.IsSelected)
             {
                 _lastSelectedDesignItem = control;
             }
         }
+
+        OnPropertyChanged(nameof(SelectedDesignItemCount));
     }
 
     private Stopwatch? StartDesignerPerfTrace()
@@ -2668,7 +2930,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         var config = SelectedDesignItem.Config;
-        SelectedControlDisplay = SelectedDesignItem.Name;
+        SelectedControlDisplay = SelectedDesignItems.Count > 1
+            ? string.Format(
+                CultureInfo.CurrentCulture,
+                I18nHelper.GetLocalizedString("Designer.Selection.MultipleSelected"),
+                SelectedDesignItems.Count)
+            : SelectedDesignItem.Name;
         SelectedControlTypeDisplay = _localizationService.GetControlTypeDisplayName(config.ControlType);
         SelectedControlGeometryDisplay =
             $"L {config.Left:0.##}  T {config.Top:0.##}  "
@@ -2725,6 +2992,17 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             IsEditableInEditor: true,
             IsRuntimeCritical: false
         } && item.Config is not PickingBorderOverlayControlConfig;
+    }
+
+    private IReadOnlyList<FrontedControlDesignItem> GetCopyableSelection()
+    {
+        var selected = SelectedDesignItems.Count > 0
+            ? SelectedDesignItems.ToList()
+            : SelectedDesignItem is null
+                ? []
+                : [SelectedDesignItem];
+
+        return selected.Where(CanCopyControl).ToList();
     }
 
     private static string GeneratePasteName(string sourceName, string controlType, FrontedCanvasDesignDocument document)
@@ -3569,6 +3847,29 @@ public sealed class FrontedDesignerClipboardPayload(
     }
 }
 
+public sealed class FrontedDesignerClipboardGroupPayload(IReadOnlyList<FrontedDesignerClipboardPayload> items)
+{
+    public IReadOnlyList<FrontedDesignerClipboardPayload> Items { get; } = items;
+
+    public static FrontedDesignerClipboardGroupPayload Create(IReadOnlyList<FrontedControlDesignItem> items)
+    {
+        return new FrontedDesignerClipboardGroupPayload(
+            items
+                .OrderBy(item => item.Config.ZIndex)
+                .Select(FrontedDesignerClipboardPayload.Create)
+                .ToArray());
+    }
+}
+
+public sealed class FrontedCanvasBoModeStateOption(
+    FrontedCanvasBoModeState state,
+    string displayName)
+{
+    public FrontedCanvasBoModeState State { get; } = state;
+
+    public string DisplayName { get; } = displayName;
+}
+
 public sealed class FrontedDesignerPreviewRenderRequestedEventArgs(
     FrontedCanvasConfig? config,
     FrontedRenderContext? context) : EventArgs
@@ -3642,7 +3943,8 @@ internal static class FrontedDesignerSnapshotRestorePlanner
             || Math.Abs(current.CanvasWidth - target.CanvasWidth) >= 0.0001D
             || Math.Abs(current.CanvasHeight - target.CanvasHeight) >= 0.0001D
             || !string.Equals(current.BackgroundImage, target.BackgroundImage, StringComparison.Ordinal)
-            || !JsonEquivalent(current.BackgroundImageVariants, target.BackgroundImageVariants)
+            || current.EnableBoModeStates != target.EnableBoModeStates
+            || !JsonEquivalent(current.BoModeStates, target.BoModeStates)
             || !JsonEquivalent(current.RequiredPlugins, target.RequiredPlugins))
         {
             return Fail("canvas/window config changed");

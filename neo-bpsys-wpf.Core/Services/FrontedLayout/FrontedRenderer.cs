@@ -25,9 +25,14 @@ public class FrontedRenderer(
     {
         ClearGeneratedControls(canvas);
 
-        canvas.Width = config.CanvasWidth;
-        canvas.Height = config.CanvasHeight;
-        canvas.Background = CreateBackground(ResolveBackgroundImage(config, context));
+        var runtimeState = FrontedCanvasRuntimeStateResolver.Resolve(
+            config,
+            context.SharedDataServiceOverride ?? sharedDataService,
+            logger);
+
+        canvas.Width = runtimeState.CanvasWidth;
+        canvas.Height = runtimeState.CanvasHeight;
+        canvas.Background = CreateBackground(runtimeState.BackgroundImage);
 
         var buildContext = new FrontedControlBuildContext
         {
@@ -40,7 +45,7 @@ public class FrontedRenderer(
         };
 
         var renderedElements = new Dictionary<string, FrameworkElement>(StringComparer.Ordinal);
-        foreach (var (name, controlConfig) in config.Controls.OrderBy(x => x.Value.ZIndex))
+        foreach (var (name, controlConfig) in runtimeState.Controls.OrderBy(x => x.Value.ZIndex))
         {
             var factory = controlRegistry.GetControl(controlConfig.ControlType);
             if (factory is null)
@@ -51,6 +56,7 @@ public class FrontedRenderer(
                     {
                         // Designer preview preserves missing plugin controls as selectable placeholders; live fronted windows skip them.
                         var placeholder = CreateMissingPluginPlaceholder(name, controlConfig);
+                        placeholder.Visibility = MapVisibility(controlConfig.Visibility);
                         FrontedRendererProperties.SetIsGeneratedControl(placeholder, true);
                         RegisterGeneratedName(canvas, name, placeholder);
                         canvas.Children.Add(placeholder);
@@ -70,14 +76,23 @@ public class FrontedRenderer(
             }
 
             var element = factory.Create(name, controlConfig, buildContext);
+            element.Visibility = MapVisibility(controlConfig.Visibility);
             FrontedRendererProperties.SetIsGeneratedControl(element, true);
             RegisterGeneratedName(canvas, name, element);
             canvas.Children.Add(element);
             renderedElements[name] = element;
         }
 
-        SyncLinkedPickingBorderOverlays(config, renderedElements);
+        SyncLinkedPickingBorderOverlays(runtimeState.Controls, renderedElements);
     }
+
+    private static Visibility MapVisibility(FrontedControlVisibility visibility) =>
+        visibility switch
+        {
+            FrontedControlVisibility.Hidden => Visibility.Hidden,
+            FrontedControlVisibility.Collapsed => Visibility.Collapsed,
+            _ => Visibility.Visible
+        };
 
     private static FrameworkElement CreateMissingPluginPlaceholder(string name, FrontedControlConfigBase config)
     {
@@ -110,14 +125,14 @@ public class FrontedRenderer(
     }
 
     private static void SyncLinkedPickingBorderOverlays(
-        FrontedCanvasConfig config,
+        IReadOnlyDictionary<string, FrontedControlConfigBase> controls,
         IReadOnlyDictionary<string, FrameworkElement> renderedElements)
     {
-        foreach (var (overlayName, controlConfig) in config.Controls)
+        foreach (var (overlayName, controlConfig) in controls)
         {
             if (controlConfig is not PickingBorderOverlayControlConfig overlayConfig
                 || string.IsNullOrWhiteSpace(overlayConfig.TargetControlName)
-                || !config.Controls.TryGetValue(overlayConfig.TargetControlName, out var targetConfig)
+                || !controls.TryGetValue(overlayConfig.TargetControlName, out var targetConfig)
                 || !renderedElements.TryGetValue(overlayConfig.TargetControlName, out var target)
                 || !renderedElements.TryGetValue(overlayName, out var overlay))
             {
@@ -226,22 +241,5 @@ public class FrontedRenderer(
         return imageSource is null
             ? null
             : new ImageBrush(imageSource) { Stretch = Stretch.Fill };
-    }
-
-    private string? ResolveBackgroundImage(FrontedCanvasConfig config, FrontedRenderContext context)
-    {
-        var contextSharedData = context.SharedDataServiceOverride ?? sharedDataService;
-        if (string.Equals(context.WindowTypeName, "ScoreGlobalWindow", StringComparison.Ordinal)
-            && string.Equals(context.CanvasName, "BaseCanvas", StringComparison.Ordinal)
-            && contextSharedData.IsBo3Mode
-            && config.BackgroundImageVariants.TryGetValue(
-                FrontedCanvasBackgroundVariants.ScoreGlobalBo3,
-                out var bo3Background)
-            && !string.IsNullOrWhiteSpace(bo3Background))
-        {
-            return bo3Background;
-        }
-
-        return config.BackgroundImage;
     }
 }

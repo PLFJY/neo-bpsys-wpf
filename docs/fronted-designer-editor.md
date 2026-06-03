@@ -649,11 +649,19 @@ Phase 8G 已实现控件级资源路径浏览。Resource Browser 面向图片和
 
 ### Copy/Paste
 
-Phase 10 已实现内部控件复制/粘贴。`Ctrl+C` 复制当前选中的普通可编辑控件，`Ctrl+V` 粘贴到当前 Canvas；该剪贴板只存在于编辑器 ViewModel 内，不使用系统剪贴板。运行时关键控件、`PickingBorderOverlay`、不可选/不可编辑控件不能复制。粘贴时深拷贝 config，名称按尾部数字递增并避开冲突，`Left` / `Top` 偏移 `+10`，`ZIndex` 设为当前最大值加 1，并正常进入 dirty、undo、validation、preview 刷新流程。Phase 13C 起，已安装插件控件的 typed config 和缺失插件控件的 `PluginFrontedControlConfig.ExtensionData` 都按同一 JSON 深拷贝路径保留；插件控件新增或粘贴后的默认名称使用 `ControlTypeName`，例如 `TeamCard1`，而不是完整 `plugin:...` 字符串。焦点位于 `TextBox`、可编辑 `ComboBox`、ColorPicker 文本区域等文本输入时，窗口不会拦截 `Ctrl+C` / `Ctrl+V`，保留普通文本复制粘贴。
+Phase 10 已实现内部控件复制/粘贴。`Ctrl+C` 复制当前选中的普通可编辑控件；按住 Ctrl 点击可形成多选组，`Ctrl+C` / `Ctrl+V` 会复制和粘贴整个组。该剪贴板只存在于编辑器 ViewModel 内，不使用系统剪贴板。运行时关键控件、`PickingBorderOverlay`、不可选/不可编辑控件不能复制。粘贴时深拷贝 config，名称按尾部数字递增并避开冲突，`Left` / `Top` 偏移 `+10`，组粘贴保留相对位置并选择粘贴后的组。Phase 13C 起，已安装插件控件的 typed config 和缺失插件控件的 `PluginFrontedControlConfig.ExtensionData` 都按同一 JSON 深拷贝路径保留；插件控件新增或粘贴后的默认名称使用 `ControlTypeName`，例如 `TeamCard1`，而不是完整 `plugin:...` 字符串。焦点位于 `TextBox`、可编辑 `ComboBox`、ColorPicker 文本区域等文本输入时，窗口不会拦截 `Ctrl+C` / `Ctrl+V`，保留普通文本复制粘贴。
 
 ### Undo/Redo
 
-Phase 8F foundation 修复后已提供基础内存 Undo/Redo。工具栏有 Undo / Redo 按钮，快捷键为 `Ctrl+Z`、`Ctrl+Y` 和 `Ctrl+Shift+Z`；焦点位于 `TextBox`、`ComboBox`、ColorPicker 等属性编辑器内时不抢编辑控件自身的撤销/重做。Undo/Redo 以当前 Canvas config 的 JSON 快照实现，覆盖新增控件、删除控件、成功属性提交、重命名、颜色/字体提交、键盘移动和鼠标拖拽/缩放提交；切换窗口/Canvas 或 reload 会清空栈。该能力仍只影响当前内存设计文档，不保存用户布局。
+Phase 8F foundation 修复后已提供基础内存 Undo/Redo。工具栏有 Undo / Redo 按钮，快捷键为 `Ctrl+Z`、`Ctrl+Y` 和 `Ctrl+Shift+Z`；焦点位于 `TextBox`、`ComboBox`、ColorPicker 等属性编辑器内时不抢编辑控件自身的撤销/重做。Undo/Redo 以完整 Canvas config JSON 快照实现，包含 root/BO5 与 `BoModeStates["Bo3"]`。新增控件、删除控件、成功属性提交、重命名、颜色/字体提交、键盘移动、鼠标拖拽/缩放提交、组移动/粘贴/删除和“复制 BO5 布局到 BO3”都会进入 undo；切换窗口/Canvas 或 reload 会清空栈。历史上限仍是 50 步。
+
+### BO3/BO5 Canvas States
+
+Canvas 属性区可启用 BO3/BO5 状态。禁用时编辑 root/default state；启用后 BO5 仍编辑 root-level `BackgroundImage` / `RequiredPlugins` / `Controls`，BO3 编辑 `BoModeStates["Bo3"]`。状态切换不会创建 undo；“复制 BO5 布局到 BO3”会深拷贝背景、插件依赖、控件、ZIndex、Visibility 和插件 ExtensionData，并作为一个 undo 步骤记录。运行时根据 `ISharedDataService.IsBo3Mode` 选择 state。
+
+### Visibility
+
+所有 v3 控件都有通用 `Visibility`：`Visible` 正常显示，`Hidden` 不显示但保留 WPF 布局占位，`Collapsed` 不显示且折叠。Designer 不会因为 Hidden/Collapsed 删除控件，图层面板仍保留这些控件并允许重新选中恢复。
 
 ## 16. 保存和布局路径
 

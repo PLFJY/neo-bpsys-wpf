@@ -978,6 +978,30 @@
                                 HorizontalAlignment="Stretch"
                                 Command="{Binding ApplyCanvasSizeCommand}"
                                 Content="{lex:Loc Apply}" />
+                            <CheckBox
+                                Margin="0,0,0,8"
+                                Content="{lex:Loc Designer.Canvas.EnableBoModeStates}"
+                                IsChecked="{Binding EnableBoModeStates, Mode=TwoWay}" />
+                            <StackPanel
+                                Margin="0,0,0,8"
+                                Visibility="{Binding IsBoModeStateSelectorVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="112" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc Designer.Canvas.CurrentBoModeState}" />
+                                    <ComboBox
+                                        Grid.Column="1"
+                                        DisplayMemberPath="DisplayName"
+                                        ItemsSource="{Binding BoModeStateOptions}"
+                                        SelectedItem="{Binding SelectedBoModeStateOption, Mode=TwoWay}" />
+                                </Grid>
+                                <ui:Button
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding CopyBo5ToBo3Command}"
+                                    Content="{lex:Loc Designer.Canvas.CopyBo5ToBo3}" />
+                            </StackPanel>
                             <TextBlock
                                 Margin="0,0,0,6"
                                 FontWeight="SemiBold"
@@ -1004,36 +1028,6 @@
                                     Command="{Binding ClearBackgroundImageCommand}"
                                     Content="{lex:Loc ClearBackground}" />
                             </WrapPanel>
-                            <StackPanel
-                                Margin="0,8,0,0"
-                                Visibility="{Binding IsScoreGlobalBo3BackgroundVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <TextBlock
-                                    Margin="0,0,0,6"
-                                    FontWeight="SemiBold"
-                                    Text="{lex:Loc ScoreGlobalBo3BackgroundImage}" />
-                                <ui:TextBox
-                                    MinHeight="30"
-                                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
-                                    Text="{Binding ScoreGlobalBo3BackgroundImageEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                                <WrapPanel Margin="0,8,0,0">
-                                    <ui:Button
-                                        Margin="0,0,6,6"
-                                        Command="{Binding ApplyScoreGlobalBo3BackgroundImageCommand}"
-                                        Content="{lex:Loc Apply}" />
-                                    <ui:Button
-                                        Margin="0,0,6,6"
-                                        Click="BrowseScoreGlobalBo3BackgroundResourceButton_OnClick"
-                                        Content="{lex:Loc BrowseResource}" />
-                                    <ui:Button
-                                        Margin="0,0,6,6"
-                                        Click="ChooseLocalScoreGlobalBo3BackgroundButton_OnClick"
-                                        Content="{lex:Loc ChooseLocalImage}" />
-                                    <ui:Button
-                                        Margin="0,0,6,6"
-                                        Command="{Binding ClearScoreGlobalBo3BackgroundImageCommand}"
-                                        Content="{lex:Loc ClearBackground}" />
-                                </WrapPanel>
-                            </StackPanel>
                             <TextBlock
                                 FontSize="12"
                                 Opacity="0.78"

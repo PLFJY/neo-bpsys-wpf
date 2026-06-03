@@ -36,6 +36,11 @@ public class FrontedControlConfigBase
     public int ZIndex { get; set; }
 
     /// <summary>
+    /// 控件可见性。
+    /// </summary>
+    public FrontedControlVisibility Visibility { get; set; } = FrontedControlVisibility.Visible;
+
+    /// <summary>
     /// 绑定到共享数据服务的属性路径。
     /// </summary>
     public string? BindingPath { get; set; }

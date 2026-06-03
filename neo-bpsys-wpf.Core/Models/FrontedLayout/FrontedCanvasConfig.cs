@@ -30,9 +30,14 @@ public class FrontedCanvasConfig
     public string? BackgroundImage { get; set; }
 
     /// <summary>
-    /// Optional background image variants for window-specific runtime selection.
+    /// 是否启用 BO3/BO5 Canvas 状态。
     /// </summary>
-    public Dictionary<string, string> BackgroundImageVariants { get; set; } = [];
+    public bool EnableBoModeStates { get; set; }
+
+    /// <summary>
+    /// BO 模式状态。当前仅使用 Bo3，root-level 表示默认/BO5。
+    /// </summary>
+    public Dictionary<string, FrontedCanvasStateConfig> BoModeStates { get; set; } = [];
 
     /// <summary>
     /// Canvas 使用的插件依赖元数据。

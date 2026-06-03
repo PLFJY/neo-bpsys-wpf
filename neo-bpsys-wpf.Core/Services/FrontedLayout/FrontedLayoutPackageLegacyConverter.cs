@@ -702,7 +702,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         AddMappedImage(root, "ScoreWindowSettings", "SurScoreBgImageUri", "ScoreSurWindow/BaseCanvas/BackgroundImage", resourceState, result, warnings);
         AddMappedImage(root, "ScoreWindowSettings", "HunScoreBgImageUri", "ScoreHunWindow/BaseCanvas/BackgroundImage", resourceState, result, warnings);
         AddMappedImage(root, "ScoreWindowSettings", "GlobalScoreBgImageUri", "ScoreGlobalWindow/BaseCanvas/BackgroundImage", resourceState, result, warnings);
-        AddMappedImage(root, "ScoreWindowSettings", "GlobalScoreBgImageUriBo3", $"ScoreGlobalWindow/BaseCanvas/BackgroundImageVariants/{FrontedCanvasBackgroundVariants.ScoreGlobalBo3}", resourceState, result, warnings);
+        AddMappedImage(root, "ScoreWindowSettings", "GlobalScoreBgImageUriBo3", "ScoreGlobalWindow/BaseCanvas/BoModeStates/Bo3/BackgroundImage", resourceState, result, warnings);
         AddMappedImage(root, "GameDataWindowSettings", "BgImageUri", "GameDataWindow/BaseCanvas/BackgroundImage", resourceState, result, warnings);
         AddMappedImage(root, "WidgetsWindowSettings", "MapBpBgUri", "WidgetsWindow/MapBpCanvas/BackgroundImage", resourceState, result, warnings);
         AddMappedImage(root, "WidgetsWindowSettings", "BpOverviewBgUri", "WidgetsWindow/BpOverViewCanvas/BackgroundImage", resourceState, result, warnings);
@@ -858,11 +858,20 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         }
 
         if (valueMap.TryGetValue(
-                $"{prefix}BackgroundImageVariants/{FrontedCanvasBackgroundVariants.ScoreGlobalBo3}",
+                $"{prefix}BoModeStates/Bo3/BackgroundImage",
                 out var scoreGlobalBo3Background))
         {
-            config.BackgroundImageVariants[FrontedCanvasBackgroundVariants.ScoreGlobalBo3] = scoreGlobalBo3Background;
-            infos.Add("Legacy BO3 global score background mapped into ScoreGlobal background variants.");
+            config.EnableBoModeStates = true;
+            if (!config.BoModeStates.TryGetValue(
+                    FrontedCanvasRuntimeStateResolver.Bo3StateKey,
+                    out var bo3State))
+            {
+                bo3State = new FrontedCanvasStateConfig();
+                config.BoModeStates[FrontedCanvasRuntimeStateResolver.Bo3StateKey] = bo3State;
+            }
+
+            bo3State.BackgroundImage = scoreGlobalBo3Background;
+            infos.Add("Legacy BO3 global score background mapped into ScoreGlobal BO3 canvas state.");
         }
 
         if (window == "BpWindow" && canvas == "BaseCanvas")
@@ -941,7 +950,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         }
 
         config.BackgroundImage = converted.BackgroundImage;
-        config.BackgroundImageVariants = converted.BackgroundImageVariants;
+        config.EnableBoModeStates = converted.EnableBoModeStates;
+        config.BoModeStates = converted.BoModeStates;
         config.Controls = converted.Controls;
     }
 
@@ -953,8 +963,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             {
                 if (child.Value is JsonValue value
                     && value.TryGetValue<string>(out var text)
-                    && (ShouldInspectResourceProperty(child.Key)
-                        || string.Equals(propertyName, nameof(FrontedCanvasConfig.BackgroundImageVariants), StringComparison.Ordinal))
+                    && ShouldInspectResourceProperty(child.Key)
                     && TryMapLegacyResourceValue(text, resourceState, out var uri))
                 {
                     obj[child.Key] = uri;
@@ -1012,7 +1021,6 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     private static bool ShouldInspectResourceProperty(string propertyName)
     {
         return string.Equals(propertyName, nameof(FrontedCanvasConfig.BackgroundImage), StringComparison.Ordinal)
-               || string.Equals(propertyName, nameof(FrontedCanvasConfig.BackgroundImageVariants), StringComparison.Ordinal)
                || propertyName.EndsWith("ImagePath", StringComparison.Ordinal)
                || propertyName.EndsWith("ImageSource", StringComparison.Ordinal)
                || propertyName.EndsWith("ResourcePath", StringComparison.Ordinal)

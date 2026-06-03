@@ -37,15 +37,18 @@ public class FrontedLayoutDesignConverter
         string windowTypeName,
         string canvasName,
         FrontedCanvasConfig config,
-        FrontedLayoutRuntimeContractCatalog runtimeContracts)
+        FrontedLayoutRuntimeContractCatalog runtimeContracts,
+        FrontedCanvasBoModeState editingState = FrontedCanvasBoModeState.Bo5)
     {
+        var state = GetEditableState(config, editingState);
         return new FrontedCanvasDesignDocument
         {
             WindowTypeName = windowTypeName,
             CanvasName = canvasName,
             CanvasConfig = config,
+            EditingBoModeState = editingState,
             Controls = new ObservableCollection<FrontedControlDesignItem>(
-                config.Controls.Select(control => CreateDesignItem(
+                state.Controls.Select(control => CreateDesignItem(
                     windowTypeName,
                     canvasName,
                     control.Key,
@@ -59,31 +62,97 @@ public class FrontedLayoutDesignConverter
     /// </summary>
     public FrontedCanvasConfig ToConfig(FrontedCanvasDesignDocument document)
     {
-        return new FrontedCanvasConfig
+        var config = new FrontedCanvasConfig
         {
             Version = document.CanvasConfig.Version,
             CanvasWidth = document.CanvasConfig.CanvasWidth,
             CanvasHeight = document.CanvasConfig.CanvasHeight,
             BackgroundImage = document.CanvasConfig.BackgroundImage,
-            BackgroundImageVariants = new Dictionary<string, string>(
-                document.CanvasConfig.BackgroundImageVariants,
+            EnableBoModeStates = document.CanvasConfig.EnableBoModeStates,
+            BoModeStates = document.CanvasConfig.BoModeStates.ToDictionary(
+                state => state.Key,
+                state => CloneState(state.Value),
                 StringComparer.Ordinal),
-            RequiredPlugins = SyncRequiredPlugins(document),
-            Controls = document.Controls.ToDictionary(
-                item => item.Name,
-                item => item.Config,
+            RequiredPlugins = new List<FrontedPluginDependency>(document.CanvasConfig.RequiredPlugins),
+            Controls = new Dictionary<string, FrontedControlConfigBase>(
+                document.CanvasConfig.Controls,
                 StringComparer.Ordinal)
+        };
+
+        var controls = document.Controls.ToDictionary(
+            item => item.Name,
+            item => item.Config,
+            StringComparer.Ordinal);
+
+        if (document.EditingBoModeState == FrontedCanvasBoModeState.Bo3)
+        {
+            if (!config.BoModeStates.TryGetValue(FrontedCanvasRuntimeStateResolver.Bo3StateKey, out var bo3State))
+            {
+                bo3State = new FrontedCanvasStateConfig();
+                config.BoModeStates[FrontedCanvasRuntimeStateResolver.Bo3StateKey] = bo3State;
+            }
+
+            bo3State.RequiredPlugins = SyncRequiredPlugins(document, controls);
+            bo3State.Controls = controls;
+        }
+        else
+        {
+            config.RequiredPlugins = SyncRequiredPlugins(document, controls);
+            config.Controls = controls;
+        }
+
+        document.CanvasConfig = config;
+        return config;
+    }
+
+    private static FrontedCanvasStateConfig GetEditableState(
+        FrontedCanvasConfig config,
+        FrontedCanvasBoModeState editingState)
+    {
+        if (editingState == FrontedCanvasBoModeState.Bo3)
+        {
+            if (!config.BoModeStates.TryGetValue(FrontedCanvasRuntimeStateResolver.Bo3StateKey, out var bo3State))
+            {
+                bo3State = new FrontedCanvasStateConfig();
+                config.BoModeStates[FrontedCanvasRuntimeStateResolver.Bo3StateKey] = bo3State;
+            }
+
+            return bo3State;
+        }
+
+        return new FrontedCanvasStateConfig
+        {
+            BackgroundImage = config.BackgroundImage,
+            RequiredPlugins = config.RequiredPlugins,
+            Controls = config.Controls
         };
     }
 
-    private List<FrontedPluginDependency> SyncRequiredPlugins(FrontedCanvasDesignDocument document)
+    private static FrontedCanvasStateConfig CloneState(FrontedCanvasStateConfig state) =>
+        new()
+        {
+            BackgroundImage = state.BackgroundImage,
+            RequiredPlugins = new List<FrontedPluginDependency>(state.RequiredPlugins),
+            Controls = new Dictionary<string, FrontedControlConfigBase>(state.Controls, StringComparer.Ordinal)
+        };
+
+    private List<FrontedPluginDependency> SyncRequiredPlugins(
+        FrontedCanvasDesignDocument document,
+        IReadOnlyDictionary<string, FrontedControlConfigBase> controls)
     {
-        var previous = document.CanvasConfig.RequiredPlugins
+        var previousDependencies = document.EditingBoModeState == FrontedCanvasBoModeState.Bo3
+            && document.CanvasConfig.BoModeStates.TryGetValue(
+                FrontedCanvasRuntimeStateResolver.Bo3StateKey,
+                out var bo3State)
+            ? bo3State.RequiredPlugins
+            : document.CanvasConfig.RequiredPlugins;
+
+        var previous = previousDependencies
             .Where(plugin => !string.IsNullOrWhiteSpace(plugin.PackageId))
             .ToDictionary(plugin => plugin.PackageId, StringComparer.OrdinalIgnoreCase);
 
-        var dependencies = document.Controls
-            .Select(item => item.Config.ControlType)
+        var dependencies = controls.Values
+            .Select(config => config.ControlType)
             .Select(controlType => FrontedPluginControlType.TryParse(controlType, out var parsed)
                 ? parsed
                 : (FrontedPluginControlType?)null)
@@ -148,7 +217,6 @@ public class FrontedLayoutDesignConverter
             }
         }
 
-        document.CanvasConfig.RequiredPlugins = dependencies;
         return dependencies;
     }
 

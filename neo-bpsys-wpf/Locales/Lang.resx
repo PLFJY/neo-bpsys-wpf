@@ -2404,9 +2404,6 @@
   <data name="BackgroundImage" xml:space="preserve">
     <value>背景图片</value>
   </data>
-  <data name="ScoreGlobalBo3BackgroundImage" xml:space="preserve">
-    <value>全局比分 BO3 背景图片</value>
-  </data>
   <data name="CanvasWidth" xml:space="preserve">
     <value>Canvas 宽度</value>
   </data>
@@ -3578,4 +3575,29 @@
   <data name="Talent" xml:space="preserve">
     <value>天赋</value>
   </data>
+  <data name="Designer.Canvas.EnableBoModeStates" xml:space="preserve"><value>启用 BO3/BO5 状态</value></data>
+  <data name="Designer.Canvas.CurrentBoModeState" xml:space="preserve"><value>当前编辑状态</value></data>
+  <data name="Designer.Canvas.Bo5State" xml:space="preserve"><value>BO5</value></data>
+  <data name="Designer.Canvas.Bo3State" xml:space="preserve"><value>BO3</value></data>
+  <data name="Designer.Canvas.CopyBo5ToBo3" xml:space="preserve"><value>复制 BO5 布局到 BO3</value></data>
+  <data name="Designer.Canvas.CopyBo5ToBo3Confirm" xml:space="preserve"><value>BO3 状态已有内容，确认用 BO5 布局覆盖 BO3？</value></data>
+  <data name="Designer.Canvas.Bo3LayoutCopied" xml:space="preserve"><value>已复制 BO5 布局到 BO3</value></data>
+  <data name="Designer.Canvas.BoModeStatesEnabled" xml:space="preserve"><value>已启用 BO3/BO5 状态</value></data>
+  <data name="Designer.Canvas.BoModeStatesDisabledConfirm" xml:space="preserve"><value>已禁用 BO3/BO5 状态；运行时将忽略 BO3 状态数据</value></data>
+  <data name="Designer.Property.Visibility" xml:space="preserve"><value>可见性</value></data>
+  <data name="Designer.Visibility.Visible" xml:space="preserve"><value>可见</value></data>
+  <data name="Designer.Visibility.Hidden" xml:space="preserve"><value>隐藏</value></data>
+  <data name="Designer.Visibility.Collapsed" xml:space="preserve"><value>折叠</value></data>
+  <data name="Designer.Option.Visibility.Visible" xml:space="preserve"><value>可见</value></data>
+  <data name="Designer.Option.Visibility.Hidden" xml:space="preserve"><value>隐藏</value></data>
+  <data name="Designer.Option.Visibility.Collapsed" xml:space="preserve"><value>折叠</value></data>
+  <data name="Designer.Selection.MultipleSelected" xml:space="preserve"><value>已选择 {0} 个控件</value></data>
+  <data name="Designer.Help.BoModeStates" xml:space="preserve"><value>BO3/BO5 Canvas 状态</value></data>
+  <data name="Designer.Help.BoModeStatesDescription" xml:space="preserve"><value>这是通用 Canvas 功能；启用后可分别编辑 BO5 与 BO3，运行时按当前 BO 模式选择状态。</value></data>
+  <data name="Designer.Help.CopyBo5ToBo3" xml:space="preserve"><value>复制 BO5 到 BO3 可快速建立对齐布局，然后单独调整 BO3。</value></data>
+  <data name="Designer.Help.Visibility" xml:space="preserve"><value>Visibility 支持 Visible、Hidden、Collapsed；隐藏或折叠的控件仍保留在图层面板中。</value></data>
+  <data name="Designer.Help.MultiSelect" xml:space="preserve"><value>按住 Ctrl 点击可添加或移除选中控件。</value></data>
+  <data name="Designer.Help.MultiSelectMoveResize" xml:space="preserve"><value>可拖动已选择控件一起移动，并通过选择框调整布局。</value></data>
+  <data name="Designer.Help.MultiSelectCopyPaste" xml:space="preserve"><value>Ctrl+C / Ctrl+V 会复制和粘贴当前选择组。</value></data>
+  <data name="Designer.Help.UndoGroupOperations" xml:space="preserve"><value>组移动、粘贴、删除和复制 BO5 到 BO3 作为单个撤销步骤记录，最多保留 50 步。</value></data>
 </root>

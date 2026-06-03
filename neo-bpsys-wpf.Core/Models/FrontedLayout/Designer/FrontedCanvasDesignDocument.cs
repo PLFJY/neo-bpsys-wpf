@@ -12,6 +12,7 @@ public class FrontedCanvasDesignDocument : ObservableObject
     private string _canvasName = string.Empty;
     private FrontedCanvasConfig _canvasConfig = new();
     private ObservableCollection<FrontedControlDesignItem> _controls = [];
+    private FrontedCanvasBoModeState _editingBoModeState = FrontedCanvasBoModeState.Bo5;
     private bool _isDirty;
 
     /// <summary>
@@ -48,6 +49,15 @@ public class FrontedCanvasDesignDocument : ObservableObject
     {
         get => _controls;
         set => SetProperty(ref _controls, value);
+    }
+
+    /// <summary>
+    /// 当前正在编辑的 BO 状态。Bo5 表示 root/default state。
+    /// </summary>
+    public FrontedCanvasBoModeState EditingBoModeState
+    {
+        get => _editingBoModeState;
+        set => SetProperty(ref _editingBoModeState, value);
     }
 
     /// <summary>

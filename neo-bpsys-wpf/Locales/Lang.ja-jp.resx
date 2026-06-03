@@ -2389,9 +2389,6 @@
   <data name="BackgroundImage" xml:space="preserve">
     <value>背景画像</value>
   </data>
-  <data name="ScoreGlobalBo3BackgroundImage" xml:space="preserve">
-    <value>全体スコア BO3 背景画像</value>
-  </data>
   <data name="CanvasWidth" xml:space="preserve">
     <value>Canvas 幅</value>
   </data>
@@ -2983,4 +2980,29 @@
   <data name="Talent" xml:space="preserve">
     <value>人格</value>
   </data>
+  <data name="Designer.Canvas.EnableBoModeStates" xml:space="preserve"><value>BO3/BO5 状態を有効化</value></data>
+  <data name="Designer.Canvas.CurrentBoModeState" xml:space="preserve"><value>現在の編集状態</value></data>
+  <data name="Designer.Canvas.Bo5State" xml:space="preserve"><value>BO5</value></data>
+  <data name="Designer.Canvas.Bo3State" xml:space="preserve"><value>BO3</value></data>
+  <data name="Designer.Canvas.CopyBo5ToBo3" xml:space="preserve"><value>BO5 レイアウトを BO3 にコピー</value></data>
+  <data name="Designer.Canvas.CopyBo5ToBo3Confirm" xml:space="preserve"><value>BO3 状態には既に内容があります。BO5 レイアウトで置き換えますか？</value></data>
+  <data name="Designer.Canvas.Bo3LayoutCopied" xml:space="preserve"><value>BO5 レイアウトを BO3 にコピーしました</value></data>
+  <data name="Designer.Canvas.BoModeStatesEnabled" xml:space="preserve"><value>BO3/BO5 状態を有効化しました</value></data>
+  <data name="Designer.Canvas.BoModeStatesDisabledConfirm" xml:space="preserve"><value>BO3/BO5 状態を無効化しました。実行時は BO3 状態データを無視します</value></data>
+  <data name="Designer.Property.Visibility" xml:space="preserve"><value>表示状態</value></data>
+  <data name="Designer.Visibility.Visible" xml:space="preserve"><value>表示</value></data>
+  <data name="Designer.Visibility.Hidden" xml:space="preserve"><value>非表示</value></data>
+  <data name="Designer.Visibility.Collapsed" xml:space="preserve"><value>折りたたみ</value></data>
+  <data name="Designer.Option.Visibility.Visible" xml:space="preserve"><value>表示</value></data>
+  <data name="Designer.Option.Visibility.Hidden" xml:space="preserve"><value>非表示</value></data>
+  <data name="Designer.Option.Visibility.Collapsed" xml:space="preserve"><value>折りたたみ</value></data>
+  <data name="Designer.Selection.MultipleSelected" xml:space="preserve"><value>{0} 個のコントロールを選択中</value></data>
+  <data name="Designer.Help.BoModeStates" xml:space="preserve"><value>BO3/BO5 Canvas 状態</value></data>
+  <data name="Designer.Help.BoModeStatesDescription" xml:space="preserve"><value>これは汎用 Canvas 機能です。有効化すると BO5 と BO3 を別々に編集でき、実行時は現在の BO モードで状態を選択します。</value></data>
+  <data name="Designer.Help.CopyBo5ToBo3" xml:space="preserve"><value>BO5 を BO3 にコピーすると、揃った BO3 レイアウトを作成してから個別に調整できます。</value></data>
+  <data name="Designer.Help.Visibility" xml:space="preserve"><value>Visibility は Visible、Hidden、Collapsed に対応します。非表示または折りたたみのコントロールもレイヤーパネルに残ります。</value></data>
+  <data name="Designer.Help.MultiSelect" xml:space="preserve"><value>Ctrl を押しながらクリックすると、選択への追加または削除ができます。</value></data>
+  <data name="Designer.Help.MultiSelectMoveResize" xml:space="preserve"><value>選択したコントロールをまとめてドラッグし、選択レイアウトをリサイズできます。</value></data>
+  <data name="Designer.Help.MultiSelectCopyPaste" xml:space="preserve"><value>Ctrl+C / Ctrl+V は現在の選択グループをコピー、貼り付けします。</value></data>
+  <data name="Designer.Help.UndoGroupOperations" xml:space="preserve"><value>グループ移動、貼り付け、削除、BO5 から BO3 へのコピーは 1 つの Undo として記録されます。履歴は 50 ステップです。</value></data>
 </root>

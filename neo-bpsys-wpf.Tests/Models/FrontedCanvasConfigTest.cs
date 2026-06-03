@@ -28,7 +28,7 @@ namespace neo_bpsys_wpf.Tests.Models;
 public class FrontedCanvasConfigTest
 {
     [Fact]
-    public void CanvasConfigRoundTripsBackgroundImageVariants()
+    public void CanvasConfigRoundTripsBoModeStatesWithoutBackgroundImageVariants()
     {
         var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
             """
@@ -37,21 +37,35 @@ public class FrontedCanvasConfigTest
               "CanvasWidth": 1440,
               "CanvasHeight": 195,
               "BackgroundImage": "Resources/scoreGlobal.png",
-              "BackgroundImageVariants": {
-                "ScoreGlobal.Bo3": "Resources/scoreGlobalBo3.png"
+              "EnableBoModeStates": true,
+              "BoModeStates": {
+                "Bo3": {
+                  "BackgroundImage": "Resources/scoreGlobalBo3.png",
+                  "Controls": {
+                    "Title": {
+                      "ControlType": "Text",
+                      "Visibility": "Hidden",
+                      "Left": 1,
+                      "Top": 2
+                    }
+                  }
+                }
               }
             }
             """);
 
         Assert.NotNull(config);
+        Assert.True(config!.EnableBoModeStates);
         Assert.Equal(
             "Resources/scoreGlobalBo3.png",
-            config!.BackgroundImageVariants[FrontedCanvasBackgroundVariants.ScoreGlobalBo3]);
+            config.BoModeStates["Bo3"].BackgroundImage);
+        Assert.Equal(FrontedControlVisibility.Hidden, config.BoModeStates["Bo3"].Controls["Title"].Visibility);
 
         var json = JsonSerializer.Serialize(config);
 
-        Assert.Contains("BackgroundImageVariants", json, StringComparison.Ordinal);
-        Assert.Contains("ScoreGlobal.Bo3", json, StringComparison.Ordinal);
+        Assert.Contains("BoModeStates", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("BackgroundImageVariants", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("ScoreGlobal.Bo3", json, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1243,7 +1257,7 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
-    public void FrontedRendererUsesScoreGlobalBo3BackgroundVariantOnlyInBo3Mode()
+    public void FrontedRendererUsesGenericBo3StateBackgroundInBo3Mode()
     {
         RunOnStaThread(() =>
         {
@@ -1265,9 +1279,10 @@ public class FrontedCanvasConfigTest
                     CanvasWidth = 100,
                     CanvasHeight = 100,
                     BackgroundImage = "Resources/default.png",
-                    BackgroundImageVariants =
+                    EnableBoModeStates = true,
+                    BoModeStates =
                     {
-                        [FrontedCanvasBackgroundVariants.ScoreGlobalBo3] = "Resources/bo3.png"
+                        ["Bo3"] = new FrontedCanvasStateConfig { BackgroundImage = "Resources/bo3.png" }
                     }
                 },
                 new FrontedRenderContext
@@ -1288,9 +1303,10 @@ public class FrontedCanvasConfigTest
                     CanvasWidth = 100,
                     CanvasHeight = 100,
                     BackgroundImage = "Resources/default.png",
-                    BackgroundImageVariants =
+                    EnableBoModeStates = true,
+                    BoModeStates =
                     {
-                        [FrontedCanvasBackgroundVariants.ScoreGlobalBo3] = "Resources/bo3.png"
+                        ["Bo3"] = new FrontedCanvasStateConfig { BackgroundImage = "Resources/bo3.png" }
                     }
                 },
                 new FrontedRenderContext
@@ -1305,7 +1321,7 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
-    public void FrontedRendererFallsBackToDefaultBackgroundWhenBo3VariantIsMissing()
+    public void FrontedRendererFallsBackToDefaultBackgroundWhenBo3StateIsMissing()
     {
         RunOnStaThread(() =>
         {
@@ -1326,7 +1342,8 @@ public class FrontedCanvasConfigTest
                     Version = 3,
                     CanvasWidth = 100,
                     CanvasHeight = 100,
-                    BackgroundImage = "Resources/default.png"
+                    BackgroundImage = "Resources/default.png",
+                    EnableBoModeStates = true
                 },
                 new FrontedRenderContext
                 {

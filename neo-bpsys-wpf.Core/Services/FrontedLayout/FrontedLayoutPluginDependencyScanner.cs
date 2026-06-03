@@ -18,8 +18,8 @@ internal static class FrontedLayoutPluginDependencyScanner
             .GroupBy(dependency => dependency.PackageId, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
 
-        var dependencies = config.Controls
-            .Values
+        var dependencies = EnumerateStateControls(config)
+            .SelectMany(state => state.Controls.Values)
             .Select(control => control.ControlType)
             .Where(FrontedPluginControlType.IsPluginControlType)
             .Select(FrontedPluginControlType.Parse)
@@ -78,6 +78,11 @@ internal static class FrontedLayoutPluginDependencyScanner
             .ToList();
 
         config.RequiredPlugins = dependencies;
+        foreach (var state in config.BoModeStates.Values)
+        {
+            state.RequiredPlugins = dependencies;
+        }
+
         return dependencies;
     }
 
@@ -144,7 +149,8 @@ internal static class FrontedLayoutPluginDependencyScanner
         }
 
         return layouts
-            .SelectMany(layout => layout.Config.Controls
+            .SelectMany(layout => EnumerateStateControls(layout.Config)
+                .SelectMany(state => state.Controls)
                 .Where(control => FrontedPluginControlType.IsPluginControlType(control.Value.ControlType))
                 .Where(control => !controlRegistry.IsPluginControlRegistered(control.Value.ControlType))
                 .Select(control =>
@@ -163,6 +169,16 @@ internal static class FrontedLayoutPluginDependencyScanner
             .ThenBy(issue => issue.Canvas, StringComparer.Ordinal)
             .ThenBy(issue => issue.ControlName, StringComparer.Ordinal)
             .ToList();
+    }
+
+    private static IEnumerable<(string StateName, IReadOnlyDictionary<string, FrontedControlConfigBase> Controls)> EnumerateStateControls(
+        FrontedCanvasConfig config)
+    {
+        yield return ("Bo5", config.Controls);
+        foreach (var (stateName, state) in config.BoModeStates)
+        {
+            yield return (stateName, state.Controls);
+        }
     }
 
     public static List<FrontedLayoutPackagePluginDependencyIssue> FindUnsatisfiedPluginDependencies(

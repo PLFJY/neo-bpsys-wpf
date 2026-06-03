@@ -23,6 +23,8 @@
 4. layout JSON root-level key 就是控件名。
 5. 包内资源通过 URI 解析，不依赖全局 `Config.json` 中的自定义 UI 设置。
 
+Canvas layout schema 使用 root-level state 表示默认/BO5；启用 `EnableBoModeStates` 后，`BoModeStates["Bo3"]` 可携带独立 BO3 `BackgroundImage`、`RequiredPlugins` 和 `Controls`。包导入、导出和资源重写必须保留完整 schema，包括 BO3 state、控件 `Visibility`、缺失插件控件和插件 `ExtensionData`。preview-only `BackgroundImageVariants` 已移除，v3 包不再生成或迁移该字段。
+
 ## 2. legacy `.bpui` 格式摘要
 
 旧 `.bpui` 导入导出位于 `SettingPageViewModel.UiPackage.cs`，文件选择位于 `FilePickerService.cs`。旧包本质上是一个 zip，典型结构为：
