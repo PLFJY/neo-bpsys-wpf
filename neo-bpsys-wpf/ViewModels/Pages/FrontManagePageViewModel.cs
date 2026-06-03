@@ -120,7 +120,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
         try
         {
             var window = ActivatorUtilities.CreateInstance<FrontedDesignerWindow>(_serviceProvider);
-            window.Owner = Application.Current.MainWindow;
+            window.Owner = GetShownOwnerWindow();
             window.Closed += (_, _) => _frontedDesignerWindow = null;
             _frontedDesignerWindow = window;
             window.Show();
@@ -665,7 +665,7 @@ public partial class FrontManagePageViewModel : ViewModelBase
         try
         {
             var window = ActivatorUtilities.CreateInstance<FrontedLayoutPackageExportWindow>(_serviceProvider);
-            window.Owner = Application.Current.MainWindow;
+            window.Owner = GetShownOwnerWindow();
             if (window.ShowDialog() != true || window.ExportRequest is null)
             {
                 return;
@@ -841,6 +841,23 @@ public partial class FrontManagePageViewModel : ViewModelBase
                 _frontedWindowService.HideWindow(id);
                 break;
         }
+    }
+
+    private static Window? GetShownOwnerWindow()
+    {
+        var current = Application.Current;
+        if (current is null)
+        {
+            return null;
+        }
+
+        return current.Windows
+                   .OfType<Window>()
+                   .FirstOrDefault(window => window.IsActive && window.IsVisible)
+               ?? (current.MainWindow?.IsVisible == true ? current.MainWindow : null)
+               ?? current.Windows
+                   .OfType<Window>()
+                   .FirstOrDefault(window => window.IsVisible);
     }
 }
 

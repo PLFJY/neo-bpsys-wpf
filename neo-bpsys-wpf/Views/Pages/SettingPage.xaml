@@ -51,33 +51,6 @@
         <TextBlock
             Margin="0,10,0,0"
             Style="{StaticResource Title}"
-            Text="{lex:Loc Backend}" />
-        <Border Style="{StaticResource Card}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Margin="0,0,20,0">
-                    <TextBlock
-                        FontSize="16"
-                        FontWeight="DemiBold"
-                        Text="{lex:Loc ClassicMode}" />
-                    <TextBlock
-                        Margin="0,6,0,0"
-                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                        Text="{lex:Loc ClassicModeDescription}"
-                        TextWrapping="Wrap" />
-                </StackPanel>
-                <ui:ToggleSwitch
-                    Grid.Column="1"
-                    VerticalAlignment="Center"
-                    IsChecked="{Binding IsClassicMode, Mode=TwoWay}" />
-            </Grid>
-        </Border>
-        <TextBlock
-            Margin="0,10,0,0"
-            Style="{StaticResource Title}"
             Text="{lex:Loc About}" />
         <StackPanel Margin="0,10,0,0">
             <ui:CardExpander
@@ -284,6 +257,35 @@
                 </StackPanel>
             </ui:CardExpander>
         </StackPanel>
+
+        <TextBlock
+            Margin="0,10,0,0"
+            Style="{StaticResource Title}"
+            Text="{lex:Loc Backend}" />
+        <Border Style="{StaticResource Card}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                    <TextBlock
+                        FontSize="16"
+                        FontWeight="DemiBold"
+                        Text="{lex:Loc ClassicMode}" />
+                    <TextBlock
+                        Margin="0,6,0,0"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{lex:Loc ClassicModeDescription}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+                <ui:ToggleSwitch
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    IsChecked="{Binding IsClassicMode, Mode=TwoWay}" />
+            </Grid>
+        </Border>
+
         <TextBlock
             Margin="0,10,0,0"
             Style="{StaticResource Title}"

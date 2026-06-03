@@ -105,6 +105,12 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
 
     [ObservableProperty] private MapSelectTeam _pickMapTeam;
 
+    partial void OnPickMapTeamChanged(MapSelectTeam value)
+    {
+        if (_sharedDataService is null || _pickedMap is null) return;
+        PickMap(_pickedMap);
+    }
+
     public List<BanMapInfo> BannedMap { get; }
 
     [ObservableProperty] private MapSelectTeam _banMapTeam;

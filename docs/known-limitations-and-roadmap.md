@@ -34,6 +34,10 @@
 
 `FrontedWindow` / 前台窗口是 WPF 输出窗口，用于 OBS 或其他直播软件捕获，不是 Web frontend。不要引入 Web 路由、浏览器布局或前后端分离假设。
 
+## Classic Mode
+
+Classic Mode 是后台 Shell 的另一种 View 编排，不是第二套业务系统。它不新增 Pick / Ban / Score 业务 ViewModel，不复制比赛状态；前台管理、设置和插件入口通过 single-instance Page host 弹窗打开现有页面。Classic Mode 下 `MainWindow` 不启动，`NavigationService` 的页面切换保持 no-op，但 `GameGuidanceService` 的计时器、Ban 位设置和高亮广播仍应继续执行。维护细则见 [classic-mode.md](classic-mode.md)。
+
 Fronted Designer v3 当前已完成基础设施阶段，并将 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、多 Canvas 的 `WidgetsWindow` 和 `BpWindow` 接入 v3 renderer；这些窗口的内置默认布局比分文本已绑定 `CurrentGame.MatchScore`。Phase 9F 起，legacy `.bpui` 可在导入前转换为干净 v3 包，转换不会覆盖全局 `Config.json`。旧设计者模式、SettingPage 旧前台自定义入口和旧位置保存/恢复 API 已在 Phase 10+ 移除；旧文件和旧 Config 字段仅作为 legacy 转换、迁移对照存在，不再保留在 active `Settings.cs` 运行时模型中。
 
 当前仍有明确边界：Resource Browser 控件级浏览不复制/导入外部图片；运行时关键控件名称只读且不能删除；被其他控件引用的普通控件在 reference-aware rename/delete 实现前阻止改名和删除；`PickingBorderOverlay` 不作为普通可选/可编辑/可添加控件。

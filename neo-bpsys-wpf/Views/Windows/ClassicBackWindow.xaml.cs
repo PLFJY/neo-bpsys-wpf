@@ -1,10 +1,13 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
+using neo_bpsys_wpf.Views.Pages;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 using Wpf.Ui.Controls;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
 using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
@@ -17,8 +20,11 @@ namespace neo_bpsys_wpf.Views.Windows;
 public partial class ClassicBackWindow : FluentWindow
 {
     private readonly ILogger<ClassicBackWindow>? _logger;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly Dictionary<Type, ClassicPageHostWindow> _pageHostWindows = [];
 
     public ClassicBackWindow(
+        IServiceProvider serviceProvider,
         IInfoBarService infoBarService,
         MainWindowViewModel mainWindowViewModel,
         TeamInfoPageViewModel teamInfoPageViewModel,
@@ -29,9 +35,9 @@ public partial class ClassicBackWindow : FluentWindow
         TalentPageViewModel talentPageViewModel,
         ScorePageViewModel scorePageViewModel,
         GameDataPageViewModel gameDataPageViewModel,
-        FrontManagePageViewModel frontManagePageViewModel,
         ILogger<ClassicBackWindow>? logger = null)
     {
+        _serviceProvider = serviceProvider;
         _logger = logger;
         InitializeComponent();
 
@@ -48,13 +54,66 @@ public partial class ClassicBackWindow : FluentWindow
         TalentRoot.DataContext = talentPageViewModel;
         ScoreRoot.DataContext = scorePageViewModel;
         GameDataRoot.DataContext = gameDataPageViewModel;
-        FrontWindowRoot.DataContext = frontManagePageViewModel;
 
         infoBarService.SetInfoBarControl(InfoBar);
 
         if (Application.Current.MainWindow is null)
         {
             Application.Current.MainWindow = this;
+        }
+    }
+
+    private void OpenFrontendManagement_Click(object sender, RoutedEventArgs e)
+    {
+        OpenPageHost<FrontManagePage>("FrontendManagement");
+    }
+
+    private void OpenSettings_Click(object sender, RoutedEventArgs e)
+    {
+        OpenPageHost<SettingPage>("Settings");
+    }
+
+    private void OpenPlugins_Click(object sender, RoutedEventArgs e)
+    {
+        OpenPageHost<PluginPage>("Plugins");
+    }
+
+    private void OpenSmartBp_Click(object sender, RoutedEventArgs e)
+    {
+        OpenPageHost<SmartBpPage>("SmartBP");
+    }
+
+    private void OpenPageHost<TPage>(string titleKey)
+        where TPage : Page
+    {
+        var pageType = typeof(TPage);
+        if (_pageHostWindows.TryGetValue(pageType, out var existingWindow))
+        {
+            existingWindow.Activate();
+            existingWindow.Focus();
+            return;
+        }
+
+        var page = _serviceProvider.GetRequiredService<TPage>();
+        DetachPageFromCurrentParent(page);
+
+        var window = new ClassicPageHostWindow(titleKey, page)
+        {
+            Owner = this
+        };
+        window.Closed += (_, _) => _pageHostWindows.Remove(pageType);
+        _pageHostWindows[pageType] = window;
+        window.Show();
+        window.Activate();
+    }
+
+    private static void DetachPageFromCurrentParent(Page page)
+    {
+        switch (page.Parent)
+        {
+            case ContentControl contentControl:
+                contentControl.Content = null;
+                break;
         }
     }
 

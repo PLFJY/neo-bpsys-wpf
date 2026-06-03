@@ -33,11 +33,26 @@
         <cv:BooleanToEnumConverter x:Key="BooleanToEnumConverter" />
         <cv:IntPlusOneConverter x:Key="IntPlusOneConverter" />
         <cv:IndexFormatConverter x:Key="IndexFormatConverter" />
+        <Thickness x:Key="ClassicInlineControlMargin">0,0,8,8</Thickness>
+        <Thickness x:Key="ClassicCardMargin">0,0,10,10</Thickness>
+        <Thickness x:Key="ClassicSectionSpacing">0,10,0,0</Thickness>
         <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="ui:TextBox">
             <Setter Property="MinWidth" Value="90" />
         </Style>
+        <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
+            <Setter Property="Margin" Value="{StaticResource ClassicInlineControlMargin}" />
+        </Style>
         <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="ui:Button">
-            <Setter Property="Margin" Value="0,0,8,8" />
+            <Setter Property="Margin" Value="{StaticResource ClassicInlineControlMargin}" />
+        </Style>
+        <Style BasedOn="{StaticResource {x:Type ToggleButton}}" TargetType="ToggleButton">
+            <Setter Property="Margin" Value="{StaticResource ClassicInlineControlMargin}" />
+        </Style>
+        <Style BasedOn="{StaticResource {x:Type ComboBox}}" TargetType="ComboBox">
+            <Setter Property="Margin" Value="{StaticResource ClassicInlineControlMargin}" />
+        </Style>
+        <Style BasedOn="{StaticResource {x:Type ui:ToggleSwitch}}" TargetType="ui:ToggleSwitch">
+            <Setter Property="Margin" Value="{StaticResource ClassicInlineControlMargin}" />
         </Style>
         <Style BasedOn="{StaticResource {x:Type cc:CharacterChanger}}" TargetType="cc:CharacterChanger">
             <Setter Property="Spacing" Value="14" />
@@ -80,14 +95,20 @@
                 <WrapPanel Orientation="Horizontal">
                     <StackPanel Width="280" Margin="0,0,12,8">
                         <TextBlock Text="{lex:Loc CurrentSurvivorTeamColon}" />
-                        <TextBlock FontSize="16" FontWeight="DemiBold" Text="{Binding CurrentGame.SurTeam.Name}" />
+                        <TextBlock
+                            FontSize="16"
+                            FontWeight="DemiBold"
+                            Text="{Binding CurrentGame.SurTeam.Name}" />
                         <ui:Button
-                            Margin="0,8,0,0"
+                            Margin="0,8,8,8"
                             Command="{Binding SwapCommand}"
                             Content="{lex:Loc Swap}"
                             Icon="{ui:SymbolIcon Symbol=ArrowSort24}" />
                         <TextBlock Text="{lex:Loc CurrentHunterTeamColon}" />
-                        <TextBlock FontSize="16" FontWeight="DemiBold" Text="{Binding CurrentGame.HunTeam.Name}" />
+                        <TextBlock
+                            FontSize="16"
+                            FontWeight="DemiBold"
+                            Text="{Binding CurrentGame.HunTeam.Name}" />
                     </StackPanel>
 
                     <StackPanel Width="360" Margin="0,0,12,8">
@@ -102,36 +123,34 @@
                                 SelectedIndex="0"
                                 Text="{Binding TimerTime}" />
                             <ui:Button
-                                Margin="8,0,0,8"
                                 Command="{Binding TimerStartCommand}"
                                 Content="{lex:Loc Start}"
                                 Icon="{ui:SymbolIcon Symbol=Play24}" />
                             <ui:Button
-                                Margin="0,0,8,8"
                                 Command="{Binding TimerStopCommand}"
                                 Content="{lex:Loc Stop}"
                                 Icon="{ui:SymbolIcon Symbol=Stop24}" />
-                            <TextBlock Margin="0,5,8,0" Text="{lex:Loc PreviewColon}" />
-                            <TextBlock Margin="0,5,0,0" Text="{Binding RemainingSeconds}" />
+                            <TextBlock Margin="0,5,8,8" Text="{lex:Loc PreviewColon}" />
+                            <TextBlock Margin="0,5,8,8" Text="{Binding RemainingSeconds}" />
                         </WrapPanel>
                     </StackPanel>
 
                     <StackPanel Width="475" Margin="0,0,12,8">
                         <WrapPanel>
-                            <TextBlock Margin="0,5,8,0" Text="{lex:Loc FormatColon}" />
+                            <TextBlock Margin="0,5,8,8" Text="{lex:Loc FormatColon}" />
                             <RadioButton
-                                Margin="0,5,8,0"
+                                Margin="0,5,8,8"
                                 Content="BO5"
                                 GroupName="ClassicBo3Mode"
                                 IsChecked="True"
                                 IsEnabled="{Binding CanGameProgressChange}" />
                             <RadioButton
-                                Margin="0,5,12,0"
+                                Margin="0,5,8,8"
                                 Content="BO3"
                                 GroupName="ClassicBo3Mode"
                                 IsChecked="{Binding IsBo3Mode}"
                                 IsEnabled="{Binding CanGameProgressChange}" />
-                            <TextBlock Margin="0,5,8,0" Text="{lex:Loc GameProgressColon}" />
+                            <TextBlock Margin="0,5,8,8" Text="{lex:Loc GameProgressColon}" />
                             <ComboBox
                                 Width="210"
                                 IsEnabled="{Binding CanGameProgressChange}"
@@ -148,12 +167,27 @@
                             </ComboBox>
                         </WrapPanel>
                         <WrapPanel Margin="0,8,0,0">
-                            <ui:Button Command="{Binding NextGameCommand}" Content="{lex:Loc Next}" Icon="{ui:SymbolIcon Symbol=ArrowNext24}" />
-                            <ui:Button Command="{Binding StartNavigationCommand}" Content="{lex:Loc StartGameGuidance}" Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                            <ui:Button Command="{Binding NavigateToPreviousStepCommand}" Content="{lex:Loc LastStep}" Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
-                            <ui:Button Command="{Binding NavigateToNextStepCommand}" Content="{lex:Loc NextStep}" Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
-                            <ui:Button Command="{Binding StopNavigationCommand}" Content="{lex:Loc EndGameGuidance}" Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
-                            <TextBlock Margin="0,5,0,0" Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <ui:Button
+                                Command="{Binding NextGameCommand}"
+                                Content="{lex:Loc Next}"
+                                Icon="{ui:SymbolIcon Symbol=ArrowNext24}" />
+                            <ui:Button
+                                Command="{Binding StartNavigationCommand}"
+                                Content="{lex:Loc StartGameGuidance}"
+                                Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                            <ui:Button
+                                Command="{Binding NavigateToPreviousStepCommand}"
+                                Content="{lex:Loc LastStep}"
+                                Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            <ui:Button
+                                Command="{Binding NavigateToNextStepCommand}"
+                                Content="{lex:Loc NextStep}"
+                                Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            <ui:Button
+                                Command="{Binding StopNavigationCommand}"
+                                Content="{lex:Loc EndGameGuidance}"
+                                Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            <TextBlock Margin="0,5,8,8" Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}">
                                 <TextBlock.Text>
                                     <MultiBinding Converter="{lex:StringFormatConverter}">
                                         <lex:BLoc Key="CurrentStepFormat" />
@@ -165,9 +199,18 @@
                     </StackPanel>
 
                     <WrapPanel Width="380" Margin="0,0,0,8">
-                        <ui:Button Command="{Binding SaveGameInfoCommand}" Content="{lex:Loc SaveGameInformation}" Icon="{ui:SymbolIcon Symbol=Save24}" />
-                        <ui:Button Command="{Binding ImportGameInfoCommand}" Content="{lex:Loc ImportGameInformation}" Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
-                        <ui:Button Command="{Binding NewGameCommand}" Content="{lex:Loc NewGame}" Icon="{ui:SymbolIcon Symbol=Add24}" />
+                        <ui:Button
+                            Command="{Binding SaveGameInfoCommand}"
+                            Content="{lex:Loc SaveGameInformation}"
+                            Icon="{ui:SymbolIcon Symbol=Save24}" />
+                        <ui:Button
+                            Command="{Binding ImportGameInfoCommand}"
+                            Content="{lex:Loc ImportGameInformation}"
+                            Icon="{ui:SymbolIcon Symbol=FolderOpen24}" />
+                        <ui:Button
+                            Command="{Binding NewGameCommand}"
+                            Content="{lex:Loc NewGame}"
+                            Icon="{ui:SymbolIcon Symbol=Add24}" />
                     </WrapPanel>
                 </WrapPanel>
             </Border>
@@ -182,15 +225,67 @@
                 <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="0,0,10,0">
                         <Grid x:Name="TeamRoot" Visibility="Collapsed" />
-                        <Border x:Name="MapRoot" Style="{StaticResource Card}">
+                        <Border
+                            x:Name="ManagementRoot"
+                            Margin="{StaticResource ClassicCardMargin}"
+                            Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc ClassicManagementEntries}" />
+                                <WrapPanel Margin="{StaticResource ClassicSectionSpacing}">
+                                    <ui:Button
+                                        Click="OpenFrontendManagement_Click"
+                                        Content="{lex:Loc OpenFrontendManagement}"
+                                        Icon="{ui:SymbolIcon Symbol=WindowApps24}" />
+                                    <ui:Button
+                                        Click="OpenSettings_Click"
+                                        Content="{lex:Loc OpenSettings}"
+                                        Icon="{ui:SymbolIcon Symbol=Settings24}" />
+                                    <ui:Button
+                                        Click="OpenPlugins_Click"
+                                        Content="{lex:Loc OpenPlugins}"
+                                        Icon="{ui:SymbolIcon Symbol=Cube24}" />
+                                    <ui:Button
+                                        Click="OpenSmartBp_Click"
+                                        Content="{lex:Loc SmartBP}"
+                                        Icon="{ui:SymbolIcon Symbol=BrainCircuit24}" />
+                                </WrapPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Border
+                            x:Name="MapRoot"
+                            Margin="{StaticResource ClassicCardMargin}"
+                            Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc MapBP}" />
-                                <WrapPanel Margin="0,10,0,0">
+                                <WrapPanel Margin="{StaticResource ClassicSectionSpacing}">
                                     <ui:ToggleSwitch Content="{lex:Loc ShowPickingBorder}" IsChecked="{Binding IsBreathing}" />
-                                    <ui:ToggleSwitch Margin="10,0,0,0" Content="{lex:Loc ShowCamp}" IsChecked="{Binding IsCampVisible}" />
-                                    <ui:Button Margin="0,10,8,8" Command="{Binding ResetMapBpCommand}" Content="{lex:Loc ResetMapBP}" Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
+                                    <ui:ToggleSwitch Content="{lex:Loc ShowCamp}" IsChecked="{Binding IsCampVisible}" />
+                                    <ui:Button
+                                        Command="{Binding ResetMapBpCommand}"
+                                        Content="{lex:Loc ResetMapBP}"
+                                        Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                                 </WrapPanel>
-                                <TextBlock Margin="0,10,0,0" Style="{StaticResource Title}" Text="{lex:Loc PickMap}" />
+                                <TextBlock
+                                    Margin="0,10,0,0"
+                                    Style="{StaticResource Title}"
+                                    Text="{lex:Loc PickMap}" />
+                                <ComboBox
+                                    Margin="0,8,0,0"
+                                    ItemsSource="{Binding MapSelectTeamsList}"
+                                    SelectedIndex="0"
+                                    SelectedValue="{Binding PickMapTeam}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock>
+                                                    <Run Text="{lex:Loc {Binding TeamType}}" /><Run Text=" - " />
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding Team.Name}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
                                 <ComboBox
                                     Width="300"
                                     Margin="0,8,0,0"
@@ -206,13 +301,22 @@
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal">
-                                                <ui:Image Width="150" CornerRadius="4" Source="{Binding ImageSource}" />
-                                                <TextBlock Margin="12,0,0,0" VerticalAlignment="Center" Text="{lex:Loc {Binding Map.MapName, TargetNullValue=null}}" />
+                                                <ui:Image
+                                                    Width="150"
+                                                    CornerRadius="4"
+                                                    Source="{Binding ImageSource}" />
+                                                <TextBlock
+                                                    Margin="12,0,0,0"
+                                                    VerticalAlignment="Center"
+                                                    Text="{lex:Loc {Binding Map.MapName, TargetNullValue=null}}" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                                <TextBlock Margin="0,14,0,0" Style="{StaticResource Title}" Text="{lex:Loc BanMap}" />
+                                <TextBlock
+                                    Margin="0,14,0,0"
+                                    Style="{StaticResource Title}"
+                                    Text="{lex:Loc BanMap}" />
                                 <ComboBox
                                     Margin="0,8,0,0"
                                     ItemsSource="{Binding MapSelectTeamsList}"
@@ -249,7 +353,11 @@
                                                 IsChecked="{Binding Map.IsBanned}"
                                                 IsEnabled="{Binding Map.CanBeBanned}">
                                                 <StackPanel>
-                                                    <Image Width="130" Height="38" Source="{Binding ImageSource}" Stretch="UniformToFill" />
+                                                    <Image
+                                                        Width="130"
+                                                        Height="38"
+                                                        Source="{Binding ImageSource}"
+                                                        Stretch="UniformToFill" />
                                                     <TextBlock HorizontalAlignment="Center" Text="{lex:Loc {Binding Map.MapName}}" />
                                                 </StackPanel>
                                             </ToggleButton>
@@ -259,61 +367,24 @@
                             </StackPanel>
                         </Border>
 
-                        <Border x:Name="FrontWindowRoot" Margin="0,10,0,0" Style="{StaticResource Card}">
+                        <Expander
+                            Margin="0,10,0,0"
+                            Header="{lex:Loc BanNumberControl}"
+                            IsExpanded="False">
                             <StackPanel>
-                                <TextBlock Style="{StaticResource Title}" Text="{lex:Loc FrontendQuickControls}" />
-                                <WrapPanel Margin="0,10,0,0">
-                                    <ui:Button Command="{Binding ShowAllWindowsCommand}" Content="{lex:Loc OpenAll}" />
-                                    <ui:Button Command="{Binding HideAllWindowsCommand}" Content="{lex:Loc CloseAll}" />
-                                </WrapPanel>
-                                <StackPanel Margin="0,6,0,0">
-                                    <WrapPanel Margin="0,0,0,8">
-                                        <TextBlock Width="145" Margin="0,5,8,0" Text="{lex:Loc BPWindow}" />
-                                        <ui:Button Command="{Binding ShowWindowCommand}" CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}" Content="{lex:Loc Open}" />
-                                        <ui:Button Command="{Binding HideWindowCommand}" CommandParameter="{x:Static enums:FrontedWindowType.BpWindow}" Content="{lex:Loc Close}" />
-                                    </WrapPanel>
-                                    <WrapPanel Margin="0,0,0,8">
-                                        <TextBlock Width="145" Margin="0,5,8,0" Text="{lex:Loc CutSceneWindow}" />
-                                        <ui:Button Command="{Binding ShowWindowCommand}" CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}" Content="{lex:Loc Open}" />
-                                        <ui:Button Command="{Binding HideWindowCommand}" CommandParameter="{x:Static enums:FrontedWindowType.CutSceneWindow}" Content="{lex:Loc Close}" />
-                                    </WrapPanel>
-                                    <WrapPanel Margin="0,0,0,8">
-                                        <TextBlock Width="145" Margin="0,5,8,0" Text="{lex:Loc ScoreSurWindow}" />
-                                        <ui:Button Command="{Binding ShowWindowCommand}" CommandParameter="{x:Static enums:FrontedWindowType.ScoreSurWindow}" Content="{lex:Loc Open}" />
-                                        <ui:Button Command="{Binding HideWindowCommand}" CommandParameter="{x:Static enums:FrontedWindowType.ScoreSurWindow}" Content="{lex:Loc Close}" />
-                                    </WrapPanel>
-                                    <WrapPanel Margin="0,0,0,8">
-                                        <TextBlock Width="145" Margin="0,5,8,0" Text="{lex:Loc ScoreHunWindow}" />
-                                        <ui:Button Command="{Binding ShowWindowCommand}" CommandParameter="{x:Static enums:FrontedWindowType.ScoreHunWindow}" Content="{lex:Loc Open}" />
-                                        <ui:Button Command="{Binding HideWindowCommand}" CommandParameter="{x:Static enums:FrontedWindowType.ScoreHunWindow}" Content="{lex:Loc Close}" />
-                                    </WrapPanel>
-                                    <WrapPanel Margin="0,0,0,8">
-                                        <TextBlock Width="145" Margin="0,5,8,0" Text="{lex:Loc ScoreGlobalWindow}" />
-                                        <ui:Button Command="{Binding ShowWindowCommand}" CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}" Content="{lex:Loc Open}" />
-                                        <ui:Button Command="{Binding HideWindowCommand}" CommandParameter="{x:Static enums:FrontedWindowType.ScoreGlobalWindow}" Content="{lex:Loc Close}" />
-                                    </WrapPanel>
-                                    <WrapPanel Margin="0,0,0,8">
-                                        <TextBlock Width="145" Margin="0,5,8,0" Text="{lex:Loc GameDataWindow}" />
-                                        <ui:Button Command="{Binding ShowWindowCommand}" CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}" Content="{lex:Loc Open}" />
-                                        <ui:Button Command="{Binding HideWindowCommand}" CommandParameter="{x:Static enums:FrontedWindowType.GameDataWindow}" Content="{lex:Loc Close}" />
-                                    </WrapPanel>
-                                    <WrapPanel Margin="0,0,0,8">
-                                        <TextBlock Width="145" Margin="0,5,8,0" Text="{lex:Loc WidgetsWindow}" />
-                                        <ui:Button Command="{Binding ShowWindowCommand}" CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}" Content="{lex:Loc Open}" />
-                                        <ui:Button Command="{Binding HideWindowCommand}" CommandParameter="{x:Static enums:FrontedWindowType.WidgetsWindow}" Content="{lex:Loc Close}" />
-                                    </WrapPanel>
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
-
-                        <Expander Margin="0,10,0,0" Header="{lex:Loc BanNumberControl}" IsExpanded="False">
-                            <StackPanel>
-                                <Border x:Name="BanHunNumberRoot" Margin="0,10,0,0" Style="{StaticResource Card}">
+                                <Border
+                                    x:Name="BanHunNumberRoot"
+                                    Margin="0,10,0,0"
+                                    Style="{StaticResource Card}">
                                     <StackPanel>
                                         <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanHunter}" />
                                         <TextBlock Margin="0,10,0,0" Text="{lex:Loc CurrentBan}" />
                                         <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BanHunCurrentViewModelList}">
-                                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <StackPanel Margin="0,0,10,10" Orientation="Horizontal">
@@ -332,7 +403,11 @@
                                         </ItemsControl>
                                         <TextBlock Margin="0,8,0,0" Text="{lex:Loc GlobalBan}" />
                                         <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BanHunGlobalViewModelList}">
-                                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <StackPanel Margin="0,0,10,10" Orientation="Horizontal">
@@ -351,12 +426,19 @@
                                         </ItemsControl>
                                     </StackPanel>
                                 </Border>
-                                <Border x:Name="BanSurNumberRoot" Margin="0,10,0,0" Style="{StaticResource Card}">
+                                <Border
+                                    x:Name="BanSurNumberRoot"
+                                    Margin="0,10,0,0"
+                                    Style="{StaticResource Card}">
                                     <StackPanel>
                                         <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanSurvivor}" />
                                         <TextBlock Margin="0,10,0,0" Text="{lex:Loc CurrentBan}" />
                                         <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BanSurCurrentViewModelList}">
-                                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <StackPanel Margin="0,0,10,10" Orientation="Horizontal">
@@ -375,7 +457,11 @@
                                         </ItemsControl>
                                         <TextBlock Margin="0,8,0,0" Text="{lex:Loc GlobalBan}" />
                                         <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding BanSurGlobalViewModelList}">
-                                            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <WrapPanel />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <StackPanel Margin="0,0,10,10" Orientation="Horizontal">
@@ -406,18 +492,40 @@
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanHunter}" />
                                 <WrapPanel Margin="0,10,0,0">
                                     <ItemsControl Focusable="False" ItemsSource="{Binding BanHunCurrentViewModelList}">
-                                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <controls:CharacterSelector Margin="0,0,10,10" Command="{Binding ConfirmCommand}" ImageSource="{Binding PreviewImage}" IsEnabled="{Binding IsEnabled}" IsHighlighted="{Binding IsHighlighted}" ItemsSource="{Binding CharaDict}" SelectedValue="{Binding SelectedChara}" />
+                                                <controls:CharacterSelector
+                                                    Margin="0,0,10,10"
+                                                    Command="{Binding ConfirmCommand}"
+                                                    ImageSource="{Binding PreviewImage}"
+                                                    IsEnabled="{Binding IsEnabled}"
+                                                    IsHighlighted="{Binding IsHighlighted}"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding SelectedChara}" />
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
                                     <ItemsControl Focusable="False" ItemsSource="{Binding BanHunGlobalViewModelList}">
-                                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <controls:CharacterSelector Margin="0,0,10,10" Command="{Binding ConfirmCommand}" ImageSource="{Binding PreviewImage}" IsEnabled="{Binding IsEnabled}" IsHighlighted="{Binding IsHighlighted}" ItemsSource="{Binding CharaDict}" SelectedValue="{Binding SelectedChara}" />
+                                                <controls:CharacterSelector
+                                                    Margin="0,0,10,10"
+                                                    Command="{Binding ConfirmCommand}"
+                                                    ImageSource="{Binding PreviewImage}"
+                                                    IsEnabled="{Binding IsEnabled}"
+                                                    IsHighlighted="{Binding IsHighlighted}"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding SelectedChara}" />
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
@@ -425,23 +533,48 @@
                             </StackPanel>
                         </Border>
 
-                        <Border x:Name="BanSurRoot" Margin="0,10,0,0" Style="{StaticResource Card}">
+                        <Border
+                            x:Name="BanSurRoot"
+                            Margin="0,10,0,0"
+                            Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanSurvivor}" />
                                 <WrapPanel Margin="0,10,0,0">
                                     <ItemsControl Focusable="False" ItemsSource="{Binding BanSurCurrentViewModelList}">
-                                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <controls:CharacterSelector Margin="0,0,10,10" Command="{Binding ConfirmCommand}" ImageSource="{Binding PreviewImage}" IsEnabled="{Binding IsEnabled}" IsHighlighted="{Binding IsHighlighted}" ItemsSource="{Binding CharaDict}" SelectedValue="{Binding SelectedChara}" />
+                                                <controls:CharacterSelector
+                                                    Margin="0,0,10,10"
+                                                    Command="{Binding ConfirmCommand}"
+                                                    ImageSource="{Binding PreviewImage}"
+                                                    IsEnabled="{Binding IsEnabled}"
+                                                    IsHighlighted="{Binding IsHighlighted}"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding SelectedChara}" />
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
                                     <ItemsControl Focusable="False" ItemsSource="{Binding BanSurGlobalViewModelList}">
-                                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <controls:CharacterSelector Margin="0,0,10,10" Command="{Binding ConfirmCommand}" ImageSource="{Binding PreviewImage}" IsEnabled="{Binding IsEnabled}" IsHighlighted="{Binding IsHighlighted}" ItemsSource="{Binding CharaDict}" SelectedValue="{Binding SelectedChara}" />
+                                                <controls:CharacterSelector
+                                                    Margin="0,0,10,10"
+                                                    Command="{Binding ConfirmCommand}"
+                                                    ImageSource="{Binding PreviewImage}"
+                                                    IsEnabled="{Binding IsEnabled}"
+                                                    IsHighlighted="{Binding IsHighlighted}"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding SelectedChara}" />
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
@@ -449,63 +582,127 @@
                             </StackPanel>
                         </Border>
 
-                        <Border x:Name="PickRoot" Margin="0,10,0,0" Style="{StaticResource Card}">
+                        <Border
+                            x:Name="PickRoot"
+                            Margin="0,10,0,0"
+                            Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc PickSurvivor}" />
                                 <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding SurPickViewModelList}">
-                                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <StackPanel Margin="0,0,12,12">
-                                                <ui:TextBox IsReadOnly="True" PlaceholderText="{lex:Loc PlayerName}" Text="{Binding ThisPlayer.Member.Name, Mode=OneWay}" />
-                                                <cc:CharacterSelector Margin="0,8,0,0" Command="{Binding ConfirmCommand}" ImageSource="{Binding PreviewImage}" IsHighlighted="{Binding IsHighlighted}" ItemsSource="{Binding CharaDict}" SelectedValue="{Binding SelectedChara}" />
-                                                <cc:CharacterChanger Command="{Binding SwapCharacterInPlayersCommand}" Index="{Binding Index}" IsHighlighted="{Binding IsCharaChangerHighlighted}" />
+                                                <ui:TextBox
+                                                    IsReadOnly="True"
+                                                    PlaceholderText="{lex:Loc PlayerName}"
+                                                    Text="{Binding ThisPlayer.Member.Name, Mode=OneWay}" />
+                                                <cc:CharacterSelector
+                                                    Margin="0,8,0,0"
+                                                    Command="{Binding ConfirmCommand}"
+                                                    ImageSource="{Binding PreviewImage}"
+                                                    IsHighlighted="{Binding IsHighlighted}"
+                                                    ItemsSource="{Binding CharaDict}"
+                                                    SelectedValue="{Binding SelectedChara}" />
+                                                <cc:CharacterChanger
+                                                    Command="{Binding SwapCharacterInPlayersCommand}"
+                                                    Index="{Binding Index}"
+                                                    IsHighlighted="{Binding IsCharaChangerHighlighted}" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                                <TextBlock Margin="0,12,0,0" Style="{StaticResource Title}" Text="{lex:Loc PickHunter}" />
-                                <cc:CharacterSelector Margin="0,10,0,0" Command="{Binding HunPickVm.ConfirmCommand}" ImageSource="{Binding HunPickVm.PreviewImage}" IsHighlighted="{Binding HunPickVm.IsHighlighted}" ItemsSource="{Binding HunPickVm.CharaDict}" SelectedValue="{Binding HunPickVm.SelectedChara}" />
-                                <TextBlock Margin="0,12,0,0" Style="{StaticResource Title}" Text="{lex:Loc OpenPickingBorder}" />
-                                <StackPanel Margin="0,10,0,0">
-                                    <StackPanel Orientation="Horizontal">
-                                        <ui:ToggleSwitch x:Name="IsSingleControlEnabled" />
-                                        <TextBlock Margin="10,0,0,0" VerticalAlignment="Center" Text="{lex:Loc ControlFirst2PickingBorderSeparately}" />
+                                <TextBlock
+                                    Margin="0,12,0,0"
+                                    Style="{StaticResource Title}"
+                                    Text="{lex:Loc PickHunter}" />
+                                <cc:CharacterSelector
+                                    Margin="0,10,0,0"
+                                    Command="{Binding HunPickVm.ConfirmCommand}"
+                                    ImageSource="{Binding HunPickVm.PreviewImage}"
+                                    IsHighlighted="{Binding HunPickVm.IsHighlighted}"
+                                    ItemsSource="{Binding HunPickVm.CharaDict}"
+                                    SelectedValue="{Binding HunPickVm.SelectedChara}" />
+                                <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Style="{StaticResource Title}"
+                                        Text="{lex:Loc OpenPickingBorder}" />
+                                    <StackPanel
+                                        Margin="10,0,0,0"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <ui:ToggleSwitch
+                                            x:Name="IsSingleControlEnabled"
+                                            Margin="0,3,0,0"
+                                            VerticalAlignment="Center" />
+                                        <TextBlock
+                                            Margin="10,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Text="{lex:Loc ControlFirst2PickingBorderSeparately}" />
                                     </StackPanel>
-                                    <WrapPanel Margin="0,10,0,0">
-                                        <StackPanel Margin="0,0,20,8" Orientation="Horizontal" Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
-                                            <ui:ToggleSwitch Command="{Binding PickingBorderSwitchCommand}" CommandParameter="0" IsChecked="{Binding SurPickingBorderList[0]}" />
-                                            <TextBlock Margin="8,0,0,0" Text="{lex:Loc SurvivorPickingBorder1}" />
-                                        </StackPanel>
-                                        <StackPanel Margin="0,0,20,8" Orientation="Horizontal" Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
-                                            <ui:ToggleSwitch Command="{Binding PickingBorderSwitchCommand}" CommandParameter="1" IsChecked="{Binding SurPickingBorderList[1]}" />
-                                            <TextBlock Margin="8,0,0,0" Text="{lex:Loc SurvivorPickingBorder2}" />
-                                        </StackPanel>
-                                        <StackPanel Margin="0,0,20,8" Orientation="Horizontal" Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BooleanToReverseVisibilityConverter}}">
-                                            <ui:ToggleSwitch Command="{Binding PickingBorderSwitchCommand}" CommandParameter="0and1">
-                                                <ui:ToggleSwitch.IsChecked>
-                                                    <MultiBinding Converter="{StaticResource BooleanMultiConverter}" Mode="TwoWay">
-                                                        <Binding Path="SurPickingBorderList[0]" />
-                                                        <Binding Path="SurPickingBorderList[1]" />
-                                                    </MultiBinding>
-                                                </ui:ToggleSwitch.IsChecked>
-                                            </ui:ToggleSwitch>
-                                            <TextBlock Margin="8,0,0,0" Text="{lex:Loc SurvivorPickingBorder1and2}" />
-                                        </StackPanel>
-                                        <StackPanel Margin="0,0,20,8" Orientation="Horizontal">
-                                            <ui:ToggleSwitch Command="{Binding PickingBorderSwitchCommand}" CommandParameter="2" IsChecked="{Binding SurPickingBorderList[2]}" />
-                                            <TextBlock Margin="8,0,0,0" Text="{lex:Loc SurvivorPickingBorder3}" />
-                                        </StackPanel>
-                                        <StackPanel Margin="0,0,20,8" Orientation="Horizontal">
-                                            <ui:ToggleSwitch Command="{Binding PickingBorderSwitchCommand}" CommandParameter="3" IsChecked="{Binding SurPickingBorderList[3]}" />
-                                            <TextBlock Margin="8,0,0,0" Text="{lex:Loc SurvivorPickingBorder4}" />
-                                        </StackPanel>
-                                        <StackPanel Margin="0,0,20,8" Orientation="Horizontal">
-                                            <ui:ToggleSwitch Command="{Binding PickingBorderSwitchCommand}" CommandParameter="Hun" IsChecked="{Binding HunPickingBorder}" />
-                                            <TextBlock Margin="8,0,0,0" Text="{lex:Loc HunterPickingBorder}" />
-                                        </StackPanel>
-                                    </WrapPanel>
                                 </StackPanel>
+                                <WrapPanel Margin="0,10,0,0">
+                                    <StackPanel
+                                        Margin="0,0,20,8"
+                                        Orientation="Horizontal"
+                                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <ui:ToggleSwitch
+                                            Command="{Binding PickingBorderSwitchCommand}"
+                                            CommandParameter="0"
+                                            IsChecked="{Binding SurPickingBorderList[0]}" />
+                                        <TextBlock Margin="8,0,0,0" Text="{lex:Loc SurvivorPickingBorder1}" />
+                                    </StackPanel>
+                                    <StackPanel
+                                        Margin="0,0,20,8"
+                                        Orientation="Horizontal"
+                                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <ui:ToggleSwitch
+                                            Command="{Binding PickingBorderSwitchCommand}"
+                                            CommandParameter="1"
+                                            IsChecked="{Binding SurPickingBorderList[1]}" />
+                                        <TextBlock Margin="8,0,0,0" Text="{lex:Loc SurvivorPickingBorder2}" />
+                                    </StackPanel>
+                                    <StackPanel
+                                        Margin="0,0,20,8"
+                                        Orientation="Horizontal"
+                                        Visibility="{Binding ElementName=IsSingleControlEnabled, Path=IsChecked, Converter={StaticResource BooleanToReverseVisibilityConverter}}">
+                                        <ui:ToggleSwitch Command="{Binding PickingBorderSwitchCommand}" CommandParameter="0and1">
+                                            <ui:ToggleSwitch.IsChecked>
+                                                <MultiBinding Converter="{StaticResource BooleanMultiConverter}" Mode="TwoWay">
+                                                    <Binding Path="SurPickingBorderList[0]" />
+                                                    <Binding Path="SurPickingBorderList[1]" />
+                                                </MultiBinding>
+                                            </ui:ToggleSwitch.IsChecked>
+                                        </ui:ToggleSwitch>
+                                        <TextBlock Margin="8,0,0,0" Text="{lex:Loc SurvivorPickingBorder1and2}" />
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,20,8" Orientation="Horizontal">
+                                        <ui:ToggleSwitch
+                                            Command="{Binding PickingBorderSwitchCommand}"
+                                            CommandParameter="2"
+                                            IsChecked="{Binding SurPickingBorderList[2]}" />
+                                        <TextBlock Margin="8,0,0,0" Text="{lex:Loc SurvivorPickingBorder3}" />
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,20,8" Orientation="Horizontal">
+                                        <ui:ToggleSwitch
+                                            Command="{Binding PickingBorderSwitchCommand}"
+                                            CommandParameter="3"
+                                            IsChecked="{Binding SurPickingBorderList[3]}" />
+                                        <TextBlock Margin="8,0,0,0" Text="{lex:Loc SurvivorPickingBorder4}" />
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,20,8" Orientation="Horizontal">
+                                        <ui:ToggleSwitch
+                                            Command="{Binding PickingBorderSwitchCommand}"
+                                            CommandParameter="Hun"
+                                            IsChecked="{Binding HunPickingBorder}" />
+                                        <TextBlock Margin="8,0,0,0" Text="{lex:Loc HunterPickingBorder}" />
+                                    </StackPanel>
+                                </WrapPanel>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -517,13 +714,34 @@
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc ScoreControl}" />
                                 <WrapPanel Margin="0,10,0,0">
-                                    <Button Width="96" Command="{Binding Escape4Command}" Content="{lex:Loc FourEscape}" />
-                                    <Button Width="96" Command="{Binding Escape3Command}" Content="{lex:Loc ThreeEscape}" />
-                                    <Button Width="96" Command="{Binding TieCommand}" Content="{lex:Loc Tie}" />
-                                    <Button Width="96" Command="{Binding Out4Command}" Content="{lex:Loc FourEliminate}" />
-                                    <Button Width="96" Command="{Binding Out3Command}" Content="{lex:Loc ThreeEliminate}" />
-                                    <Button Width="140" Command="{Binding ResetCommand}" Content="{lex:Loc ResetAllScores}" />
-                                    <Button Width="160" Command="{Binding ClearCurrentHalfScoreCommand}" Content="{lex:Loc ClearCurrentHalfScore}" />
+                                    <Button
+                                        Width="96"
+                                        Command="{Binding Escape4Command}"
+                                        Content="{lex:Loc FourEscape}" />
+                                    <Button
+                                        Width="96"
+                                        Command="{Binding Escape3Command}"
+                                        Content="{lex:Loc ThreeEscape}" />
+                                    <Button
+                                        Width="96"
+                                        Command="{Binding TieCommand}"
+                                        Content="{lex:Loc Tie}" />
+                                    <Button
+                                        Width="96"
+                                        Command="{Binding Out4Command}"
+                                        Content="{lex:Loc FourEliminate}" />
+                                    <Button
+                                        Width="96"
+                                        Command="{Binding Out3Command}"
+                                        Content="{lex:Loc ThreeEliminate}" />
+                                    <Button
+                                        Width="140"
+                                        Command="{Binding ResetCommand}"
+                                        Content="{lex:Loc ResetAllScores}" />
+                                    <Button
+                                        Width="160"
+                                        Command="{Binding ClearCurrentHalfScoreCommand}"
+                                        Content="{lex:Loc ClearCurrentHalfScore}" />
                                 </WrapPanel>
                                 <TextBlock Margin="0,8,0,0" TextWrapping="Wrap">
                                     <TextBlock.Text>
@@ -550,10 +768,16 @@
                             </StackPanel>
                         </Border>
 
-                        <Border x:Name="GlobalBanRecordRoot" Margin="0,10,0,0" Style="{StaticResource Card}">
+                        <Border
+                            x:Name="GlobalBanRecordRoot"
+                            Margin="0,10,0,0"
+                            Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc GlobalBanRecord}" />
-                                <ui:ToggleSwitch Margin="0,10,0,0" Content="{lex:Loc AutoRecord}" IsChecked="{Binding IsGlobalBanAutoRecord}" />
+                                <ui:ToggleSwitch
+                                    Margin="0,10,0,0"
+                                    Content="{lex:Loc AutoRecord}"
+                                    IsChecked="{Binding IsGlobalBanAutoRecord}" />
                                 <TextBlock Margin="0,12,0,0">
                                     <TextBlock.Text>
                                         <MultiBinding StringFormat="{}{0}: {1}">
@@ -563,12 +787,36 @@
                                     </TextBlock.Text>
                                 </TextBlock>
                                 <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding HomeSurGlobalBanRecordViewModelList}">
-                                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate><DataTemplate><cc:CharacterSelector Margin="0,0,8,8" IsSimpleModeEnabled="True" ItemsSource="{Binding CharaDict}" SelectedValue="{Binding RecordedChara}" /></DataTemplate></ItemsControl.ItemTemplate>
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <cc:CharacterSelector
+                                                Margin="0,0,8,8"
+                                                IsSimpleModeEnabled="True"
+                                                ItemsSource="{Binding CharaDict}"
+                                                SelectedValue="{Binding RecordedChara}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                                 <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding HomeHunGlobalBanRecordViewModelList}">
-                                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate><DataTemplate><cc:CharacterSelector Margin="0,0,8,8" IsSimpleModeEnabled="True" ItemsSource="{Binding CharaDict}" SelectedValue="{Binding RecordedChara}" /></DataTemplate></ItemsControl.ItemTemplate>
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <cc:CharacterSelector
+                                                Margin="0,0,8,8"
+                                                IsSimpleModeEnabled="True"
+                                                ItemsSource="{Binding CharaDict}"
+                                                SelectedValue="{Binding RecordedChara}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                                 <TextBlock Margin="0,12,0,0">
                                     <TextBlock.Text>
@@ -579,57 +827,177 @@
                                     </TextBlock.Text>
                                 </TextBlock>
                                 <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding AwaySurGlobalBanRecordViewModelList}">
-                                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate><DataTemplate><cc:CharacterSelector Margin="0,0,8,8" IsSimpleModeEnabled="True" ItemsSource="{Binding CharaDict}" SelectedValue="{Binding RecordedChara}" /></DataTemplate></ItemsControl.ItemTemplate>
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <cc:CharacterSelector
+                                                Margin="0,0,8,8"
+                                                IsSimpleModeEnabled="True"
+                                                ItemsSource="{Binding CharaDict}"
+                                                SelectedValue="{Binding RecordedChara}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                                 <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding AwayHunGlobalBanRecordViewModelList}">
-                                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate><DataTemplate><cc:CharacterSelector Margin="0,0,8,8" IsSimpleModeEnabled="True" ItemsSource="{Binding CharaDict}" SelectedValue="{Binding RecordedChara}" /></DataTemplate></ItemsControl.ItemTemplate>
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <cc:CharacterSelector
+                                                Margin="0,0,8,8"
+                                                IsSimpleModeEnabled="True"
+                                                ItemsSource="{Binding CharaDict}"
+                                                SelectedValue="{Binding RecordedChara}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                             </StackPanel>
                         </Border>
 
-                        <Expander Margin="0,10,0,0" Header="{lex:Loc Talent}" IsExpanded="False">
-                            <Border x:Name="TalentRoot" Margin="0,10,0,0" Style="{StaticResource Card}">
+                        <Expander
+                            Margin="0,10,0,0"
+                            Header="{lex:Loc Talent}"
+                            IsExpanded="False">
+                            <Border
+                                x:Name="TalentRoot"
+                                Margin="0,10,0,0"
+                                Style="{StaticResource Card}">
                                 <StackPanel>
                                     <TextBlock Style="{StaticResource Title}" Text="{lex:Loc SurvivorTalent}" />
                                     <WrapPanel Margin="0,10,0,0">
-                                        <controls:TalentPicker Margin="0,0,10,10" CharacterName="{Binding CurrentGame.SurPlayerList[0].Character.Name, Mode=OneWay}" IsHighlighted="{Binding IsSurTalentHighlighted}" Player="{Binding CurrentGame.SurPlayerList[0]}" />
-                                        <controls:TalentPicker Margin="0,0,10,10" CharacterName="{Binding CurrentGame.SurPlayerList[1].Character.Name, Mode=OneWay}" IsHighlighted="{Binding IsSurTalentHighlighted}" Player="{Binding CurrentGame.SurPlayerList[1]}" />
-                                        <controls:TalentPicker Margin="0,0,10,10" CharacterName="{Binding CurrentGame.SurPlayerList[2].Character.Name, Mode=OneWay}" IsHighlighted="{Binding IsSurTalentHighlighted}" Player="{Binding CurrentGame.SurPlayerList[2]}" />
-                                        <controls:TalentPicker Margin="0,0,10,10" CharacterName="{Binding CurrentGame.SurPlayerList[3].Character.Name, Mode=OneWay}" IsHighlighted="{Binding IsSurTalentHighlighted}" Player="{Binding CurrentGame.SurPlayerList[3]}" />
+                                        <controls:TalentPicker
+                                            Margin="0,0,10,10"
+                                            CharacterName="{Binding CurrentGame.SurPlayerList[0].Character.Name, Mode=OneWay}"
+                                            IsHighlighted="{Binding IsSurTalentHighlighted}"
+                                            Player="{Binding CurrentGame.SurPlayerList[0]}" />
+                                        <controls:TalentPicker
+                                            Margin="0,0,10,10"
+                                            CharacterName="{Binding CurrentGame.SurPlayerList[1].Character.Name, Mode=OneWay}"
+                                            IsHighlighted="{Binding IsSurTalentHighlighted}"
+                                            Player="{Binding CurrentGame.SurPlayerList[1]}" />
+                                        <controls:TalentPicker
+                                            Margin="0,0,10,10"
+                                            CharacterName="{Binding CurrentGame.SurPlayerList[2].Character.Name, Mode=OneWay}"
+                                            IsHighlighted="{Binding IsSurTalentHighlighted}"
+                                            Player="{Binding CurrentGame.SurPlayerList[2]}" />
+                                        <controls:TalentPicker
+                                            Margin="0,0,10,10"
+                                            CharacterName="{Binding CurrentGame.SurPlayerList[3].Character.Name, Mode=OneWay}"
+                                            IsHighlighted="{Binding IsSurTalentHighlighted}"
+                                            Player="{Binding CurrentGame.SurPlayerList[3]}" />
                                     </WrapPanel>
-                                    <TextBlock Margin="0,12,0,0" Style="{StaticResource Title}" Text="{lex:Loc HunterTalent}" />
-                                    <controls:TalentPicker Margin="0,10,0,10" HorizontalAlignment="Left" CharacterName="{Binding CurrentGame.HunPlayer.Character.Name, Mode=OneWay}" IsHighlighted="{Binding IsHunTalentHighlighted}" IsTypeHun="True" Player="{Binding CurrentGame.HunPlayer}" />
-                                    <TextBlock Margin="0,12,0,0" Style="{StaticResource Title}" Text="{lex:Loc HunterTrait}" />
-                                    <ui:ToggleSwitch x:Name="IsTraitVisible" Margin="0,10,0,0" Content="{lex:Loc Enable}" IsChecked="{Binding IsTraitVisible}" />
+                                    <TextBlock
+                                        Margin="0,12,0,0"
+                                        Style="{StaticResource Title}"
+                                        Text="{lex:Loc HunterTalent}" />
+                                    <controls:TalentPicker
+                                        Margin="0,10,0,10"
+                                        HorizontalAlignment="Left"
+                                        CharacterName="{Binding CurrentGame.HunPlayer.Character.Name, Mode=OneWay}"
+                                        IsHighlighted="{Binding IsHunTalentHighlighted}"
+                                        IsTypeHun="True"
+                                        Player="{Binding CurrentGame.HunPlayer}" />
+                                    <TextBlock
+                                        Margin="0,12,0,0"
+                                        Style="{StaticResource Title}"
+                                        Text="{lex:Loc HunterTrait}" />
+                                    <ui:ToggleSwitch
+                                        x:Name="IsTraitVisible"
+                                        Margin="0,10,0,0"
+                                        Content="{lex:Loc Enable}"
+                                        IsChecked="{Binding IsTraitVisible}" />
                                     <WrapPanel Margin="0,10,0,0" Visibility="{Binding ElementName=IsTraitVisible, Path=IsChecked, Converter={StaticResource BoolToVisibilityConverter}, Mode=TwoWay}">
-                                        <controls:ToggleStyledRadioButton ImageHeight="50" ImageWidth="50" ImageSource="{DynamicResource Listen}" IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Listen}}" TagName="{lex:Loc Listen}" />
-                                        <controls:ToggleStyledRadioButton ImageHeight="50" ImageWidth="50" ImageSource="{DynamicResource Abnormal}" IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Abnormal}}" TagName="{lex:Loc Abnormal}" />
-                                        <controls:ToggleStyledRadioButton ImageHeight="50" ImageWidth="50" ImageSource="{DynamicResource Excitement}" IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Excitement}}" TagName="{lex:Loc Excitement}" />
-                                        <controls:ToggleStyledRadioButton ImageHeight="50" ImageWidth="50" ImageSource="{DynamicResource Patroller}" IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Patroller}}" TagName="{lex:Loc Patroller}" />
-                                        <controls:ToggleStyledRadioButton ImageHeight="50" ImageWidth="50" ImageSource="{DynamicResource Teleport}" IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Teleport}}" TagName="{lex:Loc Teleport}" />
-                                        <controls:ToggleStyledRadioButton ImageHeight="50" ImageWidth="50" ImageSource="{DynamicResource Peeper}" IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Peeper}}" TagName="{lex:Loc Peeper}" />
-                                        <controls:ToggleStyledRadioButton ImageHeight="50" ImageWidth="50" ImageSource="{DynamicResource Blink}" IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Blink}}" TagName="{lex:Loc Blink}" />
-                                        <controls:ToggleStyledRadioButton ImageHeight="50" ImageWidth="50" ImageSource="{DynamicResource Warp}" IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Warp}}" TagName="{lex:Loc Warp}" />
+                                        <controls:ToggleStyledRadioButton
+                                            ImageHeight="50"
+                                            ImageSource="{DynamicResource Listen}"
+                                            ImageWidth="50"
+                                            IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Listen}}"
+                                            TagName="{lex:Loc Listen}" />
+                                        <controls:ToggleStyledRadioButton
+                                            ImageHeight="50"
+                                            ImageSource="{DynamicResource Abnormal}"
+                                            ImageWidth="50"
+                                            IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Abnormal}}"
+                                            TagName="{lex:Loc Abnormal}" />
+                                        <controls:ToggleStyledRadioButton
+                                            ImageHeight="50"
+                                            ImageSource="{DynamicResource Excitement}"
+                                            ImageWidth="50"
+                                            IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Excitement}}"
+                                            TagName="{lex:Loc Excitement}" />
+                                        <controls:ToggleStyledRadioButton
+                                            ImageHeight="50"
+                                            ImageSource="{DynamicResource Patroller}"
+                                            ImageWidth="50"
+                                            IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Patroller}}"
+                                            TagName="{lex:Loc Patroller}" />
+                                        <controls:ToggleStyledRadioButton
+                                            ImageHeight="50"
+                                            ImageSource="{DynamicResource Teleport}"
+                                            ImageWidth="50"
+                                            IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Teleport}}"
+                                            TagName="{lex:Loc Teleport}" />
+                                        <controls:ToggleStyledRadioButton
+                                            ImageHeight="50"
+                                            ImageSource="{DynamicResource Peeper}"
+                                            ImageWidth="50"
+                                            IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Peeper}}"
+                                            TagName="{lex:Loc Peeper}" />
+                                        <controls:ToggleStyledRadioButton
+                                            ImageHeight="50"
+                                            ImageSource="{DynamicResource Blink}"
+                                            ImageWidth="50"
+                                            IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Blink}}"
+                                            TagName="{lex:Loc Blink}" />
+                                        <controls:ToggleStyledRadioButton
+                                            ImageHeight="50"
+                                            ImageSource="{DynamicResource Warp}"
+                                            ImageWidth="50"
+                                            IsChecked="{Binding SelectedTrait, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:TraitType.Warp}}"
+                                            TagName="{lex:Loc Warp}" />
                                     </WrapPanel>
                                 </StackPanel>
                             </Border>
                         </Expander>
 
-                        <Expander Margin="0,10,0,0" Header="{lex:Loc GameData}" IsExpanded="False">
-                            <Border x:Name="GameDataRoot" Margin="0,10,0,0" Style="{StaticResource Card}">
+                        <Expander
+                            Margin="0,10,0,0"
+                            Header="{lex:Loc GameData}"
+                            IsExpanded="False">
+                            <Border
+                                x:Name="GameDataRoot"
+                                Margin="0,10,0,0"
+                                Style="{StaticResource Card}">
                                 <StackPanel>
-                                    <ui:Button Command="{Binding AutoFillGameDataCommand}" Content="{lex:Loc AutoDetectAndFillPostGameData}" Icon="{ui:SymbolIcon Symbol=ScanText24}" />
-                                    <TextBlock Margin="0,10,0,0" Style="{StaticResource Title}" Text="{lex:Loc Survivor}" />
+                                    <ui:Button
+                                        Command="{Binding AutoFillGameDataCommand}"
+                                        Content="{lex:Loc AutoDetectAndFillPostGameData}"
+                                        Icon="{ui:SymbolIcon Symbol=ScanText24}" />
+                                    <TextBlock
+                                        Margin="0,10,0,0"
+                                        Style="{StaticResource Title}"
+                                        Text="{lex:Loc Survivor}" />
                                     <WrapPanel Margin="0,8,0,0">
                                         <controls:GameDataEditor Margin="0,0,10,10" PlayerData="{Binding SurPlayerList[0].Data}" />
                                         <controls:GameDataEditor Margin="0,0,10,10" PlayerData="{Binding SurPlayerList[1].Data}" />
                                         <controls:GameDataEditor Margin="0,0,10,10" PlayerData="{Binding SurPlayerList[2].Data}" />
                                         <controls:GameDataEditor Margin="0,0,10,10" PlayerData="{Binding SurPlayerList[3].Data}" />
                                     </WrapPanel>
-                                    <TextBlock Margin="0,10,0,0" Style="{StaticResource Title}" Text="{lex:Loc Hunter}" />
-                                    <controls:GameDataEditor Margin="0,8,0,0" IsHunMode="True" PlayerData="{Binding HunPlayer.Data}" />
+                                    <TextBlock
+                                        Margin="0,10,0,0"
+                                        Style="{StaticResource Title}"
+                                        Text="{lex:Loc Hunter}" />
+                                    <controls:GameDataEditor
+                                        Margin="0,8,0,0"
+                                        IsHunMode="True"
+                                        PlayerData="{Binding HunPlayer.Data}" />
                                 </StackPanel>
                             </Border>
                         </Expander>

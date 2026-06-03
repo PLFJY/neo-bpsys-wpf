@@ -79,16 +79,7 @@ public partial class SettingPageViewModel : ViewModelBase
             return;
         }
 
-        var executablePath = Environment.ProcessPath;
-        if (!string.IsNullOrWhiteSpace(executablePath))
-        {
-            Process.Start(new ProcessStartInfo(executablePath)
-            {
-                UseShellExecute = true
-            });
-        }
-
-        Application.Current.Shutdown();
+        AppBase.Current.Restart();
     }
 
     private void Settings_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

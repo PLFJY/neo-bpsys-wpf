@@ -3518,6 +3518,18 @@
   <data name="FrontendQuickControls" xml:space="preserve">
     <value>前台窗口快捷控制</value>
   </data>
+  <data name="ClassicManagementEntries" xml:space="preserve">
+    <value>管理入口</value>
+  </data>
+  <data name="OpenFrontendManagement" xml:space="preserve">
+    <value>前台管理</value>
+  </data>
+  <data name="OpenSettings" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="OpenPlugins" xml:space="preserve">
+    <value>插件</value>
+  </data>
   <data name="ScoreSurWindow" xml:space="preserve">
     <value>求生者比分</value>
   </data>

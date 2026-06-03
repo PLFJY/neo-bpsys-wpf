@@ -3500,6 +3500,18 @@
   <data name="FrontendQuickControls" xml:space="preserve">
     <value>Frontend quick controls</value>
   </data>
+  <data name="ClassicManagementEntries" xml:space="preserve">
+    <value>Management entries</value>
+  </data>
+  <data name="OpenFrontendManagement" xml:space="preserve">
+    <value>Frontend Management</value>
+  </data>
+  <data name="OpenSettings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="OpenPlugins" xml:space="preserve">
+    <value>Plugins</value>
+  </data>
   <data name="ScoreSurWindow" xml:space="preserve">
     <value>Survivor score</value>
   </data>

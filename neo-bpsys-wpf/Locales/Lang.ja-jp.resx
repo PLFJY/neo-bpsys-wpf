@@ -2941,6 +2941,18 @@
   <data name="FrontendQuickControls" xml:space="preserve">
     <value>フロントエンド簡易操作</value>
   </data>
+  <data name="ClassicManagementEntries" xml:space="preserve">
+    <value>管理入口</value>
+  </data>
+  <data name="OpenFrontendManagement" xml:space="preserve">
+    <value>フロントエンド管理</value>
+  </data>
+  <data name="OpenSettings" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="OpenPlugins" xml:space="preserve">
+    <value>プラグイン</value>
+  </data>
   <data name="ScoreSurWindow" xml:space="preserve">
     <value>サバイバー得点</value>
   </data>

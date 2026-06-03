@@ -15,6 +15,7 @@
 | [bpui-package-v3.md](bpui-package-v3.md) | Designer v3 `.bpui` 布局包标准，包括 manifest、资源 URI、包隔离、导入导出与包管理规格 |
 | [legacy-fronted-layout-migration.md](legacy-fronted-layout-migration.md) | 旧 `Config.json` 前台字段和旧 `.bpui` 到 Designer v3 布局的迁移规则 |
 | [backend-pages-and-navigation.md](backend-pages-and-navigation.md) | 后台页面注册、WPF-UI 导航约定 |
+| [classic-mode.md](classic-mode.md) | Classic Mode 导播台定位、弹窗入口、导航边界、间距和重启规范 |
 | [game-guidance.md](game-guidance.md) | 引导式 BP 的规则文件和工作流 |
 | [smartbp-and-ocr.md](smartbp-and-ocr.md) | SmartBP、赛后数据 OCR、模型和区域配置 |
 | [shared-data-and-state.md](shared-data-and-state.md) | 共享状态、CurrentGame、队伍、Ban、倒计时和前台绑定 |
@@ -36,7 +37,7 @@
 | 主题 | 建议文档 |
 | --- | --- |
 | 架构入门 | `project-positioning.md`、`runtime-architecture.md`、`module-overview.md` |
-| UI / 前台 / 后台 | `frontend-windows-and-layout.md`、`fronted-designer-v3.md`、`fronted-designer-editor.md`、`bpui-package-v3.md`、`backend-pages-and-navigation.md`、`wpf-ui-pitfalls.md` |
+| UI / 前台 / 后台 | `frontend-windows-and-layout.md`、`fronted-designer-v3.md`、`fronted-designer-editor.md`、`bpui-package-v3.md`、`backend-pages-and-navigation.md`、`classic-mode.md`、`wpf-ui-pitfalls.md` |
 | 业务流程 | `game-guidance.md`、`smartbp-and-ocr.md`、`shared-data-and-state.md`、`score-system-v2.md` |
 | 插件 | `plugin-system.md`、`plugin-market.md` |
 | 资源 / 本地化 | `resources-localization-and-assets.md`、`settings-paths-and-data.md`、`bpui-package-v3.md` |
