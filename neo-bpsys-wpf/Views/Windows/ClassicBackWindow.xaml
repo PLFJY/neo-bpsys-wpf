@@ -34,7 +34,7 @@
         <cv:IntPlusOneConverter x:Key="IntPlusOneConverter" />
         <cv:IndexFormatConverter x:Key="IndexFormatConverter" />
         <Thickness x:Key="ClassicInlineControlMargin">0,0,8,8</Thickness>
-        <Thickness x:Key="ClassicCardMargin">0,10,10,0</Thickness>
+        <Thickness x:Key="ClassicCardMargin">0,10,0,0</Thickness>
         <Thickness x:Key="ClassicSectionSpacing">0,10,0,0</Thickness>
         <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="ui:TextBox">
             <Setter Property="MinWidth" Value="90" />
@@ -137,7 +137,10 @@
 
                     <StackPanel Margin="0,0,12,8">
                         <WrapPanel>
-                            <TextBlock Margin="0,5,8,8" Text="{lex:Loc FormatColon}" />
+                            <TextBlock
+                                Margin="0,5,8,8"
+                                VerticalAlignment="Center"
+                                Text="{lex:Loc FormatColon}" />
                             <RadioButton
                                 Margin="0,5,8,8"
                                 Content="BO5"
@@ -248,6 +251,10 @@
                                         Click="OpenSmartBp_Click"
                                         Content="{lex:Loc SmartBP}"
                                         Icon="{ui:SymbolIcon Symbol=BrainCircuit24}" />
+                                    <ui:Button
+                                        Click="OpenTeamInfo_Click"
+                                        Content="{lex:Loc TeamInfo}"
+                                        Icon="{ui:SymbolIcon Symbol=PeopleTeam24}" />
                                 </WrapPanel>
                             </StackPanel>
                         </Border>

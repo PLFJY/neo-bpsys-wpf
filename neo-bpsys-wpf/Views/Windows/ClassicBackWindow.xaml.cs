@@ -83,6 +83,11 @@ public partial class ClassicBackWindow : FluentWindow
         OpenPageHost<SmartBpPage>("SmartBP");
     }
 
+    private void OpenTeamInfo_Click(object sender, RoutedEventArgs e)
+    {
+        OpenPageHost<TeamInfoPage>("TeamInfo");
+    }
+
     private void OpenPageHost<TPage>(string titleKey)
         where TPage : Page
     {
