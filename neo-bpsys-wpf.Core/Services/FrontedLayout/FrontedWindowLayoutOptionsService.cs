@@ -12,6 +12,7 @@ namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 public class FrontedWindowLayoutOptionsService : IFrontedWindowLayoutOptionsService
 {
     private readonly string _frontedLayoutsRoot;
+    private readonly IFrontedLayoutPackageManager? _packageManager;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         WriteIndented = true,
@@ -20,18 +21,29 @@ public class FrontedWindowLayoutOptionsService : IFrontedWindowLayoutOptionsServ
     };
 
     public FrontedWindowLayoutOptionsService()
-        : this(AppConstants.FrontedLayoutsPath)
+        : this(AppConstants.FrontedLayoutsPath, null)
     {
     }
 
     public FrontedWindowLayoutOptionsService(string frontedLayoutsRoot)
+        : this(frontedLayoutsRoot, null)
+    {
+    }
+
+    public FrontedWindowLayoutOptionsService(IFrontedLayoutPackageManager packageManager)
+        : this(AppConstants.FrontedLayoutsPath, packageManager)
+    {
+    }
+
+    public FrontedWindowLayoutOptionsService(string frontedLayoutsRoot, IFrontedLayoutPackageManager? packageManager)
     {
         _frontedLayoutsRoot = frontedLayoutsRoot;
+        _packageManager = packageManager;
     }
 
     public FrontedWindowLayoutOptions LoadOptions(string windowTypeName)
     {
-        var path = GetUserOptionsPath(windowTypeName);
+        var path = GetReadOptionsPath(windowTypeName);
         if (!File.Exists(path))
         {
             return new FrontedWindowLayoutOptions();
@@ -59,7 +71,7 @@ public class FrontedWindowLayoutOptionsService : IFrontedWindowLayoutOptionsServ
         FrontedWindowLayoutOptions options,
         CancellationToken cancellationToken = default)
     {
-        var path = GetUserOptionsPath(windowTypeName);
+        var path = await GetWriteOptionsPathAsync(windowTypeName, cancellationToken);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
         options.Version = 3;
@@ -69,7 +81,7 @@ public class FrontedWindowLayoutOptionsService : IFrontedWindowLayoutOptionsServ
 
     public string GetUserOptionsPath(string windowTypeName)
     {
-        return Path.Combine(_frontedLayoutsRoot, FrontedLayoutWindowPathHelper.GetWindowOptionsRelativePath(windowTypeName));
+        return GetReadOptionsPath(windowTypeName);
     }
 
     public Task ResetOptionsAsync(string windowTypeName, CancellationToken cancellationToken = default)
@@ -81,5 +93,45 @@ public class FrontedWindowLayoutOptionsService : IFrontedWindowLayoutOptionsServ
         }
 
         return Task.CompletedTask;
+    }
+
+    private string GetReadOptionsPath(string windowTypeName)
+    {
+        if (_packageManager is null)
+        {
+            return GetLegacyOptionsPath(windowTypeName);
+        }
+
+        var active = _packageManager.GetActivePackageStateAsync().GetAwaiter().GetResult();
+        if (string.Equals(active.PackageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
+        {
+            return GetLegacyOptionsPath(windowTypeName);
+        }
+
+        var packagePath = GetPackageOptionsPath(active.PackageId, windowTypeName);
+        return File.Exists(packagePath) ? packagePath : GetLegacyOptionsPath(windowTypeName);
+    }
+
+    private async Task<string> GetWriteOptionsPathAsync(string windowTypeName, CancellationToken cancellationToken)
+    {
+        if (_packageManager is null)
+        {
+            return GetLegacyOptionsPath(windowTypeName);
+        }
+
+        var package = await _packageManager.EnsureWritableActivePackageAsync(cancellationToken);
+        return GetPackageOptionsPath(package.PackageId, windowTypeName);
+    }
+
+    private string GetPackageOptionsPath(string packageId, string windowTypeName)
+    {
+        return Path.Combine(
+            _packageManager!.GetPackageLayoutsRootFolder(packageId),
+            FrontedLayoutWindowPathHelper.GetWindowOptionsRelativePath(windowTypeName));
+    }
+
+    private string GetLegacyOptionsPath(string windowTypeName)
+    {
+        return Path.Combine(_frontedLayoutsRoot, FrontedLayoutWindowPathHelper.GetWindowOptionsRelativePath(windowTypeName));
     }
 }

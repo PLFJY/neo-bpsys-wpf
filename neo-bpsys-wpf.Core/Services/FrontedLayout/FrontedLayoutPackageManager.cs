@@ -25,6 +25,7 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
     private readonly string _packageRoot;
     private readonly string _builtInLayoutRoot;
     private readonly string _userLayoutRoot;
+    private readonly Func<string, string>? _localize;
     private readonly ILogger<FrontedLayoutPackageManager> _logger;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -44,11 +45,19 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
     }
 
     public FrontedLayoutPackageManager(ILogger<FrontedLayoutPackageManager> logger)
+        : this(logger, null)
+    {
+    }
+
+    public FrontedLayoutPackageManager(
+        ILogger<FrontedLayoutPackageManager> logger,
+        Func<string, string>? localize)
         : this(
             AppConstants.FrontedLayoutPackagesPath,
             Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts"),
             AppConstants.FrontedLayoutsPath,
-            logger)
+            logger,
+            localize)
     {
     }
 
@@ -56,11 +65,13 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         string packageRoot,
         string builtInLayoutRoot,
         string? userLayoutRoot = null,
-        ILogger<FrontedLayoutPackageManager>? logger = null)
+        ILogger<FrontedLayoutPackageManager>? logger = null,
+        Func<string, string>? localize = null)
     {
         _packageRoot = packageRoot;
         _builtInLayoutRoot = builtInLayoutRoot;
         _userLayoutRoot = userLayoutRoot ?? AppConstants.FrontedLayoutsPath;
+        _localize = localize;
         _logger = logger ?? NullLogger<FrontedLayoutPackageManager>.Instance;
     }
 
@@ -138,8 +149,6 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
                 File.Delete(statePath);
             }
 
-            ClearUserLayouts();
-
             return;
         }
 
@@ -160,8 +169,6 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         {
             throw new FileNotFoundException("Package manifest is missing.", manifestPath);
         }
-
-        await CopyPackageLayoutsToUserStoreAsync(packagePath, cancellationToken);
 
         Directory.CreateDirectory(_packageRoot);
         var state = new FrontedLayoutActivePackageState
@@ -208,6 +215,118 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         Directory.Delete(fullPackagePath, recursive: true);
     }
 
+    public async Task<FrontedLayoutPackageInfo> EnsureWritableActivePackageAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var activeState = await GetActivePackageStateAsync(cancellationToken);
+        if (string.Equals(activeState.PackageId, BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
+        {
+            return await DuplicatePackageAsync(BuiltInPackageId, null, cancellationToken);
+        }
+
+        if (string.Equals(activeState.PackageId, LocalPackageId, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("The local resource package cannot be used as a layout scheme.");
+        }
+
+        EnsureSafePackageId(activeState.PackageId);
+        var packagePath = GetInstalledPackagePath(activeState.PackageId);
+        if (!Directory.Exists(packagePath))
+        {
+            throw new DirectoryNotFoundException(packagePath);
+        }
+
+        var manifestPath = Path.Combine(packagePath, ManifestFileName);
+        if (!File.Exists(manifestPath))
+        {
+            throw new FileNotFoundException("Package manifest is missing.", manifestPath);
+        }
+
+        return await LoadInstalledPackageAsync(
+            packagePath,
+            activeState.PackageId,
+            activeState.PackageId,
+            cancellationToken);
+    }
+
+    public async Task<FrontedLayoutPackageInfo> DuplicatePackageAsync(
+        string sourcePackageId,
+        string? requestedName = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.Equals(sourcePackageId, LocalPackageId, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("The local resource package cannot be duplicated as a layout scheme.");
+        }
+
+        var (packageId, displayName) = await GenerateUserSchemeIdentityAsync(requestedName, cancellationToken);
+        var targetPath = GetInstalledPackagePath(packageId);
+        Directory.CreateDirectory(_packageRoot);
+
+        if (string.Equals(sourcePackageId, BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
+        {
+            await CopyDirectoryContentsAsync(
+                _builtInLayoutRoot,
+                Path.Combine(targetPath, "layouts"),
+                cancellationToken);
+        }
+        else
+        {
+            EnsureSafePackageId(sourcePackageId);
+            var sourcePath = GetInstalledPackagePath(sourcePackageId);
+            if (!Directory.Exists(sourcePath))
+            {
+                throw new DirectoryNotFoundException(sourcePath);
+            }
+
+            var sourceManifestPath = Path.Combine(sourcePath, ManifestFileName);
+            if (!File.Exists(sourceManifestPath))
+            {
+                throw new FileNotFoundException("Package manifest is missing.", sourceManifestPath);
+            }
+
+            await CopyDirectoryContentsAsync(
+                sourcePath,
+                targetPath,
+                cancellationToken,
+                excludedRootFiles: new HashSet<string>([ActivePackageFileName], StringComparer.OrdinalIgnoreCase));
+        }
+
+        var manifest = await CreateDuplicateManifestAsync(
+            targetPath,
+            packageId,
+            displayName,
+            sourcePackageId,
+            cancellationToken);
+        await WriteManifestAsync(targetPath, manifest, cancellationToken);
+        await ActivatePackageAsync(packageId, cancellationToken);
+
+        return await LoadInstalledPackageAsync(targetPath, packageId, packageId, cancellationToken);
+    }
+
+    public string GetPackageLayoutsRootFolder(string packageId)
+    {
+        if (string.Equals(packageId, BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
+        {
+            return _builtInLayoutRoot;
+        }
+
+        if (string.Equals(packageId, LocalPackageId, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("The local resource package is not a layout scheme.");
+        }
+
+        EnsureSafePackageId(packageId);
+        return Path.Combine(GetInstalledPackagePath(packageId), "layouts");
+    }
+
+    public string GetPackageLayoutPath(string packageId, string fullWindowType, string canvasName)
+    {
+        return Path.Combine(
+            GetPackageLayoutsRootFolder(packageId),
+            FrontedLayoutWindowPathHelper.GetLayoutRelativePath(fullWindowType, canvasName));
+    }
+
     public string GetPackageRootFolder()
     {
         return _packageRoot;
@@ -218,8 +337,8 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         return new FrontedLayoutPackageInfo
         {
             PackageId = BuiltInPackageId,
-            Name = "System Built-in",
-            Description = "Built-in Designer v3 frontend layouts.",
+            Name = LocalizedOrFallback("BuiltInLayoutSchemeName", "Built-in Layout Scheme"),
+            Description = LocalizedOrFallback("BuiltInLayoutSchemeDescription", "Built-in Designer v3 frontend layouts."),
             Source = FrontedLayoutPackageSource.BuiltIn,
             IsBuiltin = true,
             IsActive = string.Equals(activePackageId, BuiltInPackageId, StringComparison.OrdinalIgnoreCase),
@@ -346,32 +465,186 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         return Path.Combine(_packageRoot, ActivePackageFileName);
     }
 
-    private async Task CopyPackageLayoutsToUserStoreAsync(string packagePath, CancellationToken cancellationToken)
+    private async Task<(string PackageId, string DisplayName)> GenerateUserSchemeIdentityAsync(
+        string? requestedName,
+        CancellationToken cancellationToken)
+    {
+        var packages = await ListPackagesAsync(cancellationToken);
+        var usedNames = packages.Select(package => package.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var usedIds = packages.Select(package => package.PackageId).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (!string.IsNullOrWhiteSpace(requestedName))
+        {
+            var trimmedName = requestedName.Trim();
+            for (var i = 1; i < 10000; i++)
+            {
+                var name = i == 1 ? trimmedName : $"{trimmedName} {i}";
+                var id = GenerateSafePackageIdFromName(name, i);
+                if (!usedNames.Contains(name) && !usedIds.Contains(id) && !Directory.Exists(GetInstalledPackagePath(id)))
+                {
+                    return (id, name);
+                }
+            }
+        }
+
+        var format = LocalizedOrFallback("UserLayoutSchemeNameFormat", "User Layout Scheme {0}");
+        for (var i = 1; i < 10000; i++)
+        {
+            var name = string.Format(format, i);
+            var id = $"user-layout-scheme-{i}";
+            if (!usedNames.Contains(name) && !usedIds.Contains(id) && !Directory.Exists(GetInstalledPackagePath(id)))
+            {
+                return (id, name);
+            }
+        }
+
+        throw new InvalidOperationException("Failed to generate a unique layout scheme name.");
+    }
+
+    private async Task<FrontedLayoutPackageManifest> CreateDuplicateManifestAsync(
+        string packagePath,
+        string packageId,
+        string displayName,
+        string sourcePackageId,
+        CancellationToken cancellationToken)
+    {
+        FrontedLayoutPackageManifest? sourceManifest = null;
+        var manifestPath = Path.Combine(packagePath, ManifestFileName);
+        if (!string.Equals(sourcePackageId, BuiltInPackageId, StringComparison.OrdinalIgnoreCase)
+            && File.Exists(manifestPath))
+        {
+            try
+            {
+                var json = await File.ReadAllTextAsync(manifestPath, cancellationToken);
+                sourceManifest = JsonSerializer.Deserialize<FrontedLayoutPackageManifest>(json, _jsonSerializerOptions);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to read source package manifest while duplicating {SourcePackageId}.", sourcePackageId);
+            }
+        }
+
+        var manifest = sourceManifest ?? new FrontedLayoutPackageManifest();
+        manifest.PackageId = packageId;
+        manifest.Name = displayName;
+        manifest.Description = LocalizedOrFallback("UserLayoutSchemeDescription", "User editable layout scheme.");
+        manifest.CreatedAt = DateTimeOffset.UtcNow;
+        manifest.Format = "neo-bpsys-bpui";
+        manifest.FormatVersion = 3;
+        manifest.LayoutSchemaVersion = 3;
+        manifest.Content ??= new FrontedLayoutPackageManifestContent();
+        manifest.Content.Layouts = EnumerateLayoutEntries(packagePath).ToList();
+        manifest.Content.Resources = EnumerateResourceEntries(packagePath).ToList();
+        return manifest;
+    }
+
+    private async Task WriteManifestAsync(
+        string packagePath,
+        FrontedLayoutPackageManifest manifest,
+        CancellationToken cancellationToken)
+    {
+        Directory.CreateDirectory(packagePath);
+        var json = JsonSerializer.Serialize(manifest, _jsonSerializerOptions);
+        await File.WriteAllTextAsync(Path.Combine(packagePath, ManifestFileName), json, cancellationToken);
+    }
+
+    private static IEnumerable<FrontedLayoutPackageLayoutEntry> EnumerateLayoutEntries(string packagePath)
     {
         var layoutsRoot = Path.Combine(packagePath, "layouts");
         if (!Directory.Exists(layoutsRoot))
         {
-            throw new DirectoryNotFoundException(layoutsRoot);
+            yield break;
         }
-
-        ClearUserLayouts();
 
         foreach (var file in Directory.EnumerateFiles(layoutsRoot, "*.json", SearchOption.AllDirectories))
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var relativePath = Path.GetRelativePath(layoutsRoot, file);
-            if (relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-                .Any(segment => segment is "." or ".." || string.IsNullOrWhiteSpace(segment)))
+            if (string.Equals(Path.GetFileName(file), "window.json", StringComparison.OrdinalIgnoreCase))
             {
-                throw new InvalidOperationException("Package layout path is not safe.");
+                continue;
             }
 
-            var targetPath = Path.Combine(_userLayoutRoot, relativePath);
-            var fullRoot = EnsureTrailingSeparator(Path.GetFullPath(_userLayoutRoot));
-            var fullTargetPath = Path.GetFullPath(targetPath);
-            if (!fullTargetPath.StartsWith(fullRoot, StringComparison.OrdinalIgnoreCase))
+            var relativePath = Path.GetRelativePath(layoutsRoot, file);
+            var canvas = Path.GetFileNameWithoutExtension(file);
+            var folder = Path.GetDirectoryName(relativePath);
+            if (string.IsNullOrWhiteSpace(folder))
             {
-                throw new InvalidOperationException("User layout target escaped layout root.");
+                continue;
+            }
+
+            string window;
+            try
+            {
+                window = FrontedLayoutWindowPathHelper.ToFullWindowTypeFromRelativeFolder(folder);
+            }
+            catch
+            {
+                continue;
+            }
+
+            yield return new FrontedLayoutPackageLayoutEntry
+            {
+                Window = window,
+                Canvas = canvas,
+                Path = Path.Combine("layouts", relativePath).Replace('\\', '/')
+            };
+        }
+    }
+
+    private static IEnumerable<FrontedLayoutPackageResourceEntry> EnumerateResourceEntries(string packagePath)
+    {
+        var resourcesRoot = Path.Combine(packagePath, "resources");
+        if (!Directory.Exists(resourcesRoot))
+        {
+            yield break;
+        }
+
+        foreach (var file in Directory.EnumerateFiles(resourcesRoot, "*", SearchOption.AllDirectories))
+        {
+            var relativePath = Path.GetRelativePath(packagePath, file).Replace('\\', '/');
+            yield return new FrontedLayoutPackageResourceEntry
+            {
+                Id = relativePath,
+                Kind = "File",
+                Path = relativePath,
+                Uri = relativePath
+            };
+        }
+    }
+
+    private async Task CopyDirectoryContentsAsync(
+        string sourceRoot,
+        string targetRoot,
+        CancellationToken cancellationToken,
+        IReadOnlySet<string>? excludedRootFiles = null)
+    {
+        if (!Directory.Exists(sourceRoot))
+        {
+            return;
+        }
+
+        var fullTargetRoot = EnsureTrailingSeparator(Path.GetFullPath(targetRoot));
+        foreach (var file in Directory.EnumerateFiles(sourceRoot, "*", SearchOption.AllDirectories))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var relativePath = Path.GetRelativePath(sourceRoot, file);
+            if (excludedRootFiles is not null
+                && !relativePath.Contains(Path.DirectorySeparatorChar)
+                && !relativePath.Contains(Path.AltDirectorySeparatorChar)
+                && excludedRootFiles.Contains(relativePath))
+            {
+                continue;
+            }
+
+            if (!IsSafeRelativePath(relativePath))
+            {
+                throw new InvalidOperationException("Package file path is not safe.");
+            }
+
+            var targetPath = Path.Combine(targetRoot, relativePath);
+            var fullTargetPath = Path.GetFullPath(targetPath);
+            if (!fullTargetPath.StartsWith(fullTargetRoot, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("Package copy target escaped package root.");
             }
 
             Directory.CreateDirectory(Path.GetDirectoryName(fullTargetPath)!);
@@ -380,21 +653,29 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
         }
     }
 
-    private void ClearUserLayouts()
+    private string LocalizedOrFallback(string key, string fallback)
     {
-        var fullRoot = Path.GetFullPath(_userLayoutRoot);
-        if (!Directory.Exists(fullRoot))
+        var localized = _localize?.Invoke(key);
+        return string.IsNullOrWhiteSpace(localized) || string.Equals(localized, key, StringComparison.Ordinal)
+            ? fallback
+            : localized;
+    }
+
+    private static string GenerateSafePackageIdFromName(string name, int suffix)
+    {
+        var safe = Regex.Replace(name.ToLowerInvariant(), "[^a-z0-9._-]+", "-").Trim('-', '.', '_');
+        if (string.IsNullOrWhiteSpace(safe) || !char.IsAsciiLetterOrDigit(safe[0]) || !IsSafePackageId(safe))
         {
-            return;
+            safe = $"user-layout-scheme-{suffix}";
         }
 
-        if (string.IsNullOrWhiteSpace(fullRoot)
-            || string.Equals(Path.GetPathRoot(fullRoot), fullRoot, StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException("Refusing to clear unsafe user layout root.");
-        }
+        return safe;
+    }
 
-        Directory.Delete(fullRoot, recursive: true);
+    private static bool IsSafeRelativePath(string relativePath)
+    {
+        return relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            .All(segment => segment is not ("." or "..") && !string.IsNullOrWhiteSpace(segment));
     }
 
     private static bool IsReservedPackageEntry(string name)

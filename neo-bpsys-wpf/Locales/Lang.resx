@@ -2444,7 +2444,19 @@
     <value>内置包</value>
   </data>
   <data name="SystemBuiltIn" xml:space="preserve">
-    <value>系统内置</value>
+    <value>内置布局方案</value>
+  </data>
+  <data name="BuiltInLayoutSchemeName" xml:space="preserve">
+    <value>内置布局方案</value>
+  </data>
+  <data name="BuiltInLayoutSchemeDescription" xml:space="preserve">
+    <value>内置 Designer v3 前台布局。</value>
+  </data>
+  <data name="UserLayoutSchemeNameFormat" xml:space="preserve">
+    <value>用户布局方案 {0}</value>
+  </data>
+  <data name="UserLayoutSchemeDescription" xml:space="preserve">
+    <value>用户可编辑布局方案。</value>
   </data>
   <data name="PackageId" xml:space="preserve">
     <value>PackageId</value>
@@ -2488,6 +2500,9 @@
   <data name="ActivatePackage" xml:space="preserve">
     <value>激活包</value>
   </data>
+  <data name="DuplicateLayoutPackage" xml:space="preserve">
+    <value>复制方案</value>
+  </data>
   <data name="DeletePackage" xml:space="preserve">
     <value>删除包</value>
   </data>
@@ -2505,6 +2520,18 @@
   </data>
   <data name="CannotDeleteLocalPackage" xml:space="preserve">
     <value>不能删除本地资源包。</value>
+  </data>
+  <data name="CannotDuplicateLocalPackage" xml:space="preserve">
+    <value>不能复制本地资源包。</value>
+  </data>
+  <data name="LayoutPackageDuplicated" xml:space="preserve">
+    <value>布局方案已复制</value>
+  </data>
+  <data name="DuplicateLayoutPackageFailed" xml:space="preserve">
+    <value>复制布局方案失败</value>
+  </data>
+  <data name="EditableLayoutSchemeCreated" xml:space="preserve">
+    <value>已从内置布局创建新的可编辑布局方案并保存。</value>
   </data>
   <data name="PackageDeleted" xml:space="preserve">
     <value>布局包已删除。</value>
@@ -2630,7 +2657,7 @@
     <value>布局包缺少资源文件。</value>
   </data>
   <data name="ConfirmActivatePackage" xml:space="preserve">
-    <value>激活布局包会覆盖当前用户前台布局，是否继续？</value>
+    <value>是否切换到此布局方案？</value>
   </data>
   <data name="ConfirmDeleteActivePackage" xml:space="preserve">
     <value>此布局包正在使用。是否删除并切换到内置布局？</value>

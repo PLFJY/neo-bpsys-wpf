@@ -2,6 +2,7 @@
 
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.ViewModels.Windows;
@@ -645,7 +646,8 @@ public class FrontedLayoutPackageManagerTest
 
             Assert.True(importResult.Success, importResult.ErrorMessage);
             Assert.True(File.Exists(Path.Combine(packageRoot, "converted.legacy.test", "manifest.json")));
-            Assert.True(File.Exists(Path.Combine(userLayoutRoot, "ScoreSurWindow", "BaseCanvas.json")));
+            Assert.False(Directory.Exists(userLayoutRoot));
+            Assert.True(File.Exists(Path.Combine(packageRoot, "converted.legacy.test", "layouts", "ScoreSurWindow", "BaseCanvas.json")));
             var active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
             Assert.Equal("converted.legacy.test", active.PackageId);
         }
@@ -934,12 +936,14 @@ public class FrontedLayoutPackageManagerTest
         Assert.Contains("CompactPackageList", text);
         Assert.Contains("PackageBasicInfo", text);
         Assert.Contains("ExportPackageCommand", text);
+        Assert.Contains("DuplicatePackageCommand", text);
+        Assert.Contains("MouseDoubleClick=\"PackageListBox_OnMouseDoubleClick\"", text);
         Assert.Contains("<ui:DynamicScrollViewer", text);
         Assert.DoesNotContain("<ui:DataGrid", text);
     }
 
     [Fact]
-    public async Task ActivatingPackageCopiesLayoutsAndBuiltinClearsUserLayouts()
+    public async Task ActivatingPackageDoesNotCopyOrClearGlobalUserLayouts()
     {
         var root = CreateTempDirectory();
         try
@@ -956,18 +960,22 @@ public class FrontedLayoutPackageManagerTest
             Directory.CreateDirectory(Path.GetDirectoryName(layoutPath)!);
             File.WriteAllText(layoutPath, """{"Version":3,"CanvasWidth":100,"CanvasHeight":100}""");
             File.WriteAllText(Path.Combine(packageFolder, "layouts", "BpWindow", "window.json"), """{"Version":3,"AllowTransparency":true}""");
+            var legacyUserLayout = Path.Combine(userRoot, "LegacyWindow", "BaseCanvas.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(legacyUserLayout)!);
+            File.WriteAllText(legacyUserLayout, "legacy");
             var manager = new FrontedLayoutPackageManager(packageRoot, Path.Combine(root, "builtIn"), userRoot);
 
             await manager.ActivatePackageAsync("package-a", TestContext.Current.CancellationToken);
 
-            Assert.True(File.Exists(Path.Combine(userRoot, "BpWindow", "BaseCanvas.json")));
-            Assert.True(File.Exists(Path.Combine(userRoot, "BpWindow", "window.json")));
+            Assert.False(File.Exists(Path.Combine(userRoot, "BpWindow", "BaseCanvas.json")));
+            Assert.False(File.Exists(Path.Combine(userRoot, "BpWindow", "window.json")));
+            Assert.True(File.Exists(legacyUserLayout));
             var active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
             Assert.Equal("package-a", active.PackageId);
 
             await manager.ActivatePackageAsync("builtin", TestContext.Current.CancellationToken);
 
-            Assert.False(Directory.Exists(userRoot));
+            Assert.True(File.Exists(legacyUserLayout));
             active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
             Assert.Equal("builtin", active.PackageId);
         }
@@ -1012,6 +1020,86 @@ public class FrontedLayoutPackageManagerTest
     }
 
     [Fact]
+    public async Task SavingWhileBuiltinIsActiveCreatesEditablePackageAndWritesThere()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var packageRoot = Path.Combine(root, "packages");
+            var builtInRoot = Path.Combine(root, "builtIn");
+            var builtInLayout = Path.Combine(builtInRoot, "BpWindow", "BaseCanvas.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(builtInLayout)!);
+            File.WriteAllText(builtInLayout, """{"Version":3,"CanvasWidth":100,"CanvasHeight":100}""");
+            var userRoot = Path.Combine(root, "userLayouts");
+            var manager = new FrontedLayoutPackageManager(
+                packageRoot,
+                builtInRoot,
+                userRoot,
+                localize: key => key == "UserLayoutSchemeNameFormat" ? "User Layout Scheme {0}" : key);
+            var service = new FrontedLayoutService(
+                new FrontedUserLayoutStore(userRoot),
+                builtInRoot,
+                manager,
+                null,
+                null);
+
+            await service.SaveCanvasConfigAsync(
+                "BpWindow",
+                "BaseCanvas",
+                new FrontedCanvasConfig { Version = 3, CanvasWidth = 200, CanvasHeight = 120 },
+                TestContext.Current.CancellationToken);
+
+            var active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
+            Assert.Equal("user-layout-scheme-1", active.PackageId);
+            Assert.True(File.Exists(Path.Combine(packageRoot, "user-layout-scheme-1", "layouts", "BpWindow", "BaseCanvas.json")));
+            Assert.False(File.Exists(Path.Combine(userRoot, "BpWindow", "BaseCanvas.json")));
+            var packages = await manager.ListPackagesAsync(TestContext.Current.CancellationToken);
+            Assert.Contains(packages, package => package.PackageId == "user-layout-scheme-1" && package.Name == "User Layout Scheme 1");
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
+    public async Task DuplicatePackageCreatesSeparateEditableCopyAndIncrementsGeneratedIdentity()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var packageRoot = Path.Combine(root, "packages");
+            var builtInRoot = Path.Combine(root, "builtIn");
+            var firstFolder = Path.Combine(packageRoot, "user-layout-scheme-1");
+            WriteManifest(firstFolder, new { PackageId = "user-layout-scheme-1", Name = "User Layout Scheme 1" });
+            var sourceFolder = Path.Combine(packageRoot, "package-a");
+            WriteManifest(sourceFolder, new { PackageId = "package-a", Name = "Package A" });
+            var sourceLayout = Path.Combine(sourceFolder, "layouts", "plugin", "ExamplePlugin", "Overlay", "BaseCanvas.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(sourceLayout)!);
+            File.WriteAllText(sourceLayout, """{"Version":3,"CanvasWidth":100,"CanvasHeight":100}""");
+            var manager = new FrontedLayoutPackageManager(
+                packageRoot,
+                builtInRoot,
+                localize: key => key == "UserLayoutSchemeNameFormat" ? "User Layout Scheme {0}" : key);
+
+            var duplicate = await manager.DuplicatePackageAsync("package-a", cancellationToken: TestContext.Current.CancellationToken);
+
+            Assert.Equal("user-layout-scheme-2", duplicate.PackageId);
+            Assert.Equal("User Layout Scheme 2", duplicate.Name);
+            Assert.True(File.Exists(Path.Combine(packageRoot, "user-layout-scheme-2", "layouts", "plugin", "ExamplePlugin", "Overlay", "BaseCanvas.json")));
+            Assert.True(File.Exists(sourceLayout));
+            var active = await manager.GetActivePackageStateAsync(TestContext.Current.CancellationToken);
+            Assert.Equal("user-layout-scheme-2", active.PackageId);
+            Assert.Throws<InvalidOperationException>(() =>
+                manager.GetPackageLayoutPath(FrontedLayoutPackageManager.LocalPackageId, "BpWindow", "BaseCanvas"));
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
     public void FrontManagePageViewModelExposesPackageListAndRefreshCommand()
     {
         var text = File.ReadAllText(GetRepositoryPath(
@@ -1025,6 +1113,8 @@ public class FrontedLayoutPackageManagerTest
         Assert.Contains("ActivePackageDisplay", text);
         Assert.Contains("RefreshPackagesAsync", text);
         Assert.Contains("OpenFrontedDesigner", text);
+        Assert.Contains("ActivateSelectedPackageByDoubleClickAsync", text);
+        Assert.Contains("DuplicatePackageAsync", text);
     }
 
     private static void WriteManifest(string folder, object manifest)

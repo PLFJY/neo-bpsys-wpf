@@ -1,9 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
@@ -679,6 +681,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         try
         {
+            var wasBuiltInSource = string.Equals(
+                LayoutSourceDisplay,
+                I18nHelper.GetLocalizedString("LayoutSourceBuiltIn"),
+                StringComparison.Ordinal);
             var config = _designConverter.ToConfig(CurrentDocument);
             config.Version = 3;
             await _layoutService.SaveCanvasConfigAsync(
@@ -688,11 +694,27 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
             CleanupPendingImportedResources(includeCurrentDocument: true);
             CurrentDocument.IsDirty = false;
-            LayoutSourceDisplay = I18nHelper.GetLocalizedString("LayoutSourceUser");
-            LayoutSourcePath = _layoutService.GetUserLayoutPath(
+            var savedResult = await _layoutService.LoadCanvasConfigWithMetadataAsync(
                 CurrentDocument.WindowTypeName,
                 CurrentDocument.CanvasName);
-            StatusMessage = I18nHelper.GetLocalizedString("LayoutSaved");
+            if (SelectedCanvas is not null)
+            {
+                ApplyLayoutSource(savedResult, SelectedCanvas);
+            }
+            else
+            {
+                LayoutSourceDisplay = I18nHelper.GetLocalizedString("LayoutSourceUser");
+                LayoutSourcePath = savedResult.Path ?? string.Empty;
+            }
+
+            StatusMessage = wasBuiltInSource
+                ? I18nHelper.GetLocalizedString("EditableLayoutSchemeCreated")
+                : I18nHelper.GetLocalizedString("LayoutSaved");
+            if (wasBuiltInSource)
+            {
+                WeakReferenceMessenger.Default.Send(new FrontedLayoutPackagesChangedMessage(this, null));
+            }
+
             RefreshDirtyState();
             return true;
         }

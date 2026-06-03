@@ -1,6 +1,7 @@
-﻿using System.Windows.Controls;
+using System.Windows.Controls;
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.ViewModels.Pages;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Views.Pages;
@@ -17,5 +18,14 @@ public partial class FrontManagePage : Page
     public FrontManagePage()
     {
         InitializeComponent();
+    }
+
+    private void PackageListBox_OnMouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (DataContext is FrontManagePageViewModel viewModel
+            && viewModel.ActivateSelectedPackageByDoubleClickCommand.CanExecute(null))
+        {
+            viewModel.ActivateSelectedPackageByDoubleClickCommand.Execute(null);
+        }
     }
 }

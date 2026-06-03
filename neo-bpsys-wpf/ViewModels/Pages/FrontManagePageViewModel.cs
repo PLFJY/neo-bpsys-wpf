@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
@@ -7,6 +8,7 @@ using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
@@ -21,7 +23,7 @@ using System.Windows;
 
 namespace neo_bpsys_wpf.ViewModels.Pages;
 
-public partial class FrontManagePageViewModel : ViewModelBase
+public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<FrontedLayoutPackagesChangedMessage>
 {
 #pragma warning disable CS8618
     public FrontManagePageViewModel()
@@ -705,6 +707,35 @@ public partial class FrontManagePageViewModel : ViewModelBase
     [RelayCommand]
     private async Task ActivatePackageAsync()
     {
+        await ActivateSelectedPackageAsync(confirm: true);
+    }
+
+    public void Receive(FrontedLayoutPackagesChangedMessage message)
+    {
+        _ = RefreshPackagesAfterExternalChangeAsync(message.ActivePackageId);
+    }
+
+    private async Task RefreshPackagesAfterExternalChangeAsync(string? activePackageId)
+    {
+        await RefreshPackagesAsync();
+        var selected = !string.IsNullOrWhiteSpace(activePackageId)
+            ? LayoutPackages.FirstOrDefault(package =>
+                string.Equals(package.PackageId, activePackageId, StringComparison.OrdinalIgnoreCase))
+            : LayoutPackages.FirstOrDefault(package => package.IsActive);
+        if (selected is not null)
+        {
+            SelectedPackage = selected;
+        }
+    }
+
+    [RelayCommand]
+    private async Task ActivateSelectedPackageByDoubleClickAsync()
+    {
+        await ActivateSelectedPackageAsync(confirm: false);
+    }
+
+    private async Task ActivateSelectedPackageAsync(bool confirm)
+    {
         if (_packageManager is null || SelectedPackage is null)
         {
             return;
@@ -718,7 +749,8 @@ public partial class FrontManagePageViewModel : ViewModelBase
 
         try
         {
-            if (!SelectedPackage.IsActive
+            if (confirm
+                && !SelectedPackage.IsActive
                 && !await MessageBoxHelper.ShowConfirmAsync(
                     I18nHelper.GetLocalizedString("ConfirmActivatePackage"),
                     I18nHelper.GetLocalizedString("Tips"),
@@ -739,6 +771,35 @@ public partial class FrontManagePageViewModel : ViewModelBase
         {
             _logger?.LogWarning(ex, "Failed to activate fronted layout package {PackageId}.", SelectedPackage.PackageId);
             PackageManagerStatus = ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DuplicatePackageAsync()
+    {
+        if (_packageManager is null || SelectedPackage is null)
+        {
+            return;
+        }
+
+        if (SelectedPackage.IsLocal)
+        {
+            PackageManagerStatus = I18nHelper.GetLocalizedString("CannotDuplicateLocalPackage");
+            return;
+        }
+
+        try
+        {
+            var duplicated = await _packageManager.DuplicatePackageAsync(SelectedPackage.PackageId);
+            await _frontedWindowService.ReloadFrontedLayoutsAsync();
+            await RefreshPackagesAsync();
+            SelectedPackage = LayoutPackages.FirstOrDefault(package => package.PackageId == duplicated.PackageId) ?? SelectedPackage;
+            PackageManagerStatus = $"{I18nHelper.GetLocalizedString("LayoutPackageDuplicated")}: {duplicated.Name}";
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to duplicate fronted layout package {PackageId}.", SelectedPackage.PackageId);
+            PackageManagerStatus = $"{I18nHelper.GetLocalizedString("DuplicateLayoutPackageFailed")}: {ex.Message}";
         }
     }
 

@@ -2426,7 +2426,19 @@
     <value>Built-in Package</value>
   </data>
   <data name="SystemBuiltIn" xml:space="preserve">
-    <value>System Built-in</value>
+    <value>Built-in Layout Scheme</value>
+  </data>
+  <data name="BuiltInLayoutSchemeName" xml:space="preserve">
+    <value>Built-in Layout Scheme</value>
+  </data>
+  <data name="BuiltInLayoutSchemeDescription" xml:space="preserve">
+    <value>Built-in Designer v3 frontend layouts.</value>
+  </data>
+  <data name="UserLayoutSchemeNameFormat" xml:space="preserve">
+    <value>User Layout Scheme {0}</value>
+  </data>
+  <data name="UserLayoutSchemeDescription" xml:space="preserve">
+    <value>User editable layout scheme.</value>
   </data>
   <data name="PackageId" xml:space="preserve">
     <value>PackageId</value>
@@ -2470,6 +2482,9 @@
   <data name="ActivatePackage" xml:space="preserve">
     <value>Activate Package</value>
   </data>
+  <data name="DuplicateLayoutPackage" xml:space="preserve">
+    <value>Duplicate Scheme</value>
+  </data>
   <data name="DeletePackage" xml:space="preserve">
     <value>Delete Package</value>
   </data>
@@ -2487,6 +2502,18 @@
   </data>
   <data name="CannotDeleteLocalPackage" xml:space="preserve">
     <value>Cannot delete the local resource package.</value>
+  </data>
+  <data name="CannotDuplicateLocalPackage" xml:space="preserve">
+    <value>Cannot duplicate the local resource package.</value>
+  </data>
+  <data name="LayoutPackageDuplicated" xml:space="preserve">
+    <value>Layout scheme duplicated</value>
+  </data>
+  <data name="DuplicateLayoutPackageFailed" xml:space="preserve">
+    <value>Duplicate layout scheme failed</value>
+  </data>
+  <data name="EditableLayoutSchemeCreated" xml:space="preserve">
+    <value>Created a new editable layout scheme from Built-in and saved it.</value>
   </data>
   <data name="PackageDeleted" xml:space="preserve">
     <value>Package deleted.</value>
@@ -2612,7 +2639,7 @@
     <value>The package is missing a resource file.</value>
   </data>
   <data name="ConfirmActivatePackage" xml:space="preserve">
-    <value>Activating this package will overwrite current user frontend layouts. Continue?</value>
+    <value>Switch to this layout scheme?</value>
   </data>
   <data name="ConfirmDeleteActivePackage" xml:space="preserve">
     <value>This package is active. Delete it and switch to the built-in layout?</value>

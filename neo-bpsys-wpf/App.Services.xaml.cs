@@ -92,7 +92,9 @@ public partial class App
         services.AddSingleton<IFrontedUserLayoutStore, FrontedUserLayoutStore>();
         services.AddSingleton<IFrontedWindowLayoutOptionsService, FrontedWindowLayoutOptionsService>();
         services.AddSingleton<IFrontedWindowRegistry, neo_bpsys_wpf.Core.Services.Registry.FrontedWindowRegistryService>();
-        services.AddSingleton<IFrontedLayoutPackageManager, FrontedLayoutPackageManager>();
+        services.AddSingleton<IFrontedLayoutPackageManager>(sp => new FrontedLayoutPackageManager(
+            sp.GetRequiredService<ILogger<FrontedLayoutPackageManager>>(),
+            Helpers.I18nHelper.GetLocalizedString));
         services.AddSingleton<IFrontedLayoutPackageExporter, FrontedLayoutPackageExporter>();
         services.AddSingleton<IFrontedLayoutPackageImporter, FrontedLayoutPackageImporter>();
         services.AddSingleton<IFrontedLayoutPackageLegacyConverter, FrontedLayoutPackageLegacyConverter>();

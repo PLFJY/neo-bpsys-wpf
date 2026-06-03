@@ -71,7 +71,7 @@ active `Settings.cs` 不再包含旧前台窗口设置。旧 `BpWindowSettings`�
 | 数据 | 路径 |
 | --- | --- |
 | ~~前台布局~~ | ~~`%APPDATA%\neo-bpsys-wpf\*Config-*.json`~~ Phase 10+ 已删除，不再使用 |
-| v3 前台布局 | `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` |
+| v3 legacy 用户布局 | `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` |
 | v3 内置默认布局 | `{AppBaseDirectory}\Resources\FrontedLayouts\{WindowTypeName}\{CanvasName}.json` |
 | v3 布局包根目录 | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\` |
 | v3 editor-local 资源 | `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\local\` |
@@ -84,19 +84,21 @@ active `Settings.cs` 不再包含旧前台窗口设置。旧 `BpWindowSettings`�
 
 > **注意**：Phase 10+ 已删除旧的 `{WindowName}Config-{CanvasName}.json` 位置保存/恢复功能。这些 legacy 文件不再被运行时读取，只用于 legacy `.bpui` 转换流程。
 
-v3 前台布局的加载优先级是用户布局优先、内置默认布局兜底。`IFrontedUserLayoutStore` 负责 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts` 下的用户布局读写；`IFrontedLayoutService` 会先尝试用户布局，如果用户 JSON 不可读或无效，会记录警告并回退到内置 `Resources\FrontedLayouts`。独立 Fronted Designer 编辑器保存普通用户改动时只写入 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json`，不应直接覆盖安装目录或源码中的 `Resources\FrontedLayouts`。多 Canvas 窗口按 `{CanvasName}.json` 分文件保存；“重置为内置”会删除当前 Canvas 对应的用户布局文件。
+v3 前台布局当前以“布局方案”读写。`builtin` 是唯一只读方案，读取应用内置 `Resources\FrontedLayouts`；普通已安装包同时也是可编辑布局方案，读写路径为 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}\layouts\{WindowTypeName}\{CanvasName}.json`。独立 Fronted Designer 在普通方案活动时直接保存到该包的 `layouts/`；如果当前活动方案是 `builtin`，第一次保存会自动复制内置布局为本地可编辑 `用户布局方案 {i}` / `User Layout Scheme {i}`，激活该方案后再写入。多 Canvas 窗口仍按 `{CanvasName}.json` 分文件保存。
 
-Phase 9B.0 起，窗口级选项保存到 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\window.json`，当前包含 `AllowTransparency`。该文件是窗口级，不属于任意单个 Canvas；重置某个 Canvas 布局不会删除 `window.json`。
+旧版 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts` 不再是包方案编辑的正常写入目标，也不会在切换包时被清空。为兼容旧数据，`IFrontedLayoutService` 在没有包管理器或需要读取旧工作副本时仍可把它作为 fallback；新的保存路径应迁移到活动可编辑包。
+
+Phase 9B.0 起，窗口级选项保存为 `{WindowTypeName}\window.json`，当前包含 `AllowTransparency`。在新布局方案模型下，普通活动方案的 `window.json` 位于 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}\layouts\...`；legacy `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\...\window.json` 仅作兼容 fallback。该文件是窗口级，不属于任意单个 Canvas；重置某个 Canvas 布局不会删除 `window.json`。
 
 Designer v3 `.bpui` 包路径标准见 [bpui-package-v3.md](bpui-package-v3.md)。已安装包资源应放在各自包目录内，例如 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}\resources\`，不要合并到共享资源目录。若旧讨论或临时代码提到 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutResources\`，应视为已被包隔离方案取代，不作为新实现的首选路径。
 
 `builtin` 是虚拟包 ID，映射到应用内置 `Resources\FrontedLayouts`，不在 `FrontedLayoutPackages` 下作为普通包安装，也不能删除。`local` 是编辑器本地资源命名空间，推荐路径为 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\local\resources\`，用于保存用户选择本地图片后的副本；普通包删除不能删除 `local`。
 
-Phase 9D 起，`IFrontedLayoutPackageManager` 会读取 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages`，始终列出虚拟 `builtin` 包，跳过保留的 `local` 目录，并读取普通已安装包目录下的 `manifest.json`。缺少或损坏 manifest 的包会以校验错误显示，不会让管理器崩溃。`active-package.json` 缺失时默认视为 `builtin` 活动；激活普通包会把包内布局复制到 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts` 并写入 active state，激活 `builtin` 会删除 active state 并清空 `FrontedLayouts` 以回退到内置布局。删除活动包会先切回 `builtin` 再删除包目录。
+`IFrontedLayoutPackageManager` 会读取 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages`，始终列出虚拟 `builtin` 包，跳过保留的 `local` 目录，并读取普通已安装包目录下的 `manifest.json`。缺少或损坏 manifest 的包会以校验错误显示，不会让管理器崩溃。`active-package.json` 缺失时默认视为 `builtin` 活动；激活普通包只写入 active state，不会复制布局到全局 `FrontedLayouts`，激活 `builtin` 只切换活动状态，不删除任意可编辑包或 legacy 用户布局。删除活动包会先切回 `builtin` 再删除包目录。
 
 Phase 9D 起，`FrontManagePage` 的 Layout Packages 页支持导出和导入 v3 `.bpui` 包。导出会从 `IFrontedLayoutService` 按“用户布局优先、内置兜底”加载全部已迁移前台布局，生成 `manifest.json`、`layouts/` 和 `resources/`，但不会包含全局 `%APPDATA%\neo-bpsys-wpf\Config.json`，也不会包含 legacy `CustomUi/` 或 `FrontElementsConfig/`。导入会先解压到 staging 目录并完成校验，再安装到 `FrontedLayoutPackages/{PackageId}`；替换已有包时，旧包只会在新包校验成功后删除。
 
-Phase 9F 起，legacy `.bpui` 导入不会再调用 SettingPage 的旧导入覆盖流程。`Config.json` 只作为转换输入读取明确前台图片字段，不会复制到 AppData，不会覆盖当前设置，也不会要求为了 layout-only 转换重启。转换输出的 v3 包仍安装到 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}`，激活后只写入 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts`。
+Phase 9F 起，legacy `.bpui` 导入不会再调用 SettingPage 的旧导入覆盖流程。`Config.json` 只作为转换输入读取明确前台图片字段，不会复制到 AppData，不会覆盖当前设置，也不会要求为了 layout-only 转换重启。转换输出的 v3 包仍安装到 `%APPDATA%\neo-bpsys-wpf\FrontedLayoutPackages\{PackageId}`，激活后按包内 `layouts/` 作为读写方案，不再复制到全局 `FrontedLayouts`。
 
 Phase 10 起，用户布局、窗口选项和布局包读取会在反序列化前检查文件大小，并使用 JSON 最大深度 32：layout JSON 最大 2 MiB，`window.json` 最大 64 KiB，manifest 最大 256 KiB，legacy `Config.json` 读取路径最大 2 MiB。布局包 zip 还限制压缩包 50 MiB、解压总量 100 MiB、单 entry 10 MiB、最多 1000 entries，并继续保留 zip-slip 检查。超过限制的外部文件会拒绝读取或导入，不会截断。
 

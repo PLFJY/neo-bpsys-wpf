@@ -726,7 +726,7 @@ WPF 的 `AllowsTransparency` / 透明窗口行为可能需要重新创建窗口�
 | 字段 | 值 |
 | --- | --- |
 | `PackageId` | `builtin` |
-| `Name` | `System Built-in` |
+| `Name` | 本地化显示，例如 `内置布局方案` / `Built-in Layout Scheme` |
 | 是否可删除 | 否 |
 | 来源 | 应用 `Resources/FrontedLayouts` |
 
@@ -754,31 +754,40 @@ WPF 的 `AllowsTransparency` / 透明窗口行为可能需要重新创建窗口�
 }
 ```
 
-## 17. 热切换激活行为
+## 17. 布局方案激活与编辑行为
 
-第一版激活包不需要大改 `FrontedLayoutService`。它可以复用当前运行时“用户布局优先、内置布局兜底”的优先级。
+`.bpui v3` 安装包在安装后也是可编辑布局方案。`builtin` 是唯一只读方案；`local` 只作为 `bpui://local/...` 资源命名空间，不是可激活布局方案。
 
 激活普通包：
 
 1. 校验已安装包。
-2. 将包内 layout 复制到：
-
-```text
-%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowTypeName}/{CanvasName}.json
-```
-
-3. 保存 `active-package.json`。
+2. 保存 `active-package.json`。
+3. 后续读取和保存都使用包内 `layouts/`。
 4. 如可行，刷新已打开的前台窗口。
 5. 仅布局变更不要求重启。
+
+当前限制：如果独立 Designer 窗口已打开且存在未保存改动，包管理页切换方案不会清空或覆盖任何方案目录，但仍建议先保存或关闭 Designer；后续可补充 save / discard / cancel 提示。
 
 激活 `builtin`：
 
 1. 清空活动包状态，或设置 `PackageId = builtin`。
-2. 删除或清理 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/` 中由包激活产生的用户布局。
-3. 运行时回退到应用内置 `Resources/FrontedLayouts`。
+2. 运行时读取应用内置 `Resources/FrontedLayouts`。
+3. 不删除普通包，不清理 legacy `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/`。
 4. 如可行，刷新已打开的前台窗口。
 
-注意：如果用户手工编辑过 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts`，包管理器需要区分“由包激活复制出的布局”和“用户自己编辑的布局”。第一版可通过活动包状态或激活标记文件保守处理，避免静默删除用户改动。
+保存布局：
+
+1. 如果活动包是普通包，直接写入 `%APPDATA%/neo-bpsys-wpf/FrontedLayoutPackages/{PackageId}/layouts/...`。
+2. 如果活动包是 `builtin`，先复制内置布局生成本地可编辑方案，默认名使用本地化 `UserLayoutSchemeNameFormat`，例如 `用户布局方案 {i}` / `User Layout Scheme {i}` / `ユーザーレイアウト方案 {i}`，并递增 `i` 避免名称和 `PackageId` 冲突。
+3. 自动创建的方案使用安全 `PackageId`，例如 `user-layout-scheme-{i}`。
+4. 保存完成后激活新方案，后续读写都落在该方案目录。
+
+复制布局方案：
+
+1. 可从 `builtin` 或普通已安装包复制。
+2. 从 `builtin` 复制时，源为 `Resources/FrontedLayouts`。
+3. 从普通包复制时，深拷贝包目录并重写 manifest 的 `PackageId`、`Name`、`Description`、`CreatedAt` 和 `Content`。
+4. 不允许把 `local` 当作普通方案复制、激活或删除。
 
 ## 18. 导出 manifest 对话框标准
 

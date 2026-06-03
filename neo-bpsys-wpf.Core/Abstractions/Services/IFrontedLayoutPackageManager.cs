@@ -14,7 +14,19 @@ public interface IFrontedLayoutPackageManager
 
     Task ActivatePackageAsync(string packageId, CancellationToken cancellationToken = default);
 
+    Task<FrontedLayoutPackageInfo> EnsureWritableActivePackageAsync(
+        CancellationToken cancellationToken = default);
+
+    Task<FrontedLayoutPackageInfo> DuplicatePackageAsync(
+        string sourcePackageId,
+        string? requestedName = null,
+        CancellationToken cancellationToken = default);
+
     Task DeletePackageAsync(string packageId, CancellationToken cancellationToken = default);
+
+    string GetPackageLayoutsRootFolder(string packageId);
+
+    string GetPackageLayoutPath(string packageId, string fullWindowType, string canvasName);
 
     string GetPackageRootFolder();
 }

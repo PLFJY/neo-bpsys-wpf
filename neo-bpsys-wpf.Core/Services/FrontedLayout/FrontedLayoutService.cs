@@ -18,6 +18,7 @@ public class FrontedLayoutService : IFrontedLayoutService
     private readonly ILogger<FrontedLayoutService> _logger;
     private readonly string _builtInLayoutRoot;
     private readonly IFrontedWindowRegistry? _windowRegistry;
+    private readonly IFrontedLayoutPackageManager? _packageManager;
 
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
@@ -31,6 +32,7 @@ public class FrontedLayoutService : IFrontedLayoutService
             new FrontedUserLayoutStore(),
             Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts"),
             null,
+            null,
             NullLogger<FrontedLayoutService>.Instance)
     {
     }
@@ -41,6 +43,7 @@ public class FrontedLayoutService : IFrontedLayoutService
         : this(
             userLayoutStore,
             Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts"),
+            null,
             null,
             logger)
     {
@@ -53,6 +56,7 @@ public class FrontedLayoutService : IFrontedLayoutService
         : this(
             userLayoutStore,
             Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts"),
+            null,
             windowRegistry,
             logger)
     {
@@ -62,7 +66,7 @@ public class FrontedLayoutService : IFrontedLayoutService
         IFrontedUserLayoutStore userLayoutStore,
         string builtInLayoutRoot,
         ILogger<FrontedLayoutService>? logger)
-        : this(userLayoutStore, builtInLayoutRoot, null, logger)
+        : this(userLayoutStore, builtInLayoutRoot, null, null, logger)
     {
     }
 
@@ -71,9 +75,34 @@ public class FrontedLayoutService : IFrontedLayoutService
         string builtInLayoutRoot,
         IFrontedWindowRegistry? windowRegistry,
         ILogger<FrontedLayoutService>? logger)
+        : this(userLayoutStore, builtInLayoutRoot, null, windowRegistry, logger)
+    {
+    }
+
+    public FrontedLayoutService(
+        IFrontedUserLayoutStore userLayoutStore,
+        IFrontedLayoutPackageManager packageManager,
+        IFrontedWindowRegistry? windowRegistry,
+        ILogger<FrontedLayoutService>? logger)
+        : this(
+            userLayoutStore,
+            Path.Combine(AppConstants.ResourcesPath, "FrontedLayouts"),
+            packageManager,
+            windowRegistry,
+            logger)
+    {
+    }
+
+    public FrontedLayoutService(
+        IFrontedUserLayoutStore userLayoutStore,
+        string builtInLayoutRoot,
+        IFrontedLayoutPackageManager? packageManager,
+        IFrontedWindowRegistry? windowRegistry,
+        ILogger<FrontedLayoutService>? logger)
     {
         _userLayoutStore = userLayoutStore;
         _builtInLayoutRoot = builtInLayoutRoot;
+        _packageManager = packageManager;
         _windowRegistry = windowRegistry;
         _logger = logger ?? NullLogger<FrontedLayoutService>.Instance;
     }
@@ -96,6 +125,38 @@ public class FrontedLayoutService : IFrontedLayoutService
         var userPath = _userLayoutStore.GetLayoutPath(windowTypeName, canvasName);
         var builtInPath = GetBuiltInDefaultLayoutPath(windowTypeName, canvasName);
         string? userLoadError = null;
+
+        if (_packageManager is not null)
+        {
+            var activeState = await _packageManager.GetActivePackageStateAsync(cancellationToken);
+            if (!string.Equals(activeState.PackageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
+            {
+                var packagePath = _packageManager.GetPackageLayoutPath(activeState.PackageId, windowTypeName, canvasName);
+                if (File.Exists(packagePath))
+                {
+                    try
+                    {
+                        return new FrontedLayoutLoadResult
+                        {
+                            Config = await ReadConfigAsync(packagePath, cancellationToken),
+                            Source = FrontedLayoutSource.User,
+                            Path = packagePath
+                        };
+                    }
+                    catch (Exception ex)
+                    {
+                        userLoadError = ex.Message;
+                        _logger.LogWarning(
+                            ex,
+                            "Failed to load active package fronted layout. Falling back to defaults. PackageId: {PackageId}, Window: {WindowTypeName}, Canvas: {CanvasName}, Path: {Path}",
+                            activeState.PackageId,
+                            windowTypeName,
+                            canvasName,
+                            packagePath);
+                    }
+                }
+            }
+        }
 
         if (_userLayoutStore.Exists(windowTypeName, canvasName))
         {
@@ -241,6 +302,14 @@ public class FrontedLayoutService : IFrontedLayoutService
         FrontedCanvasConfig config,
         CancellationToken cancellationToken = default)
     {
+        if (_packageManager is not null)
+        {
+            var package = await _packageManager.EnsureWritableActivePackageAsync(cancellationToken);
+            var path = _packageManager.GetPackageLayoutPath(package.PackageId, windowTypeName, canvasName);
+            await WriteConfigAsync(path, config, cancellationToken);
+            return;
+        }
+
         await _userLayoutStore.SaveAsync(windowTypeName, canvasName, config, cancellationToken);
     }
 
@@ -303,6 +372,17 @@ public class FrontedLayoutService : IFrontedLayoutService
 
         var json = await File.ReadAllTextAsync(path, cancellationToken);
         return JsonSerializer.Deserialize<FrontedCanvasConfig>(json, _jsonSerializerOptions);
+    }
+
+    private async Task WriteConfigAsync(
+        string path,
+        FrontedCanvasConfig config,
+        CancellationToken cancellationToken)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        config.Version = 3;
+        var json = JsonSerializer.Serialize(config, _jsonSerializerOptions);
+        await File.WriteAllTextAsync(path, json, cancellationToken);
     }
 
     private static string? CombineErrors(string? first, string second)
