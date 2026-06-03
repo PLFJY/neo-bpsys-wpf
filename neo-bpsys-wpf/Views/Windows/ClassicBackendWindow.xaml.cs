@@ -8,6 +8,8 @@ using neo_bpsys_wpf.Views.Pages;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Media;
 using Wpf.Ui.Controls;
 using MessageBox = Wpf.Ui.Controls.MessageBox;
 using MessageBoxResult = Wpf.Ui.Controls.MessageBoxResult;
@@ -17,13 +19,13 @@ namespace neo_bpsys_wpf.Views.Windows;
 /// <summary>
 /// Classic backend shell. It only rearranges existing backend operations.
 /// </summary>
-public partial class ClassicBackWindow : FluentWindow
+public partial class ClassicBackendWindow : FluentWindow
 {
-    private readonly ILogger<ClassicBackWindow>? _logger;
+    private readonly ILogger<ClassicBackendWindow>? _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly Dictionary<Type, ClassicPageHostWindow> _pageHostWindows = [];
 
-    public ClassicBackWindow(
+    public ClassicBackendWindow(
         IServiceProvider serviceProvider,
         IInfoBarService infoBarService,
         MainWindowViewModel mainWindowViewModel,
@@ -35,7 +37,7 @@ public partial class ClassicBackWindow : FluentWindow
         TalentPageViewModel talentPageViewModel,
         ScorePageViewModel scorePageViewModel,
         GameDataPageViewModel gameDataPageViewModel,
-        ILogger<ClassicBackWindow>? logger = null)
+        ILogger<ClassicBackendWindow>? logger = null)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
@@ -53,6 +55,7 @@ public partial class ClassicBackWindow : FluentWindow
         GlobalBanRecordRoot.DataContext = pickPageViewModel;
         TalentRoot.DataContext = talentPageViewModel;
         ScoreRoot.DataContext = scorePageViewModel;
+        ScorePreviewDrawerRoot.DataContext = scorePageViewModel;
         GameDataRoot.DataContext = gameDataPageViewModel;
 
         infoBarService.SetInfoBarControl(InfoBar);
@@ -120,6 +123,61 @@ public partial class ClassicBackWindow : FluentWindow
                 contentControl.Content = null;
                 break;
         }
+    }
+
+    private void ToggleScorePreviewDrawer_Click(object sender, RoutedEventArgs e)
+    {
+        ScorePreviewDrawerRoot.Visibility = ScorePreviewDrawerRoot.Visibility == Visibility.Visible
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+    }
+
+    private void CloseScorePreviewDrawer_Click(object sender, RoutedEventArgs e)
+    {
+        ScorePreviewDrawerRoot.Visibility = Visibility.Collapsed;
+    }
+
+    private void RestoreClassicScorePreviewDefaultSort_Click(object sender, RoutedEventArgs e)
+    {
+        var view = CollectionViewSource.GetDefaultView(ClassicScorePreviewDataGrid.ItemsSource);
+        view?.SortDescriptions.Clear();
+
+        foreach (var column in ClassicScorePreviewDataGrid.Columns)
+        {
+            column.SortDirection = null;
+        }
+
+        view?.Refresh();
+    }
+
+    private void ClassicRoot_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (ScorePreviewDrawerRoot.Visibility != Visibility.Visible)
+        {
+            return;
+        }
+
+        if (IsDescendantOf(e.OriginalSource as DependencyObject, ScorePreviewDrawerRoot))
+        {
+            return;
+        }
+
+        ScorePreviewDrawerRoot.Visibility = Visibility.Collapsed;
+    }
+
+    private static bool IsDescendantOf(DependencyObject? current, DependencyObject ancestor)
+    {
+        while (current is not null)
+        {
+            if (ReferenceEquals(current, ancestor))
+            {
+                return true;
+            }
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return false;
     }
 
     protected override void OnClosing(CancelEventArgs e)

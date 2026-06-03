@@ -4,9 +4,9 @@ Classic Mode 是操作密集型的导播台后台 Shell。它只重排现有后�
 
 ## 定位
 
-Classic Mode 复用现有页面 ViewModel、共享服务和 `CurrentGame` 状态。`ClassicBackWindow` 可以直接注入现有 VM 给不同区域设置 `DataContext`，但不要创建 `ClassicPickViewModel`、`ClassicBanViewModel`、`ClassicScoreViewModel` 或类似第二套业务状态。
+Classic Mode 复用现有页面 ViewModel、共享服务和 `CurrentGame` 状态。`ClassicBackendWindow` 可以直接注入现有 VM 给不同区域设置 `DataContext`，但不要创建 `ClassicPickViewModel`、`ClassicBanViewModel`、`ClassicScoreViewModel` 或类似第二套业务状态。
 
-新增 Classic UI 时，应优先复制现有页面中的控件绑定和命令，不要把业务规则写进 `ClassicBackWindow.xaml.cs`。code-behind 只允许做窗口生命周期、弹窗入口、InfoBar 绑定和轻量 UI 事件。
+新增 Classic UI 时，应优先复制现有页面中的控件绑定和命令，不要把业务规则写进 `ClassicBackendWindow.xaml.cs`。code-behind 只允许做窗口生命周期、弹窗入口、InfoBar 绑定和轻量 UI 事件。
 
 ## 导航边界
 
@@ -16,7 +16,7 @@ Classic Mode 下项目内 `NavigationService.Navigate(...)`、`GoBack()` 和层�
 
 ## 管理入口
 
-Classic 主窗口只保留前台管理、设置、插件等单按钮入口。不要把完整 `FrontManagePage` 内联到 `ClassicBackWindow`，也不要复制设置页、插件页或前台管理页的业务逻辑。
+Classic 主窗口只保留前台管理、设置、插件等单按钮入口。不要把完整 `FrontManagePage` 内联到 `ClassicBackendWindow`，也不要复制设置页、插件页或前台管理页的业务逻辑。
 
 这些入口应通过弹窗承载现有 singleton Page：
 

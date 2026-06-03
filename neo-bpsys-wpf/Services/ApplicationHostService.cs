@@ -15,7 +15,7 @@ namespace neo_bpsys_wpf.Services;
 public class ApplicationHostService(IServiceProvider serviceProvider) : IHostedService
 {
     private INavigationWindow? _navigationWindow;
-    private ClassicBackWindow? _classicBackWindow;
+    private ClassicBackendWindow? _classicBackendWindow;
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -34,18 +34,18 @@ public class ApplicationHostService(IServiceProvider serviceProvider) : IHostedS
         var settingsHostService = serviceProvider.GetRequiredService<ISettingsHostService>();
         if (settingsHostService.Settings.IsClassicMode)
         {
-            if (!Application.Current.Windows.OfType<ClassicBackWindow>().Any()
+            if (!Application.Current.Windows.OfType<ClassicBackendWindow>().Any()
                 && !Application.Current.Windows.OfType<MainWindow>().Any())
             {
-                _classicBackWindow = serviceProvider.GetRequiredService<ClassicBackWindow>();
-                _classicBackWindow.Show();
+                _classicBackendWindow = serviceProvider.GetRequiredService<ClassicBackendWindow>();
+                _classicBackendWindow.Show();
             }
 
             return;
         }
 
         if (!Application.Current.Windows.OfType<MainWindow>().Any()
-            && !Application.Current.Windows.OfType<ClassicBackWindow>().Any())
+            && !Application.Current.Windows.OfType<ClassicBackendWindow>().Any())
         {
             _navigationWindow = serviceProvider.GetRequiredService<INavigationWindow>();
             _navigationWindow.ShowWindow();

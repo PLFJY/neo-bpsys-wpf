@@ -1,5 +1,5 @@
 <ui:FluentWindow
-    x:Class="neo_bpsys_wpf.Views.Windows.ClassicBackWindow"
+    x:Class="neo_bpsys_wpf.Views.Windows.ClassicBackendWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cc="clr-namespace:neo_bpsys_wpf.Controls"
@@ -68,7 +68,10 @@
             UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
 
-    <Grid Background="{DynamicResource ApplicationBackgroundBrush}">
+    <Grid
+        x:Name="ClassicRoot"
+        Background="{DynamicResource ApplicationBackgroundBrush}"
+        PreviewMouseLeftButtonDown="ClassicRoot_PreviewMouseLeftButtonDown">
         <ui:InfoBar
             x:Name="InfoBar"
             HorizontalAlignment="Right"
@@ -749,6 +752,11 @@
                                         Width="160"
                                         Command="{Binding ClearCurrentHalfScoreCommand}"
                                         Content="{lex:Loc ClearCurrentHalfScore}" />
+                                    <ui:Button
+                                        Width="160"
+                                        Click="ToggleScorePreviewDrawer_Click"
+                                        Content="{lex:Loc ScorePreviewTable}"
+                                        Icon="{ui:SymbolIcon Symbol=NumberRow24}" />
                                 </WrapPanel>
                                 <TextBlock Margin="0,8,0,0" TextWrapping="Wrap">
                                     <TextBlock.Text>
@@ -1012,5 +1020,105 @@
                 </ScrollViewer>
             </Grid>
         </Grid>
+        <Border
+            x:Name="ScorePreviewDrawerRoot"
+            Width="860"
+            Margin="0,45,10,10"
+            Padding="16"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Stretch"
+            Panel.ZIndex="8"
+            Background="{DynamicResource ApplicationBackgroundBrush}"
+            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="8"
+            Visibility="Collapsed">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Style="{StaticResource Title}"
+                            Text="{lex:Loc ScorePreviewTable}" />
+                        <Button
+                            Margin="16,0,0,0"
+                            Padding="12,4"
+                            Click="RestoreClassicScorePreviewDefaultSort_Click"
+                            Content="{lex:Loc RestoreDefaultSort}" />
+                    </StackPanel>
+                    <ui:Button
+                        Grid.Column="1"
+                        Click="CloseScorePreviewDrawer_Click"
+                        Content="{lex:Loc Close}"
+                        Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
+                </Grid>
+                <ui:DataGrid
+                    x:Name="ClassicScorePreviewDataGrid"
+                    Grid.Row="1"
+                    Margin="0,12,0,0"
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    CanUserDeleteRows="False"
+                    HeadersVisibility="Column"
+                    HorizontalScrollBarVisibility="Auto"
+                    IsReadOnly="True"
+                    ItemsSource="{Binding ScorePreviewRows}"
+                    SelectionMode="Single"
+                    VerticalScrollBarVisibility="Auto">
+                    <ui:DataGrid.RowStyle>
+                        <Style TargetType="{x:Type DataGridRow}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsCurrentProgress}" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:DataGrid.RowStyle>
+                    <ui:DataGrid.Columns>
+                        <DataGridTextColumn
+                            Width="90"
+                            Binding="{Binding GameLabel}"
+                            Header="{lex:Loc ScorePreviewGame}" />
+                        <DataGridTextColumn
+                            Width="80"
+                            Binding="{Binding HalfLabel}"
+                            Header="{lex:Loc ScorePreviewHalf}" />
+                        <DataGridTextColumn
+                            Width="80"
+                            Binding="{Binding RowStatusText}"
+                            Header="{lex:Loc ScorePreviewStatus}" />
+                        <DataGridTextColumn
+                            Width="80"
+                            Binding="{Binding ResultText}"
+                            Header="{lex:Loc ScorePreviewResult}" />
+                        <DataGridTextColumn
+                            Width="110"
+                            Binding="{Binding HomeCampText}"
+                            Header="{lex:Loc ScorePreviewHomeCamp}" />
+                        <DataGridTextColumn
+                            Width="110"
+                            Binding="{Binding AwayCampText}"
+                            Header="{lex:Loc ScorePreviewAwayCamp}" />
+                        <DataGridTextColumn
+                            Width="120"
+                            Binding="{Binding HomeMinorScoreText}"
+                            Header="{lex:Loc ScorePreviewHomeMinorScore}" />
+                        <DataGridTextColumn
+                            Width="120"
+                            Binding="{Binding AwayMinorScoreText}"
+                            Header="{lex:Loc ScorePreviewAwayMinorScore}" />
+                    </ui:DataGrid.Columns>
+                </ui:DataGrid>
+            </Grid>
+        </Border>
     </Grid>
 </ui:FluentWindow>

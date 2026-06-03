@@ -1,4 +1,4 @@
-﻿﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -41,7 +41,7 @@ public partial class App
         // Service containing navigation, same as INavigationWindow... but without window
         services.AddSingleton<INavigationService, neo_bpsys_wpf.Services.NavigationService>();
 
-        //_sharedDataService
+        // SharedDataServices
         services.AddSingleton<ISharedDataService, SharedDataService>();
 
         //MatchScoreService
@@ -59,7 +59,8 @@ public partial class App
             DataContext = sp.GetRequiredService<MainWindowViewModel>(),
         });
         services.AddSingleton<MainWindowViewModel>();
-        services.AddSingleton<ClassicBackWindow>();
+        // ClassicMode Window
+        services.AddSingleton<ClassicBackendWindow>();
 
         //FrontedWindowService
         services.AddSingleton<IFrontedWindowService, FrontedWindowService>();
