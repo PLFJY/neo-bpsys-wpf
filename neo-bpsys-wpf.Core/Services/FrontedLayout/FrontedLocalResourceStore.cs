@@ -51,6 +51,11 @@ public class FrontedLocalResourceStore : IFrontedLocalResourceStore
 
     public string StoreImage(string sourcePath)
     {
+        return StoreImageWithResult(sourcePath).ResourceUri;
+    }
+
+    public FrontedLocalResourceStoreResult StoreImageWithResult(string sourcePath)
+    {
         if (string.IsNullOrWhiteSpace(sourcePath))
         {
             throw new ArgumentException("Source image path is required.", nameof(sourcePath));
@@ -96,12 +101,52 @@ public class FrontedLocalResourceStore : IFrontedLocalResourceStore
             }
         }
 
-        if (!File.Exists(targetPath))
+        var wasNewlyCreated = !File.Exists(targetPath);
+        if (wasNewlyCreated)
         {
             File.Copy(fullSourcePath, targetPath, overwrite: false);
         }
 
-        return $"bpui://local/resources/images/{fileName}";
+        return new FrontedLocalResourceStoreResult(
+            $"bpui://local/resources/images/{fileName}",
+            targetPath,
+            wasNewlyCreated);
+    }
+
+    public bool TryGetPhysicalPath(string resourceUri, out string physicalPath)
+    {
+        physicalPath = string.Empty;
+        if (string.IsNullOrWhiteSpace(resourceUri)
+            || !Uri.TryCreate(resourceUri, UriKind.Absolute, out var uri)
+            || !string.Equals(uri.Scheme, "bpui", StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(uri.Host, FrontedLayoutPackageManager.LocalPackageId, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var relativePath = Uri.UnescapeDataString(uri.AbsolutePath.TrimStart('/'));
+        const string prefix = "resources/images/";
+        if (!relativePath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+            || relativePath.Split('/', StringSplitOptions.RemoveEmptyEntries).Any(segment => segment is "." or ".."))
+        {
+            return false;
+        }
+
+        var fileName = relativePath[prefix.Length..];
+        if (string.IsNullOrWhiteSpace(fileName) || fileName.Contains('/', StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var root = EnsureTrailingSeparator(Path.GetFullPath(_imagesFolder));
+        var candidate = Path.GetFullPath(Path.Combine(_imagesFolder, fileName));
+        if (!candidate.StartsWith(root, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        physicalPath = candidate;
+        return true;
     }
 
     private static string CreateFileName(string originalName, string hash, string extension, bool forceHashOnly = false)
@@ -134,5 +179,12 @@ public class FrontedLocalResourceStore : IFrontedLocalResourceStore
         }
 
         return builder.ToString();
+    }
+
+    private static string EnsureTrailingSeparator(string path)
+    {
+        return path.EndsWith(Path.DirectorySeparatorChar)
+            ? path
+            : path + Path.DirectorySeparatorChar;
     }
 }

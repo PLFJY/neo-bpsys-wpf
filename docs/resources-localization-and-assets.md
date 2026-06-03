@@ -48,6 +48,8 @@ Designer v3 layout 和 `.bpui v3` 包标准允许以下资源 URI 形式，完�
 
 绝对路径只应作为编辑时临时输入。Phase 9B.0 的 Canvas Properties GUI 在用户选择本地背景图片后，会复制文件到本地资源目录，并在 layout JSON 中写入 `bpui://local/...`。Phase 9C 的 `.bpui v3` 导出会把引用到的 `bpui://local/...`、其他已安装包资源和绝对路径资源复制进导出包，并重写为 `bpui://{PackageId}/...`；缺失的绝对路径资源会让导出失败并显示错误。`Resources/...` 和 `pack://application:,,,/...` 属于应用内置资源，导出时保持原样，不复制进包内。
 
+Designer v3 中通过 Resource Browser 选择 Canvas 背景、`ScoreGlobalWindow/BaseCanvas` 的 BO3 背景、以及 `ImagePath` / `BorderImagePath` / `LockImageSource` 等静态资源字段时会立即应用到当前内存布局、记录 undo、标记 dirty 并刷新预览；手动输入文本仍需要 Enter 或 Apply。选择本地文件或 Resource Browser 返回绝对文件路径时，会先复制到本地资源目录并写入 `bpui://local/...`，不会把绝对路径保存到 layout。立即复制产生的新文件会记录为当前编辑会话的 pending resource：保存时保留仍被当前或其他已保存布局引用的文件并清理未引用文件；放弃修改、切换布局选择“不保存”或关闭窗口选择“不保存”时，会尽力删除本会话新建且未被任何已保存布局引用的文件。undo/redo 不会立即删除 pending resource，以便 redo 可以恢复引用。
+
 Phase 9B.0 起，`FrontedResourceResolver` 支持 `bpui://local/resources/images/foo.png` 和 `bpui://{PackageId}/resources/images/foo.png`，并拒绝不安全 `PackageId`、绝对路径和路径穿越。缺失文件按 unresolved 处理，不抛出异常。
 
 Phase 10 起，图片进入本地资源、包导入、包导出或 resolver 解码前都会走安全校验。支持扩展名为 png、jpg、jpeg、bmp、gif、webp、ico、tif、tiff。Canvas 背景图最大 1 MiB、长边 4096、像素 4096×4096；控件 UI 图片最大 512 KiB、长边 2048、像素 2048×2048。超限或无法安全解码的图片会被拒绝：本地资源不会复制，`BackgroundImage` / 编辑缓冲不会更新，resolver 运行时返回 `null` 并记录 warning，预览和前台不会因为坏图崩溃。Resource Browser 缩略图也使用安全解码，超限图片不做完整加载。

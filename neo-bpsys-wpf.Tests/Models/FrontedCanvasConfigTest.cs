@@ -28,6 +28,33 @@ namespace neo_bpsys_wpf.Tests.Models;
 public class FrontedCanvasConfigTest
 {
     [Fact]
+    public void CanvasConfigRoundTripsBackgroundImageVariants()
+    {
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 1440,
+              "CanvasHeight": 195,
+              "BackgroundImage": "Resources/scoreGlobal.png",
+              "BackgroundImageVariants": {
+                "ScoreGlobal.Bo3": "Resources/scoreGlobalBo3.png"
+              }
+            }
+            """);
+
+        Assert.NotNull(config);
+        Assert.Equal(
+            "Resources/scoreGlobalBo3.png",
+            config!.BackgroundImageVariants[FrontedCanvasBackgroundVariants.ScoreGlobalBo3]);
+
+        var json = JsonSerializer.Serialize(config);
+
+        Assert.Contains("BackgroundImageVariants", json, StringComparison.Ordinal);
+        Assert.Contains("ScoreGlobal.Bo3", json, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ReadsRootLevelV3CanvasAndControls()
     {
         var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
@@ -1214,6 +1241,104 @@ public class FrontedCanvasConfigTest
             Assert.Null(window.FindName("GeneratedText"));
         });
     }
+
+    [Fact]
+    public void FrontedRendererUsesScoreGlobalBo3BackgroundVariantOnlyInBo3Mode()
+    {
+        RunOnStaThread(() =>
+        {
+            var sharedDataService = new Mock<ISharedDataService>();
+            sharedDataService.SetupGet(service => service.IsBo3Mode).Returns(true);
+            var resolver = new RecordingFrontedResourceResolver();
+            var renderer = new FrontedRenderer(
+                EmptyServiceProvider.Instance,
+                sharedDataService.Object,
+                resolver,
+                new FrontedControlRegistry([]),
+                NullLogger<FrontedRenderer>.Instance);
+
+            renderer.RenderToCanvas(
+                new Canvas(),
+                new FrontedCanvasConfig
+                {
+                    Version = 3,
+                    CanvasWidth = 100,
+                    CanvasHeight = 100,
+                    BackgroundImage = "Resources/default.png",
+                    BackgroundImageVariants =
+                    {
+                        [FrontedCanvasBackgroundVariants.ScoreGlobalBo3] = "Resources/bo3.png"
+                    }
+                },
+                new FrontedRenderContext
+                {
+                    WindowId = "ScoreGlobalWindow",
+                    WindowTypeName = "ScoreGlobalWindow",
+                    CanvasName = "BaseCanvas"
+                });
+
+            Assert.Equal("Resources/bo3.png", resolver.LastResolvedImagePath);
+
+            sharedDataService.SetupGet(service => service.IsBo3Mode).Returns(false);
+            renderer.RenderToCanvas(
+                new Canvas(),
+                new FrontedCanvasConfig
+                {
+                    Version = 3,
+                    CanvasWidth = 100,
+                    CanvasHeight = 100,
+                    BackgroundImage = "Resources/default.png",
+                    BackgroundImageVariants =
+                    {
+                        [FrontedCanvasBackgroundVariants.ScoreGlobalBo3] = "Resources/bo3.png"
+                    }
+                },
+                new FrontedRenderContext
+                {
+                    WindowId = "ScoreGlobalWindow",
+                    WindowTypeName = "ScoreGlobalWindow",
+                    CanvasName = "BaseCanvas"
+                });
+
+            Assert.Equal("Resources/default.png", resolver.LastResolvedImagePath);
+        });
+    }
+
+    [Fact]
+    public void FrontedRendererFallsBackToDefaultBackgroundWhenBo3VariantIsMissing()
+    {
+        RunOnStaThread(() =>
+        {
+            var sharedDataService = new Mock<ISharedDataService>();
+            sharedDataService.SetupGet(service => service.IsBo3Mode).Returns(true);
+            var resolver = new RecordingFrontedResourceResolver();
+            var renderer = new FrontedRenderer(
+                EmptyServiceProvider.Instance,
+                sharedDataService.Object,
+                resolver,
+                new FrontedControlRegistry([]),
+                NullLogger<FrontedRenderer>.Instance);
+
+            renderer.RenderToCanvas(
+                new Canvas(),
+                new FrontedCanvasConfig
+                {
+                    Version = 3,
+                    CanvasWidth = 100,
+                    CanvasHeight = 100,
+                    BackgroundImage = "Resources/default.png"
+                },
+                new FrontedRenderContext
+                {
+                    WindowId = "ScoreGlobalWindow",
+                    WindowTypeName = "ScoreGlobalWindow",
+                    CanvasName = "BaseCanvas"
+                });
+
+            Assert.Equal("Resources/default.png", resolver.LastResolvedImagePath);
+        });
+    }
+
 
     [Fact]
     public void FrontedRendererSyncsPickingBorderOverlayToImageAndBorderedImageGeometry()

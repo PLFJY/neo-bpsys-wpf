@@ -3,6 +3,9 @@
   "CanvasWidth": 1440,
   "CanvasHeight": 195,
   "BackgroundImage": "Resources/scoreGlobal.png",
+  "BackgroundImageVariants": {
+    "ScoreGlobal.Bo3": "Resources/scoreGlobal_Bo3.png"
+  },
   "HomeTeamName": {
     "ControlType": "Text",
     "Left": 13,

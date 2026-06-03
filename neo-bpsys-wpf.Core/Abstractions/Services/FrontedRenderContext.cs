@@ -11,6 +11,11 @@ public class FrontedRenderContext
     public required string WindowId { get; init; }
 
     /// <summary>
+    /// Fronted window type name, when known.
+    /// </summary>
+    public string? WindowTypeName { get; init; }
+
+    /// <summary>
     /// Canvas 名称。
     /// </summary>
     public required string CanvasName { get; init; }

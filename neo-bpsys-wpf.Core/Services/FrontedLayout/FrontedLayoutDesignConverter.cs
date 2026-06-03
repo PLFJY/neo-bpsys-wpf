@@ -65,6 +65,9 @@ public class FrontedLayoutDesignConverter
             CanvasWidth = document.CanvasConfig.CanvasWidth,
             CanvasHeight = document.CanvasConfig.CanvasHeight,
             BackgroundImage = document.CanvasConfig.BackgroundImage,
+            BackgroundImageVariants = new Dictionary<string, string>(
+                document.CanvasConfig.BackgroundImageVariants,
+                StringComparer.Ordinal),
             RequiredPlugins = SyncRequiredPlugins(document),
             Controls = document.Controls.ToDictionary(
                 item => item.Name,

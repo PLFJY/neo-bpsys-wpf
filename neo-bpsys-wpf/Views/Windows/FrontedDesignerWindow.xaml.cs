@@ -735,7 +735,8 @@ public partial class FrontedDesignerWindow : FluentWindow
         if (window.ShowDialog() == true && !string.IsNullOrWhiteSpace(window.SelectedResourcePath))
         {
             item.EditText = window.SelectedResourcePath;
-            _viewModel?.ClearPropertyEditErrorForBufferUpdate(item.PropertyName);
+            _viewModel?.ApplyPropertyResourceSelection(item, window.SelectedResourcePath);
+            FocusDesignSurface();
         }
     }
 
@@ -756,7 +757,30 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         if (window.ShowDialog() == true && !string.IsNullOrWhiteSpace(window.SelectedResourcePath))
         {
-            _viewModel.BackgroundImageEditText = window.SelectedResourcePath;
+            _viewModel.ApplyCanvasBackgroundResourceSelection(window.SelectedResourcePath);
+            FocusDesignSurface();
+        }
+    }
+
+    private void BrowseScoreGlobalBo3BackgroundResourceButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_resourceBrowserProvider is null || _viewModel is null)
+        {
+            return;
+        }
+
+        var viewModel = new FrontedResourceBrowserWindowViewModel(_resourceBrowserProvider);
+        var window = new FrontedResourceBrowserWindow
+        {
+            Owner = this,
+            DataContext = viewModel
+        };
+        window.InitializeSelection(_viewModel.ScoreGlobalBo3BackgroundImageEditText);
+
+        if (window.ShowDialog() == true && !string.IsNullOrWhiteSpace(window.SelectedResourcePath))
+        {
+            _viewModel.ApplyScoreGlobalBo3BackgroundResourceSelection(window.SelectedResourcePath);
+            FocusDesignSurface();
         }
     }
 
@@ -771,6 +795,20 @@ public partial class FrontedDesignerWindow : FluentWindow
         if (!string.IsNullOrWhiteSpace(file))
         {
             _viewModel.StoreLocalBackgroundImage(file);
+        }
+    }
+
+    private void ChooseLocalScoreGlobalBo3BackgroundButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_filePickerService is null || _viewModel is null)
+        {
+            return;
+        }
+
+        var file = _filePickerService.PickImage();
+        if (!string.IsNullOrWhiteSpace(file))
+        {
+            _viewModel.StoreLocalScoreGlobalBo3BackgroundImage(file);
         }
     }
 
@@ -1270,6 +1308,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             }
             else if (result == MessageBoxResult.Secondary)
             {
+                _viewModel?.DiscardPendingResourceImports();
                 _forceCloseAfterDirtyPrompt = true;
                 Close();
             }
@@ -1291,6 +1330,11 @@ public partial class FrontedDesignerWindow : FluentWindow
         if (result == MessageBoxResult.Primary)
         {
             return await _viewModel.SaveCurrentLayoutAsync();
+        }
+
+        if (result == MessageBoxResult.Secondary)
+        {
+            _viewModel.DiscardPendingResourceImports();
         }
 
         return result == MessageBoxResult.Secondary;

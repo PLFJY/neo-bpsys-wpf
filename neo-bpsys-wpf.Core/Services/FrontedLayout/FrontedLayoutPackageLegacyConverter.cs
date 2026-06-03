@@ -460,7 +460,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                    ?? cells.Select(cell => cell.Info.Left).Where(value => value.HasValue).Min();
         if (left.HasValue)
         {
-            row.Left = left.Value;
+            row.Left = FrontedLayoutNumberNormalizer.Normalize(left.Value);
         }
 
         var top = gameOneFirstHalf?.Top
@@ -468,7 +468,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                   ?? cells.Select(cell => cell.Info.Top).FirstOrDefault(value => value.HasValue);
         if (top.HasValue)
         {
-            row.Top = top.Value;
+            row.Top = FrontedLayoutNumberNormalizer.Normalize(top.Value);
         }
 
         var halfGaps = firstHalfByGame
@@ -481,7 +481,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         var halfGap = GetMedian(halfGaps);
         if (halfGap.HasValue)
         {
-            row.HalfGameGap = halfGap.Value;
+            row.HalfGameGap = FrontedLayoutNumberNormalizer.Normalize(halfGap.Value);
         }
 
         var gameLefts = firstHalfByGame
@@ -499,7 +499,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         var majorGap = GetMedian(majorGaps);
         if (majorGap.HasValue)
         {
-            row.MajorGameGap = majorGap.Value;
+            row.MajorGameGap = FrontedLayoutNumberNormalizer.Normalize(majorGap.Value);
         }
 
         var approximate = IsIrregular(halfGaps) || IsIrregular(majorGaps);
@@ -585,22 +585,22 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     {
         if (legacy.Left.HasValue)
         {
-            control.Left = legacy.Left.Value;
+            control.Left = FrontedLayoutNumberNormalizer.Normalize(legacy.Left.Value);
         }
 
         if (legacy.Top.HasValue)
         {
-            control.Top = legacy.Top.Value;
+            control.Top = FrontedLayoutNumberNormalizer.Normalize(legacy.Top.Value);
         }
 
         if (legacy.Width.HasValue)
         {
-            control.Width = legacy.Width.Value;
+            control.Width = FrontedLayoutNumberNormalizer.Normalize(legacy.Width.Value);
         }
 
         if (legacy.Height.HasValue)
         {
-            control.Height = legacy.Height.Value;
+            control.Height = FrontedLayoutNumberNormalizer.Normalize(legacy.Height.Value);
         }
     }
 
@@ -702,6 +702,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         AddMappedImage(root, "ScoreWindowSettings", "SurScoreBgImageUri", "ScoreSurWindow/BaseCanvas/BackgroundImage", resourceState, result, warnings);
         AddMappedImage(root, "ScoreWindowSettings", "HunScoreBgImageUri", "ScoreHunWindow/BaseCanvas/BackgroundImage", resourceState, result, warnings);
         AddMappedImage(root, "ScoreWindowSettings", "GlobalScoreBgImageUri", "ScoreGlobalWindow/BaseCanvas/BackgroundImage", resourceState, result, warnings);
+        AddMappedImage(root, "ScoreWindowSettings", "GlobalScoreBgImageUriBo3", $"ScoreGlobalWindow/BaseCanvas/BackgroundImageVariants/{FrontedCanvasBackgroundVariants.ScoreGlobalBo3}", resourceState, result, warnings);
         AddMappedImage(root, "GameDataWindowSettings", "BgImageUri", "GameDataWindow/BaseCanvas/BackgroundImage", resourceState, result, warnings);
         AddMappedImage(root, "WidgetsWindowSettings", "MapBpBgUri", "WidgetsWindow/MapBpCanvas/BackgroundImage", resourceState, result, warnings);
         AddMappedImage(root, "WidgetsWindowSettings", "BpOverviewBgUri", "WidgetsWindow/BpOverViewCanvas/BackgroundImage", resourceState, result, warnings);
@@ -798,6 +799,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         "ScoreWindowSettings.SurScoreBgImageUri",
         "ScoreWindowSettings.HunScoreBgImageUri",
         "ScoreWindowSettings.GlobalScoreBgImageUri",
+        "ScoreWindowSettings.GlobalScoreBgImageUriBo3",
         "GameDataWindowSettings.BgImageUri",
         "WidgetsWindowSettings.MapBpBgUri",
         "WidgetsWindowSettings.BpOverviewBgUri",
@@ -853,6 +855,14 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         if (valueMap.TryGetValue($"{prefix}BackgroundImage", out var background))
         {
             config.BackgroundImage = background;
+        }
+
+        if (valueMap.TryGetValue(
+                $"{prefix}BackgroundImageVariants/{FrontedCanvasBackgroundVariants.ScoreGlobalBo3}",
+                out var scoreGlobalBo3Background))
+        {
+            config.BackgroundImageVariants[FrontedCanvasBackgroundVariants.ScoreGlobalBo3] = scoreGlobalBo3Background;
+            infos.Add("Legacy BO3 global score background mapped into ScoreGlobal background variants.");
         }
 
         if (window == "BpWindow" && canvas == "BaseCanvas")
@@ -920,7 +930,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         ResourceConvertState resourceState)
     {
         var node = JsonSerializer.SerializeToNode(config) ?? throw new InvalidOperationException("Layout could not be serialized.");
-        RewriteResourceStrings(node, resourceState);
+        RewriteResourceStrings(node, resourceState, null);
         var converted = node.Deserialize<FrontedCanvasConfig>(new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
@@ -931,10 +941,11 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
         }
 
         config.BackgroundImage = converted.BackgroundImage;
+        config.BackgroundImageVariants = converted.BackgroundImageVariants;
         config.Controls = converted.Controls;
     }
 
-    private static void RewriteResourceStrings(JsonNode node, ResourceConvertState resourceState)
+    private static void RewriteResourceStrings(JsonNode node, ResourceConvertState resourceState, string? propertyName)
     {
         if (node is JsonObject obj)
         {
@@ -942,7 +953,8 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             {
                 if (child.Value is JsonValue value
                     && value.TryGetValue<string>(out var text)
-                    && ShouldInspectResourceProperty(child.Key)
+                    && (ShouldInspectResourceProperty(child.Key)
+                        || string.Equals(propertyName, nameof(FrontedCanvasConfig.BackgroundImageVariants), StringComparison.Ordinal))
                     && TryMapLegacyResourceValue(text, resourceState, out var uri))
                 {
                     obj[child.Key] = uri;
@@ -951,7 +963,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
                 if (child.Value is not null)
                 {
-                    RewriteResourceStrings(child.Value, resourceState);
+                    RewriteResourceStrings(child.Value, resourceState, child.Key);
                 }
             }
         }
@@ -961,7 +973,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
             {
                 if (child is not null)
                 {
-                    RewriteResourceStrings(child, resourceState);
+                    RewriteResourceStrings(child, resourceState, propertyName);
                 }
             }
         }
@@ -1000,6 +1012,7 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
     private static bool ShouldInspectResourceProperty(string propertyName)
     {
         return string.Equals(propertyName, nameof(FrontedCanvasConfig.BackgroundImage), StringComparison.Ordinal)
+               || string.Equals(propertyName, nameof(FrontedCanvasConfig.BackgroundImageVariants), StringComparison.Ordinal)
                || propertyName.EndsWith("ImagePath", StringComparison.Ordinal)
                || propertyName.EndsWith("ImageSource", StringComparison.Ordinal)
                || propertyName.EndsWith("ResourcePath", StringComparison.Ordinal)

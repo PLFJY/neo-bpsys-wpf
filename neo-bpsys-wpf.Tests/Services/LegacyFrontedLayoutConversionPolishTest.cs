@@ -144,6 +144,59 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
     }
 
     [Fact]
+    public async Task ConverterMapsLegacyScoreGlobalBo3BackgroundAndNormalizesGeometryNoise()
+    {
+        var root = CreateTempDirectory();
+        try
+        {
+            var builtInRoot = Path.Combine(root, "builtIn");
+            WriteBuiltInScoreGlobalLayout(builtInRoot);
+            var archivePath = Path.Combine(root, "legacy.bpui");
+            CreateLegacyArchive(
+                archivePath,
+                configJson:
+                """
+                {
+                  "ScoreWindowSettings": {
+                    "GlobalScoreBgImageUri": "scoreGlobal.png",
+                    "GlobalScoreBgImageUriBo3": "scoreGlobalBo3.png"
+                  }
+                }
+                """,
+                customResources: ["scoreGlobal.png", "scoreGlobalBo3.png"],
+                layouts: new Dictionary<string, string>
+                {
+                    ["FrontElementsConfig/ScoreGlobalWindowConfig-BaseCanvas.json"] =
+                        """{ "HomeTeamGame1FirstHalf": { "Left": 100.0000000006, "Top": 12.4999999997 }, "HomeTeamGame1SecondHalf": { "Left": 190.0000000006, "Top": 12.4999999997 } }"""
+                });
+
+            var result = await ConvertAsync(builtInRoot, root, archivePath, "converted.legacy.bo3-bg");
+
+            Assert.True(result.Success, result.ErrorMessage);
+            Assert.DoesNotContain(result.Diagnostics, item => item.Contains("GlobalScoreBgImageUriBo3", StringComparison.Ordinal));
+            Assert.DoesNotContain(result.Warnings, item => item.Contains("GlobalScoreBgImageUriBo3", StringComparison.Ordinal));
+            using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
+            var layoutJson = ReadZipEntry(archive, "layouts/ScoreGlobalWindow/BaseCanvas.json");
+            var layout = JsonSerializer.Deserialize<FrontedCanvasConfig>(layoutJson)!;
+
+            Assert.StartsWith("bpui://converted.legacy.bo3-bg/resources/images/scoreGlobal-", layout.BackgroundImage);
+            Assert.StartsWith(
+                "bpui://converted.legacy.bo3-bg/resources/images/scoreGlobalBo3-",
+                layout.BackgroundImageVariants[FrontedCanvasBackgroundVariants.ScoreGlobalBo3]);
+            Assert.Equal(2, archive.Entries.Count(entry => entry.FullName.StartsWith("resources/images/", StringComparison.Ordinal)));
+            Assert.DoesNotContain(".0000000006", layoutJson, StringComparison.Ordinal);
+            var row = Assert.IsType<GlobalScoreRowControlConfig>(layout.Controls["HomeGlobalScoreRow"]);
+            Assert.Equal(100, row.Left);
+            Assert.Equal(12.5, row.Top);
+            Assert.Equal(90, row.HalfGameGap);
+        }
+        finally
+        {
+            DeleteTempDirectory(root);
+        }
+    }
+
+    [Fact]
     public void FormatterSummarizesActionableWarningsWithoutClosestCandidates()
     {
         var result = new FrontedLayoutPackageLegacyConvertResult

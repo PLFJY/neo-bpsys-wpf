@@ -32,6 +32,7 @@
     WindowState="Maximized"
     mc:Ignorable="d">
     <ui:FluentWindow.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:DesignerControlTypeDisplayConverter x:Key="DesignerControlTypeDisplayConverter" />
 
         <DataTemplate x:Key="PropertyReadOnlyEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
@@ -1003,6 +1004,36 @@
                                     Command="{Binding ClearBackgroundImageCommand}"
                                     Content="{lex:Loc ClearBackground}" />
                             </WrapPanel>
+                            <StackPanel
+                                Margin="0,8,0,0"
+                                Visibility="{Binding IsScoreGlobalBo3BackgroundVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc ScoreGlobalBo3BackgroundImage}" />
+                                <ui:TextBox
+                                    MinHeight="30"
+                                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
+                                    Text="{Binding ScoreGlobalBo3BackgroundImageEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <WrapPanel Margin="0,8,0,0">
+                                    <ui:Button
+                                        Margin="0,0,6,6"
+                                        Command="{Binding ApplyScoreGlobalBo3BackgroundImageCommand}"
+                                        Content="{lex:Loc Apply}" />
+                                    <ui:Button
+                                        Margin="0,0,6,6"
+                                        Click="BrowseScoreGlobalBo3BackgroundResourceButton_OnClick"
+                                        Content="{lex:Loc BrowseResource}" />
+                                    <ui:Button
+                                        Margin="0,0,6,6"
+                                        Click="ChooseLocalScoreGlobalBo3BackgroundButton_OnClick"
+                                        Content="{lex:Loc ChooseLocalImage}" />
+                                    <ui:Button
+                                        Margin="0,0,6,6"
+                                        Command="{Binding ClearScoreGlobalBo3BackgroundImageCommand}"
+                                        Content="{lex:Loc ClearBackground}" />
+                                </WrapPanel>
+                            </StackPanel>
                             <TextBlock
                                 FontSize="12"
                                 Opacity="0.78"

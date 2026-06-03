@@ -27,7 +27,7 @@ public class FrontedRenderer(
 
         canvas.Width = config.CanvasWidth;
         canvas.Height = config.CanvasHeight;
-        canvas.Background = CreateBackground(config.BackgroundImage);
+        canvas.Background = CreateBackground(ResolveBackgroundImage(config, context));
 
         var buildContext = new FrontedControlBuildContext
         {
@@ -226,5 +226,22 @@ public class FrontedRenderer(
         return imageSource is null
             ? null
             : new ImageBrush(imageSource) { Stretch = Stretch.Fill };
+    }
+
+    private string? ResolveBackgroundImage(FrontedCanvasConfig config, FrontedRenderContext context)
+    {
+        var contextSharedData = context.SharedDataServiceOverride ?? sharedDataService;
+        if (string.Equals(context.WindowTypeName, "ScoreGlobalWindow", StringComparison.Ordinal)
+            && string.Equals(context.CanvasName, "BaseCanvas", StringComparison.Ordinal)
+            && contextSharedData.IsBo3Mode
+            && config.BackgroundImageVariants.TryGetValue(
+                FrontedCanvasBackgroundVariants.ScoreGlobalBo3,
+                out var bo3Background)
+            && !string.IsNullOrWhiteSpace(bo3Background))
+        {
+            return bo3Background;
+        }
+
+        return config.BackgroundImage;
     }
 }

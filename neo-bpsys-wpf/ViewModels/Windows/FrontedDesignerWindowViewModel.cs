@@ -74,6 +74,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly Dictionary<string, string> _propertyEditBuffers = new(StringComparer.Ordinal);
     private readonly Stack<string> _undoStack = new();
     private readonly Stack<string> _redoStack = new();
+    private readonly List<PendingImportedResource> _pendingImportedResources = [];
     private FrontedDesignerClipboardPayload? _copiedControl;
     private IReadOnlyList<FrontedLayoutValidationMessage> _lastValidationMessages = [];
     private bool _isChangingZoomPreset;
@@ -410,6 +411,16 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private string _backgroundImageEditText = string.Empty;
 
     [ObservableProperty]
+    private string _scoreGlobalBo3BackgroundImageEditText = string.Empty;
+
+    public bool IsScoreGlobalBo3BackgroundVisible =>
+        CurrentDocument is
+        {
+            WindowTypeName: "ScoreGlobalWindow",
+            CanvasName: "BaseCanvas"
+        };
+
+    [ObservableProperty]
     private string _canvasPropertiesStatus = string.Empty;
 
     [ObservableProperty]
@@ -460,6 +471,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
         NormalizeSelectionState();
         RefreshCanvasPropertyBuffers();
+        OnPropertyChanged(nameof(IsScoreGlobalBo3BackgroundVisible));
         RebuildFilteredDesignItems();
         OnPropertyChanged(nameof(CanReorderLayers));
         OnPropertyChanged(nameof(LayerReorderHint));
@@ -674,6 +686,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 CurrentDocument.CanvasName,
                 config);
 
+            CleanupPendingImportedResources(includeCurrentDocument: true);
             CurrentDocument.IsDirty = false;
             LayoutSourceDisplay = I18nHelper.GetLocalizedString("LayoutSourceUser");
             LayoutSourcePath = _layoutService.GetUserLayoutPath(
@@ -735,6 +748,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         LayoutSourcePath = _layoutService.GetBuiltInDefaultLayoutPath(windowTypeName, canvasName);
         StatusMessage = I18nHelper.GetLocalizedString("LayoutReset");
         ClearUndoRedo();
+        CleanupPendingImportedResources(includeCurrentDocument: false);
         RefreshDirtyState();
         return true;
     }
@@ -1085,6 +1099,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
+        if (IsAbsoluteFilePath(backgroundImage))
+        {
+            return StoreLocalBackgroundImage(backgroundImage!);
+        }
+
         var rawValue = string.IsNullOrWhiteSpace(backgroundImage) ? null : backgroundImage.Trim();
         var normalizedValue = rawValue is null
             ? null
@@ -1108,6 +1127,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         return true;
     }
 
+    public bool ApplyCanvasBackgroundResourceSelection(string selectedResourcePath)
+    {
+        return IsAbsoluteFilePath(selectedResourcePath)
+            ? StoreLocalBackgroundImage(selectedResourcePath)
+            : ApplyCanvasBackgroundEdit(selectedResourcePath);
+    }
+
     [RelayCommand]
     private void ClearBackgroundImage()
     {
@@ -1128,8 +1154,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         try
         {
-            var uri = _localResourceStore.StoreImage(sourcePath);
-            return ApplyCanvasBackgroundEdit(uri);
+            var result = _localResourceStore.StoreImageWithResult(sourcePath);
+            var applied = ApplyCanvasBackgroundEdit(result.ResourceUri);
+            RecordPendingImportedResource(result, "Canvas BackgroundImage", applied);
+            return applied;
         }
         catch (Exception ex)
         {
@@ -1137,6 +1165,126 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             CanvasPropertiesStatus = $"{I18nHelper.GetLocalizedString("FailedToApplyPicture")}: {ex.Message}";
             return false;
         }
+    }
+
+    [RelayCommand]
+    private void ApplyScoreGlobalBo3BackgroundImage()
+    {
+        ApplyScoreGlobalBo3BackgroundEdit(ScoreGlobalBo3BackgroundImageEditText);
+    }
+
+    [RelayCommand]
+    private void ClearScoreGlobalBo3BackgroundImage()
+    {
+        ApplyScoreGlobalBo3BackgroundEdit(null);
+    }
+
+    public bool ApplyScoreGlobalBo3BackgroundEdit(string? backgroundImage)
+    {
+        if (CurrentDocument is null || !IsScoreGlobalBo3BackgroundVisible)
+        {
+            return false;
+        }
+
+        if (IsAbsoluteFilePath(backgroundImage))
+        {
+            return StoreLocalScoreGlobalBo3BackgroundImage(backgroundImage!);
+        }
+
+        var rawValue = string.IsNullOrWhiteSpace(backgroundImage) ? null : backgroundImage.Trim();
+        var normalizedValue = rawValue is null
+            ? null
+            : FrontedTextLimitHelper.Clamp(rawValue, FrontedLayoutLimits.MaxResourcePathLength);
+        if (!string.Equals(rawValue, normalizedValue, StringComparison.Ordinal))
+        {
+            CanvasPropertiesStatus = I18nHelper.GetLocalizedString("InputTruncated");
+        }
+
+        CurrentDocument.CanvasConfig.BackgroundImageVariants.TryGetValue(
+            FrontedCanvasBackgroundVariants.ScoreGlobalBo3,
+            out var currentValue);
+        if (string.Equals(currentValue, normalizedValue, StringComparison.Ordinal))
+        {
+            ScoreGlobalBo3BackgroundImageEditText = normalizedValue ?? string.Empty;
+            return true;
+        }
+
+        CaptureUndoSnapshot();
+        if (normalizedValue is null)
+        {
+            CurrentDocument.CanvasConfig.BackgroundImageVariants.Remove(FrontedCanvasBackgroundVariants.ScoreGlobalBo3);
+        }
+        else
+        {
+            CurrentDocument.CanvasConfig.BackgroundImageVariants[FrontedCanvasBackgroundVariants.ScoreGlobalBo3] = normalizedValue;
+        }
+
+        CurrentDocument.IsDirty = true;
+        ScoreGlobalBo3BackgroundImageEditText = normalizedValue ?? string.Empty;
+        FinishCanvasConfigEdit(I18nHelper.GetLocalizedString("CanvasPropertiesApplied"));
+        return true;
+    }
+
+    public bool ApplyScoreGlobalBo3BackgroundResourceSelection(string selectedResourcePath)
+    {
+        return IsAbsoluteFilePath(selectedResourcePath)
+            ? StoreLocalScoreGlobalBo3BackgroundImage(selectedResourcePath)
+            : ApplyScoreGlobalBo3BackgroundEdit(selectedResourcePath);
+    }
+
+    public bool StoreLocalScoreGlobalBo3BackgroundImage(string sourcePath)
+    {
+        if (_localResourceStore is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            var result = _localResourceStore.StoreImageWithResult(sourcePath);
+            var applied = ApplyScoreGlobalBo3BackgroundEdit(result.ResourceUri);
+            RecordPendingImportedResource(result, "ScoreGlobal BO3 Background", applied);
+            return applied;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to store local ScoreGlobal BO3 background image.");
+            CanvasPropertiesStatus = $"{I18nHelper.GetLocalizedString("FailedToApplyPicture")}: {ex.Message}";
+            return false;
+        }
+    }
+
+    public bool ApplyPropertyResourceSelection(FrontedPropertyEditorItem item, string selectedResourcePath)
+    {
+        if (IsAbsoluteFilePath(selectedResourcePath))
+        {
+            if (_localResourceStore is null)
+            {
+                return false;
+            }
+
+            try
+            {
+                var result = _localResourceStore.StoreImageWithResult(selectedResourcePath);
+                var applied = ApplyPropertyEdit(item, result.ResourceUri);
+                RecordPendingImportedResource(result, item.PropertyName, applied);
+                return applied;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Failed to store local fronted control resource for property {PropertyName}.",
+                    item.PropertyName);
+                SetPropertyEditError(
+                    item,
+                    $"{I18nHelper.GetLocalizedString("FailedToApplyPicture")}: {ex.Message}",
+                    selectedResourcePath);
+                return false;
+            }
+        }
+
+        return ApplyPropertyEdit(item, selectedResourcePath);
     }
 
     [RelayCommand]
@@ -1543,6 +1691,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
+        if (item.CanBrowseResource
+            && newValue is string text
+            && IsAbsoluteFilePath(text))
+        {
+            return ApplyPropertyResourceSelection(item, text);
+        }
+
         _propertyEditErrors.Remove(item.PropertyName);
         _propertyEditBuffers.Remove(item.PropertyName);
 
@@ -1945,12 +2100,165 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             CanvasWidthEditText = string.Empty;
             CanvasHeightEditText = string.Empty;
             BackgroundImageEditText = string.Empty;
+            ScoreGlobalBo3BackgroundImageEditText = string.Empty;
             return;
         }
 
         CanvasWidthEditText = CurrentDocument.CanvasConfig.CanvasWidth.ToString("0.##", CultureInfo.InvariantCulture);
         CanvasHeightEditText = CurrentDocument.CanvasConfig.CanvasHeight.ToString("0.##", CultureInfo.InvariantCulture);
         BackgroundImageEditText = CurrentDocument.CanvasConfig.BackgroundImage ?? string.Empty;
+        ScoreGlobalBo3BackgroundImageEditText = CurrentDocument.CanvasConfig.BackgroundImageVariants.TryGetValue(
+            FrontedCanvasBackgroundVariants.ScoreGlobalBo3,
+            out var bo3Background)
+            ? bo3Background
+            : string.Empty;
+    }
+
+    public void DiscardPendingResourceImports()
+    {
+        CleanupPendingImportedResources(includeCurrentDocument: false);
+    }
+
+    private void RecordPendingImportedResource(
+        FrontedLocalResourceStoreResult result,
+        string sourceContext,
+        bool wasApplied)
+    {
+        if (!wasApplied || !result.WasNewlyCreated)
+        {
+            return;
+        }
+
+        if (_pendingImportedResources.Any(resource =>
+                string.Equals(resource.ResourceUri, result.ResourceUri, StringComparison.OrdinalIgnoreCase)))
+        {
+            return;
+        }
+
+        _pendingImportedResources.Add(new PendingImportedResource(
+            result.ResourceUri,
+            result.PhysicalPath,
+            DateTimeOffset.UtcNow,
+            sourceContext));
+    }
+
+    private void CleanupPendingImportedResources(bool includeCurrentDocument)
+    {
+        if (_pendingImportedResources.Count == 0 || _localResourceStore is null)
+        {
+            return;
+        }
+
+        var referencedResources = CollectSavedLocalResourceReferences();
+        if (includeCurrentDocument && CurrentDocument is not null)
+        {
+            foreach (var reference in EnumerateLocalResourceReferences(_designConverter.ToConfig(CurrentDocument)))
+            {
+                referencedResources.Add(reference);
+            }
+        }
+
+        foreach (var pending in _pendingImportedResources.ToArray())
+        {
+            if (referencedResources.Contains(pending.ResourceUri))
+            {
+                _pendingImportedResources.Remove(pending);
+                continue;
+            }
+
+            try
+            {
+                if (File.Exists(pending.PhysicalPath))
+                {
+                    File.Delete(pending.PhysicalPath);
+                }
+
+                _pendingImportedResources.Remove(pending);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Failed to cleanup pending fronted designer resource {ResourceUri} from {SourceContext}.",
+                    pending.ResourceUri,
+                    pending.SourceContext);
+            }
+        }
+    }
+
+    private HashSet<string> CollectSavedLocalResourceReferences()
+    {
+        var references = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var root = _layoutService.GetUserLayoutRootFolder();
+        if (string.IsNullOrWhiteSpace(root) || !Directory.Exists(root))
+        {
+            return references;
+        }
+
+        foreach (var file in Directory.EnumerateFiles(root, "*.json", SearchOption.AllDirectories))
+        {
+            try
+            {
+                var json = File.ReadAllText(file);
+                if (JsonNode.Parse(json) is not { } node)
+                {
+                    continue;
+                }
+
+                foreach (var reference in EnumerateLocalResourceReferences(node))
+                {
+                    references.Add(reference);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to scan fronted layout resource references: {Path}", file);
+            }
+        }
+
+        return references;
+    }
+
+    private static IEnumerable<string> EnumerateLocalResourceReferences(FrontedCanvasConfig config)
+    {
+        var node = JsonSerializer.SerializeToNode(config);
+        return node is null ? [] : EnumerateLocalResourceReferences(node);
+    }
+
+    private static IEnumerable<string> EnumerateLocalResourceReferences(JsonNode node)
+    {
+        if (node is JsonObject obj)
+        {
+            foreach (var child in obj)
+            {
+                if (child.Value is not null)
+                {
+                    foreach (var reference in EnumerateLocalResourceReferences(child.Value))
+                    {
+                        yield return reference;
+                    }
+                }
+            }
+        }
+        else if (node is JsonArray array)
+        {
+            foreach (var child in array)
+            {
+                if (child is not null)
+                {
+                    foreach (var reference in EnumerateLocalResourceReferences(child))
+                    {
+                        yield return reference;
+                    }
+                }
+            }
+        }
+        else if (node is JsonValue value
+                 && value.TryGetValue<string>(out var text)
+                 && text.StartsWith("bpui://local/", StringComparison.OrdinalIgnoreCase))
+        {
+            yield return text;
+        }
     }
 
     private void LoadWindowOptions(string windowTypeName)
@@ -2361,6 +2669,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                     : new FrontedRenderContext
                     {
                         WindowId = entry.WindowId,
+                        WindowTypeName = entry.WindowTypeName,
                         CanvasName = entry.CanvasName,
                         SharedDataServiceOverride = _designerPreviewSharedDataService,
                         RenderMissingPluginPlaceholders = true
@@ -3165,6 +3474,19 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                || propertyName.Equals("Foreground", StringComparison.OrdinalIgnoreCase)
                || propertyName.Equals("Background", StringComparison.OrdinalIgnoreCase);
     }
+
+    private static bool IsAbsoluteFilePath(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)
+            || value.StartsWith("bpui://", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("pack://", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("Resources/", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return Path.IsPathRooted(Environment.ExpandEnvironmentVariables(value));
+    }
 }
 
 public sealed class FrontedDesignerWindowOption(
@@ -3187,6 +3509,12 @@ public sealed class FrontedDesignerZoomPreset(string displayName, double scale, 
 
     public bool IsFit { get; } = isFit;
 }
+
+internal sealed record PendingImportedResource(
+    string ResourceUri,
+    string PhysicalPath,
+    DateTimeOffset ImportedAt,
+    string SourceContext);
 
 public sealed class FrontedDesignerClipboardPayload(
     string sourceName,
@@ -3292,6 +3620,7 @@ internal static class FrontedDesignerSnapshotRestorePlanner
             || Math.Abs(current.CanvasWidth - target.CanvasWidth) >= 0.0001D
             || Math.Abs(current.CanvasHeight - target.CanvasHeight) >= 0.0001D
             || !string.Equals(current.BackgroundImage, target.BackgroundImage, StringComparison.Ordinal)
+            || !JsonEquivalent(current.BackgroundImageVariants, target.BackgroundImageVariants)
             || !JsonEquivalent(current.RequiredPlugins, target.RequiredPlugins))
         {
             return Fail("canvas/window config changed");

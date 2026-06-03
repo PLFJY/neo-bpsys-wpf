@@ -14,6 +14,7 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
         nameof(FrontedCanvasConfig.CanvasWidth),
         nameof(FrontedCanvasConfig.CanvasHeight),
         nameof(FrontedCanvasConfig.BackgroundImage),
+        nameof(FrontedCanvasConfig.BackgroundImageVariants),
         nameof(FrontedCanvasConfig.RequiredPlugins)
     ];
 
@@ -38,6 +39,10 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
             CanvasWidth = ReadRequiredDouble(root, nameof(FrontedCanvasConfig.CanvasWidth)),
             CanvasHeight = ReadRequiredDouble(root, nameof(FrontedCanvasConfig.CanvasHeight)),
             BackgroundImage = ReadOptionalString(root, nameof(FrontedCanvasConfig.BackgroundImage)),
+            BackgroundImageVariants = ReadOptionalDictionary<string>(
+                root,
+                nameof(FrontedCanvasConfig.BackgroundImageVariants),
+                options),
             RequiredPlugins = ReadOptionalList<FrontedPluginDependency>(
                 root,
                 nameof(FrontedCanvasConfig.RequiredPlugins),
@@ -90,6 +95,12 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
         else
         {
             writer.WriteString(nameof(FrontedCanvasConfig.BackgroundImage), value.BackgroundImage);
+        }
+
+        if (value.BackgroundImageVariants.Count > 0)
+        {
+            writer.WritePropertyName(nameof(FrontedCanvasConfig.BackgroundImageVariants));
+            JsonSerializer.Serialize(writer, value.BackgroundImageVariants, options);
         }
 
         if (value.RequiredPlugins.Count > 0)
@@ -255,6 +266,31 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
         try
         {
             return JsonSerializer.Deserialize<List<T>>(property.GetRawText(), options) ?? [];
+        }
+        catch (JsonException ex)
+        {
+            throw new FrontedLayoutConfigException($"Property '{propertyName}' has invalid JSON shape.", ex);
+        }
+    }
+
+    private static Dictionary<string, T> ReadOptionalDictionary<T>(
+        JsonElement root,
+        string propertyName,
+        JsonSerializerOptions options)
+    {
+        if (!root.TryGetProperty(propertyName, out var property) || property.ValueKind == JsonValueKind.Null)
+        {
+            return [];
+        }
+
+        if (property.ValueKind != JsonValueKind.Object)
+        {
+            throw new FrontedLayoutConfigException($"Property '{propertyName}' must be a JSON object or null.");
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<Dictionary<string, T>>(property.GetRawText(), options) ?? [];
         }
         catch (JsonException ex)
         {

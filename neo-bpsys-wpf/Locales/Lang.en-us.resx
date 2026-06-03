@@ -2386,6 +2386,9 @@
   <data name="BackgroundImage" xml:space="preserve">
     <value>Background Image</value>
   </data>
+  <data name="ScoreGlobalBo3BackgroundImage" xml:space="preserve">
+    <value>ScoreGlobal BO3 Background Image</value>
+  </data>
   <data name="CanvasWidth" xml:space="preserve">
     <value>Canvas Width</value>
   </data>

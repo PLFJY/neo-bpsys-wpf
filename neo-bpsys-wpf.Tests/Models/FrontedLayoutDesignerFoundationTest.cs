@@ -4109,6 +4109,28 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void ScoreGlobalBo3BackgroundEditIsVisibleOnlyForScoreGlobalBaseCanvasAndUndoable()
+    {
+        var document = CreateDocument([], "ScoreGlobalWindow");
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+
+        Assert.True(viewModel.IsScoreGlobalBo3BackgroundVisible);
+        Assert.True(viewModel.ApplyScoreGlobalBo3BackgroundEdit("Resources/scoreGlobalBo3.png"));
+        Assert.Equal(
+            "Resources/scoreGlobalBo3.png",
+            document.CanvasConfig.BackgroundImageVariants[FrontedCanvasBackgroundVariants.ScoreGlobalBo3]);
+        Assert.True(document.IsDirty);
+
+        viewModel.UndoCommand.Execute(null);
+        Assert.False(viewModel.CurrentDocument!.CanvasConfig.BackgroundImageVariants.ContainsKey(
+            FrontedCanvasBackgroundVariants.ScoreGlobalBo3));
+
+        viewModel.CurrentDocument = CreateDocument([], "BpWindow");
+        Assert.False(viewModel.IsScoreGlobalBo3BackgroundVisible);
+        Assert.False(viewModel.ApplyScoreGlobalBo3BackgroundEdit("Resources/ignored.png"));
+    }
+
+    [Fact]
     public void LayerGroupsFollowZIndexDescendingAndDocumentOrderWithinLayer()
     {
         var first = new FrontedControlDesignItem { Name = "First", Config = new TextFrontedControlConfig { ZIndex = 2 } };

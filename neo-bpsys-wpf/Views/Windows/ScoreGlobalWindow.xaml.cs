@@ -71,6 +71,7 @@ public partial class ScoreGlobalWindow : FrontedWindowBase
             _renderer.RenderToCanvas(BaseCanvas, config, new FrontedRenderContext
             {
                 WindowId = FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreGlobalWindow),
+                WindowTypeName = nameof(ScoreGlobalWindow),
                 CanvasName = BaseCanvasName
             });
         }

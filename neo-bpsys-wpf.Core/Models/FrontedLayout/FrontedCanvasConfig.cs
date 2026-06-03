@@ -30,6 +30,11 @@ public class FrontedCanvasConfig
     public string? BackgroundImage { get; set; }
 
     /// <summary>
+    /// Optional background image variants for window-specific runtime selection.
+    /// </summary>
+    public Dictionary<string, string> BackgroundImageVariants { get; set; } = [];
+
+    /// <summary>
     /// Canvas 使用的插件依赖元数据。
     /// </summary>
     public List<FrontedPluginDependency> RequiredPlugins { get; set; } = [];

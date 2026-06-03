@@ -108,6 +108,8 @@ v3 渲染路径应优先读取新目录。legacy 文件只应进入迁移流程�
 
 `BackgroundImage` 与控件图片路径由 `IFrontedResourceResolver` 解析。默认语义是绝对路径直接读取，`Resources/xxx.png` 映射到运行目录 `Resources/bpui/xxx.png`，其他相对路径保守地按 `Resources/bpui` 下资源处理。
 
+Canvas 可选字段 `BackgroundImageVariants` 用于窗口特定的背景图变体。当前内置 key 只有 `"ScoreGlobal.Bo3"`：仅 `ScoreGlobalWindow/BaseCanvas` 在 `ISharedDataService.IsBo3Mode == true` 时读取该值；缺失、BO5 或未知场景均回退到 `BackgroundImage`。Designer 只在 `ScoreGlobalWindow/BaseCanvas` 的 Canvas 属性面板显示 BO3 背景编辑入口，不把 BO3/BO5 背景设置暴露到所有前台窗口。
+
 Phase 8B 起，layout validator 会校验 Canvas 级字段：`Version` 必须为 3，`CanvasWidth` / `CanvasHeight` 必须大于 0，`BackgroundImage` 非空且 resolver 可用时应能解析到文件。root-level 控件 JSON key 的重复检测必须发生在 raw JSON / converter 阶段；如果先反序列化成 `Dictionary<string, FrontedControlConfigBase>`，重复 key 可能已经丢失。
 
 ## 5. 内置控件模型
@@ -390,6 +392,8 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 转换服务负责理解旧 `Config.json`、`CustomUi/` 和 `FrontElementsConfig/` 的历史关系，并产出 v3 Canvas 布局与包元数据。
 当前转换策略是保守迁移：每个目标布局先加载当前内置 v3 layout，再按“精确控件名、窗口限定别名、聚合控件、已知旧 overlay 消费、规范化匹配、技术候选诊断”顺序迁移旧 `ElementInfo` 的 `Left`、`Top`、`Width`、`Height`。`ScoreGlobalWindow/BaseCanvas` 额外兼容旧 `MainTeamName` / `MainScoreTotal` 到 v3 `HomeTeamName` / `HomeScoreTotal`，并把旧 `HomeTeamGame*FirstHalf` / `SecondHalf`、`AwayTeamGame*FirstHalf` / `SecondHalf` 以及 `Game*Overtime*Half` 半场格子聚合或消费到 `HomeGlobalScoreRow` / `AwayGlobalScoreRow`，从旧普通半场格子推导行位置、`HalfGameGap` 和 `MajorGameGap`。`WidgetsWindow/BpOverViewCanvas` 等旧 `HunBanCurrentLock*` / `SurBanCurrentLock*` 锁定遮罩几何会合并到对应 v3 `CurrentBanDisplay`，不作为未知控件提示。旧 `CustomUi/` 图片复制到包内 `resources/images/` 并生成 `bpui://{PackageId}/...` URI；成功复制资源、规则内聚合、间距近似、overtime 消费和锁 overlay 消费属于 `Infos` / `Diagnostics`，不作为普通用户弹窗 warning 展示。旧 `Config.json` 只读取明确的前台图片/颜色字段用于背景、Ban 锁图、BP picking border 等安全映射，不覆盖全局设置。无法识别的旧文件或字段只在确实可能造成可见损失时进入用户摘要，技术细节进入日志或转换详情，不进入运行时。
 
+legacy 转换会把 `ScoreWindowSettings.GlobalScoreBgImageUri` 写入 `ScoreGlobalWindow/BaseCanvas/BackgroundImage`，把 `ScoreWindowSettings.GlobalScoreBgImageUriBo3` 写入 `BackgroundImageVariants["ScoreGlobal.Bo3"]`，并把两者引用的 `CustomUi/` 图片复制进转换后的包资源。legacy 几何写入 v3 布局前会消除浮点噪声：接近整数的值归整为整数，其余保留 3 位小数；该规范化只作用于转换/保存结果，不在用户正在输入的编辑框中逐键四舍五入。
+
 ## 10. 分阶段计划
 
 | 阶段 | 范围 |
@@ -408,7 +412,7 @@ Phase 0 只记录设计，不实现编辑器窗口、Property Grid 或 Binding b
 | Phase 8D | 已实现 interaction layer、透明 hitbox、selection adorner、drag、resize、键盘微调和内存 dirty/validation 刷新；不保存用户布局。 |
 | Phase 8E | 已实现基础 Property Grid：编辑选中设计项与 config 简单属性、保守 Name 改名、运行时关键名称只读、被引用控件改名阻止；仍只改内存，不保存用户布局。 |
 | Phase 8F | 已实现 Add Control 菜单、默认 config factory、唯一命名、基础 placeholder 策略和 `FontFamily` 字体 ComboBox；仍只改内存，不保存用户布局。 |
-| Phase 8G | 已实现 Binding Browser 与 Resource Browser。浏览器选择只写入属性行 `EditText` 缓冲，仍需 Apply/Enter 提交；Resource Browser 支持 `Resources/bpui` 与绝对路径图片，但不复制外部资源。 |
+| Phase 8G | 已实现 Binding Browser 与 Resource Browser。Binding Browser 选择仍写入属性行 `EditText` 缓冲并由 Apply/Enter 提交；Resource Browser 选择图片/资源字段会立即提交，绝对路径图片会先复制到本地资源并写入 `bpui://local/...`。 |
 | Phase 12 | 已实现 Designer v3 显示层 i18n。`IFrontedDesignerLocalizationService` 负责属性名、属性组、控件类型、窗口/Canvas、ComboBox 选项、只读布尔值、颜色校验提示、Binding Browser / Resource Browser 文案、Binding Browser 节点和绑定类型的友好显示；schema key、`ControlType`、`BindingPath`、资源 URI、`FontFamily` 和包导入/导出格式保持原样。 |
 | Phase 8H | 已实现用户 layout save/reset/load priority、validation-driven save、打开用户布局目录、切换/重载/关闭脏状态提示，以及默认无吸附、Shift 临时吸附、工具栏持久吸附开关。 |
 | Phase 9A | 已完成文档规格：Designer v3 `.bpui` 布局包标准，见 [bpui-package-v3.md](bpui-package-v3.md)。不实现导入、导出、包管理 UI 或 legacy 转换。 |

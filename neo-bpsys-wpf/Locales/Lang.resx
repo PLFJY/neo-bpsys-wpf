@@ -2404,6 +2404,9 @@
   <data name="BackgroundImage" xml:space="preserve">
     <value>背景图片</value>
   </data>
+  <data name="ScoreGlobalBo3BackgroundImage" xml:space="preserve">
+    <value>全局比分 BO3 背景图片</value>
+  </data>
   <data name="CanvasWidth" xml:space="preserve">
     <value>Canvas 宽度</value>
   </data>
