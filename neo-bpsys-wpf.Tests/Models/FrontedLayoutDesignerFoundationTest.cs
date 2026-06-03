@@ -1186,6 +1186,40 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void UndoRestoresPreviewImmediatelyAndSchedulesValidationOnly()
+    {
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([]) };
+        viewModel.AddControlCommand.Execute(new FrontedAddControlRequest { ControlType = "Text" });
+
+        var previewRestoreStates = new List<bool>();
+        var selectedRestoreStates = new List<bool>();
+        viewModel.PreviewRenderRequested += (_, _) =>
+            previewRestoreStates.Add(viewModel.IsRestoringSnapshotVisuals);
+        viewModel.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.SelectedDesignItem))
+            {
+                selectedRestoreStates.Add(viewModel.IsRestoringSnapshotVisuals);
+            }
+        };
+
+        viewModel.UndoCommand.Execute(null);
+
+        Assert.Empty(viewModel.CurrentDocument!.Controls);
+        Assert.True(viewModel.HasPendingScheduledDesignerWork);
+        Assert.False(viewModel.IsRestoringSnapshotVisuals);
+        Assert.Contains(true, selectedRestoreStates);
+        Assert.Equal([true], previewRestoreStates);
+        Assert.Equal(0, viewModel.ScheduledDesignerValidationExecutionCount);
+        Assert.Equal(0, viewModel.ScheduledDesignerPreviewExecutionCount);
+
+        viewModel.ExecuteScheduledDesignerWorkForTests();
+
+        Assert.Equal(1, viewModel.ScheduledDesignerValidationExecutionCount);
+        Assert.Equal(0, viewModel.ScheduledDesignerPreviewExecutionCount);
+    }
+
+    [Fact]
     public void DeleteControlUndoRestoresControl()
     {
         var title = new FrontedControlDesignItem

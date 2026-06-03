@@ -22,6 +22,31 @@ using System.Windows.Threading;
 namespace neo_bpsys_wpf.ViewModels.Windows;
 
 /// <summary>
+/// Controls how a designer snapshot restore updates validation and preview visuals.
+/// Geometry-only incremental restore is intentionally deferred until preview elements
+/// can be tracked without changing plugin or missing-plugin rendering contracts.
+/// </summary>
+// TODO: Add a geometry-only restore mode once the preview renderer exposes a stable
+// control-name to FrameworkElement registry for designer-only incremental updates.
+public enum FrontedDesignerSnapshotRestoreMode
+{
+    /// <summary>
+    /// Render preview immediately, then defer validation to the scheduled designer work queue.
+    /// </summary>
+    ImmediatePreviewThenScheduledValidation,
+
+    /// <summary>
+    /// Defer validation and preview together to the scheduled designer work queue.
+    /// </summary>
+    ScheduledValidationAndPreview,
+
+    /// <summary>
+    /// Run validation and preview immediately in one restore transaction.
+    /// </summary>
+    ImmediateValidationAndPreview
+}
+
+/// <summary>
 /// ViewModel for the independent v3 fronted designer editor shell.
 /// </summary>
 public partial class FrontedDesignerWindowViewModel : ViewModelBase
@@ -57,6 +82,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private bool _scheduledValidationAndPreviewPending;
     private bool _scheduledValidationRequested;
     private bool _scheduledPreviewRequested;
+    private bool _clearRestoreVisualsAfterScheduledPreview;
     private FrontedControlDesignItem? _lastSelectedDesignItem;
     private double _lastPreviewViewportWidth;
     private double _lastPreviewViewportHeight;
@@ -319,6 +345,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public int ScheduledDesignerValidationExecutionCount { get; private set; }
 
     public int ScheduledDesignerPreviewExecutionCount { get; private set; }
+
+    /// <summary>
+    /// True while snapshot restore is updating preview visuals and selection state as one transaction.
+    /// </summary>
+    public bool IsRestoringSnapshotVisuals => _isRestoringSnapshot;
 
     public bool CanUndo => _undoStack.Count > 0;
 
@@ -764,7 +795,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             _redoStack.Push(currentSnapshot);
         }
 
-        RestoreSnapshot(_undoStack.Pop(), scheduleValidationAndPreview: true, traceOperation: "Undo");
+        RestoreSnapshot(
+            _undoStack.Pop(),
+            FrontedDesignerSnapshotRestoreMode.ImmediatePreviewThenScheduledValidation,
+            "Undo");
         StatusMessage = I18nHelper.GetLocalizedString("Undo");
         LogDesignerPerf("Undo", "total", Elapsed(total));
     }
@@ -787,7 +821,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             _undoStack.Push(currentSnapshot);
         }
 
-        RestoreSnapshot(_redoStack.Pop(), scheduleValidationAndPreview: true, traceOperation: "Redo");
+        RestoreSnapshot(
+            _redoStack.Pop(),
+            FrontedDesignerSnapshotRestoreMode.ImmediatePreviewThenScheduledValidation,
+            "Redo");
         StatusMessage = I18nHelper.GetLocalizedString("Redo");
         LogDesignerPerf("Redo", "total", Elapsed(total));
     }
@@ -1691,11 +1728,21 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private void ScheduleValidationAndPreviewRender(string reason)
     {
-        _scheduledValidationRequested = true;
-        _scheduledPreviewRequested = true;
+        ScheduleDesignerWork(reason, validate: true, preview: true);
+    }
+
+    private void ScheduleValidationOnly(string reason)
+    {
+        ScheduleDesignerWork(reason, validate: true, preview: false);
+    }
+
+    private void ScheduleDesignerWork(string reason, bool validate, bool preview)
+    {
+        _scheduledValidationRequested |= validate;
+        _scheduledPreviewRequested |= preview;
         if (_scheduledValidationAndPreviewPending)
         {
-            LogDesignerPerf(reason, "validation/preview already scheduled");
+            LogDesignerPerf(reason, "designer work already scheduled");
             return;
         }
 
@@ -1726,27 +1773,45 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _scheduledValidationAndPreviewPending = false;
         var shouldValidate = _scheduledValidationRequested;
         var shouldPreview = _scheduledPreviewRequested;
+        var shouldClearRestoreVisuals = _clearRestoreVisualsAfterScheduledPreview;
         _scheduledValidationRequested = false;
         _scheduledPreviewRequested = false;
+        _clearRestoreVisualsAfterScheduledPreview = false;
 
         if (CurrentDocument is null)
         {
+            if (shouldClearRestoreVisuals)
+            {
+                SetIsRestoringSnapshotVisuals(false);
+            }
+
             return;
         }
 
-        var total = StartDesignerPerfTrace();
-        if (shouldValidate)
+        try
         {
-            ValidateCurrentDocument();
-            ScheduledDesignerValidationExecutionCount++;
-            LogDesignerPerf("ScheduledDesignerWork", "validation execution", Elapsed(total));
-        }
+            var total = StartDesignerPerfTrace();
+            if (shouldValidate)
+            {
+                ValidateCurrentDocument();
+                ScheduledDesignerValidationExecutionCount++;
+                LogDesignerPerf("ScheduledDesignerWork", "validation execution", Elapsed(total));
+            }
 
-        if (shouldPreview)
+            if (shouldPreview)
+            {
+                RequestPreviewRenderCurrentDocument();
+                ScheduledDesignerPreviewExecutionCount++;
+                LogDesignerPerf("ScheduledDesignerWork", "preview render execution", Elapsed(total));
+            }
+        }
+        finally
         {
-            RequestPreviewRenderCurrentDocument();
-            ScheduledDesignerPreviewExecutionCount++;
-            LogDesignerPerf("ScheduledDesignerWork", "preview render execution", Elapsed(total));
+            if (shouldClearRestoreVisuals)
+            {
+                SetIsRestoringSnapshotVisuals(false);
+                NotifyUndoRedoCommands();
+            }
         }
     }
 
@@ -2344,7 +2409,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private void RestoreSnapshot(
         string snapshot,
-        bool scheduleValidationAndPreview = false,
+        FrontedDesignerSnapshotRestoreMode mode,
         string traceOperation = "RestoreSnapshot")
     {
         if (CurrentDocument is null)
@@ -2363,7 +2428,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
-        _isRestoringSnapshot = true;
+        var shouldNotifyUndoRedoInFinally = true;
+        SetIsRestoringSnapshotVisuals(true);
         try
         {
             var document = _designConverter.FromConfig(
@@ -2377,18 +2443,35 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             SelectDesignItem(document.Controls.FirstOrDefault(control =>
                 string.Equals(control.Name, selectedName, StringComparison.Ordinal)));
             NormalizeSelectionState();
-            if (scheduleValidationAndPreview)
+
+            switch (mode)
             {
-                ScheduleValidationAndPreviewRender(traceOperation);
-                LogDesignerPerf(traceOperation, "validation scheduling", Elapsed(total));
-                LogDesignerPerf(traceOperation, "preview render scheduling", Elapsed(total));
-            }
-            else
-            {
-                ApplyValidationMessages(_validator.Validate(document));
-                LogDesignerPerf(traceOperation, "validation execution", Elapsed(total));
-                RequestPreviewRender(config, SelectedCanvas);
-                LogDesignerPerf(traceOperation, "preview render execution", Elapsed(total));
+                case FrontedDesignerSnapshotRestoreMode.ImmediatePreviewThenScheduledValidation:
+                    RequestPreviewRender(config, SelectedCanvas);
+                    LogDesignerPerf(traceOperation, "preview render execution", Elapsed(total));
+                    SetIsRestoringSnapshotVisuals(false);
+                    ScheduleValidationOnly(traceOperation);
+                    LogDesignerPerf(traceOperation, "validation scheduling", Elapsed(total));
+                    break;
+
+                case FrontedDesignerSnapshotRestoreMode.ScheduledValidationAndPreview:
+                    _clearRestoreVisualsAfterScheduledPreview = true;
+                    shouldNotifyUndoRedoInFinally = false;
+                    ScheduleValidationAndPreviewRender(traceOperation);
+                    LogDesignerPerf(traceOperation, "validation scheduling", Elapsed(total));
+                    LogDesignerPerf(traceOperation, "preview render scheduling", Elapsed(total));
+                    break;
+
+                case FrontedDesignerSnapshotRestoreMode.ImmediateValidationAndPreview:
+                    ApplyValidationMessages(_validator.Validate(document));
+                    LogDesignerPerf(traceOperation, "validation execution", Elapsed(total));
+                    RequestPreviewRender(config, SelectedCanvas);
+                    LogDesignerPerf(traceOperation, "preview render execution", Elapsed(total));
+                    SetIsRestoringSnapshotVisuals(false);
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
             }
 
             RefreshDirtyState();
@@ -2396,9 +2479,23 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
         finally
         {
-            _isRestoringSnapshot = false;
-            NotifyUndoRedoCommands();
+            if (shouldNotifyUndoRedoInFinally)
+            {
+                SetIsRestoringSnapshotVisuals(false);
+                NotifyUndoRedoCommands();
+            }
         }
+    }
+
+    private void SetIsRestoringSnapshotVisuals(bool value)
+    {
+        if (_isRestoringSnapshot == value)
+        {
+            return;
+        }
+
+        _isRestoringSnapshot = value;
+        OnPropertyChanged(nameof(IsRestoringSnapshotVisuals));
     }
 
     private void ClearUndoRedo()

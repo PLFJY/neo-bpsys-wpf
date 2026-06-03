@@ -954,6 +954,11 @@ public partial class FrontedDesignerWindow : FluentWindow
         if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.SelectedDesignItem))
         {
             SuppressPropertyEditorCommitForLayoutPass();
+            if (_viewModel?.IsRestoringSnapshotVisuals == true)
+            {
+                return;
+            }
+
             RebuildInteractionLayer();
             FocusDesignSurface();
         }
