@@ -34,7 +34,7 @@
         <cv:IntPlusOneConverter x:Key="IntPlusOneConverter" />
         <cv:IndexFormatConverter x:Key="IndexFormatConverter" />
         <Thickness x:Key="ClassicInlineControlMargin">0,0,8,8</Thickness>
-        <Thickness x:Key="ClassicCardMargin">0,0,10,10</Thickness>
+        <Thickness x:Key="ClassicCardMargin">0,10,10,0</Thickness>
         <Thickness x:Key="ClassicSectionSpacing">0,10,0,0</Thickness>
         <Style BasedOn="{StaticResource {x:Type ui:TextBox}}" TargetType="ui:TextBox">
             <Setter Property="MinWidth" Value="90" />
@@ -135,7 +135,7 @@
                         </WrapPanel>
                     </StackPanel>
 
-                    <StackPanel Width="475" Margin="0,0,12,8">
+                    <StackPanel Margin="0,0,12,8">
                         <WrapPanel>
                             <TextBlock Margin="0,5,8,8" Text="{lex:Loc FormatColon}" />
                             <RadioButton
@@ -368,7 +368,7 @@
                         </Border>
 
                         <Expander
-                            Margin="0,10,0,0"
+                            Margin="0,10,10,0"
                             Header="{lex:Loc BanNumberControl}"
                             IsExpanded="False">
                             <StackPanel>
@@ -486,7 +486,7 @@
                 </ScrollViewer>
 
                 <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="0,0,10,0">
+                    <StackPanel>
                         <Border x:Name="BanHunRoot" Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanHunter}" />
@@ -535,7 +535,7 @@
 
                         <Border
                             x:Name="BanSurRoot"
-                            Margin="0,10,0,0"
+                            Margin="0,0,10,0"
                             Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc BanSurvivor}" />
@@ -584,7 +584,7 @@
 
                         <Border
                             x:Name="PickRoot"
-                            Margin="0,10,0,0"
+                            Margin="0,10,10,0"
                             Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc PickSurvivor}" />
@@ -770,7 +770,7 @@
 
                         <Border
                             x:Name="GlobalBanRecordRoot"
-                            Margin="0,10,0,0"
+                            Margin="0,10,10,0"
                             Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc GlobalBanRecord}" />
@@ -862,7 +862,7 @@
                         </Border>
 
                         <Expander
-                            Margin="0,10,0,0"
+                            Margin="0,10,10,0"
                             Header="{lex:Loc Talent}"
                             IsExpanded="False">
                             <Border
@@ -968,7 +968,7 @@
                         </Expander>
 
                         <Expander
-                            Margin="0,10,0,0"
+                            Margin="0,10,10,0"
                             Header="{lex:Loc GameData}"
                             IsExpanded="False">
                             <Border

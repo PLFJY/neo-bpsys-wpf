@@ -32,6 +32,8 @@
                                                       Converter={StaticResource IndexToButton2ContentConverter}}" />
                         <Button
                             x:Name="PART_Button3"
+                            Margin="{TemplateBinding Spacing,
+                                                     Converter={StaticResource DoubleToThicknessConverter}}"
                             Command="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Command}"
                             CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource CharacterChangerCommandParameterConverter}, ConverterParameter={StaticResource IndexToButton3ContentConverter}}"
                             Content="{TemplateBinding Index,
