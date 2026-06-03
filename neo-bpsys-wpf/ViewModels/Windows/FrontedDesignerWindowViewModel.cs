@@ -15,6 +15,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Threading;
@@ -23,13 +24,14 @@ namespace neo_bpsys_wpf.ViewModels.Windows;
 
 /// <summary>
 /// Controls how a designer snapshot restore updates validation and preview visuals.
-/// Geometry-only incremental restore is intentionally deferred until preview elements
-/// can be tracked without changing plugin or missing-plugin rendering contracts.
 /// </summary>
-// TODO: Add a geometry-only restore mode once the preview renderer exposes a stable
-// control-name to FrameworkElement registry for designer-only incremental updates.
 public enum FrontedDesignerSnapshotRestoreMode
 {
+    /// <summary>
+    /// Prefer an in-place geometry patch, then defer validation; fall back to scheduled atomic preview.
+    /// </summary>
+    PreferGeometryFastPathThenScheduledAtomicPreview,
+
     /// <summary>
     /// Render preview immediately, then defer validation to the scheduled designer work queue.
     /// </summary>
@@ -185,6 +187,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     /// Raised when the view should render or clear the preview canvas.
     /// </summary>
     public event EventHandler<FrontedDesignerPreviewRenderRequestedEventArgs>? PreviewRenderRequested;
+
+    /// <summary>
+    /// Raised when an undo/redo restore can be applied by patching existing preview elements.
+    /// </summary>
+    public event EventHandler<FrontedDesignerGeometryPatchRequestedEventArgs>? DesignerGeometryPatchRequested;
 
     public ObservableCollection<FrontedDesignerWindowOption> WindowOptions { get; } = [];
 
@@ -797,7 +804,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         RestoreSnapshot(
             _undoStack.Pop(),
-            FrontedDesignerSnapshotRestoreMode.ImmediatePreviewThenScheduledValidation,
+            FrontedDesignerSnapshotRestoreMode.PreferGeometryFastPathThenScheduledAtomicPreview,
             "Undo");
         StatusMessage = I18nHelper.GetLocalizedString("Undo");
         LogDesignerPerf("Undo", "total", Elapsed(total));
@@ -823,7 +830,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         RestoreSnapshot(
             _redoStack.Pop(),
-            FrontedDesignerSnapshotRestoreMode.ImmediatePreviewThenScheduledValidation,
+            FrontedDesignerSnapshotRestoreMode.PreferGeometryFastPathThenScheduledAtomicPreview,
             "Redo");
         StatusMessage = I18nHelper.GetLocalizedString("Redo");
         LogDesignerPerf("Redo", "total", Elapsed(total));
@@ -1748,9 +1755,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         _scheduledValidationAndPreviewPending = true;
         var dispatcher = Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
+        var priority = preview ? DispatcherPriority.Render : DispatcherPriority.Background;
         dispatcher.BeginInvoke(
             new Action(ExecuteScheduledValidationAndPreviewRender),
-            DispatcherPriority.Background);
+            priority);
     }
 
     public void ExecuteScheduledDesignerWorkForTests()
@@ -1791,18 +1799,18 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         try
         {
             var total = StartDesignerPerfTrace();
-            if (shouldValidate)
-            {
-                ValidateCurrentDocument();
-                ScheduledDesignerValidationExecutionCount++;
-                LogDesignerPerf("ScheduledDesignerWork", "validation execution", Elapsed(total));
-            }
-
             if (shouldPreview)
             {
                 RequestPreviewRenderCurrentDocument();
                 ScheduledDesignerPreviewExecutionCount++;
                 LogDesignerPerf("ScheduledDesignerWork", "preview render execution", Elapsed(total));
+            }
+
+            if (shouldValidate)
+            {
+                ValidateCurrentDocument();
+                ScheduledDesignerValidationExecutionCount++;
+                LogDesignerPerf("ScheduledDesignerWork", "validation execution", Elapsed(total));
             }
         }
         finally
@@ -2428,6 +2436,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
+        if (mode == FrontedDesignerSnapshotRestoreMode.PreferGeometryFastPathThenScheduledAtomicPreview
+            && TryRestoreGeometryOnlySnapshot(config, traceOperation, total))
+        {
+            LogDesignerPerf(traceOperation, "total", Elapsed(total));
+            return;
+        }
+
         var shouldNotifyUndoRedoInFinally = true;
         SetIsRestoringSnapshotVisuals(true);
         try
@@ -2446,6 +2461,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
             switch (mode)
             {
+                case FrontedDesignerSnapshotRestoreMode.PreferGeometryFastPathThenScheduledAtomicPreview:
+                    _clearRestoreVisualsAfterScheduledPreview = true;
+                    shouldNotifyUndoRedoInFinally = false;
+                    ScheduleValidationAndPreviewRender(traceOperation);
+                    LogDesignerPerf(traceOperation, "scheduled full restore", Elapsed(total));
+                    break;
+
                 case FrontedDesignerSnapshotRestoreMode.ImmediatePreviewThenScheduledValidation:
                     RequestPreviewRender(config, SelectedCanvas);
                     LogDesignerPerf(traceOperation, "preview render execution", Elapsed(total));
@@ -2484,6 +2506,207 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 SetIsRestoringSnapshotVisuals(false);
                 NotifyUndoRedoCommands();
             }
+        }
+    }
+
+    private bool TryRestoreGeometryOnlySnapshot(
+        FrontedCanvasConfig targetConfig,
+        string traceOperation,
+        Stopwatch? total)
+    {
+        if (CurrentDocument is null)
+        {
+            return false;
+        }
+
+        var plan = FrontedDesignerSnapshotRestorePlanner.CreatePlan(
+            _designConverter.ToConfig(CurrentDocument),
+            targetConfig);
+        LogDesignerPerf(traceOperation, $"diff plan: {plan.Reason}", Elapsed(total));
+        if (!plan.CanRestoreGeometryOnly)
+        {
+            return false;
+        }
+
+        var currentItemsByName = CurrentDocument.Controls.ToDictionary(item => item.Name, StringComparer.Ordinal);
+        var selectedName = SelectedDesignItem?.Name;
+        var changedItems = new List<FrontedControlDesignItem>();
+        var restoreAppliedToPreview = false;
+        var shouldKeepRestoreSuppression = false;
+
+        SetIsRestoringSnapshotVisuals(true);
+        try
+        {
+            foreach (var (name, targetControl) in targetConfig.Controls)
+            {
+                var item = currentItemsByName[name];
+                if (ApplyGeometryPatch(item.Config, targetControl))
+                {
+                    changedItems.Add(item);
+                }
+            }
+
+            if (plan.OrderChanged)
+            {
+                ReorderCurrentDocumentControls(targetConfig.Controls.Keys, currentItemsByName);
+                changedItems = CurrentDocument.Controls.ToList();
+            }
+
+            CurrentDocument.CanvasConfig.RequiredPlugins = targetConfig.RequiredPlugins;
+            CurrentDocument.IsDirty = true;
+            RefreshDirtyState();
+            if (plan.OrderChanged || plan.ZIndexChanged)
+            {
+                RebuildFilteredDesignItems();
+            }
+            else
+            {
+                RebuildLayerGroups();
+            }
+
+            var selectedItem = selectedName is null
+                ? null
+                : CurrentDocument.Controls.FirstOrDefault(control =>
+                    string.Equals(control.Name, selectedName, StringComparison.Ordinal));
+            if (!ReferenceEquals(SelectedDesignItem, selectedItem))
+            {
+                SelectDesignItem(selectedItem);
+            }
+            else
+            {
+                NormalizeSelectionState();
+                RefreshSelectedControlDisplay();
+            }
+
+            OnPropertyChanged(nameof(CanReorderLayers));
+            OnPropertyChanged(nameof(LayerReorderHint));
+            DeleteSelectedControlCommand.NotifyCanExecuteChanged();
+            CopySelectedControlCommand.NotifyCanExecuteChanged();
+
+            var args = new FrontedDesignerGeometryPatchRequestedEventArgs(
+                changedItems,
+                rebuildLayerPanel: plan.OrderChanged || plan.ZIndexChanged,
+                rebuildInteractionLayer: plan.OrderChanged || plan.ZIndexChanged,
+                updateSelection: changedItems.Any(item => ReferenceEquals(item, SelectedDesignItem))
+                                 || plan.OrderChanged
+                                 || plan.ZIndexChanged,
+                zIndexChanged: plan.ZIndexChanged);
+            DesignerGeometryPatchRequested?.Invoke(this, args);
+
+            if (!args.Applied)
+            {
+                shouldKeepRestoreSuppression = true;
+                _clearRestoreVisualsAfterScheduledPreview = true;
+                ScheduleValidationAndPreviewRender(traceOperation);
+                LogDesignerPerf(
+                    traceOperation,
+                    $"scheduled full restore after geometry patch failed: {args.FailureReason}",
+                    Elapsed(total));
+                return true;
+            }
+
+            restoreAppliedToPreview = true;
+            ScheduleValidationOnly(traceOperation);
+            LogDesignerPerf(traceOperation, $"geometry fast restore: {changedItems.Count} item(s)", Elapsed(total));
+            return true;
+        }
+        finally
+        {
+            if (!shouldKeepRestoreSuppression)
+            {
+                SetIsRestoringSnapshotVisuals(false);
+                NotifyUndoRedoCommands();
+            }
+            else if (!restoreAppliedToPreview)
+            {
+                NotifyUndoRedoCommands();
+            }
+        }
+    }
+
+    private static bool ApplyGeometryPatch(
+        FrontedControlConfigBase current,
+        FrontedControlConfigBase target)
+    {
+        var changed = false;
+        if (!DoubleEquals(current.Left, target.Left))
+        {
+            current.Left = target.Left;
+            changed = true;
+        }
+
+        if (!DoubleEquals(current.Top, target.Top))
+        {
+            current.Top = target.Top;
+            changed = true;
+        }
+
+        if (!NullableDoubleEquals(current.Width, target.Width))
+        {
+            current.Width = target.Width;
+            changed = true;
+        }
+
+        if (!NullableDoubleEquals(current.Height, target.Height))
+        {
+            current.Height = target.Height;
+            changed = true;
+        }
+
+        if (current.ZIndex != target.ZIndex)
+        {
+            current.ZIndex = target.ZIndex;
+            changed = true;
+        }
+
+        if (current is BorderedImageFrontedControlConfig currentImage
+            && target is BorderedImageFrontedControlConfig targetImage)
+        {
+            if (!NullableDoubleEquals(currentImage.ImageWidth, targetImage.ImageWidth))
+            {
+                currentImage.ImageWidth = targetImage.ImageWidth;
+                changed = true;
+            }
+
+            if (!NullableDoubleEquals(currentImage.ImageHeight, targetImage.ImageHeight))
+            {
+                currentImage.ImageHeight = targetImage.ImageHeight;
+                changed = true;
+            }
+        }
+
+        return changed;
+    }
+
+    private static bool DoubleEquals(double left, double right)
+    {
+        return Math.Abs(left - right) < 0.0001D;
+    }
+
+    private static bool NullableDoubleEquals(double? left, double? right)
+    {
+        if (!left.HasValue || !right.HasValue)
+        {
+            return left.HasValue == right.HasValue;
+        }
+
+        return Math.Abs(left.Value - right.Value) < 0.0001D;
+    }
+
+    private void ReorderCurrentDocumentControls(
+        IEnumerable<string> targetOrder,
+        IReadOnlyDictionary<string, FrontedControlDesignItem> currentItemsByName)
+    {
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        var reordered = targetOrder.Select(name => currentItemsByName[name]).ToList();
+        CurrentDocument.Controls.Clear();
+        foreach (var item in reordered)
+        {
+            CurrentDocument.Controls.Add(item);
         }
     }
 
@@ -2973,4 +3196,149 @@ public sealed class FrontedDesignerPreviewRenderRequestedEventArgs(
     public FrontedCanvasConfig? Config { get; } = config;
 
     public FrontedRenderContext? Context { get; } = context;
+}
+
+public sealed class FrontedDesignerGeometryPatchRequestedEventArgs(
+    IReadOnlyList<FrontedControlDesignItem> changedItems,
+    bool rebuildLayerPanel,
+    bool rebuildInteractionLayer,
+    bool updateSelection,
+    bool zIndexChanged) : EventArgs
+{
+    public IReadOnlyList<FrontedControlDesignItem> ChangedItems { get; } = changedItems;
+
+    public bool RebuildLayerPanel { get; } = rebuildLayerPanel;
+
+    public bool RebuildInteractionLayer { get; } = rebuildInteractionLayer;
+
+    public bool UpdateSelection { get; } = updateSelection;
+
+    public bool ZIndexChanged { get; } = zIndexChanged;
+
+    public bool Applied { get; private set; } = true;
+
+    public string? FailureReason { get; private set; }
+
+    public void RequestFullRenderFallback(string reason)
+    {
+        Applied = false;
+        FailureReason = reason;
+    }
+}
+
+internal sealed class FrontedDesignerSnapshotDiff(
+    bool CanRestoreGeometryOnly,
+    bool OrderChanged,
+    bool ZIndexChanged,
+    string Reason)
+{
+    public bool CanRestoreGeometryOnly { get; } = CanRestoreGeometryOnly;
+
+    public bool OrderChanged { get; } = OrderChanged;
+
+    public bool ZIndexChanged { get; } = ZIndexChanged;
+
+    public string Reason { get; } = Reason;
+}
+
+internal static class FrontedDesignerSnapshotRestorePlanner
+{
+    private static readonly string[] GeometryProperties =
+    [
+        nameof(FrontedControlConfigBase.Left),
+        nameof(FrontedControlConfigBase.Top),
+        nameof(FrontedControlConfigBase.Width),
+        nameof(FrontedControlConfigBase.Height),
+        nameof(FrontedControlConfigBase.ZIndex),
+        nameof(BorderedImageFrontedControlConfig.ImageWidth),
+        nameof(BorderedImageFrontedControlConfig.ImageHeight)
+    ];
+
+    public static FrontedDesignerSnapshotDiff CreatePlan(
+        FrontedCanvasConfig current,
+        FrontedCanvasConfig target)
+    {
+        if (current.Version != target.Version
+            || Math.Abs(current.CanvasWidth - target.CanvasWidth) >= 0.0001D
+            || Math.Abs(current.CanvasHeight - target.CanvasHeight) >= 0.0001D
+            || !string.Equals(current.BackgroundImage, target.BackgroundImage, StringComparison.Ordinal)
+            || !JsonEquivalent(current.RequiredPlugins, target.RequiredPlugins))
+        {
+            return Fail("canvas/window config changed");
+        }
+
+        if (current.Controls.Count != target.Controls.Count)
+        {
+            return Fail("control count changed");
+        }
+
+        var currentNames = current.Controls.Keys.ToArray();
+        var targetNames = target.Controls.Keys.ToArray();
+        var orderChanged = !currentNames.SequenceEqual(targetNames, StringComparer.Ordinal);
+        if (!currentNames.OrderBy(name => name, StringComparer.Ordinal)
+                .SequenceEqual(targetNames.OrderBy(name => name, StringComparer.Ordinal), StringComparer.Ordinal))
+        {
+            return Fail("control names changed");
+        }
+
+        var zIndexChanged = false;
+        foreach (var (name, targetControl) in target.Controls)
+        {
+            var currentControl = current.Controls[name];
+            if (!string.Equals(currentControl.ControlType, targetControl.ControlType, StringComparison.Ordinal)
+                || currentControl.GetType() != targetControl.GetType())
+            {
+                return Fail($"control identity changed: {name}");
+            }
+
+            if (!JsonEquivalentWithoutGeometry(currentControl, targetControl))
+            {
+                return Fail($"non-geometry property changed: {name}");
+            }
+
+            zIndexChanged |= currentControl.ZIndex != targetControl.ZIndex;
+        }
+
+        return new FrontedDesignerSnapshotDiff(
+            CanRestoreGeometryOnly: true,
+            OrderChanged: orderChanged,
+            ZIndexChanged: zIndexChanged,
+            Reason: "geometry-only");
+    }
+
+    private static FrontedDesignerSnapshotDiff Fail(string reason)
+    {
+        return new FrontedDesignerSnapshotDiff(false, false, false, reason);
+    }
+
+    private static bool JsonEquivalentWithoutGeometry(
+        FrontedControlConfigBase current,
+        FrontedControlConfigBase target)
+    {
+        return string.Equals(
+            CanonicalNonGeometryJson(current),
+            CanonicalNonGeometryJson(target),
+            StringComparison.Ordinal);
+    }
+
+    private static string CanonicalNonGeometryJson(FrontedControlConfigBase config)
+    {
+        var json = JsonSerializer.Serialize(config, config.GetType());
+        var node = JsonNode.Parse(json)?.AsObject()
+                   ?? throw new InvalidOperationException("Failed to parse fronted control config JSON.");
+        foreach (var property in GeometryProperties)
+        {
+            node.Remove(property);
+        }
+
+        return node.ToJsonString();
+    }
+
+    private static bool JsonEquivalent<T>(T current, T target)
+    {
+        return string.Equals(
+            JsonSerializer.Serialize(current),
+            JsonSerializer.Serialize(target),
+            StringComparison.Ordinal);
+    }
 }

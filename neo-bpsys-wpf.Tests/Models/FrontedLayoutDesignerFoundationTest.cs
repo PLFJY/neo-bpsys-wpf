@@ -1186,7 +1186,7 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void UndoRestoresPreviewImmediatelyAndSchedulesValidationOnly()
+    public void UndoFallsBackToScheduledAtomicPreviewForAddDeleteRestore()
     {
         var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([]) };
         viewModel.AddControlCommand.Execute(new FrontedAddControlRequest { ControlType = "Text" });
@@ -1207,16 +1207,215 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Empty(viewModel.CurrentDocument!.Controls);
         Assert.True(viewModel.HasPendingScheduledDesignerWork);
-        Assert.False(viewModel.IsRestoringSnapshotVisuals);
+        Assert.True(viewModel.IsRestoringSnapshotVisuals);
         Assert.Contains(true, selectedRestoreStates);
-        Assert.Equal([true], previewRestoreStates);
+        Assert.Empty(previewRestoreStates);
         Assert.Equal(0, viewModel.ScheduledDesignerValidationExecutionCount);
         Assert.Equal(0, viewModel.ScheduledDesignerPreviewExecutionCount);
 
         viewModel.ExecuteScheduledDesignerWorkForTests();
 
         Assert.Equal(1, viewModel.ScheduledDesignerValidationExecutionCount);
+        Assert.Equal(1, viewModel.ScheduledDesignerPreviewExecutionCount);
+        Assert.Equal([true], previewRestoreStates);
+        Assert.False(viewModel.IsRestoringSnapshotVisuals);
+    }
+
+    [Fact]
+    public void UndoGeometryOnlyMoveRestoresInPlaceAndSchedulesValidationOnly()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Left = 10, Top = 20, Width = 100, Height = 30 }
+        };
+        var document = CreateDocument([title]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(title);
+
+        var currentDocumentChanges = 0;
+        var previewRequests = 0;
+        var patchRequests = 0;
+        viewModel.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(FrontedDesignerWindowViewModel.CurrentDocument))
+            {
+                currentDocumentChanges++;
+            }
+        };
+        viewModel.PreviewRenderRequested += (_, _) => previewRequests++;
+        viewModel.DesignerGeometryPatchRequested += (_, e) =>
+        {
+            patchRequests++;
+            Assert.Contains(title, e.ChangedItems);
+            Assert.True(e.UpdateSelection);
+        };
+
+        viewModel.MoveSelectedDesignItemBy(5, 7);
+        previewRequests = 0;
+
+        viewModel.UndoCommand.Execute(null);
+
+        Assert.Same(document, viewModel.CurrentDocument);
+        Assert.Equal(0, currentDocumentChanges);
+        Assert.Equal(10, title.Config.Left);
+        Assert.Equal(20, title.Config.Top);
+        Assert.Equal(1, patchRequests);
+        Assert.Equal(0, previewRequests);
+        Assert.True(viewModel.HasPendingScheduledDesignerWork);
+
+        viewModel.ExecuteScheduledDesignerWorkForTests();
+
+        Assert.Equal(1, viewModel.ScheduledDesignerValidationExecutionCount);
         Assert.Equal(0, viewModel.ScheduledDesignerPreviewExecutionCount);
+    }
+
+    [Fact]
+    public void UndoGeometryOnlyResizeRestoresInPlace()
+    {
+        var image = new FrontedControlDesignItem
+        {
+            Name = "Image",
+            Config = new BorderedImageFrontedControlConfig
+            {
+                Left = 10,
+                Top = 20,
+                Width = 100,
+                Height = 80,
+                ImageWidth = 90,
+                ImageHeight = 70
+            }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([image]) };
+        viewModel.SelectDesignItem(image);
+        viewModel.BorderedImageResizeTarget = FrontedDesignerResizeTarget.Image;
+
+        viewModel.CaptureUndoSnapshot();
+        var config = Assert.IsType<BorderedImageFrontedControlConfig>(image.Config);
+        config.ImageWidth = 120;
+        config.ImageHeight = 100;
+        viewModel.CurrentDocument!.IsDirty = true;
+
+        viewModel.UndoCommand.Execute(null);
+
+        Assert.Equal(90, config.ImageWidth);
+        Assert.Equal(70, config.ImageHeight);
+        Assert.True(viewModel.HasPendingScheduledDesignerWork);
+    }
+
+    [Fact]
+    public void UndoGeometryOnlyZIndexAndOrderRestoresInPlace()
+    {
+        var first = new FrontedControlDesignItem { Name = "First", Config = new TextFrontedControlConfig { ZIndex = 1 } };
+        var second = new FrontedControlDesignItem { Name = "Second", Config = new TextFrontedControlConfig { ZIndex = 1 } };
+        var document = CreateDocument([first, second]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        Assert.True(viewModel.CommitLayerDrop(second, 2, first, insertAfter: false));
+        viewModel.ExecuteScheduledDesignerWorkForTests();
+
+        var previewRequests = 0;
+        var patchRequests = 0;
+        viewModel.PreviewRenderRequested += (_, _) => previewRequests++;
+        viewModel.DesignerGeometryPatchRequested += (_, e) =>
+        {
+            patchRequests++;
+            Assert.True(e.RebuildInteractionLayer);
+            Assert.True(e.ZIndexChanged);
+        };
+
+        viewModel.UndoCommand.Execute(null);
+
+        Assert.Same(document, viewModel.CurrentDocument);
+        Assert.Equal(["First", "Second"], document.Controls.Select(item => item.Name));
+        Assert.Equal(1, second.Config.ZIndex);
+        Assert.Equal(1, patchRequests);
+        Assert.Equal(0, previewRequests);
+    }
+
+    [Fact]
+    public void UndoNonGeometryTextChangeSchedulesFullRestoreWithoutImmediatePreview()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Text = "Old" }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([title]) };
+        viewModel.SelectDesignItem(title);
+        viewModel.ApplyPropertyEdit(
+            new FrontedPropertyEditorItem
+            {
+                PropertyName = nameof(TextFrontedControlConfig.Text),
+                EditorKind = FrontedPropertyEditorKind.Text
+            },
+            "New");
+
+        var previewRequests = 0;
+        viewModel.PreviewRenderRequested += (_, _) => previewRequests++;
+
+        viewModel.UndoCommand.Execute(null);
+
+        Assert.Equal("Old", ((TextFrontedControlConfig)viewModel.CurrentDocument!.Controls[0].Config).Text);
+        Assert.Equal(0, previewRequests);
+        Assert.True(viewModel.IsRestoringSnapshotVisuals);
+        Assert.True(viewModel.HasPendingScheduledDesignerWork);
+
+        viewModel.ExecuteScheduledDesignerWorkForTests();
+
+        Assert.Equal(1, previewRequests);
+        Assert.False(viewModel.IsRestoringSnapshotVisuals);
+    }
+
+    [Fact]
+    public void UndoPluginAndMissingPluginGeometryOnlyChangesUseFastPath()
+    {
+        var installedPlugin = new FrontedControlDesignItem
+        {
+            Name = "TeamCard",
+            Config = new PluginFrontedControlConfig
+            {
+                ControlType = "plugin:top.plfjy.example.fronted/TeamCard",
+                Left = 10,
+                Top = 20,
+                ExtensionData =
+                {
+                    ["TeamNameBindingPath"] = JsonSerializer.SerializeToElement("CurrentGame.SurTeam.Name")
+                }
+            }
+        };
+        var missingPlugin = new FrontedControlDesignItem
+        {
+            Name = "MissingTeamCard",
+            Config = new PluginFrontedControlConfig
+            {
+                ControlType = "plugin:top.plfjy.missing/TeamCard",
+                Left = 30,
+                Top = 40
+            }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel
+        {
+            CurrentDocument = CreateDocument([installedPlugin, missingPlugin])
+        };
+        viewModel.SelectDesignItem(installedPlugin);
+        viewModel.CaptureUndoSnapshot();
+        installedPlugin.Config.Left = 50;
+        missingPlugin.Config.Left = 60;
+        viewModel.CurrentDocument!.IsDirty = true;
+
+        var patchRequests = 0;
+        viewModel.DesignerGeometryPatchRequested += (_, e) =>
+        {
+            patchRequests++;
+            Assert.Contains(installedPlugin, e.ChangedItems);
+            Assert.Contains(missingPlugin, e.ChangedItems);
+        };
+
+        viewModel.UndoCommand.Execute(null);
+
+        Assert.Equal(10, installedPlugin.Config.Left);
+        Assert.Equal(30, missingPlugin.Config.Left);
+        Assert.Equal(1, patchRequests);
     }
 
     [Fact]

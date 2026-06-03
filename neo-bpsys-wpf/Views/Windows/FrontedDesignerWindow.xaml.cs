@@ -41,6 +41,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private ValidationDetailsWindow? _validationDetailsWindow;
     private FrontedDesignerHelpWindow? _helpWindow;
     private readonly Dictionary<FrontedControlDesignItem, Border> _hitboxes = new();
+    private readonly Dictionary<string, FrameworkElement> _previewElementsByControlName = new(StringComparer.Ordinal);
     private readonly Dictionary<FrontedDesignerResizeHandleKind, Border> _resizeHandles = new();
     private readonly List<Line> _snapGuideLines = [];
     private Border? _selectionOutline;
@@ -118,6 +119,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         if (_viewModel is not null)
         {
             _viewModel.PreviewRenderRequested -= OnPreviewRenderRequested;
+            _viewModel.DesignerGeometryPatchRequested -= OnDesignerGeometryPatchRequested;
             _viewModel.PropertyChanged -= ViewModel_OnPropertyChanged;
             _viewModel.PropertyEditorItems.CollectionChanged -= PropertyEditorItems_OnCollectionChanged;
         }
@@ -939,6 +941,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         _viewModel = viewModel;
         _viewModel.PreviewRenderRequested += OnPreviewRenderRequested;
+        _viewModel.DesignerGeometryPatchRequested += OnDesignerGeometryPatchRequested;
         _viewModel.PropertyChanged += ViewModel_OnPropertyChanged;
         _viewModel.PropertyEditorItems.CollectionChanged += PropertyEditorItems_OnCollectionChanged;
     }
@@ -1357,6 +1360,8 @@ public partial class FrontedDesignerWindow : FluentWindow
             LogDesignerPerf("PreviewRender", "configure surface", Elapsed(total));
             _renderer.RenderToCanvas(PreviewCanvas, e.Config, e.Context);
             LogDesignerPerf("PreviewRender", "render canvas", Elapsed(total));
+            PopulatePreviewElementRegistry();
+            LogDesignerPerf("PreviewRender", "populate element registry", Elapsed(total));
             PreviewCanvas.UpdateLayout();
             LogDesignerPerf("PreviewRender", "update layout", Elapsed(total));
             RebuildInteractionLayer();
@@ -1398,6 +1403,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     {
         _viewModel?.ClearActiveSnapGuides();
         PreviewCanvas.Children.Clear();
+        _previewElementsByControlName.Clear();
         PreviewCanvas.Background = null;
         ConfigureDesignSurface(640, 360);
         InteractionLayer.Children.Clear();
@@ -1407,6 +1413,181 @@ public partial class FrontedDesignerWindow : FluentWindow
         _selectionOutline = null;
         _selectionLabel = null;
         ResetPointerInteraction();
+    }
+
+    private void PopulatePreviewElementRegistry()
+    {
+        _previewElementsByControlName.Clear();
+        foreach (var element in EnumerateFrameworkElements(PreviewCanvas))
+        {
+            var name = FrontedRendererProperties.GetRegisteredName(element);
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                name = element.Name;
+            }
+
+            if (!string.IsNullOrWhiteSpace(name)
+                && FrontedRendererProperties.GetIsGeneratedControl(element)
+                && !_previewElementsByControlName.ContainsKey(name))
+            {
+                _previewElementsByControlName[name] = element;
+            }
+        }
+    }
+
+    private void OnDesignerGeometryPatchRequested(
+        object? sender,
+        FrontedDesignerGeometryPatchRequestedEventArgs e)
+    {
+        var total = StartDesignerPerfTrace();
+        if (_viewModel?.CurrentDocument is null)
+        {
+            e.RequestFullRenderFallback("document missing");
+            return;
+        }
+
+        if (!TryApplyPreviewGeometryPatch(e.ChangedItems, e.ZIndexChanged, out var failureReason))
+        {
+            e.RequestFullRenderFallback(failureReason);
+            LogDesignerPerf("PreviewPatch", $"fallback: {failureReason}", Elapsed(total));
+            return;
+        }
+
+        if (e.RebuildLayerPanel || e.ZIndexChanged)
+        {
+            ReorderPreviewChildrenToDocument();
+        }
+
+        if (e.RebuildInteractionLayer)
+        {
+            RebuildInteractionLayer();
+        }
+        else
+        {
+            UpdatePatchedHitboxes(e.ChangedItems);
+            if (e.UpdateSelection)
+            {
+                UpdateSelectedInteractionVisuals();
+            }
+        }
+
+        _viewModel.ClearActiveSnapGuides();
+        RenderSnapGuides();
+        LogDesignerPerf("PreviewPatch", $"update element count {e.ChangedItems.Count}", Elapsed(total));
+    }
+
+    private bool TryApplyPreviewGeometryPatch(
+        IReadOnlyList<FrontedControlDesignItem> changedItems,
+        bool zIndexChanged,
+        out string failureReason)
+    {
+        failureReason = string.Empty;
+        foreach (var item in changedItems)
+        {
+            if (FindPreviewElement(item.Name) is null)
+            {
+                failureReason = $"preview element missing: {item.Name}";
+                return false;
+            }
+        }
+
+        foreach (var item in changedItems)
+        {
+            var element = FindPreviewElement(item.Name)!;
+            ApplyPreviewElementGeometry(element, item);
+            if (zIndexChanged)
+            {
+                Panel.SetZIndex(element, item.Config.ZIndex);
+            }
+        }
+
+        return true;
+    }
+
+    private void ApplyPreviewElementGeometry(FrameworkElement element, FrontedControlDesignItem item)
+    {
+        Canvas.SetLeft(element, item.Config.Left);
+        Canvas.SetTop(element, item.Config.Top);
+
+        if (item.Config.Width.HasValue)
+        {
+            element.Width = item.Config.Width.Value;
+        }
+
+        if (item.Config.Height.HasValue)
+        {
+            element.Height = item.Config.Height.Value;
+        }
+
+        if (item.Config is BorderedImageFrontedControlConfig imageConfig)
+        {
+            UpdateBorderedImageInnerPreviewElement(element, imageConfig);
+        }
+    }
+
+    private void UpdatePatchedHitboxes(IReadOnlyList<FrontedControlDesignItem> changedItems)
+    {
+        foreach (var item in changedItems)
+        {
+            if (!_hitboxes.TryGetValue(item, out var hitbox))
+            {
+                continue;
+            }
+
+            var bounds = ResolveItemBounds(item);
+            hitbox.Width = bounds.Width;
+            hitbox.Height = bounds.Height;
+            Canvas.SetLeft(hitbox, bounds.Left);
+            Canvas.SetTop(hitbox, bounds.Top);
+        }
+    }
+
+    private void ReorderPreviewChildrenToDocument()
+    {
+        if (_viewModel?.CurrentDocument is null)
+        {
+            return;
+        }
+
+        var desiredOrder = _viewModel.CurrentDocument.Controls
+            .Select((item, index) => new { item.Name, item.Config.ZIndex, Index = index })
+            .OrderBy(entry => entry.ZIndex)
+            .ThenBy(entry => entry.Index)
+            .Select(entry => entry.Name)
+            .ToList();
+        var generatedChildren = desiredOrder
+            .Select(FindPreviewElement)
+            .Where(element => element is not null)
+            .Cast<UIElement>()
+            .ToList();
+
+        foreach (var child in generatedChildren)
+        {
+            PreviewCanvas.Children.Remove(child);
+        }
+
+        foreach (var child in generatedChildren)
+        {
+            PreviewCanvas.Children.Add(child);
+        }
+    }
+
+    private static IEnumerable<FrameworkElement> EnumerateFrameworkElements(DependencyObject parent)
+    {
+        var childCount = VisualTreeHelper.GetChildrenCount(parent);
+        for (var i = 0; i < childCount; i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if (child is FrameworkElement element)
+            {
+                yield return element;
+            }
+
+            foreach (var nested in EnumerateFrameworkElements(child))
+            {
+                yield return nested;
+            }
+        }
     }
 
     private void ConfigureDesignSurface(double width, double height)
@@ -2224,18 +2405,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
-        Canvas.SetLeft(element, item.Config.Left);
-        Canvas.SetTop(element, item.Config.Top);
-
-        if (item.Config.Width.HasValue)
-        {
-            element.Width = item.Config.Width.Value;
-        }
-
-        if (item.Config.Height.HasValue)
-        {
-            element.Height = item.Config.Height.Value;
-        }
+        ApplyPreviewElementGeometry(element, item);
     }
 
     private FrameworkElement? FindPreviewElement(string name)
@@ -2243,6 +2413,11 @@ public partial class FrontedDesignerWindow : FluentWindow
         if (string.IsNullOrWhiteSpace(name))
         {
             return null;
+        }
+
+        if (_previewElementsByControlName.TryGetValue(name, out var registeredElement))
+        {
+            return registeredElement;
         }
 
         if (PreviewCanvas.FindName(name) is FrameworkElement canvasNameMatch)
