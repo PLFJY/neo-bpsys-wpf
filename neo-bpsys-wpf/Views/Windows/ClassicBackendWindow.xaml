@@ -801,6 +801,7 @@
                                         </MultiBinding>
                                     </TextBlock.Text>
                                 </TextBlock>
+                                <TextBlock Text="{lex:Loc Survivor}" />
                                 <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding HomeSurGlobalBanRecordViewModelList}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -817,6 +818,7 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
+                                <TextBlock Text="{lex:Loc Hunter}" />
                                 <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding HomeHunGlobalBanRecordViewModelList}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -841,6 +843,7 @@
                                         </MultiBinding>
                                     </TextBlock.Text>
                                 </TextBlock>
+                                <TextBlock Text="{lex:Loc Survivor}" />
                                 <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding AwaySurGlobalBanRecordViewModelList}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -857,6 +860,7 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
+                                <TextBlock Text="{lex:Loc Hunter}" />
                                 <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding AwayHunGlobalBanRecordViewModelList}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
