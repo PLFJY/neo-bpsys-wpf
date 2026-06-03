@@ -5047,15 +5047,6 @@ namespace neo_bpsys_wpf.Locales {
         }
 
         /// <summary>
-        ///   查找类似 打开布局目录 的本地化字符串。
-        /// </summary>
-        public static string OpenLayoutFolder {
-            get {
-                return ResourceManager.GetString("OpenLayoutFolder", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   查找类似 打开日志目录 的本地化字符串。
         /// </summary>
         public static string OpenLogDirectory {

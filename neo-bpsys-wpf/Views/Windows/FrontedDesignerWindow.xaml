@@ -305,8 +305,6 @@
                                 InputGestureText="Ctrl+S" />
                             <MenuItem Click="ReloadLayoutButton_OnClick" Header="{lex:Loc ReloadLayout}" />
                             <MenuItem Click="ResetToBuiltInButton_OnClick" Header="{lex:Loc ResetToBuiltIn}" />
-                            <Separator />
-                            <MenuItem Command="{Binding OpenLayoutFolderCommand}" Header="{lex:Loc OpenLayoutFolder}" />
                             <MenuItem Command="{Binding ValidateLayoutCommand}" Header="{lex:Loc ValidationDetails}" />
                         </MenuItem>
                         <MenuItem Header="{lex:Loc Edit}">

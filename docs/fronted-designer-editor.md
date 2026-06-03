@@ -1,6 +1,6 @@
 # Fronted Designer v3 独立编辑器设计规格
 
-本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；Phase 8D 已新增编辑器内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调，并在 owner validation 后补齐左侧控件列表、筛选和重叠控件选择语义。Phase 8D zoom/pan 修正后，编辑 surface 不再使用 `Viewbox` 控制 Fit/手动缩放，而是使用 `ScrollViewer + PreviewZoomHost + LayoutTransform`，所有缩放统一由 `ZoomScale` 驱动。Phase 8E 已新增基础 Property Grid，可编辑选中控件的内存设计项并即时重渲染预览；owner validation 后改为按编辑器类型实例化单一模板，提交事件在属性网格重建期间被抑制，验证详情移入底部状态区弹窗，颜色字段使用 ColorPicker。Phase 8F 已新增 Add Control 菜单、默认 config 工厂、唯一命名和 `FontFamily` 字体 ComboBox；owner validation 修正后补齐 Delete Control、文本属性显式提交、失败编辑红框保留输入、字体下拉打开/提交时机修复和右侧 Property Grid 可拖拽宽度。Phase 8F foundation 修复后，设计器预览使用独立 placeholder shared data service，颜色选择只同步 Hex 缓冲并由 Apply/Enter 显式提交，左侧列表右键和 Property Grid 底部都可删除控件，并新增内存 Undo/Redo 按钮和快捷键。Phase 8G 已新增 Binding Browser 和 Resource Browser；浏览器选择只写入属性行 `EditText` 缓冲，仍需 Apply 或 Enter 才提交到内存设计文档。Phase 8H 已新增保存用户布局、重置为内置、打开布局目录、运行时用户布局优先级、脏状态提示和吸附开关。Phase 9A 已定义 `.bpui v3` 布局包标准，见 [bpui-package-v3.md](bpui-package-v3.md)。Phase 9B.1 已新增 `FrontManagePage` Layout Packages 管理器骨架，可列出系统内置包、已安装包和活动包状态；同时清理设计器重复入口，Delete 保留在 Edit menu 和左侧列表右键菜单，右侧 Property Grid 底部 Delete 已移除。编辑器入口位于 `FrontManagePage`，不是 `SettingPage`。Phase 9C 已实现 v3 `.bpui` 导出和资源打包；Phase 12 已新增 Designer v3 显示层 i18n，属性名、控件类型、窗口/Canvas 选择器、Binding Browser 常用节点和 ComboBox 选项可本地化，但 layout schema 与保存值不变。Phase 14A 已优化 Paste / Delete / Undo / Redo 的交互响应：选择状态改为增量切换，粘贴和删除对左侧过滤列表做定向更新，校验与预览渲染延后到 Dispatcher 后台并合并，保存和显式 Validate 仍立即执行完整校验。
+本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；Phase 8D 已新增编辑器内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调，并在 owner validation 后补齐左侧控件列表、筛选和重叠控件选择语义。Phase 8D zoom/pan 修正后，编辑 surface 不再使用 `Viewbox` 控制 Fit/手动缩放，而是使用 `ScrollViewer + PreviewZoomHost + LayoutTransform`，所有缩放统一由 `ZoomScale` 驱动。Phase 8E 已新增基础 Property Grid，可编辑选中控件的内存设计项并即时重渲染预览；owner validation 后改为按编辑器类型实例化单一模板，提交事件在属性网格重建期间被抑制，验证详情移入底部状态区弹窗，颜色字段使用 ColorPicker。Phase 8F 已新增 Add Control 菜单、默认 config 工厂、唯一命名和 `FontFamily` 字体 ComboBox；owner validation 修正后补齐 Delete Control、文本属性显式提交、失败编辑红框保留输入、字体下拉打开/提交时机修复和右侧 Property Grid 可拖拽宽度。Phase 8F foundation 修复后，设计器预览使用独立 placeholder shared data service，颜色选择只同步 Hex 缓冲并由 Apply/Enter 显式提交，左侧列表右键和 Property Grid 底部都可删除控件，并新增内存 Undo/Redo 按钮和快捷键。Phase 8G 已新增 Binding Browser 和 Resource Browser；浏览器选择只写入属性行 `EditText` 缓冲，仍需 Apply 或 Enter 才提交到内存设计文档。Phase 8H 已新增保存用户布局、重置为内置、运行时用户布局优先级、脏状态提示和吸附开关。Phase 9A 已定义 `.bpui v3` 布局包标准，见 [bpui-package-v3.md](bpui-package-v3.md)。Phase 9B.1 已新增 `FrontManagePage` Layout Packages 管理器骨架，可列出系统内置包、已安装包和活动包状态；同时清理设计器重复入口，Delete 保留在 Edit menu 和左侧列表右键菜单，右侧 Property Grid 底部 Delete 已移除。编辑器入口位于 `FrontManagePage`，不是 `SettingPage`。Phase 9C 已实现 v3 `.bpui` 导出和资源打包；Phase 12 已新增 Designer v3 显示层 i18n，属性名、控件类型、窗口/Canvas 选择器、Binding Browser 常用节点和 ComboBox 选项可本地化，但 layout schema 与保存值不变。Phase 14A 已优化 Paste / Delete / Undo / Redo 的交互响应：选择状态改为增量切换，粘贴和删除对左侧过滤列表做定向更新，校验与预览渲染延后到 Dispatcher 后台并合并，保存和显式 Validate 仍立即执行完整校验。
 
 独立编辑器面向 v3 JSON layout 文件。它是后台侧的独立编辑窗口，不直接在真实前台窗口上编辑；真实前台窗口仍用于 OBS 捕获和运行时输出。编辑器必须同时支持单 Canvas 窗口和多 Canvas 窗口，并保持与现有 v3 renderer、生成控件名、`AnimationService`、业务控件和 JSON 格式兼容。
 
@@ -690,7 +690,6 @@ neo-bpsys-wpf/Resources/FrontedLayouts/{WindowName}/{CanvasName}.json
 
 1. Save
 2. Reset to Built-in
-3. Open Layout Folder
 
 保存前：
 
@@ -698,7 +697,7 @@ neo-bpsys-wpf/Resources/FrontedLayouts/{WindowName}/{CanvasName}.json
 2. 存在 Error 时保存失败。
 3. 只有 Warning 时可允许用户确认后保存。
 
-Phase 8H 起，Save 只写入 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowName}/{CanvasName}.json`，绝不覆盖源码或发布目录中的 `Resources/FrontedLayouts`。Reset to Built-in 会删除当前 Canvas 的用户布局文件并重新加载内置布局，清空 undo/redo、选择和筛选。Open Layout Folder 打开当前用户布局文件所在目录，目录不存在时会先创建。
+Phase 9B.1 起，设计器保存写入当前活动 layout package；当前活动项为内置方案时，保存会先复制出一个可写的用户布局方案并激活它。旧 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowName}/{CanvasName}.json` 目录仅作为兼容读取和迁移残留存在，不再通过设计器菜单暴露。Reset to Built-in 会删除旧用户布局文件并重新加载内置布局，清空 undo/redo、选择和筛选。打开布局包目录统一在 `FrontManagePage` 的 `Layout Packages` 管理区执行。
 
 `.bpui v3` package 导出/导入已放到 `FrontManagePage` 的 `Layout Packages` tab。导出会打开 manifest 对话框，并固定导出全部已迁移前台布局；导入会安装 v3 包并可立即激活。SettingPage 中现有 `.bpui` 导入导出是 legacy 流程，会覆盖全局 `Config.json`，不能作为 Designer v3 包管理入口。
 
@@ -706,7 +705,7 @@ Phase 8H 起，Save 只写入 `%APPDATA%/neo-bpsys-wpf/FrontedLayouts/{WindowNam
 
 窗口/Canvas 切换、Reload、Reset to Built-in 和关闭编辑器时，如果当前文档 dirty，会通过 `MessageBoxHelper` 提示 Save / Discard / Cancel。Save 会先执行完整校验，存在 Error 时阻止保存并取消切换或关闭；Warning/Info 不阻止保存。关闭窗口的 dirty prompt 必须先在 `Closing` 中设置 `e.Cancel = true`，再通过 Dispatcher 异步显示本地化的宽版 helper 对话框；用户选择 Save 且保存成功或选择 Discard 后，设置强制关闭标记并再次调用 `Close()`。这样避免 WPF 在窗口已经进入 closing 状态时执行 `ShowDialog` / `Close` 触发异常。验证详情窗口是非模态子窗口，父编辑器关闭时只做受保护关闭，已关闭或正在关闭时不能让异常冒泡。
 
-顶部工具栏从 Phase 8H owner validation 修正后使用 `ScrollViewer + WrapPanel`，窗口选择器、Canvas 选择器、Add/Delete、Undo/Redo、保存/重置/打开目录、reload/validate、缩放、吸附和 dirty/path 状态都允许在窄窗口下自动换行。长 layout path 只显示省略文本并通过 tooltip 查看完整路径，不能把工具栏撑出窗口右侧。
+顶部工具栏从 Phase 8H owner validation 修正后使用 `ScrollViewer + WrapPanel`，窗口选择器、Canvas 选择器、Add/Delete、Undo/Redo、保存/重置、reload/validate、缩放、吸附和 dirty/path 状态都允许在窄窗口下自动换行。长 layout path 只显示省略文本并通过 tooltip 查看完整路径，不能把工具栏撑出窗口右侧。
 
 吸附行为从 Phase 8H 开始改为默认关闭：`SnapEnabled` 是工具栏 ToggleSwitch 的持久开关，`IsShiftSnapActive` 只表示编辑 surface 中 Shift 当前按下，`EffectiveSnapEnabled = SnapEnabled || IsShiftSnapActive`。Shift 临时吸附只更新状态文字，例如“临时吸附”，不会修改 ToggleSwitch 的 `IsChecked`，避免 KeyDown/KeyUp 时反复刷新开关。鼠标拖拽和缩放在 `EffectiveSnapEnabled` 为 true 时优先尝试智能对齐：活动控件的 left/center/right 或 top/center/bottom 可吸附到画布边缘、画布中心线以及其他可选择、可编辑、非 linked overlay 控件的边缘/中心；未命中智能候选的轴继续按默认 10 px 网格吸附。关闭时仍按 0.5 坐标精度归一化。方向键在吸附开启时使用网格步长，普通模式保留 0.5/修饰键微调语义。智能吸附产生的辅助线只作为 `InteractionLayer` 上的临时 `Line` 元素显示，不写入 `PreviewCanvas`，也不会序列化到 v3 layout 或 `.bpui`。
 
@@ -722,7 +721,7 @@ Phase 10 起，编辑器 typed/pasted input 会按集中限制截断：搜索 12
 | Phase 8E | 已实现：基础 Property Grid、Text/Number/Boolean/Enum/ColorPicker 编辑、对齐/换行/拉伸/字重字符串选项 ComboBox、保守 Name 编辑、运行时关键名称只读、被引用控件改名阻止；owner validation 后验证详情移至底部状态区弹窗，属性重建期间抑制提交，live 拖拽不重建属性网格；仍只改内存，不保存用户布局 |
 | Phase 8F | 已实现：Add Control 菜单、默认 config factory、唯一命名、视口中心放置、独立 placeholder preview data、FontFamily 字体 ComboBox、ColorPicker Hex 缓冲显式提交、左侧右键/Property Grid 底部删除、基础内存 Undo/Redo；仍只改内存，不保存用户布局。Phase 9B.1 后右侧 Property Grid 底部删除按钮已移除。 |
 | Phase 8G | Binding Browser、Resource Browser |
-| Phase 8H | 已实现：用户 layout save/reset/load priority、validation-driven save、打开布局目录、dirty prompt 和 snap-to-grid |
+| Phase 8H | 已实现：用户 layout save/reset/load priority、validation-driven save、dirty prompt 和 snap-to-grid。布局包化后，目录入口统一由 `FrontManagePage` 的 Layout Packages 管理区提供。 |
 | Phase 9B.0: Canvas Properties GUI, local bpui resource normalization, toolbar cleanup, and Window Options foundation | 已实现：Canvas Properties GUI，包含 `CanvasWidth`、`CanvasHeight`、`BackgroundImage`，并将本地图片规范化为 `bpui://local/...`；工具栏整理为主按钮和二级菜单；新增窗口级 Window Options 基础。 |
 | Phase 9B.1: FrontManagePage Layout Package Manager UI skeleton | 已实现：`FrontManagePage` 的 `Frontend Windows` / `Layout Packages` 顶层 tabs、Layout Packages tab skeleton、布局包枚举服务基础、活动包状态读取/写入骨架，以及设计器工具栏/菜单重复项清理；独立编辑器入口保留在 `Frontend Windows` 页，不单独占用 tab。 |
 | Phase 9C: v3 package export | 已实现：Layout Package Manager 紧凑 UI、导出 manifest 对话框、All Frontend Layouts 导出、manifest 生成、layout/window options 打包、资源复制和 URI 重写。 |

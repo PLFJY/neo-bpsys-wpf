@@ -2194,9 +2194,6 @@
   <data name="ResetToBuiltIn" xml:space="preserve">
     <value>組み込みにリセット</value>
   </data>
-  <data name="OpenLayoutFolder" xml:space="preserve">
-    <value>レイアウトフォルダーを開く</value>
-  </data>
   <data name="Unsaved" xml:space="preserve">
     <value>未保存</value>
   </data>

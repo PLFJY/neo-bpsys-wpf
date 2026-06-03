@@ -349,17 +349,6 @@ public class FrontedLayoutDesignerFoundationTest
     public void BuiltInScoreGlobalLayoutUsesGlobalScoreRowCells()
     {
         var config = ReadBuiltInLayout("ScoreGlobalWindow");
-        var json = File.ReadAllText(Path.GetFullPath(Path.Combine(
-            Environment.CurrentDirectory,
-            "..",
-            "..",
-            "..",
-            "..",
-            "neo-bpsys-wpf",
-            "Resources",
-            "FrontedLayouts",
-            "ScoreGlobalWindow",
-            "BaseCanvas.json")));
 
         var home = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["HomeGlobalScoreRow"]);
         var away = Assert.IsType<GlobalScoreRowControlConfig>(config.Controls["AwayGlobalScoreRow"]);
@@ -378,8 +367,8 @@ public class FrontedLayoutDesignerFoundationTest
             Id: "Game3OvertimeSecondHalf",
             Visibility: FrontedControlVisibility.Collapsed
         });
-        Assert.DoesNotContain("MajorGameGap", json, StringComparison.Ordinal);
-        Assert.DoesNotContain("HalfGameGap", json, StringComparison.Ordinal);
+        Assert.True(home.MajorGameGap > 0);
+        Assert.True(home.HalfGameGap > 0);
     }
 
     [Fact]
@@ -3594,7 +3583,6 @@ public class FrontedLayoutDesignerFoundationTest
             "HexColor",
             "SaveLayout",
             "ResetToBuiltIn",
-            "OpenLayoutFolder",
             "Unsaved",
             "UnsavedChanges",
             "UnsavedChangesMessage",

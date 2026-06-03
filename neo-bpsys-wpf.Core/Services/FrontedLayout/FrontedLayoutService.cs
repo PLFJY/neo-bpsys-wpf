@@ -335,12 +335,6 @@ public class FrontedLayoutService : IFrontedLayoutService
     }
 
     /// <inheritdoc />
-    public string GetUserLayoutFolder(string windowTypeName, string canvasName)
-    {
-        return _userLayoutStore.GetLayoutFolder(windowTypeName, canvasName);
-    }
-
-    /// <inheritdoc />
     public string GetUserLayoutRootFolder()
     {
         return _userLayoutStore.GetRootFolder();

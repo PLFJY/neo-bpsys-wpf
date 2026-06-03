@@ -13,9 +13,9 @@ using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.FrontedDesigner;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -943,34 +943,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         CleanupPendingImportedResources(includeCurrentDocument: false);
         RefreshDirtyState();
         return true;
-    }
-
-    [RelayCommand]
-    private void OpenLayoutFolder()
-    {
-        if (SelectedCanvas is null)
-        {
-            return;
-        }
-
-        var folder = _layoutService.GetUserLayoutFolder(
-            SelectedCanvas.WindowTypeName,
-            SelectedCanvas.CanvasName);
-
-        try
-        {
-            Directory.CreateDirectory(folder);
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = folder,
-                UseShellExecute = true
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to open fronted user layout folder: {Folder}", folder);
-            StatusMessage = $"{I18nHelper.GetLocalizedString("OpenLayoutFolder")}: {ex.Message}";
-        }
     }
 
     public void UpdateShiftSnapActive(bool isActive)

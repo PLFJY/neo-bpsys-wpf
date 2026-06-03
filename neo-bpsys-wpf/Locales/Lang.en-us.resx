@@ -2191,9 +2191,6 @@
   <data name="ResetToBuiltIn" xml:space="preserve">
     <value>Reset to built-in</value>
   </data>
-  <data name="OpenLayoutFolder" xml:space="preserve">
-    <value>Open layout folder</value>
-  </data>
   <data name="Unsaved" xml:space="preserve">
     <value>Unsaved</value>
   </data>

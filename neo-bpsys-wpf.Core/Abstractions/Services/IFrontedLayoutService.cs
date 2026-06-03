@@ -51,11 +51,6 @@ public interface IFrontedLayoutService
     string GetUserLayoutPath(string windowTypeName, string canvasName);
 
     /// <summary>
-    /// 获取用户布局目录。
-    /// </summary>
-    string GetUserLayoutFolder(string windowTypeName, string canvasName);
-
-    /// <summary>
     /// 获取用户布局根目录。
     /// </summary>
     string GetUserLayoutRootFolder();
