@@ -323,7 +323,7 @@ ScorePage button
 | 有结果且该队当半为求生者 | 对应小比分 | 显示求生者图标 |
 | 有结果且该队当半为监管者 | 对应小比分 | 显示监管者图标 |
 
-全局比分格表示 `ScoreGame` 内部的 `ScoreHalf` 结果，由内置 v3 控件 `GlobalScoreRow` 生成。总分显示从 `MatchScoreState` 派生，不再从 `ScoreWindowViewModel` 独有字段或 `FrontedWindowService` UI mutation 派生。BO3/BO5 可见性从 `ISharedDataService.IsBo3Mode` 和显式 `ScoreGameKey` 规则派生，避免依赖 `GameProgress` 原始数值。当前实现不做完整条件布局引擎：BO3 下比分格会隐藏 BO5 后续格，但总分位置保持默认 BO5 布局位置，背景仍使用 v3 layout 的 `BackgroundImage`。
+全局比分格表示 `ScoreGame` 内部的 `ScoreHalf` 结果，由内置 v3 控件 `GlobalScoreRow` 生成。总分显示从 `MatchScoreState` 派生，不再从 `ScoreWindowViewModel` 独有字段或 `FrontedWindowService` UI mutation 派生。BO3/BO5 可见性从 `ISharedDataService.IsBo3Mode` 和显式 `ScoreGameKey` 规则派生，避免依赖 `GameProgress` 原始数值。`ScoreGlobalWindow/BaseCanvas` 的背景仍由 v3 layout 配置决定：BO5 使用 `BackgroundImage`，BO3 优先使用 `BackgroundImageVariants["ScoreGlobal.Bo3"]`，缺失时回退 `BackgroundImage`；窗口订阅 `IsBo3ModeChanged` 后会重新应用 v3 布局，让背景随 BO3/BO5 切换即时刷新。当前实现不做完整条件布局引擎：BO3 下比分格会隐藏 BO5 后续格，但总分位置保持默认 BO5 布局位置。
 
 ## 9. 导入、导出与新建对局
 

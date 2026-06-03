@@ -16,8 +16,12 @@ public partial class ScoreGlobalWindow : FrontedWindowBase
     private const string BaseCanvasName = "BaseCanvas";
     private readonly IFrontedLayoutService? _layoutService;
     private readonly IFrontedRenderer? _renderer;
+    private readonly ISharedDataService? _sharedDataService;
     private readonly ILogger<ScoreGlobalWindow>? _logger;
     private bool _hasRendered;
+    private bool _isBoModeSubscribed;
+    private bool _isReloadingLayout;
+    private bool _reloadRequested;
 
     public ScoreGlobalWindow()
     {
@@ -27,18 +31,24 @@ public partial class ScoreGlobalWindow : FrontedWindowBase
     public ScoreGlobalWindow(
         IFrontedLayoutService layoutService,
         IFrontedRenderer renderer,
+        ISharedDataService sharedDataService,
         ILogger<ScoreGlobalWindow> logger)
     {
         _layoutService = layoutService;
         _renderer = renderer;
+        _sharedDataService = sharedDataService;
         _logger = logger;
 
         InitializeComponent();
         Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
+        Closed += OnClosed;
     }
 
     private async void OnLoaded(object sender, System.Windows.RoutedEventArgs e)
     {
+        SubscribeBoModeChanged();
+
         if (_hasRendered || _layoutService is null || _renderer is null)
         {
             return;
@@ -49,7 +59,41 @@ public partial class ScoreGlobalWindow : FrontedWindowBase
         await ReloadFrontedLayoutAsync();
     }
 
+    private void OnUnloaded(object sender, System.Windows.RoutedEventArgs e)
+    {
+        UnsubscribeBoModeChanged();
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        UnsubscribeBoModeChanged();
+    }
+
     public async Task ReloadFrontedLayoutAsync()
+    {
+        if (_isReloadingLayout)
+        {
+            _reloadRequested = true;
+            return;
+        }
+
+        _isReloadingLayout = true;
+        try
+        {
+            do
+            {
+                _reloadRequested = false;
+                await ReloadFrontedLayoutCoreAsync();
+            }
+            while (_reloadRequested);
+        }
+        finally
+        {
+            _isReloadingLayout = false;
+        }
+    }
+
+    private async Task ReloadFrontedLayoutCoreAsync()
     {
         if (_layoutService is null || _renderer is null)
         {
@@ -83,5 +127,38 @@ public partial class ScoreGlobalWindow : FrontedWindowBase
                 nameof(ScoreGlobalWindow),
                 BaseCanvasName);
         }
+    }
+
+    private void SubscribeBoModeChanged()
+    {
+        if (_sharedDataService is null || _isBoModeSubscribed)
+        {
+            return;
+        }
+
+        _sharedDataService.IsBo3ModeChanged += OnBoModeChanged;
+        _isBoModeSubscribed = true;
+    }
+
+    private void UnsubscribeBoModeChanged()
+    {
+        if (_sharedDataService is null || !_isBoModeSubscribed)
+        {
+            return;
+        }
+
+        _sharedDataService.IsBo3ModeChanged -= OnBoModeChanged;
+        _isBoModeSubscribed = false;
+    }
+
+    private void OnBoModeChanged(object? sender, EventArgs args)
+    {
+        if (Dispatcher.CheckAccess())
+        {
+            _ = ReloadFrontedLayoutAsync();
+            return;
+        }
+
+        _ = Dispatcher.BeginInvoke(new Action(() => _ = ReloadFrontedLayoutAsync()));
     }
 }

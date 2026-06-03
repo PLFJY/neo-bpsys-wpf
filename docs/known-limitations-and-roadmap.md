@@ -92,7 +92,7 @@ Phase 9A 已新增 `.bpui v3` 标准文档，Phase 9C 已实现导出。当前�
 | 边界 | 说明 |
 | --- | --- |
 | `Team.Score` 语义混杂 | 当前仅作为迁移期兼容镜像保留；不要重新让它成为权威状态。新服务中的同步只是 transitional compatibility mirror，不是权威状态，Score 系列默认 v3 布局、CutScene v3 默认布局、GameData v3 默认布局、WidgetsWindow v3 默认布局、BpWindow v3 默认布局和后台 ScorePage 已不再依赖它。 |
-| `ScoreGlobalWindow` BO3 条件布局有限 | v3 `GlobalScoreRow` 会按 BO3/BO5 隐藏比分格，但总分位置和背景仍采用固定 layout；尚未实现完整条件布局引擎。 |
+| `ScoreGlobalWindow` BO3 条件布局有限 | v3 `GlobalScoreRow` 会按 BO3/BO5 隐藏比分格，`ScoreGlobalWindow/BaseCanvas` 背景可通过 `BackgroundImageVariants["ScoreGlobal.Bo3"]` 随 BO3/BO5 即时切换，但总分位置仍采用固定 layout；尚未实现完整条件布局引擎。 |
 | `GameProgress.Free` 未定义比分语义 | Score System v2 暂把它记录为设计缺口。 |
 | `Game3Overtime*` 与 `Game4*` enum 数值重叠 | `MatchScoreService` 结合 BO3/BO5 状态解析；缺少上下文的 `MatchScoreState.GetGame(progress)` 保守按 BO5 第四局解析。 |
 | 旧记录 `Team.Score` 无法还原完整历史 | 旧 JSON 没有 `MatchScore` 时会创建默认 `MatchScoreState`，不会从 `Team.Score` 反推出 per-Game/per-Half 结果；导入器会尽量保留旧 `Team.Score` 镜像显示，并且不会覆盖新文件中有效的 `MatchScore`。 |

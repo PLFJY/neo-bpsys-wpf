@@ -1339,6 +1339,20 @@ public class FrontedCanvasConfigTest
         });
     }
 
+    [Fact]
+    public void ScoreGlobalWindowReloadsV3LayoutWhenBoModeChanges()
+    {
+        var repoRoot = FindRepositoryRoot();
+        var sourcePath = Path.Combine(repoRoot, "neo-bpsys-wpf", "Views", "Windows", "ScoreGlobalWindow.xaml.cs");
+        var source = File.ReadAllText(sourcePath);
+
+        Assert.Contains("ISharedDataService sharedDataService", source, StringComparison.Ordinal);
+        Assert.Contains("IsBo3ModeChanged += OnBoModeChanged", source, StringComparison.Ordinal);
+        Assert.Contains("IsBo3ModeChanged -= OnBoModeChanged", source, StringComparison.Ordinal);
+        Assert.Contains("_ = ReloadFrontedLayoutAsync();", source, StringComparison.Ordinal);
+        Assert.Contains("Dispatcher.BeginInvoke", source, StringComparison.Ordinal);
+    }
+
 
     [Fact]
     public void FrontedRendererSyncsPickingBorderOverlayToImageAndBorderedImageGeometry()

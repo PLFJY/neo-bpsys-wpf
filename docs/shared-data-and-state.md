@@ -74,7 +74,7 @@ public ObservableCollection<bool> CanCurrentSurBanned => _sharedDataService.CanC
 1. 发送 `PropertyChangedMessage<bool>`。
 2. 触发 `IsBo3ModeChanged`。
 
-`ScorePageViewModel` 不再维护后台比分页专用的 BO3/BO5 Game/half 选择列表；比分控制跟随全局 `CurrentGame.GameProgress`。`ScoreGlobalWindow` 的 v3 `GlobalScoreRow` 控件订阅 `IsBo3ModeChanged`，按显式 `ScoreGameKey` 规则切换 BO3/BO5 可见比分格；`FrontedWindowService` 不再直接隐藏全局比分控件或移动 Total 控件。
+`ScorePageViewModel` 不再维护后台比分页专用的 BO3/BO5 Game/half 选择列表；比分控制跟随全局 `CurrentGame.GameProgress`。`ScoreGlobalWindow` 的 v3 `GlobalScoreRow` 控件订阅 `IsBo3ModeChanged`，按显式 `ScoreGameKey` 规则切换 BO3/BO5 可见比分格；窗口自身也会在该事件触发时重新应用 v3 layout，使 `ScoreGlobalWindow/BaseCanvas` 的 `BackgroundImageVariants["ScoreGlobal.Bo3"]` 能在运行时切换到 BO3 背景，BO5 或缺失变体时回退普通 `BackgroundImage`。`FrontedWindowService` 不再直接隐藏全局比分控件或移动 Total 控件。
 
 `GlobalScoreTotalMargin` 仍在共享服务中暴露并保留设置项，但当前 v3 `ScoreGlobalWindow` 默认布局不会动态移动总分位置；BO3 总分位置仍采用固定布局。
 
