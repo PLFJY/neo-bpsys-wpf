@@ -91,7 +91,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private bool _scheduledPreviewRequested;
     private bool _clearRestoreVisualsAfterScheduledPreview;
     private FrontedControlDesignItem? _lastSelectedDesignItem;
-    private FrontedDesignerClipboardGroupPayload? _copiedControlGroup;
+    private CancellationTokenSource? _reloadLayoutCancellation;
+    private int _reloadLayoutVersion;
     private double _lastPreviewViewportWidth;
     private double _lastPreviewViewportHeight;
 
@@ -215,8 +216,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public ObservableCollection<FrontedAddControlCatalogGroup> AddControlCatalogGroups { get; } = [];
 
-    public ObservableCollection<FrontedControlDesignItem> SelectedDesignItems { get; } = [];
-
     public ObservableCollection<FrontedCanvasBoModeStateOption> BoModeStateOptions { get; } =
     [
         new(FrontedCanvasBoModeState.Bo5, I18nHelper.GetLocalizedString("Designer.Canvas.Bo5State")),
@@ -313,8 +312,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public bool HasSelectedDesignItem => SelectedDesignItem is not null;
 
-    public int SelectedDesignItemCount => SelectedDesignItems.Count;
-
     public bool IsBorderedImageSelected => SelectedDesignItem?.Config is BorderedImageFrontedControlConfig;
 
     private FrontedDesignerResizeTarget _borderedImageResizeTarget = FrontedDesignerResizeTarget.Border;
@@ -359,9 +356,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public bool CanDeleteSelectedControl =>
         SelectedDesignItem is { IsSelectableInEditor: true, IsEditableInEditor: true };
 
-    public bool CanCopySelectedControl => GetCopyableSelection().Count > 0;
+    public bool CanCopySelectedControl => CanCopyControl(SelectedDesignItem);
 
-    public bool CanPasteControl => CurrentDocument is not null && (_copiedControl is not null || _copiedControlGroup is not null);
+    public bool CanPasteControl => CurrentDocument is not null && _copiedControl is not null;
 
     public bool HasPendingScheduledDesignerWork => _scheduledValidationAndPreviewPending;
 
@@ -541,9 +538,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ClearActiveSnapGuides();
         _propertyEditErrors.Clear();
         _propertyEditBuffers.Clear();
-        if (_lastSelectedDesignItem is not null
-            && !ReferenceEquals(_lastSelectedDesignItem, value)
-            && !SelectedDesignItems.Contains(_lastSelectedDesignItem))
+        if (_lastSelectedDesignItem is not null && !ReferenceEquals(_lastSelectedDesignItem, value))
         {
             _lastSelectedDesignItem.IsSelected = false;
         }
@@ -559,7 +554,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RebuildPropertyEditorItems();
         DeleteSelectedControlCommand.NotifyCanExecuteChanged();
         CopySelectedControlCommand.NotifyCanExecuteChanged();
-        OnPropertyChanged(nameof(SelectedDesignItemCount));
         OnPropertyChanged(nameof(IsBorderedImageSelected));
         OnPropertyChanged(nameof(IsBorderResizeTargetSelected));
         OnPropertyChanged(nameof(IsImageResizeTargetSelected));
@@ -666,10 +660,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         var entry = SelectedCanvas;
         CurrentWindowCanvasDisplay = $"{entry.DisplayName} / {entry.CanvasDisplayName}";
         DirtyIndicatorText = string.Empty;
+        var reloadVersion = StartReloadLayoutRequest();
+        var cancellationToken = _reloadLayoutCancellation?.Token ?? CancellationToken.None;
 
         try
         {
-            var loadResult = await _layoutService.LoadCanvasConfigWithMetadataAsync(entry.WindowTypeName, entry.CanvasName);
+            var loadResult = await _layoutService.LoadCanvasConfigWithMetadataAsync(
+                entry.WindowTypeName,
+                entry.CanvasName,
+                cancellationToken);
+            if (cancellationToken.IsCancellationRequested || reloadVersion != _reloadLayoutVersion)
+            {
+                return;
+            }
+
             ApplyLayoutSource(loadResult, entry);
 
             var config = loadResult.Config;
@@ -705,8 +709,17 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             RequestPreviewRender(config, entry);
             RefreshDirtyState();
         }
+        catch (OperationCanceledException)
+        {
+            // A newer window/canvas selection superseded this load request.
+        }
         catch (Exception ex)
         {
+            if (reloadVersion != _reloadLayoutVersion)
+            {
+                return;
+            }
+
             _logger.LogError(
                 ex,
                 "Failed to load fronted designer layout. Window: {WindowTypeName}, Canvas: {CanvasName}",
@@ -1024,24 +1037,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanCopySelectedControl))]
     private void CopySelectedControl()
     {
-        var copyable = GetCopyableSelection();
-        if (copyable.Count == 0)
+        var selected = SelectedDesignItem;
+        if (selected is null || !CanCopyControl(selected))
         {
             StatusMessage = I18nHelper.GetLocalizedString("CannotCopyControl");
             return;
         }
 
-        if (copyable.Count == 1)
-        {
-            _copiedControl = FrontedDesignerClipboardPayload.Create(copyable[0]);
-            _copiedControlGroup = null;
-        }
-        else
-        {
-            _copiedControl = null;
-            _copiedControlGroup = FrontedDesignerClipboardGroupPayload.Create(copyable);
-        }
-
+        _copiedControl = FrontedDesignerClipboardPayload.Create(selected);
         PasteControlCommand.NotifyCanExecuteChanged();
         StatusMessage = I18nHelper.GetLocalizedString("CopyControl");
     }
@@ -1049,28 +1052,28 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     [RelayCommand(CanExecute = nameof(CanPasteControl))]
     private void PasteControl()
     {
-        if (CurrentDocument is null || (_copiedControl is null && _copiedControlGroup is null))
+        if (CurrentDocument is null || _copiedControl is null)
         {
             StatusMessage = I18nHelper.GetLocalizedString("CannotPasteControl");
             return;
         }
 
-        var pasteCount = _copiedControlGroup?.Items.Count ?? 1;
-        if (CurrentDocument.Controls.Count + pasteCount > FrontedLayoutLimits.MaxControlsPerCanvas)
+        if (CurrentDocument.Controls.Count + 1 > FrontedLayoutLimits.MaxControlsPerCanvas)
         {
             StatusMessage = I18nHelper.GetLocalizedString("ControlCountLimitReached");
             return;
         }
 
-        if (_copiedControlGroup is not null)
+        var copiedControl = _copiedControl;
+        if (copiedControl is null)
         {
-            PasteControlGroup(_copiedControlGroup);
+            StatusMessage = I18nHelper.GetLocalizedString("CannotPasteControl");
             return;
         }
 
         var total = StartDesignerPerfTrace();
         LogDesignerPerf("Paste", "start");
-        var clonedConfig = _copiedControl.CreateConfig();
+        var clonedConfig = copiedControl.CreateConfig();
         LogDesignerPerf("Paste", "clone config", Elapsed(total));
         clonedConfig.Left += 10D;
         clonedConfig.Top += 10D;
@@ -1080,7 +1083,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         var item = new FrontedControlDesignItem
         {
-            Name = GeneratePasteName(_copiedControl.SourceName, _copiedControl.ControlType, CurrentDocument),
+            Name = GeneratePasteName(copiedControl.SourceName, copiedControl.ControlType, CurrentDocument),
             Config = clonedConfig,
             IsSelectableInEditor = true,
             IsEditableInEditor = true
@@ -1104,52 +1107,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         LogDesignerPerf("Paste", "total", Elapsed(total));
     }
 
-    private void PasteControlGroup(FrontedDesignerClipboardGroupPayload group)
-    {
-        if (CurrentDocument is null)
-        {
-            return;
-        }
-
-        CaptureUndoSnapshot();
-        var pasted = new List<FrontedControlDesignItem>();
-        var nextZIndex = CurrentDocument.Controls.Count == 0
-            ? 0
-            : CurrentDocument.Controls.Max(control => control.Config.ZIndex) + 1;
-        foreach (var payload in group.Items)
-        {
-            var config = payload.CreateConfig();
-            config.Left += 10D;
-            config.Top += 10D;
-            config.ZIndex = nextZIndex++;
-            var item = new FrontedControlDesignItem
-            {
-                Name = GeneratePasteName(payload.SourceName, payload.ControlType, CurrentDocument),
-                Config = config,
-                IsSelectableInEditor = true,
-                IsEditableInEditor = true
-            };
-            CurrentDocument.Controls.Add(item);
-            pasted.Add(item);
-        }
-
-        CurrentDocument.IsDirty = true;
-        RefreshDirtyState();
-        ControlFilterText = string.Empty;
-        RebuildFilteredDesignItems();
-        SelectedDesignItems.Clear();
-        foreach (var item in pasted)
-        {
-            SelectedDesignItems.Add(item);
-            item.IsSelected = true;
-        }
-
-        SelectedDesignItem = pasted.FirstOrDefault();
-        OnPropertyChanged(nameof(SelectedDesignItemCount));
-        ScheduleValidationAndPreviewRender("PasteGroup");
-        StatusMessage = $"{I18nHelper.GetLocalizedString("PasteControl")}: {pasted.Count}";
-    }
-
     [RelayCommand(CanExecute = nameof(CanDeleteSelectedControl))]
     private void DeleteSelectedControl()
     {
@@ -1158,23 +1115,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
-        var targets = SelectedDesignItems.Count > 1
-            ? SelectedDesignItems.ToList()
-            : [SelectedDesignItem];
-        if (targets.Any(item => item.IsRuntimeCritical))
+        if (SelectedDesignItem.IsRuntimeCritical)
         {
             StatusMessage = I18nHelper.GetLocalizedString("CannotDeleteRuntimeCriticalControl");
             return;
         }
 
-        if (targets.Any(item => !item.IsEditableInEditor || !item.IsSelectableInEditor))
+        if (!SelectedDesignItem.IsEditableInEditor || !SelectedDesignItem.IsSelectableInEditor)
         {
             StatusMessage = I18nHelper.GetLocalizedString("CannotDeleteRuntimeCriticalControl");
             return;
         }
 
         _referenceScanner.SetControls(CurrentDocument.Controls);
-        if (targets.Any(item => _referenceScanner.GetIncomingReferences(item.Name).Count > 0))
+        if (_referenceScanner.GetIncomingReferences(SelectedDesignItem.Name).Count > 0)
         {
             StatusMessage = I18nHelper.GetLocalizedString("CannotDeleteReferencedControl");
             return;
@@ -1184,25 +1138,21 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         LogDesignerPerf("Delete", "start");
         CaptureUndoSnapshot();
         LogDesignerPerf("Delete", "undo snapshot capture", Elapsed(total));
-        foreach (var item in targets)
-        {
-            CurrentDocument.Controls.Remove(item);
-        }
+        var deletedName = SelectedDesignItem.Name;
+        var deletedItem = SelectedDesignItem;
+        CurrentDocument.Controls.Remove(SelectedDesignItem);
         LogDesignerPerf("Delete", "remove control", Elapsed(total));
         CurrentDocument.IsDirty = true;
         RefreshDirtyState();
         SelectDesignItem(null);
-        foreach (var item in targets)
-        {
-            RemoveFilteredDesignItem(item);
-        }
+        RemoveFilteredDesignItem(deletedItem);
         LogDesignerPerf("Delete", "filtered list update", Elapsed(total));
         RebuildPropertyEditorItems();
         LogDesignerPerf("Delete", "selection/property update", Elapsed(total));
         ScheduleValidationAndPreviewRender("Delete");
         LogDesignerPerf("Delete", "validation scheduling", Elapsed(total));
         LogDesignerPerf("Delete", "preview render scheduling", Elapsed(total));
-        StatusMessage = $"{I18nHelper.GetLocalizedString("DeleteSelectedControl")}: {targets.Count}";
+        StatusMessage = $"{I18nHelper.GetLocalizedString("DeleteSelectedControl")}: {deletedName}";
         LogDesignerPerf("Delete", "total", Elapsed(total));
     }
 
@@ -1415,63 +1365,18 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         StatusMessage = exception.Message;
     }
 
-    public void SelectDesignItem(FrontedControlDesignItem? item, bool toggleSelection = false)
+    public void SelectDesignItem(FrontedControlDesignItem? item)
     {
         if (item?.IsSelectableInEditor == false)
         {
             item = null;
         }
 
-        if (!toggleSelection)
-        {
-            SelectedDesignItems.Clear();
-            if (item is not null)
-            {
-                SelectedDesignItems.Add(item);
-            }
-
-            SelectedDesignItem = item;
-            OnPropertyChanged(nameof(SelectedDesignItemCount));
-            return;
-        }
-
-        if (item is null)
-        {
-            return;
-        }
-
-        if (SelectedDesignItems.Contains(item))
-        {
-            SelectedDesignItems.Remove(item);
-            item.IsSelected = false;
-            if (ReferenceEquals(SelectedDesignItem, item))
-            {
-                SelectedDesignItem = SelectedDesignItems.FirstOrDefault();
-            }
-        }
-        else
-        {
-            SelectedDesignItems.Add(item);
-            item.IsSelected = true;
-            SelectedDesignItem = item;
-        }
-
-        OnPropertyChanged(nameof(SelectedDesignItemCount));
-        RefreshSelectedControlDisplay();
-        RebuildPropertyEditorItems();
-        DeleteSelectedControlCommand.NotifyCanExecuteChanged();
-        CopySelectedControlCommand.NotifyCanExecuteChanged();
+        SelectedDesignItem = item;
     }
 
     public void ClearSelection()
     {
-        foreach (var item in SelectedDesignItems)
-        {
-            item.IsSelected = false;
-        }
-
-        SelectedDesignItems.Clear();
-        OnPropertyChanged(nameof(SelectedDesignItemCount));
         SelectDesignItem(null);
     }
 
@@ -1501,17 +1406,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             SnapGridSize,
             FrontedDesignerSmartSnapHelper.CalculateLogicalTolerance(ZoomScale));
 
-        var appliedDeltaX = result.Left - SelectedDesignItem.Config.Left;
-        var appliedDeltaY = result.Top - SelectedDesignItem.Config.Top;
         SelectedDesignItem.Config.Left = result.Left;
         SelectedDesignItem.Config.Top = result.Top;
-        foreach (var item in SelectedDesignItems.Where(item => !ReferenceEquals(item, SelectedDesignItem)))
-        {
-            item.Config.Left = FrontedDesignerGeometryHelper.Snap(item.Config.Left + appliedDeltaX);
-            item.Config.Top = FrontedDesignerGeometryHelper.Snap(item.Config.Top + appliedDeltaY);
-            SyncLinkedOverlays(item);
-        }
-
         CurrentDocument.IsDirty = true;
         ActiveSnapGuides = EffectiveSnapEnabled ? result.Guides : [];
         SyncLinkedOverlays(SelectedDesignItem);
@@ -1534,18 +1430,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             CurrentDocument,
             EffectiveSnapEnabled,
             SnapGridSize);
-        foreach (var item in SelectedDesignItems.Where(item => !ReferenceEquals(item, SelectedDesignItem)))
-        {
-            FrontedDesignerGeometryHelper.MoveBy(
-                item,
-                deltaX,
-                deltaY,
-                CurrentDocument,
-                EffectiveSnapEnabled,
-                SnapGridSize);
-            SyncLinkedOverlays(item);
-        }
-
         SyncLinkedOverlays(SelectedDesignItem);
         OnDesignItemGeometryChanged(renderPreview: true);
     }
@@ -2068,6 +1952,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             RebuildPropertyEditorItems();
         }
+    }
+
+    private int StartReloadLayoutRequest()
+    {
+        _reloadLayoutCancellation?.Cancel();
+        _reloadLayoutCancellation?.Dispose();
+        _reloadLayoutCancellation = new CancellationTokenSource();
+        return ++_reloadLayoutVersion;
     }
 
     private void ValidateCurrentDocument()
@@ -2838,35 +2730,23 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _lastSelectedDesignItem = null;
         if (CurrentDocument is null)
         {
-            SelectedDesignItems.Clear();
-            OnPropertyChanged(nameof(SelectedDesignItemCount));
+            SelectedDesignItem = null;
             return;
         }
 
-        var validSelection = SelectedDesignItems
-            .Where(item => CurrentDocument.Controls.Contains(item))
-            .ToHashSet();
         if (SelectedDesignItem is not null && !CurrentDocument.Controls.Contains(SelectedDesignItem))
         {
             SelectedDesignItem = null;
         }
 
-        SelectedDesignItems.Clear();
-        foreach (var item in validSelection)
-        {
-            SelectedDesignItems.Add(item);
-        }
-
         foreach (var control in CurrentDocument.Controls)
         {
-            control.IsSelected = SelectedDesignItems.Contains(control) || ReferenceEquals(control, SelectedDesignItem);
+            control.IsSelected = ReferenceEquals(control, SelectedDesignItem);
             if (control.IsSelected)
             {
                 _lastSelectedDesignItem = control;
             }
         }
-
-        OnPropertyChanged(nameof(SelectedDesignItemCount));
     }
 
     private Stopwatch? StartDesignerPerfTrace()
@@ -2930,12 +2810,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         var config = SelectedDesignItem.Config;
-        SelectedControlDisplay = SelectedDesignItems.Count > 1
-            ? string.Format(
-                CultureInfo.CurrentCulture,
-                I18nHelper.GetLocalizedString("Designer.Selection.MultipleSelected"),
-                SelectedDesignItems.Count)
-            : SelectedDesignItem.Name;
+        SelectedControlDisplay = SelectedDesignItem.Name;
         SelectedControlTypeDisplay = _localizationService.GetControlTypeDisplayName(config.ControlType);
         SelectedControlGeometryDisplay =
             $"L {config.Left:0.##}  T {config.Top:0.##}  "
@@ -2992,17 +2867,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             IsEditableInEditor: true,
             IsRuntimeCritical: false
         } && item.Config is not PickingBorderOverlayControlConfig;
-    }
-
-    private IReadOnlyList<FrontedControlDesignItem> GetCopyableSelection()
-    {
-        var selected = SelectedDesignItems.Count > 0
-            ? SelectedDesignItems.ToList()
-            : SelectedDesignItem is null
-                ? []
-                : [SelectedDesignItem];
-
-        return selected.Where(CanCopyControl).ToList();
     }
 
     private static string GeneratePasteName(string sourceName, string controlType, FrontedCanvasDesignDocument document)
@@ -3844,20 +3708,6 @@ public sealed class FrontedDesignerClipboardPayload(
     {
         return (FrontedControlConfigBase?)JsonSerializer.Deserialize(ConfigJson, ConfigType)
                ?? throw new InvalidOperationException("Failed to deserialize copied control config.");
-    }
-}
-
-public sealed class FrontedDesignerClipboardGroupPayload(IReadOnlyList<FrontedDesignerClipboardPayload> items)
-{
-    public IReadOnlyList<FrontedDesignerClipboardPayload> Items { get; } = items;
-
-    public static FrontedDesignerClipboardGroupPayload Create(IReadOnlyList<FrontedControlDesignItem> items)
-    {
-        return new FrontedDesignerClipboardGroupPayload(
-            items
-                .OrderBy(item => item.Config.ZIndex)
-                .Select(FrontedDesignerClipboardPayload.Create)
-                .ToArray());
     }
 }
 

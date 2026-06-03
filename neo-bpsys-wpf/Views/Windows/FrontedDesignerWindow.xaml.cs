@@ -64,6 +64,9 @@ public partial class FrontedDesignerWindow : FluentWindow
     private double _panStartVerticalOffset;
     private Cursor? _cursorBeforePan;
     private bool _selectorReloadScheduled;
+    private bool _selectorReloadInProgress;
+    private bool _selectorReloadRequested;
+    private bool _previewRenderScheduled;
     private bool _suppressSelectorReload;
     private bool _forceCloseAfterDirtyPrompt;
     private bool _isDirtyClosePromptOpen;
@@ -75,6 +78,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private readonly DispatcherTimer _layerAutoScrollTimer;
     private double _layerAutoScrollVelocity;
     private Point? _lastLayerDragPosition;
+    private FrontedDesignerPreviewRenderRequestedEventArgs? _pendingPreviewRenderArgs;
 
     public FrontedDesignerWindow()
     {
@@ -114,6 +118,9 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void OnClosed(object? sender, EventArgs e)
     {
+        _isLoaded = false;
+        _pendingPreviewRenderArgs = null;
+        _previewRenderScheduled = false;
         HideLayerDragGhost();
         StopLayerAutoScroll();
         if (_viewModel is not null)
@@ -154,6 +161,12 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void ScheduleSelectorReload()
     {
+        if (_selectorReloadInProgress)
+        {
+            _selectorReloadRequested = true;
+            return;
+        }
+
         if (_selectorReloadScheduled)
         {
             return;
@@ -173,21 +186,42 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
-        if (ReferenceEquals(_lastAcceptedWindow, _viewModel.SelectedWindow)
-            && ReferenceEquals(_lastAcceptedCanvas, _viewModel.SelectedCanvas))
+        if (_selectorReloadInProgress)
         {
+            _selectorReloadRequested = true;
             return;
         }
 
-        if (!await ConfirmDirtyDocumentCanContinueAsync("SaveBeforeSwitch"))
+        _selectorReloadInProgress = true;
+        try
         {
-            RestoreAcceptedSelection();
-            return;
-        }
+            do
+            {
+                _selectorReloadRequested = false;
+                if (ReferenceEquals(_lastAcceptedWindow, _viewModel.SelectedWindow)
+                    && ReferenceEquals(_lastAcceptedCanvas, _viewModel.SelectedCanvas))
+                {
+                    continue;
+                }
 
-        await _viewModel.ReloadLayoutCoreAsync();
-        _lastAcceptedWindow = _viewModel.SelectedWindow;
-        _lastAcceptedCanvas = _viewModel.SelectedCanvas;
+                if (!await ConfirmDirtyDocumentCanContinueAsync("SaveBeforeSwitch"))
+                {
+                    RestoreAcceptedSelection();
+                    return;
+                }
+
+                var loadingWindow = _viewModel.SelectedWindow;
+                var loadingCanvas = _viewModel.SelectedCanvas;
+                await _viewModel.ReloadLayoutCoreAsync();
+                _lastAcceptedWindow = loadingWindow;
+                _lastAcceptedCanvas = loadingCanvas;
+            }
+            while (_selectorReloadRequested);
+        }
+        finally
+        {
+            _selectorReloadInProgress = false;
+        }
     }
 
     private void RestoreAcceptedSelection()
@@ -218,7 +252,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
         if (e.AddedItems[0] is FrontedControlDesignItem item)
         {
-            _viewModel.SelectDesignItem(item, Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
+            _viewModel.SelectDesignItem(item);
         }
     }
 
@@ -257,7 +291,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             return;
         }
 
-        _viewModel?.SelectDesignItem(item, Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
+        _viewModel?.SelectDesignItem(item);
         _pendingLayerDragItem = item;
         _layerDragStartPoint = e.GetPosition(this);
     }
@@ -1354,6 +1388,33 @@ public partial class FrontedDesignerWindow : FluentWindow
         object? sender,
         FrontedDesignerPreviewRenderRequestedEventArgs e)
     {
+        _pendingPreviewRenderArgs = e;
+        if (_previewRenderScheduled)
+        {
+            return;
+        }
+
+        _previewRenderScheduled = true;
+        Dispatcher.BeginInvoke(
+            new Action(ExecutePendingPreviewRender),
+            DispatcherPriority.Background);
+    }
+
+    private void ExecutePendingPreviewRender()
+    {
+        _previewRenderScheduled = false;
+        var args = _pendingPreviewRenderArgs;
+        _pendingPreviewRenderArgs = null;
+        if (!_isLoaded || args is null)
+        {
+            return;
+        }
+
+        RenderPreview(args);
+    }
+
+    private void RenderPreview(FrontedDesignerPreviewRenderRequestedEventArgs e)
+    {
         var total = StartDesignerPerfTrace();
         if (_renderer is null || e.Config is null || e.Context is null)
         {
@@ -2018,7 +2079,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             if (!_hasExceededClickThreshold)
             {
-                _viewModel?.SelectDesignItem(_pendingHitCandidate, Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
+                _viewModel?.SelectDesignItem(_pendingHitCandidate);
             }
             else if (_hasStartedDrag)
             {

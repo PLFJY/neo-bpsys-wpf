@@ -3591,13 +3591,8 @@
   <data name="Designer.Option.Visibility.Visible" xml:space="preserve"><value>可见</value></data>
   <data name="Designer.Option.Visibility.Hidden" xml:space="preserve"><value>隐藏</value></data>
   <data name="Designer.Option.Visibility.Collapsed" xml:space="preserve"><value>折叠</value></data>
-  <data name="Designer.Selection.MultipleSelected" xml:space="preserve"><value>已选择 {0} 个控件</value></data>
   <data name="Designer.Help.BoModeStates" xml:space="preserve"><value>BO3/BO5 Canvas 状态</value></data>
   <data name="Designer.Help.BoModeStatesDescription" xml:space="preserve"><value>这是通用 Canvas 功能；启用后可分别编辑 BO5 与 BO3，运行时按当前 BO 模式选择状态。</value></data>
   <data name="Designer.Help.CopyBo5ToBo3" xml:space="preserve"><value>复制 BO5 到 BO3 可快速建立对齐布局，然后单独调整 BO3。</value></data>
   <data name="Designer.Help.Visibility" xml:space="preserve"><value>Visibility 支持 Visible、Hidden、Collapsed；隐藏或折叠的控件仍保留在图层面板中。</value></data>
-  <data name="Designer.Help.MultiSelect" xml:space="preserve"><value>按住 Ctrl 点击可添加或移除选中控件。</value></data>
-  <data name="Designer.Help.MultiSelectMoveResize" xml:space="preserve"><value>可拖动已选择控件一起移动，并通过选择框调整布局。</value></data>
-  <data name="Designer.Help.MultiSelectCopyPaste" xml:space="preserve"><value>Ctrl+C / Ctrl+V 会复制和粘贴当前选择组。</value></data>
-  <data name="Designer.Help.UndoGroupOperations" xml:space="preserve"><value>组移动、粘贴、删除和复制 BO5 到 BO3 作为单个撤销步骤记录，最多保留 50 步。</value></data>
 </root>

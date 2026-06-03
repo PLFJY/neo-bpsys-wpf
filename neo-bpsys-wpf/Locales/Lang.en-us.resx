@@ -3573,13 +3573,8 @@
   <data name="Designer.Option.Visibility.Visible" xml:space="preserve"><value>Visible</value></data>
   <data name="Designer.Option.Visibility.Hidden" xml:space="preserve"><value>Hidden</value></data>
   <data name="Designer.Option.Visibility.Collapsed" xml:space="preserve"><value>Collapsed</value></data>
-  <data name="Designer.Selection.MultipleSelected" xml:space="preserve"><value>{0} controls selected</value></data>
   <data name="Designer.Help.BoModeStates" xml:space="preserve"><value>BO3/BO5 Canvas States</value></data>
   <data name="Designer.Help.BoModeStatesDescription" xml:space="preserve"><value>This is a generic Canvas feature. Enable it to edit BO5 and BO3 separately; runtime selects the state from the current BO mode.</value></data>
   <data name="Designer.Help.CopyBo5ToBo3" xml:space="preserve"><value>Copy BO5 to BO3 to create an aligned BO3 layout, then adjust BO3 independently.</value></data>
   <data name="Designer.Help.Visibility" xml:space="preserve"><value>Visibility supports Visible, Hidden, and Collapsed. Hidden or collapsed controls remain in the layer panel.</value></data>
-  <data name="Designer.Help.MultiSelect" xml:space="preserve"><value>Hold Ctrl and click to add or remove controls from the selection.</value></data>
-  <data name="Designer.Help.MultiSelectMoveResize" xml:space="preserve"><value>Drag selected controls together and resize the selected layout.</value></data>
-  <data name="Designer.Help.MultiSelectCopyPaste" xml:space="preserve"><value>Ctrl+C / Ctrl+V copies and pastes the current selection group.</value></data>
-  <data name="Designer.Help.UndoGroupOperations" xml:space="preserve"><value>Group move, paste, delete, and Copy BO5 to BO3 are recorded as one undo step. History keeps 50 steps.</value></data>
 </root>

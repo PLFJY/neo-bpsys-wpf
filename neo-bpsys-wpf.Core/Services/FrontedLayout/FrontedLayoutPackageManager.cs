@@ -123,7 +123,7 @@ public sealed class FrontedLayoutPackageManager : IFrontedLayoutPackageManager
 
         try
         {
-            var json = await File.ReadAllTextAsync(path, cancellationToken);
+            var json = await File.ReadAllTextAsync(path, cancellationToken).ConfigureAwait(false);
             var state = JsonSerializer.Deserialize<FrontedLayoutActivePackageState>(json, _jsonSerializerOptions);
             if (state is null || string.IsNullOrWhiteSpace(state.PackageId) || !IsSafePackageId(state.PackageId))
             {

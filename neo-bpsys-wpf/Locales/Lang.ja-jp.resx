@@ -2996,13 +2996,8 @@
   <data name="Designer.Option.Visibility.Visible" xml:space="preserve"><value>表示</value></data>
   <data name="Designer.Option.Visibility.Hidden" xml:space="preserve"><value>非表示</value></data>
   <data name="Designer.Option.Visibility.Collapsed" xml:space="preserve"><value>折りたたみ</value></data>
-  <data name="Designer.Selection.MultipleSelected" xml:space="preserve"><value>{0} 個のコントロールを選択中</value></data>
   <data name="Designer.Help.BoModeStates" xml:space="preserve"><value>BO3/BO5 Canvas 状態</value></data>
   <data name="Designer.Help.BoModeStatesDescription" xml:space="preserve"><value>これは汎用 Canvas 機能です。有効化すると BO5 と BO3 を別々に編集でき、実行時は現在の BO モードで状態を選択します。</value></data>
   <data name="Designer.Help.CopyBo5ToBo3" xml:space="preserve"><value>BO5 を BO3 にコピーすると、揃った BO3 レイアウトを作成してから個別に調整できます。</value></data>
   <data name="Designer.Help.Visibility" xml:space="preserve"><value>Visibility は Visible、Hidden、Collapsed に対応します。非表示または折りたたみのコントロールもレイヤーパネルに残ります。</value></data>
-  <data name="Designer.Help.MultiSelect" xml:space="preserve"><value>Ctrl を押しながらクリックすると、選択への追加または削除ができます。</value></data>
-  <data name="Designer.Help.MultiSelectMoveResize" xml:space="preserve"><value>選択したコントロールをまとめてドラッグし、選択レイアウトをリサイズできます。</value></data>
-  <data name="Designer.Help.MultiSelectCopyPaste" xml:space="preserve"><value>Ctrl+C / Ctrl+V は現在の選択グループをコピー、貼り付けします。</value></data>
-  <data name="Designer.Help.UndoGroupOperations" xml:space="preserve"><value>グループ移動、貼り付け、削除、BO5 から BO3 へのコピーは 1 つの Undo として記録されます。履歴は 50 ステップです。</value></data>
 </root>

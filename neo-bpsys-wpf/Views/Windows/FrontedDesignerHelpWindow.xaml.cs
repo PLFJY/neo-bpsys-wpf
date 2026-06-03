@@ -73,12 +73,6 @@ public partial class FrontedDesignerHelpWindow : FluentWindow
         AddPostShortcutInlineSection(
             "Designer.Help.Visibility",
             "Designer.Help.Visibility");
-        AddPostShortcutInlineSection(
-            "Designer.Help.MultiSelect",
-            "Designer.Help.MultiSelect",
-            "Designer.Help.MultiSelectMoveResize",
-            "Designer.Help.MultiSelectCopyPaste",
-            "Designer.Help.UndoGroupOperations");
         AddPostShortcutSection("Designer.Help.Validation.Title", "Designer.Help.Validation.Content");
         AddPostShortcutSection("Designer.Help.PluginControls.Title", "Designer.Help.PluginControls.Content");
         AddPostShortcutSection("Designer.Help.LayoutPackages.Title", "Designer.Help.LayoutPackages.Content");
