@@ -799,7 +799,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         LogDesignerPerf("Undo", "create current snapshot", Elapsed(total));
         if (currentSnapshot is not null)
         {
-            _redoStack.Push(currentSnapshot);
+            PushRedoSnapshot(currentSnapshot);
         }
 
         RestoreSnapshot(
@@ -825,7 +825,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         LogDesignerPerf("Redo", "create current snapshot", Elapsed(total));
         if (currentSnapshot is not null)
         {
-            _undoStack.Push(currentSnapshot);
+            PushUndoSnapshot(currentSnapshot);
         }
 
         RestoreSnapshot(
@@ -1451,7 +1451,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             if (!_undoStack.TryPeek(out var previous) || previous != oldSnapshot)
             {
-                _undoStack.Push(oldSnapshot);
+                PushUndoSnapshot(oldSnapshot);
             }
 
             _redoStack.Clear();
@@ -1480,9 +1480,39 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
-        _undoStack.Push(snapshot);
+        PushUndoSnapshot(snapshot);
         _redoStack.Clear();
         NotifyUndoRedoCommands();
+    }
+
+    private static void PushLimited(Stack<string> stack, string snapshot)
+    {
+        stack.Push(snapshot);
+        if (stack.Count <= FrontedLayoutLimits.MaxDesignerUndoSnapshots)
+        {
+            return;
+        }
+
+        var retained = stack
+            .Take(FrontedLayoutLimits.MaxDesignerUndoSnapshots)
+            .Reverse()
+            .ToList();
+
+        stack.Clear();
+        foreach (var item in retained)
+        {
+            stack.Push(item);
+        }
+    }
+
+    private void PushUndoSnapshot(string snapshot)
+    {
+        PushLimited(_undoStack, snapshot);
+    }
+
+    private void PushRedoSnapshot(string snapshot)
+    {
+        PushLimited(_redoStack, snapshot);
     }
 
     public void ClearPropertyEditErrorForBufferUpdate(string propertyName)

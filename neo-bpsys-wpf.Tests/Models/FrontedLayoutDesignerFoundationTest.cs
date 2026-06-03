@@ -1419,6 +1419,132 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void UndoHistoryKeepsNewestSnapshotsAndDropsOldestPastLimit()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Left = 0 }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([title]) };
+
+        for (var index = 0; index < FrontedLayoutLimits.MaxDesignerUndoSnapshots + 10; index++)
+        {
+            viewModel.CaptureUndoSnapshot();
+            title.Config.Left = index + 1;
+            viewModel.CurrentDocument!.IsDirty = true;
+        }
+
+        Assert.True(viewModel.CanUndo);
+
+        for (var index = 0; index < FrontedLayoutLimits.MaxDesignerUndoSnapshots; index++)
+        {
+            Assert.True(viewModel.CanUndo);
+            viewModel.UndoCommand.Execute(null);
+        }
+
+        Assert.Equal(10, title.Config.Left);
+        Assert.False(viewModel.CanUndo);
+
+        viewModel.UndoCommand.Execute(null);
+
+        Assert.Equal(10, title.Config.Left);
+    }
+
+    [Fact]
+    public void RedoHistoryIsLimitedAfterManyUndoOperations()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Left = 0 }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([title]) };
+
+        for (var index = 0; index < FrontedLayoutLimits.MaxDesignerUndoSnapshots + 10; index++)
+        {
+            viewModel.CaptureUndoSnapshot();
+            title.Config.Left = index + 1;
+            viewModel.CurrentDocument!.IsDirty = true;
+        }
+
+        for (var index = 0; index < FrontedLayoutLimits.MaxDesignerUndoSnapshots; index++)
+        {
+            viewModel.UndoCommand.Execute(null);
+        }
+
+        Assert.True(viewModel.CanRedo);
+
+        for (var index = 0; index < FrontedLayoutLimits.MaxDesignerUndoSnapshots; index++)
+        {
+            Assert.True(viewModel.CanRedo);
+            viewModel.RedoCommand.Execute(null);
+        }
+
+        Assert.Equal(FrontedLayoutLimits.MaxDesignerUndoSnapshots + 10, title.Config.Left);
+        Assert.False(viewModel.CanRedo);
+
+        viewModel.RedoCommand.Execute(null);
+
+        Assert.Equal(FrontedLayoutLimits.MaxDesignerUndoSnapshots + 10, title.Config.Left);
+    }
+
+    [Fact]
+    public void DuplicateUndoSnapshotsDoNotGrowHistoryPastSingleState()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Left = 5 }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([title]) };
+
+        for (var index = 0; index < 10; index++)
+        {
+            viewModel.CaptureUndoSnapshot();
+        }
+
+        title.Config.Left = 25;
+        viewModel.CurrentDocument!.IsDirty = true;
+
+        Assert.True(viewModel.CanUndo);
+
+        viewModel.UndoCommand.Execute(null);
+
+        Assert.Equal(5, title.Config.Left);
+        Assert.False(viewModel.CanUndo);
+        Assert.True(viewModel.CanRedo);
+    }
+
+    [Fact]
+    public void UndoRedoCommandsUpdateCanUndoAndCanRedoWithLimitedHistory()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Left = 0 }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([title]) };
+
+        viewModel.CaptureUndoSnapshot();
+        title.Config.Left = 1;
+        viewModel.CurrentDocument!.IsDirty = true;
+
+        Assert.True(viewModel.CanUndo);
+        Assert.False(viewModel.CanRedo);
+
+        viewModel.UndoCommand.Execute(null);
+
+        Assert.False(viewModel.CanUndo);
+        Assert.True(viewModel.CanRedo);
+
+        viewModel.RedoCommand.Execute(null);
+
+        Assert.True(viewModel.CanUndo);
+        Assert.False(viewModel.CanRedo);
+    }
+
+    [Fact]
     public void DeleteControlUndoRestoresControl()
     {
         var title = new FrontedControlDesignItem

@@ -11,6 +11,7 @@ public static class FrontedLayoutLimits
 
     public const int WarningControlsPerCanvas = 160;
     public const int MaxControlsPerCanvas = 256;
+    public const int MaxDesignerUndoSnapshots = 50;
 
     public const int MaxLayoutsPerPackage = 100;
     public const int MaxResourcesPerPackage = 500;
