@@ -210,7 +210,11 @@ public sealed class FrontedBindingBrowserProvider
     private static IReadOnlyList<FrontedBindingTreeNode> BuildMatchScoreChildren() =>
     [
         Leaf("CurrentSurTeamMajorText", "CurrentGame.MatchScore.CurrentSurTeamMajorText", typeof(string)),
+        Leaf("CurrentSurTeamMajorWin", "CurrentGame.MatchScore.CurrentSurTeamMajorWin", typeof(int)),
+        Leaf("CurrentSurTeamMajorTie", "CurrentGame.MatchScore.CurrentSurTeamMajorTie", typeof(int)),
         Leaf("CurrentHunTeamMajorText", "CurrentGame.MatchScore.CurrentHunTeamMajorText", typeof(string)),
+        Leaf("CurrentHunTeamMajorWin", "CurrentGame.MatchScore.CurrentHunTeamMajorWin", typeof(int)),
+        Leaf("CurrentHunTeamMajorTie", "CurrentGame.MatchScore.CurrentHunTeamMajorTie", typeof(int)),
         Leaf("CurrentSurTeamPreHalfMinorScoreText", "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText", typeof(string)),
         Leaf("CurrentHunTeamPreHalfMinorScoreText", "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText", typeof(string)),
         Leaf("HomeMajorText", "CurrentGame.MatchScore.HomeMajorText", typeof(string)),

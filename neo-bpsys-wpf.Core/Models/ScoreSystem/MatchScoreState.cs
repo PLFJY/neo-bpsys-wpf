@@ -30,6 +30,10 @@ public partial class MatchScoreState : ObservableObjectBase
     private string _currentHunTeamPreHalfMinorScoreText = "0";
     private string _currentSurTeamMajorText = "W0  D0";
     private string _currentHunTeamMajorText = "W0  D0";
+    private int _currentSurTeamMajorWin;
+    private int _currentSurTeamMajorTie;
+    private int _currentHunTeamMajorWin;
+    private int _currentHunTeamMajorTie;
     private GameProgress _currentDisplayProgress = GameProgress.Free;
     private TeamType _currentDisplaySurTeamType = TeamType.HomeTeam;
     private TeamType _currentDisplayHunTeamType = TeamType.AwayTeam;
@@ -186,6 +190,46 @@ public partial class MatchScoreState : ObservableObjectBase
     }
 
     /// <summary>
+    /// 当前求生者队伍的大比分胜场数原始数据。
+    /// </summary>
+    [JsonIgnore]
+    public int CurrentSurTeamMajorWin
+    {
+        get => _currentSurTeamMajorWin;
+        private set => SetProperty(ref _currentSurTeamMajorWin, value);
+    }
+
+    /// <summary>
+    /// 当前求生者队伍的大比分平局数原始数据。
+    /// </summary>
+    [JsonIgnore]
+    public int CurrentSurTeamMajorTie
+    {
+        get => _currentSurTeamMajorTie;
+        private set => SetProperty(ref _currentSurTeamMajorTie, value);
+    }
+
+    /// <summary>
+    /// 当前监管者队伍的大比分胜场数原始数据。
+    /// </summary>
+    [JsonIgnore]
+    public int CurrentHunTeamMajorWin
+    {
+        get => _currentHunTeamMajorWin;
+        private set => SetProperty(ref _currentHunTeamMajorWin, value);
+    }
+
+    /// <summary>
+    /// 当前监管者队伍的大比分平局数原始数据。
+    /// </summary>
+    [JsonIgnore]
+    public int CurrentHunTeamMajorTie
+    {
+        get => _currentHunTeamMajorTie;
+        private set => SetProperty(ref _currentHunTeamMajorTie, value);
+    }
+
+    /// <summary>
     /// 创建包含所有受支持比分单元的默认空比分状态。
     /// </summary>
     public static MatchScoreState CreateDefault() => new(CreateDefaultGames());
@@ -326,6 +370,14 @@ public partial class MatchScoreState : ObservableObjectBase
         CurrentSurTeamMajorText = GetMajorText(_currentDisplaySurTeamType);
         CurrentHunTeamMajorText = GetMajorText(_currentDisplayHunTeamType);
 
+        var (surWin, surTie) = GetMajorWinTie(_currentDisplaySurTeamType);
+        CurrentSurTeamMajorWin = surWin;
+        CurrentSurTeamMajorTie = surTie;
+
+        var (hunWin, hunTie) = GetMajorWinTie(_currentDisplayHunTeamType);
+        CurrentHunTeamMajorWin = hunWin;
+        CurrentHunTeamMajorTie = hunTie;
+
         var currentGame = GetGame(_currentDisplayProgress, _currentDisplayIsBo3Mode);
         if (currentGame == null || ResolveHalfKind(_currentDisplayProgress) != ScoreHalfKind.SecondHalf)
         {
@@ -399,6 +451,9 @@ public partial class MatchScoreState : ObservableObjectBase
 
     private string GetMajorText(TeamType teamType) =>
         teamType == TeamType.HomeTeam ? HomeMajorText : AwayMajorText;
+
+    private (int win, int tie) GetMajorWinTie(TeamType teamType) =>
+        teamType == TeamType.HomeTeam ? (HomeMajorWin, HomeMajorTie) : (AwayMajorWin, AwayMajorTie);
 
     private static int? GetTeamMinorScore(ScoreHalf half, TeamType teamType, bool fallbackToZero)
     {

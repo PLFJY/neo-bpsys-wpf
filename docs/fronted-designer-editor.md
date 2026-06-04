@@ -591,6 +591,38 @@ CurrentGame.MatchScore.CurrentSurTeamMajorText
 
 浏览器只更新属性行编辑缓冲；Apply/Enter 前，选中控件 config 仍保持旧值。取消浏览器不会修改 `EditText`。
 
+### 13.1 注册绑定源
+
+绑定浏览器的 TreeView 数据源由 `FrontedBindingBrowserProvider` 在代码中手动构建，入口为 `BuildUnfilteredTree()`。要为 `CurrentGame` 或 `ISharedDataService` 下的新公共属性注册绑定源，在对应的 `Build*Children()` 方法中添加一行 `Leaf(...)` 调用即可。
+
+构建方法层次：
+
+| 方法 | 层级 | 说明 |
+| --- | --- | --- |
+| `BuildUnfilteredTree()` | 根 | 构造 `ISharedDataService` 根节点，注册 `CurrentGame`、`HomeTeam`、`AwayTeam`、`RemainingSeconds` 等顶级子节点。 |
+| `BuildCurrentGameChildren()` | `CurrentGame.*` | 注册 `SurTeam`、`HunTeam`、`SurPlayerList`、`HunPlayer`、`MatchScore`、`PickedMap` 等。 |
+| `BuildMatchScoreChildren()` | `CurrentGame.MatchScore.*` | 注册 `CurrentSurTeamMajorText`、`CurrentHunTeamMajorWin`、`HomeTotalMinorScore` 等。 |
+| `BuildTeamChildren()` | `*.SurTeam.*` / `*.HunTeam.*` | 注册 `Name`、`Logo`。 |
+| `BuildPlayerChildren()` | `*.SurPlayerList[*].*` / `*.HunPlayer.*` | 注册 `Member`、`Character`、`PictureShown`、`Talent`、`Data`。 |
+| `BuildPlayerDataChildren()` | `*.[Data].*` | 注册选手数据字段。 |
+
+`Leaf(displayName, fullPath, type)` 的三个参数：
+
+| 参数 | 说明 |
+| --- | --- |
+| `displayName` | 浏览树中显示的友好名称，后续会经过 `IFrontedDesignerLocalizationService` 本地化。 |
+| `fullPath` | 完整绑定路径，如 `"CurrentGame.MatchScore.CurrentSurTeamMajorWin"`，直接匹配前台 layout JSON 中的 `BindingPath`。 |
+| `type` | 属性值的 CLR 类型，用于 BindingTargetKind 过滤器推断。 |
+
+示例——为 `MatchScoreState` 新增一个 `FooBar` 的 int 属性并使其可浏览：
+
+```csharp
+// 在 BuildMatchScoreChildren() 中添加：
+Leaf("FooBar", "CurrentGame.MatchScore.FooBar", typeof(int)),
+```
+
+添加后 BindingBrowserDialog 即可搜索到该路径，用户在前台 layout 编辑器中可直接选取。
+
 ## 14. Resource Browser
 
 Phase 8G 已实现控件级资源路径浏览。Resource Browser 面向图片和资源路径字段：

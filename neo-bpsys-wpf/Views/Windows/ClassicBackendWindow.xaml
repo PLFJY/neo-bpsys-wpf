@@ -166,7 +166,10 @@
                             IsEnabled="{Binding CanGameProgressChange}" />
                     </StackPanel>
                     <StackPanel Margin="0,0,12,8" Orientation="Horizontal">
-                        <TextBlock Margin="0,5,8,8" Text="{lex:Loc GameProgressColon}" />
+                        <TextBlock
+                            Margin="0,5,8,8"
+                            VerticalAlignment="Center"
+                            Text="{lex:Loc GameProgressColon}" />
                         <ComboBox
                             Width="210"
                             IsEnabled="{Binding CanGameProgressChange}"
@@ -211,10 +214,7 @@
                         </TextBlock>
                     </StackPanel>
 
-                    <StackPanel
-                        Width="380"
-                        Margin="0,0,12,8"
-                        Orientation="Horizontal">
+                    <StackPanel Margin="0,0,12,8" Orientation="Horizontal">
                         <ui:Button
                             Command="{Binding SaveGameInfoCommand}"
                             Content="{lex:Loc SaveGameInformation}"

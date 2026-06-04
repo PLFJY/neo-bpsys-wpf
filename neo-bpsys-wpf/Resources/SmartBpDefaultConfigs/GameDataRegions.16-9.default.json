@@ -16,9 +16,9 @@
         "NodeType": 1,
         "TemplateGroupId": "hunter_rows",
         "Rect": {
-          "X": 12.3936,
-          "Y": 16.5,
-          "W": 79.0318,
+          "X": 9.4569,
+          "Y": 17.1667,
+          "W": 84.4535,
           "H": 9.1993
         },
         "ClampToParent": true,
@@ -71,7 +71,7 @@
             "NodeType": 0,
             "TemplateGroupId": "",
             "Rect": {
-              "X": 51.2581,
+              "X": 51.6148,
               "Y": 0,
               "W": 10,
               "H": 100
@@ -85,7 +85,7 @@
             "NodeType": 0,
             "TemplateGroupId": "",
             "Rect": {
-              "X": 65.2419,
+              "X": 65.7769,
               "Y": 0,
               "W": 10,
               "H": 100
@@ -99,7 +99,7 @@
             "NodeType": 0,
             "TemplateGroupId": "",
             "Rect": {
-              "X": 78.6371,
+              "X": 79.3504,
               "Y": 0,
               "W": 10,
               "H": 100
@@ -115,9 +115,9 @@
         "NodeType": 1,
         "TemplateGroupId": "survivor_rows",
         "Rect": {
-          "X": 12.2901,
-          "Y": 32.2352,
-          "W": 79.292,
+          "X": 9.4287,
+          "Y": 33.8352,
+          "W": 85.3161,
           "H": 8.8362
         },
         "ClampToParent": true,
@@ -214,9 +214,9 @@
         "NodeType": 1,
         "TemplateGroupId": "survivor_rows",
         "Rect": {
-          "X": 12.4857,
-          "Y": 43.6439,
-          "W": 79.292,
+          "X": 9.2477,
+          "Y": 45.9106,
+          "W": 85.3161,
           "H": 8.8362
         },
         "ClampToParent": true,
@@ -313,9 +313,9 @@
         "NodeType": 1,
         "TemplateGroupId": "survivor_rows",
         "Rect": {
-          "X": 12.2945,
-          "Y": 55.4239,
-          "W": 79.292,
+          "X": 9.2825,
+          "Y": 57.6906,
+          "W": 85.3161,
           "H": 8.8362
         },
         "ClampToParent": true,
@@ -412,9 +412,9 @@
         "NodeType": 1,
         "TemplateGroupId": "survivor_rows",
         "Rect": {
-          "X": 12.2945,
-          "Y": 66.1489,
-          "W": 79.292,
+          "X": 9.4331,
+          "Y": 69.2156,
+          "W": 85.3161,
           "H": 8.8362
         },
         "ClampToParent": true,
