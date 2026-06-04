@@ -262,7 +262,7 @@
             Margin="0,10,0,0"
             Style="{StaticResource Title}"
             Text="{lex:Loc Backend}" />
-        <Border Style="{StaticResource Card}">
+        <Border Margin="0,10,0,0" Style="{StaticResource Card}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
