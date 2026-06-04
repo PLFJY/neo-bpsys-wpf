@@ -1,17 +1,18 @@
-using System.Formats.Tar;
-using System.IO;
-using System.Text;
 using Downloader;
 using Microsoft.Extensions.Logging;
+using neo_bpsys_wpf.Core;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Helpers;
 using OpenCvSharp;
 using Sdcb.PaddleInference;
 using Sdcb.PaddleOCR;
 using Sdcb.PaddleOCR.Models;
 using Sdcb.PaddleOCR.Models.Shared;
-using neo_bpsys_wpf.Core;
-using neo_bpsys_wpf.Core.Abstractions.Services;
-using neo_bpsys_wpf.Core.Helpers;
-using neo_bpsys_wpf.Helpers;
+using System.Collections;
+using System.Formats.Tar;
+using System.IO;
+using System.Text;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -131,8 +132,9 @@ public class OcrService : IOcrService
         try
         {
             await DownloadAndExtractModelAssetAsync(
-                definition.OnlineModel.DetModel?.Uri
-                    ?? throw new InvalidOperationException(L("SmartBpOcrDetModelMetadataEmpty")),
+                PickModelSourceUri(
+                    definition.DetModel,
+                    L("SmartBpOcrDetModelMetadataEmpty")),
                 SmartBpOcrModelRegistry.GetDetDirectory(definition.Key),
                 L("SmartBpOcrDownloadStageDet"),
                 stepIndex: 1,
@@ -140,19 +142,22 @@ public class OcrService : IOcrService
                 _downloadCts.Token);
 
             await DownloadAndExtractModelAssetAsync(
-                definition.OnlineModel.ClsModel?.Uri
-                    ?? throw new InvalidOperationException(L("SmartBpOcrClsModelMetadataEmpty")),
+                PickModelSourceUri(
+                    definition.ClsModel,
+                    L("SmartBpOcrClsModelMetadataEmpty")),
                 SmartBpOcrModelRegistry.GetClsDirectory(definition.Key),
                 L("SmartBpOcrDownloadStageCls"),
                 stepIndex: 2,
                 stepCount: 3,
                 _downloadCts.Token);
 
-            var recModel = definition.OnlineModel.RecModel
-                ?? throw new InvalidOperationException(L("SmartBpOcrRecModelMetadataEmpty"));
+            var recModel = definition.RecModel
+                           ?? throw new InvalidOperationException(L("SmartBpOcrRecModelMetadataEmpty"));
 
             await DownloadAndExtractModelAssetAsync(
-                recModel.Uri,
+                PickModelSourceUri(
+                    recModel,
+                    L("SmartBpOcrRecModelMetadataEmpty")),
                 SmartBpOcrModelRegistry.GetRecDirectory(definition.Key),
                 L("SmartBpOcrDownloadStageRec"),
                 stepIndex: 3,
@@ -647,12 +652,12 @@ public class OcrService : IOcrService
     /// <returns>可用于推理的完整 OCR 模型。</returns>
     private static FullOcrModel BuildLocalFullModel(string modelKey, SmartBpOcrModelDefinition definition)
     {
-        var onlineDet = definition.OnlineModel.DetModel
-            ?? throw new InvalidOperationException(L("SmartBpOcrDetModelMetadataEmpty"));
-        var onlineCls = definition.OnlineModel.ClsModel
-            ?? throw new InvalidOperationException(L("SmartBpOcrClsModelMetadataEmpty"));
-        var onlineRec = definition.OnlineModel.RecModel
-            ?? throw new InvalidOperationException(L("SmartBpOcrRecModelMetadataEmpty"));
+        var onlineDet = definition.DetModel
+                        ?? throw new InvalidOperationException(L("SmartBpOcrDetModelMetadataEmpty"));
+        var onlineCls = definition.ClsModel
+                        ?? throw new InvalidOperationException(L("SmartBpOcrClsModelMetadataEmpty"));
+        var onlineRec = definition.RecModel
+                        ?? throw new InvalidOperationException(L("SmartBpOcrRecModelMetadataEmpty"));
 
         var detModel = DetectionModel.FromDirectory(
             SmartBpOcrModelRegistry.GetDetDirectory(modelKey),
@@ -678,4 +683,72 @@ public class OcrService : IOcrService
     private static string Lf(string key, params object?[] args) =>
         string.Format(I18nHelper.GetLocalizedString(key), args);
 
+    private static Uri PickModelSourceUri(object? onlineModel, string errorMessage)
+    {
+        if (onlineModel is null)
+        {
+            throw new InvalidOperationException(errorMessage);
+        }
+
+        var modelType = onlineModel.GetType();
+
+        // 兼容旧版：Uri
+        var legacyUriValue = modelType.GetProperty("Uri")?.GetValue(onlineModel);
+        if (legacyUriValue is Uri legacyUri)
+        {
+            return legacyUri;
+        }
+
+        if (legacyUriValue is string legacyUrl &&
+            Uri.TryCreate(legacyUrl, UriKind.Absolute, out var parsedLegacyUri))
+        {
+            return parsedLegacyUri;
+        }
+
+        // 新版：Sources
+        var sourcesValue = modelType.GetProperty("Sources")?.GetValue(onlineModel);
+        if (sourcesValue is not IEnumerable sources)
+        {
+            throw new InvalidOperationException(errorMessage);
+        }
+
+        var candidates = sources
+            .Cast<object>()
+            .Select(source =>
+            {
+                var sourceType = source.GetType();
+
+                var uriValue =
+                    sourceType.GetProperty("ArchiveUri")?.GetValue(source) ??
+                    sourceType.GetProperty("Uri")?.GetValue(source) ??
+                    sourceType.GetProperty("Url")?.GetValue(source);
+
+                if (uriValue is Uri uri)
+                {
+                    return uri;
+                }
+
+                if (uriValue is string url &&
+                    Uri.TryCreate(url, UriKind.Absolute, out var parsedUri))
+                {
+                    return parsedUri;
+                }
+
+                var description = sourceType.GetProperty("Description")?.GetValue(source)?.ToString();
+
+                return Uri.TryCreate(description, UriKind.Absolute, out var descriptionUri)
+                    ? descriptionUri
+                    : null;
+            })
+            .Where(uri => uri is not null)
+            .Cast<Uri>()
+            .ToList();
+
+        var selected = candidates
+            .Where(uri => uri.AbsoluteUri.EndsWith(".tar", StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(uri => uri.Host.Contains("bcebos.com", StringComparison.OrdinalIgnoreCase))
+            .FirstOrDefault();
+
+        return selected ?? throw new InvalidOperationException(errorMessage);
+    }
 }

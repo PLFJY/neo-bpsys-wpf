@@ -10,12 +10,16 @@ namespace neo_bpsys_wpf.Services;
 /// <param name="Key">模型唯一键。</param>
 /// <param name="DisplayNameKey">显示名称本地化键。</param>
 /// <param name="DescriptionKey">描述本地化键。</param>
-/// <param name="OnlineModel">在线模型定义。</param>
+/// <param name="DetModel">检测模型。</param>
+/// <param name="ClsModel">分类模型。</param>
+/// <param name="RecModel">识别模型。</param>
 public sealed record SmartBpOcrModelDefinition(
     string Key,
     string DisplayNameKey,
     string DescriptionKey,
-    OnlineFullModels OnlineModel);
+    OnlineDetectionModel DetModel,
+    OnlineClassificationModel? ClsModel,
+    LocalDictOnlineRecognizationModel RecModel);
 
 /// <summary>
 /// SmartBp OCR 模型注册表。
@@ -32,27 +36,41 @@ public static class SmartBpOcrModelRegistry
             "zh-cn-v5-mobile",
             "SmartBpOcrModelZhCnV5MobileDisplayName",
             "SmartBpOcrModelZhCnV5MobileDescription",
-            OnlineFullModels.ChineseV5),
+            OnlineDetectionModel.ChineseV5,
+            OnlineClassificationModel.ChineseMobileV2,
+            LocalDictOnlineRecognizationModel.ChineseV5),
+
         new(
             "en-v4-mobile",
             "SmartBpOcrModelEnV4MobileDisplayName",
             "SmartBpOcrModelEnV4MobileDescription",
-            OnlineFullModels.EnglishV4),
+            OnlineDetectionModel.ChineseV4,
+            OnlineClassificationModel.ChineseMobileV2,
+            LocalDictOnlineRecognizationModel.EnglishV4),
+
         new(
             "ja-v4-mobile",
             "SmartBpOcrModelJaV4MobileDisplayName",
             "SmartBpOcrModelJaV4MobileDescription",
-            OnlineFullModels.JapanV4),
+            OnlineDetectionModel.ChineseV4,
+            OnlineClassificationModel.ChineseMobileV2,
+            LocalDictOnlineRecognizationModel.JapanV4),
+
         new(
             "zh-cn-v4",
             "SmartBpOcrModelZhCnV4DisplayName",
             "SmartBpOcrModelZhCnV4Description",
-            OnlineFullModels.ChineseV4),
+            OnlineDetectionModel.ChineseV4,
+            OnlineClassificationModel.ChineseMobileV2,
+            LocalDictOnlineRecognizationModel.ChineseV4),
+
         new(
             "zh-cn-v3-slim",
             "SmartBpOcrModelZhCnV3SlimDisplayName",
             "SmartBpOcrModelZhCnV3SlimDescription",
-            OnlineFullModels.ChineseV3Slim)
+            OnlineDetectionModel.ChineseV3Slim,
+            OnlineClassificationModel.ChineseMobileSlimV2,
+            LocalDictOnlineRecognizationModel.ChineseV3Slim)
     ];
 
     /// <summary>
