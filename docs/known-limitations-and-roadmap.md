@@ -30,48 +30,37 @@
 
 不要把二者不同步当作错误。
 
-## 前台窗口术语
+## Designer v3 当前状态
 
-`FrontedWindow` / 前台窗口是 WPF 输出窗口，用于 OBS 或其他直播软件捕获，不是 Web frontend。不要引入 Web 路由、浏览器布局或前后端分离假设。
+Fronted Designer v3 已完成基础设施阶段，所有内置前台窗口均已接入 v3 renderer：
 
-## Classic Mode
+| 窗口 | Canvas | 状态 |
+| --- | --- | --- |
+| `ScoreSurWindow` / `ScoreHunWindow` | `BaseCanvas` | v3 renderer，绑定 `MatchScore` |
+| `ScoreGlobalWindow` | `BaseCanvas` | v3 renderer + `GlobalScoreRow`，BO3/BO5 canvas states |
+| `CutSceneWindow` | `BaseCanvas` | v3 renderer，业务控件封装 |
+| `GameDataWindow` | `BaseCanvas` | v3 renderer，表头 `LocalizedText` |
+| `WidgetsWindow` | `MapBpCanvas` / `BpOverViewCanvas` / `MapV2Canvas` | v3 renderer，多 Canvas |
+| `BpWindow` | `BaseCanvas` | v3 renderer，保留 AnimationService 兼容 |
 
-Classic Mode 是后台 Shell 的另一种 View 编排，不是第二套业务系统。它不新增 Pick / Ban / Score 业务 ViewModel，不复制比赛状态；前台管理、设置和插件入口通过 single-instance Page host 弹窗打开现有页面。Classic Mode 下 `MainWindow` 不启动，`NavigationService` 的页面切换保持 no-op，但 `GameGuidanceService` 的计时器、Ban 位设置和高亮广播仍应继续执行。维护细则见 [classic-mode.md](classic-mode.md)。
+Designer v3 独立编辑器（`FrontedDesignerWindow`）已实现并作为设计编辑器唯一入口。旧版真实窗口设计器模式、SettingPage 旧前台自定义入口和旧位置保存/恢复 API 已移除。
 
-Fronted Designer v3 当前已完成基础设施阶段，并将 `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、多 Canvas 的 `WidgetsWindow` 和 `BpWindow` 接入 v3 renderer；这些窗口的内置默认布局比分文本已绑定 `CurrentGame.MatchScore`。Phase 9F 起，legacy `.bpui` 可在导入前转换为干净 v3 包，转换不会覆盖全局 `Config.json`。旧设计者模式、SettingPage 旧前台自定义入口和旧位置保存/恢复 API 已在 Phase 10+ 移除；旧文件和旧 Config 字段仅作为 legacy 转换、迁移对照存在，不再保留在 active `Settings.cs` 运行时模型中。
+### 已知边界
 
-当前仍有明确边界：Resource Browser 控件级浏览不复制/导入外部图片；运行时关键控件名称只读且不能删除；被其他控件引用的普通控件在 reference-aware rename/delete 实现前阻止改名和删除；`PickingBorderOverlay` 不作为普通可选/可编辑/可添加控件。
-
-Phase 9A 已新增 `.bpui v3` 标准文档，Phase 9C 已实现导出。当前边界：
-
-1. `.bpui v3` 导出、导入/安装、激活复制和删除已实现；导出固定为全部前台布局。
-2. `FrontManagePage` 的 Layout Packages 管理页已完成紧凑 UI 打磨、包枚举/活动状态、导入、导出、激活、删除和 legacy 转换入口。
-3. Phase 9B.0 已实现 Canvas Properties GUI，可编辑 `CanvasWidth`、`CanvasHeight` 和 `BackgroundImage`，并支持本地背景图片复制为 `bpui://local/...`。
-4. Phase 9B.0 已实现 `bpui://local` 和 `bpui://{PackageId}` 文件资源解析；Phase 9C 导出会把 `bpui://local/...`、其他包资源和绝对路径资源复制进导出包并重写为当前 `PackageId`，同时保持 `Resources/...` 和 `pack://application:,,,/...` 原样。
-5. Phase 9B.0 已新增窗口级 `AllowTransparency` 选项基础，保存到 `FrontedLayouts/{WindowTypeName}/window.json`；它不是 Canvas 属性，不会写入 `FrontedCanvasConfig`。旧 `config.json` 中可映射的透明窗口字段会迁移到该窗口级选项，active `Settings.cs` 不再保存旧透明度字段。
-6. Phase 9D 后，`FrontManagePage` 的 Layout Packages 页能列出 `builtin`、普通已安装包和活动包状态，并能导入/导出 All Frontend Layouts `.bpui`；Current Canvas/Current Window 导出范围已从 UI 移除。
-7. legacy `.bpui` 检测已接入转换：转换器安全解压旧包，使用内置 v3 layout 作为基底，只应用可明确映射的旧几何和资源，生成干净 v3 包后交给现有 importer。`ScoreGlobalWindow/BaseCanvas` 已兼容旧 `Main*` 到 v3 `Home*` 的限定别名，并把旧半场比分格子聚合到 `GlobalScoreRow`。成功复制资源和规则内聚合记录为 info；未知旧布局文件、无法映射字段和不规则近似才会 warning。运行时不会读取 legacy 格式。
-8. ~~SettingPage 中现有 `.bpui` 导入/导出仍是 legacy/deprecated 流程，会处理 `Config.json`、`CustomUi/` 和 `FrontElementsConfig`，暂时保留；FrontManagePage 的 legacy 转换不会调用该旧导入流程，也不会覆盖全局 `Config.json`。~~ **Phase 10+ 已完成**：SettingPage 的旧 `.bpui` import/export UI 入口已删除。`SettingPageViewModel.UiPackage.cs` 已删除。旧 `.bpui` 现在通过 `FrontManagePage` 的 Layout Packages 管理，会触发 v3 转换，不再覆盖全局 Config.json。旧 Config 字段（如 `BpWindowSettings`、`ScoreWindowSettings` 等中的自定义字段）只存在于 legacy DTO / 转换器 / 迁移代码中，不再作为 active `Settings.cs` 运行时属性。
-9. Phase 9B.1 清理了 `FrontedDesignerWindow` 的重复入口：Delete 保留在 Edit menu 和左侧控件列表右键菜单，右侧 Property Grid 底部 Delete 已移除；`AllowTransparency` 保留在右侧 Window Options，不再出现在顶部 Window menu。
-10. v3 导出器不会写入全局 `Config.json`、`CustomUi/` 或 `FrontElementsConfig/`；manifest-based v3 导入器会拒绝这些 legacy 内容；无 manifest 的 legacy `.bpui` 仍走单独转换入口。
-11. Phase 10+ 已完成 Designer v3 边界收口：编辑器手写输入按上限截断，外部导入超限 JSON/manifest/layout/package 会拒绝；图片按用途限制大小和像素，resolver 对坏图安全返回 `null`；Canvas 控件数 160 warning、256 hard limit；编辑器支持内部 `Ctrl+C` / `Ctrl+V` 控件复制粘贴且不抢文本输入控件的普通复制粘贴。
-12. **Phase 10+ 已移除旧版真实窗口设计器模式**：`DesignBehavior.cs`、`CanvasAdorner.cs`、`DesignerModeChangedMessage.cs` 已删除。所有窗口 ViewModel 的 `IsDesignerMode` 属性和 `IRecipient<DesignerModeChangedMessage>` 接口已移除。`FrontManagePage` 的 `ChangeDesignerMode` 命令和相关 Reset 按钮已移除。`FrontedWindowBase` 不再注册 `DesignerModeChangedMessage`，但保留正常拖窗功能。Designer v3 独立编辑器（`FrontedDesignerWindow`）是当前唯一支持的设计编辑器。
-13. **Phase 10+ 已移除 SettingPage 旧前台自定义设置**：SettingPage 的 `CustomizeFrontendUI` 整块 UI 已删除，包括所有 `CardExpander`（BP Window、CutScene Window、Score Window、GameData Window、Widgets Window）。`SettingPageViewModel.FrontedUiCustom.cs` 和 `SettingPageViewModel.UiPackage.cs` 已删除。`AppConstants.CustomUiPath` 已删除。旧前台自定义图片、背景色、透明度、窗口尺寸、文字设置不再在 SettingPage 暴露。v3 布局包通过 `FrontManagePage` Layout Packages 管理。Designer v3 独立编辑器管理前台背景图、控件属性、文字样式、Window Options。旧 Config 字段（如 `BpWindowSettings`、`ScoreWindowSettings` 等中的自定义字段）只存在于 legacy DTO / 转换器 / 迁移代码中，不再作为 active `Settings.cs` 运行时属性。
-14. **Phase 10+ 已移除旧位置保存/恢复 API**：`IFrontedWindowService` 的 `RestoreInitialPositions`、`SaveWindowElementsPosition`、`SaveWindowCanvasElementsPosition`、`SaveAllWindowElementsPosition` 已删除。`FrontedWindowService` 的 `#region 设计者模式` 已删除。运行时不再从 `%APPDATA%` 读写 `{WindowName}Config-{CanvasName}.json`，也不再从 `Resources/FrontedDefaultPositions` 读取默认位置。`FrontedWindowService` 启动时不再调用旧位置加载逻辑，DEBUG 下也不再记录初始位置。前台布局状态完全由 v3 `FrontedLayouts` 驱动。重置布局通过 Layout Packages 激活内置布局或删除用户布局实现。`ElementInfo` 仍由 legacy `.bpui` 转换流程使用。
-15. **Phase 12/12B 已完成 Designer v3 显示层 i18n 收尾**：独立编辑器的 Property Grid 属性名/组名、ComboBox 选项显示、控件类型显示、窗口/Canvas 选择器、只读布尔值、颜色校验提示、Binding Browser / Resource Browser 文案和 Binding Browser 常用节点可以本地化。该能力只作用于 UI 显示层，不改变 v3 layout schema、JSON property name、`ControlType` 存储值、`BindingPath`、资源 URI、`FontFamily`、控件 `Name` 或 `.bpui` 导入/导出格式。Binding Browser 必须始终让原始路径可见，Resource Browser 必须始终让原始 URI/path 可见，ComboBox 保存值仍是原始英文契约值。
-16. **Phase 13F/15 已完成 Designer 插件前台控件 `.bpui` 依赖流收口**：插件 `ControlType` 标准为 `plugin:<PackageId>/<ControlTypeName>`，Canvas 可声明并由编辑器/导出器同步 `RequiredPlugins`，`.bpui` manifest 会汇总 `PluginDependencies`。保存 / 导出会在插件已安装 / 已加载时把依赖 `MinVersion` 写成插件 `manifest.yml` 的插件自身版本。导入器会合并 manifest、Canvas 和实际控件扫描结果，缺失插件或已安装版本低于 `MinVersion` 时提示用户安装 / 更新或继续保留缺失依赖；缺失插件窗口布局和控件配置会保留，Designer 显示 MissingPlugin 占位符，直播前台 runtime 跳过缺失插件控件并记录 warning。安装 / 更新后仍遵守当前插件系统重启要求，不把新插件当作当前进程已加载继续导入。`.bpui` 不得包含插件 DLL、安装包或脚本；导入器会拒绝这类条目，也不会静默下载、安装或加载插件。
-
-## Phase 13 插件前台控件路线图
-
-| 阶段 | 范围 |
-| --- | --- |
-| Phase 13A | 文档和 schema：插件 `ControlType` 命名、Canvas `RequiredPlugins`、manifest `PluginDependencies`、缺失插件导入策略和安全边界。 |
-| Phase 13B | 已实现插件控件 registry、descriptor API、通用 plugin config roundtrip 和 runtime renderer 缺失插件跳过。 |
-| Phase 13C | 已实现 Designer 插件控件支持，包括 Add Control、属性元数据、MissingPlugin 占位符和安装引导 stub。 |
-| Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
-| Phase 13D/15 | 已实现 `.bpui` 依赖扫描、导入、导出、缺失插件窗口/控件保留和 Designer 缺失控件占位符。`ExamplePlugin` 已整合为全功能参考插件。 |
-| Phase 13E | 已实现插件市场交互式安装 / 更新引导，以及插件依赖 `MinVersion` 从已安装插件 manifest version 自动写入。 |
-| Phase 13F | 已完成安全、版本兼容、i18n 和自动测试收口；剩余改进仅限未来更细的插件权限展示、签名策略或更完整的市场 UX。 |
+1. 运行时前台窗口的 Width/Height 目前**不自动同步** v3 layout 的 CanvasWidth/CanvasHeight。Designer v3 编辑器可以编辑 Canvas size，但窗口尺寸需要后续接入。旧窗口大小的 active 设置模型已删除，后续需实现窗口尺寸从 v3 layout/window.json 自动同步。
+2. SettingPage 旧 `.bpui` import/export UI 入口已删除。旧 `.bpui` 现在通过 `FrontManagePage` 的 Layout Packages 管理，会触发 v3 转换，不再覆盖全局 Config.json。旧 Config 字段已移入 legacy DTO / 转换器 / 迁移代码，不再作为 active `Settings.cs` 运行时属性。
+3. Resource Browser 控件级浏览不复制/导入外部图片。
+4. 运行时关键控件名称只读且不能删除。被其他控件引用的普通控件在 reference-aware rename/delete 实现前阻止改名和删除。
+5. `PickingBorderOverlay` 不作为普通可选/可编辑/可添加控件。
+6. `.bpui v3` 导出、导入/安装、激活复制和删除已实现；导出固定为全部前台布局。
+7. v3 导出器不会写入全局 `Config.json`、`CustomUi/` 或 `FrontElementsConfig/`。
+8. 编辑器手写输入按上限截断，外部导入超限 JSON/manifest/layout/package 会拒绝。
+9. 图片按用途限制大小和像素，resolver 对坏图安全返回 `null`。
+10. Canvas 控件数 160 warning、256 hard limit。
+11. 编辑器支持内部 `Ctrl+C` / `Ctrl+V` 控件复制粘贴且不抢文本输入控件的普通复制粘贴。
+12. 插件 `ControlType` 标准为 `plugin:<PackageId>/<ControlTypeName>`，Canvas 可声明并由编辑器/导出器同步 `RequiredPlugins`，`.bpui` manifest 汇总 `PluginDependencies`。
+13. 缺失插件窗口布局和控件配置会保留，Designer 显示 MissingPlugin 占位符，直播前台 runtime 跳过缺失插件控件并记录 warning。安装/更新后仍需重启，不把新插件当作当前进程已加载继续导入。
+14. `.bpui` 不得包含插件 DLL、安装包或脚本；导入器会拒绝这类条目。
 
 ## 文档边界
 
@@ -79,20 +68,19 @@ Phase 9A 已新增 `.bpui v3` 标准文档，Phase 9C 已实现导出。当前�
 
 ## 代码中观察到的边界
 
-1. 运行时前台窗口的 Width/Height 目前**不自动同步** v3 layout 的 CanvasWidth/CanvasHeight。Designer v3 编辑器可以编辑 Canvas size，但窗口尺寸需要后续接入。用户入口已从 SettingPage 删除，旧 `Settings.*WindowSettings.WindowSize` 已从 active 设置模型删除，`FrontedWindowService` 旧位置保存/恢复路径和旧窗口大小注释块已清理，后续需实现窗口尺寸从 v3 layout/window.json 自动同步。
-2. `neo-bpsys-wpf.Tests` 中 SmartBP 测试大多是注释中的手工调试样例，不能当作完整自动测试覆盖。
-3. `App.xaml.cs` 更新检查条件写作 `#if !DEBUG && !Preview`，而项目配置定义 `PREVIEW`。这是代码观察到的命名 caveat；本文档不声称其运行时效果已经通过编译验证，本任务也不修改代码。
-4. `GameRule.json` 是项目内规则配置，不是外部权威赛事规则源。
-5. 前台默认布局依赖文件命名约定，插件窗口默认布局缺失时恢复默认会失败。
+1. `neo-bpsys-wpf.Tests` 中 SmartBP 测试大多是注释中的手工调试样例，不能当作完整自动测试覆盖。
+2. `App.xaml.cs` 更新检查条件写作 `#if !DEBUG && !Preview`，而项目配置定义 `PREVIEW`。这是代码观察到的命名 caveat；本文档不声称其运行时效果已经通过编译验证，本任务也不修改代码。
+3. `GameRule.json` 是项目内规则配置，不是外部权威赛事规则源。
+4. 前台默认布局依赖文件命名约定，插件窗口默认布局缺失时恢复默认会失败。
 
 ## Score System v2
 
-比分系统正在迁移到现有 `Core.Models.Game` 持有权威状态，详见 [score-system-v2.md](score-system-v2.md)。Score Phase 5 已实现 `Game.MatchScore`、Score System v2 模型、`IMatchScoreService` / `MatchScoreService` 基础，把后台 `ScorePageViewModel` 的比分写入和普通 UI 清理迁移到 service 驱动，并把 `ScorePage` 导播预览表、`ScoreSurWindow` / `ScoreHunWindow` / `ScoreGlobalWindow` 默认布局的比分显示改为读取 `Game` 持有的 `MatchScoreState`。后台预览表是只读派生 UI，不恢复旧手动 Game/half 选择或“同步至前台”流程。当前代码仍存在这些边界：
+比分系统已迁移到现有 `Core.Models.Game` 持有权威状态，详见 [score-system-v2.md](score-system-v2.md)。当前代码仍存在这些边界：
 
 | 边界 | 说明 |
 | --- | --- |
-| `Team.Score` 语义混杂 | 当前仅作为迁移期兼容镜像保留；不要重新让它成为权威状态。新服务中的同步只是 transitional compatibility mirror，不是权威状态，Score 系列默认 v3 布局、CutScene v3 默认布局、GameData v3 默认布局、WidgetsWindow v3 默认布局、BpWindow v3 默认布局和后台 ScorePage 已不再依赖它。 |
-| `ScoreGlobalWindow` BO3/BO5 状态 | v3 已使用通用 Canvas BO states：root/default 是 BO5，`BoModeStates["Bo3"]` 是 BO3。背景、总分位置、比分行父框和 `GlobalScoreRow.Cells` 子格可分别编辑；BO3/BO5 的比分格位置、Visibility 和样式覆盖由各自 Canvas state 的完整 cell 列表决定；未使用的格子隐藏/折叠，不从模板中删除。 |
+| `Team.Score` 语义混杂 | 当前仅作为迁移期兼容镜像保留；不要重新让它成为权威状态。 |
+| `ScoreGlobalWindow` BO3/BO5 状态 | v3 已使用通用 Canvas BO states，不依赖旧 `MajorGameGap` / `HalfGameGap`。 |
 | `GameProgress.Free` 未定义比分语义 | Score System v2 暂把它记录为设计缺口。 |
-| `Game3Overtime*` 与 `Game4*` enum 数值重叠 | `MatchScoreService` 结合 BO3/BO5 状态解析；缺少上下文的 `MatchScoreState.GetGame(progress)` 保守按 BO5 第四局解析。 |
-| 旧记录 `Team.Score` 无法还原完整历史 | 旧 JSON 没有 `MatchScore` 时会创建默认 `MatchScoreState`，不会从 `Team.Score` 反推出 per-Game/per-Half 结果；导入器会尽量保留旧 `Team.Score` 镜像显示，并且不会覆盖新文件中有效的 `MatchScore`。 |
+| `Game3Overtime*` 与 `Game4*` enum 数值重叠 | `MatchScoreService` 结合 BO3/BO5 状态解析；缺少上下文的保守按 BO5 第四局解析。 |
+| 旧记录 `Team.Score` 无法还原完整历史 | 旧 JSON 没有 `MatchScore` 时会创建默认 `MatchScoreState`，不会从 `Team.Score` 反推出 per-Game/per-Half 结果。 |

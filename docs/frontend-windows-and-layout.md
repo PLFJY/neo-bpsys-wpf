@@ -45,7 +45,7 @@ descriptor 使用稳定 `WindowId`，并用 `FullWindowType = plugin:{PackageId}
 | `FrontedWindowStates` | 窗口是否已显示 |
 | `FrontedCanvas` | descriptor 声明的 `(windowId, canvasName)` 列表 |
 
-> **注意**：Phase 10+ 已删除旧 `FrontedWindowService` 的位置保存/恢复逻辑。运行时不再从 `AppData` 读写 `{WindowName}Config-{CanvasName}.json`，也不再从 `Resources/FrontedDefaultPositions` 读取默认位置。前台布局状态现在完全由 v3 `FrontedLayouts` 驱动。
+> **注意**：旧 `FrontedWindowService` 的位置保存/恢复逻辑已删除。运行时不再从 `AppData` 读写 `{WindowName}Config-{CanvasName}.json`，也不再从 `Resources/FrontedDefaultPositions` 读取默认位置。前台布局状态现在完全由 v3 `FrontedLayouts` 驱动。
 
 ## 显示与隐藏
 
@@ -71,9 +71,9 @@ v3 layout 中 root-level 控件 JSON key 就是控件名。该名称同时作为
 
 v3 layout 支持通用 BO3/BO5 Canvas states。root-level state 是默认/BO5；`EnableBoModeStates = true` 时，`BoModeStates["Bo3"]` 可保存独立 BO3 背景、插件依赖和控件集合。所有内置 v3 前台窗口和插件 Layout 承载窗口都会在 `ISharedDataService.IsBo3ModeChanged` 后重载布局，renderer 根据当前 BO 模式选择 root/BO5 或 BO3 state；如果启用但缺少 BO3 state，则回退 root/BO5 并记录 warning。`ScoreGlobalWindow` 只是该通用机制的一个使用者，不再使用窗口专用背景切换逻辑。
 
-Designer v3 Phase 8C 已新增后台侧独立 `FrontedDesignerWindow` shell。它通过 `FrontedDesignerLayoutCatalog` 只列出已迁移的内置 v3 窗口和 Canvas：`ScoreSurWindow/BaseCanvas`、`ScoreHunWindow/BaseCanvas`、`ScoreGlobalWindow/BaseCanvas`、`CutSceneWindow/BaseCanvas`、`GameDataWindow/BaseCanvas`、`WidgetsWindow/MapBpCanvas`、`WidgetsWindow/BpOverViewCanvas`、`WidgetsWindow/MapV2Canvas` 和 `BpWindow/BaseCanvas`。选择窗口和 Canvas 后，编辑器按 `IFrontedLayoutService` 的活动布局方案规则加载 JSON，转换成 `FrontedCanvasDesignDocument`，运行 `FrontedLayoutValidator`，再用现有 `IFrontedRenderer` 渲染到编辑器自己的只读 `PreviewCanvas`。如果当前活动方案是 `builtin`，保存时会自动复制出可编辑用户布局方案并激活，避免覆盖内置资源。
+后台侧独立 `FrontedDesignerWindow` shell 已实现。它通过 `FrontedDesignerLayoutCatalog` 只列出已迁移的内置 v3 窗口和 Canvas：`ScoreSurWindow/BaseCanvas`、`ScoreHunWindow/BaseCanvas`、`ScoreGlobalWindow/BaseCanvas`、`CutSceneWindow/BaseCanvas`、`GameDataWindow/BaseCanvas`、`WidgetsWindow/MapBpCanvas`、`WidgetsWindow/BpOverViewCanvas`、`WidgetsWindow/MapV2Canvas` 和 `BpWindow/BaseCanvas`。选择窗口和 Canvas 后，编辑器按 `IFrontedLayoutService` 的活动布局方案规则加载 JSON，转换成 `FrontedCanvasDesignDocument`，运行 `FrontedLayoutValidator`，再用现有 `IFrontedRenderer` 渲染到编辑器自己的只读 `PreviewCanvas`。如果当前活动方案是 `builtin`，保存时会自动复制出可编辑用户布局方案并激活，避免覆盖内置资源。
 
-该预览 Canvas 的 `Width` 和 `Height` 直接来自 `FrontedCanvasConfig.CanvasWidth` / `CanvasHeight`，不使用真实前台窗口的 `ActualHeight`、外框或标题栏尺寸，因此不会引入标题栏高度偏移。Phase 8F 后，独立编辑器已支持内存交互层、基础 Property Grid 和 Add Control：可选中普通设计项，编辑名称、布局、绑定文本和简单控件属性，把新控件添加到当前内存文档并即时重渲染预览。它仍不创建真实 `BpWindow`、`ScoreWindow`、`CutSceneWindow` 等前台输出窗口作为设计 surface，也不实现 Binding/Resource Browser、保存或重置用户布局。
+该预览 Canvas 的 `Width` 和 `Height` 直接来自 `FrontedCanvasConfig.CanvasWidth` / `CanvasHeight`，不使用真实前台窗口的 `ActualHeight`、外框或标题栏尺寸，因此不会引入标题栏高度偏移。独立编辑器已支持内存交互层、基础 Property Grid 和 Add Control：可选中普通设计项，编辑名称、布局、绑定文本和简单控件属性，把新控件添加到当前内存文档并即时重渲染预览。它仍不创建真实 `BpWindow`、`ScoreWindow`、`CutSceneWindow` 等前台输出窗口作为设计 surface，也不实现 Binding/Resource Browser、保存或重置用户布局。
 
 注意：`ScoreGlobalWindow` 的 BO3/BO5 背景、总分位置和比分行配置现在由通用 Canvas state 控制；BO5 使用 root state，BO3 使用 `BoModeStates["Bo3"]`。
 
@@ -91,7 +91,7 @@ neo-bpsys-wpf/Resources/FrontedDefaultPositions
 {pluginFolder}/FrontedDefaultPositions/{WindowTypeName}Config-{CanvasName}.default.json
 ```
 
-> **注意**：Phase 10+ 后，这些 legacy 位置文件不再被运行时 `FrontedWindowService` 读取。它们只属于 legacy `.bpui` 转换流程。重置布局通过 Layout Packages 激活内置布局或删除用户布局实现。
+> **注意**：这些 legacy 位置文件不再被运行时 `FrontedWindowService` 读取。它们只属于 legacy `.bpui` 转换流程。重置布局通过 Layout Packages 激活内置布局或删除用户布局实现。
 
 v3 布局文件命名约定：
 
@@ -102,7 +102,7 @@ neo-bpsys-wpf/Resources/FrontedLayouts/{WindowTypeName}/{CanvasName}.json
 
 v3 独立编辑器保存用户布局时应写入 AppData 的 `FrontedLayouts` 目录；“重置为内置”应删除或忽略用户布局，再回落到 `Resources/FrontedLayouts` 下的默认布局。
 
-Phase 9D 后，`FrontManagePage` 使用顶层 tabs：`Frontend Windows` 提供前台窗口打开/关闭和独立编辑器入口，`Layout Packages` 提供 v3 布局包管理器。Phase 10+ 后，`Frontend Windows` tab 不再包含旧版设计模式 ToggleSwitch，Reset 按钮也已移除；布局重置通过激活/删除包实现。包列表使用紧凑两栏布局，右侧详情按 Basic、Contents、Location、Validation 分组。当前可列出系统内置包、已安装包和活动包状态，并可导入、导出、激活和删除 v3 `.bpui` 包。导出固定为全部前台布局；导入 legacy `.bpui` 会触发转换流程。
+`FrontManagePage` 使用顶层 tabs：`Frontend Windows` 提供前台窗口打开/关闭和独立编辑器入口，`Layout Packages` 提供 v3 布局包管理器。`Frontend Windows` tab 不再包含旧版设计模式 ToggleSwitch，Reset 按钮也已移除；布局重置通过激活/删除包实现。包列表使用紧凑两栏布局，右侧详情按 Basic、Contents、Location、Validation 分组。当前可列出系统内置包、已安装包和活动包状态，并可导入、导出、激活和删除 v3 `.bpui` 包。导出固定为全部前台布局；导入 legacy `.bpui` 会触发转换流程。
 
 激活普通包时，包内 `layouts/{WindowTypeName}/{CanvasName}.json` 会复制到 `%APPDATA%\neo-bpsys-wpf\FrontedLayouts\{WindowTypeName}\{CanvasName}.json`，可选 `layouts/{WindowTypeName}/window.json` 也会复制到同一窗口目录。激活内置布局或删除活动包会清空 `FrontedLayouts` 用户布局目录并回退到内置 `Resources/FrontedLayouts`。已打开的前台窗口会尝试重新渲染 v3 布局。
 

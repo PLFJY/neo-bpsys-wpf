@@ -10,7 +10,7 @@
 | [runtime-architecture.md](runtime-architecture.md) | 启动流程、Generic Host、DI、日志、插件初始化时机 |
 | [module-overview.md](module-overview.md) | 解决方案内各项目和目录的职责 |
 | [frontend-windows-and-layout.md](frontend-windows-and-layout.md) | 前台窗口、OBS 捕获、v3 布局、插件前台窗口 |
-| [fronted-designer-v3.md](fronted-designer-v3.md) | Fronted Designer v3 的配置驱动重构设计、兼容策略和分阶段计划 |
+| [fronted-designer-v3.md](fronted-designer-v3.md) | Fronted Designer v3 的配置驱动重构设计、兼容策略和实现历史 |
 | [fronted-designer-editor.md](fronted-designer-editor.md) | Designer v3 独立编辑器技术设计，包括 JSON key = 控件名、多 Canvas、透明 hitbox、Property Grid、Binding/Resource Browser 和保存策略 |
 | [bpui-package-v3.md](bpui-package-v3.md) | Designer v3 `.bpui` 布局包标准，包括 manifest、资源 URI、包隔离、导入导出与包管理规格 |
 | [legacy-fronted-layout-migration.md](legacy-fronted-layout-migration.md) | 旧 `Config.json` 前台字段和旧 `.bpui` 到 Designer v3 布局的迁移规则 |
@@ -19,7 +19,7 @@
 | [game-guidance.md](game-guidance.md) | 引导式 BP 的规则文件和工作流 |
 | [smartbp-and-ocr.md](smartbp-and-ocr.md) | SmartBP、赛后数据 OCR、模型和区域配置 |
 | [shared-data-and-state.md](shared-data-and-state.md) | 共享状态、CurrentGame、队伍、Ban、倒计时和前台绑定 |
-| [score-system-v2.md](score-system-v2.md) | Score System v2 的 `Core.Models.Game` 持有比分状态、小比分（MinorScore）计算规则、前台绑定和迁移计划 |
+| [score-system-v2.md](score-system-v2.md) | Score System v2 的 `Core.Models.Game` 持有比分状态、小比分（MinorScore）计算规则、前台绑定和兼容策略 |
 | [plugin-system.md](plugin-system.md) | 插件生命周期、能力、安全边界、打包 |
 | [plugin-market.md](plugin-market.md) | 插件市场、镜像、下载队列、SHA-256 校验 |
 | [settings-paths-and-data.md](settings-paths-and-data.md) | AppData、Documents 输出、设置模型 |

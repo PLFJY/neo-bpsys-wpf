@@ -1,6 +1,6 @@
 # Designer v3 `.bpui` 布局包标准
 
-本文定义 Designer v3 使用的 `.bpui v3` 前台布局包格式。它是导入、导出、包管理、资源复制、热切换和 legacy 转换的规格依据；Phase 9D 已实现 v3 包导出、导入安装、激活复制和删除语义，Phase 9F 已实现 legacy `.bpui` 到 Designer v3 `.bpui` 的导入前转换。
+本文定义 Designer v3 使用的 `.bpui v3` 前台布局包格式。它是导入、导出、包管理、资源复制、热切换和 legacy 转换的规格依据。当前 v3 包导出、导入安装、激活复制和删除已实现，legacy `.bpui` 到 Designer v3 `.bpui` 的导入前转换也已实现。
 
 ## 1. 目的
 
@@ -893,33 +893,15 @@ Phase 10 起，导入器增加硬安全限制：`.bpui` 压缩包最大 50 MiB�
 
 图片资源在复制或导入前会校验扩展名、文件大小和像素尺寸。Canvas 背景图限制为 1 MiB、长边 4096、像素 4096×4096；普通 UI 图片限制为 512 KiB、长边 2048、像素 2048×2048；包内未知用途图片按包资源入口限制处理并仍需能安全解码。超限图片会整体拒绝，不会复制进包或生成 `bpui://` URI。
 
-## 22. legacy 关系和迁移路线图
+## 22. legacy 关系和当前实现
 
-旧 SettingPage `.bpui` 导入导出是 legacy。新的 v3 package manager 将替代它用于 Designer v3 布局。
+旧 SettingPage `.bpui` 导入导出是 legacy。新的 v3 package manager 已替代它用于 Designer v3 布局。
 
 legacy 包检测：
 
 1. 没有有效 `manifest.json`。
 2. 存在 `Config.json`、`CustomUi/` 或 `FrontElementsConfig/`。
 
-legacy 转换是后续阶段，不在 Phase 9A 实现。Phase 9A 不修改旧导入导出流程，不实现 legacy conversion。
-Phase 9F 起，`FrontManagePage` 导入 legacy `.bpui` 时会先询问是否转换。转换器会安全解压旧 zip 到 staging，复制 `CustomUi/` 资源到 `resources/images/`，生成 `manifest.json`，并从当前内置 v3 布局起步应用旧 `ElementInfo` 几何覆盖。旧 `Config.json` 只读取明确可映射的前台图片字段，不会写入 `%APPDATA%/neo-bpsys-wpf/Config.json`，也不会复制到新包或 AppData。未知旧布局文件只产生 warning 并跳过；如果没有任何可映射布局，转换失败并显示错误。转换后的包再走现有 v3 importer，因此安装、重复 PackageId 替换、资源隔离和激活行为与普通 v3 包一致。
+`FrontManagePage` 导入 legacy `.bpui` 时会先询问是否转换。转换器会安全解压旧 zip 到 staging，复制 `CustomUi/` 资源到 `resources/images/`，生成 `manifest.json`，并从当前内置 v3 布局起步应用旧 `ElementInfo` 几何覆盖。旧 `Config.json` 只读取明确可映射的前台图片字段，不会写入 `%APPDATA%/neo-bpsys-wpf/Config.json`，也不会复制到新包或 AppData。未知旧布局文件只产生 warning 并跳过；如果没有任何可映射布局，转换失败并显示错误。转换后的包再走现有 v3 importer，因此安装、重复 PackageId 替换、资源隔离和激活行为与普通 v3 包一致。
 
-路线图：
-
-| 阶段 | 范围 |
-| --- | --- |
-| Phase 9A | 文档和规格 only。 |
-| Phase 9B.0: Canvas Properties GUI, local bpui resource normalization, toolbar cleanup, and Window Options foundation | 已实现 Canvas Properties GUI、本地 `bpui://local` 图片规范化、`bpui://` resolver、工具栏二级菜单和窗口级 `AllowTransparency` 选项基础。 |
-| Phase 9B.1: FrontManagePage Layout Package Manager UI skeleton | 已新增 `FrontManagePage` 的 `Frontend Windows` / `Layout Packages` 顶层 tabs、Layout Packages UI skeleton、布局包列表服务基础和活动包状态文件读取/写入骨架。独立编辑器入口保留在 `Frontend Windows` 页，不单独占用 tab。导入、导出、legacy 转换和资源打包仍未实现。 |
-| Phase 9C | 已实现 v3 `.bpui` 包导出、导出 manifest 对话框、All Frontend Layouts 导出范围、资源收集/重写和包管理器 UI 打磨。导出包不会包含 `Config.json`、`CustomUi/` 或 `FrontElementsConfig/`；`Resources/...` 与 `pack://application:,,,/...` 保持原样，`bpui://local/...`、其他已安装包资源和绝对路径资源会复制到包内并重写为当前 `PackageId`。导入/安装仍未实现。 |
-| Phase 9D | 已实现 v3 包导入、安装、激活复制到用户布局目录、删除普通包和删除活动包时切回内置。导出范围固定为全部前台布局。 |
-| Phase 9E | legacy 包转换入口设计和更细的迁移提示。 |
-| Phase 9F | 已实现 legacy 到 v3 转换器、转换确认入口、CustomUi 资源复制、旧位置几何覆盖和转换后 v3 importer 安装。 |
-| Phase 13A | 文档和 schema：插件前台控件 `ControlType` 命名、Canvas `RequiredPlugins`、manifest `PluginDependencies`、缺失插件导入策略和安全边界。 |
-| Phase 13B | 已实现插件前台控件 registry、描述符 API、通用 plugin config roundtrip 和 runtime renderer 缺失插件跳过。 |
-| Phase 13C | 已实现 Designer 插件控件支持，包括 Add Control、属性元数据、Canvas `RequiredPlugins` 同步和缺失插件占位符。 |
-| Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
-| Phase 13D/15 | 已实现 `.bpui` 依赖扫描、导入、导出、缺失插件窗口/控件保留和 Designer 缺失控件占位符；新增 DEBUG-only 示例前台控件插件。 |
-| Phase 13E | 已实现插件市场交互式安装 / 更新引导，安装 / 更新后仍遵守插件系统重启要求。 |
-| Phase 13F/15 | 已完成安全、版本兼容、i18n 和自动测试收口：缺失插件导入 UI 使用本地化资源，市场安装队列会校验未完成依赖，`.bpui` 导入拒绝插件二进制 / 脚本，`MinVersion` 从已安装插件 manifest version 写入，缺失插件窗口布局和控件配置会保留。 |
+当前 `.bpui v3` 包的完整功能已实现：导出（含 manifest 对话框、全部前台布局、资源收集/重写）、导入安装、激活复制、删除、legacy 转换，以及插件控件 `ControlType` 命名、Canvas `RequiredPlugins`、manifest `PluginDependencies`、缺失插件保留、插件市场安装引导等全流程支持。详细阶段历史见 [fronted-designer-v3.md#10-分阶段实现历史](fronted-designer-v3.md#10-分阶段实现历史)。

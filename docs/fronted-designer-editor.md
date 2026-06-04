@@ -1,8 +1,8 @@
 # Fronted Designer v3 独立编辑器设计规格
 
-本文记录 Designer v3 Phase 8A 的编辑器设计规格。Phase 8B 已落地设计期基础模型、配置转换、校验器、引用扫描器和运行时关键名称目录；Phase 8C 已新增独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；Phase 8D 已新增编辑器内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调，并在 owner validation 后补齐左侧控件列表、筛选和重叠控件选择语义。Phase 8D zoom/pan 修正后，编辑 surface 不再使用 `Viewbox` 控制 Fit/手动缩放，而是使用 `ScrollViewer + PreviewZoomHost + LayoutTransform`，所有缩放统一由 `ZoomScale` 驱动。Phase 8E 已新增基础 Property Grid，可编辑选中控件的内存设计项并即时重渲染预览；owner validation 后改为按编辑器类型实例化单一模板，提交事件在属性网格重建期间被抑制，验证详情移入底部状态区弹窗，颜色字段使用 ColorPicker。Phase 8F 已新增 Add Control 菜单、默认 config 工厂、唯一命名和 `FontFamily` 字体 ComboBox；owner validation 修正后补齐 Delete Control、文本属性显式提交、失败编辑红框保留输入、字体下拉打开/提交时机修复和右侧 Property Grid 可拖拽宽度。Phase 8F foundation 修复后，设计器预览使用独立 placeholder shared data service，颜色选择只同步 Hex 缓冲并由 Apply/Enter 显式提交，左侧列表右键和 Property Grid 底部都可删除控件，并新增内存 Undo/Redo 按钮和快捷键。Phase 8G 已新增 Binding Browser 和 Resource Browser；浏览器选择只写入属性行 `EditText` 缓冲，仍需 Apply 或 Enter 才提交到内存设计文档。Phase 8H 已新增保存用户布局、重置为内置、运行时用户布局优先级、脏状态提示和吸附开关。Phase 9A 已定义 `.bpui v3` 布局包标准，见 [bpui-package-v3.md](bpui-package-v3.md)。Phase 9B.1 已新增 `FrontManagePage` Layout Packages 管理器骨架，可列出系统内置包、已安装包和活动包状态；同时清理设计器重复入口，Delete 保留在 Edit menu 和左侧列表右键菜单，右侧 Property Grid 底部 Delete 已移除。编辑器入口位于 `FrontManagePage`，不是 `SettingPage`。Phase 9C 已实现 v3 `.bpui` 导出和资源打包；Phase 12 已新增 Designer v3 显示层 i18n，属性名、控件类型、窗口/Canvas 选择器、Binding Browser 常用节点和 ComboBox 选项可本地化，但 layout schema 与保存值不变。Phase 14A 已优化 Paste / Delete / Undo / Redo 的交互响应：选择状态改为增量切换，粘贴和删除对左侧过滤列表做定向更新，校验与预览渲染延后到 Dispatcher 后台并合并，保存和显式 Validate 仍立即执行完整校验。
+本文记录 Fronted Designer v3 独立编辑器的设计规格。独立编辑器面向 v3 JSON layout 文件。它是后台侧的独立编辑窗口，不直接在真实前台窗口上编辑；真实前台窗口仍用于 OBS 捕获和运行时输出。编辑器必须同时支持单 Canvas 窗口和多 Canvas 窗口，并保持与现有 v3 renderer、生成控件名、`AnimationService`、业务控件和 JSON 格式兼容。
 
-独立编辑器面向 v3 JSON layout 文件。它是后台侧的独立编辑窗口，不直接在真实前台窗口上编辑；真实前台窗口仍用于 OBS 捕获和运行时输出。编辑器必须同时支持单 Canvas 窗口和多 Canvas 窗口，并保持与现有 v3 renderer、生成控件名、`AnimationService`、业务控件和 JSON 格式兼容。
+当前编辑器已实现：设计期基础模型、配置转换、校验器、引用扫描和运行时关键名称目录；独立 `FrontedDesignerWindow` shell、窗口/Canvas 选择器、只读预览渲染、缩放控制和校验面板；内存交互层、透明 hitbox、选择框、拖拽、缩放控制点和键盘微调；基础 Property Grid、Add Control 菜单、Binding Browser 和 Resource Browser；保存用户布局、重置为内置、脏状态提示、吸附网格、Undo/Redo。Designer v3 显示层 i18n 已完成，属性名、控件类型、ComboBox 选项等可本地化，但 layout schema 与保存值不变。详细阶段历史见 [fronted-designer-v3.md](fronted-designer-v3.md#10-分阶段实现历史)。
 
 ## 1. 硬规则：JSON Key = Control Name
 
@@ -743,29 +743,24 @@ Phase 9B.1 起，设计器保存写入当前活动 layout package；当前活动
 
 Phase 10 起，编辑器 typed/pasted input 会按集中限制截断：搜索 128 字符，控件名 64，`BindingPath` 256，资源路径和 Canvas `BackgroundImage` 1024，`FontFamily` 256，静态 `Text` 512。发生截断时显示 `InputTruncated`。这些限制只适用于编辑器输入；外部导入 `.bpui`、layout JSON 或 manifest 时，超长字段会被拒绝，不会截断。Add Control 在当前 Canvas 已有 256 个控件时拒绝新增并显示 `ControlCountLimitReached`；保存仍由 validator 阻止硬限制错误。
 
-## 17. 未来实现阶段建议
+## 17. 已实现功能总览
 
-| 阶段 | 范围 |
-| --- | --- |
-| Phase 8B | 已实现：`FrontedControlDesignItem` / `FrontedCanvasDesignDocument`、设计项与 dictionary 转换、`FrontedLayoutValidator`、名称校验、引用扫描、运行时关键名称 catalog、重复 JSON key 检测 |
-| Phase 8C | 已实现：`FrontedDesignerWindow` shell、window/canvas selector、只读 preview surface、缩放控制、layout source 状态和 validator 消息面板 |
-| Phase 8D | 已实现：interaction layer、透明 hitbox、selection adorner、drag、resize、键盘微调；owner validation 后补齐左侧控件列表/筛选、单击选择与拖拽分离、选中 hitbox editor-only 提层、拖拽/缩放时 preview live update、无显式尺寸时使用渲染实际尺寸；仍只改内存，不保存用户布局 |
-| Phase 8E | 已实现：基础 Property Grid、Text/Number/Boolean/Enum/ColorPicker 编辑、对齐/换行/拉伸/字重字符串选项 ComboBox、保守 Name 编辑、运行时关键名称只读、被引用控件改名阻止；owner validation 后验证详情移至底部状态区弹窗，属性重建期间抑制提交，live 拖拽不重建属性网格；仍只改内存，不保存用户布局 |
-| Phase 8F | 已实现：Add Control 菜单、默认 config factory、唯一命名、视口中心放置、独立 placeholder preview data、FontFamily 字体 ComboBox、ColorPicker Hex 缓冲显式提交、左侧右键/Property Grid 底部删除、基础内存 Undo/Redo；仍只改内存，不保存用户布局。Phase 9B.1 后右侧 Property Grid 底部删除按钮已移除。 |
-| Phase 8G | Binding Browser、Resource Browser |
-| Phase 8H | 已实现：用户 layout save/reset/load priority、validation-driven save、dirty prompt 和 snap-to-grid。布局包化后，目录入口统一由 `FrontManagePage` 的 Layout Packages 管理区提供。 |
-| Phase 9B.0: Canvas Properties GUI, local bpui resource normalization, toolbar cleanup, and Window Options foundation | 已实现：Canvas Properties GUI，包含 `CanvasWidth`、`CanvasHeight`、`BackgroundImage`，并将本地图片规范化为 `bpui://local/...`；工具栏整理为主按钮和二级菜单；新增窗口级 Window Options 基础。 |
-| Phase 9B.1: FrontManagePage Layout Package Manager UI skeleton | 已实现：`FrontManagePage` 的 `Frontend Windows` / `Layout Packages` 顶层 tabs、Layout Packages tab skeleton、布局包枚举服务基础、活动包状态读取/写入骨架，以及设计器工具栏/菜单重复项清理；独立编辑器入口保留在 `Frontend Windows` 页，不单独占用 tab。 |
-| Phase 9C: v3 package export | 已实现：Layout Package Manager 紧凑 UI、导出 manifest 对话框、All Frontend Layouts 导出、manifest 生成、layout/window options 打包、资源复制和 URI 重写。 |
-| Phase 9D: v3 package import/activation/delete | 已实现：v3 `.bpui` 导入安装、重复包替换确认、激活复制到用户布局目录、切回内置、删除普通包和删除活动包时先切回内置。legacy 转换仍是后续阶段。 |
-| Phase 12: Designer v3 i18n display layer | 已实现：通过 `IFrontedDesignerLocalizationService` 本地化编辑器显示层；Property Grid 的只读布尔值和颜色校验提示、Binding Browser / Resource Browser 文案也走 Designer i18n。`PropertyName`、`GroupName`、`ControlType`、`BindingPath`、资源 URI、`FontFamily` 和控件 `Name` 保存值保持原始契约值。 |
-| Phase 13A | 文档和 schema：插件 `ControlType` 命名、MissingPlugin 编辑器策略、声明式属性元数据方向。 |
-| Phase 13B | 已实现插件控件 registry、descriptor API、通用 plugin config roundtrip 和 runtime renderer 缺失插件跳过。 |
-| Phase 13C | 已实现 Designer Add Control 插件 UI、插件声明式属性元数据渲染、缺失插件占位符和安装引导 stub。 |
-| Phase 13C.5 | 示例插件清理，验证插件控件作者体验。 |
-| Phase 13D/15 | 已实现 `.bpui` 依赖扫描、导出 manifest `PluginDependencies`、缺失插件窗口/控件保留、Designer 缺失控件占位符。`ExamplePlugin` 已整合为全功能参考插件，替代原 DEBUG-only `ExampleFrontedControls`。 |
-| Phase 13E | 已实现插件市场交互式安装 / 更新引导；`.bpui` 导入不会静默安装插件，安装或更新后通常需要重启再重新导入。 |
-| Phase 13F/15 | 已完成安全、版本兼容、i18n 和测试收口：插件 Add Control / Property Grid / 缺失占位符行为保持现有 Designer v3 路径，`.bpui` 依赖安装引导不会热加载插件，缺失或版本不满足的插件窗口布局和控件配置会保留，等待插件安装并重启后恢复。 |
+> 本编辑器的所有阶段功能已实现完成。详细阶段历史见 [fronted-designer-v3.md#10-分阶段实现历史](fronted-designer-v3.md#10-分阶段实现历史)。
+
+已实现的核心能力：
+- 设计期基础：`FrontedControlDesignItem` / `FrontedCanvasDesignDocument`、设计项与 dictionary 转换、`FrontedLayoutValidator`、名称校验、引用扫描、运行时关键名称 catalog、重复 JSON key 检测
+- 编辑器 shell：`FrontedDesignerWindow`、窗口/Canvas 选择器、只读预览 surface、缩放控制、layout source 状态和 validator 消息面板
+- 交互层：透明 hitbox、selection adorner、drag、resize、键盘微调、左侧控件列表/筛选、单击选择与拖拽分离
+- Property Grid：Text/Number/Boolean/Enum/ColorPicker 编辑、对齐/换行/拉伸/字重 ComboBox、Name 编辑保护、显式提交模型
+- Add Control 菜单：默认 config 工厂、唯一命名、视口中心放置、独立 placeholder preview data、FontFamily 字体 ComboBox
+- Binding Browser 与 Resource Browser
+- 保存/重置：用户 layout save/reset、validation-driven save、脏状态提示、吸附网格（默认关闭 + Shift 临时吸附 + 智能对齐）
+- Undo/Redo、Copy/Paste（内部剪贴板）
+- Canvas Properties GUI、`bpui://local` 资源规范化、Window Options
+- `.bpui v3` 包导出/导入/安装/激活/删除
+- Designer v3 显示层 i18n
+- 插件控件支持：Add Control、声明式 Property Grid 元数据、缺失插件占位符
+- 左侧图层面板：ZIndex 分组、同层排序、跨层移动、顶/底投放区
 
 ## 18. 非目标
 
