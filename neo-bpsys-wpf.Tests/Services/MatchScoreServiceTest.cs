@@ -71,6 +71,45 @@ public class MatchScoreServiceTest
     }
 
     [Fact]
+    public void ScorePageSelectedResultFollowsCurrentGameProgress()
+    {
+        var (currentGame, sharedDataService, service) =
+            CreateScorePageTestServices(GameProgress.Game1FirstHalf);
+        var viewModel = new ScorePageViewModel(sharedDataService.Object, service);
+
+        viewModel.SelectedCurrentHalfResult = GameResult.Escape3;
+        Assert.Equal(GameResult.Escape3, service.GetHalf(GameProgress.Game1FirstHalf)!.Result);
+        Assert.Equal(GameResult.Escape3, viewModel.SelectedCurrentHalfResult);
+
+        currentGame.GameProgress = GameProgress.Game1SecondHalf;
+
+        Assert.True(viewModel.IsScoreControlEnabled);
+        Assert.Null(viewModel.SelectedCurrentHalfResult);
+
+        viewModel.SelectedCurrentHalfResult = GameResult.Out4;
+        Assert.Equal(GameResult.Out4, service.GetHalf(GameProgress.Game1SecondHalf)!.Result);
+
+        currentGame.GameProgress = GameProgress.Game1FirstHalf;
+
+        Assert.Equal(GameResult.Escape3, viewModel.SelectedCurrentHalfResult);
+    }
+
+    [Fact]
+    public void ScorePageSelectedResultDoesNotWriteWhenProgressIsFree()
+    {
+        var (currentGame, sharedDataService, service) =
+            CreateScorePageTestServices(GameProgress.Free);
+        var viewModel = new ScorePageViewModel(sharedDataService.Object, service);
+
+        viewModel.SelectedCurrentHalfResult = GameResult.Out4;
+
+        Assert.False(viewModel.IsScoreControlEnabled);
+        Assert.Null(viewModel.SelectedCurrentHalfResult);
+        Assert.All(currentGame.MatchScore.Games.SelectMany(game => new[] { game.FirstHalf, game.SecondHalf }),
+            half => Assert.Null(half.Result));
+    }
+
+    [Fact]
     public void MajorScoreIsDerivedAfterBothHalvesAreSet()
     {
         var (currentGame, sharedDataService, service) = CreateScorePageTestServices(GameProgress.Game1FirstHalf);

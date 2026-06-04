@@ -92,6 +92,21 @@ public partial class ScorePageViewModel : ViewModelBase
     public Game CurrentGame => _sharedDataService.CurrentGame;
     public Team HomeTeam => _sharedDataService.HomeTeam;
     public Team AwayTeam => _sharedDataService.AwayTeam;
+    public bool IsScoreControlEnabled => _sharedDataService.CurrentGame.GameProgress > GameProgress.Free;
+
+    public GameResult? SelectedCurrentHalfResult
+    {
+        get => _matchScoreService.CurrentHalf?.Result;
+        set
+        {
+            if (!IsScoreControlEnabled || _matchScoreService.CurrentHalf?.Result == value)
+                return;
+
+            _matchScoreService.SetCurrentHalfResult(value);
+            RefreshScorePageState();
+        }
+    }
+
     public ObservableCollection<ScorePreviewRow> ScorePreviewRows { get; } = [];
 
     #region 比分控制
@@ -172,6 +187,7 @@ public partial class ScorePageViewModel : ViewModelBase
         OnPropertyChanged(nameof(CurrentGame));
         OnPropertyChanged(nameof(HomeTeam));
         OnPropertyChanged(nameof(AwayTeam));
+        RefreshCurrentHalfBindings();
     }
 
     private void RefreshScorePreviewRows()
@@ -251,7 +267,17 @@ public partial class ScorePageViewModel : ViewModelBase
 
     private void OnTeamSwapped(object? sender, EventArgs args) => RefreshScorePageState();
 
-    private void OnMatchScorePropertyChanged(object? sender, PropertyChangedEventArgs args) => RefreshScorePreviewRows();
+    private void OnMatchScorePropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        RefreshScorePreviewRows();
+        RefreshCurrentHalfBindings();
+    }
+
+    private void RefreshCurrentHalfBindings()
+    {
+        OnPropertyChanged(nameof(IsScoreControlEnabled));
+        OnPropertyChanged(nameof(SelectedCurrentHalfResult));
+    }
 
     private static void ClearHalf(ScoreHalf half)
     {
