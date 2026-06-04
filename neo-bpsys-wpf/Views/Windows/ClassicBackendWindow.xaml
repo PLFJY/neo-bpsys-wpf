@@ -116,7 +116,7 @@
 
                     <StackPanel Width="360" Margin="0,0,12,8">
                         <TextBlock Text="{lex:Loc Countdown}" />
-                        <WrapPanel Margin="0,8,0,0">
+                        <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
                             <ComboBox
                                 Width="95"
                                 IsEditable="True"
@@ -133,78 +133,88 @@
                                 Command="{Binding TimerStopCommand}"
                                 Content="{lex:Loc Stop}"
                                 Icon="{ui:SymbolIcon Symbol=Stop24}" />
-                            <TextBlock Margin="0,5,8,8" Text="{lex:Loc PreviewColon}" />
-                            <TextBlock Margin="0,5,8,8" Text="{Binding RemainingSeconds}" />
-                        </WrapPanel>
-                    </StackPanel>
-
-                    <StackPanel Margin="0,0,12,8">
-                        <WrapPanel>
                             <TextBlock
                                 Margin="0,5,8,8"
                                 VerticalAlignment="Center"
-                                Text="{lex:Loc FormatColon}" />
-                            <RadioButton
+                                Text="{lex:Loc PreviewColon}" />
+                            <TextBlock
                                 Margin="0,5,8,8"
-                                Content="BO5"
-                                GroupName="ClassicBo3Mode"
-                                IsChecked="True"
-                                IsEnabled="{Binding CanGameProgressChange}" />
-                            <RadioButton
-                                Margin="0,5,8,8"
-                                Content="BO3"
-                                GroupName="ClassicBo3Mode"
-                                IsChecked="{Binding IsBo3Mode}"
-                                IsEnabled="{Binding CanGameProgressChange}" />
-                            <TextBlock Margin="0,5,8,8" Text="{lex:Loc GameProgressColon}" />
-                            <ComboBox
-                                Width="210"
-                                IsEnabled="{Binding CanGameProgressChange}"
-                                ItemsSource="{Binding GameList}"
-                                MaxDropDownHeight="190"
-                                SelectedIndex="0"
-                                SelectedValue="{Binding SelectedGameProgress}"
-                                SelectedValuePath="Key">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{lex:Loc {Binding Value}}" />
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </WrapPanel>
-                        <WrapPanel Margin="0,8,0,0">
-                            <ui:Button
-                                Command="{Binding NextGameCommand}"
-                                Content="{lex:Loc Next}"
-                                Icon="{ui:SymbolIcon Symbol=ArrowNext24}" />
-                            <ui:Button
-                                Command="{Binding StartNavigationCommand}"
-                                Content="{lex:Loc StartGameGuidance}"
-                                Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
-                            <ui:Button
-                                Command="{Binding NavigateToPreviousStepCommand}"
-                                Content="{lex:Loc LastStep}"
-                                Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
-                            <ui:Button
-                                Command="{Binding NavigateToNextStepCommand}"
-                                Content="{lex:Loc NextStep}"
-                                Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
-                            <ui:Button
-                                Command="{Binding StopNavigationCommand}"
-                                Content="{lex:Loc EndGameGuidance}"
-                                Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
-                            <TextBlock Margin="0,5,8,8" Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}">
-                                <TextBlock.Text>
-                                    <MultiBinding Converter="{lex:StringFormatConverter}">
-                                        <lex:BLoc Key="CurrentStepFormat" />
-                                        <Binding Path="ActionName" />
-                                    </MultiBinding>
-                                </TextBlock.Text>
-                            </TextBlock>
-                        </WrapPanel>
+                                VerticalAlignment="Center"
+                                Text="{Binding RemainingSeconds}" />
+                        </StackPanel>
                     </StackPanel>
 
-                    <WrapPanel Width="380" Margin="0,0,0,8">
+                    <StackPanel
+                        Margin="0,0,12,8"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal">
+                        <TextBlock
+                            Margin="0,5,8,8"
+                            VerticalAlignment="Center"
+                            Text="{lex:Loc FormatColon}" />
+                        <RadioButton
+                            Margin="0,5,8,8"
+                            Content="BO5"
+                            GroupName="ClassicBo3Mode"
+                            IsChecked="True"
+                            IsEnabled="{Binding CanGameProgressChange}" />
+                        <RadioButton
+                            Margin="0,5,8,8"
+                            Content="BO3"
+                            GroupName="ClassicBo3Mode"
+                            IsChecked="{Binding IsBo3Mode}"
+                            IsEnabled="{Binding CanGameProgressChange}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,8" Orientation="Horizontal">
+                        <TextBlock Margin="0,5,8,8" Text="{lex:Loc GameProgressColon}" />
+                        <ComboBox
+                            Width="210"
+                            IsEnabled="{Binding CanGameProgressChange}"
+                            ItemsSource="{Binding GameList}"
+                            MaxDropDownHeight="190"
+                            SelectedIndex="0"
+                            SelectedValue="{Binding SelectedGameProgress}"
+                            SelectedValuePath="Key">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{lex:Loc {Binding Value}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <ui:Button
+                            Command="{Binding NextGameCommand}"
+                            Content="{lex:Loc Next}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowNext24}" />
+                        <ui:Button
+                            Command="{Binding StartNavigationCommand}"
+                            Content="{lex:Loc StartGameGuidance}"
+                            Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BooleanToReverseVisibilityConverter}}" />
+                        <ui:Button
+                            Command="{Binding NavigateToPreviousStepCommand}"
+                            Content="{lex:Loc LastStep}"
+                            Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <ui:Button
+                            Command="{Binding NavigateToNextStepCommand}"
+                            Content="{lex:Loc NextStep}"
+                            Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <ui:Button
+                            Command="{Binding StopNavigationCommand}"
+                            Content="{lex:Loc EndGameGuidance}"
+                            Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <TextBlock Margin="0,5,8,8" Visibility="{Binding IsGuidanceStarted, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <TextBlock.Text>
+                                <MultiBinding Converter="{lex:StringFormatConverter}">
+                                    <lex:BLoc Key="CurrentStepFormat" />
+                                    <Binding Path="ActionName" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <StackPanel
+                        Width="380"
+                        Margin="0,0,12,8"
+                        Orientation="Horizontal">
                         <ui:Button
                             Command="{Binding SaveGameInfoCommand}"
                             Content="{lex:Loc SaveGameInformation}"
@@ -217,7 +227,7 @@
                             Command="{Binding NewGameCommand}"
                             Content="{lex:Loc NewGame}"
                             Icon="{ui:SymbolIcon Symbol=Add24}" />
-                    </WrapPanel>
+                    </StackPanel>
                 </WrapPanel>
             </Border>
 
