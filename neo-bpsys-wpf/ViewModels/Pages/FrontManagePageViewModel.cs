@@ -616,6 +616,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 
         if (pendingIds.Count > 0)
         {
+            _logger?.LogError("Plugin dependencies install incomplete: {Ids}", string.Join(", ", pendingIds.OrderBy(id => id, StringComparer.OrdinalIgnoreCase)));
             throw new InvalidOperationException(
                 $"{I18nHelper.GetLocalizedString("PluginDependencyInstallIncomplete")}: {string.Join(", ", pendingIds.OrderBy(id => id, StringComparer.OrdinalIgnoreCase))}");
         }

@@ -415,6 +415,7 @@ public partial class SharedDataService : ISharedDataService
                     CanGlobalHunBannedList[i] = i < count;
                 break;
             default:
+                _logger.LogWarning("Invalid ban list name: {ListName}", listName);
                 throw new ArgumentOutOfRangeException(nameof(listName), listName, null);
         }
     }

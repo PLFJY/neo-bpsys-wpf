@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
@@ -36,16 +37,25 @@ public sealed class SmartBpRegionConfigService : ISmartBpRegionConfigService
     };
     private readonly ISmartBpSceneDefinition _gameDataSceneDefinition;
 
+    private readonly ILogger<SmartBpRegionConfigService> _logger;
     private SmartBpRegionProfile _cachedProfile;
 
     /// <summary>
     /// 初始化配置服务并加载当前配置（失败时自动回退默认配置）。
     /// </summary>
-    public SmartBpRegionConfigService(IEnumerable<ISmartBpSceneDefinition> sceneDefinitions)
+    public SmartBpRegionConfigService(
+        IEnumerable<ISmartBpSceneDefinition> sceneDefinitions,
+        ILogger<SmartBpRegionConfigService> logger)
     {
+        _logger = logger;
         _gameDataSceneDefinition = sceneDefinitions.FirstOrDefault(s =>
-                string.Equals(s.SceneKey, SmartBpSceneKeys.GameData, StringComparison.OrdinalIgnoreCase))
-            ?? throw new InvalidOperationException("Missing SmartBp scene definition: GameData");
+            string.Equals(s.SceneKey, SmartBpSceneKeys.GameData, StringComparison.OrdinalIgnoreCase));
+
+        if (_gameDataSceneDefinition == null)
+        {
+            _logger.LogError("Missing SmartBp scene definition: GameData");
+            throw new InvalidOperationException("Missing SmartBp scene definition: GameData");
+        }
 
         // 先放一份内存默认值，确保任意异常下都有可用配置。
         _cachedProfile = _gameDataSceneDefinition.CreateDefaultProfile();

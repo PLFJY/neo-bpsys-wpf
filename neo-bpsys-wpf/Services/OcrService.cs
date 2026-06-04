@@ -151,8 +151,12 @@ public class OcrService : IOcrService
                 stepCount: 3,
                 _downloadCts.Token);
 
-            var recModel = definition.RecModel
-                           ?? throw new InvalidOperationException(L("SmartBpOcrRecModelMetadataEmpty"));
+            if (definition.RecModel == null)
+            {
+                _logger.LogError("Recognition model metadata is empty.");
+                throw new InvalidOperationException(L("SmartBpOcrRecModelMetadataEmpty"));
+            }
+            var recModel = definition.RecModel;
 
             await DownloadAndExtractModelAssetAsync(
                 PickModelSourceUri(
@@ -650,14 +654,28 @@ public class OcrService : IOcrService
     /// <param name="modelKey">模型键。</param>
     /// <param name="definition">模型定义。</param>
     /// <returns>可用于推理的完整 OCR 模型。</returns>
-    private static FullOcrModel BuildLocalFullModel(string modelKey, SmartBpOcrModelDefinition definition)
+    private FullOcrModel BuildLocalFullModel(string modelKey, SmartBpOcrModelDefinition definition)
     {
-        var onlineDet = definition.DetModel
-                        ?? throw new InvalidOperationException(L("SmartBpOcrDetModelMetadataEmpty"));
-        var onlineCls = definition.ClsModel
-                        ?? throw new InvalidOperationException(L("SmartBpOcrClsModelMetadataEmpty"));
-        var onlineRec = definition.RecModel
-                        ?? throw new InvalidOperationException(L("SmartBpOcrRecModelMetadataEmpty"));
+        if (definition.DetModel == null)
+        {
+            _logger.LogError("Detection model metadata is empty for model: {ModelKey}", modelKey);
+            throw new InvalidOperationException(L("SmartBpOcrDetModelMetadataEmpty"));
+        }
+        var onlineDet = definition.DetModel;
+
+        if (definition.ClsModel == null)
+        {
+            _logger.LogError("Classification model metadata is empty for model: {ModelKey}", modelKey);
+            throw new InvalidOperationException(L("SmartBpOcrClsModelMetadataEmpty"));
+        }
+        var onlineCls = definition.ClsModel;
+
+        if (definition.RecModel == null)
+        {
+            _logger.LogError("Recognition model metadata is empty for model: {ModelKey}", modelKey);
+            throw new InvalidOperationException(L("SmartBpOcrRecModelMetadataEmpty"));
+        }
+        var onlineRec = definition.RecModel;
 
         var detModel = DetectionModel.FromDirectory(
             SmartBpOcrModelRegistry.GetDetDirectory(modelKey),
@@ -683,10 +701,11 @@ public class OcrService : IOcrService
     private static string Lf(string key, params object?[] args) =>
         string.Format(I18nHelper.GetLocalizedString(key), args);
 
-    private static Uri PickModelSourceUri(object? onlineModel, string errorMessage)
+    private Uri PickModelSourceUri(object? onlineModel, string errorMessage)
     {
         if (onlineModel is null)
         {
+            _logger.LogError("PickModelSourceUri: onlineModel is null. Error: {ErrorMessage}", errorMessage);
             throw new InvalidOperationException(errorMessage);
         }
 
@@ -709,6 +728,7 @@ public class OcrService : IOcrService
         var sourcesValue = modelType.GetProperty("Sources")?.GetValue(onlineModel);
         if (sourcesValue is not IEnumerable sources)
         {
+            _logger.LogError("PickModelSourceUri: Sources property is not IEnumerable. Error: {ErrorMessage}", errorMessage);
             throw new InvalidOperationException(errorMessage);
         }
 
@@ -749,6 +769,12 @@ public class OcrService : IOcrService
             .OrderByDescending(uri => uri.Host.Contains("bcebos.com", StringComparison.OrdinalIgnoreCase))
             .FirstOrDefault();
 
-        return selected ?? throw new InvalidOperationException(errorMessage);
+        if (selected == null)
+        {
+            _logger.LogError("PickModelSourceUri: no valid source URI found. Error: {ErrorMessage}", errorMessage);
+            throw new InvalidOperationException(errorMessage);
+        }
+
+        return selected;
     }
 }

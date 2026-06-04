@@ -29,6 +29,7 @@ public class PluginMarketService : IPluginMarketService
 
     private readonly HttpClient _httpClient;
     private readonly ILogger<PluginMarketService> _logger;
+    private static ILogger<PluginMarketService>? StaticLogger => IAppHost.TryGetService<ILogger<PluginMarketService>>();
     private readonly ISettingsHostService _settingsHostService;
     private readonly Lock _downloadLock = new();
     private CancellationTokenSource? _downloadCts;
@@ -804,6 +805,7 @@ public class PluginMarketService : IPluginMarketService
         var actualHash = ComputeFileSha256(zipPath);
         if (!string.Equals(expectedHash, actualHash, StringComparison.OrdinalIgnoreCase))
         {
+            StaticLogger?.LogError("SHA-256 mismatch for plugin {PluginName}", FormatPluginDisplayName(item));
             throw new InvalidOperationException(
                 string.Format(
                     I18nHelper.GetLocalizedString("PluginMarketSha256Mismatch"),

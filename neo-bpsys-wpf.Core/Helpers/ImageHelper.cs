@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Enums;
 using System.IO;
 using System.Windows;
@@ -11,6 +12,7 @@ namespace neo_bpsys_wpf.Core.Helpers;
 /// </summary>
 public static class ImageHelper
 {
+    private static ILogger? Logger => IAppHost.TryGetService<ILogger>();
 
     /// <summary>
     /// Get Ui ImageBrush from Resources\bpui\
@@ -144,6 +146,7 @@ public static class ImageHelper
         catch (Exception ex)
         {
             // ignored
+            Logger?.LogWarning(ex, "Failed to load image from {Uri}", uriStr);
 #if DEBUG
             MessageBox.Show(ex.Message);
 #endif

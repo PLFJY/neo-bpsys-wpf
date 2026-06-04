@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Messages;
@@ -73,6 +74,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly IFrontedLocalResourceStore? _localResourceStore;
     private readonly IFrontedWindowLayoutOptionsService? _windowLayoutOptionsService;
     private readonly ILogger<FrontedDesignerWindowViewModel> _logger;
+
+    private static ILogger<FrontedDesignerWindowViewModel>? StaticLogger =>
+        IAppHost.TryGetService<ILogger<FrontedDesignerWindowViewModel>>();
+
     private readonly Dictionary<string, string> _propertyEditErrors = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _propertyEditBuffers = new(StringComparer.Ordinal);
     private readonly Stack<string> _undoStack = new();
@@ -2817,8 +2822,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private static T DeepClone<T>(T value)
     {
         var json = JsonSerializer.Serialize(value);
-        return JsonSerializer.Deserialize<T>(json)
-               ?? throw new InvalidOperationException("Failed to clone fronted layout state.");
+        var result = JsonSerializer.Deserialize<T>(json);
+        if (result is null)
+        {
+            StaticLogger?.LogError("Failed to clone fronted layout state.");
+            throw new InvalidOperationException("Failed to clone fronted layout state.");
+        }
+
+        return result;
     }
 
     private static Dictionary<string, FrontedControlConfigBase> CloneControls(
@@ -2828,8 +2839,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         foreach (var (name, control) in controls)
         {
             var json = JsonSerializer.Serialize(control, control.GetType());
-            cloned[name] = (FrontedControlConfigBase?)JsonSerializer.Deserialize(json, control.GetType())
-                           ?? throw new InvalidOperationException("Failed to clone fronted control config.");
+            var deserialized = (FrontedControlConfigBase?)JsonSerializer.Deserialize(json, control.GetType());
+            if (deserialized is null)
+            {
+                StaticLogger?.LogError("Failed to clone fronted control config.");
+                throw new InvalidOperationException("Failed to clone fronted control config.");
+            }
+
+            cloned[name] = deserialized;
         }
 
         return cloned;
@@ -4610,8 +4627,13 @@ internal static class FrontedDesignerSnapshotRestorePlanner
     private static string CanonicalNonGeometryJson(FrontedControlConfigBase config)
     {
         var json = JsonSerializer.Serialize(config, config.GetType());
-        var node = JsonNode.Parse(json)?.AsObject()
-                   ?? throw new InvalidOperationException("Failed to parse fronted control config JSON.");
+        var node = JsonNode.Parse(json)?.AsObject();
+        if (node is null)
+        {
+            IAppHost.TryGetService<ILogger<FrontedDesignerWindowViewModel>>()
+                ?.LogError("Failed to parse fronted control config JSON.");
+            throw new InvalidOperationException("Failed to parse fronted control config JSON.");
+        }
         foreach (var property in GeometryProperties)
         {
             node.Remove(property);

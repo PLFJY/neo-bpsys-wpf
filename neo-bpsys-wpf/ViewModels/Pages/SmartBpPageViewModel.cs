@@ -1,6 +1,7 @@
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
@@ -30,6 +31,7 @@ public partial class SmartBpPageViewModel : ViewModelBase
     private readonly ISmartBpSceneDefinition _gameDataSceneDefinition = null!;
     private readonly IFilePickerService _filePickerService = null!;
     private readonly DispatcherTimer _captureAspectRefreshTimer;
+    private readonly ILogger<SmartBpPageViewModel> _logger;
 
 #pragma warning disable CS8618
     public SmartBpPageViewModel()
@@ -46,14 +48,20 @@ public partial class SmartBpPageViewModel : ViewModelBase
         IOcrService ocrService,
         ISmartBpRegionConfigService regionConfigService,
         IEnumerable<ISmartBpSceneDefinition> sceneDefinitions,
-        IFilePickerService filePickerService)
+        IFilePickerService filePickerService,
+        ILogger<SmartBpPageViewModel> logger)
     {
+        _logger = logger;
         _windowCaptureService = windowCaptureService;
         _ocrService = ocrService;
         _regionConfigService = regionConfigService;
         _gameDataSceneDefinition = sceneDefinitions.FirstOrDefault(s =>
-                string.Equals(s.SceneKey, SmartBpSceneKeys.GameData, StringComparison.OrdinalIgnoreCase))
-            ?? throw new InvalidOperationException("Missing SmartBp scene definition: GameData");
+                string.Equals(s.SceneKey, SmartBpSceneKeys.GameData, StringComparison.OrdinalIgnoreCase));
+        if (_gameDataSceneDefinition == null)
+        {
+            _logger.LogError("Missing SmartBp scene definition: GameData");
+            throw new InvalidOperationException("Missing SmartBp scene definition: GameData");
+        }
         _filePickerService = filePickerService;
         _ocrService.DownloadStateChanged += OcrService_DownloadStateChanged;
         // 配置被保存/导入/重置时同步刷新比例状态展示。

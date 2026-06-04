@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
@@ -15,6 +16,8 @@ namespace neo_bpsys_wpf.Services.FrontedDesigner;
 /// </summary>
 public sealed class DesignerPreviewSharedDataService : ISharedDataService
 {
+    private static ILogger? Logger => IAppHost.TryGetService<ILogger>();
+
     public const string HomeTeamName = "HomeTeam";
     public const string AwayTeamName = "AwayTeam";
     public const string SurvivorCharacterName = "幸运儿";
@@ -216,13 +219,33 @@ public sealed class DesignerPreviewSharedDataService : ISharedDataService
 
     public void SetBanCount(BanListName listName, int count)
     {
-        var list = listName switch
+        BanListName key;
+        switch (listName)
+        {
+            case BanListName.CanCurrentSurBanned:
+                key = BanListName.CanCurrentSurBanned;
+                break;
+            case BanListName.CanCurrentHunBanned:
+                key = BanListName.CanCurrentHunBanned;
+                break;
+            case BanListName.CanGlobalSurBanned:
+                key = BanListName.CanGlobalSurBanned;
+                break;
+            case BanListName.CanGlobalHunBanned:
+                key = BanListName.CanGlobalHunBanned;
+                break;
+            default:
+                Logger?.LogWarning("Invalid ban list name: {ListName}", listName);
+                throw new ArgumentOutOfRangeException(nameof(listName), listName, null);
+        }
+
+        var list = key switch
         {
             BanListName.CanCurrentSurBanned => CanCurrentSurBannedList,
             BanListName.CanCurrentHunBanned => CanCurrentHunBannedList,
             BanListName.CanGlobalSurBanned => CanGlobalSurBannedList,
             BanListName.CanGlobalHunBanned => CanGlobalHunBannedList,
-            _ => throw new ArgumentOutOfRangeException(nameof(listName), listName, null)
+            _ => null!
         };
 
         for (var i = 0; i < list.Count; i++)

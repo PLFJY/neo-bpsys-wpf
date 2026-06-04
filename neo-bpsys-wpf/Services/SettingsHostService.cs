@@ -211,6 +211,7 @@ public class SettingsHostService : ISettingsHostService
                 case FrontedWindowType.WidgetsWindow:
                     break;
                 default:
+                    _logger.LogWarning("Unsupported window type for config reset: {WindowType}", windowType);
                     throw new ArgumentOutOfRangeException(nameof(windowType), windowType, null);
             }
 

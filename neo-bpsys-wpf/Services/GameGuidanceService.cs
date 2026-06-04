@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
@@ -23,8 +24,10 @@ namespace neo_bpsys_wpf.Services;
 public class GameGuidanceService(
     ISharedDataService sharedDataService,
     INavigationService navigationService,
-    IInfoBarService infoBarService) : IGameGuidanceService
+    IInfoBarService infoBarService,
+    ILogger<GameGuidanceService> logger) : IGameGuidanceService
 {
+    private readonly ILogger<GameGuidanceService> _logger = logger;
     private readonly ISharedDataService _sharedDataService = sharedDataService;
     private readonly INavigationService _navigationService = navigationService;
     private readonly IInfoBarService _infoBarService = infoBarService;
@@ -93,6 +96,7 @@ public class GameGuidanceService(
     {
         if (!File.Exists(_guidanceFilePath))
         {
+            _logger.LogWarning("Game rule file not found at {Path}", _guidanceFilePath);
             _ = MessageBoxHelper.ShowErrorAsync(I18nHelper.GetLocalizedString("GameRuleFileNotFound"));
             throw new FileNotFoundException();
         }
@@ -103,6 +107,7 @@ public class GameGuidanceService(
                 _jsonSerializerOptions);
         if (content == null || gameProgress == GameProgress.Free)
         {
+            _logger.LogWarning("Game guidance not supported for progress {Progress}", gameProgress);
             throw new GuidanceNotSupportedException();
         }
 

@@ -3,6 +3,7 @@
 // Copyright (C) Leszek Pomianowski and WPF UI Contributors.
 // All Rights Reserved.
 
+using Microsoft.Extensions.Logging;
 using Wpf.Ui;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
@@ -15,8 +16,11 @@ namespace neo_bpsys_wpf.Services;
 /// </summary>
 public partial class NavigationService(
     INavigationViewPageProvider pageProvider,
-    ISettingsHostService settingsHostService) : INavigationService
+    ISettingsHostService settingsHostService,
+    ILogger<NavigationService> logger) : INavigationService
 {
+    private readonly ILogger<NavigationService> _logger = logger;
+
     /// <summary>
     /// Gets or sets the control representing navigation.
     /// </summary>
@@ -27,10 +31,17 @@ public partial class NavigationService(
     {
         if (IsClassicMode)
         {
+            _logger.LogError("NavigationControl is null.");
             throw new ArgumentNullException(nameof(NavigationControl));
         }
 
-        return NavigationControl ?? throw new ArgumentNullException(nameof(NavigationControl));
+        if (NavigationControl is null)
+        {
+            _logger.LogError("NavigationControl is null.");
+            throw new ArgumentNullException(nameof(NavigationControl));
+        }
+
+        return NavigationControl;
     }
 
     /// <inheritdoc />
@@ -140,6 +151,7 @@ public partial class NavigationService(
     {
         if (NavigationControl is null)
         {
+            _logger.LogError("NavigationControl is null.");
             throw new ArgumentNullException(nameof(NavigationControl));
         }
     }

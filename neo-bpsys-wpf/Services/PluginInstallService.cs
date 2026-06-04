@@ -29,6 +29,7 @@ public sealed class PluginInstallService(ILogger<PluginInstallService> logger) :
         var manifest = deserializer.Deserialize<PluginManifest?>(File.ReadAllText(manifestPath));
         if (manifest == null)
         {
+            logger.LogError("Manifest file is not valid at {Path}", manifestPath);
             throw new Exception(I18nHelper.GetLocalizedString("ManifestNotValid"));
         }
 

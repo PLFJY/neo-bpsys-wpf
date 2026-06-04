@@ -1,4 +1,4 @@
-﻿using Downloader;
+using Downloader;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -48,6 +48,8 @@ public class UpdaterService : IUpdaterService
     private readonly Lock _downloadLock = new();
     private CancellationTokenSource? _downloadCts;
     private string _pendingSha256DownloadUrl = string.Empty;
+
+    private static ILogger<UpdaterService>? StaticLogger => IAppHost.TryGetService<ILogger<UpdaterService>>();
     private UpdateDownloadStage _downloadStage = UpdateDownloadStage.None;
 
     public UpdaterService(IInfoBarService infoBarService, ILogger<UpdaterService> logger,
@@ -423,6 +425,7 @@ public class UpdaterService : IUpdaterService
         var normalized = value.Trim().Replace("-", string.Empty, StringComparison.Ordinal).ToLowerInvariant();
         if (normalized.Length != 64 || normalized.Any(c => !Uri.IsHexDigit(c)))
         {
+            StaticLogger?.LogError("Invalid hash value: {Value}", value);
             throw new InvalidOperationException(I18nHelper.GetLocalizedString("AppUpdateInvalidHashFile"));
         }
 

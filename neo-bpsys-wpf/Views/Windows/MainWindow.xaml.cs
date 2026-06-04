@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Controls;
 using neo_bpsys_wpf.Core;
@@ -74,6 +74,7 @@ public partial class MainWindow : FluentWindow, INavigationWindow
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to open DebugSharedDataWindow.");
                 System.Windows.MessageBox.Show(ex.ToString());
             }
         }
