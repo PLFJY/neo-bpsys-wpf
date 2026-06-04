@@ -6,17 +6,20 @@ using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 
 namespace neo_bpsys_wpf.Core.Models;
 
 /// <summary>
 /// 队伍类, <see cref="ISharedDataService"/> 中主队和客队对应的对象全场始终不变，信息导入依靠 <see cref="ImportTeamInfo(Team)"/> 方法
 /// </summary>
+[FrontedBindingObject]
 public partial class Team : ObservableObjectBase
 {
     /// <summary>
     /// 队伍类型(主队/客队)
     /// </summary>
+    [FrontedBindingIgnore]
     public TeamType TeamType { get; }
 
     private string _name = string.Empty;
@@ -63,6 +66,7 @@ public partial class Team : ObservableObjectBase
     /// <summary>
     /// 队伍LOGO的Uri
     /// </summary>
+    [FrontedBindingIgnore]
     public string ImageUri { get; set; } = string.Empty;
 
 
@@ -71,6 +75,7 @@ public partial class Team : ObservableObjectBase
     /// <summary>
     /// 求生者队员列表
     /// </summary>
+    [FrontedBindingIgnore]
     public ObservableCollection<Member> SurMemberList
     {
         get => _surMemberList;
@@ -82,6 +87,7 @@ public partial class Team : ObservableObjectBase
     /// <summary>
     /// 监管者队员列表
     /// </summary>
+    [FrontedBindingIgnore]
     public ObservableCollection<Member> HunMemberList
     {
         get => _hunMemberList;
@@ -91,33 +97,43 @@ public partial class Team : ObservableObjectBase
     /// <summary>
     /// 全局被禁用的求生者列表
     /// </summary>
-    [ObservableProperty] private ObservableCollection<Character?> _globalBannedSurList = [];
+    [ObservableProperty]
+    [property: FrontedBindingCollection(FixedCount = AppConstants.GlobalBanSurCount)]
+    private ObservableCollection<Character?> _globalBannedSurList = [];
 
     /// <summary>
     /// 全局被禁用的监管者列表
     /// </summary>
-    [ObservableProperty] private ObservableCollection<Character?> _globalBannedHunList = [];
+    [ObservableProperty]
+    [property: FrontedBindingCollection(FixedCount = AppConstants.GlobalBanHunCount)]
+    private ObservableCollection<Character?> _globalBannedHunList = [];
 
     /// <summary>
     /// 全局被禁用的求生者记录
     /// </summary>
     [Obsolete("此数组已弃用，将在3.0.0.0后删除，请迁移至 GlobalBannedSurRecordList")]
-    [JsonIgnore] public Character?[] GlobalBannedSurRecordArray => [.. GlobalBannedSurRecordList];
+    [JsonIgnore]
+    [FrontedBindingIgnore]
+    public Character?[] GlobalBannedSurRecordArray => [.. GlobalBannedSurRecordList];
 
     /// <summary>
     /// 全局被禁用的监管者记录
     /// </summary>
     [Obsolete("此数组已弃用，将在3.0.0.0后删除，请迁移至 GlobalBannedHunRecordList")]
-    [JsonIgnore] public Character?[] GlobalBannedHunRecordArray => [.. GlobalBannedHunRecordList];
+    [JsonIgnore]
+    [FrontedBindingIgnore]
+    public Character?[] GlobalBannedHunRecordArray => [.. GlobalBannedHunRecordList];
 
     /// <summary>
     /// 全局被禁用的求生者记录
     /// </summary>
+    [FrontedBindingIgnore]
     public ObservableCollection<Character?> GlobalBannedSurRecordList { get; }
 
     /// <summary>
     /// 全局被禁用的监管者记录
     /// </summary>
+    [FrontedBindingIgnore]
     public ObservableCollection<Character?> GlobalBannedHunRecordList { get; }
 
     /// <summary>
@@ -146,6 +162,7 @@ public partial class Team : ObservableObjectBase
     /// 正在场上的求生者队员列表
     /// </summary>
     [JsonIgnore]
+    [FrontedBindingIgnore]
     public ReadOnlyObservableCollection<Member?> SurMemberOnFieldCollection
     {
         get => _surMemberOnFieldCollection;
@@ -158,6 +175,7 @@ public partial class Team : ObservableObjectBase
     /// 正在场上的监管者队员
     /// </summary>
     [JsonIgnore]
+    [FrontedBindingIgnore]
     public Member? HunMemberOnField
     {
         get => _hunMemberOnField;
@@ -167,6 +185,7 @@ public partial class Team : ObservableObjectBase
     /// <summary>
     /// 队伍比分
     /// </summary>
+    [FrontedBindingIgnore]
     public Score Score { get; } = new();
 
     /// <summary>

@@ -2555,6 +2555,13 @@
   <data name="Designer.Property.ImageHeight" xml:space="preserve"><value>内部画像の高さ</value></data>
   <data name="Designer.Property.PickingBorderImagePath" xml:space="preserve"><value>選択枠画像</value></data>
   <data name="Designer.Property.BanLockImagePath" xml:space="preserve"><value>Ban ロック画像</value></data>
+  <data name="Designer.Property.Lockable" xml:space="preserve"><value>ロックオーバーレイ</value></data>
+  <data name="Designer.Property.LockImagePath" xml:space="preserve"><value>ロック画像</value></data>
+  <data name="Designer.Property.LockVisibilityBindingPath" xml:space="preserve"><value>ロック表示バインド</value></data>
+  <data name="Designer.Property.LockVisibleWhen" xml:space="preserve"><value>ロック表示条件</value></data>
+  <data name="Designer.Property.PickingBorderAvailable" xml:space="preserve"><value>選択枠オーバーレイ</value></data>
+  <data name="Designer.Property.PickingBorderName" xml:space="preserve"><value>選択枠名</value></data>
+  <data name="Designer.Property.PickingBorderZIndexOffset" xml:space="preserve"><value>選択枠レイヤーのオフセット</value></data>
   <data name="Designer.Property.LocalizationKey" xml:space="preserve"><value>ローカライズキー</value></data>
   <data name="Designer.Property.FallbackText" xml:space="preserve"><value>代替テキスト</value></data>
   <data name="Designer.Property.EmptyText" xml:space="preserve"><value>空表示テキスト</value></data>
@@ -2637,6 +2644,9 @@
   <data name="Designer.Option.SizingMode.Auto" xml:space="preserve"><value>自動</value></data>
   <data name="Designer.Option.SizingMode.FillContainer" xml:space="preserve"><value>コンテナに合わせる</value></data>
   <data name="Designer.Option.SizingMode.OverflowCrop" xml:space="preserve"><value>はみ出しを切り抜き</value></data>
+  <data name="Designer.Option.LockVisibleWhen.VisibleWhenTrue" xml:space="preserve"><value>true の時に表示</value></data>
+  <data name="Designer.Option.LockVisibleWhen.VisibleWhenFalse" xml:space="preserve"><value>false の時に表示</value></data>
+  <data name="Designer.Option.LockVisibleWhen.Always" xml:space="preserve"><value>常に表示</value></data>
   <data name="Designer.Option.TeamType.HomeTeam" xml:space="preserve"><value>ホームチーム</value></data>
   <data name="Designer.Option.TeamType.AwayTeam" xml:space="preserve"><value>アウェイチーム</value></data>
   <data name="Designer.Option.DisplayKind.SurvivorTalent" xml:space="preserve"><value>サバイバー人格</value></data>

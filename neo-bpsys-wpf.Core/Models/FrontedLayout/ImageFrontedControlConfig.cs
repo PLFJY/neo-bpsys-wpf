@@ -49,9 +49,34 @@ public class ImageFrontedControlConfig : FrontedControlConfigBase
     public double? CornerRadius { get; set; }
 
     /// <summary>
-    /// 是否声明可创建选择边框覆盖层。
+    /// 是否启用锁定覆盖层。
     /// </summary>
-    public bool PickingBorder { get; set; }
+    public bool Lockable { get; set; }
+
+    /// <summary>
+    /// 锁定覆盖层图片路径。
+    /// </summary>
+    public string? LockImagePath { get; set; }
+
+    /// <summary>
+    /// 锁定覆盖层可见性绑定路径。
+    /// </summary>
+    public string? LockVisibilityBindingPath { get; set; }
+
+    /// <summary>
+    /// 锁定覆盖层可见性规则。
+    /// </summary>
+    public FrontedOverlayVisibilityMode LockVisibleWhen { get; set; } = FrontedOverlayVisibilityMode.Always;
+
+    /// <summary>
+    /// 锁定覆盖层 ZIndex 偏移。
+    /// </summary>
+    public int LockZIndexOffset { get; set; } = 1;
+
+    /// <summary>
+    /// 是否启用选择边框覆盖层。
+    /// </summary>
+    public bool PickingBorderAvailable { get; set; }
 
     /// <summary>
     /// 选择边框图片路径。
@@ -59,12 +84,39 @@ public class ImageFrontedControlConfig : FrontedControlConfigBase
     public string? PickingBorderImagePath { get; set; }
 
     /// <summary>
-    /// 是否声明可创建 Ban 锁覆盖层。
+    /// 选择边框运行时名称。
     /// </summary>
-    public bool BanLockAvailable { get; set; }
+    public string? PickingBorderName { get; set; }
 
     /// <summary>
-    /// Ban 锁图片路径。
+    /// 选择边框 ZIndex 偏移。
     /// </summary>
-    public string? BanLockImagePath { get; set; }
+    public int PickingBorderZIndexOffset { get; set; } = 2;
+
+    /// <summary>
+    /// 旧版 PickingBorder 名称，兼容旧 JSON。
+    /// </summary>
+    public bool PickingBorder
+    {
+        get => PickingBorderAvailable;
+        set => PickingBorderAvailable = value;
+    }
+
+    /// <summary>
+    /// 旧版 BanLockAvailable 名称，兼容旧 JSON。
+    /// </summary>
+    public bool BanLockAvailable
+    {
+        get => Lockable;
+        set => Lockable = value;
+    }
+
+    /// <summary>
+    /// 旧版 BanLockImagePath 名称，兼容旧 JSON。
+    /// </summary>
+    public string? BanLockImagePath
+    {
+        get => LockImagePath;
+        set => LockImagePath = value;
+    }
 }

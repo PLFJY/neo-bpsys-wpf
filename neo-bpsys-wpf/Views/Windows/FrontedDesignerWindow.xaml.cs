@@ -2755,45 +2755,9 @@ public partial class FrontedDesignerWindow : FluentWindow
             return null;
         }
 
-        if (_previewElementsByControlName.TryGetValue(name, out var registeredElement))
-        {
-            return registeredElement;
-        }
-
-        if (PreviewCanvas.FindName(name) is FrameworkElement canvasNameMatch)
-        {
-            return canvasNameMatch;
-        }
-
-        if (Window.GetWindow(PreviewCanvas) is FrameworkElement window
-            && window.FindName(name) is FrameworkElement windowNameMatch)
-        {
-            return windowNameMatch;
-        }
-
-        return FindGeneratedPreviewElement(PreviewCanvas, name);
-    }
-
-    private static FrameworkElement? FindGeneratedPreviewElement(DependencyObject parent, string name)
-    {
-        var childCount = VisualTreeHelper.GetChildrenCount(parent);
-        for (var i = 0; i < childCount; i++)
-        {
-            var child = VisualTreeHelper.GetChild(parent, i);
-            if (child is FrameworkElement element
-                && (element.Name == name || FrontedRendererProperties.GetRegisteredName(element) == name))
-            {
-                return element;
-            }
-
-            var nested = FindGeneratedPreviewElement(child, name);
-            if (nested is not null)
-            {
-                return nested;
-            }
-        }
-
-        return null;
+        return _previewElementsByControlName.TryGetValue(name, out var registeredElement)
+            ? registeredElement
+            : null;
     }
 
     private static T? FindDescendant<T>(DependencyObject parent)

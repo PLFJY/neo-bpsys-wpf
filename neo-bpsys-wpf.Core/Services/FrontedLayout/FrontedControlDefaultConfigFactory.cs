@@ -25,8 +25,6 @@ public class FrontedControlDefaultConfigFactory
             "GameProgressText",
             "TalentTraitDisplay",
             "GlobalScoreRow",
-            "CurrentBanDisplay",
-            "BanSlotDisplay",
             "MapV2Display"
         };
 
@@ -264,23 +262,6 @@ public class FrontedControlDefaultConfigFactory
                 Color = "#FFFFFFFF",
                 ShowCampIcon = true,
                 Cells = GlobalScoreRowCellLayoutHelper.CreateCompleteCellTemplate()
-            },
-            "CurrentBanDisplay" => new CurrentBanDisplayControlConfig
-            {
-                Camp = Camp.Sur,
-                Index = 0,
-                Width = 70,
-                Height = 36,
-                Stretch = "Uniform"
-            },
-            "BanSlotDisplay" => new BanSlotDisplayControlConfig
-            {
-                SlotKind = BanSlotKind.Current,
-                Camp = Camp.Sur,
-                Index = 0,
-                Width = 48,
-                Height = 48,
-                Stretch = "Uniform"
             },
             "MapV2Display" => new MapV2DisplayControlConfig
             {

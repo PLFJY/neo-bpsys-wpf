@@ -1,6 +1,7 @@
 using hyjiacan.py4n;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 
@@ -9,6 +10,7 @@ namespace neo_bpsys_wpf.Core.Models;
 /// <summary>
 /// 角色类, 属性设定均由构造函数完成，不存在后续修改
 /// </summary>
+[FrontedBindingObject]
 public class Character
 {
     /// <summary>
@@ -19,11 +21,13 @@ public class Character
     /// <summary>
     /// 阵营
     /// </summary>
+    [FrontedBindingIgnore]
     public Camp Camp { get; }
 
     /// <summary>
     /// 图片文件名
     /// </summary>
+    [FrontedBindingIgnore]
     public string ImageFileName { get; } = string.Empty;
 
     private ImageSource? _bigImage;
@@ -88,12 +92,14 @@ public class Character
     /// 角色名称全拼
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWriting)]
+    [FrontedBindingIgnore]
     public string FullSpell { get; } = string.Empty;
 
     /// <summary>
     /// 角色名称简拼
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWriting)]
+    [FrontedBindingIgnore]
     public string Abbrev { get; } = string.Empty;
 
     /// <summary>

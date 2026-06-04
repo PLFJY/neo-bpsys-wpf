@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 
@@ -7,6 +8,7 @@ namespace neo_bpsys_wpf.Core.Models;
 /// <summary>
 /// 天赋类, 属性设定均由构造函数完成，不存在后续修改
 /// </summary>
+[FrontedBindingObject]
 public class Trait
 {
     /// <summary>

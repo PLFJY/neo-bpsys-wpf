@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -11,6 +12,7 @@ namespace neo_bpsys_wpf.Core.Models;
 /// <summary>
 /// 选手类, 注意与 <see cref="Player"/> 类做区分，这是表示上场的选手，本类是表示队伍内的成员, <see cref="Models.Member"/> 被它所操纵的 <see cref="Player"/> 包含
 /// </summary>
+[FrontedBindingObject]
 public partial class Member : ObservableObjectBase
 {
     /// <summary>
@@ -62,6 +64,7 @@ public partial class Member : ObservableObjectBase
     /// <summary>
     /// 选手定妆照的图片 Uri
     /// </summary>
+    [FrontedBindingIgnore]
     public string? ImageUri { get; set; }
 
     /// <summary>
@@ -79,5 +82,7 @@ public partial class Member : ObservableObjectBase
     /// <summary>
     /// 选手定妆照是否有效
     /// </summary>
-    [JsonIgnore] public bool IsImageValid => Image != null;
+    [JsonIgnore]
+    [FrontedBindingIgnore]
+    public bool IsImageValid => Image != null;
 }

@@ -69,6 +69,8 @@ plugin:{PackageId}/{ControlTypeName}
 
 控件配置继承 `FrontedControlConfigBase`，构造函数写入完整 `ControlType`。插件 descriptor 提供控件创建函数、默认配置和 PropertyGrid 元数据。`.bpui` 会保存控件 JSON 和插件依赖，不会包含插件 DLL。
 
+需要让控件属性使用 Binding Browser 时，在 `FrontedPluginPropertyDescriptor.BindingTargetKind` 中声明期望类型。宿主 Binding Browser 由显式 root 和绑定 attribute 反射 catalog 驱动，不会扫描任意插件服务或调用运行时 getter。插件如果需要暴露自己的语义绑定源，应通过宿主提供的 binding root/contributor 扩展点注册稳定 root、虚拟节点或 semantic key；普通 DTO 属性应使用 `[FrontedBindingObject]`、`[FrontedBindable]`、`[FrontedBindingIgnore]` 和 `[FrontedBindingCollection]` 这类契约描述，而不是要求宿主手写每个属性节点。
+
 ## 插件前台窗口
 
 v3 提供两类插件前台窗口，均通过 `IFrontedWindowPluginContributor` 暴露 descriptor。

@@ -1,9 +1,7 @@
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using System.Windows;
-using System.Windows.Data;
-using System.Windows.Media;
-using UiImage = Wpf.Ui.Controls.Image;
+using System.Windows.Controls;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -29,43 +27,9 @@ public class ImageFrontedControl : IFrontedControl
             throw new FrontedLayoutConfigException($"Control '{name}' config is not an Image config.");
         }
 
-        var image = new UiImage { Name = name };
-        FrontedControlFactoryHelper.ApplyCanvasLayout(image, imageConfig);
-        image.ClipToBounds = imageConfig.ClipToBounds;
-        if (imageConfig.CornerRadius is > 0)
-        {
-            image.CornerRadius = new CornerRadius(imageConfig.CornerRadius.Value);
-        }
-
-        if (!string.IsNullOrWhiteSpace(imageConfig.BindingPath))
-        {
-            BindingOperations.SetBinding(image, UiImage.SourceProperty, new Binding(imageConfig.BindingPath)
-            {
-                Source = context.SharedDataService
-            });
-        }
-        else if (!string.IsNullOrWhiteSpace(imageConfig.ImagePath))
-        {
-            image.Source = context.ResourceResolver.ResolveImage(
-                imageConfig.ImagePath,
-                FrontedImagePurpose.UiElement);
-        }
-
-        FrontedControlFactoryHelper.TryApplyEnum<Stretch>(
-            imageConfig.Stretch,
-            value => image.Stretch = value,
-            context,
-            nameof(imageConfig.Stretch));
-        FrontedControlFactoryHelper.TryApplyEnum<HorizontalAlignment>(
-            imageConfig.HorizontalAlignment,
-            value => image.HorizontalAlignment = value,
-            context,
-            nameof(imageConfig.HorizontalAlignment));
-        FrontedControlFactoryHelper.TryApplyEnum<VerticalAlignment>(
-            imageConfig.VerticalAlignment,
-            value => image.VerticalAlignment = value,
-            context,
-            nameof(imageConfig.VerticalAlignment));
-        return image;
+        var image = new Image();
+        ImageFrontedControlLayoutHelper.ApplyImageSource(image, imageConfig, context);
+        ImageFrontedControlLayoutHelper.ApplyImageLayout(image, imageConfig, context);
+        return ImageFrontedControlLayoutHelper.CreateImageLayerRoot(name, imageConfig, context, image);
     }
 }

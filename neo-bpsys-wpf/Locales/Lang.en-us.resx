@@ -2860,6 +2860,27 @@
   <data name="Designer.Property.BanLockImagePath" xml:space="preserve">
     <value>Ban Lock Image</value>
   </data>
+  <data name="Designer.Property.Lockable" xml:space="preserve">
+    <value>Lock Overlay</value>
+  </data>
+  <data name="Designer.Property.LockImagePath" xml:space="preserve">
+    <value>Lock Image</value>
+  </data>
+  <data name="Designer.Property.LockVisibilityBindingPath" xml:space="preserve">
+    <value>Lock Visibility Binding</value>
+  </data>
+  <data name="Designer.Property.LockVisibleWhen" xml:space="preserve">
+    <value>Lock Visible When</value>
+  </data>
+  <data name="Designer.Property.PickingBorderAvailable" xml:space="preserve">
+    <value>Picking Border Overlay</value>
+  </data>
+  <data name="Designer.Property.PickingBorderName" xml:space="preserve">
+    <value>Picking Border Name</value>
+  </data>
+  <data name="Designer.Property.PickingBorderZIndexOffset" xml:space="preserve">
+    <value>Picking Border Layer Offset</value>
+  </data>
   <data name="Designer.Property.LocalizationKey" xml:space="preserve">
     <value>Localization Key</value>
   </data>
@@ -3105,6 +3126,15 @@
   </data>
   <data name="Designer.Option.SizingMode.OverflowCrop" xml:space="preserve">
     <value>Overflow Crop</value>
+  </data>
+  <data name="Designer.Option.LockVisibleWhen.VisibleWhenTrue" xml:space="preserve">
+    <value>Visible when true</value>
+  </data>
+  <data name="Designer.Option.LockVisibleWhen.VisibleWhenFalse" xml:space="preserve">
+    <value>Visible when false</value>
+  </data>
+  <data name="Designer.Option.LockVisibleWhen.Always" xml:space="preserve">
+    <value>Always</value>
   </data>
   <data name="Designer.Option.TeamType.HomeTeam" xml:space="preserve">
     <value>Home Team</value>

@@ -6,12 +6,14 @@ using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 
 namespace neo_bpsys_wpf.Core.Models;
 
 /// <summary>
 /// 对局类, 创建需要导入 <see cref="Core.Models.Game.SurTeam"/> 和 <see cref="Core.Models.Game.HunTeam"/> 两支队伍以及对局进度
 /// </summary>
+[FrontedBindingObject]
 public partial class Game : ObservableObjectBase
 {
     #region 对局基本信息
@@ -19,11 +21,13 @@ public partial class Game : ObservableObjectBase
     /// <summary>
     /// 对局GUID
     /// </summary>
+    [FrontedBindingIgnore]
     public Guid Guid { get; }
 
     /// <summary>
     /// 对局开始时间
     /// </summary>
+    [FrontedBindingIgnore]
     public DateTime StartTime { get; }
 
     private Team _surTeam = new(Camp.Sur, TeamType.HomeTeam);
@@ -75,12 +79,16 @@ public partial class Game : ObservableObjectBase
     /// <summary>
     /// 当局求生者禁用列表
     /// </summary>
-    [ObservableProperty] private ObservableCollection<Character?> _currentSurBannedList = [];
+    [ObservableProperty]
+    [property: FrontedBindingCollection(FixedCount = AppConstants.CurrentBanSurCount)]
+    private ObservableCollection<Character?> _currentSurBannedList = [];
 
     /// <summary>
     /// 当局监管者禁用列表
     /// </summary>
-    [ObservableProperty] private ObservableCollection<Character?> _currentHunBannedList = [];
+    [ObservableProperty]
+    [property: FrontedBindingCollection(FixedCount = AppConstants.CurrentBanHunCount)]
+    private ObservableCollection<Character?> _currentHunBannedList = [];
 
     #endregion
 
@@ -196,7 +204,9 @@ public partial class Game : ObservableObjectBase
     /// <summary>
     /// 上场选手(求生者)
     /// </summary>
-    [JsonIgnore] public ReadOnlyObservableCollection<Player> SurPlayerList { get; }
+    [JsonIgnore]
+    [FrontedBindingCollection(FixedCount = 4)]
+    public ReadOnlyObservableCollection<Player> SurPlayerList { get; }
 
     [JsonInclude] internal Player HunPlayerData => HunPlayer;
 
@@ -280,6 +290,7 @@ public partial class Game : ObservableObjectBase
     /// <summary>
     /// 地图V2字典
     /// </summary>
+    [FrontedBindingIgnore]
     public Dictionary<string, MapV2> MapV2Dictionary { get; }
 
     /// <summary>

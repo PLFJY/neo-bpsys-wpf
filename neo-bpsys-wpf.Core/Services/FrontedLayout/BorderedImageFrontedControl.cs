@@ -49,7 +49,7 @@ public class BorderedImageFrontedControl : IFrontedControl
         ImageFrontedControlLayoutHelper.ApplyImageSource(image, imageConfig, context);
 
         ImageFrontedControlLayoutHelper.ApplyImageLayout(image, imageConfig, context);
-        border.Child = image;
+        border.Child = ImageFrontedControlLayoutHelper.CreateBorderedImageContent(name, imageConfig, context, image);
         return border;
     }
 }

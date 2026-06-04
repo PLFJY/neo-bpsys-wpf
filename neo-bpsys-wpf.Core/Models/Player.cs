@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 
@@ -8,6 +9,7 @@ namespace neo_bpsys_wpf.Core.Models;
 /// <summary>
 /// 选手类, 注意与 <see cref="Models.Member"/> 类做区分，这是表示队伍内的成员，本类是表示上场的选手, <see cref="Player"/> 类包含操纵它的 <see cref="Models.Member"/>
 /// </summary>
+[FrontedBindingObject]
 public partial class Player : ObservableObjectBase
 {
     /// <summary>
@@ -22,13 +24,19 @@ public partial class Player : ObservableObjectBase
     /// <summary>
     /// 操控的选手
     /// </summary>
-    [ObservableProperty][NotifyPropertyChangedFor(nameof(PictureShown))] private Member _member;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PictureShown))]
+    [NotifyPropertyChangedFor(nameof(PictureShownWithFullCharacter))]
+    [NotifyPropertyChangedFor(nameof(PictureShownHeader))]
+    private Member _member;
 
     /// <summary>
     /// 选手所选的角色
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PictureShown))]
+    [NotifyPropertyChangedFor(nameof(PictureShownWithFullCharacter))]
+    [NotifyPropertyChangedFor(nameof(PictureShownHeader))]
     private Character? _character;
 
     /// <summary>
@@ -50,4 +58,14 @@ public partial class Player : ObservableObjectBase
     /// 显示的图片
     /// </summary>
     [JsonIgnore] public ImageSource? PictureShown => Character == null ? Member.Image : Character?.HalfImage;
+
+    /// <summary>
+    /// 显示的图片，角色存在时使用全身立绘。
+    /// </summary>
+    [JsonIgnore] public ImageSource? PictureShownWithFullCharacter => Character == null ? Member.Image : Character?.BigImage;
+
+    /// <summary>
+    /// 显示的图片，角色存在时使用头像。
+    /// </summary>
+    [JsonIgnore] public ImageSource? PictureShownHeader => Character == null ? Member.Image : Character?.HeaderImage;
 }

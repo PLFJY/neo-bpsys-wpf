@@ -1,8 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 
 namespace neo_bpsys_wpf.Core.Models;
 
+[FrontedBindingObject]
 public partial class Talent : ObservableObjectBase
 {
     #region Sur

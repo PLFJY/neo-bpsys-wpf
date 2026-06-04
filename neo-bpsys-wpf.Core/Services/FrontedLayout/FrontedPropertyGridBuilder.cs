@@ -93,6 +93,7 @@ public class FrontedPropertyGridBuilder
         "ResourcePath",
         "BackgroundImage",
         "LockImageSource",
+        "LockImagePath",
         "BorderImagePath",
         "PickingBorderImagePath",
         "BanLockImagePath"
@@ -467,6 +468,11 @@ public class FrontedPropertyGridBuilder
             return FrontedBindingTargetKind.Any;
         }
 
+        if (property.Name == nameof(ImageFrontedControlConfig.LockVisibilityBindingPath))
+        {
+            return FrontedBindingTargetKind.Boolean;
+        }
+
         return config switch
         {
             TextFrontedControlConfig => FrontedBindingTargetKind.Text,
@@ -607,7 +613,16 @@ public class FrontedPropertyGridBuilder
     {
         if (config is BorderedImageFrontedControlConfig)
         {
-            if (propertyName is nameof(ImageFrontedControlConfig.PickingBorder)
+            if (propertyName is nameof(ImageFrontedControlConfig.Lockable)
+                or nameof(ImageFrontedControlConfig.LockImagePath)
+                or nameof(ImageFrontedControlConfig.LockVisibilityBindingPath)
+                or nameof(ImageFrontedControlConfig.LockVisibleWhen)
+                or nameof(ImageFrontedControlConfig.LockZIndexOffset)
+                or nameof(ImageFrontedControlConfig.PickingBorderAvailable)
+                or nameof(ImageFrontedControlConfig.PickingBorderImagePath)
+                or nameof(ImageFrontedControlConfig.PickingBorderName)
+                or nameof(ImageFrontedControlConfig.PickingBorderZIndexOffset)
+                or nameof(ImageFrontedControlConfig.PickingBorder)
                 or nameof(ImageFrontedControlConfig.PickingBorderImagePath)
                 or nameof(ImageFrontedControlConfig.BanLockAvailable)
                 or nameof(ImageFrontedControlConfig.BanLockImagePath))
@@ -653,6 +668,20 @@ public class FrontedPropertyGridBuilder
             return "Binding";
         }
 
+        if (config is ImageFrontedControlConfig
+            && (propertyName is nameof(ImageFrontedControlConfig.Lockable)
+                or nameof(ImageFrontedControlConfig.LockImagePath)
+                or nameof(ImageFrontedControlConfig.LockVisibilityBindingPath)
+                or nameof(ImageFrontedControlConfig.LockVisibleWhen)
+                or nameof(ImageFrontedControlConfig.LockZIndexOffset)
+                or nameof(ImageFrontedControlConfig.PickingBorderAvailable)
+                or nameof(ImageFrontedControlConfig.PickingBorderImagePath)
+                or nameof(ImageFrontedControlConfig.PickingBorderName)
+                or nameof(ImageFrontedControlConfig.PickingBorderZIndexOffset)))
+        {
+            return "Overlay";
+        }
+
         if (IsResourcePathProperty(propertyName))
         {
             return "Resource";
@@ -669,7 +698,6 @@ public class FrontedPropertyGridBuilder
         {
             return propertyName is not nameof(ImageFrontedControlConfig.SizingMode)
                 and not nameof(ImageFrontedControlConfig.PickingBorder)
-                and not nameof(ImageFrontedControlConfig.PickingBorderImagePath)
                 and not nameof(ImageFrontedControlConfig.BanLockAvailable)
                 and not nameof(ImageFrontedControlConfig.BanLockImagePath);
         }
@@ -677,7 +705,6 @@ public class FrontedPropertyGridBuilder
         if (config is BorderedImageFrontedControlConfig)
         {
             return propertyName is not nameof(ImageFrontedControlConfig.PickingBorder)
-                and not nameof(ImageFrontedControlConfig.PickingBorderImagePath)
                 and not nameof(ImageFrontedControlConfig.BanLockAvailable)
                 and not nameof(ImageFrontedControlConfig.BanLockImagePath);
         }

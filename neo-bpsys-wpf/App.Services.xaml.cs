@@ -121,6 +121,8 @@ public partial class App
         services.AddSingleton<FrontedLayoutValidator>();
         services.AddSingleton<FrontedFontFamilyOptionProvider>();
         services.AddSingleton<FrontedPropertyGridBuilder>();
+        services.AddSingleton<IFrontedBindingRootProvider, DefaultFrontedBindingRootProvider>();
+        services.AddSingleton<IFrontedBindingCatalogProvider, FrontedBindingReflectionCatalogProvider>();
         services.AddSingleton<FrontedBindingBrowserProvider>();
         services.AddSingleton<FrontedResourceBrowserProvider>();
         services.AddSingleton<FrontedControlDefaultConfigFactory>();

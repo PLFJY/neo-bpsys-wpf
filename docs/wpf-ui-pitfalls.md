@@ -92,7 +92,7 @@ snackbarService.SetSnackbarPresenter(SnbPre);
 
 Designer v3 的 `Image` 控件有 `Auto`、`FillContainer`、`OverflowCrop` 三种 `SizingMode`。旧 XAML 同时存在 direct fixed-size `ui:Image`、`Border + Image + ClipToBounds`、默认 `Border` 内图片和自定义 `MapV2Presenter`，迁移时必须逐个按旧结构选择模式。队标和 MapBp v1 地图通常用 `FillContainer`；角色裁剪图通常用 `OverflowCrop`；GameData 求生者表头头像这类旧默认 `Image` 应保留 `Auto`。BpWindow 的求生者 pick 使用 `OverflowCrop + UniformToFill`，监管者 pick 保留旧 XAML 中本地 `Stretch="Uniform"` 的效果。`CornerRadius` 只负责圆角裁剪，不应顺手把所有图片改成填满容器。
 
-BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.FindName(...)` 查找 `SurPick0..3`、`HunPick`、`SurPickingBorder0..3` 和 `HunPickingBorder`，因此修改 renderer 名称注册或 BpWindow 默认布局时必须保留这些独立命名根元素。不要把 picking border 藏进 pick 图片控件内部；应继续使用 `PickingBorderOverlay`。
+BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.FindName(...)` 查找 `SurPick0..3`、`HunPick`、`SurPickingBorder0..3` 和 `HunPickingBorder`，因此修改 renderer 名称注册或 BpWindow 默认布局时必须保留这些 namescope 名称。新默认布局把 picking border 作为 `Image` / `BorderedImage` 内部 overlay 渲染，但 `PickingBorderName` 必须注册为可查找的动画目标。旧 `PickingBorderOverlay` 仍只用于兼容旧布局。
 
 ## Fronted Designer 编辑器
 
@@ -111,8 +111,8 @@ BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.
 11. 被选中控件的 hitbox、outline 和 handles 会使用 editor-only 高 ZIndex 放在其他 hitbox 上方，以便拖动重叠下层控件。该值不能写入 v3 JSON，也不能改变 preview/runtime `ZIndex`。
 12. 拖拽和缩放过程中要同步更新生成 preview root element 的 `Canvas.Left` / `Canvas.Top` / `Width` / `Height`，不要等 mouse-up 重渲染后才看到真实预览移动。mouse-up 可再重渲染一次保证一致。
 13. 选择边界优先使用显式 `Width` / `Height`；缺失时使用渲染 root element 的 `ActualWidth` / `ActualHeight`；再不可用才回退到 `40x24`。这对无 `Height` 的文本控件尤其重要。
-14. `PickingBorderOverlay` 是 linked runtime overlay：编辑器中不生成普通 hitbox、不进入普通控件列表、不允许直接拖拽或缩放。移动/缩放它的 `TargetControlName` 目标控件时同步 overlay 几何，保持运行时独立命名目标不变。
-15. `BanSlotDisplay` 的锁定覆盖层是控件内部视觉层，不是独立设计项。不要把 ban lock overlay 拆成单独控件或单独 hitbox。
+14. `Image` / `BorderedImage` 的 picking border 和 lock 是内部视觉层：编辑器中不生成普通 hitbox、不进入普通控件列表、不允许直接拖拽或缩放。移动/缩放图片控件时 overlay 自动跟随；`PickingBorderName` 保持运行时 namescope 目标不变。
+15. `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 只作为兼容控件保留；新 Ban 位和 pick 图不要再新增专用业务控件，优先使用通用 `Image` binding + overlay。
 16. 视口导航优先于选择：Fit 模式根据 `ScrollViewer` viewport 和 Canvas 尺寸计算 `ZoomScale`；`Ctrl + mouse wheel` 进入手动缩放并保持 25% 到 200%；右键拖拽或 `Space + left mouse drag` 只平移 `ScrollViewer` offset。这些操作不能写回 layout 坐标，也不能改变当前选中控件。
 17. Phase 8E 的 Property Grid 基于 `ItemsControl`，编辑的是 `FrontedControlDesignItem` 和其 `Config`。`Name` 仍是设计项/JSON key，不能加到 config 类；运行时关键 `Name` 只读，被其他控件引用的普通控件在 8E 也阻止改名。
 18. Phase 8E owner validation 后，Property Grid 行编辑器通过模板按需实例化，不要恢复成“TextBox、CheckBox、ComboBox 全部创建再用 Visibility 隐藏”的结构；否则切换选中控件时会出现未套样式的原生控件闪烁。
@@ -122,7 +122,7 @@ BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.
 22. 验证详情表不在右侧属性面板常驻显示；右侧应主要保留选中控件摘要和 Property Grid。底部左侧验证摘要可点击打开非模态验证详情窗口。
 23. 拖拽和缩放 live edit 中不要运行完整校验、不要重建 Property Grid、不要强制完整重渲染。只更新几何、linked overlay、preview element、hitbox/adorner、选中几何摘要和 dirty 状态；mouse-up/commit 后再统一校验和刷新。
 24. Property Grid 输入控件获得键盘焦点时，方向键不应触发设计 surface 微调。新增编辑器控件后要继续更新 `ShouldIgnoreKeyboardInput()` 的排除列表。
-25. Phase 8F 的 Add Control 只添加内存设计项并重渲染编辑器 preview，不保存用户布局。新控件应放在当前滚动视口中心附近，并避免普通菜单暴露 `PickingBorderOverlay`。
+25. Phase 8F 的 Add Control 只添加内存设计项并重渲染编辑器 preview，不保存用户布局。新控件应放在当前滚动视口中心附近，并避免普通菜单暴露 `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay`。
 26. Phase 8F owner validation 后，Delete Control 只在设计 surface 焦点下响应 Delete 键；焦点位于 `TextBox`、`ComboBox`、`DataGrid`、ColorPicker 或属性编辑器内部时必须忽略，避免编辑文本时误删控件。左侧控件列表右键菜单和 Property Grid 底部删除按钮都应调用同一个删除命令，继续复用运行时关键控件和 incoming reference 的删除保护。
 27. `Name`、`BindingPath` 和普通文本/资源路径属性使用显式提交：文本框绑定 `EditText`，按 Enter 或 Check/Apply 按钮提交。Enter 处理必须直接读取 `TextBox.Text`，不能依赖 `UpdateSourceTrigger=LostFocus` 后的 `Value`，否则会提交旧值或空值。
 28. 属性编辑失败时不要重建到丢失输入。应保留 `EditText`、设置 `HasEditError` / `EditError`、显示红色边框和行内错误消息；失败提交不应触发 preview render。
@@ -130,7 +130,7 @@ BpWindow 已由 v3 renderer 生成控件。`AnimationService` 仍依赖 `window.
 30. 右侧 Property Grid 面板通过中间 `GridSplitter` 调整宽度。拖动 splitter 只改变编辑器窗口布局，不写回 v3 layout JSON，也不需要在 Phase 8F 持久化。
 31. 设计器 preview 使用独立 `DesignerPreviewSharedDataService`，只通过 `FrontedRenderContext.SharedDataServiceOverride` 传给 renderer。不要为了预览调用真实共享数据服务的 `NewGame()` 或修改真实 `CurrentGame`，否则会污染导播运行时状态。
 32. Undo/Redo 快捷键只在设计 surface、列表或编辑器背景获得焦点时执行布局撤销/重做；焦点在 `TextBox`、`ComboBox`、ColorPicker 等属性编辑器内时必须让控件自身处理文本撤销。切换窗口/Canvas 或 reload 必须清空 undo/redo 栈。
-33. Binding Browser 使用 curated `ISharedDataService` 树和固定常用集合索引，不应对任意对象做无边界深反射。绑定树节点必须保留真实 `ValueType`，树过滤和搜索都要使用同一 `FrontedBindingTypeFilter`：文本控件只允许字符串/数字，图片控件只允许 `ImageSource` 兼容值，`GameProgressText` 只允许 `GameProgress`，`MapNameText` 只允许 `Map` / `Map?`。浏览器选择仍只能写入属性行 `EditText`，不能绕过 Apply/Enter 直接提交 config。Resource Browser 读取 `Resources/bpui` 时缩略图必须用 `BitmapImage.CacheOption=OnLoad` 等方式避免锁文件；外部绝对路径只引用原文件，Phase 8G 不复制到用户布局目录或 `.bpui` 包。
+33. Binding Browser 使用显式 root + attribute 反射 catalog，不应全局扫描任意服务或调用 getter，也不应恢复逐属性手写整树。绑定树节点必须保留真实 `ValueType`，树过滤和搜索都要使用同一 `FrontedBindingTypeFilter`：文本控件只允许字符串/数字，图片控件只允许 `ImageSource` 兼容值，bool overlay 绑定只允许 bool，`GameProgressText` 只允许 `GameProgress`，`MapNameText` 只允许 `Map` / `Map?`。浏览器选择仍只能写入属性行 `EditText`，不能绕过 Apply/Enter 直接提交 config。Resource Browser 读取 `Resources/bpui` 时缩略图必须用 `BitmapImage.CacheOption=OnLoad` 等方式避免锁文件；外部绝对路径只引用原文件，Phase 8G 不复制到用户布局目录或 `.bpui` 包。
 34. Phase 8H 的吸附开关分为持久 `SnapEnabled` 和临时 `IsShiftSnapActive`。ToggleSwitch 只能绑定 `SnapEnabled`；Shift KeyDown/KeyUp 只更新临时状态和状态文字，不能反向修改 ToggleSwitch，否则拖拽时会造成开关频繁刷新和输入延迟。
 35. Phase 8H 的保存只写用户 AppData 布局，不能覆盖 `Resources/FrontedLayouts`。切换窗口/Canvas、reload、reset 和关闭窗口前都要处理 dirty prompt；Save 因校验 Error 失败时必须取消原动作。
 36. WPF 不允许在窗口已经继续 closing 的过程中调用 `Show`、`ShowDialog`、`Close` 或 `EnsureHandle`。编辑器关闭时如果要询问未保存修改，必须先取消 `Closing`，再用 Dispatcher 异步显示提示；确认 Save/Discard 后用强制关闭标记再次关闭。非模态验证详情窗口随父窗口关闭时也要 try/catch `InvalidOperationException`。

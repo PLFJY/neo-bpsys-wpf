@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
@@ -573,7 +574,7 @@ public class FrontedLayoutDesignerFoundationTest
     {
         var config = ReadBuiltInLayout("BpWindow");
         config.Controls.Remove("SurPick0");
-        config.Controls.Remove("HunPickingBorder");
+        Assert.IsType<ImageFrontedControlConfig>(config.Controls["HunPick"]).PickingBorderName = null;
 
         var messages = CreateValidator().Validate("BpWindow", "BaseCanvas", config);
 
@@ -877,8 +878,6 @@ public class FrontedLayoutDesignerFoundationTest
     [InlineData("GameProgressText", typeof(GameProgressTextControlConfig), 260, 56)]
     [InlineData("TalentTraitDisplay", typeof(TalentTraitDisplayControlConfig), 180, 40)]
     [InlineData("GlobalScoreRow", typeof(GlobalScoreRowControlConfig), 1080, 40)]
-    [InlineData("CurrentBanDisplay", typeof(CurrentBanDisplayControlConfig), 70, 36)]
-    [InlineData("BanSlotDisplay", typeof(BanSlotDisplayControlConfig), 48, 48)]
     [InlineData("MapV2Display", typeof(MapV2DisplayControlConfig), 151, 160)]
     public void DefaultConfigFactoryCreatesValidAddControlDefaults(
         string controlType,
@@ -908,12 +907,16 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void DefaultConfigFactoryDoesNotCreatePickingBorderOverlayFromNormalAddControl()
+    public void DefaultConfigFactoryDoesNotCreateCompatibilityOverlaysOrBanControlsFromNormalAddControl()
     {
         var factory = new FrontedControlDefaultConfigFactory();
 
         Assert.False(factory.CanCreate("PickingBorderOverlay"));
         Assert.Throws<NotSupportedException>(() => factory.Create("PickingBorderOverlay", CreateDocument([])));
+        Assert.False(factory.CanCreate("CurrentBanDisplay"));
+        Assert.Throws<NotSupportedException>(() => factory.Create("CurrentBanDisplay", CreateDocument([])));
+        Assert.False(factory.CanCreate("BanSlotDisplay"));
+        Assert.Throws<NotSupportedException>(() => factory.Create("BanSlotDisplay", CreateDocument([])));
     }
 
     [Fact]
@@ -949,14 +952,6 @@ public class FrontedLayoutDesignerFoundationTest
             Assert.Equal(75, cell.Width);
             Assert.Equal(32, cell.Height);
         });
-
-        var currentBan = Assert.IsType<CurrentBanDisplayControlConfig>(factory.Create("CurrentBanDisplay", document));
-        Assert.Equal(Camp.Sur, currentBan.Camp);
-        Assert.Equal(0, currentBan.Index);
-
-        var banSlot = Assert.IsType<BanSlotDisplayControlConfig>(factory.Create("BanSlotDisplay", document));
-        Assert.Equal(BanSlotKind.Current, banSlot.SlotKind);
-        Assert.Equal(Camp.Sur, banSlot.Camp);
 
         var mapV2 = Assert.IsType<MapV2DisplayControlConfig>(factory.Create("MapV2Display", document));
         Assert.Equal("ArmsFactory", mapV2.MapKey);
@@ -2896,7 +2891,11 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("CurrentGame.HunTeam.Name", paths);
         Assert.Contains("CurrentGame.SurPlayerList[0].Member.Name", paths);
         Assert.Contains("CurrentGame.SurPlayerList[3].Member.Name", paths);
+        Assert.Contains("CurrentGame.SurPlayerList[0].PictureShownWithFullCharacter", paths);
+        Assert.Contains("CurrentGame.SurPlayerList[0].PictureShownHeader", paths);
         Assert.Contains("CurrentGame.HunPlayer.Member.Name", paths);
+        Assert.Contains("CurrentGame.HunPlayer.PictureShownWithFullCharacter", paths);
+        Assert.Contains("CurrentGame.HunPlayer.PictureShownHeader", paths);
         Assert.Contains("CurrentGame.MatchScore.CurrentSurTeamMajorText", paths);
         Assert.Contains("RemainingSeconds", paths);
     }
@@ -2939,6 +2938,11 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("CurrentGame.SurTeam.Logo", paths);
         Assert.Contains("CurrentGame.PickedMapImage", paths);
         Assert.Contains("CurrentGame.SurPlayerList[0].PictureShown", paths);
+        Assert.Contains("CurrentGame.SurPlayerList[0].PictureShownWithFullCharacter", paths);
+        Assert.Contains("CurrentGame.SurPlayerList[0].PictureShownHeader", paths);
+        Assert.Contains("CurrentGame.SurPlayerList[0].Character.HeaderImageSingleColor", paths);
+        Assert.Contains("CurrentGame.SurPlayerList[0].Character.HalfImage", paths);
+        Assert.Contains("CurrentGame.SurPlayerList[0].Character.BigImage", paths);
         Assert.DoesNotContain("CurrentGame.SurTeam.Name", paths);
         Assert.DoesNotContain("CurrentGame.MatchScore.CurrentSurTeamMajorText", paths);
         Assert.DoesNotContain("CurrentGame.GameProgress", paths);
@@ -2955,6 +2959,38 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.DoesNotContain("CurrentGame.SurTeam.Name", paths);
         Assert.DoesNotContain("CurrentGame.SurTeam.Logo", paths);
         Assert.DoesNotContain("CurrentGame.PickedMap", paths);
+    }
+
+    [Fact]
+    public void BindingBrowserBooleanFilterIncludesFixedCanBanLists()
+    {
+        var provider = new FrontedBindingBrowserProvider();
+        var paths = BindingSearchPaths(provider, new FrontedBindingTypeFilter(FrontedBindingTargetKind.Boolean));
+
+        Assert.Contains("CanCurrentSurBannedList[0]", paths);
+        Assert.Contains("CanCurrentHunBannedList[0]", paths);
+        Assert.Contains("CanGlobalSurBannedList[0]", paths);
+        Assert.Contains("CanGlobalHunBannedList[0]", paths);
+        Assert.DoesNotContain("CurrentGame.SurTeam.Name", paths);
+    }
+
+    [Fact]
+    public void ReflectionBindingCatalogHonorsAttributesWithoutInvokingGetters()
+    {
+        var provider = new FrontedBindingReflectionCatalogProvider(
+            new TestBindingRootProvider(),
+            []);
+
+        var paths = provider.BuildCatalog()
+            .SelectMany(node => node.Flatten())
+            .Select(node => node.FullPath)
+            .Where(path => path is not null)
+            .ToHashSet(StringComparer.Ordinal);
+
+        Assert.Contains("Root.Name", paths);
+        Assert.Contains("Root.Children[0].Name", paths);
+        Assert.DoesNotContain("Root.Hidden", paths);
+        Assert.DoesNotContain("Root.GetterThatThrows", paths);
     }
 
     [Fact]
@@ -2984,7 +3020,7 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Contains(results, node => node.FullPath == "CurrentGame.SurTeam.Name");
         Assert.Equal(allPaths.Length, allPaths.Distinct(StringComparer.Ordinal).Count());
-        Assert.True(allPaths.Length < 400);
+        Assert.True(allPaths.Length < 800);
     }
 
     [Fact]
@@ -3015,19 +3051,14 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.True(bindingRow.CanBrowseBinding);
         Assert.False(bindingRow.CanBrowseResource);
 
-        var banSlotItem = new FrontedControlDesignItem
-        {
-            Name = "BanSlot",
-            Config = new BanSlotDisplayControlConfig
-            {
-                LockImageSource = "Resources/currentBanLock.png"
-            }
-        };
-        var banSlotRows = BuildPropertyRows(CreateDocument([banSlotItem]), banSlotItem);
-        var resourceRow = Assert.Single(banSlotRows, row => row.PropertyName == nameof(BanSlotDisplayControlConfig.LockImageSource));
-        Assert.True(resourceRow.CanBrowseResource);
-        Assert.False(resourceRow.CanBrowseBinding);
-        Assert.Equal("Resource", resourceRow.GroupName);
+        var lockPathRow = Assert.Single(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.LockVisibilityBindingPath));
+        Assert.True(lockPathRow.CanBrowseBinding);
+        Assert.Equal(FrontedBindingTargetKind.Boolean, lockPathRow.BindingTargetKind);
+
+        var lockImageRow = Assert.Single(rows, row => row.PropertyName == nameof(ImageFrontedControlConfig.LockImagePath));
+        Assert.True(lockImageRow.CanBrowseResource);
+        Assert.False(lockImageRow.CanBrowseBinding);
+        Assert.Equal("Overlay", lockImageRow.GroupName);
 
         var normalTextRow = rows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.HorizontalAlignment));
         Assert.False(normalTextRow.CanBrowseBinding);
@@ -4922,6 +4953,35 @@ public class FrontedLayoutDesignerFoundationTest
     private static (double Width, double Height) ToSize(FrontedDesignerResolvedBounds bounds)
     {
         return (bounds.Width, bounds.Height);
+    }
+
+    private sealed class TestBindingRootProvider : IFrontedBindingRootProvider
+    {
+        public IReadOnlyList<FrontedBindingRootDescriptor> GetRoots() =>
+        [
+            new("Root", typeof(TestBindingRoot))
+        ];
+    }
+
+    [FrontedBindingObject]
+    private sealed class TestBindingRoot
+    {
+        public string Name { get; } = string.Empty;
+
+        [FrontedBindingIgnore]
+        public string Hidden { get; } = string.Empty;
+
+        [FrontedBindingCollection(FixedCount = 2)]
+        public IReadOnlyList<TestBindingChild> Children { get; } = [];
+
+        [FrontedBindingIgnore]
+        public string GetterThatThrows => throw new InvalidOperationException("Catalog scan invoked a getter.");
+    }
+
+    [FrontedBindingObject]
+    private sealed class TestBindingChild
+    {
+        public string Name { get; } = string.Empty;
     }
 
     private class KnownFrontedControlRegistry : IFrontedControlRegistry

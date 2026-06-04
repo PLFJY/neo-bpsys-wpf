@@ -363,7 +363,8 @@ public class FrontedLayoutValidator
             case ImageFrontedControlConfig image:
                 ValidateTextLength(item.Name, nameof(ImageFrontedControlConfig.ImagePath), image.ImagePath, FrontedLayoutLimits.MaxResourcePathLength, "ResourcePathTooLong", messages);
                 ValidateTextLength(item.Name, nameof(ImageFrontedControlConfig.PickingBorderImagePath), image.PickingBorderImagePath, FrontedLayoutLimits.MaxResourcePathLength, "ResourcePathTooLong", messages);
-                ValidateTextLength(item.Name, nameof(ImageFrontedControlConfig.BanLockImagePath), image.BanLockImagePath, FrontedLayoutLimits.MaxResourcePathLength, "ResourcePathTooLong", messages);
+                ValidateTextLength(item.Name, nameof(ImageFrontedControlConfig.LockImagePath), image.LockImagePath, FrontedLayoutLimits.MaxResourcePathLength, "ResourcePathTooLong", messages);
+                ValidateTextLength(item.Name, nameof(ImageFrontedControlConfig.LockVisibilityBindingPath), image.LockVisibilityBindingPath, FrontedLayoutLimits.MaxBindingPathLength, "BindingPathTooLong", messages);
                 ValidateImagePath(item.Name, image);
                 if (string.IsNullOrWhiteSpace(image.BindingPath)
                     && string.IsNullOrWhiteSpace(image.ImagePath))
@@ -553,6 +554,11 @@ public class FrontedLayoutValidator
 
         var actualNames = document.Controls
             .Select(control => control.Name)
+            .Concat(document.Controls
+                .Select(control => control.Config)
+                .OfType<ImageFrontedControlConfig>()
+                .Where(config => config.PickingBorderAvailable && !string.IsNullOrWhiteSpace(config.PickingBorderName))
+                .Select(config => config.PickingBorderName!))
             .ToHashSet(StringComparer.Ordinal);
 
         foreach (var expectedName in expectedNames.Where(expectedName => !actualNames.Contains(expectedName)))

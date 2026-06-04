@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
 using System.Text.Json.Serialization;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 
 namespace neo_bpsys_wpf.Core.Models.ScoreSystem;
 
@@ -15,6 +16,7 @@ namespace neo_bpsys_wpf.Core.Models.ScoreSystem;
 /// 此类型保存可序列化的半场结果与记录时阵营映射，并派生大比分、总小比分和当前前台显示文本。
 /// 迁移期的 <see cref="Score"/> / <c>Team.Score</c> 只是兼容镜像，不能作为新比分数据源。
 /// </remarks>
+[FrontedBindingObject]
 public partial class MatchScoreState : ObservableObjectBase
 {
     private ObservableCollection<ScoreGame> _games;
@@ -54,6 +56,7 @@ public partial class MatchScoreState : ObservableObjectBase
     /// <summary>
     /// 可序列化的比分单元集合，包括普通局和加赛局。
     /// </summary>
+    [FrontedBindingIgnore]
     public ObservableCollection<ScoreGame> Games
     {
         get => _games;

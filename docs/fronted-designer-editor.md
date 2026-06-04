@@ -281,17 +281,17 @@ Phase 8D owner validation 后的选择规则：
 3. 拖拽只作用于当前已选中控件；选中控件的 editor hitbox、outline 和 handles 会提升到其他 hitbox 之上，方便拖动被高 ZIndex 控件覆盖的低 ZIndex 控件。
 4. 该提升仅存在于 `InteractionLayer`，不会写回 JSON，也不会改变运行时 `ZIndex` 或 preview 渲染顺序。
 5. 空白区域单击清除选择；空白区域拖拽不改变选择。
-6. `PickingBorderOverlay` 是跟随 `TargetControlName` 的 linked runtime overlay，不在普通控件列表显示，不生成普通 hitbox，也不能直接选中、拖拽或缩放；它仍保留在设计文档和 JSON 中，并继续作为 `AnimationService` 的运行时命名目标渲染和校验。
-7. `PickingBorderOverlay` 的 `Left` / `Top` / `Width` / `Height` 由目标控件驱动。目标控件移动或缩放时，编辑器会同步更新 overlay config，拖拽/缩放过程中预览也会实时跟随；overlay 不反向驱动目标控件。
-8. `BanSlotDisplay` 仍是可选中、可编辑的单个设计项；ban lock overlay 是其内部视觉层，不会拆成独立设计项，也不会单独出现在列表或 hitbox 中。
+6. `Image` / `BorderedImage` 的 lock 和 picking border 是内部视觉层，不在普通控件列表显示，不生成普通 hitbox，也不能直接选中、拖拽或缩放；`PickingBorderName` 会作为运行时 namescope 名称注册，供 `AnimationService` 查找。
+7. `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 作为旧布局兼容控件保留；打开旧布局时可以继续渲染，但新默认布局和普通 Add Control 不再依赖它们。
+8. overlay 不反向驱动目标图片。移动或缩放图片控件时，内部 overlay 自动跟随图片根元素位置和尺寸。
 9. 交互优先级为：resize handle、视口平移、拖动已选控件、单击选择、空白点击清除。按住 Space 时左键拖拽用于平移，不会选择或移动控件；右键拖拽同样只平移视口。
 
 图片控件选择/缩放语义：
 
-1. `Image` 是 direct image 控件，设计器透明 hitbox、选中框和 resize handles 对齐并修改根 `Image` 的 `Left` / `Top` / `Width` / `Height`。
+1. `Image` 是通用图片控件，设计器透明 hitbox、选中框和 resize handles 对齐并修改根 `Grid` 的 `Left` / `Top` / `Width` / `Height`；主图和 overlay 都是该根元素的内部视觉层。
 2. `BorderedImage` 是外层 `Border` + 内层 `Image`，Property Grid 把外框和内部图片属性分组显示；`Width` / `Height` 是外框尺寸，`ImageWidth` / `ImageHeight` 是内层图片尺寸。
 3. 选中 `BorderedImage` 时，Property Grid 顶部提供互斥的 resize target 切换。`Border` 模式下 thumbs 调整外层 `Border`，`Image` 模式下 thumbs 调整内层 `ImageWidth` / `ImageHeight`；`Stretch`、`HorizontalAlignment`、`VerticalAlignment` 仍作用于内层 `Image`。
-4. `BorderedImage` 的运行时树保持旧 XAML 的 `Border -> Image` 语义，不插入中间 layout host；未配置 `ImageWidth` / `ImageHeight` 时，内层图片继续由 WPF 的 `Image` 测量和 `Stretch` 规则决定尺寸。
+4. `BorderedImage` 的外层 `Border` 继续作为 resize target；内部图片层可以包含主图和 overlay。未配置 `ImageWidth` / `ImageHeight` 时，主图继续由 WPF 的 `Image` 测量和 `Stretch` 规则决定尺寸。
 5. MapV1 的 `PickedMap` / `BannedMap` 使用 direct `Image`，保持旧 XAML `ui:Image` 的填充与裁剪行为；CutScene 的 Map、SurPick0-3、HunPick 来自 `v2.1.1+af0a4be` 旧 XAML 的 `Border -> Image`，因此使用 `BorderedImage`。SurPick0-3 显式保留 `ImageWidth=556.5`、`ImageHeight=null`，不要把该内层宽度按无效属性清理。
 
 Phase 8D 视口导航修正后：
@@ -352,10 +352,10 @@ Phase 8F 起，工具栏提供 Add Control 按钮和菜单添加控件，并按�
 | 分组 | 控件 |
 | --- | --- |
 | Basic | `Text`, `LocalizedText`, `Image`, `BorderedImage` |
-| Business | `MapNameText`, `GameProgressText`, `TalentTraitDisplay`, `GlobalScoreRow`, `CurrentBanDisplay`, `BanSlotDisplay`, `MapV2Display` |
-| Score/BP | `GlobalScoreRow`, `BanSlotDisplay` |
+| Business | `MapNameText`, `GameProgressText`, `TalentTraitDisplay`, `GlobalScoreRow`, `MapV2Display` |
+| Score/BP | `GlobalScoreRow`, `Image` |
 
-`PickingBorderOverlay` 不应出现在普通 Add Control 列表中。它是跟随 pick 目标控件的 linked runtime overlay，承担 `AnimationService` 的独立命名目标职责，应由宿主控件或未来高级动作创建和维护，而不是作为普通控件直接添加、选中或编辑。
+`CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 不应出现在普通 Add Control 列表中。Ban 位和 pick 图应添加 `Image`，再通过 `BindingPath`、`Lockable`、`LockVisibilityBindingPath`、`PickingBorderAvailable` 和 `PickingBorderName` 配置。
 
 `GlobalScoreRow` 是一个目的明确的复合控件，不应拆成一组无父级的顶层比分控件。编辑器中点击行主体会选中父级比分行，可移动或缩放整行；点击行内比分格 overlay 会选中该子格，同时父级仍作为当前顶层设计项。父级移动只修改 `GlobalScoreRow.Left/Top`，子格相对 `X/Y` 不变；子格移动或缩放只修改对应 `GlobalScoreCellConfig.X/Y/Width/Height`，并在合理范围内夹到父框内。子格属性面板显示 `Id`、`GameNumber`、`GameKind`、`HalfKind`、相对几何、`Visibility` 和样式覆盖项；字体、颜色、字号和 `ShowCampIcon` 留空表示继承父级。图层面板只显示顶层设计控件，`GlobalScoreRow.Cells` 不作为全局图层项。选中父行后，右侧属性面板显示专用 Score Cells 列表；点击列表项会选择对应内部比分格，但 `SelectedDesignItem` 仍保持父行。子格不能删除、复制、粘贴或拖入全局图层面板，也不能参与全局 ZIndex 拖拽、跨层投放或顶/底投放区。子格拖动、缩放和属性编辑都会进入 Designer undo/redo 栈，但这不是通用多选模型。
 
@@ -370,7 +370,7 @@ Phase 8F 起，工具栏提供 Add Control 按钮和菜单添加控件，并按�
 7. 标记布局 dirty。
 8. 重新渲染 preview。
 
-当前 Add Control 只修改 `CurrentDocument` 的内存设计项集合，不写入 AppData 或内置 `Resources/FrontedLayouts`。重新打开或 reload 布局仍按现有加载优先级恢复用户/内置布局，直到后续保存阶段实现。`Image` 生成 direct image 默认配置；`BorderedImage` 生成带外层容器、默认裁剪的图片框。`PickingBorderOverlay` 不出现在普通 Add Control 菜单中；它仍是跟随 pick 目标控件的 linked runtime overlay，由宿主布局或未来高级动作维护。
+当前 Add Control 只修改 `CurrentDocument` 的内存设计项集合，不写入 AppData 或内置 `Resources/FrontedLayouts`。重新打开或 reload 布局仍按现有加载优先级恢复用户/内置布局，直到后续保存阶段实现。`Image` 生成通用图片默认配置；`BorderedImage` 生成带外层容器、默认裁剪的图片框。需要 Ban 锁或 pick 呼吸边框时，在同一个图片控件上启用 overlay 字段。
 
 Phase 8F owner validation 后，工具栏新增 Delete Control。删除只影响当前内存设计文档；重新加载布局仍会恢复内置或用户布局，直到保存阶段实现。删除规则保持保守：
 
@@ -509,7 +509,7 @@ Phase 12 起，字符串选项使用 `FrontedPropertyEditorOption` 分离显示�
 
 Phase 8F owner validation 后，文本类属性使用显式提交模型。`Name`、`BindingPath`、普通 `Text` 字符串、资源路径字符串和手写 `FontFamily` 都先写入 `FrontedPropertyEditorItem.EditText`，按 Enter 或右侧 Check/Apply 按钮才提交。颜色行同样遵守显式提交：ColorPicker 选择颜色只把 `EditText` 和可见 Hex 文本更新为 `#AARRGGBB`，Apply 或 Hex 文本框 Enter 才写回 config；手写 Hex 有效时同步 ColorPicker，提交失败时保留输入并显示红色错误。`Name` 和 `BindingPath` 不再在 LostFocus 时自动提交，避免焦点移动和 Property Grid 重建时把未确认输入写回布局。提交失败时保留用户输入，设置 `HasEditError` / `EditError`，文本框显示红色边框，并在属性行下方显示验证消息；用户继续编辑或提交成功后错误状态清除。`Name` 仍遵守运行时关键名称只读、合法 WPF 名称、同 Canvas 唯一和被引用控件阻止重命名规则；成功重命名后刷新左侧列表、选中摘要、preview、hitbox/selection label 和属性行。
 
-Phase 8G 起，`BindingPath` 仍是可手写文本框，但旁边新增 Browse button。Binding Browser 使用 curated `ISharedDataService` 树，包含 `CurrentGame`、队伍、固定索引的 `SurPlayerList[0..3]`、`HunPlayer`、`MatchScore`、当前/全局 Ban 列表和倒计时等常用路径；搜索可按显示名或完整绑定路径过滤。Binding Browser 现在按当前属性行的目标类型过滤候选路径：`Text` / `LocalizedText` 只显示字符串和数字，`Image` 只显示 `ImageSource` / `BitmapSource` / `BitmapImage` 兼容值，`GameProgressText.BindingPath` 只显示 `GameProgress`，`MapNameText.BindingPath` 只显示 `Map` / `Map?`。不匹配的叶子节点会从树和搜索结果中隐藏，父节点只在仍有可用子节点时保留。选择结果只更新该行 `EditText`，不会立即写入 config，不会调用真实 `ISharedDataService`，也不会推入 Undo；用户后续按 Apply 或 Enter 后才走 `ApplyPropertyEdit`、校验、预览刷新和 Undo snapshot。
+Phase 8G 起，`BindingPath` 仍是可手写文本框，但旁边新增 Browse button。Binding Browser 由显式 root + 反射 catalog 驱动：`IFrontedBindingRootProvider` 注册 `CurrentGame`、`HomeTeam`、`AwayTeam`、`RemainingSeconds` 和 Ban 可用状态列表等根；标注 `[FrontedBindingObject]` 的 DTO 自动扫描 public readable instance properties；`[FrontedBindingIgnore]` 像 `JsonIgnore` 一样隐藏不适合布局绑定的公开属性；`[FrontedBindingCollection(FixedCount = ...)]` 为固定列表生成 `[0]`、`[1]` 等索引路径。catalog 扫描只看类型和属性元数据，不读取 `ISharedDataService` 当前值，不调用 getter，不创建新对局，也不枚举运行时集合。Binding Browser 按当前属性行的目标类型过滤候选路径：`Text` / `LocalizedText` 只显示字符串和数字，`Image` / `BorderedImage` 只显示 `ImageSource` / `BitmapSource` / `BitmapImage` 兼容值，`LockVisibilityBindingPath` 只显示 bool，`GameProgressText.BindingPath` 只显示 `GameProgress`，`MapNameText.BindingPath` 只显示 `Map` / `Map?`。不匹配的叶子节点会从树和搜索结果中隐藏，父节点只在仍有可用子节点时保留。选择结果只更新该行 `EditText`，不会立即写入 config，不会推入 Undo；用户后续按 Apply 或 Enter 后才走 `ApplyPropertyEdit`、校验、预览刷新和 Undo snapshot。
 
 Phase 12/12B 起，Binding Browser 的标题、搜索、按钮、空状态、期望类型和节点显示名可以本地化，但完整 `BindingPath` 始终作为原始路径在树、搜索结果或选中路径区域可见。选择后写回的仍是 `CurrentGame.SurTeam.Name` 这类原始路径，绝不写入“主队名称”等显示文本。
 
@@ -536,8 +536,8 @@ Phase 8E 的名称编辑采用保守策略：
 2. 运行时关键控件的 `Name` 只读。
 3. 普通控件改名必须非空、匹配 `^[A-Za-z_][A-Za-z0-9_]*$`，并在当前 Canvas 内唯一。
 4. 如果旧名称被其他控件引用，Phase 8E 阻止改名并提示“Reference-aware rename will be implemented later.”，避免静默断开引用。
-5. `PickingBorderOverlay` 不是普通 Property Grid 目标；如果被程序化选中，属性行应按只读处理或清空选择。
-6. `BanSlotDisplay` 仍作为单个控件编辑；内部 ban lock overlay 不是单独属性面板目标。
+5. 新布局优先使用 `Image` / `BorderedImage` 的 `Lockable`、`LockImagePath`、`LockVisibilityBindingPath`、`LockVisibleWhen`、`PickingBorderAvailable`、`PickingBorderImagePath` 和 `PickingBorderName` 配置内部覆盖层。覆盖层不是独立设计项，不生成普通 hitbox。
+6. `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 只作为兼容控件保留；普通 Add Control 不应把它们作为推荐入口。
 
 ## 13. Binding Browser
 
@@ -546,11 +546,11 @@ Phase 8G 已实现。任何可浏览的 `BindingPath` 属性都会显示：
 1. `TextBox`
 2. Browse button
 
-Browse button 打开 `BindingBrowserDialog`。Dialog 使用基于 `ISharedDataService` public properties 的 `TreeView`：
+Browse button 打开 `BindingBrowserDialog`。Dialog 使用 binding catalog 的 `TreeView`，根节点来自 `IFrontedBindingRootProvider`，子节点来自标注 DTO 的反射扫描：
 
 ```text
-ISharedDataService
-├── CurrentGame
+BindingRoot
+├── CurrentGame : Game
 │   ├── SurTeam
 │   │   ├── Name
 │   │   └── Logo
@@ -566,7 +566,9 @@ ISharedDataService
 │   └── PickedMapImage
 ├── RemainingSeconds
 ├── CanCurrentSurBannedList
-└── CanGlobalSurBannedList
+├── CanCurrentHunBannedList
+├── CanGlobalSurBannedList
+└── CanGlobalHunBannedList
 ```
 
 集合应为前台常用列表提供固定索引，避免用户手写 `[0]`：
@@ -584,7 +586,10 @@ ISharedDataService
 ```text
 CurrentGame.SurTeam.Name
 CurrentGame.SurPlayerList[0].Member.Name
+CurrentGame.SurPlayerList[0].PictureShownWithFullCharacter
+CurrentGame.SurPlayerList[0].PictureShownHeader
 CurrentGame.MatchScore.CurrentSurTeamMajorText
+CanCurrentSurBannedList[0]
 ```
 
 浏览器按属性行携带的 `BindingTargetKind` 初始化过滤器。内置控件的推断规则为：`TextFrontedControlConfig.BindingPath` 和 `LocalizedTextControlConfig.BindingPath` 使用文本过滤；`ImageFrontedControlConfig.BindingPath` 使用图片过滤；`GameProgressTextControlConfig.BindingPath` 使用 `GameProgress` 过滤；`MapNameTextControlConfig.BindingPath` 使用 `Map` 过滤；未知插件或未来控件默认使用 `Any`，避免宿主过早拒绝插件自定义路径。浏览器标题区会显示当前期望绑定类型，搜索结果遵守同一过滤器，例如文本模式搜索 `Logo` 不会返回队标图片，图片模式搜索 `Name` 不会返回字符串名称。
@@ -593,45 +598,25 @@ CurrentGame.MatchScore.CurrentSurTeamMajorText
 
 ### 13.1 注册绑定源
 
-绑定浏览器的 TreeView 数据源由 `FrontedBindingBrowserProvider` 在代码中手动构建，入口为 `BuildUnfilteredTree()`。要为 `CurrentGame` 或 `ISharedDataService` 下的新公共属性注册绑定源，在对应的 `Build*Children()` 方法中添加一行 `Leaf(...)` 调用即可。
+生产代码不再逐个手写普通 DTO 属性节点。新增绑定路径遵循以下契约：
 
-构建方法层次：
+1. 根对象只能通过 `IFrontedBindingRootProvider` 显式注册，例如 `CurrentGame : Game`、`RemainingSeconds : string`、`CanCurrentSurBannedList : ObservableCollection<bool>`。
+2. 稳定 DTO 标注 `[FrontedBindingObject]` 后，其 public readable instance properties 会自动进入 catalog；需要排除时给属性加 `[FrontedBindingIgnore]`。
+3. 单个属性需要自定义显示、描述或强制包含时使用 `[FrontedBindable]`。
+4. 固定长度集合用 `[FrontedBindingCollection(FixedCount = ...)]` 声明索引数量；dictionary 只在声明 `KnownKeys` 时展开 key。
+5. `IFrontedBindingCatalogContributor` 只用于虚拟节点、legacy alias、插件语义 key 等动态扩展，不应拿来重建整棵手写 DTO 树。
 
-| 方法 | 层级 | 说明 |
-| --- | --- | --- |
-| `BuildUnfilteredTree()` | 根 | 构造 `ISharedDataService` 根节点，注册 `CurrentGame`、`HomeTeam`、`AwayTeam`、`RemainingSeconds` 等顶级子节点。 |
-| `BuildCurrentGameChildren()` | `CurrentGame.*` | 注册 `SurTeam`、`HunTeam`、`SurPlayerList`、`HunPlayer`、`MatchScore`、`PickedMap` 等。 |
-| `BuildMatchScoreChildren()` | `CurrentGame.MatchScore.*` | 注册 `CurrentSurTeamMajorText`、`CurrentHunTeamMajorWin`、`HomeTotalMinorScore` 等。 |
-| `BuildTeamChildren()` | `*.SurTeam.*` / `*.HunTeam.*` | 注册 `Name`、`Logo`。 |
-| `BuildPlayerChildren()` | `*.SurPlayerList[*].*` / `*.HunPlayer.*` | 注册 `Member`、`Character`、`PictureShown`、`Talent`、`Data`。 |
-| `BuildPlayerDataChildren()` | `*.[Data].*` | 注册选手数据字段。 |
-
-`Leaf(displayName, fullPath, type)` 的三个参数：
-
-| 参数 | 说明 |
-| --- | --- |
-| `displayName` | 浏览树中显示的友好名称，后续会经过 `IFrontedDesignerLocalizationService` 本地化。 |
-| `fullPath` | 完整绑定路径，如 `"CurrentGame.MatchScore.CurrentSurTeamMajorWin"`，直接匹配前台 layout JSON 中的 `BindingPath`。 |
-| `type` | 属性值的 CLR 类型，用于 BindingTargetKind 过滤器推断。 |
-
-示例——为 `MatchScoreState` 新增一个 `FooBar` 的 int 属性并使其可浏览：
-
-```csharp
-// 在 BuildMatchScoreChildren() 中添加：
-Leaf("FooBar", "CurrentGame.MatchScore.FooBar", typeof(int)),
-```
-
-添加后 BindingBrowserDialog 即可搜索到该路径，用户在前台 layout 编辑器中可直接选取。
+例如为 `MatchScoreState` 新增普通 public readable 属性并进入浏览器，应先确认 `MatchScoreState` 已标注 `[FrontedBindingObject]`，然后只添加模型属性；若该属性不适合前台布局绑定，则加 `[FrontedBindingIgnore]`。不要在 provider 中补一行 `Leaf(...)`。
 
 ## 14. Resource Browser
 
 Phase 8G 已实现控件级资源路径浏览。Resource Browser 面向图片和资源路径字段：
 
 1. `BackgroundImage`
-2. 图片路径字段
-3. `PickingBorderOverlay.BorderImagePath`
-4. `BanSlotDisplay.LockImageSource`
-5. 未来其他 image fields
+2. `ImagePath`
+3. `LockImagePath`
+4. `PickingBorderImagePath`
+5. `BackgroundImage` 和未来其他 image fields
 
 浏览器应支持：
 

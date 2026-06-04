@@ -89,9 +89,10 @@ v3 渲染路径优先读取新目录。legacy 文件只应进入迁移流程，�
     "Height": 160,
     "BindingPath": "CurrentGame.SurPlayerList[1].PictureShown",
     "ZIndex": 1,
-    "PickingBorder": true,
+    "PickingBorderAvailable": true,
+    "PickingBorderName": "SurPickingBorder1",
     "PickingBorderImagePath": "Resources/pickingBorder.png",
-    "BanLockAvailable": false
+    "Lockable": false
   }
 }
 ```
@@ -122,15 +123,15 @@ v3 内置控件类型如下：
 | --- | --- |
 | `Text` | 文本、队名、比分、倒计时等。 |
 | `LocalizedText` | 根据本地化资源 key 显示静态文本，主要用于表头、标签等不应写死在 JSON 中的用户可见文本。 |
-| `Image` | 直接图片控件，根元素就是 WPF `Image`，用于旧 direct XAML Image 行为、队标、地图、背景元素等。 |
+| `Image` | 通用图片控件，根元素是承载图片和内部 overlay 的 `Grid`，用于队标、地图、角色图、Ban 位、pick 图等。 |
 | `BorderedImage` | 外层 `Border` + 内层 `Image` 的图片控件，用于需要独立外框、容器裁剪或由外框承接 resize 的图片区域。 |
 | `GlobalScoreRow` | `ScoreGlobalWindow` 的全局比分行，根据 `CurrentGame.MatchScore` 生成每半场比分格和阵营图标。 |
 | `TalentTraitDisplay` | `CutSceneWindow` 默认布局控件，封装求生者/监管者固定天赋图标和监管者辅助特质图标。 |
 | `GameProgressText` | `CutSceneWindow` 默认布局控件，集中生成 BO3/BO5 相关的对局进度文本。 |
 | `MapNameText` | `CutSceneWindow` 默认布局控件，按地图 key 生成本地化地图名。 |
-| `CurrentBanDisplay` | `WidgetsWindow` 当前局 Ban 位控件，封装当前 Ban 头像和锁定覆盖层。 |
-| `BanSlotDisplay` | `BpWindow` 当前局/全局 Ban 位控件，封装 Ban 头像和当前/全局锁定覆盖层。 |
-| `PickingBorderOverlay` | `BpWindow` pick 呼吸边框覆盖层，保留 `AnimationService` 查找的独立命名元素。 |
+| `CurrentBanDisplay` | 兼容旧布局的当前局 Ban 位控件；新布局应使用 `Image` + `Lockable` overlay。 |
+| `BanSlotDisplay` | 兼容旧布局的当前局/全局 Ban 位控件；新布局应使用 `Image` + `Lockable` overlay。 |
+| `PickingBorderOverlay` | 兼容旧布局的 pick 呼吸边框覆盖层；新布局应使用 `Image` / `BorderedImage` + `PickingBorderAvailable` overlay，并保留稳定 `PickingBorderName`。 |
 | `MapV2Display` | `WidgetsWindow` 地图 BP v2 控件，复用 `MapV2Presenter`。 |
 
 ### Text
@@ -163,11 +164,22 @@ new Binding(config.BindingPath)
 
 | 层级 | 接收属性 |
 | --- | --- |
-| `Image` | 根元素就是 `Image`，`Canvas.Left`、`Canvas.Top`、`Width`、`Height`、`Panel.ZIndex`、`Source`、`Stretch`、水平/垂直对齐都直接作用于它。 |
+| `Image` 根 `Grid` | `Canvas.Left`、`Canvas.Top`、`Width`、`Height`、`Panel.ZIndex` 和控件 `Name`。内部第一层是主 `Image`，后续子元素是 lock / picking border overlay。 |
 | `BorderedImage` 外层 `Border` | `Canvas.Left`、`Canvas.Top`、`Width`、`Height`、`Panel.ZIndex`，设计器默认 resize handles 作用于这一层。 |
 | `BorderedImage` 内层 `Image` | `Source` 绑定、`ImageWidth`、`ImageHeight`、`Stretch`、`HorizontalAlignment`、`VerticalAlignment` 等图片展示属性。 |
 
 `BindingPath` 同样应以 `ISharedDataService` 为 binding `Source`。图片控件还支持 `ImagePath` 作为静态图片资源路径。`BindingPath` 与 `ImagePath` 同时存在时，`BindingPath` 优先。`ImagePath` 应使用 `Resources/foo.png`、`bpui://...` 等 v3 资源路径，不应长期保存任意绝对本地路径。
+
+`Image` 和 `BorderedImage` 共享图片 overlay 行为：
+
+| 字段 | 用途 |
+| --- | --- |
+| `Lockable` / `LockImagePath` | 在图片上叠加锁定图。 |
+| `LockVisibilityBindingPath` / `LockVisibleWhen` | 绑定 bool 可见性；Ban 位常用 `CanCurrent*BannedList[i]` 或 `CanGlobal*BannedList[i]`，并设置 `VisibleWhenFalse`。 |
+| `PickingBorderAvailable` / `PickingBorderImagePath` | 在 pick 图上叠加呼吸边框图。 |
+| `PickingBorderName` | 注册到 namescope 的稳定动画目标名，例如 `SurPickingBorder0`、`HunPickingBorder`。 |
+
+Ban 位不再需要专用业务控件即可表达：当前局 Ban 绑定 `CurrentGame.CurrentSurBannedList[i].HeaderImageSingleColor` / `CurrentGame.CurrentHunBannedList[i].HeaderImageSingleColor`，全局 Ban 绑定 `CurrentGame.SurTeam.GlobalBannedSurList[i].HeaderImageSingleColor` / `CurrentGame.HunTeam.GlobalBannedHunList[i].HeaderImageSingleColor`。选手图片可绑定 `PictureShown`、`PictureShownWithFullCharacter` 或 `PictureShownHeader`。
 
 `BorderedImage` 支持 `SizingMode`：
 
@@ -194,28 +206,44 @@ new Binding(config.BindingPath)
 | `TalentTraitDisplay` | 求生者 4 个固定天赋、监管者 4 个固定天赋、监管者辅助特质、辅助特质显隐状态，以及黑白图标设置。 |
 | `GameProgressText` | `CurrentGame.GameProgress` + `IsBo3Mode` 的显示文本，显式区分 BO3 第三局加赛与 BO5 第四局；`UseLineBreak = true` 时把 Game / Overtime 和 half 分为两行。 |
 | `MapNameText` | 地图 key 到本地化显示名的转换；未配置 `BindingPath` 时默认读取 `CurrentGame.PickedMap`。 |
-| `CurrentBanDisplay` | 读取 `CurrentGame.CurrentHunBannedList` / `CurrentGame.CurrentSurBannedList` 和 `CanCurrent*BannedList`，显示当前 Ban 头像及锁图。 |
-| `BanSlotDisplay` | 读取 `CurrentGame` 的当前局或全局 Ban 列表，并按可用列表显示锁定覆盖层。 |
-| `PickingBorderOverlay` | 使用控件配置 `FillColor` 和 `BorderImagePath` 生成独立覆盖层，默认隐藏，供 `AnimationService` 控制呼吸动画。 |
+| `CurrentBanDisplay` | 兼容旧 layout；新默认布局不再使用。 |
+| `BanSlotDisplay` | 兼容旧 layout；新默认布局不再使用。 |
+| `PickingBorderOverlay` | 兼容旧 layout；新默认布局不再使用独立控件。 |
 | `MapV2Display` | 通过 `MapKey` 读取 `CurrentGame.MapV2Dictionary`，复用 `MapV2Presenter`。 |
 
-## 6. PickingBorder / BanLockAvailable 兼容策略
+## 6. Image overlay 与旧字段兼容策略
 
-当前 `BpWindow` 的 picking border 是独立 `Rectangle` 控件，`AnimationService` 与 BP pick 页面逻辑依赖稳定元素名。
+当前 `BpWindow` 的 pick 图和 Ban 位优先由通用 `Image` 配置表达。`AnimationService` 与 BP pick 页面逻辑仍依赖稳定元素名，因此 renderer 会把主图片控件名和 `PickingBorderName` 对应的内部 overlay 名都注册到窗口 namescope。
 
 | 兼容点 | 策略 |
 | --- | --- |
 | 元素名 | 生成稳定覆盖控件名，例如 `SurPickingBorder0`、`SurPickingBorder1`、`SurPickingBorder2`、`SurPickingBorder3` 和 `HunPickingBorder`。 |
-| 对齐 | overlay 按目标 pick `Border` 的 `Left`、`Top`、`Width`、`Height` 和必要偏移对齐。 |
-| 层级 | overlay 使用独立 `ZIndex` 或默认位于目标上方。 |
-| Ban 锁 | `BanLockAvailable` 只声明该槽位可显示 Ban lock overlay。 |
+| 对齐 | overlay 是 `Image` / `BorderedImage` 内部视觉层，跟随主图片控件位置和尺寸。 |
+| 层级 | overlay 使用 `LockZIndexOffset` / `PickingBorderZIndexOffset` 位于主图上方。 |
+| Ban 锁 | 新字段为 `Lockable`、`LockImagePath`、`LockVisibilityBindingPath`、`LockVisibleWhen`。 |
 | 动画 | 不重设计 `AnimationService`，除非收到明确需求。 |
 
-`BpWindow` 已迁移到 `Resources/FrontedLayouts/BpWindow/BaseCanvas.json`。`BpWindow.xaml` 不再持有 BP 控件，只保留外层 `BaseCanvas`；默认布局中的 `SurPick0..3`、`HunPick`、`SurPickingBorder0..3` 和 `HunPickingBorder` 由 v3 renderer 生成。renderer 会把控件名注册到窗口 namescope，因此 `AnimationService` 继续可以通过 `window.FindName(...)` 找到 pick 图和呼吸边框。
+旧 JSON 字段继续兼容读取：`BanLockAvailable` 映射到 `Lockable`，`BanLockImagePath` 映射到 `LockImagePath`，`PickingBorder` 映射到 `PickingBorderAvailable`，`PickingBorderImagePath` 保持原名。Property Grid 和新默认布局优先显示新字段名。
+
+`BpWindow` 已迁移到 `Resources/FrontedLayouts/BpWindow/BaseCanvas.json`。`BpWindow.xaml` 不再持有 BP 控件，只保留外层 `BaseCanvas`；默认布局中的 `SurPick0..3`、`HunPick`、`SurPickingBorder0..3` 和 `HunPickingBorder` 由 v3 renderer 生成或注册。renderer 会把控件名注册到窗口 namescope，因此 `AnimationService` 继续可以通过 `window.FindName(...)` 找到 pick 图和呼吸边框。
 
 这些运行时关键名称集中在 `FrontedLayoutRuntimeContractCatalog` 中。校验器会检查 `BpWindow/BaseCanvas` 是否仍包含这些名称；缺失会报告错误。
 
-## 7. 插件扩展方向
+## 7. Binding catalog
+
+Binding Browser 的数据源由 `IFrontedBindingCatalogProvider` 构建，默认实现是 `FrontedBindingReflectionCatalogProvider`。它只扫描显式注册根，不全局扫描服务或应用对象：
+
+1. `IFrontedBindingRootProvider` 注册根，例如 `CurrentGame : Game`、`HomeTeam : Team`、`AwayTeam : Team`、`RemainingSeconds : string` 和 Ban 可用状态列表。
+2. `[FrontedBindingObject]` 标注的 DTO 自动包含 public readable instance properties。
+3. `[FrontedBindingIgnore]` 与 `JsonIgnore` 类似，只影响 Binding Browser；公开但不适合前台布局绑定的属性应显式排除。
+4. `[FrontedBindable]` 可为单个属性补充显示/描述或在非自动包含类型上强制包含。
+5. `[FrontedBindingCollection(FixedCount = ...)]` 用于固定列表索引；dictionary 只在声明 `KnownKeys` 时展开。
+
+catalog 构建是 lazy + cache，只做类型反射，不调用属性 getter，不读取 `ISharedDataService` 的当前值，不调用 `NewGame`，不枚举运行时集合。新增普通 DTO 字段时优先通过模型属性和 attribute 暴露；`IFrontedBindingCatalogContributor` 只用于虚拟节点、legacy alias、插件语义 key 等动态节点，不应重建旧的手写整树。
+
+当前 Player 图像绑定包括 `PictureShown`、`PictureShownWithFullCharacter` 和 `PictureShownHeader`。三者在没有 `Character` 时回退 `Member.Image`；有 `Character` 时分别使用 `HalfImage`、`BigImage` 和 `HeaderImage`。
+
+## 8. 插件扩展方向
 
 控件工厂抽象：
 

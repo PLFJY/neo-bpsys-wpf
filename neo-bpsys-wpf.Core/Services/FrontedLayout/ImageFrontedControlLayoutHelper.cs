@@ -4,11 +4,16 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Data;
+using System.Globalization;
+using System.Windows.Markup;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 internal static class ImageFrontedControlLayoutHelper
 {
+    private const string DefaultLockImagePath = "Resources/CurrentBanLock.png";
+    private const string DefaultPickingBorderImagePath = "Resources/pickingBorder.png";
+
     public static void ApplyImageLayout(
         Image image,
         ImageFrontedControlConfig config,
@@ -56,6 +61,39 @@ internal static class ImageFrontedControlLayoutHelper
         }
     }
 
+    public static Grid CreateImageLayerRoot(
+        string name,
+        ImageFrontedControlConfig config,
+        FrontedControlBuildContext context,
+        Image image)
+    {
+        var root = new Grid { Name = name };
+        FrontedControlFactoryHelper.ApplyCanvasLayout(root, config);
+        root.ClipToBounds = config.ClipToBounds;
+        if (config.CornerRadius is > 0)
+        {
+            ApplyCornerRadiusClip(root, config.CornerRadius);
+        }
+
+        root.Children.Add(image);
+        AddLockOverlay(root, config, context);
+        AddPickingBorderOverlay(root, name, config, context);
+        return root;
+    }
+
+    public static Grid CreateBorderedImageContent(
+        string controlName,
+        ImageFrontedControlConfig config,
+        FrontedControlBuildContext context,
+        Image image)
+    {
+        var root = new Grid();
+        root.Children.Add(image);
+        AddLockOverlay(root, config, context);
+        AddPickingBorderOverlay(root, controlName, config, context);
+        return root;
+    }
+
     public static void ApplyCornerRadiusClip(FrameworkElement element, double? cornerRadius)
     {
         if (!cornerRadius.HasValue || cornerRadius.Value <= 0)
@@ -92,6 +130,174 @@ internal static class ImageFrontedControlLayoutHelper
             value => image.Stretch = value,
             context,
             nameof(config.Stretch));
+    }
+
+    private static void AddLockOverlay(
+        Grid root,
+        ImageFrontedControlConfig config,
+        FrontedControlBuildContext context)
+    {
+        if (!config.Lockable)
+        {
+            return;
+        }
+
+        var overlay = new Image
+        {
+            Source = ResolveOverlayImage(config.LockImagePath, DefaultLockImagePath, context),
+            Stretch = Stretch.Fill,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+            IsHitTestVisible = false
+        };
+
+        Panel.SetZIndex(overlay, config.LockZIndexOffset);
+        if (!string.IsNullOrWhiteSpace(config.LockVisibilityBindingPath))
+        {
+            BindingOperations.SetBinding(overlay, UIElement.VisibilityProperty, new Binding(config.LockVisibilityBindingPath)
+            {
+                Source = context.SharedDataService,
+                Converter = new OverlayVisibilityConverter(config.LockVisibleWhen)
+            });
+        }
+        else
+        {
+            overlay.Visibility = config.LockVisibleWhen == FrontedOverlayVisibilityMode.Always
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
+        root.Children.Add(overlay);
+    }
+
+    private static void AddPickingBorderOverlay(
+        Grid root,
+        string controlName,
+        ImageFrontedControlConfig config,
+        FrontedControlBuildContext context)
+    {
+        if (!config.PickingBorderAvailable)
+        {
+            return;
+        }
+
+        var overlayName = string.IsNullOrWhiteSpace(config.PickingBorderName)
+            ? $"{controlName}PickingBorder"
+            : config.PickingBorderName;
+
+        var overlay = new Border
+        {
+            Name = overlayName,
+            Background = Brushes.White,
+            OpacityMask = CreateImageBrush(ResolveOverlayImage(
+                config.PickingBorderImagePath,
+                DefaultPickingBorderImagePath,
+                context)),
+            Visibility = Visibility.Hidden,
+            Opacity = 0,
+            IsHitTestVisible = false
+        };
+
+        Panel.SetZIndex(overlay, config.PickingBorderZIndexOffset);
+        RegisterGeneratedChildName(root, overlayName, overlay);
+        root.Children.Add(overlay);
+    }
+
+    private static ImageSource? ResolveOverlayImage(
+        string? imagePath,
+        string fallbackPath,
+        FrontedControlBuildContext context)
+    {
+        var source = !string.IsNullOrWhiteSpace(imagePath)
+            ? context.ResourceResolver.ResolveImage(imagePath, FrontedImagePurpose.UiElement)
+            : null;
+
+        return source ?? context.ResourceResolver.ResolveImage(fallbackPath, FrontedImagePurpose.UiElement);
+    }
+
+    private static ImageBrush? CreateImageBrush(ImageSource? imageSource) =>
+        imageSource is null ? null : new ImageBrush(imageSource) { Stretch = Stretch.Fill };
+
+    private static void RegisterGeneratedChildName(FrameworkElement root, string name, FrameworkElement child)
+    {
+        FrameworkElement? registeredOwner = null;
+
+        root.Loaded += (_, _) =>
+        {
+            var owner = (FrameworkElement?)Window.GetWindow(root) ?? root;
+            var nameScope = NameScope.GetNameScope(owner);
+            if (nameScope is null)
+            {
+                nameScope = new NameScope();
+                NameScope.SetNameScope(owner, nameScope);
+            }
+
+            TryUnregisterName(nameScope, name);
+            nameScope.RegisterName(name, child);
+            registeredOwner = owner;
+        };
+
+        root.Unloaded += (_, _) =>
+        {
+            if (registeredOwner is null)
+            {
+                return;
+            }
+
+            var nameScope = NameScope.GetNameScope(registeredOwner);
+            TryUnregisterName(nameScope, name);
+            registeredOwner = null;
+        };
+    }
+
+    private static void TryUnregisterName(INameScope? nameScope, string name)
+    {
+        if (nameScope is null)
+        {
+            return;
+        }
+
+        try
+        {
+            nameScope.UnregisterName(name);
+        }
+        catch (ArgumentException)
+        {
+            // Name was not registered in this namescope.
+        }
+        catch (InvalidOperationException)
+        {
+            // The WPF owner may already have lost its namescope during unload.
+        }
+    }
+
+    private sealed class OverlayVisibilityConverter : IValueConverter
+    {
+        private readonly FrontedOverlayVisibilityMode _mode;
+
+        public OverlayVisibilityConverter(FrontedOverlayVisibilityMode mode)
+        {
+            _mode = mode;
+        }
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (_mode == FrontedOverlayVisibilityMode.Always)
+            {
+                return Visibility.Visible;
+            }
+
+            var boolValue = value is bool b && b;
+            var visible = _mode == FrontedOverlayVisibilityMode.VisibleWhenTrue
+                ? boolValue
+                : !boolValue;
+            return visible ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
     }
 
     private static void ApplyHorizontalAlignment(

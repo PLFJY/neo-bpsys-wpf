@@ -13,6 +13,7 @@ using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Threading;
@@ -22,7 +23,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using Xunit;
-using WpfUiImage = Wpf.Ui.Controls.Image;
 
 namespace neo_bpsys_wpf.Tests.Models;
 
@@ -1067,10 +1067,6 @@ public class FrontedCanvasConfigTest
                      "SurPick1",
                      "SurPick2",
                      "SurPick3",
-                     "SurPickingBorder0",
-                     "SurPickingBorder1",
-                     "SurPickingBorder2",
-                     "SurPickingBorder3",
                      "Map",
                      "MapName",
                      "GameProgress",
@@ -1090,7 +1086,6 @@ public class FrontedCanvasConfigTest
                      "SurGlobalBan10",
                      "SurGlobalBan11",
                      "HunPick",
-                     "HunPickingBorder",
                      "SurId0",
                      "SurId1",
                      "SurId2",
@@ -1125,10 +1120,10 @@ public class FrontedCanvasConfigTest
             Assert.Equal(ImageSizingMode.OverflowCrop, pick.SizingMode);
             Assert.Equal("UniformToFill", pick.Stretch);
             Assert.True(pick.ClipToBounds);
-
-            var border = Assert.IsType<PickingBorderOverlayControlConfig>(config.Controls[$"SurPickingBorder{index}"]);
-            Assert.Equal($"SurPick{index}", border.TargetControlName);
-            Assert.True(border.InitiallyHidden);
+            Assert.True(pick.PickingBorderAvailable);
+            Assert.Equal($"SurPickingBorder{index}", pick.PickingBorderName);
+            Assert.Equal("Resources/pickingBorder.png", pick.PickingBorderImagePath);
+            Assert.DoesNotContain($"SurPickingBorder{index}", config.Controls.Keys);
         }
 
         var hunPick = AssertImageBinding(config, "HunPick", "CurrentGame.HunPlayer.PictureShown");
@@ -1136,8 +1131,10 @@ public class FrontedCanvasConfigTest
         Assert.Equal("Uniform", hunPick.Stretch);
         Assert.Equal("Center", hunPick.HorizontalAlignment);
         Assert.Equal("Center", hunPick.VerticalAlignment);
-        var hunBorder = Assert.IsType<PickingBorderOverlayControlConfig>(config.Controls["HunPickingBorder"]);
-        Assert.Equal("HunPick", hunBorder.TargetControlName);
+        Assert.True(hunPick.PickingBorderAvailable);
+        Assert.Equal("HunPickingBorder", hunPick.PickingBorderName);
+        Assert.Equal("Resources/pickingBorder.png", hunPick.PickingBorderImagePath);
+        Assert.DoesNotContain("HunPickingBorder", config.Controls.Keys);
 
         var map = AssertImageBinding(config, "Map", "CurrentGame.PickedMapImageLarge");
         Assert.Equal(ImageSizingMode.OverflowCrop, map.SizingMode);
@@ -1172,7 +1169,11 @@ public class FrontedCanvasConfigTest
                      "SurGlobalBan11"
                  })
         {
-            Assert.IsType<BanSlotDisplayControlConfig>(config.Controls[controlName]);
+            var ban = Assert.IsType<ImageFrontedControlConfig>(config.Controls[controlName]);
+            Assert.True(ban.Lockable);
+            Assert.Equal(FrontedOverlayVisibilityMode.VisibleWhenFalse, ban.LockVisibleWhen);
+            Assert.Contains("HeaderImageSingleColor", ban.BindingPath, StringComparison.Ordinal);
+            Assert.EndsWith("BannedList[" + ExtractTrailingIndex(controlName) + "]", ban.LockVisibilityBindingPath);
         }
     }
 
@@ -2085,12 +2086,13 @@ public class FrontedCanvasConfigTest
                 },
                 CreateBuildContext());
 
-            var image = Assert.IsType<WpfUiImage>(element);
-            Assert.Equal(10, Canvas.GetLeft(image));
-            Assert.Equal(20, Canvas.GetTop(image));
-            Assert.Equal(85, image.Width);
-            Assert.Equal(85, image.Height);
-            Assert.Equal(3, Panel.GetZIndex(image));
+            var root = Assert.IsType<Grid>(element);
+            var image = Assert.IsType<Image>(Assert.Single(root.Children.OfType<Image>()));
+            Assert.Equal(10, Canvas.GetLeft(root));
+            Assert.Equal(20, Canvas.GetTop(root));
+            Assert.Equal(85, root.Width);
+            Assert.Equal(85, root.Height);
+            Assert.Equal(3, Panel.GetZIndex(root));
             Assert.Equal(Stretch.Fill, image.Stretch);
             Assert.Equal(HorizontalAlignment.Center, image.HorizontalAlignment);
             Assert.Equal(VerticalAlignment.Top, image.VerticalAlignment);
@@ -2115,9 +2117,10 @@ public class FrontedCanvasConfigTest
                 },
                 CreateBuildContext(sharedDataService, resourceResolver: resolver));
 
-            var image = Assert.IsType<WpfUiImage>(element);
+            var root = Assert.IsType<Grid>(element);
+            var image = Assert.IsType<Image>(Assert.Single(root.Children.OfType<Image>()));
             Assert.Equal(Stretch.UniformToFill, image.Stretch);
-            var binding = BindingOperations.GetBinding(image, WpfUiImage.SourceProperty);
+            var binding = BindingOperations.GetBinding(image, Image.SourceProperty);
             Assert.NotNull(binding);
             Assert.Equal("CurrentGame.PickedMapImage", binding.Path.Path);
             Assert.Same(sharedDataService, binding.Source);
@@ -2144,9 +2147,10 @@ public class FrontedCanvasConfigTest
                 },
                 CreateBuildContext(resourceResolver: resolver));
 
-            var image = Assert.IsType<WpfUiImage>(element);
+            var root = Assert.IsType<Grid>(element);
+            var image = Assert.IsType<Image>(Assert.Single(root.Children.OfType<Image>()));
             Assert.Same(source, image.Source);
-            Assert.Null(BindingOperations.GetBinding(image, WpfUiImage.SourceProperty));
+            Assert.Null(BindingOperations.GetBinding(image, Image.SourceProperty));
             Assert.Equal("Resources/logo.png", resolver.LastResolvedImagePath);
             Assert.Equal(FrontedImagePurpose.UiElement, resolver.LastPurpose);
         });
@@ -2181,7 +2185,8 @@ public class FrontedCanvasConfigTest
             Assert.Equal(80, border.Height);
             Assert.Equal(5, Panel.GetZIndex(border));
 
-            var image = Assert.IsType<Image>(border.Child);
+            var grid = Assert.IsType<Grid>(border.Child);
+            var image = Assert.IsType<Image>(Assert.Single(grid.Children.OfType<Image>()));
             Assert.Equal(64, image.Width);
             Assert.Equal(48, image.Height);
             Assert.Equal(Stretch.UniformToFill, image.Stretch);
@@ -2211,7 +2216,8 @@ public class FrontedCanvasConfigTest
                 CreateBuildContext(resourceResolver: resolver));
 
             var border = Assert.IsType<Border>(element);
-            var image = Assert.IsType<Image>(border.Child);
+            var grid = Assert.IsType<Grid>(border.Child);
+            var image = Assert.IsType<Image>(Assert.Single(grid.Children.OfType<Image>()));
             Assert.Same(source, image.Source);
             Assert.Null(BindingOperations.GetBinding(image, Image.SourceProperty));
             Assert.Equal("Resources/pick.png", resolver.LastResolvedImagePath);
@@ -2257,7 +2263,8 @@ public class FrontedCanvasConfigTest
             Assert.True(border.ClipToBounds);
             Assert.Equal(new CornerRadius(8), border.CornerRadius);
 
-            var image = Assert.IsType<Image>(border.Child);
+            var grid = Assert.IsType<Grid>(border.Child);
+            var image = Assert.IsType<Image>(Assert.Single(grid.Children.OfType<Image>()));
             Assert.True(double.IsNaN(image.Width));
             Assert.True(double.IsNaN(image.Height));
             Assert.Equal(Stretch.UniformToFill, image.Stretch);
@@ -2287,8 +2294,50 @@ public class FrontedCanvasConfigTest
                 },
                 CreateBuildContext(resourceResolver: new RecordingFrontedResourceResolver()));
 
-            var image = Assert.IsType<WpfUiImage>(element);
+            var root = Assert.IsType<Grid>(element);
+            var image = Assert.IsType<Image>(Assert.Single(root.Children.OfType<Image>()));
             Assert.Null(image.Source);
+        });
+    }
+
+    [Fact]
+    public void PlayerPictureShownVariantsUseCharacterImagesAndFallbackToMemberImage()
+    {
+        RunOnStaThread(() =>
+        {
+            var memberImage = new DrawingImage();
+            memberImage.Freeze();
+            var player = new Player(new Member(Camp.Sur) { Image = memberImage });
+
+            Assert.Same(memberImage, player.PictureShown);
+            Assert.Same(memberImage, player.PictureShownWithFullCharacter);
+            Assert.Same(memberImage, player.PictureShownHeader);
+
+            var changed = new List<string>();
+            player.PropertyChanged += (_, args) => changed.Add(args.PropertyName!);
+            var character = new Character("幸运儿", Camp.Sur, "幸运儿.png");
+
+            player.Character = character;
+
+            Assert.Same(character.HalfImage, player.PictureShown);
+            Assert.Same(character.BigImage, player.PictureShownWithFullCharacter);
+            Assert.Same(character.HeaderImage, player.PictureShownHeader);
+            Assert.Contains(nameof(Player.PictureShown), changed);
+            Assert.Contains(nameof(Player.PictureShownWithFullCharacter), changed);
+            Assert.Contains(nameof(Player.PictureShownHeader), changed);
+
+            changed.Clear();
+            var nextMemberImage = new DrawingImage();
+            nextMemberImage.Freeze();
+            player.Character = null;
+            player.Member = new Member(Camp.Sur) { Image = nextMemberImage };
+
+            Assert.Same(nextMemberImage, player.PictureShown);
+            Assert.Same(nextMemberImage, player.PictureShownWithFullCharacter);
+            Assert.Same(nextMemberImage, player.PictureShownHeader);
+            Assert.Contains(nameof(Player.PictureShown), changed);
+            Assert.Contains(nameof(Player.PictureShownWithFullCharacter), changed);
+            Assert.Contains(nameof(Player.PictureShownHeader), changed);
         });
     }
 
@@ -2397,6 +2446,17 @@ public class FrontedCanvasConfigTest
 
         Assert.NotNull(directory);
         return directory.FullName;
+    }
+
+    private static string ExtractTrailingIndex(string value)
+    {
+        var index = value.Length;
+        while (index > 0 && char.IsDigit(value[index - 1]))
+        {
+            index--;
+        }
+
+        return value[index..];
     }
 
     private static FrontedControlBuildContext CreateBuildContext(

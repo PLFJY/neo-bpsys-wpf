@@ -225,13 +225,23 @@ public class FrontedRenderer(
 
     private static void TryUnregisterName(FrameworkElement element, string name)
     {
+        var nameScope = NameScope.GetNameScope(element);
+        if (nameScope is null)
+        {
+            return;
+        }
+
         try
         {
-            element.UnregisterName(name);
+            nameScope.UnregisterName(name);
         }
         catch (ArgumentException)
         {
             // Name was not registered in this namescope.
+        }
+        catch (InvalidOperationException)
+        {
+            // The WPF owner may already have lost its namescope during unload.
         }
     }
 

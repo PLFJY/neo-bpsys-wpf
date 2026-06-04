@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 
@@ -12,6 +13,7 @@ namespace neo_bpsys_wpf.Core.Models;
 /// <summary>
 /// 地图BP v2
 /// </summary>
+[FrontedBindingObject]
 public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMessage<bool>>
 {
     /// <summary>
