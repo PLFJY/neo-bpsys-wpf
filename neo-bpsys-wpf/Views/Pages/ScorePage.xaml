@@ -2,6 +2,7 @@
     x:Class="neo_bpsys_wpf.Views.Pages.ScorePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:enums="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
@@ -44,12 +45,13 @@
                         <ColumnDefinition Width="350" />
                     </Grid.ColumnDefinitions>
                     <Grid.Resources>
-                        <Style BasedOn="{StaticResource {x:Type RadioButton}}" TargetType="RadioButton">
+                        <Style BasedOn="{StaticResource {x:Type controls:ToggleStyledRadioButton}}" TargetType="controls:ToggleStyledRadioButton">
                             <Setter Property="MinWidth" Value="100" />
                             <Setter Property="Height" Value="40" />
                             <Setter Property="Margin" Value="10" />
                             <Setter Property="HorizontalAlignment" Value="Center" />
-                            <Setter Property="VerticalContentAlignment" Value="Center" />
+                            <Setter Property="IsImageVisible" Value="False" />
+                            <Setter Property="TagNameFontSize" Value="14" />
                         </Style>
                         <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
                             <Setter Property="Width" Value="150" />
@@ -59,31 +61,31 @@
                         </Style>
                     </Grid.Resources>
                     <StackPanel Grid.Column="0">
-                        <RadioButton
-                            Content="{lex:Loc FourEscape}"
+                        <controls:ToggleStyledRadioButton
                             GroupName="CurrentHalfScoreResult"
-                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Escape4}, Mode=TwoWay}" />
-                        <RadioButton
-                            Content="{lex:Loc ThreeEscape}"
+                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Escape4}, Mode=TwoWay}"
+                            TagName="{lex:Loc FourEscape}" />
+                        <controls:ToggleStyledRadioButton
                             GroupName="CurrentHalfScoreResult"
-                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Escape3}, Mode=TwoWay}" />
+                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Escape3}, Mode=TwoWay}"
+                            TagName="{lex:Loc ThreeEscape}" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0,30,0,0">
-                        <RadioButton
+                        <controls:ToggleStyledRadioButton
                             MinWidth="140"
-                            Content="{lex:Loc Tie}"
                             GroupName="CurrentHalfScoreResult"
-                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Tie}, Mode=TwoWay}" />
+                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Tie}, Mode=TwoWay}"
+                            TagName="{lex:Loc Tie}" />
                     </StackPanel>
                     <StackPanel Grid.Column="2">
-                        <RadioButton
-                            Content="{lex:Loc FourEliminate}"
+                        <controls:ToggleStyledRadioButton
                             GroupName="CurrentHalfScoreResult"
-                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Out4}, Mode=TwoWay}" />
-                        <RadioButton
-                            Content="{lex:Loc ThreeEliminate}"
+                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Out4}, Mode=TwoWay}"
+                            TagName="{lex:Loc FourEliminate}" />
+                        <controls:ToggleStyledRadioButton
                             GroupName="CurrentHalfScoreResult"
-                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Out3}, Mode=TwoWay}" />
+                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Out3}, Mode=TwoWay}"
+                            TagName="{lex:Loc ThreeEliminate}" />
                     </StackPanel>
                     <StackPanel Grid.Column="3">
                         <Button
