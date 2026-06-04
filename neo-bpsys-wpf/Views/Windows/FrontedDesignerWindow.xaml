@@ -796,165 +796,164 @@
                 BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="4">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <StackPanel>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <StackPanel>
+                            <TextBlock
+                                FontSize="18"
+                                FontWeight="SemiBold"
+                                Text="{lex:Loc SelectedControl}" />
+                            <TextBlock
+                                Margin="0,8,0,0"
+                                FontWeight="SemiBold"
+                                Text="{Binding SelectedControlDisplay}" />
+                            <TextBlock Margin="0,4,0,0" Text="{Binding SelectedControlTypeDisplay}" />
+                            <TextBlock Margin="0,4,0,0" Text="{Binding SelectedControlGeometryDisplay}" />
+                            <Border
+                                Margin="0,6,0,0"
+                                Padding="6,2"
+                                HorizontalAlignment="Left"
+                                Background="{DynamicResource ControlFillColorSecondaryBrush}"
+                                CornerRadius="2">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedDesignItem.IsRuntimeCritical}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc RuntimeCriticalControl}" />
+                            </Border>
+                            <TextBlock Margin="0,4,0,0">
+                                <Run Text="{lex:Loc ValidationMessages}" />
+                                <Run Text=": " />
+                                <Run Text="{Binding SelectedControlValidationMessageCount, Mode=OneWay}" />
+                            </TextBlock>
+                            <StackPanel Margin="0,10,0,0">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsBorderedImageSelected}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Opacity="0.75"
+                                    Text="{lex:Loc ResizeTarget}" />
+                                <UniformGrid Columns="2">
+                                    <controls:ToggleStyledRadioButton
+                                        Margin="0,0,6,0"
+                                        GroupName="BorderedImageResizeTarget"
+                                        IsChecked="{Binding IsBorderResizeTargetSelected, Mode=TwoWay}"
+                                        IsImageVisible="False"
+                                        TagName="{lex:Loc Designer.PropertyGroup.Border}"
+                                        TagNameFontSize="12" />
+                                    <controls:ToggleStyledRadioButton
+                                        Margin="6,0,0,0"
+                                        GroupName="BorderedImageResizeTarget"
+                                        IsChecked="{Binding IsImageResizeTargetSelected, Mode=TwoWay}"
+                                        IsImageVisible="False"
+                                        TagName="{lex:Loc Designer.PropertyGroup.Image}"
+                                        TagNameFontSize="12" />
+                                </UniformGrid>
+                            </StackPanel>
+                            <Expander
+                                Margin="0,12,0,0"
+                                Header="{lex:Loc Designer.GlobalScoreRow.Cells}"
+                                IsExpanded="True">
+                                <Expander.Style>
+                                    <Style BasedOn="{StaticResource {x:Type Expander}}" TargetType="Expander">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasGlobalScoreCellEditor}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Expander.Style>
+                                <StackPanel Margin="0,8,0,0">
+                                    <TextBlock
+                                        Margin="0,0,0,8"
+                                        FontSize="12"
+                                        Opacity="0.72"
+                                        Text="{lex:Loc Designer.GlobalScoreRow.CellEditor}"
+                                        TextWrapping="Wrap" />
+                                    <ListBox
+                                        MaxHeight="190"
+                                        ItemsSource="{Binding GlobalScoreCellEditorItems}"
+                                        SelectedItem="{Binding SelectedGlobalScoreCell, Mode=TwoWay}"
+                                        SelectionMode="Single">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type frontedLayout:GlobalScoreCellConfig}">
+                                                <Grid Margin="0,2">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock
+                                                            FontWeight="SemiBold"
+                                                            Text="{Binding Id}"
+                                                            TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock
+                                                            FontSize="12"
+                                                            Opacity="0.72"
+                                                            Text="{Binding Visibility}" />
+                                                    </StackPanel>
+                                                    <TextBlock
+                                                        Grid.Column="1"
+                                                        Margin="8,0,0,0"
+                                                        VerticalAlignment="Center"
+                                                        FontSize="12"
+                                                        Opacity="0.72">
+                                                        <Run Text="G" />
+                                                        <Run Text="{Binding GameNumber}" />
+                                                    </TextBlock>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                    <StackPanel Margin="0,8,0,0">
+                                        <ui:Button
+                                            Margin="0,0,0,6"
+                                            Command="{Binding AutoArrangeGlobalScoreCellsBySpacingCommand}"
+                                            Content="{lex:Loc Designer.GlobalScoreRow.AutoArrangeBySpacing}" />
+                                        <ui:Button
+                                            Margin="0,0,0,6"
+                                            Command="{Binding ApplyParentStyleToGlobalScoreCellsCommand}"
+                                            Content="{lex:Loc Designer.GlobalScoreRow.ApplyParentStyleToCells}" />
+                                        <ui:Button Command="{Binding ClearGlobalScoreCellStyleOverridesCommand}" Content="{lex:Loc Designer.GlobalScoreRow.ClearCellStyleOverrides}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Expander>
+                        </StackPanel>
                         <TextBlock
+                            Grid.Row="1"
+                            Margin="0,16,0,0"
                             FontSize="18"
                             FontWeight="SemiBold"
-                            Text="{lex:Loc SelectedControl}" />
-                        <TextBlock
-                            Margin="0,8,0,0"
-                            FontWeight="SemiBold"
-                            Text="{Binding SelectedControlDisplay}" />
-                        <TextBlock Margin="0,4,0,0" Text="{Binding SelectedControlTypeDisplay}" />
-                        <TextBlock Margin="0,4,0,0" Text="{Binding SelectedControlGeometryDisplay}" />
-                        <Border
-                            Margin="0,6,0,0"
-                            Padding="6,2"
-                            HorizontalAlignment="Left"
-                            Background="{DynamicResource ControlFillColorSecondaryBrush}"
-                            CornerRadius="2">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedDesignItem.IsRuntimeCritical}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                            <TextBlock
-                                FontSize="12"
-                                FontWeight="SemiBold"
-                                Text="{lex:Loc RuntimeCriticalControl}" />
-                        </Border>
-                        <TextBlock Margin="0,4,0,0">
-                            <Run Text="{lex:Loc ValidationMessages}" />
-                            <Run Text=": " />
-                            <Run Text="{Binding SelectedControlValidationMessageCount, Mode=OneWay}" />
-                        </TextBlock>
-                        <StackPanel Margin="0,10,0,0">
-                            <StackPanel.Style>
-                                <Style TargetType="StackPanel">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsBorderedImageSelected}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </StackPanel.Style>
-                            <TextBlock
-                                Margin="0,0,0,6"
-                                FontSize="12"
-                                FontWeight="SemiBold"
-                                Opacity="0.75"
-                                Text="{lex:Loc ResizeTarget}" />
-                            <UniformGrid Columns="2">
-                                <controls:ToggleStyledRadioButton
-                                    Margin="0,0,6,0"
-                                    GroupName="BorderedImageResizeTarget"
-                                    IsChecked="{Binding IsBorderResizeTargetSelected, Mode=TwoWay}"
-                                    IsImageVisible="False"
-                                    TagName="{lex:Loc Designer.PropertyGroup.Border}"
-                                    TagNameFontSize="12" />
-                                <controls:ToggleStyledRadioButton
-                                    Margin="6,0,0,0"
-                                    GroupName="BorderedImageResizeTarget"
-                                    IsChecked="{Binding IsImageResizeTargetSelected, Mode=TwoWay}"
-                                    IsImageVisible="False"
-                                    TagName="{lex:Loc Designer.PropertyGroup.Image}"
-                                    TagNameFontSize="12" />
-                            </UniformGrid>
-                        </StackPanel>
-                        <Expander
-                            Margin="0,12,0,0"
-                            Header="{lex:Loc Designer.GlobalScoreRow.Cells}"
-                            IsExpanded="True">
-                            <Expander.Style>
-                                <Style BasedOn="{StaticResource {x:Type Expander}}" TargetType="Expander">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasGlobalScoreCellEditor}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Expander.Style>
-                            <StackPanel Margin="0,8,0,0">
-                                <TextBlock
-                                    Margin="0,0,0,8"
-                                    FontSize="12"
-                                    Opacity="0.72"
-                                    Text="{lex:Loc Designer.GlobalScoreRow.CellEditor}"
-                                    TextWrapping="Wrap" />
-                                <ListBox
-                                    MaxHeight="190"
-                                    ItemsSource="{Binding GlobalScoreCellEditorItems}"
-                                    SelectedItem="{Binding SelectedGlobalScoreCell, Mode=TwoWay}"
-                                    SelectionMode="Single">
-                                    <ListBox.ItemTemplate>
-                                        <DataTemplate DataType="{x:Type frontedLayout:GlobalScoreCellConfig}">
-                                            <Grid Margin="0,2">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel Grid.Column="0">
-                                                    <TextBlock
-                                                        FontWeight="SemiBold"
-                                                        Text="{Binding Id}"
-                                                        TextTrimming="CharacterEllipsis" />
-                                                    <TextBlock
-                                                        FontSize="12"
-                                                        Opacity="0.72"
-                                                        Text="{Binding Visibility}" />
-                                                </StackPanel>
-                                                <TextBlock
-                                                    Grid.Column="1"
-                                                    Margin="8,0,0,0"
-                                                    VerticalAlignment="Center"
-                                                    FontSize="12"
-                                                    Opacity="0.72">
-                                                    <Run Text="G" />
-                                                    <Run Text="{Binding GameNumber}" />
-                                                </TextBlock>
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ListBox.ItemTemplate>
-                                </ListBox>
-                                <StackPanel Margin="0,8,0,0">
-                                    <ui:Button
-                                        Margin="0,0,0,6"
-                                        Command="{Binding AutoArrangeGlobalScoreCellsBySpacingCommand}"
-                                        Content="{lex:Loc Designer.GlobalScoreRow.AutoArrangeBySpacing}" />
-                                    <ui:Button
-                                        Margin="0,0,0,6"
-                                        Command="{Binding ApplyParentStyleToGlobalScoreCellsCommand}"
-                                        Content="{lex:Loc Designer.GlobalScoreRow.ApplyParentStyleToCells}" />
-                                    <ui:Button
-                                        Command="{Binding ClearGlobalScoreCellStyleOverridesCommand}"
-                                        Content="{lex:Loc Designer.GlobalScoreRow.ClearCellStyleOverrides}" />
-                                </StackPanel>
-                            </StackPanel>
-                        </Expander>
-                    </StackPanel>
-                    <TextBlock
-                        Grid.Row="1"
-                        Margin="0,16,0,0"
-                        FontSize="18"
-                        FontWeight="SemiBold"
-                        Text="{lex:Loc Properties}" />
-                    <Grid Grid.Row="2" Margin="0,8,0,8">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            Text="{lex:Loc Properties}" />
+                        <Grid Grid.Row="2" Margin="0,8,0,8">
+
                             <ItemsControl ItemsSource="{Binding PropertyEditorItems}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type designer:FrontedPropertyEditorItem}">
@@ -1007,143 +1006,143 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                        </ScrollViewer>
-                        <TextBlock
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"
-                            Opacity="0.65"
-                            Text="{lex:Loc NoSelectedControl}">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding HasSelectedDesignItem}" Value="False">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                    </Grid>
-                    <Expander
-                        Grid.Row="3"
-                        Margin="0,4,0,8"
-                        Header="{lex:Loc CanvasProperties}">
-                        <StackPanel Margin="0,8,0,0">
-                            <Grid Margin="0,0,0,8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="112" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc CanvasWidth}" />
-                                <ui:TextBox
-                                    Grid.Column="1"
-                                    MinHeight="30"
-                                    MaxLength="32"
-                                    Text="{Binding CanvasWidthEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                            </Grid>
-                            <Grid Margin="0,0,0,8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="112" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock VerticalAlignment="Center" Text="{lex:Loc CanvasHeight}" />
-                                <ui:TextBox
-                                    Grid.Column="1"
-                                    MinHeight="30"
-                                    MaxLength="32"
-                                    Text="{Binding CanvasHeightEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                            </Grid>
-                            <ui:Button
-                                Margin="112,0,0,8"
-                                HorizontalAlignment="Stretch"
-                                Command="{Binding ApplyCanvasSizeCommand}"
-                                Content="{lex:Loc Apply}" />
-                            <CheckBox
-                                Margin="0,0,0,8"
-                                Content="{lex:Loc Designer.Canvas.EnableBoModeStates}"
-                                IsChecked="{Binding EnableBoModeStates, Mode=TwoWay}" />
-                            <StackPanel Margin="0,0,0,8" Visibility="{Binding IsBoModeStateSelectorVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Opacity="0.65"
+                                Text="{lex:Loc NoSelectedControl}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasSelectedDesignItem}" Value="False">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Grid>
+                        <Expander
+                            Grid.Row="3"
+                            Margin="0,4,0,8"
+                            Header="{lex:Loc CanvasProperties}">
+                            <StackPanel Margin="0,8,0,0">
                                 <Grid Margin="0,0,0,8">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="112" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc Designer.Canvas.CurrentBoModeState}" />
-                                    <ComboBox
+                                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc CanvasWidth}" />
+                                    <ui:TextBox
                                         Grid.Column="1"
-                                        DisplayMemberPath="DisplayName"
-                                        ItemsSource="{Binding BoModeStateOptions}"
-                                        SelectedItem="{Binding SelectedBoModeStateOption, Mode=TwoWay}" />
+                                        MinHeight="30"
+                                        MaxLength="32"
+                                        Text="{Binding CanvasWidthEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="112" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock VerticalAlignment="Center" Text="{lex:Loc CanvasHeight}" />
+                                    <ui:TextBox
+                                        Grid.Column="1"
+                                        MinHeight="30"
+                                        MaxLength="32"
+                                        Text="{Binding CanvasHeightEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                 </Grid>
                                 <ui:Button
+                                    Margin="112,0,0,8"
                                     HorizontalAlignment="Stretch"
-                                    Command="{Binding CopyBo5ToBo3Command}"
-                                    Content="{lex:Loc Designer.Canvas.CopyBo5ToBo3}" />
-                            </StackPanel>
-                            <TextBlock
-                                Margin="0,0,0,6"
-                                FontWeight="SemiBold"
-                                Text="{lex:Loc BackgroundImage}" />
-                            <ui:TextBox
-                                MinHeight="30"
-                                MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
-                                Text="{Binding BackgroundImageEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                            <WrapPanel Margin="0,8,0,0">
-                                <ui:Button
-                                    Margin="0,0,6,6"
-                                    Command="{Binding ApplyBackgroundImageCommand}"
+                                    Command="{Binding ApplyCanvasSizeCommand}"
                                     Content="{lex:Loc Apply}" />
-                                <ui:Button
-                                    Margin="0,0,6,6"
-                                    Click="BrowseCanvasBackgroundResourceButton_OnClick"
-                                    Content="{lex:Loc BrowseResource}" />
-                                <ui:Button
-                                    Margin="0,0,6,6"
-                                    Click="ChooseLocalCanvasBackgroundButton_OnClick"
-                                    Content="{lex:Loc ChooseLocalImage}" />
-                                <ui:Button
-                                    Margin="0,0,6,6"
-                                    Command="{Binding ClearBackgroundImageCommand}"
-                                    Content="{lex:Loc ClearBackground}" />
-                            </WrapPanel>
-                            <TextBlock
-                                FontSize="12"
-                                Opacity="0.78"
-                                Text="{Binding CanvasPropertiesStatus}"
-                                TextWrapping="Wrap" />
-                        </StackPanel>
-                    </Expander>
-                    <Expander
-                        Grid.Row="4"
-                        Margin="0,0,0,8"
-                        Header="{lex:Loc WindowOptions}"
-                        IsExpanded="False">
-                        <StackPanel Margin="0,8,0,0">
-                            <TextBlock
-                                Margin="0,0,0,6"
-                                FontWeight="SemiBold"
-                                Text="{Binding WindowOptionsWindowTypeName}" />
-                            <ui:ToggleSwitch Content="{lex:Loc AllowTransparency}" IsChecked="{Binding WindowAllowTransparency, Mode=TwoWay}" />
-                            <TextBlock
-                                Margin="0,6,0,0"
-                                FontSize="12"
-                                Opacity="0.78"
-                                Text="{Binding WindowOptionsStatus}"
-                                TextWrapping="Wrap" />
-                            <WrapPanel Margin="0,8,0,0">
-                                <ui:Button
-                                    Margin="0,0,6,6"
-                                    Click="RestartNowButton_OnClick"
-                                    Content="{lex:Loc RestartNow}" />
-                                <ui:Button
-                                    Margin="0,0,6,6"
-                                    Command="{Binding ResetWindowOptionsCommand}"
-                                    Content="{lex:Loc Reset}" />
-                            </WrapPanel>
-                        </StackPanel>
-                    </Expander>
-                </Grid>
+                                <CheckBox
+                                    Margin="0,0,0,8"
+                                    Content="{lex:Loc Designer.Canvas.EnableBoModeStates}"
+                                    IsChecked="{Binding EnableBoModeStates, Mode=TwoWay}" />
+                                <StackPanel Margin="0,0,0,8" Visibility="{Binding IsBoModeStateSelectorVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="112" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock VerticalAlignment="Center" Text="{lex:Loc Designer.Canvas.CurrentBoModeState}" />
+                                        <ComboBox
+                                            Grid.Column="1"
+                                            DisplayMemberPath="DisplayName"
+                                            ItemsSource="{Binding BoModeStateOptions}"
+                                            SelectedItem="{Binding SelectedBoModeStateOption, Mode=TwoWay}" />
+                                    </Grid>
+                                    <ui:Button
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding CopyBo5ToBo3Command}"
+                                        Content="{lex:Loc Designer.Canvas.CopyBo5ToBo3}" />
+                                </StackPanel>
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    FontWeight="SemiBold"
+                                    Text="{lex:Loc BackgroundImage}" />
+                                <ui:TextBox
+                                    MinHeight="30"
+                                    MaxLength="{x:Static limits:FrontedLayoutLimits.MaxResourcePathLength}"
+                                    Text="{Binding BackgroundImageEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <WrapPanel Margin="0,8,0,0">
+                                    <ui:Button
+                                        Margin="0,0,6,6"
+                                        Command="{Binding ApplyBackgroundImageCommand}"
+                                        Content="{lex:Loc Apply}" />
+                                    <ui:Button
+                                        Margin="0,0,6,6"
+                                        Click="BrowseCanvasBackgroundResourceButton_OnClick"
+                                        Content="{lex:Loc BrowseResource}" />
+                                    <ui:Button
+                                        Margin="0,0,6,6"
+                                        Click="ChooseLocalCanvasBackgroundButton_OnClick"
+                                        Content="{lex:Loc ChooseLocalImage}" />
+                                    <ui:Button
+                                        Margin="0,0,6,6"
+                                        Command="{Binding ClearBackgroundImageCommand}"
+                                        Content="{lex:Loc ClearBackground}" />
+                                </WrapPanel>
+                                <TextBlock
+                                    FontSize="12"
+                                    Opacity="0.78"
+                                    Text="{Binding CanvasPropertiesStatus}"
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Expander>
+                        <Expander
+                            Grid.Row="4"
+                            Margin="0,0,0,8"
+                            Header="{lex:Loc WindowOptions}"
+                            IsExpanded="False">
+                            <StackPanel Margin="0,8,0,0">
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    FontWeight="SemiBold"
+                                    Text="{Binding WindowOptionsWindowTypeName}" />
+                                <ui:ToggleSwitch Content="{lex:Loc AllowTransparency}" IsChecked="{Binding WindowAllowTransparency, Mode=TwoWay}" />
+                                <TextBlock
+                                    Margin="0,6,0,0"
+                                    FontSize="12"
+                                    Opacity="0.78"
+                                    Text="{Binding WindowOptionsStatus}"
+                                    TextWrapping="Wrap" />
+                                <WrapPanel Margin="0,8,0,0">
+                                    <ui:Button
+                                        Margin="0,0,6,6"
+                                        Click="RestartNowButton_OnClick"
+                                        Content="{lex:Loc RestartNow}" />
+                                    <ui:Button
+                                        Margin="0,0,6,6"
+                                        Command="{Binding ResetWindowOptionsCommand}"
+                                        Content="{lex:Loc Reset}" />
+                                </WrapPanel>
+                            </StackPanel>
+                        </Expander>
+                    </Grid>
+                </ScrollViewer>
             </Border>
         </Grid>
 

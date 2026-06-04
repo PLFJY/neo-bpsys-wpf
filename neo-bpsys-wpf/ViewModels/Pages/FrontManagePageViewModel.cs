@@ -138,6 +138,11 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
     [RelayCommand]
     private async Task RefreshPackagesAsync()
     {
+        await RefreshPackagesCoreAsync(preferredPackageId: null);
+    }
+
+    private async Task RefreshPackagesCoreAsync(string? preferredPackageId)
+    {
         if (_packageManager is null)
         {
             return;
@@ -145,6 +150,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 
         try
         {
+            var previousPackageId = SelectedPackage?.PackageId;
             var packages = await _packageManager.ListPackagesAsync();
             LayoutPackages.Clear();
             foreach (var package in packages)
@@ -152,9 +158,12 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 LayoutPackages.Add(package);
             }
 
-            SelectedPackage ??= LayoutPackages.FirstOrDefault();
             var active = packages.FirstOrDefault(package => package.IsActive)
                          ?? packages.FirstOrDefault(package => package.IsBuiltin);
+            SelectedPackage = FindPackageById(preferredPackageId)
+                              ?? FindPackageById(previousPackageId)
+                              ?? active
+                              ?? LayoutPackages.FirstOrDefault();
             ActivePackageDisplay = active is null
                 ? I18nHelper.GetLocalizedString("SystemBuiltIn")
                 : $"{active.Name} ({active.PackageId})";
@@ -164,6 +173,14 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         {
             _logger?.LogWarning(ex, "Failed to refresh fronted layout packages.");
             PackageManagerStatus = ex.Message;
+        }
+
+        FrontedLayoutPackageInfo? FindPackageById(string? packageId)
+        {
+            return string.IsNullOrWhiteSpace(packageId)
+                ? null
+                : LayoutPackages.FirstOrDefault(package =>
+                    string.Equals(package.PackageId, packageId, StringComparison.OrdinalIgnoreCase));
         }
     }
 
@@ -329,7 +346,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 return;
             }
 
-            await RefreshPackagesAsync();
+            await RefreshPackagesCoreAsync(result.PackageId);
             SelectedPackage = LayoutPackages.FirstOrDefault(package => package.PackageId == result.PackageId) ?? SelectedPackage;
             PackageManagerStatus =
                 $"{I18nHelper.GetLocalizedString("PackageImportSucceeded")}: {result.PackageId} "
@@ -344,7 +361,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
             {
                 await _packageManager.ActivatePackageAsync(result.PackageId);
                 await _frontedWindowService.ReloadFrontedLayoutsAsync();
-                await RefreshPackagesAsync();
+                await RefreshPackagesCoreAsync(result.PackageId);
                 SelectedPackage = LayoutPackages.FirstOrDefault(package => package.PackageId == result.PackageId) ?? SelectedPackage;
                 PackageManagerStatus = $"{I18nHelper.GetLocalizedString("PackageActivatedInstalled")}: {result.PackageId}";
             }
@@ -717,7 +734,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
 
     private async Task RefreshPackagesAfterExternalChangeAsync(string? activePackageId)
     {
-        await RefreshPackagesAsync();
+        await RefreshPackagesCoreAsync(activePackageId);
         var selected = !string.IsNullOrWhiteSpace(activePackageId)
             ? LayoutPackages.FirstOrDefault(package =>
                 string.Equals(package.PackageId, activePackageId, StringComparison.OrdinalIgnoreCase))
@@ -760,12 +777,14 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
                 return;
             }
 
-            await _packageManager.ActivatePackageAsync(SelectedPackage.PackageId);
+            var activatedPackageId = SelectedPackage.PackageId;
+            var activatedIsBuiltin = SelectedPackage.IsBuiltin;
+            await _packageManager.ActivatePackageAsync(activatedPackageId);
             await _frontedWindowService.ReloadFrontedLayoutsAsync();
-            PackageManagerStatus = SelectedPackage.IsBuiltin
+            await RefreshPackagesCoreAsync(activatedPackageId);
+            PackageManagerStatus = activatedIsBuiltin
                 ? I18nHelper.GetLocalizedString("PackageActivatedBuiltin")
-                : $"{I18nHelper.GetLocalizedString("PackageActivatedInstalled")}: {SelectedPackage.PackageId}";
-            await RefreshPackagesAsync();
+                : $"{I18nHelper.GetLocalizedString("PackageActivatedInstalled")}: {activatedPackageId}";
         }
         catch (Exception ex)
         {
@@ -792,7 +811,7 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         {
             var duplicated = await _packageManager.DuplicatePackageAsync(SelectedPackage.PackageId);
             await _frontedWindowService.ReloadFrontedLayoutsAsync();
-            await RefreshPackagesAsync();
+            await RefreshPackagesCoreAsync(duplicated.PackageId);
             SelectedPackage = LayoutPackages.FirstOrDefault(package => package.PackageId == duplicated.PackageId) ?? SelectedPackage;
             PackageManagerStatus = $"{I18nHelper.GetLocalizedString("LayoutPackageDuplicated")}: {duplicated.Name}";
         }

@@ -5,13 +5,18 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Packages;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Services.Abstractions;
+using neo_bpsys_wpf.ViewModels.Pages;
 using neo_bpsys_wpf.ViewModels.Windows;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -1115,6 +1120,81 @@ public class FrontedLayoutPackageManagerTest
         Assert.Contains("OpenFrontedDesigner", text);
         Assert.Contains("ActivateSelectedPackageByDoubleClickAsync", text);
         Assert.Contains("DuplicatePackageAsync", text);
+    }
+
+    [Fact]
+    public async Task ActivatingPackageKeepsActivatedPackageSelectedAfterRefresh()
+    {
+        var activePackageId = FrontedLayoutPackageManager.BuiltInPackageId;
+        var packages = new[]
+        {
+            CreatePackage(FrontedLayoutPackageManager.BuiltInPackageId, "Built-in"),
+            CreatePackage("package-a", "Package A"),
+            CreatePackage("package-b", "Package B")
+        };
+        var packageManager = new Mock<IFrontedLayoutPackageManager>();
+        packageManager
+            .Setup(manager => manager.ListPackagesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => packages
+                .Select(package => CreatePackage(
+                    package.PackageId,
+                    package.Name,
+                    string.Equals(package.PackageId, activePackageId, StringComparison.OrdinalIgnoreCase)))
+                .ToArray());
+        packageManager
+            .Setup(manager => manager.ActivatePackageAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns<string, CancellationToken>((packageId, _) =>
+            {
+                activePackageId = packageId;
+                return Task.CompletedTask;
+            });
+
+        var frontedWindowService = new Mock<IFrontedWindowService>();
+        frontedWindowService
+            .Setup(service => service.ReloadFrontedLayoutsAsync())
+            .Returns(Task.CompletedTask);
+
+        var viewModel = new FrontManagePageViewModel(
+            frontedWindowService.Object,
+            Mock.Of<ISharedDataService>(),
+            Mock.Of<IFilePickerService>(),
+            packageManager.Object,
+            Mock.Of<IFrontedLayoutPackageExporter>(),
+            Mock.Of<IFrontedLayoutPackageImporter>(),
+            Mock.Of<IFrontedLayoutPackageLegacyConverter>(),
+            Mock.Of<IPluginMarketService>(),
+            Mock.Of<IPluginInstallService>(),
+            Mock.Of<IFrontedWindowRegistry>(),
+            Mock.Of<IServiceProvider>(),
+            NullLogger<FrontManagePageViewModel>.Instance);
+
+        await viewModel.RefreshPackagesCommand.ExecuteAsync(null);
+        viewModel.SelectedPackage = viewModel.LayoutPackages.First(package => package.PackageId == "package-b");
+
+        await viewModel.ActivateSelectedPackageByDoubleClickCommand.ExecuteAsync(null);
+
+        Assert.Equal("package-b", activePackageId);
+        Assert.Equal("package-b", viewModel.SelectedPackage?.PackageId);
+        Assert.True(viewModel.SelectedPackage?.IsActive);
+        Assert.Equal("package-b", viewModel.LayoutPackages.First(package => package.IsActive).PackageId);
+    }
+
+    private static FrontedLayoutPackageInfo CreatePackage(
+        string packageId,
+        string name,
+        bool isActive = false)
+    {
+        return new FrontedLayoutPackageInfo
+        {
+            PackageId = packageId,
+            Name = name,
+            Source = string.Equals(packageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase)
+                ? FrontedLayoutPackageSource.BuiltIn
+                : FrontedLayoutPackageSource.Installed,
+            IsBuiltin = string.Equals(packageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase),
+            IsActive = isActive,
+            InstallPath = packageId
+        };
     }
 
     private static void WriteManifest(string folder, object manifest)
