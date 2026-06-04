@@ -122,7 +122,6 @@ public partial class FrontManagePageViewModel : ViewModelBase, IRecipient<Fronte
         try
         {
             var window = ActivatorUtilities.CreateInstance<FrontedDesignerWindow>(_serviceProvider);
-            window.Owner = GetShownOwnerWindow();
             window.Closed += (_, _) => _frontedDesignerWindow = null;
             _frontedDesignerWindow = window;
             window.Show();

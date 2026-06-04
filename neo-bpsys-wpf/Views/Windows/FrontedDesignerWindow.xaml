@@ -14,8 +14,8 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="{lex:Loc FrontedDesigner}"
-    Width="1500"
-    Height="900"
+    Width="1280"
+    Height="720"
     MinWidth="1100"
     MinHeight="700"
     d:DataContext="{d:DesignInstance Type=vm:FrontedDesignerWindowViewModel,
@@ -29,8 +29,7 @@
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     PreviewKeyDown="Window_OnPreviewKeyDown"
     PreviewKeyUp="Window_OnPreviewKeyUp"
-    WindowStartupLocation="CenterOwner"
-    WindowState="Maximized"
+    WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
     <ui:FluentWindow.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />

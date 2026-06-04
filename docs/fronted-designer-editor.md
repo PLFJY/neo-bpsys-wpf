@@ -203,7 +203,7 @@ Phase 8C 已实现基础加载 UI：编辑器使用固定目录列出已迁移�
 4. 如果未来显示假窗口边框，它只能是视觉装饰。
 5. 所有位置都基于内容 Canvas 坐标系，不基于 `Window.ActualHeight` 或窗口外边界。
 
-Phase 8C 的只读预览已经按此规则设置 `PreviewCanvas.Width = config.CanvasWidth`、`PreviewCanvas.Height = config.CanvasHeight`，不读取真实前台窗口尺寸，因此不会把原生标题栏高度混入控件坐标。Phase 8D 的 `PreviewCanvas` 和 `InteractionLayer` 放在同一个 `DesignSurfaceGrid` 内，二者尺寸都等于 `FrontedCanvasConfig.CanvasWidth` / `CanvasHeight`；外层 `PreviewZoomHost` 使用 `LayoutTransform` 绑定 `ZoomScale`。鼠标拖拽和缩放仍通过 `e.GetPosition(InteractionLayer)` 得到逻辑 Canvas 坐标，不乘除缩放比例；Fit 模式只根据 viewport/canvas 计算 `ZoomScale`，手动缩放也只改变 `ZoomScale`，不会改变写回的 `Left` / `Top` / `Width` / `Height`。编辑器窗口本身使用 WPF-UI `FluentWindow` 和项目既有 `CustomTitleBar`，标题栏在独立 Grid 行中，主题切换按钮隐藏，最小化、最大化和关闭按钮仍由 `CustomTitleBar` 处理。
+Phase 8C 的只读预览已经按此规则设置 `PreviewCanvas.Width = config.CanvasWidth`、`PreviewCanvas.Height = config.CanvasHeight`，不读取真实前台窗口尺寸，因此不会把原生标题栏高度混入控件坐标。Phase 8D 的 `PreviewCanvas` 和 `InteractionLayer` 放在同一个 `DesignSurfaceGrid` 内，二者尺寸都等于 `FrontedCanvasConfig.CanvasWidth` / `CanvasHeight`；外层 `PreviewZoomHost` 使用 `LayoutTransform` 绑定 `ZoomScale`。鼠标拖拽和缩放仍通过 `e.GetPosition(InteractionLayer)` 得到逻辑 Canvas 坐标，不乘除缩放比例；Fit 模式只根据 viewport/canvas 计算 `ZoomScale`，手动缩放也只改变 `ZoomScale`，不会改变写回的 `Left` / `Top` / `Width` / `Height`。编辑器窗口本身使用 WPF-UI `FluentWindow` 和项目既有 `CustomTitleBar`，标题栏在独立 Grid 行中，主题切换按钮隐藏，最小化、最大化和关闭按钮仍由 `CustomTitleBar` 处理。编辑器是可长期打开的非模态工具窗口，启动时不设置主窗口 `Owner`，也不默认最大化，避免 owned maximized window 触发主窗口最小化或任务栏联动。
 
 ## 7. 设计 surface 架构
 

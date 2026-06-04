@@ -71,9 +71,7 @@
             PlaceholderText="{lex:Loc Designer.Editor.Search}"
             Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
         <Grid Grid.Row="3" Margin="12,0,12,12">
-            <TreeView
-                SelectedItemChanged="BindingTree_OnSelectedItemChanged"
-                ItemsSource="{Binding TreeNodes}">
+            <TreeView ItemsSource="{Binding TreeNodes}" SelectedItemChanged="BindingTree_OnSelectedItemChanged">
                 <TreeView.Style>
                     <Style TargetType="TreeView">
                         <Setter Property="Visibility" Value="Visible" />
@@ -85,11 +83,9 @@
                     </Style>
                 </TreeView.Style>
             </TreeView>
-            <ListBox
-                ItemsSource="{Binding SearchResults}"
-                SelectionChanged="BindingSearch_OnSelectionChanged">
+            <ListBox ItemsSource="{Binding SearchResults}" SelectionChanged="BindingSearch_OnSelectionChanged">
                 <ListBox.Style>
-                    <Style TargetType="ListBox">
+                    <Style BasedOn="{StaticResource {x:Type ListBox}}" TargetType="ListBox">
                         <Setter Property="Visibility" Value="Collapsed" />
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding HasSearchText}" Value="True">
