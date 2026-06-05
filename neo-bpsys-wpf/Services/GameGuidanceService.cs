@@ -118,7 +118,7 @@ public class GameGuidanceService(
     {
         if (IsGuidanceStarted)
         {
-            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("GameRuleFileNotFound"));
+            _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("GameAlreadyStarted"));
         }
 
         try
