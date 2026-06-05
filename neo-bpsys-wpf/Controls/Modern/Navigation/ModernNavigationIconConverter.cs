@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
-using System.Windows.Media;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Controls.Modern.Navigation;
@@ -28,7 +27,7 @@ public sealed class ModernNavigationIconConverter : IValueConverter
             case SymbolRegular symbol:
                 return CreateSymbolIcon(symbol);
             case SymbolIcon symbolIcon:
-                return CreateSymbolIcon(symbolIcon.Symbol, symbolIcon.FontSize, symbolIcon.Filled, symbolIcon.Foreground);
+                return CreateSymbolIcon(symbolIcon.Symbol, symbolIcon.FontSize, symbolIcon.Filled);
             case IconElement iconElement:
                 return TryCloneIconElement(iconElement) ?? CreateUnsupportedIcon(icon.GetType());
             case FrameworkElement frameworkElement when frameworkElement.Parent is null:
@@ -46,7 +45,7 @@ public sealed class ModernNavigationIconConverter : IValueConverter
     {
         if (iconElement is SymbolIcon symbolIcon)
         {
-            return CreateSymbolIcon(symbolIcon.Symbol, symbolIcon.FontSize, symbolIcon.Filled, symbolIcon.Foreground);
+            return CreateSymbolIcon(symbolIcon.Symbol, symbolIcon.FontSize, symbolIcon.Filled);
         }
 
         return null;
@@ -55,8 +54,7 @@ public sealed class ModernNavigationIconConverter : IValueConverter
     private static SymbolIcon CreateSymbolIcon(
         SymbolRegular symbol,
         double fontSize = 20D,
-        bool filled = false,
-        Brush? foreground = null)
+        bool filled = false)
     {
         var icon = new SymbolIcon(symbol, fontSize <= 0 ? 20D : fontSize, filled)
         {
@@ -65,11 +63,6 @@ public sealed class ModernNavigationIconConverter : IValueConverter
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
-
-        if (foreground is not null)
-        {
-            icon.Foreground = foreground;
-        }
 
         return icon;
     }

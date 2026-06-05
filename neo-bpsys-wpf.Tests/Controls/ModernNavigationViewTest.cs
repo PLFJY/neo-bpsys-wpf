@@ -3,10 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -76,6 +78,39 @@ public class ModernNavigationViewTest
     }
 
     [Fact]
+    public void ClonedSymbolIconDoesNotKeepSourceForeground()
+    {
+        RunSta(() =>
+        {
+            var source = new SymbolIcon(SymbolRegular.Home24)
+            {
+                Foreground = Brushes.Black
+            };
+
+            var icon = Assert.IsType<SymbolIcon>(ModernNavigationIconConverter.CreateIcon(source));
+
+            Assert.Equal(DependencyProperty.UnsetValue, icon.ReadLocalValue(IconElement.ForegroundProperty));
+        });
+    }
+
+    [Fact]
+    public void ItemButtonForegroundUsesDynamicNavigationViewResource()
+    {
+        RunSta(() =>
+        {
+            var navigationView = new ModernNavigationView();
+            var style = Assert.IsType<Style>(navigationView.Resources["ModernNavigationItemButtonStyle"]);
+            var foregroundSetter = style.Setters
+                .OfType<Setter>()
+                .FirstOrDefault(x => x.Property == Control.ForegroundProperty);
+
+            Assert.NotNull(foregroundSetter);
+            var dynamicResource = Assert.IsType<DynamicResourceExtension>(foregroundSetter.Value);
+            Assert.Equal("NavigationViewItemForeground", dynamicResource.ResourceKey);
+        });
+    }
+
+    [Fact]
     public void InvokeItemNavigatesToTargetPageType()
     {
         RunSta(() =>
@@ -118,6 +153,34 @@ public class ModernNavigationViewTest
 
             Assert.IsType<TestPage>(navigationView.CurrentContent);
             Assert.Null(navigationView.SelectedItem);
+        });
+    }
+
+    [Fact]
+    public void NavigateTypeDisplaysPageContentVisibly()
+    {
+        RunSta(() =>
+        {
+            var navigationView = CreateNavigationViewWithProvider();
+
+            Assert.True(navigationView.Navigate(typeof(ScrollableTestPage)));
+
+            var window = CreateHiddenWindow(navigationView);
+            try
+            {
+                window.Show();
+                window.Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+                window.UpdateLayout();
+
+                var target = ((ScrollableTestPage)navigationView.CurrentContent!).Target;
+                Assert.True(target.IsLoaded);
+                Assert.Equal(Visibility.Visible, navigationView.ContentScrollHost.Visibility);
+                Assert.Equal(1D, navigationView.ContentScrollHost.Opacity);
+            }
+            finally
+            {
+                window.Close();
+            }
         });
     }
 

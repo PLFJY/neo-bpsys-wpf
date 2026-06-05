@@ -362,6 +362,7 @@ public class ModernFrame : Control
 
             AttachToActiveHost(newContent);
             ClearAnimatedState(newContent);
+            RestoreActiveHostState();
             return;
         }
 
@@ -456,6 +457,7 @@ public class ModernFrame : Control
         _directContentPresenter.IsHitTestVisible = true;
         _directContentPresenter.ClearValue(OpacityProperty);
         _directContentPresenter.ClearValue(RenderTransformProperty);
+        RestoreActiveHostState();
 
         if (activeContent is not null)
         {
@@ -496,6 +498,7 @@ public class ModernFrame : Control
         _directContentPresenter.IsHitTestVisible = true;
         _directContentPresenter.ClearValue(OpacityProperty);
         _directContentPresenter.ClearValue(RenderTransformProperty);
+        RestoreActiveHostState();
     }
 
     private void UpdateActiveHost()
@@ -533,6 +536,8 @@ public class ModernFrame : Control
             _directContentPresenter.Visibility = Visibility.Visible;
             _directContentPresenter.Content = hostedContent;
         }
+
+        RestoreActiveHostState();
     }
 
     private void DetachFromActiveHost()
@@ -576,6 +581,33 @@ public class ModernFrame : Control
         return IsContentScrollHostEnabled ? _contentScrollHost : _directContentPresenter;
     }
 
+    private void RestoreActiveHostState()
+    {
+        if (!HasTemplateParts)
+        {
+            return;
+        }
+
+        if (IsContentScrollHostEnabled)
+        {
+            _contentScrollHost.Visibility = Visibility.Visible;
+            _contentScrollHost.IsHitTestVisible = true;
+            _contentScrollHost.ClearValue(OpacityProperty);
+            _contentScrollHost.ClearValue(RenderTransformProperty);
+
+            _directContentPresenter.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            _directContentPresenter.Visibility = Visibility.Visible;
+            _directContentPresenter.IsHitTestVisible = true;
+            _directContentPresenter.ClearValue(OpacityProperty);
+            _directContentPresenter.ClearValue(RenderTransformProperty);
+
+            _contentScrollHost.Visibility = Visibility.Collapsed;
+        }
+    }
+
     private static void ClearAnimatedState(FrameworkElement element)
     {
         element.ClearValue(OpacityProperty);
@@ -612,51 +644,52 @@ public class ModernFrame : Control
     private sealed class ModernFramePageHost : System.Windows.Controls.Frame
     {
         private readonly Page _page;
+        private bool _isPageNavigated;
+        private bool _isCleared;
 
         public ModernFramePageHost(Page page)
         {
             _page = page;
             Focusable = false;
+            HorizontalAlignment = HorizontalAlignment.Stretch;
+            VerticalAlignment = VerticalAlignment.Stretch;
             NavigationUIVisibility = System.Windows.Navigation.NavigationUIVisibility.Hidden;
             Loaded += OnLoaded;
-            Content = page;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            if (!ReferenceEquals(Content, _page))
+            if (_isCleared || _isPageNavigated)
             {
-                Content = _page;
+                return;
             }
+
+            Dispatcher.BeginInvoke(NavigateToPage, DispatcherPriority.Loaded);
+        }
+
+        private void NavigateToPage()
+        {
+            if (_isCleared || _isPageNavigated)
+            {
+                return;
+            }
+
+            _isPageNavigated = true;
+            Navigate(_page);
         }
 
         public void ClearPage()
         {
-            Content = null;
             Loaded -= OnLoaded;
-        }
+            _isCleared = true;
+            _isPageNavigated = false;
 
-        protected override Size MeasureOverride(Size constraint)
-        {
-            if (Content is UIElement content)
+            while (CanGoBack)
             {
-                content.Measure(new Size(constraint.Width, double.PositiveInfinity));
-                return content.DesiredSize;
+                RemoveBackEntry();
             }
 
-            return base.MeasureOverride(constraint);
-        }
-
-        protected override Size ArrangeOverride(Size arrangeBounds)
-        {
-            if (Content is UIElement content)
-            {
-                var height = Math.Max(arrangeBounds.Height, content.DesiredSize.Height);
-                content.Arrange(new Rect(0, 0, arrangeBounds.Width, height));
-                return new Size(arrangeBounds.Width, height);
-            }
-
-            return base.ArrangeOverride(arrangeBounds);
+            Content = null;
         }
     }
 }

@@ -36,7 +36,7 @@
 
 当前活动内容会挂到模板部件中，而不是通过 `AddVisualChild` / `AddLogicalChild` 手工维护根视觉树。这样可以保持父级资源查找、`DataContext` 继承、Loaded / Unloaded 行为和在其他自定义控件内部使用时的 WPF 常规行为。
 
-WPF `Page` 不能直接作为普通 `ContentPresenter` 的子元素。`ModernFrame` 遇到 `Page` 时会创建内部 `ModernFramePageHost`，用 WPF `Frame` 作为合法承载容器，同时仍由外层 `ModernFrame` 负责导航日志和转场。`CurrentContent` 仍返回原始 `Page` 实例。
+WPF `Page` 不能直接作为普通 `ContentPresenter` 的子元素。`ModernFrame` 遇到 `Page` 时会创建内部 `ModernFramePageHost`，用 WPF `Frame` 作为合法承载容器，并在 host `Loaded` 后通过正常的 `Frame.Navigate(page)` 承载页面。外层 `ModernFrame` 仍负责导航日志和转场，`CurrentContent` 仍返回原始 `Page` 实例。
 
 ## 转场
 
@@ -52,6 +52,6 @@ WPF `Page` 不能直接作为普通 `ContentPresenter` 的子元素。`ModernFra
 
 `ModernFrame` 默认用 `ModernScrollViewer` 包裹当前活动内容，避免每个后台页面都重复定义外层滚动容器。活动内容在视觉树中位于该 `ModernScrollViewer` 下，因此 `ScrollViewerSearchHelper.FindNearestScrollableAncestor(target)` 可以从页面内目标找到 frame 拥有的滚动宿主。
 
-`Page` 经过内部 `Frame` 承载时，页面加载会经过 WPF dispatcher；需要在页面 Loaded 后或使用现有引导滚动重试机制查找目标。加载完成后，页面内容仍位于 `ModernFrame` 的 `ModernScrollViewer` 下面，`GuidanceScrollHelper` 可以发现该滚动宿主。
+`Page` 经过内部 `Frame` 承载时，页面加载会经过 WPF dispatcher；需要在页面 Loaded 后或使用现有引导滚动重试机制查找目标。加载完成后，`GuidanceScrollHelper` 可以从页面内容发现 `ModernFrame` 的 `ModernScrollViewer` 滚动宿主。
 
 如果页面内部已经有手写 `ScrollViewer`，现有查找逻辑会优先命中更近的内部滚动容器。`IsContentScrollHostEnabled` 可关闭默认滚动宿主，为后续特殊页面保留逃生口。

@@ -74,6 +74,8 @@ WPF-UI 包不会被移除，其他 WPF-UI 控件仍继续使用。
 
 内容区使用 `ModernFrame`，并通过 `ModernFrame` 的默认 `ModernScrollViewer` 提供外层滚动宿主和页面转场。pane 展开时使用 `OpenPaneLength`，折叠时使用 `CompactPaneLength`，内容列占用剩余宽度。
 
+菜单项前景色跟随 WPF-UI 动态主题资源。按钮默认、悬停、按下和选中状态使用 NavigationView item 前景色资源；禁用状态使用 WPF-UI 文本禁用色资源。文本和图标都从按钮 `Foreground` 继承，不硬编码黑白颜色，因此主题切换时可以随资源更新。
+
 本阶段不实现：
 
 - Top 模式

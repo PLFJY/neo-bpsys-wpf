@@ -7,6 +7,7 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using neo_bpsys_wpf.Controls.Modern.Frame;
 using neo_bpsys_wpf.Controls.Modern.Scrolling;
 using Xunit;
@@ -207,6 +208,59 @@ public class ModernFrameTest
     }
 
     [Fact]
+    public void PageContentIsHostedByFrame()
+    {
+        RunSta(() =>
+        {
+            var page = new TestPageWithTarget();
+            var frame = new ModernFrame
+            {
+                Width = 120,
+                Height = 120
+            };
+            frame.Navigate(page, new SuppressNavigationTransitionInfo());
+
+            var window = CreateHiddenWindow(frame);
+
+            try
+            {
+                window.Show();
+                window.Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+                window.UpdateLayout();
+
+                var pageHost = FindVisualDescendants<System.Windows.Controls.Frame>(frame)
+                    .FirstOrDefault(x => ReferenceEquals(x.Content, page));
+
+                Assert.NotNull(pageHost);
+                Assert.True(page.Target.IsLoaded);
+                Assert.All(
+                    FindVisualDescendants<ContentPresenter>(frame)
+                        .Where(presenter => ReferenceEquals(presenter.Content, page)),
+                    presenter => Assert.True(IsVisualDescendantOf(presenter, pageHost)));
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void SuppressTransitionLeavesActiveHostVisible()
+    {
+        RunSta(() =>
+        {
+            var frame = new ModernFrame();
+
+            frame.Navigate(new Border(), new SuppressNavigationTransitionInfo());
+
+            Assert.Equal(Visibility.Visible, frame.ContentScrollHost.Visibility);
+            Assert.True(frame.ContentScrollHost.IsHitTestVisible);
+            Assert.Equal(1D, frame.ContentScrollHost.Opacity);
+        });
+    }
+
+    [Fact]
     public void HostedContentInheritsFrameDataContext()
     {
         RunSta(() =>
@@ -290,6 +344,20 @@ public class ModernFrameTest
     {
     }
 
+    public sealed class TestPageWithTarget : Page
+    {
+        public TestPageWithTarget()
+        {
+            Target = new Button();
+            Content = new Grid
+            {
+                Children = { Target }
+            };
+        }
+
+        public Button Target { get; }
+    }
+
     private sealed class TestServiceProvider : IServiceProvider
     {
         private readonly IReadOnlyDictionary<Type, object> _services;
@@ -339,6 +407,22 @@ public class ModernFrameTest
                 yield return descendant;
             }
         }
+    }
+
+    private static bool IsVisualDescendantOf(DependencyObject descendant, DependencyObject ancestor)
+    {
+        var current = descendant;
+        while (current is not null)
+        {
+            if (ReferenceEquals(current, ancestor))
+            {
+                return true;
+            }
+
+            current = System.Windows.Media.VisualTreeHelper.GetParent(current);
+        }
+
+        return false;
     }
 
     private static void RunSta(Action action)
