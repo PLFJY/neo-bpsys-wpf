@@ -482,12 +482,10 @@ public class ModernFrame : Control
         ClearOldTransitionPresenter();
 
         _contentScrollHost.IsHitTestVisible = true;
-        _contentScrollHost.ClearValue(OpacityProperty);
-        _contentScrollHost.ClearValue(RenderTransformProperty);
+        NormalizeActiveTransitionElement(_contentScrollHost);
 
         _directContentPresenter.IsHitTestVisible = true;
-        _directContentPresenter.ClearValue(OpacityProperty);
-        _directContentPresenter.ClearValue(RenderTransformProperty);
+        NormalizeActiveTransitionElement(_directContentPresenter);
         RestoreActiveHostState();
 
         if (activeContent is not null)
@@ -638,8 +636,7 @@ public class ModernFrame : Control
         {
             _contentScrollHost.Visibility = Visibility.Visible;
             _contentScrollHost.IsHitTestVisible = true;
-            _contentScrollHost.ClearValue(OpacityProperty);
-            _contentScrollHost.ClearValue(RenderTransformProperty);
+            NormalizeActiveTransitionElement(_contentScrollHost);
 
             _directContentPresenter.Visibility = Visibility.Collapsed;
         }
@@ -647,8 +644,7 @@ public class ModernFrame : Control
         {
             _directContentPresenter.Visibility = Visibility.Visible;
             _directContentPresenter.IsHitTestVisible = true;
-            _directContentPresenter.ClearValue(OpacityProperty);
-            _directContentPresenter.ClearValue(RenderTransformProperty);
+            NormalizeActiveTransitionElement(_directContentPresenter);
 
             _contentScrollHost.Visibility = Visibility.Collapsed;
         }
@@ -657,7 +653,17 @@ public class ModernFrame : Control
     private static void ClearAnimatedState(FrameworkElement element)
     {
         element.ClearValue(OpacityProperty);
-        element.ClearValue(RenderTransformProperty);
+    }
+
+    private static void NormalizeActiveTransitionElement(FrameworkElement element)
+    {
+        element.Opacity = 1;
+
+        if (element.RenderTransform is TranslateTransform translateTransform)
+        {
+            translateTransform.X = 0;
+            translateTransform.Y = 0;
+        }
     }
 
     private void UpdateCanGoBack()

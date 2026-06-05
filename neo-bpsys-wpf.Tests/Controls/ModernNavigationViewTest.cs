@@ -169,6 +169,77 @@ public class ModernNavigationViewTest
     }
 
     [Fact]
+    public void MenuScrollViewerUsesThinVisibleVerticalScrollbarWhenPaneCollapsed()
+    {
+        RunSta(() =>
+        {
+            var navigationView = new ModernNavigationView
+            {
+                IsPaneOpen = false,
+                MenuItemsSource = Enumerable.Range(0, 12)
+                    .Select(index => new NavigationViewItem($"HomePage{index}", SymbolRegular.Home24, typeof(TestPage)))
+                    .ToArray()
+            };
+
+            var window = CreateHiddenWindow(navigationView);
+            try
+            {
+                window.Show();
+                window.UpdateLayout();
+
+                var menuScrollViewer = FindVisualDescendants<ModernScrollViewer>(navigationView)
+                    .FirstOrDefault(scrollViewer => scrollViewer.HorizontalScrollBarVisibility == ScrollBarVisibility.Disabled);
+
+                Assert.NotNull(menuScrollViewer);
+                Assert.Equal(ScrollBarVisibility.Auto, menuScrollViewer.VerticalScrollBarVisibility);
+
+                var verticalScrollBar = FindVisualDescendants<System.Windows.Controls.Primitives.ScrollBar>(menuScrollViewer)
+                    .FirstOrDefault(scrollBar => scrollBar.Orientation == Orientation.Vertical);
+
+                Assert.NotNull(verticalScrollBar);
+                Assert.Equal(4D, verticalScrollBar.Width);
+                Assert.Equal(4D, verticalScrollBar.MinWidth);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void MenuScrollViewerUsesAutoVerticalScrollbarWhenPaneOpen()
+    {
+        RunSta(() =>
+        {
+            var navigationView = new ModernNavigationView
+            {
+                IsPaneOpen = true,
+                MenuItemsSource = Enumerable.Range(0, 12)
+                    .Select(index => new NavigationViewItem($"HomePage{index}", SymbolRegular.Home24, typeof(TestPage)))
+                    .ToArray()
+            };
+
+            var window = CreateHiddenWindow(navigationView);
+            try
+            {
+                window.Show();
+                window.UpdateLayout();
+
+                var menuScrollViewer = FindVisualDescendants<ModernScrollViewer>(navigationView)
+                    .FirstOrDefault(scrollViewer => scrollViewer.HorizontalScrollBarVisibility == ScrollBarVisibility.Disabled);
+
+                Assert.NotNull(menuScrollViewer);
+                Assert.Equal(ScrollBarVisibility.Auto, menuScrollViewer.VerticalScrollBarVisibility);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
     public void InvokeItemNavigatesToTargetPageType()
     {
         RunSta(() =>

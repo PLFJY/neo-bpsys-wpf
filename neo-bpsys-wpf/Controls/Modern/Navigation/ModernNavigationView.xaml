@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:frame="clr-namespace:neo_bpsys_wpf.Controls.Modern.Frame"
     xmlns:navigation="clr-namespace:neo_bpsys_wpf.Controls.Modern.Navigation"
+    xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
     xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     x:Name="Root"
@@ -11,6 +12,67 @@
     <UserControl.Resources>
         <navigation:ModernNavigationIconConverter x:Key="ModernNavigationIconConverter" />
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+        <Style x:Key="ModernNavigationCompactScrollBarThumbStyle" TargetType="{x:Type primitives:Thumb}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type primitives:Thumb}">
+                        <Border
+                            Width="3"
+                            Margin="0,2"
+                            HorizontalAlignment="Center"
+                            Background="{DynamicResource ScrollBarThumbFill}"
+                            CornerRadius="2"
+                            Opacity="0.72" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernNavigationMenuVerticalScrollBarStyle" TargetType="{x:Type ScrollBar}">
+            <Setter Property="Width" Value="12" />
+            <Setter Property="MinWidth" Value="12" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                        <Grid
+                            Width="{TemplateBinding Width}"
+                            Background="{TemplateBinding Background}">
+                            <primitives:Track
+                                x:Name="PART_Track"
+                                IsDirectionReversed="True">
+                                <primitives:Track.DecreaseRepeatButton>
+                                    <RepeatButton
+                                        Command="ScrollBar.PageUpCommand"
+                                        Focusable="False"
+                                        Opacity="0" />
+                                </primitives:Track.DecreaseRepeatButton>
+                                <primitives:Track.Thumb>
+                                    <primitives:Thumb Style="{StaticResource ModernNavigationCompactScrollBarThumbStyle}" />
+                                </primitives:Track.Thumb>
+                                <primitives:Track.IncreaseRepeatButton>
+                                    <RepeatButton
+                                        Command="ScrollBar.PageDownCommand"
+                                        Focusable="False"
+                                        Opacity="0" />
+                                </primitives:Track.IncreaseRepeatButton>
+                            </primitives:Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsPaneOpen, RelativeSource={RelativeSource AncestorType={x:Type navigation:ModernNavigationView}}}" Value="False">
+                    <Setter Property="Width" Value="4" />
+                    <Setter Property="MinWidth" Value="4" />
+                </DataTrigger>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Height" Value="4" />
+                    <Setter Property="MinHeight" Value="4" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
 
         <DataTemplate x:Key="ModernNavigationItemContentTemplate" DataType="{x:Type navigation:ModernNavigationEntry}">
             <Grid Height="40" SnapsToDevicePixels="True">
@@ -207,9 +269,19 @@
                 </Button>
 
                 <scrolling:ModernScrollViewer
+                    x:Name="MenuItemsScrollViewer"
                     Grid.Row="1"
-                    HorizontalScrollBarVisibility="Disabled"
-                    VerticalScrollBarVisibility="Auto">
+                    HorizontalScrollBarVisibility="Disabled">
+                    <scrolling:ModernScrollViewer.Resources>
+                        <Style
+                            BasedOn="{StaticResource ModernNavigationMenuVerticalScrollBarStyle}"
+                            TargetType="{x:Type ScrollBar}" />
+                    </scrolling:ModernScrollViewer.Resources>
+                    <scrolling:ModernScrollViewer.Style>
+                        <Style TargetType="{x:Type scrolling:ModernScrollViewer}">
+                            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+                        </Style>
+                    </scrolling:ModernScrollViewer.Style>
                     <ItemsControl ItemsSource="{Binding MenuEntries, ElementName=Root}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type navigation:ModernNavigationEntry}">

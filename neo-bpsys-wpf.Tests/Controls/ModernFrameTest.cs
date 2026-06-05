@@ -386,6 +386,58 @@ public class ModernFrameTest
         });
     }
 
+    [Fact]
+    public void AnimatedTransitionCompletionRestoresActiveHostWithoutClearingIdentityTransform()
+    {
+        RunSta(() =>
+        {
+            if (RenderCapability.Tier == 0 || !SystemParameters.ClientAreaAnimation)
+            {
+                return;
+            }
+
+            var first = new Border();
+            var second = new TextBlock();
+            var frame = new ModernFrame
+            {
+                Width = 120,
+                Height = 120,
+                TransitionDuration = TimeSpan.FromMilliseconds(30)
+            };
+            frame.Navigate(first, new SuppressNavigationTransitionInfo());
+
+            var window = CreateHiddenWindow(frame);
+            try
+            {
+                window.Show();
+                window.UpdateLayout();
+
+                frame.Navigate(second, new EntranceNavigationTransitionInfo());
+                PumpDispatcher(window.Dispatcher, TimeSpan.FromMilliseconds(160));
+                window.UpdateLayout();
+
+                Assert.Equal(Visibility.Visible, frame.ContentScrollHost.Visibility);
+                Assert.Equal(1D, frame.ContentScrollHost.Opacity);
+                Assert.True(frame.ContentScrollHost.IsHitTestVisible);
+                Assert.DoesNotContain(
+                    FindVisualDescendants<ContentPresenter>(frame),
+                    p => ReferenceEquals(p.Content, first));
+
+                if (frame.ContentScrollHost.RenderTransform is TranslateTransform translateTransform)
+                {
+                    Assert.Equal(0D, translateTransform.X);
+                    Assert.Equal(0D, translateTransform.Y);
+                }
+
+                Assert.Same(second, frame.CurrentContent);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
     public sealed class TestPage : Page
     {
     }
@@ -469,6 +521,22 @@ public class ModernFrameTest
         }
 
         return false;
+    }
+
+    private static void PumpDispatcher(Dispatcher dispatcher, TimeSpan duration)
+    {
+        var frame = new DispatcherFrame();
+        var timer = new DispatcherTimer(DispatcherPriority.Background, dispatcher)
+        {
+            Interval = duration
+        };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            frame.Continue = false;
+        };
+        timer.Start();
+        Dispatcher.PushFrame(frame);
     }
 
     private static void RunSta(Action action)
