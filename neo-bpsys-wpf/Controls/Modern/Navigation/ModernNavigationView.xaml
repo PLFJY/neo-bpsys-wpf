@@ -124,6 +124,50 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="ModernPaneToggleButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="MinHeight" Value="40" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Background" Value="{DynamicResource NavigationViewItemBackground}" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemForeground}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border
+                            x:Name="ToggleBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{DynamicResource ControlCornerRadius}"
+                            SnapsToDevicePixels="True">
+                            <ContentPresenter
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                Content="{TemplateBinding Content}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ToggleBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundPointerOver}" />
+                                <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemForegroundPointerOver}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ToggleBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundPressed}" />
+                                <Setter Property="Foreground" Value="{DynamicResource NavigationViewItemForegroundPressed}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ToggleBorder" Property="Background" Value="{DynamicResource SubtleFillColorTransparentBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <Grid ClipToBounds="True">
@@ -152,11 +196,14 @@
                     Grid.Row="0"
                     Width="{Binding CompactPaneLength, ElementName=Root}"
                     Height="40"
-                    Margin="4,4,4,6"
+                    Margin="0,4,0,6"
                     HorizontalAlignment="Left"
                     Command="{Binding TogglePaneCommand, ElementName=Root}"
+                    Style="{StaticResource ModernPaneToggleButtonStyle}"
                     Visibility="{Binding IsPaneToggleVisible, ElementName=Root, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <ui:SymbolIcon Symbol="Navigation24" />
+                    <ui:SymbolIcon
+                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                        Symbol="Navigation24" />
                 </Button>
 
                 <scrolling:ModernScrollViewer

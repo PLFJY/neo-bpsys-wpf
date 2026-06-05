@@ -116,7 +116,7 @@ public partial class ModernNavigationView : UserControl, INavigationView
         {
             if (parameter is ModernNavigationEntry entry)
             {
-                NavigateEntry(entry, null);
+                NavigateEntry(entry, null, suppressIfCurrent: true);
             }
         });
 
@@ -351,7 +351,7 @@ public partial class ModernNavigationView : UserControl, INavigationView
             return false;
         }
 
-        return NavigateEntry(entry, dataContext);
+        return NavigateEntry(entry, dataContext, suppressIfCurrent: false);
     }
 
     public bool NavigateWithHierarchy(Type pageType, object? dataContext = null) =>
@@ -580,21 +580,41 @@ public partial class ModernNavigationView : UserControl, INavigationView
     {
         if (entry is not null)
         {
-            return NavigateEntry(entry, dataContext);
+            return NavigateEntry(entry, dataContext, suppressIfCurrent: false);
         }
 
         return NavigatePageType(pageType, dataContext, entry: null);
     }
 
-    private bool NavigateEntry(ModernNavigationEntry entry, object? dataContext)
+    private bool NavigateEntry(ModernNavigationEntry entry, object? dataContext, bool suppressIfCurrent)
     {
         if (entry.TargetPageType is null || !entry.IsEnabled)
         {
             return false;
         }
 
+        if (suppressIfCurrent && IsCurrentEntry(entry))
+        {
+            return true;
+        }
+
         ItemInvoked?.Invoke(null!, new RoutedEventArgs());
         return NavigatePageType(entry.TargetPageType, dataContext, entry);
+    }
+
+    private bool IsCurrentEntry(ModernNavigationEntry entry)
+    {
+        if (_selectedEntry is null || entry.TargetPageType is null)
+        {
+            return false;
+        }
+
+        if (!IsSameEntry(entry, _selectedEntry))
+        {
+            return false;
+        }
+
+        return CurrentContent is not null && CurrentContent.GetType() == entry.TargetPageType;
     }
 
     private bool NavigatePageType(Type pageType, object? dataContext, ModernNavigationEntry? entry)

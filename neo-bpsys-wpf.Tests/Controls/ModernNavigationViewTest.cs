@@ -111,6 +111,64 @@ public class ModernNavigationViewTest
     }
 
     [Fact]
+    public void PaneToggleStyleUsesDynamicNavigationViewResources()
+    {
+        RunSta(() =>
+        {
+            var navigationView = new ModernNavigationView();
+            var style = Assert.IsType<Style>(navigationView.Resources["ModernPaneToggleButtonStyle"]);
+
+            var backgroundSetter = style.Setters
+                .OfType<Setter>()
+                .FirstOrDefault(x => x.Property == Control.BackgroundProperty);
+            var foregroundSetter = style.Setters
+                .OfType<Setter>()
+                .FirstOrDefault(x => x.Property == Control.ForegroundProperty);
+
+            Assert.NotNull(backgroundSetter);
+            Assert.NotNull(foregroundSetter);
+            Assert.Equal(
+                "NavigationViewItemBackground",
+                Assert.IsType<DynamicResourceExtension>(backgroundSetter.Value).ResourceKey);
+            Assert.Equal(
+                "NavigationViewItemForeground",
+                Assert.IsType<DynamicResourceExtension>(foregroundSetter.Value).ResourceKey);
+        });
+    }
+
+    [Fact]
+    public void PaneToggleUsesCompactPaneWidthHitArea()
+    {
+        RunSta(() =>
+        {
+            var navigationView = new ModernNavigationView
+            {
+                CompactPaneLength = 56
+            };
+
+            var window = CreateHiddenWindow(navigationView);
+            try
+            {
+                window.Show();
+                window.UpdateLayout();
+
+                var toggleButton = FindVisualDescendants<System.Windows.Controls.Button>(navigationView)
+                    .FirstOrDefault(button => ReferenceEquals(button.Command, navigationView.TogglePaneCommand));
+
+                Assert.NotNull(toggleButton);
+                Assert.Equal(56D, toggleButton.Width);
+                Assert.Equal(40D, toggleButton.Height);
+                Assert.Same(navigationView.Resources["ModernPaneToggleButtonStyle"], toggleButton.Style);
+                Assert.Equal(HorizontalAlignment.Left, toggleButton.HorizontalAlignment);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
     public void InvokeItemNavigatesToTargetPageType()
     {
         RunSta(() =>
@@ -123,6 +181,52 @@ public class ModernNavigationViewTest
 
             Assert.IsType<TestPage>(navigationView.CurrentContent);
             Assert.Same(item, navigationView.SelectedItem);
+        });
+    }
+
+    [Fact]
+    public void ClickingCurrentSelectedEntryDoesNotNavigateOrRaiseEvents()
+    {
+        RunSta(() =>
+        {
+            var navigationView = CreateNavigationViewWithProvider();
+            var item = new NavigationViewItem("HomePage", SymbolRegular.Home24, typeof(TestPage));
+            navigationView.MenuItemsSource = new[] { item };
+            var invokedCount = 0;
+            var navigatingCount = 0;
+            var navigatedCount = 0;
+            navigationView.ItemInvoked += (_, _) => invokedCount++;
+            navigationView.Navigating += (_, _) => navigatingCount++;
+            navigationView.Navigated += (_, _) => navigatedCount++;
+
+            navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[0]);
+            var currentContent = navigationView.CurrentContent;
+            navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[0]);
+
+            Assert.Same(currentContent, navigationView.CurrentContent);
+            Assert.Equal(1, invokedCount);
+            Assert.Equal(1, navigatingCount);
+            Assert.Equal(1, navigatedCount);
+            Assert.False(navigationView.CanGoBack);
+        });
+    }
+
+    [Fact]
+    public void ClickingDifferentEntryStillNavigates()
+    {
+        RunSta(() =>
+        {
+            var navigationView = CreateNavigationViewWithProvider();
+            var first = new NavigationViewItem("HomePage", SymbolRegular.Home24, typeof(TestPage));
+            var second = new NavigationViewItem("SettingPage", SymbolRegular.Settings24, typeof(SecondTestPage));
+            navigationView.MenuItemsSource = new[] { first, second };
+
+            navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[0]);
+            navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[1]);
+
+            Assert.IsType<SecondTestPage>(navigationView.CurrentContent);
+            Assert.Same(second, navigationView.SelectedItem);
+            Assert.True(navigationView.CanGoBack);
         });
     }
 
@@ -320,6 +424,26 @@ public class ModernNavigationViewTest
             WindowStyle = WindowStyle.None,
             Content = content
         };
+    }
+
+    private static IEnumerable<T> FindVisualDescendants<T>(DependencyObject root)
+        where T : DependencyObject
+    {
+        var count = VisualTreeHelper.GetChildrenCount(root);
+
+        for (var i = 0; i < count; i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            if (child is T match)
+            {
+                yield return match;
+            }
+
+            foreach (var descendant in FindVisualDescendants<T>(child))
+            {
+                yield return descendant;
+            }
+        }
     }
 
     private sealed class TestPageProvider : INavigationViewPageProvider

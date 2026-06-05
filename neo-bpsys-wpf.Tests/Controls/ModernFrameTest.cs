@@ -7,6 +7,7 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Threading;
 using neo_bpsys_wpf.Controls.Modern.Frame;
 using neo_bpsys_wpf.Controls.Modern.Scrolling;
@@ -337,6 +338,51 @@ public class ModernFrameTest
             Assert.NotNull(oldPresenter);
             Assert.False(oldPresenter.IsHitTestVisible);
             Assert.Same(second, frame.CurrentContent);
+        });
+    }
+
+    [Fact]
+    public void AnimatedTransitionKeepsNewHostHiddenWhileOldPresenterExits()
+    {
+        RunSta(() =>
+        {
+            if (RenderCapability.Tier == 0 || !SystemParameters.ClientAreaAnimation)
+            {
+                return;
+            }
+
+            var first = new Border();
+            var second = new TextBlock();
+            var frame = new ModernFrame
+            {
+                Width = 120,
+                Height = 120,
+                TransitionDuration = TimeSpan.FromMilliseconds(200)
+            };
+            frame.Navigate(first, new SuppressNavigationTransitionInfo());
+
+            var window = CreateHiddenWindow(frame);
+            try
+            {
+                window.Show();
+                window.UpdateLayout();
+
+                frame.Navigate(second, new EntranceNavigationTransitionInfo());
+                window.Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+
+                var oldPresenter = FindVisualDescendants<ContentPresenter>(frame)
+                    .FirstOrDefault(p => ReferenceEquals(p.Content, first));
+
+                Assert.NotNull(oldPresenter);
+                Assert.Equal(Visibility.Visible, oldPresenter.Visibility);
+                Assert.Equal(0D, frame.ContentScrollHost.Opacity);
+                Assert.False(frame.ContentScrollHost.IsHitTestVisible);
+                Assert.Same(second, frame.CurrentContent);
+            }
+            finally
+            {
+                window.Close();
+            }
         });
     }
 

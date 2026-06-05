@@ -71,7 +71,6 @@ public class ModernFrame : Control
     private Storyboard? _activeEnterStoryboard;
     private DispatcherOperation? _pendingTransitionOperation;
     private FrameworkElement? _activeContent;
-    private int _remainingTransitionStoryboards;
     private Grid? _root;
     private ContentPresenter? _oldContentPresenter;
     private ContentPresenter? _newContentPresenter;
@@ -382,29 +381,28 @@ public class ModernFrame : Control
         _activeExitStoryboard = transitionInfo?.CreateExitStoryboard(_oldContentPresenter, movingBackwards, TransitionDuration);
         _activeEnterStoryboard = transitionInfo?.CreateEnterStoryboard(activeHost, movingBackwards, TransitionDuration);
 
-        if (_activeExitStoryboard is null && _activeEnterStoryboard is null)
+        if (_activeExitStoryboard is null)
         {
-            CompleteTransition(newContent);
+            ClearOldTransitionPresenter();
+            BeginEnterTransition();
             return;
         }
 
-        if (_activeExitStoryboard is not null)
-        {
-            _activeExitStoryboard.Completed += OnTransitionStoryboardCompleted;
-        }
-
-        if (_activeEnterStoryboard is not null)
-        {
-            _activeEnterStoryboard.Completed += OnTransitionStoryboardCompleted;
-        }
-
-        _remainingTransitionStoryboards = (_activeExitStoryboard is null ? 0 : 1) + (_activeEnterStoryboard is null ? 0 : 1);
+        _activeExitStoryboard.Completed += OnExitStoryboardCompleted;
 
         _pendingTransitionOperation = Dispatcher.BeginInvoke(() =>
         {
             _pendingTransitionOperation = null;
-            _activeExitStoryboard?.Begin(_oldContentPresenter, true);
-            _activeEnterStoryboard?.Begin(activeHost, true);
+            try
+            {
+                _activeExitStoryboard?.Begin(_oldContentPresenter, true);
+            }
+            catch (Exception)
+            {
+                _activeExitStoryboard = null;
+                ClearOldTransitionPresenter();
+                BeginEnterTransition();
+            }
         }, DispatcherPriority.ApplicationIdle);
     }
 
@@ -418,14 +416,53 @@ public class ModernFrame : Control
             && transitionInfo is not SuppressNavigationTransitionInfo;
     }
 
-    private void OnTransitionStoryboardCompleted(object? sender, EventArgs e)
+    private void OnExitStoryboardCompleted(object? sender, EventArgs e)
     {
-        _remainingTransitionStoryboards = Math.Max(0, _remainingTransitionStoryboards - 1);
+        if (!HasTemplateParts)
+        {
+            return;
+        }
 
-        if (_remainingTransitionStoryboards == 0)
+        _activeExitStoryboard?.Remove(_oldContentPresenter);
+        _activeExitStoryboard = null;
+        ClearOldTransitionPresenter();
+        BeginEnterTransition();
+    }
+
+    private void BeginEnterTransition()
+    {
+        if (!HasTemplateParts)
+        {
+            return;
+        }
+
+        var activeHost = GetActiveTransitionElement();
+
+        if (_activeEnterStoryboard is null)
         {
             CompleteTransition(_activeContent);
+            return;
         }
+
+        _activeEnterStoryboard.Completed += OnEnterStoryboardCompleted;
+        _pendingTransitionOperation = Dispatcher.BeginInvoke(() =>
+        {
+            _pendingTransitionOperation = null;
+            try
+            {
+                RestoreActiveHostVisibilityForEnter(activeHost);
+                _activeEnterStoryboard?.Begin(activeHost, true);
+            }
+            catch (Exception)
+            {
+                CompleteTransition(_activeContent);
+            }
+        }, DispatcherPriority.ApplicationIdle);
+    }
+
+    private void OnEnterStoryboardCompleted(object? sender, EventArgs e)
+    {
+        CompleteTransition(_activeContent);
     }
 
     private void CompleteTransition(FrameworkElement? activeContent)
@@ -441,14 +478,8 @@ public class ModernFrame : Control
         _activeEnterStoryboard?.Remove(activeHost);
         _activeExitStoryboard = null;
         _activeEnterStoryboard = null;
-        _remainingTransitionStoryboards = 0;
 
-        ReleaseHostedContent(_oldContentPresenter.Content as FrameworkElement);
-        _oldContentPresenter.Content = null;
-        _oldContentPresenter.Visibility = Visibility.Collapsed;
-        _oldContentPresenter.IsHitTestVisible = false;
-        _oldContentPresenter.ClearValue(OpacityProperty);
-        _oldContentPresenter.ClearValue(RenderTransformProperty);
+        ClearOldTransitionPresenter();
 
         _contentScrollHost.IsHitTestVisible = true;
         _contentScrollHost.ClearValue(OpacityProperty);
@@ -482,14 +513,8 @@ public class ModernFrame : Control
         _activeEnterStoryboard?.Remove(GetActiveTransitionElement());
         _activeExitStoryboard = null;
         _activeEnterStoryboard = null;
-        _remainingTransitionStoryboards = 0;
 
-        ReleaseHostedContent(_oldContentPresenter.Content as FrameworkElement);
-        _oldContentPresenter.Content = null;
-        _oldContentPresenter.Visibility = Visibility.Collapsed;
-        _oldContentPresenter.IsHitTestVisible = false;
-        _oldContentPresenter.ClearValue(OpacityProperty);
-        _oldContentPresenter.ClearValue(RenderTransformProperty);
+        ClearOldTransitionPresenter();
 
         _contentScrollHost.IsHitTestVisible = true;
         _contentScrollHost.ClearValue(OpacityProperty);
@@ -499,6 +524,27 @@ public class ModernFrame : Control
         _directContentPresenter.ClearValue(OpacityProperty);
         _directContentPresenter.ClearValue(RenderTransformProperty);
         RestoreActiveHostState();
+    }
+
+    private void ClearOldTransitionPresenter()
+    {
+        if (!HasTemplateParts)
+        {
+            return;
+        }
+
+        ReleaseHostedContent(_oldContentPresenter.Content as FrameworkElement);
+        _oldContentPresenter.Content = null;
+        _oldContentPresenter.Visibility = Visibility.Collapsed;
+        _oldContentPresenter.IsHitTestVisible = false;
+        _oldContentPresenter.ClearValue(OpacityProperty);
+        _oldContentPresenter.ClearValue(RenderTransformProperty);
+    }
+
+    private void RestoreActiveHostVisibilityForEnter(FrameworkElement activeHost)
+    {
+        activeHost.Visibility = Visibility.Visible;
+        activeHost.IsHitTestVisible = false;
     }
 
     private void UpdateActiveHost()

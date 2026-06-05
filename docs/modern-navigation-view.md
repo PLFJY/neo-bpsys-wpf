@@ -76,6 +76,8 @@ WPF-UI 包不会被移除，其他 WPF-UI 控件仍继续使用。
 
 菜单项前景色跟随 WPF-UI 动态主题资源。按钮默认、悬停、按下和选中状态使用 NavigationView item 前景色资源；禁用状态使用 WPF-UI 文本禁用色资源。文本和图标都从按钮 `Foreground` 继承，不硬编码黑白颜色，因此主题切换时可以随资源更新。
 
+pane toggle 使用项目本地 `ModernPaneToggleButtonStyle`，参考 iNKORE/WinUI 的 TogglePaneButton：点击区域按 `CompactPaneLength` 占满折叠 pane 宽度，图标居中，默认、悬停、按下和禁用状态使用 WPF-UI 动态主题资源。
+
 本阶段不实现：
 
 - Top 模式
@@ -90,5 +92,7 @@ WPF-UI 包不会被移除，其他 WPF-UI 控件仍继续使用。
 ## 导航行为
 
 点击菜单或 footer entry 会导航到 `TargetPageType`。外部 `Navigate(Type)` 会优先按 `TargetPageType` 选中匹配 entry；没有匹配 entry 时仍会导航到目标页。`Navigate(string)` 优先匹配 tag / id，不用本地化后的显示文本做身份判断。
+
+用户点击当前已选中的 entry 会被视为无操作，不会重复触发 `ItemInvoked` / `Navigating` / `Navigated`，也不会重复启动 `ModernFrame` 转场或压入返回栈。外部 `INavigationService.Navigate(...)` 调用仍保持原兼容行为。
 
 `GoBack()` 和 `ClearJournal()` 委托给内部 `ModernFrame`。`NavigateWithHierarchy(...)` 当前按普通 `Navigate(...)` 处理，保留兼容入口，后续如确实引入层级菜单再扩展。

@@ -48,6 +48,8 @@ WPF `Page` 不能直接作为普通 `ContentPresenter` 的子元素。`ModernFra
 
 `DefaultTransitionInfo` 默认使用 Entrance；单次 `Navigate` 可以传入转场覆盖。`IsAnimationEnabled`、`TransitionDuration`、`SystemParameters.ClientAreaAnimation` 会共同决定是否播放动画。快速连续导航会先停止当前转场并释放旧内容引用，再进入下一次导航。
 
+切换已有内容时，`ModernFrame` 按 iNKORE/WinUI 风格先播放旧内容退出动画，退出完成后清理旧 presenter，再播放新内容进入动画。这样避免旧页面和新页面在内容区同时可见；`SuppressNavigationTransitionInfo` 仍立即交换内容。
+
 ## 默认滚动宿主
 
 `ModernFrame` 默认用 `ModernScrollViewer` 包裹当前活动内容，避免每个后台页面都重复定义外层滚动容器。活动内容在视觉树中位于该 `ModernScrollViewer` 下，因此 `ScrollViewerSearchHelper.FindNearestScrollableAncestor(target)` 可以从页面内目标找到 frame 拥有的滚动宿主。
