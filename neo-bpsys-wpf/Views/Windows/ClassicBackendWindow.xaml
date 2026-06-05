@@ -235,7 +235,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="360" MinWidth="320" />
                     <ColumnDefinition Width="*" MinWidth="520" />
-                    <ColumnDefinition Width="430" MinWidth="360" />
+                    <ColumnDefinition Width="380" MinWidth="360" />
                 </Grid.ColumnDefinitions>
 
                 <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
@@ -733,41 +733,72 @@
                         <Border x:Name="ScoreRoot" Style="{StaticResource Card}">
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Title}" Text="{lex:Loc ScoreControl}" />
-                                <WrapPanel Margin="0,10,0,0">
-                                    <Button
-                                        Width="96"
-                                        Command="{Binding Escape4Command}"
-                                        Content="{lex:Loc FourEscape}" />
-                                    <Button
-                                        Width="96"
-                                        Command="{Binding Escape3Command}"
-                                        Content="{lex:Loc ThreeEscape}" />
-                                    <Button
-                                        Width="96"
-                                        Command="{Binding TieCommand}"
-                                        Content="{lex:Loc Tie}" />
-                                    <Button
-                                        Width="96"
-                                        Command="{Binding Out4Command}"
-                                        Content="{lex:Loc FourEliminate}" />
-                                    <Button
-                                        Width="96"
-                                        Command="{Binding Out3Command}"
-                                        Content="{lex:Loc ThreeEliminate}" />
-                                    <Button
-                                        Width="140"
-                                        Command="{Binding ResetCommand}"
-                                        Content="{lex:Loc ResetAllScores}" />
-                                    <Button
-                                        Width="160"
-                                        Command="{Binding ClearCurrentHalfScoreCommand}"
-                                        Content="{lex:Loc ClearCurrentHalfScore}" />
-                                    <ui:Button
-                                        Width="160"
-                                        Click="ToggleScorePreviewDrawer_Click"
-                                        Content="{lex:Loc ScorePreviewTable}"
-                                        Icon="{ui:SymbolIcon Symbol=NumberRow24}" />
-                                </WrapPanel>
+                                <Grid Margin="0,10,0,0" IsEnabled="{Binding IsScoreControlEnabled}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.Resources>
+                                        <Style BasedOn="{StaticResource {x:Type controls:ToggleStyledRadioButton}}" TargetType="controls:ToggleStyledRadioButton">
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                            <Setter Property="IsImageVisible" Value="False" />
+                                            <Setter Property="TagNameFontSize" Value="12" />
+                                        </Style>
+                                        <Style BasedOn="{StaticResource {x:Type Button}}" TargetType="Button">
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                        </Style>
+                                        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="ui:Button">
+                                            <Setter Property="HorizontalAlignment" Value="Center" />
+                                        </Style>
+                                    </Grid.Resources>
+                                    <StackPanel Grid.Column="0">
+                                        <controls:ToggleStyledRadioButton
+                                            GroupName="ClassicCurrentHalfScoreResult"
+                                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Escape4}, Mode=TwoWay}"
+                                            TagName="{lex:Loc FourEscape}" />
+                                        <controls:ToggleStyledRadioButton
+                                            GroupName="ClassicCurrentHalfScoreResult"
+                                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Escape3}, Mode=TwoWay}"
+                                            TagName="{lex:Loc ThreeEscape}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="0,28,4,0">
+                                        <controls:ToggleStyledRadioButton
+                                            GroupName="ClassicCurrentHalfScoreResult"
+                                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Tie}, Mode=TwoWay}"
+                                            TagName="{lex:Loc Tie}" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <controls:ToggleStyledRadioButton
+                                            GroupName="ClassicCurrentHalfScoreResult"
+                                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Out4}, Mode=TwoWay}"
+                                            TagName="{lex:Loc FourEliminate}" />
+                                        <controls:ToggleStyledRadioButton
+                                            GroupName="ClassicCurrentHalfScoreResult"
+                                            IsChecked="{Binding SelectedCurrentHalfResult, Converter={StaticResource BooleanToEnumConverter}, ConverterParameter={x:Static enums:GameResult.Out3}, Mode=TwoWay}"
+                                            TagName="{lex:Loc ThreeEliminate}" />
+                                    </StackPanel>
+                                    <StackPanel
+                                        Grid.Row="1"
+                                        Grid.ColumnSpan="3"
+                                        HorizontalAlignment="Left"
+                                        Orientation="Horizontal">
+                                        <Button Command="{Binding ResetCommand}" Content="{lex:Loc ResetAllScores}" />
+                                        <Button
+                                            Margin="8,0,0,0"
+                                            Command="{Binding ClearCurrentHalfScoreCommand}"
+                                            Content="{lex:Loc ClearCurrentHalfScore}" />
+                                        <ui:Button
+                                            Margin="8,0,0,0"
+                                            Click="ToggleScorePreviewDrawer_Click"
+                                            Content="{lex:Loc ScorePreviewTable}"
+                                            Icon="{ui:SymbolIcon Symbol=NumberRow24}" />
+                                    </StackPanel>
+                                </Grid>
                                 <TextBlock Margin="0,8,0,0" TextWrapping="Wrap">
                                     <TextBlock.Text>
                                         <MultiBinding Converter="{lex:StringFormatConverter}">
