@@ -4,11 +4,11 @@
 
 ## 目标
 
-- 为后续 `ModernNavigationView` Left 模式承载后台主导航页面。
+- 为 `ModernNavigationView` Left 模式承载后台主导航页面。
 - 为后续 `ModernNavigationView` Top 模式承载类标签页内容。
 - 为 `PluginPage` 等局部内容切换提供带动画的轻量宿主。
 
-本阶段只提供宿主和转场基础设施，不替换 `MainWindow` 现有 `RootNavigation`，也不迁移 `PluginPage`、`FrontManagePage` 标签页。
+当前阶段已经由 `ModernNavigationView` 在 `MainWindow.RootNavigation` 内部使用 `ModernFrame`。仍不迁移 `PluginPage`、`FrontManagePage` 标签页，也不实现 Top 模式标签页。
 
 ## 内容与创建
 
@@ -24,6 +24,20 @@
 
 `ModernFrame` 不主动覆盖内容的 `DataContext`。DI 创建的页面可以保留自身注入或设置的上下文；局部内容如果没有设置 `DataContext`，会按 WPF 视觉/逻辑树继承宿主上下文。
 
+## 模板与 Page 承载
+
+`ModernFrame` 是标准模板化控件，默认模板包含：
+
+- `PART_Root`
+- `PART_OldContentPresenter`
+- `PART_NewContentPresenter`
+- `PART_DirectContentPresenter`
+- `PART_ContentScrollHost`
+
+当前活动内容会挂到模板部件中，而不是通过 `AddVisualChild` / `AddLogicalChild` 手工维护根视觉树。这样可以保持父级资源查找、`DataContext` 继承、Loaded / Unloaded 行为和在其他自定义控件内部使用时的 WPF 常规行为。
+
+WPF `Page` 不能直接作为普通 `ContentPresenter` 的子元素。`ModernFrame` 遇到 `Page` 时会创建内部 `ModernFramePageHost`，用 WPF `Frame` 作为合法承载容器，同时仍由外层 `ModernFrame` 负责导航日志和转场。`CurrentContent` 仍返回原始 `Page` 实例。
+
 ## 转场
 
 本地转场类型包括：
@@ -37,5 +51,7 @@
 ## 默认滚动宿主
 
 `ModernFrame` 默认用 `ModernScrollViewer` 包裹当前活动内容，避免每个后台页面都重复定义外层滚动容器。活动内容在视觉树中位于该 `ModernScrollViewer` 下，因此 `ScrollViewerSearchHelper.FindNearestScrollableAncestor(target)` 可以从页面内目标找到 frame 拥有的滚动宿主。
+
+`Page` 经过内部 `Frame` 承载时，页面加载会经过 WPF dispatcher；需要在页面 Loaded 后或使用现有引导滚动重试机制查找目标。加载完成后，页面内容仍位于 `ModernFrame` 的 `ModernScrollViewer` 下面，`GuidanceScrollHelper` 可以发现该滚动宿主。
 
 如果页面内部已经有手写 `ScrollViewer`，现有查找逻辑会优先命中更近的内部滚动容器。`IsContentScrollHostEnabled` 可关闭默认滚动宿主，为后续特殊页面保留逃生口。

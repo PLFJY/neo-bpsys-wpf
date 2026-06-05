@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Windows;
@@ -205,6 +206,86 @@ public class ModernFrameTest
         });
     }
 
+    [Fact]
+    public void HostedContentInheritsFrameDataContext()
+    {
+        RunSta(() =>
+        {
+            var expectedDataContext = new object();
+            var content = new Border();
+            var frame = new ModernFrame
+            {
+                DataContext = expectedDataContext
+            };
+
+            frame.Navigate(content, new SuppressNavigationTransitionInfo());
+
+            var window = CreateHiddenWindow(frame);
+
+            try
+            {
+                window.Show();
+                window.UpdateLayout();
+
+                Assert.Same(expectedDataContext, content.DataContext);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void HostedContentCanResolveParentResources()
+    {
+        RunSta(() =>
+        {
+            var content = new Border();
+            var frame = new ModernFrame();
+            frame.Resources["ModernFrameTestResource"] = "resource-value";
+            frame.Navigate(content, new SuppressNavigationTransitionInfo());
+
+            var window = CreateHiddenWindow(frame);
+
+            try
+            {
+                window.Show();
+                window.UpdateLayout();
+
+                Assert.Equal("resource-value", content.FindResource("ModernFrameTestResource"));
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void RapidAnimatedNavigationLeavesOldContentNonInteractive()
+    {
+        RunSta(() =>
+        {
+            var first = new Button();
+            var second = new TextBlock();
+            var frame = new ModernFrame
+            {
+                TransitionDuration = TimeSpan.FromMilliseconds(500)
+            };
+
+            frame.Navigate(first, new SuppressNavigationTransitionInfo());
+            frame.Navigate(second, new EntranceNavigationTransitionInfo());
+
+            var oldPresenter = FindVisualDescendants<ContentPresenter>(frame)
+                .FirstOrDefault(p => ReferenceEquals(p.Content, first));
+
+            Assert.NotNull(oldPresenter);
+            Assert.False(oldPresenter.IsHitTestVisible);
+            Assert.Same(second, frame.CurrentContent);
+        });
+    }
+
     public sealed class TestPage : Page
     {
     }
@@ -221,6 +302,42 @@ public class ModernFrameTest
         public object? GetService(Type serviceType)
         {
             return _services.TryGetValue(serviceType, out var service) ? service : null;
+        }
+    }
+
+    private static Window CreateHiddenWindow(UIElement content)
+    {
+        return new Window
+        {
+            Width = 120,
+            Height = 120,
+            Left = -10000,
+            Top = -10000,
+            ShowActivated = false,
+            ShowInTaskbar = false,
+            WindowStyle = WindowStyle.None,
+            Content = content
+        };
+    }
+
+    private static IEnumerable<T> FindVisualDescendants<T>(DependencyObject root)
+        where T : DependencyObject
+    {
+        root.Dispatcher.Invoke(() => root.GetValue(FrameworkElement.TagProperty));
+        var count = System.Windows.Media.VisualTreeHelper.GetChildrenCount(root);
+
+        for (var i = 0; i < count; i++)
+        {
+            var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
+            if (child is T match)
+            {
+                yield return match;
+            }
+
+            foreach (var descendant in FindVisualDescendants<T>(child))
+            {
+                yield return descendant;
+            }
         }
     }
 

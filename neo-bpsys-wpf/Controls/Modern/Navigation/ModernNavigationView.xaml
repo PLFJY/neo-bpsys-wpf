@@ -1,0 +1,208 @@
+<UserControl
+    x:Class="neo_bpsys_wpf.Controls.Modern.Navigation.ModernNavigationView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:frame="clr-namespace:neo_bpsys_wpf.Controls.Modern.Frame"
+    xmlns:navigation="clr-namespace:neo_bpsys_wpf.Controls.Modern.Navigation"
+    xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    x:Name="Root"
+    Focusable="False">
+    <UserControl.Resources>
+        <navigation:ModernNavigationIconConverter x:Key="ModernNavigationIconConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+        <DataTemplate x:Key="ModernNavigationItemContentTemplate" DataType="{x:Type navigation:ModernNavigationEntry}">
+            <Grid Height="40" SnapsToDevicePixels="True">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="40" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <ContentControl
+                    Grid.Column="0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Content="{Binding Icon, Converter={StaticResource ModernNavigationIconConverter}}"
+                    Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                <TextBlock
+                    x:Name="TextElement"
+                    Grid.Column="1"
+                    Margin="8,0,8,0"
+                    VerticalAlignment="Center"
+                    FontSize="14"
+                    Text="{Binding DisplayText}"
+                    TextTrimming="CharacterEllipsis" />
+            </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsPaneOpen, RelativeSource={RelativeSource AncestorType={x:Type navigation:ModernNavigationView}}}" Value="False">
+                    <Setter TargetName="TextElement" Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <Style x:Key="ModernNavigationItemButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Margin" Value="4,2" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border
+                            x:Name="ItemBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6"
+                            SnapsToDevicePixels="True">
+                            <Grid>
+                                <Rectangle
+                                    x:Name="SelectionIndicator"
+                                    Width="3"
+                                    Height="18"
+                                    Margin="0"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Fill="{DynamicResource NavigationViewSelectionIndicatorForeground}"
+                                    Opacity="0"
+                                    RadiusX="2"
+                                    RadiusY="2">
+                                    <Rectangle.RenderTransform>
+                                        <ScaleTransform ScaleY="0.45" />
+                                    </Rectangle.RenderTransform>
+                                </Rectangle>
+                                <ContentPresenter
+                                    Margin="4,0,0,0"
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundPointerOver}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundPressed}" />
+                            </Trigger>
+                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource NavigationViewItemBackgroundSelected}" />
+                                <Setter TargetName="SelectionIndicator" Property="Opacity" Value="1" />
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="SelectionIndicator"
+                                                Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                                To="1"
+                                                Duration="0:0:0.18">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                            </DataTrigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ItemBorder" Property="Opacity" Value="0.56" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid ClipToBounds="True">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border
+            x:Name="PaneBorder"
+            Grid.Column="0"
+            Width="{Binding ActualPaneLength, ElementName=Root}"
+            Background="{DynamicResource ApplicationBackgroundBrush}"
+            BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+            BorderThickness="0,0,1,0"
+            ClipToBounds="True"
+            Visibility="{Binding IsPaneVisible, ElementName=Root, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Button
+                    Grid.Row="0"
+                    Width="{Binding CompactPaneLength, ElementName=Root}"
+                    Height="40"
+                    Margin="4,4,4,6"
+                    HorizontalAlignment="Left"
+                    Command="{Binding TogglePaneCommand, ElementName=Root}"
+                    Visibility="{Binding IsPaneToggleVisible, ElementName=Root, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <ui:SymbolIcon Symbol="Navigation24" />
+                </Button>
+
+                <scrolling:ModernScrollViewer
+                    Grid.Row="1"
+                    HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding MenuEntries, ElementName=Root}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type navigation:ModernNavigationEntry}">
+                                <Button
+                                    Command="{Binding NavigateEntryCommand, ElementName=Root}"
+                                    CommandParameter="{Binding}"
+                                    Content="{Binding}"
+                                    ContentTemplate="{StaticResource ModernNavigationItemContentTemplate}"
+                                    IsEnabled="{Binding IsEnabled}"
+                                    Style="{StaticResource ModernNavigationItemButtonStyle}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </scrolling:ModernScrollViewer>
+
+                <ItemsControl
+                    Grid.Row="2"
+                    Margin="0,6,0,6"
+                    ItemsSource="{Binding FooterMenuEntries, ElementName=Root}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type navigation:ModernNavigationEntry}">
+                            <Button
+                                Command="{Binding NavigateEntryCommand, ElementName=Root}"
+                                CommandParameter="{Binding}"
+                                Content="{Binding}"
+                                ContentTemplate="{StaticResource ModernNavigationItemContentTemplate}"
+                                IsEnabled="{Binding IsEnabled}"
+                                Style="{StaticResource ModernNavigationItemButtonStyle}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Column="1" MinWidth="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <ContentPresenter
+                Grid.Row="0"
+                Content="{Binding ContentOverlay, ElementName=Root}" />
+            <frame:ModernFrame
+                x:Name="PART_Frame"
+                Grid.Row="1"
+                Margin="{Binding FrameMargin, ElementName=Root}" />
+        </Grid>
+    </Grid>
+</UserControl>

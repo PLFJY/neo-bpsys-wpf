@@ -11,8 +11,19 @@ using neo_bpsys_wpf.Controls.Modern.Scrolling;
 
 namespace neo_bpsys_wpf.Controls.Modern.Frame;
 
+[TemplatePart(Name = RootPartName, Type = typeof(Grid))]
+[TemplatePart(Name = OldContentPresenterPartName, Type = typeof(ContentPresenter))]
+[TemplatePart(Name = NewContentPresenterPartName, Type = typeof(ContentPresenter))]
+[TemplatePart(Name = DirectContentPresenterPartName, Type = typeof(ContentPresenter))]
+[TemplatePart(Name = ContentScrollHostPartName, Type = typeof(ModernScrollViewer))]
 public class ModernFrame : Control
 {
+    private const string RootPartName = "PART_Root";
+    private const string OldContentPresenterPartName = "PART_OldContentPresenter";
+    private const string NewContentPresenterPartName = "PART_NewContentPresenter";
+    private const string DirectContentPresenterPartName = "PART_DirectContentPresenter";
+    private const string ContentScrollHostPartName = "PART_ContentScrollHost";
+
     public static readonly DependencyProperty DefaultTransitionInfoProperty =
         DependencyProperty.Register(
             nameof(DefaultTransitionInfo),
@@ -55,17 +66,18 @@ public class ModernFrame : Control
             typeof(ModernFrame),
             new PropertyMetadata(false));
 
-    private readonly Grid _root;
-    private readonly ContentPresenter _oldContentPresenter;
-    private readonly ContentPresenter _newContentPresenter;
-    private readonly ContentPresenter _directContentPresenter;
-    private readonly ModernScrollViewer _contentScrollHost;
     private readonly List<ModernFrameJournalEntry> _backStack = new();
     private Storyboard? _activeExitStoryboard;
     private Storyboard? _activeEnterStoryboard;
     private DispatcherOperation? _pendingTransitionOperation;
     private FrameworkElement? _activeContent;
     private int _remainingTransitionStoryboards;
+    private Grid? _root;
+    private ContentPresenter? _oldContentPresenter;
+    private ContentPresenter? _newContentPresenter;
+    private ContentPresenter? _directContentPresenter;
+    private ModernScrollViewer? _contentScrollHost;
+    private FrameworkElement? _activeHostedContent;
 
     public ModernFrame()
     {
@@ -73,32 +85,7 @@ public class ModernFrame : Control
         IsTabStop = false;
         ClipToBounds = true;
         SetCurrentValue(DefaultTransitionInfoProperty, new EntranceNavigationTransitionInfo());
-
-        _oldContentPresenter = new ContentPresenter
-        {
-            Visibility = Visibility.Collapsed,
-            IsHitTestVisible = false
-        };
-
-        _newContentPresenter = new ContentPresenter();
-        _directContentPresenter = new ContentPresenter
-        {
-            Visibility = Visibility.Collapsed
-        };
-        _contentScrollHost = CreateScrollHost();
-
-        _root = new Grid
-        {
-            Children =
-            {
-                _oldContentPresenter,
-                _contentScrollHost,
-                _directContentPresenter
-            }
-        };
-
-        AddVisualChild(_root);
-        AddLogicalChild(_root);
+        Template = CreateDefaultTemplate();
     }
 
     public ModernNavigationTransitionInfo DefaultTransitionInfo
@@ -139,9 +126,14 @@ public class ModernFrame : Control
 
     public IServiceProvider? ServiceProvider { get; set; }
 
-    public ModernScrollViewer ContentScrollHost => _contentScrollHost;
-
-    protected override int VisualChildrenCount => 1;
+    public ModernScrollViewer ContentScrollHost
+    {
+        get
+        {
+            EnsureTemplateParts();
+            return _contentScrollHost!;
+        }
+    }
 
     public event EventHandler<ModernFrameNavigatingEventArgs>? Navigating;
 
@@ -160,6 +152,7 @@ public class ModernFrame : Control
     public bool Navigate(Type pageType, object? parameter, ModernNavigationTransitionInfo? transitionInfo)
     {
         ArgumentNullException.ThrowIfNull(pageType);
+        EnsureTemplateParts();
         return NavigateCore(() => CreateContentFromType(pageType), parameter, transitionInfo, addCurrentToBackStack: true, ModernFrameNavigationMode.New);
     }
 
@@ -171,6 +164,7 @@ public class ModernFrame : Control
     public bool Navigate(FrameworkElement content, ModernNavigationTransitionInfo? transitionInfo)
     {
         ArgumentNullException.ThrowIfNull(content);
+        EnsureTemplateParts();
         return NavigateCore(content, null, transitionInfo, addCurrentToBackStack: true, ModernFrameNavigationMode.New);
     }
 
@@ -182,6 +176,7 @@ public class ModernFrame : Control
     public bool Navigate(Func<FrameworkElement> contentFactory, ModernNavigationTransitionInfo? transitionInfo)
     {
         ArgumentNullException.ThrowIfNull(contentFactory);
+        EnsureTemplateParts();
         return NavigateCore(contentFactory, null, transitionInfo, addCurrentToBackStack: true, ModernFrameNavigationMode.New);
     }
 
@@ -193,6 +188,7 @@ public class ModernFrame : Control
     public bool Navigate(object content, object? parameter, ModernNavigationTransitionInfo? transitionInfo = null)
     {
         ArgumentNullException.ThrowIfNull(content);
+        EnsureTemplateParts();
 
         return content switch
         {
@@ -205,6 +201,8 @@ public class ModernFrame : Control
 
     public bool GoBack()
     {
+        EnsureTemplateParts();
+
         if (_backStack.Count == 0)
         {
             return false;
@@ -224,26 +222,35 @@ public class ModernFrame : Control
         UpdateCanGoBack();
     }
 
-    protected override Visual GetVisualChild(int index)
+    public override void OnApplyTemplate()
     {
-        if (index != 0)
+        var oldHostedContent = _activeHostedContent;
+        StopTransition();
+        DetachFromActiveHost();
+        ReleaseHostedContent(oldHostedContent);
+
+        base.OnApplyTemplate();
+
+        _root = GetTemplateChild(RootPartName) as Grid
+            ?? throw new InvalidOperationException($"ModernFrame template must contain a {nameof(Grid)} named {RootPartName}.");
+        _oldContentPresenter = GetTemplateChild(OldContentPresenterPartName) as ContentPresenter
+            ?? throw new InvalidOperationException($"ModernFrame template must contain a {nameof(ContentPresenter)} named {OldContentPresenterPartName}.");
+        _newContentPresenter = GetTemplateChild(NewContentPresenterPartName) as ContentPresenter
+            ?? throw new InvalidOperationException($"ModernFrame template must contain a {nameof(ContentPresenter)} named {NewContentPresenterPartName}.");
+        _directContentPresenter = GetTemplateChild(DirectContentPresenterPartName) as ContentPresenter
+            ?? throw new InvalidOperationException($"ModernFrame template must contain a {nameof(ContentPresenter)} named {DirectContentPresenterPartName}.");
+        _contentScrollHost = GetTemplateChild(ContentScrollHostPartName) as ModernScrollViewer
+            ?? throw new InvalidOperationException($"ModernFrame template must contain a {nameof(ModernScrollViewer)} named {ContentScrollHostPartName}.");
+
+        if (!ReferenceEquals(_contentScrollHost.Content, _newContentPresenter))
         {
-            throw new ArgumentOutOfRangeException(nameof(index));
+            _contentScrollHost.Content = _newContentPresenter;
         }
 
-        return _root;
-    }
-
-    protected override Size MeasureOverride(Size constraint)
-    {
-        _root.Measure(constraint);
-        return _root.DesiredSize;
-    }
-
-    protected override Size ArrangeOverride(Size arrangeBounds)
-    {
-        _root.Arrange(new Rect(arrangeBounds));
-        return arrangeBounds;
+        if (_activeContent is not null)
+        {
+            AttachToActiveHost(_activeContent);
+        }
     }
 
     private static void OnIsContentScrollHostEnabledChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -268,6 +275,8 @@ public class ModernFrame : Control
         bool addCurrentToBackStack,
         ModernFrameNavigationMode navigationMode)
     {
+        EnsureTemplateParts();
+
         var effectiveTransitionInfo = transitionInfo ?? DefaultTransitionInfo;
         var navigatingArgs = new ModernFrameNavigatingEventArgs(newContent, parameter, navigationMode, effectiveTransitionInfo);
         Navigating?.Invoke(this, navigatingArgs);
@@ -280,6 +289,7 @@ public class ModernFrame : Control
         StopTransition();
 
         var oldContent = _activeContent;
+        var oldHostedContent = _activeHostedContent;
         if (addCurrentToBackStack && oldContent is not null)
         {
             _backStack.Add(new ModernFrameJournalEntry(oldContent, null, effectiveTransitionInfo));
@@ -289,7 +299,7 @@ public class ModernFrame : Control
         _activeContent = newContent;
         CurrentContent = newContent;
 
-        BeginContentSwap(oldContent, newContent, effectiveTransitionInfo, navigationMode == ModernFrameNavigationMode.Back);
+        BeginContentSwap(oldContent, oldHostedContent, newContent, effectiveTransitionInfo, navigationMode == ModernFrameNavigationMode.Back);
         Navigated?.Invoke(this, new ModernFrameNavigationEventArgs(newContent, parameter, navigationMode, effectiveTransitionInfo));
         return true;
     }
@@ -309,18 +319,34 @@ public class ModernFrame : Control
             ?? throw new InvalidOperationException($"ModernFrame page type '{pageType.FullName}' must create a FrameworkElement.");
     }
 
-    private ModernScrollViewer CreateScrollHost()
+    private static ControlTemplate CreateDefaultTemplate()
     {
-        return new ModernScrollViewer
+        var root = new FrameworkElementFactory(typeof(Grid), RootPartName);
+
+        var oldContentPresenter = new FrameworkElementFactory(typeof(ContentPresenter), OldContentPresenterPartName);
+        oldContentPresenter.SetValue(VisibilityProperty, Visibility.Collapsed);
+        oldContentPresenter.SetValue(IsHitTestVisibleProperty, false);
+        root.AppendChild(oldContentPresenter);
+
+        var contentScrollHost = new FrameworkElementFactory(typeof(ModernScrollViewer), ContentScrollHostPartName);
+        contentScrollHost.SetValue(ScrollViewer.HorizontalScrollBarVisibilityProperty, ScrollBarVisibility.Disabled);
+        contentScrollHost.SetValue(ScrollViewer.VerticalScrollBarVisibilityProperty, ScrollBarVisibility.Auto);
+        contentScrollHost.AppendChild(new FrameworkElementFactory(typeof(ContentPresenter), NewContentPresenterPartName));
+        root.AppendChild(contentScrollHost);
+
+        var directContentPresenter = new FrameworkElementFactory(typeof(ContentPresenter), DirectContentPresenterPartName);
+        directContentPresenter.SetValue(VisibilityProperty, Visibility.Collapsed);
+        root.AppendChild(directContentPresenter);
+
+        return new ControlTemplate(typeof(ModernFrame))
         {
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            Content = _newContentPresenter
+            VisualTree = root
         };
     }
 
     private void BeginContentSwap(
         FrameworkElement? oldContent,
+        FrameworkElement? oldHostedContent,
         FrameworkElement newContent,
         ModernNavigationTransitionInfo? transitionInfo,
         bool movingBackwards)
@@ -329,6 +355,7 @@ public class ModernFrame : Control
 
         if (oldContent is null || !ShouldAnimate(transitionInfo))
         {
+            ReleaseHostedContent(oldHostedContent);
             _oldContentPresenter.Content = null;
             _oldContentPresenter.Visibility = Visibility.Collapsed;
             _oldContentPresenter.IsHitTestVisible = false;
@@ -338,7 +365,7 @@ public class ModernFrame : Control
             return;
         }
 
-        _oldContentPresenter.Content = oldContent;
+        _oldContentPresenter.Content = oldHostedContent ?? oldContent;
         _oldContentPresenter.Visibility = Visibility.Visible;
         _oldContentPresenter.Opacity = 1;
         _oldContentPresenter.IsHitTestVisible = false;
@@ -402,6 +429,11 @@ public class ModernFrame : Control
 
     private void CompleteTransition(FrameworkElement? activeContent)
     {
+        if (!HasTemplateParts)
+        {
+            return;
+        }
+
         var activeHost = GetActiveTransitionElement();
 
         _activeExitStoryboard?.Remove(_oldContentPresenter);
@@ -410,6 +442,7 @@ public class ModernFrame : Control
         _activeEnterStoryboard = null;
         _remainingTransitionStoryboards = 0;
 
+        ReleaseHostedContent(_oldContentPresenter.Content as FrameworkElement);
         _oldContentPresenter.Content = null;
         _oldContentPresenter.Visibility = Visibility.Collapsed;
         _oldContentPresenter.IsHitTestVisible = false;
@@ -432,6 +465,11 @@ public class ModernFrame : Control
 
     private void StopTransition()
     {
+        if (!HasTemplateParts)
+        {
+            return;
+        }
+
         if (_pendingTransitionOperation is not null)
         {
             _pendingTransitionOperation.Abort();
@@ -444,6 +482,7 @@ public class ModernFrame : Control
         _activeEnterStoryboard = null;
         _remainingTransitionStoryboards = 0;
 
+        ReleaseHostedContent(_oldContentPresenter.Content as FrameworkElement);
         _oldContentPresenter.Content = null;
         _oldContentPresenter.Visibility = Visibility.Collapsed;
         _oldContentPresenter.IsHitTestVisible = false;
@@ -461,6 +500,8 @@ public class ModernFrame : Control
 
     private void UpdateActiveHost()
     {
+        EnsureTemplateParts();
+
         if (_activeContent is null)
         {
             return;
@@ -472,12 +513,17 @@ public class ModernFrame : Control
 
     private void AttachToActiveHost(FrameworkElement content)
     {
+        EnsureTemplateParts();
+
+        var hostedContent = CreateHostedContent(content);
+        _activeHostedContent = hostedContent;
+
         if (IsContentScrollHostEnabled)
         {
             _directContentPresenter.Content = null;
             _directContentPresenter.Visibility = Visibility.Collapsed;
             _contentScrollHost.Visibility = Visibility.Visible;
-            _newContentPresenter.Content = content;
+            _newContentPresenter.Content = hostedContent;
             _contentScrollHost.Content = _newContentPresenter;
         }
         else
@@ -485,14 +531,20 @@ public class ModernFrame : Control
             _newContentPresenter.Content = null;
             _contentScrollHost.Visibility = Visibility.Collapsed;
             _directContentPresenter.Visibility = Visibility.Visible;
-            _directContentPresenter.Content = content;
+            _directContentPresenter.Content = hostedContent;
         }
     }
 
     private void DetachFromActiveHost()
     {
+        if (!HasTemplateParts)
+        {
+            return;
+        }
+
         _newContentPresenter.Content = null;
         _directContentPresenter.Content = null;
+        _activeHostedContent = null;
 
         if (!ReferenceEquals(_contentScrollHost.Content, _newContentPresenter))
         {
@@ -500,8 +552,27 @@ public class ModernFrame : Control
         }
     }
 
+    private static FrameworkElement CreateHostedContent(FrameworkElement content)
+    {
+        if (content is not Page page)
+        {
+            return content;
+        }
+
+        return new ModernFramePageHost(page);
+    }
+
+    private static void ReleaseHostedContent(FrameworkElement? hostedContent)
+    {
+        if (hostedContent is ModernFramePageHost frame)
+        {
+            frame.ClearPage();
+        }
+    }
+
     private FrameworkElement GetActiveTransitionElement()
     {
+        EnsureTemplateParts();
         return IsContentScrollHostEnabled ? _contentScrollHost : _directContentPresenter;
     }
 
@@ -514,5 +585,78 @@ public class ModernFrame : Control
     private void UpdateCanGoBack()
     {
         CanGoBack = _backStack.Count > 0;
+    }
+
+    private bool HasTemplateParts =>
+        _root is not null
+        && _oldContentPresenter is not null
+        && _newContentPresenter is not null
+        && _directContentPresenter is not null
+        && _contentScrollHost is not null;
+
+    private void EnsureTemplateParts()
+    {
+        if (HasTemplateParts)
+        {
+            return;
+        }
+
+        ApplyTemplate();
+
+        if (!HasTemplateParts)
+        {
+            throw new InvalidOperationException("ModernFrame template parts are unavailable.");
+        }
+    }
+
+    private sealed class ModernFramePageHost : System.Windows.Controls.Frame
+    {
+        private readonly Page _page;
+
+        public ModernFramePageHost(Page page)
+        {
+            _page = page;
+            Focusable = false;
+            NavigationUIVisibility = System.Windows.Navigation.NavigationUIVisibility.Hidden;
+            Loaded += OnLoaded;
+            Content = page;
+        }
+
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            if (!ReferenceEquals(Content, _page))
+            {
+                Content = _page;
+            }
+        }
+
+        public void ClearPage()
+        {
+            Content = null;
+            Loaded -= OnLoaded;
+        }
+
+        protected override Size MeasureOverride(Size constraint)
+        {
+            if (Content is UIElement content)
+            {
+                content.Measure(new Size(constraint.Width, double.PositiveInfinity));
+                return content.DesiredSize;
+            }
+
+            return base.MeasureOverride(constraint);
+        }
+
+        protected override Size ArrangeOverride(Size arrangeBounds)
+        {
+            if (Content is UIElement content)
+            {
+                var height = Math.Max(arrangeBounds.Height, content.DesiredSize.Height);
+                content.Arrange(new Rect(0, 0, arrangeBounds.Width, height));
+                return new Size(arrangeBounds.Width, height);
+            }
+
+            return base.ArrangeOverride(arrangeBounds);
+        }
     }
 }

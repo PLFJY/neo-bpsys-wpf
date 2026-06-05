@@ -163,13 +163,10 @@ public partial class MainWindow : FluentWindow, INavigationWindow
     public void SetPageService(INavigationViewPageProvider navigationViewPageProvider) =>
         RootNavigation.SetPageProviderService(navigationViewPageProvider);
 
-    INavigationView INavigationWindow.GetNavigation()
-    {
-        throw new NotImplementedException();
-    }
+    INavigationView INavigationWindow.GetNavigation() => RootNavigation;
 
     public void SetServiceProvider(IServiceProvider serviceProvider)
     {
-        throw new NotImplementedException();
+        RootNavigation.SetServiceProvider(serviceProvider);
     }
 }
