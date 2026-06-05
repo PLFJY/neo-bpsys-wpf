@@ -679,11 +679,12 @@ layouts/{WindowTypeName}/window.json
 ```json
 {
   "Version": 3,
-  "AllowTransparency": true
+  "AllowTransparency": true,
+  "BackgroundColor": "#FF00FF00"
 }
 ```
 
-WPF 的 `AllowsTransparency` / 透明窗口行为可能需要重新创建窗口或重启应用。UI 在该设置变化时应提示“需要重启”。
+`BackgroundColor` 使用 `#AARRGGBB`，表示窗口级背景色覆盖；为空或缺失时沿用窗口原有默认背景。背景色是普通 `Window.Background`，可在已注册前台窗口上立即应用。WPF 的 `AllowsTransparency` / 透明窗口行为可能需要重新创建窗口或重启应用，只有该设置变化时 UI 应提示“需要重启”。
 
 重启流程：
 

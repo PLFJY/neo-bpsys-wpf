@@ -10,6 +10,7 @@ using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Views.Windows;
 using System.IO;
 using System.Windows;
+using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Services;
 
@@ -20,6 +21,7 @@ public class FrontedWindowService : IFrontedWindowService
 {
     private readonly IServiceProvider _services;
     private readonly IFrontedWindowRegistry _windowRegistry;
+    private readonly IFrontedWindowLayoutOptionsService _windowLayoutOptionsService;
     private readonly ILogger<FrontedWindowService> _logger;
 
     public Dictionary<string, Window> FrontedWindows { get; private set; } = [];
@@ -31,10 +33,12 @@ public class FrontedWindowService : IFrontedWindowService
     public FrontedWindowService(
         IServiceProvider services,
         IFrontedWindowRegistry windowRegistry,
+        IFrontedWindowLayoutOptionsService windowLayoutOptionsService,
         ILogger<FrontedWindowService> logger)
     {
         _services = services;
         _windowRegistry = windowRegistry;
+        _windowLayoutOptionsService = windowLayoutOptionsService;
         _logger = logger;
         if (!Directory.Exists(AppConstants.AppDataPath))
         {
@@ -146,6 +150,7 @@ public class FrontedWindowService : IFrontedWindowService
     {
         foreach (var window in FrontedWindows.Where(pair => !FrontedWindowStates[pair.Key]))
         {
+            ApplyWindowLayoutOptions(window.Key, window.Value);
             window.Value.Show();
             FrontedWindowStates[window.Key] = true;
         }
@@ -202,8 +207,97 @@ public class FrontedWindowService : IFrontedWindowService
             return;
         }
 
+        ApplyWindowLayoutOptions(windowId, window);
         window.Show();
         FrontedWindowStates[windowId] = true;
+    }
+
+    private void ApplyWindowLayoutOptions(string windowId, Window window)
+    {
+        if (!_windowRegistry.TryGetByWindowId(windowId, out var descriptor))
+        {
+            return;
+        }
+
+        if (!File.Exists(_windowLayoutOptionsService.GetUserOptionsPath(descriptor.FullWindowType)))
+        {
+            return;
+        }
+
+        var options = _windowLayoutOptionsService.LoadOptions(descriptor.FullWindowType);
+        try
+        {
+            window.AllowsTransparency = options.AllowTransparency;
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogDebug(
+                ex,
+                "Fronted window transparency option could not be applied after source creation. Window: {FullWindowType}",
+                descriptor.FullWindowType);
+        }
+
+        if (!TryCreateBackgroundBrush(options.BackgroundColor, out var brush))
+        {
+            return;
+        }
+
+        window.SetCurrentValue(Window.BackgroundProperty, brush);
+    }
+
+    public bool ApplyWindowBackgroundColor(string fullWindowType)
+    {
+        if (!_windowRegistry.TryGetByFullWindowType(fullWindowType, out var descriptor)
+            || !FrontedWindows.TryGetValue(descriptor.WindowId, out var window))
+        {
+            return false;
+        }
+
+        var options = _windowLayoutOptionsService.LoadOptions(descriptor.FullWindowType);
+        if (!TryCreateBackgroundBrush(options.BackgroundColor, out var brush))
+        {
+            return false;
+        }
+
+        void Apply() => window.SetCurrentValue(Window.BackgroundProperty, brush);
+        if (window.Dispatcher.CheckAccess())
+        {
+            Apply();
+        }
+        else
+        {
+            window.Dispatcher.Invoke(Apply);
+        }
+
+        return true;
+    }
+
+    private static bool TryCreateBackgroundBrush(string? colorText, out Brush brush)
+    {
+        brush = Brushes.Transparent;
+        if (string.IsNullOrWhiteSpace(colorText))
+        {
+            return false;
+        }
+
+        try
+        {
+            brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colorText)!);
+            if (brush.CanFreeze)
+            {
+                brush.Freeze();
+            }
+
+            return true;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+        catch (NotSupportedException)
+        {
+            return false;
+        }
     }
 
     public async Task ReloadFrontedLayoutsAsync()

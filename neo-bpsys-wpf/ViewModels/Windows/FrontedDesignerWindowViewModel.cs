@@ -22,6 +22,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace neo_bpsys_wpf.ViewModels.Windows;
@@ -73,6 +74,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly ISharedDataService _designerPreviewSharedDataService;
     private readonly IFrontedLocalResourceStore? _localResourceStore;
     private readonly IFrontedWindowLayoutOptionsService? _windowLayoutOptionsService;
+    private readonly IFrontedWindowService? _frontedWindowService;
     private readonly ILogger<FrontedDesignerWindowViewModel> _logger;
 
     private static ILogger<FrontedDesignerWindowViewModel>? StaticLogger =>
@@ -90,6 +92,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private bool _isRebuildingPropertyGrid;
     private bool _isRestoringSnapshot;
     private bool _isLoadingWindowOptions;
+    private bool _windowBackgroundColorConfigured;
     private bool _isUpdatingBoModeStateUi;
     private bool _preserveUndoRedoDuringDocumentSwap;
     private bool _scheduledValidationAndPreviewPending;
@@ -122,6 +125,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _designerPreviewSharedDataService = new DesignerPreviewSharedDataService();
         _localResourceStore = null;
         _windowLayoutOptionsService = null;
+        _frontedWindowService = null;
         _logger = NullLogger<FrontedDesignerWindowViewModel>.Instance;
         InitializeZoomPresets();
     }
@@ -140,6 +144,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         DesignerPreviewSharedDataService designerPreviewSharedDataService,
         IFrontedLocalResourceStore localResourceStore,
         IFrontedWindowLayoutOptionsService windowLayoutOptionsService,
+        IFrontedWindowService frontedWindowService,
         ILogger<FrontedDesignerWindowViewModel> logger)
     {
         _layoutService = layoutService;
@@ -154,6 +159,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _designerPreviewSharedDataService = designerPreviewSharedDataService;
         _localResourceStore = localResourceStore;
         _windowLayoutOptionsService = windowLayoutOptionsService;
+        _frontedWindowService = frontedWindowService;
         _logger = logger;
 
         foreach (var group in layoutCatalog.GetEntries()
@@ -507,6 +513,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private bool _windowAllowTransparency;
 
     [ObservableProperty]
+    private string _windowBackgroundColorEditText = "#00000000";
+
+    [ObservableProperty]
+    private Color _windowBackgroundColorValue = Colors.Transparent;
+
+    [ObservableProperty]
     private bool _windowOptionsRestartRequired;
 
     [ObservableProperty]
@@ -691,7 +703,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return;
         }
 
-        _ = SaveWindowOptionsAsync(value);
+        _ = SaveWindowOptionsAsync(restartRequired: true, applyBackgroundImmediately: false);
+    }
+
+    partial void OnWindowBackgroundColorEditTextChanged(string value)
+    {
+        if (FrontedPropertyColorHelper.TryParseArgbColor(value, out var color))
+        {
+            WindowBackgroundColorValue = color;
+        }
+    }
+
+    partial void OnWindowBackgroundColorValueChanged(Color value)
+    {
+        WindowBackgroundColorEditText = FrontedPropertyColorHelper.ToArgbString(value);
     }
 
     partial void OnEnableBoModeStatesChanged(bool value)
@@ -2997,6 +3022,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         if (_windowLayoutOptionsService is null)
         {
             WindowAllowTransparency = false;
+            WindowBackgroundColorEditText = "#00000000";
+            WindowBackgroundColorValue = Colors.Transparent;
+            _windowBackgroundColorConfigured = false;
             return;
         }
 
@@ -3005,6 +3033,18 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         {
             var options = _windowLayoutOptionsService.LoadOptions(windowTypeName);
             WindowAllowTransparency = options.AllowTransparency;
+            var configuredBackgroundColor = options.BackgroundColor;
+            _windowBackgroundColorConfigured = !string.IsNullOrWhiteSpace(configuredBackgroundColor);
+            var backgroundColor = configuredBackgroundColor ?? "#00000000";
+            if (!FrontedPropertyColorHelper.TryParseArgbColor(configuredBackgroundColor, out var color))
+            {
+                backgroundColor = "#00000000";
+                color = Colors.Transparent;
+                _windowBackgroundColorConfigured = false;
+            }
+
+            WindowBackgroundColorEditText = backgroundColor;
+            WindowBackgroundColorValue = color;
             WindowOptionsStatus = string.Empty;
         }
         finally
@@ -3013,7 +3053,21 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
     }
 
-    private async Task SaveWindowOptionsAsync(bool allowTransparency)
+    public bool ApplyWindowBackgroundColorEdit()
+    {
+        if (!FrontedPropertyColorHelper.TryParseArgbColor(WindowBackgroundColorEditText, out var color))
+        {
+            WindowOptionsStatus = I18nHelper.GetLocalizedString("Designer.Validation.InvalidArgbColor");
+            return false;
+        }
+
+        WindowBackgroundColorValue = color;
+        _windowBackgroundColorConfigured = true;
+        _ = SaveWindowOptionsAsync(restartRequired: false, applyBackgroundImmediately: true);
+        return true;
+    }
+
+    private async Task SaveWindowOptionsAsync(bool restartRequired, bool applyBackgroundImmediately)
     {
         if (_windowLayoutOptionsService is null || SelectedWindow is null)
         {
@@ -3026,10 +3080,20 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 SelectedWindow.WindowTypeName,
                 new FrontedWindowLayoutOptions
                 {
-                    AllowTransparency = allowTransparency
+                    AllowTransparency = WindowAllowTransparency,
+                    BackgroundColor = _windowBackgroundColorConfigured
+                        ? WindowBackgroundColorEditText
+                        : null
                 });
-            WindowOptionsRestartRequired = true;
-            WindowOptionsStatus = I18nHelper.GetLocalizedString("RestartRequired");
+            if (applyBackgroundImmediately)
+            {
+                _frontedWindowService?.ApplyWindowBackgroundColor(SelectedWindow.WindowTypeName);
+            }
+
+            WindowOptionsRestartRequired = restartRequired;
+            WindowOptionsStatus = restartRequired
+                ? I18nHelper.GetLocalizedString("RestartRequired")
+                : I18nHelper.GetLocalizedString("WindowOptionsApplied");
         }
         catch (Exception ex)
         {

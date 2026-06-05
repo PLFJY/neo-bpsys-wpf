@@ -2398,6 +2398,9 @@
   <data name="CanvasPropertiesApplied" xml:space="preserve">
     <value>Canvas プロパティを適用しました</value>
   </data>
+  <data name="WindowOptionsApplied" xml:space="preserve">
+    <value>ウィンドウオプションを適用しました</value>
+  </data>
   <data name="SaveBeforeRestart" xml:space="preserve">
     <value>再起動前に現在のレイアウトを保存しますか？</value>
   </data>

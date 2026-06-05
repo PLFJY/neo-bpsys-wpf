@@ -2424,13 +2424,19 @@ public class FrontedCanvasConfigTest
             Assert.False(service.LoadOptions("WidgetsWindow").AllowTransparency);
             await service.SaveOptionsAsync(
                 "WidgetsWindow",
-                new FrontedWindowLayoutOptions { AllowTransparency = true });
+                new FrontedWindowLayoutOptions
+                {
+                    AllowTransparency = true,
+                    BackgroundColor = "#FF112233"
+                },
+                TestContext.Current.CancellationToken);
 
             var path = Path.Combine(root, "WidgetsWindow", "window.json");
             Assert.True(File.Exists(path));
             Assert.True(service.LoadOptions("WidgetsWindow").AllowTransparency);
+            Assert.Equal("#FF112233", service.LoadOptions("WidgetsWindow").BackgroundColor);
 
-            await service.ResetOptionsAsync("WidgetsWindow");
+            await service.ResetOptionsAsync("WidgetsWindow", TestContext.Current.CancellationToken);
             Assert.False(File.Exists(path));
         }
         finally

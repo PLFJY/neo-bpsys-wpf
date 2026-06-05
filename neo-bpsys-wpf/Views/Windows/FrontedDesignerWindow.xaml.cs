@@ -743,6 +743,29 @@ public partial class FrontedDesignerWindow : FluentWindow
         }
     }
 
+    private void WindowBackgroundColorTextBox_OnKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter)
+        {
+            return;
+        }
+
+        if (_viewModel?.ApplyWindowBackgroundColorEdit() == true)
+        {
+            FocusDesignSurface();
+        }
+
+        e.Handled = true;
+    }
+
+    private void WindowBackgroundColorApplyButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel?.ApplyWindowBackgroundColorEdit() == true)
+        {
+            FocusDesignSurface();
+        }
+    }
+
     private void Window_OnPreviewKeyUp(object sender, KeyEventArgs e)
     {
         UpdateShiftSnapState();

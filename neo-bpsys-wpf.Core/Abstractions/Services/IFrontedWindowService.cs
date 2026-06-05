@@ -68,6 +68,12 @@ public interface IFrontedWindowService
     /// </summary>
     Task ReloadFrontedLayoutsAsync();
 
+    /// <summary>
+    /// Applies the stored window background color to a registered fronted window immediately.
+    /// </summary>
+    /// <param name="fullWindowType">Window layout identity, such as <c>BpWindow</c>.</param>
+    bool ApplyWindowBackgroundColor(string fullWindowType);
+
     #endregion
 
     #region Window Registration

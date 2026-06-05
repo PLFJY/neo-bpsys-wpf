@@ -8,4 +8,6 @@ public class FrontedWindowLayoutOptions
     public int Version { get; set; } = 3;
 
     public bool AllowTransparency { get; set; }
+
+    public string? BackgroundColor { get; set; }
 }

@@ -249,7 +249,8 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             }
 
             var options = _windowLayoutOptionsService.LoadOptions(windowTypeName);
-            if (options is { Version: 3, AllowTransparency: false })
+            if (options is { Version: 3, AllowTransparency: false }
+                && string.IsNullOrWhiteSpace(options.BackgroundColor))
             {
                 continue;
             }

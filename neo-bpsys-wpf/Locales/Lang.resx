@@ -2413,6 +2413,9 @@
   <data name="CanvasPropertiesApplied" xml:space="preserve">
     <value>Canvas 属性已应用</value>
   </data>
+  <data name="WindowOptionsApplied" xml:space="preserve">
+    <value>窗口选项已应用</value>
+  </data>
   <data name="SaveBeforeRestart" xml:space="preserve">
     <value>重启前是否保存当前布局？</value>
   </data>

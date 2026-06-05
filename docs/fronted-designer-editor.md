@@ -713,7 +713,7 @@ Phase 9B.1 起，设计器保存写入当前活动 layout package；当前活动
 
 `.bpui v3` package 导出/导入已放到 `FrontManagePage` 的 `Layout Packages` tab。导出会打开 manifest 对话框，并固定导出全部已迁移前台布局；导入会安装 v3 包并可立即激活。SettingPage 中现有 `.bpui` 导入导出是 legacy 流程，会覆盖全局 `Config.json`，不能作为 Designer v3 包管理入口。
 
-`AllowTransparency` 是窗口级选项，不是普通控件属性。单 Canvas 窗口可以在 Canvas Properties 附近显示该开关，多 Canvas 窗口则对整个窗口生效。由于 WPF 透明窗口行为可能需要重新创建窗口或重启应用，开关变化后应提示需要重启；如果用户选择立即重启，必须先处理设计器未保存修改，提供 Save / Discard / Cancel。
+`AllowTransparency` 和 `BackgroundColor` 是窗口级选项，不是普通控件属性。单 Canvas 窗口可以在 Canvas Properties 附近显示该组设置，多 Canvas 窗口则对整个窗口生效。`BackgroundColor` 使用 `#AARRGGBB` 并通过 ColorPicker 编辑；为空或缺失时沿用窗口原有默认背景，应用后会立即刷新已注册前台窗口背景。由于 WPF 透明窗口行为可能需要重新创建窗口或重启应用，只有 `AllowTransparency` 变化后应提示需要重启；如果用户选择立即重启，必须先处理设计器未保存修改，提供 Save / Discard / Cancel。
 
 窗口/Canvas 切换、Reload、Reset to Built-in 和关闭编辑器时，如果当前文档 dirty，会通过 `MessageBoxHelper` 提示 Save / Discard / Cancel。Save 会先执行完整校验，存在 Error 时阻止保存并取消切换或关闭；Warning/Info 不阻止保存。关闭窗口的 dirty prompt 必须先在 `Closing` 中设置 `e.Cancel = true`，再通过 Dispatcher 异步显示本地化的宽版 helper 对话框；用户选择 Save 且保存成功或选择 Discard 后，设置强制关闭标记并再次调用 `Close()`。这样避免 WPF 在窗口已经进入 closing 状态时执行 `ShowDialog` / `Close` 触发异常。验证详情窗口是非模态子窗口，父编辑器关闭时只做受保护关闭，已关闭或正在关闭时不能让异常冒泡。
 
@@ -751,4 +751,4 @@ Phase 10 起，编辑器 typed/pasted input 会按集中限制截断：搜索 12
 3. 不迁移 `.bpui`。
 4. 不移除旧 `config.json` 前台设置。
 5. 不改变现有 v3 layout JSON schema。
-6. 不把 `AllowTransparency` 当成控件属性；它是窗口级选项。
+6. 不把 `AllowTransparency` / `BackgroundColor` 当成控件属性；它们是窗口级选项。

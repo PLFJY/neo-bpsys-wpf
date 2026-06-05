@@ -2395,6 +2395,9 @@
   <data name="CanvasPropertiesApplied" xml:space="preserve">
     <value>Canvas properties applied</value>
   </data>
+  <data name="WindowOptionsApplied" xml:space="preserve">
+    <value>Window options applied</value>
+  </data>
   <data name="SaveBeforeRestart" xml:space="preserve">
     <value>Save the current layout before restarting?</value>
   </data>
