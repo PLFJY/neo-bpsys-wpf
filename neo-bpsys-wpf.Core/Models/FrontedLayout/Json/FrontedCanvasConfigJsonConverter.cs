@@ -310,15 +310,6 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
                 "MapNameText" => JsonSerializer.Deserialize<MapNameTextControlConfig>(json, options)
                     ?? throw new FrontedLayoutConfigException(
                         $"Control '{controlName}' could not be read as MapNameText."),
-                "CurrentBanDisplay" => JsonSerializer.Deserialize<CurrentBanDisplayControlConfig>(json, options)
-                    ?? throw new FrontedLayoutConfigException(
-                        $"Control '{controlName}' could not be read as CurrentBanDisplay."),
-                "BanSlotDisplay" => JsonSerializer.Deserialize<BanSlotDisplayControlConfig>(json, options)
-                    ?? throw new FrontedLayoutConfigException(
-                        $"Control '{controlName}' could not be read as BanSlotDisplay."),
-                "PickingBorderOverlay" => JsonSerializer.Deserialize<PickingBorderOverlayControlConfig>(json, options)
-                    ?? throw new FrontedLayoutConfigException(
-                        $"Control '{controlName}' could not be read as PickingBorderOverlay."),
                 "MapV2Display" => JsonSerializer.Deserialize<MapV2DisplayControlConfig>(json, options)
                     ?? throw new FrontedLayoutConfigException(
                         $"Control '{controlName}' could not be read as MapV2Display."),

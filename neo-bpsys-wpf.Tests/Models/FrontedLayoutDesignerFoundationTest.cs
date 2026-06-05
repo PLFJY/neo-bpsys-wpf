@@ -62,63 +62,6 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void FromConfigClassifiesPickingBorderOverlayAsReadonlyLinkedOverlay()
-    {
-        var config = new FrontedCanvasConfig
-        {
-            CanvasWidth = 100,
-            CanvasHeight = 50,
-            Controls =
-            {
-                ["SurPick0"] = new ImageFrontedControlConfig { Width = 141, Height = 160 },
-                ["SurPickingBorder0"] = new PickingBorderOverlayControlConfig
-                {
-                    TargetControlName = "SurPick0",
-                    Width = 141,
-                    Height = 160
-                }
-            }
-        };
-
-        var document = new FrontedLayoutDesignConverter().FromConfig(
-            "BpWindow",
-            "BaseCanvas",
-            config,
-            new FrontedLayoutRuntimeContractCatalog());
-
-        var overlay = document.Controls.Single(item => item.Name == "SurPickingBorder0");
-        Assert.True(overlay.IsLinkedOverlay);
-        Assert.False(overlay.IsSelectableInEditor);
-        Assert.False(overlay.IsEditableInEditor);
-        Assert.Equal("SurPick0", overlay.LinkedTargetControlName);
-    }
-
-    [Fact]
-    public void FromConfigKeepsBanSlotDisplaySelectableAndEditable()
-    {
-        var config = new FrontedCanvasConfig
-        {
-            CanvasWidth = 100,
-            CanvasHeight = 50,
-            Controls =
-            {
-                ["SurBanCurrent0"] = new BanSlotDisplayControlConfig { Width = 44.5, Height = 44.5 }
-            }
-        };
-
-        var document = new FrontedLayoutDesignConverter().FromConfig(
-            "BpWindow",
-            "BaseCanvas",
-            config,
-            new FrontedLayoutRuntimeContractCatalog());
-
-        var banSlot = Assert.Single(document.Controls);
-        Assert.True(banSlot.IsSelectableInEditor);
-        Assert.True(banSlot.IsEditableInEditor);
-        Assert.False(banSlot.IsLinkedOverlay);
-    }
-
-    [Fact]
     public void DesignConverterPreservesAndSyncsPluginRequiredPlugins()
     {
         var registry = new PluginFrontedControlRegistryForTests();
@@ -506,67 +449,6 @@ public class FrontedLayoutDesignerFoundationTest
         {
             DeleteTempDirectory(root);
         }
-    }
-
-    [Fact]
-    public void ValidatorErrorsWhenPickingBorderOverlayTargetControlNameIsMissing()
-    {
-        var document = CreateDocument(
-            [
-                new FrontedControlDesignItem
-                {
-                    Name = "SurPickingBorder0",
-                    Config = new PickingBorderOverlayControlConfig
-                    {
-                        TargetControlName = "SurPick0",
-                        Width = 141,
-                        Height = 160
-                    }
-                }
-            ]);
-
-        var messages = CreateValidator().Validate(document);
-
-        Assert.Contains(
-            messages,
-            message => message.Code == "ReferenceTargetMissing"
-                       && message.ControlName == "SurPickingBorder0");
-    }
-
-    [Fact]
-    public void ReferenceScannerFindsPickingBorderOverlayTargetControlName()
-    {
-        var controls = new[]
-        {
-            new FrontedControlDesignItem { Name = "SurPick0", Config = new ImageFrontedControlConfig() },
-            new FrontedControlDesignItem
-            {
-                Name = "SurPickingBorder0",
-                Config = new PickingBorderOverlayControlConfig { TargetControlName = "SurPick0" }
-            }
-        };
-
-        var references = new FrontedLayoutReferenceScanner().GetReferences(controls);
-
-        var reference = Assert.Single(references);
-        Assert.Equal("SurPickingBorder0", reference.SourceControlName);
-        Assert.Equal(nameof(PickingBorderOverlayControlConfig.TargetControlName), reference.PropertyName);
-        Assert.Equal("SurPick0", reference.TargetControlName);
-    }
-
-    [Fact]
-    public void ApplyRenameReferencesUpdatesTargetControlName()
-    {
-        var pickingBorderConfig = new PickingBorderOverlayControlConfig { TargetControlName = "SurPick0" };
-        var scanner = new FrontedLayoutReferenceScanner(
-            [
-                new FrontedControlDesignItem { Name = "SurPick0", Config = new ImageFrontedControlConfig() },
-                new FrontedControlDesignItem { Name = "SurPickingBorder0", Config = pickingBorderConfig }
-            ]);
-
-        scanner.ApplyRenameReferences("SurPick0", "SurPickA");
-
-        Assert.Equal("SurPickA", pickingBorderConfig.TargetControlName);
     }
 
     [Fact]
@@ -958,17 +840,12 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void ControlNameGeneratorCreatesUniqueNamesAndSkipsLinkedOverlayNames()
+    public void ControlNameGeneratorCreatesUniqueNames()
     {
         var document = CreateDocument(
             [
                 new FrontedControlDesignItem { Name = "Text1", Config = new TextFrontedControlConfig() },
-                new FrontedControlDesignItem
-                {
-                    Name = "Text2",
-                    IsSelectableInEditor = false,
-                    Config = new PickingBorderOverlayControlConfig { TargetControlName = "Text1" }
-                }
+                new FrontedControlDesignItem { Name = "Text2", Config = new TextFrontedControlConfig() }
             ]);
         var generator = new FrontedControlNameGenerator();
 
@@ -1185,7 +1062,7 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void DeleteSelectedControlRefusesRuntimeCriticalAndReferencedControls()
+    public void DeleteSelectedControlRefusesRuntimeCriticalControls()
     {
         var runtimeCritical = new FrontedControlDesignItem
         {
@@ -1195,30 +1072,13 @@ public class FrontedLayoutDesignerFoundationTest
             IsEditableInEditor = true,
             Config = new ImageFrontedControlConfig()
         };
-        var referenced = new FrontedControlDesignItem
-        {
-            Name = "Target",
-            IsSelectableInEditor = true,
-            IsEditableInEditor = true,
-            Config = new ImageFrontedControlConfig()
-        };
-        var overlay = new FrontedControlDesignItem
-        {
-            Name = "TargetOverlay",
-            IsSelectableInEditor = false,
-            IsEditableInEditor = false,
-            Config = new PickingBorderOverlayControlConfig { TargetControlName = "Target" }
-        };
-        var document = CreateDocument([runtimeCritical, referenced, overlay], "BpWindow");
+        var document = CreateDocument([runtimeCritical], "BpWindow");
         var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
 
         viewModel.SelectDesignItem(runtimeCritical);
         viewModel.DeleteSelectedControlCommand.Execute(null);
         Assert.Contains(runtimeCritical, document.Controls);
 
-        viewModel.SelectDesignItem(referenced);
-        viewModel.DeleteSelectedControlCommand.Execute(null);
-        Assert.Contains(referenced, document.Controls);
         Assert.False(string.IsNullOrWhiteSpace(viewModel.StatusMessage));
         Assert.False(document.IsDirty);
     }
@@ -1697,88 +1557,6 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void LinkedOverlaySynchronizerCopiesTargetGeometryToPickingBorderOverlay()
-    {
-        var target = new FrontedControlDesignItem
-        {
-            Name = "SurPick0",
-            Config = new ImageFrontedControlConfig
-            {
-                Left = 10,
-                Top = 20,
-                Width = 141,
-                Height = 160
-            }
-        };
-        var overlay = new FrontedControlDesignItem
-        {
-            Name = "SurPickingBorder0",
-            Config = new PickingBorderOverlayControlConfig
-            {
-                TargetControlName = "SurPick0",
-                Left = 0,
-                Top = 0,
-                Width = 1,
-                Height = 1
-            }
-        };
-        var document = CreateDocument([target, overlay]);
-
-        FrontedDesignerGeometryHelper.Move(target, 10, 20, 5, 6, document);
-        FrontedDesignerGeometryHelper.Resize(
-            target,
-            FrontedDesignerResizeHandleKind.BottomRight,
-            target.Config.Left,
-            target.Config.Top,
-            target.Config.Width!.Value,
-            target.Config.Height!.Value,
-            9,
-            10,
-            document);
-        var changed = FrontedLayoutLinkedOverlaySynchronizer.SyncLinkedOverlays(document, target);
-
-        var overlayConfig = Assert.IsType<PickingBorderOverlayControlConfig>(overlay.Config);
-        Assert.Single(changed);
-        Assert.Equal(target.Config.Left, overlayConfig.Left);
-        Assert.Equal(target.Config.Top, overlayConfig.Top);
-        Assert.Equal(target.Config.Width, overlayConfig.Width);
-        Assert.Equal(target.Config.Height, overlayConfig.Height);
-        Assert.True(document.IsDirty);
-    }
-
-    [Fact]
-    public void LinkedOverlaySynchronizerDoesNotLetOverlayDriveTarget()
-    {
-        var target = new FrontedControlDesignItem
-        {
-            Name = "SurPick0",
-            Config = new ImageFrontedControlConfig { Left = 10, Top = 20, Width = 141, Height = 160 }
-        };
-        var overlay = new FrontedControlDesignItem
-        {
-            Name = "SurPickingBorder0",
-            IsLinkedOverlay = true,
-            Config = new PickingBorderOverlayControlConfig
-            {
-                TargetControlName = "SurPick0",
-                Left = 99,
-                Top = 88,
-                Width = 77,
-                Height = 66
-            }
-        };
-        var document = CreateDocument([target, overlay]);
-
-        var changed = FrontedLayoutLinkedOverlaySynchronizer.SyncLinkedOverlays(document, overlay);
-
-        Assert.Empty(changed);
-        Assert.Equal(10, target.Config.Left);
-        Assert.Equal(20, target.Config.Top);
-        Assert.Equal(141, target.Config.Width);
-        Assert.Equal(160, target.Config.Height);
-    }
-
-    [Fact]
     public void DesignerControlFilterMatchesNameAndControlType()
     {
         var textItem = new FrontedControlDesignItem
@@ -1800,17 +1578,6 @@ public class FrontedLayoutDesignerFoundationTest
     [Fact]
     public void DesignerViewModelFiltersControlsAndClearsFilterOnDocumentClear()
     {
-        var overlay = new FrontedControlDesignItem
-        {
-            Name = "SurPickingBorder0",
-            IsSelectableInEditor = false,
-            Config = new PickingBorderOverlayControlConfig
-            {
-                ControlType = "PickingBorderOverlay",
-                TargetControlName = "Logo",
-                ZIndex = 3
-            }
-        };
         var viewModel = new FrontedDesignerWindowViewModel
         {
             CurrentDocument = CreateDocument(
@@ -1824,13 +1591,11 @@ public class FrontedLayoutDesignerFoundationTest
                 {
                     Name = "Logo",
                     Config = new ImageFrontedControlConfig { ControlType = "Image", ZIndex = 2 }
-                },
-                overlay
+                }
             ])
         };
 
         Assert.Equal(["Logo", "Title"], viewModel.FilteredDesignItems.Select(item => item.Name));
-        Assert.DoesNotContain(overlay, viewModel.FilteredDesignItems);
 
         viewModel.ControlFilterText = "text";
 
@@ -1928,26 +1693,6 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.Same(item, viewModel.SelectedDesignItem);
         Assert.True(item.IsSelected);
-    }
-
-    [Fact]
-    public void DesignerViewModelDoesNotSelectReadonlyLinkedOverlay()
-    {
-        var overlay = new FrontedControlDesignItem
-        {
-            Name = "SurPickingBorder0",
-            IsSelectableInEditor = false,
-            Config = new PickingBorderOverlayControlConfig { TargetControlName = "SurPick0" }
-        };
-        var viewModel = new FrontedDesignerWindowViewModel
-        {
-            CurrentDocument = CreateDocument([overlay])
-        };
-
-        viewModel.SelectDesignItem(overlay);
-
-        Assert.Null(viewModel.SelectedDesignItem);
-        Assert.False(overlay.IsSelected);
     }
 
     [Fact]
@@ -2375,7 +2120,6 @@ public class FrontedLayoutDesignerFoundationTest
         {
             "Designer.Property.Name",
             "Designer.Property.RuntimeCritical",
-            "Designer.Property.LinkedTargetControlName",
             "Designer.Value.True",
             "Designer.Value.False",
             "Designer.Editor.Search",
@@ -2390,8 +2134,7 @@ public class FrontedLayoutDesignerFoundationTest
             "Designer.Validation.InvalidArgbColor",
             "Designer.PropertyGroup.Overlay",
             "Designer.ControlType.GameProgress",
-            "Designer.ControlType.MapName",
-            "Designer.ControlType.PickingBorderOverlay"
+            "Designer.ControlType.MapName"
         };
 
         foreach (var type in BuiltInConfigTypes())
@@ -3256,91 +2999,6 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Equal("not-a-number", row.EditText);
         Assert.True(row.HasEditError);
         Assert.NotEmpty(row.ValidationErrors);
-    }
-
-    [Fact]
-    public void ApplyPropertyEditBlocksReferencedControlRename()
-    {
-        var target = new FrontedControlDesignItem
-        {
-            Name = "Target",
-            Config = new ImageFrontedControlConfig()
-        };
-        var overlay = new FrontedControlDesignItem
-        {
-            Name = "TargetOverlay",
-            IsSelectableInEditor = false,
-            IsEditableInEditor = false,
-            Config = new PickingBorderOverlayControlConfig { TargetControlName = "Target" }
-        };
-        var viewModel = new FrontedDesignerWindowViewModel
-        {
-            CurrentDocument = CreateDocument([target, overlay])
-        };
-        viewModel.SelectDesignItem(target);
-
-        viewModel.ApplyPropertyEdit(NameEditorRow(), "Target2");
-
-        Assert.Equal("Target", target.Name);
-    }
-
-    [Fact]
-    public void ApplyPropertyEditSyncsLinkedPickingBorderOverlayGeometry()
-    {
-        var target = new FrontedControlDesignItem
-        {
-            Name = "SurPick0",
-            Config = new ImageFrontedControlConfig { Left = 10, Top = 20, Width = 141, Height = 160 }
-        };
-        var overlay = new FrontedControlDesignItem
-        {
-            Name = "SurPickingBorder0",
-            IsSelectableInEditor = false,
-            IsEditableInEditor = false,
-            IsLinkedOverlay = true,
-            Config = new PickingBorderOverlayControlConfig
-            {
-                TargetControlName = "SurPick0",
-                Left = 0,
-                Top = 0,
-                Width = 1,
-                Height = 1
-            }
-        };
-        var document = CreateDocument([target, overlay]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
-        viewModel.SelectDesignItem(target);
-
-        viewModel.ApplyPropertyEdit(
-            new FrontedPropertyEditorItem
-            {
-                PropertyName = nameof(FrontedControlConfigBase.Height),
-                EditorKind = FrontedPropertyEditorKind.Number
-            },
-            "200.25");
-
-        var overlayConfig = Assert.IsType<PickingBorderOverlayControlConfig>(overlay.Config);
-        Assert.Equal(target.Config.Left, overlayConfig.Left);
-        Assert.Equal(target.Config.Top, overlayConfig.Top);
-        Assert.Equal(target.Config.Width, overlayConfig.Width);
-        Assert.Equal(200.5, overlayConfig.Height);
-    }
-
-    [Fact]
-    public void PropertyGridBuilderTreatsPickingBorderOverlayAsReadOnlyIfSelectedProgrammatically()
-    {
-        var overlay = new FrontedControlDesignItem
-        {
-            Name = "SurPickingBorder0",
-            IsSelectableInEditor = false,
-            IsEditableInEditor = false,
-            IsLinkedOverlay = true,
-            Config = new PickingBorderOverlayControlConfig { TargetControlName = "SurPick0" }
-        };
-
-        var rows = BuildPropertyRows(CreateDocument([overlay]), overlay);
-
-        Assert.All(rows, row => Assert.True(row.IsReadOnly));
     }
 
     [Fact]
@@ -4547,31 +4205,6 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void LinkedOverlayIsNotLayerReorderableAndFollowsHostZIndex()
-    {
-        var host = new FrontedControlDesignItem { Name = "Host", Config = new ImageFrontedControlConfig { ZIndex = 1 } };
-        var other = new FrontedControlDesignItem { Name = "Other", Config = new TextFrontedControlConfig { ZIndex = 5 } };
-        var overlay = new FrontedControlDesignItem
-        {
-            Name = "HostOverlay",
-            Config = new PickingBorderOverlayControlConfig { TargetControlName = "Host", ZIndex = 1 },
-            IsSelectableInEditor = false,
-            IsEditableInEditor = false,
-            IsLinkedOverlay = true,
-            LinkedTargetControlName = "Host"
-        };
-        var document = CreateDocument([other, host, overlay]);
-        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
-
-        Assert.False(viewModel.IsLayerReorderable(overlay));
-        Assert.True(viewModel.CommitLayerDrop(host, 5, other, insertAfter: true));
-
-        Assert.Equal(5, host.Config.ZIndex);
-        Assert.Equal(5, overlay.Config.ZIndex);
-        Assert.Equal(["Other", "Host", "HostOverlay"], document.Controls.Select(item => item.Name));
-    }
-
-    [Fact]
     public void MissingPluginPlaceholderCanBeReorderedWhenEditable()
     {
         var text = new FrontedControlDesignItem { Name = "Text", Config = new TextFrontedControlConfig { ZIndex = 1 } };
@@ -4732,10 +4365,7 @@ public class FrontedLayoutDesignerFoundationTest
         typeof(MapNameTextControlConfig),
         typeof(TalentTraitDisplayControlConfig),
         typeof(GlobalScoreRowControlConfig),
-        typeof(CurrentBanDisplayControlConfig),
-        typeof(BanSlotDisplayControlConfig),
-        typeof(MapV2DisplayControlConfig),
-        typeof(PickingBorderOverlayControlConfig)
+        typeof(MapV2DisplayControlConfig)
     ];
 
     private static HashSet<string> LoadResxKeys(string fileName)
@@ -4996,9 +4626,6 @@ public class FrontedLayoutDesignerFoundationTest
             new KnownFrontedControl("TalentTraitDisplay", typeof(TalentTraitDisplayControlConfig)),
             new KnownFrontedControl("GameProgressText", typeof(GameProgressTextControlConfig)),
             new KnownFrontedControl("MapNameText", typeof(MapNameTextControlConfig)),
-            new KnownFrontedControl("CurrentBanDisplay", typeof(CurrentBanDisplayControlConfig)),
-            new KnownFrontedControl("BanSlotDisplay", typeof(BanSlotDisplayControlConfig)),
-            new KnownFrontedControl("PickingBorderOverlay", typeof(PickingBorderOverlayControlConfig)),
             new KnownFrontedControl("MapV2Display", typeof(MapV2DisplayControlConfig))
         ];
 

@@ -2030,17 +2030,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         FrontedControlDesignItem changedTarget,
         FrontedDesignerResolvedBounds? targetBounds = null)
     {
-        if (CurrentDocument is null)
-        {
-            return [];
-        }
-
-        return targetBounds.HasValue
-            ? FrontedLayoutLinkedOverlaySynchronizer.SyncLinkedOverlays(
-                CurrentDocument,
-                changedTarget,
-                targetBounds.Value)
-            : FrontedLayoutLinkedOverlaySynchronizer.SyncLinkedOverlays(CurrentDocument, changedTarget);
+        return [];
     }
 
     public bool IsLayerReorderable(FrontedControlDesignItem? item)
@@ -2050,7 +2040,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             IsSelectableInEditor: true,
             IsEditableInEditor: true,
             IsLinkedOverlay: false
-        } && item.Config is not PickingBorderOverlayControlConfig;
+        };
     }
 
     public bool CommitLayerDrop(
@@ -3201,16 +3191,6 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         }
 
         rebuilt.Add(item);
-        foreach (var overlay in originalControls.Where(control =>
-                     control.Config is PickingBorderOverlayControlConfig overlayConfig
-                     && string.Equals(overlayConfig.TargetControlName, item.Name, StringComparison.Ordinal)))
-        {
-            overlay.Config.ZIndex = item.Config.ZIndex;
-            if (added.Add(overlay))
-            {
-                rebuilt.Add(overlay);
-            }
-        }
     }
 
     private void RebuildFilteredDesignItems()
@@ -3619,7 +3599,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             IsSelectableInEditor: true,
             IsEditableInEditor: true,
             IsRuntimeCritical: false
-        } && item.Config is not PickingBorderOverlayControlConfig;
+        };
     }
 
     private static string GeneratePasteName(string sourceName, string controlType, FrontedCanvasDesignDocument document)

@@ -399,18 +399,6 @@ public class FrontedLayoutValidator
 
                 break;
 
-            case BanSlotDisplayControlConfig banSlot:
-                ValidateResourceLikeStrings(item.Name, banSlot, messages);
-                ValidateEnumValue(item.Name, nameof(BanSlotDisplayControlConfig.SlotKind), banSlot.SlotKind, messages);
-                ValidateEnumValue(item.Name, nameof(BanSlotDisplayControlConfig.Camp), banSlot.Camp, messages);
-                ValidateNonNegativeIndex(item.Name, banSlot.Index, messages);
-                break;
-
-            case CurrentBanDisplayControlConfig currentBan:
-                ValidateEnumValue(item.Name, nameof(CurrentBanDisplayControlConfig.Camp), currentBan.Camp, messages);
-                ValidateNonNegativeIndex(item.Name, currentBan.Index, messages);
-                break;
-
             case MapV2DisplayControlConfig mapV2:
                 ValidateResourceLikeStrings(item.Name, mapV2, messages);
                 ValidateTextLength(item.Name, nameof(MapV2DisplayControlConfig.MapNameFontFamily), mapV2.MapNameFontFamily, FrontedLayoutLimits.MaxFontFamilyLength, "InputTooLong", messages);
@@ -423,19 +411,6 @@ public class FrontedLayoutValidator
                         $"MapV2Display control '{item.Name}' requires MapKey.",
                         item.Name,
                         nameof(MapV2DisplayControlConfig.MapKey)));
-                }
-
-                break;
-
-            case PickingBorderOverlayControlConfig pickingBorder:
-                ValidateResourceLikeStrings(item.Name, pickingBorder, messages);
-                if (string.IsNullOrWhiteSpace(pickingBorder.TargetControlName))
-                {
-                    messages.Add(Error(
-                        "RequiredPropertyMissing",
-                        $"PickingBorderOverlay control '{item.Name}' requires TargetControlName.",
-                        item.Name,
-                        nameof(PickingBorderOverlayControlConfig.TargetControlName)));
                 }
 
                 break;
@@ -619,9 +594,6 @@ public class FrontedLayoutValidator
     {
         return config is ImageFrontedControlConfig
             or TalentTraitDisplayControlConfig
-            or CurrentBanDisplayControlConfig
-            or BanSlotDisplayControlConfig
-            or PickingBorderOverlayControlConfig
             or MapV2DisplayControlConfig;
     }
 

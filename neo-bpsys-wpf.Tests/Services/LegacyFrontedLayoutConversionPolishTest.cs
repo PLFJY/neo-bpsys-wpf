@@ -302,12 +302,12 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
 
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
             var layout = ReadLayout(archive, "layouts/WidgetsWindow/BpOverViewCanvas.json");
-            var hun = Assert.IsType<CurrentBanDisplayControlConfig>(layout.Controls["HunBanCurrent0"]);
+            var hun = Assert.IsType<ImageFrontedControlConfig>(layout.Controls["HunBanCurrent0"]);
             Assert.Equal(11, hun.Left);
             Assert.Equal(22, hun.Top);
             Assert.Equal(33, hun.Width);
             Assert.Equal(44, hun.Height);
-            var sur = Assert.IsType<CurrentBanDisplayControlConfig>(layout.Controls["SurBanCurrent0"]);
+            var sur = Assert.IsType<ImageFrontedControlConfig>(layout.Controls["SurBanCurrent0"]);
             Assert.Equal(100, sur.Left);
             Assert.Equal(200, sur.Top);
             Assert.Equal(300, sur.Width);
@@ -367,17 +367,16 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
 
             using var archive = ZipFile.OpenRead(result.ConvertedPackagePath!);
             var bpLayout = ReadLayout(archive, "layouts/BpWindow/BaseCanvas.json");
-            var current = Assert.IsType<BanSlotDisplayControlConfig>(bpLayout.Controls["SurBanCurrent0"]);
-            var global = Assert.IsType<BanSlotDisplayControlConfig>(bpLayout.Controls["SurBanGlobal0"]);
-            var border = Assert.IsType<PickingBorderOverlayControlConfig>(bpLayout.Controls["SurPickingBorder0"]);
-            Assert.StartsWith("bpui://converted.legacy.assets/resources/images/CurrentBanLock-", current.LockImageSource);
-            Assert.StartsWith("bpui://converted.legacy.assets/resources/images/GlobalBanLock-", global.LockImageSource);
-            Assert.StartsWith("bpui://converted.legacy.assets/resources/images/PickingBorder-", border.BorderImagePath);
-            Assert.Equal("#FF112233", border.FillColor);
+            var current = Assert.IsType<ImageFrontedControlConfig>(bpLayout.Controls["SurBanCurrent0"]);
+            var global = Assert.IsType<ImageFrontedControlConfig>(bpLayout.Controls["SurBanGlobal0"]);
+            var pick = Assert.IsType<ImageFrontedControlConfig>(bpLayout.Controls["SurPick0"]);
+            Assert.StartsWith("bpui://converted.legacy.assets/resources/images/CurrentBanLock-", current.LockImagePath);
+            Assert.StartsWith("bpui://converted.legacy.assets/resources/images/GlobalBanLock-", global.LockImagePath);
+            Assert.StartsWith("bpui://converted.legacy.assets/resources/images/PickingBorder-", pick.PickingBorderImagePath);
 
             var widgetsLayout = ReadLayout(archive, "layouts/WidgetsWindow/BpOverViewCanvas.json");
-            var widgetsCurrent = Assert.IsType<CurrentBanDisplayControlConfig>(widgetsLayout.Controls["HunBanCurrent0"]);
-            Assert.StartsWith("bpui://converted.legacy.assets/resources/images/WidgetCurrentBanLock-", widgetsCurrent.LockImageSource);
+            var widgetsCurrent = Assert.IsType<ImageFrontedControlConfig>(widgetsLayout.Controls["HunBanCurrent0"]);
+            Assert.StartsWith("bpui://converted.legacy.assets/resources/images/WidgetCurrentBanLock-", widgetsCurrent.LockImagePath);
         }
         finally
         {
@@ -478,18 +477,22 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
               "CanvasHeight": 810,
               "BackgroundImage": "Resources/bpOverview.png",
               "HunBanCurrent0": {
-                "ControlType": "CurrentBanDisplay",
-                "Camp": "Hun",
-                "Index": 0,
+                "ControlType": "Image",
+                "BindingPath": "CurrentGame.CurrentHunBannedList[0].HeaderImageSingleColor",
+                "Lockable": true,
+                "LockVisibilityBindingPath": "CanCurrentHunBannedList[0]",
+                "LockVisibleWhen": "VisibleWhenFalse",
                 "Left": 1,
                 "Top": 2,
                 "Width": 3,
                 "Height": 4
               },
               "SurBanCurrent0": {
-                "ControlType": "CurrentBanDisplay",
-                "Camp": "Sur",
-                "Index": 0,
+                "ControlType": "Image",
+                "BindingPath": "CurrentGame.CurrentSurBannedList[0].HeaderImageSingleColor",
+                "Lockable": true,
+                "LockVisibilityBindingPath": "CanCurrentSurBannedList[0]",
+                "LockVisibleWhen": "VisibleWhenFalse",
                 "Left": 5,
                 "Top": 6,
                 "Width": 7,
@@ -510,20 +513,22 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
               "CanvasHeight": 810,
               "BackgroundImage": "Resources/bp.png",
               "SurBanCurrent0": {
-                "ControlType": "BanSlotDisplay",
-                "SlotKind": "Current",
-                "Camp": "Sur",
-                "Index": 0,
+                "ControlType": "Image",
+                "BindingPath": "CurrentGame.CurrentSurBannedList[0].HeaderImageSingleColor",
+                "Lockable": true,
+                "LockVisibilityBindingPath": "CanCurrentSurBannedList[0]",
+                "LockVisibleWhen": "VisibleWhenFalse",
                 "Left": 10,
                 "Top": 20,
                 "Width": 30,
                 "Height": 40
               },
               "SurBanGlobal0": {
-                "ControlType": "BanSlotDisplay",
-                "SlotKind": "Global",
-                "Camp": "Sur",
-                "Index": 0,
+                "ControlType": "Image",
+                "BindingPath": "CurrentGame.SurTeam.GlobalBannedSurList[0].HeaderImageSingleColor",
+                "Lockable": true,
+                "LockVisibilityBindingPath": "CanGlobalSurBannedList[0]",
+                "LockVisibleWhen": "VisibleWhenFalse",
                 "Left": 50,
                 "Top": 60,
                 "Width": 70,
@@ -535,7 +540,9 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
                 "Top": 100,
                 "Width": 110,
                 "Height": 120,
-                "BindingPath": "CurrentGame.SurPlayerList[0].PictureShown"
+                "BindingPath": "CurrentGame.SurPlayerList[0].PictureShown",
+                "PickingBorderAvailable": true,
+                "PickingBorderName": "SurPickingBorder0"
               },
               "SurPick1": {
                 "ControlType": "Image",
@@ -543,7 +550,9 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
                 "Top": 100,
                 "Width": 110,
                 "Height": 120,
-                "BindingPath": "CurrentGame.SurPlayerList[1].PictureShown"
+                "BindingPath": "CurrentGame.SurPlayerList[1].PictureShown",
+                "PickingBorderAvailable": true,
+                "PickingBorderName": "SurPickingBorder1"
               },
               "SurPick2": {
                 "ControlType": "Image",
@@ -551,7 +560,9 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
                 "Top": 100,
                 "Width": 110,
                 "Height": 120,
-                "BindingPath": "CurrentGame.SurPlayerList[2].PictureShown"
+                "BindingPath": "CurrentGame.SurPlayerList[2].PictureShown",
+                "PickingBorderAvailable": true,
+                "PickingBorderName": "SurPickingBorder2"
               },
               "SurPick3": {
                 "ControlType": "Image",
@@ -559,7 +570,9 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
                 "Top": 100,
                 "Width": 110,
                 "Height": 120,
-                "BindingPath": "CurrentGame.SurPlayerList[3].PictureShown"
+                "BindingPath": "CurrentGame.SurPlayerList[3].PictureShown",
+                "PickingBorderAvailable": true,
+                "PickingBorderName": "SurPickingBorder3"
               },
               "HunPick": {
                 "ControlType": "Image",
@@ -567,47 +580,9 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
                 "Top": 100,
                 "Width": 110,
                 "Height": 120,
-                "BindingPath": "CurrentGame.HunPlayer.PictureShown"
-              },
-              "SurPickingBorder0": {
-                "ControlType": "PickingBorderOverlay",
-                "TargetControlName": "SurPick0",
-                "Left": 90,
-                "Top": 100,
-                "Width": 110,
-                "Height": 120
-              },
-              "SurPickingBorder1": {
-                "ControlType": "PickingBorderOverlay",
-                "TargetControlName": "SurPick1",
-                "Left": 90,
-                "Top": 100,
-                "Width": 110,
-                "Height": 120
-              },
-              "SurPickingBorder2": {
-                "ControlType": "PickingBorderOverlay",
-                "TargetControlName": "SurPick2",
-                "Left": 90,
-                "Top": 100,
-                "Width": 110,
-                "Height": 120
-              },
-              "SurPickingBorder3": {
-                "ControlType": "PickingBorderOverlay",
-                "TargetControlName": "SurPick3",
-                "Left": 90,
-                "Top": 100,
-                "Width": 110,
-                "Height": 120
-              },
-              "HunPickingBorder": {
-                "ControlType": "PickingBorderOverlay",
-                "TargetControlName": "HunPick",
-                "Left": 90,
-                "Top": 100,
-                "Width": 110,
-                "Height": 120
+                "BindingPath": "CurrentGame.HunPlayer.PictureShown",
+                "PickingBorderAvailable": true,
+                "PickingBorderName": "HunPickingBorder"
               }
             }
             """);
@@ -620,16 +595,11 @@ public sealed class LegacyFrontedLayoutConversionPolishTest
               "SurTeamName": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "Sur", "Color": "#FFFFFFFF", "FontFamily": "Noto Sans", "FontWeight": "Normal", "FontSize": 16 },
               "HunTeamName": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "Hun", "Color": "#FFFFFFFF", "FontFamily": "Noto Sans", "FontWeight": "Normal", "FontSize": 16 },
               "Timer": { "ControlType": "Text", "Left": 1, "Top": 1, "Text": "00:00", "Color": "#FFFFFFFF", "FontFamily": "Noto Sans", "FontWeight": "Normal", "FontSize": 16 },
-              "SurPick0": { "ControlType": "Image", "Left": 1, "Top": 1, "Width": 10, "Height": 10, "BindingPath": "CurrentGame.SurPlayerList[0].PictureShown" },
-              "SurPick1": { "ControlType": "Image", "Left": 1, "Top": 1, "Width": 10, "Height": 10, "BindingPath": "CurrentGame.SurPlayerList[1].PictureShown" },
-              "SurPick2": { "ControlType": "Image", "Left": 1, "Top": 1, "Width": 10, "Height": 10, "BindingPath": "CurrentGame.SurPlayerList[2].PictureShown" },
-              "SurPick3": { "ControlType": "Image", "Left": 1, "Top": 1, "Width": 10, "Height": 10, "BindingPath": "CurrentGame.SurPlayerList[3].PictureShown" },
-              "HunPick": { "ControlType": "Image", "Left": 1, "Top": 1, "Width": 10, "Height": 10, "BindingPath": "CurrentGame.HunPlayer.PictureShown" },
-              "SurPickingBorder0": { "ControlType": "PickingBorderOverlay", "TargetControlName": "SurPick0", "Left": 1, "Top": 1, "Width": 10, "Height": 10 },
-              "SurPickingBorder1": { "ControlType": "PickingBorderOverlay", "TargetControlName": "SurPick1", "Left": 1, "Top": 1, "Width": 10, "Height": 10 },
-              "SurPickingBorder2": { "ControlType": "PickingBorderOverlay", "TargetControlName": "SurPick2", "Left": 1, "Top": 1, "Width": 10, "Height": 10 },
-              "SurPickingBorder3": { "ControlType": "PickingBorderOverlay", "TargetControlName": "SurPick3", "Left": 1, "Top": 1, "Width": 10, "Height": 10 },
-              "HunPickingBorder": { "ControlType": "PickingBorderOverlay", "TargetControlName": "HunPick", "Left": 1, "Top": 1, "Width": 10, "Height": 10 }
+              "SurPick0": { "ControlType": "Image", "Left": 1, "Top": 1, "Width": 10, "Height": 10, "BindingPath": "CurrentGame.SurPlayerList[0].PictureShown", "PickingBorderAvailable": true, "PickingBorderName": "SurPickingBorder0" },
+              "SurPick1": { "ControlType": "Image", "Left": 1, "Top": 1, "Width": 10, "Height": 10, "BindingPath": "CurrentGame.SurPlayerList[1].PictureShown", "PickingBorderAvailable": true, "PickingBorderName": "SurPickingBorder1" },
+              "SurPick2": { "ControlType": "Image", "Left": 1, "Top": 1, "Width": 10, "Height": 10, "BindingPath": "CurrentGame.SurPlayerList[2].PictureShown", "PickingBorderAvailable": true, "PickingBorderName": "SurPickingBorder2" },
+              "SurPick3": { "ControlType": "Image", "Left": 1, "Top": 1, "Width": 10, "Height": 10, "BindingPath": "CurrentGame.SurPlayerList[3].PictureShown", "PickingBorderAvailable": true, "PickingBorderName": "SurPickingBorder3" },
+              "HunPick": { "ControlType": "Image", "Left": 1, "Top": 1, "Width": 10, "Height": 10, "BindingPath": "CurrentGame.HunPlayer.PictureShown", "PickingBorderAvailable": true, "PickingBorderName": "HunPickingBorder" }
             """));
 
         WriteFile(Path.Combine(builtInRoot, "CutSceneWindow", "BaseCanvas.json"),

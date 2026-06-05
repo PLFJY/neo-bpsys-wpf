@@ -189,20 +189,6 @@ public class FrontedPropertyGridBuilder
             GroupName = "Identity"
         });
 
-        if (!string.IsNullOrWhiteSpace(selectedItem.LinkedTargetControlName))
-        {
-            rows.Add(new FrontedPropertyEditorItem
-            {
-                DisplayName = _localizationService.GetPropertyDisplayName(nameof(FrontedControlDesignItem.LinkedTargetControlName)),
-                PropertyName = nameof(FrontedControlDesignItem.LinkedTargetControlName),
-                PropertyType = typeof(string),
-                EditorKind = FrontedPropertyEditorKind.ReadOnly,
-                Value = selectedItem.LinkedTargetControlName,
-                DisplayValue = selectedItem.LinkedTargetControlName,
-                IsReadOnly = true,
-                GroupName = "Identity"
-            });
-        }
     }
 
     private void AddConfigRows(

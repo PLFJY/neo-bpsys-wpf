@@ -274,14 +274,6 @@ public class FrontedLayoutDesignConverter
             IsRuntimeCritical = runtimeContracts.IsRuntimeCritical(windowTypeName, canvasName, name)
         };
 
-        if (config is PickingBorderOverlayControlConfig pickingBorder)
-        {
-            item.IsSelectableInEditor = false;
-            item.IsEditableInEditor = false;
-            item.IsLinkedOverlay = true;
-            item.LinkedTargetControlName = pickingBorder.TargetControlName;
-        }
-
         return item;
     }
 }

@@ -14,7 +14,6 @@ public class FrontedControlDesignItem : ObservableObject
     private bool _isSelectableInEditor = true;
     private bool _isEditableInEditor = true;
     private bool _isLinkedOverlay;
-    private string? _linkedTargetControlName;
     private IReadOnlyList<FrontedLayoutValidationMessage> _validationMessages = [];
 
     /// <summary>
@@ -78,15 +77,6 @@ public class FrontedControlDesignItem : ObservableObject
     {
         get => _isLinkedOverlay;
         set => SetProperty(ref _isLinkedOverlay, value);
-    }
-
-    /// <summary>
-    /// 联动覆盖层跟随的目标控件名。
-    /// </summary>
-    public string? LinkedTargetControlName
-    {
-        get => _linkedTargetControlName;
-        set => SetProperty(ref _linkedTargetControlName, value);
     }
 
     /// <summary>

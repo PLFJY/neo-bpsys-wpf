@@ -1744,24 +1744,6 @@ namespace neo_bpsys_wpf.Locales {
         }
 
         /// <summary>
-        ///   查找类似 Ban 位 的本地化字符串。
-        /// </summary>
-        public static string Designer_ControlType_BanSlotDisplay {
-            get {
-                return ResourceManager.GetString("Designer.ControlType.BanSlotDisplay", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 当前 Ban 位 的本地化字符串。
-        /// </summary>
-        public static string Designer_ControlType_CurrentBanDisplay {
-            get {
-                return ResourceManager.GetString("Designer.ControlType.CurrentBanDisplay", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   查找类似 对局进度 的本地化字符串。
         /// </summary>
         public static string Designer_ControlType_GameProgressText {
@@ -2392,15 +2374,6 @@ namespace neo_bpsys_wpf.Locales {
         }
 
         /// <summary>
-        ///   查找类似 关联目标控件 的本地化字符串。
-        /// </summary>
-        public static string Designer_Property_LinkedTargetControlName {
-            get {
-                return ResourceManager.GetString("Designer.Property.LinkedTargetControlName", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   查找类似 本地化键 的本地化字符串。
         /// </summary>
         public static string Designer_Property_LocalizationKey {
@@ -2550,15 +2523,6 @@ namespace neo_bpsys_wpf.Locales {
         public static string Designer_Property_StringFormat {
             get {
                 return ResourceManager.GetString("Designer.Property.StringFormat", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 目标控件名称 的本地化字符串。
-        /// </summary>
-        public static string Designer_Property_TargetControlName {
-            get {
-                return ResourceManager.GetString("Designer.Property.TargetControlName", resourceCulture);
             }
         }
 

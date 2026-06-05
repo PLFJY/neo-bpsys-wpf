@@ -944,43 +944,41 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
 
         if (window == "BpWindow" && canvas == "BaseCanvas")
         {
-            foreach (var control in config.Controls.Values)
+            foreach (var control in config.Controls.Values.OfType<ImageFrontedControlConfig>())
             {
-                if (control is BanSlotDisplayControlConfig banSlot)
+                if (control.Lockable && IsBanImageBinding(control.BindingPath, out var isGlobalBan))
                 {
-                    var key = banSlot.SlotKind == BanSlotKind.Global
+                    var key = isGlobalBan
                         ? $"{prefix}GlobalBanLockImage"
                         : $"{prefix}CurrentBanLockImage";
                     if (valueMap.TryGetValue(key, out var lockUri))
                     {
-                        banSlot.LockImageSource = lockUri;
-                        infos.Add($"Legacy lock image merged into v3 BanSlotDisplay: {key}");
+                        control.LockImagePath = lockUri;
+                        infos.Add($"Legacy lock image merged into v3 Image lock overlay: {key}");
                     }
                 }
-                else if (control is PickingBorderOverlayControlConfig pickingBorder)
-                {
-                    if (valueMap.TryGetValue($"{prefix}PickingBorderImage", out var borderUri))
-                    {
-                        pickingBorder.BorderImagePath = borderUri;
-                    }
 
-                    if (valueMap.TryGetValue($"{prefix}PickingBorderColor", out var borderColor))
-                    {
-                        pickingBorder.FillColor = borderColor;
-                    }
+                if (control.PickingBorderAvailable
+                    && valueMap.TryGetValue($"{prefix}PickingBorderImage", out var borderUri))
+                {
+                    control.PickingBorderImagePath = borderUri;
+                    infos.Add($"Legacy picking border image merged into v3 Image picking overlay: {prefix}PickingBorderImage");
                 }
             }
         }
 
         if (window == "WidgetsWindow" && canvas == "BpOverViewCanvas")
         {
-            foreach (var control in config.Controls.Values.OfType<CurrentBanDisplayControlConfig>())
+            foreach (var control in config.Controls.Values
+                         .OfType<ImageFrontedControlConfig>()
+                         .Where(control => control.Lockable
+                                           && IsCurrentBanImageBinding(control.BindingPath)))
             {
                 var key = $"{prefix}CurrentBanLockImage";
                 if (valueMap.TryGetValue(key, out var lockUri))
                 {
-                    control.LockImageSource = lockUri;
-                    infos.Add($"Legacy lock image merged into v3 CurrentBanDisplay: {key}");
+                    control.LockImagePath = lockUri;
+                    infos.Add($"Legacy lock image merged into v3 Image lock overlay: {key}");
                 }
             }
         }
@@ -1000,6 +998,19 @@ public sealed class FrontedLayoutPackageLegacyConverter : IFrontedLayoutPackageL
                 }
             }
         }
+    }
+
+    private static bool IsCurrentBanImageBinding(string? bindingPath)
+    {
+        return bindingPath?.Contains("CurrentSurBannedList", StringComparison.Ordinal) == true
+               || bindingPath?.Contains("CurrentHunBannedList", StringComparison.Ordinal) == true;
+    }
+
+    private static bool IsBanImageBinding(string? bindingPath, out bool isGlobalBan)
+    {
+        isGlobalBan = bindingPath?.Contains("GlobalBanned", StringComparison.Ordinal) == true;
+        return IsCurrentBanImageBinding(bindingPath)
+               || isGlobalBan;
     }
 
     private static void RewriteKnownResourceStrings(

@@ -108,9 +108,6 @@ public partial class App
         services.AddSingleton<IFrontedControl, TalentTraitDisplayFrontedControl>();
         services.AddSingleton<IFrontedControl, GameProgressTextFrontedControl>();
         services.AddSingleton<IFrontedControl, MapNameTextFrontedControl>();
-        services.AddSingleton<IFrontedControl, CurrentBanDisplayFrontedControl>();
-        services.AddSingleton<IFrontedControl, BanSlotDisplayFrontedControl>();
-        services.AddSingleton<IFrontedControl, PickingBorderOverlayFrontedControl>();
         services.AddSingleton<IFrontedControl, MapV2DisplayFrontedControl>();
         services.AddSingleton<IFrontedControlRegistry, FrontedControlRegistry>();
         services.AddSingleton<IFrontedLayoutService, FrontedLayoutService>();

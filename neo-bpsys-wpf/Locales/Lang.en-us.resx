@@ -2767,9 +2767,6 @@
   <data name="Designer.Property.RuntimeCritical" xml:space="preserve">
     <value>Runtime-critical Control</value>
   </data>
-  <data name="Designer.Property.LinkedTargetControlName" xml:space="preserve">
-    <value>Linked Target Control</value>
-  </data>
   <data name="Designer.Property.Left" xml:space="preserve">
     <value>X</value>
   </data>
@@ -2923,9 +2920,6 @@
   <data name="Designer.Property.RespectTraitVisibility" xml:space="preserve">
     <value>Respect Trait Visibility</value>
   </data>
-  <data name="Designer.Property.TargetControlName" xml:space="preserve">
-    <value>Target Control Name</value>
-  </data>
   <data name="Designer.Property.BorderImagePath" xml:space="preserve">
     <value>Border Image</value>
   </data>
@@ -3033,12 +3027,6 @@
   </data>
   <data name="Designer.ControlType.GlobalScoreRow" xml:space="preserve">
     <value>Global Score</value>
-  </data>
-  <data name="Designer.ControlType.CurrentBanDisplay" xml:space="preserve">
-    <value>Current Ban</value>
-  </data>
-  <data name="Designer.ControlType.BanSlotDisplay" xml:space="preserve">
-    <value>Ban Slot</value>
   </data>
   <data name="Designer.ControlType.MapV2Display" xml:space="preserve">
     <value>Map v2</value>
@@ -3286,9 +3274,6 @@
   <data name="Designer.ControlType.MapName" xml:space="preserve">
     <value>Map Name</value>
   </data>
-  <data name="Designer.ControlType.PickingBorderOverlay" xml:space="preserve">
-    <value>Picking Border Overlay</value>
-  </data>
   <data name="MissingPluginImportTitle" xml:space="preserve">
     <value>Missing plugin controls</value>
   </data>
@@ -3485,7 +3470,7 @@
     <value>Name and BindingPath require Enter or apply button to commit;\nInvalid values keep the text and show red border;\nColorPicker updates Hex text; apply button commits;\nComboBox properties commit raw values while displaying localized names;\nBinding browser helps choose valid BindingPath;\nResource browser helps choose bpui/resource URI;\nBorderedImage has separate Border/Image properties;\nBorderedImage resize target can switch between outer border and inner image.</value>
   </data>
   <data name="Designer.Help.BuiltInControls.Content" xml:space="preserve">
-    <value>Text|Normal text control; when BindingPath is set it binds dynamic text, otherwise it displays static Text.|StringFormat only applies to bound values; use dedicated controls for business/i18n text.\nLocalizedText|Static localized text control; uses LocalizationKey to look up resx, then falls back to FallbackText or the key.|Best for headers and fixed labels; the saved value is the key, not localized display text.\nImage|Direct image control whose root element is Image; use it for team logos, maps, simple images, and legacy direct Image semantics.|BindingPath binds an ImageSource; ImagePath is used only when BindingPath is empty; binding wins and ImagePath is not cleared automatically.\nBorderedImage|Outer Border plus inner Image; use it for framed, clipped, rounded, inner-sized, or resize-target-switchable image regions.|BindingPath and ImagePath follow the same priority as Image; Width/Height affect the border, ImageWidth/ImageHeight affect the inner image.\nGameProgressText|Generates game progress text from current game, half, BO3/BO5, and overtime rules.|Use UseLineBreak when the layout needs two lines; do not hard-code this business text into a normal Text control.\nMapNameText|Converts map enum/key values to localized map names; reads the picked map by default, or BindingPath can point to picked/banned map fields.|EmptyText is the fallback for no map; BindingPath should point to a Map/Map? field.\nGlobalScoreRow|Composite global score row; Cells define each half-score cell inside the parent frame, then MatchScore fills text and camp icons.|Normally used by ScoreGlobalWindow; move the parent for the whole row and edit child cells for individual score positions.\nTalentTraitDisplay|CutScene talent/trait display; reads fixed business data by DisplayKind and PlayerIndex.|Can follow trait visibility settings; do not hard-code individual talent icons in JSON.\nCurrentBanDisplay|WidgetsWindow current-ban display; reads current ban lists and availability by Camp and Index.|Useful for current-ban widgets; business data comes from shared state.\nBanSlotDisplay|BpWindow ban slot display; reads current or global bans by SlotKind, Camp, and Index.|Can show a lock overlay from LockImageSource; choose resource paths through Resource Browser.\nMapV2Display|Map BP v2 display; uses MapKey and reuses MapV2Presenter.|Suitable for WidgetsWindow map BP v2 layouts; do not hand-build the internal Map BP v2 visuals.\nPickingBorderOverlay|Advanced overlay control, usually used by default layouts with TargetControlName.|Follows the target pick image position and size; not edited like an independent image control.\nGeneral notes|Choose dynamic data BindingPath from Binding Browser; choose ImagePath, BackgroundImage, LockImageSource, and similar resource paths from Resource Browser.|Prefer Resources/xxx.png or bpui://... for static resources and avoid long-term arbitrary absolute paths; missing or oversized images should warn or render empty, not crash the frontend window.</value>
+    <value>Text|Normal text control; when BindingPath is set it binds dynamic text, otherwise it displays static Text.|StringFormat only applies to bound values; use dedicated controls for business/i18n text.\nLocalizedText|Static localized text control; uses LocalizationKey to look up resx, then falls back to FallbackText or the key.|Best for headers and fixed labels; the saved value is the key, not localized display text.\nImage|Direct image control whose root element is Image; use it for team logos, maps, simple images, and legacy direct Image semantics.|BindingPath binds an ImageSource; ImagePath is used only when BindingPath is empty; binding wins and ImagePath is not cleared automatically.\nBorderedImage|Outer Border plus inner Image; use it for framed, clipped, rounded, inner-sized, or resize-target-switchable image regions.|BindingPath and ImagePath follow the same priority as Image; Width/Height affect the border, ImageWidth/ImageHeight affect the inner image.\nGameProgressText|Generates game progress text from current game, half, BO3/BO5, and overtime rules.|Use UseLineBreak when the layout needs two lines; do not hard-code this business text into a normal Text control.\nMapNameText|Converts map enum/key values to localized map names; reads the picked map by default, or BindingPath can point to picked/banned map fields.|EmptyText is the fallback for no map; BindingPath should point to a Map/Map? field.\nGlobalScoreRow|Composite global score row; Cells define each half-score cell inside the parent frame, then MatchScore fills text and camp icons.|Normally used by ScoreGlobalWindow; move the parent for the whole row and edit child cells for individual score positions.\nTalentTraitDisplay|CutScene talent/trait display; reads fixed business data by DisplayKind and PlayerIndex.|Can follow trait visibility settings; do not hard-code individual talent icons in JSON.\nMapV2Display|Map BP v2 display; uses MapKey and reuses MapV2Presenter.|Suitable for WidgetsWindow map BP v2 layouts; do not hand-build the internal Map BP v2 visuals.\nGeneral notes|Choose dynamic data BindingPath from Binding Browser; choose ImagePath, BackgroundImage, LockImageSource, and similar resource paths from Resource Browser.|Prefer Resources/xxx.png or bpui://... for static resources and avoid long-term arbitrary absolute paths; missing or oversized images should warn or render empty, not crash the frontend window.</value>
   </data>
   <data name="Designer.Help.AddDeleteCopyPaste.Content" xml:space="preserve">
     <value>Add Control inserts built-in/plugin controls;\nCopied control gets unique numbered name on paste;\nPaste offsets the new control;\nRuntime-critical/generated overlays may not be copyable/deletable;\nUndo/Redo can restore add, delete, paste, reorder operations.</value>

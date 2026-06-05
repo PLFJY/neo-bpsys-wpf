@@ -444,17 +444,6 @@ public class FrontedCanvasConfigTest
               "Version": 3,
               "CanvasWidth": 1132,
               "CanvasHeight": 182,
-              "Ban": {
-                "ControlType": "CurrentBanDisplay",
-                "Left": 193,
-                "Top": 5,
-                "Width": 68,
-                "Height": 35,
-                "Camp": "Sur",
-                "Index": 2,
-                "ShowLockOverlay": true,
-                "Stretch": "Uniform"
-              },
               "Map": {
                 "ControlType": "MapV2Display",
                 "Left": 50.5,
@@ -482,13 +471,6 @@ public class FrontedCanvasConfigTest
 
         Assert.NotNull(config);
 
-        var ban = Assert.IsType<CurrentBanDisplayControlConfig>(config.Controls["Ban"]);
-        Assert.Equal("CurrentBanDisplay", ban.ControlType);
-        Assert.Equal(neo_bpsys_wpf.Core.Enums.Camp.Sur, ban.Camp);
-        Assert.Equal(2, ban.Index);
-        Assert.True(ban.ShowLockOverlay);
-        Assert.Equal("Uniform", ban.Stretch);
-
         var map = Assert.IsType<MapV2DisplayControlConfig>(config.Controls["Map"]);
         Assert.Equal("MapV2Display", map.ControlType);
         Assert.Equal("ArmsFactory", map.MapKey);
@@ -500,81 +482,45 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
-    public void ReadsBpWindowBusinessControlConfigs()
+    public void CurrentBanDisplayControlTypeIsNoLongerSupported()
     {
-        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+        var exception = Assert.Throws<FrontedLayoutConfigException>(() => JsonSerializer.Deserialize<FrontedCanvasConfig>(
             """
+            {
+              "Version": 3,
+              "CanvasWidth": 1132,
+              "CanvasHeight": 182,
+              "Ban": {
+                "ControlType": "CurrentBanDisplay",
+                "Left": 193,
+                "Top": 5,
+                "Width": 68,
+                "Height": 35
+              }
+            }
+            """));
+
+        Assert.Contains("unsupported ControlType 'CurrentBanDisplay'", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("BanSlotDisplay")]
+    [InlineData("PickingBorderOverlay")]
+    public void LegacyCompatibilityControlTypesAreNoLongerSupported(string controlType)
+    {
+        var exception = Assert.Throws<FrontedLayoutConfigException>(() => JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            $$"""
             {
               "Version": 3,
               "CanvasWidth": 1440,
               "CanvasHeight": 810,
-              "CurrentSurBan": {
-                "ControlType": "BanSlotDisplay",
-                "SlotKind": "Current",
-                "Camp": "Sur",
-                "Index": 2,
-                "ShowLockOverlay": true,
-                "SizingMode": "FillContainer",
-                "Stretch": "Uniform",
-                "LockZIndexOffset": 1
-              },
-              "CurrentHunBan": {
-                "ControlType": "BanSlotDisplay",
-                "SlotKind": "Current",
-                "Camp": "Hun",
-                "Index": 1
-              },
-              "GlobalSurBan": {
-                "ControlType": "BanSlotDisplay",
-                "SlotKind": "Global",
-                "Camp": "Sur",
-                "Index": 11
-              },
-              "GlobalHunBan": {
-                "ControlType": "BanSlotDisplay",
-                "SlotKind": "Global",
-                "Camp": "Hun",
-                "Index": 2
-              },
-              "SurPickingBorder0": {
-                "ControlType": "PickingBorderOverlay",
-                "TargetControlName": "SurPick0",
-                "Left": 0,
-                "Top": 620,
-                "Width": 141,
-                "Height": 160,
-                "ZIndex": 2,
-                "InitiallyHidden": true
+              "Legacy": {
+                "ControlType": "{{controlType}}"
               }
             }
-            """);
+            """));
 
-        Assert.NotNull(config);
-
-        var currentSurBan = Assert.IsType<BanSlotDisplayControlConfig>(config.Controls["CurrentSurBan"]);
-        Assert.Equal(BanSlotKind.Current, currentSurBan.SlotKind);
-        Assert.Equal(neo_bpsys_wpf.Core.Enums.Camp.Sur, currentSurBan.Camp);
-        Assert.Equal(2, currentSurBan.Index);
-        Assert.True(currentSurBan.ShowLockOverlay);
-        Assert.Equal(ImageSizingMode.FillContainer, currentSurBan.SizingMode);
-        Assert.Equal("Uniform", currentSurBan.Stretch);
-
-        var currentHunBan = Assert.IsType<BanSlotDisplayControlConfig>(config.Controls["CurrentHunBan"]);
-        Assert.Equal(BanSlotKind.Current, currentHunBan.SlotKind);
-        Assert.Equal(neo_bpsys_wpf.Core.Enums.Camp.Hun, currentHunBan.Camp);
-
-        var globalSurBan = Assert.IsType<BanSlotDisplayControlConfig>(config.Controls["GlobalSurBan"]);
-        Assert.Equal(BanSlotKind.Global, globalSurBan.SlotKind);
-        Assert.Equal(neo_bpsys_wpf.Core.Enums.Camp.Sur, globalSurBan.Camp);
-
-        var globalHunBan = Assert.IsType<BanSlotDisplayControlConfig>(config.Controls["GlobalHunBan"]);
-        Assert.Equal(BanSlotKind.Global, globalHunBan.SlotKind);
-        Assert.Equal(neo_bpsys_wpf.Core.Enums.Camp.Hun, globalHunBan.Camp);
-
-        var pickingBorder = Assert.IsType<PickingBorderOverlayControlConfig>(config.Controls["SurPickingBorder0"]);
-        Assert.Equal("PickingBorderOverlay", pickingBorder.ControlType);
-        Assert.Equal("SurPick0", pickingBorder.TargetControlName);
-        Assert.True(pickingBorder.InitiallyHidden);
+        Assert.Contains($"unsupported ControlType '{controlType}'", exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -1399,85 +1345,6 @@ public class FrontedCanvasConfigTest
         Assert.Contains("Dispatcher.BeginInvoke", source, StringComparison.Ordinal);
     }
 
-
-    [Fact]
-    public void FrontedRendererSyncsPickingBorderOverlayToImageAndBorderedImageGeometry()
-    {
-        RunOnStaThread(() =>
-        {
-            var settingsHostService = new Mock<ISettingsHostService>();
-            settingsHostService
-                .SetupGet(service => service.Settings)
-                .Returns(new Settings());
-            var serviceProvider = new ServiceCollection()
-                .AddSingleton(settingsHostService.Object)
-                .BuildServiceProvider();
-
-            var renderer = new FrontedRenderer(
-                serviceProvider,
-                new Mock<ISharedDataService>().Object,
-                NullFrontedResourceResolver.Instance,
-                new FrontedControlRegistry(
-                [
-                    new ImageFrontedControl(),
-                    new BorderedImageFrontedControl(),
-                    new PickingBorderOverlayFrontedControl()
-                ]),
-                NullLogger<FrontedRenderer>.Instance);
-
-            var canvas = new Canvas { Name = "BaseCanvas" };
-            renderer.RenderToCanvas(
-                canvas,
-                new FrontedCanvasConfig
-                {
-                    Version = 3,
-                    CanvasWidth = 400,
-                    CanvasHeight = 300,
-                    Controls =
-                    {
-                        ["DirectImage"] = new ImageFrontedControlConfig
-                        {
-                            Left = 10,
-                            Top = 20,
-                            Width = 120,
-                            Height = 80
-                        },
-                        ["DirectOverlay"] = new PickingBorderOverlayControlConfig
-                        {
-                            TargetControlName = "DirectImage"
-                        },
-                        ["FramedImage"] = new BorderedImageFrontedControlConfig
-                        {
-                            Left = 150,
-                            Top = 30,
-                            Width = 90,
-                            Height = 70
-                        },
-                        ["FramedOverlay"] = new PickingBorderOverlayControlConfig
-                        {
-                            TargetControlName = "FramedImage"
-                        }
-                    }
-                },
-                new FrontedRenderContext
-                {
-                    WindowId = "TestWindow",
-                    CanvasName = "BaseCanvas"
-                });
-
-            var directOverlay = Assert.IsAssignableFrom<Border>(canvas.Children[1]);
-            Assert.Equal(10, Canvas.GetLeft(directOverlay));
-            Assert.Equal(20, Canvas.GetTop(directOverlay));
-            Assert.Equal(120, directOverlay.Width);
-            Assert.Equal(80, directOverlay.Height);
-
-            var framedOverlay = Assert.IsAssignableFrom<Border>(canvas.Children[3]);
-            Assert.Equal(150, Canvas.GetLeft(framedOverlay));
-            Assert.Equal(30, Canvas.GetTop(framedOverlay));
-            Assert.Equal(90, framedOverlay.Width);
-            Assert.Equal(70, framedOverlay.Height);
-        });
-    }
 
     [Fact]
     public void UnknownControlTypeReportsControlNameAndType()

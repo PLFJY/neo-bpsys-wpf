@@ -51,7 +51,7 @@ Designer v3 独立编辑器（`FrontedDesignerWindow`）已实现并作为设计
 2. SettingPage 旧 `.bpui` import/export UI 入口已删除。旧 `.bpui` 现在通过 `FrontManagePage` 的 Layout Packages 管理，会触发 v3 转换，不再覆盖全局 Config.json。旧 Config 字段已移入 legacy DTO / 转换器 / 迁移代码，不再作为 active `Settings.cs` 运行时属性。
 3. Resource Browser 控件级浏览不复制/导入外部图片。
 4. 运行时关键控件名称只读且不能删除。被其他控件引用的普通控件在 reference-aware rename/delete 实现前阻止改名和删除。
-5. `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 作为旧布局兼容控件保留；新布局推荐使用 `Image` / `BorderedImage` 的 `Lockable` 与 `PickingBorderAvailable` overlay，它们的内部覆盖层不作为普通可选/可编辑/可添加控件。
+5. `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已移除，不再作为兼容控件读取。新布局推荐使用 `Image` / `BorderedImage` 的 `Lockable` 与 `PickingBorderAvailable` overlay，它们的内部覆盖层不作为普通可选/可编辑/可添加控件。
 6. `.bpui v3` 导出、导入/安装、激活复制和删除已实现；导出固定为全部前台布局。
 7. v3 导出器不会写入全局 `Config.json`、`CustomUi/` 或 `FrontElementsConfig/`。
 8. 编辑器手写输入按上限截断，外部导入超限 JSON/manifest/layout/package 会拒绝。

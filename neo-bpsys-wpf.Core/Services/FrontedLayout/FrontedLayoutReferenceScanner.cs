@@ -72,27 +72,10 @@ public class FrontedLayoutReferenceScanner
     /// </summary>
     public void ApplyRenameReferences(string oldName, string newName)
     {
-        foreach (var control in _controls)
-        {
-            if (control.Config is PickingBorderOverlayControlConfig pickingBorder
-                && pickingBorder.TargetControlName == oldName)
-            {
-                pickingBorder.TargetControlName = newName;
-            }
-        }
     }
 
     private static IEnumerable<FrontedControlReference> GetReferences(FrontedControlDesignItem control)
     {
-        if (control.Config is PickingBorderOverlayControlConfig pickingBorder
-            && !string.IsNullOrWhiteSpace(pickingBorder.TargetControlName))
-        {
-            yield return new FrontedControlReference
-            {
-                SourceControlName = control.Name,
-                PropertyName = nameof(PickingBorderOverlayControlConfig.TargetControlName),
-                TargetControlName = pickingBorder.TargetControlName
-            };
-        }
+        return [];
     }
 }

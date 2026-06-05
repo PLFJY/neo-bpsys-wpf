@@ -129,9 +129,6 @@ v3 内置控件类型如下：
 | `TalentTraitDisplay` | `CutSceneWindow` 默认布局控件，封装求生者/监管者固定天赋图标和监管者辅助特质图标。 |
 | `GameProgressText` | `CutSceneWindow` 默认布局控件，集中生成 BO3/BO5 相关的对局进度文本。 |
 | `MapNameText` | `CutSceneWindow` 默认布局控件，按地图 key 生成本地化地图名。 |
-| `CurrentBanDisplay` | 兼容旧布局的当前局 Ban 位控件；新布局应使用 `Image` + `Lockable` overlay。 |
-| `BanSlotDisplay` | 兼容旧布局的当前局/全局 Ban 位控件；新布局应使用 `Image` + `Lockable` overlay。 |
-| `PickingBorderOverlay` | 兼容旧布局的 pick 呼吸边框覆盖层；新布局应使用 `Image` / `BorderedImage` + `PickingBorderAvailable` overlay，并保留稳定 `PickingBorderName`。 |
 | `MapV2Display` | `WidgetsWindow` 地图 BP v2 控件，复用 `MapV2Presenter`。 |
 
 ### Text
@@ -206,9 +203,6 @@ Ban 位不再需要专用业务控件即可表达：当前局 Ban 绑定 `Curren
 | `TalentTraitDisplay` | 求生者 4 个固定天赋、监管者 4 个固定天赋、监管者辅助特质、辅助特质显隐状态，以及黑白图标设置。 |
 | `GameProgressText` | `CurrentGame.GameProgress` + `IsBo3Mode` 的显示文本，显式区分 BO3 第三局加赛与 BO5 第四局；`UseLineBreak = true` 时把 Game / Overtime 和 half 分为两行。 |
 | `MapNameText` | 地图 key 到本地化显示名的转换；未配置 `BindingPath` 时默认读取 `CurrentGame.PickedMap`。 |
-| `CurrentBanDisplay` | 兼容旧 layout；新默认布局不再使用。 |
-| `BanSlotDisplay` | 兼容旧 layout；新默认布局不再使用。 |
-| `PickingBorderOverlay` | 兼容旧 layout；新默认布局不再使用独立控件。 |
 | `MapV2Display` | 通过 `MapKey` 读取 `CurrentGame.MapV2Dictionary`，复用 `MapV2Presenter`。 |
 
 ## 6. Image overlay 与旧字段兼容策略
@@ -388,8 +382,8 @@ legacy 转换会把 `ScoreWindowSettings.GlobalScoreBgImageUri` 写入 `ScoreGlo
 | Phase 3 | `ScoreSurWindow` / `ScoreHunWindow` 迁移到 v3 renderer，绑定 `MatchScore` | 已完成 |
 | Phase 4 | `CutSceneWindow` 迁移，`TalentTraitDisplay` / `GameProgressText` / `MapNameText` 控件 | 已完成 |
 | Phase 5 | `GameDataWindow` 迁移，`LocalizedText` 控件 | 已完成 |
-| Phase 6 | `WidgetsWindow` 多 Canvas 迁移，`CurrentBanDisplay` / `MapV2Display` | 已完成 |
-| Phase 7 | `BpWindow` 迁移，`BanSlotDisplay` / `PickingBorderOverlay` | 已完成 |
+| Phase 6 | `WidgetsWindow` 多 Canvas 迁移，当前 Ban 位改为 `Image` + `Lockable` / `MapV2Display` | 已完成 |
+| Phase 7 | `BpWindow` 迁移，Ban 位和 pick 呼吸边框改为 `Image` overlay | 已完成 |
 | Phase 8A | 独立编辑器设计规格 | 已完成 |
 | Phase 8B | 设计期基础：设计项模型、validator、引用扫描、关键名称 catalog | 已完成 |
 | Phase 8C | 独立编辑器 shell、窗口/Canvas 选择器、只读预览 | 已完成 |

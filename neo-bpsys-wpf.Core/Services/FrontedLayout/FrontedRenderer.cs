@@ -83,7 +83,6 @@ public class FrontedRenderer(
             renderedElements[name] = element;
         }
 
-        SyncLinkedPickingBorderOverlays(runtimeState.Controls, renderedElements);
     }
 
     private static Visibility MapVisibility(FrontedControlVisibility visibility) =>
@@ -122,53 +121,6 @@ public class FrontedRenderer(
         Canvas.SetTop(border, config.Top);
         Panel.SetZIndex(border, config.ZIndex);
         return border;
-    }
-
-    private static void SyncLinkedPickingBorderOverlays(
-        IReadOnlyDictionary<string, FrontedControlConfigBase> controls,
-        IReadOnlyDictionary<string, FrameworkElement> renderedElements)
-    {
-        foreach (var (overlayName, controlConfig) in controls)
-        {
-            if (controlConfig is not PickingBorderOverlayControlConfig overlayConfig
-                || string.IsNullOrWhiteSpace(overlayConfig.TargetControlName)
-                || !controls.TryGetValue(overlayConfig.TargetControlName, out var targetConfig)
-                || !renderedElements.TryGetValue(overlayConfig.TargetControlName, out var target)
-                || !renderedElements.TryGetValue(overlayName, out var overlay))
-            {
-                continue;
-            }
-
-            Canvas.SetLeft(overlay, Canvas.GetLeft(target));
-            Canvas.SetTop(overlay, Canvas.GetTop(target));
-
-            var width = ResolveRenderedSize(target.Width, target.ActualWidth, targetConfig.Width);
-            if (width.HasValue)
-            {
-                overlay.Width = width.Value;
-            }
-
-            var height = ResolveRenderedSize(target.Height, target.ActualHeight, targetConfig.Height);
-            if (height.HasValue)
-            {
-                overlay.Height = height.Value;
-            }
-        }
-    }
-
-    private static double? ResolveRenderedSize(double explicitSize, double actualSize, double? fallbackSize)
-    {
-        if (!double.IsNaN(explicitSize) && !double.IsInfinity(explicitSize) && explicitSize > 0D)
-        {
-            return explicitSize;
-        }
-
-        if (!double.IsNaN(actualSize) && !double.IsInfinity(actualSize) && actualSize > 0D)
-        {
-            return actualSize;
-        }
-
-        return fallbackSize;
     }
 
     private static void ClearGeneratedControls(Canvas canvas)

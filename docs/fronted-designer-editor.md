@@ -119,16 +119,12 @@ Phase 8B 起，这些运行时关键名称集中在 `FrontedLayoutRuntimeContrac
 其他重要语义名称也需要谨慎处理：
 
 1. Score 系列窗口的布局测试或文档可能依赖已记录的控件名。
-2. `PickingBorderOverlay.TargetControlName` 引用 pick 图片控件名。
+2. `Image.PickingBorderName` 注册运行时 animation target 名称，不是独立可编辑控件。
 3. 未来任何 linked control、binding target、animation target 都必须纳入引用扫描和重命名重构逻辑。
 
 ## 4. 引用字段与重命名重构
 
-部分 config 字段引用其他控件名。当前已知引用字段：
-
-| Config | 字段 |
-| --- | --- |
-| `PickingBorderOverlayControlConfig` | `TargetControlName` |
+部分 config 字段可能引用其他控件名。当前 Designer v3 内置控件没有 layout-item 级别的控件名引用字段；pick 呼吸边框使用 `Image.PickingBorderName` 注册 namescope 名称。
 
 未来可能出现的引用字段：
 
@@ -250,8 +246,7 @@ WPF 中没有可见内容的元素可能很难点击，甚至无法点击。常�
 2. `Source` 为 `null` 的 `Image`。
 3. 透明 `Border`。
 4. 当前没有业务数据的业务控件。
-5. 初始隐藏的 `PickingBorderOverlay`。
-6. 没有可见内容的 placeholder。
+5. 没有可见内容的 placeholder。
 
 编辑器不能依赖 renderer 生成的控件本身进行选择。Phase 8D 已为每个设计项在 `InteractionLayer` 创建透明 hitbox：
 
@@ -282,7 +277,7 @@ Phase 8D owner validation 后的选择规则：
 4. 该提升仅存在于 `InteractionLayer`，不会写回 JSON，也不会改变运行时 `ZIndex` 或 preview 渲染顺序。
 5. 空白区域单击清除选择；空白区域拖拽不改变选择。
 6. `Image` / `BorderedImage` 的 lock 和 picking border 是内部视觉层，不在普通控件列表显示，不生成普通 hitbox，也不能直接选中、拖拽或缩放；`PickingBorderName` 会作为运行时 namescope 名称注册，供 `AnimationService` 查找。
-7. `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 作为旧布局兼容控件保留；打开旧布局时可以继续渲染，但新默认布局和普通 Add Control 不再依赖它们。
+7. `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已从 Designer v3 控件模型中移除；Ban 位必须使用 `Image` + `Lockable` overlay，pick 呼吸边框必须使用 `Image` / `BorderedImage` + `PickingBorderAvailable`。
 8. overlay 不反向驱动目标图片。移动或缩放图片控件时，内部 overlay 自动跟随图片根元素位置和尺寸。
 9. 交互优先级为：resize handle、视口平移、拖动已选控件、单击选择、空白点击清除。按住 Space 时左键拖拽用于平移，不会选择或移动控件；右键拖拽同样只平移视口。
 
@@ -355,7 +350,7 @@ Phase 8F 起，工具栏提供 Add Control 按钮和菜单添加控件，并按�
 | Business | `MapNameText`, `GameProgressText`, `TalentTraitDisplay`, `GlobalScoreRow`, `MapV2Display` |
 | Score/BP | `GlobalScoreRow`, `Image` |
 
-`CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 不应出现在普通 Add Control 列表中。Ban 位和 pick 图应添加 `Image`，再通过 `BindingPath`、`Lockable`、`LockVisibilityBindingPath`、`PickingBorderAvailable` 和 `PickingBorderName` 配置。
+`CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已移除，不应出现在 Add Control 列表中。Ban 位和 pick 图应添加 `Image`，再通过 `BindingPath`、`Lockable`、`LockVisibilityBindingPath`、`PickingBorderAvailable` 和 `PickingBorderName` 配置。
 
 `GlobalScoreRow` 是一个目的明确的复合控件，不应拆成一组无父级的顶层比分控件。编辑器中点击行主体会选中父级比分行，可移动或缩放整行；点击行内比分格 overlay 会选中该子格，同时父级仍作为当前顶层设计项。父级移动只修改 `GlobalScoreRow.Left/Top`，子格相对 `X/Y` 不变；子格移动或缩放只修改对应 `GlobalScoreCellConfig.X/Y/Width/Height`，并在合理范围内夹到父框内。子格属性面板显示 `Id`、`GameNumber`、`GameKind`、`HalfKind`、相对几何、`Visibility` 和样式覆盖项；字体、颜色、字号和 `ShowCampIcon` 留空表示继承父级。图层面板只显示顶层设计控件，`GlobalScoreRow.Cells` 不作为全局图层项。选中父行后，右侧属性面板显示专用 Score Cells 列表；点击列表项会选择对应内部比分格，但 `SelectedDesignItem` 仍保持父行。子格不能删除、复制、粘贴或拖入全局图层面板，也不能参与全局 ZIndex 拖拽、跨层投放或顶/底投放区。子格拖动、缩放和属性编辑都会进入 Designer undo/redo 栈，但这不是通用多选模型。
 
@@ -376,7 +371,7 @@ Phase 8F owner validation 后，工具栏新增 Delete Control。删除只影响
 
 1. 未选中控件时不执行。
 2. 运行时关键控件、不可选中控件或不可编辑控件拒绝删除。
-3. 存在 incoming reference 的控件拒绝删除，例如 `PickingBorderOverlay.TargetControlName` 指向该控件时不能删除。
+3. 如果未来出现 incoming reference 字段，被引用控件删除时必须拒绝或同步清理引用。
 4. 删除成功后从 `CurrentDocument.Controls` 移除设计项、清空选择、标记 dirty、刷新左侧列表和 Property Grid、重新校验并重渲染 preview。
 5. 设计 surface 获得焦点时按 Delete 可删除选中控件；焦点在 `TextBox`、`ComboBox`、ColorPicker 等属性编辑器内时不会触发删除。
 
@@ -535,9 +530,9 @@ Phase 8E 的名称编辑采用保守策略：
 1. `Name` 属于设计项和 JSON key，不属于 config object；不要给 `FrontedControlConfigBase` 或派生 config 添加重复 `Name`。
 2. 运行时关键控件的 `Name` 只读。
 3. 普通控件改名必须非空、匹配 `^[A-Za-z_][A-Za-z0-9_]*$`，并在当前 Canvas 内唯一。
-4. 如果旧名称被其他控件引用，Phase 8E 阻止改名并提示“Reference-aware rename will be implemented later.”，避免静默断开引用。
+4. 如果未来出现 layout-item 级别的控件名引用字段，改名前必须先实现引用感知重命名，避免静默断开引用。
 5. 新布局优先使用 `Image` / `BorderedImage` 的 `Lockable`、`LockImagePath`、`LockVisibilityBindingPath`、`LockVisibleWhen`、`PickingBorderAvailable`、`PickingBorderImagePath` 和 `PickingBorderName` 配置内部覆盖层。覆盖层不是独立设计项，不生成普通 hitbox。
-6. `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 只作为兼容控件保留；普通 Add Control 不应把它们作为推荐入口。
+6. `CurrentBanDisplay`、`BanSlotDisplay` 和 `PickingBorderOverlay` 已不再支持，普通 Add Control 不应提供这些入口。
 
 ## 13. Binding Browser
 
@@ -664,11 +659,11 @@ Phase 8G 已实现控件级资源路径浏览。Resource Browser 面向图片和
 
 1. 删除选中控件。
 2. 默认阻止删除运行时关键控件。
-3. 被其他控件引用的控件不能静默删除，必须阻止或确认并同步清理引用。
+3. 如果未来出现控件间引用字段，被其他控件引用的控件不能静默删除，必须阻止或确认并同步清理引用。
 
 ### Copy/Paste
 
-Phase 10 已实现内部控件复制/粘贴。`Ctrl+C` 复制当前选中的普通可编辑控件，`Ctrl+V` 粘贴单个控件。该剪贴板只存在于编辑器 ViewModel 内，不使用系统剪贴板。运行时关键控件、`PickingBorderOverlay`、不可选/不可编辑控件不能复制。粘贴时深拷贝 config，名称按尾部数字递增并避开冲突，`Left` / `Top` 偏移 `+10`。Phase 13C 起，已安装插件控件的 typed config 和缺失插件控件的 `PluginFrontedControlConfig.ExtensionData` 都按同一 JSON 深拷贝路径保留；插件控件新增或粘贴后的默认名称使用 `ControlTypeName`，例如 `TeamCard1`，而不是完整 `plugin:...` 字符串。焦点位于 `TextBox`、可编辑 `ComboBox`、ColorPicker 文本区域等文本输入时，窗口不会拦截 `Ctrl+C` / `Ctrl+V`，保留普通文本复制粘贴。
+Phase 10 已实现内部控件复制/粘贴。`Ctrl+C` 复制当前选中的普通可编辑控件，`Ctrl+V` 粘贴单个控件。该剪贴板只存在于编辑器 ViewModel 内，不使用系统剪贴板。运行时关键控件和不可选/不可编辑控件不能复制。粘贴时深拷贝 config，名称按尾部数字递增并避开冲突，`Left` / `Top` 偏移 `+10`。Phase 13C 起，已安装插件控件的 typed config 和缺失插件控件的 `PluginFrontedControlConfig.ExtensionData` 都按同一 JSON 深拷贝路径保留；插件控件新增或粘贴后的默认名称使用 `ControlTypeName`，例如 `TeamCard1`，而不是完整 `plugin:...` 字符串。焦点位于 `TextBox`、可编辑 `ComboBox`、ColorPicker 文本区域等文本输入时，窗口不会拦截 `Ctrl+C` / `Ctrl+V`，保留普通文本复制粘贴。
 
 ### Undo/Redo
 
