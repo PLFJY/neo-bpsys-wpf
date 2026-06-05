@@ -42,6 +42,22 @@ public class ModernSmoothScrollingTest
     }
 
     [Fact]
+    public void AnimatedFalseScrollsImmediately()
+    {
+        RunSta(() =>
+        {
+            WithScrollableViewer(scrollViewer =>
+            {
+                ScrollAnimationHelper.SmoothScrollToVerticalOffset(scrollViewer, 90, TimeSpan.FromSeconds(1), animated: false);
+                scrollViewer.UpdateLayout();
+
+                Assert.Equal(90, scrollViewer.VerticalOffset);
+                Assert.False(ScrollAnimationHelper.IsVerticalAnimationActive(scrollViewer));
+            });
+        });
+    }
+
+    [Fact]
     public void NewAnimationRetargetsExistingVerticalAnimation()
     {
         RunSta(() =>

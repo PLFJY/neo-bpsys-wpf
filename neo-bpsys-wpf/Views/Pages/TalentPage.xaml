@@ -10,6 +10,7 @@
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modernScroll="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="TalentPage"
@@ -20,8 +21,11 @@
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     mc:Ignorable="d">
-    <WrapPanel Orientation="Horizontal">
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
+    <WrapPanel modernScroll:GuidanceAutoScrollScope.IsEnabled="True" Orientation="Horizontal">
+        <Border
+            Margin="0,0,10,10"
+            modernScroll:GuidanceScrollTarget.Action="PickSurTalent"
+            Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -59,7 +63,10 @@
                 </WrapPanel>
             </Grid>
         </Border>
-        <Border Margin="0,0,10,10" Style="{StaticResource Card}">
+        <Border
+            Margin="0,0,10,10"
+            modernScroll:GuidanceScrollTarget.Action="PickHunTalent"
+            Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />

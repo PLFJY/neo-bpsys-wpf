@@ -8,6 +8,7 @@
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modernScroll="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="BanSurPage"
@@ -22,7 +23,7 @@
         <cv:IntPlusOneConverter x:Key="IntPlusOneConverter" />
         <cv:IndexFormatConverter x:Key="IndexFormatConverter" />
     </Page.Resources>
-    <WrapPanel Orientation="Horizontal">
+    <WrapPanel modernScroll:GuidanceAutoScrollScope.IsEnabled="True" Orientation="Horizontal">
         <Border Margin="0,0,10,10" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
@@ -52,6 +53,8 @@
                                 IsEnabled="{Binding IsEnabled}"
                                 IsHighlighted="{Binding IsHighlighted}"
                                 ItemsSource="{Binding CharaDict}"
+                                modernScroll:GuidanceScrollTarget.Action="BanSur"
+                                modernScroll:GuidanceScrollTarget.Index="{Binding Index}"
                                 SelectedValue="{Binding SelectedChara}" />
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

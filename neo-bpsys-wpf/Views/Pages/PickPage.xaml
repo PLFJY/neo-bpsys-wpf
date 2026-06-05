@@ -8,6 +8,7 @@
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:local="clr-namespace:neo_bpsys_wpf.Views.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:modernScroll="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="PickPage"
@@ -29,7 +30,7 @@
             <Setter Property="IsReadOnly" Value="True" />
         </Style>
     </Page.Resources>
-    <WrapPanel Orientation="Horizontal">
+    <WrapPanel modernScroll:GuidanceAutoScrollScope.IsEnabled="True" Orientation="Horizontal">
         <Border Margin="0,0,10,10" Style="{StaticResource Card}">
             <Grid>
                 <Grid.RowDefinitions>
@@ -62,11 +63,15 @@
                                     ImageSource="{Binding PreviewImage}"
                                     IsHighlighted="{Binding IsHighlighted}"
                                     ItemsSource="{Binding CharaDict}"
+                                    modernScroll:GuidanceScrollTarget.Action="PickSur"
+                                    modernScroll:GuidanceScrollTarget.Index="{Binding Index}"
                                     SelectedValue="{Binding SelectedChara}" />
                                 <cc:CharacterChanger
                                     Command="{Binding SwapCharacterInPlayersCommand}"
                                     Index="{Binding Index}"
-                                    IsHighlighted="{Binding IsCharaChangerHighlighted}" />
+                                    IsHighlighted="{Binding IsCharaChangerHighlighted}"
+                                    modernScroll:GuidanceScrollTarget.Action="DistributeChara"
+                                    modernScroll:GuidanceScrollTarget.Index="{Binding Index}" />
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -90,6 +95,7 @@
                     ImageSource="{Binding HunPickVm.PreviewImage}"
                     IsHighlighted="{Binding HunPickVm.IsHighlighted}"
                     ItemsSource="{Binding HunPickVm.CharaDict}"
+                    modernScroll:GuidanceScrollTarget.Action="PickHun"
                     SelectedValue="{Binding HunPickVm.SelectedChara}" />
             </Grid>
         </Border>

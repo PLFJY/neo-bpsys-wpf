@@ -13,6 +13,15 @@
 
 现有窗口里有多处滚轮语义并不只是“滚动内容”。例如 `FrontedDesignerWindow` 的预览区域有自定义缩放和平移逻辑，不能被平滑滚动行为接管。因此本阶段只添加基础设施，不修改全局样式，也不迁移 `PluginPage`、`FrontManagePage`、`ClassicBackendWindow`、`MainWindow` 或 Designer v3 相关滚动区域。
 
-## 后续 GameGuidance 用法
+## GameGuidance 自动滚动
 
-后续引导式 BP 自动滚动可以先用 `ScrollViewerSearchHelper.FindNearestScrollableAncestor(target)` 找到目标控件所在的可滚动容器，再用 `ScrollAnimationHelper.SmoothScrollToVerticalOffset(...)` 执行动画滚动。这样可以复用同一套动画、取消和 reduced motion 入口，而不需要依赖具体模板部件名。
+GameGuidance 自动滚动是纯 View 层能力，不改变 `GameGuidanceService` 的根流程：仍然由服务执行页面导航、计时器启动、延迟和 `HighlightMessage` 广播。
+
+页面通过两类附加属性 opt-in：
+
+- `GuidanceAutoScrollScope.IsEnabled="True"`：标记页面根或根面板。Scope 在 `Loaded` 时注册 `HighlightMessage`，在 `Unloaded` 时注销。
+- `GuidanceScrollTarget.Action` / `GuidanceScrollTarget.Index`：标记页面内可滚动到的控件或区域。带 `Index` 的目标只匹配包含该索引的消息；不带 `Index` 的目标只按 `GameAction` 匹配。
+
+收到 `HighlightMessage` 后，Scope 在当前页面内查找匹配目标，并从目标向上寻找最近的既有可滚动 `ScrollViewer`。如果该 `ScrollViewer` 开启了 `SmoothScrollBehavior.IsProgrammaticAnimationEnabled`，会复用 `ScrollAnimationHelper.SmoothScrollToVerticalOffset(...)` 执行程序化平滑滚动；否则使用普通 `ScrollToVerticalOffset`。找不到 `ScrollViewer` 时仅回退到 `BringIntoView()`。
+
+该机制不添加页面级 `ScrollViewer` 包裹，不依赖 WPF-UI `NavigationView`、未来 `ModernFrame`、iNKORE 或固定模板部件名。当前 WPF-UI 页面宿主和未来 `ModernFrame` 只要在目标祖先链上提供可滚动容器，都可以被同一套查找逻辑使用；页面内已有手动 `ScrollViewer` 时会优先使用最近的那个。
