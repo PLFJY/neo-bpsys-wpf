@@ -279,6 +279,34 @@ public class ModernNavigationViewTest
     }
 
     [Fact]
+    public void PageNavigationSetsFrameScrollHostModeToEnabled()
+    {
+        RunSta(() =>
+        {
+            var navigationView = new ModernNavigationView
+            {
+                NavigationBehavior = ModernNavigationBehavior.PageNavigation
+            };
+
+            Assert.Equal(ModernFrameContentScrollHostMode.Enabled, GetFrame(navigationView).ContentScrollHostMode);
+        });
+    }
+
+    [Fact]
+    public void LocalTabsSetsFrameScrollHostModeToAuto()
+    {
+        RunSta(() =>
+        {
+            var navigationView = new ModernNavigationView
+            {
+                NavigationBehavior = ModernNavigationBehavior.LocalTabs
+            };
+
+            Assert.Equal(ModernFrameContentScrollHostMode.Auto, GetFrame(navigationView).ContentScrollHostMode);
+        });
+    }
+
+    [Fact]
     public void TopModeUsesListBoxSelectorNotButtonCommandTabs()
     {
         RunSta(() =>
@@ -671,6 +699,21 @@ public class ModernNavigationViewTest
     }
 
     [Fact]
+    public void PluginInstalledLocalTabUsesDirectFramePresenter()
+    {
+        RunSta(() =>
+        {
+            var page = new PluginPage();
+            var navigationView = Assert.IsType<ModernNavigationView>(page.FindName("PluginTabs"));
+
+            Assert.True(navigationView.SelectFirstItemIfNoneSelected());
+
+            var content = Assert.IsType<PluginInstalledView>(navigationView.CurrentContent);
+            Assert.False(IsUsingFrameScrollHost(GetFrame(navigationView), content));
+        });
+    }
+
+    [Fact]
     public void PluginPageCanSwitchLocalTabsWithoutSeparateFrame()
     {
         RunSta(() =>
@@ -782,6 +825,36 @@ public class ModernNavigationViewTest
 
             Assert.IsType<FrontedWindowsView>(navigationView.CurrentContent);
             Assert.Same(dataContext, navigationView.CurrentContent?.DataContext);
+        });
+    }
+
+    [Fact]
+    public void FrontManageLayoutPackagesLocalTabUsesDirectFramePresenter()
+    {
+        RunSta(() =>
+        {
+            var page = new FrontManagePage();
+            var navigationView = Assert.IsType<ModernNavigationView>(page.FindName("FrontManageTabs"));
+
+            navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[1]);
+
+            var content = Assert.IsType<FrontedLayoutPackagesView>(navigationView.CurrentContent);
+            Assert.False(IsUsingFrameScrollHost(GetFrame(navigationView), content));
+        });
+    }
+
+    [Fact]
+    public void FrontManageWindowsLocalTabCanUseFrameScrollHost()
+    {
+        RunSta(() =>
+        {
+            var page = new FrontManagePage();
+            var navigationView = Assert.IsType<ModernNavigationView>(page.FindName("FrontManageTabs"));
+
+            Assert.True(navigationView.SelectFirstItemIfNoneSelected());
+
+            var content = Assert.IsType<FrontedWindowsView>(navigationView.CurrentContent);
+            Assert.True(IsUsingFrameScrollHost(GetFrame(navigationView), content));
         });
     }
 
@@ -949,6 +1022,46 @@ public class ModernNavigationViewTest
                 yield return descendant;
             }
         }
+    }
+
+    private static ModernFrame GetFrame(ModernNavigationView navigationView)
+    {
+        return Assert.IsType<ModernFrame>(navigationView.FindName("PART_Frame"));
+    }
+
+    private static bool IsUsingFrameScrollHost(ModernFrame frame, FrameworkElement content)
+    {
+        frame.ApplyTemplate();
+
+        if (frame.ContentScrollHost.Visibility == Visibility.Visible)
+        {
+            return true;
+        }
+
+        var directPresenter = FindVisualDescendants<ContentPresenter>(frame)
+            .FirstOrDefault(presenter =>
+                ReferenceEquals(presenter.Content, content)
+                && !IsVisualDescendantOf(presenter, frame.ContentScrollHost));
+
+        Assert.NotNull(directPresenter);
+        Assert.Equal(Visibility.Visible, directPresenter.Visibility);
+        return false;
+    }
+
+    private static bool IsVisualDescendantOf(DependencyObject descendant, DependencyObject ancestor)
+    {
+        var current = descendant;
+        while (current is not null)
+        {
+            if (ReferenceEquals(current, ancestor))
+            {
+                return true;
+            }
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return false;
     }
 
     private sealed class TestPageProvider : INavigationViewPageProvider

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
@@ -52,6 +53,13 @@ public class ModernFrame : Control
             typeof(ModernFrame),
             new PropertyMetadata(true, OnIsContentScrollHostEnabledChanged));
 
+    public static readonly DependencyProperty ContentScrollHostModeProperty =
+        DependencyProperty.Register(
+            nameof(ContentScrollHostMode),
+            typeof(ModernFrameContentScrollHostMode),
+            typeof(ModernFrame),
+            new PropertyMetadata(ModernFrameContentScrollHostMode.Enabled, OnContentScrollHostModeChanged));
+
     public static readonly DependencyProperty CurrentContentProperty =
         DependencyProperty.Register(
             nameof(CurrentContent),
@@ -77,6 +85,7 @@ public class ModernFrame : Control
     private ContentPresenter? _directContentPresenter;
     private ModernScrollViewer? _contentScrollHost;
     private FrameworkElement? _activeHostedContent;
+    private bool _isUsingContentScrollHostForActiveContent = true;
 
     public ModernFrame()
     {
@@ -109,6 +118,12 @@ public class ModernFrame : Control
     {
         get => (bool)GetValue(IsContentScrollHostEnabledProperty);
         set => SetValue(IsContentScrollHostEnabledProperty, value);
+    }
+
+    public ModernFrameContentScrollHostMode ContentScrollHostMode
+    {
+        get => (ModernFrameContentScrollHostMode)GetValue(ContentScrollHostModeProperty);
+        set => SetValue(ContentScrollHostModeProperty, value);
     }
 
     public FrameworkElement? CurrentContent
@@ -253,6 +268,11 @@ public class ModernFrame : Control
     }
 
     private static void OnIsContentScrollHostEnabledChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        ((ModernFrame)d).UpdateActiveHost();
+    }
+
+    private static void OnContentScrollHostModeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         ((ModernFrame)d).UpdateActiveHost();
     }
@@ -564,8 +584,9 @@ public class ModernFrame : Control
 
         var hostedContent = CreateHostedContent(content);
         _activeHostedContent = hostedContent;
+        _isUsingContentScrollHostForActiveContent = ShouldUseContentScrollHost(content, hostedContent);
 
-        if (IsContentScrollHostEnabled)
+        if (_isUsingContentScrollHostForActiveContent)
         {
             _directContentPresenter.Content = null;
             _directContentPresenter.Visibility = Visibility.Collapsed;
@@ -601,6 +622,95 @@ public class ModernFrame : Control
         }
     }
 
+    private bool ShouldUseContentScrollHost(FrameworkElement content, FrameworkElement hostedContent)
+    {
+        if (!IsContentScrollHostEnabled)
+        {
+            return false;
+        }
+
+        return ContentScrollHostMode switch
+        {
+            ModernFrameContentScrollHostMode.Enabled => true,
+            ModernFrameContentScrollHostMode.Disabled => false,
+            ModernFrameContentScrollHostMode.Auto => !ContentHasOwnScrollHost(content) && !ContentHasOwnScrollHost(hostedContent),
+            _ => true
+        };
+    }
+
+    private static bool ContentHasOwnScrollHost(FrameworkElement content)
+    {
+        return ContentHasOwnScrollHostCore(content, new HashSet<object>(ReferenceEqualityComparer.Instance));
+    }
+
+    private static bool ContentHasOwnScrollHostCore(object? node, ISet<object> visited)
+    {
+        if (node is null || !visited.Add(node))
+        {
+            return false;
+        }
+
+        if (node is ScrollViewer)
+        {
+            return true;
+        }
+
+        var typeName = node.GetType().Name;
+        if (typeName.Contains("DynamicScrollViewer", StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        if (node is ListBox or ListView or DataGrid or TreeView)
+        {
+            return true;
+        }
+
+        if (node is ItemsControl itemsControl && HasExplicitVerticalScroll(itemsControl))
+        {
+            return true;
+        }
+
+        if (node is UserControl userControl
+            && userControl.Content is DependencyObject userControlContent
+            && ContentHasOwnScrollHostCore(userControlContent, visited))
+        {
+            return true;
+        }
+
+        if (node is ContentControl contentControl
+            && contentControl.Content is DependencyObject content
+            && ContentHasOwnScrollHostCore(content, visited))
+        {
+            return true;
+        }
+
+        if (node is Decorator decorator
+            && ContentHasOwnScrollHostCore(decorator.Child, visited))
+        {
+            return true;
+        }
+
+        if (node is Panel panel)
+        {
+            foreach (UIElement child in panel.Children)
+            {
+                if (ContentHasOwnScrollHostCore(child, visited))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static bool HasExplicitVerticalScroll(ItemsControl itemsControl)
+    {
+        var localValue = itemsControl.ReadLocalValue(ScrollViewer.VerticalScrollBarVisibilityProperty);
+        return localValue is ScrollBarVisibility visibility && visibility != ScrollBarVisibility.Disabled;
+    }
+
     private static FrameworkElement CreateHostedContent(FrameworkElement content)
     {
         if (content is not Page page)
@@ -622,7 +732,7 @@ public class ModernFrame : Control
     private FrameworkElement GetActiveTransitionElement()
     {
         EnsureTemplateParts();
-        return IsContentScrollHostEnabled ? _contentScrollHost : _directContentPresenter;
+        return _isUsingContentScrollHostForActiveContent ? _contentScrollHost : _directContentPresenter;
     }
 
     private void RestoreActiveHostState()
@@ -632,7 +742,7 @@ public class ModernFrame : Control
             return;
         }
 
-        if (IsContentScrollHostEnabled)
+        if (_isUsingContentScrollHostForActiveContent)
         {
             _contentScrollHost.Visibility = Visibility.Visible;
             _contentScrollHost.IsHitTestVisible = true;

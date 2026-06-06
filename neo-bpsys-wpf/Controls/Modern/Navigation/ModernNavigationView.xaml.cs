@@ -82,7 +82,7 @@ public partial class ModernNavigationView : UserControl, INavigationView
         DependencyProperty.Register(nameof(PaneDisplayMode), typeof(NavigationViewPaneDisplayMode), typeof(ModernNavigationView), new PropertyMetadata(NavigationViewPaneDisplayMode.Left));
 
     public static readonly DependencyProperty NavigationBehaviorProperty =
-        DependencyProperty.Register(nameof(NavigationBehavior), typeof(ModernNavigationBehavior), typeof(ModernNavigationView), new PropertyMetadata(ModernNavigationBehavior.PageNavigation));
+        DependencyProperty.Register(nameof(NavigationBehavior), typeof(ModernNavigationBehavior), typeof(ModernNavigationView), new PropertyMetadata(ModernNavigationBehavior.PageNavigation, OnNavigationBehaviorChanged));
 
     public static readonly DependencyProperty SelectedEntryProperty =
         DependencyProperty.Register(nameof(SelectedEntry), typeof(ModernNavigationEntry), typeof(ModernNavigationView), new PropertyMetadata(null, OnSelectedEntryChanged));
@@ -140,6 +140,7 @@ public partial class ModernNavigationView : UserControl, INavigationView
 
         SetCurrentValue(ActualPaneLengthProperty, GetTargetPaneLength());
         PART_Frame.TransitionDuration = TimeSpan.FromMilliseconds(Math.Max(0, TransitionDuration));
+        UpdateFrameScrollHostMode();
 
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
@@ -502,6 +503,11 @@ public partial class ModernNavigationView : UserControl, INavigationView
         }
     }
 
+    private static void OnNavigationBehaviorChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        ((ModernNavigationView)d).UpdateFrameScrollHostMode();
+    }
+
     private static void OnSelectedEntryChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var navigationView = (ModernNavigationView)d;
@@ -525,6 +531,8 @@ public partial class ModernNavigationView : UserControl, INavigationView
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        UpdateFrameScrollHostMode();
+
         LocalizeDictionary.Instance.PropertyChanged += OnLocalizeDictionaryPropertyChanged;
         RefreshLocalizedMenuText();
 
@@ -548,6 +556,18 @@ public partial class ModernNavigationView : UserControl, INavigationView
         {
             RefreshLocalizedMenuText();
         }
+    }
+
+    private void UpdateFrameScrollHostMode()
+    {
+        if (PART_Frame is null)
+        {
+            return;
+        }
+
+        PART_Frame.ContentScrollHostMode = NavigationBehavior == ModernNavigationBehavior.LocalTabs
+            ? ModernFrameContentScrollHostMode.Auto
+            : ModernFrameContentScrollHostMode.Enabled;
     }
 
     private void SetItemsSource(object? oldSource, object? newSource, bool isFooter)

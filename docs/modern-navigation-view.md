@@ -87,7 +87,14 @@ Top 模式用于局部标签导航：
 - 只显示 `MenuEntries`，不显示 footer items
 - 下方共享 `PART_Frame` 内容区
 
-内容区通过 `ModernFrame` 的默认 `ModernScrollViewer` 提供外层滚动宿主和页面转场。pane 展开时使用 `OpenPaneLength`，折叠时使用 `CompactPaneLength`，内容列占用剩余宽度；Top 模式隐藏左侧 pane，并让共享内容区跨完整宽度。
+内容区通过 `ModernFrame` 提供滚动宿主和页面转场。pane 展开时使用 `OpenPaneLength`，折叠时使用 `CompactPaneLength`，内容列占用剩余宽度；Top 模式隐藏左侧 pane，并让共享内容区跨完整宽度。
+
+`ModernNavigationView` 会按 `NavigationBehavior` 集中配置内部 `PART_Frame.ContentScrollHostMode`：
+
+- `PageNavigation` 使用 `Enabled`，保持 `MainWindow.RootNavigation` 的后台页面外层滚动宿主，`GameGuidanceService` 仍能通过 frame 的 `ModernScrollViewer` 做引导滚动。
+- `LocalTabs` 使用 `Auto`，由 `ModernFrame` 判断当前 tab 内容是否已经有自己的滚动宿主。
+
+`LocalTabs` 的 `Auto` 模式用于避免嵌套 `ScrollViewer` / `ListView` / `ListBox` 冲突。`PluginInstalledView`、`PluginMarketView`、`FrontedLayoutPackagesView` 这类子视图已经拥有列表或 `DynamicScrollViewer` 时，内容会走直接 presenter，由子视图自己滚动；`FrontedWindowsView` 这类简单卡片页没有内部滚动宿主时，仍使用 frame 级 `ModernScrollViewer`，整页内容可以继续滚动。
 
 菜单项前景色跟随 WPF-UI 动态主题资源。按钮默认、悬停、按下和选中状态使用 NavigationView item 前景色资源；禁用状态使用 WPF-UI 文本禁用色资源。文本和图标都从按钮 `Foreground` 继承，不硬编码黑白颜色，因此主题切换时可以随资源更新。
 
@@ -129,7 +136,7 @@ public enum ModernNavigationBehavior
 
 `PageNavigation` 是默认值，用于 `MainWindow.RootNavigation`。它保持 Phase 4 行为：通过 `INavigationViewPageProvider`、`IServiceProvider` 或 `Activator` 创建后台 Page，保留 `ModernFrame` journal/back 行为，并继续兼容 `NavigationService` 和 `GameGuidanceService`。
 
-`LocalTabs` 用于局部标签页。它直接创建本地 `FrameworkElement`，当前约定子视图使用 `UserControl`；如果子视图没有自己的 `DataContext`，会继承 `ModernNavigationView.DataContext`。每次本地标签切换成功后都会清空 `PART_Frame` journal，避免标签切换进入全局返回栈。切换方向根据旧/新 tab 在 `MenuEntries` 中的索引选择横向 slide 转场。
+`LocalTabs` 用于局部标签页。它直接创建本地 `FrameworkElement`，当前约定子视图使用 `UserControl`；如果子视图没有自己的 `DataContext`，会继承 `ModernNavigationView.DataContext`。每次本地标签切换成功后都会清空 `PART_Frame` journal，避免标签切换进入全局返回栈。切换方向根据旧/新 tab 在 `MenuEntries` 中的索引选择横向 slide 转场。局部标签页不要全局关闭 `ModernFrame` 滚动宿主，应依赖 `ContentScrollHostMode.Auto` 保留简单页的 frame 级滚动，同时避开列表页的嵌套滚动。
 
 ## 后台页迁移
 

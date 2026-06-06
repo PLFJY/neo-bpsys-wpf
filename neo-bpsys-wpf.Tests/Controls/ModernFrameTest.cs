@@ -156,6 +156,198 @@ public class ModernFrameTest
 
             Assert.IsType<ModernScrollViewer>(frame.ContentScrollHost);
             Assert.True(frame.IsContentScrollHostEnabled);
+            Assert.Equal(ModernFrameContentScrollHostMode.Enabled, frame.ContentScrollHostMode);
+        });
+    }
+
+    [Fact]
+    public void EnabledContentScrollHostModeUsesScrollHost()
+    {
+        RunSta(() =>
+        {
+            var frame = new ModernFrame
+            {
+                ContentScrollHostMode = ModernFrameContentScrollHostMode.Enabled
+            };
+            var content = new UserControl
+            {
+                Content = new ListView()
+            };
+
+            frame.Navigate(content, new SuppressNavigationTransitionInfo());
+
+            Assert.True(IsUsingFrameScrollHost(frame, content));
+        });
+    }
+
+    [Fact]
+    public void DisabledContentScrollHostModeUsesDirectPresenter()
+    {
+        RunSta(() =>
+        {
+            var frame = new ModernFrame
+            {
+                ContentScrollHostMode = ModernFrameContentScrollHostMode.Disabled
+            };
+            var content = new WrapPanel();
+
+            frame.Navigate(content, new SuppressNavigationTransitionInfo());
+
+            Assert.False(IsUsingFrameScrollHost(frame, content));
+        });
+    }
+
+    [Fact]
+    public void IsContentScrollHostEnabledFalseStillUsesDirectPresenter()
+    {
+        RunSta(() =>
+        {
+            var frame = new ModernFrame
+            {
+                IsContentScrollHostEnabled = false,
+                ContentScrollHostMode = ModernFrameContentScrollHostMode.Enabled
+            };
+            var content = new WrapPanel();
+
+            frame.Navigate(content, new SuppressNavigationTransitionInfo());
+
+            Assert.False(IsUsingFrameScrollHost(frame, content));
+        });
+    }
+
+    [Fact]
+    public void AutoContentScrollHostModeWithListViewUsesDirectPresenter()
+    {
+        RunSta(() =>
+        {
+            var frame = new ModernFrame
+            {
+                ContentScrollHostMode = ModernFrameContentScrollHostMode.Auto
+            };
+            var content = new UserControl
+            {
+                Content = new Grid
+                {
+                    Children = { new ListView() }
+                }
+            };
+
+            frame.Navigate(content, new SuppressNavigationTransitionInfo());
+
+            Assert.False(IsUsingFrameScrollHost(frame, content));
+        });
+    }
+
+    [Fact]
+    public void AutoContentScrollHostModeWithListBoxUsesDirectPresenter()
+    {
+        RunSta(() =>
+        {
+            var frame = new ModernFrame
+            {
+                ContentScrollHostMode = ModernFrameContentScrollHostMode.Auto
+            };
+            var content = new UserControl
+            {
+                Content = new Border
+                {
+                    Child = new ListBox()
+                }
+            };
+
+            frame.Navigate(content, new SuppressNavigationTransitionInfo());
+
+            Assert.False(IsUsingFrameScrollHost(frame, content));
+        });
+    }
+
+    [Fact]
+    public void AutoContentScrollHostModeWithScrollViewerUsesDirectPresenter()
+    {
+        RunSta(() =>
+        {
+            var frame = new ModernFrame
+            {
+                ContentScrollHostMode = ModernFrameContentScrollHostMode.Auto
+            };
+            var content = new UserControl
+            {
+                Content = new ScrollViewer()
+            };
+
+            frame.Navigate(content, new SuppressNavigationTransitionInfo());
+
+            Assert.False(IsUsingFrameScrollHost(frame, content));
+        });
+    }
+
+    [Fact]
+    public void AutoContentScrollHostModeWithDynamicScrollViewerUsesDirectPresenter()
+    {
+        RunSta(() =>
+        {
+            var frame = new ModernFrame
+            {
+                ContentScrollHostMode = ModernFrameContentScrollHostMode.Auto
+            };
+            var content = new UserControl
+            {
+                Content = new Wpf.Ui.Controls.DynamicScrollViewer()
+            };
+
+            frame.Navigate(content, new SuppressNavigationTransitionInfo());
+
+            Assert.False(IsUsingFrameScrollHost(frame, content));
+        });
+    }
+
+    [Fact]
+    public void AutoContentScrollHostModeWithSimpleWrapPanelUsesScrollHost()
+    {
+        RunSta(() =>
+        {
+            var frame = new ModernFrame
+            {
+                ContentScrollHostMode = ModernFrameContentScrollHostMode.Auto
+            };
+            var content = new WrapPanel
+            {
+                Children =
+                {
+                    new Border { Height = 120 },
+                    new Border { Height = 120 }
+                }
+            };
+
+            frame.Navigate(content, new SuppressNavigationTransitionInfo());
+
+            Assert.True(IsUsingFrameScrollHost(frame, content));
+        });
+    }
+
+    [Fact]
+    public void SwitchingAutoContentScrollHostModesUpdatesActiveHost()
+    {
+        RunSta(() =>
+        {
+            var frame = new ModernFrame
+            {
+                ContentScrollHostMode = ModernFrameContentScrollHostMode.Auto
+            };
+            var simpleContent = new WrapPanel();
+            var listContent = new UserControl
+            {
+                Content = new ListBox()
+            };
+
+            frame.Navigate(simpleContent, new SuppressNavigationTransitionInfo());
+            Assert.True(IsUsingFrameScrollHost(frame, simpleContent));
+
+            frame.Navigate(listContent, new SuppressNavigationTransitionInfo());
+            Assert.False(IsUsingFrameScrollHost(frame, listContent));
+
+            frame.Navigate(new WrapPanel(), new SuppressNavigationTransitionInfo());
+            Assert.Equal(Visibility.Visible, frame.ContentScrollHost.Visibility);
         });
     }
 
@@ -387,6 +579,54 @@ public class ModernFrameTest
     }
 
     [Fact]
+    public void AnimatedTransitionTargetsDirectPresenterWhenAutoDetectsInnerScrollHost()
+    {
+        RunSta(() =>
+        {
+            if (RenderCapability.Tier == 0 || !SystemParameters.ClientAreaAnimation)
+            {
+                return;
+            }
+
+            var first = new WrapPanel();
+            var second = new UserControl
+            {
+                Content = new ListBox()
+            };
+            var frame = new ModernFrame
+            {
+                Width = 120,
+                Height = 120,
+                ContentScrollHostMode = ModernFrameContentScrollHostMode.Auto,
+                TransitionDuration = TimeSpan.FromMilliseconds(200)
+            };
+            frame.Navigate(first, new SuppressNavigationTransitionInfo());
+
+            var window = CreateHiddenWindow(frame);
+            try
+            {
+                window.Show();
+                window.UpdateLayout();
+
+                frame.Navigate(second, new EntranceNavigationTransitionInfo());
+                window.Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+
+                var directPresenter = FindDirectPresenter(frame, second);
+
+                Assert.NotNull(directPresenter);
+                Assert.Equal(Visibility.Visible, directPresenter.Visibility);
+                Assert.Equal(0D, directPresenter.Opacity);
+                Assert.False(directPresenter.IsHitTestVisible);
+                Assert.Equal(Visibility.Collapsed, frame.ContentScrollHost.Visibility);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
     public void AnimatedTransitionCompletionRestoresActiveHostWithoutClearingIdentityTransform()
     {
         RunSta(() =>
@@ -521,6 +761,29 @@ public class ModernFrameTest
         }
 
         return false;
+    }
+
+    private static bool IsUsingFrameScrollHost(ModernFrame frame, FrameworkElement content)
+    {
+        frame.ApplyTemplate();
+
+        if (frame.ContentScrollHost.Visibility == Visibility.Visible)
+        {
+            return true;
+        }
+
+        var directPresenter = FindDirectPresenter(frame, content);
+        Assert.NotNull(directPresenter);
+        Assert.Equal(Visibility.Visible, directPresenter.Visibility);
+        return false;
+    }
+
+    private static ContentPresenter? FindDirectPresenter(ModernFrame frame, FrameworkElement content)
+    {
+        return FindVisualDescendants<ContentPresenter>(frame)
+            .FirstOrDefault(presenter =>
+                ReferenceEquals(presenter.Content, content)
+                && !IsVisualDescendantOf(presenter, frame.ContentScrollHost));
     }
 
     private static void PumpDispatcher(Dispatcher dispatcher, TimeSpan duration)

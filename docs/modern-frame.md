@@ -5,10 +5,10 @@
 ## 目标
 
 - 为 `ModernNavigationView` Left 模式承载后台主导航页面。
-- 为后续 `ModernNavigationView` Top 模式承载类标签页内容。
-- 为 `PluginPage` 等局部内容切换提供带动画的轻量宿主。
+- 为 `ModernNavigationView` Top 模式承载类标签页内容。
+- 为 `PluginPage`、`FrontManagePage` 等局部内容切换提供带动画的轻量宿主。
 
-当前阶段已经由 `ModernNavigationView` 在 `MainWindow.RootNavigation` 内部使用 `ModernFrame`。仍不迁移 `PluginPage`、`FrontManagePage` 标签页，也不实现 Top 模式标签页。
+当前阶段已经由 `ModernNavigationView` 在 `MainWindow.RootNavigation`、`PluginPage` 和 `FrontManagePage` 的局部标签页内部使用 `ModernFrame`。
 
 ## 内容与创建
 
@@ -56,4 +56,21 @@ WPF `Page` 不能直接作为普通 `ContentPresenter` 的子元素。`ModernFra
 
 `Page` 经过内部 `Frame` 承载时，页面加载会经过 WPF dispatcher；需要在页面 Loaded 后或使用现有引导滚动重试机制查找目标。加载完成后，`GuidanceScrollHelper` 可以从页面内容发现 `ModernFrame` 的 `ModernScrollViewer` 滚动宿主。
 
-如果页面内部已经有手写 `ScrollViewer`，现有查找逻辑会优先命中更近的内部滚动容器。`IsContentScrollHostEnabled` 可关闭默认滚动宿主，为后续特殊页面保留逃生口。
+`IsContentScrollHostEnabled` 是兼容性开关，设为 `false` 时会完全跳过外层 `ModernScrollViewer`，改用直接 presenter 承载内容。
+
+`ContentScrollHostMode` 用于控制默认滚动宿主策略：
+
+```csharp
+public enum ModernFrameContentScrollHostMode
+{
+    Enabled,
+    Disabled,
+    Auto
+}
+```
+
+- `Enabled` 是默认值，保持既有后台页面行为，使用外层 `ModernScrollViewer`。
+- `Disabled` 使用直接 presenter，不创建外层滚动测量。
+- `Auto` 会在布局前检查内容自身是否已经拥有滚动宿主；如果存在 `ScrollViewer`、`ModernScrollViewer`、WPF-UI `DynamicScrollViewer`、`ListBox`、`ListView`、`DataGrid`、`TreeView` 或显式开启垂直滚动的 `ItemsControl`，则使用直接 presenter。
+
+`Auto` 的目的不是替代子视图的滚动控件，而是避免嵌套滚动宿主导致内部 `ListView` / `ListBox` 得不到有限 viewport。子视图已经拥有列表或滚动区域时，应由子视图自己滚动；简单卡片页、`WrapPanel` 等没有内部滚动宿主的内容，仍可以继续使用 frame 级滚动。
