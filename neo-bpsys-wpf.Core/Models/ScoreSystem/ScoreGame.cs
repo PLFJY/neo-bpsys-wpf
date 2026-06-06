@@ -57,6 +57,7 @@ public partial class ScoreGame : ObservableObjectBase
             UnsubscribeHalf(_firstHalf);
             SetPropertyWithDerivedRefresh(ref _firstHalf, value);
             SubscribeHalf(_firstHalf);
+            OnPropertyChanged(nameof(MajorResult));
         }
     }
 
@@ -74,6 +75,7 @@ public partial class ScoreGame : ObservableObjectBase
             UnsubscribeHalf(_secondHalf);
             SetPropertyWithDerivedRefresh(ref _secondHalf, value);
             SubscribeHalf(_secondHalf);
+            OnPropertyChanged(nameof(MajorResult));
         }
     }
 

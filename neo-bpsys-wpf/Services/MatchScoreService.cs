@@ -79,7 +79,7 @@ public class MatchScoreService : IMatchScoreService
     public void ClearCurrentHalfResult() => SetCurrentHalfResult(null);
 
     /// <inheritdoc />
-    public void Recalculate() => Current.Recalculate();
+    public void Recalculate() => Current.Recalculate(CurrentGameScore?.Key);
 
     /// <inheritdoc />
     public void RefreshCurrentProgress()

@@ -50,7 +50,7 @@ public partial class MatchScoreState : ObservableObjectBase
     {
         _games = games ?? CreateDefaultGames();
         SubscribeGames(_games);
-        Recalculate();
+        Recalculate(null);
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ public partial class MatchScoreState : ObservableObjectBase
             UnsubscribeGames(_games);
             SetProperty(ref _games, value);
             SubscribeGames(_games);
-            Recalculate();
+            Recalculate(null);
         }
     }
 
@@ -301,7 +301,7 @@ public partial class MatchScoreState : ObservableObjectBase
     /// <summary>
     /// 从所有已记录半场重新派生大比分、总小比分和当前显示文本。
     /// </summary>
-    public void Recalculate()
+    public void Recalculate(ScoreGameKey? currentGameScoreKey)
     {
         var homeMajorWin = 0;
         var homeMajorTie = 0;
@@ -309,9 +309,11 @@ public partial class MatchScoreState : ObservableObjectBase
         var awayMajorTie = 0;
         var homeTotalMinorScore = 0;
         var awayTotalMinorScore = 0;
+        if(currentGameScoreKey is null) return;
 
-        foreach (var game in Games)
+        for (int i = 0; i < currentGameScoreKey?.GameNumber; i++)
         {
+            ScoreGame? game = Games[i];
             switch (game.MajorResult)
             {
                 case ScoreGameMajorResult.HomeWin:
@@ -511,8 +513,8 @@ public partial class MatchScoreState : ObservableObjectBase
             }
         }
 
-        Recalculate();
+        Recalculate(null);
     }
 
-    private void OnScoreGamePropertyChanged(object? sender, PropertyChangedEventArgs args) => Recalculate();
+    private void OnScoreGamePropertyChanged(object? sender, PropertyChangedEventArgs args) => Recalculate(null);
 }

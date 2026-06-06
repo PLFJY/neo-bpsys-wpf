@@ -2,7 +2,7 @@
 
 本文定义 Score System v2 的目标模型、计算规则、前台绑定方向和迁移计划。
 
-当前实现状态：旧比分写入路径清理已完成。现有 `Core.Models.Game` 已持有 `MatchScoreState`，后台 `ScorePageViewModel` 的结果按钮通过 `IMatchScoreService.SetCurrentHalfResult(...)` / `ClearCurrentHalfResult()` 写入 `CurrentGame.MatchScore`，普通 UI 不再提供手动 Game/half 选择、手动 `Team.Score` 累加或"同步至前台"按钮；比分控制始终跟随全局 `CurrentGame.GameProgress`。后台 `ScorePage` 现在提供导播用只读比分预览表，表格行由 `CurrentGame.MatchScore.Games` 派生，按 BO3/BO5 显示对应 ScoreGame 和半场，并用状态列标记当前半场、已录入和未录入。`ScoreSurWindow` / `ScoreHunWindow` / `ScoreGlobalWindow` / `CutSceneWindow` / `GameDataWindow` 的 v3 layout 已绑定 `CurrentGame.MatchScore` 派生字段，不再从 `Team.Score`、`ScoreWindowViewModel` 总分字段或 `FrontedWindowService` 动态控件读取比分。`GameGlobalInfoRecord` 和 `ScoreWindowViewModel.TotalMainGameScore` / `TotalAwayGameScore` 已移除。`.bpui` 尚未迁移，`BpWindow`、`WidgetsWindow` 等旧 XAML-first 前台窗口仍可能读取 `Team.Score` 兼容镜像。
+当前实现状态：旧比分写入路径清理已完成。现有 `Core.Models.Game` 已持有 `MatchScoreState`，后台 `ScorePageViewModel` 的结果按钮通过 `IMatchScoreService.SetCurrentHalfResult(...)` / `ClearCurrentHalfResult()` 写入 `CurrentGame.MatchScore`，普通 UI 不再提供手动 Game/half 选择、手动 `Team.Score` 累加或"同步至前台"按钮；比分控制始终跟随全局 `CurrentGame.GameProgress`。后台 `ScorePage` 现在提供导播用只读比分预览表，表格行由 `CurrentGame.MatchScore.Games` 派生，按 BO3/BO5 显示对应 ScoreGame 和半场，并用状态列标记当前半场、已录入和未录入。`ScoreSurWindow` / `ScoreHunWindow` / `ScoreGlobalWindow` / `CutSceneWindow` / `GameDataWindow` / `WidgetsWindow` / `BpWindow` 的 v3 layout 已绑定 `CurrentGame.MatchScore` 派生字段，不再从 `Team.Score`、`ScoreWindowViewModel` 总分字段或 `FrontedWindowService` 动态控件读取比分。`GameGlobalInfoRecord`、`ScoreWindowViewModel.TotalMainGameScore` / `TotalAwayGameScore` 和 `FrontedWindowService.SetGlobalScore*` / `ResetGlobalScore` 已移除。`.bpui` 尚未迁移，但内置默认布局已全部接入 v3 renderer。
 
 Score System v2 的核心目标是把权威比分状态放回现有 `Core.Models.Game`，让比分可以随对局导入、导出、回溯，并能在 `SharedDataService.NewGame()` 创建新对局时像 `MapV2Dictionary` 一样从上一局 `CurrentGame` 延续必要状态。
 
@@ -17,7 +17,7 @@ Score System v2 的核心目标是把权威比分状态放回现有 `Core.Models
 | `Team.Score` 同时承载大比分和当前小比分 | `Team.Score.Win`、`Tie`、`GameScores` | 队伍模型既像全场比分，又像当前半场/当前局内临时计分；语义混杂。 |
 | 全局比分记录曾由页面 ViewModel 持有 | `ScorePageViewModel.GameGlobalInfoRecord` | 已移除；后台页面不再维护第二份半场完成状态。 |
 | 总小比分曾通过 messenger 推送 | `ScorePageViewModel.UpdateTotalGameScore()` -> `ScoreWindowViewModel.TotalMainGameScore` / `TotalAwayGameScore` | 已移除；`ScoreGlobalWindow` 默认布局直接绑定 `MatchScoreState.HomeTotalMinorScore` / `AwayTotalMinorScore`。 |
-| 全局比分 UI 曾由服务动态创建和直接修改 | `FrontedWindowService.GlobalScoreControlsReg()`、`SetGlobalScore()`、`SetGlobalScoreToBar()` | 当前全局比分窗口由 v3 `GlobalScoreRow.Cells` 配置比分格，再从 `CurrentGame.MatchScore` 填充文本和阵营图标；公共接口中的 `SetGlobalScore*` / `ResetGlobalScore` 仅作为 obsolete no-op 适配器保留。 |
+| 全局比分 UI 曾由服务动态创建和直接修改 | `FrontedWindowService.GlobalScoreControlsReg()`、`SetGlobalScore()`、`SetGlobalScoreToBar()` | 当前全局比分窗口由 v3 `GlobalScoreRow.Cells` 配置比分格，再从 `CurrentGame.MatchScore` 填充文本和阵营图标；`SetGlobalScore*` / `ResetGlobalScore` 已从代码库中完全移除。 |
 | 局内比分窗口已接入 v3 renderer 并完成绑定迁移 | `ScoreSurWindow/BaseCanvas.json`、`ScoreHunWindow/BaseCanvas.json` | 当前默认布局绑定 `CurrentGame.MatchScore.*` 派生字段；用户旧布局如果仍保留 `CurrentGame.*Team.Score.*`，需要后续布局迁移或手动恢复默认。 |
 
 ## 2. 核心设计决策
@@ -81,8 +81,8 @@ MatchScoreState
   ├─ AwayMajorText
   ├─ HomeTotalMinorScore
   ├─ AwayTotalMinorScore
-  ├─ CurrentSurTeamPreHalfMinorScore
-  ├─ CurrentHunTeamPreHalfMinorScore
+  ├─ CurrentSurTeamPreHalfMinorScoreText
+  ├─ CurrentHunTeamPreHalfMinorScoreText
   ├─ CurrentSurTeamMajorText
   └─ CurrentHunTeamMajorText
 ```
@@ -149,9 +149,9 @@ ScoreGame 5 Overtime -> { GameNumber: 5, GameKind: Overtime }
 | `CurrentHalf` / `GetHalf(...)` | 根据 `CurrentGame.GameProgress` 定位当前 `ScoreHalf`。 |
 | `SetCurrentHalfResult(GameResult result)` | 写入当前半场结果，并记录当时主客队阵营映射。 |
 | `ClearCurrentHalfResult()` | 把当前半场结果设为 `null`。 |
-| `Recalculate()` | 从所有 `ScoreGame` 重新计算大比分、总小比分和前台派生字段。 |
+| `Recalculate()` | 从所有已完成 `ScoreGame` 重新计算大比分、总小比分和前台派生字段。内部调用 `MatchScoreState.Recalculate(ScoreGameKey?)`，传入当前 `ScoreGame.Key`；仅统计 `GameNumber` 小于当前局的 Game，避免不完整局参与大比分计算。 |
 | `RefreshCurrentProgress()` | 结合当前 `GameProgress`、当前求生/监管队伍和 BO3/BO5 状态刷新局内显示字段。 |
-| `SyncLegacyTeamScoreMirror()` | 迁移期把当前派生比分写回 `Team.Score`，仅用于旧窗口兼容。 |
+| `SyncLegacyTeamScoreMirror()` | 迁移期把当前派生比分写回 `Team.Score.GameScores` / `Win` / `Tie`，仅用于旧窗口兼容。 |
 
 ```text
 ScorePageViewModel
@@ -238,12 +238,11 @@ HomeMinorScore = FirstHalf.HomeMinorScore + SecondHalf.HomeMinorScore
 AwayMinorScore = FirstHalf.AwayMinorScore + SecondHalf.AwayMinorScore
 
 if HomeMinorScore > AwayMinorScore:
-    HomeMajorWin += 1
+    majorResult = HomeWin
 else if AwayMinorScore > HomeMinorScore:
-    AwayMajorWin += 1
+    majorResult = AwayWin
 else:
-    HomeMajorTie += 1
-    AwayMajorTie += 1
+    majorResult = Tie
 ```
 
 如果任一半为 `null`，该 `ScoreGame` 不完整：
@@ -253,6 +252,20 @@ else:
 | `HomeMinorScore` / `AwayMinorScore` | 不作为完整 ScoreGame 的小比分输出。 |
 | 大比分胜/平 | 不计算。 |
 | 全场总小比分 | 只累加已记录半场的小比分；空半场不累加。 |
+
+#### 大比分统计范围
+
+`MatchScoreState.Recalculate(ScoreGameKey? currentGameScoreKey)` 并非统计所有 `ScoreGame` 的大比分结果，而是**只统计 `GameNumber` 小于当前局编号的 Game**（即在当前半场之前已完整结算的 Game）。通过 `Games[i]` 索引遍历，`i` 从 `0` 到 `currentGameScoreKey.GameNumber - 1`。
+
+```text
+for i = 0; i < currentGameScoreKey.GameNumber; i++:
+    game = Games[i]
+    count MajorResult from game
+```
+
+当 `currentGameScoreKey` 为 `null`（例如 `GameProgress.Free`）时，`Recalculate` 直接返回，不更新派生字段。这意味着 `Free` 状态下派生值保持上一次有效计算结果或初始化默认值。
+
+> 注意：`Games` 集合按 GameNumber 顺序排列，但包含加赛局（Game 3 Overtime、Game 5 Overtime），索引 `i` 与 `GameNumber` 的对应关系是 `Games[i]` 的第 `i` 个元素，而 `GameNumber` 限制遍历次数。当前遍历方式假设前 N 个元素的 `GameNumber` 恰好依次为 1..N，这在 `CreateDefaultGames()` 构造的默认集合下成立。
 
 ### 5.4 全场派生
 
@@ -264,8 +277,8 @@ else:
 | `AwayMajorWin` / `AwayMajorTie` | 客队大比分胜/平。 |
 | `HomeMajorText` / `AwayMajorText` | 前台大比分文本，建议保持当前 `W{Win}  D{Tie}` 风格。 |
 | `HomeTotalMinorScore` / `AwayTotalMinorScore` | 所有已记录半场的主客小比分合计。 |
-| `CurrentSurTeamPreHalfMinorScore` | 当前求生者队伍在当前半场窗口中应显示的上一半小比分。 |
-| `CurrentHunTeamPreHalfMinorScore` | 当前监管者队伍在当前半场窗口中应显示的上一半小比分。 |
+| `CurrentSurTeamPreHalfMinorScoreText` | 当前求生者队伍在当前半场窗口中应显示的上一半小比分文本。 |
+| `CurrentHunTeamPreHalfMinorScoreText` | 当前监管者队伍在当前半场窗口中应显示的上一半小比分文本。 |
 | `CurrentSurTeamMajorText` | 当前求生者队伍对应的大比分文本。 |
 | `CurrentHunTeamMajorText` | 当前监管者队伍对应的大比分文本。 |
 
@@ -350,7 +363,7 @@ ScorePage button
 | `Team.Score.MajorPointsOnFront` | 仅作为仍未迁移旧窗口的 transitional compatibility mirror；局内比分 v3 默认布局已改为读取 `MatchScoreState` 派生字段。 |
 | `ScorePageViewModel.GameGlobalInfoRecord` | 已移除。 |
 | `ScoreWindowViewModel.TotalMainGameScore` / `TotalAwayGameScore` | 已移除；总小比分直接绑定 `CurrentGame.MatchScore.HomeTotalMinorScore` / `AwayTotalMinorScore`。 |
-| `FrontedWindowService.SetGlobalScore*` / `ResetGlobalScore` | 不再作为比分状态入口；公共接口仅保留 obsolete no-op 适配器，全局比分窗口状态由 `CurrentGame.MatchScore` 驱动。 |
+| `FrontedWindowService.SetGlobalScore*` / `ResetGlobalScore` | 已完全移除；全局比分窗口状态由 `CurrentGame.MatchScore` 驱动。 |
 
 ## 11. 已实现功能总览
 
@@ -363,7 +376,7 @@ Score System v2 的所有阶段（Score Phase 0-5）已全部完成。核心进�
 | 后台 UI | `ScorePageViewModel` 结果按钮直接操作 service；移除手动 Game/half 选择、手动累加和同步按钮；只读预览表由 `MatchScoreState.Games` 派生。 |
 | 前台绑定 | `ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow` 的 v3 layout 绑定 `MatchScoreState` 派生字段。 |
 | 全局比分 | 内置 `GlobalScoreRow` 控件，由 `Cells` 显式配置比分格，运行时从 `MatchScoreState` 解析；BO3/BO5 由通用 Canvas states 控制。 |
-| 清理 | `GameGlobalInfoRecord`、`ScoreWindowViewModel` 总分字段、`FrontedWindowService.SetGlobalScore*` 调用链已移除（保留 obsolete no-op 适配器）。 |
+| 清理 | `GameGlobalInfoRecord`、`ScoreWindowViewModel` 总分字段、`FrontedWindowService.SetGlobalScore*` 调用链已完全移除。 |
 
 ## 12. 重要警告
 
