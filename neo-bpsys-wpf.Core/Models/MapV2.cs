@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Core.Abstractions;
@@ -109,6 +109,11 @@ public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMes
     {
         get
         {
+            if (MapName == Map.NoBans)
+            {
+                return ImageHelper.GetImageSourceFromName(ImageSourceKey.map, "BanMark");
+            }
+
             _imageSourceNormal ??= ImageHelper.GetImageSourceFromName(ImageSourceKey.map, MapName.ToString());
             if(_imageSourceBanned == null)
             {

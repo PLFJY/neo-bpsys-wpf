@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using neo_bpsys_wpf.Core.Abstractions;
@@ -209,10 +209,17 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
             {
                 if (_imageSource == null)
                 {
-                    _imageSource ??= ImageHelper.GetImageSourceFromName(ImageSourceKey.map, Map.MapName.ToString())?.ToGrayKeepAlpha();
-                    var banMark = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, "BanMark");
-                    if (banMark != null)
-                        _imageSource = _imageSource?.Overlay(banMark);
+                    if (Map.MapName == Core.Enums.Map.NoBans)
+                    {
+                        _imageSource = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, "BanMark");
+                    }
+                    else
+                    {
+                        _imageSource ??= ImageHelper.GetImageSourceFromName(ImageSourceKey.map, Map.MapName.ToString())?.ToGrayKeepAlpha();
+                        var banMark = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, "BanMark");
+                        if (banMark != null)
+                            _imageSource = _imageSource?.Overlay(banMark);
+                    }
                 }
                 return _imageSource;
             }
