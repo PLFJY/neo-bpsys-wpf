@@ -2104,6 +2104,9 @@
   <data name="EditProperty" xml:space="preserve">
     <value>Edit property</value>
   </data>
+  <data name="EditTextBindingSource" xml:space="preserve">
+    <value>Edit binding source</value>
+  </data>
   <data name="Color" xml:space="preserve">
     <value>Color</value>
   </data>

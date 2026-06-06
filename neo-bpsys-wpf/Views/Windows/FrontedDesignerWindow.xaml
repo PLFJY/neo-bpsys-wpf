@@ -208,7 +208,7 @@
                     MinWidth="52"
                     Margin="6,0,0,0"
                     Click="EditTextBindingButton_OnClick"
-                    Content="{lex:Loc EditProperty}" />
+                    Content="{lex:Loc EditTextBindingSource}" />
             </Grid>
         </DataTemplate>
 
