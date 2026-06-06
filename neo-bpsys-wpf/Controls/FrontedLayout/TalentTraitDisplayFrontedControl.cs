@@ -49,18 +49,18 @@ public class TalentTraitDisplayFrontedControl(ILogger<TalentTraitDisplayFrontedC
     {
         private static readonly TalentIconDefinition[] SurvivorTalentDefinitions =
         [
-            new(Camp.Sur, "回光返照", talent => talent.BorrowedTime),
-            new(Camp.Sur, "化险为夷", talent => talent.TideTurner),
-            new(Camp.Sur, "飞轮效应", talent => talent.FlywheelEffect),
-            new(Camp.Sur, "膝跳反射", talent => talent.KneeJerkReflex)
+            new(Camp.Sur, nameof(Talent.BorrowedTime), talent => talent.BorrowedTime),
+            new(Camp.Sur, nameof(Talent.TideTurner), talent => talent.TideTurner),
+            new(Camp.Sur, nameof(Talent.FlywheelEffect), talent => talent.FlywheelEffect),
+            new(Camp.Sur, nameof(Talent.KneeJerkReflex), talent => talent.KneeJerkReflex)
         ];
 
         private static readonly TalentIconDefinition[] HunterTalentDefinitions =
         [
-            new(Camp.Hun, "底牌", talent => talent.TrumpCard),
-            new(Camp.Hun, "挽留", talent => talent.Detention),
-            new(Camp.Hun, "禁闭空间", talent => talent.ConfinedSpace),
-            new(Camp.Hun, "张狂", talent => talent.Insolence)
+            new(Camp.Hun, nameof(Talent.TrumpCard), talent => talent.TrumpCard),
+            new(Camp.Hun, nameof(Talent.Detention), talent => talent.Detention),
+            new(Camp.Hun, nameof(Talent.ConfinedSpace), talent => talent.ConfinedSpace),
+            new(Camp.Hun, nameof(Talent.Insolence), talent => talent.Insolence)
         ];
 
         private readonly TalentTraitDisplayControlConfig _config;
