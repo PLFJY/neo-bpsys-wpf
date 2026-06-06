@@ -9,8 +9,6 @@ namespace neo_bpsys_wpf.Controls.Modern.Scrolling;
 // This local control keeps only the project-needed behavior and avoids iNKORE theme/control dependencies.
 public class ModernScrollViewer : ScrollViewer
 {
-    private readonly WheelScrollEventRouter _wheelEventRouter;
-
     public static readonly DependencyProperty IsSmoothScrollingEnabledProperty =
         DependencyProperty.Register(
             nameof(IsSmoothScrollingEnabled),
@@ -41,14 +39,7 @@ public class ModernScrollViewer : ScrollViewer
 
     public ModernScrollViewer()
     {
-        _wheelEventRouter = new WheelScrollEventRouter(
-            this,
-            () => IsSmoothScrollingEnabled,
-            () => WheelScrollMultiplier,
-            () => ScrollAnimationDuration,
-            () => ScrollEasingFunction);
-
-        Loaded += OnLoaded;
+        PreviewMouseWheel += OnPreviewMouseWheel;
         Unloaded += OnUnloaded;
     }
 
@@ -76,14 +67,22 @@ public class ModernScrollViewer : ScrollViewer
         set => SetValue(ScrollEasingFunctionProperty, value);
     }
 
-    private void OnLoaded(object sender, RoutedEventArgs e)
-    {
-        _wheelEventRouter.Attach();
-    }
-
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
-        _wheelEventRouter.Detach();
+        ScrollAnimationHelper.CancelVerticalAnimation(this);
+    }
+
+    private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        TryHandleSmoothVerticalWheelScroll(
+            this,
+            e,
+            WheelScrollMultiplier,
+            ScrollAnimationDuration,
+            IsSmoothScrollingEnabled,
+            ScrollEasingFunction,
+            e.OriginalSource as DependencyObject,
+            respectExplicitSelfOwnership: true);
     }
 
     protected override void OnMouseWheel(MouseWheelEventArgs e)
@@ -93,12 +92,15 @@ public class ModernScrollViewer : ScrollViewer
             return;
         }
 
-        if (WheelScrollEventGuard.ShouldSuppressOwnerScroll(this, e))
-        {
-            return;
-        }
-
-        if (TryHandleSmoothVerticalWheelScroll(this, e, WheelScrollMultiplier, ScrollAnimationDuration, IsSmoothScrollingEnabled, ScrollEasingFunction))
+        if (TryHandleSmoothVerticalWheelScroll(
+                this,
+                e,
+                WheelScrollMultiplier,
+                ScrollAnimationDuration,
+                IsSmoothScrollingEnabled,
+                ScrollEasingFunction,
+                e.OriginalSource as DependencyObject,
+                respectExplicitSelfOwnership: false))
         {
             return;
         }
@@ -133,9 +135,53 @@ public class ModernScrollViewer : ScrollViewer
         IEasingFunction? easingFunction,
         DependencyObject? explicitSource)
     {
-        if (WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, e, explicitSource)
-            || !isSmoothScrollingEnabled
+        return TryHandleSmoothVerticalWheelScroll(
+            scrollViewer,
+            e,
+            wheelScrollMultiplier,
+            scrollAnimationDuration,
+            isSmoothScrollingEnabled,
+            easingFunction,
+            explicitSource,
+            respectExplicitSelfOwnership: true);
+    }
+
+    internal static bool TryHandleSmoothVerticalWheelScroll(
+        ScrollViewer scrollViewer,
+        MouseWheelEventArgs e,
+        double wheelScrollMultiplier,
+        int scrollAnimationDuration,
+        bool isSmoothScrollingEnabled,
+        IEasingFunction? easingFunction,
+        DependencyObject? explicitSource,
+        bool respectExplicitSelfOwnership)
+    {
+        if (WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, e, explicitSource, respectExplicitSelfOwnership)
+            || !isSmoothScrollingEnabled)
+        {
+            return false;
+        }
+
+        return ScrollVerticalWheel(
+            scrollViewer,
+            e,
+            wheelScrollMultiplier,
+            scrollAnimationDuration,
+            useSmoothScrolling: true,
+            easingFunction);
+    }
+
+    internal static bool ScrollVerticalWheel(
+        ScrollViewer scrollViewer,
+        MouseWheelEventArgs e,
+        double wheelScrollMultiplier,
+        int scrollAnimationDuration,
+        bool useSmoothScrolling,
+        IEasingFunction? easingFunction)
+    {
+        if (e.Handled
             || scrollViewer.ScrollableHeight <= 0
+            || !CanScrollVerticallyInWheelDirection(scrollViewer, e.Delta)
             || e.Delta % Mouse.MouseWheelDeltaForOneLine != 0)
         {
             return false;
@@ -151,10 +197,23 @@ public class ModernScrollViewer : ScrollViewer
             scrollViewer,
             targetOffset,
             TimeSpan.FromMilliseconds(Math.Max(0, scrollAnimationDuration)),
-            animated: scrollAnimationDuration > 0,
+            animated: useSmoothScrolling && scrollAnimationDuration > 0,
             easingFunction);
 
         e.Handled = true;
         return true;
+    }
+
+    internal static bool CanScrollVerticallyInWheelDirection(ScrollViewer scrollViewer, int wheelDelta)
+    {
+        ArgumentNullException.ThrowIfNull(scrollViewer);
+
+        var currentOffset = ScrollAnimationHelper.GetCurrentVerticalAnimationTarget(scrollViewer) ?? scrollViewer.VerticalOffset;
+        return wheelDelta switch
+        {
+            < 0 => currentOffset < scrollViewer.ScrollableHeight,
+            > 0 => currentOffset > 0,
+            _ => false
+        };
     }
 }

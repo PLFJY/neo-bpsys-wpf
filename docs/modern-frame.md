@@ -71,8 +71,15 @@ public enum ModernFrameContentScrollHostMode
 
 - `Enabled` 是默认值，保持既有后台页面行为，使用外层 `ModernScrollViewer`。
 - `Disabled` 使用直接 presenter，不创建外层滚动测量。
-- `Auto` 会在布局前检查内容自身是否已经拥有滚动宿主；如果存在 `ScrollViewer`、`ModernScrollViewer`、WPF-UI `DynamicScrollViewer`、`ListBox`、`ListView`、`DataGrid`、`TreeView` 或显式开启垂直滚动的 `ItemsControl`，则使用直接 presenter。
+- `Auto` 保留外层 `ModernScrollViewer` 作为默认页面滚动宿主。只有内容根或承载根显式声明 `ModernScroll.Ownership="Self"` 时，才使用直接 presenter。
 
-`Auto` 的目的不是替代子视图的滚动控件，而是避免嵌套滚动宿主导致内部 `ListView` / `ListBox` 得不到有限 viewport。子视图已经拥有列表或滚动区域时，应由子视图自己滚动；简单卡片页、`WrapPanel` 等没有内部滚动宿主的内容，仍可以继续使用 frame 级滚动。
+滚动归属是显式契约，不再按控件类型推断。普通 `ListView`、`ListBox`、`DataGrid`、`TreeView` 或 WPF-UI `DynamicScrollViewer` 出现在页面中，并不表示该列表一定拥有滚动；很多列表是非约束高度的页面内容，应继续由外层 frame/page 滚动。
 
-frame 级 `ModernScrollViewer` 只处理页面级滚轮。滚轮来源位于已打开的 `ComboBox` 下拉框、弹出层、内层 `ScrollViewer`、`ListBox`、`ListView` 等控件时，frame 不会接管该事件，也不会滚动背后的页面。LocalTabs 中的列表页应继续依赖自身滚动；没有内部滚动宿主的简单子页才使用 frame 级平滑滚动。
+可用 `ModernScroll.Ownership` 标记归属：
+
+```xml
+scrolling:ModernScroll.Ownership="Frame"
+scrolling:ModernScroll.Ownership="Self"
+```
+
+`Frame` 强制保持外层 frame/page 滚动；`Self` 表示该区域拥有自己的滚动语义。显式 self-scroll 的控件仍应通过 `NestedSmoothScrollBehavior.IsEnabled="True"` 获得平滑滚动。frame 级 `ModernScrollViewer` 只处理页面级滚轮；滚轮来源位于已打开的 `ComboBox` 下拉框、`Popup` / `ContextMenu`、`PopupRoot` 或显式 self-scroll 区域时，frame 不会在预览阶段抢占该事件，也不会滚动背后的页面。

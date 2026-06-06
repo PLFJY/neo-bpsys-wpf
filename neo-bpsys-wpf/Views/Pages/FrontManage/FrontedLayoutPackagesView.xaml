@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     d:DataContext="{d:DesignInstance Type=vm:FrontManagePageViewModel,
@@ -13,6 +14,7 @@
     d:DesignWidth="685"
     ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
     Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    scrolling:ModernScroll.Ownership="Self"
     mc:Ignorable="d">
 
     <UserControl.Resources>
@@ -99,6 +101,8 @@
                     BorderThickness="0"
                     ItemsSource="{Binding LayoutPackages}"
                     MouseDoubleClick="PackageListBox_OnMouseDoubleClick"
+                    scrolling:ModernScroll.Ownership="Self"
+                    scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                     ScrollViewer.VerticalScrollBarVisibility="Auto"
                     SelectedItem="{Binding SelectedPackage, Mode=TwoWay}">
@@ -257,7 +261,11 @@
                         </ui:Button.Style>
                     </ui:Button>
                 </WrapPanel>
-                <ui:DynamicScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                <ui:DynamicScrollViewer
+                    Grid.Row="2"
+                    scrolling:ModernScroll.Ownership="Self"
+                    scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
+                    VerticalScrollBarVisibility="Auto">
                     <StackPanel>
                         <Border
                             Margin="0,0,0,10"

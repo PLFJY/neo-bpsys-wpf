@@ -16,6 +16,15 @@ internal static class WheelScrollEventGuard
 
     internal static bool ShouldSkipSmoothScroll(ScrollViewer owner, MouseWheelEventArgs e, DependencyObject? explicitSource)
     {
+        return ShouldSkipSmoothScroll(owner, e, explicitSource, respectExplicitSelfOwnership: true);
+    }
+
+    internal static bool ShouldSkipSmoothScroll(
+        ScrollViewer owner,
+        MouseWheelEventArgs e,
+        DependencyObject? explicitSource,
+        bool respectExplicitSelfOwnership)
+    {
         ArgumentNullException.ThrowIfNull(owner);
         ArgumentNullException.ThrowIfNull(e);
 
@@ -26,7 +35,7 @@ internal static class WheelScrollEventGuard
             return true;
         }
 
-        return ShouldSuppressOwnerScroll(owner, e, explicitSource);
+        return ShouldSuppressOwnerScroll(owner, e, explicitSource, respectExplicitSelfOwnership);
     }
 
     public static bool ShouldSuppressOwnerScroll(ScrollViewer owner, MouseWheelEventArgs e)
@@ -60,15 +69,24 @@ internal static class WheelScrollEventGuard
 
         if (IsOpenComboBoxCandidate(e, hoverSource)
             || IsInsidePopupTree(hoverSource)
-            || IsInsideNestedScrollableOwner(owner, hoverSource))
+            || IsInsideExplicitSelfScrollRegion(owner, hoverSource))
         {
             return false;
         }
 
-        return IsNearestEligibleScrollOwner(owner, hoverSource);
+        return IsRelatedDescendantOf(owner, hoverSource);
     }
 
     internal static bool ShouldSuppressOwnerScroll(ScrollViewer owner, MouseWheelEventArgs e, DependencyObject? explicitSource)
+    {
+        return ShouldSuppressOwnerScroll(owner, e, explicitSource, respectExplicitSelfOwnership: true);
+    }
+
+    internal static bool ShouldSuppressOwnerScroll(
+        ScrollViewer owner,
+        MouseWheelEventArgs e,
+        DependencyObject? explicitSource,
+        bool respectExplicitSelfOwnership)
     {
         ArgumentNullException.ThrowIfNull(owner);
         ArgumentNullException.ThrowIfNull(e);
@@ -93,7 +111,7 @@ internal static class WheelScrollEventGuard
 
             if (IsInsideOpenComboBox(source)
                 || IsInsidePopupTree(source)
-                || IsInsideNestedScrollableOwner(owner, source))
+                || (respectExplicitSelfOwnership && IsInsideExplicitSelfScrollRegion(owner, source)))
             {
                 return true;
             }
@@ -120,18 +138,16 @@ internal static class WheelScrollEventGuard
         return false;
     }
 
-    private static bool IsNearestEligibleScrollOwner(ScrollViewer owner, DependencyObject source)
+    internal static bool IsInsidePopupOrOpenComboBox(DependencyObject source) =>
+        IsInsideOpenComboBox(source) || IsInsidePopupTree(source);
+
+    private static bool IsRelatedDescendantOf(DependencyObject owner, DependencyObject source)
     {
         foreach (var ancestor in EnumerateAncestorsAndSelf(source))
         {
             if (ReferenceEquals(ancestor, owner))
             {
                 return true;
-            }
-
-            if (IsNestedScrollableElement(ancestor))
-            {
-                return false;
             }
         }
 
@@ -169,7 +185,7 @@ internal static class WheelScrollEventGuard
         return false;
     }
 
-    private static bool IsInsideNestedScrollableOwner(ScrollViewer owner, DependencyObject source)
+    private static bool IsInsideExplicitSelfScrollRegion(ScrollViewer owner, DependencyObject source)
     {
         foreach (var ancestor in EnumerateAncestorsAndSelf(source))
         {
@@ -178,29 +194,19 @@ internal static class WheelScrollEventGuard
                 return false;
             }
 
-            if (ancestor is ComboBox { IsDropDownOpen: true })
+            var ownership = ModernScroll.GetOwnership(ancestor);
+            if (ownership == ModernScrollOwnership.Self)
             {
                 return true;
             }
 
-            if (IsNestedScrollableElement(ancestor))
+            if (ownership == ModernScrollOwnership.Frame)
             {
-                return true;
+                return false;
             }
         }
 
         return false;
-    }
-
-    private static bool IsNestedScrollableElement(DependencyObject element)
-    {
-        if (element is ScrollViewer or ListBox or ListView or DataGrid or TreeView)
-        {
-            return true;
-        }
-
-        var typeName = element.GetType().Name;
-        return typeName.Contains("DynamicScrollViewer", StringComparison.Ordinal);
     }
 
     private static IEnumerable<DependencyObject?> GetCandidateSources(MouseWheelEventArgs e, DependencyObject? explicitSource)

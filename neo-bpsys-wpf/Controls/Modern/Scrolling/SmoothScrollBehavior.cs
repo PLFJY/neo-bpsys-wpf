@@ -94,19 +94,12 @@ public static class SmoothScrollBehavior
     private sealed class SmoothScrollState
     {
         private readonly ScrollViewer _scrollViewer;
-        private readonly WheelScrollEventRouter _wheelEventRouter;
         private bool _isWheelHandlerAttached;
         private bool _isLifecycleAttached;
 
         public SmoothScrollState(ScrollViewer scrollViewer)
         {
             _scrollViewer = scrollViewer;
-            _wheelEventRouter = new WheelScrollEventRouter(
-                _scrollViewer,
-                () => GetIsEnabled(_scrollViewer),
-                () => GetWheelMultiplier(_scrollViewer),
-                () => GetDuration(_scrollViewer),
-                () => null);
         }
 
         public void Attach()
@@ -119,13 +112,11 @@ public static class SmoothScrollBehavior
             }
 
             AttachWheelHandler();
-            _wheelEventRouter.Attach();
         }
 
         public void Detach()
         {
             DetachWheelHandler();
-            _wheelEventRouter.Detach();
 
             if (_isLifecycleAttached)
             {
@@ -145,6 +136,7 @@ public static class SmoothScrollBehavior
             }
 
             _scrollViewer.MouseWheel += OnMouseWheel;
+            _scrollViewer.PreviewMouseWheel += OnPreviewMouseWheel;
             _isWheelHandlerAttached = true;
         }
 
@@ -156,17 +148,26 @@ public static class SmoothScrollBehavior
             }
 
             _scrollViewer.MouseWheel -= OnMouseWheel;
+            _scrollViewer.PreviewMouseWheel -= OnPreviewMouseWheel;
             _isWheelHandlerAttached = false;
+        }
+
+        private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
+                _scrollViewer,
+                e,
+                GetWheelMultiplier(_scrollViewer),
+                GetDuration(_scrollViewer),
+                isSmoothScrollingEnabled: true,
+                easingFunction: null,
+                explicitSource: e.OriginalSource as DependencyObject,
+                respectExplicitSelfOwnership: true);
         }
 
         private void OnMouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (e.Handled)
-            {
-                return;
-            }
-
-            if (WheelScrollEventGuard.ShouldSuppressOwnerScroll(_scrollViewer, e))
             {
                 return;
             }
@@ -177,19 +178,19 @@ public static class SmoothScrollBehavior
                 GetWheelMultiplier(_scrollViewer),
                 GetDuration(_scrollViewer),
                 isSmoothScrollingEnabled: true,
-                easingFunction: null);
+                easingFunction: null,
+                explicitSource: e.OriginalSource as DependencyObject,
+                respectExplicitSelfOwnership: false);
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             AttachWheelHandler();
-            _wheelEventRouter.Attach();
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             DetachWheelHandler();
-            _wheelEventRouter.Detach();
             ScrollAnimationHelper.CancelVerticalAnimation(_scrollViewer);
         }
     }

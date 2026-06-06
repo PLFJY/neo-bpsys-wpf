@@ -29,6 +29,7 @@ using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Controls;
 
+[Collection(WpfUiCollectionDefinition.Name)]
 public class ModernNavigationViewTest
 {
     [Fact]
@@ -699,7 +700,7 @@ public class ModernNavigationViewTest
     }
 
     [Fact]
-    public void PluginInstalledLocalTabUsesDirectFramePresenter()
+    public void PluginInstalledLocalTabUsesFrameScrollHost()
     {
         RunSta(() =>
         {
@@ -709,7 +710,7 @@ public class ModernNavigationViewTest
             Assert.True(navigationView.SelectFirstItemIfNoneSelected());
 
             var content = Assert.IsType<PluginInstalledView>(navigationView.CurrentContent);
-            Assert.False(IsUsingFrameScrollHost(GetFrame(navigationView), content));
+            Assert.True(IsUsingFrameScrollHost(GetFrame(navigationView), content));
         });
     }
 

@@ -6,6 +6,7 @@
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:md="http://schemas.lepo.co/wpfui/2022/xaml/markdown"
+    xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     x:Name="Root"
@@ -245,6 +246,7 @@
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="10"
+                scrolling:ModernScroll.Ownership="Self"
                 Visibility="{Binding IsDownloadQueueOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -281,7 +283,9 @@
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
-                        <ScrollViewer>
+                        <ScrollViewer
+                            scrolling:ModernScroll.Ownership="Self"
+                            scrolling:NestedSmoothScrollBehavior.IsEnabled="True">
                             <ItemsControl
                                 Background="Transparent"
                                 BorderThickness="0"
@@ -374,6 +378,7 @@
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="10"
+                scrolling:ModernScroll.Ownership="Self"
                 Visibility="{Binding IsMarketPluginSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Grid
                     MinHeight="0"
@@ -529,7 +534,9 @@
                         VerticalAlignment="Stretch"
                         HorizontalContentAlignment="Left"
                         FontFamily="{DynamicResource NotoSans}"
-                        Markdown="{Binding ReadmeMarkdown}" />
+                        Markdown="{Binding ReadmeMarkdown}"
+                        scrolling:ModernScroll.Ownership="Self"
+                        scrolling:NestedSmoothScrollBehavior.IsEnabled="True" />
                 </Grid>
             </Border>
 
@@ -544,6 +551,7 @@
                 BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1"
                 CornerRadius="10"
+                scrolling:ModernScroll.Ownership="Self"
                 Visibility="{Binding IsPluginMarketSettingsOpen, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel>
                     <Grid>
@@ -564,6 +572,7 @@
                         Text="{lex:Loc PluginMarketSourceLabel}" />
                     <ComboBox
                         Margin="0,8,0,0"
+                        scrolling:ComboBoxDropdownSmoothScrollBehavior.IsEnabled="True"
                         ItemsSource="{Binding PluginMarketSourceOptions}"
                         SelectedValue="{Binding SelectedPluginMarketSource, Mode=TwoWay}"
                         SelectedValuePath="Value">
@@ -585,6 +594,7 @@
                         TextWrapping="Wrap" />
                     <ComboBox
                         Margin="0,8,0,0"
+                        scrolling:ComboBoxDropdownSmoothScrollBehavior.IsEnabled="True"
                         ItemsSource="{Binding PluginMarketMirrorOptions}"
                         SelectedValue="{Binding SelectedPluginMarketMirror, Mode=TwoWay}"
                         SelectedValuePath="Value">

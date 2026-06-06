@@ -1,17 +1,20 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using neo_bpsys_wpf.Controls.Modern.Scrolling;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Controls;
 
+[Collection(WpfUiCollectionDefinition.Name)]
 public class ModernSmoothScrollingTest
 {
     [Fact]
@@ -324,7 +327,7 @@ public class ModernSmoothScrollingTest
     }
 
     [Fact]
-    public void ModernScrollViewerDoesNotHandleWheelWhenSourceIsInsideNestedListBox()
+    public void ModernScrollViewerHandlesWheelWhenSourceIsInsideUnconstrainedListBox()
     {
         RunSta(() =>
         {
@@ -345,9 +348,9 @@ public class ModernSmoothScrollingTest
             WithModernScrollableViewer(scrollViewer =>
             {
                 var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
-                Assert.False(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, listBox));
-                Assert.True(WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, args, listBox));
-                Assert.False(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
+                Assert.True(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, listBox));
+                Assert.False(WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, args, listBox));
+                Assert.True(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
                     scrollViewer,
                     args,
                     wheelScrollMultiplier: 1,
@@ -355,14 +358,15 @@ public class ModernSmoothScrollingTest
                     isSmoothScrollingEnabled: true,
                     easingFunction: null,
                     explicitSource: listBox));
-                Assert.False(args.Handled);
-                Assert.Equal(0, scrollViewer.VerticalOffset);
+                Assert.True(args.Handled);
+                scrollViewer.UpdateLayout();
+                Assert.True(scrollViewer.VerticalOffset > 0);
             }, content);
         });
     }
 
     [Fact]
-    public void ModernScrollViewerDoesNotHandleWheelWhenSourceIsInsideNestedListView()
+    public void ModernScrollViewerHandlesWheelWhenSourceIsInsideUnconstrainedListView()
     {
         RunSta(() =>
         {
@@ -383,9 +387,9 @@ public class ModernSmoothScrollingTest
             WithModernScrollableViewer(scrollViewer =>
             {
                 var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
-                Assert.False(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, listView));
-                Assert.True(WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, args, listView));
-                Assert.False(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
+                Assert.True(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, listView));
+                Assert.False(WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, args, listView));
+                Assert.True(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
                     scrollViewer,
                     args,
                     wheelScrollMultiplier: 1,
@@ -393,8 +397,164 @@ public class ModernSmoothScrollingTest
                     isSmoothScrollingEnabled: true,
                     easingFunction: null,
                     explicitSource: listView));
+                Assert.True(args.Handled);
+                scrollViewer.UpdateLayout();
+                Assert.True(scrollViewer.VerticalOffset > 0);
+            }, content);
+        });
+    }
+
+    [Fact]
+    public void ModernScrollViewerDoesNotPreviewHandleExplicitSelfRegion()
+    {
+        RunSta(() =>
+        {
+            var listBox = new ListBox
+            {
+                Height = 80,
+                ItemsSource = Enumerable.Range(0, 20).Select(index => $"Item {index}").ToArray()
+            };
+            ModernScroll.SetOwnership(listBox, ModernScrollOwnership.Self);
+            var content = new StackPanel
+            {
+                Children =
+                {
+                    listBox,
+                    new Border { Height = 500, Width = 100 }
+                }
+            };
+
+            WithModernScrollableViewer(scrollViewer =>
+            {
+                var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
+
+                Assert.False(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, listBox));
+                Assert.True(WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, args, listBox));
+                Assert.False(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
+                    scrollViewer,
+                    args,
+                    wheelScrollMultiplier: 1,
+                    scrollAnimationDuration: 0,
+                    isSmoothScrollingEnabled: true,
+                    easingFunction: null,
+                    explicitSource: listBox));
                 Assert.False(args.Handled);
                 Assert.Equal(0, scrollViewer.VerticalOffset);
+            }, content);
+        });
+    }
+
+    [Fact]
+    public void NestedSmoothScrollBehaviorScrollsExplicitSelfListBox()
+    {
+        RunSta(() =>
+        {
+            var listBox = new ListBox
+            {
+                Width = 100,
+                Height = 80,
+                ItemsSource = Enumerable.Range(0, 40).Select(index => $"Item {index}").ToArray()
+            };
+            ModernScroll.SetOwnership(listBox, ModernScrollOwnership.Self);
+            NestedSmoothScrollBehavior.SetDuration(listBox, 0);
+            NestedSmoothScrollBehavior.SetIsEnabled(listBox, true);
+
+            var window = CreateHiddenWindow(listBox);
+            try
+            {
+                window.Show();
+                window.UpdateLayout();
+                listBox.UpdateLayout();
+
+                var internalScrollViewer = Assert.Single(FindVisualDescendants<ScrollViewer>(listBox));
+                var args = CreatePreviewWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
+                listBox.RaiseEvent(args);
+
+                Assert.True(args.Handled);
+                internalScrollViewer.UpdateLayout();
+                Assert.True(internalScrollViewer.VerticalOffset > 0);
+            }
+            finally
+            {
+                NestedSmoothScrollBehavior.SetIsEnabled(listBox, false);
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void NestedSmoothScrollBehaviorDoesNotTrapWhenInternalScrollViewerCannotScrollFurther()
+    {
+        RunSta(() =>
+        {
+            var listBox = new ListBox
+            {
+                Width = 100,
+                Height = 80,
+                ItemsSource = Enumerable.Range(0, 2).Select(index => $"Item {index}").ToArray()
+            };
+            ModernScroll.SetOwnership(listBox, ModernScrollOwnership.Self);
+            NestedSmoothScrollBehavior.SetDuration(listBox, 0);
+            NestedSmoothScrollBehavior.SetIsEnabled(listBox, true);
+
+            var window = CreateHiddenWindow(listBox);
+            try
+            {
+                window.Show();
+                window.UpdateLayout();
+                listBox.UpdateLayout();
+
+                var args = CreatePreviewWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
+                listBox.RaiseEvent(args);
+
+                Assert.False(args.Handled);
+            }
+            finally
+            {
+                NestedSmoothScrollBehavior.SetIsEnabled(listBox, false);
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void ComboBoxDropdownSmoothScrollScrollsDropdownWithoutScrollingOwner()
+    {
+        RunSta(() =>
+        {
+            var comboBox = new ComboBox
+            {
+                Width = 100,
+                ItemsSource = Enumerable.Range(0, 80).Select(index => $"Item {index}").ToArray()
+            };
+            ComboBoxDropdownSmoothScrollBehavior.SetDuration(comboBox, 0);
+            ComboBoxDropdownSmoothScrollBehavior.SetIsEnabled(comboBox, true);
+
+            var content = new StackPanel
+            {
+                Children =
+                {
+                    comboBox,
+                    new Border { Height = 500, Width = 100 }
+                }
+            };
+
+            WithModernScrollableViewer(scrollViewer =>
+            {
+                comboBox.IsDropDownOpen = true;
+                FlushDispatcher(comboBox.Dispatcher);
+
+                var popup = Assert.IsType<System.Windows.Controls.Primitives.Popup>(comboBox.Template.FindName("PART_Popup", comboBox));
+                var dropdownScrollViewer = Assert.Single(FindVisualDescendants<ScrollViewer>(popup.Child));
+                var args = CreatePreviewWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
+                dropdownScrollViewer.RaiseEvent(args);
+
+                Assert.True(args.Handled);
+                dropdownScrollViewer.UpdateLayout();
+                Assert.True(dropdownScrollViewer.VerticalOffset > 0);
+                Assert.Equal(0, scrollViewer.VerticalOffset);
+
+                comboBox.IsDropDownOpen = false;
             }, content);
         });
     }
@@ -613,6 +773,41 @@ public class ModernSmoothScrollingTest
         {
             RoutedEvent = Mouse.MouseWheelEvent
         };
+    }
+
+    private static MouseWheelEventArgs CreatePreviewWheelArgs(int delta)
+    {
+        return new MouseWheelEventArgs(Mouse.PrimaryDevice, Environment.TickCount, delta)
+        {
+            RoutedEvent = Mouse.PreviewMouseWheelEvent
+        };
+    }
+
+    private static IEnumerable<T> FindVisualDescendants<T>(DependencyObject root)
+        where T : DependencyObject
+    {
+        var count = System.Windows.Media.VisualTreeHelper.GetChildrenCount(root);
+
+        for (var i = 0; i < count; i++)
+        {
+            var child = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
+            if (child is T match)
+            {
+                yield return match;
+            }
+
+            foreach (var descendant in FindVisualDescendants<T>(child))
+            {
+                yield return descendant;
+            }
+        }
+    }
+
+    private static void FlushDispatcher(Dispatcher dispatcher)
+    {
+        var frame = new DispatcherFrame();
+        dispatcher.BeginInvoke(() => frame.Continue = false, DispatcherPriority.ApplicationIdle);
+        Dispatcher.PushFrame(frame);
     }
 
     private static ScrollViewer CreateNonScrollableViewer(UIElement content)

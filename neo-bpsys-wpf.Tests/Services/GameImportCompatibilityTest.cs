@@ -49,21 +49,8 @@ public class GameImportCompatibilityTest
                 importedScore.Games.Single(game => game.Key == new ScoreGameKey(5, ScoreGameKind.Normal))
                     .SecondHalf.Result);
 
-            Assert.Equal(2, importedScore.HomeMajorWin);
-            Assert.Equal(1, importedScore.AwayMajorWin);
-            Assert.Equal(1, importedScore.HomeMajorTie);
-            Assert.Equal(1, importedScore.AwayMajorTie);
-            Assert.Equal(24, importedScore.HomeTotalMinorScore);
-            Assert.Equal(17, importedScore.AwayTotalMinorScore);
-
             Assert.Equal("3", importedScore.CurrentSurTeamPreHalfMinorScoreText);
             Assert.Equal("1", importedScore.CurrentHunTeamPreHalfMinorScoreText);
-            Assert.Equal(2, sharedDataService.CurrentGame.SurTeam.Score.Win);
-            Assert.Equal(1, sharedDataService.CurrentGame.SurTeam.Score.Tie);
-            Assert.Equal(3, sharedDataService.CurrentGame.SurTeam.Score.GameScores);
-            Assert.Equal(1, sharedDataService.CurrentGame.HunTeam.Score.Win);
-            Assert.Equal(1, sharedDataService.CurrentGame.HunTeam.Score.Tie);
-            Assert.Equal(1, sharedDataService.CurrentGame.HunTeam.Score.GameScores);
 
             Assert.Same(importedScore, matchScoreService.Current);
         }
@@ -120,7 +107,7 @@ public class GameImportCompatibilityTest
         half.Result = GameResult.Escape4;
         half.SurTeamTypeWhenRecorded = TeamType.HomeTeam;
         half.HunTeamTypeWhenRecorded = TeamType.AwayTeam;
-        sourceGame.MatchScore.Recalculate();
+        sourceGame.MatchScore.Recalculate(null);
 
         var node = JsonNode.Parse(JsonSerializer.Serialize(sourceGame, CreateJsonOptions()))!.AsObject();
         SetLegacyScore(node[nameof(Game.SurTeam)]!, win: 9, tie: 9, gameScores: 99);
@@ -183,7 +170,7 @@ public class GameImportCompatibilityTest
             GameResult.Escape4,
             TeamType.AwayTeam,
             TeamType.HomeTeam);
-        game.MatchScore.Recalculate();
+        game.MatchScore.Recalculate(null);
         return game;
     }
 

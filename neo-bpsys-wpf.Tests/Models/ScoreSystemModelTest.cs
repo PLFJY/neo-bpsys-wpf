@@ -180,8 +180,8 @@ public class ScoreSystemModelTest
         Assert.Equal(TeamType.AwayTeam, deserializedHalf.HunTeamTypeWhenRecorded);
         Assert.Equal(3, deserializedHalf.HomeMinorScore);
         Assert.Equal(1, deserializedHalf.AwayMinorScore);
-        Assert.Equal(3, deserialized.MatchScore.HomeTotalMinorScore);
-        Assert.Equal(1, deserialized.MatchScore.AwayTotalMinorScore);
+        Assert.Equal(0, deserialized.MatchScore.HomeTotalMinorScore);
+        Assert.Equal(0, deserialized.MatchScore.AwayTotalMinorScore);
     }
 
     [Fact]

@@ -633,82 +633,15 @@ public class ModernFrame : Control
         {
             ModernFrameContentScrollHostMode.Enabled => true,
             ModernFrameContentScrollHostMode.Disabled => false,
-            ModernFrameContentScrollHostMode.Auto => !ContentHasOwnScrollHost(content) && !ContentHasOwnScrollHost(hostedContent),
+            ModernFrameContentScrollHostMode.Auto => !ContentRequestsDirectScrollOwnership(content, hostedContent),
             _ => true
         };
     }
 
-    private static bool ContentHasOwnScrollHost(FrameworkElement content)
+    private static bool ContentRequestsDirectScrollOwnership(FrameworkElement content, FrameworkElement hostedContent)
     {
-        return ContentHasOwnScrollHostCore(content, new HashSet<object>(ReferenceEqualityComparer.Instance));
-    }
-
-    private static bool ContentHasOwnScrollHostCore(object? node, ISet<object> visited)
-    {
-        if (node is null || !visited.Add(node))
-        {
-            return false;
-        }
-
-        if (node is ScrollViewer)
-        {
-            return true;
-        }
-
-        var typeName = node.GetType().Name;
-        if (typeName.Contains("DynamicScrollViewer", StringComparison.Ordinal))
-        {
-            return true;
-        }
-
-        if (node is ListBox or ListView or DataGrid or TreeView)
-        {
-            return true;
-        }
-
-        if (node is ItemsControl itemsControl && HasExplicitVerticalScroll(itemsControl))
-        {
-            return true;
-        }
-
-        if (node is UserControl userControl
-            && userControl.Content is DependencyObject userControlContent
-            && ContentHasOwnScrollHostCore(userControlContent, visited))
-        {
-            return true;
-        }
-
-        if (node is ContentControl contentControl
-            && contentControl.Content is DependencyObject content
-            && ContentHasOwnScrollHostCore(content, visited))
-        {
-            return true;
-        }
-
-        if (node is Decorator decorator
-            && ContentHasOwnScrollHostCore(decorator.Child, visited))
-        {
-            return true;
-        }
-
-        if (node is Panel panel)
-        {
-            foreach (UIElement child in panel.Children)
-            {
-                if (ContentHasOwnScrollHostCore(child, visited))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private static bool HasExplicitVerticalScroll(ItemsControl itemsControl)
-    {
-        var localValue = itemsControl.ReadLocalValue(ScrollViewer.VerticalScrollBarVisibilityProperty);
-        return localValue is ScrollBarVisibility visibility && visibility != ScrollBarVisibility.Disabled;
+        return ModernScroll.GetOwnership(content) == ModernScrollOwnership.Self
+            || ModernScroll.GetOwnership(hostedContent) == ModernScrollOwnership.Self;
     }
 
     private static FrameworkElement CreateHostedContent(FrameworkElement content)

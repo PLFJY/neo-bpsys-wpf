@@ -15,6 +15,7 @@ using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Controls;
 
+[Collection(WpfUiCollectionDefinition.Name)]
 public class ModernFrameTest
 {
     [Fact]
@@ -216,7 +217,7 @@ public class ModernFrameTest
     }
 
     [Fact]
-    public void AutoContentScrollHostModeWithListViewUsesDirectPresenter()
+    public void AutoContentScrollHostModeWithListViewUsesFrameScrollHost()
     {
         RunSta(() =>
         {
@@ -234,12 +235,12 @@ public class ModernFrameTest
 
             frame.Navigate(content, new SuppressNavigationTransitionInfo());
 
-            Assert.False(IsUsingFrameScrollHost(frame, content));
+            Assert.True(IsUsingFrameScrollHost(frame, content));
         });
     }
 
     [Fact]
-    public void AutoContentScrollHostModeWithListBoxUsesDirectPresenter()
+    public void AutoContentScrollHostModeWithListBoxUsesFrameScrollHost()
     {
         RunSta(() =>
         {
@@ -257,12 +258,12 @@ public class ModernFrameTest
 
             frame.Navigate(content, new SuppressNavigationTransitionInfo());
 
-            Assert.False(IsUsingFrameScrollHost(frame, content));
+            Assert.True(IsUsingFrameScrollHost(frame, content));
         });
     }
 
     [Fact]
-    public void AutoContentScrollHostModeWithScrollViewerUsesDirectPresenter()
+    public void AutoContentScrollHostModeWithScrollViewerUsesFrameScrollHost()
     {
         RunSta(() =>
         {
@@ -277,12 +278,12 @@ public class ModernFrameTest
 
             frame.Navigate(content, new SuppressNavigationTransitionInfo());
 
-            Assert.False(IsUsingFrameScrollHost(frame, content));
+            Assert.True(IsUsingFrameScrollHost(frame, content));
         });
     }
 
     [Fact]
-    public void AutoContentScrollHostModeWithDynamicScrollViewerUsesDirectPresenter()
+    public void AutoContentScrollHostModeWithDynamicScrollViewerUsesFrameScrollHost()
     {
         RunSta(() =>
         {
@@ -297,7 +298,49 @@ public class ModernFrameTest
 
             frame.Navigate(content, new SuppressNavigationTransitionInfo());
 
+            Assert.True(IsUsingFrameScrollHost(frame, content));
+        });
+    }
+
+    [Fact]
+    public void AutoContentScrollHostModeWithExplicitSelfOwnershipUsesDirectPresenter()
+    {
+        RunSta(() =>
+        {
+            var frame = new ModernFrame
+            {
+                ContentScrollHostMode = ModernFrameContentScrollHostMode.Auto
+            };
+            var content = new UserControl
+            {
+                Content = new Grid()
+            };
+            ModernScroll.SetOwnership(content, ModernScrollOwnership.Self);
+
+            frame.Navigate(content, new SuppressNavigationTransitionInfo());
+
             Assert.False(IsUsingFrameScrollHost(frame, content));
+        });
+    }
+
+    [Fact]
+    public void AutoContentScrollHostModeWithExplicitFrameOwnershipUsesFrameScrollHost()
+    {
+        RunSta(() =>
+        {
+            var frame = new ModernFrame
+            {
+                ContentScrollHostMode = ModernFrameContentScrollHostMode.Auto
+            };
+            var content = new UserControl
+            {
+                Content = new ScrollViewer()
+            };
+            ModernScroll.SetOwnership(content, ModernScrollOwnership.Frame);
+
+            frame.Navigate(content, new SuppressNavigationTransitionInfo());
+
+            Assert.True(IsUsingFrameScrollHost(frame, content));
         });
     }
 
@@ -335,16 +378,17 @@ public class ModernFrameTest
                 ContentScrollHostMode = ModernFrameContentScrollHostMode.Auto
             };
             var simpleContent = new WrapPanel();
-            var listContent = new UserControl
+            var selfScrollContent = new UserControl
             {
                 Content = new ListBox()
             };
+            ModernScroll.SetOwnership(selfScrollContent, ModernScrollOwnership.Self);
 
             frame.Navigate(simpleContent, new SuppressNavigationTransitionInfo());
             Assert.True(IsUsingFrameScrollHost(frame, simpleContent));
 
-            frame.Navigate(listContent, new SuppressNavigationTransitionInfo());
-            Assert.False(IsUsingFrameScrollHost(frame, listContent));
+            frame.Navigate(selfScrollContent, new SuppressNavigationTransitionInfo());
+            Assert.False(IsUsingFrameScrollHost(frame, selfScrollContent));
 
             frame.Navigate(new WrapPanel(), new SuppressNavigationTransitionInfo());
             Assert.Equal(Visibility.Visible, frame.ContentScrollHost.Visibility);
@@ -579,7 +623,7 @@ public class ModernFrameTest
     }
 
     [Fact]
-    public void AnimatedTransitionTargetsDirectPresenterWhenAutoDetectsInnerScrollHost()
+    public void AnimatedTransitionTargetsDirectPresenterWhenContentDeclaresSelfOwnership()
     {
         RunSta(() =>
         {
@@ -593,6 +637,7 @@ public class ModernFrameTest
             {
                 Content = new ListBox()
             };
+            ModernScroll.SetOwnership(second, ModernScrollOwnership.Self);
             var frame = new ModernFrame
             {
                 Width = 120,

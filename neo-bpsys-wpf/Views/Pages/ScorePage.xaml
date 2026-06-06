@@ -8,6 +8,7 @@
     xmlns:enums="clr-namespace:neo_bpsys_wpf.Core.Enums;assembly=neo-bpsys-wpf.Core"
     xmlns:lex="http://wpflocalizeextension.codeplex.com"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:scrolling="clr-namespace:neo_bpsys_wpf.Controls.Modern.Scrolling"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Pages"
     Title="ScorePage"
@@ -160,6 +161,8 @@
                     HeadersVisibility="Column"
                     IsReadOnly="True"
                     ItemsSource="{Binding ScorePreviewRows}"
+                    scrolling:ModernScroll.Ownership="Self"
+                    scrolling:NestedSmoothScrollBehavior.IsEnabled="True"
                     SelectionMode="Single">
                     <ui:DataGrid.RowStyle>
                         <Style TargetType="{x:Type DataGridRow}">
