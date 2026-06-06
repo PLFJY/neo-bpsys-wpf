@@ -131,7 +131,7 @@ public enum ModernNavigationBehavior
 
 `LocalTabs` 用于局部标签页。它直接创建本地 `FrameworkElement`，当前约定子视图使用 `UserControl`；如果子视图没有自己的 `DataContext`，会继承 `ModernNavigationView.DataContext`。每次本地标签切换成功后都会清空 `PART_Frame` journal，避免标签切换进入全局返回栈。切换方向根据旧/新 tab 在 `MenuEntries` 中的索引选择横向 slide 转场。
 
-## PluginPage 迁移
+## 后台页迁移
 
 `PluginPage` 是首个迁移到 Top LocalTabs 的后台页。它仍然是唯一带 `BackendPageInfo` 的全局插件管理页面，子视图不注册为后台页面：
 
@@ -147,4 +147,18 @@ new NavigationViewItem("PluginMarket", SymbolRegular.AppsAddIn24, typeof(PluginM
 
 这样可以继续复用 `ModernNavigationEntry` 对 WPF-UI item 的适配逻辑，包括 `Content` 本地化、`SymbolIcon`/`SymbolRegular` 图标转换、`TargetPageType` 和 `TargetPageTag` 支持。插件市场浮层外部点击、ComboBox popup 例外和 Markdown hyperlink 拦截逻辑随 `PluginMarketView` 一起迁移，避免 `PluginPage` 访问子视图内部命名元素。
 
-子视图迁移时如果需要覆写 WPF-UI 控件的局部 `Style`，必须使用 `BasedOn="{StaticResource {x:Type ...}}"` 继承默认样式，例如 `ui:Button`、`ui:HyperlinkButton`、`ui:TextBox` 等。不要为了单元测试宿主缺少资源而写没有 `BasedOn` 的裸 `Style`；测试应补齐资源初始化或调整断言方式，运行时 XAML 必须保留默认控件模板、状态和主题资源链。
+`FrontManagePage` 同样迁移到 Top LocalTabs。它仍然是唯一带 `BackendPageInfo` 的前台窗口管理后台页，子视图不注册为后台页面：
+
+- `FrontedWindowsView`：前台窗口打开/关闭、打开 Fronted Designer、插件前台窗口列表，类型为 `UserControl`。
+- `FrontedLayoutPackagesView`：`.bpui` / Fronted layout package 列表、导入导出、激活、复制、删除和详情区域，类型为 `UserControl`。
+
+`FrontManagePage.xaml.cs` 使用 WPF-UI `NavigationViewItem` 创建 tab：
+
+```csharp
+new NavigationViewItem("FrontendWindows", SymbolRegular.ShareScreenStart24, typeof(FrontedWindowsView));
+new NavigationViewItem("LayoutPackages", SymbolRegular.AppsList24, typeof(FrontedLayoutPackagesView));
+```
+
+布局包列表的双击激活逻辑随 `FrontedLayoutPackagesView` 迁移，避免 `FrontManagePage` 访问子视图内部命名元素。这里的 Fronted 仍指 WPF 前台输出窗口，不是 Web frontend。
+
+子视图迁移时如果需要覆写 WPF-UI 控件或 WPF 控件的局部 `Style`，必须使用 `BasedOn="{StaticResource {x:Type ...}}"` 继承默认样式，例如 `ui:Button`、`ui:HyperlinkButton`、`ui:TextBox`、`ListBoxItem` 等。不要为了单元测试宿主缺少资源而写没有 `BasedOn` 的裸控件 `Style`；测试或子视图资源应补齐主题/控件字典，运行时 XAML 必须保留默认控件模板、状态和主题资源链。纯 `Border` 等无默认控件模板的轻量元素不适用这条 `BasedOn` 约束，但能用普通属性/Converter 表达显隐时优先避免写裸 `Style`。

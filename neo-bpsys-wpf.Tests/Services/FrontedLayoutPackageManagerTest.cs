@@ -924,27 +924,48 @@ public class FrontedLayoutPackageManagerTest
     }
 
     [Fact]
-    public void FrontManagePageHasTabsAndLayoutPackageCommands()
+    public void FrontManagePageUsesTopLocalTabsAndLayoutPackageCommands()
     {
-        var text = File.ReadAllText(GetRepositoryPath(
+        var pageText = File.ReadAllText(GetRepositoryPath(
             "neo-bpsys-wpf",
             "Views",
             "Pages",
             "FrontManagePage.xaml"));
+        var pageCode = File.ReadAllText(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Pages",
+            "FrontManagePage.xaml.cs"));
+        var frontManageFolder = Path.Combine(GetRepositoryPath(
+            "neo-bpsys-wpf",
+            "Views",
+            "Pages"),
+            "FrontManage");
+        var windowsText = File.ReadAllText(Path.Combine(frontManageFolder, "FrontedWindowsView.xaml"));
+        var packagesText = File.ReadAllText(Path.Combine(frontManageFolder, "FrontedLayoutPackagesView.xaml"));
 
-        Assert.Contains("Header=\"{lex:Loc FrontendWindows}\"", text);
-        Assert.DoesNotContain("Header=\"{lex:Loc FrontendDesigner}\"", text);
-        Assert.Contains("Header=\"{lex:Loc LayoutPackages}\"", text);
-        Assert.Contains("ItemsSource=\"{Binding LayoutPackages}\"", text);
-        Assert.Contains("OpenFrontedDesignerCommand", text);
-        Assert.Contains("RefreshPackagesCommand", text);
-        Assert.Contains("CompactPackageList", text);
-        Assert.Contains("PackageBasicInfo", text);
-        Assert.Contains("ExportPackageCommand", text);
-        Assert.Contains("DuplicatePackageCommand", text);
-        Assert.Contains("MouseDoubleClick=\"PackageListBox_OnMouseDoubleClick\"", text);
-        Assert.Contains("<ui:DynamicScrollViewer", text);
-        Assert.DoesNotContain("<ui:DataGrid", text);
+        Assert.Contains("x:Name=\"FrontManageTabs\"", pageText);
+        Assert.Contains("PaneDisplayMode=\"Top\"", pageText);
+        Assert.Contains("NavigationBehavior=\"LocalTabs\"", pageText);
+        Assert.DoesNotContain("<TabControl", pageText);
+        Assert.DoesNotContain("<TabItem", pageText);
+        Assert.Contains("\"FrontendWindows\"", pageCode);
+        Assert.Contains("typeof(FrontedWindowsView)", pageCode);
+        Assert.Contains("\"LayoutPackages\"", pageCode);
+        Assert.Contains("typeof(FrontedLayoutPackagesView)", pageCode);
+        Assert.DoesNotContain("Header=\"{lex:Loc FrontendDesigner}\"", windowsText);
+        Assert.Contains("OpenFrontedDesignerCommand", windowsText);
+        Assert.Contains("ItemsSource=\"{Binding LayoutPackages}\"", packagesText);
+        Assert.Contains("RefreshPackagesCommand", packagesText);
+        Assert.Contains("CompactPackageList", packagesText);
+        Assert.Contains("PackageBasicInfo", packagesText);
+        Assert.Contains("ExportPackageCommand", packagesText);
+        Assert.Contains("DuplicatePackageCommand", packagesText);
+        Assert.Contains("MouseDoubleClick=\"PackageListBox_OnMouseDoubleClick\"", packagesText);
+        Assert.Contains("BasedOn=\"{StaticResource {x:Type ListBoxItem}}\" TargetType=\"ListBoxItem\"", packagesText);
+        Assert.Contains("BasedOn=\"{StaticResource {x:Type ui:Button}}\" TargetType=\"ui:Button\"", packagesText);
+        Assert.Contains("<ui:DynamicScrollViewer", packagesText);
+        Assert.DoesNotContain("<ui:DataGrid", packagesText);
     }
 
     [Fact]

@@ -21,6 +21,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Services;
 using neo_bpsys_wpf.Views.Pages;
+using neo_bpsys_wpf.Views.Pages.FrontManage;
 using neo_bpsys_wpf.Views.Pages.Plugin;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
@@ -739,6 +740,114 @@ public class ModernNavigationViewTest
 
         Assert.Contains(
             "BasedOn=\"{StaticResource {x:Type ui:HyperlinkButton}}\" TargetType=\"ui:HyperlinkButton\"",
+            xaml,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "BasedOn=\"{StaticResource {x:Type ui:Button}}\" TargetType=\"ui:Button\"",
+            xaml,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void FrontManagePageUsesTopLocalTabsAndCreatesTwoMenuItems()
+    {
+        RunSta(() =>
+        {
+            var page = new FrontManagePage();
+            var navigationView = Assert.IsType<ModernNavigationView>(page.FindName("FrontManageTabs"));
+
+            Assert.Equal(NavigationViewPaneDisplayMode.Top, navigationView.PaneDisplayMode);
+            Assert.Equal(ModernNavigationBehavior.LocalTabs, navigationView.NavigationBehavior);
+            Assert.Equal(2, navigationView.MenuItems.Count);
+            Assert.Equal(typeof(FrontedWindowsView), navigationView.MenuEntries[0].TargetPageType);
+            Assert.Equal(typeof(FrontedLayoutPackagesView), navigationView.MenuEntries[1].TargetPageType);
+            Assert.False(string.IsNullOrWhiteSpace(navigationView.MenuEntries[0].DisplayText));
+            Assert.False(string.IsNullOrWhiteSpace(navigationView.MenuEntries[1].DisplayText));
+        });
+    }
+
+    [Fact]
+    public void FrontManagePageLoadedInitializesWindowsView()
+    {
+        RunSta(() =>
+        {
+            var dataContext = new object();
+            var page = new FrontManagePage
+            {
+                DataContext = dataContext
+            };
+            var navigationView = Assert.IsType<ModernNavigationView>(page.FindName("FrontManageTabs"));
+
+            page.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
+
+            Assert.IsType<FrontedWindowsView>(navigationView.CurrentContent);
+            Assert.Same(dataContext, navigationView.CurrentContent?.DataContext);
+        });
+    }
+
+    [Fact]
+    public void FrontManagePageCanSwitchLocalTabsWithoutSeparateFrame()
+    {
+        RunSta(() =>
+        {
+            var dataContext = new object();
+            var page = new FrontManagePage
+            {
+                DataContext = dataContext
+            };
+            var navigationView = Assert.IsType<ModernNavigationView>(page.FindName("FrontManageTabs"));
+
+            Assert.True(navigationView.SelectFirstItemIfNoneSelected());
+            Assert.IsType<FrontedWindowsView>(navigationView.CurrentContent);
+            Assert.Same(dataContext, navigationView.CurrentContent?.DataContext);
+
+            navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[1]);
+            Assert.IsType<FrontedLayoutPackagesView>(navigationView.CurrentContent);
+            Assert.Same(dataContext, navigationView.CurrentContent?.DataContext);
+
+            navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[0]);
+            Assert.IsType<FrontedWindowsView>(navigationView.CurrentContent);
+            Assert.DoesNotContain(
+                FindVisualDescendants<ModernFrame>(navigationView),
+                frame => frame.Name == "PART_TopFrame");
+        });
+    }
+
+    [Fact]
+    public void FrontManageChildViewsAreUserControlsWithoutBackendPageInfo()
+    {
+        Assert.True(typeof(UserControl).IsAssignableFrom(typeof(FrontedWindowsView)));
+        Assert.True(typeof(UserControl).IsAssignableFrom(typeof(FrontedLayoutPackagesView)));
+        Assert.False(typeof(Page).IsAssignableFrom(typeof(FrontedWindowsView)));
+        Assert.False(typeof(Page).IsAssignableFrom(typeof(FrontedLayoutPackagesView)));
+        Assert.Empty(typeof(FrontedWindowsView).GetCustomAttributes(typeof(BackendPageInfo), inherit: false));
+        Assert.Empty(typeof(FrontedLayoutPackagesView).GetCustomAttributes(typeof(BackendPageInfo), inherit: false));
+    }
+
+    [Fact]
+    public void FrontedLayoutPackagesViewContainsPackageListAndKeepsBasedOnStyles()
+    {
+        RunSta(() =>
+        {
+            var view = new FrontedLayoutPackagesView();
+
+            Assert.NotNull(view.FindName("PackageListBox"));
+        });
+
+        var xaml = File.ReadAllText(Path.Combine(
+            AppContext.BaseDirectory,
+            "..",
+            "..",
+            "..",
+            "..",
+            "neo-bpsys-wpf",
+            "Views",
+            "Pages",
+            "FrontManage",
+            "FrontedLayoutPackagesView.xaml"));
+
+        Assert.Contains(
+            "BasedOn=\"{StaticResource {x:Type ListBoxItem}}\" TargetType=\"ListBoxItem\"",
             xaml,
             StringComparison.Ordinal);
         Assert.Contains(

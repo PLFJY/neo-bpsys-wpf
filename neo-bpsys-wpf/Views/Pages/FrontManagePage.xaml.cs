@@ -1,7 +1,8 @@
+using System.Windows;
 using System.Windows.Controls;
 using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
-using neo_bpsys_wpf.ViewModels.Pages;
+using neo_bpsys_wpf.Views.Pages.FrontManage;
 using Wpf.Ui.Controls;
 
 namespace neo_bpsys_wpf.Views.Pages;
@@ -18,14 +19,21 @@ public partial class FrontManagePage : Page
     public FrontManagePage()
     {
         InitializeComponent();
+
+        FrontManageTabs.MenuItems.Add(new NavigationViewItem(
+            "FrontendWindows",
+            SymbolRegular.ShareScreenStart24,
+            typeof(FrontedWindowsView)));
+        FrontManageTabs.MenuItems.Add(new NavigationViewItem(
+            "LayoutPackages",
+            SymbolRegular.AppsList24,
+            typeof(FrontedLayoutPackagesView)));
+
+        Loaded += OnLoaded;
     }
 
-    private void PackageListBox_OnMouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        if (DataContext is FrontManagePageViewModel viewModel
-            && viewModel.ActivateSelectedPackageByDoubleClickCommand.CanExecute(null))
-        {
-            viewModel.ActivateSelectedPackageByDoubleClickCommand.Execute(null);
-        }
+        FrontManageTabs.SelectFirstItemIfNoneSelected();
     }
 }
