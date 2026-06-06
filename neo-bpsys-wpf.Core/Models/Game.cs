@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using System.Windows.Media;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
+using neo_bpsys_wpf.Core.Extensions;
 
 namespace neo_bpsys_wpf.Core.Models;
 
@@ -262,8 +263,14 @@ public partial class Game : ObservableObjectBase
     {
         get => _bannedMap;
         set => SetPropertyWithAction(ref _bannedMap, value,
-            _ => BannedMapImage =
-                ImageHelper.GetImageSourceFromName(ImageSourceKey.map_singleColor, _bannedMap.ToString()));
+            _ =>
+            {
+                var imageSource = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, _bannedMap.ToString())?.ToGrayKeepAlpha();
+                var banMark = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, "BanMark");
+                if (banMark != null)
+                    imageSource = imageSource?.Overlay(banMark);
+                BannedMapImage = imageSource;
+            });
     }
 
     /// <summary>

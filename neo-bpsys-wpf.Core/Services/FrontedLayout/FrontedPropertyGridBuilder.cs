@@ -4,7 +4,6 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Reflection;
-using System.Text.RegularExpressions;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -109,10 +108,6 @@ public class FrontedPropertyGridBuilder
             ["Stretch"] = ["None", "Fill", "Uniform", "UniformToFill"],
             ["FontWeight"] = ["Normal", "Bold", "SemiBold", "Light", "Medium", "ExtraBold"]
         };
-
-    private static readonly Regex ArgbColorRegex = new(
-        "^#[0-9A-Fa-f]{8}$",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     /// <summary>
     /// Builds property editor rows for the selected design item.
@@ -235,11 +230,11 @@ public class FrontedPropertyGridBuilder
             if (kind == FrontedPropertyEditorKind.Color
                 && value is string color
                 && !string.IsNullOrWhiteSpace(color)
-                && !ArgbColorRegex.IsMatch(color))
+                && !FrontedPropertyColorHelper.TryParseArgbColor(color, out _))
             {
                 validationErrors.Add(_localizationService.GetDesignerText(
                     "Designer.Validation.InvalidArgbColor",
-                    "Invalid color. Use #AARRGGBB."));
+                    "Invalid color. Use #RRGGBB or #AARRGGBB."));
             }
 
             var canBrowseBinding = !isReadOnly && IsBindingPathProperty(property.Name);
@@ -397,11 +392,11 @@ public class FrontedPropertyGridBuilder
         if (kind == FrontedPropertyEditorKind.Color
             && value is string color
             && !string.IsNullOrWhiteSpace(color)
-            && !ArgbColorRegex.IsMatch(color))
+            && !FrontedPropertyColorHelper.TryParseArgbColor(color, out _))
         {
             validationErrors.Add(_localizationService.GetDesignerText(
                 "Designer.Validation.InvalidArgbColor",
-                "Invalid color. Use #AARRGGBB."));
+                "Invalid color. Use #RRGGBB or #AARRGGBB."));
         }
 
         var canBrowseBinding = !isReadOnly && IsBindingPathProperty(property.Name);
@@ -652,6 +647,13 @@ public class FrontedPropertyGridBuilder
         if (propertyName == nameof(FrontedControlConfigBase.BindingPath))
         {
             return "Binding";
+        }
+
+        if (config is MapV2DisplayControlConfig
+            && propertyName is nameof(MapV2DisplayControlConfig.MapBorderNormalColor)
+                or nameof(MapV2DisplayControlConfig.MapBorderBannedColor))
+        {
+            return "Border";
         }
 
         if (config is ImageFrontedControlConfig

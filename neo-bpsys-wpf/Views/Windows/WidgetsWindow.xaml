@@ -16,7 +16,7 @@
     Background="{Binding Settings.BackgroundBrush}"
     WindowStyle="None"
     mc:Ignorable="d">
-    <Grid Width="1440" Height="716">
+    <Grid Width="1440" Height="714">
         <Grid.RowDefinitions>
             <RowDefinition Height="554" />
             <RowDefinition Height="160" />

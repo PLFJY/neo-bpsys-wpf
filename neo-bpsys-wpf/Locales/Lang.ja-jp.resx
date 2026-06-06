@@ -3269,7 +3269,7 @@
     <value>画像</value>
   </data>
   <data name="Designer.Validation.InvalidArgbColor" xml:space="preserve">
-    <value>色が無効です。#AARRGGBB を使用してください。</value>
+    <value>色が無効です。#RRGGBB または #AARRGGBB を使用してください。</value>
   </data>
   <data name="Designer.PropertyGroup.Overlay" xml:space="preserve">
     <value>オーバーレイ</value>
@@ -3532,6 +3532,18 @@
   <data name="Designer.Property.CampNameFontSize" xml:space="preserve">
     <value>陣営テキストフォントサイズ</value>
   </data>
+  <data name="Designer.Property.MapBorderNormalColor" xml:space="preserve">
+    <value>マップ枠の通常色</value>
+  </data>
+  <data name="Designer.Property.MapBorderBannedColor" xml:space="preserve">
+    <value>マップ枠の禁止色</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapBorderNormalColor" xml:space="preserve">
+    <value>マップが禁止されていない時のカード外枠色です。</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapBorderBannedColor" xml:space="preserve">
+    <value>マップが禁止されている時のカード外枠色です。</value>
+  </data>
   <data name="Designer.Property.PickingBorderFillColor" xml:space="preserve">
     <value>選択枠の塗りつぶし色</value>
   </data>
@@ -3735,6 +3747,15 @@
   </data>
   <data name="Designer.GlobalScoreRow.ApplyParentStyleToCells" xml:space="preserve">
     <value>親スタイルを全セルに適用</value>
+  </data>
+  <data name="Designer.MapV2Display.ApplyStyleToAll" xml:space="preserve">
+    <value>スタイルをすべてのマップカードに適用</value>
+  </data>
+  <data name="Designer.MapV2Display.ApplyStyleToAllDescription" xml:space="preserve">
+    <value>サイズ、テキストスタイル、マップ枠、選択枠のスタイルをコピーし、各カードの位置、テキスト内容、マップ割り当て、レイアウト属性は保持します。</value>
+  </data>
+  <data name="Designer.MapV2Display.StyleAppliedToAll" xml:space="preserve">
+    <value>現在のキャンバス内のすべてのマップカードにスタイルを適用しました。</value>
   </data>
   <data name="Designer.GlobalScoreRow.ClearCellStyleOverrides" xml:space="preserve">
     <value>セルのスタイル上書きをクリア</value>

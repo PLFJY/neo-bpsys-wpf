@@ -129,7 +129,7 @@ v3 内置控件类型如下：
 | `TalentTraitDisplay` | `CutSceneWindow` 默认布局控件，封装求生者/监管者固定天赋图标和监管者辅助特质图标。 |
 | `GameProgressText` | `CutSceneWindow` 默认布局控件，集中生成 BO3/BO5 相关的对局进度文本。 |
 | `MapNameText` | `CutSceneWindow` 默认布局控件，按地图 key 生成本地化地图名。 |
-| `MapV2Display` | `WidgetsWindow` 地图 BP v2 控件，复用 `MapV2Presenter`。 |
+| `MapV2Display` | `WidgetsWindow` 地图 BP v2 控件，复用 `MapV2Presenter`；地图卡片正常/禁用外框颜色由布局配置控制。 |
 
 ### Text
 

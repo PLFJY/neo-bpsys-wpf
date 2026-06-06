@@ -79,6 +79,16 @@ public class MapV2DisplayControlConfig : FrontedControlConfigBase
     public double CampNameFontSize { get; set; }
 
     /// <summary>
+    /// 地图卡片正常状态外框颜色。
+    /// </summary>
+    public string? MapBorderNormalColor { get; set; }
+
+    /// <summary>
+    /// 地图卡片禁用状态外框颜色。
+    /// </summary>
+    public string? MapBorderBannedColor { get; set; }
+
+    /// <summary>
     /// 选图边框图片。
     /// </summary>
     public string? PickingBorderImagePath { get; set; }

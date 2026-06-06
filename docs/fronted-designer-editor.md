@@ -489,7 +489,7 @@ Phase 12 起，字符串选项使用 `FrontedPropertyEditorOption` 分离显示�
 颜色处理：
 
 1. 优先使用项目已有 ColorPicker。
-2. 保存为 `#AARRGGBB`。
+2. 接受 `#RRGGBB` 和 `#AARRGGBB` 输入；RGB 按完全不透明处理，保存时统一规范化为 `#AARRGGBB`。
 3. 识别属性名：`Color`, `Foreground`, `Background`, `FillColor`, `BorderColor`。
 4. 无效颜色字符串不会让编辑器崩溃；ColorPicker 显示白色 fallback，并由属性行验证错误提示用户修正。
 
@@ -520,6 +520,8 @@ Phase 12B 起，Resource Browser 的标题、搜索、按钮、空状态和来�
 2. 重新渲染 preview。
 3. 更新 hitbox 和 adorner。
 4. 标记布局 dirty。
+
+选中 `MapV2Display` 后，属性摘要区提供“将样式应用到所有地图卡片”按钮。该操作把控件大小、地图名/队名/阵营文字样式、地图卡片边框和选图边框样式复制到当前 Canvas 中其他 `MapV2Display`，并作为单个 Undo 步骤立即刷新预览；每张卡片自己的位置、`MapKey`、`ZIndex`、`Visibility` 和 `BindingPath` 保持不变，不会复制文字内容或绑定源。
 
 属性编辑提交必须只由用户交互触发。普通 ComboBox 在 `DropDownClosed` 后提交，文本类属性在 Enter 或 Apply 按钮后提交，CheckBox 在 Click 后提交，ColorPicker 只同步 Hex 编辑缓冲，颜色写回也由 Apply 或 Enter 提交，FontFamily ComboBox 按上述下拉/手写规则提交。属性网格重建、切换选中控件、绑定初始化和 layout pass 期间应抑制提交事件，避免 BpWindow / CutSceneWindow 中大量枚举或字符串选项行触发递归重建。失败的属性提交不应请求 preview render，也不应重建到丢失用户输入。
 

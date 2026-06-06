@@ -837,6 +837,8 @@ public class FrontedLayoutDesignerFoundationTest
 
         var mapV2 = Assert.IsType<MapV2DisplayControlConfig>(factory.Create("MapV2Display", document));
         Assert.Equal("ArmsFactory", mapV2.MapKey);
+        Assert.Equal("#FF2B483B", mapV2.MapBorderNormalColor);
+        Assert.Equal("#FF9C3E2F", mapV2.MapBorderBannedColor);
     }
 
     [Fact]
@@ -1903,6 +1905,129 @@ public class FrontedLayoutDesignerFoundationTest
             imageRows.Single(row => row.PropertyName == nameof(ImageFrontedControlConfig.SizingMode)).EditorKind);
     }
 
+    [Fact]
+    public void MapV2BorderColorsAppearAsColorPropertiesInBorderGroup()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Map",
+            Config = new MapV2DisplayControlConfig()
+        };
+
+        var rows = BuildPropertyRows(CreateDocument([item]), item);
+        var normal = rows.Single(row => row.PropertyName == nameof(MapV2DisplayControlConfig.MapBorderNormalColor));
+        var banned = rows.Single(row => row.PropertyName == nameof(MapV2DisplayControlConfig.MapBorderBannedColor));
+
+        Assert.Equal(FrontedPropertyEditorKind.Color, normal.EditorKind);
+        Assert.Equal("Border", normal.GroupName);
+        Assert.Equal(FrontedPropertyEditorKind.Color, banned.EditorKind);
+        Assert.Equal("Border", banned.GroupName);
+    }
+
+    [Fact]
+    public void MapV2DisplayStyleCanApplyToAllSameTypeControlsIncludingSizeWithoutChangingPositionOrBinding()
+    {
+        var source = new FrontedControlDesignItem
+        {
+            Name = "Map0",
+            Config = new MapV2DisplayControlConfig
+            {
+                MapKey = "Map0",
+                Left = 10,
+                Top = 20,
+                Width = 300,
+                Height = 180,
+                ZIndex = 2,
+                Visibility = FrontedControlVisibility.Hidden,
+                BindingPath = "Source.Binding",
+                MapNameFontFamily = "Source Map Font",
+                MapNameFontWeight = "Bold",
+                MapNameColor = "#FF010203",
+                MapNameFontSize = 20,
+                TeamNameFontFamily = "Source Team Font",
+                TeamNameFontWeight = "SemiBold",
+                TeamNameColor = "#FF040506",
+                TeamNameFontSize = 18,
+                CampNameFontFamily = "Source Camp Font",
+                CampNameFontWeight = "Medium",
+                CampNameColor = "#FF070809",
+                CampNameFontSize = 16,
+                MapBorderNormalColor = "#FF112233",
+                MapBorderBannedColor = "#FF445566",
+                PickingBorderImagePath = "Resources/picking.png",
+                PickingBorderFillColor = "#FF778899"
+            }
+        };
+        var target = new FrontedControlDesignItem
+        {
+            Name = "Map1",
+            Config = new MapV2DisplayControlConfig
+            {
+                MapKey = "Map1",
+                Left = 100,
+                Top = 200,
+                Width = 320,
+                Height = 190,
+                ZIndex = 7,
+                Visibility = FrontedControlVisibility.Collapsed,
+                BindingPath = "Target.Binding",
+                MapNameColor = "#FFFFFFFF",
+                MapBorderNormalColor = "#FF000000",
+                PickingBorderImagePath = "Resources/old.png"
+            }
+        };
+        var unrelated = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Color = "#FFAABBCC" }
+        };
+        var document = CreateDocument([source, target, unrelated]);
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
+        viewModel.SelectDesignItem(source);
+
+        Assert.True(viewModel.IsMapV2DisplaySelected);
+
+        viewModel.ApplyMapV2DisplayStyleToAllCommand.Execute(null);
+
+        var targetConfig = Assert.IsType<MapV2DisplayControlConfig>(target.Config);
+        Assert.Equal("Source Map Font", targetConfig.MapNameFontFamily);
+        Assert.Equal("#FF010203", targetConfig.MapNameColor);
+        Assert.Equal("Source Team Font", targetConfig.TeamNameFontFamily);
+        Assert.Equal("#FF040506", targetConfig.TeamNameColor);
+        Assert.Equal("Source Camp Font", targetConfig.CampNameFontFamily);
+        Assert.Equal("#FF070809", targetConfig.CampNameColor);
+        Assert.Equal("#FF112233", targetConfig.MapBorderNormalColor);
+        Assert.Equal("#FF445566", targetConfig.MapBorderBannedColor);
+        Assert.Equal("Resources/picking.png", targetConfig.PickingBorderImagePath);
+        Assert.Equal("#FF778899", targetConfig.PickingBorderFillColor);
+        Assert.Equal("Map1", targetConfig.MapKey);
+        Assert.Equal(100, targetConfig.Left);
+        Assert.Equal(200, targetConfig.Top);
+        Assert.Equal(300, targetConfig.Width);
+        Assert.Equal(180, targetConfig.Height);
+        Assert.Equal(7, targetConfig.ZIndex);
+        Assert.Equal(FrontedControlVisibility.Collapsed, targetConfig.Visibility);
+        Assert.Equal("Target.Binding", targetConfig.BindingPath);
+        Assert.Equal("#FFAABBCC", Assert.IsType<TextFrontedControlConfig>(unrelated.Config).Color);
+        Assert.True(document.IsDirty);
+        Assert.True(viewModel.CanUndo);
+
+        viewModel.UndoCommand.Execute(null);
+
+        var restoredTarget = Assert.IsType<MapV2DisplayControlConfig>(
+            viewModel.CurrentDocument!.Controls.Single(item => item.Name == "Map1").Config);
+        Assert.Equal("#FFFFFFFF", restoredTarget.MapNameColor);
+        Assert.Equal("#FF000000", restoredTarget.MapBorderNormalColor);
+        Assert.Equal("Resources/old.png", restoredTarget.PickingBorderImagePath);
+        Assert.Equal("Map1", restoredTarget.MapKey);
+        Assert.Equal(100, restoredTarget.Left);
+        Assert.Equal(320, restoredTarget.Width);
+        Assert.Equal(190, restoredTarget.Height);
+
+        viewModel.SelectDesignItem(viewModel.CurrentDocument.Controls.Single(item => item.Name == "Title"));
+        Assert.False(viewModel.IsMapV2DisplaySelected);
+    }
+
     [Theory]
     [InlineData("HorizontalAlignment", "Left", "Center", "Right", "Stretch")]
     [InlineData("VerticalAlignment", "Top", "Center", "Bottom", "Stretch")]
@@ -2054,7 +2179,7 @@ public class FrontedLayoutDesignerFoundationTest
         var colorRow = rows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.Color));
 
         Assert.Contains("颜色格式不正确", colorRow.ValidationErrors);
-        Assert.DoesNotContain("Invalid color. Use #AARRGGBB.", colorRow.ValidationErrors);
+        Assert.DoesNotContain("Invalid color. Use #RRGGBB or #AARRGGBB.", colorRow.ValidationErrors);
     }
 
     [Fact]
@@ -2185,8 +2310,27 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.True(FrontedPropertyColorHelper.TryParseArgbColor("#FFFFFFFF", out var color));
         Assert.Equal(Colors.White, color);
         Assert.Equal("#FFFFFFFF", FrontedPropertyColorHelper.ToArgbString(color));
+        Assert.True(FrontedPropertyColorHelper.TryParseArgbColor("#112233", out var rgbColor));
+        Assert.Equal(Color.FromArgb(0xFF, 0x11, 0x22, 0x33), rgbColor);
+        Assert.Equal("#FF112233", FrontedPropertyColorHelper.ToArgbString(rgbColor));
         Assert.False(FrontedPropertyColorHelper.TryParseArgbColor("not-a-color", out var fallback));
         Assert.Equal(FrontedPropertyColorHelper.FallbackColor, fallback);
+    }
+
+    [Fact]
+    public void PropertyGridAcceptsStoredRgbColorWithoutValidationError()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Color = "#112233" }
+        };
+
+        var rows = BuildPropertyRows(CreateDocument([item]), item);
+        var colorRow = rows.Single(row => row.PropertyName == nameof(TextFrontedControlConfig.Color));
+
+        Assert.Empty(colorRow.ValidationErrors);
+        Assert.Equal(Color.FromArgb(0xFF, 0x11, 0x22, 0x33), colorRow.ColorValue);
     }
 
     [Fact]
@@ -2216,6 +2360,32 @@ public class FrontedLayoutDesignerFoundationTest
 
         Assert.True(result);
         Assert.Equal("#80112233", ((TextFrontedControlConfig)item.Config).Color);
+    }
+
+    [Fact]
+    public void RgbColorCommitNormalizesToOpaqueArgb()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig { Color = "#FFFFFFFF" }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([item]) };
+        viewModel.SelectDesignItem(item);
+        var row = new FrontedPropertyEditorItem
+        {
+            PropertyName = nameof(TextFrontedControlConfig.Color),
+            EditorKind = FrontedPropertyEditorKind.Color,
+            Value = "#FFFFFFFF",
+            EditText = "#112233"
+        };
+
+        var result = viewModel.ApplyPropertyEdit(row, row.EditText);
+
+        Assert.True(result);
+        Assert.Equal("#FF112233", ((TextFrontedControlConfig)item.Config).Color);
+        Assert.Equal("#FF112233", row.EditText);
+        Assert.False(row.HasEditError);
     }
 
     [Fact]

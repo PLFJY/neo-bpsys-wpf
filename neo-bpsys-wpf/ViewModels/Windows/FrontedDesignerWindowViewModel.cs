@@ -329,11 +329,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(HasSelectedDesignItem))]
     [NotifyPropertyChangedFor(nameof(CanDeleteSelectedControl))]
     [NotifyPropertyChangedFor(nameof(IsBorderedImageSelected))]
+    [NotifyPropertyChangedFor(nameof(IsMapV2DisplaySelected))]
     private FrontedControlDesignItem? _selectedDesignItem;
 
     public bool HasSelectedDesignItem => SelectedDesignItem is not null;
 
     public bool IsBorderedImageSelected => SelectedDesignItem?.Config is BorderedImageFrontedControlConfig;
+
+    public bool IsMapV2DisplaySelected => SelectedDesignItem?.Config is MapV2DisplayControlConfig;
 
     private string? _selectedGlobalScoreCellParentName;
     private string? _selectedGlobalScoreCellId;
@@ -638,6 +641,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsBorderResizeTargetSelected));
         OnPropertyChanged(nameof(IsImageResizeTargetSelected));
         OnPropertyChanged(nameof(HasGlobalScoreCellEditor));
+        OnPropertyChanged(nameof(IsMapV2DisplaySelected));
     }
 
     private void OnGlobalScoreCellSelectionChanged()
@@ -1363,6 +1367,60 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RebuildPropertyEditorItems();
         RefreshDirtyState();
         RequestPreviewRenderCurrentDocument();
+    }
+
+    [RelayCommand]
+    private void ApplyMapV2DisplayStyleToAll()
+    {
+        if (CurrentDocument is null || SelectedDesignItem?.Config is not MapV2DisplayControlConfig source)
+        {
+            return;
+        }
+
+        var targets = CurrentDocument.Controls
+            .Where(item => !ReferenceEquals(item, SelectedDesignItem))
+            .Select(item => item.Config)
+            .OfType<MapV2DisplayControlConfig>()
+            .ToArray();
+        if (targets.Length == 0)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+        foreach (var target in targets)
+        {
+            CopyMapV2DisplayStyle(source, target);
+        }
+
+        CurrentDocument.IsDirty = true;
+        RebuildPropertyEditorItems();
+        RefreshDirtyState();
+        ValidateCurrentDocument();
+        RequestPreviewRenderCurrentDocument();
+        StatusMessage = I18nHelper.GetLocalizedString("Designer.MapV2Display.StyleAppliedToAll");
+    }
+
+    private static void CopyMapV2DisplayStyle(MapV2DisplayControlConfig source, MapV2DisplayControlConfig target)
+    {
+        target.Width = source.Width;
+        target.Height = source.Height;
+        target.MapNameFontFamily = source.MapNameFontFamily;
+        target.MapNameFontWeight = source.MapNameFontWeight;
+        target.MapNameColor = source.MapNameColor;
+        target.MapNameFontSize = source.MapNameFontSize;
+        target.TeamNameFontFamily = source.TeamNameFontFamily;
+        target.TeamNameFontWeight = source.TeamNameFontWeight;
+        target.TeamNameColor = source.TeamNameColor;
+        target.TeamNameFontSize = source.TeamNameFontSize;
+        target.CampNameFontFamily = source.CampNameFontFamily;
+        target.CampNameFontWeight = source.CampNameFontWeight;
+        target.CampNameColor = source.CampNameColor;
+        target.CampNameFontSize = source.CampNameFontSize;
+        target.MapBorderNormalColor = source.MapBorderNormalColor;
+        target.MapBorderBannedColor = source.MapBorderBannedColor;
+        target.PickingBorderImagePath = source.PickingBorderImagePath;
+        target.PickingBorderFillColor = source.PickingBorderFillColor;
     }
 
     [RelayCommand]
@@ -3042,6 +3100,10 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 color = Colors.Transparent;
                 _windowBackgroundColorConfigured = false;
             }
+            else
+            {
+                backgroundColor = FrontedPropertyColorHelper.ToArgbString(color);
+            }
 
             WindowBackgroundColorEditText = backgroundColor;
             WindowBackgroundColorValue = color;
@@ -3061,6 +3123,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
+        WindowBackgroundColorEditText = FrontedPropertyColorHelper.ToArgbString(color);
         WindowBackgroundColorValue = color;
         _windowBackgroundColorConfigured = true;
         _ = SaveWindowOptionsAsync(restartRequired: false, applyBackgroundImmediately: true);

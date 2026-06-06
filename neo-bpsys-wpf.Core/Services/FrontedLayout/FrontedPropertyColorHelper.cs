@@ -14,7 +14,8 @@ public static class FrontedPropertyColorHelper
     public static Color FallbackColor { get; } = Colors.White;
 
     /// <summary>
-    /// Parses a strict <c>#AARRGGBB</c> color string without throwing.
+    /// Parses a <c>#RRGGBB</c> or <c>#AARRGGBB</c> color string without throwing.
+    /// RGB input is treated as fully opaque.
     /// </summary>
     public static bool TryParseArgbColor(string? value, out Color color)
     {
@@ -30,17 +31,20 @@ public static class FrontedPropertyColorHelper
             text = text[1..];
         }
 
-        if (text.Length != 8)
+        if (text.Length is not (6 or 8))
         {
             return false;
         }
 
         try
         {
-            var a = byte.Parse(text[..2], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-            var r = byte.Parse(text.Substring(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-            var g = byte.Parse(text.Substring(4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-            var b = byte.Parse(text.Substring(6, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            var offset = text.Length == 8 ? 2 : 0;
+            var a = text.Length == 8
+                ? byte.Parse(text[..2], NumberStyles.HexNumber, CultureInfo.InvariantCulture)
+                : byte.MaxValue;
+            var r = byte.Parse(text.Substring(offset, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            var g = byte.Parse(text.Substring(offset + 2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            var b = byte.Parse(text.Substring(offset + 4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
             color = Color.FromArgb(a, r, g, b);
             return true;
         }

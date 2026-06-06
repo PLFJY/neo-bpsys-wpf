@@ -1,5 +1,6 @@
 ﻿<UserControl
     x:Class="neo_bpsys_wpf.Controls.MapV2Presenter"
+    x:Name="Root"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
@@ -20,6 +21,7 @@
         <cv:CampHunToVisibilityConverter x:Key="CampHunToVisibilityConverter" />
         <cv:NullObjectToVisibilityConverter x:Key="NullObjectToVisibilityConverter" />
         <cv:NullObjectToReverseVisibilityConverter x:Key="NullObjectToReverseVisibilityConverter" />
+        <cv:MapV2BorderBrushConverter x:Key="MapV2BorderBrushConverter" />
         <Storyboard
             x:Key="BreathAnimation"
             AutoReverse="True"
@@ -122,9 +124,15 @@
             Grid.Row="1"
             Margin="5,5,5,5"
             d:BorderBrush="#2b483b"
-            BorderBrush="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Map.MapBorderBrush}"
             BorderThickness="2"
             CornerRadius="8">
+            <Border.BorderBrush>
+                <MultiBinding Converter="{StaticResource MapV2BorderBrushConverter}">
+                    <Binding ElementName="Root" Path="Map.IsBanned" />
+                    <Binding ElementName="Root" Path="MapBorderNormalBrush" />
+                    <Binding ElementName="Root" Path="MapBorderBannedBrush" />
+                </MultiBinding>
+            </Border.BorderBrush>
             <Border.Background>
                 <ImageBrush
                     d:ImageSource="/Assets/ChinaTown.png"

@@ -267,7 +267,9 @@ public class FrontedControlDefaultConfigFactory
             {
                 MapKey = "ArmsFactory",
                 Width = 151,
-                Height = 160
+                Height = 160,
+                MapBorderNormalColor = "#FF2B483B",
+                MapBorderBannedColor = "#FF9C3E2F"
             },
             _ => throw new NotSupportedException($"Unsupported control type '{controlType}'.")
         };

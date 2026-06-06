@@ -978,6 +978,8 @@ public class FrontedCanvasConfigTest
             var display = Assert.IsType<MapV2DisplayControlConfig>(mapV2Canvas.Controls[controlName]);
             Assert.Equal("MapV2Display", display.ControlType);
             Assert.Equal(mapKey, display.MapKey);
+            Assert.Equal("#FF2B483B", display.MapBorderNormalColor);
+            Assert.Equal("#FF9C3E2F", display.MapBorderBannedColor);
         }
     }
 
@@ -2231,6 +2233,8 @@ public class FrontedCanvasConfigTest
         Assert.NotNull(config);
         var mapConfig = Assert.IsType<MapV2DisplayControlConfig>(config.Controls["Arms_Factory"]);
         Assert.Equal("ArmsFactory", mapConfig.MapKey);
+        Assert.Null(mapConfig.MapBorderNormalColor);
+        Assert.Null(mapConfig.MapBorderBannedColor);
 
         RunOnStaThread(() =>
         {
@@ -2270,6 +2274,81 @@ public class FrontedCanvasConfigTest
             Assert.Equal(nameof(Border.ActualHeight), heightBinding.Path.Path);
             Assert.Same(border, widthBinding.Source);
             Assert.Same(border, heightBinding.Source);
+            Assert.Equal(Color.FromRgb(0x2B, 0x48, 0x3B), Assert.IsType<SolidColorBrush>(presenter.MapBorderNormalBrush).Color);
+            Assert.Equal(Color.FromRgb(0x9C, 0x3E, 0x2F), Assert.IsType<SolidColorBrush>(presenter.MapBorderBannedBrush).Color);
+        });
+    }
+
+    [Fact]
+    public void MapV2DisplayBorderColorsRoundTripThroughLayoutJson()
+    {
+        var config = new FrontedCanvasConfig
+        {
+            CanvasWidth = 1440,
+            CanvasHeight = 160,
+            Controls =
+            {
+                ["Map"] = new MapV2DisplayControlConfig
+                {
+                    MapKey = "ArmsFactory",
+                    MapBorderNormalColor = "#FF102030",
+                    MapBorderBannedColor = "#FF405060"
+                }
+            }
+        };
+
+        var reloaded = JsonSerializer.Deserialize<FrontedCanvasConfig>(JsonSerializer.Serialize(config));
+        var map = Assert.IsType<MapV2DisplayControlConfig>(reloaded!.Controls["Map"]);
+
+        Assert.Equal("#FF102030", map.MapBorderNormalColor);
+        Assert.Equal("#FF405060", map.MapBorderBannedColor);
+    }
+
+    [Fact]
+    public void MapV2DisplayAppliesConfiguredBorderColorsAndUsesSpecificFallbacks()
+    {
+        RunOnStaThread(() =>
+        {
+            var sharedDataService = new Mock<ISharedDataService>();
+            sharedDataService
+                .SetupGet(service => service.CurrentGame)
+                .Returns(new Game(
+                    new Team(Camp.Sur, TeamType.HomeTeam),
+                    new Team(Camp.Hun, TeamType.AwayTeam),
+                    GameProgress.Game1FirstHalf));
+
+            var settingsHostService = new Mock<ISettingsHostService>();
+            settingsHostService.SetupGet(service => service.Settings).Returns(new Settings());
+            var services = new ServiceCollection().AddSingleton(settingsHostService.Object).BuildServiceProvider();
+            var control = new MapV2DisplayFrontedControl();
+
+            var configured = Assert.IsAssignableFrom<Border>(control.Create(
+                "Configured",
+                new MapV2DisplayControlConfig
+                {
+                    MapKey = "ArmsFactory",
+                    MapBorderNormalColor = "#FF102030",
+                    MapBorderBannedColor = "#FF405060",
+                    PickingBorderFillColor = "#FF708090"
+                },
+                CreateBuildContext(sharedDataService.Object, services)));
+            var configuredPresenter = Assert.IsType<MapV2Presenter>(configured.Child);
+            Assert.Equal(Color.FromRgb(0x10, 0x20, 0x30), Assert.IsType<SolidColorBrush>(configuredPresenter.MapBorderNormalBrush).Color);
+            Assert.Equal(Color.FromRgb(0x40, 0x50, 0x60), Assert.IsType<SolidColorBrush>(configuredPresenter.MapBorderBannedBrush).Color);
+            Assert.Equal(Color.FromRgb(0x70, 0x80, 0x90), Assert.IsType<SolidColorBrush>(configuredPresenter.PickingBorderBrush).Color);
+
+            var invalid = Assert.IsAssignableFrom<Border>(control.Create(
+                "Invalid",
+                new MapV2DisplayControlConfig
+                {
+                    MapKey = "ArmsFactory",
+                    MapBorderNormalColor = "invalid",
+                    MapBorderBannedColor = "also-invalid"
+                },
+                CreateBuildContext(sharedDataService.Object, services)));
+            var invalidPresenter = Assert.IsType<MapV2Presenter>(invalid.Child);
+            Assert.Equal(Color.FromRgb(0x2B, 0x48, 0x3B), Assert.IsType<SolidColorBrush>(invalidPresenter.MapBorderNormalBrush).Color);
+            Assert.Equal(Color.FromRgb(0x9C, 0x3E, 0x2F), Assert.IsType<SolidColorBrush>(invalidPresenter.MapBorderBannedBrush).Color);
         });
     }
 

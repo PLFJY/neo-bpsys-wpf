@@ -3266,7 +3266,7 @@
     <value>Image</value>
   </data>
   <data name="Designer.Validation.InvalidArgbColor" xml:space="preserve">
-    <value>Invalid color. Use #AARRGGBB.</value>
+    <value>Invalid color. Use #RRGGBB or #AARRGGBB.</value>
   </data>
   <data name="Designer.PropertyGroup.Overlay" xml:space="preserve">
     <value>Overlay</value>
@@ -3529,6 +3529,18 @@
   <data name="Designer.Property.CampNameFontSize" xml:space="preserve">
     <value>Camp Text Font Size</value>
   </data>
+  <data name="Designer.Property.MapBorderNormalColor" xml:space="preserve">
+    <value>Map Border Normal Color</value>
+  </data>
+  <data name="Designer.Property.MapBorderBannedColor" xml:space="preserve">
+    <value>Map Border Banned Color</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapBorderNormalColor" xml:space="preserve">
+    <value>Map card outer border color when the map is not banned.</value>
+  </data>
+  <data name="Designer.PropertyDescription.MapBorderBannedColor" xml:space="preserve">
+    <value>Map card outer border color when the map is banned.</value>
+  </data>
   <data name="Designer.Property.PickingBorderFillColor" xml:space="preserve">
     <value>Picking Border Fill Color</value>
   </data>
@@ -3732,6 +3744,15 @@
   </data>
   <data name="Designer.GlobalScoreRow.ApplyParentStyleToCells" xml:space="preserve">
     <value>Apply Parent Style to All Cells</value>
+  </data>
+  <data name="Designer.MapV2Display.ApplyStyleToAll" xml:space="preserve">
+    <value>Apply Style to All Map Cards</value>
+  </data>
+  <data name="Designer.MapV2Display.ApplyStyleToAllDescription" xml:space="preserve">
+    <value>Copies size, text styles, map border, and picking border styles while preserving each card's position, text content, map binding, and layout properties.</value>
+  </data>
+  <data name="Designer.MapV2Display.StyleAppliedToAll" xml:space="preserve">
+    <value>Applied the style to all map cards on the current canvas.</value>
   </data>
   <data name="Designer.GlobalScoreRow.ClearCellStyleOverrides" xml:space="preserve">
     <value>Clear Cell Style Overrides</value>

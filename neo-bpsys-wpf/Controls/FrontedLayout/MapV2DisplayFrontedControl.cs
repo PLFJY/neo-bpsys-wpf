@@ -116,6 +116,8 @@ public class MapV2DisplayFrontedControl(ILogger<MapV2DisplayFrontedControl>? log
             _presenter.CampNameFontFamily = ResolveFontFamily(config.CampNameFontFamily, logger);
             _presenter.CampNameFontWeight = ResolveFontWeight(config.CampNameFontWeight, logger);
 
+            _presenter.MapBorderNormalBrush = ResolveBrush(config.MapBorderNormalColor, logger, "#2B483B");
+            _presenter.MapBorderBannedBrush = ResolveBrush(config.MapBorderBannedColor, logger, "#9C3E2F");
             _presenter.PickingBorderBrush = ResolveBrush(config.PickingBorderFillColor, logger);
             _presenter.PickingBorderImage = !string.IsNullOrWhiteSpace(config.PickingBorderImagePath)
                 ? resourceResolver.ResolveImage(config.PickingBorderImagePath, FrontedImagePurpose.UiElement)
@@ -138,6 +140,24 @@ public class MapV2DisplayFrontedControl(ILogger<MapV2DisplayFrontedControl>? log
             {
                 logger?.LogWarning(ex, "Invalid MapV2Display color value: {Color}", value);
                 return Brushes.White;
+            }
+        }
+
+        private static Brush ResolveBrush(string? value, ILogger? logger, string fallback)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return (Brush)new BrushConverter().ConvertFromString(fallback)!;
+            }
+
+            try
+            {
+                return (Brush)new BrushConverter().ConvertFromString(value)!;
+            }
+            catch (Exception ex)
+            {
+                logger?.LogWarning(ex, "Invalid MapV2Display color value: {Color}", value);
+                return (Brush)new BrushConverter().ConvertFromString(fallback)!;
             }
         }
 

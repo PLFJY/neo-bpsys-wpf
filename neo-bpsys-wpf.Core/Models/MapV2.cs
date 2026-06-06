@@ -27,7 +27,6 @@ public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMes
     /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ImageSource))]
-    [NotifyPropertyChangedFor(nameof(MapBorderBrush))]
     [NotifyPropertyChangedFor(nameof(CanBePicked))]
     [NotifyPropertyChangedFor(nameof(CanBeBanned))]
     private bool _isPicked;
@@ -43,7 +42,6 @@ public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMes
         set => SetPropertyWithAction(ref _isBanned, value, oldValue =>
         {
             OnPropertyChanged(nameof(ImageSource));
-            OnPropertyChanged(nameof(MapBorderBrush));
             OnPropertyChanged(nameof(IsBreathing));
             OnPropertyChanged(nameof(CanBePicked));
             OnPropertyChanged(nameof(CanBeBanned));
@@ -125,40 +123,14 @@ public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMes
     }
 
     /// <summary>
-    /// 地图边框颜色（正常）
-    /// </summary>
-    private readonly Brush _mapBorderNormalBrush;
-    /// <summary>
-    /// 地图边框颜色（ban）
-    /// </summary>
-    private readonly Brush _mapBorderBannedBrush;
-
-    /// <summary>
-    /// 地图边框颜色
-    /// </summary>
-    [JsonIgnore] public Brush MapBorderBrush => IsBanned ? _mapBorderBannedBrush : _mapBorderNormalBrush;
-
-    /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="mapName">地图名称</param>
-    /// <param name="mapBorderNormal">地图边框颜色（正常）</param>
-    /// <param name="mapBorderBanned">地图边框颜色（ban）</param>
-    public MapV2(Map? mapName, string mapBorderNormal = "#2B483B", string mapBorderBanned = "#9C3E2F")
+    [JsonConstructor]
+    public MapV2(Map? mapName)
     {
         MapName = mapName;
-        _mapBorderNormalBrush = ColorHelper.HexToBrush(mapBorderNormal);
-        _mapBorderBannedBrush = ColorHelper.HexToBrush(mapBorderBanned);
         IsActive = true;
-    }
-
-    /// <summary>
-    /// JSON 反序列化构造函数
-    /// </summary>
-    /// <param name="mapName"></param>
-    [JsonConstructor]
-    internal MapV2(Map? mapName) : this(mapName, "#2B483B", "#9C3E2F")
-    {
     }
 
     /// <summary>

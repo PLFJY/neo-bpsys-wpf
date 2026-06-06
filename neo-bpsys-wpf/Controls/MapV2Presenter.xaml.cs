@@ -146,6 +146,24 @@ public partial class MapV2Presenter : UserControl
     public static readonly DependencyProperty CampNameFontWeightProperty =
         DependencyProperty.Register(nameof(CampNameFontWeight), typeof(FontWeight), typeof(MapV2Presenter), new PropertyMetadata(FontWeights.Regular));
 
+    public Brush MapBorderNormalBrush
+    {
+        get => (Brush)GetValue(MapBorderNormalBrushProperty);
+        set => SetValue(MapBorderNormalBrushProperty, value);
+    }
+
+    public static readonly DependencyProperty MapBorderNormalBrushProperty =
+        DependencyProperty.Register(nameof(MapBorderNormalBrush), typeof(Brush), typeof(MapV2Presenter), new PropertyMetadata(ColorHelper.HexToBrush("#2B483B")));
+
+    public Brush MapBorderBannedBrush
+    {
+        get => (Brush)GetValue(MapBorderBannedBrushProperty);
+        set => SetValue(MapBorderBannedBrushProperty, value);
+    }
+
+    public static readonly DependencyProperty MapBorderBannedBrushProperty =
+        DependencyProperty.Register(nameof(MapBorderBannedBrush), typeof(Brush), typeof(MapV2Presenter), new PropertyMetadata(ColorHelper.HexToBrush("#9C3E2F")));
+
     public Brush PickingBorderBrush
     {
         get => (Brush)GetValue(PickingBorderBrushProperty);

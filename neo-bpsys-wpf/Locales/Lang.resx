@@ -3284,7 +3284,7 @@
     <value>图片</value>
   </data>
   <data name="Designer.Validation.InvalidArgbColor" xml:space="preserve">
-    <value>颜色无效。请使用 #AARRGGBB。</value>
+    <value>颜色无效。请使用 #RRGGBB 或 #AARRGGBB。</value>
   </data>
   <data name="Designer.PropertyGroup.Overlay" xml:space="preserve">
     <value>覆盖层</value>
@@ -3523,6 +3523,10 @@
   <data name="Designer.Property.CampNameFontWeight" xml:space="preserve"><value>阵营文字字重</value></data>
   <data name="Designer.Property.CampNameColor" xml:space="preserve"><value>阵营文字颜色</value></data>
   <data name="Designer.Property.CampNameFontSize" xml:space="preserve"><value>阵营文字字号</value></data>
+  <data name="Designer.Property.MapBorderNormalColor" xml:space="preserve"><value>地图外框正常颜色</value></data>
+  <data name="Designer.Property.MapBorderBannedColor" xml:space="preserve"><value>地图外框禁用颜色</value></data>
+  <data name="Designer.PropertyDescription.MapBorderNormalColor" xml:space="preserve"><value>地图未禁用时的卡片外框颜色。</value></data>
+  <data name="Designer.PropertyDescription.MapBorderBannedColor" xml:space="preserve"><value>地图禁用时的卡片外框颜色。</value></data>
   <data name="Designer.Property.PickingBorderFillColor" xml:space="preserve"><value>选择框填充颜色</value></data>
   <data name="Designer.Option.MapNameFontWeight.Light" xml:space="preserve"><value>细</value></data>
   <data name="Designer.Option.MapNameFontWeight.Normal" xml:space="preserve"><value>常规</value></data>
@@ -3627,6 +3631,9 @@
   <data name="Designer.GlobalScoreRow.FillMissingCells" xml:space="preserve"><value>补齐缺失单元</value></data>
   <data name="Designer.GlobalScoreRow.ApplyBo3VisibilityTemplate" xml:space="preserve"><value>应用 BO3 可见性</value></data>
   <data name="Designer.GlobalScoreRow.ApplyBo5VisibilityTemplate" xml:space="preserve"><value>应用 BO5 可见性</value></data>
+  <data name="Designer.MapV2Display.ApplyStyleToAll" xml:space="preserve"><value>将样式应用到所有地图卡片</value></data>
+  <data name="Designer.MapV2Display.ApplyStyleToAllDescription" xml:space="preserve"><value>复制当前地图卡片的大小、文字样式、地图外框和选图边框样式；保留其他卡片的位置、文字内容、地图绑定和布局属性。</value></data>
+  <data name="Designer.MapV2Display.StyleAppliedToAll" xml:space="preserve"><value>已将样式应用到当前画布中的所有地图卡片。</value></data>
   <data name="Designer.Property.CellId" xml:space="preserve"><value>单元 ID</value></data>
   <data name="Designer.Property.GameNumber" xml:space="preserve"><value>局号</value></data>
   <data name="Designer.Property.GameKind" xml:space="preserve"><value>局类型</value></data>

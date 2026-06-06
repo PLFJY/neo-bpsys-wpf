@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Core.Extensions;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Windows.Media;
@@ -198,9 +199,23 @@ public partial class MapBpPageViewModel : ViewModelBase, IRecipient<HighlightMes
 
     public class BanMapInfo(MapV2 map)
     {
+        private ImageSource? _imageSource;
+
         public MapV2 Map { get; } = map;
 
-        public ImageSource? ImageSource { get; } =
-            ImageHelper.GetImageSourceFromName(ImageSourceKey.map_singleColor, map.MapName.ToString());
+        public ImageSource? ImageSource
+        {
+            get
+            {
+                if (_imageSource == null)
+                {
+                    _imageSource ??= ImageHelper.GetImageSourceFromName(ImageSourceKey.map, Map.MapName.ToString())?.ToGrayKeepAlpha();
+                    var banMark = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, "BanMark");
+                    if (banMark != null)
+                        _imageSource = _imageSource?.Overlay(banMark);
+                }
+                return _imageSource;
+            }
+        }
     }
 }
