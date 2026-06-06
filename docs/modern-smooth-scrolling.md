@@ -12,9 +12,11 @@
 
 ## 滚轮事件归属
 
-平滑滚动只处理冒泡阶段的 `MouseWheel`，不再处理 `PreviewMouseWheel`。这样 `ComboBox` 下拉列表、`ListBox`、`ListView`、内层 `ScrollViewer` 等子控件可以先接收滚轮事件，外层 `ModernScrollViewer` / `SmoothScrollBehavior` 不会在预览阶段提前标记 `Handled=true`。
+平滑滚动以鼠标悬停位置为准，不要求页面或 frame 先获得键盘焦点。`ModernScrollViewer` 和 `SmoothScrollBehavior` 会在 Loaded 后向所在 `Window` 注册 `PreviewMouseWheel` 路由器；该路由器只用于根据 `Mouse.DirectlyOver` 找到鼠标下最近的合格滚动宿主，不会无条件抢占预览事件。
 
-当滚轮来源位于已打开的 `ComboBox`、`Popup` / `ContextMenu`、`PopupRoot`，或位于内层 `ScrollViewer`、`ModernScrollViewer`、`ListBox`、`ListView`、`DataGrid`、`TreeView` 时，外层平滑滚动会让出事件。对于 `ModernScrollViewer` 自身，这类事件还会阻止继续落到父级 `ScrollViewer` 默认滚动逻辑，避免打开下拉框时背后的页面或 frame 跟着滚动。
+实际滚动仍保留冒泡阶段的 `MouseWheel` 作为 fallback，但不能恢复旧的无条件 `PreviewMouseWheel` 处理。这样 `ComboBox` 下拉列表、`ListBox`、`ListView`、内层 `ScrollViewer` 等子控件可以先拥有自己的滚轮语义，外层页面滚动只在鼠标位于普通页面内容时接管。
+
+当鼠标位于已打开的 `ComboBox`、`Popup` / `ContextMenu`、`PopupRoot`，或位于内层 `ScrollViewer`、`ModernScrollViewer`、`ListBox`、`ListView`、`DataGrid`、`TreeView` 时，外层平滑滚动会让出事件。对于 `ModernScrollViewer` 自身，这类事件还会阻止继续落到父级 `ScrollViewer` 默认滚动逻辑，避免打开下拉框时背后的页面或 frame 跟着滚动。
 
 frame 级滚动只负责页面级内容区域。LocalTabs 子页如果有自己的列表或滚动宿主，应由子页内部控件滚动；没有内部滚动宿主的普通内容仍可使用 frame 级 `ModernScrollViewer` 平滑滚动。
 

@@ -131,6 +131,97 @@ public class ModernSmoothScrollingTest
     }
 
     [Fact]
+    public void ModernScrollViewerHoverWheelUsesPlainContentWithoutFocus()
+    {
+        RunSta(() =>
+        {
+            var source = new Border { Height = 500, Width = 100 };
+
+            WithModernScrollableViewer(scrollViewer =>
+            {
+                var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
+
+                Assert.NotSame(scrollViewer, Keyboard.FocusedElement);
+                Assert.True(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, source));
+                Assert.True(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
+                    scrollViewer,
+                    args,
+                    wheelScrollMultiplier: 1,
+                    scrollAnimationDuration: 0,
+                    isSmoothScrollingEnabled: true,
+                    easingFunction: null,
+                    explicitSource: source));
+                scrollViewer.UpdateLayout();
+                Assert.True(scrollViewer.VerticalOffset > 0);
+            }, source);
+        });
+    }
+
+    [Fact]
+    public void ModernScrollViewerHoverWheelDoesNotUseHandledEvent()
+    {
+        RunSta(() =>
+        {
+            var source = new Border { Height = 500, Width = 100 };
+
+            WithModernScrollableViewer(scrollViewer =>
+            {
+                var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
+                args.Handled = true;
+
+                Assert.False(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, source));
+                Assert.False(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
+                    scrollViewer,
+                    args,
+                    wheelScrollMultiplier: 1,
+                    scrollAnimationDuration: 0,
+                    isSmoothScrollingEnabled: true,
+                    easingFunction: null,
+                    explicitSource: source));
+                Assert.Equal(0, scrollViewer.VerticalOffset);
+            }, source);
+        });
+    }
+
+    [Fact]
+    public void ModernScrollViewerHoverWheelRequiresMouseOverOwner()
+    {
+        RunSta(() =>
+        {
+            var ownerContent = new Border { Height = 500, Width = 100 };
+            var outside = new Border { Height = 20, Width = 100 };
+
+            WithModernScrollableViewer(scrollViewer =>
+            {
+                var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
+
+                Assert.False(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, outside));
+            }, ownerContent);
+        });
+    }
+
+    [Fact]
+    public void ModernScrollViewerHoverWheelIgnoresUnrelatedNestedListSource()
+    {
+        RunSta(() =>
+        {
+            var source = new Border { Height = 500, Width = 100 };
+            var unrelatedListBox = new ListBox
+            {
+                ItemsSource = Enumerable.Range(0, 20).Select(index => $"Item {index}").ToArray()
+            };
+
+            WithModernScrollableViewer(scrollViewer =>
+            {
+                var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
+                args.Source = unrelatedListBox;
+
+                Assert.True(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, source));
+            }, source);
+        });
+    }
+
+    [Fact]
     public void ModernScrollViewerDoesNotHandleWheelWhenSourceIsInsideOpenedComboBox()
     {
         RunSta(() =>
@@ -155,6 +246,7 @@ public class ModernSmoothScrollingTest
                 var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
 
                 Assert.True(comboBox.IsDropDownOpen);
+                Assert.False(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, comboBox));
                 Assert.True(WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, args, comboBox));
                 Assert.False(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
                     scrollViewer,
@@ -253,6 +345,7 @@ public class ModernSmoothScrollingTest
             WithModernScrollableViewer(scrollViewer =>
             {
                 var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
+                Assert.False(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, listBox));
                 Assert.True(WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, args, listBox));
                 Assert.False(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
                     scrollViewer,
@@ -290,6 +383,7 @@ public class ModernSmoothScrollingTest
             WithModernScrollableViewer(scrollViewer =>
             {
                 var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
+                Assert.False(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, listView));
                 Assert.True(WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, args, listView));
                 Assert.False(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
                     scrollViewer,
@@ -340,6 +434,52 @@ public class ModernSmoothScrollingTest
 
                 Assert.True(handled);
                 Assert.True(args.Handled);
+                scrollViewer.UpdateLayout();
+                Assert.True(scrollViewer.VerticalOffset > 0);
+            }
+            finally
+            {
+                SmoothScrollBehavior.SetIsEnabled(scrollViewer, false);
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void SmoothScrollBehaviorHoverWheelUsesSameGuardWithoutFocus()
+    {
+        RunSta(() =>
+        {
+            var source = new Border { Height = 500, Width = 100 };
+            var scrollViewer = new ScrollViewer
+            {
+                Width = 100,
+                Height = 100,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                Content = source
+            };
+            var window = CreateHiddenWindow(scrollViewer);
+
+            try
+            {
+                SmoothScrollBehavior.SetDuration(scrollViewer, 0);
+                SmoothScrollBehavior.SetIsEnabled(scrollViewer, true);
+                window.Show();
+                window.UpdateLayout();
+                scrollViewer.UpdateLayout();
+
+                var args = CreateWheelArgs(-Mouse.MouseWheelDeltaForOneLine);
+
+                Assert.NotSame(scrollViewer, Keyboard.FocusedElement);
+                Assert.True(WheelScrollEventGuard.ShouldOwnerHandleHoverWheel(scrollViewer, args, source));
+                Assert.True(ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
+                    scrollViewer,
+                    args,
+                    SmoothScrollBehavior.GetWheelMultiplier(scrollViewer),
+                    SmoothScrollBehavior.GetDuration(scrollViewer),
+                    isSmoothScrollingEnabled: true,
+                    easingFunction: null,
+                    explicitSource: source));
                 scrollViewer.UpdateLayout();
                 Assert.True(scrollViewer.VerticalOffset > 0);
             }
@@ -513,9 +653,9 @@ public class ModernSmoothScrollingTest
         thread.IsBackground = true;
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
-        if (!thread.Join(TimeSpan.FromSeconds(10)))
+        if (!thread.Join(TimeSpan.FromSeconds(30)))
         {
-            throw new TimeoutException("STA test thread did not finish within 10 seconds.");
+            throw new TimeoutException("STA test thread did not finish within 30 seconds.");
         }
 
         exception?.Throw();

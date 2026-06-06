@@ -34,12 +34,52 @@ internal static class WheelScrollEventGuard
         return ShouldSuppressOwnerScroll(owner, e, explicitSource: null);
     }
 
+    public static bool ShouldOwnerHandleHoverWheel(ScrollViewer owner, MouseWheelEventArgs e)
+    {
+        return ShouldOwnerHandleHoverWheel(owner, e, explicitHoverSource: null);
+    }
+
+    internal static bool ShouldOwnerHandleHoverWheel(ScrollViewer owner, MouseWheelEventArgs e, DependencyObject? explicitHoverSource)
+    {
+        ArgumentNullException.ThrowIfNull(owner);
+        ArgumentNullException.ThrowIfNull(e);
+
+        if (e.Handled)
+        {
+            return false;
+        }
+
+        var hoverSource = explicitHoverSource
+            ?? Mouse.DirectlyOver as DependencyObject
+            ?? e.OriginalSource as DependencyObject;
+
+        if (hoverSource is null)
+        {
+            return false;
+        }
+
+        if (IsOpenComboBoxCandidate(e, hoverSource)
+            || IsInsidePopupTree(hoverSource)
+            || IsInsideNestedScrollableOwner(owner, hoverSource))
+        {
+            return false;
+        }
+
+        return IsNearestEligibleScrollOwner(owner, hoverSource);
+    }
+
     internal static bool ShouldSuppressOwnerScroll(ScrollViewer owner, MouseWheelEventArgs e, DependencyObject? explicitSource)
     {
         ArgumentNullException.ThrowIfNull(owner);
         ArgumentNullException.ThrowIfNull(e);
 
         if (e.Handled)
+        {
+            return true;
+        }
+
+        if (Keyboard.FocusedElement is DependencyObject focusedElement
+            && IsInsideOpenComboBox(focusedElement))
         {
             return true;
         }
@@ -56,6 +96,42 @@ internal static class WheelScrollEventGuard
                 || IsInsideNestedScrollableOwner(owner, source))
             {
                 return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsOpenComboBoxCandidate(MouseWheelEventArgs e, DependencyObject hoverSource)
+    {
+        if (IsInsideOpenComboBox(hoverSource))
+        {
+            return true;
+        }
+
+        foreach (var source in GetNonHoverCandidateSources(e))
+        {
+            if (source is not null && IsInsideOpenComboBox(source))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsNearestEligibleScrollOwner(ScrollViewer owner, DependencyObject source)
+    {
+        foreach (var ancestor in EnumerateAncestorsAndSelf(source))
+        {
+            if (ReferenceEquals(ancestor, owner))
+            {
+                return true;
+            }
+
+            if (IsNestedScrollableElement(ancestor))
+            {
+                return false;
             }
         }
 
@@ -133,6 +209,12 @@ internal static class WheelScrollEventGuard
         yield return e.OriginalSource as DependencyObject;
         yield return e.Source as DependencyObject;
         yield return Mouse.DirectlyOver as DependencyObject;
+    }
+
+    private static IEnumerable<DependencyObject?> GetNonHoverCandidateSources(MouseWheelEventArgs e)
+    {
+        yield return e.OriginalSource as DependencyObject;
+        yield return e.Source as DependencyObject;
         yield return Keyboard.FocusedElement as DependencyObject;
     }
 

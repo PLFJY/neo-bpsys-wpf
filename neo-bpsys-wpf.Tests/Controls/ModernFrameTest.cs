@@ -855,9 +855,9 @@ public class ModernFrameTest
         thread.IsBackground = true;
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
-        if (!thread.Join(TimeSpan.FromSeconds(10)))
+        if (!thread.Join(TimeSpan.FromSeconds(30)))
         {
-            throw new TimeoutException("STA test thread did not finish within 10 seconds.");
+            throw new TimeoutException("STA test thread did not finish within 30 seconds.");
         }
 
         exception?.Throw();

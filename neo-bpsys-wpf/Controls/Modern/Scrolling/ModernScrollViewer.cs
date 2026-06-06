@@ -9,6 +9,8 @@ namespace neo_bpsys_wpf.Controls.Modern.Scrolling;
 // This local control keeps only the project-needed behavior and avoids iNKORE theme/control dependencies.
 public class ModernScrollViewer : ScrollViewer
 {
+    private readonly WheelScrollEventRouter _wheelEventRouter;
+
     public static readonly DependencyProperty IsSmoothScrollingEnabledProperty =
         DependencyProperty.Register(
             nameof(IsSmoothScrollingEnabled),
@@ -37,6 +39,19 @@ public class ModernScrollViewer : ScrollViewer
             typeof(ModernScrollViewer),
             new PropertyMetadata(null));
 
+    public ModernScrollViewer()
+    {
+        _wheelEventRouter = new WheelScrollEventRouter(
+            this,
+            () => IsSmoothScrollingEnabled,
+            () => WheelScrollMultiplier,
+            () => ScrollAnimationDuration,
+            () => ScrollEasingFunction);
+
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
+    }
+
     public bool IsSmoothScrollingEnabled
     {
         get => (bool)GetValue(IsSmoothScrollingEnabledProperty);
@@ -59,6 +74,16 @@ public class ModernScrollViewer : ScrollViewer
     {
         get => (IEasingFunction?)GetValue(ScrollEasingFunctionProperty);
         set => SetValue(ScrollEasingFunctionProperty, value);
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        _wheelEventRouter.Attach();
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        _wheelEventRouter.Detach();
     }
 
     protected override void OnMouseWheel(MouseWheelEventArgs e)
