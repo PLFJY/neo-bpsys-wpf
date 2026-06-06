@@ -205,6 +205,10 @@
         "Camp": "Sur",
         "ImageFileName": "斗牛士.png"
     },
+    "默剧艺人": {
+        "Camp": "Sur",
+        "ImageFileName": "默剧艺人.png"
+    },
     "26号守卫": {
         "Camp": "Hun",
         "ImageFileName": "26号守卫.png",

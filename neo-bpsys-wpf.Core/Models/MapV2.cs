@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Extensions;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using System.Text.Json.Serialization;
@@ -110,9 +111,15 @@ public partial class MapV2 : ObservableObjectBase, IRecipient<PropertyChangedMes
     {
         get
         {
-            _imageSourceBanned ??=
-                ImageHelper.GetImageSourceFromName(ImageSourceKey.map_singleColor, MapName.ToString());
             _imageSourceNormal ??= ImageHelper.GetImageSourceFromName(ImageSourceKey.map, MapName.ToString());
+            if(_imageSourceBanned == null)
+            {
+                _imageSourceBanned ??= _imageSourceNormal?.ToGrayKeepAlpha();
+
+                var banMark = ImageHelper.GetImageSourceFromName(ImageSourceKey.map, "BanMark");
+                if (banMark != null)
+                    _imageSourceBanned = _imageSourceBanned?.Overlay(banMark);
+            }
             return IsBanned ? _imageSourceBanned : _imageSourceNormal;
         }
     }

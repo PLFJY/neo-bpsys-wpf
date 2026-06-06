@@ -1,5 +1,6 @@
 using hyjiacan.py4n;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Extensions;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using System.Text.Json.Serialization;
@@ -75,9 +76,7 @@ public class Character
     /// </summary>
     [JsonIgnore]
     public ImageSource? HeaderImageSingleColor =>
-        _headerImageSingleColor ??= GetImageSource(Camp == Camp.Sur
-            ? ImageSourceKey.surHeader_singleColor
-            : ImageSourceKey.hunHeader_singleColor);
+        _headerImageSingleColor ??= HeaderImage?.ToGrayKeepAlpha();
 
     private ImageSource? _halfImage;
 

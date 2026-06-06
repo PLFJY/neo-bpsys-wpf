@@ -11,6 +11,7 @@
     "Height": 138,
     "BindingPath": "CurrentGame.PickedMapImage",
     "Stretch": "UniformToFill",
+    "HorizontalAlignment": "Center",
     "CornerRadius": 8
   },
   "PickedMapName": {
@@ -98,6 +99,7 @@
     "Height": 138,
     "BindingPath": "CurrentGame.BannedMapImage",
     "Stretch": "UniformToFill",
+    "HorizontalAlignment": "Center",
     "CornerRadius": 8
   },
   "BannedMapName": {

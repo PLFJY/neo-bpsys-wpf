@@ -305,6 +305,12 @@
     "Abbrev": "tgnsh",
     "FullSpell": "tougyuushi"
   },
+  "マイムアーティスト": {
+    "Camp": "Sur",
+    "ImageFileName": "默剧艺人.png",
+    "Abbrev": "mimaatst",
+    "FullSpell": "maimuaatisuto"
+  },
   "復讐者": {
     "Camp": "Hun",
     "ImageFileName": "厂长.png",

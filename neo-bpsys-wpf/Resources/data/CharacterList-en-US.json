@@ -203,6 +203,10 @@
     "Camp": "Sur",
     "ImageFileName": "斗牛士.png"
   },
+  "Prodigy": {
+    "Camp": "Sur",
+    "ImageFileName": "默剧艺人.png"
+  },
   "Guard 26": {
     "Camp": "Hun",
     "ImageFileName": "26号守卫.png"
