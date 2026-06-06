@@ -702,6 +702,63 @@ public class ModernFrameTest
     }
 
     [Fact]
+    public void AnimatedNavigateResetsContentScrollHostWhileNewHostIsHiddenBeforeEnterStarts()
+    {
+        RunSta(() =>
+        {
+            if (RenderCapability.Tier == 0 || !SystemParameters.ClientAreaAnimation)
+            {
+                return;
+            }
+
+            var frame = new ModernFrame
+            {
+                Width = 120,
+                Height = 120,
+                TransitionDuration = TimeSpan.FromMilliseconds(200)
+            };
+            var window = CreateHiddenWindow(frame);
+
+            try
+            {
+                window.Show();
+                frame.Navigate(new TallContent(), new SuppressNavigationTransitionInfo());
+                window.UpdateLayout();
+                frame.ContentScrollHost.ApplyTemplate();
+                frame.ContentScrollHost.UpdateLayout();
+                Assert.True(frame.ContentScrollHost.ScrollableHeight > 0);
+                frame.ContentScrollHost.ScrollToVerticalOffset(160);
+                frame.ContentScrollHost.UpdateLayout();
+                Assert.True(frame.ContentScrollHost.VerticalOffset > 0);
+
+                double? offsetDuringNavigated = null;
+                double? opacityDuringNavigated = null;
+                bool? isHitTestVisibleDuringNavigated = null;
+                Visibility? visibilityDuringNavigated = null;
+
+                frame.Navigated += (_, _) =>
+                {
+                    offsetDuringNavigated = frame.ContentScrollHost.VerticalOffset;
+                    opacityDuringNavigated = frame.ContentScrollHost.Opacity;
+                    isHitTestVisibleDuringNavigated = frame.ContentScrollHost.IsHitTestVisible;
+                    visibilityDuringNavigated = frame.ContentScrollHost.Visibility;
+                };
+
+                frame.Navigate(new TallContent(), new EntranceNavigationTransitionInfo());
+
+                Assert.Equal(0D, offsetDuringNavigated);
+                Assert.Equal(0D, opacityDuringNavigated);
+                Assert.False(isHitTestVisibleDuringNavigated);
+                Assert.Equal(Visibility.Visible, visibilityDuringNavigated);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
     public void PageContentIsHostedByFrame()
     {
         RunSta(() =>

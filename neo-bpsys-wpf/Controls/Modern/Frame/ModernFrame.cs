@@ -399,7 +399,12 @@ public class ModernFrame : Control
             _oldContentPresenter.Visibility = Visibility.Collapsed;
             _oldContentPresenter.IsHitTestVisible = false;
 
-            AttachToActiveHost(newContent, resetScroll);
+            AttachToActiveHost(newContent);
+            if (resetScroll)
+            {
+                ResetActiveScrollHostToTop();
+            }
+
             ClearAnimatedState(newContent);
             RestoreActiveHostState();
             return;
@@ -410,11 +415,12 @@ public class ModernFrame : Control
         _oldContentPresenter.Opacity = 1;
         _oldContentPresenter.IsHitTestVisible = false;
 
-        AttachToActiveHost(newContent, resetScroll);
-        _contentScrollHost.Opacity = 0;
-        _contentScrollHost.IsHitTestVisible = false;
-        _directContentPresenter.Opacity = 0;
-        _directContentPresenter.IsHitTestVisible = false;
+        AttachToActiveHost(newContent, restoreActiveHostState: false);
+        PrepareActiveHostForEnterTransition();
+        if (resetScroll)
+        {
+            ResetActiveScrollHostToTop();
+        }
 
         var activeHost = GetActiveTransitionElement();
 
@@ -598,7 +604,7 @@ public class ModernFrame : Control
         AttachToActiveHost(_activeContent);
     }
 
-    private void AttachToActiveHost(FrameworkElement content, bool resetScroll = false)
+    private void AttachToActiveHost(FrameworkElement content, bool restoreActiveHostState = true)
     {
         EnsureTemplateParts();
 
@@ -622,11 +628,9 @@ public class ModernFrame : Control
             _directContentPresenter.Content = hostedContent;
         }
 
-        RestoreActiveHostState();
-
-        if (resetScroll)
+        if (restoreActiveHostState)
         {
-            ResetActiveScrollHostToTop();
+            RestoreActiveHostState();
         }
     }
 
@@ -703,6 +707,29 @@ public class ModernFrame : Control
         ScrollAnimationHelper.CancelVerticalAnimation(_contentScrollHost!);
         _contentScrollHost!.ScrollToVerticalOffset(0);
         _contentScrollHost.UpdateLayout();
+    }
+
+    private void PrepareActiveHostForEnterTransition()
+    {
+        if (!HasTemplateParts)
+        {
+            return;
+        }
+
+        _contentScrollHost.IsHitTestVisible = false;
+        _directContentPresenter.IsHitTestVisible = false;
+
+        if (_isUsingContentScrollHostForActiveContent)
+        {
+            _contentScrollHost.Visibility = Visibility.Visible;
+            _contentScrollHost.Opacity = 0;
+            _directContentPresenter.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        _directContentPresenter.Visibility = Visibility.Visible;
+        _directContentPresenter.Opacity = 0;
+        _contentScrollHost.Visibility = Visibility.Collapsed;
     }
 
     private void RestoreActiveHostState()
