@@ -32,19 +32,12 @@ public class TextFrontedControl : IFrontedControl
         var border = FrontedControlFactoryHelper.CreateOuterBorder(name, textConfig);
         var textBlock = new TextBlock();
 
-        if (!string.IsNullOrWhiteSpace(textConfig.BindingPath))
+        if (textConfig.TextBinding?.GetActiveSources().Count > 0)
         {
-            var binding = new Binding(textConfig.BindingPath)
-            {
-                Source = context.SharedDataService
-            };
-
-            if (!string.IsNullOrWhiteSpace(textConfig.StringFormat))
-            {
-                binding.StringFormat = textConfig.StringFormat;
-            }
-
-            BindingOperations.SetBinding(textBlock, TextBlock.TextProperty, binding);
+            BindingOperations.SetBinding(
+                textBlock,
+                TextBlock.TextProperty,
+                FrontedTextBindingHelper.CreateMultiBinding(textConfig.TextBinding, context.SharedDataService));
         }
         else if (textConfig.Text is not null)
         {

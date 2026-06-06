@@ -23,6 +23,7 @@ public class FrontedPropertyEditorItem : ObservableObject
     private bool _hasEditError;
     private string? _editError;
     private IReadOnlyList<string> _validationErrors = [];
+    private IReadOnlyList<FrontedLayoutValidationMessage> _validationMessages = [];
     private IReadOnlyList<object>? _options;
     private string? _groupName;
     private string? _groupDisplayName;
@@ -198,6 +199,15 @@ public class FrontedPropertyEditorItem : ObservableObject
     {
         get => _validationErrors;
         set => SetProperty(ref _validationErrors, value);
+    }
+
+    /// <summary>
+    /// Severity-aware validation messages attached to this property row.
+    /// </summary>
+    public IReadOnlyList<FrontedLayoutValidationMessage> ValidationMessages
+    {
+        get => _validationMessages;
+        set => SetProperty(ref _validationMessages, value);
     }
 
     /// <summary>

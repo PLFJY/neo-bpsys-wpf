@@ -20,14 +20,20 @@
     "Top": 776,
     "Width": null,
     "Height": null,
-    "BindingPath": "CurrentGame.MatchScore.CurrentSurTeamMajorText",
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
     "FontFamily": "Arial",
     "FontWeight": "Medium",
     "Color": "#FFFFFFFF",
-    "FontSize": 20
+    "FontSize": 20,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.MatchScore.CurrentSurTeamMajorText"
+        }
+      ]
+    }
   },
   "SurTeamName": {
     "ControlType": "Text",
@@ -35,7 +41,6 @@
     "Top": 720,
     "Width": 120,
     "Height": null,
-    "BindingPath": "CurrentGame.SurTeam.Name",
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
@@ -43,7 +48,14 @@
     "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
-    "FontSize": 16
+    "FontSize": 16,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.SurTeam.Name"
+        }
+      ]
+    }
   },
   "GameScoresSur": {
     "ControlType": "Text",
@@ -51,14 +63,20 @@
     "Top": 746,
     "Width": 36,
     "Height": 30,
-    "BindingPath": "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText",
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
     "FontWeight": "Bold",
     "Color": "#FFFFFFFF",
-    "FontSize": 26
+    "FontSize": 26,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText"
+        }
+      ]
+    }
   },
   "Timer": {
     "ControlType": "Text",
@@ -66,15 +84,21 @@
     "Top": 672,
     "Width": 100,
     "Height": null,
-    "BindingPath": "RemainingSeconds",
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Top",
     "TextAlignment": "Center",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
     "FontWeight": "Bold",
     "Color": "#FFFFFFFF",
     "FontSize": 58,
-    "ZIndex": 1
+    "ZIndex": 1,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "RemainingSeconds"
+        }
+      ]
+    }
   },
   "GameScoresHun": {
     "ControlType": "Text",
@@ -82,14 +106,20 @@
     "Top": 746,
     "Width": 36,
     "Height": 30,
-    "BindingPath": "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText",
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
     "FontWeight": "Bold",
     "Color": "#FFFFFFFF",
-    "FontSize": 26
+    "FontSize": 26,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.MatchScore.CurrentHunTeamPreHalfMinorScoreText"
+        }
+      ]
+    }
   },
   "HunTeamName": {
     "ControlType": "Text",
@@ -97,7 +127,6 @@
     "Top": 720,
     "Width": 120,
     "Height": null,
-    "BindingPath": "CurrentGame.HunTeam.Name",
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
@@ -105,7 +134,14 @@
     "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
-    "FontSize": 16
+    "FontSize": 16,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.HunTeam.Name"
+        }
+      ]
+    }
   },
   "HunTeamMajorPoint": {
     "ControlType": "Text",
@@ -113,14 +149,20 @@
     "Top": 776,
     "Width": null,
     "Height": null,
-    "BindingPath": "CurrentGame.MatchScore.CurrentHunTeamMajorText",
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
     "FontFamily": "Arial",
     "FontWeight": "Medium",
     "Color": "#FFFFFFFF",
-    "FontSize": 20
+    "FontSize": 20,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.MatchScore.CurrentHunTeamMajorText"
+        }
+      ]
+    }
   },
   "HunTeamLogo": {
     "ControlType": "Image",
@@ -303,7 +345,7 @@
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u6C49\u4EEA\u7B2C\u4E94\u4EBA\u683C\u4F53\u7B80",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
     "FontSize": 20,
@@ -319,7 +361,7 @@
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
     "FontSize": 16,
@@ -557,14 +599,20 @@
     "Top": 781,
     "Width": 139,
     "Height": 28,
-    "BindingPath": "CurrentGame.SurPlayerList[0].Member.Name",
     "HorizontalAlignment": "Left",
     "VerticalAlignment": "Center",
     "TextAlignment": "Left",
     "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
-    "FontSize": 16
+    "FontSize": 16,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.SurPlayerList[0].Member.Name"
+        }
+      ]
+    }
   },
   "SurId1": {
     "ControlType": "Text",
@@ -572,14 +620,20 @@
     "Top": 781,
     "Width": 139,
     "Height": 28,
-    "BindingPath": "CurrentGame.SurPlayerList[1].Member.Name",
     "HorizontalAlignment": "Left",
     "VerticalAlignment": "Center",
     "TextAlignment": "Left",
     "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
-    "FontSize": 16
+    "FontSize": 16,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.SurPlayerList[1].Member.Name"
+        }
+      ]
+    }
   },
   "SurId2": {
     "ControlType": "Text",
@@ -587,14 +641,20 @@
     "Top": 781,
     "Width": 139,
     "Height": 28,
-    "BindingPath": "CurrentGame.SurPlayerList[2].Member.Name",
     "HorizontalAlignment": "Left",
     "VerticalAlignment": "Center",
     "TextAlignment": "Left",
     "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
-    "FontSize": 16
+    "FontSize": 16,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.SurPlayerList[2].Member.Name"
+        }
+      ]
+    }
   },
   "SurId3": {
     "ControlType": "Text",
@@ -602,14 +662,20 @@
     "Top": 781,
     "Width": 139,
     "Height": 28,
-    "BindingPath": "CurrentGame.SurPlayerList[3].Member.Name",
     "HorizontalAlignment": "Left",
     "VerticalAlignment": "Center",
     "TextAlignment": "Left",
     "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
-    "FontSize": 16
+    "FontSize": 16,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.SurPlayerList[3].Member.Name"
+        }
+      ]
+    }
   },
   "HunId": {
     "ControlType": "Text",
@@ -617,13 +683,19 @@
     "Top": 781,
     "Width": 569,
     "Height": 28,
-    "BindingPath": "CurrentGame.HunPlayer.Member.Name",
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
     "FontFamily": "pack://application:,,,/Assets/Fonts/#Noto Sans",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
-    "FontSize": 16
+    "FontSize": 16,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.HunPlayer.Member.Name"
+        }
+      ]
+    }
   }
 }

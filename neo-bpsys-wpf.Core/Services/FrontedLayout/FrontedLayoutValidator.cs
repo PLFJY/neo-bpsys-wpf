@@ -335,11 +335,21 @@ public class FrontedLayoutValidator
             case TextFrontedControlConfig text:
                 ValidateTextLength(item.Name, nameof(TextFrontedControlConfig.Text), text.Text, FrontedLayoutLimits.MaxStaticTextLength, "TextTooLong", messages);
                 ValidateTextLength(item.Name, nameof(TextFrontedControlConfig.FontFamily), text.FontFamily, FrontedLayoutLimits.MaxFontFamilyLength, "InputTooLong", messages);
-                if (string.IsNullOrWhiteSpace(text.BindingPath) && string.IsNullOrWhiteSpace(text.Text))
+                ValidateTextBinding(item.Name, text.TextBinding, messages);
+                var hasTextBinding = text.TextBinding?.GetActiveSources().Count > 0;
+                if (!hasTextBinding && string.IsNullOrWhiteSpace(text.Text))
                 {
                     messages.Add(Warning(
                         "EmptyVisibleContent",
-                        $"Text control '{item.Name}' has no BindingPath or static Text.",
+                        $"Text control '{item.Name}' has no TextBinding sources or static Text.",
+                        item.Name,
+                        nameof(TextFrontedControlConfig.Text)));
+                }
+                else if (hasTextBinding && !string.IsNullOrWhiteSpace(text.Text))
+                {
+                    messages.Add(Warning(
+                        "StaticTextIgnored",
+                        $"Text control '{item.Name}' static Text is ignored because TextBinding has sources.",
                         item.Name,
                         nameof(TextFrontedControlConfig.Text)));
                 }
@@ -347,13 +357,22 @@ public class FrontedLayoutValidator
                 break;
 
             case LocalizedTextControlConfig localizedText:
-                ValidateTextLength(item.Name, nameof(LocalizedTextControlConfig.BindingPath), localizedText.BindingPath, FrontedLayoutLimits.MaxBindingPathLength, "BindingPathTooLong", messages);
                 ValidateTextLength(item.Name, nameof(LocalizedTextControlConfig.FontFamily), localizedText.FontFamily, FrontedLayoutLimits.MaxFontFamilyLength, "InputTooLong", messages);
-                if (string.IsNullOrWhiteSpace(localizedText.LocalizationKey))
+                ValidateTextBinding(item.Name, localizedText.TextBinding, messages);
+                var hasLocalizedTextBinding = localizedText.TextBinding?.GetActiveSources().Count > 0;
+                if (!hasLocalizedTextBinding && string.IsNullOrWhiteSpace(localizedText.LocalizationKey))
                 {
                     messages.Add(Error(
                         "RequiredPropertyMissing",
-                        $"LocalizedText control '{item.Name}' requires LocalizationKey.",
+                        $"LocalizedText control '{item.Name}' requires LocalizationKey or TextBinding sources.",
+                        item.Name,
+                        nameof(LocalizedTextControlConfig.LocalizationKey)));
+                }
+                else if (hasLocalizedTextBinding && !string.IsNullOrWhiteSpace(localizedText.LocalizationKey))
+                {
+                    messages.Add(Warning(
+                        "StaticTextIgnored",
+                        $"LocalizedText control '{item.Name}' LocalizationKey is ignored because TextBinding has sources.",
                         item.Name,
                         nameof(LocalizedTextControlConfig.LocalizationKey)));
                 }
@@ -378,7 +397,7 @@ public class FrontedLayoutValidator
                 else if (!string.IsNullOrWhiteSpace(image.BindingPath)
                          && !string.IsNullOrWhiteSpace(image.ImagePath))
                 {
-                    messages.Add(Info(
+                    messages.Add(Warning(
                         "ImagePathIgnored",
                         $"Image control '{item.Name}' ImagePath is ignored because BindingPath is set.",
                         item.Name,
@@ -414,6 +433,49 @@ public class FrontedLayoutValidator
                 }
 
                 break;
+        }
+
+        static void ValidateTextBinding(
+            string controlName,
+            Models.FrontedLayout.Binding.FrontedTextBindingExpression? expression,
+            ICollection<FrontedLayoutValidationMessage> messages)
+        {
+            if (expression is null)
+            {
+                return;
+            }
+
+            foreach (var source in expression.Sources)
+            {
+                if (string.IsNullOrWhiteSpace(source.Path))
+                {
+                    messages.Add(Error(
+                        "TextBindingSourcePathEmpty",
+                        $"TextBinding source in control '{controlName}' has an empty Path.",
+                        controlName,
+                        nameof(TextFrontedControlConfig.TextBinding)));
+                }
+                else if (FrontedTextLimitHelper.IsTooLong(source.Path, FrontedLayoutLimits.MaxBindingPathLength))
+                {
+                    messages.Add(Error(
+                        "BindingPathTooLong",
+                        $"TextBinding source '{source.Path}' in control '{controlName}' is too long.",
+                        controlName,
+                        nameof(TextFrontedControlConfig.TextBinding)));
+                }
+            }
+
+            if (!FrontedTextBindingHelper.TryValidateStringFormat(
+                    expression.StringFormat,
+                    expression.GetActiveSources().Count,
+                    out var formatError))
+            {
+                messages.Add(Error(
+                    "TextBindingStringFormatInvalid",
+                    $"TextBinding StringFormat in control '{controlName}' is invalid: {formatError}",
+                    controlName,
+                    nameof(TextFrontedControlConfig.TextBinding)));
+            }
         }
 
         void ValidateImagePath(string controlName, ImageFrontedControlConfig config)

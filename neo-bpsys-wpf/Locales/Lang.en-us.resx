@@ -2836,6 +2836,12 @@
   <data name="Designer.Property.Text" xml:space="preserve">
     <value>Text</value>
   </data>
+  <data name="Designer.Property.TextBinding" xml:space="preserve">
+    <value>Text Binding</value>
+  </data>
+  <data name="Designer.PropertyDescription.TextBinding" xml:space="preserve">
+    <value>Combines ordered dynamic sources; active sources override static text or the localization key.</value>
+  </data>
   <data name="Designer.Property.StringFormat" xml:space="preserve">
     <value>Text Format</value>
   </data>
@@ -2958,6 +2964,9 @@
   </data>
   <data name="Designer.PropertyGroup.Binding" xml:space="preserve">
     <value>Data Binding</value>
+  </data>
+  <data name="Designer.PropertyGroup.Content" xml:space="preserve">
+    <value>Content</value>
   </data>
   <data name="Designer.PropertyGroup.Appearance" xml:space="preserve">
     <value>Appearance</value>
@@ -3473,7 +3482,7 @@
     <value>Name and BindingPath require Enter or apply button to commit;\nInvalid values keep the text and show red border;\nColorPicker updates Hex text; apply button commits;\nComboBox properties commit raw values while displaying localized names;\nBinding browser helps choose valid BindingPath;\nResource browser helps choose bpui/resource URI;\nBorderedImage has separate Border/Image properties;\nBorderedImage resize target can switch between outer border and inner image.</value>
   </data>
   <data name="Designer.Help.BuiltInControls.Content" xml:space="preserve">
-    <value>Text|Normal text control; when BindingPath is set it binds dynamic text, otherwise it displays static Text.|StringFormat only applies to bound values; use dedicated controls for business/i18n text.\nLocalizedText|Static localized text control; uses LocalizationKey to look up resx, then falls back to FallbackText or the key.|Best for headers and fixed labels; the saved value is the key, not localized display text.\nImage|Direct image control whose root element is Image; use it for team logos, maps, simple images, and legacy direct Image semantics.|BindingPath binds an ImageSource; ImagePath is used only when BindingPath is empty; binding wins and ImagePath is not cleared automatically.\nBorderedImage|Outer Border plus inner Image; use it for framed, clipped, rounded, inner-sized, or resize-target-switchable image regions.|BindingPath and ImagePath follow the same priority as Image; Width/Height affect the border, ImageWidth/ImageHeight affect the inner image.\nGameProgressText|Generates game progress text from current game, half, BO3/BO5, and overtime rules.|Use UseLineBreak when the layout needs two lines; do not hard-code this business text into a normal Text control.\nMapNameText|Converts map enum/key values to localized map names; reads the picked map by default, or BindingPath can point to picked/banned map fields.|EmptyText is the fallback for no map; BindingPath should point to a Map/Map? field.\nGlobalScoreRow|Composite global score row; Cells define each half-score cell inside the parent frame, then MatchScore fills text and camp icons.|Normally used by ScoreGlobalWindow; move the parent for the whole row and edit child cells for individual score positions.\nTalentTraitDisplay|CutScene talent/trait display; reads fixed business data by DisplayKind and PlayerIndex.|Can follow trait visibility settings; do not hard-code individual talent icons in JSON.\nMapV2Display|Map BP v2 display; uses MapKey and reuses MapV2Presenter.|Suitable for WidgetsWindow map BP v2 layouts; do not hand-build the internal Map BP v2 visuals.\nGeneral notes|Choose dynamic data BindingPath from Binding Browser; choose ImagePath, BackgroundImage, LockImageSource, and similar resource paths from Resource Browser.|Prefer Resources/xxx.png or bpui://... for static resources and avoid long-term arbitrary absolute paths; missing or oversized images should warn or render empty, not crash the frontend window.</value>
+    <value>Text|Normal text control; TextBinding combines ordered dynamic sources and static Text is used when there are no sources.|Source order maps to {0}/{1}; an empty StringFormat joins with JoinSeparator.\nLocalizedText|Localized text control; static mode uses LocalizationKey, while TextBinding mode combines dynamic text before localization lookup.|A dynamic result that is not a resource key is displayed as raw text.\nImage|Direct image control whose root element is Image; use it for team logos, maps, simple images, and legacy direct Image semantics.|BindingPath binds an ImageSource; ImagePath is used only when BindingPath is empty; binding wins and ImagePath is not cleared automatically.\nBorderedImage|Outer Border plus inner Image; use it for framed, clipped, rounded, inner-sized, or resize-target-switchable image regions.|BindingPath and ImagePath follow the same priority as Image; Width/Height affect the border, ImageWidth/ImageHeight affect the inner image.\nGameProgressText|Generates game progress text from current game, half, BO3/BO5, and overtime rules.|Use UseLineBreak when the layout needs two lines; do not hard-code this business text into a normal Text control.\nMapNameText|Converts map enum/key values to localized map names; reads the picked map by default, or BindingPath can point to picked/banned map fields.|EmptyText is the fallback for no map; BindingPath should point to a Map/Map? field.\nGlobalScoreRow|Composite global score row; Cells define each half-score cell inside the parent frame, then MatchScore fills text and camp icons.|Normally used by ScoreGlobalWindow; move the parent for the whole row and edit child cells for individual score positions.\nTalentTraitDisplay|CutScene talent/trait display; reads fixed business data by DisplayKind and PlayerIndex.|Can follow trait visibility settings; do not hard-code individual talent icons in JSON.\nMapV2Display|Map BP v2 display; uses MapKey and reuses MapV2Presenter.|Suitable for WidgetsWindow map BP v2 layouts; do not hand-build the internal Map BP v2 visuals.\nGeneral notes|Choose dynamic data BindingPath from Binding Browser; choose ImagePath, BackgroundImage, LockImageSource, and similar resource paths from Resource Browser.|Prefer Resources/xxx.png or bpui://... for static resources and avoid long-term arbitrary absolute paths; missing or oversized images should warn or render empty, not crash the frontend window.</value>
   </data>
   <data name="Designer.Help.AddDeleteCopyPaste.Content" xml:space="preserve">
     <value>Add Control inserts built-in/plugin controls;\nCopied control gets unique numbered name on paste;\nPaste offsets the new control;\nRuntime-critical/generated overlays may not be copyable/deletable;\nUndo/Redo can restore add, delete, paste, reorder operations.</value>
@@ -3787,4 +3796,18 @@
   <data name="Designer.Property.ShowCampIconOverride" xml:space="preserve">
     <value>Camp Icon Override</value>
   </data>
+  <data name="Designer.TextBinding.Title" xml:space="preserve"><value>Text Binding Editor</value></data>
+  <data name="Designer.TextBinding.AddSource" xml:space="preserve"><value>Add Source</value></data>
+  <data name="Designer.TextBinding.MoveUp" xml:space="preserve"><value>Move Up</value></data>
+  <data name="Designer.TextBinding.MoveDown" xml:space="preserve"><value>Move Down</value></data>
+  <data name="Designer.TextBinding.StringFormat" xml:space="preserve"><value>String Format</value></data>
+  <data name="Designer.TextBinding.JoinSeparator" xml:space="preserve"><value>Join Separator</value></data>
+  <data name="Designer.TextBinding.NullText" xml:space="preserve"><value>Null Text</value></data>
+  <data name="Designer.TextBinding.FallbackText" xml:space="preserve"><value>Fallback Text</value></data>
+  <data name="Designer.TextBinding.None" xml:space="preserve"><value>No binding sources</value></data>
+  <data name="Designer.TextBinding.SourceSummary" xml:space="preserve"><value>{0} source(s): {1}</value></data>
+  <data name="Designer.TextBinding.EmptyPath" xml:space="preserve"><value>Binding source Path cannot be empty.</value></data>
+  <data name="Designer.Validation.TextStaticIgnored" xml:space="preserve"><value>Static Text is ignored while TextBinding has active sources.</value></data>
+  <data name="Designer.Validation.LocalizationKeyIgnored" xml:space="preserve"><value>LocalizationKey is ignored while TextBinding has active sources.</value></data>
+  <data name="Designer.Validation.ImagePathIgnored" xml:space="preserve"><value>ImagePath is ignored while BindingPath is set.</value></data>
 </root>

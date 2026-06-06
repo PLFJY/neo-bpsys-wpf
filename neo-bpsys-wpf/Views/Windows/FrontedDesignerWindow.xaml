@@ -193,6 +193,25 @@
             </ComboBox>
         </DataTemplate>
 
+        <DataTemplate x:Key="PropertyTextBindingEditorTemplate" DataType="{x:Type designer:FrontedPropertyEditorItem}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Text="{Binding DisplayValue}"
+                    TextTrimming="CharacterEllipsis" />
+                <ui:Button
+                    Grid.Column="1"
+                    MinWidth="52"
+                    Margin="6,0,0,0"
+                    Click="EditTextBindingButton_OnClick"
+                    Content="{lex:Loc EditProperty}" />
+            </Grid>
+        </DataTemplate>
+
         <Style x:Key="PropertyEditorContentControlStyle" TargetType="ContentControl">
             <Setter Property="ContentTemplate" Value="{StaticResource PropertyReadOnlyEditorTemplate}" />
             <Style.Triggers>
@@ -213,6 +232,9 @@
                 </DataTrigger>
                 <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.FontFamily}">
                     <Setter Property="ContentTemplate" Value="{StaticResource PropertyFontFamilyEditorTemplate}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding EditorKind}" Value="{x:Static designer:FrontedPropertyEditorKind.TextBinding}">
+                    <Setter Property="ContentTemplate" Value="{StaticResource PropertyTextBindingEditorTemplate}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -1006,14 +1028,27 @@
                                                     Content="{Binding}"
                                                     Style="{StaticResource PropertyEditorContentControlStyle}" />
                                             </Grid>
-                                            <ItemsControl Margin="112,4,0,0" ItemsSource="{Binding ValidationErrors}">
+                                            <ItemsControl Margin="112,4,0,0" ItemsSource="{Binding ValidationMessages}">
                                                 <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
+                                                    <DataTemplate DataType="{x:Type designer:FrontedLayoutValidationMessage}">
                                                         <TextBlock
                                                             FontSize="12"
-                                                            Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                                                            Text="{Binding}"
-                                                            TextWrapping="Wrap" />
+                                                            Text="{Binding Message}"
+                                                            TextWrapping="Wrap">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Severity}" Value="{x:Static designer:FrontedLayoutValidationSeverity.Warning}">
+                                                                            <Setter Property="Foreground" Value="#F59E0B" />
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Severity}" Value="{x:Static designer:FrontedLayoutValidationSeverity.Error}">
+                                                                            <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>

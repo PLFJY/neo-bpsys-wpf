@@ -77,7 +77,12 @@ public sealed class FrontedBindingTypeFilter
         return Kind switch
         {
             FrontedBindingTargetKind.Any => true,
-            FrontedBindingTargetKind.Text => coreType == typeof(string) || IsNumericType(coreType),
+            FrontedBindingTargetKind.Text => coreType == typeof(string)
+                                             || coreType == typeof(bool)
+                                             || coreType == typeof(DateTime)
+                                             || coreType == typeof(TimeSpan)
+                                             || coreType.IsEnum
+                                             || IsNumericType(coreType),
             FrontedBindingTargetKind.Image => typeof(ImageSource).IsAssignableFrom(coreType),
             FrontedBindingTargetKind.GameProgress => coreType == typeof(Enums.GameProgress),
             FrontedBindingTargetKind.Map => coreType == typeof(Enums.Map),
@@ -93,6 +98,9 @@ public sealed class FrontedBindingTypeFilter
     private static bool IsNumericType(Type type)
     {
         return type == typeof(int)
+               || type == typeof(byte)
+               || type == typeof(short)
+               || type == typeof(long)
                || type == typeof(double)
                || type == typeof(float)
                || type == typeof(decimal);

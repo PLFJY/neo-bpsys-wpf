@@ -23,7 +23,7 @@
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u6C49\u4EEA\u7B2C\u4E94\u4EBA\u683C\u4F53\u7B80",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
     "FontSize": 22,
@@ -39,7 +39,7 @@
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
     "FontSize": 22,
@@ -50,16 +50,22 @@
     "Left": 0,
     "Top": 265,
     "Width": 137,
-    "BindingPath": "CurrentGame.SurTeam.Name",
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
     "TextWrapping": "WrapWithOverflow",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u6C49\u4EEA\u7B2C\u4E94\u4EBA\u683C\u4F53\u7B80",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
     "FontSize": 22,
-    "ZIndex": 1
+    "ZIndex": 1,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.SurTeam.Name"
+        }
+      ]
+    }
   },
   "VS_Word": {
     "ControlType": "Text",
@@ -69,7 +75,7 @@
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u6C49\u4EEA\u7B2C\u4E94\u4EBA\u683C\u4F53\u7B80",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
     "FontSize": 22,
@@ -80,16 +86,22 @@
     "Left": 171,
     "Top": 265,
     "Width": 137,
-    "BindingPath": "CurrentGame.HunTeam.Name",
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
     "TextWrapping": "WrapWithOverflow",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u6C49\u4EEA\u7B2C\u4E94\u4EBA\u683C\u4F53\u7B80",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
     "FontSize": 22,
-    "ZIndex": 1
+    "ZIndex": 1,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.HunTeam.Name"
+        }
+      ]
+    }
   },
   "BannedMap": {
     "ControlType": "Image",
@@ -111,7 +123,7 @@
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#汉仪第五人格体简",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u6C49\u4EEA\u7B2C\u4E94\u4EBA\u683C\u4F53\u7B80",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
     "FontSize": 22,
@@ -127,7 +139,7 @@
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
     "FontSize": 22,

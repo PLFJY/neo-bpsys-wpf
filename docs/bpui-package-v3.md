@@ -279,7 +279,11 @@ JSON 结构保持当前 v3 root-level dictionary 模式：
     "Left": 580,
     "Top": 720,
     "Width": 120,
-    "BindingPath": "CurrentGame.SurTeam.Name",
+    "TextBinding": {
+      "Sources": [
+        { "Path": "CurrentGame.SurTeam.Name" }
+      ]
+    },
     "TextAlignment": "Center",
     "FontSize": 28,
     "Color": "#FFFFFFFF",
@@ -683,6 +687,8 @@ layouts/{WindowTypeName}/window.json
   "BackgroundColor": "#FF00FF00"
 }
 ```
+
+`Text` 和 `LocalizedText` 的动态内容使用 `TextBinding`，不使用基类 `BindingPath`。`Sources` 是有序列表，顺序对应 `StringFormat` 的 `{0}`、`{1}` 等占位符；`StringFormat` 为空时按 `JoinSeparator` 连接。没有有效 source 时回退到静态 `Text` 或 `LocalizationKey`。该模型只适用于这两个文本控件，图片、可见性和业务控件仍使用各自现有的 `BindingPath`。
 
 `BackgroundColor` 使用 `#AARRGGBB`，表示窗口级背景色覆盖；为空或缺失时沿用窗口原有默认背景。背景色是普通 `Window.Background`，可在已注册前台窗口上立即应用。WPF 的 `AllowsTransparency` / 透明窗口行为可能需要重新创建窗口或重启应用，只有该设置变化时 UI 应提示“需要重启”。
 

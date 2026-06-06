@@ -1,6 +1,9 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Nodes;
+using System.Text.Json;
+using System.Linq;
+using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.Resources;
@@ -37,9 +40,34 @@ public class ScoreWindowLayoutBindingTest
         Assert.DoesNotContain("Team.Score", hunLayoutText);
     }
 
+    [Fact]
+    public void BuiltInTextControlsDoNotUseLegacyContentBindingPath()
+    {
+        var root = Path.GetFullPath(Path.Combine(
+            Path.GetDirectoryName(GetSourceFilePath())!,
+            "..",
+            "..",
+            "neo-bpsys-wpf",
+            "Resources",
+            "FrontedLayouts"));
+
+        foreach (var path in Directory.EnumerateFiles(root, "*.json", SearchOption.AllDirectories))
+        {
+            var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(File.ReadAllText(path));
+            Assert.NotNull(config);
+
+            foreach (var control in config!.Controls.Values
+                         .Concat(config.BoModeStates.Values.SelectMany(state => state.Controls.Values))
+                         .Where(control => control is TextFrontedControlConfig or LocalizedTextControlConfig))
+            {
+                Assert.True(string.IsNullOrWhiteSpace(control.BindingPath), path);
+            }
+        }
+    }
+
     private static string GetBindingPath(JsonObject layout, string controlName) =>
-        layout[controlName]?["BindingPath"]?.GetValue<string>()
-        ?? throw new InvalidDataException($"Layout control '{controlName}' has no BindingPath.");
+        layout[controlName]?["TextBinding"]?["Sources"]?[0]?["Path"]?.GetValue<string>()
+        ?? throw new InvalidDataException($"Layout control '{controlName}' has no TextBinding source.");
 
     private static JsonObject ReadLayout(string relativePath, [CallerFilePath] string sourceFilePath = "") =>
         JsonNode.Parse(ReadLayoutText(relativePath, sourceFilePath))?.AsObject()
@@ -50,4 +78,6 @@ public class ScoreWindowLayoutBindingTest
         var repositoryRoot = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourceFilePath)!, "..", ".."));
         return File.ReadAllText(Path.Combine(repositoryRoot, relativePath));
     }
+
+    private static string GetSourceFilePath([CallerFilePath] string sourceFilePath = "") => sourceFilePath;
 }

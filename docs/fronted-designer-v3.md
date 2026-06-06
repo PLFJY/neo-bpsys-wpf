@@ -61,7 +61,11 @@ v3 渲染路径优先读取新目录。legacy 文件只应进入迁移流程，�
     "Top": 720,
     "Width": 120,
     "Height": null,
-    "BindingPath": "CurrentGame.SurTeam.Name",
+    "TextBinding": {
+      "Sources": [
+        { "Path": "CurrentGame.SurTeam.Name" }
+      ]
+    },
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
@@ -140,20 +144,24 @@ v3 内置控件类型如下：
 | 外层 `Border` | `Canvas.Left`、`Canvas.Top`、`Width`、`Height`、`Panel.ZIndex`。 |
 | 内层 `TextBlock` | 文本绑定、字体、字号、字重、颜色、水平/垂直对齐、`TextAlignment`、`TextWrapping`。 |
 
-`BindingPath` 应以 `ISharedDataService` 为 binding `Source`：
+`TextBinding.Sources` 按顺序以 `ISharedDataService` 为 binding `Source`，运行时始终创建 `MultiBinding`：
 
 ```csharp
-new Binding(config.BindingPath)
 {
-    Source = sharedDataService
-};
+  "Sources": [
+    { "Path": "CurrentGame.HomeTeam.Name" },
+    { "Path": "CurrentGame.AwayTeam.Name" }
+  ],
+  "StringFormat": "{0} vs {1}",
+  "JoinSeparator": " - "
+}
 ```
 
-如果 `BindingPath` 为空，`Text` 控件也可以使用 `"Text"` 字段显示原样静态文本。`BindingPath` 与 `Text` 同时存在时，`BindingPath` 优先，静态 `Text` 会被忽略。`Text` 支持可选 `StringFormat`，但只在 `BindingPath` 非空时应用；静态 `Text` 不会套用格式化。静态 `Text` 不会自动走 `WPFLocalizeExtension`、`I18nHelper` 或 resx，需要业务规则或本地化文本时，应优先使用 `GameProgressText`、`MapNameText`、`LocalizedText` 等控件。
+source 顺序对应 `{0}`、`{1}`、`{2}`。`StringFormat` 非空时使用当前 culture 的复合格式；为空时按 `JoinSeparator` 连接各值。没有有效 source 时，`Text` 使用原样静态 `Text`。两者同时存在时 `TextBinding` 优先。普通 `Text` 的静态文本和格式字符串都不会自动本地化。
 
 ### LocalizedText
 
-`LocalizedText` 使用外层 `Border` 和内层 `TextBlock`，布局和字体字段与 `Text` 基本一致，但文本来源是 `LocalizationKey`。如果资源 key 缺失，则显示 `FallbackText`；`FallbackText` 为空时显示 key 本身。`LocalizedText` 会在语言设置变化时刷新文本。
+`LocalizedText` 使用外层 `Border` 和内层 `TextBlock`，布局和字体字段与 `Text` 基本一致。没有有效 `TextBinding` source 时，文本来源仍是 `LocalizationKey`；资源 key 缺失时显示 `FallbackText` 或 key 本身。存在 source 时先按 Text MultiBinding 规则得到原始字符串，再尝试把该字符串作为本地化 key；找不到 key 时显示原始字符串。语言设置变化时两种模式都会刷新。
 
 ### Image / BorderedImage
 

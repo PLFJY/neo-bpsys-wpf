@@ -414,8 +414,60 @@ public class FrontedLayoutDesignerFoundationTest
             messages,
             message => message.Code == "ImagePathIgnored"
                        && message.ControlName == "Logo"
-                       && message.Severity == FrontedLayoutValidationSeverity.Info);
+                       && message.PropertyName == nameof(ImageFrontedControlConfig.ImagePath)
+                       && message.Severity == FrontedLayoutValidationSeverity.Warning);
         Assert.DoesNotContain(messages, message => message.Severity == FrontedLayoutValidationSeverity.Error);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PropertyGridShowsBindingOverrideMessagesAsWarningsOnStaticContentRows(bool borderedImage)
+    {
+        var text = new FrontedControlDesignItem
+        {
+            Name = "Text",
+            Config = new TextFrontedControlConfig
+            {
+                Text = "Static",
+                TextBinding = new FrontedTextBindingExpression
+                {
+                    Sources = [new FrontedBindingSourceConfig { Path = "CurrentGame.SurTeam.Name" }]
+                }
+            }
+        };
+        var localizedText = new FrontedControlDesignItem
+        {
+            Name = "Localized",
+            Config = new LocalizedTextControlConfig
+            {
+                LocalizationKey = "StaticKey",
+                TextBinding = new FrontedTextBindingExpression
+                {
+                    Sources = [new FrontedBindingSourceConfig { Path = "CurrentGame.SurTeam.Name" }]
+                }
+            }
+        };
+        var image = new FrontedControlDesignItem
+        {
+            Name = "Image",
+            Config = borderedImage
+                ? new BorderedImageFrontedControlConfig
+                {
+                    BindingPath = "CurrentGame.SurTeam.Logo",
+                    ImagePath = "Resources/logo.png"
+                }
+                : new ImageFrontedControlConfig
+                {
+                    BindingPath = "CurrentGame.SurTeam.Logo",
+                    ImagePath = "Resources/logo.png"
+                }
+        };
+        var document = CreateDocument([text, localizedText, image]);
+
+        AssertWarningOnStaticRow(document, text, nameof(TextFrontedControlConfig.Text));
+        AssertWarningOnStaticRow(document, localizedText, nameof(LocalizedTextControlConfig.LocalizationKey));
+        AssertWarningOnStaticRow(document, image, nameof(ImageFrontedControlConfig.ImagePath));
     }
 
     [Fact]
@@ -1523,6 +1575,51 @@ public class FrontedLayoutDesignerFoundationTest
 
         viewModel.UndoCommand.Execute(null);
         Assert.Equal(10, viewModel.CurrentDocument!.Controls[0].Config.Left);
+    }
+
+    [Fact]
+    public void TextBindingEditIsUndoableAndRedoable()
+    {
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new TextFrontedControlConfig { Text = "Static" }
+        };
+        var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([title]) };
+        viewModel.SelectDesignItem(title);
+        var row = new FrontedPropertyEditorItem
+        {
+            PropertyName = nameof(TextFrontedControlConfig.TextBinding),
+            EditorKind = FrontedPropertyEditorKind.TextBinding
+        };
+        var expression = new FrontedTextBindingExpression
+        {
+            Sources =
+            [
+                new FrontedBindingSourceConfig { Path = "CurrentGame.HomeTeam.Name" },
+                new FrontedBindingSourceConfig { Path = "CurrentGame.AwayTeam.Name" }
+            ],
+            StringFormat = "{0} vs {1}"
+        };
+
+        Assert.True(viewModel.ApplyTextBindingEdit(row, expression));
+        Assert.Equal(
+            "{0} vs {1}",
+            Assert.IsType<TextFrontedControlConfig>(viewModel.CurrentDocument!.Controls[0].Config)
+                .TextBinding!.StringFormat);
+        Assert.True(viewModel.CanUndo);
+
+        viewModel.UndoCommand.Execute(null);
+        Assert.Null(
+            Assert.IsType<TextFrontedControlConfig>(viewModel.CurrentDocument!.Controls[0].Config).TextBinding);
+
+        viewModel.RedoCommand.Execute(null);
+        Assert.Equal(
+            ["CurrentGame.HomeTeam.Name", "CurrentGame.AwayTeam.Name"],
+            Assert.IsType<TextFrontedControlConfig>(viewModel.CurrentDocument!.Controls[0].Config)
+                .TextBinding!.Sources.Select(source => source.Path));
     }
 
     [Fact]
@@ -2838,8 +2935,8 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.Contains("CurrentGame.MatchScore.HomeTotalMinorScore", paths);
         Assert.DoesNotContain("CurrentGame.SurTeam.Logo", paths);
         Assert.DoesNotContain("CurrentGame.PickedMapImage", paths);
-        Assert.DoesNotContain("CurrentGame.GameProgress", paths);
-        Assert.DoesNotContain("CurrentGame.PickedMap", paths);
+        Assert.Contains("CurrentGame.GameProgress", paths);
+        Assert.Contains("CurrentGame.PickedMap", paths);
     }
 
     [Fact]
@@ -2979,7 +3076,6 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Theory]
-    [InlineData("Text", typeof(TextFrontedControlConfig), FrontedBindingTargetKind.Text)]
     [InlineData("Image", typeof(ImageFrontedControlConfig), FrontedBindingTargetKind.Image)]
     [InlineData("BorderedImage", typeof(BorderedImageFrontedControlConfig), FrontedBindingTargetKind.Image)]
     [InlineData("GameProgressText", typeof(GameProgressTextControlConfig), FrontedBindingTargetKind.GameProgress)]
@@ -3004,6 +3100,58 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void PropertyGridBuilderUsesDedicatedTextBindingEditorForTextControls()
+    {
+        foreach (var config in new FrontedControlConfigBase[]
+                 {
+                     new TextFrontedControlConfig(),
+                     new LocalizedTextControlConfig()
+                 })
+        {
+            var item = new FrontedControlDesignItem { Name = config.ControlType, Config = config };
+            var rows = BuildPropertyRows(CreateDocument([item]), item);
+            var bindingRow = Assert.Single(rows, row => row.PropertyName == nameof(TextFrontedControlConfig.TextBinding));
+
+            Assert.Equal(FrontedPropertyEditorKind.TextBinding, bindingRow.EditorKind);
+            Assert.DoesNotContain(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.BindingPath));
+        }
+    }
+
+    [Fact]
+    public void PropertyGridLocalizesTextBindingNameGroupAndSummary()
+    {
+        var config = new TextFrontedControlConfig
+        {
+            TextBinding = new FrontedTextBindingExpression
+            {
+                Sources = [new FrontedBindingSourceConfig { Path = "CurrentGame.SurTeam.Name" }]
+            }
+        };
+        var item = new FrontedControlDesignItem { Name = "Text", Config = config };
+        var localizer = new TestDesignerLocalizationService(
+            propertyNames: new Dictionary<string, string>
+            {
+                [nameof(TextFrontedControlConfig.TextBinding)] = "本地化文本绑定"
+            },
+            groupNames: new Dictionary<string, string>
+            {
+                ["Content"] = "本地化内容"
+            },
+            designerTexts: new Dictionary<string, string>
+            {
+                ["Designer.TextBinding.SourceSummary"] = "来源 {0}"
+            });
+
+        var row = Assert.Single(
+            BuildPropertyRows(CreateDocument([item]), item, localizer),
+            candidate => candidate.PropertyName == nameof(TextFrontedControlConfig.TextBinding));
+
+        Assert.Equal("本地化文本绑定", row.DisplayName);
+        Assert.Equal("本地化内容", row.GroupDisplayName);
+        Assert.Equal("来源 1", row.DisplayValue);
+    }
+
+    [Fact]
     public void BindingBrowserWindowViewModelInitializedWithImageFilterOnlyExposesImages()
     {
         var viewModel = new FrontedBindingBrowserWindowViewModel(
@@ -3020,12 +3168,12 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
-    public void BrowserSelectionOnlyUpdatesEditTextUntilExplicitApply()
+    public void BrowserSelectionOnlyUpdatesImageBindingEditTextUntilExplicitApply()
     {
         var item = new FrontedControlDesignItem
         {
-            Name = "Title",
-            Config = new TextFrontedControlConfig { BindingPath = "Old.Path" }
+            Name = "Logo",
+            Config = new ImageFrontedControlConfig { BindingPath = "Old.Path" }
         };
         var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = CreateDocument([item]) };
         viewModel.SelectDesignItem(item);
@@ -4753,6 +4901,20 @@ public class FrontedLayoutDesignerFoundationTest
     private static (double Width, double Height) ToSize(FrontedDesignerResolvedBounds bounds)
     {
         return (bounds.Width, bounds.Height);
+    }
+
+    private static void AssertWarningOnStaticRow(
+        FrontedCanvasDesignDocument document,
+        FrontedControlDesignItem item,
+        string propertyName)
+    {
+        var row = Assert.Single(BuildPropertyRows(document, item), candidate => candidate.PropertyName == propertyName);
+        Assert.Contains(
+            row.ValidationMessages,
+            message => message.Severity == FrontedLayoutValidationSeverity.Warning);
+        Assert.DoesNotContain(
+            row.ValidationMessages,
+            message => message.Severity == FrontedLayoutValidationSeverity.Error);
     }
 
     private sealed class TestBindingRootProvider : IFrontedBindingRootProvider

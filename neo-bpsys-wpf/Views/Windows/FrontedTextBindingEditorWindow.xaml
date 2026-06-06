@@ -1,0 +1,160 @@
+<ui:FluentWindow
+    x:Class="neo_bpsys_wpf.Views.Windows.FrontedTextBindingEditorWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:binding="clr-namespace:neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;assembly=neo-bpsys-wpf.Core"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="{lex:Loc Designer.TextBinding.Title}"
+    Width="760"
+    Height="560"
+    MinWidth="620"
+    MinHeight="440"
+    WindowStartupLocation="CenterOwner">
+    <ui:FluentWindow.Resources>
+        <Style BasedOn="{StaticResource {x:Type TextBox}}" TargetType="TextBox">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.HasValidationError, RelativeSource={RelativeSource AncestorType={x:Type ui:FluentWindow}}}" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </ui:FluentWindow.Resources>
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel
+            Grid.Row="0"
+            Margin="0,0,0,10"
+            Orientation="Horizontal">
+            <ui:Button Click="AddSource_OnClick" Content="{lex:Loc Designer.TextBinding.AddSource}" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ItemsControl
+                x:Name="SourcesList"
+                AlternationCount="1000"
+                ItemsSource="{Binding Sources}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type binding:FrontedBindingSourceConfig}">
+                        <Grid Margin="4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="36" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                Grid.Column="0"
+                                VerticalAlignment="Center"
+                                Text="{Binding RelativeSource={RelativeSource AncestorType=ContentPresenter}, Path=(ItemsControl.AlternationIndex), StringFormat={}{0}.}" />
+                            <TextBox
+                                Grid.Column="1"
+                                MinHeight="28"
+                                Text="{Binding Path, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            <ui:Button
+                                Grid.Column="2"
+                                Margin="8,0,0,0"
+                                Click="BrowseSource_OnClick"
+                                Content="{lex:Loc BrowseBinding}" />
+                            <ui:Button
+                                Grid.Column="3"
+                                Margin="8,0,0,0"
+                                Click="MoveUp_OnClick"
+                                Content="{lex:Loc Designer.TextBinding.MoveUp}" />
+                            <ui:Button
+                                Grid.Column="4"
+                                Margin="8,0,0,0"
+                                Click="MoveDown_OnClick"
+                                Content="{lex:Loc Designer.TextBinding.MoveDown}" />
+                            <ui:Button
+                                Grid.Column="5"
+                                Margin="8,0,0,0"
+                                Click="DeleteSource_OnClick"
+                                Content="{lex:Loc Delete}" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <Grid Grid.Row="2" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock VerticalAlignment="Center" Text="{lex:Loc Designer.TextBinding.StringFormat}" />
+            <TextBox
+                Grid.Column="1"
+                MinHeight="28"
+                Text="{Binding StringFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock
+                Grid.Row="1"
+                VerticalAlignment="Center"
+                Text="{lex:Loc Designer.TextBinding.JoinSeparator}" />
+            <TextBox
+                Grid.Row="1"
+                Grid.Column="1"
+                MinHeight="28"
+                Margin="0,10,0,0"
+                Text="{Binding JoinSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock
+                Grid.Row="2"
+                VerticalAlignment="Center"
+                Text="{lex:Loc Designer.TextBinding.NullText}" />
+            <TextBox
+                Grid.Row="2"
+                Grid.Column="1"
+                MinHeight="28"
+                Margin="0,10,0,0"
+                Text="{Binding NullText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock
+                Grid.Row="3"
+                VerticalAlignment="Center"
+                Text="{lex:Loc Designer.TextBinding.FallbackText}" />
+            <TextBox
+                Grid.Row="3"
+                Grid.Column="1"
+                MinHeight="28"
+                Margin="0,10,0,0"
+                Text="{Binding FallbackText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock
+                Grid.Row="4"
+                Grid.ColumnSpan="2"
+                Margin="0,8,0,0"
+                Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                Text="{Binding ValidationError}"
+                TextWrapping="Wrap" />
+        </Grid>
+
+        <StackPanel
+            Grid.Row="3"
+            Margin="0,16,0,0"
+            HorizontalAlignment="Right"
+            Orientation="Horizontal">
+            <ui:Button
+                Click="Apply_OnClick"
+                Content="{lex:Loc SaveAndApply}"
+                IsDefault="True" />
+            <ui:Button
+                Margin="8,0,0,0"
+                Click="Cancel_OnClick"
+                Content="{lex:Loc Cancel}"
+                IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</ui:FluentWindow>

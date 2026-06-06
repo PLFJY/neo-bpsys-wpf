@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using System;
@@ -85,9 +86,13 @@ public class FrontedCanvasConfigTest
                 "Top": 720,
                 "Width": 120,
                 "Height": null,
-                "BindingPath": "CurrentGame.SurTeam.Name",
-                "Text": "Ignored when BindingPath exists",
-                "StringFormat": "{0}%",
+                "TextBinding": {
+                  "Sources": [
+                    { "Path": "CurrentGame.SurTeam.Name" }
+                  ],
+                  "StringFormat": "{0}%"
+                },
+                "Text": "Ignored when TextBinding has sources",
                 "HorizontalAlignment": "Center",
                 "VerticalAlignment": "Center",
                 "TextAlignment": "Center",
@@ -130,9 +135,9 @@ public class FrontedCanvasConfigTest
         Assert.Equal(580.5, text.Left);
         Assert.Equal(120, text.Width);
         Assert.Null(text.Height);
-        Assert.Equal("CurrentGame.SurTeam.Name", text.BindingPath);
-        Assert.Equal("Ignored when BindingPath exists", text.Text);
-        Assert.Equal("{0}%", text.StringFormat);
+        Assert.Equal("CurrentGame.SurTeam.Name", Assert.Single(text.TextBinding!.Sources).Path);
+        Assert.Equal("Ignored when TextBinding has sources", text.Text);
+        Assert.Equal("{0}%", text.TextBinding.StringFormat);
         Assert.Equal("Bold", text.FontWeight);
         Assert.Equal(28, text.FontSize);
         Assert.Equal(2, text.ZIndex);
@@ -787,7 +792,7 @@ public class FrontedCanvasConfigTest
                 config,
                 $"Sur{index}MachineDecoded",
                 $"CurrentGame.SurPlayerList[{index}].Data.DecodingProgress");
-            Assert.Equal("{0}%", machineDecoded.StringFormat);
+            Assert.Equal("{0}%", machineDecoded.TextBinding!.StringFormat);
 
             AssertTextBinding(
                 config,
@@ -1621,7 +1626,7 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
-    public void TextFrontedControlUsesStaticTextWhenBindingPathIsEmpty()
+    public void TextFrontedControlUsesStaticTextWhenTextBindingHasNoSources()
     {
         RunOnStaThread(() =>
         {
@@ -1642,7 +1647,7 @@ public class FrontedCanvasConfigTest
     }
 
     [Fact]
-    public void TextFrontedControlBindingPathTakesPriorityOverStaticText()
+    public void TextFrontedControlTextBindingTakesPriorityOverStaticText()
     {
         RunOnStaThread(() =>
         {
@@ -1652,23 +1657,24 @@ public class FrontedCanvasConfigTest
                 "Title",
                 new TextFrontedControlConfig
                 {
-                    BindingPath = "CurrentGame.SurTeam.Name",
+                    TextBinding = CreateTextBinding("CurrentGame.SurTeam.Name"),
                     Text = "Static title"
                 },
                 CreateBuildContext(sharedDataService));
 
             var border = Assert.IsType<Border>(element);
             var textBlock = Assert.IsType<TextBlock>(border.Child);
-            var binding = BindingOperations.GetBinding(textBlock, TextBlock.TextProperty);
+            var binding = BindingOperations.GetMultiBinding(textBlock, TextBlock.TextProperty);
             Assert.NotNull(binding);
-            Assert.Equal("CurrentGame.SurTeam.Name", binding.Path.Path);
-            Assert.Same(sharedDataService, binding.Source);
+            var sourceBinding = Assert.IsType<Binding>(Assert.Single(binding.Bindings));
+            Assert.Equal("CurrentGame.SurTeam.Name", sourceBinding.Path.Path);
+            Assert.Same(sharedDataService, sourceBinding.Source);
             Assert.NotEqual("Static title", textBlock.Text);
         });
     }
 
     [Fact]
-    public void TextFrontedControlAppliesStringFormatOnlyForBindingPath()
+    public void TextFrontedControlAppliesStringFormatOnlyForTextBinding()
     {
         RunOnStaThread(() =>
         {
@@ -1677,23 +1683,25 @@ public class FrontedCanvasConfigTest
                 "DecodingProgress",
                 new TextFrontedControlConfig
                 {
-                    BindingPath = "CurrentGame.SurPlayerList[0].Data.DecodingProgress",
-                    StringFormat = "{0}%"
+                    TextBinding = new FrontedTextBindingExpression
+                    {
+                        Sources = [new FrontedBindingSourceConfig { Path = "CurrentGame.SurPlayerList[0].Data.DecodingProgress" }],
+                        StringFormat = "{0}%"
+                    }
                 },
                 CreateBuildContext(new Mock<ISharedDataService>().Object));
 
             var border = Assert.IsType<Border>(element);
             var textBlock = Assert.IsType<TextBlock>(border.Child);
-            var binding = BindingOperations.GetBinding(textBlock, TextBlock.TextProperty);
+            var binding = BindingOperations.GetMultiBinding(textBlock, TextBlock.TextProperty);
             Assert.NotNull(binding);
-            Assert.Equal("{0}%", binding.StringFormat);
+            Assert.Equal("{0}%", Assert.IsType<FrontedTextBindingExpression>(binding.ConverterParameter).StringFormat);
 
             var staticElement = control.Create(
                 "Title",
                 new TextFrontedControlConfig
                 {
-                    Text = "Static title",
-                    StringFormat = "{0}%"
+                    Text = "Static title"
                 },
                 CreateBuildContext());
 
@@ -2596,9 +2604,14 @@ public class FrontedCanvasConfigTest
         string bindingPath)
     {
         var control = Assert.IsType<TextFrontedControlConfig>(config.Controls[controlName]);
-        Assert.Equal(bindingPath, control.BindingPath);
+        Assert.Equal(bindingPath, Assert.Single(control.TextBinding!.Sources).Path);
         return control;
     }
+
+    private static FrontedTextBindingExpression CreateTextBinding(params string[] paths) => new()
+    {
+        Sources = paths.Select(path => new FrontedBindingSourceConfig { Path = path }).ToList()
+    };
 
     private static ImageFrontedControlConfig AssertImageBinding(
         FrontedCanvasConfig config,

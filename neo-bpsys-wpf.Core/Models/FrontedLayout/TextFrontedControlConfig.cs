@@ -1,5 +1,7 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
+
 /// <summary>
 /// v3 文本控件配置。
 /// </summary>
@@ -14,14 +16,14 @@ public class TextFrontedControlConfig : FrontedControlConfigBase, IFrontedTextSt
     }
 
     /// <summary>
-    /// 静态文本内容，仅在 BindingPath 为空时使用。
+    /// 静态文本内容，仅在 TextBinding 没有有效 source 时使用。
     /// </summary>
     public string? Text { get; set; }
 
     /// <summary>
-    /// 绑定文本格式，仅在 BindingPath 非空时使用。
+    /// Ordered multi-source text binding.
     /// </summary>
-    public string? StringFormat { get; set; }
+    public FrontedTextBindingExpression? TextBinding { get; set; }
 
     /// <summary>
     /// 文本块水平对齐。

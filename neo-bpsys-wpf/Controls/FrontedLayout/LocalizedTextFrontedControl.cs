@@ -3,10 +3,12 @@ using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Controls.FrontedLayout;
@@ -40,6 +42,7 @@ public class LocalizedTextFrontedControl(ILogger<LocalizedTextFrontedControl>? l
             name,
             textConfig,
             settingsHostService,
+            context.SharedDataService,
             _logger ?? context.Logger);
     }
 
@@ -61,6 +64,12 @@ public class LocalizedTextFrontedControl(ILogger<LocalizedTextFrontedControl>? l
 
     private sealed class LocalizedTextElement : Border
     {
+        private static readonly DependencyProperty RawTextProperty = DependencyProperty.Register(
+            nameof(RawText),
+            typeof(string),
+            typeof(LocalizedTextElement),
+            new PropertyMetadata(string.Empty, OnRawTextChanged));
+
         private readonly LocalizedTextControlConfig _config;
         private readonly ISettingsHostService _settingsHostService;
         private readonly TextBlock _textBlock = new();
@@ -70,6 +79,7 @@ public class LocalizedTextFrontedControl(ILogger<LocalizedTextFrontedControl>? l
             string name,
             LocalizedTextControlConfig config,
             ISettingsHostService settingsHostService,
+            ISharedDataService sharedDataService,
             ILogger? logger)
         {
             _config = config;
@@ -92,8 +102,23 @@ public class LocalizedTextFrontedControl(ILogger<LocalizedTextFrontedControl>? l
 
             ApplyTextStyle(_textBlock, config, logger);
             Child = _textBlock;
+
+            if (config.TextBinding?.GetActiveSources().Count > 0)
+            {
+                BindingOperations.SetBinding(
+                    this,
+                    RawTextProperty,
+                    FrontedTextBindingHelper.CreateMultiBinding(config.TextBinding, sharedDataService));
+            }
+
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
+        }
+
+        private string RawText
+        {
+            get => (string)GetValue(RawTextProperty);
+            set => SetValue(RawTextProperty, value);
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -123,7 +148,17 @@ public class LocalizedTextFrontedControl(ILogger<LocalizedTextFrontedControl>? l
 
         private void UpdateText()
         {
-            _textBlock.Text = ResolveText(_config.LocalizationKey, _config.FallbackText);
+            _textBlock.Text = _config.TextBinding?.GetActiveSources().Count > 0
+                ? ResolveText(RawText, RawText)
+                : ResolveText(_config.LocalizationKey, _config.FallbackText);
+        }
+
+        private static void OnRawTextChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs args)
+        {
+            if (dependencyObject is LocalizedTextElement element)
+            {
+                element.UpdateText();
+            }
         }
 
         private static void ApplyTextStyle(TextBlock textBlock, LocalizedTextControlConfig config, ILogger? logger)

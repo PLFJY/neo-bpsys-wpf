@@ -21,16 +21,22 @@
     "Top": 34,
     "Width": 231,
     "Height": null,
-    "BindingPath": "CurrentGame.SurTeam.Name",
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
     "TextWrapping": "WrapWithOverflow",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
     "FontSize": 32,
-    "ZIndex": 2
+    "ZIndex": 2,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.SurTeam.Name"
+        }
+      ]
+    }
   },
   "SurTeamMajorPoint": {
     "ControlType": "Text",
@@ -38,15 +44,21 @@
     "Top": 86,
     "Width": null,
     "Height": null,
-    "BindingPath": "CurrentGame.MatchScore.CurrentSurTeamMajorText",
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Top",
     "TextAlignment": "Center",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
     "FontSize": 38,
-    "ZIndex": 2
+    "ZIndex": 2,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.MatchScore.CurrentSurTeamMajorText"
+        }
+      ]
+    }
   },
   "GameScoresSur": {
     "ControlType": "Text",
@@ -54,14 +66,20 @@
     "Top": 11,
     "Width": 64,
     "Height": 130,
-    "BindingPath": "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText",
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
     "FontSize": 100,
-    "ZIndex": 2
+    "ZIndex": 2,
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.MatchScore.CurrentSurTeamPreHalfMinorScoreText"
+        }
+      ]
+    }
   }
 }

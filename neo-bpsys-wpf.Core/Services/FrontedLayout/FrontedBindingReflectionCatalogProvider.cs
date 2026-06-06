@@ -1,3 +1,4 @@
+using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
@@ -208,6 +209,13 @@ public sealed class FrontedBindingReflectionCatalogProvider : IFrontedBindingCat
         }
 
         if (property.GetIndexParameters().Length > 0 || property.GetMethod is null || !property.GetMethod.IsPublic)
+        {
+            return false;
+        }
+
+        // Exclude IsActive inherited from ObservableRecipient (internal messenger state, not fronted binding data)
+        if (property is { Name: nameof(ObservableRecipient.IsActive) }
+            && property.DeclaringType == typeof(ObservableRecipient))
         {
             return false;
         }

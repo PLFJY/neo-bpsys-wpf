@@ -1,6 +1,7 @@
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Reflection;
@@ -155,7 +156,8 @@ public class FrontedPropertyGridBuilder
             IsReadOnly = nameReadOnly,
             IsRequired = true,
             GroupName = "Identity",
-            ValidationErrors = GetPropertyMessages(messages, selectedItem.Name, nameof(FrontedControlDesignItem.Name))
+            ValidationErrors = GetPropertyMessages(messages, selectedItem.Name, nameof(FrontedControlDesignItem.Name)),
+            ValidationMessages = GetPropertyValidationMessages(messages, selectedItem.Name, nameof(FrontedControlDesignItem.Name))
         });
 
         rows.Add(new FrontedPropertyEditorItem
@@ -169,7 +171,8 @@ public class FrontedPropertyGridBuilder
             IsReadOnly = true,
             IsRequired = true,
             GroupName = "Identity",
-            ValidationErrors = GetPropertyMessages(messages, selectedItem.Name, nameof(FrontedControlConfigBase.ControlType))
+            ValidationErrors = GetPropertyMessages(messages, selectedItem.Name, nameof(FrontedControlConfigBase.ControlType)),
+            ValidationMessages = GetPropertyValidationMessages(messages, selectedItem.Name, nameof(FrontedControlConfigBase.ControlType))
         });
 
         rows.Add(new FrontedPropertyEditorItem
@@ -224,7 +227,8 @@ public class FrontedPropertyGridBuilder
             var kind = ResolveEditorKind(property);
             var isReadOnly = !selectedItem.IsEditableInEditor || !property.CanWrite;
             var groupName = ResolveGroupName(property.Name, selectedItem.Config);
-            var validationErrors = GetPropertyMessages(messages, selectedItem.Name, property.Name).ToList();
+            var validationMessages = GetPropertyValidationMessages(messages, selectedItem.Name, property.Name).ToList();
+            var validationErrors = validationMessages.Select(message => message.Message).ToList();
             var value = property.GetValue(selectedItem.Config);
 
             if (kind == FrontedPropertyEditorKind.Color
@@ -232,9 +236,11 @@ public class FrontedPropertyGridBuilder
                 && !string.IsNullOrWhiteSpace(color)
                 && !FrontedPropertyColorHelper.TryParseArgbColor(color, out _))
             {
-                validationErrors.Add(_localizationService.GetDesignerText(
+                var message = _localizationService.GetDesignerText(
                     "Designer.Validation.InvalidArgbColor",
-                    "Invalid color. Use #RRGGBB or #AARRGGBB."));
+                    "Invalid color. Use #RRGGBB or #AARRGGBB.");
+                validationErrors.Add(message);
+                validationMessages.Add(CreatePropertyError(message, selectedItem.Name, property.Name));
             }
 
             var canBrowseBinding = !isReadOnly && IsBindingPathProperty(property.Name);
@@ -261,6 +267,7 @@ public class FrontedPropertyGridBuilder
                 Options = ResolveOptions(property, kind),
                 GroupName = groupName,
                 ValidationErrors = validationErrors,
+                ValidationMessages = validationMessages,
                 CanBrowseBinding = canBrowseBinding,
                 CanBrowseResource = canBrowseResource,
                 BrowseButtonText = "...",
@@ -386,7 +393,8 @@ public class FrontedPropertyGridBuilder
         var kind = metadata?.EditorKind ?? ResolveEditorKind(property);
         var isReadOnly = !selectedItem.IsEditableInEditor || !property.CanWrite || metadata?.IsReadOnly == true;
         var groupName = metadata?.GroupName ?? ResolveGroupName(property.Name, selectedItem.Config);
-        var validationErrors = GetPropertyMessages(messages, selectedItem.Name, property.Name).ToList();
+        var validationMessages = GetPropertyValidationMessages(messages, selectedItem.Name, property.Name).ToList();
+        var validationErrors = validationMessages.Select(message => message.Message).ToList();
         var value = property.GetValue(selectedItem.Config);
 
         if (kind == FrontedPropertyEditorKind.Color
@@ -394,9 +402,11 @@ public class FrontedPropertyGridBuilder
             && !string.IsNullOrWhiteSpace(color)
             && !FrontedPropertyColorHelper.TryParseArgbColor(color, out _))
         {
-            validationErrors.Add(_localizationService.GetDesignerText(
+            var message = _localizationService.GetDesignerText(
                 "Designer.Validation.InvalidArgbColor",
-                "Invalid color. Use #RRGGBB or #AARRGGBB."));
+                "Invalid color. Use #RRGGBB or #AARRGGBB.");
+            validationErrors.Add(message);
+            validationMessages.Add(CreatePropertyError(message, selectedItem.Name, property.Name));
         }
 
         var canBrowseBinding = !isReadOnly && IsBindingPathProperty(property.Name);
@@ -423,6 +433,7 @@ public class FrontedPropertyGridBuilder
             Options = metadata?.Options?.Cast<object>().ToArray() ?? ResolveOptions(property, kind),
             GroupName = groupName,
             ValidationErrors = validationErrors,
+            ValidationMessages = validationMessages,
             CanBrowseBinding = canBrowseBinding,
             CanBrowseResource = canBrowseResource,
             BrowseButtonText = "...",
@@ -486,7 +497,7 @@ public class FrontedPropertyGridBuilder
     {
         return kind switch
         {
-            FrontedBindingTargetKind.Text => ["string", "int", "double", "float", "decimal"],
+            FrontedBindingTargetKind.Text => ["string", "number", "bool", "enum", "DateTime", "TimeSpan"],
             FrontedBindingTargetKind.Image => ["ImageSource", "BitmapSource", "BitmapImage"],
             FrontedBindingTargetKind.GameProgress => ["GameProgress", "GameProgress?"],
             FrontedBindingTargetKind.Map => ["Map", "Map?"],
@@ -512,6 +523,11 @@ public class FrontedPropertyGridBuilder
         }
 
         var type = GetCoreType(property.PropertyType);
+        if (type == typeof(FrontedTextBindingExpression))
+        {
+            return true;
+        }
+
         if (type == typeof(string)
             || type == typeof(bool)
             || type.IsEnum
@@ -526,6 +542,11 @@ public class FrontedPropertyGridBuilder
     private static FrontedPropertyEditorKind ResolveEditorKind(PropertyInfo property)
     {
         var type = GetCoreType(property.PropertyType);
+        if (type == typeof(FrontedTextBindingExpression))
+        {
+            return FrontedPropertyEditorKind.TextBinding;
+        }
+
         if (property.PropertyType == typeof(string) && IsColorProperty(property.Name))
         {
             return FrontedPropertyEditorKind.Color;
@@ -592,6 +613,17 @@ public class FrontedPropertyGridBuilder
 
     private static string ResolveGroupName(string propertyName, FrontedControlConfigBase config)
     {
+        if (config is TextFrontedControlConfig
+            && propertyName is nameof(TextFrontedControlConfig.Text)
+                or nameof(TextFrontedControlConfig.TextBinding)
+            || config is LocalizedTextControlConfig
+            && propertyName is nameof(LocalizedTextControlConfig.LocalizationKey)
+                or nameof(LocalizedTextControlConfig.FallbackText)
+                or nameof(LocalizedTextControlConfig.TextBinding))
+        {
+            return "Content";
+        }
+
         if (config is BorderedImageFrontedControlConfig)
         {
             if (propertyName is nameof(ImageFrontedControlConfig.Lockable)
@@ -644,7 +676,8 @@ public class FrontedPropertyGridBuilder
             return "Layout";
         }
 
-        if (propertyName == nameof(FrontedControlConfigBase.BindingPath))
+        if (propertyName == nameof(FrontedControlConfigBase.BindingPath)
+            || propertyName == nameof(TextFrontedControlConfig.TextBinding))
         {
             return "Binding";
         }
@@ -682,6 +715,12 @@ public class FrontedPropertyGridBuilder
 
     private static bool IsVisibleProperty(FrontedControlConfigBase config, string propertyName)
     {
+        if (config is TextFrontedControlConfig or LocalizedTextControlConfig
+            && propertyName == nameof(FrontedControlConfigBase.BindingPath))
+        {
+            return false;
+        }
+
         if (config is ImageFrontedControlConfig and not BorderedImageFrontedControlConfig)
         {
             return propertyName is not nameof(ImageFrontedControlConfig.SizingMode)
@@ -776,16 +815,68 @@ public class FrontedPropertyGridBuilder
             : 100 + property.MetadataToken;
     }
 
-    private static IReadOnlyList<string> GetPropertyMessages(
+    private IReadOnlyList<string> GetPropertyMessages(
+        IEnumerable<FrontedLayoutValidationMessage> messages,
+        string controlName,
+        string propertyName)
+    {
+        return GetPropertyValidationMessages(messages, controlName, propertyName)
+            .Select(message => message.Message)
+            .ToArray();
+    }
+
+    private IReadOnlyList<FrontedLayoutValidationMessage> GetPropertyValidationMessages(
         IEnumerable<FrontedLayoutValidationMessage> messages,
         string controlName,
         string propertyName)
     {
         return messages
             .Where(message => message.ControlName == controlName && message.PropertyName == propertyName)
-            .Select(message => message.Message)
+            .Select(LocalizePropertyValidationMessage)
             .ToArray();
     }
+
+    private FrontedLayoutValidationMessage LocalizePropertyValidationMessage(FrontedLayoutValidationMessage message)
+    {
+        var localizedMessage = (message.Code, message.PropertyName) switch
+        {
+            ("StaticTextIgnored", nameof(TextFrontedControlConfig.Text)) =>
+                _localizationService.GetDesignerText(
+                    "Designer.Validation.TextStaticIgnored",
+                    "Static Text is ignored while TextBinding has active sources."),
+            ("StaticTextIgnored", nameof(LocalizedTextControlConfig.LocalizationKey)) =>
+                _localizationService.GetDesignerText(
+                    "Designer.Validation.LocalizationKeyIgnored",
+                    "LocalizationKey is ignored while TextBinding has active sources."),
+            ("ImagePathIgnored", nameof(ImageFrontedControlConfig.ImagePath)) =>
+                _localizationService.GetDesignerText(
+                    "Designer.Validation.ImagePathIgnored",
+                    "ImagePath is ignored while BindingPath is set."),
+            _ => message.Message
+        };
+
+        return new FrontedLayoutValidationMessage
+        {
+            Severity = message.Severity,
+            Code = message.Code,
+            Message = localizedMessage,
+            ControlName = message.ControlName,
+            PropertyName = message.PropertyName
+        };
+    }
+
+    private static FrontedLayoutValidationMessage CreatePropertyError(
+        string message,
+        string controlName,
+        string propertyName) =>
+        new()
+        {
+            Severity = FrontedLayoutValidationSeverity.Error,
+            Code = "PropertyValidationError",
+            Message = message,
+            ControlName = controlName,
+            PropertyName = propertyName
+        };
 
     private void MarkGroupHeaders(IReadOnlyList<FrontedPropertyEditorItem> rows)
     {
@@ -809,6 +900,19 @@ public class FrontedPropertyGridBuilder
 
     private string GetDisplayValue(object? value, bool isReadOnly)
     {
+        if (value is FrontedTextBindingExpression expression)
+        {
+            var sources = expression.GetActiveSources();
+            return sources.Count == 0
+                ? _localizationService.GetDesignerText("Designer.TextBinding.None", "No binding sources")
+                : string.Format(
+                    System.Globalization.CultureInfo.CurrentCulture,
+                    _localizationService.GetDesignerText(
+                        "Designer.TextBinding.SourceSummary",
+                        "{0} source(s)"),
+                    sources.Count);
+        }
+
         if (isReadOnly && value is bool boolValue)
         {
             return _localizationService.GetDesignerText(

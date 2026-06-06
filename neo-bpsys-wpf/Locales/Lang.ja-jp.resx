@@ -2839,6 +2839,12 @@
   <data name="Designer.Property.Text" xml:space="preserve">
     <value>テキスト</value>
   </data>
+  <data name="Designer.Property.TextBinding" xml:space="preserve">
+    <value>テキストバインディング</value>
+  </data>
+  <data name="Designer.PropertyDescription.TextBinding" xml:space="preserve">
+    <value>順序付きの動的ソースを結合します。有効なソースがある場合、静的テキストまたはローカライズキーより優先されます。</value>
+  </data>
   <data name="Designer.Property.StringFormat" xml:space="preserve">
     <value>テキスト形式</value>
   </data>
@@ -2961,6 +2967,9 @@
   </data>
   <data name="Designer.PropertyGroup.Binding" xml:space="preserve">
     <value>データバインド</value>
+  </data>
+  <data name="Designer.PropertyGroup.Content" xml:space="preserve">
+    <value>コンテンツ</value>
   </data>
   <data name="Designer.PropertyGroup.Appearance" xml:space="preserve">
     <value>外観</value>
@@ -3476,7 +3485,7 @@
     <value>Name and BindingPath require Enter or apply button to commit;\nInvalid values keep the text and show red border;\nColorPicker updates Hex text; apply button commits;\nComboBox properties commit raw values while displaying localized names;\nBinding browser helps choose valid BindingPath;\nResource browser helps choose bpui/resource URI;\nBorderedImage has separate Border/Image properties;\nBorderedImage resize target can switch between outer border and inner image.</value>
   </data>
   <data name="Designer.Help.BuiltInControls.Content" xml:space="preserve">
-    <value>Text|通常のテキストコントロール。BindingPath が設定されている場合は動的テキストをバインドし、空の場合は静的な Text を表示します。|StringFormat はバインド値にのみ適用されます。業務/i18n 文言には専用コントロールを優先してください。\nLocalizedText|静的なローカライズテキストコントロール。LocalizationKey で resx を検索し、見つからない場合は FallbackText または key を表示します。|表ヘッダーや固定ラベルに適しています。保存されるのは key で、ローカライズ後の表示文字列ではありません。\nImage|ルート要素が Image の直接画像コントロール。チームロゴ、マップ、単純な画像、旧 direct Image の意味を保つ場合に使います。|BindingPath は ImageSource をバインドします。ImagePath は BindingPath が空の時だけ使われます。バインドが優先され、ImagePath は自動削除されません。\nBorderedImage|外側 Border + 内側 Image。枠、クリップ、角丸、内部画像サイズ、リサイズ対象の切り替えが必要な画像領域に使います。|BindingPath と ImagePath の優先順位は Image と同じです。Width/Height は外枠、ImageWidth/ImageHeight は内部画像に作用します。\nGameProgressText|現在のゲーム、ハーフ、BO3/BO5、延長ルールから対局進行テキストを生成します。|2 行表示が必要な場合は UseLineBreak を使います。この種の業務文言を通常の Text に直接書かないでください。\nMapNameText|マップ enum/key をローカライズ済みマップ名に変換します。既定では選択マップを読み、BindingPath で picked/banned map フィールドを指定できます。|EmptyText はマップが空の時の表示です。BindingPath は Map/Map? フィールドを指すべきです。\nGlobalScoreRow|全体スコア行の複合コントロール。親フレーム内の Cells が各ハーフスコアセルを定義し、MatchScore からテキストと陣営アイコンを表示します。|通常は ScoreGlobalWindow で使います。親は行全体、子セルは個別スコア位置の編集に使います。\nTalentTraitDisplay|CutScene の天賦/補助特質表示。DisplayKind と PlayerIndex に応じて固定の業務データを読みます。|補助特質の表示設定にも従えます。JSON に個別の天賦アイコンを直接書かないでください。\nMapV2Display|Map BP v2 表示。MapKey を使い、MapV2Presenter を再利用します。|WidgetsWindow の Map BP v2 レイアウト向けです。内部の Map BP v2 表示要素を手作りしないでください。\n共通注意|動的データの BindingPath は Binding Browser で選びます。ImagePath、BackgroundImage、LockImageSource などのリソースパスは Resource Browser で選びます。|静的リソースは Resources/xxx.png または bpui://... を優先し、任意の絶対パスへ長期依存しないでください。画像が欠落または上限超過しても警告または空表示に留め、前台ウィンドウをクラッシュさせない設計です。</value>
+    <value>Text|通常のテキストコントロール。TextBinding は順序付きの複数ソースを結合し、ソースがない場合は静的 Text を表示します。|ソース順は {0}/{1} に対応し、StringFormat が空なら JoinSeparator で結合します。\nLocalizedText|ローカライズテキストコントロール。静的モードは LocalizationKey、TextBinding モードは動的テキストを結合してからローカライズを試みます。|動的結果がリソース key でない場合は元のテキストを表示します。\nImage|ルート要素が Image の直接画像コントロール。チームロゴ、マップ、単純な画像、旧 direct Image の意味を保つ場合に使います。|BindingPath は ImageSource をバインドします。ImagePath は BindingPath が空の時だけ使われます。バインドが優先され、ImagePath は自動削除されません。\nBorderedImage|外側 Border + 内側 Image。枠、クリップ、角丸、内部画像サイズ、リサイズ対象の切り替えが必要な画像領域に使います。|BindingPath と ImagePath の優先順位は Image と同じです。Width/Height は外枠、ImageWidth/ImageHeight は内部画像に作用します。\nGameProgressText|現在のゲーム、ハーフ、BO3/BO5、延長ルールから対局進行テキストを生成します。|2 行表示が必要な場合は UseLineBreak を使います。この種の業務文言を通常の Text に直接書かないでください。\nMapNameText|マップ enum/key をローカライズ済みマップ名に変換します。既定では選択マップを読み、BindingPath で picked/banned map フィールドを指定できます。|EmptyText はマップが空の時の表示です。BindingPath は Map/Map? フィールドを指すべきです。\nGlobalScoreRow|全体スコア行の複合コントロール。親フレーム内の Cells が各ハーフスコアセルを定義し、MatchScore からテキストと陣営アイコンを表示します。|通常は ScoreGlobalWindow で使います。親は行全体、子セルは個別スコア位置の編集に使います。\nTalentTraitDisplay|CutScene の天賦/補助特質表示。DisplayKind と PlayerIndex に応じて固定の業務データを読みます。|補助特質の表示設定にも従えます。JSON に個別の天賦アイコンを直接書かないでください。\nMapV2Display|Map BP v2 表示。MapKey を使い、MapV2Presenter を再利用します。|WidgetsWindow の Map BP v2 レイアウト向けです。内部の Map BP v2 表示要素を手作りしないでください。\n共通注意|動的データの BindingPath は Binding Browser で選びます。ImagePath、BackgroundImage、LockImageSource などのリソースパスは Resource Browser で選びます。|静的リソースは Resources/xxx.png または bpui://... を優先し、任意の絶対パスへ長期依存しないでください。画像が欠落または上限超過しても警告または空表示に留め、前台ウィンドウをクラッシュさせない設計です。</value>
   </data>
   <data name="Designer.Help.AddDeleteCopyPaste.Content" xml:space="preserve">
     <value>Add Control inserts built-in/plugin controls;\nCopied control gets unique numbered name on paste;\nPaste offsets the new control;\nRuntime-critical/generated overlays may not be copyable/deletable;\nUndo/Redo can restore add, delete, paste, reorder operations.</value>
@@ -3790,4 +3799,18 @@
   <data name="Designer.Property.ShowCampIconOverride" xml:space="preserve">
     <value>陣営アイコン上書き</value>
   </data>
+  <data name="Designer.TextBinding.Title" xml:space="preserve"><value>テキストバインディングエディター</value></data>
+  <data name="Designer.TextBinding.AddSource" xml:space="preserve"><value>ソースを追加</value></data>
+  <data name="Designer.TextBinding.MoveUp" xml:space="preserve"><value>上へ</value></data>
+  <data name="Designer.TextBinding.MoveDown" xml:space="preserve"><value>下へ</value></data>
+  <data name="Designer.TextBinding.StringFormat" xml:space="preserve"><value>書式文字列</value></data>
+  <data name="Designer.TextBinding.JoinSeparator" xml:space="preserve"><value>結合区切り文字</value></data>
+  <data name="Designer.TextBinding.NullText" xml:space="preserve"><value>Null テキスト</value></data>
+  <data name="Designer.TextBinding.FallbackText" xml:space="preserve"><value>フォールバックテキスト</value></data>
+  <data name="Designer.TextBinding.None" xml:space="preserve"><value>バインディングソースなし</value></data>
+  <data name="Designer.TextBinding.SourceSummary" xml:space="preserve"><value>{0} 件のソース: {1}</value></data>
+  <data name="Designer.TextBinding.EmptyPath" xml:space="preserve"><value>バインディングソースの Path は空にできません。</value></data>
+  <data name="Designer.Validation.TextStaticIgnored" xml:space="preserve"><value>有効な TextBinding ソースがある間、静的 Text は表示されません。</value></data>
+  <data name="Designer.Validation.LocalizationKeyIgnored" xml:space="preserve"><value>有効な TextBinding ソースがある間、LocalizationKey は使用されません。</value></data>
+  <data name="Designer.Validation.ImagePathIgnored" xml:space="preserve"><value>BindingPath が設定されている間、ImagePath は使用されません。</value></data>
 </root>

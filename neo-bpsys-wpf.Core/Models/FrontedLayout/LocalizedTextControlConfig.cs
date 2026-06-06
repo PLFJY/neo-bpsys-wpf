@@ -1,5 +1,7 @@
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
+
 /// <summary>
 /// v3 本地化静态文本控件配置。
 /// </summary>
@@ -22,6 +24,11 @@ public class LocalizedTextControlConfig : FrontedControlConfigBase, IFrontedText
     /// 资源 key 缺失时显示的备用文本。
     /// </summary>
     public string? FallbackText { get; set; }
+
+    /// <summary>
+    /// Ordered multi-source binding whose result is resolved as a localization key when possible.
+    /// </summary>
+    public FrontedTextBindingExpression? TextBinding { get; set; }
 
     /// <summary>
     /// 字体族。

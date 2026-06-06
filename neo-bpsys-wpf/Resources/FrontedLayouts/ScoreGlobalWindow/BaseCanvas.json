@@ -10,12 +10,11 @@
       "Controls": {
         "HomeTeamName": {
           "Text": null,
-          "StringFormat": null,
           "HorizontalAlignment": "Center",
           "VerticalAlignment": "Center",
           "TextAlignment": "Center",
           "TextWrapping": "WrapWithOverflow",
-          "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+          "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
           "FontWeight": "Normal",
           "Color": "#FFFFFFFF",
           "FontSize": 24,
@@ -26,16 +25,21 @@
           "Height": 26,
           "ZIndex": 2,
           "Visibility": "Visible",
-          "BindingPath": "HomeTeam.Name"
+          "TextBinding": {
+            "Sources": [
+              {
+                "Path": "HomeTeam.Name"
+              }
+            ]
+          }
         },
         "AwayTeamName": {
           "Text": null,
-          "StringFormat": null,
           "HorizontalAlignment": "Center",
           "VerticalAlignment": "Center",
           "TextAlignment": "Center",
           "TextWrapping": "WrapWithOverflow",
-          "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+          "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
           "FontWeight": "Normal",
           "Color": "#FFFFFFFF",
           "FontSize": 24,
@@ -46,16 +50,21 @@
           "Height": null,
           "ZIndex": 2,
           "Visibility": "Visible",
-          "BindingPath": "AwayTeam.Name"
+          "TextBinding": {
+            "Sources": [
+              {
+                "Path": "AwayTeam.Name"
+              }
+            ]
+          }
         },
         "HomeScoreTotal": {
           "Text": null,
-          "StringFormat": null,
           "HorizontalAlignment": "Center",
           "VerticalAlignment": "Center",
           "TextAlignment": "Center",
           "TextWrapping": null,
-          "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+          "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
           "FontWeight": "Bold",
           "Color": "#FFFFFFFF",
           "FontSize": 40,
@@ -66,16 +75,21 @@
           "Height": null,
           "ZIndex": 2,
           "Visibility": "Visible",
-          "BindingPath": "CurrentGame.MatchScore.HomeTotalMinorScore"
+          "TextBinding": {
+            "Sources": [
+              {
+                "Path": "CurrentGame.MatchScore.HomeTotalMinorScore"
+              }
+            ]
+          }
         },
         "AwayScoreTotal": {
           "Text": null,
-          "StringFormat": null,
           "HorizontalAlignment": "Center",
           "VerticalAlignment": "Center",
           "TextAlignment": "Center",
           "TextWrapping": null,
-          "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+          "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
           "FontWeight": "Bold",
           "Color": "#FFFFFFFF",
           "FontSize": 40,
@@ -86,7 +100,13 @@
           "Height": null,
           "ZIndex": 2,
           "Visibility": "Visible",
-          "BindingPath": "CurrentGame.MatchScore.AwayTotalMinorScore"
+          "TextBinding": {
+            "Sources": [
+              {
+                "Path": "CurrentGame.MatchScore.AwayTotalMinorScore"
+              }
+            ]
+          }
         },
         "HomeGlobalScoreRow": {
           "TeamType": "HomeTeam",
@@ -581,12 +601,11 @@
   },
   "HomeTeamName": {
     "Text": null,
-    "StringFormat": null,
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
     "TextWrapping": "WrapWithOverflow",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
     "FontSize": 24,
@@ -597,16 +616,21 @@
     "Height": 26,
     "ZIndex": 2,
     "Visibility": "Visible",
-    "BindingPath": "HomeTeam.Name"
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "HomeTeam.Name"
+        }
+      ]
+    }
   },
   "AwayTeamName": {
     "Text": null,
-    "StringFormat": null,
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
     "TextWrapping": "WrapWithOverflow",
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
     "FontWeight": "Normal",
     "Color": "#FFFFFFFF",
     "FontSize": 24,
@@ -617,16 +641,21 @@
     "Height": null,
     "ZIndex": 2,
     "Visibility": "Visible",
-    "BindingPath": "AwayTeam.Name"
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "AwayTeam.Name"
+        }
+      ]
+    }
   },
   "HomeScoreTotal": {
     "Text": null,
-    "StringFormat": null,
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
     "TextWrapping": null,
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
     "FontWeight": "Bold",
     "Color": "#FFFFFFFF",
     "FontSize": 40,
@@ -637,16 +666,21 @@
     "Height": null,
     "ZIndex": 2,
     "Visibility": "Visible",
-    "BindingPath": "CurrentGame.MatchScore.HomeTotalMinorScore"
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.MatchScore.HomeTotalMinorScore"
+        }
+      ]
+    }
   },
   "AwayScoreTotal": {
     "Text": null,
-    "StringFormat": null,
     "HorizontalAlignment": "Center",
     "VerticalAlignment": "Center",
     "TextAlignment": "Center",
     "TextWrapping": null,
-    "FontFamily": "pack://application:,,,/Assets/Fonts/#华康POP1体W5",
+    "FontFamily": "pack://application:,,,/Assets/Fonts/#\u534E\u5EB7POP1\u4F53W5",
     "FontWeight": "Bold",
     "Color": "#FFFFFFFF",
     "FontSize": 40,
@@ -657,7 +691,13 @@
     "Height": null,
     "ZIndex": 2,
     "Visibility": "Visible",
-    "BindingPath": "CurrentGame.MatchScore.AwayTotalMinorScore"
+    "TextBinding": {
+      "Sources": [
+        {
+          "Path": "CurrentGame.MatchScore.AwayTotalMinorScore"
+        }
+      ]
+    }
   },
   "HomeGlobalScoreRow": {
     "TeamType": "HomeTeam",

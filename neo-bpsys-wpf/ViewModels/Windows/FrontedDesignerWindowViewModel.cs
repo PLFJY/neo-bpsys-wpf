@@ -2732,6 +2732,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                         .Concat([editError])
                         .Distinct(StringComparer.Ordinal)
                         .ToArray();
+                    row.ValidationMessages = row.ValidationMessages
+                        .Concat([CreatePropertyEditValidationMessage(editError, row.PropertyName)])
+                        .ToArray();
                 }
 
                 PropertyEditorItems.Add(row);
@@ -2755,8 +2758,21 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             .Concat([message])
             .Distinct(StringComparer.Ordinal)
             .ToArray();
+        item.ValidationMessages = item.ValidationMessages
+            .Concat([CreatePropertyEditValidationMessage(message, item.PropertyName)])
+            .ToArray();
         StatusMessage = message;
     }
+
+    private FrontedLayoutValidationMessage CreatePropertyEditValidationMessage(string message, string propertyName) =>
+        new()
+        {
+            Severity = FrontedLayoutValidationSeverity.Error,
+            Code = "PropertyEditError",
+            Message = message,
+            ControlName = SelectedDesignItem?.Name,
+            PropertyName = propertyName
+        };
 
     private void ClearPropertyEditError(string propertyName)
     {
@@ -3127,6 +3143,44 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         WindowBackgroundColorValue = color;
         _windowBackgroundColorConfigured = true;
         _ = SaveWindowOptionsAsync(restartRequired: false, applyBackgroundImmediately: true);
+        return true;
+    }
+
+    public bool ApplyTextBindingEdit(
+        FrontedPropertyEditorItem item,
+        Core.Models.FrontedLayout.Binding.FrontedTextBindingExpression expression)
+    {
+        if (CurrentDocument is null || SelectedDesignItem is null || item.IsReadOnly)
+        {
+            return false;
+        }
+
+        var property = SelectedDesignItem.Config.GetType().GetProperty(item.PropertyName);
+        if (property?.PropertyType != typeof(Core.Models.FrontedLayout.Binding.FrontedTextBindingExpression)
+            || !property.CanWrite)
+        {
+            return false;
+        }
+
+        var oldJson = JsonSerializer.Serialize(property.GetValue(SelectedDesignItem.Config));
+        var newJson = JsonSerializer.Serialize(expression);
+        if (string.Equals(oldJson, newJson, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        CaptureUndoSnapshot();
+        property.SetValue(SelectedDesignItem.Config, expression);
+        item.Value = expression;
+        item.DisplayValue = expression.GetActiveSources().Count == 0
+            ? I18nHelper.GetLocalizedString("Designer.TextBinding.None")
+            : string.Format(
+                CultureInfo.CurrentCulture,
+                I18nHelper.GetLocalizedString("Designer.TextBinding.SourceSummary"),
+                expression.GetActiveSources().Count,
+                string.Join(", ", expression.GetActiveSources().Select(source => source.Path)));
+        CurrentDocument.IsDirty = true;
+        FinishPropertyEdit(item.PropertyName);
         return true;
     }
 

@@ -2783,6 +2783,28 @@ public partial class FrontedDesignerWindow : FluentWindow
             : null;
     }
 
+    private void EditTextBindingButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_bindingBrowserProvider is null
+            || _viewModel is null
+            || sender is not FrameworkElement { DataContext: FrontedPropertyEditorItem item })
+        {
+            return;
+        }
+
+        var window = new FrontedTextBindingEditorWindow(
+            item.Value as Core.Models.FrontedLayout.Binding.FrontedTextBindingExpression,
+            _bindingBrowserProvider)
+        {
+            Owner = this
+        };
+
+        if (window.ShowDialog() == true && window.Result is not null)
+        {
+            _viewModel.ApplyTextBindingEdit(item, window.Result);
+        }
+    }
+
     private static T? FindDescendant<T>(DependencyObject parent)
         where T : DependencyObject
     {

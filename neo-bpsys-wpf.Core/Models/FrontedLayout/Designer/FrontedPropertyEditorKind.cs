@@ -36,6 +36,11 @@ public enum FrontedPropertyEditorKind
     FontFamily,
 
     /// <summary>
+    /// Modal editor for a TextBinding expression.
+    /// </summary>
+    TextBinding,
+
+    /// <summary>
     /// Read-only display row.
     /// </summary>
     ReadOnly
