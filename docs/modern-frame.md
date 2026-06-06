@@ -74,3 +74,5 @@ public enum ModernFrameContentScrollHostMode
 - `Auto` 会在布局前检查内容自身是否已经拥有滚动宿主；如果存在 `ScrollViewer`、`ModernScrollViewer`、WPF-UI `DynamicScrollViewer`、`ListBox`、`ListView`、`DataGrid`、`TreeView` 或显式开启垂直滚动的 `ItemsControl`，则使用直接 presenter。
 
 `Auto` 的目的不是替代子视图的滚动控件，而是避免嵌套滚动宿主导致内部 `ListView` / `ListBox` 得不到有限 viewport。子视图已经拥有列表或滚动区域时，应由子视图自己滚动；简单卡片页、`WrapPanel` 等没有内部滚动宿主的内容，仍可以继续使用 frame 级滚动。
+
+frame 级 `ModernScrollViewer` 只处理页面级滚轮。滚轮来源位于已打开的 `ComboBox` 下拉框、弹出层、内层 `ScrollViewer`、`ListBox`、`ListView` 等控件时，frame 不会接管该事件，也不会滚动背后的页面。LocalTabs 中的列表页应继续依赖自身滚动；没有内部滚动宿主的简单子页才使用 frame 级平滑滚动。

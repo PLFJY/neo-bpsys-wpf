@@ -135,7 +135,7 @@ public static class SmoothScrollBehavior
                 return;
             }
 
-            _scrollViewer.PreviewMouseWheel += OnPreviewMouseWheel;
+            _scrollViewer.MouseWheel += OnMouseWheel;
             _isWheelHandlerAttached = true;
         }
 
@@ -146,12 +146,22 @@ public static class SmoothScrollBehavior
                 return;
             }
 
-            _scrollViewer.PreviewMouseWheel -= OnPreviewMouseWheel;
+            _scrollViewer.MouseWheel -= OnMouseWheel;
             _isWheelHandlerAttached = false;
         }
 
-        private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        private void OnMouseWheel(object sender, MouseWheelEventArgs e)
         {
+            if (e.Handled)
+            {
+                return;
+            }
+
+            if (WheelScrollEventGuard.ShouldSuppressOwnerScroll(_scrollViewer, e))
+            {
+                return;
+            }
+
             ModernScrollViewer.TryHandleSmoothVerticalWheelScroll(
                 _scrollViewer,
                 e,

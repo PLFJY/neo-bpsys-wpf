@@ -371,7 +371,7 @@ public class ModernNavigationViewTest
                     .First(listBox => Equals(listBox.Name, "PART_TopItemsSelector"));
 
                 selector.SelectedIndex = 1;
-                window.Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+                FlushDispatcher(window.Dispatcher);
 
                 Assert.IsType<SecondTestUserControl>(navigationView.CurrentContent);
                 Assert.Same(navigationView.MenuEntries[1], navigationView.SelectedEntry);
@@ -583,7 +583,7 @@ public class ModernNavigationViewTest
             try
             {
                 window.Show();
-                window.Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+                FlushDispatcher(window.Dispatcher);
                 window.UpdateLayout();
 
                 var target = ((ScrollableTestPage)navigationView.CurrentContent!).Target;
@@ -962,7 +962,7 @@ public class ModernNavigationViewTest
             try
             {
                 window.Show();
-                window.Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+                FlushDispatcher(window.Dispatcher);
                 window.UpdateLayout();
 
                 var target = ((ScrollableTestPage)navigationView.CurrentContent!).Target;
@@ -1064,6 +1064,41 @@ public class ModernNavigationViewTest
         return false;
     }
 
+    private static void FlushDispatcher(Dispatcher dispatcher)
+    {
+        var frame = new DispatcherFrame();
+        var completed = false;
+        var timedOut = false;
+        var timer = new DispatcherTimer(DispatcherPriority.Send, dispatcher)
+        {
+            Interval = TimeSpan.FromSeconds(2)
+        };
+
+        EventHandler onTimeout = (_, _) =>
+        {
+            timedOut = true;
+            timer.Stop();
+            frame.Continue = false;
+        };
+
+        timer.Tick += onTimeout;
+        timer.Start();
+        dispatcher.BeginInvoke(() =>
+        {
+            completed = true;
+            frame.Continue = false;
+        }, DispatcherPriority.ApplicationIdle);
+
+        Dispatcher.PushFrame(frame);
+        timer.Tick -= onTimeout;
+        timer.Stop();
+
+        if (!completed || timedOut)
+        {
+            throw new TimeoutException("Dispatcher did not reach ApplicationIdle within 2 seconds.");
+        }
+    }
+
     private sealed class TestPageProvider : INavigationViewPageProvider
     {
         public object? GetPage(Type pageType)
@@ -1136,9 +1171,13 @@ public class ModernNavigationViewTest
             }
         });
 
+        thread.IsBackground = true;
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
-        thread.Join();
+        if (!thread.Join(TimeSpan.FromSeconds(10)))
+        {
+            throw new TimeoutException("STA test thread did not finish within 10 seconds.");
+        }
 
         exception?.Throw();
     }

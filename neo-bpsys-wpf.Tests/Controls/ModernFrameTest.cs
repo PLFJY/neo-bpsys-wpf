@@ -418,7 +418,7 @@ public class ModernFrameTest
             try
             {
                 window.Show();
-                window.Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+                FlushDispatcher(window.Dispatcher);
                 window.UpdateLayout();
 
                 var pageHost = FindVisualDescendants<System.Windows.Controls.Frame>(frame)
@@ -560,7 +560,7 @@ public class ModernFrameTest
                 window.UpdateLayout();
 
                 frame.Navigate(second, new EntranceNavigationTransitionInfo());
-                window.Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+                FlushDispatcher(window.Dispatcher);
 
                 var oldPresenter = FindVisualDescendants<ContentPresenter>(frame)
                     .FirstOrDefault(p => ReferenceEquals(p.Content, first));
@@ -609,7 +609,7 @@ public class ModernFrameTest
                 window.UpdateLayout();
 
                 frame.Navigate(second, new EntranceNavigationTransitionInfo());
-                window.Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+                FlushDispatcher(window.Dispatcher);
 
                 var directPresenter = FindDirectPresenter(frame, second);
 
@@ -802,6 +802,41 @@ public class ModernFrameTest
         Dispatcher.PushFrame(frame);
     }
 
+    private static void FlushDispatcher(Dispatcher dispatcher)
+    {
+        var frame = new DispatcherFrame();
+        var completed = false;
+        var timedOut = false;
+        var timer = new DispatcherTimer(DispatcherPriority.Send, dispatcher)
+        {
+            Interval = TimeSpan.FromSeconds(2)
+        };
+
+        EventHandler onTimeout = (_, _) =>
+        {
+            timedOut = true;
+            timer.Stop();
+            frame.Continue = false;
+        };
+
+        timer.Tick += onTimeout;
+        timer.Start();
+        dispatcher.BeginInvoke(() =>
+        {
+            completed = true;
+            frame.Continue = false;
+        }, DispatcherPriority.ApplicationIdle);
+
+        Dispatcher.PushFrame(frame);
+        timer.Tick -= onTimeout;
+        timer.Stop();
+
+        if (!completed || timedOut)
+        {
+            throw new TimeoutException("Dispatcher did not reach ApplicationIdle within 2 seconds.");
+        }
+    }
+
     private static void RunSta(Action action)
     {
         ExceptionDispatchInfo? exception = null;
@@ -817,9 +852,13 @@ public class ModernFrameTest
             }
         });
 
+        thread.IsBackground = true;
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
-        thread.Join();
+        if (!thread.Join(TimeSpan.FromSeconds(10)))
+        {
+            throw new TimeoutException("STA test thread did not finish within 10 seconds.");
+        }
 
         exception?.Throw();
     }

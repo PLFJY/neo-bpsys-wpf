@@ -61,14 +61,24 @@ public class ModernScrollViewer : ScrollViewer
         set => SetValue(ScrollEasingFunctionProperty, value);
     }
 
-    protected override void OnPreviewMouseWheel(MouseWheelEventArgs e)
+    protected override void OnMouseWheel(MouseWheelEventArgs e)
     {
+        if (e.Handled)
+        {
+            return;
+        }
+
+        if (WheelScrollEventGuard.ShouldSuppressOwnerScroll(this, e))
+        {
+            return;
+        }
+
         if (TryHandleSmoothVerticalWheelScroll(this, e, WheelScrollMultiplier, ScrollAnimationDuration, IsSmoothScrollingEnabled, ScrollEasingFunction))
         {
             return;
         }
 
-        base.OnPreviewMouseWheel(e);
+        base.OnMouseWheel(e);
     }
 
     internal static bool TryHandleSmoothVerticalWheelScroll(
@@ -79,11 +89,28 @@ public class ModernScrollViewer : ScrollViewer
         bool isSmoothScrollingEnabled,
         IEasingFunction? easingFunction)
     {
-        if (!isSmoothScrollingEnabled
-            || e.Handled
+        return TryHandleSmoothVerticalWheelScroll(
+            scrollViewer,
+            e,
+            wheelScrollMultiplier,
+            scrollAnimationDuration,
+            isSmoothScrollingEnabled,
+            easingFunction,
+            explicitSource: null);
+    }
+
+    internal static bool TryHandleSmoothVerticalWheelScroll(
+        ScrollViewer scrollViewer,
+        MouseWheelEventArgs e,
+        double wheelScrollMultiplier,
+        int scrollAnimationDuration,
+        bool isSmoothScrollingEnabled,
+        IEasingFunction? easingFunction,
+        DependencyObject? explicitSource)
+    {
+        if (WheelScrollEventGuard.ShouldSkipSmoothScroll(scrollViewer, e, explicitSource)
+            || !isSmoothScrollingEnabled
             || scrollViewer.ScrollableHeight <= 0
-            || Keyboard.Modifiers.HasFlag(ModifierKeys.Control)
-            || Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)
             || e.Delta % Mouse.MouseWheelDeltaForOneLine != 0)
         {
             return false;
