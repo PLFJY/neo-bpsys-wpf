@@ -235,24 +235,27 @@
                             <ColumnDefinition Width="1*" />
                             <ColumnDefinition Width="1*" />
                         </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <ui:HyperlinkButton Content=".Net Runtime" NavigateUri="https://github.com/dotnet/runtime/" />
-                            <ui:HyperlinkButton Content="hyjiacan.pinyin4net" NavigateUri="https://gitee.com/hyjiacan/Pinyin4Net/" />
-                            <ui:HyperlinkButton Content="PixiEditor.ColorPicker" NavigateUri="https://github.com/PixiEditor/ColorPicker/" />
-                            <ui:HyperlinkButton Content="Windows Presentation Foundation (WPF)" NavigateUri="https://github.com/dotnet/wpf/" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1">
-                            <ui:HyperlinkButton Content="CommunityToolkit.Mvvm" NavigateUri="https://github.com/CommunityToolkit/dotnet/" />
-                            <ui:HyperlinkButton Content="OpenCvSharp" NavigateUri="https://github.com/shimat/opencvsharp/" />
-                            <ui:HyperlinkButton Content="Sdcb.PaddleOCR" NavigateUri="https://github.com/sdcb/PaddleSharp/" />
-                            <ui:HyperlinkButton Content="WpfGorgeousThemeSwitch" NavigateUri="https://github.com/SunnyDesignor/WpfGorgeousThemeSwitch/" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="2">
-                            <ui:HyperlinkButton Content="Downloader" NavigateUri="https://github.com/bezzad/Downloader/" />
-                            <ui:HyperlinkButton Content="WPF UI" NavigateUri="https://github.com/lepoco/wpfui/" />
-                            <ui:HyperlinkButton Content="WPFLocalizeExtension" NavigateUri="https://github.com/XAMLMarkupExtensions/WPFLocalizeExtension" />
-                            <ui:HyperlinkButton Content="XamlBehaviors for WPF" NavigateUri="https://github.com/microsoft/XamlBehaviorsWpf/" />
-                        </StackPanel>
+                        <ItemsControl Grid.Column="0" ItemsSource="{Binding OpenSourceRepoColumn1}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ui:HyperlinkButton Content="{Binding Name}" NavigateUri="{Binding Url}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <ItemsControl Grid.Column="1" ItemsSource="{Binding OpenSourceRepoColumn2}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ui:HyperlinkButton Content="{Binding Name}" NavigateUri="{Binding Url}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <ItemsControl Grid.Column="2" ItemsSource="{Binding OpenSourceRepoColumn3}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ui:HyperlinkButton Content="{Binding Name}" NavigateUri="{Binding Url}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </Grid>
                 </StackPanel>
             </ui:CardExpander>

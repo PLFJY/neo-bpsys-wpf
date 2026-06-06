@@ -7,6 +7,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Helpers;
+using neo_bpsys_wpf.Models;
 using neo_bpsys_wpf.Services.Abstractions;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -29,6 +30,10 @@ public partial class SettingPageViewModel : ViewModelBase
     private readonly IPluginMarketService _pluginMarketService;
     public IUpdaterService UpdaterService { get; }
 
+    public List<OpenSourceRepo> OpenSourceRepoColumn1 { get; }
+    public List<OpenSourceRepo> OpenSourceRepoColumn2 { get; }
+    public List<OpenSourceRepo> OpenSourceRepoColumn3 { get; }
+
     public SettingPageViewModel(IUpdaterService updaterService, ISettingsHostService settingsHostService,
         IPluginMarketService pluginMarketService)
     {
@@ -46,6 +51,11 @@ public partial class SettingPageViewModel : ViewModelBase
         _isSyncingLogLevel = true;
         SelectedLogLevel = _settingsHostService.Settings.LogLevel;
         _isSyncingLogLevel = false;
+
+        var columns = SplitIntoColumns(CreateOpenSourceRepos(), 3);
+        OpenSourceRepoColumn1 = columns[0];
+        OpenSourceRepoColumn2 = columns[1];
+        OpenSourceRepoColumn3 = columns[2];
     }
 
     public bool IsClassicMode
@@ -179,4 +189,48 @@ public partial class SettingPageViewModel : ViewModelBase
     }
 
     #endregion
+
+    private static List<List<OpenSourceRepo>> SplitIntoColumns(IReadOnlyList<OpenSourceRepo> sorted, int columnCount)
+    {
+        var columns = new List<List<OpenSourceRepo>>(columnCount);
+        int totalItems = sorted.Count;
+        int rows = (int)Math.Ceiling((double)totalItems / columnCount);
+
+        for (int col = 0; col < columnCount; col++)
+        {
+            var columnItems = new List<OpenSourceRepo>(rows);
+            for (int row = 0; row < rows; row++)
+            {
+                int index = row * columnCount + col;
+                if (index < totalItems)
+                {
+                    columnItems.Add(sorted[index]);
+                }
+            }
+            columns.Add(columnItems);
+        }
+        return columns;
+    }
+
+    private static List<OpenSourceRepo> CreateOpenSourceRepos()
+    {
+        var repos = new List<OpenSourceRepo>
+        {
+            new() { Name = ".Net Runtime", Url = "https://github.com/dotnet/runtime/" },
+            new() { Name = "CommunityToolkit.Mvvm", Url = "https://github.com/CommunityToolkit/dotnet/" },
+            new() { Name = "Downloader", Url = "https://github.com/bezzad/Downloader/" },
+            new() { Name = "hyjiacan.pinyin4net", Url = "https://gitee.com/hyjiacan/Pinyin4Net/" },
+            new() { Name = "OpenCvSharp", Url = "https://github.com/shimat/opencvsharp/" },
+            new() { Name = "PixiEditor.ColorPicker", Url = "https://github.com/PixiEditor/ColorPicker/" },
+            new() { Name = "Sdcb.PaddleOCR", Url = "https://github.com/sdcb/PaddleSharp/" },
+            new() { Name = "UI.WPF.Modern", Url = "https://github.com/iNKORE-NET/UI.WPF.Modern" },
+            new() { Name = "Windows Presentation Foundation (WPF)", Url = "https://github.com/dotnet/wpf/" },
+            new() { Name = "WPF UI", Url = "https://github.com/lepoco/wpfui/" },
+            new() { Name = "WpfGorgeousThemeSwitch", Url = "https://github.com/SunnyDesignor/WpfGorgeousThemeSwitch/" },
+            new() { Name = "WPFLocalizeExtension", Url = "https://github.com/XAMLMarkupExtensions/WPFLocalizeExtension" },
+            new() { Name = "XamlBehaviors for WPF", Url = "https://github.com/microsoft/XamlBehaviorsWpf/" },
+        };
+        repos.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
+        return repos;
+    }
 }
