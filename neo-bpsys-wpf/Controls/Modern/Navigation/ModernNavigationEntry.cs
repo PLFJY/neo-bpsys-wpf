@@ -88,7 +88,8 @@ public sealed class ModernNavigationEntry : INotifyPropertyChanged
         if (Content is string key)
         {
             LocalizationKey = key;
-            DisplayText = I18nHelper.GetLocalizedString(key);
+            var localized = I18nHelper.GetLocalizedString(key);
+            DisplayText = string.IsNullOrWhiteSpace(localized) ? key : localized;
             return;
         }
 

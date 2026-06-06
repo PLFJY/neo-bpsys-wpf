@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -12,11 +13,15 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using neo_bpsys_wpf.Controls.Modern.Frame;
 using neo_bpsys_wpf.Controls.Modern.Navigation;
 using neo_bpsys_wpf.Controls.Modern.Scrolling;
+using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Services;
+using neo_bpsys_wpf.Views.Pages;
+using neo_bpsys_wpf.Views.Pages.Plugin;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Controls;
 using Xunit;
@@ -256,6 +261,211 @@ public class ModernNavigationViewTest
     }
 
     [Fact]
+    public void TopModeUsesSingleInternalFrameAndNoTopFrame()
+    {
+        RunSta(() =>
+        {
+            var navigationView = new ModernNavigationView
+            {
+                PaneDisplayMode = NavigationViewPaneDisplayMode.Top,
+                NavigationBehavior = ModernNavigationBehavior.LocalTabs,
+                TransitionDuration = 0
+            };
+
+            Assert.NotNull(navigationView.FindName("PART_Frame"));
+            Assert.Null(navigationView.FindName("PART_TopFrame"));
+        });
+    }
+
+    [Fact]
+    public void TopModeUsesListBoxSelectorNotButtonCommandTabs()
+    {
+        RunSta(() =>
+        {
+            var navigationView = new ModernNavigationView
+            {
+                PaneDisplayMode = NavigationViewPaneDisplayMode.Top,
+                NavigationBehavior = ModernNavigationBehavior.LocalTabs,
+                MenuItemsSource = new[]
+                {
+                    new NavigationViewItem("Installed", SymbolRegular.AppsList24, typeof(TestUserControl)),
+                    new NavigationViewItem("PluginMarket", SymbolRegular.AppsAddIn24, typeof(SecondTestUserControl))
+                }
+            };
+
+            var window = CreateHiddenWindow(navigationView);
+            try
+            {
+                window.Show();
+                window.UpdateLayout();
+
+                var selector = FindVisualDescendants<ListBox>(navigationView)
+                    .FirstOrDefault(listBox => Equals(listBox.Name, "PART_TopItemsSelector"));
+                Assert.NotNull(selector);
+
+                var topButtons = FindVisualDescendants<System.Windows.Controls.Button>(selector)
+                    .Where(button => ReferenceEquals(button.Command, navigationView.NavigateEntryCommand))
+                    .ToArray();
+                Assert.Empty(topButtons);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void TopModeSelectingSecondEntryNavigatesSharedFrame()
+    {
+        RunSta(() =>
+        {
+            var navigationView = new ModernNavigationView
+            {
+                PaneDisplayMode = NavigationViewPaneDisplayMode.Top,
+                NavigationBehavior = ModernNavigationBehavior.LocalTabs,
+                TransitionDuration = 0,
+                MenuItemsSource = new[]
+                {
+                    new NavigationViewItem("Installed", SymbolRegular.AppsList24, typeof(TestUserControl)),
+                    new NavigationViewItem("PluginMarket", SymbolRegular.AppsAddIn24, typeof(SecondTestUserControl))
+                }
+            };
+
+            var window = CreateHiddenWindow(navigationView);
+            try
+            {
+                window.Show();
+                window.UpdateLayout();
+
+                var selector = FindVisualDescendants<ListBox>(navigationView)
+                    .First(listBox => Equals(listBox.Name, "PART_TopItemsSelector"));
+
+                selector.SelectedIndex = 1;
+                window.Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+
+                Assert.IsType<SecondTestUserControl>(navigationView.CurrentContent);
+                Assert.Same(navigationView.MenuEntries[1], navigationView.SelectedEntry);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void TopModeSelectingCurrentEntryNoOps()
+    {
+        RunSta(() =>
+        {
+            var navigationView = new ModernNavigationView
+            {
+                PaneDisplayMode = NavigationViewPaneDisplayMode.Top,
+                NavigationBehavior = ModernNavigationBehavior.LocalTabs,
+                TransitionDuration = 0,
+                MenuItemsSource = new[]
+                {
+                    new NavigationViewItem("Installed", SymbolRegular.AppsList24, typeof(TestUserControl))
+                }
+            };
+            var navigatedCount = 0;
+            navigationView.Navigated += (_, _) => navigatedCount++;
+
+            Assert.True(navigationView.SelectFirstItemIfNoneSelected());
+            Assert.False(navigationView.SelectFirstItemIfNoneSelected());
+            navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[0]);
+
+            Assert.Equal(1, navigatedCount);
+            Assert.IsType<TestUserControl>(navigationView.CurrentContent);
+        });
+    }
+
+    [Fact]
+    public void LocalTabsClearsJournalAfterNavigation()
+    {
+        RunSta(() =>
+        {
+            var navigationView = new ModernNavigationView
+            {
+                PaneDisplayMode = NavigationViewPaneDisplayMode.Top,
+                NavigationBehavior = ModernNavigationBehavior.LocalTabs,
+                TransitionDuration = 0,
+                MenuItemsSource = new[]
+                {
+                    new NavigationViewItem("Installed", SymbolRegular.AppsList24, typeof(TestUserControl)),
+                    new NavigationViewItem("PluginMarket", SymbolRegular.AppsAddIn24, typeof(SecondTestUserControl))
+                }
+            };
+
+            navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[0]);
+            navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[1]);
+
+            Assert.False(navigationView.CanGoBack);
+            Assert.IsType<SecondTestUserControl>(navigationView.CurrentContent);
+        });
+    }
+
+    [Fact]
+    public void LocalTabsChildViewInheritsNavigationViewDataContext()
+    {
+        RunSta(() =>
+        {
+            var dataContext = new object();
+            var navigationView = new ModernNavigationView
+            {
+                PaneDisplayMode = NavigationViewPaneDisplayMode.Top,
+                NavigationBehavior = ModernNavigationBehavior.LocalTabs,
+                TransitionDuration = 0,
+                DataContext = dataContext,
+                MenuItemsSource = new[]
+                {
+                    new NavigationViewItem("Installed", SymbolRegular.AppsList24, typeof(TestUserControl))
+                }
+            };
+
+            Assert.True(navigationView.SelectFirstItemIfNoneSelected());
+
+            Assert.Same(dataContext, navigationView.CurrentContent?.DataContext);
+        });
+    }
+
+    [Fact]
+    public void PluginMarketDisplayTextIsNonEmptyAndIconIsPreserved()
+    {
+        RunSta(() =>
+        {
+            var item = new NavigationViewItem("PluginMarket", SymbolRegular.AppsAddIn24, typeof(SecondTestUserControl));
+            var navigationView = new ModernNavigationView
+            {
+                MenuItemsSource = new[] { item }
+            };
+
+            var entry = Assert.Single(navigationView.MenuEntries);
+            Assert.False(string.IsNullOrWhiteSpace(entry.DisplayText));
+            var icon = Assert.IsType<SymbolIcon>(ModernNavigationIconConverter.CreateIcon(entry.Icon));
+            Assert.Equal(SymbolRegular.AppsAddIn24, icon.Symbol);
+            Assert.NotEqual(SymbolRegular.Document24, icon.Symbol);
+        });
+    }
+
+    [Fact]
+    public void MenuItemsCollectionStillCreatesEntries()
+    {
+        RunSta(() =>
+        {
+            var navigationView = new ModernNavigationView();
+            var item = new NavigationViewItem("Installed", SymbolRegular.AppsList24, typeof(TestUserControl));
+
+            navigationView.MenuItems.Add(item);
+
+            var entry = Assert.Single(navigationView.MenuEntries);
+            Assert.Same(item, entry.SourceItem);
+            Assert.Equal(typeof(TestUserControl), entry.TargetPageType);
+        });
+    }
+
+    [Fact]
     public void ClickingCurrentSelectedEntryDoesNotNavigateOrRaiseEvents()
     {
         RunSta(() =>
@@ -423,6 +633,121 @@ public class ModernNavigationViewTest
     }
 
     [Fact]
+    public void PluginPageUsesTopLocalTabsAndCreatesTwoMenuItems()
+    {
+        RunSta(() =>
+        {
+            var page = new PluginPage();
+            var navigationView = Assert.IsType<ModernNavigationView>(page.FindName("PluginTabs"));
+
+            Assert.Equal(NavigationViewPaneDisplayMode.Top, navigationView.PaneDisplayMode);
+            Assert.Equal(ModernNavigationBehavior.LocalTabs, navigationView.NavigationBehavior);
+            Assert.Equal(2, navigationView.MenuItems.Count);
+            Assert.Equal(typeof(PluginInstalledView), navigationView.MenuEntries[0].TargetPageType);
+            Assert.Equal(typeof(PluginMarketView), navigationView.MenuEntries[1].TargetPageType);
+            Assert.False(string.IsNullOrWhiteSpace(navigationView.MenuEntries[0].DisplayText));
+            Assert.False(string.IsNullOrWhiteSpace(navigationView.MenuEntries[1].DisplayText));
+        });
+    }
+
+    [Fact]
+    public void PluginPageLoadedInitializesInstalledView()
+    {
+        RunSta(() =>
+        {
+            var dataContext = new object();
+            var page = new PluginPage
+            {
+                DataContext = dataContext
+            };
+            var navigationView = Assert.IsType<ModernNavigationView>(page.FindName("PluginTabs"));
+
+            page.RaiseEvent(new RoutedEventArgs(FrameworkElement.LoadedEvent));
+
+            Assert.IsType<PluginInstalledView>(navigationView.CurrentContent);
+            Assert.Same(dataContext, navigationView.CurrentContent?.DataContext);
+        });
+    }
+
+    [Fact]
+    public void PluginPageCanSwitchLocalTabsWithoutSeparateFrame()
+    {
+        RunSta(() =>
+        {
+            var dataContext = new object();
+            var page = new PluginPage
+            {
+                DataContext = dataContext
+            };
+            var navigationView = Assert.IsType<ModernNavigationView>(page.FindName("PluginTabs"));
+
+            Assert.True(navigationView.SelectFirstItemIfNoneSelected());
+            Assert.IsType<PluginInstalledView>(navigationView.CurrentContent);
+            Assert.Same(dataContext, navigationView.CurrentContent?.DataContext);
+
+            navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[1]);
+            Assert.IsType<PluginMarketView>(navigationView.CurrentContent);
+            Assert.Same(dataContext, navigationView.CurrentContent?.DataContext);
+
+            navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[0]);
+            Assert.IsType<PluginInstalledView>(navigationView.CurrentContent);
+            Assert.DoesNotContain(
+                FindVisualDescendants<ModernFrame>(navigationView),
+                frame => frame.Name == "PART_TopFrame");
+        });
+    }
+
+    [Fact]
+    public void PluginChildViewsAreUserControlsWithoutBackendPageInfo()
+    {
+        Assert.True(typeof(UserControl).IsAssignableFrom(typeof(PluginInstalledView)));
+        Assert.True(typeof(UserControl).IsAssignableFrom(typeof(PluginMarketView)));
+        Assert.False(typeof(Page).IsAssignableFrom(typeof(PluginInstalledView)));
+        Assert.False(typeof(Page).IsAssignableFrom(typeof(PluginMarketView)));
+        Assert.Empty(typeof(PluginInstalledView).GetCustomAttributes(typeof(BackendPageInfo), inherit: false));
+        Assert.Empty(typeof(PluginMarketView).GetCustomAttributes(typeof(BackendPageInfo), inherit: false));
+    }
+
+    [Fact]
+    public void PluginMarketViewContainsOverlayPanelsAndMarkdownViewer()
+    {
+        RunSta(() =>
+        {
+            var view = new PluginMarketView();
+
+            Assert.NotNull(view.FindName("DownloadQueuePanel"));
+            Assert.NotNull(view.FindName("PluginDetailsPanel"));
+            Assert.NotNull(view.FindName("PluginMarketSettingsPanel"));
+            Assert.NotNull(view.FindName("PluginReadmeMarkdownViewer"));
+        });
+    }
+
+    [Fact]
+    public void PluginMarketViewLocalWpfUiStylesKeepBasedOnDefaultStyles()
+    {
+        var xaml = File.ReadAllText(Path.Combine(
+            AppContext.BaseDirectory,
+            "..",
+            "..",
+            "..",
+            "..",
+            "neo-bpsys-wpf",
+            "Views",
+            "Pages",
+            "Plugin",
+            "PluginMarketView.xaml"));
+
+        Assert.Contains(
+            "BasedOn=\"{StaticResource {x:Type ui:HyperlinkButton}}\" TargetType=\"ui:HyperlinkButton\"",
+            xaml,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "BasedOn=\"{StaticResource {x:Type ui:Button}}\" TargetType=\"ui:Button\"",
+            xaml,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void GameGuidanceStyleNavigateTypeWorksThroughNavigationService()
     {
         RunSta(() =>
@@ -564,6 +889,14 @@ public class ModernNavigationViewTest
         }
 
         public System.Windows.Controls.Button Target { get; }
+    }
+
+    public sealed class TestUserControl : UserControl
+    {
+    }
+
+    public sealed class SecondTestUserControl : UserControl
+    {
     }
 
     private static void RunSta(Action action)

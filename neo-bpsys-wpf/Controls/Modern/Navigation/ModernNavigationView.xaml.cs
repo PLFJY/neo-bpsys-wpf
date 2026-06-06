@@ -8,6 +8,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
+using System.Windows.Threading;
+using neo_bpsys_wpf.Controls.Modern.Frame;
 using WPFLocalizeExtension.Engine;
 using Wpf.Ui.Abstractions;
 using Wpf.Ui.Animations;
@@ -79,6 +81,12 @@ public partial class ModernNavigationView : UserControl, INavigationView
     public static readonly DependencyProperty PaneDisplayModeProperty =
         DependencyProperty.Register(nameof(PaneDisplayMode), typeof(NavigationViewPaneDisplayMode), typeof(ModernNavigationView), new PropertyMetadata(NavigationViewPaneDisplayMode.Left));
 
+    public static readonly DependencyProperty NavigationBehaviorProperty =
+        DependencyProperty.Register(nameof(NavigationBehavior), typeof(ModernNavigationBehavior), typeof(ModernNavigationView), new PropertyMetadata(ModernNavigationBehavior.PageNavigation));
+
+    public static readonly DependencyProperty SelectedEntryProperty =
+        DependencyProperty.Register(nameof(SelectedEntry), typeof(ModernNavigationEntry), typeof(ModernNavigationView), new PropertyMetadata(null, OnSelectedEntryChanged));
+
     public static readonly DependencyProperty TitleBarProperty =
         DependencyProperty.Register(nameof(TitleBar), typeof(TitleBar), typeof(ModernNavigationView), new PropertyMetadata(null));
 
@@ -108,6 +116,7 @@ public partial class ModernNavigationView : UserControl, INavigationView
     private INotifyCollectionChanged? _menuItemsSourceCollection;
     private INotifyCollectionChanged? _footerMenuItemsSourceCollection;
     private ModernNavigationEntry? _selectedEntry;
+    private bool _isUpdatingSelectedEntryProperty;
     private bool _isGoingBack;
 
     public ModernNavigationView()
@@ -266,6 +275,18 @@ public partial class ModernNavigationView : UserControl, INavigationView
     {
         get => (NavigationViewPaneDisplayMode)GetValue(PaneDisplayModeProperty);
         set => SetValue(PaneDisplayModeProperty, value);
+    }
+
+    public ModernNavigationBehavior NavigationBehavior
+    {
+        get => (ModernNavigationBehavior)GetValue(NavigationBehaviorProperty);
+        set => SetValue(NavigationBehaviorProperty, value);
+    }
+
+    public ModernNavigationEntry? SelectedEntry
+    {
+        get => (ModernNavigationEntry?)GetValue(SelectedEntryProperty);
+        set => SetValue(SelectedEntryProperty, value);
     }
 
     public TitleBar? TitleBar
@@ -430,6 +451,17 @@ public partial class ModernNavigationView : UserControl, INavigationView
         }
     }
 
+    public bool SelectFirstItemIfNoneSelected()
+    {
+        if (_selectedEntry is not null || CurrentContent is not null)
+        {
+            return false;
+        }
+
+        var entry = MenuEntries.FirstOrDefault(x => x is { IsEnabled: true, TargetPageType: not null });
+        return entry is not null && NavigateEntry(entry, null, suppressIfCurrent: true);
+    }
+
     private static void OnMenuItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         ((ModernNavigationView)d).SetItemsSource(e.OldValue, e.NewValue, isFooter: false);
@@ -470,10 +502,37 @@ public partial class ModernNavigationView : UserControl, INavigationView
         }
     }
 
+    private static void OnSelectedEntryChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var navigationView = (ModernNavigationView)d;
+        if (navigationView._isUpdatingSelectedEntryProperty)
+        {
+            return;
+        }
+
+        var selectedEntry = (ModernNavigationEntry?)e.NewValue;
+        if (selectedEntry is null)
+        {
+            navigationView.SetSelectedEntry(null, raiseSelectionChanged: true, addCurrentToBackStack: false);
+            return;
+        }
+
+        if (!navigationView.NavigateEntry(selectedEntry, null, suppressIfCurrent: true))
+        {
+            navigationView.SyncSelectedEntryProperty(navigationView._selectedEntry);
+        }
+    }
+
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         LocalizeDictionary.Instance.PropertyChanged += OnLocalizeDictionaryPropertyChanged;
         RefreshLocalizedMenuText();
+
+        if (PaneDisplayMode == NavigationViewPaneDisplayMode.Top
+            && NavigationBehavior == ModernNavigationBehavior.LocalTabs)
+        {
+            Dispatcher.BeginInvoke(SelectFirstItemIfNoneSelected, DispatcherPriority.Loaded);
+        }
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -619,7 +678,7 @@ public partial class ModernNavigationView : UserControl, INavigationView
 
     private bool NavigatePageType(Type pageType, object? dataContext, ModernNavigationEntry? entry)
     {
-        var page = CreatePageElement(pageType, dataContext);
+        var page = CreateNavigationElement(pageType, dataContext);
         var navigatingArgs = new NavigatingCancelEventArgs(System.Windows.Controls.Button.ClickEvent, this)
         {
             Page = page
@@ -631,15 +690,28 @@ public partial class ModernNavigationView : UserControl, INavigationView
             return false;
         }
 
-        if (!PART_Frame.Navigate(page))
+        var transitionInfo = GetNavigationTransitionInfo(entry);
+        if (!PART_Frame.Navigate(page, transitionInfo))
         {
             return false;
         }
 
         SetSelectedEntry(entry, raiseSelectionChanged: true, addCurrentToBackStack: !_isGoingBack);
+        if (NavigationBehavior == ModernNavigationBehavior.LocalTabs)
+        {
+            ClearJournal();
+        }
+
         SetValue(IsBackEnabledPropertyKey, PART_Frame.CanGoBack);
         Navigated?.Invoke(null!, new NavigatedEventArgs(System.Windows.Controls.Button.ClickEvent, this) { Page = page });
         return true;
+    }
+
+    private FrameworkElement CreateNavigationElement(Type pageType, object? dataContext)
+    {
+        return NavigationBehavior == ModernNavigationBehavior.LocalTabs
+            ? CreateLocalTabElement(pageType)
+            : CreatePageElement(pageType, dataContext);
     }
 
     private FrameworkElement CreatePageElement(Type pageType, object? dataContext)
@@ -667,6 +739,46 @@ public partial class ModernNavigationView : UserControl, INavigationView
         return frameworkElement;
     }
 
+    private FrameworkElement CreateLocalTabElement(Type pageType)
+    {
+        var view = Activator.CreateInstance(pageType) as FrameworkElement
+            ?? throw new InvalidOperationException($"Local tab target type '{pageType.FullName}' must create a FrameworkElement.");
+
+        if (view.DataContext is null)
+        {
+            view.DataContext = DataContext;
+        }
+
+        return view;
+    }
+
+    private ModernNavigationTransitionInfo? GetNavigationTransitionInfo(ModernNavigationEntry? entry)
+    {
+        if (NavigationBehavior != ModernNavigationBehavior.LocalTabs || PaneDisplayMode != NavigationViewPaneDisplayMode.Top)
+        {
+            return null;
+        }
+
+        if (_selectedEntry is null || entry is null)
+        {
+            return new SuppressNavigationTransitionInfo();
+        }
+
+        var oldIndex = MenuEntries.IndexOf(_selectedEntry);
+        var newIndex = MenuEntries.IndexOf(entry);
+        if (oldIndex < 0 || newIndex < 0 || oldIndex == newIndex)
+        {
+            return new SuppressNavigationTransitionInfo();
+        }
+
+        return new SlideNavigationTransitionInfo
+        {
+            Effect = newIndex > oldIndex
+                ? SlideNavigationTransitionEffect.FromRight
+                : SlideNavigationTransitionEffect.FromLeft
+        };
+    }
+
     private void SetSelectedEntry(ModernNavigationEntry? entry, bool raiseSelectionChanged, bool addCurrentToBackStack)
     {
         if (ReferenceEquals(_selectedEntry, entry))
@@ -686,6 +798,7 @@ public partial class ModernNavigationView : UserControl, INavigationView
         }
 
         _selectedEntry = entry;
+        SyncSelectedEntryProperty(_selectedEntry);
 
         if (_selectedEntry is not null)
         {
@@ -696,6 +809,43 @@ public partial class ModernNavigationView : UserControl, INavigationView
         if (raiseSelectionChanged)
         {
             SelectionChanged?.Invoke(null!, new RoutedEventArgs());
+        }
+    }
+
+    private void SyncSelectedEntryProperty(ModernNavigationEntry? entry)
+    {
+        if (ReferenceEquals(SelectedEntry, entry))
+        {
+            return;
+        }
+
+        _isUpdatingSelectedEntryProperty = true;
+        try
+        {
+            SetCurrentValue(SelectedEntryProperty, entry);
+        }
+        finally
+        {
+            _isUpdatingSelectedEntryProperty = false;
+        }
+    }
+
+    private void TopItemsSelector_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (PaneDisplayMode != NavigationViewPaneDisplayMode.Top)
+        {
+            return;
+        }
+
+        if (PART_TopItemsSelector.SelectedItem is not ModernNavigationEntry entry
+            || ReferenceEquals(entry, _selectedEntry))
+        {
+            return;
+        }
+
+        if (!NavigateEntry(entry, null, suppressIfCurrent: true))
+        {
+            PART_TopItemsSelector.SetCurrentValue(System.Windows.Controls.Primitives.Selector.SelectedItemProperty, _selectedEntry);
         }
     }
 

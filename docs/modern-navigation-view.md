@@ -64,15 +64,30 @@ WPF-UI 包不会被移除，其他 WPF-UI 控件仍继续使用。
 
 ## 视觉与布局
 
-当前只实现 Left 模式：
+`ModernNavigationView` 始终只拥有一个内部内容宿主：
+
+```text
+ModernNavigationView
+└── PART_Frame: ModernFrame
+```
+
+Left 模式和 Top 模式共享这个 `PART_Frame`。不要为 Top 模式添加 `PART_TopFrame`，也不要在业务页面外置 `PluginTabsFrame` 或其他独立 Frame。
+
+Left 模式用于 `MainWindow.RootNavigation`：
 
 - 左侧 pane
 - pane toggle button
 - 主菜单列表
 - footer 菜单列表
-- 右侧内容区
+- 右侧共享 `PART_Frame` 内容区
 
-内容区使用 `ModernFrame`，并通过 `ModernFrame` 的默认 `ModernScrollViewer` 提供外层滚动宿主和页面转场。pane 展开时使用 `OpenPaneLength`，折叠时使用 `CompactPaneLength`，内容列占用剩余宽度。
+Top 模式用于局部标签导航：
+
+- 顶部水平 `ListBox` selector
+- 只显示 `MenuEntries`，不显示 footer items
+- 下方共享 `PART_Frame` 内容区
+
+内容区通过 `ModernFrame` 的默认 `ModernScrollViewer` 提供外层滚动宿主和页面转场。pane 展开时使用 `OpenPaneLength`，折叠时使用 `CompactPaneLength`，内容列占用剩余宽度；Top 模式隐藏左侧 pane，并让共享内容区跨完整宽度。
 
 菜单项前景色跟随 WPF-UI 动态主题资源。按钮默认、悬停、按下和选中状态使用 NavigationView item 前景色资源；禁用状态使用 WPF-UI 文本禁用色资源。文本和图标都从按钮 `Foreground` 继承，不硬编码黑白颜色，因此主题切换时可以随资源更新。
 
@@ -80,15 +95,16 @@ pane toggle 使用项目本地 `ModernPaneToggleButtonStyle`，参考 iNKORE/Win
 
 主菜单滚动宿主在 pane 折叠时仍使用 `Auto` 垂直滚动条，但会在该 ScrollViewer 作用域内切换为 4px 的本地窄滚动条模板，避免普通 WPF 滚动条挤压或覆盖 compact 图标，同时保留可见滚动指示和鼠标滚轮滚动。pane 展开时恢复默认滚动条样式。后续如需要更接近 iNKORE `ScrollViewerEx`，可以再做 opt-in 的自动隐藏滚动条行为。
 
+当前 Top 模式只实现本项目需要的本地标签形态，参考 iNKORE `nvSample7` 的选择和推荐转场模型，但适配到本项目已有的内部 frame 导航模型。未复制 iNKORE 完整 `NavigationView` 的 overflow、层级、测量和 flyout 实现。
+
 本阶段不实现：
 
-- Top 模式
-- overflow
+- Top overflow
 - 层级 flyout
 - settings item
 - autosuggest
 - breadcrumb
-- `PluginPage` / `FrontManagePage` 标签页迁移
+- `FrontManagePage` 标签页迁移，留到后续 Phase 6
 - `MessageBox` / `ContentDialog` 迁移
 
 ## 导航行为
@@ -98,3 +114,37 @@ pane toggle 使用项目本地 `ModernPaneToggleButtonStyle`，参考 iNKORE/Win
 用户点击当前已选中的 entry 会被视为无操作，不会重复触发 `ItemInvoked` / `Navigating` / `Navigated`，也不会重复启动 `ModernFrame` 转场或压入返回栈。外部 `INavigationService.Navigate(...)` 调用仍保持原兼容行为。
 
 `GoBack()` 和 `ClearJournal()` 委托给内部 `ModernFrame`。`NavigateWithHierarchy(...)` 当前按普通 `Navigate(...)` 处理，保留兼容入口，后续如确实引入层级菜单再扩展。
+
+## 导航行为模式
+
+控件通过 `NavigationBehavior` 区分全局页面导航和局部标签导航：
+
+```csharp
+public enum ModernNavigationBehavior
+{
+    PageNavigation,
+    LocalTabs
+}
+```
+
+`PageNavigation` 是默认值，用于 `MainWindow.RootNavigation`。它保持 Phase 4 行为：通过 `INavigationViewPageProvider`、`IServiceProvider` 或 `Activator` 创建后台 Page，保留 `ModernFrame` journal/back 行为，并继续兼容 `NavigationService` 和 `GameGuidanceService`。
+
+`LocalTabs` 用于局部标签页。它直接创建本地 `FrameworkElement`，当前约定子视图使用 `UserControl`；如果子视图没有自己的 `DataContext`，会继承 `ModernNavigationView.DataContext`。每次本地标签切换成功后都会清空 `PART_Frame` journal，避免标签切换进入全局返回栈。切换方向根据旧/新 tab 在 `MenuEntries` 中的索引选择横向 slide 转场。
+
+## PluginPage 迁移
+
+`PluginPage` 是首个迁移到 Top LocalTabs 的后台页。它仍然是唯一带 `BackendPageInfo` 的全局插件管理页面，子视图不注册为后台页面：
+
+- `PluginInstalledView`：已安装插件列表，类型为 `UserControl`。
+- `PluginMarketView`：插件市场、下载队列、详情面板、设置面板，类型为 `UserControl`。
+
+`PluginPage.xaml.cs` 使用和 `MainWindowViewModel` 相同的 WPF-UI `NavigationViewItem` 构造路径创建 tab：
+
+```csharp
+new NavigationViewItem("Installed", SymbolRegular.AppsList24, typeof(PluginInstalledView));
+new NavigationViewItem("PluginMarket", SymbolRegular.AppsAddIn24, typeof(PluginMarketView));
+```
+
+这样可以继续复用 `ModernNavigationEntry` 对 WPF-UI item 的适配逻辑，包括 `Content` 本地化、`SymbolIcon`/`SymbolRegular` 图标转换、`TargetPageType` 和 `TargetPageTag` 支持。插件市场浮层外部点击、ComboBox popup 例外和 Markdown hyperlink 拦截逻辑随 `PluginMarketView` 一起迁移，避免 `PluginPage` 访问子视图内部命名元素。
+
+子视图迁移时如果需要覆写 WPF-UI 控件的局部 `Style`，必须使用 `BasedOn="{StaticResource {x:Type ...}}"` 继承默认样式，例如 `ui:Button`、`ui:HyperlinkButton`、`ui:TextBox` 等。不要为了单元测试宿主缺少资源而写没有 `BasedOn` 的裸 `Style`；测试应补齐资源初始化或调整断言方式，运行时 XAML 必须保留默认控件模板、状态和主题资源链。
