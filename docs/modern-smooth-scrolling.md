@@ -48,4 +48,6 @@ GameGuidance 自动滚动是纯 View 层能力，不改变 `GameGuidanceService`
 
 收到 `HighlightMessage` 后，Scope 在当前页面内查找匹配目标，并从目标向上寻找最近的既有可滚动 `ScrollViewer`。如果该 `ScrollViewer` 开启了 `SmoothScrollBehavior.IsProgrammaticAnimationEnabled`，会复用 `ScrollAnimationHelper.SmoothScrollToVerticalOffset(...)` 执行程序化平滑滚动；否则使用普通 `ScrollToVerticalOffset`。找不到 `ScrollViewer` 时仅回退到 `BringIntoView()`。
 
+`ModernFrame` 新导航会先同步把 frame 级 `PART_ContentScrollHost` 置顶，并取消该宿主上的旧纵向动画；它不会延迟到 dispatcher 空闲、timer 或转场完成后执行。这样 GameGuidance 导航完成后再广播 `HighlightMessage` 时，`GuidanceAutoScrollScope` 的后续目标滚动不会被 frame 置顶覆盖。直接 presenter 和显式 self-scroll 子区域不参与 frame 级置顶。
+
 该机制不添加页面级 `ScrollViewer` 包裹，不依赖 WPF-UI `NavigationView`、未来 `ModernFrame`、iNKORE 或固定模板部件名。当前 WPF-UI 页面宿主和未来 `ModernFrame` 只要在目标祖先链上提供可滚动容器，都可以被同一套查找逻辑使用；页面内已有手动 `ScrollViewer` 时会优先使用最近的那个。

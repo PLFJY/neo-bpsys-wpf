@@ -60,6 +60,13 @@ public class ModernFrame : Control
             typeof(ModernFrame),
             new PropertyMetadata(ModernFrameContentScrollHostMode.Enabled, OnContentScrollHostModeChanged));
 
+    public static readonly DependencyProperty ResetScrollOnNavigationProperty =
+        DependencyProperty.Register(
+            nameof(ResetScrollOnNavigation),
+            typeof(bool),
+            typeof(ModernFrame),
+            new PropertyMetadata(true));
+
     public static readonly DependencyProperty CurrentContentProperty =
         DependencyProperty.Register(
             nameof(CurrentContent),
@@ -124,6 +131,12 @@ public class ModernFrame : Control
     {
         get => (ModernFrameContentScrollHostMode)GetValue(ContentScrollHostModeProperty);
         set => SetValue(ContentScrollHostModeProperty, value);
+    }
+
+    public bool ResetScrollOnNavigation
+    {
+        get => (bool)GetValue(ResetScrollOnNavigationProperty);
+        set => SetValue(ResetScrollOnNavigationProperty, value);
     }
 
     public FrameworkElement? CurrentContent
@@ -318,7 +331,13 @@ public class ModernFrame : Control
         _activeContent = newContent;
         CurrentContent = newContent;
 
-        BeginContentSwap(oldContent, oldHostedContent, newContent, effectiveTransitionInfo, navigationMode == ModernFrameNavigationMode.Back);
+        BeginContentSwap(
+            oldContent,
+            oldHostedContent,
+            newContent,
+            effectiveTransitionInfo,
+            navigationMode == ModernFrameNavigationMode.Back,
+            ResetScrollOnNavigation && navigationMode == ModernFrameNavigationMode.New);
         Navigated?.Invoke(this, new ModernFrameNavigationEventArgs(newContent, parameter, navigationMode, effectiveTransitionInfo));
         return true;
     }
@@ -368,7 +387,8 @@ public class ModernFrame : Control
         FrameworkElement? oldHostedContent,
         FrameworkElement newContent,
         ModernNavigationTransitionInfo? transitionInfo,
-        bool movingBackwards)
+        bool movingBackwards,
+        bool resetScroll)
     {
         DetachFromActiveHost();
 
@@ -379,7 +399,7 @@ public class ModernFrame : Control
             _oldContentPresenter.Visibility = Visibility.Collapsed;
             _oldContentPresenter.IsHitTestVisible = false;
 
-            AttachToActiveHost(newContent);
+            AttachToActiveHost(newContent, resetScroll);
             ClearAnimatedState(newContent);
             RestoreActiveHostState();
             return;
@@ -390,7 +410,7 @@ public class ModernFrame : Control
         _oldContentPresenter.Opacity = 1;
         _oldContentPresenter.IsHitTestVisible = false;
 
-        AttachToActiveHost(newContent);
+        AttachToActiveHost(newContent, resetScroll);
         _contentScrollHost.Opacity = 0;
         _contentScrollHost.IsHitTestVisible = false;
         _directContentPresenter.Opacity = 0;
@@ -578,7 +598,7 @@ public class ModernFrame : Control
         AttachToActiveHost(_activeContent);
     }
 
-    private void AttachToActiveHost(FrameworkElement content)
+    private void AttachToActiveHost(FrameworkElement content, bool resetScroll = false)
     {
         EnsureTemplateParts();
 
@@ -603,6 +623,11 @@ public class ModernFrame : Control
         }
 
         RestoreActiveHostState();
+
+        if (resetScroll)
+        {
+            ResetActiveScrollHostToTop();
+        }
     }
 
     private void DetachFromActiveHost()
@@ -666,6 +691,18 @@ public class ModernFrame : Control
     {
         EnsureTemplateParts();
         return _isUsingContentScrollHostForActiveContent ? _contentScrollHost : _directContentPresenter;
+    }
+
+    private void ResetActiveScrollHostToTop()
+    {
+        if (!HasTemplateParts || !_isUsingContentScrollHostForActiveContent)
+        {
+            return;
+        }
+
+        ScrollAnimationHelper.CancelVerticalAnimation(_contentScrollHost!);
+        _contentScrollHost!.ScrollToVerticalOffset(0);
+        _contentScrollHost.UpdateLayout();
     }
 
     private void RestoreActiveHostState()

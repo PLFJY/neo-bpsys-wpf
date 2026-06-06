@@ -437,6 +437,51 @@ public class ModernNavigationViewTest
     }
 
     [Fact]
+    public void LocalTabsNavigationResetsSharedFrameScrollHost()
+    {
+        RunSta(() =>
+        {
+            var navigationView = new ModernNavigationView
+            {
+                Width = 360,
+                Height = 160,
+                PaneDisplayMode = NavigationViewPaneDisplayMode.Top,
+                NavigationBehavior = ModernNavigationBehavior.LocalTabs,
+                TransitionDuration = 0,
+                MenuItemsSource = new[]
+                {
+                    new NavigationViewItem("Installed", SymbolRegular.AppsList24, typeof(ScrollableTabView)),
+                    new NavigationViewItem("PluginMarket", SymbolRegular.AppsAddIn24, typeof(SecondScrollableTabView))
+                }
+            };
+            var window = CreateHiddenWindow(navigationView);
+
+            try
+            {
+                window.Show();
+                navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[0]);
+                window.UpdateLayout();
+                navigationView.ContentScrollHost.ApplyTemplate();
+                navigationView.ContentScrollHost.UpdateLayout();
+                Assert.True(navigationView.ContentScrollHost.ScrollableHeight > 0);
+                navigationView.ContentScrollHost.ScrollToVerticalOffset(140);
+                navigationView.ContentScrollHost.UpdateLayout();
+                Assert.True(navigationView.ContentScrollHost.VerticalOffset > 0);
+
+                navigationView.NavigateEntryCommand.Execute(navigationView.MenuEntries[1]);
+                window.UpdateLayout();
+
+                Assert.Equal(0D, navigationView.ContentScrollHost.VerticalOffset);
+                Assert.IsType<SecondScrollableTabView>(navigationView.CurrentContent);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
     public void LocalTabsChildViewInheritsNavigationViewDataContext()
     {
         RunSta(() =>
@@ -1129,6 +1174,24 @@ public class ModernNavigationViewTest
 
     public sealed class SecondTestPage : Page
     {
+    }
+
+    public sealed class ScrollableTabView : Border
+    {
+        public ScrollableTabView()
+        {
+            Height = 520;
+            Width = 100;
+        }
+    }
+
+    public sealed class SecondScrollableTabView : Border
+    {
+        public SecondScrollableTabView()
+        {
+            Height = 520;
+            Width = 100;
+        }
     }
 
     public sealed class ScrollableTestPage : Page

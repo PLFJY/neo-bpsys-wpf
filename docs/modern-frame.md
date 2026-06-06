@@ -56,6 +56,10 @@ WPF `Page` 不能直接作为普通 `ContentPresenter` 的子元素。`ModernFra
 
 `Page` 经过内部 `Frame` 承载时，页面加载会经过 WPF dispatcher；需要在页面 Loaded 后或使用现有引导滚动重试机制查找目标。加载完成后，`GuidanceScrollHelper` 可以从页面内容发现 `ModernFrame` 的 `ModernScrollViewer` 滚动宿主。
 
+`ResetScrollOnNavigation` 默认为 `true`。新页面导航会在新内容挂到活动宿主后立即把 frame 级滚动宿主重置到顶部，并在重置前取消该 `ModernScrollViewer` 上已有的纵向滚动动画。该重置只作用于 `PART_ContentScrollHost`；如果当前内容使用直接 presenter，`ModernFrame` 不会递归查找或重置页面内部的 `ListView`、`ListBox`、`ComboBox`、`ScrollViewer` 或显式 self-scroll 区域。
+
+重置发生在 `Navigated` 事件之前，不使用 `Dispatcher.BeginInvoke`、timer 或转场完成回调。这样 `GameGuidanceService` 导航后再发送 `HighlightMessage` 时，`GuidanceAutoScrollScope` 后续触发的目标滚动仍然可以覆盖 frame 的初始置顶。`GoBack()` 当前不执行置顶，避免返回上一页时强制丢失用户所在位置。
+
 `IsContentScrollHostEnabled` 是兼容性开关，设为 `false` 时会完全跳过外层 `ModernScrollViewer`，改用直接 presenter 承载内容。
 
 `ContentScrollHostMode` 用于控制默认滚动宿主策略：

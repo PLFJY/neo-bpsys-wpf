@@ -94,6 +94,8 @@ Top 模式用于局部标签导航：
 - `PageNavigation` 使用 `Enabled`，保持 `MainWindow.RootNavigation` 的后台页面外层滚动宿主，`GameGuidanceService` 仍能通过 frame 的 `ModernScrollViewer` 做引导滚动。
 - `LocalTabs` 使用 `Auto`，默认保留 frame/page 级滚动；只有 tab 内容根显式声明 `ModernScroll.Ownership="Self"` 时才走直接 presenter。
 
+共享 `PART_Frame` 默认会在新导航后立即把 frame 级滚动宿主置顶。因此 `MainWindow.RootNavigation` 页面切换、`PluginPage` 标签切换和 `FrontManagePage` 标签切换都会回到页面顶部。该行为不递归重置子视图内部的 self-scroll 区域；使用直接 presenter 的局部页面继续拥有自己的滚动状态。置顶发生在 frame `Navigated` 之前，`GameGuidance` 后续的目标自动滚动仍可以覆盖它。
+
 `LocalTabs` 的 `Auto` 模式不按 `ListView` / `ListBox` / `DynamicScrollViewer` 类型推断滚动归属。`PluginInstalledView`、`PluginMarketView` 这类非约束列表页默认仍由 frame 级 `ModernScrollViewer` 滚动；`FrontedLayoutPackagesView` 这类独立分栏页面可以在根上显式声明 self ownership，并在具体列表/详情滚动区域启用 `NestedSmoothScrollBehavior`。
 
 菜单项前景色跟随 WPF-UI 动态主题资源。按钮默认、悬停、按下和选中状态使用 NavigationView item 前景色资源；禁用状态使用 WPF-UI 文本禁用色资源。文本和图标都从按钮 `Foreground` 继承，不硬编码黑白颜色，因此主题切换时可以随资源更新。

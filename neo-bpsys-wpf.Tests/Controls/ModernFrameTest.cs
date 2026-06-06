@@ -445,6 +445,263 @@ public class ModernFrameTest
     }
 
     [Fact]
+    public void NavigateResetsContentScrollHostVerticalOffset()
+    {
+        RunSta(() =>
+        {
+            var frame = new ModernFrame
+            {
+                Width = 120,
+                Height = 120,
+                TransitionDuration = TimeSpan.Zero
+            };
+            var window = CreateHiddenWindow(frame);
+
+            try
+            {
+                window.Show();
+                frame.Navigate(new TallContent(), new SuppressNavigationTransitionInfo());
+                window.UpdateLayout();
+                frame.ContentScrollHost.ApplyTemplate();
+                frame.ContentScrollHost.UpdateLayout();
+                Assert.True(frame.ContentScrollHost.ScrollableHeight > 0);
+                frame.ContentScrollHost.ScrollToVerticalOffset(160);
+                frame.ContentScrollHost.UpdateLayout();
+                Assert.True(frame.ContentScrollHost.VerticalOffset > 0);
+
+                frame.Navigate(new TallContent(), new SuppressNavigationTransitionInfo());
+                window.UpdateLayout();
+
+                Assert.Equal(0D, frame.ContentScrollHost.VerticalOffset);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void NavigateCancelsPendingContentScrollHostVerticalAnimation()
+    {
+        RunSta(() =>
+        {
+            if (RenderCapability.Tier == 0 || !SystemParameters.ClientAreaAnimation)
+            {
+                return;
+            }
+
+            var frame = new ModernFrame
+            {
+                Width = 120,
+                Height = 120,
+                TransitionDuration = TimeSpan.Zero
+            };
+            var window = CreateHiddenWindow(frame);
+
+            try
+            {
+                window.Show();
+                frame.Navigate(new TallContent(), new SuppressNavigationTransitionInfo());
+                window.UpdateLayout();
+                frame.ContentScrollHost.ApplyTemplate();
+                frame.ContentScrollHost.UpdateLayout();
+                Assert.True(frame.ContentScrollHost.ScrollableHeight > 0);
+
+                ScrollAnimationHelper.SmoothScrollToVerticalOffset(
+                    frame.ContentScrollHost,
+                    260,
+                    TimeSpan.FromSeconds(10));
+                Assert.True(ScrollAnimationHelper.IsVerticalAnimationActive(frame.ContentScrollHost));
+
+                frame.Navigate(new TallContent(), new SuppressNavigationTransitionInfo());
+                window.UpdateLayout();
+
+                Assert.False(ScrollAnimationHelper.IsVerticalAnimationActive(frame.ContentScrollHost));
+                Assert.Equal(0D, frame.ContentScrollHost.VerticalOffset);
+            }
+            finally
+            {
+                ScrollAnimationHelper.CancelVerticalAnimation(frame.ContentScrollHost);
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void NavigateWithDirectPresenterDoesNotResetChildSelfScrollRegion()
+    {
+        RunSta(() =>
+        {
+            var content = new SelfScrollContent();
+            var stagingWindow = CreateHiddenWindow(content);
+
+            try
+            {
+                stagingWindow.Show();
+                content.InnerScrollViewer.ApplyTemplate();
+                stagingWindow.UpdateLayout();
+                content.InnerScrollViewer.UpdateLayout();
+                Assert.True(content.InnerScrollViewer.ScrollableHeight > 0);
+                content.InnerScrollViewer.ScrollToVerticalOffset(180);
+                content.InnerScrollViewer.UpdateLayout();
+                Assert.True(content.InnerScrollViewer.VerticalOffset > 0);
+                stagingWindow.Content = null;
+            }
+            finally
+            {
+                stagingWindow.Close();
+            }
+
+            var frame = new ModernFrame
+            {
+                Width = 120,
+                Height = 120,
+                ContentScrollHostMode = ModernFrameContentScrollHostMode.Auto,
+                TransitionDuration = TimeSpan.Zero
+            };
+            var window = CreateHiddenWindow(frame);
+
+            try
+            {
+                window.Show();
+                frame.Navigate(content, new SuppressNavigationTransitionInfo());
+                window.UpdateLayout();
+
+                Assert.False(IsUsingFrameScrollHost(frame, content));
+                Assert.True(content.InnerScrollViewer.VerticalOffset > 0);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void GoBackDoesNotResetContentScrollHostVerticalOffset()
+    {
+        RunSta(() =>
+        {
+            var frame = new ModernFrame
+            {
+                Width = 120,
+                Height = 120,
+                TransitionDuration = TimeSpan.Zero
+            };
+            var window = CreateHiddenWindow(frame);
+
+            try
+            {
+                window.Show();
+                frame.Navigate(new TallContent(), new SuppressNavigationTransitionInfo());
+                frame.Navigate(new TallContent(), new SuppressNavigationTransitionInfo());
+                window.UpdateLayout();
+                frame.ContentScrollHost.ApplyTemplate();
+                frame.ContentScrollHost.UpdateLayout();
+                Assert.True(frame.ContentScrollHost.ScrollableHeight > 0);
+                frame.ContentScrollHost.ScrollToVerticalOffset(160);
+                frame.ContentScrollHost.UpdateLayout();
+                Assert.True(frame.ContentScrollHost.VerticalOffset > 0);
+
+                Assert.True(frame.GoBack());
+                window.UpdateLayout();
+
+                Assert.True(frame.ContentScrollHost.VerticalOffset > 0);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void NavigateResetsContentScrollHostBeforeNavigatedEvent()
+    {
+        RunSta(() =>
+        {
+            var frame = new ModernFrame
+            {
+                Width = 120,
+                Height = 120,
+                TransitionDuration = TimeSpan.Zero
+            };
+            var window = CreateHiddenWindow(frame);
+
+            try
+            {
+                window.Show();
+                frame.Navigate(new TallContent(), new SuppressNavigationTransitionInfo());
+                window.UpdateLayout();
+                frame.ContentScrollHost.ApplyTemplate();
+                frame.ContentScrollHost.UpdateLayout();
+                Assert.True(frame.ContentScrollHost.ScrollableHeight > 0);
+                frame.ContentScrollHost.ScrollToVerticalOffset(160);
+                frame.ContentScrollHost.UpdateLayout();
+                Assert.True(frame.ContentScrollHost.VerticalOffset > 0);
+
+                double? offsetDuringNavigated = null;
+                frame.Navigated += (_, _) => offsetDuringNavigated = frame.ContentScrollHost.VerticalOffset;
+
+                frame.Navigate(new TallContent(), new SuppressNavigationTransitionInfo());
+
+                Assert.Equal(0D, offsetDuringNavigated);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
+    public void GuidanceStyleScrollCanOverrideNavigationReset()
+    {
+        RunSta(() =>
+        {
+            var frame = new ModernFrame
+            {
+                Width = 120,
+                Height = 120,
+                TransitionDuration = TimeSpan.Zero
+            };
+            var content = new TallContent(spacerBeforeTarget: 260);
+            var window = CreateHiddenWindow(frame);
+
+            try
+            {
+                window.Show();
+                frame.Navigate(new TallContent(), new SuppressNavigationTransitionInfo());
+                window.UpdateLayout();
+                frame.ContentScrollHost.ApplyTemplate();
+                frame.ContentScrollHost.UpdateLayout();
+                Assert.True(frame.ContentScrollHost.ScrollableHeight > 0);
+                frame.ContentScrollHost.ScrollToVerticalOffset(160);
+                frame.ContentScrollHost.UpdateLayout();
+                Assert.True(frame.ContentScrollHost.VerticalOffset > 0);
+
+                frame.Navigated += (_, _) =>
+                {
+                    frame.Dispatcher.BeginInvoke(
+                        () => GuidanceScrollHelper.ScrollElementIntoView(content.Target, topMargin: 0, animated: false),
+                        DispatcherPriority.ContextIdle);
+                };
+
+                frame.Navigate(content, new SuppressNavigationTransitionInfo());
+                FlushDispatcher(window.Dispatcher);
+                window.UpdateLayout();
+
+                Assert.True(frame.ContentScrollHost.VerticalOffset > 0);
+            }
+            finally
+            {
+                window.Close();
+            }
+        });
+    }
+
+    [Fact]
     public void PageContentIsHostedByFrame()
     {
         RunSta(() =>
@@ -739,6 +996,51 @@ public class ModernFrameTest
         }
 
         public Button Target { get; }
+    }
+
+    private sealed class TallContent : Border
+    {
+        public TallContent(double spacerBeforeTarget = 0)
+        {
+            Height = 560;
+            Width = 100;
+            Target = new Button
+            {
+                Height = 32,
+                Content = "Target"
+            };
+
+            Child = new StackPanel
+            {
+                Children =
+                {
+                    new Border { Height = spacerBeforeTarget },
+                    Target,
+                    new Border { Height = 520 }
+                }
+            };
+        }
+
+        public Button Target { get; }
+    }
+
+    private sealed class SelfScrollContent : StackPanel
+    {
+        public SelfScrollContent()
+        {
+            InnerScrollViewer = new ScrollViewer
+            {
+                Width = 100,
+                Height = 80,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                Content = new Border { Height = 520, Width = 100 }
+            };
+
+            Children.Add(InnerScrollViewer);
+            ModernScroll.SetOwnership(this, ModernScrollOwnership.Self);
+        }
+
+        public ScrollViewer InnerScrollViewer { get; }
     }
 
     private sealed class TestServiceProvider : IServiceProvider
