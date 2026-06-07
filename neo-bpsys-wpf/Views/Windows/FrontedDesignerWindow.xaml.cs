@@ -1898,7 +1898,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             InteractionLayer.Children.Add(handleElement);
         }
 
-        if (item.Config is PolygonFrontedControlConfig polygon)
+        if (item.Config is IPolygonFrontedControlConfig polygon)
         {
             for (var index = 0; index < polygon.Points.Count; index++)
             {
@@ -2011,7 +2011,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         SetHandlePosition(FrontedDesignerResizeHandleKind.Bottom, bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height);
         SetHandlePosition(FrontedDesignerResizeHandleKind.BottomRight, bounds.Left + bounds.Width, bounds.Top + bounds.Height);
 
-        if (item.Config is PolygonFrontedControlConfig polygon)
+        if (item.Config is IPolygonFrontedControlConfig polygon)
         {
             foreach (var (index, handle) in _polygonVertexHandles)
             {
@@ -2020,7 +2020,7 @@ public partial class FrontedDesignerWindow : FluentWindow
                     continue;
                 }
 
-                var point = PolygonVertexGeometryHelper.ToCanvasPoint(polygon, polygon.Points[index]);
+                var point = PolygonVertexGeometryHelper.ToCanvasPoint(item.Config, polygon.Points[index]);
                 Canvas.SetLeft(handle, point.X - handle.Width / 2D);
                 Canvas.SetTop(handle, point.Y - handle.Height / 2D);
             }
@@ -2189,7 +2189,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private void PolygonVertexHandle_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (sender is not FrameworkElement { Tag: int index } element
-            || _viewModel?.SelectedDesignItem?.Config is not PolygonFrontedControlConfig)
+            || _viewModel?.SelectedDesignItem?.Config is not IPolygonFrontedControlConfig)
         {
             return;
         }
@@ -2826,13 +2826,30 @@ public partial class FrontedDesignerWindow : FluentWindow
             UpdateBorderedImageInnerPreviewElement(element, imageConfig);
         }
 
-        if (item.Config is PolygonFrontedControlConfig polygonConfig)
+        if (element is BackgroundTintControlHost tintHost
+            && item.Config is BackgroundTintFrontedControlConfigBase)
+        {
+            tintHost.TintedImage.Margin = new Thickness(-item.Config.Left, -item.Config.Top, 0, 0);
+        }
+
+        if (item.Config is BackgroundTintRectangleFrontedControlConfig tintRectangleConfig)
+        {
+            element.Clip = new RectangleGeometry(
+                new Rect(0, 0, tintRectangleConfig.Width ?? 1D, tintRectangleConfig.Height ?? 1D),
+                Math.Max(0, tintRectangleConfig.RadiusX),
+                Math.Max(0, tintRectangleConfig.RadiusY));
+        }
+        else if (item.Config is PolygonFrontedControlConfig polygonConfig)
         {
             var polygon = element as Polygon ?? FindDescendant<Polygon>(element);
             if (polygon is not null)
             {
                 polygon.Points = PolygonFrontedControl.CreatePointCollection(polygonConfig);
             }
+        }
+        else if (item.Config is BackgroundTintPolygonFrontedControlConfig tintPolygonConfig)
+        {
+            element.Clip = BackgroundTintPolygonFrontedControl.CreateGeometry(tintPolygonConfig, element);
         }
 
         var bounds = ResolveItemBounds(item);

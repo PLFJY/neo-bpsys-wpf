@@ -470,6 +470,11 @@ public class FrontedPropertyGridBuilder
             return FrontedBindingTargetKind.String;
         }
 
+        if (config is BackgroundTintFrontedControlConfigBase)
+        {
+            return FrontedBindingTargetKind.String;
+        }
+
         return config switch
         {
             TextFrontedControlConfig => FrontedBindingTargetKind.Text,
@@ -715,6 +720,13 @@ public class FrontedPropertyGridBuilder
             }
         }
 
+        if (config is BackgroundTintFrontedControlConfigBase)
+        {
+            return propertyName == nameof(BackgroundTintFrontedControlConfigBase.TintBindingPath)
+                ? "Binding"
+                : "Appearance";
+        }
+
         if (config is MapV2DisplayControlConfig
             && propertyName is nameof(MapV2DisplayControlConfig.MapBorderNormalColor)
                 or nameof(MapV2DisplayControlConfig.MapBorderBannedColor))
@@ -794,6 +806,12 @@ public class FrontedPropertyGridBuilder
                     return false;
                 }
             }
+        }
+
+        if (config is BackgroundTintFrontedControlConfigBase
+            && propertyName == nameof(FrontedControlConfigBase.BindingPath))
+        {
+            return false;
         }
 
         if (config is ImageFrontedControlConfig and not BorderedImageFrontedControlConfig)

@@ -4685,7 +4685,9 @@ public class FrontedLayoutDesignerFoundationTest
         typeof(GlobalScoreRowControlConfig),
         typeof(MapV2DisplayControlConfig),
         typeof(RectangleFrontedControlConfig),
-        typeof(PolygonFrontedControlConfig)
+        typeof(PolygonFrontedControlConfig),
+        typeof(BackgroundTintRectangleFrontedControlConfig),
+        typeof(BackgroundTintPolygonFrontedControlConfig)
     ];
 
     private static HashSet<string> LoadResxKeys(string fileName)
@@ -4960,7 +4962,11 @@ public class FrontedLayoutDesignerFoundationTest
             new KnownFrontedControl("TalentTraitDisplay", typeof(TalentTraitDisplayControlConfig)),
             new KnownFrontedControl("GameProgressText", typeof(GameProgressTextControlConfig)),
             new KnownFrontedControl("MapNameText", typeof(MapNameTextControlConfig)),
-            new KnownFrontedControl("MapV2Display", typeof(MapV2DisplayControlConfig))
+            new KnownFrontedControl("MapV2Display", typeof(MapV2DisplayControlConfig)),
+            new KnownFrontedControl("Rectangle", typeof(RectangleFrontedControlConfig)),
+            new KnownFrontedControl("Polygon", typeof(PolygonFrontedControlConfig)),
+            new KnownFrontedControl("BackgroundTintRectangle", typeof(BackgroundTintRectangleFrontedControlConfig)),
+            new KnownFrontedControl("BackgroundTintPolygon", typeof(BackgroundTintPolygonFrontedControlConfig))
         ];
 
         public virtual IFrontedControl? GetControl(string controlType)

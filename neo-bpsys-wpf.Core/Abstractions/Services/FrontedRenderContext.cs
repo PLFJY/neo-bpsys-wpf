@@ -29,4 +29,9 @@ public class FrontedRenderContext
     /// Whether missing plugin controls should render Designer-only placeholders.
     /// </summary>
     public bool RenderMissingPluginPlaceholders { get; init; }
+
+    /// <summary>
+    /// Whether this render is hosted by the Designer preview.
+    /// </summary>
+    public bool IsDesignerPreview { get; init; }
 }

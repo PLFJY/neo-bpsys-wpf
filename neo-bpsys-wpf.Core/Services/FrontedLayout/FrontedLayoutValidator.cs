@@ -212,6 +212,15 @@ public class FrontedLayoutValidator
             ValidateCommonControlFields(item, messages);
             ValidateKnownControlConfig(item, messages);
             ValidatePluginControlConfig(item, messages);
+            if (item.Config is BackgroundTintFrontedControlConfigBase
+                && string.IsNullOrWhiteSpace(document.CanvasConfig.BackgroundImage))
+            {
+                messages.Add(Info(
+                    "MissingCanvasBackgroundImage",
+                    $"Background tint control '{item.Name}' has no Canvas background image to tint.",
+                    item.Name,
+                    nameof(FrontedCanvasConfig.BackgroundImage)));
+            }
         }
     }
 
@@ -438,6 +447,10 @@ public class FrontedLayoutValidator
             case ShapeFrontedControlConfigBase shape:
                 ValidateShape(item.Name, shape, messages);
                 break;
+
+            case BackgroundTintFrontedControlConfigBase tint:
+                ValidateBackgroundTint(item.Name, tint, messages);
+                break;
         }
 
         static void ValidateTextBinding(
@@ -595,6 +608,85 @@ public class FrontedLayoutValidator
         }
     }
 
+    private static void ValidateBackgroundTint(
+        string controlName,
+        BackgroundTintFrontedControlConfigBase tint,
+        ICollection<FrontedLayoutValidationMessage> messages)
+    {
+        ValidateTextLength(
+            controlName,
+            nameof(tint.TintBindingPath),
+            tint.TintBindingPath,
+            FrontedLayoutLimits.MaxBindingPathLength,
+            "BindingPathTooLong",
+            messages);
+
+        if (!Enum.IsDefined(tint.TintMode))
+        {
+            messages.Add(Error(
+                "RequiredPropertyMissing",
+                $"Background tint control '{controlName}' has invalid TintMode.",
+                controlName,
+                nameof(tint.TintMode)));
+        }
+
+        if (string.IsNullOrWhiteSpace(tint.TintBindingPath)
+            && !ColorHelper.TryNormalizeHex(tint.TintColor, out _))
+        {
+            messages.Add(Error(
+                "InvalidColorHex",
+                $"Background tint control '{controlName}' TintColor must be #RRGGBB or #AARRGGBB.",
+                controlName,
+                nameof(tint.TintColor)));
+        }
+        else if (!string.IsNullOrWhiteSpace(tint.TintBindingPath)
+                 && !string.IsNullOrWhiteSpace(tint.TintColor))
+        {
+            messages.Add(Warning(
+                "TintColorIgnored",
+                $"Background tint control '{controlName}' TintColor is ignored while binding is active.",
+                controlName,
+                nameof(tint.TintColor)));
+        }
+
+        if (!double.IsFinite(tint.TintStrength))
+        {
+            messages.Add(Error(
+                "TintStrengthInvalid",
+                $"Background tint control '{controlName}' TintStrength must be finite.",
+                controlName,
+                nameof(tint.TintStrength)));
+        }
+        else if (tint.TintStrength is < 0D or > 1D)
+        {
+            messages.Add(Warning(
+                "TintStrengthClamped",
+                $"Background tint control '{controlName}' TintStrength will be clamped to 0..1.",
+                controlName,
+                nameof(tint.TintStrength)));
+        }
+
+        if (tint is BackgroundTintPolygonFrontedControlConfig polygon)
+        {
+            if (polygon.Points.Count < 3)
+            {
+                messages.Add(Error(
+                    "PolygonPointsTooFew",
+                    $"Background tint polygon '{controlName}' requires at least three points.",
+                    controlName,
+                    nameof(polygon.Points)));
+            }
+            else if (polygon.Points.Any(point => !double.IsFinite(point.X) || !double.IsFinite(point.Y)))
+            {
+                messages.Add(Error(
+                    "PolygonPointInvalid",
+                    $"Background tint polygon '{controlName}' contains a non-finite point.",
+                    controlName,
+                    nameof(polygon.Points)));
+            }
+        }
+    }
+
     private static void ValidateResourceLikeStrings(
         string controlName,
         object config,
@@ -743,6 +835,7 @@ public class FrontedLayoutValidator
     {
         return config is ImageFrontedControlConfig
             or ShapeFrontedControlConfigBase
+            or BackgroundTintFrontedControlConfigBase
             or TalentTraitDisplayControlConfig
             or MapV2DisplayControlConfig;
     }

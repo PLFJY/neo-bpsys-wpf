@@ -304,6 +304,12 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
                 "Polygon" => JsonSerializer.Deserialize<PolygonFrontedControlConfig>(json, options)
                     ?? throw new FrontedLayoutConfigException(
                         $"Control '{controlName}' could not be read as Polygon."),
+                "BackgroundTintRectangle" => JsonSerializer.Deserialize<BackgroundTintRectangleFrontedControlConfig>(json, options)
+                    ?? throw new FrontedLayoutConfigException(
+                        $"Control '{controlName}' could not be read as BackgroundTintRectangle."),
+                "BackgroundTintPolygon" => JsonSerializer.Deserialize<BackgroundTintPolygonFrontedControlConfig>(json, options)
+                    ?? throw new FrontedLayoutConfigException(
+                        $"Control '{controlName}' could not be read as BackgroundTintPolygon."),
                 "GlobalScoreRow" => JsonSerializer.Deserialize<GlobalScoreRowControlConfig>(json, options)
                     ?? throw new FrontedLayoutConfigException(
                         $"Control '{controlName}' could not be read as GlobalScoreRow."),

@@ -11008,6 +11008,19 @@ namespace neo_bpsys_wpf.Locales {
             }
         }
         
+        public static string Designer_ControlType_BackgroundTintRectangle => ResourceManager.GetString("Designer.ControlType.BackgroundTintRectangle", resourceCulture);
+        public static string Designer_ControlType_BackgroundTintPolygon => ResourceManager.GetString("Designer.ControlType.BackgroundTintPolygon", resourceCulture);
+        public static string Designer_Property_TintColor => ResourceManager.GetString("Designer.Property.TintColor", resourceCulture);
+        public static string Designer_Property_TintBindingPath => ResourceManager.GetString("Designer.Property.TintBindingPath", resourceCulture);
+        public static string Designer_Property_TintMode => ResourceManager.GetString("Designer.Property.TintMode", resourceCulture);
+        public static string Designer_Property_TintStrength => ResourceManager.GetString("Designer.Property.TintStrength", resourceCulture);
+        public static string Designer_Property_ShowMissingBackgroundPlaceholder => ResourceManager.GetString("Designer.Property.ShowMissingBackgroundPlaceholder", resourceCulture);
+        public static string Designer_Option_TintMode_LuminanceColorize => ResourceManager.GetString("Designer.Option.TintMode.LuminanceColorize", resourceCulture);
+        public static string Designer_Option_TintMode_Multiply => ResourceManager.GetString("Designer.Option.TintMode.Multiply", resourceCulture);
+        public static string Designer_Validation_MissingCanvasBackgroundImage => ResourceManager.GetString("Designer.Validation.MissingCanvasBackgroundImage", resourceCulture);
+        public static string Designer_Help_BackgroundTint_Title => ResourceManager.GetString("Designer.Help.BackgroundTint.Title", resourceCulture);
+        public static string Designer_Help_BackgroundTint_Content => ResourceManager.GetString("Designer.Help.BackgroundTint.Content", resourceCulture);
+
         /// <summary>
         ///   查找类似 Zip 压缩文件 的本地化字符串。
         /// </summary>

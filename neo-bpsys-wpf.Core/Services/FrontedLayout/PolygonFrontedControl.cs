@@ -49,10 +49,6 @@ public class PolygonFrontedControl : IFrontedControl
             points = [.. PolygonFrontedControlConfig.CreateDefaultPoints()];
         }
 
-        var width = config.Width is > 0 && double.IsFinite(config.Width.Value) ? config.Width.Value : 1D;
-        var height = config.Height is > 0 && double.IsFinite(config.Height.Value) ? config.Height.Value : 1D;
-        return new PointCollection(points.Select(point => new Point(
-            PolygonVertexGeometryHelper.ClampCoordinate(point.X) * width,
-            PolygonVertexGeometryHelper.ClampCoordinate(point.Y) * height)));
+        return PolygonVertexGeometryHelper.CreateLocalPointCollection(config, points);
     }
 }

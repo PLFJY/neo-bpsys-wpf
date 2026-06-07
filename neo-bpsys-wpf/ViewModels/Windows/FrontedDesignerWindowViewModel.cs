@@ -339,7 +339,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public bool IsMapV2DisplaySelected => SelectedDesignItem?.Config is MapV2DisplayControlConfig;
 
-    public bool IsPolygonSelected => SelectedDesignItem?.Config is PolygonFrontedControlConfig;
+    public bool IsPolygonSelected => SelectedDesignItem?.Config is IPolygonFrontedControlConfig;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedPolygonVertexDisplay))]
@@ -347,14 +347,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private int _selectedPolygonVertexIndex = -1;
 
     public string SelectedPolygonVertexDisplay =>
-        SelectedDesignItem?.Config is PolygonFrontedControlConfig polygon
+        SelectedDesignItem?.Config is IPolygonFrontedControlConfig polygon
         && SelectedPolygonVertexIndex >= 0
         && SelectedPolygonVertexIndex < polygon.Points.Count
             ? $"{SelectedPolygonVertexIndex + 1} / {polygon.Points.Count}"
-            : $"- / {(SelectedDesignItem?.Config as PolygonFrontedControlConfig)?.Points.Count ?? 0}";
+            : $"- / {(SelectedDesignItem?.Config as IPolygonFrontedControlConfig)?.Points.Count ?? 0}";
 
     public bool CanRemovePolygonVertex =>
-        SelectedDesignItem?.Config is PolygonFrontedControlConfig polygon
+        SelectedDesignItem?.Config is IPolygonFrontedControlConfig polygon
         && polygon.Points.Count > 3
         && SelectedPolygonVertexIndex >= 0
         && SelectedPolygonVertexIndex < polygon.Points.Count;
@@ -640,7 +640,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _propertyEditErrors.Clear();
         _propertyEditBuffers.Clear();
         ClearSelectedGlobalScoreCell();
-        SelectedPolygonVertexIndex = value?.Config is PolygonFrontedControlConfig polygon && polygon.Points.Count > 0
+        SelectedPolygonVertexIndex = value?.Config is IPolygonFrontedControlConfig polygon && polygon.Points.Count > 0
             ? 0
             : -1;
         if (_lastSelectedDesignItem is not null && !ReferenceEquals(_lastSelectedDesignItem, value))
@@ -2350,7 +2350,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public void SelectPolygonVertex(int index)
     {
-        if (SelectedDesignItem?.Config is not PolygonFrontedControlConfig polygon || polygon.Points.Count == 0)
+        if (SelectedDesignItem?.Config is not IPolygonFrontedControlConfig polygon || polygon.Points.Count == 0)
         {
             SelectedPolygonVertexIndex = -1;
             return;
@@ -2362,14 +2362,14 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public void MoveSelectedPolygonVertex(Point canvasPoint, bool renderPreview)
     {
         if (CurrentDocument is null
-            || SelectedDesignItem?.Config is not PolygonFrontedControlConfig polygon
+            || SelectedDesignItem?.Config is not IPolygonFrontedControlConfig polygon
             || SelectedPolygonVertexIndex < 0
             || SelectedPolygonVertexIndex >= polygon.Points.Count)
         {
             return;
         }
 
-        var normalized = PolygonVertexGeometryHelper.ToNormalizedPoint(polygon, canvasPoint);
+        var normalized = PolygonVertexGeometryHelper.ToNormalizedPoint(SelectedDesignItem.Config, canvasPoint);
         polygon.Points[SelectedPolygonVertexIndex].X = normalized.X;
         polygon.Points[SelectedPolygonVertexIndex].Y = normalized.Y;
         CurrentDocument.IsDirty = true;
@@ -2379,7 +2379,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     [RelayCommand]
     private void AddPolygonVertex()
     {
-        if (CurrentDocument is null || SelectedDesignItem?.Config is not PolygonFrontedControlConfig polygon)
+        if (CurrentDocument is null || SelectedDesignItem?.Config is not IPolygonFrontedControlConfig polygon)
         {
             return;
         }
@@ -2403,7 +2403,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private void RemovePolygonVertex()
     {
         if (CurrentDocument is null
-            || SelectedDesignItem?.Config is not PolygonFrontedControlConfig polygon
+            || SelectedDesignItem?.Config is not IPolygonFrontedControlConfig polygon
             || !CanRemovePolygonVertex)
         {
             return;
@@ -3879,7 +3879,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                         WindowTypeName = entry.WindowTypeName,
                         CanvasName = entry.CanvasName,
                         SharedDataServiceOverride = _designerPreviewSharedDataService,
-                        RenderMissingPluginPlaceholders = true
+                        RenderMissingPluginPlaceholders = true,
+                        IsDesignerPreview = true
                     }));
     }
 

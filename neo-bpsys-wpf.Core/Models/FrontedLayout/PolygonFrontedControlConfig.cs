@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
-public class PolygonFrontedControlConfig : ShapeFrontedControlConfigBase
+public class PolygonFrontedControlConfig : ShapeFrontedControlConfigBase, IPolygonFrontedControlConfig
 {
     public PolygonFrontedControlConfig()
     {

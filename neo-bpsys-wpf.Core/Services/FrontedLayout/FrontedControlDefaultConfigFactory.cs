@@ -23,6 +23,8 @@ public class FrontedControlDefaultConfigFactory
             "BorderedImage",
             "Rectangle",
             "Polygon",
+            "BackgroundTintRectangle",
+            "BackgroundTintPolygon",
             "MapNameText",
             "GameProgressText",
             "TalentTraitDisplay",
@@ -239,6 +241,22 @@ public class FrontedControlDefaultConfigFactory
                 Height = 120,
                 FillMode = ShapeFillMode.Solid,
                 FillColor = "#FFFFFFFF"
+            },
+            "BackgroundTintRectangle" => new BackgroundTintRectangleFrontedControlConfig
+            {
+                Width = 160,
+                Height = 80,
+                TintColor = "#FFFFFFFF",
+                TintStrength = 1D,
+                TintMode = BackgroundTintMode.LuminanceColorize
+            },
+            "BackgroundTintPolygon" => new BackgroundTintPolygonFrontedControlConfig
+            {
+                Width = 160,
+                Height = 120,
+                TintColor = "#FFFFFFFF",
+                TintStrength = 1D,
+                TintMode = BackgroundTintMode.LuminanceColorize
             },
             "MapNameText" => new MapNameTextControlConfig
             {

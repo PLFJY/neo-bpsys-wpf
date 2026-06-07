@@ -3843,4 +3843,16 @@
   <data name="Designer.Property.StrokeThickness" xml:space="preserve"><value>線の太さ</value></data>
   <data name="Designer.Option.FillMode.Solid" xml:space="preserve"><value>単色</value></data>
   <data name="Designer.Option.FillMode.LinearGradient" xml:space="preserve"><value>線形グラデーション</value></data>
+  <data name="Designer.ControlType.BackgroundTintRectangle" xml:space="preserve"><value>背景色付け長方形</value></data>
+  <data name="Designer.ControlType.BackgroundTintPolygon" xml:space="preserve"><value>背景色付けポリゴン</value></data>
+  <data name="Designer.Property.TintColor" xml:space="preserve"><value>色付けカラー</value></data>
+  <data name="Designer.Property.TintBindingPath" xml:space="preserve"><value>色付けバインドパス</value></data>
+  <data name="Designer.Property.TintMode" xml:space="preserve"><value>色付けモード</value></data>
+  <data name="Designer.Property.TintStrength" xml:space="preserve"><value>色付け強度</value></data>
+  <data name="Designer.Property.ShowMissingBackgroundPlaceholder" xml:space="preserve"><value>背景未設定プレースホルダーを表示</value></data>
+  <data name="Designer.Option.TintMode.LuminanceColorize" xml:space="preserve"><value>輝度カラー化</value></data>
+  <data name="Designer.Option.TintMode.Multiply" xml:space="preserve"><value>乗算</value></data>
+  <data name="Designer.Validation.MissingCanvasBackgroundImage" xml:space="preserve"><value>Canvas の背景画像が設定されていません</value></data>
+  <data name="Designer.Help.BackgroundTint.Title" xml:space="preserve"><value>背景の部分色付け</value></data>
+  <data name="Designer.Help.BackgroundTint.Content" xml:space="preserve"><value>BackgroundTintRectangle と BackgroundTintPolygon は現在の有効な Canvas 背景を自動的に使用し、画像の再選択は不要です。\n背景に整列した静的な色付きコピーを長方形またはポリゴンでクリップし、背景のテクスチャを保持します。\nTintBindingPath は HomeTeam.ColorHex または AwayTeam.ColorHex にバインドでき、チームカラー変更時に再生成されます。\nリアルタイム GPU 合成ではなく、必要時の CPU 再生成を使用します。</value></data>
 </root>

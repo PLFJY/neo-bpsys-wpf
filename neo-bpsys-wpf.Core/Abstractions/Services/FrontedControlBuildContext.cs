@@ -33,6 +33,20 @@ public class FrontedControlBuildContext
     public required string CanvasName { get; init; }
 
     /// <summary>
+    /// Effective Canvas background image after runtime state resolution.
+    /// </summary>
+    public string? CanvasBackgroundImage { get; init; }
+
+    public double CanvasWidth { get; init; }
+
+    public double CanvasHeight { get; init; }
+
+    /// <summary>
+    /// Whether the control is being built for the Designer preview.
+    /// </summary>
+    public bool IsDesignerPreview { get; init; }
+
+    /// <summary>
     /// 可选日志。
     /// </summary>
     public ILogger? Logger { get; init; }

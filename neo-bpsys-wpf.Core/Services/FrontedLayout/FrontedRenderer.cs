@@ -41,6 +41,10 @@ public class FrontedRenderer(
             ResourceResolver = resourceResolver,
             WindowId = context.WindowId,
             CanvasName = context.CanvasName,
+            CanvasBackgroundImage = runtimeState.BackgroundImage,
+            CanvasWidth = runtimeState.CanvasWidth,
+            CanvasHeight = runtimeState.CanvasHeight,
+            IsDesignerPreview = context.IsDesignerPreview,
             Logger = logger
         };
 
