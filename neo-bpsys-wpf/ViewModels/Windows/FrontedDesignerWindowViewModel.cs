@@ -317,7 +317,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         get => ZoomScale * 100;
         set
         {
-            var clamped = Math.Clamp(value, 25D, 200D);
+            var clamped = Math.Clamp(value, 25D, 400D);
             ApplyManualZoom(clamped / 100D);
         }
     }
@@ -4384,7 +4384,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         return ZoomPresets
             .Where(preset => !preset.IsFit && preset.Scale > currentScale + 0.001D)
             .OrderBy(preset => preset.Scale)
-            .FirstOrDefault()?.Scale ?? 2D;
+            .FirstOrDefault()?.Scale ?? 4D;
     }
 
     private double GetPreviousManualZoom(double currentScale)
@@ -4410,6 +4410,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ZoomPresets.Add(new FrontedDesignerZoomPreset("125%", 1.25D));
         ZoomPresets.Add(new FrontedDesignerZoomPreset("150%", 1.5D));
         ZoomPresets.Add(new FrontedDesignerZoomPreset("200%", 2D));
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("300%", 3D));
+        ZoomPresets.Add(new FrontedDesignerZoomPreset("400%", 4D));
     }
 
     private void UpdateFitZoomFromCurrentDocument()

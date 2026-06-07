@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="neo_bpsys_wpf.Views.Pages.TeamInfoPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -74,6 +74,11 @@
                             Command="{Binding ApplyTeamColorCommand}"
                             Content="{lex:Loc ApplyColor}"
                             Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            Command="{Binding ResetTeamColorCommand}"
+                            Content="{lex:Loc ResetDefaultColor}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                     </StackPanel>
                     <TextBlock
                         Margin="0,4,0,0"
@@ -305,6 +310,11 @@
                             Command="{Binding ApplyTeamColorCommand}"
                             Content="{lex:Loc ApplyColor}"
                             Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            Command="{Binding ResetTeamColorCommand}"
+                            Content="{lex:Loc ResetDefaultColor}"
+                            Icon="{ui:SymbolIcon Symbol=ArrowReset24}" />
                     </StackPanel>
                     <TextBlock
                         Margin="0,4,0,0"

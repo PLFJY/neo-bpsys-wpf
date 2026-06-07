@@ -3694,4 +3694,5 @@
   <data name="Designer.Property.StrokeThickness" xml:space="preserve"><value>描边宽度</value></data>
   <data name="Designer.Option.FillMode.Solid" xml:space="preserve"><value>纯色</value></data>
   <data name="Designer.Option.FillMode.LinearGradient" xml:space="preserve"><value>线性渐变</value></data>
+  <data name="ResetDefaultColor" xml:space="preserve"><value>恢复默认</value></data>
 </root>

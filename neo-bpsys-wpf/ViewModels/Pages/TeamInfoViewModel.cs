@@ -85,6 +85,16 @@ public partial class TeamInfoPageViewModel
             SyncTeamColorEditor();
         }
 
+        [RelayCommand]
+        private void ResetTeamColor()
+        {
+            var defaultColor = CurrentTeam.TeamType == Core.Enums.TeamType.AwayTeam
+                ? Team.DefaultAwayColorHex
+                : Team.DefaultHomeColorHex;
+            CurrentTeam.ColorHex = defaultColor;
+            SyncTeamColorEditor();
+        }
+
         private void CurrentTeamOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(Team.ColorHex))
