@@ -4,6 +4,8 @@
 
 当前所有内置前台窗口均已接入 v3 renderer：`ScoreSurWindow`、`ScoreHunWindow`、`ScoreGlobalWindow`、`CutSceneWindow`、`GameDataWindow`、`WidgetsWindow`、`BpWindow`。Designer v3 独立编辑器（`FrontedDesignerWindow`）是当前唯一的设计编辑器。
 
+> **下一阶段规划**: [Fronted Behavior Graph System — Phase 0 源码勘察报告](fronted-behavior-system.md) — 把 Designer v3 从静态前台布局编辑器升级成"事件驱动的控件动画/行为编排系统"。本报告包含 BehaviorGuid 接入点、behaviors 文件结构、Phase 1 实施步骤等全部勘察结论。
+
 ## 1. 背景与目标
 
 当前设计者模式历史上是 XAML-first：前台窗口的具体控件直接写在各窗口 XAML 中，运行时再由 `FrontedWindowService` 扫描 Canvas 子元素并保存/恢复每个 Canvas 的 `ElementInfo`。这些旧版文件和 `Config.json` 前台自定义字段现在只作为 legacy 转换、迁移对照存在；当前运行时和编辑器路径是 Designer v3 + `FrontedLayouts`。SettingPage 旧前台自定义入口已移除，旧版真实窗口设计器也已移除。旧 `.bpui` 包与 `Config.json`、`CustomUi/`、`FrontElementsConfig/` 等历史结构的耦合只由 legacy 转换流程处理。

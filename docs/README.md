@@ -12,6 +12,7 @@
 | [frontend-windows-and-layout.md](frontend-windows-and-layout.md) | 前台窗口、OBS 捕获、v3 布局、插件前台窗口 |
 | [fronted-designer-v3.md](fronted-designer-v3.md) | Fronted Designer v3 的配置驱动重构设计、兼容策略和实现历史 |
 | [fronted-designer-editor.md](fronted-designer-editor.md) | Designer v3 独立编辑器技术设计，包括 JSON key = 控件名、多 Canvas、透明 hitbox、Property Grid、Binding/Resource Browser 和保存策略 |
+| [fronted-behavior-system.md](fronted-behavior-system.md) | (Phase 0) Fronted Behavior Graph System 源码勘察报告 — BehaviorGuid、behaviors 文件结构、事件总线候选来源、Phase 1 实施步骤 |
 | [bpui-package-v3.md](bpui-package-v3.md) | Designer v3 `.bpui` 布局包标准，包括 manifest、资源 URI、包隔离、导入导出与包管理规格 |
 | [legacy-fronted-layout-migration.md](legacy-fronted-layout-migration.md) | 旧 `Config.json` 前台字段和旧 `.bpui` 到 Designer v3 布局的迁移规则 |
 | [backend-pages-and-navigation.md](backend-pages-and-navigation.md) | 后台页面注册、WPF-UI 导航约定 |
@@ -38,7 +39,7 @@
 | 主题 | 建议文档 |
 | --- | --- |
 | 架构入门 | `project-positioning.md`、`runtime-architecture.md`、`module-overview.md` |
-| UI / 前台 / 后台 | `frontend-windows-and-layout.md`、`fronted-designer-v3.md`、`fronted-designer-editor.md`、`bpui-package-v3.md`、`backend-pages-and-navigation.md`、`classic-mode.md`、`modern-smooth-scrolling.md`、`wpf-ui-pitfalls.md` |
+| UI / 前台 / 后台 | `frontend-windows-and-layout.md`、`fronted-designer-v3.md`、`fronted-designer-editor.md`、`fronted-behavior-system.md`、`bpui-package-v3.md`、`backend-pages-and-navigation.md`、`classic-mode.md`、`modern-smooth-scrolling.md`、`wpf-ui-pitfalls.md` |
 | 业务流程 | `game-guidance.md`、`smartbp-and-ocr.md`、`shared-data-and-state.md`、`score-system-v2.md` |
 | 插件 | `plugin-system.md`、`plugin-market.md` |
 | 资源 / 本地化 | `resources-localization-and-assets.md`、`settings-paths-and-data.md`、`bpui-package-v3.md` |
