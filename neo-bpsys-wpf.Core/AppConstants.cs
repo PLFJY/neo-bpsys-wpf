@@ -107,12 +107,12 @@ public static class AppConstants
     /// <summary>
     /// 全局求生者Ban位数量
     /// </summary>
-    public const int GlobalBanSurCount = 12;
+    public const int GlobalBanSurCount = 16;
 
     /// <summary>
     /// 全局监管者Ban位数量
     /// </summary>
-    public const int GlobalBanHunCount = 3;
+    public const int GlobalBanHunCount = 4;
 
     #endregion
 }

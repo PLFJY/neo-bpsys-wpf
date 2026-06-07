@@ -137,7 +137,7 @@ public partial class Team : ObservableObjectBase
     public ObservableCollection<Character?> GlobalBannedHunRecordList { get; }
 
     /// <summary>
-    /// 同步全局禁选记录
+    /// 将非空的暂存记录覆盖到当前生效的全局禁选列表
     /// </summary>
     public void UpdateGlobalBanFromRecord()
     {
@@ -152,6 +152,17 @@ public partial class Team : ObservableObjectBase
             if (GlobalBannedHunRecordList[i] == null) continue;
             GlobalBannedHunList[i] = GlobalBannedHunRecordList[i];
         }
+    }
+
+    /// <summary>
+    /// 清空用于下一次同阵营对局的全局禁选暂存记录
+    /// </summary>
+    public void ClearGlobalBanRecords()
+    {
+        for (var i = 0; i < GlobalBannedSurRecordList.Count; i++)
+            GlobalBannedSurRecordList[i] = null;
+        for (var i = 0; i < GlobalBannedHunRecordList.Count; i++)
+            GlobalBannedHunRecordList[i] = null;
     }
 
     [JsonIgnore] private ObservableCollection<Member?> _surMemberOnFieldPrivateCollection;
@@ -294,8 +305,8 @@ public partial class Team : ObservableObjectBase
         SurMemberList = newTeam.SurMemberList;
         HunMemberList = newTeam.HunMemberList;
 
-        GlobalBannedSurList = newTeam.GlobalBannedSurList;
-        GlobalBannedHunList = newTeam.GlobalBannedHunList;
+        ReplaceCollection(GlobalBannedSurList, newTeam.GlobalBannedSurList);
+        ReplaceCollection(GlobalBannedHunList, newTeam.GlobalBannedHunList);
 
         _surMemberOnFieldPrivateCollection = [.. Enumerable.Range(0, 4).Select<int, Member?>(_ => null)];
         SurMemberOnFieldCollection = new ReadOnlyObservableCollection<Member?>(_surMemberOnFieldPrivateCollection);
@@ -314,6 +325,13 @@ public partial class Team : ObservableObjectBase
         }
 
         MemberOnFieldChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private static void ReplaceCollection<T>(ObservableCollection<T> target, IEnumerable<T> source)
+    {
+        target.Clear();
+        foreach (var item in source)
+            target.Add(item);
     }
 
     #region 选手操作

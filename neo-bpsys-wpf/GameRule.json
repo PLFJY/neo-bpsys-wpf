@@ -1,7 +1,7 @@
 {
   "Game1FirstHalf": {
     "SurCurrentBan": 4,
-    "HunCurrentBan": 0,
+    "HunCurrentBan": 2,
     "SurGlobalBan": 0,
     "HunGlobalBan": 0,
     "WorkFlow": [
@@ -74,7 +74,7 @@
   },
   "Game1SecondHalf": {
     "SurCurrentBan": 4,
-    "HunCurrentBan": 0,
+    "HunCurrentBan": 2,
     "SurGlobalBan": 0,
     "HunGlobalBan": 0,
     "WorkFlow": [
@@ -132,7 +132,7 @@
   },
   "Game2FirstHalf": {
     "SurCurrentBan": 4,
-    "HunCurrentBan": 1,
+    "HunCurrentBan": 2,
     "SurGlobalBan": 4,
     "HunGlobalBan": 1,
     "WorkFlow": [
@@ -210,7 +210,7 @@
   },
   "Game2SecondHalf": {
     "SurCurrentBan": 4,
-    "HunCurrentBan": 1,
+    "HunCurrentBan": 2,
     "SurGlobalBan": 4,
     "HunGlobalBan": 1,
     "WorkFlow": [
@@ -551,8 +551,8 @@
   "Game4FirstHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 2,
-    "SurGlobalBan": 12,
-    "HunGlobalBan": 3,
+    "SurGlobalBan": 16,
+    "HunGlobalBan": 4,
     "WorkFlow": [
       {
         "Action": "PickMap",
@@ -624,8 +624,8 @@
   "Game4SecondHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 2,
-    "SurGlobalBan": 12,
-    "HunGlobalBan": 3,
+    "SurGlobalBan": 16,
+    "HunGlobalBan": 4,
     "WorkFlow": [
       {
         "Action": "BanSur",
@@ -687,8 +687,8 @@
   "Game5FirstHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 2,
-    "SurGlobalBan": 12,
-    "HunGlobalBan": 3,
+    "SurGlobalBan": 16,
+    "HunGlobalBan": 4,
     "WorkFlow": [
       {
         "Action": "PickMap",
@@ -760,8 +760,8 @@
   "Game5SecondHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 2,
-    "SurGlobalBan": 12,
-    "HunGlobalBan": 3,
+    "SurGlobalBan": 16,
+    "HunGlobalBan": 4,
     "WorkFlow": [
       {
         "Action": "BanSur",
@@ -823,8 +823,8 @@
   "Game5OvertimeFirstHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 2,
-    "SurGlobalBan": 12,
-    "HunGlobalBan": 3,
+    "SurGlobalBan": 16,
+    "HunGlobalBan": 4,
     "WorkFlow": [
       {
         "Action": "PickMap",
@@ -891,8 +891,8 @@
   "Game5OvertimeSecondHalf": {
     "SurCurrentBan": 4,
     "HunCurrentBan": 2,
-    "SurGlobalBan": 12,
-    "HunGlobalBan": 3,
+    "SurGlobalBan": 16,
+    "HunGlobalBan": 4,
     "WorkFlow": [
       {
         "Action": "BanSur",

@@ -522,6 +522,7 @@
                                                 <controls:CharacterSelector
                                                     Margin="0,0,10,10"
                                                     Command="{Binding ConfirmCommand}"
+                                                    DisabledKeys="{Binding DisabledKeys}"
                                                     ImageSource="{Binding PreviewImage}"
                                                     IsEnabled="{Binding IsEnabled}"
                                                     IsHighlighted="{Binding IsHighlighted}"
@@ -541,6 +542,7 @@
                                                 <controls:CharacterSelector
                                                     Margin="0,0,10,10"
                                                     Command="{Binding ConfirmCommand}"
+                                                    DisabledKeys="{Binding DisabledKeys}"
                                                     ImageSource="{Binding PreviewImage}"
                                                     IsEnabled="{Binding IsEnabled}"
                                                     IsHighlighted="{Binding IsHighlighted}"
@@ -571,6 +573,7 @@
                                                 <controls:CharacterSelector
                                                     Margin="0,0,10,10"
                                                     Command="{Binding ConfirmCommand}"
+                                                    DisabledKeys="{Binding DisabledKeys}"
                                                     ImageSource="{Binding PreviewImage}"
                                                     IsEnabled="{Binding IsEnabled}"
                                                     IsHighlighted="{Binding IsHighlighted}"
@@ -590,6 +593,7 @@
                                                 <controls:CharacterSelector
                                                     Margin="0,0,10,10"
                                                     Command="{Binding ConfirmCommand}"
+                                                    DisabledKeys="{Binding DisabledKeys}"
                                                     ImageSource="{Binding PreviewImage}"
                                                     IsEnabled="{Binding IsEnabled}"
                                                     IsHighlighted="{Binding IsHighlighted}"
@@ -624,6 +628,7 @@
                                                 <cc:CharacterSelector
                                                     Margin="0,8,0,0"
                                                     Command="{Binding ConfirmCommand}"
+                                                    DisabledKeys="{Binding DisabledKeys}"
                                                     ImageSource="{Binding PreviewImage}"
                                                     IsHighlighted="{Binding IsHighlighted}"
                                                     ItemsSource="{Binding CharaDict}"
@@ -643,6 +648,7 @@
                                 <cc:CharacterSelector
                                     Margin="0,10,0,0"
                                     Command="{Binding HunPickVm.ConfirmCommand}"
+                                    DisabledKeys="{Binding HunPickVm.DisabledKeys}"
                                     ImageSource="{Binding HunPickVm.PreviewImage}"
                                     IsHighlighted="{Binding HunPickVm.IsHighlighted}"
                                     ItemsSource="{Binding HunPickVm.CharaDict}"

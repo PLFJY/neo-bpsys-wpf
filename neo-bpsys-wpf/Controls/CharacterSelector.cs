@@ -1,4 +1,4 @@
-﻿using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core.Models;
 using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
@@ -110,6 +110,20 @@ public class CharacterSelector : Control
     // Using a DependencyProperty as the backing store for IsHighlighted.  This enables animation, styling, binding, etc...
     public static readonly DependencyProperty IsHighlightedProperty =
         DependencyProperty.Register(nameof(IsHighlighted), typeof(bool), typeof(CharacterSelector), new PropertyMetadata(false));
+
+    /// <summary>
+    /// 在下拉列表中应被禁用（灰显不可选）的角色名称集合
+    /// </summary>
+    public ISet<string> DisabledKeys
+    {
+        get => (ISet<string>)GetValue(DisabledKeysProperty);
+        set => SetValue(DisabledKeysProperty, value);
+    }
+
+    // Using a DependencyProperty as the backing store for DisabledKeys.
+    public static readonly DependencyProperty DisabledKeysProperty =
+        DependencyProperty.Register(nameof(DisabledKeys), typeof(ISet<string>), typeof(CharacterSelector),
+            new PropertyMetadata(null));
 
     public CharacterSelector()
     {

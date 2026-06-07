@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="neo_bpsys_wpf.Views.Pages.PickPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -60,6 +60,7 @@
                                 <cc:CharacterSelector
                                     Margin="0,10,0,0"
                                     Command="{Binding ConfirmCommand}"
+                                    DisabledKeys="{Binding DisabledKeys}"
                                     ImageSource="{Binding PreviewImage}"
                                     IsHighlighted="{Binding IsHighlighted}"
                                     ItemsSource="{Binding CharaDict}"
@@ -92,6 +93,7 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     Command="{Binding HunPickVm.ConfirmCommand}"
+                    DisabledKeys="{Binding HunPickVm.DisabledKeys}"
                     ImageSource="{Binding HunPickVm.PreviewImage}"
                     IsHighlighted="{Binding HunPickVm.IsHighlighted}"
                     ItemsSource="{Binding HunPickVm.CharaDict}"

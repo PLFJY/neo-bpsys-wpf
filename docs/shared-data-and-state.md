@@ -52,7 +52,93 @@ public ObservableCollection<bool> CanCurrentSurBanned => _sharedDataService.CanC
 
 `SetBanCount` 通过把前 N 个位置设为 `true` 来控制页面可用 Ban 位。列表项变化会触发 `BanCountChanged`。引导式 BP 启动时会根据 `GameRule.json` 调整这些列表。
 
-当前局禁用角色存储在 `CurrentGame.CurrentSurBannedList` 和 `CurrentGame.CurrentHunBannedList`。全局 Ban 记录在 `Team.GlobalBannedSurRecordList` / `GlobalBannedHunRecordList`，再由 `UpdateGlobalBanFromRecord()` 同步到显示列表。
+当前局禁用角色存储在 `CurrentGame.CurrentSurBannedList` 和 `CurrentGame.CurrentHunBannedList`。
+
+全局 Ban 有两层数据：
+
+| 列表 | 语义 |
+| --- | --- |
+| `Team.GlobalBannedSurList` / `GlobalBannedHunList` | 当前已经生效的全局禁选，是前台显示和选择器禁用判断的权威源 |
+| `Team.GlobalBannedSurRecordList` / `GlobalBannedHunRecordList` | 本轮该阵营 Pick 的暂存记录，供下一次队伍再次轮到该阵营时写入生效列表 |
+
+角色选择服务自动记录 Pick 时只写入 `RecordList`，不会立即改变当前生效的全局禁选。队伍再次轮到对应阵营、新建对局或启动引导时，`UpdateGlobalBanFromRecord()` 才会把暂存记录中的非空角色覆盖到当前生效列表。
+
+### 角色禁用状态联动
+
+`CharaSelectViewModelBase` 提供了 `DisabledKeys` 属性（`ISet<string>`），实时计算当前对局中同阵营已被 Ban 或已被 Pick 的角色名集合，用于在 `CharacterSelector` 下拉列表中灰显这些选项。
+
+| 场景 | 被禁用的角色 |
+| --- | --- |
+| 求生者 Ban / Pick 位 | 已启用的 `CurrentSurBannedList` + `CurrentGame.SurTeam.GlobalBannedSurList` + `SurPlayerList` 中已 Pick 的角色 |
+| 监管者 Ban / Pick 位 | 已启用的 `CurrentHunBannedList` + `CurrentGame.HunTeam.GlobalBannedHunList` + `HunPlayer.Character`（若非空） |
+
+数据流：
+
+```
+CurrentGame.BannedList / Player.Character 变化
+  → CollectionChanged / PropertyChanged 事件（Game 级别）
+    ─────────────────────────────────────────────
+SharedDataService.HomeTeam/AwayTeam.GlobalBannedSur(Hun)List 变化
+  → CollectionChanged 事件（当前生效列表为权威源）
+    ─────────────────────────────────────────────
+    → CharaSelectViewModelBase.UpdateDisabledKeys()
+      → DisabledKeys 属性变更
+        → CharacterSelector.DisabledKeys DP
+          → ComboBox.ItemContainerStyle (MultiBinding)
+            → ComboBoxItem.IsEnabled = false
+```
+
+`UpdateDisabledKeys` 只读取当前阵营队伍的 **生效列表（GlobalBanned*List）**，不会读取或订阅 `RecordList`。因此本轮 Pick 写入暂存记录后不会立即干扰 Ban/Pick；等队伍下一次轮到相同阵营、暂存记录覆盖到生效列表后，角色才会被禁用。读取时额外校验 `team.Camp` 与当前阵营一致，并在 `TeamSwapped` 完成态再次刷新，避免 `Game.Swap()` 先换 Camp、后换引用的中间态留下错误结果。
+
+### 换边复现步骤实际验证什么
+
+原始的五步复现不是要求换边时删除队伍自身保存的全局禁选，而是在验证：**选择器禁用状态必须跟随当前阵营上的队伍重新计算，不能残留上一支队伍的结果。**
+
+假设主队 A 在求生者阵营 Pick 了“医生”和“律师”，角色选择服务把它们写入 A 的 `GlobalBannedSurRecordList`：
+
+1. **写入暂存记录**：A 的求生者 `RecordList` 包含医生、律师，但它们尚未因此进入当前生效全局禁选。当前局是否可选仍由当前 Ban、当前 Pick 和生效列表决定。
+2. **第一次换边，A：Sur → Hun**：客队 B 成为当前 `SurTeam`。求生者选择器必须只读取 B 的 `GlobalBannedSurList`，不能因为 A 的暂存记录而禁用医生、律师。
+3. **打开 Ban 求生者页面**：用于确认页面初始化时也从当前 `SurTeam` 的生效列表派生状态，而不是保留旧缓存。
+4. **第二次换边，A：Hun → Sur**：A 再次成为当前 `SurTeam`。A 的暂存记录已经覆盖到 A 的 `GlobalBannedSurList`，医生、律师此时应当不能再 Ban，也不能再 Pick。
+5. **第三次换边，A：Sur → Hun**：B 再次成为当前 `SurTeam`。A 自己的 `GlobalBannedSurList` 中仍可保留医生、律师，但它们不属于当前求生者队伍，因此必须立即从求生者 `DisabledKeys` 中消失并恢复可选。
+
+这五步同时验证三件事：
+
+- `RecordList` 只是下一次同阵营对局的输入，不会直接影响当前选择器。
+- `GlobalBanned*List` 跟随队伍保存，不因队伍暂时换到另一阵营而删除。
+- `DisabledKeys` 跟随 `CurrentGame.SurTeam` / `HunTeam`，换边后不能残留上一支队伍的禁用角色。
+
+### 前后状态示例
+
+仍以求生者选择器为例，且所有相关 Ban 位均已启用：
+
+| 数据 | 状态一：A 当前为求生者，记录尚未生效 | 状态二：A 再次成为求生者，记录已经生效 |
+| --- | --- | --- |
+| A 的 `GlobalBannedSurRecordList` | 医生、律师 | 医生、律师 |
+| A 的 `GlobalBannedSurList` | 空 | 医生、律师 |
+| 当前局 Ban | 祭司 | 祭司 |
+| 当前局 Pick | 园丁 | 园丁 |
+| 不能 Ban / Pick | 祭司、园丁 | 医生、律师、祭司、园丁 |
+| 仍能 Ban / Pick | 医生、律师及其他未使用角色 | 其他未使用角色 |
+
+如果状态二之后再换边，让 B 成为当前求生者队伍，则 A 的医生、律师仍保存在 A 的生效列表里，但不会出现在当前求生者 `DisabledKeys` 中。若某个 Ban 位关闭，即使该位置仍保存角色，也不应加入 `DisabledKeys`。
+
+由此得到统一计算规则：
+
+```
+当前阵营 DisabledKeys
+  = 当前阵营已启用的当局 Ban
+  + 当前阵营队伍已启用的生效全局 Ban
+  + 当前阵营本局已 Pick 的角色
+```
+
+`RecordList`、另一支队伍的生效全局 Ban、已关闭 Ban 位中的角色，都不参与当前阵营的 `DisabledKeys`。
+
+导入对局（`ImportGameAsync`）恢复的是当前生效状态。`ImportTeamInfo` 在稳定的生效列表对象内更新内容，保证已有 ViewModel 的集合订阅继续有效；导入后调用 `ClearGlobalBanRecords()` 清空导入前的暂存记录，避免创建新 `Game` 时旧记录覆盖导入的生效列表。
+
+设计原则：角色禁用状态是**派生数据**，不存储在 `Character` 模型上，避免在 NewGame / ImportGame 等操作时需要额外清理。
+
+> **例外**：PickPage 中用于查看和手动调整暂存记录的 CharacterSelector（`HomeSur/HunGlobalBanRecordViewModel`、`AwaySur/HunGlobalBanRecordViewModel`）不绑定 `DisabledKeys`，否则暂存记录自身会阻止修正。
 
 ## 倒计时
 
@@ -107,3 +193,4 @@ Score System v2 的设计方向见 [score-system-v2.md](score-system-v2.md)。Ph
 4. 全局 Ban 有“记录列表”和“显示列表”两层，修改时要确认目标是哪一层。
 5. `ObservableCollection` 应在 UI 线程更新；后台回调更新集合前先看 [threading-dispatcher-and-async.md](threading-dispatcher-and-async.md)。
 6. SmartBP 写回赛后数据时直接修改 `CurrentGame` 中的 `PlayerData`，不要再维护 OCR 专用数据副本。
+7. 导入对局（`ImportGameAsync`）后必须清空旧的 `RecordList` 暂存记录，不能把导入的生效列表反写到记录列表。

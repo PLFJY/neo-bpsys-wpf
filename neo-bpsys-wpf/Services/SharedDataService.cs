@@ -220,6 +220,10 @@ public partial class SharedDataService : ISharedDataService
                 AwayTeam.ImportTeamInfo(importedGame.SurTeam);
             }
 
+            // 导入的是当前生效状态；清除旧暂存记录，避免创建 Game 时覆盖导入的全局禁选。
+            HomeTeam.ClearGlobalBanRecords();
+            AwayTeam.ClearGlobalBanRecords();
+
             if (HomeTeam.Camp == AwayTeam.Camp) throw new OperationCanceledException("Invalid game record");
 
             Team surTeam, hunTeam;

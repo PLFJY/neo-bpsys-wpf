@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="neo_bpsys_wpf.Views.Pages.BanHunPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -49,6 +49,7 @@
                             <controls:CharacterSelector
                                 Margin="0,0,10,10"
                                 Command="{Binding ConfirmCommand}"
+                                DisabledKeys="{Binding DisabledKeys}"
                                 ImageSource="{Binding PreviewImage}"
                                 IsEnabled="{Binding IsEnabled}"
                                 IsHighlighted="{Binding IsHighlighted}"
@@ -86,6 +87,7 @@
                             <controls:CharacterSelector
                                 Margin="0,0,10,10"
                                 Command="{Binding ConfirmCommand}"
+                                DisabledKeys="{Binding DisabledKeys}"
                                 ImageSource="{Binding PreviewImage}"
                                 IsEnabled="{Binding IsEnabled}"
                                 IsHighlighted="{Binding IsHighlighted}"

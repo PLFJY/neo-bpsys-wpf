@@ -135,6 +135,35 @@ public class GameImportCompatibilityTest
         }
     }
 
+    [Fact]
+    public async Task ImportGamePreservesEffectiveGlobalBanAndClearsOldRecords()
+    {
+        var sourceGame = new Game(
+            new Team(Camp.Sur, TeamType.HomeTeam),
+            new Team(Camp.Hun, TeamType.AwayTeam),
+            GameProgress.Game1FirstHalf);
+        sourceGame.SurTeam.GlobalBannedSurList[0] = new Character("医生", Camp.Sur, "医生.png");
+
+        var filePath = WriteGameJson(sourceGame);
+        var sharedDataService = CreateSharedDataService();
+        var effectiveSurBanList = sharedDataService.HomeTeam.GlobalBannedSurList;
+        sharedDataService.HomeTeam.GlobalBannedSurRecordList[0] =
+            new Character("园丁", Camp.Sur, "园丁.png");
+
+        try
+        {
+            await sharedDataService.ImportGameAsync(filePath);
+
+            Assert.Equal("医生", sharedDataService.HomeTeam.GlobalBannedSurList[0]?.Name);
+            Assert.Same(effectiveSurBanList, sharedDataService.HomeTeam.GlobalBannedSurList);
+            Assert.Null(sharedDataService.HomeTeam.GlobalBannedSurRecordList[0]);
+        }
+        finally
+        {
+            File.Delete(filePath);
+        }
+    }
+
     private static Game CreateGameWithRichMatchScore()
     {
         var game = new Game(
