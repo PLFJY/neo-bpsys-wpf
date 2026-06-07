@@ -3857,4 +3857,85 @@
   <data name="Designer.Validation.MissingCanvasBackgroundImage" xml:space="preserve"><value>Canvas の背景画像が設定されていません</value></data>
   <data name="Designer.Help.BackgroundTint.Title" xml:space="preserve"><value>背景の部分色付け</value></data>
   <data name="Designer.Help.BackgroundTint.Content" xml:space="preserve"><value>BackgroundTintRectangle と BackgroundTintPolygon は現在の有効な Canvas 背景を自動的に使用し、画像の再選択は不要です。\n背景に整列した静的な色付きコピーを長方形またはポリゴンでクリップし、背景のテクスチャを保持します。\nBaseColorWithTexture は TintColor を目標ベースカラーとして扱い、TextureStrength で元背景の明暗ディテールを調整します。LuminanceColorize と Multiply は従来の暗めの効果を維持します。\nTintBindingPath は HomeTeam.ColorHex または AwayTeam.ColorHex にバインドでき、チームカラー変更時に再生成されます。\nリアルタイム GPU 合成ではなく、必要時の CPU 再生成を使用します。</value></data>
+  <data name="Designer.Behaviors.Header" xml:space="preserve"><value>アニメーション / ビヘイビア</value></data>
+  <data name="Designer.Behaviors.Empty" xml:space="preserve"><value>このコントロールにはまだビヘイビアがありません。</value></data>
+  <data name="Designer.Behaviors.SelectedControl" xml:space="preserve"><value>選択中のコントロール</value></data>
+  <data name="Designer.Behaviors.List" xml:space="preserve"><value>ビヘイビア一覧</value></data>
+  <data name="Designer.Behaviors.Details" xml:space="preserve"><value>選択したビヘイビアを編集</value></data>
+  <data name="Designer.Behaviors.SelectBehaviorToEdit" xml:space="preserve"><value>上の一覧からビヘイビアを選択すると、ここでトリガーとパラメーターを編集できます。</value></data>
+  <data name="Designer.Behaviors.GraphPlaceholders" xml:space="preserve"><value>ノードグラフのプレースホルダー</value></data>
+  <data name="Designer.Behaviors.AddOneShot" xml:space="preserve"><value>OneShot を追加</value></data>
+  <data name="Designer.Behaviors.AddLoop" xml:space="preserve"><value>Loop を追加</value></data>
+  <data name="Designer.Behaviors.Delete" xml:space="preserve"><value>削除</value></data>
+  <data name="Designer.Behaviors.Duplicate" xml:space="preserve"><value>複製</value></data>
+  <data name="Designer.Behaviors.Enabled" xml:space="preserve"><value>有効</value></data>
+  <data name="Designer.Behaviors.Name" xml:space="preserve"><value>名前</value></data>
+  <data name="Designer.Behaviors.Kind" xml:space="preserve"><value>種類</value></data>
+  <data name="Designer.Behaviors.OneShot" xml:space="preserve"><value>OneShot</value></data>
+  <data name="Designer.Behaviors.Loop" xml:space="preserve"><value>Loop</value></data>
+  <data name="Designer.Behaviors.Trigger" xml:space="preserve"><value>トリガー</value></data>
+  <data name="Designer.Behaviors.StartTrigger" xml:space="preserve"><value>開始トリガー</value></data>
+  <data name="Designer.Behaviors.EndTrigger" xml:space="preserve"><value>終了トリガー</value></data>
+  <data name="Designer.Behaviors.Filters" xml:space="preserve"><value>フィルター</value></data>
+  <data name="Designer.Behaviors.AddFilter" xml:space="preserve"><value>フィルターを追加</value></data>
+  <data name="Designer.Behaviors.RemoveFilter" xml:space="preserve"><value>フィルターを削除</value></data>
+  <data name="Designer.Behaviors.EventType" xml:space="preserve"><value>イベント種類</value></data>
+  <data name="Designer.Behaviors.Source" xml:space="preserve"><value>ソース</value></data>
+  <data name="Designer.Behaviors.Operator" xml:space="preserve"><value>演算子</value></data>
+  <data name="Designer.Behaviors.Left" xml:space="preserve"><value>左辺</value></data>
+  <data name="Designer.Behaviors.Right" xml:space="preserve"><value>右辺</value></data>
+  <data name="Designer.Behaviors.RightValueKind" xml:space="preserve"><value>右辺の種類</value></data>
+  <data name="Designer.Behaviors.LoopPolicy" xml:space="preserve"><value>ループポリシー</value></data>
+  <data name="Designer.Behaviors.RepeatCount" xml:space="preserve"><value>繰り返し回数</value></data>
+  <data name="Designer.Behaviors.AutoReverse" xml:space="preserve"><value>自動反転</value></data>
+  <data name="Designer.Behaviors.IntervalMs" xml:space="preserve"><value>間隔 ms</value></data>
+  <data name="Designer.Behaviors.StopMode" xml:space="preserve"><value>停止モード</value></data>
+  <data name="Designer.Behaviors.ResetOnStop" xml:space="preserve"><value>停止時にリセット</value></data>
+  <data name="Designer.Behaviors.ReentryPolicy" xml:space="preserve"><value>再入ポリシー</value></data>
+  <data name="Designer.Behaviors.GraphPlaceholder" xml:space="preserve"><value>ノードグラフエディターは Phase 3 で利用可能になります</value></data>
+  <data name="Designer.Behaviors.StartGraph" xml:space="preserve"><value>開始グラフ</value></data>
+  <data name="Designer.Behaviors.LoopGraph" xml:space="preserve"><value>ループグラフ</value></data>
+  <data name="Designer.Behaviors.StopGraph" xml:space="preserve"><value>停止グラフ</value></data>
+  <data name="Designer.Behaviors.UnsavedBehaviorChanges" xml:space="preserve"><value>未保存のビヘイビア変更</value></data>
+  <data name="Designer.Behaviors.NewOneShot" xml:space="preserve"><value>新しい OneShot ビヘイビア</value></data>
+  <data name="Designer.Behaviors.NewLoop" xml:space="preserve"><value>新しい Loop ビヘイビア</value></data>
+  <data name="Designer.Behaviors.CopyOfFormat" xml:space="preserve"><value>{0} のコピー</value></data>
+  <data name="Designer.Behaviors.Operator.Equals" xml:space="preserve"><value>等しい</value></data>
+  <data name="Designer.Behaviors.Operator.NotEquals" xml:space="preserve"><value>等しくない</value></data>
+  <data name="Designer.Behaviors.Operator.GreaterThan" xml:space="preserve"><value>より大きい</value></data>
+  <data name="Designer.Behaviors.Operator.GreaterThanOrEqual" xml:space="preserve"><value>以上</value></data>
+  <data name="Designer.Behaviors.Operator.LessThan" xml:space="preserve"><value>より小さい</value></data>
+  <data name="Designer.Behaviors.Operator.LessThanOrEqual" xml:space="preserve"><value>以下</value></data>
+  <data name="Designer.Behaviors.Operator.Contains" xml:space="preserve"><value>含む</value></data>
+  <data name="Designer.Behaviors.Operator.Exists" xml:space="preserve"><value>存在する</value></data>
+  <data name="Designer.Behaviors.RightValueKind.Literal" xml:space="preserve"><value>リテラル</value></data>
+  <data name="Designer.Behaviors.RightValueKind.EventPath" xml:space="preserve"><value>イベントパス</value></data>
+  <data name="Designer.Behaviors.RightValueKind.SelfTag" xml:space="preserve"><value>自身タグ</value></data>
+  <data name="Designer.Behaviors.RightValueKind.BindingPath" xml:space="preserve"><value>バインドパス</value></data>
+  <data name="Designer.Behaviors.StopMode.StopImmediately" xml:space="preserve"><value>すぐ停止</value></data>
+  <data name="Designer.Behaviors.StopMode.CompleteCurrentIteration" xml:space="preserve"><value>現在の反復を完了</value></data>
+  <data name="Designer.Behaviors.StopMode.RunStopGraph" xml:space="preserve"><value>停止グラフを実行</value></data>
+  <data name="Designer.Behaviors.StopMode.HoldCurrentState" xml:space="preserve"><value>現在状態を保持</value></data>
+  <data name="Designer.Behaviors.ReentryPolicy.InterruptPrevious" xml:space="preserve"><value>前回を中断</value></data>
+  <data name="Designer.Behaviors.ReentryPolicy.IgnoreIfRunning" xml:space="preserve"><value>実行中は無視</value></data>
+  <data name="Designer.Behaviors.ReentryPolicy.Queue" xml:space="preserve"><value>キュー</value></data>
+  <data name="Designer.Behaviors.ReentryPolicy.AllowParallel" xml:space="preserve"><value>並列を許可</value></data>
+  <data name="Designer.Behaviors.Event.WindowShown" xml:space="preserve"><value>ウィンドウ表示</value></data>
+  <data name="Designer.Behaviors.Event.WindowHidden" xml:space="preserve"><value>ウィンドウ非表示</value></data>
+  <data name="Designer.Behaviors.Event.CanvasLoaded" xml:space="preserve"><value>Canvas 読み込み</value></data>
+  <data name="Designer.Behaviors.Event.CanvasStateChanged" xml:space="preserve"><value>Canvas 状態変更</value></data>
+  <data name="Designer.Behaviors.Event.ControlLoaded" xml:space="preserve"><value>コントロール読み込み</value></data>
+  <data name="Designer.Behaviors.Event.GameProgressChanged" xml:space="preserve"><value>対局進行変更</value></data>
+  <data name="Designer.Behaviors.Event.CharacterPicked" xml:space="preserve"><value>キャラクター選択</value></data>
+  <data name="Designer.Behaviors.Event.CharacterBanned" xml:space="preserve"><value>キャラクター禁止</value></data>
+  <data name="Designer.Behaviors.Event.CurrentPickingSlotChanged" xml:space="preserve"><value>現在選択枠変更</value></data>
+  <data name="Designer.Behaviors.Event.ScoreChanged" xml:space="preserve"><value>スコア変更</value></data>
+  <data name="Designer.Behaviors.Event.TeamChanged" xml:space="preserve"><value>チーム変更</value></data>
+  <data name="Designer.Behaviors.Event.TeamSwapped" xml:space="preserve"><value>チーム交代</value></data>
+  <data name="Designer.Behaviors.Event.MapChanged" xml:space="preserve"><value>マップ変更</value></data>
+  <data name="Designer.Behaviors.Event.TimerStarted" xml:space="preserve"><value>タイマー開始</value></data>
+  <data name="Designer.Behaviors.Event.TimerStopped" xml:space="preserve"><value>タイマー停止</value></data>
+  <data name="Designer.Behaviors.Event.TimerReached" xml:space="preserve"><value>タイマー到達</value></data>
+  <data name="Designer.Behaviors.Event.ManualTrigger" xml:space="preserve"><value>手動トリガー</value></data>
+  <data name="Designer.Behaviors.Event.PluginEvent" xml:space="preserve"><value>プラグインイベント</value></data>
 </root>

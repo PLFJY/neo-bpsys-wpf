@@ -1336,7 +1336,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private void OnClosing(object? sender, CancelEventArgs e)
     {
-        if (_forceCloseAfterDirtyPrompt || _viewModel?.CurrentDocument?.IsDirty != true)
+        if (_forceCloseAfterDirtyPrompt || _viewModel?.HasUnsavedChanges != true)
         {
             return;
         }
@@ -1381,7 +1381,7 @@ public partial class FrontedDesignerWindow : FluentWindow
 
     private async Task<bool> ConfirmDirtyDocumentCanContinueAsync(string messageKey)
     {
-        if (_viewModel?.CurrentDocument?.IsDirty != true)
+        if (_viewModel?.HasUnsavedChanges != true)
         {
             return true;
         }

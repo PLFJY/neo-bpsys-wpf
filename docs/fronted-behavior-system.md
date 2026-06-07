@@ -14,6 +14,21 @@ Phase 1 已完成行为系统的数据基础：
 - Core 新增 `Models/FrontedLayout/Behaviors/` 纯数据模型，覆盖行为文档、控件行为集合、触发器、过滤器、节点图、连接和循环策略。
 - 已添加 BehaviorGuid JSON/PropertyGrid/复制/删除测试，以及行为模型默认值和 JSON roundtrip 测试。
 
+## Phase 2 implemented
+
+Phase 2 已完成 Designer 侧行为面板和触发器编辑能力：
+
+- `IFrontedBehaviorService` 扩展为行为文档读写服务，`FrontedBehaviorService` 会按当前激活布局包读写 `behaviors/{WindowType}/{CanvasName}.behaviors.json`。行为数据仍独立于控件 config 和 `FrontedCanvasConfig`。
+- Designer v3 右侧属性区新增可折叠的“动画 / 行为”面板。选中控件后可以添加 OneShot / Loop 行为，重命名、启用/禁用、复制和删除行为。
+- 当旧布局控件的 `BehaviorGuid == Guid.Empty` 且用户第一次添加行为时，编辑器会按需生成新的 `BehaviorGuid` 并标记 layout dirty；仅切换选中控件不会生成 Guid。
+- OneShot 行为可编辑 `Trigger`；Loop 行为可编辑 `StartTrigger`、`EndTrigger` 和 `LoopPolicy`。触发器编辑器支持事件类型、来源和简单过滤器行，过滤器包含左值、运算符、右值与右值类型。
+- UI 已提供 `StartGraph` / `LoopGraph` / `StopGraph` 占位摘要，明确提示节点图编辑器将在 Phase 3 提供。
+- Designer VM 单独跟踪 `AreBehaviorsDirty`；保存操作会同时处理 layout dirty 和 behaviors dirty。删除控件时会删除该控件自身的 `ControlBehaviorSet`。
+- 新增 `FrontedBehaviorEventCatalog` 作为 Phase 2 事件元数据目录，包含窗口、Canvas、控件、对局、计时器、手动触发和插件事件，以及常用 payload 过滤字段。
+- 已添加行为面板 ViewModel、行为文档持久化、事件目录和轻量 Designer 集成测试。
+
+Phase 2 仍不实现：可视化节点图编辑器、真实事件总线、动画 runtime、WPF 动画执行、插件节点执行、Timeline 编辑器或前台窗口行为播放。这些仍属于 Phase 3+。
+
 ---
 
 ## 目录索引

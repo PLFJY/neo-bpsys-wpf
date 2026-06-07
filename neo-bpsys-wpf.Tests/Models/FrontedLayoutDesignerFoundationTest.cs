@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
@@ -18,6 +19,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -4021,6 +4023,81 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public async Task FrontedDesigner_SaveIncludesBehaviorSave_WhenOnlyBehaviorsDirty()
+    {
+        var behaviorService = new RecordingFrontedBehaviorService();
+        var viewModel = new FrontedDesignerWindowViewModel(behaviorService)
+        {
+            CurrentDocument = new FrontedCanvasDesignDocument
+            {
+                WindowTypeName = "BpWindow",
+                CanvasName = "BaseCanvas",
+                CanvasConfig = new FrontedCanvasConfig
+                {
+                    Version = 3,
+                    CanvasWidth = 100,
+                    CanvasHeight = 50
+                },
+                IsDirty = false
+            }
+        };
+        viewModel.BehaviorPanel.SetDocument(new FrontedBehaviorDocument
+        {
+            WindowType = "BpWindow",
+            CanvasName = "BaseCanvas"
+        });
+        viewModel.AreBehaviorsDirty = true;
+
+        var saved = await viewModel.SaveCurrentLayoutAsync();
+
+        Assert.True(saved);
+        Assert.Equal(1, behaviorService.SaveCount);
+        Assert.False(viewModel.AreBehaviorsDirty);
+    }
+
+    [Fact]
+    public void DeleteControl_RemovesBehaviorSetFromCurrentDocument()
+    {
+        var behaviorGuid = Guid.NewGuid();
+        var document = new FrontedCanvasDesignDocument
+        {
+            WindowTypeName = "BpWindow",
+            CanvasName = "BaseCanvas",
+            CanvasConfig = new FrontedCanvasConfig
+            {
+                Version = 3,
+                CanvasWidth = 100,
+                CanvasHeight = 50
+            },
+            Controls =
+            {
+                new FrontedControlDesignItem
+                {
+                    Name = "Title",
+                    Config = new TextFrontedControlConfig { BehaviorGuid = behaviorGuid }
+                }
+            }
+        };
+        var behaviorDocument = new FrontedBehaviorDocument
+        {
+            WindowType = "BpWindow",
+            CanvasName = "BaseCanvas"
+        };
+        behaviorDocument.GetOrCreateSet(behaviorGuid, "Title").Behaviors.Add(new FrontedBehavior { Name = "Fade" });
+        var viewModel = new FrontedDesignerWindowViewModel(new RecordingFrontedBehaviorService())
+        {
+            CurrentDocument = document
+        };
+        viewModel.BehaviorPanel.SetDocument(behaviorDocument);
+        viewModel.SelectedDesignItem = document.Controls[0];
+
+        viewModel.DeleteSelectedControlCommand.Execute(null);
+
+        Assert.Null(viewModel.BehaviorPanel.CurrentDocument.FindSet(behaviorGuid));
+        Assert.True(viewModel.AreBehaviorsDirty);
+    }
+
+    [Fact]
     public void SnapEffectiveStateAndStatusFollowToggleAndShiftSeparately()
     {
         var viewModel = new FrontedDesignerWindowViewModel();
@@ -5160,6 +5237,29 @@ public class FrontedLayoutDesignerFoundationTest
     private sealed class RecordingFrontedBehaviorService : IFrontedBehaviorService
     {
         public List<Guid> RemovedBehaviorGuids { get; } = [];
+
+        public int SaveCount { get; private set; }
+
+        public Task<FrontedBehaviorDocument> LoadDocumentAsync(
+            string windowType,
+            string canvasName,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(new FrontedBehaviorDocument
+            {
+                Version = 1,
+                WindowType = windowType,
+                CanvasName = canvasName
+            });
+        }
+
+        public Task SaveDocumentAsync(
+            FrontedBehaviorDocument document,
+            CancellationToken cancellationToken = default)
+        {
+            SaveCount++;
+            return Task.CompletedTask;
+        }
 
         public void RemoveBehaviors(Guid behaviorGuid)
         {

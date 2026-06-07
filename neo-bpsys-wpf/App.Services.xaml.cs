@@ -99,7 +99,8 @@ public partial class App
         services.AddSingleton<IFrontedLayoutPackageImporter, FrontedLayoutPackageImporter>();
         services.AddSingleton<IFrontedLayoutPackageLegacyConverter, FrontedLayoutPackageLegacyConverter>();
         services.AddSingleton<IFrontedPluginMetadataProvider, FrontedPluginMetadataProvider>();
-        services.AddSingleton<IFrontedBehaviorService, NoopFrontedBehaviorService>();
+        services.AddSingleton<FrontedBehaviorEventCatalog>();
+        services.AddSingleton<IFrontedBehaviorService, FrontedBehaviorService>();
         services.AddSingleton<IFrontedDesignerLocalizationService, FrontedDesignerI18nLocalizationService>();
         services.AddSingleton<IFrontedControl, TextFrontedControl>();
         services.AddSingleton<IFrontedControl, LocalizedTextFrontedControl>();

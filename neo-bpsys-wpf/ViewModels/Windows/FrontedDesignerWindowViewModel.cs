@@ -7,12 +7,14 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Messages;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.ScoreSystem;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Services.FrontedDesigner;
+using neo_bpsys_wpf.ViewModels.FrontedDesigner;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -129,6 +131,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _frontedWindowService = null;
         _behaviorService = new NoopFrontedBehaviorService();
         _logger = NullLogger<FrontedDesignerWindowViewModel>.Instance;
+        BehaviorPanel = CreateBehaviorPanel();
         InitializeZoomPresets();
     }
 
@@ -171,6 +174,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _frontedWindowService = frontedWindowService;
         _behaviorService = behaviorService;
         _logger = logger;
+        BehaviorPanel = CreateBehaviorPanel();
 
         foreach (var group in layoutCatalog.GetEntries()
                      .Where(entry => entry.IsMigrated && entry.IsEditable)
@@ -247,6 +251,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public ObservableCollection<FrontedAddControlCatalogGroup> AddControlCatalogGroups { get; } = [];
 
+    public BehaviorPanelViewModel BehaviorPanel { get; private set; }
+
     public ObservableCollection<FrontedCanvasBoModeStateOption> BoModeStateOptions { get; } =
     [
         new(FrontedCanvasBoModeState.Bo5, I18nHelper.GetLocalizedString("Designer.Canvas.Bo5State")),
@@ -263,6 +269,11 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     [ObservableProperty]
     private FrontedCanvasDesignDocument? _currentDocument;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanSaveLayout))]
+    [NotifyPropertyChangedFor(nameof(HasUnsavedChanges))]
+    private bool _areBehaviorsDirty;
 
     [ObservableProperty]
     private string _layoutSourcePath = string.Empty;
@@ -480,7 +491,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public bool CanRedo => _redoStack.Count > 0;
 
-    public bool CanSaveLayout => CurrentDocument?.IsDirty == true;
+    public bool CanSaveLayout => CurrentDocument is not null && (CurrentDocument.IsDirty || AreBehaviorsDirty);
+
+    public bool HasUnsavedChanges => CurrentDocument?.IsDirty == true || AreBehaviorsDirty;
 
     public bool CanResetToBuiltIn => CurrentDocument is not null;
 
@@ -607,6 +620,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         NotifyLayoutCommandState();
     }
 
+    partial void OnAreBehaviorsDirtyChanged(bool value)
+    {
+        RefreshDirtyState();
+        OnPropertyChanged(nameof(HasUnsavedChanges));
+    }
+
     partial void OnSnapEnabledChanged(bool value)
     {
         OnPropertyChanged(nameof(EffectiveSnapEnabled));
@@ -665,6 +684,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         _lastSelectedDesignItem = value;
 
+        BehaviorPanel.SetSelectedControl(value);
         RefreshSelectedControlDisplay();
         RebuildGlobalScoreCellEditorItems();
         RebuildPropertyEditorItems();
@@ -867,6 +887,16 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             ControlFilterText = string.Empty;
             CurrentDocument = document;
             CurrentDocument.IsDirty = false;
+            var behaviorDocument = await _behaviorService.LoadDocumentAsync(
+                entry.WindowTypeName,
+                entry.CanvasName,
+                cancellationToken);
+            if (cancellationToken.IsCancellationRequested || reloadVersion != _reloadLayoutVersion)
+            {
+                return;
+            }
+
+            ResetBehaviorDocument(behaviorDocument);
             SelectDesignItem(null);
             var validationMessages = _validator.Validate(document).ToList();
             if (!string.IsNullOrWhiteSpace(loadResult.Error))
@@ -918,12 +948,30 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             return false;
         }
 
-        var messages = _validator.Validate(CurrentDocument);
-        ApplyValidationMessages(messages);
-        if (messages.Any(message => message.Severity == FrontedLayoutValidationSeverity.Error))
+        var shouldSaveLayout = CurrentDocument.IsDirty;
+        var shouldSaveBehaviors = AreBehaviorsDirty;
+        if (!shouldSaveLayout && !shouldSaveBehaviors)
         {
-            StatusMessage = I18nHelper.GetLocalizedString("CannotSaveInvalidLayout");
-            return false;
+            var messages = _validator.Validate(CurrentDocument);
+            ApplyValidationMessages(messages);
+            if (messages.Any(message => message.Severity == FrontedLayoutValidationSeverity.Error))
+            {
+                StatusMessage = I18nHelper.GetLocalizedString("CannotSaveInvalidLayout");
+                return false;
+            }
+
+            return true;
+        }
+
+        if (shouldSaveLayout)
+        {
+            var messages = _validator.Validate(CurrentDocument);
+            ApplyValidationMessages(messages);
+            if (messages.Any(message => message.Severity == FrontedLayoutValidationSeverity.Error))
+            {
+                StatusMessage = I18nHelper.GetLocalizedString("CannotSaveInvalidLayout");
+                return false;
+            }
         }
 
         try
@@ -932,26 +980,42 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
                 LayoutSourceDisplay,
                 I18nHelper.GetLocalizedString("LayoutSourceBuiltIn"),
                 StringComparison.Ordinal);
-            var config = _designConverter.ToConfig(CurrentDocument);
-            config.Version = 3;
-            await _layoutService.SaveCanvasConfigAsync(
-                CurrentDocument.WindowTypeName,
-                CurrentDocument.CanvasName,
-                config);
 
-            CleanupPendingImportedResources(includeCurrentDocument: true);
-            CurrentDocument.IsDirty = false;
-            var savedResult = await _layoutService.LoadCanvasConfigWithMetadataAsync(
-                CurrentDocument.WindowTypeName,
-                CurrentDocument.CanvasName);
-            if (SelectedCanvas is not null)
+            if (shouldSaveLayout)
             {
-                ApplyLayoutSource(savedResult, SelectedCanvas);
+                var config = _designConverter.ToConfig(CurrentDocument);
+                config.Version = 3;
+                await _layoutService.SaveCanvasConfigAsync(
+                    CurrentDocument.WindowTypeName,
+                    CurrentDocument.CanvasName,
+                    config);
+
+                CleanupPendingImportedResources(includeCurrentDocument: true);
+                CurrentDocument.IsDirty = false;
             }
-            else
+
+            if (shouldSaveBehaviors)
             {
-                LayoutSourceDisplay = I18nHelper.GetLocalizedString("LayoutSourceUser");
-                LayoutSourcePath = savedResult.Path ?? string.Empty;
+                BehaviorPanel.CurrentDocument.WindowType = CurrentDocument.WindowTypeName;
+                BehaviorPanel.CurrentDocument.CanvasName = CurrentDocument.CanvasName;
+                await _behaviorService.SaveDocumentAsync(BehaviorPanel.CurrentDocument);
+                AreBehaviorsDirty = false;
+            }
+
+            if (shouldSaveLayout || wasBuiltInSource)
+            {
+                var savedResult = await _layoutService.LoadCanvasConfigWithMetadataAsync(
+                    CurrentDocument.WindowTypeName,
+                    CurrentDocument.CanvasName);
+                if (SelectedCanvas is not null)
+                {
+                    ApplyLayoutSource(savedResult, SelectedCanvas);
+                }
+                else
+                {
+                    LayoutSourceDisplay = I18nHelper.GetLocalizedString("LayoutSourceUser");
+                    LayoutSourcePath = savedResult.Path ?? string.Empty;
+                }
             }
 
             StatusMessage = wasBuiltInSource
@@ -964,8 +1028,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
             RefreshDirtyState();
 
-            // 保存后立即刷新所有前台窗口，使变更立刻生效
-            if (_frontedWindowService is not null)
+            if (shouldSaveLayout && _frontedWindowService is not null)
             {
                 await _frontedWindowService.ReloadFrontedLayoutsAsync();
             }
@@ -1017,6 +1080,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
         ControlFilterText = string.Empty;
         CurrentDocument = document;
+        ResetBehaviorDocument(new FrontedBehaviorDocument
+        {
+            Version = 1,
+            WindowType = windowTypeName,
+            CanvasName = canvasName
+        });
         SelectDesignItem(null);
         ApplyValidationMessages(_validator.Validate(document));
         RequestPreviewRender(config, SelectedCanvas);
@@ -1296,6 +1365,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         CurrentDocument.Controls.Remove(SelectedDesignItem);
         if (deletedBehaviorGuid != Guid.Empty)
         {
+            BehaviorPanel.RemoveBehaviors(deletedBehaviorGuid);
             _behaviorService.RemoveBehaviors(deletedBehaviorGuid);
         }
 
@@ -2685,6 +2755,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         ControlFilterText = string.Empty;
         CurrentDocument = null;
         SelectDesignItem(null);
+        ResetBehaviorDocument();
         ApplyValidationMessages([message]);
         RequestPreviewRender(null, SelectedCanvas);
     }
@@ -3424,10 +3495,49 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     private void RefreshDirtyState()
     {
-        DirtyIndicatorText = CurrentDocument?.IsDirty == true
-            ? $"* {I18nHelper.GetLocalizedString("Unsaved")}"
+        DirtyIndicatorText = CurrentDocument?.IsDirty == true || AreBehaviorsDirty
+            ? $"* {(CurrentDocument?.IsDirty == true ? I18nHelper.GetLocalizedString("Unsaved") : I18nHelper.GetLocalizedString("Designer.Behaviors.UnsavedBehaviorChanges"))}"
             : string.Empty;
+        OnPropertyChanged(nameof(HasUnsavedChanges));
         NotifyLayoutCommandState();
+    }
+
+    private BehaviorPanelViewModel CreateBehaviorPanel()
+    {
+        return new BehaviorPanelViewModel(
+            _localizationService,
+            new FrontedBehaviorEventCatalog(),
+            MarkLayoutDirtyFromBehaviorPanel,
+            MarkBehaviorsDirty);
+    }
+
+    private void MarkLayoutDirtyFromBehaviorPanel()
+    {
+        if (CurrentDocument is null)
+        {
+            return;
+        }
+
+        CurrentDocument.IsDirty = true;
+        RefreshDirtyState();
+    }
+
+    private void MarkBehaviorsDirty()
+    {
+        AreBehaviorsDirty = true;
+        RefreshDirtyState();
+    }
+
+    private void ResetBehaviorDocument(FrontedBehaviorDocument? document = null)
+    {
+        BehaviorPanel.SetDocument(document ?? new FrontedBehaviorDocument
+        {
+            Version = 1,
+            WindowType = CurrentDocument?.WindowTypeName,
+            CanvasName = CurrentDocument?.CanvasName
+        });
+        AreBehaviorsDirty = false;
+        BehaviorPanel.SetSelectedControl(SelectedDesignItem);
     }
 
     private void NotifyLayoutCommandState()

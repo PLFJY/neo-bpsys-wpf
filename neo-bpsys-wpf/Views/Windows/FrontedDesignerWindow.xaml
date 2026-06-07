@@ -13,6 +13,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
+    xmlns:frontedDesignerViews="clr-namespace:neo_bpsys_wpf.Views.FrontedDesigner"
     Title="{lex:Loc FrontedDesigner}"
     Width="1280"
     Height="720"
@@ -841,6 +842,7 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <StackPanel>
                             <TextBlock
@@ -1125,6 +1127,24 @@
                         <Expander
                             Grid.Row="3"
                             Margin="0,4,0,8"
+                            Header="{lex:Loc Designer.Behaviors.Header}">
+                            <Expander.Style>
+                                <Style BasedOn="{StaticResource {x:Type Expander}}" TargetType="Expander">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasSelectedDesignItem}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Expander.Style>
+                            <frontedDesignerViews:BehaviorPanelView
+                                Margin="0,8,0,0"
+                                DataContext="{Binding BehaviorPanel}" />
+                        </Expander>
+                        <Expander
+                            Grid.Row="4"
+                            Margin="0,4,0,8"
                             Header="{lex:Loc CanvasProperties}">
                             <StackPanel Margin="0,8,0,0">
                                 <Grid Margin="0,0,0,8">
@@ -1212,7 +1232,7 @@
                             </StackPanel>
                         </Expander>
                         <Expander
-                            Grid.Row="4"
+                            Grid.Row="5"
                             Margin="0,0,0,8"
                             Header="{lex:Loc WindowOptions}"
                             IsExpanded="False">

@@ -1,0 +1,213 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using System.IO;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+
+namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
+
+/// <summary>
+/// File-backed behavior document service for Designer v3 fronted layouts.
+/// </summary>
+public sealed class FrontedBehaviorService : IFrontedBehaviorService
+{
+    private readonly IFrontedUserLayoutStore _userLayoutStore;
+    private readonly IFrontedLayoutPackageManager? _packageManager;
+    private readonly ILogger<FrontedBehaviorService> _logger;
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    {
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        MaxDepth = FrontedLayoutLimits.MaxJsonDepth
+    };
+
+    private FrontedBehaviorDocument? _currentDocument;
+
+    public FrontedBehaviorService()
+        : this(new FrontedUserLayoutStore(), null, NullLogger<FrontedBehaviorService>.Instance)
+    {
+    }
+
+    public FrontedBehaviorService(
+        IFrontedUserLayoutStore userLayoutStore,
+        ILogger<FrontedBehaviorService> logger)
+        : this(userLayoutStore, null, logger)
+    {
+    }
+
+    public FrontedBehaviorService(
+        IFrontedUserLayoutStore userLayoutStore,
+        IFrontedLayoutPackageManager? packageManager,
+        ILogger<FrontedBehaviorService>? logger)
+    {
+        _userLayoutStore = userLayoutStore;
+        _packageManager = packageManager;
+        _logger = logger ?? NullLogger<FrontedBehaviorService>.Instance;
+    }
+
+    /// <inheritdoc />
+    public async Task<FrontedBehaviorDocument> LoadDocumentAsync(
+        string windowType,
+        string canvasName,
+        CancellationToken cancellationToken = default)
+    {
+        var path = await ResolveLoadPathAsync(windowType, canvasName, cancellationToken);
+        if (path is null || !File.Exists(path))
+        {
+            _currentDocument = CreateEmptyDocument(windowType, canvasName);
+            return _currentDocument;
+        }
+
+        try
+        {
+            if (new FileInfo(path).Length > FrontedLayoutLimits.MaxLayoutJsonBytes)
+            {
+                throw new InvalidDataException("BehaviorJsonTooLarge");
+            }
+
+            var json = await File.ReadAllTextAsync(path, cancellationToken);
+            _currentDocument = JsonSerializer.Deserialize<FrontedBehaviorDocument>(json, _jsonSerializerOptions)
+                               ?? CreateEmptyDocument(windowType, canvasName);
+            NormalizeDocument(_currentDocument, windowType, canvasName);
+            return _currentDocument;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to load fronted behavior document. Window: {WindowType}, Canvas: {CanvasName}, Path: {Path}",
+                windowType,
+                canvasName,
+                path);
+            _currentDocument = CreateEmptyDocument(windowType, canvasName);
+            return _currentDocument;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task SaveDocumentAsync(
+        FrontedBehaviorDocument document,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(document.WindowType))
+        {
+            throw new ArgumentException("Behavior document WindowType is required.", nameof(document));
+        }
+
+        if (string.IsNullOrWhiteSpace(document.CanvasName))
+        {
+            throw new ArgumentException("Behavior document CanvasName is required.", nameof(document));
+        }
+
+        NormalizeDocument(document, document.WindowType, document.CanvasName);
+        RemoveEmptySets(document);
+        var path = await ResolveSavePathAsync(document.WindowType, document.CanvasName, cancellationToken);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        var json = JsonSerializer.Serialize(document, _jsonSerializerOptions);
+        await File.WriteAllTextAsync(path, json, cancellationToken);
+        _currentDocument = document;
+    }
+
+    /// <inheritdoc />
+    public void RemoveBehaviors(Guid behaviorGuid)
+    {
+        _currentDocument?.RemoveSet(behaviorGuid);
+    }
+
+    private async Task<string?> ResolveLoadPathAsync(
+        string windowType,
+        string canvasName,
+        CancellationToken cancellationToken)
+    {
+        if (_packageManager is null)
+        {
+            return GetFallbackBehaviorPath(windowType, canvasName);
+        }
+
+        var active = await _packageManager.GetActivePackageStateAsync(cancellationToken);
+        if (string.Equals(active.PackageId, FrontedLayoutPackageManager.BuiltInPackageId, StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return GetPackageBehaviorPath(active.PackageId, windowType, canvasName);
+    }
+
+    private async Task<string> ResolveSavePathAsync(
+        string windowType,
+        string canvasName,
+        CancellationToken cancellationToken)
+    {
+        if (_packageManager is null)
+        {
+            return GetFallbackBehaviorPath(windowType, canvasName);
+        }
+
+        var package = await _packageManager.EnsureWritableActivePackageAsync(cancellationToken);
+        return GetPackageBehaviorPath(package.PackageId, windowType, canvasName);
+    }
+
+    private string GetPackageBehaviorPath(string packageId, string windowType, string canvasName)
+    {
+        var layoutsRoot = _packageManager!.GetPackageLayoutsRootFolder(packageId);
+        var packageRoot = Path.GetDirectoryName(Path.GetFullPath(layoutsRoot))
+                          ?? throw new InvalidOperationException("Package layouts root has no parent.");
+        return Path.Combine(packageRoot, GetBehaviorRelativePath(windowType, canvasName));
+    }
+
+    private string GetFallbackBehaviorPath(string windowType, string canvasName)
+    {
+        return Path.Combine(_userLayoutStore.GetRootFolder(), GetBehaviorRelativePath(windowType, canvasName));
+    }
+
+    private static string GetBehaviorRelativePath(string windowType, string canvasName)
+    {
+        if (!FrontedLayoutWindowPathHelper.IsSafePathSegment(canvasName))
+        {
+            throw new ArgumentException($"canvasName is not a safe layout path segment: {canvasName}", nameof(canvasName));
+        }
+
+        return Path.Combine(
+            "behaviors",
+            FrontedLayoutWindowPathHelper.GetLayoutFolderRelativePath(windowType),
+            $"{canvasName}.behaviors.json");
+    }
+
+    private static FrontedBehaviorDocument CreateEmptyDocument(string windowType, string canvasName)
+    {
+        return new FrontedBehaviorDocument
+        {
+            Version = 1,
+            WindowType = windowType,
+            CanvasName = canvasName
+        };
+    }
+
+    private static void NormalizeDocument(FrontedBehaviorDocument document, string windowType, string canvasName)
+    {
+        document.Version = 1;
+        document.WindowType = string.IsNullOrWhiteSpace(document.WindowType) ? windowType : document.WindowType;
+        document.CanvasName = string.IsNullOrWhiteSpace(document.CanvasName) ? canvasName : document.CanvasName;
+        document.ControlBehaviorSets ??= [];
+
+        foreach (var set in document.ControlBehaviorSets)
+        {
+            set.Behaviors ??= [];
+            foreach (var behavior in set.Behaviors)
+            {
+                behavior.Graph ??= new FrontedNodeGraph();
+                behavior.StartGraph ??= new FrontedNodeGraph();
+                behavior.LoopGraph ??= new FrontedNodeGraph();
+                behavior.StopGraph ??= new FrontedNodeGraph();
+                behavior.LoopPolicy ??= new FrontedLoopPolicy();
+            }
+        }
+    }
+
+    private static void RemoveEmptySets(FrontedBehaviorDocument document)
+    {
+        document.ControlBehaviorSets.RemoveAll(set => set.BehaviorGuid == Guid.Empty || set.Behaviors.Count == 0);
+    }
+}
