@@ -10,5 +10,9 @@ public sealed class FrontedBehaviorEventDescriptor
 
     public string Category { get; set; } = string.Empty;
 
+    public string CategoryDisplayNameKey { get; set; } = string.Empty;
+
+    public int Order { get; set; }
+
     public List<FrontedBehaviorEventPayloadField> PayloadFields { get; set; } = [];
 }

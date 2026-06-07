@@ -12,5 +12,6 @@ public enum TriggerFilterOperator
     LessThan,
     LessThanOrEqual,
     Contains,
+    NotContains,
     Exists
 }

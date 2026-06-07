@@ -3935,4 +3935,50 @@
   <data name="Designer.Behaviors.Event.TimerReached" xml:space="preserve"><value>Timer reached</value></data>
   <data name="Designer.Behaviors.Event.ManualTrigger" xml:space="preserve"><value>Manual trigger</value></data>
   <data name="Designer.Behaviors.Event.PluginEvent" xml:space="preserve"><value>Plugin event</value></data>
+  <data name="Designer.Behaviors.Category.Game" xml:space="preserve"><value>Game</value></data>
+  <data name="Designer.Behaviors.Category.Display" xml:space="preserve"><value>Display</value></data>
+  <data name="Designer.Behaviors.Category.Score" xml:space="preserve"><value>Score</value></data>
+  <data name="Designer.Behaviors.Category.Timer" xml:space="preserve"><value>Timer</value></data>
+  <data name="Designer.Behaviors.Event.CurrentGameChanged" xml:space="preserve"><value>Current game changed</value></data>
+  <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged" xml:space="preserve"><value>Total score margin changed</value></data>
+  <data name="Designer.Behaviors.Event.BanCountChanged" xml:space="preserve"><value>Ban count changed</value></data>
+  <data name="Designer.Behaviors.Event.IsTraitVisibleChanged" xml:space="preserve"><value>Trait visibility changed</value></data>
+  <data name="Designer.Behaviors.Event.IsBo3ModeChanged" xml:space="preserve"><value>BO3 mode changed</value></data>
+  <data name="Designer.Behaviors.Event.CountDownValueChanged" xml:space="preserve"><value>Countdown value changed</value></data>
+  <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged" xml:space="preserve"><value>Map breathing changed</value></data>
+  <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged" xml:space="preserve"><value>Map camp visibility changed</value></data>
+  <data name="Designer.Behaviors.Event.PickedMapChanged" xml:space="preserve"><value>Picked map changed</value></data>
+  <data name="Designer.Behaviors.Event.MapV2BannedChanged" xml:space="preserve"><value>Map ban state changed</value></data>
+  <data name="Designer.Behaviors.Payload.Game" xml:space="preserve"><value>Current game</value></data>
+  <data name="Designer.Behaviors.Payload.Margin" xml:space="preserve"><value>Margin</value></data>
+  <data name="Designer.Behaviors.Payload.ListName" xml:space="preserve"><value>List name</value></data>
+  <data name="Designer.Behaviors.Payload.Count" xml:space="preserve"><value>Count</value></data>
+  <data name="Designer.Behaviors.Payload.IsTraitVisible" xml:space="preserve"><value>Trait visible</value></data>
+  <data name="Designer.Behaviors.Payload.IsBo3Mode" xml:space="preserve"><value>BO3 mode</value></data>
+  <data name="Designer.Behaviors.Payload.RemainingSeconds" xml:space="preserve"><value>Remaining seconds</value></data>
+  <data name="Designer.Behaviors.Payload.IsMapV2Breathing" xml:space="preserve"><value>Map breathing enabled</value></data>
+  <data name="Designer.Behaviors.Payload.IsMapV2CampVisible" xml:space="preserve"><value>Map camp visible</value></data>
+  <data name="Designer.Behaviors.Payload.PickedMap" xml:space="preserve"><value>Picked map</value></data>
+  <data name="Designer.Behaviors.Operator.NotContains" xml:space="preserve"><value>does not contain</value></data>
+  <data name="Designer.Behaviors.When" xml:space="preserve"><value>When</value></data>
+  <data name="Designer.Behaviors.Is" xml:space="preserve"><value>is</value></data>
+  <data name="Designer.Behaviors.Value" xml:space="preserve"><value>Value</value></data>
+  <data name="Designer.Behaviors.UnknownParameterFormat" xml:space="preserve"><value>Unknown parameter: {0}</value></data>
+  <data name="Designer.Behaviors.OpenAnimationEditor" xml:space="preserve"><value>Open animation editor</value></data>
+  <data name="Designer.Behaviors.StartAnimation" xml:space="preserve"><value>Start animation</value></data>
+  <data name="Designer.Behaviors.LoopAnimation" xml:space="preserve"><value>Loop animation</value></data>
+  <data name="Designer.Behaviors.EndAnimation" xml:space="preserve"><value>End animation</value></data>
+  <data name="Designer.Behaviors.Animation" xml:space="preserve"><value>Animation</value></data>
+  <data name="Designer.Behaviors.AnimationEditorPlaceholder" xml:space="preserve"><value>Node graph animation editor will be implemented in Phase 3.</value></data>
+  <data name="Designer.Behaviors.Event.CurrentGameChanged.Description" xml:space="preserve"><value>Fires when the current game object changes.</value></data>
+  <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged.Description" xml:space="preserve"><value>Fires when the total score display margin changes.</value></data>
+  <data name="Designer.Behaviors.Event.BanCountChanged.Description" xml:space="preserve"><value>Fires when a ban list count changes.</value></data>
+  <data name="Designer.Behaviors.Event.IsTraitVisibleChanged.Description" xml:space="preserve"><value>Fires when trait visibility changes.</value></data>
+  <data name="Designer.Behaviors.Event.IsBo3ModeChanged.Description" xml:space="preserve"><value>Fires when BO3 mode changes.</value></data>
+  <data name="Designer.Behaviors.Event.CountDownValueChanged.Description" xml:space="preserve"><value>Fires when the countdown display value changes.</value></data>
+  <data name="Designer.Behaviors.Event.TeamSwapped.Description" xml:space="preserve"><value>Fires when home and away teams swap.</value></data>
+  <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged.Description" xml:space="preserve"><value>Fires when map breathing changes.</value></data>
+  <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description" xml:space="preserve"><value>Fires when map camp visibility changes.</value></data>
+  <data name="Designer.Behaviors.Event.PickedMapChanged.Description" xml:space="preserve"><value>Fires when the picked map changes.</value></data>
+  <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description" xml:space="preserve"><value>Fires when map ban state changes.</value></data>
 </root>

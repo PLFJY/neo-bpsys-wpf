@@ -43,25 +43,24 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         _markLayoutDirty = markLayoutDirty;
         _markBehaviorsDirty = markBehaviorsDirty;
         EventOptions = [.. eventCatalog.Events.Select(CreateEventOption)];
-        OperatorOptions = CreateEnumOptions<TriggerFilterOperator>("Designer.Behaviors.Operator");
-        RightValueKindOptions = CreateEnumOptions<TriggerFilterValueKind>("Designer.Behaviors.RightValueKind");
+        OperatorOptions = CreateOperatorOptions();
         StopModeOptions = CreateEnumOptions<FrontedLoopStopMode>("Designer.Behaviors.StopMode");
         ReentryPolicyOptions = CreateEnumOptions<FrontedReentryPolicy>("Designer.Behaviors.ReentryPolicy");
     }
 
     public ObservableCollection<BehaviorEditorViewModel> Behaviors { get; } = [];
 
-    public IReadOnlyList<BehaviorOptionViewModel> EventOptions { get; }
+    public IReadOnlyList<BehaviorEventOptionViewModel> EventOptions { get; }
 
     public IReadOnlyList<BehaviorOptionViewModel> OperatorOptions { get; }
-
-    public IReadOnlyList<BehaviorOptionViewModel> RightValueKindOptions { get; }
 
     public IReadOnlyList<BehaviorOptionViewModel> StopModeOptions { get; }
 
     public IReadOnlyList<BehaviorOptionViewModel> ReentryPolicyOptions { get; }
 
     public FrontedBehaviorDocument CurrentDocument { get; private set; } = new();
+
+    public event Action<FrontedBehaviorAnimationEditorViewModel>? AnimationEditorRequested;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedControl))]
@@ -129,7 +128,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             Kind = FrontedBehaviorKind.OneShot,
             Name = Localize("Designer.Behaviors.NewOneShot", "New OneShot Behavior"),
             Enabled = true,
-            Trigger = new TriggerDescriptor { EventType = "ManualTrigger" },
+            Trigger = new TriggerDescriptor { EventType = EventOptions.FirstOrDefault()?.EventType ?? string.Empty },
             Graph = new FrontedNodeGraph()
         };
         set.Behaviors.Add(behavior);
@@ -151,8 +150,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             Kind = FrontedBehaviorKind.Loop,
             Name = Localize("Designer.Behaviors.NewLoop", "New Loop Behavior"),
             Enabled = true,
-            StartTrigger = new TriggerDescriptor { EventType = "ManualTrigger" },
-            EndTrigger = new TriggerDescriptor { EventType = "ManualTrigger" },
+            StartTrigger = new TriggerDescriptor { EventType = EventOptions.FirstOrDefault()?.EventType ?? string.Empty },
+            EndTrigger = new TriggerDescriptor { EventType = EventOptions.FirstOrDefault()?.EventType ?? string.Empty },
             StartGraph = new FrontedNodeGraph(),
             LoopGraph = new FrontedNodeGraph(),
             StopGraph = new FrontedNodeGraph(),
@@ -297,20 +296,42 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             behavior,
             EventOptions,
             OperatorOptions,
-            RightValueKindOptions,
             StopModeOptions,
             ReentryPolicyOptions,
             GraphPlaceholder,
             MarkBehaviorsDirty,
-            Localize);
+            Localize,
+            editor => AnimationEditorRequested?.Invoke(editor));
     }
 
-    private BehaviorOptionViewModel CreateEventOption(FrontedBehaviorEventDescriptor descriptor)
+    private BehaviorEventOptionViewModel CreateEventOption(FrontedBehaviorEventDescriptor descriptor)
     {
-        return new BehaviorOptionViewModel(
+        var category = Localize(descriptor.CategoryDisplayNameKey, descriptor.Category);
+        return new BehaviorEventOptionViewModel(
             descriptor.EventType,
-            Localize(descriptor.DisplayNameKey, descriptor.EventType));
+            $"{category} / {Localize(descriptor.DisplayNameKey, descriptor.EventType)}",
+            category,
+            Localize(descriptor.DescriptionKey, descriptor.EventType),
+            descriptor.PayloadFields.Select(field => new BehaviorPayloadFieldOptionViewModel(
+                field.Path,
+                Localize(field.DisplayNameKey, field.Path),
+                Localize(field.DescriptionKey, field.Path),
+                field.TypeName,
+                false,
+                field.IsCommonFilterTarget)).ToArray());
     }
+
+    private IReadOnlyList<BehaviorOptionViewModel> CreateOperatorOptions() =>
+    [
+        new(TriggerFilterOperator.Equals, "="),
+        new(TriggerFilterOperator.NotEquals, "≠"),
+        new(TriggerFilterOperator.GreaterThan, ">"),
+        new(TriggerFilterOperator.LessThan, "<"),
+        new(TriggerFilterOperator.GreaterThanOrEqual, "≥"),
+        new(TriggerFilterOperator.LessThanOrEqual, "≤"),
+        new(TriggerFilterOperator.Contains, Localize("Designer.Behaviors.Operator.Contains", "contains")),
+        new(TriggerFilterOperator.NotContains, Localize("Designer.Behaviors.Operator.NotContains", "does not contain"))
+    ];
 
     private IReadOnlyList<BehaviorOptionViewModel> CreateEnumOptions<TEnum>(string prefix)
         where TEnum : struct, Enum
@@ -371,6 +392,36 @@ public sealed class BehaviorOptionViewModel(object value, string displayName)
     public string DisplayName { get; } = displayName;
 }
 
+public sealed class BehaviorEventOptionViewModel(
+    string eventType,
+    string displayName,
+    string categoryDisplayName,
+    string description,
+    IReadOnlyList<BehaviorPayloadFieldOptionViewModel> payloadFields)
+{
+    public string EventType { get; } = eventType;
+    public string DisplayName { get; } = displayName;
+    public string CategoryDisplayName { get; } = categoryDisplayName;
+    public string Description { get; } = description;
+    public IReadOnlyList<BehaviorPayloadFieldOptionViewModel> PayloadFields { get; } = payloadFields;
+}
+
+public sealed class BehaviorPayloadFieldOptionViewModel(
+    string path,
+    string displayName,
+    string description,
+    string typeName,
+    bool isUnknown,
+    bool isCommonFilterTarget)
+{
+    public string Path { get; } = path;
+    public string DisplayName { get; } = displayName;
+    public string Description { get; } = description;
+    public string TypeName { get; } = typeName;
+    public bool IsUnknown { get; } = isUnknown;
+    public bool IsCommonFilterTarget { get; } = isCommonFilterTarget;
+}
+
 public sealed partial class BehaviorEditorViewModel : ObservableObject
 {
     private readonly Action _markDirty;
@@ -379,14 +430,14 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
 
     public BehaviorEditorViewModel(
         FrontedBehavior model,
-        IReadOnlyList<BehaviorOptionViewModel> eventOptions,
+        IReadOnlyList<BehaviorEventOptionViewModel> eventOptions,
         IReadOnlyList<BehaviorOptionViewModel> operatorOptions,
-        IReadOnlyList<BehaviorOptionViewModel> rightValueKindOptions,
         IReadOnlyList<BehaviorOptionViewModel> stopModeOptions,
         IReadOnlyList<BehaviorOptionViewModel> reentryPolicyOptions,
         string graphPlaceholder,
         Action markDirty,
-        Func<string, string, string> localize)
+        Func<string, string, string> localize,
+        Action<FrontedBehaviorAnimationEditorViewModel> openAnimationEditor)
     {
         Model = model;
         _markDirty = markDirty;
@@ -395,19 +446,20 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
 
         if (Model.Kind == FrontedBehaviorKind.OneShot)
         {
-            Model.Trigger ??= new TriggerDescriptor { EventType = "ManualTrigger" };
+            Model.Trigger ??= new TriggerDescriptor { EventType = eventOptions.FirstOrDefault()?.EventType ?? string.Empty };
         }
         else
         {
-            Model.StartTrigger ??= new TriggerDescriptor { EventType = "ManualTrigger" };
-            Model.EndTrigger ??= new TriggerDescriptor { EventType = "ManualTrigger" };
+            Model.StartTrigger ??= new TriggerDescriptor { EventType = eventOptions.FirstOrDefault()?.EventType ?? string.Empty };
+            Model.EndTrigger ??= new TriggerDescriptor { EventType = eventOptions.FirstOrDefault()?.EventType ?? string.Empty };
             Model.LoopPolicy ??= new FrontedLoopPolicy();
         }
 
-        Trigger = new TriggerDescriptorEditorViewModel(Model.Trigger, eventOptions, operatorOptions, rightValueKindOptions, markDirty);
-        StartTrigger = new TriggerDescriptorEditorViewModel(Model.StartTrigger, eventOptions, operatorOptions, rightValueKindOptions, markDirty);
-        EndTrigger = new TriggerDescriptorEditorViewModel(Model.EndTrigger, eventOptions, operatorOptions, rightValueKindOptions, markDirty);
+        Trigger = new TriggerDescriptorEditorViewModel(Model.Trigger, eventOptions, operatorOptions, markDirty, localize);
+        StartTrigger = new TriggerDescriptorEditorViewModel(Model.StartTrigger, eventOptions, operatorOptions, markDirty, localize);
+        EndTrigger = new TriggerDescriptorEditorViewModel(Model.EndTrigger, eventOptions, operatorOptions, markDirty, localize);
         LoopPolicy = new LoopPolicyEditorViewModel(Model.LoopPolicy, stopModeOptions, reentryPolicyOptions, markDirty);
+        OpenAnimationEditorCommand = new RelayCommand(() => openAnimationEditor(new FrontedBehaviorAnimationEditorViewModel(Model, localize)));
     }
 
     public FrontedBehavior Model { get; }
@@ -419,6 +471,8 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
     public TriggerDescriptorEditorViewModel EndTrigger { get; }
 
     public LoopPolicyEditorViewModel LoopPolicy { get; }
+
+    public IRelayCommand OpenAnimationEditorCommand { get; }
 
     public string Name
     {
@@ -481,34 +535,40 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
 public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
 {
     private readonly Action _markDirty;
+    private readonly Func<string, string, string> _localize;
 
     public TriggerDescriptorEditorViewModel(
         TriggerDescriptor? model,
-        IReadOnlyList<BehaviorOptionViewModel> eventOptions,
+        IReadOnlyList<BehaviorEventOptionViewModel> eventOptions,
         IReadOnlyList<BehaviorOptionViewModel> operatorOptions,
-        IReadOnlyList<BehaviorOptionViewModel> rightValueKindOptions,
-        Action markDirty)
+        Action markDirty,
+        Func<string, string, string> localize)
     {
-        Model = model ?? new TriggerDescriptor { EventType = "ManualTrigger" };
+        Model = model ?? new TriggerDescriptor { EventType = eventOptions.FirstOrDefault()?.EventType ?? string.Empty };
         EventOptions = eventOptions;
         OperatorOptions = operatorOptions;
-        RightValueKindOptions = rightValueKindOptions;
         _markDirty = markDirty;
+        _localize = localize;
         foreach (var filter in Model.Filters)
         {
-            Filters.Add(new TriggerFilterEditorViewModel(filter, operatorOptions, rightValueKindOptions, markDirty));
+            Filters.Add(new TriggerFilterEditorViewModel(filter, operatorOptions, markDirty));
         }
+        UpdateSelectedEvent(localize);
     }
 
     public TriggerDescriptor Model { get; }
 
-    public IReadOnlyList<BehaviorOptionViewModel> EventOptions { get; }
+    public IReadOnlyList<BehaviorEventOptionViewModel> EventOptions { get; }
 
     public IReadOnlyList<BehaviorOptionViewModel> OperatorOptions { get; }
 
-    public IReadOnlyList<BehaviorOptionViewModel> RightValueKindOptions { get; }
-
     public ObservableCollection<TriggerFilterEditorViewModel> Filters { get; } = [];
+
+    public BehaviorEventOptionViewModel? SelectedEventDescriptor { get; private set; }
+
+    public IReadOnlyList<BehaviorPayloadFieldOptionViewModel> PayloadFieldOptions { get; private set; } = [];
+
+    public bool HasPayloadFields => PayloadFieldOptions.Count > 0;
 
     public string EventType
     {
@@ -518,18 +578,7 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
             if (SetProperty(Model.EventType, value, Model, static (model, next) => model.EventType = next))
             {
                 _markDirty();
-            }
-        }
-    }
-
-    public string? Source
-    {
-        get => Model.Source;
-        set
-        {
-            if (SetProperty(Model.Source, value, Model, static (model, next) => model.Source = next))
-            {
-                _markDirty();
+                UpdateSelectedEvent(_localize);
             }
         }
     }
@@ -539,12 +588,13 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
     {
         var filter = new TriggerFilter
         {
-            Left = "Event.",
-            Operator = TriggerFilterOperator.Equals,
-            RightValueKind = TriggerFilterValueKind.Literal
+            Left = PayloadFieldOptions.FirstOrDefault(field => field.IsCommonFilterTarget)?.Path
+                   ?? PayloadFieldOptions.FirstOrDefault()?.Path
+                   ?? string.Empty,
+            Operator = TriggerFilterOperator.Equals
         };
         Model.Filters.Add(filter);
-        Filters.Add(new TriggerFilterEditorViewModel(filter, OperatorOptions, RightValueKindOptions, _markDirty));
+        Filters.Add(new TriggerFilterEditorViewModel(filter, OperatorOptions, _markDirty));
         _markDirty();
     }
 
@@ -564,6 +614,35 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
         Filters.Remove(filter);
         _markDirty();
     }
+
+    private void UpdateSelectedEvent(Func<string, string, string> localize)
+    {
+        SelectedEventDescriptor = EventOptions.FirstOrDefault(option =>
+            string.Equals(option.EventType, Model.EventType, StringComparison.Ordinal));
+        var options = SelectedEventDescriptor?.PayloadFields.ToList() ?? [];
+        foreach (var path in Model.Filters.Select(filter => filter.Left).Where(path => !string.IsNullOrWhiteSpace(path)).Distinct())
+        {
+            if (options.All(option => !string.Equals(option.Path, path, StringComparison.Ordinal)))
+            {
+                options.Add(new BehaviorPayloadFieldOptionViewModel(
+                    path,
+                    string.Format(localize("Designer.Behaviors.UnknownParameterFormat", "Unknown parameter: {0}"), path),
+                    path,
+                    "string",
+                    true,
+                    false));
+            }
+        }
+
+        PayloadFieldOptions = options;
+        foreach (var filter in Filters)
+        {
+            filter.SetPayloadFieldOptions(options);
+        }
+        OnPropertyChanged(nameof(SelectedEventDescriptor));
+        OnPropertyChanged(nameof(PayloadFieldOptions));
+        OnPropertyChanged(nameof(HasPayloadFields));
+    }
 }
 
 public sealed partial class TriggerFilterEditorViewModel : ObservableObject
@@ -573,12 +652,10 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
     public TriggerFilterEditorViewModel(
         TriggerFilter model,
         IReadOnlyList<BehaviorOptionViewModel> operatorOptions,
-        IReadOnlyList<BehaviorOptionViewModel> rightValueKindOptions,
         Action markDirty)
     {
         Model = model;
         OperatorOptions = operatorOptions;
-        RightValueKindOptions = rightValueKindOptions;
         _markDirty = markDirty;
     }
 
@@ -586,7 +663,10 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
 
     public IReadOnlyList<BehaviorOptionViewModel> OperatorOptions { get; }
 
-    public IReadOnlyList<BehaviorOptionViewModel> RightValueKindOptions { get; }
+    public IReadOnlyList<BehaviorPayloadFieldOptionViewModel> PayloadFieldOptions { get; private set; } = [];
+
+    public bool IsUnknownParameter => PayloadFieldOptions.FirstOrDefault(option =>
+        string.Equals(option.Path, Left, StringComparison.Ordinal))?.IsUnknown == true;
 
     public string Left
     {
@@ -596,6 +676,7 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
             if (SetProperty(Model.Left, value, Model, static (model, next) => model.Left = next))
             {
                 _markDirty();
+                OnPropertyChanged(nameof(IsUnknownParameter));
             }
         }
     }
@@ -624,18 +705,41 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
         }
     }
 
-    public TriggerFilterValueKind RightValueKind
+    public void SetPayloadFieldOptions(IReadOnlyList<BehaviorPayloadFieldOptionViewModel> options)
     {
-        get => Model.RightValueKind;
-        set
-        {
-            if (SetProperty(Model.RightValueKind, value, Model, static (model, next) => model.RightValueKind = next))
-            {
-                _markDirty();
-            }
-        }
+        PayloadFieldOptions = options;
+        OnPropertyChanged(nameof(PayloadFieldOptions));
+        OnPropertyChanged(nameof(IsUnknownParameter));
     }
 }
+
+public sealed class FrontedBehaviorAnimationEditorViewModel
+{
+    public FrontedBehaviorAnimationEditorViewModel(FrontedBehavior behavior, Func<string, string, string> localize)
+    {
+        Title = behavior.Name;
+        IsLoop = behavior.Kind == FrontedBehaviorKind.Loop;
+        Stages = IsLoop
+            ?
+            [
+                Stage(localize("Designer.Behaviors.StartAnimation", "Start animation"), behavior.StartGraph),
+                Stage(localize("Designer.Behaviors.LoopAnimation", "Loop animation"), behavior.LoopGraph),
+                Stage(localize("Designer.Behaviors.EndAnimation", "End animation"), behavior.StopGraph)
+            ]
+            : [Stage(localize("Designer.Behaviors.Animation", "Animation"), behavior.Graph)];
+        Placeholder = localize("Designer.Behaviors.AnimationEditorPlaceholder", "Node graph animation editor will be implemented in Phase 3.");
+    }
+
+    public string Title { get; }
+    public bool IsLoop { get; }
+    public string Placeholder { get; }
+    public IReadOnlyList<FrontedBehaviorAnimationStageViewModel> Stages { get; }
+
+    private static FrontedBehaviorAnimationStageViewModel Stage(string name, FrontedNodeGraph graph) =>
+        new(name, graph.Nodes.Count, graph.Connections.Count);
+}
+
+public sealed record FrontedBehaviorAnimationStageViewModel(string DisplayName, int NodeCount, int LinkCount);
 
 public sealed partial class LoopPolicyEditorViewModel : ObservableObject
 {

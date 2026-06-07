@@ -21,13 +21,53 @@ Phase 2 已完成 Designer 侧行为面板和触发器编辑能力：
 - `IFrontedBehaviorService` 扩展为行为文档读写服务，`FrontedBehaviorService` 会按当前激活布局包读写 `behaviors/{WindowType}/{CanvasName}.behaviors.json`。行为数据仍独立于控件 config 和 `FrontedCanvasConfig`。
 - Designer v3 右侧属性区新增可折叠的“动画 / 行为”面板。选中控件后可以添加 OneShot / Loop 行为，重命名、启用/禁用、复制和删除行为。
 - 当旧布局控件的 `BehaviorGuid == Guid.Empty` 且用户第一次添加行为时，编辑器会按需生成新的 `BehaviorGuid` 并标记 layout dirty；仅切换选中控件不会生成 Guid。
-- OneShot 行为可编辑 `Trigger`；Loop 行为可编辑 `StartTrigger`、`EndTrigger` 和 `LoopPolicy`。触发器编辑器支持事件类型、来源和简单过滤器行，过滤器包含左值、运算符、右值与右值类型。
-- UI 已提供 `StartGraph` / `LoopGraph` / `StopGraph` 占位摘要，明确提示节点图编辑器将在 Phase 3 提供。
+- OneShot 行为可编辑 `Trigger`；Loop 行为可编辑 `StartTrigger`、`EndTrigger` 和 `LoopPolicy`。触发器编辑器使用事件 payload 参数、可读运算符和文本值组成规则；内部 `Source` 与兼容字段 `RightValueKind` 不在正常 UI 中显示。
+- UI 提供动画编辑器入口；OneShot 显示单图占位，Loop 通过 Top LocalTabs 切换 `StartGraph` / `LoopGraph` / `StopGraph` 占位摘要，并明确提示节点图编辑器将在 Phase 3 提供。
 - Designer VM 单独跟踪 `AreBehaviorsDirty`；保存操作会同时处理 layout dirty 和 behaviors dirty。删除控件时会删除该控件自身的 `ControlBehaviorSet`。
-- 新增 `FrontedBehaviorEventCatalog` 作为 Phase 2 事件元数据目录，包含窗口、Canvas、控件、对局、计时器、手动触发和插件事件，以及常用 payload 过滤字段。
+- `FrontedBehaviorEventCatalog` 从显式标注的 `ISharedDataService` 语义事件反射并缓存事件元数据与常用 payload 过滤字段。
 - 已添加行为面板 ViewModel、行为文档持久化、事件目录和轻量 Designer 集成测试。
 
 Phase 2 仍不实现：可视化节点图编辑器、真实事件总线、动画 runtime、WPF 动画执行、插件节点执行、Timeline 编辑器或前台窗口行为播放。这些仍属于 Phase 3+。
+
+## Phase 2 UX / event catalog update
+
+### Attribute-driven event catalog
+
+行为编辑器不再维护硬编码事件列表。`ISharedDataService` 中只有显式标记
+`FrontedBehaviorEventAttribute` 的事件会进入 `FrontedBehaviorEventCatalog`；未标记事件不会暴露。
+`FrontedBehaviorEventPayloadAttribute` 描述可用于过滤器的 payload 路径、显示名、类型和未来 runtime
+取值来源（服务属性、事件参数属性等）。目录通过反射构建一次并缓存，按分类、顺序和显示名稳定排序。
+
+事件名、分类名和 payload 参数名都通过本地化 key 展示；行为 JSON 仍保存稳定的原始
+`EventType` 与 `Event.*` 路径。新增共享数据事件时，应先判断它是否具有前台动画语义，再决定是否标注，
+不要盲目把所有服务事件加入目录。
+
+### Filter rule builder
+
+过滤器 UI 使用面向用户的规则行：`当 [参数] [运算符] [文本值]`。左侧参数来自当前事件的 payload
+下拉框，运算符显示为 `=`、`>`、`<`、`≥`、`≤`、`包含`、`不包含` 等可读符号/文本，右侧始终是普通文本。
+`Source` 和兼容旧 Phase 2 JSON 的 `RightValueKind` 不在正常 UI 中显示。
+
+未来 runtime 会将左值通过 `ToString()` 转为文本。等于和包含比较忽略大小写；大小比较在两侧都能按
+Invariant Culture 解析为 decimal 时使用数值比较，否则回退为 ordinal 文本比较。一个 Trigger 的所有
+过滤条件必须全部通过；任意条件失败都跳过动画。切换事件时不会静默删除旧过滤条件，找不到的路径会作为
+“未知参数”保留并显示。
+
+### Messenger policy
+
+行为编辑器目录不直接暴露 Messenger message。行为系统消费具有前台语义的 `FrontedBehaviorEvent`；
+未来可以通过 adapter 将 Messenger message 包装为语义事件。这样可以把 UI/MVVM 基础设施消息与前台行为
+语义分开。未来 adapter 可以在 message 类型或 adapter 方法上复用相同的事件元数据属性，但本阶段只处理
+`ISharedDataService` 的反射目录，不实现 Messenger adapter。
+
+### Animation editor placeholder and scrolling
+
+行为卡片提供“打开动画编辑器”入口。OneShot 显示单个图占位；Loop 使用 Top NavigationView /
+`LocalTabs` 在开始动画、循环动画、结束动画之间切换，并显示当前节点/连线数量。真实节点图编辑和动画
+runtime 仍属于 Phase 3。
+
+BehaviorPanel 必须让 Designer 右侧的外层 ScrollViewer 负责滚动。行为列表和过滤器列表使用
+`ItemsControl` + `Expander`/卡片，不在面板内部使用 `ListBox`、`ListView` 或额外 ScrollViewer，避免嵌套滚动。
 
 ---
 

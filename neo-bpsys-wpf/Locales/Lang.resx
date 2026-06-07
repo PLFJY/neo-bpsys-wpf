@@ -3790,4 +3790,50 @@
   <data name="Designer.Behaviors.Event.ManualTrigger" xml:space="preserve"><value>手动触发</value></data>
   <data name="Designer.Behaviors.Event.PluginEvent" xml:space="preserve"><value>插件事件</value></data>
   <data name="ResetDefaultColor" xml:space="preserve"><value>恢复默认</value></data>
+  <data name="Designer.Behaviors.Category.Game" xml:space="preserve"><value>对局</value></data>
+  <data name="Designer.Behaviors.Category.Display" xml:space="preserve"><value>显示</value></data>
+  <data name="Designer.Behaviors.Category.Score" xml:space="preserve"><value>比分</value></data>
+  <data name="Designer.Behaviors.Category.Timer" xml:space="preserve"><value>计时器</value></data>
+  <data name="Designer.Behaviors.Event.CurrentGameChanged" xml:space="preserve"><value>当前对局改变</value></data>
+  <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged" xml:space="preserve"><value>总分间距改变</value></data>
+  <data name="Designer.Behaviors.Event.BanCountChanged" xml:space="preserve"><value>Ban 位数量改变</value></data>
+  <data name="Designer.Behaviors.Event.IsTraitVisibleChanged" xml:space="preserve"><value>辅助特质可见性改变</value></data>
+  <data name="Designer.Behaviors.Event.IsBo3ModeChanged" xml:space="preserve"><value>BO3 模式改变</value></data>
+  <data name="Designer.Behaviors.Event.CountDownValueChanged" xml:space="preserve"><value>倒计时数值改变</value></data>
+  <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged" xml:space="preserve"><value>地图呼吸灯改变</value></data>
+  <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged" xml:space="preserve"><value>地图阵营可见性改变</value></data>
+  <data name="Designer.Behaviors.Event.PickedMapChanged" xml:space="preserve"><value>选择地图改变</value></data>
+  <data name="Designer.Behaviors.Event.MapV2BannedChanged" xml:space="preserve"><value>地图禁用状态改变</value></data>
+  <data name="Designer.Behaviors.Payload.Game" xml:space="preserve"><value>当前对局</value></data>
+  <data name="Designer.Behaviors.Payload.Margin" xml:space="preserve"><value>间距</value></data>
+  <data name="Designer.Behaviors.Payload.ListName" xml:space="preserve"><value>列表名称</value></data>
+  <data name="Designer.Behaviors.Payload.Count" xml:space="preserve"><value>数量</value></data>
+  <data name="Designer.Behaviors.Payload.IsTraitVisible" xml:space="preserve"><value>辅助特质可见</value></data>
+  <data name="Designer.Behaviors.Payload.IsBo3Mode" xml:space="preserve"><value>BO3 模式</value></data>
+  <data name="Designer.Behaviors.Payload.RemainingSeconds" xml:space="preserve"><value>剩余秒数</value></data>
+  <data name="Designer.Behaviors.Payload.IsMapV2Breathing" xml:space="preserve"><value>地图呼吸灯开启</value></data>
+  <data name="Designer.Behaviors.Payload.IsMapV2CampVisible" xml:space="preserve"><value>地图阵营可见</value></data>
+  <data name="Designer.Behaviors.Payload.PickedMap" xml:space="preserve"><value>选择地图</value></data>
+  <data name="Designer.Behaviors.Operator.NotContains" xml:space="preserve"><value>不包含</value></data>
+  <data name="Designer.Behaviors.When" xml:space="preserve"><value>当</value></data>
+  <data name="Designer.Behaviors.Is" xml:space="preserve"><value>为</value></data>
+  <data name="Designer.Behaviors.Value" xml:space="preserve"><value>值</value></data>
+  <data name="Designer.Behaviors.UnknownParameterFormat" xml:space="preserve"><value>未知参数：{0}</value></data>
+  <data name="Designer.Behaviors.OpenAnimationEditor" xml:space="preserve"><value>打开动画编辑器</value></data>
+  <data name="Designer.Behaviors.StartAnimation" xml:space="preserve"><value>开始动画</value></data>
+  <data name="Designer.Behaviors.LoopAnimation" xml:space="preserve"><value>循环动画</value></data>
+  <data name="Designer.Behaviors.EndAnimation" xml:space="preserve"><value>结束动画</value></data>
+  <data name="Designer.Behaviors.Animation" xml:space="preserve"><value>动画</value></data>
+  <data name="Designer.Behaviors.AnimationEditorPlaceholder" xml:space="preserve"><value>节点图动画编辑器将在 Phase 3 实现。</value></data>
+  <data name="Designer.Behaviors.Event.CurrentGameChanged.Description" xml:space="preserve"><value>当前对局对象被替换时触发。</value></data>
+  <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged.Description" xml:space="preserve"><value>总分展示间距改变时触发。</value></data>
+  <data name="Designer.Behaviors.Event.BanCountChanged.Description" xml:space="preserve"><value>任一 Ban 位列表数量改变时触发。</value></data>
+  <data name="Designer.Behaviors.Event.IsTraitVisibleChanged.Description" xml:space="preserve"><value>辅助特质可见性改变时触发。</value></data>
+  <data name="Designer.Behaviors.Event.IsBo3ModeChanged.Description" xml:space="preserve"><value>BO3 模式状态改变时触发。</value></data>
+  <data name="Designer.Behaviors.Event.CountDownValueChanged.Description" xml:space="preserve"><value>倒计时显示值改变时触发。</value></data>
+  <data name="Designer.Behaviors.Event.TeamSwapped.Description" xml:space="preserve"><value>主客队换边时触发。</value></data>
+  <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged.Description" xml:space="preserve"><value>地图呼吸灯状态改变时触发。</value></data>
+  <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description" xml:space="preserve"><value>地图阵营可见性改变时触发。</value></data>
+  <data name="Designer.Behaviors.Event.PickedMapChanged.Description" xml:space="preserve"><value>选择地图改变时触发。</value></data>
+  <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description" xml:space="preserve"><value>地图禁用状态改变时触发。</value></data>
 </root>

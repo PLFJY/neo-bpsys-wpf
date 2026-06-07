@@ -67,7 +67,6 @@ public partial class SharedDataService : ISharedDataService
         CanGlobalHunBannedList.CollectionChanged += (_, e) =>
             HandleBanCollectionChanged(BanListName.CanGlobalHunBanned, e);
 
-        GlobalScoreTotalMargin = 370;
         _timer.Interval = TimeSpan.FromSeconds(1);
         _timer.Tick += Timer_Tick;
 
@@ -602,24 +601,6 @@ public partial class SharedDataService : ISharedDataService
         }
     }
 
-    /// <summary>
-    /// 分数统计界面 BO3 和 BO5之间"Total"相差的距离
-    /// </summary>
-    private double _globalScoreTotalMargin = 370;
-
-    public double GlobalScoreTotalMargin
-    {
-        get => _globalScoreTotalMargin;
-        set
-        {
-            var oldValue = _globalScoreTotalMargin;
-            if (Math.Abs(_globalScoreTotalMargin - value) < 0.01) return;
-            _globalScoreTotalMargin = value;
-
-            GlobalScoreTotalMarginChanged?.Invoke(this, EventArgs.Empty);
-        }
-    }
-
     private bool _isMapV2Breathing;
 
     /// <summary>
@@ -669,11 +650,6 @@ public partial class SharedDataService : ISharedDataService
 
     /// <inheritdoc />
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    /// <summary>
-    /// 分数统计界面 BO3 和 BO5之间"Total"相差的距离改变事件
-    /// </summary>
-    public event EventHandler? GlobalScoreTotalMarginChanged;
 
     /// <summary>
     /// Ban位数量改变事件

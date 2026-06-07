@@ -1,97 +1,56 @@
+using System.Reflection;
+using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Phase 2 UI metadata for behavior trigger event selection.
+/// Cached Designer metadata built from explicitly attributed shared-data events.
 /// </summary>
 public sealed class FrontedBehaviorEventCatalog
 {
-    private readonly IReadOnlyList<FrontedBehaviorEventDescriptor> _events;
+    private static readonly Lazy<IReadOnlyList<FrontedBehaviorEventDescriptor>> CachedEvents =
+        new(BuildEvents, LazyThreadSafetyMode.ExecutionAndPublication);
 
-    public FrontedBehaviorEventCatalog()
+    public IReadOnlyList<FrontedBehaviorEventDescriptor> Events => CachedEvents.Value;
+
+    public FrontedBehaviorEventDescriptor? Find(string eventType) =>
+        Events.FirstOrDefault(item => string.Equals(item.EventType, eventType, StringComparison.Ordinal));
+
+    private static IReadOnlyList<FrontedBehaviorEventDescriptor> BuildEvents()
     {
-        _events =
-        [
-            Event("WindowShown", "Window"),
-            Event("WindowHidden", "Window"),
-            Event("CanvasLoaded", "Canvas"),
-            Event("CanvasStateChanged", "Canvas"),
-            Event("ControlLoaded", "Control"),
-            Event("GameProgressChanged", "Game"),
-            Event(
-                "CharacterPicked",
-                "Game",
-                Field("Event.Camp"),
-                Field("Event.Team"),
-                Field("Event.SlotIndex", "int"),
-                Field("Event.CharacterId"),
-                Field("Event.CharacterName")),
-            Event(
-                "CharacterBanned",
-                "Game",
-                Field("Event.Camp"),
-                Field("Event.Team"),
-                Field("Event.SlotIndex", "int"),
-                Field("Event.CharacterId"),
-                Field("Event.CharacterName")),
-            Event(
-                "CurrentPickingSlotChanged",
-                "Game",
-                Field("Event.Camp"),
-                Field("Event.SlotIndex", "int"),
-                Field("Event.IsActive", "bool")),
-            Event(
-                "ScoreChanged",
-                "Game",
-                Field("Event.Team"),
-                Field("Event.ScoreType"),
-                Field("Event.Value", "int")),
-            Event("TeamChanged", "Game"),
-            Event("TeamSwapped", "Game"),
-            Event("MapChanged", "Game"),
-            Event("TimerStarted", "Timer"),
-            Event("TimerStopped", "Timer"),
-            Event("TimerReached", "Timer", Field("Event.RemainingSeconds", "int")),
-            Event("ManualTrigger", "Manual"),
-            Event(
-                "PluginEvent",
-                "Plugin",
-                Field("Event.PluginId"),
-                Field("Event.EventName"))
-        ];
-    }
-
-    public IReadOnlyList<FrontedBehaviorEventDescriptor> Events => _events;
-
-    public FrontedBehaviorEventDescriptor? Find(string eventType)
-    {
-        return _events.FirstOrDefault(item => string.Equals(item.EventType, eventType, StringComparison.Ordinal));
-    }
-
-    private static FrontedBehaviorEventDescriptor Event(
-        string eventType,
-        string category,
-        params FrontedBehaviorEventPayloadField[] fields)
-    {
-        return new FrontedBehaviorEventDescriptor
-        {
-            EventType = eventType,
-            DisplayNameKey = $"Designer.Behaviors.Event.{eventType}",
-            DescriptionKey = $"Designer.Behaviors.Event.{eventType}.Description",
-            Category = category,
-            PayloadFields = [.. fields]
-        };
-    }
-
-    private static FrontedBehaviorEventPayloadField Field(string path, string typeName = "string")
-    {
-        return new FrontedBehaviorEventPayloadField
-        {
-            Path = path,
-            DisplayNameKey = $"Designer.Behaviors.Payload.{path}",
-            TypeName = typeName,
-            IsCommonFilterTarget = true
-        };
+        return typeof(ISharedDataService)
+            .GetEvents(BindingFlags.Instance | BindingFlags.Public)
+            .Select(eventInfo => (Event: eventInfo, Metadata: eventInfo.GetCustomAttribute<FrontedBehaviorEventAttribute>()))
+            .Where(item => item.Metadata?.IsEnabled == true)
+            .Select(item => new FrontedBehaviorEventDescriptor
+            {
+                EventType = item.Metadata!.EventType,
+                DisplayNameKey = item.Metadata.DisplayNameKey,
+                DescriptionKey = item.Metadata.DescriptionKey,
+                Category = item.Metadata.Category,
+                CategoryDisplayNameKey = item.Metadata.CategoryKey,
+                Order = item.Metadata.Order,
+                PayloadFields = item.Event.GetCustomAttributes<FrontedBehaviorEventPayloadAttribute>()
+                    .Select(payload => new FrontedBehaviorEventPayloadField
+                    {
+                        Path = payload.Path,
+                        DisplayNameKey = payload.DisplayNameKey,
+                        DescriptionKey = payload.DescriptionKey,
+                        TypeName = payload.TypeName ?? payload.ValueType?.Name ?? "string",
+                        Source = payload.Source,
+                        SourcePath = payload.SourcePath,
+                        IsCommonFilterTarget = payload.IsCommonFilterTarget
+                    })
+                    .OrderByDescending(field => field.IsCommonFilterTarget)
+                    .ThenBy(field => field.Path, StringComparer.Ordinal)
+                    .ToList()
+            })
+            .OrderBy(descriptor => descriptor.Category, StringComparer.Ordinal)
+            .ThenBy(descriptor => descriptor.Order)
+            .ThenBy(descriptor => descriptor.DisplayNameKey, StringComparer.Ordinal)
+            .ThenBy(descriptor => descriptor.EventType, StringComparer.Ordinal)
+            .ToArray();
     }
 }

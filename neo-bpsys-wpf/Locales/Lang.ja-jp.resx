@@ -3938,4 +3938,50 @@
   <data name="Designer.Behaviors.Event.TimerReached" xml:space="preserve"><value>タイマー到達</value></data>
   <data name="Designer.Behaviors.Event.ManualTrigger" xml:space="preserve"><value>手動トリガー</value></data>
   <data name="Designer.Behaviors.Event.PluginEvent" xml:space="preserve"><value>プラグインイベント</value></data>
+  <data name="Designer.Behaviors.Category.Game" xml:space="preserve"><value>対局</value></data>
+  <data name="Designer.Behaviors.Category.Display" xml:space="preserve"><value>表示</value></data>
+  <data name="Designer.Behaviors.Category.Score" xml:space="preserve"><value>スコア</value></data>
+  <data name="Designer.Behaviors.Category.Timer" xml:space="preserve"><value>タイマー</value></data>
+  <data name="Designer.Behaviors.Event.CurrentGameChanged" xml:space="preserve"><value>現在の対局変更</value></data>
+  <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged" xml:space="preserve"><value>合計スコア余白変更</value></data>
+  <data name="Designer.Behaviors.Event.BanCountChanged" xml:space="preserve"><value>Ban 数変更</value></data>
+  <data name="Designer.Behaviors.Event.IsTraitVisibleChanged" xml:space="preserve"><value>補助特質表示変更</value></data>
+  <data name="Designer.Behaviors.Event.IsBo3ModeChanged" xml:space="preserve"><value>BO3 モード変更</value></data>
+  <data name="Designer.Behaviors.Event.CountDownValueChanged" xml:space="preserve"><value>カウントダウン値変更</value></data>
+  <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged" xml:space="preserve"><value>マップ呼吸表示変更</value></data>
+  <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged" xml:space="preserve"><value>マップ陣営表示変更</value></data>
+  <data name="Designer.Behaviors.Event.PickedMapChanged" xml:space="preserve"><value>選択マップ変更</value></data>
+  <data name="Designer.Behaviors.Event.MapV2BannedChanged" xml:space="preserve"><value>マップ Ban 状態変更</value></data>
+  <data name="Designer.Behaviors.Payload.Game" xml:space="preserve"><value>現在の対局</value></data>
+  <data name="Designer.Behaviors.Payload.Margin" xml:space="preserve"><value>余白</value></data>
+  <data name="Designer.Behaviors.Payload.ListName" xml:space="preserve"><value>リスト名</value></data>
+  <data name="Designer.Behaviors.Payload.Count" xml:space="preserve"><value>数</value></data>
+  <data name="Designer.Behaviors.Payload.IsTraitVisible" xml:space="preserve"><value>補助特質表示</value></data>
+  <data name="Designer.Behaviors.Payload.IsBo3Mode" xml:space="preserve"><value>BO3 モード</value></data>
+  <data name="Designer.Behaviors.Payload.RemainingSeconds" xml:space="preserve"><value>残り秒数</value></data>
+  <data name="Designer.Behaviors.Payload.IsMapV2Breathing" xml:space="preserve"><value>マップ呼吸表示</value></data>
+  <data name="Designer.Behaviors.Payload.IsMapV2CampVisible" xml:space="preserve"><value>マップ陣営表示</value></data>
+  <data name="Designer.Behaviors.Payload.PickedMap" xml:space="preserve"><value>選択マップ</value></data>
+  <data name="Designer.Behaviors.Operator.NotContains" xml:space="preserve"><value>含まない</value></data>
+  <data name="Designer.Behaviors.When" xml:space="preserve"><value>条件</value></data>
+  <data name="Designer.Behaviors.Is" xml:space="preserve"><value>が</value></data>
+  <data name="Designer.Behaviors.Value" xml:space="preserve"><value>値</value></data>
+  <data name="Designer.Behaviors.UnknownParameterFormat" xml:space="preserve"><value>不明なパラメーター: {0}</value></data>
+  <data name="Designer.Behaviors.OpenAnimationEditor" xml:space="preserve"><value>アニメーションエディターを開く</value></data>
+  <data name="Designer.Behaviors.StartAnimation" xml:space="preserve"><value>開始アニメーション</value></data>
+  <data name="Designer.Behaviors.LoopAnimation" xml:space="preserve"><value>ループアニメーション</value></data>
+  <data name="Designer.Behaviors.EndAnimation" xml:space="preserve"><value>終了アニメーション</value></data>
+  <data name="Designer.Behaviors.Animation" xml:space="preserve"><value>アニメーション</value></data>
+  <data name="Designer.Behaviors.AnimationEditorPlaceholder" xml:space="preserve"><value>ノードグラフアニメーションエディターは Phase 3 で実装予定です。</value></data>
+  <data name="Designer.Behaviors.Event.CurrentGameChanged.Description" xml:space="preserve"><value>現在の対局が変更された時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged.Description" xml:space="preserve"><value>合計スコア余白が変更された時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.BanCountChanged.Description" xml:space="preserve"><value>Ban リスト数が変更された時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.IsTraitVisibleChanged.Description" xml:space="preserve"><value>補助特質表示が変更された時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.IsBo3ModeChanged.Description" xml:space="preserve"><value>BO3 モードが変更された時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.CountDownValueChanged.Description" xml:space="preserve"><value>カウントダウン値が変更された時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.TeamSwapped.Description" xml:space="preserve"><value>チームが交代した時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.IsMapV2BreathingChanged.Description" xml:space="preserve"><value>マップ呼吸表示が変更された時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description" xml:space="preserve"><value>マップ陣営表示が変更された時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.PickedMapChanged.Description" xml:space="preserve"><value>選択マップが変更された時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description" xml:space="preserve"><value>マップ Ban 状態が変更された時に発生します。</value></data>
 </root>

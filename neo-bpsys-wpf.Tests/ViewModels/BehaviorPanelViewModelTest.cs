@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.ViewModels;
@@ -121,6 +122,133 @@ public class BehaviorPanelViewModelTest
 
         Assert.Equal(Guid.Empty, item.Config.BehaviorGuid);
         Assert.Empty(panel.Behaviors);
+    }
+
+    [Fact]
+    public void TriggerDescriptorEditor_EventTypeChange_UpdatesPayloadFields()
+    {
+        var panel = CreatePanel();
+        panel.SetSelectedControl(CreateItem(Guid.NewGuid()));
+        panel.AddOneShotBehavior();
+
+        panel.SelectedBehavior!.Trigger.EventType = "SharedData.CountDownValueChanged";
+
+        Assert.Contains(panel.SelectedBehavior.Trigger.PayloadFieldOptions, option => option.Path == "Event.RemainingSeconds");
+    }
+
+    [Fact]
+    public void AddFilter_UsesFirstPayloadField_WhenAvailable()
+    {
+        var panel = CreatePanel();
+        panel.SetSelectedControl(CreateItem(Guid.NewGuid()));
+        panel.AddOneShotBehavior();
+        panel.SelectedBehavior!.Trigger.EventType = "SharedData.CountDownValueChanged";
+
+        panel.SelectedBehavior.Trigger.AddFilter();
+
+        Assert.Equal("Event.RemainingSeconds", Assert.Single(panel.SelectedBehavior.Trigger.Filters).Left);
+    }
+
+    [Fact]
+    public void AddFilter_NoPayloadFields_DoesNotCrash()
+    {
+        var panel = CreatePanel();
+        panel.SetSelectedControl(CreateItem(Guid.NewGuid()));
+        panel.AddLoopBehavior();
+        panel.SelectedBehavior!.StartTrigger.EventType = "SharedData.TeamSwapped";
+
+        panel.SelectedBehavior.StartTrigger.AddFilter();
+
+        Assert.Equal(string.Empty, Assert.Single(panel.SelectedBehavior.StartTrigger.Filters).Left);
+    }
+
+    [Fact]
+    public void TriggerFilterOperator_DisplaySymbols()
+    {
+        var panel = CreatePanel();
+
+        Assert.Equal("=", panel.OperatorOptions.Single(option => Equals(option.Value, TriggerFilterOperator.Equals)).DisplayName);
+        Assert.Equal(">", panel.OperatorOptions.Single(option => Equals(option.Value, TriggerFilterOperator.GreaterThan)).DisplayName);
+        Assert.Equal("<", panel.OperatorOptions.Single(option => Equals(option.Value, TriggerFilterOperator.LessThan)).DisplayName);
+        Assert.Equal("≥", panel.OperatorOptions.Single(option => Equals(option.Value, TriggerFilterOperator.GreaterThanOrEqual)).DisplayName);
+        Assert.Equal("≤", panel.OperatorOptions.Single(option => Equals(option.Value, TriggerFilterOperator.LessThanOrEqual)).DisplayName);
+        Assert.Contains(panel.OperatorOptions, option => Equals(option.Value, TriggerFilterOperator.Contains));
+        Assert.Contains(panel.OperatorOptions, option => Equals(option.Value, TriggerFilterOperator.NotContains));
+    }
+
+    [Fact]
+    public void OpenAnimationEditor_Loop_ProvidesThreeStages()
+    {
+        var panel = CreatePanel();
+        panel.SetSelectedControl(CreateItem(Guid.NewGuid()));
+        panel.AddLoopBehavior();
+        FrontedBehaviorAnimationEditorViewModel? editor = null;
+        panel.AnimationEditorRequested += value => editor = value;
+
+        panel.SelectedBehavior!.OpenAnimationEditorCommand.Execute(null);
+
+        Assert.NotNull(editor);
+        Assert.Equal(3, editor.Stages.Count);
+    }
+
+    [Fact]
+    public void OpenAnimationEditor_OneShot_CommandExists()
+    {
+        var panel = CreatePanel();
+        panel.SetSelectedControl(CreateItem(Guid.NewGuid()));
+        panel.AddOneShotBehavior();
+        FrontedBehaviorAnimationEditorViewModel? editor = null;
+        panel.AnimationEditorRequested += value => editor = value;
+
+        panel.SelectedBehavior!.OpenAnimationEditorCommand.Execute(null);
+
+        Assert.NotNull(editor);
+        Assert.Single(editor.Stages);
+    }
+
+    [Fact]
+    public void UnknownFilterParameter_IsPreservedAndMarked()
+    {
+        var trigger = new TriggerDescriptor
+        {
+            EventType = "SharedData.CountDownValueChanged",
+            Filters = [new TriggerFilter { Left = "Event.LegacyPath", Right = "x" }]
+        };
+        var panel = CreatePanel();
+        panel.SetSelectedControl(CreateItem(Guid.NewGuid()));
+        panel.AddOneShotBehavior();
+        panel.SelectedBehavior!.Model.Trigger = trigger;
+
+        var editor = new TriggerDescriptorEditorViewModel(
+            trigger,
+            panel.EventOptions,
+            panel.OperatorOptions,
+            static () => { },
+            static (_, fallback) => fallback);
+
+        Assert.Equal("Event.LegacyPath", Assert.Single(editor.Filters).Left);
+        Assert.True(Assert.Single(editor.Filters).IsUnknownParameter);
+    }
+
+    [Fact]
+    public void BehaviorPanel_DoesNotExposeSourceAndRightValueKindInNormalEditor()
+    {
+        Assert.Null(typeof(TriggerDescriptorEditorViewModel).GetProperty("Source"));
+        Assert.Null(typeof(TriggerFilterEditorViewModel).GetProperty("RightValueKind"));
+    }
+
+    [Fact]
+    public void TriggerFilter_RightValueKind_NotRequiredForNewFilter()
+    {
+        var filter = new TriggerFilter
+        {
+            Left = "Event.RemainingSeconds",
+            Operator = TriggerFilterOperator.Equals,
+            Right = "10"
+        };
+
+        Assert.Equal("10", filter.Right);
+        Assert.Equal(TriggerFilterValueKind.Literal, filter.RightValueKind);
     }
 
     private static BehaviorPanelViewModel CreatePanel(
