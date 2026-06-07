@@ -5,6 +5,9 @@ using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ViewModels.Windows;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.Globalization;
 using System.Text.Json;
 using System.Windows;
 using Wpf.Ui.Controls;
@@ -131,6 +134,7 @@ public partial class FrontedTextBindingEditorWindow : FluentWindow
         private string? _nullText;
         private string? _fallbackText;
         private string? _validationError;
+        private string _previewText;
 
         public EditorViewModel(FrontedTextBindingExpression expression)
         {
@@ -139,6 +143,11 @@ public partial class FrontedTextBindingEditorWindow : FluentWindow
             _joinSeparator = expression.JoinSeparator;
             _nullText = expression.NullText;
             _fallbackText = expression.FallbackText;
+            _previewText = string.Empty;
+
+            Sources.CollectionChanged += OnSourcesCollectionChanged;
+            SubscribeSourcePropertyChanges();
+            RefreshPreview();
         }
 
         public ObservableCollection<FrontedBindingSourceConfig> Sources { get; }
@@ -146,25 +155,41 @@ public partial class FrontedTextBindingEditorWindow : FluentWindow
         public string? StringFormat
         {
             get => _stringFormat;
-            set => SetProperty(ref _stringFormat, value);
+            set
+            {
+                if (SetProperty(ref _stringFormat, value))
+                    RefreshPreview();
+            }
         }
 
         public string JoinSeparator
         {
             get => _joinSeparator;
-            set => SetProperty(ref _joinSeparator, value);
+            set
+            {
+                if (SetProperty(ref _joinSeparator, value))
+                    RefreshPreview();
+            }
         }
 
         public string? NullText
         {
             get => _nullText;
-            set => SetProperty(ref _nullText, value);
+            set
+            {
+                if (SetProperty(ref _nullText, value))
+                    RefreshPreview();
+            }
         }
 
         public string? FallbackText
         {
             get => _fallbackText;
-            set => SetProperty(ref _fallbackText, value);
+            set
+            {
+                if (SetProperty(ref _fallbackText, value))
+                    RefreshPreview();
+            }
         }
 
         public string? ValidationError
@@ -180,6 +205,91 @@ public partial class FrontedTextBindingEditorWindow : FluentWindow
         }
 
         public bool HasValidationError => !string.IsNullOrEmpty(ValidationError);
+
+        public string PreviewText
+        {
+            get => _previewText;
+            private set => SetProperty(ref _previewText, value);
+        }
+
+        private void OnSourcesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.OldItems is not null)
+            {
+                foreach (var item in e.OldItems)
+                {
+                    if (item is FrontedBindingSourceConfig source)
+                        source.PropertyChanged -= OnSourcePropertyChanged;
+                }
+            }
+            if (e.NewItems is not null)
+            {
+                foreach (var item in e.NewItems)
+                {
+                    if (item is FrontedBindingSourceConfig source)
+                        source.PropertyChanged += OnSourcePropertyChanged;
+                }
+            }
+            RefreshPreview();
+        }
+
+        private void OnSourcePropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName is nameof(FrontedBindingSourceConfig.Path) or nameof(FrontedBindingSourceConfig.DisplayName))
+                RefreshPreview();
+        }
+
+        private void SubscribeSourcePropertyChanges()
+        {
+            foreach (var source in Sources)
+            {
+                source.PropertyChanged += OnSourcePropertyChanged;
+            }
+        }
+
+        private void RefreshPreview()
+        {
+            var sources = Sources.ToList();
+            if (sources.Count == 0)
+            {
+                PreviewText = I18nHelper.GetLocalizedString("Designer.TextBinding.None");
+                return;
+            }
+
+            // Build sample placeholder values for preview
+            var sampleValues = new string[sources.Count];
+            for (int i = 0; i < sources.Count; i++)
+            {
+                var path = sources[i].Path;
+                sampleValues[i] = string.IsNullOrWhiteSpace(path)
+                    ? $"[#{i + 1}]"
+                    : $"[{System.IO.Path.GetFileName(path) ?? $"#{i + 1}"}]";
+            }
+
+            // Try applying StringFormat first
+            if (!string.IsNullOrWhiteSpace(StringFormat))
+            {
+                try
+                {
+                    PreviewText = string.Format(CultureInfo.InvariantCulture, StringFormat, sampleValues);
+                    return;
+                }
+                catch (FormatException)
+                {
+                    PreviewText = $"[{I18nHelper.GetLocalizedString("FormatError") ?? "格式无效"}]";
+                    return;
+                }
+            }
+
+            // Without StringFormat, join with separator
+            var joined = string.Join(JoinSeparator, sampleValues.Where(v => !string.IsNullOrEmpty(v)));
+            PreviewText = string.IsNullOrEmpty(joined) ? "—" : joined;
+        }
+
+        public void RefreshPreviewExternal()
+        {
+            RefreshPreview();
+        }
 
         public FrontedTextBindingExpression CreateExpression() => new()
         {
