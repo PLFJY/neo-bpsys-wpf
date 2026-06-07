@@ -10,5 +10,7 @@ public abstract class BackgroundTintFrontedControlConfigBase : FrontedControlCon
 
     public double TintStrength { get; set; } = 1D;
 
+    public double TextureStrength { get; set; } = 0.45D;
+
     public bool ShowMissingBackgroundPlaceholder { get; set; } = true;
 }

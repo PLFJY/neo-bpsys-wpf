@@ -666,6 +666,23 @@ public class FrontedLayoutValidator
                 nameof(tint.TintStrength)));
         }
 
+        if (!double.IsFinite(tint.TextureStrength))
+        {
+            messages.Add(Error(
+                "TextureStrengthInvalid",
+                $"Background tint control '{controlName}' TextureStrength must be finite.",
+                controlName,
+                nameof(tint.TextureStrength)));
+        }
+        else if (tint.TextureStrength is < 0D or > 1D)
+        {
+            messages.Add(Warning(
+                "TextureStrengthClamped",
+                $"Background tint control '{controlName}' TextureStrength will be clamped to 0..1.",
+                controlName,
+                nameof(tint.TextureStrength)));
+        }
+
         if (tint is BackgroundTintPolygonFrontedControlConfig polygon)
         {
             if (polygon.Points.Count < 3)

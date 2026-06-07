@@ -33,6 +33,7 @@ internal static class BackgroundTintFrontedControlFactoryHelper
             context.CanvasBackgroundImage,
             config.TintMode,
             config.TintStrength,
+            config.TextureStrength,
             context.CanvasWidth,
             context.CanvasHeight,
             config.Left,

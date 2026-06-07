@@ -3700,11 +3700,13 @@
   <data name="Designer.Property.TintBindingPath" xml:space="preserve"><value>染色绑定路径</value></data>
   <data name="Designer.Property.TintMode" xml:space="preserve"><value>染色模式</value></data>
   <data name="Designer.Property.TintStrength" xml:space="preserve"><value>染色强度</value></data>
+  <data name="Designer.Property.TextureStrength" xml:space="preserve"><value>纹理强度</value></data>
   <data name="Designer.Property.ShowMissingBackgroundPlaceholder" xml:space="preserve"><value>显示缺失背景占位符</value></data>
   <data name="Designer.Option.TintMode.LuminanceColorize" xml:space="preserve"><value>亮度着色</value></data>
   <data name="Designer.Option.TintMode.Multiply" xml:space="preserve"><value>正片叠底</value></data>
+  <data name="Designer.Option.TintMode.BaseColorWithTexture" xml:space="preserve"><value>基色保留纹理</value></data>
   <data name="Designer.Validation.MissingCanvasBackgroundImage" xml:space="preserve"><value>Canvas 未设置背景图片</value></data>
   <data name="Designer.Help.BackgroundTint.Title" xml:space="preserve"><value>背景局部染色</value></data>
-  <data name="Designer.Help.BackgroundTint.Content" xml:space="preserve"><value>BackgroundTintRectangle 和 BackgroundTintPolygon 自动使用当前 Canvas 的有效背景图片，无需重复选择素材。\n控件生成与背景对齐的静态染色副本，并按矩形或多边形区域裁剪，因此会保留原图纹理细节。\nTintBindingPath 可绑定 HomeTeam.ColorHex 或 AwayTeam.ColorHex；队伍颜色变化时会重新生成染色图片。\n该效果使用偶发 CPU 重生成，不是实时 GPU 混合。</value></data>
+  <data name="Designer.Help.BackgroundTint.Content" xml:space="preserve"><value>BackgroundTintRectangle 和 BackgroundTintPolygon 自动使用当前 Canvas 的有效背景图片，无需重复选择素材。\n控件生成与背景对齐的静态染色副本，并按矩形或多边形区域裁剪，因此会保留原图纹理细节。\nBaseColorWithTexture 将 TintColor 作为目标基色，TextureStrength 控制原背景明暗细节的明显程度；LuminanceColorize 与 Multiply 保留原有偏暗效果。\nTintBindingPath 可绑定 HomeTeam.ColorHex 或 AwayTeam.ColorHex；队伍颜色变化时会重新生成染色图片。\n该效果使用偶发 CPU 重生成，不是实时 GPU 混合。</value></data>
   <data name="ResetDefaultColor" xml:space="preserve"><value>恢复默认</value></data>
 </root>

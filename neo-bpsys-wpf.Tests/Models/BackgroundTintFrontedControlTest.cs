@@ -8,6 +8,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.ViewModels.Windows;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Text.Json;
@@ -36,13 +37,19 @@ public class BackgroundTintFrontedControlTest
         var polygon = Assert.IsType<BackgroundTintPolygonFrontedControlConfig>(
             factory.Create("BackgroundTintPolygon", document));
         Assert.Equal(3, polygon.Points.Count);
+        Assert.Equal(0.45D, polygon.TextureStrength);
 
+        rectangle.TintMode = BackgroundTintMode.BaseColorWithTexture;
+        rectangle.TextureStrength = 0.7D;
         var canvas = new FrontedCanvasConfig();
         canvas.Controls["TintRect"] = rectangle;
         canvas.Controls["TintPoly"] = polygon;
         var roundTrip = JsonSerializer.Deserialize<FrontedCanvasConfig>(JsonSerializer.Serialize(canvas));
         Assert.IsType<BackgroundTintRectangleFrontedControlConfig>(roundTrip!.Controls["TintRect"]);
         Assert.IsType<BackgroundTintPolygonFrontedControlConfig>(roundTrip.Controls["TintPoly"]);
+        var roundTripRectangle = Assert.IsType<BackgroundTintRectangleFrontedControlConfig>(roundTrip.Controls["TintRect"]);
+        Assert.Equal(BackgroundTintMode.BaseColorWithTexture, roundTripRectangle.TintMode);
+        Assert.Equal(0.7D, roundTripRectangle.TextureStrength);
 
         var item = new FrontedControlDesignItem { Name = "Tint", Config = polygon };
         document.Controls.Add(item);
@@ -56,16 +63,91 @@ public class BackgroundTintFrontedControlTest
             FrontedPropertyEditorKind.Color,
             rows.Single(row => row.PropertyName == nameof(polygon.TintColor)).EditorKind);
         Assert.True(rows.Single(row => row.PropertyName == nameof(polygon.TintBindingPath)).CanBrowseBinding);
+        Assert.Equal(
+            FrontedPropertyEditorKind.Number,
+            rows.Single(row => row.PropertyName == nameof(polygon.TextureStrength)).EditorKind);
         Assert.DoesNotContain(rows, row => row.PropertyName == nameof(FrontedControlConfigBase.BindingPath));
 
         polygon.TintColor = "bad";
         polygon.TintStrength = 2D;
+        polygon.TextureStrength = double.PositiveInfinity;
         polygon.Points = [];
         var messages = new FrontedLayoutValidator().Validate(document);
         Assert.Contains(messages, message => message.PropertyName == nameof(polygon.TintColor));
         Assert.Contains(messages, message => message.PropertyName == nameof(polygon.TintStrength));
+        Assert.Contains(messages, message => message.PropertyName == nameof(polygon.TextureStrength));
         Assert.Contains(messages, message => message.PropertyName == nameof(polygon.Points));
         Assert.Contains(messages, message => message.Code == "MissingCanvasBackgroundImage");
+    }
+
+    [Fact]
+    public void BaseColorWithTexturePreservesAlphaAndKeepsAverageCloseToTint()
+    {
+        RunOnStaThread(() =>
+        {
+            var source = CreateGrayTexture(
+                (80, 40),
+                (100, 80),
+                (120, 160),
+                (140, 220));
+            var tint = Color.FromRgb(0x33, 0x80, 0xB9);
+            var result = new BackgroundImageTintProcessor().CreateTinted(
+                source,
+                "texture",
+                tint,
+                BackgroundTintMode.BaseColorWithTexture,
+                1D,
+                0.45D)!;
+            var pixels = ReadPixels(result);
+
+            Assert.Equal(new byte[] { 40, 80, 160, 220 }, pixels.Select(pixel => pixel.A).ToArray());
+            Assert.InRange(pixels.Average(pixel => pixel.R), tint.R - 12D, tint.R + 12D);
+            Assert.InRange(pixels.Average(pixel => pixel.G), tint.G - 12D, tint.G + 12D);
+            Assert.InRange(pixels.Average(pixel => pixel.B), tint.B - 12D, tint.B + 12D);
+        });
+    }
+
+    [Fact]
+    public void BaseColorWithTextureStrengthControlsTextureContrast()
+    {
+        RunOnStaThread(() =>
+        {
+            var source = CreateGrayTexture((70, 255), (100, 255), (130, 255), (160, 255));
+            var tint = Color.FromRgb(0x33, 0x80, 0xB9);
+            var processor = new BackgroundImageTintProcessor();
+            var flat = processor.CreateTinted(
+                source, "flat", tint, BackgroundTintMode.BaseColorWithTexture, 1D, 0D)!;
+            Assert.All(ReadPixels(flat), pixel =>
+            {
+                Assert.Equal(tint.R, pixel.R);
+                Assert.Equal(tint.G, pixel.G);
+                Assert.Equal(tint.B, pixel.B);
+                Assert.Equal(255, pixel.A);
+            });
+
+            var subtle = processor.CreateTinted(
+                source, "subtle", tint, BackgroundTintMode.BaseColorWithTexture, 1D, 0.1D)!;
+            var strong = processor.CreateTinted(
+                source, "strong", tint, BackgroundTintMode.BaseColorWithTexture, 1D, 0.8D)!;
+            Assert.True(LuminanceStandardDeviation(ReadPixels(strong))
+                        > LuminanceStandardDeviation(ReadPixels(subtle)));
+        });
+    }
+
+    [Fact]
+    public void InvalidTextureStrengthDoesNotCrash()
+    {
+        RunOnStaThread(() =>
+        {
+            var source = CreateGrayTexture((90, 255), (120, 255));
+            var processor = new BackgroundImageTintProcessor();
+            Assert.NotNull(processor.CreateTinted(
+                source, "nan", Colors.CornflowerBlue, BackgroundTintMode.BaseColorWithTexture, 1D, double.NaN));
+            Assert.NotNull(processor.CreateTinted(
+                source, "infinity", Colors.CornflowerBlue, BackgroundTintMode.BaseColorWithTexture, 1D, double.PositiveInfinity));
+            Assert.NotNull(processor.CreateTinted(
+                source, "range", Colors.CornflowerBlue, BackgroundTintMode.BaseColorWithTexture, 1D, 5D));
+        });
     }
 
     [Fact]
@@ -239,6 +321,37 @@ public class BackgroundTintFrontedControlTest
         var pixel = new byte[4];
         source.CopyPixels(pixel, 4, 0);
         return pixel;
+    }
+
+    private static BitmapSource CreateGrayTexture(params (byte Luminance, byte Alpha)[] values)
+    {
+        var pixels = values
+            .SelectMany(value => new[] { value.Luminance, value.Luminance, value.Luminance, value.Alpha })
+            .ToArray();
+        return BitmapSource.Create(values.Length, 1, 96, 96, PixelFormats.Bgra32, null, pixels, values.Length * 4);
+    }
+
+    private static (byte R, byte G, byte B, byte A)[] ReadPixels(BitmapSource source)
+    {
+        var stride = source.PixelWidth * 4;
+        var pixels = new byte[stride * source.PixelHeight];
+        source.CopyPixels(pixels, stride, 0);
+        return Enumerable.Range(0, source.PixelWidth * source.PixelHeight)
+            .Select(index =>
+            {
+                var offset = index * 4;
+                return (pixels[offset + 2], pixels[offset + 1], pixels[offset], pixels[offset + 3]);
+            })
+            .ToArray();
+    }
+
+    private static double LuminanceStandardDeviation(IEnumerable<(byte R, byte G, byte B, byte A)> pixels)
+    {
+        var luminances = pixels
+            .Select(pixel => pixel.R * 0.2126D + pixel.G * 0.7152D + pixel.B * 0.0722D)
+            .ToArray();
+        var average = luminances.Average();
+        return Math.Sqrt(luminances.Average(value => Math.Pow(value - average, 2D)));
     }
 
     private static void RunOnStaThread(Action action)

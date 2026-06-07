@@ -20,6 +20,7 @@ public sealed class BackgroundTintControlHost : Grid
     private readonly string? _sourceKey;
     private readonly BackgroundTintMode _mode;
     private readonly double _strength;
+    private readonly double _textureStrength;
     private readonly ILogger? _logger;
 
     public BackgroundTintControlHost(
@@ -28,6 +29,7 @@ public sealed class BackgroundTintControlHost : Grid
         string? sourceKey,
         BackgroundTintMode mode,
         double strength,
+        double textureStrength,
         double canvasWidth,
         double canvasHeight,
         double left,
@@ -39,6 +41,7 @@ public sealed class BackgroundTintControlHost : Grid
         _sourceKey = sourceKey;
         _mode = mode;
         _strength = strength;
+        _textureStrength = textureStrength;
         _logger = logger;
         ClipToBounds = true;
 
@@ -77,6 +80,7 @@ public sealed class BackgroundTintControlHost : Grid
             tint,
             _mode,
             _strength,
+            _textureStrength,
             _logger);
     }
 

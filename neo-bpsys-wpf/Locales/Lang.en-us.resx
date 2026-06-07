@@ -3846,10 +3846,12 @@
   <data name="Designer.Property.TintBindingPath" xml:space="preserve"><value>Tint Binding Path</value></data>
   <data name="Designer.Property.TintMode" xml:space="preserve"><value>Tint Mode</value></data>
   <data name="Designer.Property.TintStrength" xml:space="preserve"><value>Tint Strength</value></data>
+  <data name="Designer.Property.TextureStrength" xml:space="preserve"><value>Texture Strength</value></data>
   <data name="Designer.Property.ShowMissingBackgroundPlaceholder" xml:space="preserve"><value>Show Missing Background Placeholder</value></data>
   <data name="Designer.Option.TintMode.LuminanceColorize" xml:space="preserve"><value>Luminance Colorize</value></data>
   <data name="Designer.Option.TintMode.Multiply" xml:space="preserve"><value>Multiply</value></data>
+  <data name="Designer.Option.TintMode.BaseColorWithTexture" xml:space="preserve"><value>Base Color with Texture</value></data>
   <data name="Designer.Validation.MissingCanvasBackgroundImage" xml:space="preserve"><value>Canvas background image is missing</value></data>
   <data name="Designer.Help.BackgroundTint.Title" xml:space="preserve"><value>Local Background Tint</value></data>
-  <data name="Designer.Help.BackgroundTint.Content" xml:space="preserve"><value>BackgroundTintRectangle and BackgroundTintPolygon automatically use the effective Canvas background; no duplicate image selection is needed.\nThey generate an aligned static tinted copy and clip it to the rectangle or polygon, preserving the background texture.\nTintBindingPath can bind to HomeTeam.ColorHex or AwayTeam.ColorHex and regenerates when the team color changes.\nThis uses occasional CPU regeneration, not real-time GPU blending.</value></data>
+  <data name="Designer.Help.BackgroundTint.Content" xml:space="preserve"><value>BackgroundTintRectangle and BackgroundTintPolygon automatically use the effective Canvas background; no duplicate image selection is needed.\nThey generate an aligned static tinted copy and clip it to the rectangle or polygon, preserving the background texture.\nBaseColorWithTexture treats TintColor as the target base color and TextureStrength controls the visible source detail; LuminanceColorize and Multiply keep their existing darker behavior.\nTintBindingPath can bind to HomeTeam.ColorHex or AwayTeam.ColorHex and regenerates when the team color changes.\nThis uses occasional CPU regeneration, not real-time GPU blending.</value></data>
 </root>

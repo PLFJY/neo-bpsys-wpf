@@ -11014,9 +11014,11 @@ namespace neo_bpsys_wpf.Locales {
         public static string Designer_Property_TintBindingPath => ResourceManager.GetString("Designer.Property.TintBindingPath", resourceCulture);
         public static string Designer_Property_TintMode => ResourceManager.GetString("Designer.Property.TintMode", resourceCulture);
         public static string Designer_Property_TintStrength => ResourceManager.GetString("Designer.Property.TintStrength", resourceCulture);
+        public static string Designer_Property_TextureStrength => ResourceManager.GetString("Designer.Property.TextureStrength", resourceCulture);
         public static string Designer_Property_ShowMissingBackgroundPlaceholder => ResourceManager.GetString("Designer.Property.ShowMissingBackgroundPlaceholder", resourceCulture);
         public static string Designer_Option_TintMode_LuminanceColorize => ResourceManager.GetString("Designer.Option.TintMode.LuminanceColorize", resourceCulture);
         public static string Designer_Option_TintMode_Multiply => ResourceManager.GetString("Designer.Option.TintMode.Multiply", resourceCulture);
+        public static string Designer_Option_TintMode_BaseColorWithTexture => ResourceManager.GetString("Designer.Option.TintMode.BaseColorWithTexture", resourceCulture);
         public static string Designer_Validation_MissingCanvasBackgroundImage => ResourceManager.GetString("Designer.Validation.MissingCanvasBackgroundImage", resourceCulture);
         public static string Designer_Help_BackgroundTint_Title => ResourceManager.GetString("Designer.Help.BackgroundTint.Title", resourceCulture);
         public static string Designer_Help_BackgroundTint_Content => ResourceManager.GetString("Designer.Help.BackgroundTint.Content", resourceCulture);

@@ -248,6 +248,7 @@ public class FrontedControlDefaultConfigFactory
                 Height = 80,
                 TintColor = "#FFFFFFFF",
                 TintStrength = 1D,
+                TextureStrength = 0.45D,
                 TintMode = BackgroundTintMode.LuminanceColorize
             },
             "BackgroundTintPolygon" => new BackgroundTintPolygonFrontedControlConfig
@@ -256,6 +257,7 @@ public class FrontedControlDefaultConfigFactory
                 Height = 120,
                 TintColor = "#FFFFFFFF",
                 TintStrength = 1D,
+                TextureStrength = 0.45D,
                 TintMode = BackgroundTintMode.LuminanceColorize
             },
             "MapNameText" => new MapNameTextControlConfig
