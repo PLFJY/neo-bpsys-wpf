@@ -78,6 +78,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly IFrontedWindowLayoutOptionsService? _windowLayoutOptionsService;
     private readonly IFrontedWindowService? _frontedWindowService;
     private readonly IFrontedBehaviorService _behaviorService;
+    private readonly IFrontedAnimationRuntime? _animationRuntime;
+    private readonly FrontedDesignerPreviewAnimationScope? _previewAnimationScope;
     private readonly ILogger<FrontedDesignerWindowViewModel> _logger;
 
     private static ILogger<FrontedDesignerWindowViewModel>? StaticLogger =>
@@ -130,6 +132,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _windowLayoutOptionsService = null;
         _frontedWindowService = null;
         _behaviorService = new NoopFrontedBehaviorService();
+        _animationRuntime = null;
+        _previewAnimationScope = null;
         _logger = NullLogger<FrontedDesignerWindowViewModel>.Instance;
         BehaviorPanel = CreateBehaviorPanel();
         InitializeZoomPresets();
@@ -157,6 +161,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         IFrontedWindowLayoutOptionsService windowLayoutOptionsService,
         IFrontedWindowService frontedWindowService,
         IFrontedBehaviorService behaviorService,
+        IFrontedAnimationRuntime animationRuntime,
+        FrontedDesignerPreviewAnimationScope previewAnimationScope,
         ILogger<FrontedDesignerWindowViewModel> logger)
     {
         _layoutService = layoutService;
@@ -173,6 +179,8 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _windowLayoutOptionsService = windowLayoutOptionsService;
         _frontedWindowService = frontedWindowService;
         _behaviorService = behaviorService;
+        _animationRuntime = animationRuntime;
+        _previewAnimationScope = previewAnimationScope;
         _logger = logger;
         BehaviorPanel = CreateBehaviorPanel();
 
@@ -3508,7 +3516,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             _localizationService,
             new FrontedBehaviorEventCatalog(),
             MarkLayoutDirtyFromBehaviorPanel,
-            MarkBehaviorsDirty);
+            MarkBehaviorsDirty,
+            animationRuntime: _animationRuntime,
+            previewAnimationScope: _previewAnimationScope);
     }
 
     private void MarkLayoutDirtyFromBehaviorPanel()
@@ -3538,6 +3548,21 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         });
         AreBehaviorsDirty = false;
         BehaviorPanel.SetSelectedControl(SelectedDesignItem);
+    }
+
+    public void UpdateBehaviorPreviewAnimationScope(FrameworkElement previewRoot)
+    {
+        _previewAnimationScope?.Update(
+            previewRoot,
+            SelectedDesignItem,
+            SelectedCanvas?.WindowId,
+            CurrentDocument?.CanvasName ?? SelectedCanvas?.CanvasName,
+            CurrentDocument?.Controls ?? []);
+    }
+
+    public void ClearBehaviorPreviewAnimationScope()
+    {
+        _previewAnimationScope?.Clear();
     }
 
     private void NotifyLayoutCommandState()

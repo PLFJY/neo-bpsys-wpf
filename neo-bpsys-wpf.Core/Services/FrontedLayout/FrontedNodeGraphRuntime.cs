@@ -104,15 +104,15 @@ public sealed class FrontedNodeGraphRuntime(
                 await ExecuteOutputAsync(node, "Out", state);
                 break;
             case "action.setProperty":
-                EmitAction(node, FrontedGraphActionRequestType.SetProperty, state, ["Value"]);
+                await EmitActionAsync(node, FrontedGraphActionRequestType.SetProperty, state, ["Value"]);
                 await ExecuteOutputAsync(node, "Out", state);
                 break;
             case "action.resetProperty":
-                EmitAction(node, FrontedGraphActionRequestType.ResetProperty, state, []);
+                await EmitActionAsync(node, FrontedGraphActionRequestType.ResetProperty, state, []);
                 await ExecuteOutputAsync(node, "Out", state);
                 break;
             case "action.animateProperty":
-                EmitAction(node, FrontedGraphActionRequestType.AnimateProperty, state, ["From", "To", "Easing"], GetInt(node, "DurationMs"));
+                await EmitActionAsync(node, FrontedGraphActionRequestType.AnimateProperty, state, ["From", "To", "Easing"], GetInt(node, "DurationMs"));
                 await ExecuteOutputAsync(node, "Out", state);
                 break;
             default:
@@ -131,7 +131,7 @@ public sealed class FrontedNodeGraphRuntime(
         }
     }
 
-    private static void EmitAction(
+    private static async Task EmitActionAsync(
         FrontedNode node,
         FrontedGraphActionRequestType requestType,
         ExecutionState state,
@@ -148,6 +148,10 @@ public sealed class FrontedNodeGraphRuntime(
         };
         state.Actions.Enqueue(request);
         Log(state.Logs, FrontedGraphExecutionLogLevel.Information, $"{requestType}: {request.Target}.{request.PropertyName}", node.NodeId);
+        if (state.Context.ActionExecutor is not null)
+        {
+            await state.Context.ActionExecutor.ExecuteAsync(request, state.CancellationToken);
+        }
     }
 
     private static object? ResolveText(string value, FrontedGraphExecutionContext context)

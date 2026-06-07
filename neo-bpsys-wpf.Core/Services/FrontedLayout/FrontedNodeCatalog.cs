@@ -35,6 +35,28 @@ public sealed class FrontedNodeCatalog
         var flowIn = Port("In", FrontedNodePortKind.FlowIn);
         var flowOut = Port("Out", FrontedNodePortKind.FlowOut);
         var valueOut = Port("Value", FrontedNodePortKind.ValueOut, "object");
+        var propertyOptions = new[]
+        {
+            "Opacity",
+            "Visibility",
+            "VisualOffsetX",
+            "VisualOffsetY",
+            "ScaleX",
+            "ScaleY",
+            "Rotation",
+            "Width",
+            "Height",
+            "FillColor",
+            "StrokeColor",
+            "StrokeThickness",
+            "TextColor",
+            "Foreground",
+            "FontSize",
+            "TintColor",
+            "TintStrength",
+            "TextureStrength"
+        };
+        var easingOptions = new[] { "Linear", "SineInOut", "CubicOut", "CubicIn", "CubicInOut", "BackOut" };
         return
         [
             Node("flow.start", "Flow", [], [flowOut]),
@@ -49,18 +71,18 @@ public sealed class FrontedNodeCatalog
             Node("action.log", "Action", [flowIn], [flowOut], Prop("Message", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text)),
             Node("action.setProperty", "Action", [flowIn], [flowOut],
                 Prop("Target", FrontedNodePropertyType.String, "Self", FrontedNodePropertyEditorKind.ControlReference, true),
-                Prop("PropertyName", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text, true),
+                Prop("PropertyName", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text, true, propertyOptions),
                 Prop("Value", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text)),
             Node("action.resetProperty", "Action", [flowIn], [flowOut],
                 Prop("Target", FrontedNodePropertyType.String, "Self", FrontedNodePropertyEditorKind.ControlReference, true),
-                Prop("PropertyName", FrontedNodePropertyType.String, "All", FrontedNodePropertyEditorKind.Text, true)),
+                Prop("PropertyName", FrontedNodePropertyType.String, "All", FrontedNodePropertyEditorKind.Text, true, ["All", .. propertyOptions])),
             Node("action.animateProperty", "Action", [flowIn], [flowOut],
                 Prop("Target", FrontedNodePropertyType.String, "Self", FrontedNodePropertyEditorKind.ControlReference, true),
-                Prop("PropertyName", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text, true),
+                Prop("PropertyName", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text, true, propertyOptions),
                 Prop("From", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text),
                 Prop("To", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text),
                 Prop("DurationMs", FrontedNodePropertyType.Number, 300, FrontedNodePropertyEditorKind.Number, true),
-                Prop("Easing", FrontedNodePropertyType.String, "Linear", FrontedNodePropertyEditorKind.Text)),
+                Prop("Easing", FrontedNodePropertyType.String, "Linear", FrontedNodePropertyEditorKind.Text, false, easingOptions)),
             Node("value.number", "Value", [], [valueOut], Prop("Value", FrontedNodePropertyType.Number, 0, FrontedNodePropertyEditorKind.Number)),
             Node("value.string", "Value", [], [valueOut], Prop("Value", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text)),
             Node("value.boolean", "Value", [], [valueOut], Prop("Value", FrontedNodePropertyType.Boolean, false, FrontedNodePropertyEditorKind.Boolean)),

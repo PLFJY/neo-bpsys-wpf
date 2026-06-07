@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Services.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner.GraphEditor;
 using System.Collections.ObjectModel;
 using System.Text.Encodings.Web;
@@ -20,6 +21,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     private readonly FrontedNodeCatalog _nodeCatalog;
     private readonly FrontedNodeGraphValidator _graphValidator;
     private readonly IFrontedNodeGraphRuntime _graphRuntime;
+    private readonly IFrontedAnimationRuntime? _animationRuntime;
+    private readonly FrontedDesignerPreviewAnimationScope? _previewAnimationScope;
     private readonly JsonSerializerOptions _cloneJsonOptions = new()
     {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -44,7 +47,9 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         Action markBehaviorsDirty,
         FrontedNodeCatalog? nodeCatalog = null,
         FrontedNodeGraphValidator? graphValidator = null,
-        IFrontedNodeGraphRuntime? graphRuntime = null)
+        IFrontedNodeGraphRuntime? graphRuntime = null,
+        IFrontedAnimationRuntime? animationRuntime = null,
+        FrontedDesignerPreviewAnimationScope? previewAnimationScope = null)
     {
         _localizationService = localizationService;
         _markLayoutDirty = markLayoutDirty;
@@ -52,6 +57,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         _nodeCatalog = nodeCatalog ?? new FrontedNodeCatalog();
         _graphValidator = graphValidator ?? new FrontedNodeGraphValidator(_nodeCatalog);
         _graphRuntime = graphRuntime ?? new FrontedNodeGraphRuntime(_nodeCatalog, _graphValidator);
+        _animationRuntime = animationRuntime;
+        _previewAnimationScope = previewAnimationScope;
         EventOptions = [.. eventCatalog.Events.Select(CreateEventOption)];
         OperatorOptions = CreateOperatorOptions();
         StopModeOptions = CreateEnumOptions<FrontedLoopStopMode>("Designer.Behaviors.StopMode");
@@ -314,6 +321,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             _nodeCatalog,
             _graphValidator,
             _graphRuntime,
+            _animationRuntime,
+            _previewAnimationScope,
             editor => AnimationEditorRequested?.Invoke(editor));
     }
 
@@ -453,6 +462,8 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
         FrontedNodeCatalog nodeCatalog,
         FrontedNodeGraphValidator graphValidator,
         IFrontedNodeGraphRuntime graphRuntime,
+        IFrontedAnimationRuntime? animationRuntime,
+        FrontedDesignerPreviewAnimationScope? previewAnimationScope,
         Action<FrontedBehaviorAnimationEditorViewModel> openAnimationEditor)
     {
         Model = model;
@@ -476,7 +487,15 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
         EndTrigger = new TriggerDescriptorEditorViewModel(Model.EndTrigger, eventOptions, operatorOptions, markDirty, localize);
         LoopPolicy = new LoopPolicyEditorViewModel(Model.LoopPolicy, stopModeOptions, reentryPolicyOptions, markDirty);
         OpenAnimationEditorCommand = new RelayCommand(() => openAnimationEditor(
-            new FrontedBehaviorAnimationEditorViewModel(Model, localize, nodeCatalog, graphValidator, graphRuntime, markDirty)));
+            new FrontedBehaviorAnimationEditorViewModel(
+                Model,
+                localize,
+                nodeCatalog,
+                graphValidator,
+                graphRuntime,
+                animationRuntime,
+                previewAnimationScope,
+                markDirty)));
     }
 
     public FrontedBehavior Model { get; }
@@ -594,6 +613,7 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
         {
             if (SetProperty(Model.EventType, value, Model, static (model, next) => model.EventType = next))
             {
+                ClearFilters();
                 _markDirty();
                 UpdateSelectedEvent(_localize);
             }
@@ -611,7 +631,9 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
             Operator = TriggerFilterOperator.Equals
         };
         Model.Filters.Add(filter);
-        Filters.Add(new TriggerFilterEditorViewModel(filter, OperatorOptions, _markDirty));
+        var filterVm = new TriggerFilterEditorViewModel(filter, OperatorOptions, _markDirty);
+        filterVm.SetPayloadFieldOptions(PayloadFieldOptions);
+        Filters.Add(filterVm);
         _markDirty();
     }
 
@@ -630,6 +652,12 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
 
         Filters.Remove(filter);
         _markDirty();
+    }
+
+    private void ClearFilters()
+    {
+        Model.Filters.Clear();
+        Filters.Clear();
     }
 
     private void UpdateSelectedEvent(Func<string, string, string> localize)
@@ -730,31 +758,64 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
     }
 }
 
-public sealed class FrontedBehaviorAnimationEditorViewModel
+public sealed partial class FrontedBehaviorAnimationEditorViewModel : ObservableObject
 {
+    private readonly FrontedBehavior _behavior;
+    private readonly IFrontedNodeGraphRuntime _runtime;
+    private readonly IFrontedAnimationRuntime? _animationRuntime;
+    private readonly FrontedDesignerPreviewAnimationScope? _previewAnimationScope;
+    private readonly Func<string, string, string> _localize;
+    private CancellationTokenSource? _loopPreviewCancellation;
+
     public FrontedBehaviorAnimationEditorViewModel(
         FrontedBehavior behavior,
         Func<string, string, string> localize,
         FrontedNodeCatalog? catalog = null,
         FrontedNodeGraphValidator? validator = null,
         IFrontedNodeGraphRuntime? runtime = null,
+        IFrontedAnimationRuntime? animationRuntime = null,
+        FrontedDesignerPreviewAnimationScope? previewAnimationScope = null,
         Action? markDirty = null)
     {
+        _behavior = behavior;
+        _runtime = runtime ?? new FrontedNodeGraphRuntime(catalog, validator);
+        _animationRuntime = animationRuntime;
+        _previewAnimationScope = previewAnimationScope;
+        _localize = localize;
         Title = behavior.Name;
         IsLoop = behavior.Kind == FrontedBehaviorKind.Loop;
         Stages = IsLoop
             ?
             [
-                Stage(localize("Designer.Behaviors.StartAnimation", "Start animation"), behavior.StartGraph, catalog, validator, runtime, markDirty, localize),
-                Stage(localize("Designer.Behaviors.LoopAnimation", "Loop animation"), behavior.LoopGraph, catalog, validator, runtime, markDirty, localize),
-                Stage(localize("Designer.Behaviors.EndAnimation", "End animation"), behavior.StopGraph, catalog, validator, runtime, markDirty, localize)
+                Stage(localize("Designer.Behaviors.StartAnimation", "Start animation"), behavior.StartGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize),
+                Stage(localize("Designer.Behaviors.LoopAnimation", "Loop animation"), behavior.LoopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize),
+                Stage(localize("Designer.Behaviors.EndAnimation", "End animation"), behavior.StopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize)
             ]
-            : [Stage(localize("Designer.Behaviors.Animation", "Animation"), behavior.Graph, catalog, validator, runtime, markDirty, localize)];
+            : [Stage(localize("Designer.Behaviors.Animation", "Animation"), behavior.Graph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize)];
+
+        PreviewStartCommand = new AsyncRelayCommand(PreviewStartAsync, () => IsLoop && !IsLoopPreviewRunning);
+        PreviewLoopOnceCommand = new AsyncRelayCommand(PreviewLoopOnceAsync, () => IsLoop && !IsLoopPreviewRunning);
+        StartLoopPreviewCommand = new AsyncRelayCommand(StartLoopPreviewAsync, () => IsLoop && !IsLoopPreviewRunning);
+        StopLoopPreviewCommand = new AsyncRelayCommand(StopLoopPreviewAsync, () => IsLoop);
+        PreviewStopCommand = new AsyncRelayCommand(PreviewStopAsync, () => IsLoop);
+        ResetCommand = new RelayCommand(Reset);
     }
 
     public string Title { get; }
     public bool IsLoop { get; }
     public IReadOnlyList<FrontedBehaviorAnimationStageViewModel> Stages { get; }
+    public IAsyncRelayCommand PreviewStartCommand { get; }
+    public IAsyncRelayCommand PreviewLoopOnceCommand { get; }
+    public IAsyncRelayCommand StartLoopPreviewCommand { get; }
+    public IAsyncRelayCommand StopLoopPreviewCommand { get; }
+    public IAsyncRelayCommand PreviewStopCommand { get; }
+    public IRelayCommand ResetCommand { get; }
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(PreviewStartCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PreviewLoopOnceCommand))]
+    [NotifyCanExecuteChangedFor(nameof(StartLoopPreviewCommand))]
+    private bool _isLoopPreviewRunning;
 
     private static FrontedBehaviorAnimationStageViewModel Stage(
         string name,
@@ -762,9 +823,155 @@ public sealed class FrontedBehaviorAnimationEditorViewModel
         FrontedNodeCatalog? catalog,
         FrontedNodeGraphValidator? validator,
         IFrontedNodeGraphRuntime? runtime,
+        IFrontedAnimationRuntime? animationRuntime,
+        FrontedDesignerPreviewAnimationScope? previewAnimationScope,
         Action? markDirty,
-        Func<string, string, string> localize) =>
-        new(name, graph, new FrontedNodeGraphEditorViewModel(graph, catalog, validator, runtime, markDirty, localize));
+        Func<string, string, string> localize)
+    {
+        var editorVm = new FrontedNodeGraphEditorViewModel(
+            graph,
+            catalog,
+            validator,
+            runtime,
+            animationRuntime,
+            previewAnimationScope is null ? null : () => previewAnimationScope.CreateContext(),
+            markDirty,
+            localize)
+        {
+            PreviewRoot = previewAnimationScope?.Root
+        };
+        return new(name, graph, editorVm);
+    }
+
+    private Task PreviewStartAsync() =>
+        ExecuteGraphAsync(_behavior.StartGraph, TestContextCancellationToken());
+
+    private Task PreviewLoopOnceAsync() =>
+        ExecuteGraphAsync(_behavior.LoopGraph, TestContextCancellationToken());
+
+    private async Task StartLoopPreviewAsync()
+    {
+        if (IsLoopPreviewRunning)
+        {
+            if (_behavior.LoopPolicy?.ReentryPolicy == FrontedReentryPolicy.InterruptPrevious)
+            {
+                _loopPreviewCancellation?.Cancel();
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        _loopPreviewCancellation = new CancellationTokenSource();
+        IsLoopPreviewRunning = true;
+        try
+        {
+            var token = _loopPreviewCancellation.Token;
+            await ExecuteGraphAsync(_behavior.StartGraph, token);
+            var policy = _behavior.LoopPolicy ?? new FrontedLoopPolicy();
+            if (policy.AutoReverse)
+            {
+                Stages.FirstOrDefault()?.GraphEditor.ExecutionLog.Add(new FrontedGraphExecutionLogItem
+                {
+                    Level = FrontedGraphExecutionLogLevel.Warning,
+                    Message = _localize("Designer.Graph.Preview.AutoReverseStoredOnly", "AutoReverse is stored; reverse graph semantics are not previewed in Phase 4.")
+                });
+            }
+
+            var repeatCount = policy.RepeatCount;
+            var iteration = 0;
+            while (!token.IsCancellationRequested && (repeatCount < 0 || iteration < repeatCount))
+            {
+                await ExecuteGraphAsync(_behavior.LoopGraph, token);
+                iteration++;
+                if (policy.IntervalMs > 0 && !token.IsCancellationRequested)
+                {
+                    await Task.Delay(policy.IntervalMs, token);
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            IsLoopPreviewRunning = false;
+            _loopPreviewCancellation?.Dispose();
+            _loopPreviewCancellation = null;
+        }
+    }
+
+    private async Task StopLoopPreviewAsync()
+    {
+        _loopPreviewCancellation?.Cancel();
+        var policy = _behavior.LoopPolicy ?? new FrontedLoopPolicy();
+        if (policy.StopMode == FrontedLoopStopMode.RunStopGraph)
+        {
+            await ExecuteGraphAsync(_behavior.StopGraph, TestContextCancellationToken());
+        }
+
+        if (policy.ResetOnStop)
+        {
+            Reset();
+        }
+    }
+
+    private Task PreviewStopAsync() =>
+        ExecuteGraphAsync(_behavior.StopGraph, TestContextCancellationToken());
+
+    private void Reset()
+    {
+        var context = _previewAnimationScope?.CreateContext();
+        if (_animationRuntime is not null && context is not null)
+        {
+            _animationRuntime.ResetAll(context);
+        }
+    }
+
+    private async Task ExecuteGraphAsync(FrontedNodeGraph graph, CancellationToken cancellationToken)
+    {
+        var animationContext = _previewAnimationScope?.CreateContext();
+        var graphContext = new FrontedGraphExecutionContext
+        {
+            BehaviorGuid = animationContext?.SelfBehaviorGuid ?? Guid.Empty,
+            CurrentControlDisplayName = animationContext?.SelfDisplayName ?? string.Empty,
+            ActionExecutor = _animationRuntime is null || animationContext is null
+                ? null
+                : new AnimationRuntimeGraphActionExecutor(_animationRuntime, animationContext)
+        };
+        var result = await _runtime.ExecuteAsync(graph, graphContext, cancellationToken);
+        var stage = Stages.FirstOrDefault(item => ReferenceEquals(item.Graph, graph));
+        if (stage is null)
+        {
+            return;
+        }
+
+        if (_animationRuntime is not null && animationContext is null)
+        {
+            stage.GraphEditor.ExecutionLog.Add(new FrontedGraphExecutionLogItem
+            {
+                Level = FrontedGraphExecutionLogLevel.Warning,
+                Message = _localize("Designer.Graph.Preview.NoTargetScope", "No preview target scope available.")
+            });
+        }
+
+        foreach (var item in result.LogItems)
+        {
+            stage.GraphEditor.ExecutionLog.Add(item);
+        }
+    }
+
+    private static CancellationToken TestContextCancellationToken() =>
+        CancellationToken.None;
+
+    private sealed class AnimationRuntimeGraphActionExecutor(
+        IFrontedAnimationRuntime animationRuntime,
+        FrontedAnimationExecutionContext animationContext) : IFrontedGraphActionExecutor
+    {
+        public Task ExecuteAsync(FrontedGraphActionRequest request, CancellationToken cancellationToken) =>
+            animationRuntime.ExecuteAsync(request, animationContext, cancellationToken);
+    }
 }
 
 public sealed record FrontedBehaviorAnimationStageViewModel(

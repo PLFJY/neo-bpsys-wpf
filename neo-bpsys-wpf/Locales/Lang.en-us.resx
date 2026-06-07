@@ -2495,7 +2495,7 @@
     <value>Refresh Packages</value>
   </data>
   <data name="PackageNotImplemented" xml:space="preserve">
-    <value>v3 package import will be implemented in Phase 9D.</value>
+    <value>v3 package import will be implemented in a future version.</value>
   </data>
   <data name="CannotDeleteBuiltinPackage" xml:space="preserve">
     <value>Cannot delete the built-in package.</value>
@@ -3008,7 +3008,7 @@
     <value>Plugin Control Type</value>
   </data>
   <data name="Designer.PluginInstallGuidance" xml:space="preserve">
-    <value>This plugin is not installed. Install guidance will be available in Phase 13E.</value>
+    <value>This plugin is not installed. Install guidance will be available in a future version.</value>
   </data>
   <data name="Designer.PluginControlUnavailable" xml:space="preserve">
     <value>Plugin control unavailable</value>
@@ -3296,7 +3296,7 @@
     <value>This layout package references plugin controls that are not registered in the current app. Missing controls will not render; cancel the import or force import and remove them.</value>
   </data>
   <data name="MissingPluginMarketLater" xml:space="preserve">
-    <value>Plugin marketplace install/update guidance is Phase 13E. This phase will not download or install plugins automatically.</value>
+    <value>Plugin marketplace install/update guidance will be available in a future version.</value>
   </data>
   <data name="ForceImportRemoveMissingControls" xml:space="preserve">
     <value>Force import and remove missing controls</value>
@@ -3889,7 +3889,7 @@
   <data name="Designer.Behaviors.StopMode" xml:space="preserve"><value>Stop mode</value></data>
   <data name="Designer.Behaviors.ResetOnStop" xml:space="preserve"><value>Reset on stop</value></data>
   <data name="Designer.Behaviors.ReentryPolicy" xml:space="preserve"><value>Reentry policy</value></data>
-  <data name="Designer.Behaviors.GraphPlaceholder" xml:space="preserve"><value>Node graph editor will be available in Phase 3</value></data>
+  <data name="Designer.Behaviors.GraphPlaceholder" xml:space="preserve"><value>Node graph editor will be available in a future version</value></data>
   <data name="Designer.Behaviors.StartGraph" xml:space="preserve"><value>StartGraph</value></data>
   <data name="Designer.Behaviors.LoopGraph" xml:space="preserve"><value>LoopGraph</value></data>
   <data name="Designer.Behaviors.StopGraph" xml:space="preserve"><value>StopGraph</value></data>
@@ -3969,7 +3969,7 @@
   <data name="Designer.Behaviors.LoopAnimation" xml:space="preserve"><value>Loop animation</value></data>
   <data name="Designer.Behaviors.EndAnimation" xml:space="preserve"><value>End animation</value></data>
   <data name="Designer.Behaviors.Animation" xml:space="preserve"><value>Animation</value></data>
-  <data name="Designer.Behaviors.AnimationEditorPlaceholder" xml:space="preserve"><value>Node graph animation editor will be implemented in Phase 3.</value></data>
+  <data name="Designer.Behaviors.AnimationEditorPlaceholder" xml:space="preserve"><value>Node graph animation editor will be implemented in a future version.</value></data>
   <data name="Designer.Behaviors.Event.CurrentGameChanged.Description" xml:space="preserve"><value>Fires when the current game object changes.</value></data>
   <data name="Designer.Behaviors.Event.GlobalScoreTotalMarginChanged.Description" xml:space="preserve"><value>Fires when the total score display margin changes.</value></data>
   <data name="Designer.Behaviors.Event.BanCountChanged.Description" xml:space="preserve"><value>Fires when a ban list count changes.</value></data>
@@ -3989,8 +3989,19 @@
   <data name="Designer.Graph.AddStartEnd" xml:space="preserve"><value>Add Start / End</value></data>
   <data name="Designer.Graph.RunPreview" xml:space="preserve"><value>Run preview</value></data>
   <data name="Designer.Graph.StopPreview" xml:space="preserve"><value>Stop preview</value></data>
+  <data name="Designer.Graph.ResetCurrentTarget" xml:space="preserve"><value>Reset current target</value></data>
+  <data name="Designer.Graph.ResetAllPreview" xml:space="preserve"><value>Reset all preview</value></data>
   <data name="Designer.Graph.Validate" xml:space="preserve"><value>Check graph</value></data>
   <data name="Designer.Graph.ClearLog" xml:space="preserve"><value>Clear log</value></data>
+  <data name="Designer.Graph.ExecutionLog" xml:space="preserve"><value>Execution log</value></data>
+  <data name="Designer.Graph.PreviewPlaceholder" xml:space="preserve"><value>Animation preview viewport
+Select a control in the designer to preview animation here</value></data>
+  <data name="Designer.Graph.PreviewStart" xml:space="preserve"><value>Preview start</value></data>
+  <data name="Designer.Graph.PreviewLoopOnce" xml:space="preserve"><value>Preview loop once</value></data>
+  <data name="Designer.Graph.StartLoopPreview" xml:space="preserve"><value>Start loop preview</value></data>
+  <data name="Designer.Graph.StopLoopPreview" xml:space="preserve"><value>Stop loop preview</value></data>
+  <data name="Designer.Graph.PreviewStop" xml:space="preserve"><value>Preview stop</value></data>
+  <data name="Designer.Graph.ResetPreview" xml:space="preserve"><value>Reset</value></data>
   <data name="Designer.Graph.Connection.SelectInput" xml:space="preserve"><value>Select an input port.</value></data>
   <data name="Designer.Graph.Preview.ValidationBlocked" xml:space="preserve"><value>Graph checks found issues, so preview was blocked.</value></data>
   <data name="Designer.Graph.Category.Flow" xml:space="preserve"><value>Flow</value></data>
@@ -4020,7 +4031,7 @@
   <data name="Designer.Graph.Node.FlowParallel.Description" xml:space="preserve"><value>Runs branches together and waits for all of them. Useful for issuing multiple animation requests at once.</value></data>
   <data name="Designer.Graph.Node.FlowIf.Description" xml:space="preserve"><value>Advanced branch node using text comparison. Simple property animations usually do not need it.</value></data>
   <data name="Designer.Graph.Node.ActionLog.Description" xml:space="preserve"><value>Writes a line to the preview log so you can see that execution reached this point.</value></data>
-  <data name="Designer.Graph.Node.ActionSetProperty.Description" xml:space="preserve"><value>Emits a set-property request. Phase 3 shows it in preview only; it does not change controls yet.</value></data>
+  <data name="Designer.Graph.Node.ActionSetProperty.Description" xml:space="preserve"><value>Emits a set-property request that writes a value to the target control's property.</value></data>
   <data name="Designer.Graph.Node.ActionResetProperty.Description" xml:space="preserve"><value>Emits a reset-property request. PropertyName can be a specific property or All.</value></data>
   <data name="Designer.Graph.Node.ActionAnimateProperty.Description" xml:space="preserve"><value>Emits an animate-property request. Fill target, property, from/to values, duration, and easing.</value></data>
   <data name="Designer.Graph.Node.ValueNumber.Description" xml:space="preserve"><value>Numeric constant such as 0, 1, or 300. Editable and saved now; value-port evaluation comes later.</value></data>
@@ -4057,17 +4068,33 @@
   <data name="Designer.Graph.DeleteConnection" xml:space="preserve"><value>Disconnect</value></data>
   <data name="Designer.Graph.Property.DurationMs.Description" xml:space="preserve"><value>Delay or animation duration in milliseconds.</value></data>
   <data name="Designer.Graph.Property.Message.Description" xml:space="preserve"><value>Text written to the preview execution log.</value></data>
-  <data name="Designer.Graph.Property.Target.Description" xml:space="preserve"><value>Target for the action. Phase 3 only records the request and does not modify real controls.</value></data>
+  <data name="Designer.Graph.Property.Target.Description" xml:space="preserve"><value>Target control for the action. Self means the control this behavior is bound to.</value></data>
   <data name="Designer.Graph.Property.PropertyName.Description" xml:space="preserve"><value>Name of the property to set, reset, or animate.</value></data>
   <data name="Designer.Graph.Property.Value.Description" xml:space="preserve"><value>Node output value or value to write to a property.</value></data>
-  <data name="Designer.Graph.Property.From.Description" xml:space="preserve"><value>Animation start value. Phase 3 only records the request.</value></data>
-  <data name="Designer.Graph.Property.To.Description" xml:space="preserve"><value>Animation end value. Phase 3 only records the request.</value></data>
+  <data name="Designer.Graph.Property.From.Description" xml:space="preserve"><value>Animation start value. For example, use 0 for Opacity to start from fully transparent.</value></data>
+  <data name="Designer.Graph.Property.To.Description" xml:space="preserve"><value>Animation end value. For example, use 1 for Opacity to animate to fully opaque.</value></data>
   <data name="Designer.Graph.Property.Easing.Description" xml:space="preserve"><value>Easing name reserved for the later animation runtime.</value></data>
   <data name="Designer.Graph.Property.Left.Description" xml:space="preserve"><value>Left comparison text. Put complex trigger conditions in the behavior panel instead.</value></data>
   <data name="Designer.Graph.Property.Operator.Description" xml:space="preserve"><value>Text comparison operator, using the same semantics as behavior trigger filters.</value></data>
   <data name="Designer.Graph.Property.Right.Description" xml:space="preserve"><value>Right side comparison text.</value></data>
   <data name="Designer.Graph.Property.Path.Description" xml:space="preserve"><value>Path value. Animation graphs usually do not need event paths.</value></data>
   <data name="Designer.Graph.Help" xml:space="preserve"><value>Help</value></data>
+  <data name="Designer.Graph.Help.Concepts.Title" xml:space="preserve"><value>Basic Concepts</value></data>
+  <data name="Designer.Graph.Help.Concepts.Content" xml:space="preserve"><value>The node graph editor is a visual tool for composing control animations. Each graph consists of nodes and connections.\nNodes represent actions (e.g. set a property, play an animation); connections define execution order.\nA graph starts at the Start node and ends at an End node.\n\nNodes fall into three categories: flow control nodes (control execution order), action nodes (manipulate control properties), and value nodes (provide constant data).</value></data>
+  <data name="Designer.Graph.Help.Workflow.Title" xml:space="preserve"><value>Workflow</value></data>
+  <data name="Designer.Graph.Help.Workflow.Content" xml:space="preserve"><value>Drag nodes from the catalog on the left onto the canvas, or double-click a catalog item to quickly add it.\nDrag from a node's output port (blue marker on the right) to another node's input port (marker on the left) to create a connection.\nClick a node card to select it; the property panel on the right shows editable properties.\nPress Delete to remove the selected node or connection. Use the toolbar buttons to duplicate a node or auto-create Start/End nodes.\nType keywords in the catalog search box to quickly find node types.</value></data>
+  <data name="Designer.Graph.Help.NodeTypes.Title" xml:space="preserve"><value>Node Type Reference</value></data>
+  <data name="Designer.Graph.Help.NodeTypes.Content" xml:space="preserve"><value>Flow Control Nodes:\nStart — Entry point; each graph must have exactly one.\nEnd — Ends the current branch.\nDelay — Waits for the specified number of milliseconds.\nSequence — Runs Step1 → Step2 → Step3 in order.\nParallel — Runs Branch1, Branch2, Branch3 simultaneously; continues when all complete.\nIf — Text comparison branch. Compares Left and Right, goes to True on match, False otherwise.\n\nAction Nodes:\nLog — Writes a line to the execution log for debugging.\nSetProperty — Sets a control property value, e.g. Target=Self, PropertyName=Opacity, Value=0.5.\nResetProperty — Resets a control property. Use a specific property name or All.\nAnimateProperty — Sends a property animation to the target control. Fill in PropertyName, From, To, DurationMs and Easing.\n\nValue Nodes:\nNumber / String / Boolean / Color — Constant value nodes, editable in the property panel.\nControlReference — Target control reference; Self means the control this behavior is bound to.</value></data>
+  <data name="Designer.Graph.Help.Preview.Title" xml:space="preserve"><value>Previewing Animation</value></data>
+  <data name="Designer.Graph.Help.Preview.Content" xml:space="preserve"><value>Make sure the graph has at least one Start node and one End node.\nClick Run Preview in the toolbar to execute the current graph. The animation runs on the real controls in the designer and is shown live in the preview viewport (bottom-left).\nThe execution log (bottom-right) shows the result of each step, helping you troubleshoot.\nClick Stop Preview to interrupt execution. Use Reset Current Target or Reset All Preview to restore modified control properties.\nThe preview viewport uses real-time rendering so you can see animation effects directly.</value></data>
+  <data name="Designer.Graph.Help.LoopPreview.Title" xml:space="preserve"><value>Loop Preview</value></data>
+  <data name="Designer.Graph.Help.LoopPreview.Content" xml:space="preserve"><value>Loop behaviors have three stage graphs: Start Graph, Loop Graph, and End Graph.\n\nPreview Loop Once: runs Start Graph → runs Loop Graph once → runs End Graph.\nStart Loop Preview: runs the Loop Graph repeatedly (controlled by RepeatCount and IntervalMs) until you click Stop Loop Preview.\nPreview Stop: interrupts all running previews.\nReset Preview: restores all control properties modified by preview.\n\nRepeatCount controls the number of loops; set to 0 for infinite looping until manually stopped. IntervalMs controls the wait time between loops.</value></data>
+  <data name="Designer.Graph.Help.Troubleshooting.Title" xml:space="preserve"><value>Troubleshooting</value></data>
+  <data name="Designer.Graph.Help.Troubleshooting.Content" xml:space="preserve"><value>Preview does not run: check for a Start node, verify all nodes are connected, and look for validation errors.\nAnimation effect is unexpected: check AnimateProperty's From/To values and DurationMs, and verify the easing function.\nCannot connect nodes: make sure output port type (Flow/Value) matches input port type. Flow ports only connect to Flow ports; Value ports only connect to Value ports.\nGraph execution hangs: check if a Delay node has an extremely large duration, or if all Parallel branches have End nodes.\nControl animation has no effect: check that Target is correct (commonly Self) and PropertyName is spelled correctly (e.g. Opacity, Width, Height).</value></data>
+  <data name="Designer.Graph.Help.Shortcuts.Title" xml:space="preserve"><value>Keyboard Shortcuts</value></data>
+  <data name="Designer.Graph.Help.Shortcut.Delete" xml:space="preserve"><value>Delete: Delete selected node or connection</value></data>
+  <data name="Designer.Graph.Help.Shortcut.Duplicate" xml:space="preserve"><value>Ctrl+D: Duplicate selected node</value></data>
+  <data name="Designer.Graph.Help.Shortcut.Connect" xml:space="preserve"><value>Drag output port to input port: Create connection</value></data>
   <data name="Designer.Graph.Help.Title" xml:space="preserve"><value>Animation editor help</value></data>
   <data name="Designer.Graph.Node.Shortcuts" xml:space="preserve"><value>Drag the header to move; drag output ports to input ports to connect; right-click or press Delete to remove.</value></data>
   <data name="Designer.Graph.Help.Content" xml:space="preserve"><value>This editor only edits the property animation flow that runs after a behavior is triggered. Configure events, triggers, and filters in the behavior panel.

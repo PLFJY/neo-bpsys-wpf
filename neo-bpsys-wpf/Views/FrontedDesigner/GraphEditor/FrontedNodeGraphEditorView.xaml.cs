@@ -1,10 +1,10 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner.GraphEditor;
-using neo_bpsys_wpf.Views.Windows;
 
 namespace neo_bpsys_wpf.Views.FrontedDesigner.GraphEditor;
 
@@ -19,11 +19,62 @@ public partial class FrontedNodeGraphEditorView : UserControl
     private Point _panStartPoint;
     private double _panStartHorizontalOffset;
     private double _panStartVerticalOffset;
-    private FrontedBehaviorAnimationHelpWindow? _helpWindow;
+    private FrontedNodeGraphEditorViewModel? _subscribedViewModel;
 
     public FrontedNodeGraphEditorView()
     {
         InitializeComponent();
+        DataContextChanged += OnDataContextChanged;
+        Loaded += OnLoaded;
+    }
+
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (_subscribedViewModel is not null)
+        {
+            _subscribedViewModel.PropertyChanged -= ViewModel_OnPropertyChanged;
+            _subscribedViewModel = null;
+        }
+
+        if (DataContext is FrontedNodeGraphEditorViewModel viewModel)
+        {
+            _subscribedViewModel = viewModel;
+            viewModel.PropertyChanged += ViewModel_OnPropertyChanged;
+            UpdatePreviewVisual(viewModel.PreviewRoot);
+        }
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is FrontedNodeGraphEditorViewModel viewModel)
+        {
+            UpdatePreviewVisual(viewModel.PreviewRoot);
+        }
+    }
+
+    private void ViewModel_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(FrontedNodeGraphEditorViewModel.PreviewRoot)
+            && DataContext is FrontedNodeGraphEditorViewModel viewModel)
+        {
+            UpdatePreviewVisual(viewModel.PreviewRoot);
+        }
+    }
+
+    private void UpdatePreviewVisual(FrameworkElement? root)
+    {
+        if (root is not null)
+        {
+            PreviewVisualBrush.Visual = root;
+            PreviewViewport.Visibility = Visibility.Visible;
+            PreviewPlaceholder.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            PreviewVisualBrush.Visual = null;
+            PreviewViewport.Visibility = Visibility.Collapsed;
+            PreviewPlaceholder.Visibility = Visibility.Visible;
+        }
     }
 
     private void NodeCard_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -265,31 +316,6 @@ public partial class FrontedNodeGraphEditorView : UserControl
 
         editor.DeleteNode(editor.SelectedNode);
         e.Handled = true;
-    }
-
-    private void OpenHelp_OnClick(object sender, RoutedEventArgs e)
-    {
-        if (_helpWindow is null || !_helpWindow.IsVisible)
-        {
-            _helpWindow = new FrontedBehaviorAnimationHelpWindow
-            {
-                Owner = Window.GetWindow(this)
-            };
-            _helpWindow.Closed += HelpWindow_OnClosed;
-            _helpWindow.Show();
-            return;
-        }
-
-        _helpWindow.Activate();
-    }
-
-    private void HelpWindow_OnClosed(object? sender, EventArgs e)
-    {
-        if (sender is FrontedBehaviorAnimationHelpWindow window && ReferenceEquals(window, _helpWindow))
-        {
-            window.Closed -= HelpWindow_OnClosed;
-            _helpWindow = null;
-        }
     }
 
     private void EndPan()

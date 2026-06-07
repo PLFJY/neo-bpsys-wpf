@@ -45,6 +45,31 @@ Phase 3 已完成 Designer 预览侧的可视化节点图编辑 MVP 和图执行
 
 Phase 3 仍不实现：真实前台窗口 runtime 播放、真实 `IFrontedEventBus`、插件节点、Timeline 编辑器、断点调试器、Canvas/window 行为列表、Web/Blazor runtime。
 
+## Phase 4 implemented
+
+Phase 4 已完成 Designer 预览侧的 WPF 动画与属性应用层：
+
+- `FrontedRenderer` 现在会把 `FrontedControlConfigBase.BehaviorGuid` 写入生成控件的 `FrontedRendererProperties.BehaviorGuid` 附加属性。缺失插件占位控件在 Designer 预览中也会携带该 Guid；`Guid.Empty` 会原样保留，渲染时不会自动生成新 Guid。
+- 新增 WPF 动画目标解析器。当前 action `Target` 字符串兼容 `Self`、原始 Guid、`guid:{...}`，并保留 registered name 作为显式 fallback。解析器只在当前预览 root/scope 内查找由 renderer 生成且 `BehaviorGuid` 匹配的控件；找不到目标时记录 warning 并跳过 action。
+- 新增 `IFrontedAnimationRuntime`、动画执行上下文、属性 adapter registry 与内置 adapters。GraphRuntime 仍返回 Phase 3 的 `FrontedGraphActionRequest` 列表，同时 `FrontedGraphExecutionContext.ActionExecutor` 可在 action 节点执行点立即消费请求，因此 Delay / Sequence 预览顺序不再被推迟到图执行结束后。
+- Designer 动画编辑器的 Run Preview 会在可用时使用当前预览 Canvas、选中控件 `BehaviorGuid` 和选中控件名称创建 WPF 执行上下文。没有预览 scope 时会回退为 Phase 3 日志预览，并提示 “No preview target scope available.”。
+- Reset 当前目标 / Reset all preview 会把本次预览 session 捕获到的基础视觉值恢复到 WPF 控件上。基础值只存在于 runtime 内存中，不写回 layout JSON 或 behaviors JSON。
+
+当前内置支持的属性：
+
+| Adapter | 属性 |
+| --- | --- |
+| FrameworkElement | `Opacity`、`Visibility`、`Width`、`Height`、`VisualOffsetX`、`VisualOffsetY`、`ScaleX`、`ScaleY`、`Rotation` |
+| Shape | `FillColor`、`StrokeColor`、`StrokeThickness` |
+| TextBlock / Control | `TextColor`、`Foreground`、`FontSize` |
+| BackgroundTintControlHost | `TintColor` |
+
+`VisualOffsetX/Y`、`ScaleX/Y`、`Rotation` 使用 `RenderTransform`，不会修改 `Canvas.Left` / `Canvas.Top`，也不会污染布局配置。`FillColor`、`StrokeColor`、`TextColor` 使用 `SolidColorBrush`，颜色值支持 `#RRGGBB` / `#AARRGGBB`。不支持的属性会记录 warning 并跳过，不抛出异常。
+
+Loop 行为编辑器现在提供 Designer-only 生命周期预览：Preview Start、Preview Loop Once、Start Loop Preview、Stop Loop Preview、Preview Stop、Reset。Start Loop Preview 会先执行 `StartGraph`，再按 `LoopPolicy.RepeatCount` 与 `IntervalMs` 重复执行 `LoopGraph`；重复启动默认按 `ReentryPolicy.IgnoreIfRunning` 忽略，`InterruptPrevious` 会取消旧循环。Stop Loop Preview 会取消当前循环，在 `StopMode == RunStopGraph` 时执行 `StopGraph`，并按 `ResetOnStop` 调用 reset。`AutoReverse` 当前只保存配置并提示，任意图的反向语义留给后续阶段。
+
+Phase 4 仍不实现：真实 `IFrontedEventBus`、从 `SharedDataService` 事件自动触发、真实前台窗口赛事事件播放、插件自定义 animatable property、Timeline 编辑器、断点调试器、Canvas/window 级行为列表。
+
 ## Phase 2 UX / event catalog update
 
 ### Attribute-driven event catalog

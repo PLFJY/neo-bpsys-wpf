@@ -1,7 +1,12 @@
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.ViewModels.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner.GraphEditor;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace neo_bpsys_wpf.Tests.ViewModels;
@@ -94,6 +99,51 @@ public class FrontedNodeGraphEditorViewModelTest
         Assert.NotEqual(originalId, editor.SelectedNode!.Model.NodeId);
     }
 
+    [Fact]
+    public async Task GraphPreview_NoTargetScope_LogsWarningAndDoesNotCrash()
+    {
+        var catalog = new FrontedNodeCatalog();
+        var graph = new FrontedNodeGraph();
+        var start = catalog.CreateNode("flow.start");
+        var end = catalog.CreateNode("flow.end");
+        graph.Nodes.AddRange([start, end]);
+        graph.Connections.Add(new FrontedNodeConnection { SourceNodeId = start.NodeId, SourcePort = "Out", TargetNodeId = end.NodeId, TargetPort = "In" });
+        var editor = new FrontedNodeGraphEditorViewModel(
+            graph,
+            catalog,
+            runtime: new FrontedNodeGraphRuntime(catalog, new FrontedNodeGraphValidator(catalog)),
+            animationRuntime: new FrontedAnimationRuntime(),
+            createAnimationContext: () => null);
+
+        await editor.RunGraphPreviewAsync();
+
+        Assert.Contains(editor.ExecutionLog, item => item.Message == "No preview target scope available.");
+    }
+
+    [Fact]
+    public async Task LoopPreview_StartLoopStop_ExecutesGraphs()
+    {
+        var runtime = new RecordingGraphRuntime();
+        var behavior = new FrontedBehavior
+        {
+            Kind = FrontedBehaviorKind.Loop,
+            StartGraph = new FrontedNodeGraph(),
+            LoopGraph = new FrontedNodeGraph(),
+            StopGraph = new FrontedNodeGraph(),
+            LoopPolicy = new FrontedLoopPolicy { RepeatCount = 1, StopMode = FrontedLoopStopMode.RunStopGraph, ResetOnStop = false }
+        };
+        var editor = new FrontedBehaviorAnimationEditorViewModel(
+            behavior,
+            (_, fallback) => fallback,
+            runtime: runtime);
+
+        await editor.PreviewStartCommand.ExecuteAsync(null);
+        await editor.PreviewLoopOnceCommand.ExecuteAsync(null);
+        await editor.PreviewStopCommand.ExecuteAsync(null);
+
+        Assert.Equal([behavior.StartGraph, behavior.LoopGraph, behavior.StopGraph], runtime.Graphs);
+    }
+
     private static FrontedNodeGraphEditorViewModel CreateEditorWithNodes(params string[] nodeTypes)
     {
         var catalog = new FrontedNodeCatalog();
@@ -101,5 +151,19 @@ public class FrontedNodeGraphEditorViewModelTest
         var editor = new FrontedNodeGraphEditorViewModel(graph, catalog);
         editor.SelectedNode = editor.Nodes.FirstOrDefault();
         return editor;
+    }
+
+    private sealed class RecordingGraphRuntime : IFrontedNodeGraphRuntime
+    {
+        public List<FrontedNodeGraph> Graphs { get; } = [];
+
+        public Task<FrontedGraphExecutionResult> ExecuteAsync(
+            FrontedNodeGraph graph,
+            FrontedGraphExecutionContext context,
+            CancellationToken cancellationToken = default)
+        {
+            Graphs.Add(graph);
+            return Task.FromResult(new FrontedGraphExecutionResult { Status = FrontedGraphExecutionStatus.Success });
+        }
     }
 }

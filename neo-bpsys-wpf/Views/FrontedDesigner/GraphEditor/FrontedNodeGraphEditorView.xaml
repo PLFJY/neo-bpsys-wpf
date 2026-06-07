@@ -18,7 +18,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="44" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="168" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="200" MinHeight="80" />
         </Grid.RowDefinitions>
         <StackPanel Margin="0,0,0,8" Orientation="Horizontal">
             <ui:Button Command="{Binding DeleteSelectedNodeCommand}" Content="{lex:Loc Designer.Graph.DeleteNode}" />
@@ -26,15 +27,19 @@
             <ui:Button Margin="6,0,0,0" Command="{Binding AutoCreateStartEndCommand}" Content="{lex:Loc Designer.Graph.AddStartEnd}" />
             <ui:Button Margin="18,0,0,0" Command="{Binding RunGraphPreviewCommand}" Content="{lex:Loc Designer.Graph.RunPreview}" />
             <ui:Button Margin="6,0,0,0" Command="{Binding StopPreviewCommand}" Content="{lex:Loc Designer.Graph.StopPreview}" />
+            <ui:Button Margin="6,0,0,0" Command="{Binding ResetCurrentTargetCommand}" Content="{lex:Loc Designer.Graph.ResetCurrentTarget}" />
+            <ui:Button Margin="6,0,0,0" Command="{Binding ResetAllPreviewCommand}" Content="{lex:Loc Designer.Graph.ResetAllPreview}" />
             <ui:Button Margin="6,0,0,0" Command="{Binding ValidateGraphCommand}" Content="{lex:Loc Designer.Graph.Validate}" />
             <TextBlock Margin="12,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource SystemAccentColorPrimaryBrush}" Text="{Binding ConnectionStatus}" />
         </StackPanel>
 
         <Grid Grid.Row="1" MinHeight="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="220" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="270" />
+                <ColumnDefinition Width="220" MinWidth="120" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" MinWidth="200" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="270" MinWidth="160" />
             </Grid.ColumnDefinitions>
             <Border Margin="0,0,8,0" Padding="8" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6">
                 <DockPanel>
@@ -75,7 +80,9 @@
                 </DockPanel>
             </Border>
 
-            <Border Grid.Column="1" Margin="0,0,8,0" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6">
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+
+            <Border Grid.Column="2" Margin="0,0,8,0" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6">
                 <ScrollViewer
                     x:Name="GraphScrollViewer"
                     HorizontalScrollBarVisibility="Auto"
@@ -213,7 +220,9 @@
                 </ScrollViewer>
             </Border>
 
-            <Border Grid.Column="2" Padding="8" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6">
+            <GridSplitter Grid.Column="3" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+
+            <Border Grid.Column="4" Padding="8" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Top" Margin="0,0,0,8" FontWeight="SemiBold" Text="{lex:Loc Designer.Graph.Properties}" />
                     <ScrollViewer
@@ -228,6 +237,11 @@
                                         <TextBlock Margin="0,0,0,3" Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding DisplayName}" />
                                         <TextBlock Margin="0,0,0,4" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="{Binding Description}" TextWrapping="Wrap" />
                                         <ui:TextBox Text="{Binding TextValue, UpdateSourceTrigger=LostFocus}" Visibility="{Binding IsText, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                        <ComboBox
+                                            IsEditable="True"
+                                            ItemsSource="{Binding Options}"
+                                            Text="{Binding TextValue, UpdateSourceTrigger=LostFocus}"
+                                            Visibility="{Binding HasTextSuggestions, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                         <CheckBox Foreground="{DynamicResource TextFillColorPrimaryBrush}" IsChecked="{Binding BooleanValue}" Visibility="{Binding IsBoolean, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                         <ComboBox ItemsSource="{Binding Options}" SelectedItem="{Binding EnumValue}" Visibility="{Binding IsEnum, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                     </StackPanel>
@@ -239,28 +253,45 @@
             </Border>
         </Grid>
 
-        <Grid Grid.Row="2" Margin="0,8,0,0" MinHeight="0">
-            <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition /></Grid.ColumnDefinitions>
-            <Border Margin="0,0,4,0" Padding="6" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6">
-                <DockPanel>
-                    <TextBlock DockPanel.Dock="Top" FontWeight="SemiBold" Text="{lex:Loc Designer.Graph.Validation}" ToolTip="{lex:Loc Designer.Graph.Validation.Description}" />
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" scrolling:ModernScroll.Ownership="Self" scrolling:NestedSmoothScrollBehavior.IsEnabled="True">
-                        <ItemsControl ItemsSource="{Binding ValidationMessages}">
-                            <ItemsControl.ItemTemplate><DataTemplate><TextBlock Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding Message}" TextWrapping="Wrap" /></DataTemplate></ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </DockPanel>
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+
+        <Grid Grid.Row="3" Margin="0,8,0,0" MinHeight="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="120" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="200" MinWidth="100" />
+            </Grid.ColumnDefinitions>
+            <!-- 动画预览视口 -->
+            <Border
+                Margin="0,0,4,0"
+                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="6"
+                ClipToBounds="True">
+                <Grid>
+                    <Rectangle x:Name="PreviewViewport" Visibility="Collapsed">
+                        <Rectangle.Fill>
+                            <VisualBrush x:Name="PreviewVisualBrush" Stretch="Uniform" />
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <TextBlock
+                        x:Name="PreviewPlaceholder"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                        Text="{lex:Loc Designer.Graph.PreviewPlaceholder}"
+                        TextWrapping="Wrap" />
+                </Grid>
             </Border>
-            <Border Grid.Column="1" Margin="4,0,0,0" Padding="6" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6">
+
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+
+            <!-- 执行日志 -->
+            <Border Grid.Column="2" Margin="4,0,0,0" Padding="6" BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6">
                 <DockPanel>
-                    <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Right" Orientation="Horizontal">
-                        <ui:Button Command="{Binding ClearExecutionLogCommand}" Content="{lex:Loc Designer.Graph.ClearLog}" />
-                        <ui:Button
-                            Margin="6,0,0,0"
-                            Padding="12,4"
-                            Click="OpenHelp_OnClick"
-                            Content="{lex:Loc Designer.Graph.Help}"
-                            Icon="{ui:SymbolIcon Symbol=QuestionCircle24}" />
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                        <TextBlock FontWeight="SemiBold" Text="{lex:Loc Designer.Graph.ExecutionLog}" />
+                        <ui:Button Margin="8,0,0,0" Padding="8,4" Command="{Binding ClearExecutionLogCommand}" Content="{lex:Loc Designer.Graph.ClearLog}" />
                     </StackPanel>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" scrolling:ModernScroll.Ownership="Self" scrolling:NestedSmoothScrollBehavior.IsEnabled="True">
                         <ItemsControl ItemsSource="{Binding ExecutionLog}">

@@ -13,6 +13,8 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     private readonly FrontedNodeCatalog _catalog;
     private readonly FrontedNodeGraphValidator _validator;
     private readonly IFrontedNodeGraphRuntime _runtime;
+    private readonly IFrontedAnimationRuntime? _animationRuntime;
+    private readonly Func<FrontedAnimationExecutionContext?>? _createAnimationContext;
     private readonly Action _markDirty;
     private readonly Func<string, string, string> _localize;
     private CancellationTokenSource? _previewCancellation;
@@ -23,6 +25,8 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         FrontedNodeCatalog? catalog = null,
         FrontedNodeGraphValidator? validator = null,
         IFrontedNodeGraphRuntime? runtime = null,
+        IFrontedAnimationRuntime? animationRuntime = null,
+        Func<FrontedAnimationExecutionContext?>? createAnimationContext = null,
         Action? markDirty = null,
         Func<string, string, string>? localize = null)
     {
@@ -30,6 +34,8 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         _catalog = catalog ?? new FrontedNodeCatalog();
         _validator = validator ?? new FrontedNodeGraphValidator(_catalog);
         _runtime = runtime ?? new FrontedNodeGraphRuntime(_catalog, _validator);
+        _animationRuntime = animationRuntime;
+        _createAnimationContext = createAnimationContext;
         _markDirty = markDirty ?? (() => { });
         _localize = localize ?? ((_, fallback) => fallback);
         Catalog = _catalog.Nodes
@@ -59,6 +65,9 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isPreviewRunning;
+
+    [ObservableProperty]
+    private System.Windows.FrameworkElement? _previewRoot;
 
     [ObservableProperty]
     private double _canvasWidth = 2200;
@@ -270,7 +279,25 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         IsPreviewRunning = true;
         try
         {
-            var result = await _runtime.ExecuteAsync(Graph, new FrontedGraphExecutionContext(), _previewCancellation.Token);
+            var animationContext = _createAnimationContext?.Invoke();
+            if (_animationRuntime is not null && animationContext is null)
+            {
+                ExecutionLog.Add(new FrontedGraphExecutionLogItem
+                {
+                    Level = FrontedGraphExecutionLogLevel.Warning,
+                    Message = _localize("Designer.Graph.Preview.NoTargetScope", "No preview target scope available.")
+                });
+            }
+
+            var graphContext = new FrontedGraphExecutionContext
+            {
+                BehaviorGuid = animationContext?.SelfBehaviorGuid ?? Guid.Empty,
+                CurrentControlDisplayName = animationContext?.SelfDisplayName ?? string.Empty,
+                ActionExecutor = _animationRuntime is null || animationContext is null
+                    ? null
+                    : new AnimationRuntimeGraphActionExecutor(_animationRuntime, animationContext)
+            };
+            var result = await _runtime.ExecuteAsync(Graph, graphContext, _previewCancellation.Token);
             foreach (var item in result.LogItems)
             {
                 ExecutionLog.Add(item);
@@ -286,6 +313,50 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
 
     [RelayCommand]
     public void StopPreview() => _previewCancellation?.Cancel();
+
+    [RelayCommand]
+    public void ResetCurrentTarget()
+    {
+        var context = _createAnimationContext?.Invoke();
+        if (_animationRuntime is null || context is null || context.SelfBehaviorGuid == Guid.Empty)
+        {
+            ExecutionLog.Add(new FrontedGraphExecutionLogItem
+            {
+                Level = FrontedGraphExecutionLogLevel.Warning,
+                Message = _localize("Designer.Graph.Preview.NoTargetScope", "No preview target scope available.")
+            });
+            return;
+        }
+
+        _animationRuntime.ResetTarget(context.SelfBehaviorGuid, context);
+        ExecutionLog.Add(new FrontedGraphExecutionLogItem
+        {
+            Level = FrontedGraphExecutionLogLevel.Information,
+            Message = _localize("Designer.Graph.Preview.ResetCurrent", "Reset current preview target.")
+        });
+    }
+
+    [RelayCommand]
+    public void ResetAllPreview()
+    {
+        var context = _createAnimationContext?.Invoke();
+        if (_animationRuntime is null || context is null)
+        {
+            ExecutionLog.Add(new FrontedGraphExecutionLogItem
+            {
+                Level = FrontedGraphExecutionLogLevel.Warning,
+                Message = _localize("Designer.Graph.Preview.NoTargetScope", "No preview target scope available.")
+            });
+            return;
+        }
+
+        _animationRuntime.ResetAll(context);
+        ExecutionLog.Add(new FrontedGraphExecutionLogItem
+        {
+            Level = FrontedGraphExecutionLogLevel.Information,
+            Message = _localize("Designer.Graph.Preview.ResetAll", "Reset all preview animation values.")
+        });
+    }
 
     [RelayCommand]
     public void ClearExecutionLog() => ExecutionLog.Clear();
@@ -333,6 +404,14 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
 
     private static bool IsAnimationEditorCatalogNode(FrontedNodeTypeDescriptor descriptor) =>
         descriptor.NodeType is not ("value.eventValue" or "value.selfTag");
+
+    private sealed class AnimationRuntimeGraphActionExecutor(
+        IFrontedAnimationRuntime animationRuntime,
+        FrontedAnimationExecutionContext animationContext) : IFrontedGraphActionExecutor
+    {
+        public Task ExecuteAsync(FrontedGraphActionRequest request, CancellationToken cancellationToken) =>
+            animationRuntime.ExecuteAsync(request, animationContext, cancellationToken);
+    }
 }
 
 public sealed partial class FrontedNodeEditorViewModel : ObservableObject
@@ -443,7 +522,8 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
     public string Description { get; }
     public bool IsBoolean => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Boolean;
     public bool IsEnum => Descriptor.EditorKind == FrontedNodePropertyEditorKind.Enum;
-    public bool IsText => !IsBoolean && !IsEnum;
+    public bool HasTextSuggestions => !IsBoolean && !IsEnum && Descriptor.Options.Count > 0;
+    public bool IsText => !IsBoolean && !IsEnum && !HasTextSuggestions;
     public IReadOnlyList<string> Options => Descriptor.Options;
 
     public string TextValue

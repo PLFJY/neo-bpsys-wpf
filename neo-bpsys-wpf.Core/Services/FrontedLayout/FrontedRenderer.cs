@@ -62,6 +62,7 @@ public class FrontedRenderer(
                         var placeholder = CreateMissingPluginPlaceholder(name, controlConfig);
                         placeholder.Visibility = MapVisibility(controlConfig.Visibility);
                         FrontedRendererProperties.SetIsGeneratedControl(placeholder, true);
+                        FrontedRendererProperties.SetBehaviorGuid(placeholder, controlConfig.BehaviorGuid);
                         RegisterGeneratedName(canvas, name, placeholder);
                         canvas.Children.Add(placeholder);
                         renderedElements[name] = placeholder;
@@ -82,6 +83,7 @@ public class FrontedRenderer(
             var element = factory.Create(name, controlConfig, buildContext);
             element.Visibility = MapVisibility(controlConfig.Visibility);
             FrontedRendererProperties.SetIsGeneratedControl(element, true);
+            FrontedRendererProperties.SetBehaviorGuid(element, controlConfig.BehaviorGuid);
             RegisterGeneratedName(canvas, name, element);
             canvas.Children.Add(element);
             renderedElements[name] = element;

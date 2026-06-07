@@ -106,6 +106,50 @@ public class FrontedNodeGraphRuntimeTest
     }
 
     [Fact]
+    public async Task GraphRuntime_ActionExecutor_IsCalledWhenActionNodeExecutes()
+    {
+        var graph = Connect(_catalog.CreateNode("flow.start"), _catalog.CreateNode("action.setProperty"), _catalog.CreateNode("flow.end"));
+        graph.Nodes.Single(node => node.NodeType == "action.setProperty").Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
+        var executor = new RecordingActionExecutor();
+
+        var result = await CreateRuntime().ExecuteAsync(
+            graph,
+            new FrontedGraphExecutionContext { ActionExecutor = executor },
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(FrontedGraphExecutionStatus.Success, result.Status);
+        Assert.Single(executor.Requests);
+        Assert.Single(result.ActionRequests);
+    }
+
+    [Fact]
+    public async Task GraphRuntime_ActionExecutor_PreservesSequenceDelayOrder()
+    {
+        var order = new List<string>();
+        var delayProvider = new FakeDelayProvider { OnDelay = () => order.Add("delay") };
+        var start = _catalog.CreateNode("flow.start");
+        var sequence = _catalog.CreateNode("flow.sequence");
+        var set = _catalog.CreateNode("action.setProperty");
+        set.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
+        var delay = _catalog.CreateNode("flow.delay");
+        var animate = _catalog.CreateNode("action.animateProperty");
+        animate.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
+        var graph = new FrontedNodeGraph { Nodes = [start, sequence, set, delay, animate] };
+        graph.Connections.Add(Link(start, "Out", sequence, "In"));
+        graph.Connections.Add(Link(sequence, "Step1", set, "In"));
+        graph.Connections.Add(Link(sequence, "Step2", delay, "In"));
+        graph.Connections.Add(Link(delay, "Out", animate, "In"));
+        var executor = new RecordingActionExecutor(request => order.Add(request.RequestType.ToString()));
+
+        await CreateRuntime(delayProvider).ExecuteAsync(
+            graph,
+            new FrontedGraphExecutionContext { ActionExecutor = executor },
+            TestContext.Current.CancellationToken);
+
+        Assert.Equal(["SetProperty", "delay", "AnimateProperty"], order);
+    }
+
+    [Fact]
     public async Task Runtime_UnknownNode_LogsWarningAndDoesNotCrash()
     {
         var start = _catalog.CreateNode("flow.start");
@@ -174,15 +218,29 @@ public class FrontedNodeGraphRuntimeTest
     {
         public List<TimeSpan> Delays { get; } = [];
         public bool CancelInsideDelay { get; init; }
+        public Action? OnDelay { get; init; }
 
         public Task DelayAsync(TimeSpan delay, CancellationToken cancellationToken)
         {
             Delays.Add(delay);
+            OnDelay?.Invoke();
             if (CancelInsideDelay)
             {
                 throw new OperationCanceledException(cancellationToken);
             }
 
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class RecordingActionExecutor(Action<FrontedGraphActionRequest>? onExecute = null) : IFrontedGraphActionExecutor
+    {
+        public List<FrontedGraphActionRequest> Requests { get; } = [];
+
+        public Task ExecuteAsync(FrontedGraphActionRequest request, CancellationToken cancellationToken)
+        {
+            Requests.Add(request);
+            onExecute?.Invoke(request);
             return Task.CompletedTask;
         }
     }

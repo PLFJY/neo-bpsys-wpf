@@ -58,4 +58,30 @@ public static class FrontedRendererProperties
     {
         element.SetValue(RegisteredNameProperty, value);
     }
+
+    /// <summary>
+    /// 行为系统用于解析动画目标的控件标识。
+    /// </summary>
+    public static readonly DependencyProperty BehaviorGuidProperty =
+        DependencyProperty.RegisterAttached(
+            "BehaviorGuid",
+            typeof(Guid),
+            typeof(FrontedRendererProperties),
+            new PropertyMetadata(Guid.Empty));
+
+    /// <summary>
+    /// 获取行为系统控件标识。
+    /// </summary>
+    public static Guid GetBehaviorGuid(DependencyObject element)
+    {
+        return (Guid)element.GetValue(BehaviorGuidProperty);
+    }
+
+    /// <summary>
+    /// 设置行为系统控件标识。
+    /// </summary>
+    public static void SetBehaviorGuid(DependencyObject element, Guid value)
+    {
+        element.SetValue(BehaviorGuidProperty, value);
+    }
 }

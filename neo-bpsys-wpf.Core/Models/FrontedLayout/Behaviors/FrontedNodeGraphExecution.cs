@@ -1,3 +1,5 @@
+using neo_bpsys_wpf.Core.Abstractions.Services;
+
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 public enum FrontedGraphExecutionStatus
@@ -29,6 +31,7 @@ public sealed class FrontedGraphExecutionContext
     public string TriggerEventType { get; init; } = string.Empty;
     public IReadOnlyDictionary<string, object?> EventPayload { get; init; } = new Dictionary<string, object?>();
     public IReadOnlyDictionary<string, object?> SelfTags { get; init; } = new Dictionary<string, object?>();
+    public IFrontedGraphActionExecutor? ActionExecutor { get; init; }
 }
 
 public sealed class FrontedGraphExecutionLogItem

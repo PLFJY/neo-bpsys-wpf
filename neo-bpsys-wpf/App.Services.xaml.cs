@@ -105,6 +105,14 @@ public partial class App
         services.AddSingleton<FrontedNodeGraphValidator>();
         services.AddSingleton<IFrontedGraphDelayProvider, FrontedGraphDelayProvider>();
         services.AddSingleton<IFrontedNodeGraphRuntime, FrontedNodeGraphRuntime>();
+        services.AddSingleton<IFrontedAnimationTargetResolver, FrontedAnimationTargetResolver>();
+        services.AddSingleton<IAnimatablePropertyAdapter, BackgroundTintAnimatablePropertyAdapter>();
+        services.AddSingleton<IAnimatablePropertyAdapter, ShapeAnimatablePropertyAdapter>();
+        services.AddSingleton<IAnimatablePropertyAdapter, TextAnimatablePropertyAdapter>();
+        services.AddSingleton<IAnimatablePropertyAdapter, FrameworkElementCommonAdapter>();
+        services.AddSingleton<IAnimatablePropertyAdapterRegistry, FrontedAnimatablePropertyAdapterRegistry>();
+        services.AddSingleton<IFrontedAnimationRuntime, FrontedAnimationRuntime>();
+        services.AddSingleton<FrontedDesignerPreviewAnimationScope>();
         services.AddSingleton<IFrontedDesignerLocalizationService, FrontedDesignerI18nLocalizationService>();
         services.AddSingleton<IFrontedControl, TextFrontedControl>();
         services.AddSingleton<IFrontedControl, LocalizedTextFrontedControl>();

@@ -361,7 +361,7 @@ public class FrontedPropertyGridBuilder
             "PluginInstallGuidance",
             _localizationService.GetDesignerText(
                 "Designer.PluginInstallGuidance",
-                "This plugin is not installed. Install guidance will be available in Phase 13E."),
+                "This plugin is not installed. Install guidance will be available in a future version."),
             "Plugin");
     }
 

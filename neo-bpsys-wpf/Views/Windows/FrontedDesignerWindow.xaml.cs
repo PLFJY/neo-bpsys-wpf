@@ -1054,6 +1054,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             }
 
             RebuildInteractionLayer();
+            _viewModel?.UpdateBehaviorPreviewAnimationScope(PreviewCanvas);
             FocusDesignSurface();
         }
 
@@ -1494,6 +1495,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             PopulatePreviewElementRegistry();
             LogDesignerPerf("PreviewRender", "populate element registry", Elapsed(total));
             PreviewCanvas.UpdateLayout();
+            _viewModel?.UpdateBehaviorPreviewAnimationScope(PreviewCanvas);
             LogDesignerPerf("PreviewRender", "update layout", Elapsed(total));
             RebuildInteractionLayer();
             ScheduleSelectedInteractionVisualRefresh();
@@ -1536,6 +1538,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _viewModel?.ClearActiveSnapGuides();
         PreviewCanvas.Children.Clear();
         _previewElementsByControlName.Clear();
+        _viewModel?.ClearBehaviorPreviewAnimationScope();
         PreviewCanvas.Background = null;
         ConfigureDesignSurface(640, 360);
         InteractionLayer.Children.Clear();

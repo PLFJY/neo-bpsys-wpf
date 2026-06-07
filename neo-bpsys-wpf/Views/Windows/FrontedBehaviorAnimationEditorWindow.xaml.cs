@@ -10,6 +10,8 @@ namespace neo_bpsys_wpf.Views.Windows;
 
 public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
 {
+    private FrontedBehaviorAnimationHelpWindow? _helpWindow;
+
     public FrontedBehaviorAnimationEditorWindow(FrontedBehaviorAnimationEditorViewModel viewModel)
     {
         InitializeComponent();
@@ -26,6 +28,22 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
         }
 
         Loaded += (_, _) => AnimationTabs.SelectFirstItemIfNoneSelected();
+    }
+
+    private void OpenHelp_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (_helpWindow is null || !_helpWindow.IsVisible)
+        {
+            _helpWindow = new FrontedBehaviorAnimationHelpWindow
+            {
+                Owner = this
+            };
+            _helpWindow.Closed += (_, _) => _helpWindow = null;
+            _helpWindow.Show();
+            return;
+        }
+
+        _helpWindow.Activate();
     }
 }
 

@@ -16,13 +16,16 @@
 ## 工作规则
 
 1. 改代码前先读现有实现，不要发明架构。
-2. 保持 WPF + Generic Host + DI 设计，页面、窗口、服务优先通过现有扩展注册。
-3. 后台页面使用 `AddBackendPage<TView,TViewModel>()`，前台窗口使用 `AddFrontedWindow<TView,TViewModel>()`。
-4. 不要把 FrontedWindow 理解成 Web 前端，也不要引入 Web 前端假设。
-5. 不要随意大规模重构服务、ViewModel 或资源结构。
-6. 用户可见文本要考虑 `WPFLocalizeExtension` 和 `Locales/*.resx`，避免随手硬编码。
-7. 插件安装/更新通常需要重启，因为插件在 Host build 前注入 DI。
-8. 插件是全信任模型；安全边界依赖市场审核、微步云扫描、人工审查和小生态，不是沙箱。
+1. 保持 WPF + Generic Host + DI 设计，页面、窗口、服务优先通过现有扩展注册。
+1. 后台页面使用 `AddBackendPage<TView,TViewModel>()`，前台窗口使用 `AddFrontedWindow<TView,TViewModel>()`。
+1. 不要把 FrontedWindow 理解成 Web 前端，也不要引入 Web 前端假设。
+1. 不要随意大规模重构服务、ViewModel 或资源结构。
+1. 用户可见文本要考虑 `WPFLocalizeExtension` 和 `Locales/*.resx`，避免随手硬编码。
+1. 插件安装/更新通常需要重启，因为插件在 Host build 前注入 DI。
+1. 插件是全信任模型；安全边界依赖市场审核、微步云扫描、人工审查和小生态，不是沙箱。
+1. 大部分按钮都需要有 `WPF-UI` 的图标。
+1. 所有的公共属性和公共方法都需要写XML注释，包括参数、返回值、异常等。
+1. **禁止在面向用户的 UI 文本中使用开发阶段占位表达**（如 "Phase 3"、"Phase 13E"、"Phase 9D" 等）。已实现功能的描述必须写实际行为；未实现功能的占位文本应写「将在后续版本中提供」而非内部阶段代号。真实 Placeholder（如 overlay 标签 `[Text]`）不在此限制内。
 
 ## 改动前必读
 
@@ -33,6 +36,7 @@
 | async、下载回调、OCR 后台任务、UI 更新 | `docs/threading-dispatcher-and-async.md` |
 | 图片、字体、resx、本地化、默认布局资源 | `docs/resources-localization-and-assets.md` |
 | TODO、当前能力边界、不要误判的路线图 | `docs/known-limitations-and-roadmap.md` |
+| 本地化、用户文本、resx 更新 | `docs/resources-localization-and-assets.md` |
 
 ## 文档规则
 
