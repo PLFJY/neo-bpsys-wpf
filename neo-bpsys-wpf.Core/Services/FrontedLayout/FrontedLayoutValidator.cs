@@ -1,5 +1,6 @@
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using System.Text.RegularExpressions;
@@ -433,6 +434,10 @@ public class FrontedLayoutValidator
                 }
 
                 break;
+
+            case ShapeFrontedControlConfigBase shape:
+                ValidateShape(item.Name, shape, messages);
+                break;
         }
 
         static void ValidateTextBinding(
@@ -504,6 +509,88 @@ public class FrontedLayoutValidator
                     $"ImagePath '{config.ImagePath}' was rejected by image safety validation: {validation.ErrorCode}.",
                     controlName,
                     nameof(ImageFrontedControlConfig.ImagePath)));
+            }
+        }
+    }
+
+    private static void ValidateShape(
+        string controlName,
+        ShapeFrontedControlConfigBase shape,
+        ICollection<FrontedLayoutValidationMessage> messages)
+    {
+        ValidateTextLength(controlName, nameof(shape.FillBindingPath), shape.FillBindingPath, FrontedLayoutLimits.MaxBindingPathLength, "BindingPathTooLong", messages);
+        ValidateTextLength(controlName, nameof(shape.GradientStartBindingPath), shape.GradientStartBindingPath, FrontedLayoutLimits.MaxBindingPathLength, "BindingPathTooLong", messages);
+        ValidateTextLength(controlName, nameof(shape.GradientEndBindingPath), shape.GradientEndBindingPath, FrontedLayoutLimits.MaxBindingPathLength, "BindingPathTooLong", messages);
+
+        var useGradient = shape.UseGradient || shape.FillMode == ShapeFillMode.LinearGradient;
+
+        var hasFillBinding = !string.IsNullOrWhiteSpace(shape.FillBindingPath);
+        var hasGradientEndBinding = !string.IsNullOrWhiteSpace(shape.GradientEndBindingPath);
+
+        ValidateColor(nameof(shape.StrokeColor), shape.StrokeColor, false);
+
+        // FillColor: required when no binding; warn when binding overrides it
+        ValidateColor(nameof(shape.FillColor), shape.FillColor, !hasFillBinding);
+        if (hasFillBinding && !string.IsNullOrWhiteSpace(shape.FillColor))
+        {
+            messages.Add(Warning(
+                "FillColorIgnored",
+                $"Shape '{controlName}' FillColor is ignored while binding is active.",
+                controlName,
+                nameof(shape.FillColor)));
+        }
+
+        if (useGradient)
+        {
+            // GradientEndColor: required when no binding; warn when binding overrides it
+            ValidateColor(nameof(shape.GradientEndColor), shape.GradientEndColor, !hasGradientEndBinding);
+            if (hasGradientEndBinding && !string.IsNullOrWhiteSpace(shape.GradientEndColor))
+            {
+                messages.Add(Warning(
+                    "GradientEndColorIgnored",
+                    $"Shape '{controlName}' GradientEndColor is ignored while binding is active.",
+                    controlName,
+                    nameof(shape.GradientEndColor)));
+            }
+
+            if (!double.IsFinite(shape.GradientAngle))
+            {
+                messages.Add(Error("ShapeGradientAngleInvalid", $"Control '{controlName}' GradientAngle must be finite.", controlName, nameof(shape.GradientAngle)));
+            }
+        }
+
+        if (!double.IsFinite(shape.StrokeThickness) || shape.StrokeThickness < 0)
+        {
+            messages.Add(Error("ShapeStrokeThicknessInvalid", $"Control '{controlName}' StrokeThickness must be a non-negative finite number.", controlName, nameof(shape.StrokeThickness)));
+        }
+
+        if (shape is PolygonFrontedControlConfig polygon)
+        {
+            if (polygon.Points is null || polygon.Points.Count < 3)
+            {
+                messages.Add(Error("PolygonPointsTooFew", $"Polygon control '{controlName}' requires at least three points.", controlName, nameof(polygon.Points)));
+            }
+            else if (polygon.Points.Any(point => !double.IsFinite(point.X) || !double.IsFinite(point.Y)))
+            {
+                messages.Add(Error("PolygonPointInvalid", $"Polygon control '{controlName}' contains a non-finite point.", controlName, nameof(polygon.Points)));
+            }
+        }
+
+        void ValidateColor(string propertyName, string? value, bool required)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                if (required)
+                {
+                    messages.Add(Error("RequiredPropertyMissing", $"Control '{controlName}' requires {propertyName}.", controlName, propertyName));
+                }
+
+                return;
+            }
+
+            if (!ColorHelper.TryNormalizeHex(value, out _))
+            {
+                messages.Add(Error("InvalidColorHex", $"Control '{controlName}' {propertyName} must be #RRGGBB or #AARRGGBB.", controlName, propertyName));
             }
         }
     }
@@ -655,6 +742,7 @@ public class FrontedLayoutValidator
     private static bool NeedsInteractionSize(FrontedControlConfigBase config)
     {
         return config is ImageFrontedControlConfig
+            or ShapeFrontedControlConfigBase
             or TalentTraitDisplayControlConfig
             or MapV2DisplayControlConfig;
     }

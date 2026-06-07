@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
@@ -16,6 +17,9 @@ namespace neo_bpsys_wpf.Core.Models;
 [FrontedBindingObject]
 public partial class Team : ObservableObjectBase
 {
+    public const string DefaultHomeColorHex = "#FF337FB9";
+    public const string DefaultAwayColorHex = "#FFE34341";
+
     /// <summary>
     /// 队伍类型(主队/客队)
     /// </summary>
@@ -68,6 +72,23 @@ public partial class Team : ObservableObjectBase
     /// </summary>
     [FrontedBindingIgnore]
     public string ImageUri { get; set; } = string.Empty;
+
+    private string _colorHex = DefaultHomeColorHex;
+
+    /// <summary>
+    /// 队伍展示颜色，统一保存为 #AARRGGBB。
+    /// </summary>
+    public string ColorHex
+    {
+        get => _colorHex;
+        set
+        {
+            if (ColorHelper.TryNormalizeHex(value, out var normalized))
+            {
+                SetProperty(ref _colorHex, normalized);
+            }
+        }
+    }
 
 
     private ObservableCollection<Member> _surMemberList = [];
@@ -212,6 +233,7 @@ public partial class Team : ObservableObjectBase
     public Team(Camp camp, TeamType teamType)
     {
         TeamType = teamType;
+        _colorHex = GetDefaultColorHex(teamType);
         SurMemberList = [.. Enumerable.Range(0, 4).Select(_ => new Member(Enums.Camp.Sur))];
         HunMemberList.Add(new Member(Enums.Camp.Hun));
 
@@ -246,8 +268,12 @@ public partial class Team : ObservableObjectBase
     internal Team(string name, string imageUri,
         ObservableCollection<Member>? surMemberList, ObservableCollection<Member>? hunMemberList,
         ObservableCollection<Character?>? globalBannedHunList = null,
-        ObservableCollection<Character?>? globalBannedSurList = null)
+        ObservableCollection<Character?>? globalBannedSurList = null,
+        string? colorHex = null,
+        TeamType teamType = TeamType.HomeTeam)
     {
+        TeamType = teamType;
+        _colorHex = ColorHelper.NormalizeHexOrDefault(colorHex, GetDefaultColorHex(teamType));
         Name = name;
         ImageUri = imageUri;
         SurMemberList = surMemberList ?? [.. Enumerable.Range(0, 4).Select(_ => new Member(Enums.Camp.Sur))];
@@ -285,6 +311,7 @@ public partial class Team : ObservableObjectBase
     public void ImportTeamInfo(Team newTeam)
     {
         Name = newTeam.Name;
+        ColorHex = newTeam.ColorHex;
         Logo = null;
         if (!string.IsNullOrEmpty(newTeam.ImageUri)&&newTeam.ImageUri!="null")
         {
@@ -333,6 +360,9 @@ public partial class Team : ObservableObjectBase
         foreach (var item in source)
             target.Add(item);
     }
+
+    private static string GetDefaultColorHex(TeamType teamType) =>
+        teamType == TeamType.AwayTeam ? DefaultAwayColorHex : DefaultHomeColorHex;
 
     #region 选手操作
 

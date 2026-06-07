@@ -3667,4 +3667,31 @@
   <data name="Designer.Validation.TextStaticIgnored" xml:space="preserve"><value>存在有效文本绑定来源时，静态文本不会显示。</value></data>
   <data name="Designer.Validation.LocalizationKeyIgnored" xml:space="preserve"><value>存在有效文本绑定来源时，本地化键不会生效。</value></data>
   <data name="Designer.Validation.ImagePathIgnored" xml:space="preserve"><value>设置绑定路径后，静态图片路径不会生效。</value></data>
+  <data name="Designer.Validation.FillColorIgnored" xml:space="preserve"><value>静态填充色在绑定激活时不会生效，将使用绑定的颜色值。</value></data>
+  <data name="Designer.Validation.GradientEndColorIgnored" xml:space="preserve"><value>静态渐变结束色在绑定激活时不会生效，将使用绑定的颜色值。</value></data>
+  <data name="Designer.Property.UseGradient" xml:space="preserve"><value>启用渐变</value></data>
+  <data name="TeamColor" xml:space="preserve"><value>队伍颜色</value></data>
+  <data name="InvalidTeamColorHex" xml:space="preserve"><value>颜色格式无效，请输入 #RRGGBB 或 #AARRGGBB。</value></data>
+  <data name="PolygonPoints" xml:space="preserve"><value>多边形顶点</value></data>
+  <data name="AddVertex" xml:space="preserve"><value>添加顶点</value></data>
+  <data name="RemoveVertex" xml:space="preserve"><value>删除顶点</value></data>
+  <data name="SelectedVertex" xml:space="preserve"><value>选中顶点</value></data>
+  <data name="Designer.ControlType.Rectangle" xml:space="preserve"><value>矩形</value></data>
+  <data name="Designer.ControlType.Polygon" xml:space="preserve"><value>多边形</value></data>
+  <data name="Designer.Property.FillMode" xml:space="preserve"><value>填充模式</value></data>
+  <data name="Designer.Property.UseFillBinding" xml:space="preserve"><value>使用填充绑定</value></data>
+  <data name="Designer.Property.FillBindingPath" xml:space="preserve"><value>填充绑定路径</value></data>
+  <data name="Designer.Property.UseGradientStartBinding" xml:space="preserve"><value>绑定渐变起始色</value></data>
+  <data name="Designer.Property.GradientStartColor" xml:space="preserve"><value>渐变起始色</value></data>
+  <data name="Designer.Property.GradientStartBindingPath" xml:space="preserve"><value>渐变起始色绑定路径</value></data>
+  <data name="Designer.Property.UseGradientEndBinding" xml:space="preserve"><value>绑定渐变结束色</value></data>
+  <data name="Designer.Property.GradientEndColor" xml:space="preserve"><value>渐变结束色</value></data>
+  <data name="Designer.Property.GradientEndBindingPath" xml:space="preserve"><value>渐变结束色绑定路径</value></data>
+  <data name="Designer.Property.GradientAngle" xml:space="preserve"><value>渐变角度</value></data>
+  <data name="Designer.Property.RadiusX" xml:space="preserve"><value>水平圆角</value></data>
+  <data name="Designer.Property.RadiusY" xml:space="preserve"><value>垂直圆角</value></data>
+  <data name="Designer.Property.StrokeColor" xml:space="preserve"><value>描边颜色</value></data>
+  <data name="Designer.Property.StrokeThickness" xml:space="preserve"><value>描边宽度</value></data>
+  <data name="Designer.Option.FillMode.Solid" xml:space="preserve"><value>纯色</value></data>
+  <data name="Designer.Option.FillMode.LinearGradient" xml:space="preserve"><value>线性渐变</value></data>
 </root>

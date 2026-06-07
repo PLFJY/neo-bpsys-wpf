@@ -4683,7 +4683,9 @@ public class FrontedLayoutDesignerFoundationTest
         typeof(MapNameTextControlConfig),
         typeof(TalentTraitDisplayControlConfig),
         typeof(GlobalScoreRowControlConfig),
-        typeof(MapV2DisplayControlConfig)
+        typeof(MapV2DisplayControlConfig),
+        typeof(RectangleFrontedControlConfig),
+        typeof(PolygonFrontedControlConfig)
     ];
 
     private static HashSet<string> LoadResxKeys(string fileName)

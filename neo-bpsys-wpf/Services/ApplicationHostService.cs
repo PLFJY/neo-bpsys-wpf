@@ -51,13 +51,13 @@ public class ApplicationHostService(IServiceProvider serviceProvider) : IHostedS
             _navigationWindow.ShowWindow();
 
             //提前加载调用了CharaSelector的页面，避免使用过程中卡顿
-            await Task.Delay(250);
-            _ = _navigationWindow.Navigate(typeof(PickPage));
-            await Task.Delay(750);
-            _ = _navigationWindow.Navigate(typeof(BanSurPage));
-            await Task.Delay(550);
-            _ = _navigationWindow.Navigate(typeof(BanHunPage));
-            await Task.Delay(250);
+            //await Task.Delay(250);
+            //_ = _navigationWindow.Navigate(typeof(PickPage));
+            //await Task.Delay(750);
+            //_ = _navigationWindow.Navigate(typeof(BanSurPage));
+            //await Task.Delay(550);
+            //_ = _navigationWindow.Navigate(typeof(BanHunPage));
+            //await Task.Delay(250);
 
             _ = _navigationWindow.Navigate(typeof(HomePage));
         }

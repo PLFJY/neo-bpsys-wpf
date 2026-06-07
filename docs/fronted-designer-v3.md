@@ -431,6 +431,12 @@ legacy 转换会把 `ScoreWindowSettings.GlobalScoreBgImageUri` 写入 `ScoreGlo
 | 改变现有 v3 layout JSON schema | v3 schema 已稳定。 |
 | 把 `AllowTransparency` 当成控件属性 | 它是窗口级选项。 |
 
+## 11.1 Shape 控件
+
+Designer v3 内置 `Rectangle` 和 `Polygon`。两者共享 Shape 填充配置，支持静态或绑定的纯色填充，以及起始色、结束色可分别静态配置或绑定的双颜色线性渐变。颜色绑定值是 `#RRGGBB` 或 `#AARRGGBB` 字符串，可使用 `HomeTeam.ColorHex` / `AwayTeam.ColorHex`。渐变角度约定为 `0°` 从左到右、`90°` 从上到下，并规范化到 `0..360`。
+
+`Polygon.Points` 保存为控件局部 `0..1` 归一化坐标，因此调整控件宽高时会保持形状比例。选中 Polygon 后，Interaction Layer 显示独立的橙色顶点手柄；拖动只修改顶点，不移动整个控件。属性区域提供添加和删除顶点按钮，且始终保留至少三个顶点。
+
 ## 12. 与 Score System v2 的关系
 
 `ScoreSurWindow` 和 `ScoreHunWindow` 已作为 v3 renderer pilot 接入 JSON 布局，默认布局不再绑定旧的 `CurrentGame.*Team.Score.*` 字段。Score System v2 的权威比分状态在现有 `Core.Models.Game.MatchScoreState`，局内比分窗口绑定 `CurrentGame.MatchScore` 的派生字段。`Team.Score` 只作为剩余旧窗口的过渡兼容镜像。

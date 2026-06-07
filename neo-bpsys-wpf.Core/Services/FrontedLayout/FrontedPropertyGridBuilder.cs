@@ -465,6 +465,11 @@ public class FrontedPropertyGridBuilder
             return FrontedBindingTargetKind.Boolean;
         }
 
+        if (config is ShapeFrontedControlConfigBase)
+        {
+            return FrontedBindingTargetKind.String;
+        }
+
         return config switch
         {
             TextFrontedControlConfig => FrontedBindingTargetKind.Text,
@@ -682,6 +687,34 @@ public class FrontedPropertyGridBuilder
             return "Binding";
         }
 
+        if (config is ShapeFrontedControlConfigBase)
+        {
+            // UseGradient is a toggle in the Appearance group, not a binding switch
+            if (propertyName == nameof(ShapeFrontedControlConfigBase.UseGradient))
+            {
+                return "Appearance";
+            }
+
+            if (IsBindingPathProperty(propertyName)
+                || propertyName.StartsWith("Use", StringComparison.Ordinal))
+            {
+                return "Binding";
+            }
+
+            if (propertyName is nameof(ShapeFrontedControlConfigBase.StrokeColor)
+                or nameof(ShapeFrontedControlConfigBase.StrokeThickness))
+            {
+                return "Border";
+            }
+
+            if (propertyName is nameof(ShapeFrontedControlConfigBase.FillColor)
+                or nameof(ShapeFrontedControlConfigBase.GradientEndColor)
+                or nameof(ShapeFrontedControlConfigBase.GradientAngle))
+            {
+                return "Appearance";
+            }
+        }
+
         if (config is MapV2DisplayControlConfig
             && propertyName is nameof(MapV2DisplayControlConfig.MapBorderNormalColor)
                 or nameof(MapV2DisplayControlConfig.MapBorderBannedColor))
@@ -719,6 +752,48 @@ public class FrontedPropertyGridBuilder
             && propertyName == nameof(FrontedControlConfigBase.BindingPath))
         {
             return false;
+        }
+
+        if (config is ShapeFrontedControlConfigBase shapeConfig)
+        {
+            // Hide the base class BindingPath - shapes use dedicated FillBindingPath etc.
+            if (propertyName == nameof(FrontedControlConfigBase.BindingPath))
+            {
+                return false;
+            }
+
+            // Hide FillMode enum - replaced by UseGradient toggle
+            if (propertyName == nameof(ShapeFrontedControlConfigBase.FillMode))
+            {
+                return false;
+            }
+
+            // Hide deprecated gradient-start properties (FillColor serves dual purpose)
+            if (propertyName is nameof(ShapeFrontedControlConfigBase.GradientStartColor)
+                or nameof(ShapeFrontedControlConfigBase.UseGradientStartBinding)
+                or nameof(ShapeFrontedControlConfigBase.GradientStartBindingPath))
+            {
+                return false;
+            }
+
+            // Hide binding toggles - binding is automatic when path has a value
+            if (propertyName is nameof(ShapeFrontedControlConfigBase.UseFillBinding)
+                or nameof(ShapeFrontedControlConfigBase.UseGradientEndBinding))
+            {
+                return false;
+            }
+
+            // When gradient is off, hide gradient-end and angle properties
+            var useGradient = shapeConfig.UseGradient || shapeConfig.FillMode == ShapeFillMode.LinearGradient;
+            if (!useGradient)
+            {
+                if (propertyName is nameof(ShapeFrontedControlConfigBase.GradientEndColor)
+                    or nameof(ShapeFrontedControlConfigBase.GradientEndBindingPath)
+                    or nameof(ShapeFrontedControlConfigBase.GradientAngle))
+                {
+                    return false;
+                }
+            }
         }
 
         if (config is ImageFrontedControlConfig and not BorderedImageFrontedControlConfig)
@@ -852,6 +927,14 @@ public class FrontedPropertyGridBuilder
                 _localizationService.GetDesignerText(
                     "Designer.Validation.ImagePathIgnored",
                     "ImagePath is ignored while BindingPath is set."),
+            ("FillColorIgnored", nameof(ShapeFrontedControlConfigBase.FillColor)) =>
+                _localizationService.GetDesignerText(
+                    "Designer.Validation.FillColorIgnored",
+                    "Static fill color is ignored while binding is active. The bound color value is used instead."),
+            ("GradientEndColorIgnored", nameof(ShapeFrontedControlConfigBase.GradientEndColor)) =>
+                _localizationService.GetDesignerText(
+                    "Designer.Validation.GradientEndColorIgnored",
+                    "Static gradient end color is ignored while binding is active. The bound color value is used instead."),
             _ => message.Message
         };
 

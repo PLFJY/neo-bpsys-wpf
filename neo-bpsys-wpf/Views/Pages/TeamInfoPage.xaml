@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cc="clr-namespace:neo_bpsys_wpf.Controls"
+    xmlns:colorpicker="clr-namespace:ColorPicker;assembly=ColorPicker"
     xmlns:cv="clr-namespace:neo_bpsys_wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
@@ -51,6 +52,33 @@
                         Command="{Binding ConfirmTeamNameCommand}"
                         Content="{lex:Loc Confirm}"
                         Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
+                </StackPanel>
+
+                <StackPanel Margin="0,10,0,0">
+                    <TextBlock Text="{lex:Loc TeamColor}" />
+                    <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
+                        <colorpicker:PortableColorPicker
+                            Width="60"
+                            Height="30"
+                            SelectedColor="{Binding TeamColorPickerValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Style="{StaticResource DefaultColorPickerStyle}" />
+                        <ui:TextBox
+                            Width="150"
+                            Margin="10,0,0,0"
+                            KeyDown="TeamColorTextBox_OnKeyDown"
+                            MaxLength="9"
+                            PlaceholderText="{lex:Loc HexColor}"
+                            Text="{Binding TeamColorHexEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            Command="{Binding ApplyTeamColorCommand}"
+                            Content="{lex:Loc ApplyColor}"
+                            Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
+                    </StackPanel>
+                    <TextBlock
+                        Margin="0,4,0,0"
+                        Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                        Text="{Binding TeamColorStatus}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal">
@@ -255,6 +283,33 @@
                         Command="{Binding ConfirmTeamNameCommand}"
                         Content="{lex:Loc Confirm}"
                         Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
+                </StackPanel>
+
+                <StackPanel Margin="0,10,0,0">
+                    <TextBlock Text="{lex:Loc TeamColor}" />
+                    <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
+                        <colorpicker:PortableColorPicker
+                            Width="60"
+                            Height="30"
+                            SelectedColor="{Binding TeamColorPickerValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Style="{StaticResource DefaultColorPickerStyle}" />
+                        <ui:TextBox
+                            Width="150"
+                            Margin="10,0,0,0"
+                            KeyDown="TeamColorTextBox_OnKeyDown"
+                            MaxLength="9"
+                            PlaceholderText="{lex:Loc HexColor}"
+                            Text="{Binding TeamColorHexEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <ui:Button
+                            Margin="10,0,0,0"
+                            Command="{Binding ApplyTeamColorCommand}"
+                            Content="{lex:Loc ApplyColor}"
+                            Icon="{ui:SymbolIcon Symbol=Checkmark24}" />
+                    </StackPanel>
+                    <TextBlock
+                        Margin="0,4,0,0"
+                        Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                        Text="{Binding TeamColorStatus}" />
                 </StackPanel>
 
                 <StackPanel Orientation="Horizontal">

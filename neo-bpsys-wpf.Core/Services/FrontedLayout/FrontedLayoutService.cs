@@ -341,6 +341,34 @@ public class FrontedLayoutService : IFrontedLayoutService
     }
 
     /// <inheritdoc />
+    public async Task<FrontedCanvasConfig?> LoadBuiltInDefaultLayoutAsync(
+        string windowTypeName,
+        string canvasName,
+        CancellationToken cancellationToken = default)
+    {
+        var builtInPath = GetBuiltInDefaultLayoutPath(windowTypeName, canvasName);
+        if (!File.Exists(builtInPath))
+        {
+            return null;
+        }
+
+        try
+        {
+            return await ReadConfigAsync(builtInPath, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to load built-in default fronted layout. Window: {WindowTypeName}, Canvas: {CanvasName}, Path: {Path}",
+                windowTypeName,
+                canvasName,
+                builtInPath);
+            return null;
+        }
+    }
+
+    /// <inheritdoc />
     public string GetBuiltInDefaultLayoutPath(string windowTypeName, string canvasName)
     {
         return Path.Combine(

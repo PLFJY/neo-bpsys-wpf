@@ -298,6 +298,12 @@ public class FrontedCanvasConfigJsonConverter : JsonConverter<FrontedCanvasConfi
                 "BorderedImage" => JsonSerializer.Deserialize<BorderedImageFrontedControlConfig>(json, options)
                     ?? throw new FrontedLayoutConfigException(
                         $"Control '{controlName}' could not be read as BorderedImage."),
+                "Rectangle" => JsonSerializer.Deserialize<RectangleFrontedControlConfig>(json, options)
+                    ?? throw new FrontedLayoutConfigException(
+                        $"Control '{controlName}' could not be read as Rectangle."),
+                "Polygon" => JsonSerializer.Deserialize<PolygonFrontedControlConfig>(json, options)
+                    ?? throw new FrontedLayoutConfigException(
+                        $"Control '{controlName}' could not be read as Polygon."),
                 "GlobalScoreRow" => JsonSerializer.Deserialize<GlobalScoreRowControlConfig>(json, options)
                     ?? throw new FrontedLayoutConfigException(
                         $"Control '{controlName}' could not be read as GlobalScoreRow."),

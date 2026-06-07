@@ -1,4 +1,4 @@
-using System.Globalization;
+using neo_bpsys_wpf.Core.Helpers;
 using System.Windows.Media;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
@@ -19,47 +19,17 @@ public static class FrontedPropertyColorHelper
     /// </summary>
     public static bool TryParseArgbColor(string? value, out Color color)
     {
-        color = FallbackColor;
-        if (string.IsNullOrWhiteSpace(value))
+        if (ColorHelper.TryParseColor(value, out color))
         {
-            return false;
-        }
-
-        var text = value.Trim();
-        if (text.StartsWith('#'))
-        {
-            text = text[1..];
-        }
-
-        if (text.Length is not (6 or 8))
-        {
-            return false;
-        }
-
-        try
-        {
-            var offset = text.Length == 8 ? 2 : 0;
-            var a = text.Length == 8
-                ? byte.Parse(text[..2], NumberStyles.HexNumber, CultureInfo.InvariantCulture)
-                : byte.MaxValue;
-            var r = byte.Parse(text.Substring(offset, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-            var g = byte.Parse(text.Substring(offset + 2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-            var b = byte.Parse(text.Substring(offset + 4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-            color = Color.FromArgb(a, r, g, b);
             return true;
         }
-        catch (FormatException)
-        {
-            return false;
-        }
-        catch (OverflowException)
-        {
-            return false;
-        }
+
+        color = FallbackColor;
+        return false;
     }
 
     /// <summary>
     /// Formats a WPF color as <c>#AARRGGBB</c>.
     /// </summary>
-    public static string ToArgbString(Color color) => $"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}";
+    public static string ToArgbString(Color color) => color.ToArgbHexString();
 }

@@ -3816,4 +3816,31 @@
   <data name="Designer.Validation.TextStaticIgnored" xml:space="preserve"><value>有効な TextBinding ソースがある間、静的 Text は表示されません。</value></data>
   <data name="Designer.Validation.LocalizationKeyIgnored" xml:space="preserve"><value>有効な TextBinding ソースがある間、LocalizationKey は使用されません。</value></data>
   <data name="Designer.Validation.ImagePathIgnored" xml:space="preserve"><value>BindingPath が設定されている間、ImagePath は使用されません。</value></data>
+  <data name="Designer.Validation.FillColorIgnored" xml:space="preserve"><value>静的塗りつぶし色はバインディングが有効な間は無視され、バインドされた色の値が使用されます。</value></data>
+  <data name="Designer.Validation.GradientEndColorIgnored" xml:space="preserve"><value>静的グラデーション終了色はバインディングが有効な間は無視され、バインドされた色の値が使用されます。</value></data>
+  <data name="Designer.Property.UseGradient" xml:space="preserve"><value>グラデーションを有効にする</value></data>
+  <data name="TeamColor" xml:space="preserve"><value>チームカラー</value></data>
+  <data name="InvalidTeamColorHex" xml:space="preserve"><value>色の形式が無効です。#RRGGBB または #AARRGGBB を入力してください。</value></data>
+  <data name="PolygonPoints" xml:space="preserve"><value>ポリゴン頂点</value></data>
+  <data name="AddVertex" xml:space="preserve"><value>頂点を追加</value></data>
+  <data name="RemoveVertex" xml:space="preserve"><value>頂点を削除</value></data>
+  <data name="SelectedVertex" xml:space="preserve"><value>選択中の頂点</value></data>
+  <data name="Designer.ControlType.Rectangle" xml:space="preserve"><value>長方形</value></data>
+  <data name="Designer.ControlType.Polygon" xml:space="preserve"><value>ポリゴン</value></data>
+  <data name="Designer.Property.FillMode" xml:space="preserve"><value>塗りつぶしモード</value></data>
+  <data name="Designer.Property.UseFillBinding" xml:space="preserve"><value>塗りつぶしバインドを使用</value></data>
+  <data name="Designer.Property.FillBindingPath" xml:space="preserve"><value>塗りつぶしバインドパス</value></data>
+  <data name="Designer.Property.UseGradientStartBinding" xml:space="preserve"><value>グラデーション開始色をバインド</value></data>
+  <data name="Designer.Property.GradientStartColor" xml:space="preserve"><value>グラデーション開始色</value></data>
+  <data name="Designer.Property.GradientStartBindingPath" xml:space="preserve"><value>開始色バインドパス</value></data>
+  <data name="Designer.Property.UseGradientEndBinding" xml:space="preserve"><value>グラデーション終了色をバインド</value></data>
+  <data name="Designer.Property.GradientEndColor" xml:space="preserve"><value>グラデーション終了色</value></data>
+  <data name="Designer.Property.GradientEndBindingPath" xml:space="preserve"><value>終了色バインドパス</value></data>
+  <data name="Designer.Property.GradientAngle" xml:space="preserve"><value>グラデーション角度</value></data>
+  <data name="Designer.Property.RadiusX" xml:space="preserve"><value>水平角丸</value></data>
+  <data name="Designer.Property.RadiusY" xml:space="preserve"><value>垂直角丸</value></data>
+  <data name="Designer.Property.StrokeColor" xml:space="preserve"><value>線の色</value></data>
+  <data name="Designer.Property.StrokeThickness" xml:space="preserve"><value>線の太さ</value></data>
+  <data name="Designer.Option.FillMode.Solid" xml:space="preserve"><value>単色</value></data>
+  <data name="Designer.Option.FillMode.LinearGradient" xml:space="preserve"><value>線形グラデーション</value></data>
 </root>

@@ -104,6 +104,8 @@ public partial class App
         services.AddSingleton<IFrontedControl, LocalizedTextFrontedControl>();
         services.AddSingleton<IFrontedControl, ImageFrontedControl>();
         services.AddSingleton<IFrontedControl, BorderedImageFrontedControl>();
+        services.AddSingleton<IFrontedControl, RectangleFrontedControl>();
+        services.AddSingleton<IFrontedControl, PolygonFrontedControl>();
         services.AddSingleton<IFrontedControl, GlobalScoreRowFrontedControl>();
         services.AddSingleton<IFrontedControl, TalentTraitDisplayFrontedControl>();
         services.AddSingleton<IFrontedControl, GameProgressTextFrontedControl>();

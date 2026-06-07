@@ -44,6 +44,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private readonly Dictionary<GlobalScoreCellHitTarget, Border> _globalScoreCellHitboxes = new();
     private readonly Dictionary<string, FrameworkElement> _previewElementsByControlName = new(StringComparer.Ordinal);
     private readonly Dictionary<FrontedDesignerResizeHandleKind, Border> _resizeHandles = new();
+    private readonly Dictionary<int, FrameworkElement> _polygonVertexHandles = new();
     private readonly List<Line> _snapGuideLines = [];
     private Border? _selectionOutline;
     private Border? _parentSelectionOutline;
@@ -51,6 +52,7 @@ public partial class FrontedDesignerWindow : FluentWindow
     private FrameworkElement? _capturedElement;
     private InteractionMode _interactionMode = InteractionMode.None;
     private FrontedDesignerResizeHandleKind? _activeResizeHandle;
+    private int? _activePolygonVertexIndex;
     private FrontedControlDesignItem? _pendingHitCandidate;
     private GlobalScoreCellHitTarget? _pendingGlobalScoreCellHitCandidate;
     private bool _isPendingEmptyClick;
@@ -110,6 +112,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         Closed += OnClosed;
         Closing += OnClosing;
         Deactivated += OnDeactivated;
+        StateChanged += OnWindowStateChanged;
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
@@ -1540,6 +1543,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _hitboxes.Clear();
         _globalScoreCellHitboxes.Clear();
         _resizeHandles.Clear();
+        _polygonVertexHandles.Clear();
         _selectionOutline = null;
         _parentSelectionOutline = null;
         _selectionLabel = null;
@@ -1894,7 +1898,40 @@ public partial class FrontedDesignerWindow : FluentWindow
             InteractionLayer.Children.Add(handleElement);
         }
 
+        if (item.Config is PolygonFrontedControlConfig polygon)
+        {
+            for (var index = 0; index < polygon.Points.Count; index++)
+            {
+                var handleElement = CreatePolygonVertexHandle(index);
+                _polygonVertexHandles[index] = handleElement;
+                InteractionLayer.Children.Add(handleElement);
+            }
+        }
+
         UpdateSelectedInteractionVisuals();
+    }
+
+    private FrameworkElement CreatePolygonVertexHandle(int index)
+    {
+        var element = new Border
+        {
+            Width = 16,
+            Height = 16,
+            Background = Brushes.Transparent,
+            Child = new Ellipse
+            {
+                Width = 10,
+                Height = 10,
+                Fill = Brushes.Orange,
+                Stroke = Brushes.White,
+                StrokeThickness = 2
+            },
+            Cursor = Cursors.Cross,
+            Tag = index
+        };
+        Panel.SetZIndex(element, FrontedDesignerEditorVisualHelper.SelectedHandleZIndex + 1);
+        element.MouseLeftButtonDown += PolygonVertexHandle_OnMouseLeftButtonDown;
+        return element;
     }
 
     private Border CreateResizeHandle(FrontedDesignerResizeHandleKind handle)
@@ -1973,6 +2010,21 @@ public partial class FrontedDesignerWindow : FluentWindow
         SetHandlePosition(FrontedDesignerResizeHandleKind.BottomLeft, bounds.Left, bounds.Top + bounds.Height);
         SetHandlePosition(FrontedDesignerResizeHandleKind.Bottom, bounds.Left + bounds.Width / 2, bounds.Top + bounds.Height);
         SetHandlePosition(FrontedDesignerResizeHandleKind.BottomRight, bounds.Left + bounds.Width, bounds.Top + bounds.Height);
+
+        if (item.Config is PolygonFrontedControlConfig polygon)
+        {
+            foreach (var (index, handle) in _polygonVertexHandles)
+            {
+                if (index >= polygon.Points.Count)
+                {
+                    continue;
+                }
+
+                var point = PolygonVertexGeometryHelper.ToCanvasPoint(polygon, polygon.Points[index]);
+                Canvas.SetLeft(handle, point.X - handle.Width / 2D);
+                Canvas.SetTop(handle, point.Y - handle.Height / 2D);
+            }
+        }
     }
 
     private void UpdateGlobalScoreCellHitboxes(FrontedControlDesignItem parent)
@@ -2134,6 +2186,21 @@ public partial class FrontedDesignerWindow : FluentWindow
         e.Handled = true;
     }
 
+    private void PolygonVertexHandle_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: int index } element
+            || _viewModel?.SelectedDesignItem?.Config is not PolygonFrontedControlConfig)
+        {
+            return;
+        }
+
+        FocusDesignSurface();
+        _viewModel.SelectPolygonVertex(index);
+        _activePolygonVertexIndex = index;
+        BeginInteraction(InteractionMode.PolygonVertex, e.GetPosition(InteractionLayer), element);
+        e.Handled = true;
+    }
+
     private void InteractionLayer_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (IsSpacePressed())
@@ -2203,6 +2270,12 @@ public partial class FrontedDesignerWindow : FluentWindow
                 deltaX,
                 deltaY,
                 renderPreview: false);
+            UpdateSelectedInteractionVisuals();
+            UpdateSelectedPreviewElement();
+        }
+        else if (_interactionMode == InteractionMode.PolygonVertex && _activePolygonVertexIndex.HasValue)
+        {
+            _viewModel?.MoveSelectedPolygonVertex(currentPosition, renderPreview: false);
             UpdateSelectedInteractionVisuals();
             UpdateSelectedPreviewElement();
         }
@@ -2326,6 +2399,10 @@ public partial class FrontedDesignerWindow : FluentWindow
         {
             _viewModel?.CommitDesignItemGeometryEdit();
         }
+        else if (_interactionMode == InteractionMode.PolygonVertex)
+        {
+            _viewModel?.CommitDesignItemGeometryEdit();
+        }
 
         ResetPointerInteraction();
         ScheduleSelectedInteractionVisualRefresh();
@@ -2416,6 +2493,23 @@ public partial class FrontedDesignerWindow : FluentWindow
     {
         UpdatePreviewWorkspaceSize();
         _viewModel?.UpdateFitZoom(PreviewScrollViewer.ViewportWidth, PreviewScrollViewer.ViewportHeight);
+    }
+
+    /// <summary>
+    /// Ensures Fit zoom is recalculated when the window is maximized or restored.
+    /// StateChanged fires before layout updates, so the recalculation is deferred
+    /// to after the layout pass via Dispatcher.Background.
+    /// </summary>
+    private void OnWindowStateChanged(object? sender, EventArgs e)
+    {
+        if (WindowState == WindowState.Maximized || WindowState == WindowState.Normal)
+        {
+            Dispatcher.BeginInvoke(
+                System.Windows.Threading.DispatcherPriority.Background,
+                () => _viewModel?.UpdateFitZoom(
+                    PreviewScrollViewer.ViewportWidth,
+                    PreviewScrollViewer.ViewportHeight));
+        }
     }
 
     private void DesignSurface_OnKeyDown(object sender, KeyEventArgs e)
@@ -2599,6 +2693,7 @@ public partial class FrontedDesignerWindow : FluentWindow
         _capturedElement = null;
         _interactionMode = InteractionMode.None;
         _activeResizeHandle = null;
+        _activePolygonVertexIndex = null;
         _pendingHitCandidate = null;
         _pendingGlobalScoreCellHitCandidate = null;
         _isPendingEmptyClick = false;
@@ -2729,6 +2824,15 @@ public partial class FrontedDesignerWindow : FluentWindow
             && _viewModel?.BorderedImageResizeTarget == FrontedDesignerResizeTarget.Image)
         {
             UpdateBorderedImageInnerPreviewElement(element, imageConfig);
+        }
+
+        if (item.Config is PolygonFrontedControlConfig polygonConfig)
+        {
+            var polygon = element as Polygon ?? FindDescendant<Polygon>(element);
+            if (polygon is not null)
+            {
+                polygon.Points = PolygonFrontedControl.CreatePointCollection(polygonConfig);
+            }
         }
 
         var bounds = ResolveItemBounds(item);
@@ -2950,7 +3054,8 @@ public partial class FrontedDesignerWindow : FluentWindow
     {
         None,
         Drag,
-        Resize
+        Resize,
+        PolygonVertex
     }
 
     private sealed record GlobalScoreCellHitTarget(

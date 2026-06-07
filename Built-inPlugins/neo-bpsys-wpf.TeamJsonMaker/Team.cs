@@ -1,5 +1,6 @@
 ﻿using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Helpers;
 using System.Collections.ObjectModel;
 
 namespace neo_bpsys_wpf.TeamJsonMaker;
@@ -17,6 +18,18 @@ public partial class Team : ObservableObjectBase
     }
 
     public string TeamName { get; set; } = string.Empty;
+
+    private string _colorHex = "#FF337FB9";
+
+    public string ColorHex
+    {
+        get => _colorHex;
+        set
+        {
+            if (ColorHelper.TryNormalizeHex(value, out var normalized))
+                SetProperty(ref _colorHex, normalized);
+        }
+    }
 
     /// <summary>
     /// 求生者队员列表

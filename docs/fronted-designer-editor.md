@@ -746,6 +746,7 @@ Phase 10 起，编辑器 typed/pasted input 会按集中限制截断：搜索 12
 - Designer v3 显示层 i18n
 - 插件控件支持：Add Control、声明式 Property Grid 元数据、缺失插件占位符
 - 左侧图层面板：ZIndex 分组、同层排序、跨层移动、顶/底投放区
+- Shape 控件：Rectangle/Polygon 的静态或绑定纯色、双颜色线性渐变和角度编辑；Polygon 选中后支持独立顶点手柄拖动及顶点增删
 
 ## 18. 非目标
 

@@ -18,6 +18,8 @@ public ObservableCollection<bool> CanCurrentSurBanned => _sharedDataService.CanC
 
 `HomeTeam` 和 `AwayTeam` 在接口注释中明确是“全场始终不变”的对象。导入队伍信息时使用 `Team.ImportTeamInfo(Team)` 更新对象内部内容，而不是替换 `HomeTeam` / `AwayTeam` 引用。
 
+`Team.ColorHex` 是队伍展示色的权威字段，序列化格式统一为 `#AARRGGBB`。输入 `#RRGGBB` 时自动补全不透明 Alpha；主队和客队默认值分别为 `#FF337FB9`、`#FFE34341`。`ImportTeamInfo` 必须同步复制此字段，避免导入队伍或对局后丢失颜色。Designer v3 的颜色绑定可直接使用 `HomeTeam.ColorHex` 和 `AwayTeam.ColorHex`。
+
 `CurrentGame` 则可能被替换：
 
 | 操作 | 行为 |

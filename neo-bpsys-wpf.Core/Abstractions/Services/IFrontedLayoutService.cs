@@ -56,6 +56,14 @@ public interface IFrontedLayoutService
     string GetUserLayoutRootFolder();
 
     /// <summary>
+    /// 直接读取内置默认布局，不走 fallback 链。用于"重置为内部布局"等场景。
+    /// </summary>
+    Task<FrontedCanvasConfig?> LoadBuiltInDefaultLayoutAsync(
+        string windowTypeName,
+        string canvasName,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 获取内置默认布局路径。
     /// </summary>
     string GetBuiltInDefaultLayoutPath(string windowTypeName, string canvasName);

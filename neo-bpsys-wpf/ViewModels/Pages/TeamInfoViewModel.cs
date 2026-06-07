@@ -5,8 +5,10 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Helpers;
+using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Wpf.Ui.Controls;
 using Member = neo_bpsys_wpf.Core.Models.Member;
@@ -34,15 +36,69 @@ public partial class TeamInfoPageViewModel
         {
             CurrentTeam = team;
             _filePickerService = filePickerService;
+            TeamName = team.Name;
+            SyncTeamColorEditor();
+            CurrentTeam.PropertyChanged += CurrentTeamOnPropertyChanged;
         }
 
         [ObservableProperty]
         private string _teamName = string.Empty;
 
+        [ObservableProperty]
+        private string _teamColorHexEditText = string.Empty;
+
+        [ObservableProperty]
+        private string _teamColorStatus = string.Empty;
+
+        private Color _teamColorPickerValue = Colors.White;
+        private bool _syncingTeamColorEditor;
+
+        public Color TeamColorPickerValue
+        {
+            get => _teamColorPickerValue;
+            set
+            {
+                if (!SetProperty(ref _teamColorPickerValue, value) || _syncingTeamColorEditor)
+                    return;
+
+                CurrentTeam.ColorHex = value.ToArgbHexString();
+                SyncTeamColorEditor();
+            }
+        }
+
         [RelayCommand]
         private void ConfirmTeamName()
         {
             CurrentTeam.Name = TeamName;
+        }
+
+        [RelayCommand]
+        private void ApplyTeamColor()
+        {
+            if (!ColorHelper.TryNormalizeHex(TeamColorHexEditText, out var normalized))
+            {
+                TeamColorStatus = I18nHelper.GetLocalizedString("InvalidTeamColorHex");
+                return;
+            }
+
+            CurrentTeam.ColorHex = normalized;
+            SyncTeamColorEditor();
+        }
+
+        private void CurrentTeamOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(Team.ColorHex))
+                SyncTeamColorEditor();
+        }
+
+        private void SyncTeamColorEditor()
+        {
+            _syncingTeamColorEditor = true;
+            TeamColorHexEditText = CurrentTeam.ColorHex;
+            _teamColorPickerValue = ColorHelper.ParseColorOrDefault(CurrentTeam.ColorHex, Colors.White);
+            OnPropertyChanged(nameof(TeamColorPickerValue));
+            TeamColorStatus = string.Empty;
+            _syncingTeamColorEditor = false;
         }
 
         [RelayCommand]

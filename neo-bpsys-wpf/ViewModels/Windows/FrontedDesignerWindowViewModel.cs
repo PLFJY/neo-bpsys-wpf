@@ -330,6 +330,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(CanDeleteSelectedControl))]
     [NotifyPropertyChangedFor(nameof(IsBorderedImageSelected))]
     [NotifyPropertyChangedFor(nameof(IsMapV2DisplaySelected))]
+    [NotifyPropertyChangedFor(nameof(IsPolygonSelected))]
     private FrontedControlDesignItem? _selectedDesignItem;
 
     public bool HasSelectedDesignItem => SelectedDesignItem is not null;
@@ -337,6 +338,26 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     public bool IsBorderedImageSelected => SelectedDesignItem?.Config is BorderedImageFrontedControlConfig;
 
     public bool IsMapV2DisplaySelected => SelectedDesignItem?.Config is MapV2DisplayControlConfig;
+
+    public bool IsPolygonSelected => SelectedDesignItem?.Config is PolygonFrontedControlConfig;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedPolygonVertexDisplay))]
+    [NotifyPropertyChangedFor(nameof(CanRemovePolygonVertex))]
+    private int _selectedPolygonVertexIndex = -1;
+
+    public string SelectedPolygonVertexDisplay =>
+        SelectedDesignItem?.Config is PolygonFrontedControlConfig polygon
+        && SelectedPolygonVertexIndex >= 0
+        && SelectedPolygonVertexIndex < polygon.Points.Count
+            ? $"{SelectedPolygonVertexIndex + 1} / {polygon.Points.Count}"
+            : $"- / {(SelectedDesignItem?.Config as PolygonFrontedControlConfig)?.Points.Count ?? 0}";
+
+    public bool CanRemovePolygonVertex =>
+        SelectedDesignItem?.Config is PolygonFrontedControlConfig polygon
+        && polygon.Points.Count > 3
+        && SelectedPolygonVertexIndex >= 0
+        && SelectedPolygonVertexIndex < polygon.Points.Count;
 
     private string? _selectedGlobalScoreCellParentName;
     private string? _selectedGlobalScoreCellId;
@@ -619,6 +640,9 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _propertyEditErrors.Clear();
         _propertyEditBuffers.Clear();
         ClearSelectedGlobalScoreCell();
+        SelectedPolygonVertexIndex = value?.Config is PolygonFrontedControlConfig polygon && polygon.Points.Count > 0
+            ? 0
+            : -1;
         if (_lastSelectedDesignItem is not null && !ReferenceEquals(_lastSelectedDesignItem, value))
         {
             _lastSelectedDesignItem.IsSelected = false;
@@ -642,6 +666,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsImageResizeTargetSelected));
         OnPropertyChanged(nameof(HasGlobalScoreCellEditor));
         OnPropertyChanged(nameof(IsMapV2DisplaySelected));
+        OnPropertyChanged(nameof(IsPolygonSelected));
+        OnPropertyChanged(nameof(SelectedPolygonVertexDisplay));
+        OnPropertyChanged(nameof(CanRemovePolygonVertex));
+        RemovePolygonVertexCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnSelectedPolygonVertexIndexChanged(int value)
+    {
+        RemovePolygonVertexCommand.NotifyCanExecuteChanged();
     }
 
     private void OnGlobalScoreCellSelectionChanged()
@@ -920,6 +953,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             }
 
             RefreshDirtyState();
+
+            // 保存后立即刷新所有前台窗口，使变更立刻生效
+            if (_frontedWindowService is not null)
+            {
+                await _frontedWindowService.ReloadFrontedLayoutsAsync();
+            }
+
             return true;
         }
         catch (Exception ex)
@@ -2308,6 +2348,84 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         RequestPreviewRenderCurrentDocument();
     }
 
+    public void SelectPolygonVertex(int index)
+    {
+        if (SelectedDesignItem?.Config is not PolygonFrontedControlConfig polygon || polygon.Points.Count == 0)
+        {
+            SelectedPolygonVertexIndex = -1;
+            return;
+        }
+
+        SelectedPolygonVertexIndex = Math.Clamp(index, 0, polygon.Points.Count - 1);
+    }
+
+    public void MoveSelectedPolygonVertex(Point canvasPoint, bool renderPreview)
+    {
+        if (CurrentDocument is null
+            || SelectedDesignItem?.Config is not PolygonFrontedControlConfig polygon
+            || SelectedPolygonVertexIndex < 0
+            || SelectedPolygonVertexIndex >= polygon.Points.Count)
+        {
+            return;
+        }
+
+        var normalized = PolygonVertexGeometryHelper.ToNormalizedPoint(polygon, canvasPoint);
+        polygon.Points[SelectedPolygonVertexIndex].X = normalized.X;
+        polygon.Points[SelectedPolygonVertexIndex].Y = normalized.Y;
+        CurrentDocument.IsDirty = true;
+        OnDesignItemGeometryChanged(renderPreview);
+    }
+
+    [RelayCommand]
+    private void AddPolygonVertex()
+    {
+        if (CurrentDocument is null || SelectedDesignItem?.Config is not PolygonFrontedControlConfig polygon)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+        var afterIndex = SelectedPolygonVertexIndex >= 0 && SelectedPolygonVertexIndex < polygon.Points.Count
+            ? SelectedPolygonVertexIndex
+            : polygon.Points.Count - 1;
+        var nextIndex = polygon.Points.Count == 0 ? 0 : (afterIndex + 1) % polygon.Points.Count;
+        var first = polygon.Points.Count == 0 ? new PolygonVertexConfig(0, 0) : polygon.Points[afterIndex];
+        var second = polygon.Points.Count == 0 ? new PolygonVertexConfig(1, 1) : polygon.Points[nextIndex];
+        polygon.Points.Insert(afterIndex + 1, new PolygonVertexConfig(
+            (first.X + second.X) / 2D,
+            (first.Y + second.Y) / 2D));
+        SelectedPolygonVertexIndex = afterIndex + 1;
+        CurrentDocument.IsDirty = true;
+        FinishPolygonVertexEdit();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanRemovePolygonVertex))]
+    private void RemovePolygonVertex()
+    {
+        if (CurrentDocument is null
+            || SelectedDesignItem?.Config is not PolygonFrontedControlConfig polygon
+            || !CanRemovePolygonVertex)
+        {
+            return;
+        }
+
+        CaptureUndoSnapshot();
+        polygon.Points.RemoveAt(SelectedPolygonVertexIndex);
+        SelectedPolygonVertexIndex = Math.Min(SelectedPolygonVertexIndex, polygon.Points.Count - 1);
+        CurrentDocument.IsDirty = true;
+        FinishPolygonVertexEdit();
+    }
+
+    private void FinishPolygonVertexEdit()
+    {
+        OnPropertyChanged(nameof(SelectedPolygonVertexDisplay));
+        OnPropertyChanged(nameof(CanRemovePolygonVertex));
+        RemovePolygonVertexCommand.NotifyCanExecuteChanged();
+        RefreshDirtyState();
+        ValidateCurrentDocument();
+        RequestPreviewRenderCurrentDocument();
+    }
+
     public bool ApplyPropertyEdit(FrontedPropertyEditorItem item, object? newValue)
     {
         if (CurrentDocument is null || SelectedDesignItem is null)
@@ -2528,10 +2646,21 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         string windowTypeName,
         string canvasName)
     {
-        var loadResult = await _layoutService.LoadCanvasConfigWithMetadataAsync(windowTypeName, canvasName);
-        return loadResult.Source is FrontedLayoutSource.BuiltIn or FrontedLayoutSource.PluginDefault
-            ? loadResult.Config
-            : null;
+        // 直接读取内置布局，不走 fallback 链（避免被活动包/用户布局拦截）
+        var config = await _layoutService.LoadBuiltInDefaultLayoutAsync(windowTypeName, canvasName);
+        if (config is not null)
+        {
+            return config;
+        }
+
+        // 内置布局不存在时回退到插件默认布局
+        var builtInPath = _layoutService.GetBuiltInDefaultLayoutPath(windowTypeName, canvasName);
+        _logger.LogWarning(
+            "Built-in layout not found for reset. Window: {WindowTypeName}, Canvas: {CanvasName}, Path: {Path}",
+            windowTypeName,
+            canvasName,
+            builtInPath);
+        return null;
     }
 
     private void ClearLoadedLayout(FrontedLayoutValidationMessage message)

@@ -144,6 +144,8 @@
                     Margin="0,0,8,0"
                     Loaded="PropertyColorPicker_OnLoaded"
                     SelectedColor="{Binding ColorValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    ShowAlpha="True"
+                    HexRepresentation="ARGB"
                     Style="{StaticResource DefaultColorPickerStyle}"
                     Unloaded="PropertyColorPicker_OnUnloaded" />
                 <ui:TextBox
@@ -159,6 +161,10 @@
                                     <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
                                     <Setter Property="BorderThickness" Value="1.5" />
                                 </DataTrigger>
+                                <DataTrigger Binding="{Binding IsReadOnly}" Value="True">
+                                    <Setter Property="IsReadOnly" Value="True" />
+                                    <Setter Property="Opacity" Value="0.6" />
+                                </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </ui:TextBox.Style>
@@ -169,7 +175,17 @@
                     Margin="6,0,0,0"
                     Click="PropertyTextApplyButton_OnClick"
                     Icon="{ui:SymbolIcon Symbol=Checkmark24}"
-                    ToolTip="{lex:Loc ApplyColor}" />
+                    ToolTip="{lex:Loc ApplyColor}">
+                    <ui:Button.Style>
+                        <Style BasedOn="{StaticResource {x:Type ui:Button}}" TargetType="{x:Type ui:Button}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsReadOnly}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ui:Button.Style>
+                </ui:Button>
             </Grid>
         </DataTemplate>
 
@@ -755,7 +771,7 @@
                         MinHeight="420"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch"
-                        Background="{DynamicResource SolidBackgroundFillColorSecondaryBrush}">
+                        Background="Transparent">
                         <Border
                             x:Name="PreviewZoomHost"
                             HorizontalAlignment="Center"
@@ -982,6 +998,39 @@
                                     Content="{lex:Loc Designer.MapV2Display.ApplyStyleToAll}"
                                     ToolTip="{lex:Loc Designer.MapV2Display.ApplyStyleToAllDescription}" />
                             </StackPanel>
+                            <StackPanel Margin="0,12,0,0">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsPolygonSelected}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Opacity="0.75"
+                                    Text="{lex:Loc PolygonPoints}" />
+                                <TextBlock Margin="0,0,0,8">
+                                    <Run Text="{lex:Loc SelectedVertex}" />
+                                    <Run Text=": " />
+                                    <Run Text="{Binding SelectedPolygonVertexDisplay, Mode=OneWay}" />
+                                </TextBlock>
+                                <UniformGrid Columns="2">
+                                    <ui:Button
+                                        Margin="0,0,4,0"
+                                        Command="{Binding AddPolygonVertexCommand}"
+                                        Content="{lex:Loc AddVertex}" />
+                                    <ui:Button
+                                        Margin="4,0,0,0"
+                                        Command="{Binding RemovePolygonVertexCommand}"
+                                        Content="{lex:Loc RemoveVertex}" />
+                                </UniformGrid>
+                            </StackPanel>
                         </StackPanel>
                         <TextBlock
                             Grid.Row="1"
@@ -1188,6 +1237,8 @@
                                         Height="30"
                                         Margin="0,0,8,0"
                                         SelectedColor="{Binding WindowBackgroundColorValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        ShowAlpha="True"
+                                        HexRepresentation="ARGB"
                                         Style="{StaticResource DefaultColorPickerStyle}" />
                                     <ui:TextBox
                                         Grid.Column="1"

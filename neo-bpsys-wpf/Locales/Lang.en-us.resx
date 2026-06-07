@@ -3813,4 +3813,31 @@
   <data name="Designer.Validation.TextStaticIgnored" xml:space="preserve"><value>Static Text is ignored while TextBinding has active sources.</value></data>
   <data name="Designer.Validation.LocalizationKeyIgnored" xml:space="preserve"><value>LocalizationKey is ignored while TextBinding has active sources.</value></data>
   <data name="Designer.Validation.ImagePathIgnored" xml:space="preserve"><value>ImagePath is ignored while BindingPath is set.</value></data>
+  <data name="Designer.Validation.FillColorIgnored" xml:space="preserve"><value>Static fill color is ignored while binding is active. The bound color value is used instead.</value></data>
+  <data name="Designer.Validation.GradientEndColorIgnored" xml:space="preserve"><value>Static gradient end color is ignored while binding is active. The bound color value is used instead.</value></data>
+  <data name="Designer.Property.UseGradient" xml:space="preserve"><value>Enable Gradient</value></data>
+  <data name="TeamColor" xml:space="preserve"><value>Team Color</value></data>
+  <data name="InvalidTeamColorHex" xml:space="preserve"><value>Invalid color. Use #RRGGBB or #AARRGGBB.</value></data>
+  <data name="PolygonPoints" xml:space="preserve"><value>Polygon Vertices</value></data>
+  <data name="AddVertex" xml:space="preserve"><value>Add Vertex</value></data>
+  <data name="RemoveVertex" xml:space="preserve"><value>Remove Vertex</value></data>
+  <data name="SelectedVertex" xml:space="preserve"><value>Selected Vertex</value></data>
+  <data name="Designer.ControlType.Rectangle" xml:space="preserve"><value>Rectangle</value></data>
+  <data name="Designer.ControlType.Polygon" xml:space="preserve"><value>Polygon</value></data>
+  <data name="Designer.Property.FillMode" xml:space="preserve"><value>Fill Mode</value></data>
+  <data name="Designer.Property.UseFillBinding" xml:space="preserve"><value>Use Fill Binding</value></data>
+  <data name="Designer.Property.FillBindingPath" xml:space="preserve"><value>Fill Binding Path</value></data>
+  <data name="Designer.Property.UseGradientStartBinding" xml:space="preserve"><value>Bind Gradient Start</value></data>
+  <data name="Designer.Property.GradientStartColor" xml:space="preserve"><value>Gradient Start Color</value></data>
+  <data name="Designer.Property.GradientStartBindingPath" xml:space="preserve"><value>Gradient Start Binding Path</value></data>
+  <data name="Designer.Property.UseGradientEndBinding" xml:space="preserve"><value>Bind Gradient End</value></data>
+  <data name="Designer.Property.GradientEndColor" xml:space="preserve"><value>Gradient End Color</value></data>
+  <data name="Designer.Property.GradientEndBindingPath" xml:space="preserve"><value>Gradient End Binding Path</value></data>
+  <data name="Designer.Property.GradientAngle" xml:space="preserve"><value>Gradient Angle</value></data>
+  <data name="Designer.Property.RadiusX" xml:space="preserve"><value>Horizontal Radius</value></data>
+  <data name="Designer.Property.RadiusY" xml:space="preserve"><value>Vertical Radius</value></data>
+  <data name="Designer.Property.StrokeColor" xml:space="preserve"><value>Stroke Color</value></data>
+  <data name="Designer.Property.StrokeThickness" xml:space="preserve"><value>Stroke Thickness</value></data>
+  <data name="Designer.Option.FillMode.Solid" xml:space="preserve"><value>Solid</value></data>
+  <data name="Designer.Option.FillMode.LinearGradient" xml:space="preserve"><value>Linear Gradient</value></data>
 </root>

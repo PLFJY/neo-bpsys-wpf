@@ -21,6 +21,8 @@ public class FrontedControlDefaultConfigFactory
             "LocalizedText",
             "Image",
             "BorderedImage",
+            "Rectangle",
+            "Polygon",
             "MapNameText",
             "GameProgressText",
             "TalentTraitDisplay",
@@ -223,6 +225,20 @@ public class FrontedControlDefaultConfigFactory
                 SizingMode = ImageSizingMode.FillContainer,
                 Stretch = "UniformToFill",
                 ClipToBounds = true
+            },
+            "Rectangle" => new RectangleFrontedControlConfig
+            {
+                Width = 160,
+                Height = 80,
+                FillMode = ShapeFillMode.Solid,
+                FillColor = "#FFFFFFFF"
+            },
+            "Polygon" => new PolygonFrontedControlConfig
+            {
+                Width = 160,
+                Height = 120,
+                FillMode = ShapeFillMode.Solid,
+                FillColor = "#FFFFFFFF"
             },
             "MapNameText" => new MapNameTextControlConfig
             {

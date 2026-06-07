@@ -29,6 +29,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <ui:TextBox
                     Grid.Row="0"
@@ -52,6 +53,16 @@
                 </StackPanel>
                 <StackPanel
                     Grid.Row="2"
+                    Margin="0,10,0,0"
+                    Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="队伍颜色（#RRGGBB 或 #AARRGGBB）: " />
+                    <ui:TextBox
+                        MinWidth="180"
+                        Margin="10,0,0,0"
+                        Text="{Binding CurrentTeam.ColorHex}" />
+                </StackPanel>
+                <StackPanel
+                    Grid.Row="3"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Left">
                     <TextBlock Text="求生者选手" />
@@ -90,7 +101,7 @@
                         Icon="{ui:SymbolIcon Symbol=Add24}" />
                 </StackPanel>
                 <StackPanel
-                    Grid.Row="3"
+                    Grid.Row="4"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Left">
                     <TextBlock Text="监管者选手" />
