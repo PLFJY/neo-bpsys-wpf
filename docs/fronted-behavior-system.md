@@ -4,6 +4,16 @@
 > **功能主线**: 把 Designer v3 从静态前台布局编辑器升级成"事件驱动的控件动画/行为编排系统"
 > **本报告仅做源码勘察，不包含实现代码**
 
+## Phase 1 implemented
+
+Phase 1 已完成行为系统的数据基础：
+
+- `FrontedControlConfigBase` 增加 `BehaviorGuid`，作为行为系统内部控件标识；普通 PropertyGrid 不显示该字段。
+- Add Control 创建内置控件和插件控件时都会生成新的 `BehaviorGuid`；复制/粘贴控件会重新生成，重命名控件不影响该值。
+- 删除控件时会通过 `IFrontedBehaviorService.RemoveBehaviors(Guid)` 调用清理入口；当前实现为 no-op，占位给后续 behaviors 持久化使用。
+- Core 新增 `Models/FrontedLayout/Behaviors/` 纯数据模型，覆盖行为文档、控件行为集合、触发器、过滤器、节点图、连接和循环策略。
+- 已添加 BehaviorGuid JSON/PropertyGrid/复制/删除测试，以及行为模型默认值和 JSON roundtrip 测试。
+
 ---
 
 ## 目录索引

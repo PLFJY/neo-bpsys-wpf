@@ -30,6 +30,74 @@ namespace neo_bpsys_wpf.Tests.Models;
 public class FrontedCanvasConfigTest
 {
     [Fact]
+    public void BehaviorGuid_JsonRoundTrip_PreservesGuid()
+    {
+        var behaviorGuid = Guid.NewGuid();
+        var config = new FrontedCanvasConfig
+        {
+            CanvasWidth = 400,
+            CanvasHeight = 300,
+            Controls =
+            {
+                ["Title"] = new TextFrontedControlConfig
+                {
+                    ControlType = "Text",
+                    Text = "Hello",
+                    BehaviorGuid = behaviorGuid
+                }
+            }
+        };
+
+        var roundTrip = JsonSerializer.Deserialize<FrontedCanvasConfig>(JsonSerializer.Serialize(config));
+
+        Assert.NotNull(roundTrip);
+        Assert.Equal(behaviorGuid, roundTrip.Controls["Title"].BehaviorGuid);
+    }
+
+    [Fact]
+    public void BehaviorGuid_MissingGuid_DeserializesAsEmpty()
+    {
+        var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(
+            """
+            {
+              "Version": 3,
+              "CanvasWidth": 400,
+              "CanvasHeight": 300,
+              "Title": {
+                "ControlType": "Text",
+                "Text": "Hello"
+              }
+            }
+            """);
+
+        Assert.NotNull(config);
+        Assert.Equal(Guid.Empty, config.Controls["Title"].BehaviorGuid);
+    }
+
+    [Fact]
+    public void BehaviorGuid_EmptyGuid_NotSerialized()
+    {
+        var config = new FrontedCanvasConfig
+        {
+            CanvasWidth = 400,
+            CanvasHeight = 300,
+            Controls =
+            {
+                ["Title"] = new TextFrontedControlConfig
+                {
+                    ControlType = "Text",
+                    Text = "Hello",
+                    BehaviorGuid = Guid.Empty
+                }
+            }
+        };
+
+        var json = JsonSerializer.Serialize(config);
+
+        Assert.DoesNotContain(nameof(FrontedControlConfigBase.BehaviorGuid), json, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void CanvasConfigRoundTripsBoModeStatesWithoutBackgroundImageVariants()
     {
         var config = JsonSerializer.Deserialize<FrontedCanvasConfig>(

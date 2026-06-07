@@ -106,6 +106,7 @@ public class FrontedControlDefaultConfigFactory
         var config = FrontedPluginControlType.IsPluginControlType(controlType)
             ? CreatePluginDefault(controlType)
             : CreateDefault(controlType);
+        config.BehaviorGuid = FrontedBehaviorGuidHelper.NewGuid();
         config.ZIndex = GetNextZIndex(document);
         ApplyPlacement(config, document, centerX, centerY);
         return config;

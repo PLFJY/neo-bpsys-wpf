@@ -75,6 +75,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
     private readonly IFrontedLocalResourceStore? _localResourceStore;
     private readonly IFrontedWindowLayoutOptionsService? _windowLayoutOptionsService;
     private readonly IFrontedWindowService? _frontedWindowService;
+    private readonly IFrontedBehaviorService _behaviorService;
     private readonly ILogger<FrontedDesignerWindowViewModel> _logger;
 
     private static ILogger<FrontedDesignerWindowViewModel>? StaticLogger =>
@@ -126,8 +127,15 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _localResourceStore = null;
         _windowLayoutOptionsService = null;
         _frontedWindowService = null;
+        _behaviorService = new NoopFrontedBehaviorService();
         _logger = NullLogger<FrontedDesignerWindowViewModel>.Instance;
         InitializeZoomPresets();
+    }
+
+    public FrontedDesignerWindowViewModel(IFrontedBehaviorService behaviorService)
+        : this()
+    {
+        _behaviorService = behaviorService;
     }
 
     public FrontedDesignerWindowViewModel(
@@ -145,6 +153,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         IFrontedLocalResourceStore localResourceStore,
         IFrontedWindowLayoutOptionsService windowLayoutOptionsService,
         IFrontedWindowService frontedWindowService,
+        IFrontedBehaviorService behaviorService,
         ILogger<FrontedDesignerWindowViewModel> logger)
     {
         _layoutService = layoutService;
@@ -160,6 +169,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         _localResourceStore = localResourceStore;
         _windowLayoutOptionsService = windowLayoutOptionsService;
         _frontedWindowService = frontedWindowService;
+        _behaviorService = behaviorService;
         _logger = logger;
 
         foreach (var group in layoutCatalog.GetEntries()
@@ -1215,6 +1225,7 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         var total = StartDesignerPerfTrace();
         LogDesignerPerf("Paste", "start");
         var clonedConfig = copiedControl.CreateConfig();
+        clonedConfig.BehaviorGuid = FrontedBehaviorGuidHelper.NewGuid();
         LogDesignerPerf("Paste", "clone config", Elapsed(total));
         clonedConfig.Left += 10D;
         clonedConfig.Top += 10D;
@@ -1281,7 +1292,13 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
         LogDesignerPerf("Delete", "undo snapshot capture", Elapsed(total));
         var deletedName = SelectedDesignItem.Name;
         var deletedItem = SelectedDesignItem;
+        var deletedBehaviorGuid = deletedItem.Config.BehaviorGuid;
         CurrentDocument.Controls.Remove(SelectedDesignItem);
+        if (deletedBehaviorGuid != Guid.Empty)
+        {
+            _behaviorService.RemoveBehaviors(deletedBehaviorGuid);
+        }
+
         LogDesignerPerf("Delete", "remove control", Elapsed(total));
         CurrentDocument.IsDirty = true;
         RefreshDirtyState();

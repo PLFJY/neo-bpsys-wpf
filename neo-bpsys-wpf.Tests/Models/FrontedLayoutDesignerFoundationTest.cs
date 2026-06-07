@@ -154,6 +154,23 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void BehaviorGuid_PluginDefault_AlsoGetsFreshGuid()
+    {
+        var factory = new FrontedControlDefaultConfigFactory(
+            new PluginFrontedControlRegistryForTests(),
+            new FrontedDesignerLocalizationService());
+        var document = new FrontedCanvasDesignDocument
+        {
+            CanvasConfig = new FrontedCanvasConfig { CanvasWidth = 400, CanvasHeight = 300 }
+        };
+
+        var config = factory.Create("plugin:top.plfjy.example.fronted/TeamCard", document);
+
+        Assert.NotEqual(Guid.Empty, config.BehaviorGuid);
+        Assert.NotEqual(PluginFrontedControlRegistryForTests.PluginDefaultBehaviorGuid, config.BehaviorGuid);
+    }
+
+    [Fact]
     public void PropertyGridUsesPluginDescriptorMetadata()
     {
         var document = new FrontedCanvasDesignDocument
@@ -194,6 +211,30 @@ public class FrontedLayoutDesignerFoundationTest
         var titleBinding = rows.Single(row => row.PropertyName == nameof(TestPluginDesignerConfig.TitleBindingPath));
         Assert.True(titleBinding.CanBrowseBinding);
         Assert.Equal(FrontedBindingTargetKind.Text, titleBinding.BindingTargetKind);
+    }
+
+    [Fact]
+    public void BehaviorGuid_PropertyGridDoesNotShowGuidRow()
+    {
+        var item = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            Config = new TextFrontedControlConfig
+            {
+                ControlType = "Text",
+                Text = "Hello",
+                BehaviorGuid = Guid.NewGuid()
+            },
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true
+        };
+        var document = CreateDocument([item]);
+
+        var rows = BuildPropertyRows(document, item);
+
+        Assert.DoesNotContain(rows, row =>
+            string.Equals(row.PropertyName, nameof(FrontedControlConfigBase.BehaviorGuid), StringComparison.Ordinal)
+            || string.Equals(row.DisplayName, nameof(FrontedControlConfigBase.BehaviorGuid), StringComparison.Ordinal));
     }
 
     [Fact]
@@ -841,6 +882,16 @@ public class FrontedLayoutDesignerFoundationTest
     }
 
     [Fact]
+    public void BehaviorGuid_NewControlViaFactory_HasNonEmptyGuid()
+    {
+        var factory = new FrontedControlDefaultConfigFactory();
+
+        var config = factory.Create("Text", CreateDocument([]));
+
+        Assert.NotEqual(Guid.Empty, config.BehaviorGuid);
+    }
+
+    [Fact]
     public void DefaultConfigFactoryDoesNotCreateCompatibilityOverlaysOrBanControlsFromNormalAddControl()
     {
         var factory = new FrontedControlDefaultConfigFactory();
@@ -967,12 +1018,20 @@ public class FrontedLayoutDesignerFoundationTest
     [Fact]
     public void CopyPasteNormalControlCreatesOffsetSelectedDirtyUndoableCopy()
     {
+        var sourceBehaviorGuid = Guid.NewGuid();
         var title = new FrontedControlDesignItem
         {
             Name = "Text9",
             IsSelectableInEditor = true,
             IsEditableInEditor = true,
-            Config = new TextFrontedControlConfig { Text = "A", Left = 10, Top = 20, ZIndex = 3 }
+            Config = new TextFrontedControlConfig
+            {
+                Text = "A",
+                Left = 10,
+                Top = 20,
+                ZIndex = 3,
+                BehaviorGuid = sourceBehaviorGuid
+            }
         };
         var document = CreateDocument([title]);
         var viewModel = new FrontedDesignerWindowViewModel { CurrentDocument = document };
@@ -983,6 +1042,8 @@ public class FrontedLayoutDesignerFoundationTest
 
         var pasted = Assert.Single(document.Controls, control => control.Name == "Text10");
         Assert.NotSame(title.Config, pasted.Config);
+        Assert.NotEqual(Guid.Empty, pasted.Config.BehaviorGuid);
+        Assert.NotEqual(sourceBehaviorGuid, pasted.Config.BehaviorGuid);
         Assert.Equal(20, pasted.Config.Left);
         Assert.Equal(30, pasted.Config.Top);
         Assert.Equal(4, pasted.Config.ZIndex);
@@ -1113,6 +1174,28 @@ public class FrontedLayoutDesignerFoundationTest
         Assert.True(viewModel.HasPendingScheduledDesignerWork);
         viewModel.ExecuteScheduledDesignerWorkForTests();
         Assert.True(previewRequests > 0);
+    }
+
+    [Fact]
+    public void DeleteControl_TriggersBehaviorCleanupCall()
+    {
+        var behaviorGuid = Guid.NewGuid();
+        var behaviorService = new RecordingFrontedBehaviorService();
+        var title = new FrontedControlDesignItem
+        {
+            Name = "Title",
+            IsSelectableInEditor = true,
+            IsEditableInEditor = true,
+            Config = new TextFrontedControlConfig { BehaviorGuid = behaviorGuid }
+        };
+        var document = CreateDocument([title]);
+        var viewModel = new FrontedDesignerWindowViewModel(behaviorService) { CurrentDocument = document };
+        viewModel.SelectDesignItem(title);
+
+        viewModel.DeleteSelectedControlCommand.Execute(null);
+
+        var removedGuid = Assert.Single(behaviorService.RemovedBehaviorGuids);
+        Assert.Equal(behaviorGuid, removedGuid);
     }
 
     [Fact]
@@ -4992,6 +5075,8 @@ public class FrontedLayoutDesignerFoundationTest
 
     private sealed class PluginFrontedControlRegistryForTests : KnownFrontedControlRegistry
     {
+        public static readonly Guid PluginDefaultBehaviorGuid = Guid.NewGuid();
+
         private readonly FrontedPluginControlDescriptor<TestPluginDesignerConfig> _descriptor = new()
         {
             PackageId = "top.plfjy.example.fronted",
@@ -4999,7 +5084,11 @@ public class FrontedLayoutDesignerFoundationTest
             ConfigType = typeof(TestPluginDesignerConfig),
             DisplayNameKey = "Designer.ControlType.TeamCard",
             DescriptionKey = "Designer.ControlType.TeamCard.Description",
-            CreateDefaultConfig = () => new TestPluginDesignerConfig { Title = "Default" },
+            CreateDefaultConfig = () => new TestPluginDesignerConfig
+            {
+                Title = "Default",
+                BehaviorGuid = PluginDefaultBehaviorGuid
+            },
             Properties =
             [
                 new FrontedPluginPropertyDescriptor
@@ -5065,6 +5154,16 @@ public class FrontedLayoutDesignerFoundationTest
         public override IReadOnlyCollection<IFrontedPluginControlDescriptor> GetPluginDescriptors()
         {
             return [_descriptor];
+        }
+    }
+
+    private sealed class RecordingFrontedBehaviorService : IFrontedBehaviorService
+    {
+        public List<Guid> RemovedBehaviorGuids { get; } = [];
+
+        public void RemoveBehaviors(Guid behaviorGuid)
+        {
+            RemovedBehaviorGuids.Add(behaviorGuid);
         }
     }
 

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 
 /// <summary>
@@ -5,6 +7,14 @@ namespace neo_bpsys_wpf.Core.Models.FrontedLayout;
 /// </summary>
 public class FrontedControlConfigBase
 {
+    /// <summary>
+    /// 前台行为系统内部使用的控件标识符。
+    /// 普通用户不应编辑此值，普通 PropertyGrid 也不应显示此字段。
+    /// 复制/粘贴控件时会重新生成，重命名控件时保持不变。
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public Guid BehaviorGuid { get; set; }
+
     /// <summary>
     /// 控件类型。
     /// </summary>

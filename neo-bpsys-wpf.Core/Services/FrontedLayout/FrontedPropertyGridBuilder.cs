@@ -214,7 +214,8 @@ public class FrontedPropertyGridBuilder
 
         foreach (var property in properties)
         {
-            if (property.Name == nameof(FrontedControlConfigBase.ControlType))
+            if (property.Name is nameof(FrontedControlConfigBase.ControlType)
+                or nameof(FrontedControlConfigBase.BehaviorGuid))
             {
                 continue;
             }
@@ -522,6 +523,11 @@ public class FrontedPropertyGridBuilder
 
     private static bool IsSupportedProperty(PropertyInfo property)
     {
+        if (property.Name == nameof(FrontedControlConfigBase.BehaviorGuid))
+        {
+            return false;
+        }
+
         if (property.GetIndexParameters().Length > 0 || !property.CanRead)
         {
             return false;
