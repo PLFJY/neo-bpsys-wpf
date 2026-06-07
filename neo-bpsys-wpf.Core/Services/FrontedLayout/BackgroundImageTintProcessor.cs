@@ -31,6 +31,25 @@ public class BackgroundImageTintProcessor
         double strength,
         double textureStrength,
         ILogger? logger = null)
+        => CreateTinted(
+            source,
+            sourceKey,
+            tint,
+            new BackgroundTintProcessingOptions
+            {
+                Mode = mode,
+                TintStrength = strength,
+                TextureStrength = textureStrength,
+                NormalizationMode = BackgroundTintNormalizationMode.WholeImage
+            },
+            logger);
+
+    public BitmapSource? CreateTinted(
+        ImageSource source,
+        string? sourceKey,
+        Color tint,
+        BackgroundTintProcessingOptions options,
+        ILogger? logger = null)
     {
         var bitmap = ConvertToBitmapSource(source, logger);
         if (bitmap is null || bitmap.PixelWidth <= 0 || bitmap.PixelHeight <= 0)
@@ -38,8 +57,12 @@ public class BackgroundImageTintProcessor
             return null;
         }
 
-        strength = double.IsFinite(strength) ? Math.Clamp(strength, 0D, 1D) : 1D;
-        textureStrength = double.IsFinite(textureStrength) ? Math.Clamp(textureStrength, 0D, 1D) : 0.45D;
+        var mode = options.Mode;
+        var strength = double.IsFinite(options.TintStrength) ? Math.Clamp(options.TintStrength, 0D, 1D) : 1D;
+        var textureStrength = double.IsFinite(options.TextureStrength)
+            ? Math.Clamp(options.TextureStrength, 0D, 1D)
+            : 0.45D;
+        var normalization = NormalizeOptions(options, bitmap.PixelWidth, bitmap.PixelHeight);
         var key = new TintCacheKey(
             sourceKey ?? string.Empty,
             tint.R,
@@ -50,7 +73,15 @@ public class BackgroundImageTintProcessor
             textureStrength,
             bitmap.PixelWidth,
             bitmap.PixelHeight,
-            RuntimeHelpers.GetHashCode(bitmap));
+            RuntimeHelpers.GetHashCode(bitmap),
+            normalization.Mode,
+            normalization.CanvasWidth,
+            normalization.CanvasHeight,
+            normalization.Region.X,
+            normalization.Region.Y,
+            normalization.Region.Width,
+            normalization.Region.Height,
+            normalization.PolygonHash);
         lock (_cacheLock)
         {
             if (_cache.TryGetValue(key, out var cached))
@@ -66,11 +97,8 @@ public class BackgroundImageTintProcessor
         var pixels = new byte[stride * converted.PixelHeight];
         converted.CopyPixels(pixels, stride, 0);
         var meanLuminance = mode == BackgroundTintMode.BaseColorWithTexture
-            ? CalculateMeanLuminance(pixels)
+            ? CalculateMeanLuminance(pixels, converted.PixelWidth, converted.PixelHeight, normalization)
             : 0D;
-        var tintHsl = mode == BackgroundTintMode.BaseColorWithTexture
-            ? ToHsl(tint.R, tint.G, tint.B)
-            : default;
 
         for (var offset = 0; offset < pixels.Length; offset += 4)
         {
@@ -90,9 +118,10 @@ public class BackgroundImageTintProcessor
             else if (mode == BackgroundTintMode.BaseColorWithTexture)
             {
                 var luminance = CalculateLuminance(sourceR, sourceG, sourceB);
-                var detail = (luminance - meanLuminance) / 255D;
-                var texturedLightness = Math.Clamp(tintHsl.Lightness + detail * textureStrength, 0D, 1D);
-                (targetR, targetG, targetB) = FromHsl(tintHsl.Hue, tintHsl.Saturation, texturedLightness);
+                var detail = (luminance - meanLuminance) * textureStrength;
+                targetR = ClampToByte(tint.R + detail);
+                targetG = ClampToByte(tint.G + detail);
+                targetB = ClampToByte(tint.B + detail);
             }
             else
             {
@@ -178,7 +207,35 @@ public class BackgroundImageTintProcessor
     private static byte Interpolate(byte source, byte target, double strength) =>
         (byte)Math.Clamp(Math.Round(source + (target - source) * strength), 0D, 255D);
 
-    private static double CalculateMeanLuminance(byte[] pixels)
+    private static double CalculateMeanLuminance(
+        byte[] pixels,
+        int pixelWidth,
+        int pixelHeight,
+        NormalizedProcessingOptions options)
+    {
+        var total = 0D;
+        var count = 0;
+        for (var y = 0; y < pixelHeight; y++)
+        {
+            for (var x = 0; x < pixelWidth; x++)
+            {
+                var offset = (y * pixelWidth + x) * 4;
+                if (pixels[offset + 3] == 0 || !IncludesPixel(x, y, pixelWidth, pixelHeight, options))
+                {
+                    continue;
+                }
+
+                total += CalculateLuminance(pixels[offset + 2], pixels[offset + 1], pixels[offset]);
+                count++;
+            }
+        }
+
+        return count > 0
+            ? total / count
+            : CalculateWholeImageMeanLuminance(pixels);
+    }
+
+    private static double CalculateWholeImageMeanLuminance(byte[] pixels)
     {
         var total = 0D;
         var count = 0;
@@ -196,54 +253,127 @@ public class BackgroundImageTintProcessor
         return count > 0 ? total / count : 0D;
     }
 
+    private static bool IncludesPixel(
+        int pixelX,
+        int pixelY,
+        int pixelWidth,
+        int pixelHeight,
+        NormalizedProcessingOptions options)
+    {
+        if (options.Mode == BackgroundTintNormalizationMode.WholeImage)
+        {
+            return true;
+        }
+
+        var canvasPoint = new Point(
+            (pixelX + 0.5D) / pixelWidth * options.CanvasWidth,
+            (pixelY + 0.5D) / pixelHeight * options.CanvasHeight);
+        if (options.Mode == BackgroundTintNormalizationMode.VisiblePolygon
+            && options.PolygonPoints is { Count: >= 3 })
+        {
+            return IsPointInsidePolygon(canvasPoint, options.PolygonPoints);
+        }
+
+        return options.Region.Contains(canvasPoint);
+    }
+
+    private static bool IsPointInsidePolygon(Point point, IReadOnlyList<Point> polygon)
+    {
+        var inside = false;
+        for (int current = 0, previous = polygon.Count - 1; current < polygon.Count; previous = current++)
+        {
+            var currentPoint = polygon[current];
+            var previousPoint = polygon[previous];
+            if ((currentPoint.Y > point.Y) != (previousPoint.Y > point.Y)
+                && point.X < (previousPoint.X - currentPoint.X) * (point.Y - currentPoint.Y)
+                / (previousPoint.Y - currentPoint.Y) + currentPoint.X)
+            {
+                inside = !inside;
+            }
+        }
+
+        return inside;
+    }
+
+    private static NormalizedProcessingOptions NormalizeOptions(
+        BackgroundTintProcessingOptions options,
+        int pixelWidth,
+        int pixelHeight)
+    {
+        var canvasWidth = double.IsFinite(options.CanvasWidth) && options.CanvasWidth > 0
+            ? options.CanvasWidth
+            : pixelWidth;
+        var canvasHeight = double.IsFinite(options.CanvasHeight) && options.CanvasHeight > 0
+            ? options.CanvasHeight
+            : pixelHeight;
+        var region = IsValidRegion(options.CanvasRegion)
+            ? options.CanvasRegion
+            : new Rect(0D, 0D, canvasWidth, canvasHeight);
+        var polygon = CreateAbsolutePolygon(options.PolygonPoints, region);
+        var mode = options.NormalizationMode switch
+        {
+            BackgroundTintNormalizationMode.VisibleMask when polygon.Count >= 3 =>
+                BackgroundTintNormalizationMode.VisiblePolygon,
+            BackgroundTintNormalizationMode.VisibleMask =>
+                BackgroundTintNormalizationMode.VisibleRectangle,
+            BackgroundTintNormalizationMode.VisiblePolygon when polygon.Count < 3 =>
+                BackgroundTintNormalizationMode.VisibleRectangle,
+            _ => options.NormalizationMode
+        };
+        return new NormalizedProcessingOptions(
+            mode,
+            canvasWidth,
+            canvasHeight,
+            region,
+            polygon,
+            CalculatePolygonHash(polygon));
+    }
+
+    private static bool IsValidRegion(Rect region) =>
+        !region.IsEmpty
+        && double.IsFinite(region.X)
+        && double.IsFinite(region.Y)
+        && double.IsFinite(region.Width)
+        && double.IsFinite(region.Height)
+        && region.Width > 0D
+        && region.Height > 0D;
+
+    private static IReadOnlyList<Point> CreateAbsolutePolygon(
+        IReadOnlyList<PolygonVertexConfig>? points,
+        Rect region) =>
+        points?
+            .Where(point => double.IsFinite(point.X) && double.IsFinite(point.Y))
+            .Select(point => new Point(
+                region.X + PolygonVertexGeometryHelper.ClampCoordinate(point.X) * region.Width,
+                region.Y + PolygonVertexGeometryHelper.ClampCoordinate(point.Y) * region.Height))
+            .ToArray()
+        ?? [];
+
+    private static int CalculatePolygonHash(IReadOnlyList<Point> points)
+    {
+        var hash = new HashCode();
+        foreach (var point in points)
+        {
+            hash.Add(point.X);
+            hash.Add(point.Y);
+        }
+
+        return hash.ToHashCode();
+    }
+
+    private static byte ClampToByte(double value) =>
+        (byte)Math.Clamp(Math.Round(value), 0D, 255D);
+
     private static double CalculateLuminance(byte red, byte green, byte blue) =>
         red * 0.2126D + green * 0.7152D + blue * 0.0722D;
 
-    private static HslColor ToHsl(byte red, byte green, byte blue)
-    {
-        var r = red / 255D;
-        var g = green / 255D;
-        var b = blue / 255D;
-        var max = Math.Max(r, Math.Max(g, b));
-        var min = Math.Min(r, Math.Min(g, b));
-        var lightness = (max + min) / 2D;
-        var delta = max - min;
-        if (delta <= double.Epsilon)
-        {
-            return new HslColor(0D, 0D, lightness);
-        }
-
-        var saturation = delta / (1D - Math.Abs(2D * lightness - 1D));
-        var hue = max == r
-            ? 60D * (((g - b) / delta) % 6D)
-            : max == g
-                ? 60D * ((b - r) / delta + 2D)
-                : 60D * ((r - g) / delta + 4D);
-        return new HslColor(hue < 0D ? hue + 360D : hue, saturation, lightness);
-    }
-
-    private static (byte Red, byte Green, byte Blue) FromHsl(double hue, double saturation, double lightness)
-    {
-        var chroma = (1D - Math.Abs(2D * lightness - 1D)) * saturation;
-        var hueSection = hue / 60D;
-        var x = chroma * (1D - Math.Abs(hueSection % 2D - 1D));
-        var (r1, g1, b1) = hueSection switch
-        {
-            < 1D => (chroma, x, 0D),
-            < 2D => (x, chroma, 0D),
-            < 3D => (0D, chroma, x),
-            < 4D => (0D, x, chroma),
-            < 5D => (x, 0D, chroma),
-            _ => (chroma, 0D, x)
-        };
-        var match = lightness - chroma / 2D;
-        return (ToByte(r1 + match), ToByte(g1 + match), ToByte(b1 + match));
-    }
-
-    private static byte ToByte(double value) =>
-        (byte)Math.Clamp(Math.Round(value * 255D), 0D, 255D);
-
-    private readonly record struct HslColor(double Hue, double Saturation, double Lightness);
+    private readonly record struct NormalizedProcessingOptions(
+        BackgroundTintNormalizationMode Mode,
+        double CanvasWidth,
+        double CanvasHeight,
+        Rect Region,
+        IReadOnlyList<Point> PolygonPoints,
+        int PolygonHash);
 
     private readonly record struct TintCacheKey(
         string SourceKey,
@@ -255,5 +385,13 @@ public class BackgroundImageTintProcessor
         double TextureStrength,
         int PixelWidth,
         int PixelHeight,
-        int SourceIdentity);
+        int SourceIdentity,
+        BackgroundTintNormalizationMode NormalizationMode,
+        double CanvasWidth,
+        double CanvasHeight,
+        double RegionX,
+        double RegionY,
+        double RegionWidth,
+        double RegionHeight,
+        int PolygonHash);
 }

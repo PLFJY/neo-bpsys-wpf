@@ -7,7 +7,7 @@ public class FrontedWindowLayoutOptions
 {
     public int Version { get; set; } = 3;
 
-    public bool AllowTransparency { get; set; }
+    public bool AllowTransparency { get; set; } = true;
 
-    public string? BackgroundColor { get; set; }
+    public string? BackgroundColor { get; set; } = "#00000000";
 }

@@ -56,7 +56,7 @@ public sealed class FrontedPluginLayoutWindow : FrontedWindowBase
             ? descriptor.FullWindowType
             : descriptor.DisplayName;
         WindowStyle = WindowStyle.None;
-        Background = Brushes.Transparent;
+        Background = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
         AllowsTransparency = descriptor.DefaultOptions.AllowTransparency;
 
         var root = new Grid();

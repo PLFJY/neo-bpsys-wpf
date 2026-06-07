@@ -11,15 +11,14 @@ public sealed class FrontedWindowRuntimeSettings
 
     public WindowSize ScoreGlobalWindowSize { get; init; } = new(1440, 195);
 
-    public bool AllowsWindowTransparency { get; init; }
+    public bool AllowsWindowTransparency { get; init; } = true;
 
-    public bool AllowsScoreGlobalWindowTransparency { get; init; }
+public bool AllowsScoreGlobalWindowTransparency { get; init; } = true;
 
-    public Brush BackgroundBrush => AllowsWindowTransparency
-        ? Brushes.Transparent
-        : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00FF00"));
+private static readonly Brush TransparentBlackBrush =
+    new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
 
-    public Brush ScoreGlobalWindowBackgroundBrush => AllowsScoreGlobalWindowTransparency
-        ? Brushes.Transparent
-        : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#00FF00"));
+public Brush BackgroundBrush => TransparentBlackBrush;
+
+public Brush ScoreGlobalWindowBackgroundBrush => TransparentBlackBrush;
 }

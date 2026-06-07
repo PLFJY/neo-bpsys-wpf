@@ -17,7 +17,9 @@ internal static class BackgroundTintFrontedControlFactoryHelper
         BackgroundTintFrontedControlConfigBase config,
         FrontedControlBuildContext context,
         BackgroundImageTintProcessor processor,
-        Func<BackgroundTintControlHost, Geometry> createClip)
+        Func<BackgroundTintControlHost, Geometry> createClip,
+        BackgroundTintNormalizationMode normalizationMode,
+        IReadOnlyList<PolygonVertexConfig>? polygonPoints = null)
     {
         var source = context.ResourceResolver.ResolveImage(
             context.CanvasBackgroundImage,
@@ -38,6 +40,10 @@ internal static class BackgroundTintFrontedControlFactoryHelper
             context.CanvasHeight,
             config.Left,
             config.Top,
+            config.Width is > 0 && double.IsFinite(config.Width.Value) ? config.Width.Value : 1D,
+            config.Height is > 0 && double.IsFinite(config.Height.Value) ? config.Height.Value : 1D,
+            normalizationMode,
+            polygonPoints,
             context.Logger)
         {
             Name = name
@@ -55,7 +61,11 @@ internal static class BackgroundTintFrontedControlFactoryHelper
             root.Clip = geometry;
         }
 
-        root.SizeChanged += (_, _) => RefreshClip();
+        root.SizeChanged += (_, _) =>
+        {
+            root.UpdateMaskSize(GetWidth(root, config), GetHeight(root, config));
+            RefreshClip();
+        };
         RefreshClip();
 
         if (!string.IsNullOrWhiteSpace(config.TintBindingPath))

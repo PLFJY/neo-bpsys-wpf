@@ -35,6 +35,7 @@ public class BackgroundTintRectangleFrontedControl(BackgroundImageTintProcessor 
                     BackgroundTintFrontedControlFactoryHelper.GetWidth(root, rectangle),
                     BackgroundTintFrontedControlFactoryHelper.GetHeight(root, rectangle)),
                 Math.Max(0, rectangle.RadiusX),
-                Math.Max(0, rectangle.RadiusY)));
+                Math.Max(0, rectangle.RadiusY)),
+            BackgroundTintNormalizationMode.VisibleRectangle);
     }
 }

@@ -12,6 +12,8 @@
     Height="{Binding Settings.WindowSize.Height, Mode=TwoWay}"
     d:DataContext="{d:DesignInstance Type=vm:GameDataWindowViewModel,
                                      IsDesignTimeCreatable=True}"
+    AllowsTransparency="{Binding Settings.AllowsWindowTransparency, Mode=OneTime}"
+    Background="{Binding Settings.BackgroundBrush}"
     WindowStyle="None"
     mc:Ignorable="d">
     <Canvas

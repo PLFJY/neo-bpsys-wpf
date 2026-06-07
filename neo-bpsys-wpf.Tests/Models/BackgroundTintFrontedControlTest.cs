@@ -135,6 +135,121 @@ public class BackgroundTintFrontedControlTest
     }
 
     [Fact]
+    public void BaseColorWithTextureUsesLocalRectangleMeanAndSeparatesCacheEntries()
+    {
+        RunOnStaThread(() =>
+        {
+            var source = CreateGrayTexture((20, 255), (40, 255), (200, 255), (220, 180));
+            var tint = Color.FromRgb(0x33, 0x80, 0xB9);
+            var processor = new BackgroundImageTintProcessor();
+            var localOptions = CreateProcessingOptions(
+                new Rect(2, 0, 2, 1),
+                BackgroundTintNormalizationMode.VisibleRectangle);
+            var local = processor.CreateTinted(source, "split", tint, localOptions)!;
+            var localPixels = ReadPixels(local).Skip(2).ToArray();
+
+            Assert.InRange(localPixels.Average(pixel => pixel.R), tint.R - 2D, tint.R + 2D);
+            Assert.InRange(localPixels.Average(pixel => pixel.G), tint.G - 2D, tint.G + 2D);
+            Assert.InRange(localPixels.Average(pixel => pixel.B), tint.B - 2D, tint.B + 2D);
+            Assert.Equal(180, localPixels[1].A);
+
+            var whole = processor.CreateTinted(
+                source,
+                "split",
+                tint,
+                CreateProcessingOptions(
+                    new Rect(0, 0, 4, 1),
+                    BackgroundTintNormalizationMode.WholeImage))!;
+            var wholePixels = ReadPixels(whole).Skip(2).ToArray();
+            Assert.True(ColorDistance(localPixels, tint) < ColorDistance(wholePixels, tint));
+            Assert.NotSame(local, whole);
+
+            var darkLocal = processor.CreateTinted(
+                source,
+                "split",
+                tint,
+                CreateProcessingOptions(
+                    new Rect(0, 0, 2, 1),
+                    BackgroundTintNormalizationMode.VisibleRectangle))!;
+            Assert.NotSame(local, darkLocal);
+            Assert.NotEqual(ReadPixels(local)[0], ReadPixels(darkLocal)[0]);
+            var darkLocalPixels = ReadPixels(darkLocal).Take(2).ToArray();
+            Assert.InRange(darkLocalPixels.Average(pixel => pixel.R), tint.R - 2D, tint.R + 2D);
+            Assert.InRange(darkLocalPixels.Average(pixel => pixel.G), tint.G - 2D, tint.G + 2D);
+            Assert.InRange(darkLocalPixels.Average(pixel => pixel.B), tint.B - 2D, tint.B + 2D);
+        });
+    }
+
+    [Fact]
+    public void BaseColorWithTextureUsesLocalPolygonMean()
+    {
+        RunOnStaThread(() =>
+        {
+            var source = CreateGrayTexture2D(
+                4,
+                2,
+                (20, 255), (30, 255), (200, 255), (220, 255),
+                (40, 255), (50, 255), (180, 255), (200, 255));
+            var tint = Color.FromRgb(0x33, 0x80, 0xB9);
+            var options = CreateProcessingOptions(
+                new Rect(2, 0, 2, 2),
+                BackgroundTintNormalizationMode.VisiblePolygon,
+                [
+                    new PolygonVertexConfig { X = 0, Y = 0 },
+                    new PolygonVertexConfig { X = 1, Y = 0 },
+                    new PolygonVertexConfig { X = 1, Y = 1 },
+                    new PolygonVertexConfig { X = 0, Y = 1 }
+                ],
+                canvasWidth: 4,
+                canvasHeight: 2);
+            var result = new BackgroundImageTintProcessor().CreateTinted(source, "polygon", tint, options)!;
+            var pixels = ReadPixels(result);
+            var visible = new[] { pixels[2], pixels[3], pixels[6], pixels[7] };
+
+            Assert.InRange(visible.Average(pixel => pixel.R), tint.R - 2D, tint.R + 2D);
+            Assert.InRange(visible.Average(pixel => pixel.G), tint.G - 2D, tint.G + 2D);
+            Assert.InRange(visible.Average(pixel => pixel.B), tint.B - 2D, tint.B + 2D);
+        });
+    }
+
+    [Fact]
+    public void LocalRectangleTextureStrengthZeroProducesFlatTintAndStrengthControlsContrast()
+    {
+        RunOnStaThread(() =>
+        {
+            var source = CreateGrayTexture((10, 255), (30, 255), (180, 255), (240, 120));
+            var tint = Color.FromRgb(0x33, 0x80, 0xB9);
+            var processor = new BackgroundImageTintProcessor();
+            var flat = processor.CreateTinted(
+                source,
+                "local-flat",
+                tint,
+                CreateProcessingOptions(new Rect(2, 0, 2, 1), textureStrength: 0D))!;
+            Assert.All(ReadPixels(flat).Skip(2), pixel =>
+            {
+                Assert.Equal(tint.R, pixel.R);
+                Assert.Equal(tint.G, pixel.G);
+                Assert.Equal(tint.B, pixel.B);
+            });
+            Assert.Equal(120, ReadPixels(flat)[3].A);
+
+            var subtle = processor.CreateTinted(
+                source,
+                "local-subtle",
+                tint,
+                CreateProcessingOptions(new Rect(2, 0, 2, 1), textureStrength: 0.1D))!;
+            var strong = processor.CreateTinted(
+                source,
+                "local-strong",
+                tint,
+                CreateProcessingOptions(new Rect(2, 0, 2, 1), textureStrength: 0.8D))!;
+            Assert.True(
+                LuminanceStandardDeviation(ReadPixels(strong).Skip(2))
+                > LuminanceStandardDeviation(ReadPixels(subtle).Skip(2)));
+        });
+    }
+
+    [Fact]
     public void InvalidTextureStrengthDoesNotCrash()
     {
         RunOnStaThread(() =>
@@ -199,7 +314,8 @@ public class BackgroundTintFrontedControlTest
                 Height = 80,
                 RadiusX = 8,
                 RadiusY = 9,
-                TintBindingPath = "HomeTeam.ColorHex"
+                TintBindingPath = "HomeTeam.ColorHex",
+                TintMode = BackgroundTintMode.BaseColorWithTexture
             };
             var rectangle = Assert.IsType<BackgroundTintControlHost>(
                 new BackgroundTintRectangleFrontedControl().Create("Tint", rectangleConfig, context));
@@ -215,9 +331,18 @@ public class BackgroundTintFrontedControlTest
             rectangle.GetBindingExpression(BackgroundTintControlHost.TintColorValueProperty)?.UpdateTarget();
             Assert.Equal("#FF00FF00", rectangle.TintColorValue);
 
-            var polygonConfig = new BackgroundTintPolygonFrontedControlConfig { Width = 200, Height = 100 };
+            var polygonConfig = new BackgroundTintPolygonFrontedControlConfig
+            {
+                Left = 20,
+                Top = 10,
+                Width = 200,
+                Height = 100,
+                TintMode = BackgroundTintMode.BaseColorWithTexture
+            };
             var geometry = BackgroundTintPolygonFrontedControl.CreateGeometry(polygonConfig);
             Assert.Equal(new Point(100, 0), geometry.Figures[0].StartPoint);
+            Assert.IsType<BackgroundTintControlHost>(
+                new BackgroundTintPolygonFrontedControl().Create("PolygonTint", polygonConfig, context));
             polygonConfig.Points = [];
             Assert.Equal(3, BackgroundTintPolygonFrontedControl.CreateGeometry(polygonConfig).Figures[0].Segments.Count + 2);
 
@@ -331,6 +456,37 @@ public class BackgroundTintFrontedControlTest
         return BitmapSource.Create(values.Length, 1, 96, 96, PixelFormats.Bgra32, null, pixels, values.Length * 4);
     }
 
+    private static BitmapSource CreateGrayTexture2D(
+        int width,
+        int height,
+        params (byte Luminance, byte Alpha)[] values)
+    {
+        Assert.Equal(width * height, values.Length);
+        var pixels = values
+            .SelectMany(value => new[] { value.Luminance, value.Luminance, value.Luminance, value.Alpha })
+            .ToArray();
+        return BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, null, pixels, width * 4);
+    }
+
+    private static BackgroundTintProcessingOptions CreateProcessingOptions(
+        Rect region,
+        BackgroundTintNormalizationMode normalizationMode = BackgroundTintNormalizationMode.VisibleRectangle,
+        IReadOnlyList<PolygonVertexConfig> polygonPoints = null,
+        double textureStrength = 0.45D,
+        double canvasWidth = 4D,
+        double canvasHeight = 1D) =>
+        new()
+        {
+            Mode = BackgroundTintMode.BaseColorWithTexture,
+            TintStrength = 1D,
+            TextureStrength = textureStrength,
+            NormalizationMode = normalizationMode,
+            CanvasRegion = region,
+            CanvasWidth = canvasWidth,
+            CanvasHeight = canvasHeight,
+            PolygonPoints = polygonPoints
+        };
+
     private static (byte R, byte G, byte B, byte A)[] ReadPixels(BitmapSource source)
     {
         var stride = source.PixelWidth * 4;
@@ -352,6 +508,14 @@ public class BackgroundTintFrontedControlTest
             .ToArray();
         var average = luminances.Average();
         return Math.Sqrt(luminances.Average(value => Math.Pow(value - average, 2D)));
+    }
+
+    private static double ColorDistance(IEnumerable<(byte R, byte G, byte B, byte A)> pixels, Color tint)
+    {
+        var values = pixels.ToArray();
+        return Math.Abs(values.Average(pixel => pixel.R) - tint.R)
+               + Math.Abs(values.Average(pixel => pixel.G) - tint.G)
+               + Math.Abs(values.Average(pixel => pixel.B) - tint.B);
     }
 
     private static void RunOnStaThread(Action action)

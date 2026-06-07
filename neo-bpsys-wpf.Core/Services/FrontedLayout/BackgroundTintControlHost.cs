@@ -21,6 +21,11 @@ public sealed class BackgroundTintControlHost : Grid
     private readonly BackgroundTintMode _mode;
     private readonly double _strength;
     private readonly double _textureStrength;
+    private readonly BackgroundTintNormalizationMode _normalizationMode;
+    private Rect _canvasRegion;
+    private readonly double _canvasWidth;
+    private readonly double _canvasHeight;
+    private readonly IReadOnlyList<PolygonVertexConfig>? _polygonPoints;
     private readonly ILogger? _logger;
 
     public BackgroundTintControlHost(
@@ -34,6 +39,10 @@ public sealed class BackgroundTintControlHost : Grid
         double canvasHeight,
         double left,
         double top,
+        double maskWidth,
+        double maskHeight,
+        BackgroundTintNormalizationMode normalizationMode,
+        IReadOnlyList<PolygonVertexConfig>? polygonPoints,
         ILogger? logger)
     {
         _processor = processor;
@@ -42,6 +51,11 @@ public sealed class BackgroundTintControlHost : Grid
         _mode = mode;
         _strength = strength;
         _textureStrength = textureStrength;
+        _normalizationMode = normalizationMode;
+        _canvasRegion = new Rect(left, top, maskWidth, maskHeight);
+        _canvasWidth = canvasWidth;
+        _canvasHeight = canvasHeight;
+        _polygonPoints = polygonPoints;
         _logger = logger;
         ClipToBounds = true;
 
@@ -66,6 +80,21 @@ public sealed class BackgroundTintControlHost : Grid
 
     public Image TintedImage { get; }
 
+    public void UpdateMaskSize(double width, double height)
+    {
+        if (!double.IsFinite(width)
+            || !double.IsFinite(height)
+            || width <= 0D
+            || height <= 0D
+            || (_canvasRegion.Width.Equals(width) && _canvasRegion.Height.Equals(height)))
+        {
+            return;
+        }
+
+        _canvasRegion = new Rect(_canvasRegion.X, _canvasRegion.Y, width, height);
+        RefreshTint();
+    }
+
     public void RefreshTint()
     {
         if (!ColorHelper.TryParseColor(TintColorValue, out var tint))
@@ -78,9 +107,17 @@ public sealed class BackgroundTintControlHost : Grid
             _source,
             _sourceKey,
             tint,
-            _mode,
-            _strength,
-            _textureStrength,
+            new BackgroundTintProcessingOptions
+            {
+                Mode = _mode,
+                TintStrength = _strength,
+                TextureStrength = _textureStrength,
+                NormalizationMode = _normalizationMode,
+                CanvasRegion = _canvasRegion,
+                CanvasWidth = _canvasWidth,
+                CanvasHeight = _canvasHeight,
+                PolygonPoints = _polygonPoints
+            },
             _logger);
     }
 

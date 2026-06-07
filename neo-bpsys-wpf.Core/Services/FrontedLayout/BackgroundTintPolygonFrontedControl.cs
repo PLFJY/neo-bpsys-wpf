@@ -29,7 +29,9 @@ public class BackgroundTintPolygonFrontedControl(BackgroundImageTintProcessor pr
             polygon,
             context,
             processor,
-            root => CreateGeometry(polygon, root, context.Logger));
+            root => CreateGeometry(polygon, root, context.Logger),
+            BackgroundTintNormalizationMode.VisiblePolygon,
+            polygon.Points);
     }
 
     public static PathGeometry CreateGeometry(
