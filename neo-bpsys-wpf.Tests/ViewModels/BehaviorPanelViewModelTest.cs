@@ -192,6 +192,54 @@ public class BehaviorPanelViewModelTest
     }
 
     [Fact]
+    public void OneShotAnimationEditor_UsesBehaviorGraph()
+    {
+        var panel = CreatePanel();
+        panel.SetSelectedControl(CreateItem(Guid.NewGuid()));
+        panel.AddOneShotBehavior();
+        var behavior = panel.SelectedBehavior!.Model;
+        FrontedBehaviorAnimationEditorViewModel? editor = null;
+        panel.AnimationEditorRequested += value => editor = value;
+
+        panel.SelectedBehavior.OpenAnimationEditorCommand.Execute(null);
+
+        Assert.Same(behavior.Graph, Assert.Single(editor!.Stages).Graph);
+    }
+
+    [Fact]
+    public void LoopAnimationEditor_HasStartLoopStopGraphStages()
+    {
+        var panel = CreatePanel();
+        panel.SetSelectedControl(CreateItem(Guid.NewGuid()));
+        panel.AddLoopBehavior();
+        var behavior = panel.SelectedBehavior!.Model;
+        FrontedBehaviorAnimationEditorViewModel? editor = null;
+        panel.AnimationEditorRequested += value => editor = value;
+
+        panel.SelectedBehavior.OpenAnimationEditorCommand.Execute(null);
+
+        Assert.Equal([behavior.StartGraph, behavior.LoopGraph, behavior.StopGraph], editor!.Stages.Select(stage => stage.Graph).ToArray());
+    }
+
+    [Fact]
+    public void LoopAnimationEditor_SwitchStage_PreservesSeparateGraphs()
+    {
+        var panel = CreatePanel();
+        panel.SetSelectedControl(CreateItem(Guid.NewGuid()));
+        panel.AddLoopBehavior();
+        FrontedBehaviorAnimationEditorViewModel? editor = null;
+        panel.AnimationEditorRequested += value => editor = value;
+
+        panel.SelectedBehavior!.OpenAnimationEditorCommand.Execute(null);
+        editor!.Stages[0].GraphEditor.AddNode("flow.start");
+        editor.Stages[1].GraphEditor.AddNode("action.log");
+
+        Assert.Equal("flow.start", Assert.Single(editor.Stages[0].Graph.Nodes).NodeType);
+        Assert.Equal("action.log", Assert.Single(editor.Stages[1].Graph.Nodes).NodeType);
+        Assert.Empty(editor.Stages[2].Graph.Nodes);
+    }
+
+    [Fact]
     public void OpenAnimationEditor_OneShot_CommandExists()
     {
         var panel = CreatePanel();

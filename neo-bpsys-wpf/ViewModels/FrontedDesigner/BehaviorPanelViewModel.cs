@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.ViewModels.FrontedDesigner.GraphEditor;
 using System.Collections.ObjectModel;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -16,6 +17,9 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     private readonly IFrontedDesignerLocalizationService _localizationService;
     private readonly Action _markLayoutDirty;
     private readonly Action _markBehaviorsDirty;
+    private readonly FrontedNodeCatalog _nodeCatalog;
+    private readonly FrontedNodeGraphValidator _graphValidator;
+    private readonly IFrontedNodeGraphRuntime _graphRuntime;
     private readonly JsonSerializerOptions _cloneJsonOptions = new()
     {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -37,11 +41,17 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         IFrontedDesignerLocalizationService localizationService,
         FrontedBehaviorEventCatalog eventCatalog,
         Action markLayoutDirty,
-        Action markBehaviorsDirty)
+        Action markBehaviorsDirty,
+        FrontedNodeCatalog? nodeCatalog = null,
+        FrontedNodeGraphValidator? graphValidator = null,
+        IFrontedNodeGraphRuntime? graphRuntime = null)
     {
         _localizationService = localizationService;
         _markLayoutDirty = markLayoutDirty;
         _markBehaviorsDirty = markBehaviorsDirty;
+        _nodeCatalog = nodeCatalog ?? new FrontedNodeCatalog();
+        _graphValidator = graphValidator ?? new FrontedNodeGraphValidator(_nodeCatalog);
+        _graphRuntime = graphRuntime ?? new FrontedNodeGraphRuntime(_nodeCatalog, _graphValidator);
         EventOptions = [.. eventCatalog.Events.Select(CreateEventOption)];
         OperatorOptions = CreateOperatorOptions();
         StopModeOptions = CreateEnumOptions<FrontedLoopStopMode>("Designer.Behaviors.StopMode");
@@ -301,6 +311,9 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             GraphPlaceholder,
             MarkBehaviorsDirty,
             Localize,
+            _nodeCatalog,
+            _graphValidator,
+            _graphRuntime,
             editor => AnimationEditorRequested?.Invoke(editor));
     }
 
@@ -437,6 +450,9 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
         string graphPlaceholder,
         Action markDirty,
         Func<string, string, string> localize,
+        FrontedNodeCatalog nodeCatalog,
+        FrontedNodeGraphValidator graphValidator,
+        IFrontedNodeGraphRuntime graphRuntime,
         Action<FrontedBehaviorAnimationEditorViewModel> openAnimationEditor)
     {
         Model = model;
@@ -459,7 +475,8 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
         StartTrigger = new TriggerDescriptorEditorViewModel(Model.StartTrigger, eventOptions, operatorOptions, markDirty, localize);
         EndTrigger = new TriggerDescriptorEditorViewModel(Model.EndTrigger, eventOptions, operatorOptions, markDirty, localize);
         LoopPolicy = new LoopPolicyEditorViewModel(Model.LoopPolicy, stopModeOptions, reentryPolicyOptions, markDirty);
-        OpenAnimationEditorCommand = new RelayCommand(() => openAnimationEditor(new FrontedBehaviorAnimationEditorViewModel(Model, localize)));
+        OpenAnimationEditorCommand = new RelayCommand(() => openAnimationEditor(
+            new FrontedBehaviorAnimationEditorViewModel(Model, localize, nodeCatalog, graphValidator, graphRuntime, markDirty)));
     }
 
     public FrontedBehavior Model { get; }
@@ -715,31 +732,45 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
 
 public sealed class FrontedBehaviorAnimationEditorViewModel
 {
-    public FrontedBehaviorAnimationEditorViewModel(FrontedBehavior behavior, Func<string, string, string> localize)
+    public FrontedBehaviorAnimationEditorViewModel(
+        FrontedBehavior behavior,
+        Func<string, string, string> localize,
+        FrontedNodeCatalog? catalog = null,
+        FrontedNodeGraphValidator? validator = null,
+        IFrontedNodeGraphRuntime? runtime = null,
+        Action? markDirty = null)
     {
         Title = behavior.Name;
         IsLoop = behavior.Kind == FrontedBehaviorKind.Loop;
         Stages = IsLoop
             ?
             [
-                Stage(localize("Designer.Behaviors.StartAnimation", "Start animation"), behavior.StartGraph),
-                Stage(localize("Designer.Behaviors.LoopAnimation", "Loop animation"), behavior.LoopGraph),
-                Stage(localize("Designer.Behaviors.EndAnimation", "End animation"), behavior.StopGraph)
+                Stage(localize("Designer.Behaviors.StartAnimation", "Start animation"), behavior.StartGraph, catalog, validator, runtime, markDirty, localize),
+                Stage(localize("Designer.Behaviors.LoopAnimation", "Loop animation"), behavior.LoopGraph, catalog, validator, runtime, markDirty, localize),
+                Stage(localize("Designer.Behaviors.EndAnimation", "End animation"), behavior.StopGraph, catalog, validator, runtime, markDirty, localize)
             ]
-            : [Stage(localize("Designer.Behaviors.Animation", "Animation"), behavior.Graph)];
-        Placeholder = localize("Designer.Behaviors.AnimationEditorPlaceholder", "Node graph animation editor will be implemented in Phase 3.");
+            : [Stage(localize("Designer.Behaviors.Animation", "Animation"), behavior.Graph, catalog, validator, runtime, markDirty, localize)];
     }
 
     public string Title { get; }
     public bool IsLoop { get; }
-    public string Placeholder { get; }
     public IReadOnlyList<FrontedBehaviorAnimationStageViewModel> Stages { get; }
 
-    private static FrontedBehaviorAnimationStageViewModel Stage(string name, FrontedNodeGraph graph) =>
-        new(name, graph.Nodes.Count, graph.Connections.Count);
+    private static FrontedBehaviorAnimationStageViewModel Stage(
+        string name,
+        FrontedNodeGraph graph,
+        FrontedNodeCatalog? catalog,
+        FrontedNodeGraphValidator? validator,
+        IFrontedNodeGraphRuntime? runtime,
+        Action? markDirty,
+        Func<string, string, string> localize) =>
+        new(name, graph, new FrontedNodeGraphEditorViewModel(graph, catalog, validator, runtime, markDirty, localize));
 }
 
-public sealed record FrontedBehaviorAnimationStageViewModel(string DisplayName, int NodeCount, int LinkCount);
+public sealed record FrontedBehaviorAnimationStageViewModel(
+    string DisplayName,
+    FrontedNodeGraph Graph,
+    FrontedNodeGraphEditorViewModel GraphEditor);
 
 public sealed partial class LoopPolicyEditorViewModel : ObservableObject
 {

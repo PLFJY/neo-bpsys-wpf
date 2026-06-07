@@ -3984,4 +3984,103 @@
   <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description" xml:space="preserve"><value>マップ陣営表示が変更された時に発生します。</value></data>
   <data name="Designer.Behaviors.Event.PickedMapChanged.Description" xml:space="preserve"><value>選択マップが変更された時に発生します。</value></data>
   <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description" xml:space="preserve"><value>マップ Ban 状態が変更された時に発生します。</value></data>
+  <data name="Designer.Graph.NodeCatalog" xml:space="preserve"><value>ノードカタログ</value></data>
+  <data name="Designer.Graph.Properties" xml:space="preserve"><value>ノードプロパティ</value></data>
+  <data name="Designer.Graph.Validation" xml:space="preserve"><value>グラフチェック</value></data>
+  <data name="Designer.Graph.DeleteNode" xml:space="preserve"><value>ノードを削除</value></data>
+  <data name="Designer.Graph.DuplicateNode" xml:space="preserve"><value>ノードを複製</value></data>
+  <data name="Designer.Graph.AddStartEnd" xml:space="preserve"><value>Start / End を追加</value></data>
+  <data name="Designer.Graph.RunPreview" xml:space="preserve"><value>プレビュー実行</value></data>
+  <data name="Designer.Graph.StopPreview" xml:space="preserve"><value>プレビュー停止</value></data>
+  <data name="Designer.Graph.Validate" xml:space="preserve"><value>グラフをチェック</value></data>
+  <data name="Designer.Graph.ClearLog" xml:space="preserve"><value>ログをクリア</value></data>
+  <data name="Designer.Graph.Connection.SelectInput" xml:space="preserve"><value>入力ポートを選択してください。</value></data>
+  <data name="Designer.Graph.Preview.ValidationBlocked" xml:space="preserve"><value>グラフチェックで問題が見つかったため、プレビューを開始しませんでした。</value></data>
+  <data name="Designer.Graph.Category.Flow" xml:space="preserve"><value>フロー</value></data>
+  <data name="Designer.Graph.Category.Action" xml:space="preserve"><value>アクション</value></data>
+  <data name="Designer.Graph.Category.Value" xml:space="preserve"><value>値</value></data>
+  <data name="Designer.Graph.Node.FlowStart" xml:space="preserve"><value>Start</value></data>
+  <data name="Designer.Graph.Node.FlowEnd" xml:space="preserve"><value>End</value></data>
+  <data name="Designer.Graph.Node.FlowDelay" xml:space="preserve"><value>Delay</value></data>
+  <data name="Designer.Graph.Node.FlowSequence" xml:space="preserve"><value>Sequence</value></data>
+  <data name="Designer.Graph.Node.FlowParallel" xml:space="preserve"><value>Parallel</value></data>
+  <data name="Designer.Graph.Node.FlowIf" xml:space="preserve"><value>If</value></data>
+  <data name="Designer.Graph.Node.ActionLog" xml:space="preserve"><value>Log</value></data>
+  <data name="Designer.Graph.Node.ActionSetProperty" xml:space="preserve"><value>SetProperty</value></data>
+  <data name="Designer.Graph.Node.ActionResetProperty" xml:space="preserve"><value>ResetProperty</value></data>
+  <data name="Designer.Graph.Node.ActionAnimateProperty" xml:space="preserve"><value>AnimateProperty</value></data>
+  <data name="Designer.Graph.Node.ValueNumber" xml:space="preserve"><value>Number</value></data>
+  <data name="Designer.Graph.Node.ValueString" xml:space="preserve"><value>String</value></data>
+  <data name="Designer.Graph.Node.ValueBoolean" xml:space="preserve"><value>Boolean</value></data>
+  <data name="Designer.Graph.Node.ValueColor" xml:space="preserve"><value>Color</value></data>
+  <data name="Designer.Graph.Node.ValueEventValue" xml:space="preserve"><value>EventValue</value></data>
+  <data name="Designer.Graph.Node.ValueSelfTag" xml:space="preserve"><value>SelfTag</value></data>
+  <data name="Designer.Graph.Node.ValueControlReference" xml:space="preserve"><value>ControlReference</value></data>
+  <data name="Designer.Graph.Node.FlowStart.Description" xml:space="preserve"><value>アニメーションフローの入口です。通常は 1 つだけ置き、Out から最初のノードへ接続します。</value></data>
+  <data name="Designer.Graph.Node.FlowEnd.Description" xml:space="preserve"><value>現在の分岐を終了します。最後のアクションの Out を End へ接続すると流れが明確になります。</value></data>
+  <data name="Designer.Graph.Node.FlowDelay.Description" xml:space="preserve"><value>続行前に待機します。フェードアウト後にフェードインするような間隔づけに使います。</value></data>
+  <data name="Designer.Graph.Node.FlowSequence.Description" xml:space="preserve"><value>Step1、Step2、Step3 を順番に実行します。固定順のアクション列に使います。</value></data>
+  <data name="Designer.Graph.Node.FlowParallel.Description" xml:space="preserve"><value>複数分岐を同時に実行し、すべての完了を待ちます。複数のアニメーション要求を同時に出す時に使います。</value></data>
+  <data name="Designer.Graph.Node.FlowIf.Description" xml:space="preserve"><value>テキスト比較を使う高度な分岐です。単純なプロパティアニメーションでは通常不要です。</value></data>
+  <data name="Designer.Graph.Node.ActionLog.Description" xml:space="preserve"><value>ここまで実行されたことを確認するため、プレビューログに 1 行出力します。</value></data>
+  <data name="Designer.Graph.Node.ActionSetProperty.Description" xml:space="preserve"><value>プロパティ設定要求を出します。Phase 3 ではプレビュー表示だけで、実際のコントロールは変更しません。</value></data>
+  <data name="Designer.Graph.Node.ActionResetProperty.Description" xml:space="preserve"><value>プロパティリセット要求を出します。PropertyName は具体的なプロパティ、または All を指定できます。</value></data>
+  <data name="Designer.Graph.Node.ActionAnimateProperty.Description" xml:space="preserve"><value>プロパティアニメーション要求を出します。対象、プロパティ名、開始/終了値、時間、イージングを設定します。</value></data>
+  <data name="Designer.Graph.Node.ValueNumber.Description" xml:space="preserve"><value>0、1、300 などの数値定数です。現在は編集と保存ができ、値ポート計算は後続段階です。</value></data>
+  <data name="Designer.Graph.Node.ValueString.Description" xml:space="preserve"><value>Visible、Collapsed、任意文字列などのテキスト定数です。</value></data>
+  <data name="Designer.Graph.Node.ValueBoolean.Description" xml:space="preserve"><value>true/false の真偽値定数です。</value></data>
+  <data name="Designer.Graph.Node.ValueColor.Description" xml:space="preserve"><value>#FFFFFFFF などの色定数です。</value></data>
+  <data name="Designer.Graph.Node.ValueEventValue.Description" xml:space="preserve"><value>事件 payload 路径值。</value></data>
+  <data name="Designer.Graph.Node.ValueSelfTag.Description" xml:space="preserve"><value>当前控件标签值。</value></data>
+  <data name="Designer.Graph.Node.ValueControlReference.Description" xml:space="preserve"><value>コントロール参照定数です。Self はこの動作を持つ現在のコントロールを表します。</value></data>
+  <data name="Designer.Graph.Port.In" xml:space="preserve"><value>In</value></data>
+  <data name="Designer.Graph.Port.Out" xml:space="preserve"><value>Out</value></data>
+  <data name="Designer.Graph.Port.True" xml:space="preserve"><value>True</value></data>
+  <data name="Designer.Graph.Port.False" xml:space="preserve"><value>False</value></data>
+  <data name="Designer.Graph.Port.Step1" xml:space="preserve"><value>Step1</value></data>
+  <data name="Designer.Graph.Port.Step2" xml:space="preserve"><value>Step2</value></data>
+  <data name="Designer.Graph.Port.Step3" xml:space="preserve"><value>Step3</value></data>
+  <data name="Designer.Graph.Port.Branch1" xml:space="preserve"><value>Branch1</value></data>
+  <data name="Designer.Graph.Port.Branch2" xml:space="preserve"><value>Branch2</value></data>
+  <data name="Designer.Graph.Port.Branch3" xml:space="preserve"><value>Branch3</value></data>
+  <data name="Designer.Graph.Port.Value" xml:space="preserve"><value>Value</value></data>
+  <data name="Designer.Graph.Property.DurationMs" xml:space="preserve"><value>DurationMs</value></data>
+  <data name="Designer.Graph.Property.Message" xml:space="preserve"><value>Message</value></data>
+  <data name="Designer.Graph.Property.Target" xml:space="preserve"><value>Target</value></data>
+  <data name="Designer.Graph.Property.PropertyName" xml:space="preserve"><value>PropertyName</value></data>
+  <data name="Designer.Graph.Property.Value" xml:space="preserve"><value>Value</value></data>
+  <data name="Designer.Graph.Property.From" xml:space="preserve"><value>From</value></data>
+  <data name="Designer.Graph.Property.To" xml:space="preserve"><value>To</value></data>
+  <data name="Designer.Graph.Property.Easing" xml:space="preserve"><value>Easing</value></data>
+  <data name="Designer.Graph.Property.Left" xml:space="preserve"><value>Left</value></data>
+  <data name="Designer.Graph.Property.Operator" xml:space="preserve"><value>Operator</value></data>
+  <data name="Designer.Graph.Property.Right" xml:space="preserve"><value>Right</value></data>
+  <data name="Designer.Graph.Property.Path" xml:space="preserve"><value>Path</value></data>
+  <data name="Designer.Graph.Validation.Description" xml:space="preserve"><value>開始ノード、接続、必須プロパティを確認します。グラフデータは削除せず、プレビューや保存前の修正を助けるための表示です。</value></data>
+  <data name="Designer.Graph.DeleteConnection" xml:space="preserve"><value>接続を解除</value></data>
+  <data name="Designer.Graph.Property.DurationMs.Description" xml:space="preserve"><value>待機またはアニメーションの時間です。単位はミリ秒です。</value></data>
+  <data name="Designer.Graph.Property.Message.Description" xml:space="preserve"><value>プレビュー実行ログに出力するテキストです。</value></data>
+  <data name="Designer.Graph.Property.Target.Description" xml:space="preserve"><value>アクションの対象です。Phase 3 では要求を記録するだけで、実際のコントロールは変更しません。</value></data>
+  <data name="Designer.Graph.Property.PropertyName.Description" xml:space="preserve"><value>設定、リセット、またはアニメーションするプロパティ名です。</value></data>
+  <data name="Designer.Graph.Property.Value.Description" xml:space="preserve"><value>ノードの出力値、またはプロパティへ書き込む値です。</value></data>
+  <data name="Designer.Graph.Property.From.Description" xml:space="preserve"><value>アニメーション開始値です。Phase 3 では要求のみ記録します。</value></data>
+  <data name="Designer.Graph.Property.To.Description" xml:space="preserve"><value>アニメーション終了値です。Phase 3 では要求のみ記録します。</value></data>
+  <data name="Designer.Graph.Property.Easing.Description" xml:space="preserve"><value>後続のアニメーション実行時に使うイージング名です。</value></data>
+  <data name="Designer.Graph.Property.Left.Description" xml:space="preserve"><value>比較の左側テキストです。複雑な発火条件は動作パネルで設定してください。</value></data>
+  <data name="Designer.Graph.Property.Operator.Description" xml:space="preserve"><value>動作トリガーフィルターと同じ意味のテキスト比較方法です。</value></data>
+  <data name="Designer.Graph.Property.Right.Description" xml:space="preserve"><value>比較の右辺テキストです。</value></data>
+  <data name="Designer.Graph.Property.Path.Description" xml:space="preserve"><value>パス値です。アニメーショングラフでは通常、イベントパスは不要です。</value></data>
+  <data name="Designer.Graph.Help" xml:space="preserve"><value>ヘルプ</value></data>
+  <data name="Designer.Graph.Help.Title" xml:space="preserve"><value>アニメーション編集の使い方</value></data>
+  <data name="Designer.Graph.Node.Shortcuts" xml:space="preserve"><value>ヘッダーをドラッグして移動。出力ポートから入力ポートへドラッグして接続。右クリックまたは Delete で削除。</value></data>
+  <data name="Designer.Graph.Help.Content" xml:space="preserve"><value>この編集器は、動作が発火した後に実行するプロパティアニメーションの流れだけを編集します。イベント、トリガー、条件は動作パネルで設定してください。
+
+基本操作：左のノード一覧からキャンバスへドラッグして追加します。ノードのヘッダーをドラッグして移動します。出力ポートから入力ポートへドラッグして接続します。接続中央の × で解除します。空白キャンバスを左ボタンまたは右ボタンでドラッグすると表示位置を移動できます。ノードを選択すると右側でプロパティを編集できます。右クリックまたは Delete でノードを削除します。
+
+フロー：Start は入口で、通常 1 つだけ置きます。End は現在の分岐を終了します。Delay は指定ミリ秒待機します。Sequence は Step1、Step2、Step3 を順番に実行します。Parallel は Branch1、Branch2、Branch3 を同時に実行し、すべての完了を待ちます。If はテキスト比較の高度な分岐で、単純なプロパティアニメーションでは通常不要です。
+
+アクション：Log はプレビューログだけに出力します。SetProperty はプロパティ設定要求を記録します。例：Target=Self、PropertyName=Opacity、Value=0.5。ResetProperty はリセット要求を記録します。PropertyName は具体的なプロパティまたは All です。AnimateProperty はアニメーション要求を記録します。例：Target=Self、PropertyName=Opacity、From=0、To=1、DurationMs=300、Easing=Linear。Phase 3 ではログと要求だけをプレビューし、実際の WPF コントロールは変更しません。
+
+値ノード：Number/String/Boolean/Color は定数値を保存します。値ポートの計算は後続段階です。ControlReference は対象参照で、現在は Self が主な値です。</value></data>
+  <data name="Designer.Graph.NodeCatalog.DragHint" xml:space="preserve"><value>このノードを中央のキャンバスへドラッグして追加します。</value></data>
 </root>

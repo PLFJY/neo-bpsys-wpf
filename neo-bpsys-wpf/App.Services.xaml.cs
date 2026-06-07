@@ -101,6 +101,10 @@ public partial class App
         services.AddSingleton<IFrontedPluginMetadataProvider, FrontedPluginMetadataProvider>();
         services.AddSingleton<FrontedBehaviorEventCatalog>();
         services.AddSingleton<IFrontedBehaviorService, FrontedBehaviorService>();
+        services.AddSingleton<FrontedNodeCatalog>();
+        services.AddSingleton<FrontedNodeGraphValidator>();
+        services.AddSingleton<IFrontedGraphDelayProvider, FrontedGraphDelayProvider>();
+        services.AddSingleton<IFrontedNodeGraphRuntime, FrontedNodeGraphRuntime>();
         services.AddSingleton<IFrontedDesignerLocalizationService, FrontedDesignerI18nLocalizationService>();
         services.AddSingleton<IFrontedControl, TextFrontedControl>();
         services.AddSingleton<IFrontedControl, LocalizedTextFrontedControl>();

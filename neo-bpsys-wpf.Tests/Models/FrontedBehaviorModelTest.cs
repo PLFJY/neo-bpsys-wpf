@@ -169,4 +169,70 @@ public class FrontedBehaviorModelTest
         Assert.Equal("In", connection.TargetPort);
         Assert.Equal(300, roundTrip.Nodes[1].Properties["DurationMs"].GetInt32());
     }
+
+    [Fact]
+    public void FrontedNodeGraph_HelperMethods_QueryAndRemove()
+    {
+        var source = new FrontedNode { NodeType = "flow.start" };
+        var target = new FrontedNode { NodeType = "flow.end" };
+        var graph = new FrontedNodeGraph
+        {
+            Nodes = [source, target],
+            Connections =
+            [
+                new FrontedNodeConnection
+                {
+                    SourceNodeId = source.NodeId,
+                    SourcePort = "Out",
+                    TargetNodeId = target.NodeId,
+                    TargetPort = "In"
+                }
+            ]
+        };
+
+        Assert.Same(source, graph.FindNode(source.NodeId));
+        Assert.Single(graph.GetOutgoing(source.NodeId, "Out"));
+        Assert.Single(graph.GetIncoming(target.NodeId, "In"));
+
+        Assert.True(graph.RemoveNode(source.NodeId));
+        Assert.Empty(graph.Connections);
+        Assert.Null(graph.FindNode(source.NodeId));
+    }
+
+    [Fact]
+    public void Graph_WithPhase3Nodes_RoundTripsThroughJson()
+    {
+        var graph = new FrontedNodeGraph
+        {
+            Nodes =
+            [
+                new FrontedNode { NodeType = "flow.start", X = 1, Y = 2 },
+                new FrontedNode
+                {
+                    NodeType = "action.animateProperty",
+                    Properties =
+                    {
+                        ["PropertyName"] = JsonSerializer.SerializeToElement("Opacity"),
+                        ["DurationMs"] = JsonSerializer.SerializeToElement(250),
+                        ["From"] = JsonSerializer.SerializeToElement("0"),
+                        ["To"] = JsonSerializer.SerializeToElement("1")
+                    }
+                }
+            ]
+        };
+        graph.Connections.Add(new FrontedNodeConnection
+        {
+            SourceNodeId = graph.Nodes[0].NodeId,
+            SourcePort = "Out",
+            TargetNodeId = graph.Nodes[1].NodeId,
+            TargetPort = "In"
+        });
+
+        var roundTrip = JsonSerializer.Deserialize<FrontedNodeGraph>(JsonSerializer.Serialize(graph));
+
+        Assert.NotNull(roundTrip);
+        Assert.Equal("action.animateProperty", roundTrip.Nodes[1].NodeType);
+        Assert.Equal(250, roundTrip.Nodes[1].Properties["DurationMs"].GetInt32());
+        Assert.Single(roundTrip.Connections);
+    }
 }

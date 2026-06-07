@@ -29,6 +29,22 @@ Phase 2 已完成 Designer 侧行为面板和触发器编辑能力：
 
 Phase 2 仍不实现：可视化节点图编辑器、真实事件总线、动画 runtime、WPF 动画执行、插件节点执行、Timeline 编辑器或前台窗口行为播放。这些仍属于 Phase 3+。
 
+## Phase 3 implemented
+
+Phase 3 已完成 Designer 预览侧的可视化节点图编辑 MVP 和图执行核心：
+
+- 动画编辑器不再显示占位文本。OneShot 行为打开 `behavior.Graph` 的节点图编辑器；Loop 行为继续使用 Top `LocalTabs`，分别编辑 `StartGraph`、`LoopGraph` 和 `StopGraph`。
+- 节点图编辑器提供左侧节点目录、中间 Canvas、右侧属性编辑器、底部验证与执行日志。支持添加、选择、拖动、复制、删除节点，点击输出端口后点击兼容输入端口创建连接，并可删除连接。
+- 当前内置节点目录包含 Flow、Action、Value 三类节点。Flow 节点包括 Start、End、Delay、Sequence、Parallel、If；Action 节点包括 Log、SetProperty、ResetProperty、AnimateProperty；Value 节点包括 Number、String、Boolean、Color、EventValue、SelfTag、ControlReference。
+- 图数据仍使用 Phase 1/2 的 `FrontedNodeGraph` / `FrontedNode` / `FrontedNodeConnection` JSON 模型，节点位置、属性和连接可以 roundtrip 保存。模型新增的查询/删除 helper 只提供纯模型逻辑，不改变持久化结构。
+- 图验证会报告缺失 Start、多个 Start、连接引用缺失节点、端口不存在、端口类型不兼容、重复或超过端口基数的连接、必填属性缺失，以及 Delay / AnimateProperty 的非法时长。验证消息会显示在编辑器中，但本阶段不阻止保存，以便用户保留并修复异常图。
+- Designer preview 通过 `FrontedNodeGraphRuntime` 执行当前选中图。支持 Start、End、Delay、Sequence、Parallel、If、Log，以及 SetProperty / ResetProperty / AnimateProperty 的 action request 生成。
+- 普通 Flow 输入/输出端口各最多一条连接；需要分支时应使用 Sequence、Parallel 或 If。多个 Start 会被视为错误并阻止 preview。
+- If 节点复用 Phase 2 的 `FrontedTriggerFilterTextComparer` 文本比较语义；`Event.*` 从预览上下文 payload 取值，`SelfTag.*` 从当前控件标签取值，其他左值按文本处理。
+- SetProperty、ResetProperty 和 AnimateProperty 在 Phase 3 只写入执行日志并生成 `FrontedGraphActionRequest`，不会修改 WPF 控件，也不会创建 Storyboard。真实 WPF 动画 runtime 属于 Phase 4。
+
+Phase 3 仍不实现：真实前台窗口 runtime 播放、真实 `IFrontedEventBus`、插件节点、Timeline 编辑器、断点调试器、Canvas/window 行为列表、Web/Blazor runtime。
+
 ## Phase 2 UX / event catalog update
 
 ### Attribute-driven event catalog

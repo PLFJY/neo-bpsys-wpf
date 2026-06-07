@@ -3981,4 +3981,103 @@
   <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description" xml:space="preserve"><value>Fires when map camp visibility changes.</value></data>
   <data name="Designer.Behaviors.Event.PickedMapChanged.Description" xml:space="preserve"><value>Fires when the picked map changes.</value></data>
   <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description" xml:space="preserve"><value>Fires when map ban state changes.</value></data>
+  <data name="Designer.Graph.NodeCatalog" xml:space="preserve"><value>Node catalog</value></data>
+  <data name="Designer.Graph.Properties" xml:space="preserve"><value>Node properties</value></data>
+  <data name="Designer.Graph.Validation" xml:space="preserve"><value>Graph checks</value></data>
+  <data name="Designer.Graph.DeleteNode" xml:space="preserve"><value>Delete node</value></data>
+  <data name="Designer.Graph.DuplicateNode" xml:space="preserve"><value>Duplicate node</value></data>
+  <data name="Designer.Graph.AddStartEnd" xml:space="preserve"><value>Add Start / End</value></data>
+  <data name="Designer.Graph.RunPreview" xml:space="preserve"><value>Run preview</value></data>
+  <data name="Designer.Graph.StopPreview" xml:space="preserve"><value>Stop preview</value></data>
+  <data name="Designer.Graph.Validate" xml:space="preserve"><value>Check graph</value></data>
+  <data name="Designer.Graph.ClearLog" xml:space="preserve"><value>Clear log</value></data>
+  <data name="Designer.Graph.Connection.SelectInput" xml:space="preserve"><value>Select an input port.</value></data>
+  <data name="Designer.Graph.Preview.ValidationBlocked" xml:space="preserve"><value>Graph checks found issues, so preview was blocked.</value></data>
+  <data name="Designer.Graph.Category.Flow" xml:space="preserve"><value>Flow</value></data>
+  <data name="Designer.Graph.Category.Action" xml:space="preserve"><value>Action</value></data>
+  <data name="Designer.Graph.Category.Value" xml:space="preserve"><value>Value</value></data>
+  <data name="Designer.Graph.Node.FlowStart" xml:space="preserve"><value>Start</value></data>
+  <data name="Designer.Graph.Node.FlowEnd" xml:space="preserve"><value>End</value></data>
+  <data name="Designer.Graph.Node.FlowDelay" xml:space="preserve"><value>Delay</value></data>
+  <data name="Designer.Graph.Node.FlowSequence" xml:space="preserve"><value>Sequence</value></data>
+  <data name="Designer.Graph.Node.FlowParallel" xml:space="preserve"><value>Parallel</value></data>
+  <data name="Designer.Graph.Node.FlowIf" xml:space="preserve"><value>If</value></data>
+  <data name="Designer.Graph.Node.ActionLog" xml:space="preserve"><value>Log</value></data>
+  <data name="Designer.Graph.Node.ActionSetProperty" xml:space="preserve"><value>SetProperty</value></data>
+  <data name="Designer.Graph.Node.ActionResetProperty" xml:space="preserve"><value>ResetProperty</value></data>
+  <data name="Designer.Graph.Node.ActionAnimateProperty" xml:space="preserve"><value>AnimateProperty</value></data>
+  <data name="Designer.Graph.Node.ValueNumber" xml:space="preserve"><value>Number</value></data>
+  <data name="Designer.Graph.Node.ValueString" xml:space="preserve"><value>String</value></data>
+  <data name="Designer.Graph.Node.ValueBoolean" xml:space="preserve"><value>Boolean</value></data>
+  <data name="Designer.Graph.Node.ValueColor" xml:space="preserve"><value>Color</value></data>
+  <data name="Designer.Graph.Node.ValueEventValue" xml:space="preserve"><value>EventValue</value></data>
+  <data name="Designer.Graph.Node.ValueSelfTag" xml:space="preserve"><value>SelfTag</value></data>
+  <data name="Designer.Graph.Node.ValueControlReference" xml:space="preserve"><value>ControlReference</value></data>
+  <data name="Designer.Graph.Node.FlowStart.Description" xml:space="preserve"><value>Animation flow entry. A graph normally has one Start, connected from Out to the first flow or action node.</value></data>
+  <data name="Designer.Graph.Node.FlowEnd.Description" xml:space="preserve"><value>Finishes the current branch. Connect the final action Out to End to make the graph explicit.</value></data>
+  <data name="Designer.Graph.Node.FlowDelay.Description" xml:space="preserve"><value>Waits before continuing. Use it to space out property requests, such as fade out and then fade in.</value></data>
+  <data name="Designer.Graph.Node.FlowSequence.Description" xml:space="preserve"><value>Runs Step1, Step2, and Step3 in order. Useful for a fixed ordered chain of actions.</value></data>
+  <data name="Designer.Graph.Node.FlowParallel.Description" xml:space="preserve"><value>Runs branches together and waits for all of them. Useful for issuing multiple animation requests at once.</value></data>
+  <data name="Designer.Graph.Node.FlowIf.Description" xml:space="preserve"><value>Advanced branch node using text comparison. Simple property animations usually do not need it.</value></data>
+  <data name="Designer.Graph.Node.ActionLog.Description" xml:space="preserve"><value>Writes a line to the preview log so you can see that execution reached this point.</value></data>
+  <data name="Designer.Graph.Node.ActionSetProperty.Description" xml:space="preserve"><value>Emits a set-property request. Phase 3 shows it in preview only; it does not change controls yet.</value></data>
+  <data name="Designer.Graph.Node.ActionResetProperty.Description" xml:space="preserve"><value>Emits a reset-property request. PropertyName can be a specific property or All.</value></data>
+  <data name="Designer.Graph.Node.ActionAnimateProperty.Description" xml:space="preserve"><value>Emits an animate-property request. Fill target, property, from/to values, duration, and easing.</value></data>
+  <data name="Designer.Graph.Node.ValueNumber.Description" xml:space="preserve"><value>Numeric constant such as 0, 1, or 300. Editable and saved now; value-port evaluation comes later.</value></data>
+  <data name="Designer.Graph.Node.ValueString.Description" xml:space="preserve"><value>Text constant such as Visible, Collapsed, or any custom string.</value></data>
+  <data name="Designer.Graph.Node.ValueBoolean.Description" xml:space="preserve"><value>Boolean constant: true or false.</value></data>
+  <data name="Designer.Graph.Node.ValueColor.Description" xml:space="preserve"><value>Color constant such as #FFFFFFFF.</value></data>
+  <data name="Designer.Graph.Node.ValueEventValue.Description" xml:space="preserve"><value>事件 payload 路径值。</value></data>
+  <data name="Designer.Graph.Node.ValueSelfTag.Description" xml:space="preserve"><value>当前控件标签值。</value></data>
+  <data name="Designer.Graph.Node.ValueControlReference.Description" xml:space="preserve"><value>Control reference constant. Self means the current control that owns this behavior.</value></data>
+  <data name="Designer.Graph.Port.In" xml:space="preserve"><value>In</value></data>
+  <data name="Designer.Graph.Port.Out" xml:space="preserve"><value>Out</value></data>
+  <data name="Designer.Graph.Port.True" xml:space="preserve"><value>True</value></data>
+  <data name="Designer.Graph.Port.False" xml:space="preserve"><value>False</value></data>
+  <data name="Designer.Graph.Port.Step1" xml:space="preserve"><value>Step1</value></data>
+  <data name="Designer.Graph.Port.Step2" xml:space="preserve"><value>Step2</value></data>
+  <data name="Designer.Graph.Port.Step3" xml:space="preserve"><value>Step3</value></data>
+  <data name="Designer.Graph.Port.Branch1" xml:space="preserve"><value>Branch1</value></data>
+  <data name="Designer.Graph.Port.Branch2" xml:space="preserve"><value>Branch2</value></data>
+  <data name="Designer.Graph.Port.Branch3" xml:space="preserve"><value>Branch3</value></data>
+  <data name="Designer.Graph.Port.Value" xml:space="preserve"><value>Value</value></data>
+  <data name="Designer.Graph.Property.DurationMs" xml:space="preserve"><value>DurationMs</value></data>
+  <data name="Designer.Graph.Property.Message" xml:space="preserve"><value>Message</value></data>
+  <data name="Designer.Graph.Property.Target" xml:space="preserve"><value>Target</value></data>
+  <data name="Designer.Graph.Property.PropertyName" xml:space="preserve"><value>PropertyName</value></data>
+  <data name="Designer.Graph.Property.Value" xml:space="preserve"><value>Value</value></data>
+  <data name="Designer.Graph.Property.From" xml:space="preserve"><value>From</value></data>
+  <data name="Designer.Graph.Property.To" xml:space="preserve"><value>To</value></data>
+  <data name="Designer.Graph.Property.Easing" xml:space="preserve"><value>Easing</value></data>
+  <data name="Designer.Graph.Property.Left" xml:space="preserve"><value>Left</value></data>
+  <data name="Designer.Graph.Property.Operator" xml:space="preserve"><value>Operator</value></data>
+  <data name="Designer.Graph.Property.Right" xml:space="preserve"><value>Right</value></data>
+  <data name="Designer.Graph.Property.Path" xml:space="preserve"><value>Path</value></data>
+  <data name="Designer.Graph.Validation.Description" xml:space="preserve"><value>Checks whether the graph has an entry node, valid connections, and required properties. It never deletes graph data; it only helps you fix preview and save-time issues.</value></data>
+  <data name="Designer.Graph.DeleteConnection" xml:space="preserve"><value>Disconnect</value></data>
+  <data name="Designer.Graph.Property.DurationMs.Description" xml:space="preserve"><value>Delay or animation duration in milliseconds.</value></data>
+  <data name="Designer.Graph.Property.Message.Description" xml:space="preserve"><value>Text written to the preview execution log.</value></data>
+  <data name="Designer.Graph.Property.Target.Description" xml:space="preserve"><value>Target for the action. Phase 3 only records the request and does not modify real controls.</value></data>
+  <data name="Designer.Graph.Property.PropertyName.Description" xml:space="preserve"><value>Name of the property to set, reset, or animate.</value></data>
+  <data name="Designer.Graph.Property.Value.Description" xml:space="preserve"><value>Node output value or value to write to a property.</value></data>
+  <data name="Designer.Graph.Property.From.Description" xml:space="preserve"><value>Animation start value. Phase 3 only records the request.</value></data>
+  <data name="Designer.Graph.Property.To.Description" xml:space="preserve"><value>Animation end value. Phase 3 only records the request.</value></data>
+  <data name="Designer.Graph.Property.Easing.Description" xml:space="preserve"><value>Easing name reserved for the later animation runtime.</value></data>
+  <data name="Designer.Graph.Property.Left.Description" xml:space="preserve"><value>Left comparison text. Put complex trigger conditions in the behavior panel instead.</value></data>
+  <data name="Designer.Graph.Property.Operator.Description" xml:space="preserve"><value>Text comparison operator, using the same semantics as behavior trigger filters.</value></data>
+  <data name="Designer.Graph.Property.Right.Description" xml:space="preserve"><value>Right side comparison text.</value></data>
+  <data name="Designer.Graph.Property.Path.Description" xml:space="preserve"><value>Path value. Animation graphs usually do not need event paths.</value></data>
+  <data name="Designer.Graph.Help" xml:space="preserve"><value>Help</value></data>
+  <data name="Designer.Graph.Help.Title" xml:space="preserve"><value>Animation editor help</value></data>
+  <data name="Designer.Graph.Node.Shortcuts" xml:space="preserve"><value>Drag the header to move; drag output ports to input ports to connect; right-click or press Delete to remove.</value></data>
+  <data name="Designer.Graph.Help.Content" xml:space="preserve"><value>This editor only edits the property animation flow that runs after a behavior is triggered. Configure events, triggers, and filters in the behavior panel.
+
+Basics: drag nodes from the catalog onto the canvas; drag a node header to move it; drag from an output port to an input port to connect; use the × button on a connection to disconnect; drag empty canvas space with the left or right mouse button to pan; select a node and edit its properties on the right; right-click a node or press Delete to remove it.
+
+Flow nodes: Start is the entry point and a graph should normally have one. End finishes the current branch. Delay waits for a number of milliseconds. Sequence runs Step1, Step2, Step3 in order. Parallel runs Branch1, Branch2, Branch3 together and waits for all of them. If is an advanced text branch and is usually not needed for simple property animation.
+
+Action nodes: Log writes preview text only. SetProperty records a property set request, for example Target=Self, PropertyName=Opacity, Value=0.5. ResetProperty records a reset request; PropertyName can be a specific property or All. AnimateProperty records an animation request, for example Target=Self, PropertyName=Opacity, From=0, To=1, DurationMs=300, Easing=Linear. Phase 3 only previews logs and requests; it does not modify real WPF controls.
+
+Value nodes: Number/String/Boolean/Color store constant values for later value-port evaluation. ControlReference stores a target reference; Self is the common value today.</value></data>
+  <data name="Designer.Graph.NodeCatalog.DragHint" xml:space="preserve"><value>Drag this node onto the canvas to add it.</value></data>
 </root>

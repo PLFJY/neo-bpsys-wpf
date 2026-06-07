@@ -1,0 +1,61 @@
+<ui:FluentWindow
+    x:Class="neo_bpsys_wpf.Views.Windows.FrontedBehaviorAnimationHelpWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:neo_bpsys_wpf.Controls"
+    xmlns:lex="http://wpflocalizeextension.codeplex.com"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    Title="{lex:Loc Designer.Graph.Help.Title}"
+    Width="720"
+    Height="620"
+    MinWidth="560"
+    MinHeight="420"
+    lex:LocalizeDictionary.DesignCulture="zh"
+    lex:ResxLocalizationProvider.DefaultAssembly="neo-bpsys-wpf"
+    lex:ResxLocalizationProvider.DefaultDictionary="Locales.Lang"
+    Background="{DynamicResource ApplicationBackgroundBrush}"
+    Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+    WindowStartupLocation="CenterOwner">
+    <WindowChrome.WindowChrome>
+        <WindowChrome
+            CaptionHeight="35"
+            CornerRadius="8"
+            GlassFrameThickness="0"
+            ResizeBorderThickness="5"
+            UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <controls:CustomTitleBar
+            Grid.Row="0"
+            Icon="/Assets/icon.png"
+            IsMaximizeVisible="True"
+            IsMinimizeVisible="True"
+            IsThemeChangeVisible="False"
+            IsTopMostVisible="False" />
+
+        <ScrollViewer
+            Grid.Row="1"
+            Margin="16,12,16,0"
+            VerticalScrollBarVisibility="Auto">
+            <TextBlock
+                FontSize="14"
+                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                Text="{lex:Loc Designer.Graph.Help.Content}"
+                TextWrapping="Wrap" />
+        </ScrollViewer>
+
+        <ui:Button
+            Grid.Row="2"
+            Margin="12,8,12,12"
+            HorizontalAlignment="Right"
+            Click="Close_OnClick"
+            Content="{lex:Loc Designer.Help.Close}"
+            Icon="{ui:SymbolIcon Symbol=Dismiss24}" />
+    </Grid>
+</ui:FluentWindow>
