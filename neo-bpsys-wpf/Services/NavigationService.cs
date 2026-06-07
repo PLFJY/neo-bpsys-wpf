@@ -66,6 +66,11 @@ public partial class NavigationService(
 
         ThrowIfNavigationControlIsNull();
 
+        if (IsCurrentPage(pageType))
+        {
+            return true;
+        }
+
         return NavigationControl!.Navigate(pageType);
     }
 
@@ -78,6 +83,11 @@ public partial class NavigationService(
         }
 
         ThrowIfNavigationControlIsNull();
+
+        if (IsCurrentPage(pageType))
+        {
+            return true;
+        }
 
         return NavigationControl!.Navigate(pageType, dataContext);
     }
@@ -154,6 +164,14 @@ public partial class NavigationService(
             _logger.LogError("NavigationControl is null.");
             throw new ArgumentNullException(nameof(NavigationControl));
         }
+    }
+
+    /// <summary>
+    /// Checks whether the specified <paramref name="pageType"/> is the currently displayed page.
+    /// </summary>
+    private bool IsCurrentPage(Type pageType)
+    {
+        return NavigationControl?.SelectedItem?.TargetPageType == pageType;
     }
 
     private bool IsClassicMode => settingsHostService.Settings.IsClassicMode;
