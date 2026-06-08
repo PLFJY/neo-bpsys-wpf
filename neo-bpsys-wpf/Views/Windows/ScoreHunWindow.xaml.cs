@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Controls;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 namespace neo_bpsys_wpf.Views.Windows;
 
@@ -18,6 +19,7 @@ public partial class ScoreHunWindow : FrontedWindowBase
     private readonly IFrontedRenderer? _renderer;
     private readonly ISharedDataService? _sharedDataService;
     private readonly ILogger<ScoreHunWindow>? _logger;
+    private readonly IFrontedBehaviorRuntime? _behaviorRuntime;
     private bool _hasRendered;
     private bool _isBoModeSubscribed;
 
@@ -30,12 +32,14 @@ public partial class ScoreHunWindow : FrontedWindowBase
         IFrontedLayoutService layoutService,
         IFrontedRenderer renderer,
         ISharedDataService sharedDataService,
-        ILogger<ScoreHunWindow> logger)
+        ILogger<ScoreHunWindow> logger,
+        IFrontedBehaviorRuntime? behaviorRuntime = null)
     {
         _layoutService = layoutService;
         _renderer = renderer;
         _sharedDataService = sharedDataService;
         _logger = logger;
+        _behaviorRuntime = behaviorRuntime;
 
         InitializeComponent();
         Loaded += OnLoaded;
@@ -57,9 +61,17 @@ public partial class ScoreHunWindow : FrontedWindowBase
         await ReloadFrontedLayoutAsync();
     }
 
-    private void OnUnloaded(object sender, System.Windows.RoutedEventArgs e) => UnsubscribeBoModeChanged();
+    private void OnUnloaded(object sender, System.Windows.RoutedEventArgs e)
+    {
+        UnsubscribeBoModeChanged();
+        DetachBehaviorHost();
+    }
 
-    private void OnClosed(object? sender, EventArgs e) => UnsubscribeBoModeChanged();
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        UnsubscribeBoModeChanged();
+        DetachBehaviorHost();
+    }
 
     public async Task ReloadFrontedLayoutAsync()
     {
@@ -67,6 +79,8 @@ public partial class ScoreHunWindow : FrontedWindowBase
         {
             return;
         }
+
+        var windowId = FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreHunWindow);
 
         try
         {
@@ -80,12 +94,32 @@ public partial class ScoreHunWindow : FrontedWindowBase
                 return;
             }
 
+            if (_behaviorRuntime is not null)
+            {
+                await _behaviorRuntime.DetachAsync(windowId, BaseCanvasName);
+            }
+
             _renderer.RenderToCanvas(BaseCanvas, config, new FrontedRenderContext
             {
-                WindowId = FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreHunWindow),
+                WindowId = windowId,
                 WindowTypeName = nameof(ScoreHunWindow),
                 CanvasName = BaseCanvasName
             });
+
+            if (_behaviorRuntime is not null)
+            {
+                await _behaviorRuntime.AttachAsync(new FrontedBehaviorRuntimeContext
+                {
+                    WindowId = windowId,
+                    WindowType = nameof(ScoreHunWindow),
+                    CanvasName = BaseCanvasName,
+                    RootCanvas = BaseCanvas,
+                    CanvasConfig = config,
+                    SharedDataService = _sharedDataService!,
+                    IsDesignerPreview = false,
+                    Logger = _logger
+                });
+            }
         }
         catch (Exception ex)
         {
@@ -128,5 +162,18 @@ public partial class ScoreHunWindow : FrontedWindowBase
         }
 
         _ = Dispatcher.BeginInvoke(new Action(() => _ = ReloadFrontedLayoutAsync()));
+    }
+
+    private void DetachBehaviorHost()
+    {
+        try
+        {
+            var windowId = FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreHunWindow);
+            _ = _behaviorRuntime?.DetachAsync(windowId, BaseCanvasName);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to detach behavior host on ScoreHunWindow.");
+        }
     }
 }

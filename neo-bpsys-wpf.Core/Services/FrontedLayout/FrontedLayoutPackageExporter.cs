@@ -49,6 +49,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
     private readonly IFrontedImageSafetyService _imageSafetyService;
     private readonly IFrontedControlRegistry? _controlRegistry;
     private readonly IFrontedPluginMetadataProvider? _pluginMetadataProvider;
+    private readonly IFrontedBehaviorService? _behaviorService;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         WriteIndented = true,
@@ -62,7 +63,8 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         IFrontedWindowLayoutOptionsService windowLayoutOptionsService,
         ILogger<FrontedLayoutPackageExporter> logger,
         IFrontedControlRegistry? controlRegistry = null,
-        IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
+        IFrontedPluginMetadataProvider? pluginMetadataProvider = null,
+        IFrontedBehaviorService? behaviorService = null)
         : this(
             layoutCatalog,
             layoutService,
@@ -71,7 +73,8 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             Path.Combine(AppConstants.AppTempPath, "bpui-export"),
             logger,
             controlRegistry,
-            pluginMetadataProvider)
+            pluginMetadataProvider,
+            behaviorService)
     {
     }
 
@@ -83,7 +86,8 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         string tempRoot,
         ILogger<FrontedLayoutPackageExporter>? logger = null,
         IFrontedControlRegistry? controlRegistry = null,
-        IFrontedPluginMetadataProvider? pluginMetadataProvider = null)
+        IFrontedPluginMetadataProvider? pluginMetadataProvider = null,
+        IFrontedBehaviorService? behaviorService = null)
     {
         _layoutCatalog = layoutCatalog;
         _layoutService = layoutService;
@@ -94,6 +98,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
         _imageSafetyService = new FrontedImageSafetyService();
         _controlRegistry = controlRegistry;
         _pluginMetadataProvider = pluginMetadataProvider;
+        _behaviorService = behaviorService;
     }
 
     public async Task<FrontedLayoutPackageExportResult> ExportAsync(
@@ -122,6 +127,7 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
                 var manifest = CreateManifest(request);
                 await ExportLayoutsAsync(staging, entries, manifest, resourceState, cancellationToken);
                 await ExportWindowOptionsAsync(staging, entries, cancellationToken);
+                await ExportBehaviorsAsync(staging, entries, cancellationToken);
                 manifest.Content.Resources = resourceState.Resources;
 
                 var manifestJson = JsonSerializer.Serialize(manifest, _jsonSerializerOptions);
@@ -262,6 +268,50 @@ public sealed class FrontedLayoutPackageExporter : IFrontedLayoutPackageExporter
             Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
             var json = JsonSerializer.Serialize(options, _jsonSerializerOptions);
             await File.WriteAllTextAsync(targetPath, json, cancellationToken);
+        }
+    }
+
+    private async Task ExportBehaviorsAsync(
+        string staging,
+        IReadOnlyList<FrontedDesignerLayoutCatalogEntry> entries,
+        CancellationToken cancellationToken)
+    {
+        if (_behaviorService is null)
+        {
+            return;
+        }
+
+        foreach (var entry in entries)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            try
+            {
+                var document = await _behaviorService.LoadDocumentAsync(
+                    entry.WindowTypeName,
+                    entry.CanvasName,
+                    cancellationToken);
+
+                // Only export if there are behavior sets
+                if (document.ControlBehaviorSets is null || document.ControlBehaviorSets.Count == 0)
+                {
+                    continue;
+                }
+
+                var relativePath = ToZipPath(
+                    "behaviors",
+                    FrontedLayoutWindowPathHelper.GetLayoutRelativePath(entry.WindowTypeName, entry.CanvasName)
+                        .Replace('\\', '/'));
+                var targetPath = Path.Combine(staging, relativePath.Replace('/', Path.DirectorySeparatorChar));
+                Directory.CreateDirectory(Path.GetDirectoryName(targetPath)!);
+                var behaviorJson = JsonSerializer.Serialize(document, _jsonSerializerOptions);
+                await File.WriteAllTextAsync(targetPath, behaviorJson, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Failed to export behaviors for {Window}/{Canvas}.",
+                    entry.WindowTypeName, entry.CanvasName);
+            }
         }
     }
 

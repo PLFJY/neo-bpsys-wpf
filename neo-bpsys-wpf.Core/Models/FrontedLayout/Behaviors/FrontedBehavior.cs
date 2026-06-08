@@ -26,6 +26,11 @@ public sealed class FrontedBehavior
 
     public FrontedNodeGraph StopGraph { get; set; } = new();
 
+    /// <summary>
+    /// OneShot 行为的重入策略。Loop 行为的重入策略在 <see cref="LoopPolicy"/> 中配置。
+    /// </summary>
+    public FrontedReentryPolicy ReentryPolicy { get; set; } = FrontedReentryPolicy.InterruptPrevious;
+
     public FrontedLoopPolicy LoopPolicy { get; set; } = new();
 }
 

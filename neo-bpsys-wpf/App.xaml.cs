@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Themes;
 using Serilog.Core;
@@ -97,6 +98,7 @@ public partial class App : AppBase
         var settingsHostService = IAppHost.Host.Services.GetRequiredService<ISettingsHostService>();
         await settingsHostService.LoadConfig();
         ApplyLogLevel(settingsHostService.Settings.LogLevel);
+        IAppHost.Host.Services.GetRequiredService<FrontedSharedDataBehaviorEventBridge>().Start();
 
         CurrentLifetime = ApplicationLifetime.StartingOnline;
         //添加不同颜色的icon到resources里面

@@ -6,9 +6,12 @@ using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Models;
 using neo_bpsys_wpf.Core.Models.FrontedLayout;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.Views.Windows;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 
@@ -23,6 +26,7 @@ public class FrontedWindowService : IFrontedWindowService
     private readonly IFrontedWindowRegistry _windowRegistry;
     private readonly IFrontedWindowLayoutOptionsService _windowLayoutOptionsService;
     private readonly ILogger<FrontedWindowService> _logger;
+    private readonly IFrontedEventBus? _eventBus;
 
     public Dictionary<string, Window> FrontedWindows { get; private set; } = [];
 
@@ -34,12 +38,14 @@ public class FrontedWindowService : IFrontedWindowService
         IServiceProvider services,
         IFrontedWindowRegistry windowRegistry,
         IFrontedWindowLayoutOptionsService windowLayoutOptionsService,
-        ILogger<FrontedWindowService> logger)
+        ILogger<FrontedWindowService> logger,
+        IFrontedEventBus? eventBus = null)
     {
         _services = services;
         _windowRegistry = windowRegistry;
         _windowLayoutOptionsService = windowLayoutOptionsService;
         _logger = logger;
+        _eventBus = eventBus;
         if (!Directory.Exists(AppConstants.AppDataPath))
         {
             Directory.CreateDirectory(AppConstants.AppDataPath);
@@ -153,6 +159,7 @@ public class FrontedWindowService : IFrontedWindowService
             ApplyWindowLayoutOptions(window.Key, window.Value);
             window.Value.Show();
             FrontedWindowStates[window.Key] = true;
+            PublishWindowShown(window.Key);
         }
     }
 
@@ -162,6 +169,7 @@ public class FrontedWindowService : IFrontedWindowService
         {
             window.Value.Hide();
             FrontedWindowStates[window.Key] = false;
+            PublishWindowHidden(window.Key);
         }
     }
 
@@ -185,6 +193,7 @@ public class FrontedWindowService : IFrontedWindowService
 
         window.Hide();
         FrontedWindowStates[windowId] = false;
+        PublishWindowHidden(windowId);
     }
 
     public void ShowWindow(FrontedWindowType windowType)
@@ -210,6 +219,7 @@ public class FrontedWindowService : IFrontedWindowService
         ApplyWindowLayoutOptions(windowId, window);
         window.Show();
         FrontedWindowStates[windowId] = true;
+        PublishWindowShown(windowId);
     }
 
     private void ApplyWindowLayoutOptions(string windowId, Window window)
@@ -321,6 +331,42 @@ public class FrontedWindowService : IFrontedWindowService
             {
                 _logger.LogWarning(ex, "Failed to reload fronted v3 layout for {WindowType}.", window.GetType().Name);
             }
+        }
+    }
+
+    private void PublishWindowShown(string windowId)
+    {
+        try
+        {
+            _eventBus?.Publish(new FrontedBehaviorEvent
+            {
+                EventType = "WindowShown",
+                WindowId = windowId,
+                Source = "WindowLifecycle",
+                Timestamp = DateTimeOffset.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Failed to publish WindowShown event for {WindowId}.", windowId);
+        }
+    }
+
+    private void PublishWindowHidden(string windowId)
+    {
+        try
+        {
+            _eventBus?.Publish(new FrontedBehaviorEvent
+            {
+                EventType = "WindowHidden",
+                WindowId = windowId,
+                Source = "WindowLifecycle",
+                Timestamp = DateTimeOffset.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Failed to publish WindowHidden event for {WindowId}.", windowId);
         }
     }
 

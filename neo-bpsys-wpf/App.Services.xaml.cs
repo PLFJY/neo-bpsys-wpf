@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -101,6 +101,20 @@ public partial class App
         services.AddSingleton<IFrontedPluginMetadataProvider, FrontedPluginMetadataProvider>();
         services.AddSingleton<FrontedBehaviorEventCatalog>();
         services.AddSingleton<IFrontedBehaviorService, FrontedBehaviorService>();
+        services.AddSingleton<IFrontedEventBus, FrontedEventBus>();
+        services.AddSingleton<FrontedBehaviorTriggerEvaluator>();
+        services.AddSingleton<FrontedBehaviorRuntimeHostManager>();
+        services.AddSingleton<IFrontedBehaviorRuntime, FrontedBehaviorRuntime>();
+        // SharedData bridge: creates once, subscribes to attributed events on startup
+        services.AddSingleton<FrontedSharedDataBehaviorEventBridge>(sp =>
+        {
+            var bridge = new FrontedSharedDataBehaviorEventBridge(
+                sp.GetRequiredService<ISharedDataService>(),
+                sp.GetRequiredService<IFrontedEventBus>(),
+                sp.GetRequiredService<ILogger<FrontedSharedDataBehaviorEventBridge>>());
+            bridge.Start();
+            return bridge;
+        });
         services.AddSingleton<FrontedNodeCatalog>();
         services.AddSingleton<FrontedNodeGraphValidator>();
         services.AddSingleton<IFrontedGraphDelayProvider, FrontedGraphDelayProvider>();

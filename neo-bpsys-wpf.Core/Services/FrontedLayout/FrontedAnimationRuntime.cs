@@ -67,6 +67,38 @@ public sealed class FrontedAnimationRuntime(
         });
     }
 
+    public void Release(FrameworkElement root)
+    {
+        InvokeOnDispatcher(root, () =>
+        {
+            lock (_gate)
+            {
+                if (!_sessions.TryGetValue(root, out var session))
+                {
+                    return;
+                }
+
+                // Cancel all in-flight animations
+                foreach (var (key, cts) in session.Conflicts.ToArray())
+                {
+                    try
+                    {
+                        cts.Cancel();
+                        cts.Dispose();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // Already disposed
+                    }
+                }
+
+                session.Conflicts.Clear();
+                session.BaseValues.Clear();
+                _sessions.Remove(root);
+            }
+        });
+    }
+
     private async Task ExecuteOnDispatcherAsync(
         FrontedGraphActionRequest action,
         FrontedAnimationExecutionContext context,

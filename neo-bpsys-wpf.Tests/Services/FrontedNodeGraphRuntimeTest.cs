@@ -66,6 +66,20 @@ public class FrontedNodeGraphRuntimeTest
     }
 
     [Fact]
+    public async Task Runtime_If_CanReadSelfTag()
+    {
+        var graph = IfGraph("0", "SelfTag.SlotIndex");
+
+        var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext
+        {
+            SelfTags = new Dictionary<string, object?> { ["SlotIndex"] = "0" }
+        }, TestContext.Current.CancellationToken);
+
+        Assert.Contains(result.LogItems, item => item.Message == "true");
+        Assert.DoesNotContain(result.LogItems, item => item.Message == "false");
+    }
+
+    [Fact]
     public async Task Runtime_Parallel_ExecutesBothBranches()
     {
         var start = _catalog.CreateNode("flow.start");
@@ -184,11 +198,11 @@ public class FrontedNodeGraphRuntimeTest
         return node;
     }
 
-    private FrontedNodeGraph IfGraph(string right)
+    private FrontedNodeGraph IfGraph(string right, string left = "Event.Value")
     {
         var start = _catalog.CreateNode("flow.start");
         var ifNode = _catalog.CreateNode("flow.if");
-        ifNode.Properties["Left"] = JsonSerializer.SerializeToElement("Event.Value");
+        ifNode.Properties["Left"] = JsonSerializer.SerializeToElement(left);
         ifNode.Properties["Right"] = JsonSerializer.SerializeToElement(right);
         var trueLog = LogNode("true");
         var falseLog = LogNode("false");

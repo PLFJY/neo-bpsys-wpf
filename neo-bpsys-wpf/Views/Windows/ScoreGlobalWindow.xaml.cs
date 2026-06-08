@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Controls;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 namespace neo_bpsys_wpf.Views.Windows;
 
@@ -18,6 +19,7 @@ public partial class ScoreGlobalWindow : FrontedWindowBase
     private readonly IFrontedRenderer? _renderer;
     private readonly ISharedDataService? _sharedDataService;
     private readonly ILogger<ScoreGlobalWindow>? _logger;
+    private readonly IFrontedBehaviorRuntime? _behaviorRuntime;
     private bool _hasRendered;
     private bool _isBoModeSubscribed;
     private bool _isReloadingLayout;
@@ -32,12 +34,14 @@ public partial class ScoreGlobalWindow : FrontedWindowBase
         IFrontedLayoutService layoutService,
         IFrontedRenderer renderer,
         ISharedDataService sharedDataService,
-        ILogger<ScoreGlobalWindow> logger)
+        ILogger<ScoreGlobalWindow> logger,
+        IFrontedBehaviorRuntime? behaviorRuntime = null)
     {
         _layoutService = layoutService;
         _renderer = renderer;
         _sharedDataService = sharedDataService;
         _logger = logger;
+        _behaviorRuntime = behaviorRuntime;
 
         InitializeComponent();
         Loaded += OnLoaded;
@@ -62,11 +66,13 @@ public partial class ScoreGlobalWindow : FrontedWindowBase
     private void OnUnloaded(object sender, System.Windows.RoutedEventArgs e)
     {
         UnsubscribeBoModeChanged();
+        DetachBehaviorHost();
     }
 
     private void OnClosed(object? sender, EventArgs e)
     {
         UnsubscribeBoModeChanged();
+        DetachBehaviorHost();
     }
 
     public async Task ReloadFrontedLayoutAsync()
@@ -102,6 +108,7 @@ public partial class ScoreGlobalWindow : FrontedWindowBase
 
         try
         {
+            var windowId = FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreGlobalWindow);
             var config = await _layoutService.LoadCanvasConfigAsync(nameof(ScoreGlobalWindow), BaseCanvasName);
             if (config is null)
             {
@@ -112,12 +119,34 @@ public partial class ScoreGlobalWindow : FrontedWindowBase
                 return;
             }
 
+            // Detach existing behavior host before re-rendering
+            if (_behaviorRuntime is not null)
+            {
+                await _behaviorRuntime.DetachAsync(windowId, BaseCanvasName);
+            }
+
             _renderer.RenderToCanvas(BaseCanvas, config, new FrontedRenderContext
             {
-                WindowId = FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreGlobalWindow),
+                WindowId = windowId,
                 WindowTypeName = nameof(ScoreGlobalWindow),
                 CanvasName = BaseCanvasName
             });
+
+            // Attach behavior host after rendering
+            if (_behaviorRuntime is not null)
+            {
+                await _behaviorRuntime.AttachAsync(new FrontedBehaviorRuntimeContext
+                {
+                    WindowId = windowId,
+                    WindowType = nameof(ScoreGlobalWindow),
+                    CanvasName = BaseCanvasName,
+                    RootCanvas = BaseCanvas,
+                    CanvasConfig = config,
+                    SharedDataService = _sharedDataService!,
+                    IsDesignerPreview = false,
+                    Logger = _logger
+                });
+            }
         }
         catch (Exception ex)
         {
@@ -126,6 +155,19 @@ public partial class ScoreGlobalWindow : FrontedWindowBase
                 "Failed to render fronted v3 layout. Window: {WindowTypeName}, Canvas: {CanvasName}",
                 nameof(ScoreGlobalWindow),
                 BaseCanvasName);
+        }
+    }
+
+    private void DetachBehaviorHost()
+    {
+        try
+        {
+            var windowId = FrontedWindowHelper.GetFrontedWindowGuid(FrontedWindowType.ScoreGlobalWindow);
+            _ = _behaviorRuntime?.DetachAsync(windowId, BaseCanvasName);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to detach behavior host on ScoreGlobalWindow.");
         }
     }
 

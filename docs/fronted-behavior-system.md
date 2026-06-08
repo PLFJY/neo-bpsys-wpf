@@ -66,9 +66,109 @@ Phase 4 已完成 Designer 预览侧的 WPF 动画与属性应用层：
 
 `VisualOffsetX/Y`、`ScaleX/Y`、`Rotation` 使用 `RenderTransform`，不会修改 `Canvas.Left` / `Canvas.Top`，也不会污染布局配置。`FillColor`、`StrokeColor`、`TextColor` 使用 `SolidColorBrush`，颜色值支持 `#RRGGBB` / `#AARRGGBB`。不支持的属性会记录 warning 并跳过，不抛出异常。
 
-Loop 行为编辑器现在提供 Designer-only 生命周期预览：Preview Start、Preview Loop Once、Start Loop Preview、Stop Loop Preview、Preview Stop、Reset。Start Loop Preview 会先执行 `StartGraph`，再按 `LoopPolicy.RepeatCount` 与 `IntervalMs` 重复执行 `LoopGraph`；重复启动默认按 `ReentryPolicy.IgnoreIfRunning` 忽略，`InterruptPrevious` 会取消旧循环。Stop Loop Preview 会取消当前循环，在 `StopMode == RunStopGraph` 时执行 `StopGraph`，并按 `ResetOnStop` 调用 reset。`AutoReverse` 当前只保存配置并提示，任意图的反向语义留给后续阶段。
+Loop 行为编辑器现在提供 Designer-only 生命周期预览：Preview Start、Preview Loop Once、Start Loop Preview、Stop Loop Preview、Preview Stop、Reset。Start Loop Preview 会先执行 `StartGraph`，再按 `LoopPolicy.RepeatCount` 与 `IntervalMs` 重复执行 `LoopGraph`；重复启动默认按 `ReentryPolicy.IgnoreIfRunning` 忽略，`InterruptPrevious` 会取消旧循环。Stop Loop Preview 会根据 `StopMode` 停止当前循环：`StopImmediately` 立即取消，`RunStopGraph` 取消后执行 `StopGraph`，`CompleteCurrentIteration` 请求当前轮完成后退出，并按 `ResetOnStop` 调用 reset。`AutoReverse` 当前只保存配置并提示，任意图的反向语义将在后续版本中提供。
 
 Phase 4 仍不实现：真实 `IFrontedEventBus`、从 `SharedDataService` 事件自动触发、真实前台窗口赛事事件播放、插件自定义 animatable property、Timeline 编辑器、断点调试器、Canvas/window 级行为列表。
+
+## Phase 5 implemented
+
+Phase 5 已完成真实事件总线 + 前台运行时接入，把行为系统从 Designer 预览扩展到真实前台窗口运行时：
+
+### 事件总线
+
+- 新增 `IFrontedEventBus` 接口与 `FrontedEventBus` 线程安全实现，支持 typed 和通配符（null）订阅。
+- `FrontedBehaviorEvent` 模型包含 EventType、WindowId、WindowType、CanvasName、Timestamp、Payload、Source、IsPreview。
+- Publish 异常不会打崩其他 handler，异常会记录日志。
+- Subscribe 返回 `IDisposable`，支持 host/window 释放订阅。
+
+### SharedDataService 事件桥接
+
+- `FrontedSharedDataBehaviorEventBridge` 在应用启动时反射 `ISharedDataService` 上带 `FrontedBehaviorEventAttribute` 的事件。
+- 对每个标注事件订阅真实 `ISharedDataService` 实例，事件触发时构造 `FrontedBehaviorEvent` 并 Publish 到 `IFrontedEventBus`。
+- Payload 支持 `ServiceProperty`（从服务属性读取，支持嵌套路径）、`EventArgsProperty`（从 EventArgs 读取）、`SenderProperty`。
+- 注册为 Singleton，Dispose 时取消所有订阅。
+
+### Trigger 过滤器真实执行
+
+- `FrontedBehaviorTriggerEvaluator` 判断 `TriggerDescriptor` 是否匹配 `FrontedBehaviorEvent`。
+- EventType 必须一致，所有 Filter 全部通过才匹配。
+- `Event.X` 从 Payload 取值，`SelfTag.X` 从控件 BehaviorTags 取值，支持数值比较和文本比较。
+- 复用 Phase 2 的 `FrontedTriggerFilterTextComparer`。
+
+### Behavior Runtime
+
+- `IFrontedBehaviorRuntime` 接口 + `FrontedBehaviorRuntime` Facade 实现。
+- `FrontedBehaviorRuntimeHost` 持有单个 Canvas 的行为文档、事件总线订阅、运行中行为实例。
+- `FrontedBehaviorRuntimeHostManager` Singleton 管理所有 Canvas 的 host 集合，以 `(windowId, canvasName)` 为 key。
+- `FrontedBehavior` 新增 `ReentryPolicy` 属性（OneShot 重入策略），当前真实 runtime 支持 `InterruptPrevious` / `IgnoreIfRunning`；`Queue` / `AllowParallel` 暂按“运行中忽略”降级并记录 warning。
+
+### OneShot 生命周期
+
+- 事件到来时遍历所有 `ControlBehaviorSet` 中 Enabled 且 Kind == OneShot 的行为。
+- Trigger 匹配后执行 behavior.Graph。
+- 并发策略按 `ReentryPolicy` 处理：InterruptPrevious 取消旧执行，IgnoreIfRunning 跳过。Queue / AllowParallel 的完整实现将在后续版本中提供，当前真实 runtime 按跳过处理并记录 warning。
+
+### Loop 生命周期
+
+- 状态机：Stopped → Starting（StartGraph 执行） → Looping（LoopGraph 重复） → Stopping（StopGraph 执行） → Stopped。
+- StartTrigger 匹配启动，EndTrigger 匹配停止。
+- 支持 `StopMode`（StopImmediately / RunStopGraph / CompleteCurrentIteration）、`RepeatCount`、`IntervalMs`、`ResetOnStop`。`CompleteCurrentIteration` 不取消当前 `LoopGraph`，当前轮执行完成后不再进入下一轮，并直接 reset/cleanup，不执行 `StopGraph`。
+- 同一 key（WindowId + CanvasName + BehaviorGuid + BehaviorId）不会启动多个 loop 实例。
+
+### GraphRuntime + AnimationRuntime 集成
+
+- `FrontedAnimationRuntimeActionExecutor` 包装 `IFrontedAnimationRuntime` 作为 `IFrontedGraphActionExecutor`。
+- GraphRuntime 的 Action 节点在真实前台 Canvas 上调用 AnimationRuntime 执行动画。
+- `IFrontedAnimationRuntime.Release(FrameworkElement root)` 释放 root 的 runtime session，避免内存泄漏。
+
+### 前台窗口接入
+
+所有 7 个前台窗口已集成 `IFrontedBehaviorRuntime`：
+| 窗口 | 特征 | 状态 |
+| --- | --- | --- |
+| BpWindow | 单 Canvas | 已集成 |
+| ScoreSurWindow | 单 Canvas | 已集成 |
+| ScoreHunWindow | 单 Canvas | 已集成 |
+| ScoreGlobalWindow | 单 Canvas，有 reload guard | 已集成 |
+| GameDataWindow | 单 Canvas | 已集成 |
+| CutSceneWindow | 单 Canvas | 已集成 |
+| WidgetsWindow | 多 Canvas（3 个） | 已集成 |
+
+集成模式：`ReloadFrontedLayoutAsync()` 中先等待 detach 旧 host，再 RenderToCanvas，渲染后 attach 新 host；窗口 Unloaded/Closed 时 fire-and-forget detach host。
+
+### 窗口生命周期事件
+
+- `FrontedWindowService.ShowWindow()` → 发布 `WindowShown`
+- `FrontedWindowService.HideWindow()` → 发布 `WindowHidden`
+- Host attach 后 → 发布 `CanvasLoaded`
+- `IFrontedBehaviorRuntime.PublishManualTrigger()` → 发布 `ManualTrigger`
+
+### bpui 包导出
+
+- `FrontedLayoutPackageExporter.ExportAsync()` 现在包含 behaviors 文件导出。
+- behavior 文件路径：`behaviors/{WindowType}/{CanvasName}.behaviors.json`。
+
+### 已注册的 DI 服务
+
+| 服务 | 生命周期 | 文件 |
+| --- | --- | --- |
+| `IFrontedEventBus` / `FrontedEventBus` | Singleton | Core |
+| `FrontedBehaviorTriggerEvaluator` | Singleton | Core |
+| `FrontedBehaviorRuntimeHostManager` | Singleton | Core |
+| `IFrontedBehaviorRuntime` / `FrontedBehaviorRuntime` | Singleton | Core |
+| `FrontedSharedDataBehaviorEventBridge` | Singleton（应用启动时显式 Start，Start 幂等） | Core |
+
+### Phase 5 仍不实现
+
+- Timeline 编辑器
+- 插件自定义节点
+- 插件自定义 animatable property
+- Messenger adapter
+- 断点 debugger
+- Web/Blazor runtime
+- Queue / AllowParallel 重入策略的完整实现
+- Loop AutoReverse 图反向执行
+- 内置包 behaviors 支持
 
 ## Phase 2 UX / event catalog update
 
