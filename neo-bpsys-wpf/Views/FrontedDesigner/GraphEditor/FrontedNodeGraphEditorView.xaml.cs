@@ -25,6 +25,8 @@ public partial class FrontedNodeGraphEditorView : UserControl
     private Point _panStartPoint;
     private double _panStartHorizontalOffset;
     private double _panStartVerticalOffset;
+    private bool _isRubberBanding;
+    private Point _rubberBandStartPoint;
     private double _zoomLevel = 1.0;
     private FrontedNodeGraphEditorViewModel? _subscribedViewModel;
     private bool _isMinimapDragging;
@@ -134,12 +136,28 @@ public partial class FrontedNodeGraphEditorView : UserControl
         }
     }
 
+    private void NodeHeader_OnDragStarted(object sender, DragStartedEventArgs e)
+    {
+        if (DataContext is FrontedNodeGraphEditorViewModel editor)
+        {
+            editor.BeginMoveNodes();
+        }
+    }
+
     private void NodeHeader_OnDragDelta(object sender, DragDeltaEventArgs e)
     {
         if (sender is Thumb { DataContext: FrontedNodeEditorViewModel node }
             && DataContext is FrontedNodeGraphEditorViewModel editor)
         {
             editor.MoveNode(node, node.X + e.HorizontalChange, node.Y + e.VerticalChange);
+        }
+    }
+
+    private void NodeHeader_OnDragCompleted(object sender, DragCompletedEventArgs e)
+    {
+        if (DataContext is FrontedNodeGraphEditorViewModel editor)
+        {
+            editor.EndMoveNodes();
         }
     }
 
@@ -244,28 +262,85 @@ public partial class FrontedNodeGraphEditorView : UserControl
 
     private void GraphScrollViewer_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (_dragSourcePort is not null || !CanStartPan(e.OriginalSource) || IsWithinMinimap(e.OriginalSource))
+        if (_dragSourcePort is not null || IsWithinMinimap(e.OriginalSource))
         {
             return;
         }
 
-        if (e.ChangedButton is not (MouseButton.Left or MouseButton.Right))
+        if (e.ChangedButton == MouseButton.Left && CanStartPan(e.OriginalSource))
         {
+            // Space + 左键：平移画布
+            if (Keyboard.IsKeyDown(Key.Space))
+            {
+                _isPanning = true;
+                _panStartPoint = e.GetPosition(GraphScrollViewer);
+                _panStartHorizontalOffset = GraphScrollViewer.HorizontalOffset;
+                _panStartVerticalOffset = GraphScrollViewer.VerticalOffset;
+                GraphScrollViewer.CaptureMouse();
+                GraphScrollViewer.Cursor = Cursors.Hand;
+                Focus();
+                e.Handled = true;
+                return;
+            }
+
+            // 左键空白处：开始框选
+            _isRubberBanding = true;
+            _rubberBandStartPoint = e.GetPosition(GraphCanvas);
+            Canvas.SetLeft(SelectionRect, _rubberBandStartPoint.X);
+            Canvas.SetTop(SelectionRect, _rubberBandStartPoint.Y);
+            SelectionRect.Width = 0;
+            SelectionRect.Height = 0;
+            SelectionRect.Visibility = Visibility.Visible;
+            GraphCanvas.CaptureMouse();
+            Focus();
+            e.Handled = true;
             return;
         }
 
-        _isPanning = true;
-        _panStartPoint = e.GetPosition(GraphScrollViewer);
-        _panStartHorizontalOffset = GraphScrollViewer.HorizontalOffset;
-        _panStartVerticalOffset = GraphScrollViewer.VerticalOffset;
-        GraphScrollViewer.CaptureMouse();
-        GraphScrollViewer.Cursor = Cursors.Hand;
-        Focus();
-        e.Handled = true;
+        if (e.ChangedButton == MouseButton.Right && CanStartPan(e.OriginalSource))
+        {
+            // 右键空白处：平移画布
+            _isPanning = true;
+            _panStartPoint = e.GetPosition(GraphScrollViewer);
+            _panStartHorizontalOffset = GraphScrollViewer.HorizontalOffset;
+            _panStartVerticalOffset = GraphScrollViewer.VerticalOffset;
+            GraphScrollViewer.CaptureMouse();
+            GraphScrollViewer.Cursor = Cursors.Hand;
+            Focus();
+            e.Handled = true;
+        }
     }
 
     private void GraphScrollViewer_OnPreviewMouseMove(object sender, MouseEventArgs e)
     {
+        if (_isRubberBanding)
+        {
+            if (e.LeftButton != MouseButtonState.Pressed)
+            {
+                EndRubberBand();
+                return;
+            }
+
+            var current = e.GetPosition(GraphCanvas);
+            var x = Math.Min(_rubberBandStartPoint.X, current.X);
+            var y = Math.Min(_rubberBandStartPoint.Y, current.Y);
+            var w = Math.Abs(current.X - _rubberBandStartPoint.X);
+            var h = Math.Abs(current.Y - _rubberBandStartPoint.Y);
+            Canvas.SetLeft(SelectionRect, x);
+            Canvas.SetTop(SelectionRect, y);
+            SelectionRect.Width = w;
+            SelectionRect.Height = h;
+
+            // 实时更新被框节点的选中特效
+            if (DataContext is FrontedNodeGraphEditorViewModel editor)
+            {
+                editor.UpdateSelectionPreview(new Rect(x, y, w, h));
+            }
+
+            e.Handled = true;
+            return;
+        }
+
         if (_isPanning)
         {
             if (e.LeftButton != MouseButtonState.Pressed && e.RightButton != MouseButtonState.Pressed)
@@ -286,8 +361,8 @@ public partial class FrontedNodeGraphEditorView : UserControl
             return;
         }
 
-        var current = e.GetPosition(GraphCanvas);
-        ConnectionPreviewPath.Data = Geometry.Parse(CreateBezierPathData(_dragStartPoint, current));
+        var currentPos = e.GetPosition(GraphCanvas);
+        ConnectionPreviewPath.Data = Geometry.Parse(CreateBezierPathData(_dragStartPoint, currentPos));
         e.Handled = true;
     }
 
@@ -307,6 +382,13 @@ public partial class FrontedNodeGraphEditorView : UserControl
 
     private void GraphScrollViewer_OnPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
+        if (_isRubberBanding)
+        {
+            EndRubberBand();
+            e.Handled = true;
+            return;
+        }
+
         if (_isPanning)
         {
             EndPan();
@@ -342,6 +424,12 @@ public partial class FrontedNodeGraphEditorView : UserControl
 
     private void GraphScrollViewer_OnMouseLeave(object sender, MouseEventArgs e)
     {
+        if (_isRubberBanding)
+        {
+            EndRubberBand();
+            return;
+        }
+
         if (_isPanning && e.LeftButton != MouseButtonState.Pressed && e.RightButton != MouseButtonState.Pressed)
         {
             EndPan();
@@ -350,13 +438,37 @@ public partial class FrontedNodeGraphEditorView : UserControl
 
     private void FrontedNodeGraphEditorView_OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Delete || DataContext is not FrontedNodeGraphEditorViewModel editor)
+        if (DataContext is not FrontedNodeGraphEditorViewModel editor)
         {
             return;
         }
 
-        editor.DeleteNode(editor.SelectedNode);
-        e.Handled = true;
+        if (e.Key == Key.Delete)
+        {
+            editor.DeleteSelectedNodeCommand.Execute(null);
+            e.Handled = true;
+            return;
+        }
+
+        if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.Z)
+        {
+            editor.UndoCommand.Execute(null);
+            e.Handled = true;
+            return;
+        }
+
+        if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.Y)
+        {
+            editor.RedoCommand.Execute(null);
+            e.Handled = true;
+            return;
+        }
+
+        if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.S)
+        {
+            editor.SaveCommand.Execute(null);
+            e.Handled = true;
+        }
     }
 
     private void EndPan()
@@ -366,6 +478,33 @@ public partial class FrontedNodeGraphEditorView : UserControl
         if (GraphScrollViewer.IsMouseCaptured)
         {
             GraphScrollViewer.ReleaseMouseCapture();
+        }
+    }
+
+    private void EndRubberBand()
+    {
+        _isRubberBanding = false;
+        SelectionRect.Visibility = Visibility.Collapsed;
+
+        if (DataContext is FrontedNodeGraphEditorViewModel editor
+            && SelectionRect.Width > 5 && SelectionRect.Height > 5)
+        {
+            var rect = new Rect(
+                Canvas.GetLeft(SelectionRect),
+                Canvas.GetTop(SelectionRect),
+                SelectionRect.Width,
+                SelectionRect.Height);
+            editor.SelectNodes(rect);
+        }
+        else if (DataContext is FrontedNodeGraphEditorViewModel editor2)
+        {
+            // 极小矩形（点击空白处）：清除选中
+            editor2.DeselectAllCommand.Execute(null);
+        }
+
+        if (GraphCanvas.IsMouseCaptured)
+        {
+            GraphCanvas.ReleaseMouseCapture();
         }
     }
 

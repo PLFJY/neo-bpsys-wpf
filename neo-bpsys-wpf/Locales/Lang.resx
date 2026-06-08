@@ -3779,6 +3779,7 @@
   <data name="Designer.Behaviors.Event.GameProgressChanged" xml:space="preserve"><value>对局进度改变</value></data>
   <data name="Designer.Behaviors.Event.CharacterPicked" xml:space="preserve"><value>角色选择</value></data>
   <data name="Designer.Behaviors.Event.CharacterBanned" xml:space="preserve"><value>角色禁用</value></data>
+  <data name="Designer.Behaviors.Event.CharacterSelected" xml:space="preserve"><value>角色选择</value></data>
   <data name="Designer.Behaviors.Event.CurrentPickingSlotChanged" xml:space="preserve"><value>当前选择位改变</value></data>
   <data name="Designer.Behaviors.Event.ScoreChanged" xml:space="preserve"><value>比分改变</value></data>
   <data name="Designer.Behaviors.Event.TeamChanged" xml:space="preserve"><value>队伍信息改变</value></data>
@@ -3789,8 +3790,12 @@
   <data name="Designer.Behaviors.Event.TimerReached" xml:space="preserve"><value>计时器到达</value></data>
   <data name="Designer.Behaviors.Event.ManualTrigger" xml:space="preserve"><value>手动触发</value></data>
   <data name="Designer.Behaviors.Event.PluginEvent" xml:space="preserve"><value>插件事件</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceHighlightChanged" xml:space="preserve"><value>引导高亮改变</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStateChanged" xml:space="preserve"><value>引导状态改变</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStepChanged" xml:space="preserve"><value>引导步骤改变</value></data>
   <data name="ResetDefaultColor" xml:space="preserve"><value>恢复默认</value></data>
   <data name="Designer.Behaviors.Category.Game" xml:space="preserve"><value>对局</value></data>
+  <data name="Designer.Behaviors.Category.Guidance" xml:space="preserve"><value>引导</value></data>
   <data name="Designer.Behaviors.Category.Display" xml:space="preserve"><value>显示</value></data>
   <data name="Designer.Behaviors.Category.Score" xml:space="preserve"><value>比分</value></data>
   <data name="Designer.Behaviors.Category.Timer" xml:space="preserve"><value>计时器</value></data>
@@ -3814,6 +3819,13 @@
   <data name="Designer.Behaviors.Payload.IsMapV2Breathing" xml:space="preserve"><value>地图呼吸灯开启</value></data>
   <data name="Designer.Behaviors.Payload.IsMapV2CampVisible" xml:space="preserve"><value>地图阵营可见</value></data>
   <data name="Designer.Behaviors.Payload.PickedMap" xml:space="preserve"><value>选择地图</value></data>
+  <data name="Designer.Behaviors.Payload.Action" xml:space="preserve"><value>操作</value></data>
+  <data name="Designer.Behaviors.Payload.ActionName" xml:space="preserve"><value>操作名称</value></data>
+  <data name="Designer.Behaviors.Payload.GameAction" xml:space="preserve"><value>高亮操作</value></data>
+  <data name="Designer.Behaviors.Payload.IsStarted" xml:space="preserve"><value>是否启动</value></data>
+  <data name="Designer.Behaviors.Payload.StepIndex" xml:space="preserve"><value>步骤索引</value></data>
+  <data name="Designer.Behaviors.Payload.Camp" xml:space="preserve"><value>阵营</value></data>
+  <data name="Designer.Behaviors.Payload.PlayerIndex" xml:space="preserve"><value>玩家索引</value></data>
   <data name="Designer.Behaviors.Operator.NotContains" xml:space="preserve"><value>不包含</value></data>
   <data name="Designer.Behaviors.When" xml:space="preserve"><value>当</value></data>
   <data name="Designer.Behaviors.Is" xml:space="preserve"><value>为</value></data>
@@ -3836,6 +3848,11 @@
   <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description" xml:space="preserve"><value>地图阵营可见性改变时触发。</value></data>
   <data name="Designer.Behaviors.Event.PickedMapChanged.Description" xml:space="preserve"><value>选择地图改变时触发。</value></data>
   <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description" xml:space="preserve"><value>地图禁用状态改变时触发。</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceHighlightChanged.Description" xml:space="preserve"><value>对局引导页面高亮变化时触发。</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStateChanged.Description" xml:space="preserve"><value>对局引导启动或停止时触发。</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStepChanged.Description" xml:space="preserve"><value>对局引导步骤切换时触发。</value></data>
+  <data name="Designer.Behaviors.Event.CharacterSelected.Description" xml:space="preserve"><value>角色被选择时触发（包含阵营和玩家索引）。</value></data>
+  <data name="Designer.Behaviors.Event.CharacterBanned.Description" xml:space="preserve"><value>角色被禁用时触发（包含阵营和禁用位索引）。</value></data>
   <data name="Designer.Graph.NodeCatalog" xml:space="preserve"><value>节点目录</value></data>
   <data name="Designer.Graph.Properties" xml:space="preserve"><value>节点属性</value></data>
   <data name="Designer.Graph.Validation" xml:space="preserve"><value>图检查</value></data>
@@ -3954,4 +3971,10 @@
   <data name="Designer.Graph.Help.Title" xml:space="preserve"><value>动画编辑器使用说明</value></data>
   <data name="Designer.Graph.Node.Shortcuts" xml:space="preserve"><value>拖动标题移动节点；从右侧端口拖到左侧端口连线；右键或 Delete 删除节点。</value></data>
   <data name="Designer.Graph.NodeCatalog.DragHint" xml:space="preserve"><value>按住并拖到中间画布即可添加节点。</value></data>
+  <data name="Designer.Graph.Undo" xml:space="preserve"><value>撤销</value></data>
+  <data name="Designer.Graph.Redo" xml:space="preserve"><value>重做</value></data>
+  <data name="Designer.Graph.Save" xml:space="preserve"><value>保存</value></data>
+  <data name="Designer.Graph.ToolTipUndo" xml:space="preserve"><value>撤销 (Ctrl+Z)</value></data>
+  <data name="Designer.Graph.ToolTipRedo" xml:space="preserve"><value>重做 (Ctrl+Y)</value></data>
+  <data name="Designer.Graph.ToolTipSave" xml:space="preserve"><value>保存 (Ctrl+S)</value></data>
 </root>

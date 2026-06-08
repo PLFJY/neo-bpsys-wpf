@@ -4,6 +4,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Binding;
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reflection;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
@@ -1017,7 +1018,8 @@ public class FrontedPropertyGridBuilder
                     _localizationService.GetDesignerText(
                         "Designer.TextBinding.SourceSummary",
                         "{0} source(s)"),
-                    sources.Count);
+                    sources.Count,
+                    string.Join(", ", sources.Select(s => s.DisplayName ?? s.Path)));
         }
 
         if (isReadOnly && value is bool boolValue)

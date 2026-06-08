@@ -328,19 +328,22 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
 
     private BehaviorEventOptionViewModel CreateEventOption(FrontedBehaviorEventDescriptor descriptor)
     {
-        var category = Localize(descriptor.CategoryDisplayNameKey, descriptor.Category);
         return new BehaviorEventOptionViewModel(
             descriptor.EventType,
-            $"{category} / {Localize(descriptor.DisplayNameKey, descriptor.EventType)}",
-            category,
-            Localize(descriptor.DescriptionKey, descriptor.EventType),
+            descriptor.DisplayNameKey,
+            descriptor.CategoryDisplayNameKey,
+            descriptor.DescriptionKey,
+            descriptor.EventType,
+            descriptor.Category,
             descriptor.PayloadFields.Select(field => new BehaviorPayloadFieldOptionViewModel(
                 field.Path,
-                Localize(field.DisplayNameKey, field.Path),
-                Localize(field.DescriptionKey, field.Path),
+                field.DisplayNameKey,
+                field.DescriptionKey,
                 field.TypeName,
                 false,
-                field.IsCommonFilterTarget)).ToArray());
+                field.IsCommonFilterTarget,
+                Localize)).ToArray(),
+            Localize);
     }
 
     private IReadOnlyList<BehaviorOptionViewModel> CreateOperatorOptions() =>
@@ -351,8 +354,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         new(TriggerFilterOperator.LessThan, "<"),
         new(TriggerFilterOperator.GreaterThanOrEqual, "≥"),
         new(TriggerFilterOperator.LessThanOrEqual, "≤"),
-        new(TriggerFilterOperator.Contains, Localize("Designer.Behaviors.Operator.Contains", "contains")),
-        new(TriggerFilterOperator.NotContains, Localize("Designer.Behaviors.Operator.NotContains", "does not contain"))
+        new(TriggerFilterOperator.Contains, "Designer.Behaviors.Operator.Contains", "contains", Localize),
+        new(TriggerFilterOperator.NotContains, "Designer.Behaviors.Operator.NotContains", "does not contain", Localize)
     ];
 
     private IReadOnlyList<BehaviorOptionViewModel> CreateEnumOptions<TEnum>(string prefix)
@@ -362,7 +365,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             .Select(value =>
             {
                 var raw = value.ToString();
-                return new BehaviorOptionViewModel(value, Localize($"{prefix}.{raw}", raw));
+                return new BehaviorOptionViewModel(value, $"{prefix}.{raw}", raw, Localize);
             })
             .ToArray();
     }
@@ -375,6 +378,41 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
 
     private string Localize(string key, string fallback) =>
         _localizationService.GetDesignerText(key, fallback);
+
+    /// <summary>
+    /// Refreshes all localized display strings in the behavior panel to support
+    /// hot language switching without requiring restart.
+    /// </summary>
+    public void RefreshLocalization()
+    {
+        foreach (var option in EventOptions)
+        {
+            option.Refresh();
+        }
+
+        foreach (var option in OperatorOptions)
+        {
+            option.Refresh();
+        }
+
+        foreach (var option in StopModeOptions)
+        {
+            option.Refresh();
+        }
+
+        foreach (var option in ReentryPolicyOptions)
+        {
+            option.Refresh();
+        }
+
+        foreach (var behavior in Behaviors)
+        {
+            behavior.RefreshLocalization();
+        }
+
+        OnPropertyChanged(nameof(EmptyText));
+        OnPropertyChanged(nameof(GraphPlaceholder));
+    }
 
     private static void RegenerateGraphIds(FrontedNodeGraph? graph)
     {
@@ -407,41 +445,200 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
     }
 }
 
-public sealed class BehaviorOptionViewModel(object value, string displayName)
+public sealed class BehaviorOptionViewModel : ObservableObject
 {
-    public object Value { get; } = value;
+    private readonly string _displayNameKey;
+    private readonly string _displayNameFallback;
+    private readonly Func<string, string, string> _localize;
+    private string _displayName;
 
-    public string DisplayName { get; } = displayName;
+    public BehaviorOptionViewModel(object value, string displayNameKey, string displayNameFallback, Func<string, string, string> localize)
+    {
+        Value = value;
+        _displayNameKey = displayNameKey;
+        _displayNameFallback = displayNameFallback;
+        _localize = localize;
+        _displayName = localize(displayNameKey, displayNameFallback);
+    }
+
+    /// <summary>
+    /// For non-localized values (e.g. operators with symbol-only display).
+    /// </summary>
+    public BehaviorOptionViewModel(object value, string displayName)
+    {
+        Value = value;
+        _displayNameKey = string.Empty;
+        _displayNameFallback = displayName;
+        _localize = static (_, fallback) => fallback;
+        _displayName = displayName;
+    }
+
+    public object Value { get; }
+
+    public string DisplayName
+    {
+        get => _displayName;
+        set => SetProperty(ref _displayName, value);
+    }
+
+    /// <summary>
+    /// Re-resolves <see cref="DisplayName"/> from the localization function.
+    /// </summary>
+    public void Refresh()
+    {
+        if (!string.IsNullOrEmpty(_displayNameKey))
+        {
+            DisplayName = _localize(_displayNameKey, _displayNameFallback);
+        }
+    }
 }
 
-public sealed class BehaviorEventOptionViewModel(
-    string eventType,
-    string displayName,
-    string categoryDisplayName,
-    string description,
-    IReadOnlyList<BehaviorPayloadFieldOptionViewModel> payloadFields)
+public sealed class BehaviorEventOptionViewModel : ObservableObject
 {
-    public string EventType { get; } = eventType;
-    public string DisplayName { get; } = displayName;
-    public string CategoryDisplayName { get; } = categoryDisplayName;
-    public string Description { get; } = description;
-    public IReadOnlyList<BehaviorPayloadFieldOptionViewModel> PayloadFields { get; } = payloadFields;
+    private readonly string _displayNameKey;
+    private readonly string _categoryDisplayNameKey;
+    private readonly string _descriptionKey;
+    private readonly string _eventTypeFallback;
+    private readonly string _categoryFallback;
+    private readonly Func<string, string, string> _localize;
+    private string _displayName;
+    private string _categoryDisplayName;
+    private string _description;
+
+    public BehaviorEventOptionViewModel(
+        string eventType,
+        string displayNameKey,
+        string categoryDisplayNameKey,
+        string descriptionKey,
+        string eventTypeFallback,
+        string categoryFallback,
+        IReadOnlyList<BehaviorPayloadFieldOptionViewModel> payloadFields,
+        Func<string, string, string> localize)
+    {
+        EventType = eventType;
+        _displayNameKey = displayNameKey;
+        _categoryDisplayNameKey = categoryDisplayNameKey;
+        _descriptionKey = descriptionKey;
+        _eventTypeFallback = eventTypeFallback;
+        _categoryFallback = categoryFallback;
+        _localize = localize;
+        PayloadFields = payloadFields;
+
+        var category = localize(categoryDisplayNameKey, categoryFallback);
+        _categoryDisplayName = category;
+        _displayName = $"{category} / {localize(displayNameKey, eventTypeFallback)}";
+        _description = localize(descriptionKey, eventTypeFallback);
+    }
+
+    public string EventType { get; }
+    public IReadOnlyList<BehaviorPayloadFieldOptionViewModel> PayloadFields { get; }
+
+    public string DisplayName
+    {
+        get => _displayName;
+        set => SetProperty(ref _displayName, value);
+    }
+
+    public string CategoryDisplayName
+    {
+        get => _categoryDisplayName;
+        set => SetProperty(ref _categoryDisplayName, value);
+    }
+
+    public string Description
+    {
+        get => _description;
+        set => SetProperty(ref _description, value);
+    }
+
+    /// <summary>
+    /// Re-resolves all localized display strings from the localization function.
+    /// </summary>
+    public void Refresh()
+    {
+        CategoryDisplayName = _localize(_categoryDisplayNameKey, _categoryFallback);
+        DisplayName = $"{CategoryDisplayName} / {_localize(_displayNameKey, _eventTypeFallback)}";
+        Description = _localize(_descriptionKey, _eventTypeFallback);
+        foreach (var field in PayloadFields)
+        {
+            field.Refresh();
+        }
+    }
 }
 
-public sealed class BehaviorPayloadFieldOptionViewModel(
-    string path,
-    string displayName,
-    string description,
-    string typeName,
-    bool isUnknown,
-    bool isCommonFilterTarget)
+public sealed class BehaviorPayloadFieldOptionViewModel : ObservableObject
 {
-    public string Path { get; } = path;
-    public string DisplayName { get; } = displayName;
-    public string Description { get; } = description;
-    public string TypeName { get; } = typeName;
-    public bool IsUnknown { get; } = isUnknown;
-    public bool IsCommonFilterTarget { get; } = isCommonFilterTarget;
+    private readonly string _displayNameKey;
+    private readonly string _descriptionKey;
+    private readonly string _pathOrTypeFallback;
+    private readonly Func<string, string, string> _localize;
+    private string _displayName;
+    private string _description;
+
+    public BehaviorPayloadFieldOptionViewModel(
+        string path,
+        string displayNameKey,
+        string descriptionKey,
+        string typeName,
+        bool isUnknown,
+        bool isCommonFilterTarget,
+        Func<string, string, string> localize)
+    {
+        Path = path;
+        _displayNameKey = displayNameKey;
+        _descriptionKey = descriptionKey;
+        _pathOrTypeFallback = typeName;
+        _localize = localize;
+        TypeName = typeName;
+        IsUnknown = isUnknown;
+        IsCommonFilterTarget = isCommonFilterTarget;
+        if (isUnknown)
+        {
+            _displayName = string.Format(
+                localize(displayNameKey, "Unknown parameter: {0}"),
+                path);
+        }
+        else
+        {
+            _displayName = localize(displayNameKey, path);
+        }
+        _description = localize(descriptionKey, path);
+    }
+
+    public string Path { get; }
+    public string TypeName { get; }
+    public bool IsUnknown { get; }
+    public bool IsCommonFilterTarget { get; }
+
+    public string DisplayName
+    {
+        get => _displayName;
+        set => SetProperty(ref _displayName, value);
+    }
+
+    public string Description
+    {
+        get => _description;
+        set => SetProperty(ref _description, value);
+    }
+
+    /// <summary>
+    /// Re-resolves all localized display strings from the localization function.
+    /// </summary>
+    public void Refresh()
+    {
+        if (IsUnknown)
+        {
+            DisplayName = string.Format(
+                _localize(_displayNameKey, "Unknown parameter: {0}"),
+                Path);
+        }
+        else
+        {
+            DisplayName = _localize(_displayNameKey, Path);
+            Description = _localize(_descriptionKey, Path);
+        }
+    }
 }
 
 public sealed partial class BehaviorEditorViewModel : ObservableObject
@@ -560,6 +757,19 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
 
     public string GraphPlaceholder => _graphPlaceholder;
 
+    /// <summary>
+    /// Refreshes all localized display strings to support hot language switching.
+    /// </summary>
+    public void RefreshLocalization()
+    {
+        Trigger.RefreshLocalization();
+        StartTrigger.RefreshLocalization();
+        EndTrigger.RefreshLocalization();
+        OnPropertyChanged(nameof(KindDisplay));
+        OnPropertyChanged(nameof(GraphSummary));
+        OnPropertyChanged(nameof(GraphPlaceholder));
+    }
+
     private static string GraphStats(FrontedNodeGraph? graph)
     {
         return graph is null
@@ -671,11 +881,12 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
             {
                 options.Add(new BehaviorPayloadFieldOptionViewModel(
                     path,
-                    string.Format(localize("Designer.Behaviors.UnknownParameterFormat", "Unknown parameter: {0}"), path),
+                    "Designer.Behaviors.UnknownParameterFormat",
+                    string.Empty,
                     path,
-                    "string",
                     true,
-                    false));
+                    false,
+                    localize));
             }
         }
 
@@ -686,6 +897,24 @@ public sealed partial class TriggerDescriptorEditorViewModel : ObservableObject
         }
         OnPropertyChanged(nameof(SelectedEventDescriptor));
         OnPropertyChanged(nameof(PayloadFieldOptions));
+        OnPropertyChanged(nameof(HasPayloadFields));
+    }
+
+    /// <summary>
+    /// Refreshes all localized display strings to support hot language switching.
+    /// </summary>
+    public void RefreshLocalization()
+    {
+        foreach (var option in PayloadFieldOptions)
+        {
+            option.Refresh();
+        }
+
+        foreach (var filter in Filters)
+        {
+            filter.RefreshLocalization();
+        }
+
         OnPropertyChanged(nameof(HasPayloadFields));
     }
 }
@@ -754,6 +983,18 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
     {
         PayloadFieldOptions = options;
         OnPropertyChanged(nameof(PayloadFieldOptions));
+        OnPropertyChanged(nameof(IsUnknownParameter));
+    }
+
+    /// <summary>
+    /// Refreshes payload field option display strings to support hot language switching.
+    /// </summary>
+    public void RefreshLocalization()
+    {
+        foreach (var option in PayloadFieldOptions)
+        {
+            option.Refresh();
+        }
         OnPropertyChanged(nameof(IsUnknownParameter));
     }
 }

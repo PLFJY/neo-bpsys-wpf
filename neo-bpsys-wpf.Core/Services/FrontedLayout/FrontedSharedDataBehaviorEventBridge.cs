@@ -9,14 +9,17 @@ using System.Windows.Threading;
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
 /// <summary>
-/// Bridges attributed events from <see cref="ISharedDataService" /> to <see cref="IFrontedEventBus" />.
-/// Subscribes to each event on ISharedDataService that is annotated with
+/// Bridges attributed events from <see cref="ISharedDataService" /> and <see cref="IGameGuidanceService" />
+/// to <see cref="IFrontedEventBus" />.
+/// Subscribes to each event on the service interfaces that is annotated with
 /// <see cref="FrontedBehaviorEventAttribute" /> and publishes <see cref="FrontedBehaviorEvent" />
 /// instances with payload resolved from attributes.
 /// </summary>
 public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
 {
     private readonly ISharedDataService _sharedDataService;
+    private readonly IGameGuidanceService? _gameGuidanceService;
+    private readonly ICharacterSelectionService? _characterSelectionService;
     private readonly IFrontedEventBus _eventBus;
     private readonly ILogger<FrontedSharedDataBehaviorEventBridge> _logger;
     private readonly List<IDisposable> _subscriptions = [];
@@ -29,15 +32,20 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
     public FrontedSharedDataBehaviorEventBridge(
         ISharedDataService sharedDataService,
         IFrontedEventBus eventBus,
-        ILogger<FrontedSharedDataBehaviorEventBridge>? logger = null)
+        ILogger<FrontedSharedDataBehaviorEventBridge>? logger = null,
+        IGameGuidanceService? gameGuidanceService = null,
+        ICharacterSelectionService? characterSelectionService = null)
     {
         _sharedDataService = sharedDataService;
+        _gameGuidanceService = gameGuidanceService;
+        _characterSelectionService = characterSelectionService;
         _eventBus = eventBus;
         _logger = logger ?? NullLogger<FrontedSharedDataBehaviorEventBridge>.Instance;
     }
 
     /// <summary>
-    /// Starts the bridge by reflecting and subscribing to all attributed events on ISharedDataService.
+    /// Starts the bridge by reflecting and subscribing to all attributed events on
+    /// ISharedDataService and IGameGuidanceService.
     /// Safe to call multiple times — subsequent calls are no-ops.
     /// </summary>
     public void Start()
@@ -55,17 +63,34 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
                 return;
             }
 
-            var eventType = typeof(ISharedDataService);
-            foreach (var eventInfo in eventType.GetEvents(BindingFlags.Instance | BindingFlags.Public))
+            var scanTargets = new List<(Type InterfaceType, object ServiceInstance)>
             {
-                var metadata = eventInfo.GetCustomAttribute<FrontedBehaviorEventAttribute>();
-                if (metadata?.IsEnabled != true)
-                {
-                    continue;
-                }
+                (typeof(ISharedDataService), _sharedDataService)
+            };
 
-                var payloadAttributes = eventInfo.GetCustomAttributes<FrontedBehaviorEventPayloadAttribute>().ToArray();
-                SubscribeToEvent(eventInfo, metadata, payloadAttributes);
+            if (_gameGuidanceService is not null)
+            {
+                scanTargets.Add((typeof(IGameGuidanceService), _gameGuidanceService));
+            }
+
+            if (_characterSelectionService is not null)
+            {
+                scanTargets.Add((typeof(ICharacterSelectionService), _characterSelectionService));
+            }
+
+            foreach (var (interfaceType, serviceInstance) in scanTargets)
+            {
+                foreach (var eventInfo in interfaceType.GetEvents(BindingFlags.Instance | BindingFlags.Public))
+                {
+                    var metadata = eventInfo.GetCustomAttribute<FrontedBehaviorEventAttribute>();
+                    if (metadata?.IsEnabled != true)
+                    {
+                        continue;
+                    }
+
+                    var payloadAttributes = eventInfo.GetCustomAttributes<FrontedBehaviorEventPayloadAttribute>().ToArray();
+                    SubscribeToEvent(eventInfo, metadata, payloadAttributes, serviceInstance);
+                }
             }
 
             _logger.LogInformation("SharedData bridge started: subscribed to {Count} events.", _subscriptions.Count);
@@ -75,7 +100,8 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
     private void SubscribeToEvent(
         EventInfo eventInfo,
         FrontedBehaviorEventAttribute metadata,
-        FrontedBehaviorEventPayloadAttribute[] payloadAttributes)
+        FrontedBehaviorEventPayloadAttribute[] payloadAttributes,
+        object serviceInstance)
     {
         try
         {
@@ -97,13 +123,13 @@ public sealed class FrontedSharedDataBehaviorEventBridge : IDisposable
                 return;
             }
 
-            addMethod.Invoke(_sharedDataService, [handler]);
+            addMethod.Invoke(serviceInstance, [handler]);
 
             // Store the remove method + handler for cleanup
             var removeMethod = eventInfo.GetRemoveMethod();
             if (removeMethod is not null)
             {
-                _subscriptions.Add(new EventHandlerDisposable(removeMethod, _sharedDataService, handler));
+                _subscriptions.Add(new EventHandlerDisposable(removeMethod, serviceInstance, handler));
             }
         }
         catch (Exception ex)

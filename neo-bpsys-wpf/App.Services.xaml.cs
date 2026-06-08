@@ -111,7 +111,9 @@ public partial class App
             var bridge = new FrontedSharedDataBehaviorEventBridge(
                 sp.GetRequiredService<ISharedDataService>(),
                 sp.GetRequiredService<IFrontedEventBus>(),
-                sp.GetRequiredService<ILogger<FrontedSharedDataBehaviorEventBridge>>());
+                sp.GetRequiredService<ILogger<FrontedSharedDataBehaviorEventBridge>>(),
+                sp.GetRequiredService<IGameGuidanceService>(),
+                sp.GetRequiredService<ICharacterSelectionService>());
             bridge.Start();
             return bridge;
         });

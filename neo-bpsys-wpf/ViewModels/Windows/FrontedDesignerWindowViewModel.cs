@@ -243,6 +243,12 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
 
     public ObservableCollection<FrontedDesignerZoomPreset> ZoomPresets { get; } = [];
 
+    /// <summary>
+    /// Zoom presets for the ComboBox dropdown, excluding the Fit item.
+    /// </summary>
+    public IEnumerable<FrontedDesignerZoomPreset> ManualZoomPresets =>
+        ZoomPresets.Where(p => !p.IsFit).ToList();
+
     public ObservableCollection<FrontedControlDesignItem> FilteredDesignItems { get; } = [];
 
     public ObservableCollection<FrontedLayerGroup> LayerGroups { get; } = [];

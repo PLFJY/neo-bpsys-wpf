@@ -5,6 +5,7 @@ using neo_bpsys_wpf.Core.Models.FrontedLayout;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Designer;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
 using neo_bpsys_wpf.Core.Abstractions.Services;
+using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Helpers;
 using neo_bpsys_wpf.ViewModels.Windows;
 using System.Collections.Specialized;
@@ -97,7 +98,8 @@ public partial class FrontedDesignerWindow : FluentWindow
         IFilePickerService filePickerService,
         FrontedBindingBrowserProvider bindingBrowserProvider,
         FrontedResourceBrowserProvider resourceBrowserProvider,
-        ILogger<FrontedDesignerWindow> logger)
+        ILogger<FrontedDesignerWindow> logger,
+        ISettingsHostService settingsHostService)
     {
         _renderer = renderer;
         _filePickerService = filePickerService;
@@ -113,6 +115,19 @@ public partial class FrontedDesignerWindow : FluentWindow
         Closing += OnClosing;
         Deactivated += OnDeactivated;
         StateChanged += OnWindowStateChanged;
+        settingsHostService.LanguageSettingChanged += OnLanguageSettingChanged;
+    }
+
+    private void OnLanguageSettingChanged(object? sender, LanguageChangedEventArgs e)
+    {
+        if (_viewModel?.BehaviorPanel is { } behaviorPanel)
+        {
+            // Refresh behavior panel localization on a layout-managed dispatcher
+            // to avoid re-entrancy with the language-setting change propagation.
+            _ = Dispatcher.BeginInvoke(
+                DispatcherPriority.Background,
+                new Action(() => behaviorPanel.RefreshLocalization()));
+        }
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
@@ -1133,14 +1148,7 @@ public partial class FrontedDesignerWindow : FluentWindow
             && e.AddedItems[0] is FrontedDesignerZoomPreset preset
             && sender is ComboBox)
         {
-            if (preset.IsFit)
-            {
-                _viewModel?.FitToWindowCommand.Execute(null);
-            }
-            else
-            {
-                _viewModel?.ApplyManualZoom(preset.Scale);
-            }
+            _viewModel?.ApplyManualZoom(preset.Scale);
         }
     }
 

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Exceptions;
@@ -73,15 +74,26 @@ public class GameGuidanceService(
 
     private bool _isGuidanceStarted;
 
+    /// <inheritdoc/>
+    public event EventHandler<GameGuidanceStateChangedEventArgs>? GuidanceStateChanged;
+
+    /// <inheritdoc/>
+    public event EventHandler<GameGuidanceStepChangedEventArgs>? GuidanceStepChanged;
+
+    /// <inheritdoc/>
+    public event EventHandler<GameGuidanceHighlightChangedEventArgs>? GuidanceHighlightChanged;
+
     public bool IsGuidanceStarted
     {
         get => _isGuidanceStarted;
         set
         {
+            if (_isGuidanceStarted == value) return;
             var oldValue = _isGuidanceStarted;
             _isGuidanceStarted = value;
             WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(this, nameof(IsGuidanceStarted),
                 oldValue, value));
+            GuidanceStateChanged?.Invoke(this, new GameGuidanceStateChangedEventArgs(value));
         }
     }
 
@@ -166,6 +178,7 @@ public class GameGuidanceService(
         _currentStep = 0;
         _infoBarService.CloseInfoBar();
         WeakReferenceMessenger.Default.Send(new HighlightMessage(null, null));
+        GuidanceHighlightChanged?.Invoke(this, new GameGuidanceHighlightChangedEventArgs(null, null));
         IsGuidanceStarted = false;
     }
 
@@ -186,6 +199,7 @@ public class GameGuidanceService(
 
             _infoBarService.ShowWarningInfoBar(I18nHelper.GetLocalizedString("AlreadyLastStep"));
             WeakReferenceMessenger.Default.Send(new HighlightMessage(GameAction.EndGuidance, null));
+            GuidanceHighlightChanged?.Invoke(this, new GameGuidanceHighlightChangedEventArgs(GameAction.EndGuidance, null));
         }
         else
         {
@@ -233,10 +247,20 @@ public class GameGuidanceService(
         _sharedDataService.TimerStart(thisStep.Time);
         //等待待选框动画就位
         await Task.Delay(250);
+
+        var actionName = ActionName[thisStep.Action].Invoke();
+
         //广播高亮消息
         WeakReferenceMessenger.Default.Send(new HighlightMessage(thisStep.Action, thisStep.Index));
 
-        return ActionName[thisStep.Action].Invoke();
+        //触发步骤变化事件
+        GuidanceStepChanged?.Invoke(this, new GameGuidanceStepChangedEventArgs(
+            _currentStep, thisStep.Action, thisStep.Index, thisStep.Time, actionName));
+
+        //触发高亮变化事件
+        GuidanceHighlightChanged?.Invoke(this, new GameGuidanceHighlightChangedEventArgs(thisStep.Action, thisStep.Index));
+
+        return actionName;
     }
 
     public class GameProperty

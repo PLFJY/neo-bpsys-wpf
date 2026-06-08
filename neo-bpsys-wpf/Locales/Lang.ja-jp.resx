@@ -3928,6 +3928,7 @@
   <data name="Designer.Behaviors.Event.GameProgressChanged" xml:space="preserve"><value>対局進行変更</value></data>
   <data name="Designer.Behaviors.Event.CharacterPicked" xml:space="preserve"><value>キャラクター選択</value></data>
   <data name="Designer.Behaviors.Event.CharacterBanned" xml:space="preserve"><value>キャラクター禁止</value></data>
+  <data name="Designer.Behaviors.Event.CharacterSelected" xml:space="preserve"><value>キャラクター選択</value></data>
   <data name="Designer.Behaviors.Event.CurrentPickingSlotChanged" xml:space="preserve"><value>現在選択枠変更</value></data>
   <data name="Designer.Behaviors.Event.ScoreChanged" xml:space="preserve"><value>スコア変更</value></data>
   <data name="Designer.Behaviors.Event.TeamChanged" xml:space="preserve"><value>チーム変更</value></data>
@@ -3938,7 +3939,11 @@
   <data name="Designer.Behaviors.Event.TimerReached" xml:space="preserve"><value>タイマー到達</value></data>
   <data name="Designer.Behaviors.Event.ManualTrigger" xml:space="preserve"><value>手動トリガー</value></data>
   <data name="Designer.Behaviors.Event.PluginEvent" xml:space="preserve"><value>プラグインイベント</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceHighlightChanged" xml:space="preserve"><value>ガイダンスハイライト変更</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStateChanged" xml:space="preserve"><value>ガイダンス状態変更</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStepChanged" xml:space="preserve"><value>ガイダンスステップ変更</value></data>
   <data name="Designer.Behaviors.Category.Game" xml:space="preserve"><value>対局</value></data>
+  <data name="Designer.Behaviors.Category.Guidance" xml:space="preserve"><value>ガイダンス</value></data>
   <data name="Designer.Behaviors.Category.Display" xml:space="preserve"><value>表示</value></data>
   <data name="Designer.Behaviors.Category.Score" xml:space="preserve"><value>スコア</value></data>
   <data name="Designer.Behaviors.Category.Timer" xml:space="preserve"><value>タイマー</value></data>
@@ -3962,6 +3967,13 @@
   <data name="Designer.Behaviors.Payload.IsMapV2Breathing" xml:space="preserve"><value>マップ呼吸表示</value></data>
   <data name="Designer.Behaviors.Payload.IsMapV2CampVisible" xml:space="preserve"><value>マップ陣営表示</value></data>
   <data name="Designer.Behaviors.Payload.PickedMap" xml:space="preserve"><value>選択マップ</value></data>
+  <data name="Designer.Behaviors.Payload.Action" xml:space="preserve"><value>アクション</value></data>
+  <data name="Designer.Behaviors.Payload.ActionName" xml:space="preserve"><value>アクション名</value></data>
+  <data name="Designer.Behaviors.Payload.GameAction" xml:space="preserve"><value>ハイライトアクション</value></data>
+  <data name="Designer.Behaviors.Payload.IsStarted" xml:space="preserve"><value>開始済み</value></data>
+  <data name="Designer.Behaviors.Payload.StepIndex" xml:space="preserve"><value>ステップインデックス</value></data>
+  <data name="Designer.Behaviors.Payload.Camp" xml:space="preserve"><value>陣営</value></data>
+  <data name="Designer.Behaviors.Payload.PlayerIndex" xml:space="preserve"><value>プレイヤーインデックス</value></data>
   <data name="Designer.Behaviors.Operator.NotContains" xml:space="preserve"><value>含まない</value></data>
   <data name="Designer.Behaviors.When" xml:space="preserve"><value>条件</value></data>
   <data name="Designer.Behaviors.Is" xml:space="preserve"><value>が</value></data>
@@ -3984,6 +3996,11 @@
   <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description" xml:space="preserve"><value>マップ陣営表示が変更された時に発生します。</value></data>
   <data name="Designer.Behaviors.Event.PickedMapChanged.Description" xml:space="preserve"><value>選択マップが変更された時に発生します。</value></data>
   <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description" xml:space="preserve"><value>マップ Ban 状態が変更された時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceHighlightChanged.Description" xml:space="preserve"><value>ガイダンスハイライトが変更された時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStateChanged.Description" xml:space="preserve"><value>ガイダンスの開始または停止時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStepChanged.Description" xml:space="preserve"><value>ガイダンスステップが切り替わった時に発生します。</value></data>
+  <data name="Designer.Behaviors.Event.CharacterSelected.Description" xml:space="preserve"><value>キャラクターが選択された時に発生します（陣営とプレイヤーインデックスを含む）。</value></data>
+  <data name="Designer.Behaviors.Event.CharacterBanned.Description" xml:space="preserve"><value>キャラクターが禁止された時に発生します（陣営と禁止インデックスを含む）。</value></data>
   <data name="Designer.Graph.NodeCatalog" xml:space="preserve"><value>ノードカタログ</value></data>
   <data name="Designer.Graph.Properties" xml:space="preserve"><value>ノードプロパティ</value></data>
   <data name="Designer.Graph.Validation" xml:space="preserve"><value>グラフチェック</value></data>
@@ -4111,4 +4128,10 @@
 
 値ノード：Number/String/Boolean/Color は定数値を保存します。値ポートの計算は後続段階です。ControlReference は対象参照で、現在は Self が主な値です。</value></data>
   <data name="Designer.Graph.NodeCatalog.DragHint" xml:space="preserve"><value>このノードを中央のキャンバスへドラッグして追加します。</value></data>
+  <data name="Designer.Graph.Undo" xml:space="preserve"><value>元に戻す</value></data>
+  <data name="Designer.Graph.Redo" xml:space="preserve"><value>やり直す</value></data>
+  <data name="Designer.Graph.Save" xml:space="preserve"><value>保存</value></data>
+  <data name="Designer.Graph.ToolTipUndo" xml:space="preserve"><value>元に戻す (Ctrl+Z)</value></data>
+  <data name="Designer.Graph.ToolTipRedo" xml:space="preserve"><value>やり直す (Ctrl+Y)</value></data>
+  <data name="Designer.Graph.ToolTipSave" xml:space="preserve"><value>保存 (Ctrl+S)</value></data>
 </root>

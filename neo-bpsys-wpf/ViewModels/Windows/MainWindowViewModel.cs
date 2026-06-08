@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
@@ -7,6 +7,7 @@ using neo_bpsys_wpf.Core;
 using neo_bpsys_wpf.Core.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Enums;
+using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Helpers;
 using neo_bpsys_wpf.Core.Messages;
 using neo_bpsys_wpf.Core.Services.Registry;
@@ -106,6 +107,23 @@ public partial class MainWindowViewModel :
         BuildNavigationMenuItems();
         sharedDataService.CountDownValueChanged += (_, _) => OnPropertyChanged(nameof(RemainingSeconds));
         sharedDataService.CurrentGameChanged += (_, _) => OnPropertyChanged(nameof(CurrentGame));
+
+        // 订阅对局引导服务的显式事件
+        _gameGuidanceService.GuidanceStateChanged += (_, args) =>
+        {
+            IsGuidanceStarted = args.IsStarted;
+        };
+
+        _gameGuidanceService.GuidanceStepChanged += (_, args) =>
+        {
+            ActionName = args.ActionName;
+        };
+
+        _gameGuidanceService.GuidanceHighlightChanged += (_, args) =>
+        {
+            IsSwapHighlighted = args.GameAction == GameAction.PickCamp;
+            IsEndGuidanceHighlighted = args.GameAction == GameAction.EndGuidance;
+        };
     }
 
     private void BuildNavigationMenuItems()

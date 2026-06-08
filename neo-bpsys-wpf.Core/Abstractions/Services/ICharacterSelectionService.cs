@@ -1,6 +1,8 @@
+using neo_bpsys_wpf.Core.Attributes;
 using neo_bpsys_wpf.Core.Enums;
 using neo_bpsys_wpf.Core.Events;
 using neo_bpsys_wpf.Core.Models;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 namespace neo_bpsys_wpf.Core.Abstractions.Services;
 
@@ -47,10 +49,16 @@ public interface ICharacterSelectionService
     /// <summary>
     /// 角色选择事件
     /// </summary>
+    [FrontedBehaviorEvent("Selection.CharacterSelected", DisplayNameKey = "Designer.Behaviors.Event.CharacterSelected", DescriptionKey = "Designer.Behaviors.Event.CharacterSelected.Description", Category = "Game", CategoryKey = "Designer.Behaviors.Category.Game")]
+    [FrontedBehaviorEventPayload("Event.Camp", DisplayNameKey = "Designer.Behaviors.Payload.Camp", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(CharacterSelectedEventArgs.Camp), TypeName = "Camp")]
+    [FrontedBehaviorEventPayload("Event.PlayerIndex", DisplayNameKey = "Designer.Behaviors.Payload.PlayerIndex", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(CharacterSelectedEventArgs.PlayerIndex), TypeName = "int")]
     event EventHandler<CharacterSelectedEventArgs> CharacterSelected;
 
     /// <summary>
     /// 角色禁用事件
     /// </summary>
+    [FrontedBehaviorEvent("Selection.CharacterBanned", DisplayNameKey = "Designer.Behaviors.Event.CharacterBanned", DescriptionKey = "Designer.Behaviors.Event.CharacterBanned.Description", Category = "Game", CategoryKey = "Designer.Behaviors.Category.Game")]
+    [FrontedBehaviorEventPayload("Event.Camp", DisplayNameKey = "Designer.Behaviors.Payload.Camp", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(CharacterBannedEventArgs.Camp), TypeName = "Camp")]
+    [FrontedBehaviorEventPayload("Event.PlayerIndex", DisplayNameKey = "Designer.Behaviors.Payload.PlayerIndex", Source = FrontedBehaviorPayloadSource.EventArgsProperty, SourcePath = nameof(CharacterBannedEventArgs.PlayerIndex), TypeName = "int")]
     event EventHandler<CharacterBannedEventArgs> CharacterBanned;
 }

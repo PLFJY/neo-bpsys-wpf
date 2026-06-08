@@ -56,6 +56,29 @@
                 VerticalAlignment="Center"
                 Foreground="{DynamicResource SystemAccentColorPrimaryBrush}"
                 Text="{Binding ConnectionStatus}" />
+            <Border
+                Width="1"
+                Height="20"
+                Margin="18,0,0,0"
+                Background="{DynamicResource ControlStrokeColorDefaultBrush}" />
+            <ui:Button
+                Margin="6,0,0,0"
+                Command="{Binding UndoCommand}"
+                Icon="{ui:SymbolIcon Symbol=ArrowUndo24}"
+                Content="{lex:Loc Designer.Graph.Undo}"
+                ToolTip="{lex:Loc Designer.Graph.ToolTipUndo}" />
+            <ui:Button
+                Margin="4,0,0,0"
+                Command="{Binding RedoCommand}"
+                Icon="{ui:SymbolIcon Symbol=ArrowRedo24}"
+                Content="{lex:Loc Designer.Graph.Redo}"
+                ToolTip="{lex:Loc Designer.Graph.ToolTipRedo}" />
+            <ui:Button
+                Margin="8,0,0,0"
+                Command="{Binding SaveCommand}"
+                Icon="{ui:SymbolIcon Symbol=Save24}"
+                Content="{lex:Loc Designer.Graph.Save}"
+                ToolTip="{lex:Loc Designer.Graph.ToolTipSave}" />
         </StackPanel>
 
         <Grid Grid.Row="1" MinHeight="0">
@@ -235,6 +258,15 @@
                                     StrokeDashArray="3,2"
                                     StrokeThickness="3"
                                     Visibility="Collapsed" />
+                                <!--  框选矩形  -->
+                                <Rectangle
+                                    x:Name="SelectionRect"
+                                    Fill="#22000000"
+                                    IsHitTestVisible="False"
+                                    Stroke="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                    StrokeDashArray="3,2"
+                                    StrokeThickness="1.5"
+                                    Visibility="Collapsed" />
                                 <ItemsControl ItemsSource="{Binding Nodes}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -250,14 +282,24 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Border
+                                                x:Name="NodeBorder"
                                                 Width="190"
-                                                Padding="0,0,0,8"
                                                 Background="{DynamicResource CardBackgroundFillColorSecondaryBrush}"
-                                                BorderBrush="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                                BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
                                                 BorderThickness="1"
                                                 CornerRadius="6"
                                                 MouseRightButtonUp="NodeCard_OnMouseRightButtonUp"
                                                 PreviewMouseLeftButtonDown="NodeCard_OnPreviewMouseLeftButtonDown">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                <Setter Property="BorderBrush" Value="{DynamicResource SystemAccentColorPrimaryBrush}" />
+                                                                <Setter Property="BorderThickness" Value="1.5" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
                                                 <Border.ContextMenu>
                                                     <ContextMenu>
                                                         <MenuItem Click="DeleteNodeMenuItem_OnClick" Header="{lex:Loc Designer.Graph.DeleteNode}" />
@@ -276,66 +318,90 @@
                                                     </StackPanel>
                                                 </Border.ToolTip>
                                                 <Grid>
-                                                    <Grid.RowDefinitions>
-                                                        <RowDefinition Height="36" />
-                                                        <RowDefinition Height="Auto" />
-                                                    </Grid.RowDefinitions>
-                                                    <primitives:Thumb DragDelta="NodeHeader_OnDragDelta">
-                                                        <primitives:Thumb.Template>
-                                                            <ControlTemplate TargetType="{x:Type primitives:Thumb}">
-                                                                <Border
-                                                                    Padding="8"
-                                                                    Background="{DynamicResource SubtleFillColorSecondaryBrush}"
-                                                                    CornerRadius="6,6,0,0">
-                                                                    <TextBlock
-                                                                        FontWeight="SemiBold"
-                                                                        Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                                                        Text="{Binding DisplayName}" />
-                                                                </Border>
-                                                            </ControlTemplate>
-                                                        </primitives:Thumb.Template>
-                                                    </primitives:Thumb>
-                                                    <Grid Grid.Row="1" Margin="6,8,6,0">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition />
-                                                            <ColumnDefinition />
-                                                        </Grid.ColumnDefinitions>
-                                                        <ItemsControl ItemsSource="{Binding InputPorts}">
-                                                            <ItemsControl.ItemTemplate>
-                                                                <DataTemplate>
-                                                                    <Border
-                                                                        Margin="0,1,2,1"
-                                                                        Padding="4,2"
-                                                                        Background="{DynamicResource ControlFillColorDefaultBrush}"
-                                                                        CornerRadius="4"
-                                                                        MouseLeftButtonUp="InputPort_OnMouseLeftButtonUp"
-                                                                        ToolTip="{Binding Name}">
-                                                                        <TextBlock Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding Name}" />
+                                                    <!--  选中态左侧强调条  -->
+                                                    <Rectangle
+                                                        x:Name="SelectionAccent"
+                                                        Width="3"
+                                                        HorizontalAlignment="Left"
+                                                        Fill="{DynamicResource SystemAccentColorPrimaryBrush}"
+                                                        IsHitTestVisible="False"
+                                                        Visibility="Collapsed" />
+                                                    <Grid Margin="0,0,0,8">
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="36" />
+                                                            <RowDefinition Height="Auto" />
+                                                        </Grid.RowDefinitions>
+                                                        <primitives:Thumb
+                                                            DragCompleted="NodeHeader_OnDragCompleted"
+                                                            DragDelta="NodeHeader_OnDragDelta"
+                                                            DragStarted="NodeHeader_OnDragStarted">
+                                                            <primitives:Thumb.Template>
+                                                                <ControlTemplate TargetType="{x:Type primitives:Thumb}">
+                                                                    <Border Padding="8,0,8,0" CornerRadius="6,6,0,0">
+                                                                        <Border.Background>
+                                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                                                <GradientStop Offset="0" Color="{DynamicResource SubtleFillColorSecondary}" />
+                                                                                <GradientStop Offset="1" Color="{DynamicResource SubtleFillColorTertiary}" />
+                                                                            </LinearGradientBrush>
+                                                                        </Border.Background>
+                                                                        <Grid>
+                                                                            <TextBlock
+                                                                                VerticalAlignment="Center"
+                                                                                FontWeight="SemiBold"
+                                                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                                                Text="{Binding DisplayName}" />
+                                                                        </Grid>
                                                                     </Border>
-                                                                </DataTemplate>
-                                                            </ItemsControl.ItemTemplate>
-                                                        </ItemsControl>
-                                                        <ItemsControl Grid.Column="1" ItemsSource="{Binding OutputPorts}">
-                                                            <ItemsControl.ItemTemplate>
-                                                                <DataTemplate>
-                                                                    <Border
-                                                                        Margin="2,1,0,1"
-                                                                        Padding="4,2"
-                                                                        Background="{DynamicResource ControlFillColorDefaultBrush}"
-                                                                        CornerRadius="4"
-                                                                        MouseLeftButtonDown="OutputPort_OnMouseLeftButtonDown"
-                                                                        ToolTip="{Binding Name}">
-                                                                        <TextBlock
-                                                                            HorizontalAlignment="Right"
-                                                                            Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                                                                            Text="{Binding Name}" />
-                                                                    </Border>
-                                                                </DataTemplate>
-                                                            </ItemsControl.ItemTemplate>
-                                                        </ItemsControl>
+                                                                </ControlTemplate>
+                                                            </primitives:Thumb.Template>
+                                                        </primitives:Thumb>
+                                                        <Grid Grid.Row="1" Margin="6,8,6,0">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition />
+                                                                <ColumnDefinition />
+                                                            </Grid.ColumnDefinitions>
+                                                            <ItemsControl ItemsSource="{Binding InputPorts}">
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <Border
+                                                                            Margin="0,1,2,1"
+                                                                            Padding="4,2"
+                                                                            Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                                                            CornerRadius="4"
+                                                                            MouseLeftButtonUp="InputPort_OnMouseLeftButtonUp"
+                                                                            ToolTip="{Binding Name}">
+                                                                            <TextBlock Foreground="{DynamicResource TextFillColorPrimaryBrush}" Text="{Binding Name}" />
+                                                                        </Border>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
+                                                            <ItemsControl Grid.Column="1" ItemsSource="{Binding OutputPorts}">
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <Border
+                                                                            Margin="2,1,0,1"
+                                                                            Padding="4,2"
+                                                                            Background="{DynamicResource ControlFillColorDefaultBrush}"
+                                                                            CornerRadius="4"
+                                                                            MouseLeftButtonDown="OutputPort_OnMouseLeftButtonDown"
+                                                                            ToolTip="{Binding Name}">
+                                                                            <TextBlock
+                                                                                HorizontalAlignment="Right"
+                                                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                                                                                Text="{Binding Name}" />
+                                                                        </Border>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
+                                                        </Grid>
                                                     </Grid>
                                                 </Grid>
                                             </Border>
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                    <Setter TargetName="SelectionAccent" Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>

@@ -1324,20 +1324,17 @@
                         VerticalAlignment="Center"
                         DisplayMemberPath="DisplayName"
                         IsEditable="True"
-                        ItemsSource="{Binding ZoomPresets}"
-                        KeyDown="ZoomComboBox_OnKeyDown"
-                        LostKeyboardFocus="ZoomComboBox_OnLostKeyboardFocus"
+                        ItemsSource="{Binding ManualZoomPresets}"
                         SelectionChanged="ZoomComboBox_OnSelectionChanged"
-                        Text="{Binding ZoomEditText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        Text="{Binding ZoomEditText, Mode=OneWay}" />
                     <Slider
                         Width="160"
                         Margin="8,0,0,0"
                         VerticalAlignment="Center"
-                        IsSnapToTickEnabled="True"
                         LargeChange="25"
-                        Maximum="200"
+                        Maximum="400"
                         Minimum="25"
-                        SmallChange="5"
+                        SmallChange="1"
                         TickFrequency="25"
                         Value="{Binding ZoomPercent, Mode=TwoWay}" />
                     <ui:Button

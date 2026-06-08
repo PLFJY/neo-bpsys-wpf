@@ -3925,6 +3925,7 @@
   <data name="Designer.Behaviors.Event.GameProgressChanged" xml:space="preserve"><value>Game progress changed</value></data>
   <data name="Designer.Behaviors.Event.CharacterPicked" xml:space="preserve"><value>Character picked</value></data>
   <data name="Designer.Behaviors.Event.CharacterBanned" xml:space="preserve"><value>Character banned</value></data>
+  <data name="Designer.Behaviors.Event.CharacterSelected" xml:space="preserve"><value>Character selected</value></data>
   <data name="Designer.Behaviors.Event.CurrentPickingSlotChanged" xml:space="preserve"><value>Current picking slot changed</value></data>
   <data name="Designer.Behaviors.Event.ScoreChanged" xml:space="preserve"><value>Score changed</value></data>
   <data name="Designer.Behaviors.Event.TeamChanged" xml:space="preserve"><value>Team changed</value></data>
@@ -3935,7 +3936,11 @@
   <data name="Designer.Behaviors.Event.TimerReached" xml:space="preserve"><value>Timer reached</value></data>
   <data name="Designer.Behaviors.Event.ManualTrigger" xml:space="preserve"><value>Manual trigger</value></data>
   <data name="Designer.Behaviors.Event.PluginEvent" xml:space="preserve"><value>Plugin event</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceHighlightChanged" xml:space="preserve"><value>Guidance highlight changed</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStateChanged" xml:space="preserve"><value>Guidance state changed</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStepChanged" xml:space="preserve"><value>Guidance step changed</value></data>
   <data name="Designer.Behaviors.Category.Game" xml:space="preserve"><value>Game</value></data>
+  <data name="Designer.Behaviors.Category.Guidance" xml:space="preserve"><value>Guidance</value></data>
   <data name="Designer.Behaviors.Category.Display" xml:space="preserve"><value>Display</value></data>
   <data name="Designer.Behaviors.Category.Score" xml:space="preserve"><value>Score</value></data>
   <data name="Designer.Behaviors.Category.Timer" xml:space="preserve"><value>Timer</value></data>
@@ -3959,6 +3964,13 @@
   <data name="Designer.Behaviors.Payload.IsMapV2Breathing" xml:space="preserve"><value>Map breathing enabled</value></data>
   <data name="Designer.Behaviors.Payload.IsMapV2CampVisible" xml:space="preserve"><value>Map camp visible</value></data>
   <data name="Designer.Behaviors.Payload.PickedMap" xml:space="preserve"><value>Picked map</value></data>
+  <data name="Designer.Behaviors.Payload.Action" xml:space="preserve"><value>Action</value></data>
+  <data name="Designer.Behaviors.Payload.ActionName" xml:space="preserve"><value>Action name</value></data>
+  <data name="Designer.Behaviors.Payload.GameAction" xml:space="preserve"><value>Highlighted action</value></data>
+  <data name="Designer.Behaviors.Payload.IsStarted" xml:space="preserve"><value>Is started</value></data>
+  <data name="Designer.Behaviors.Payload.StepIndex" xml:space="preserve"><value>Step index</value></data>
+  <data name="Designer.Behaviors.Payload.Camp" xml:space="preserve"><value>Camp</value></data>
+  <data name="Designer.Behaviors.Payload.PlayerIndex" xml:space="preserve"><value>Player index</value></data>
   <data name="Designer.Behaviors.Operator.NotContains" xml:space="preserve"><value>does not contain</value></data>
   <data name="Designer.Behaviors.When" xml:space="preserve"><value>When</value></data>
   <data name="Designer.Behaviors.Is" xml:space="preserve"><value>is</value></data>
@@ -3981,6 +3993,11 @@
   <data name="Designer.Behaviors.Event.IsMapV2CampVisibleChanged.Description" xml:space="preserve"><value>Fires when map camp visibility changes.</value></data>
   <data name="Designer.Behaviors.Event.PickedMapChanged.Description" xml:space="preserve"><value>Fires when the picked map changes.</value></data>
   <data name="Designer.Behaviors.Event.MapV2BannedChanged.Description" xml:space="preserve"><value>Fires when map ban state changes.</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceHighlightChanged.Description" xml:space="preserve"><value>Fires when the guidance highlight changes.</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStateChanged.Description" xml:space="preserve"><value>Fires when guidance starts or stops.</value></data>
+  <data name="Designer.Behaviors.Event.GuidanceStepChanged.Description" xml:space="preserve"><value>Fires when the guidance step changes.</value></data>
+  <data name="Designer.Behaviors.Event.CharacterSelected.Description" xml:space="preserve"><value>Fires when a character is selected (includes camp and player index).</value></data>
+  <data name="Designer.Behaviors.Event.CharacterBanned.Description" xml:space="preserve"><value>Fires when a character is banned (includes camp and ban index).</value></data>
   <data name="Designer.Graph.NodeCatalog" xml:space="preserve"><value>Node catalog</value></data>
   <data name="Designer.Graph.Properties" xml:space="preserve"><value>Node properties</value></data>
   <data name="Designer.Graph.Validation" xml:space="preserve"><value>Graph checks</value></data>
@@ -4108,4 +4125,10 @@ Action nodes: Log writes preview text only. SetProperty records a property set r
 
 Value nodes: Number/String/Boolean/Color store constant values for later value-port evaluation. ControlReference stores a target reference; Self is the common value today.</value></data>
   <data name="Designer.Graph.NodeCatalog.DragHint" xml:space="preserve"><value>Drag this node onto the canvas to add it.</value></data>
+  <data name="Designer.Graph.Undo" xml:space="preserve"><value>Undo</value></data>
+  <data name="Designer.Graph.Redo" xml:space="preserve"><value>Redo</value></data>
+  <data name="Designer.Graph.Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Designer.Graph.ToolTipUndo" xml:space="preserve"><value>Undo (Ctrl+Z)</value></data>
+  <data name="Designer.Graph.ToolTipRedo" xml:space="preserve"><value>Redo (Ctrl+Y)</value></data>
+  <data name="Designer.Graph.ToolTipSave" xml:space="preserve"><value>Save (Ctrl+S)</value></data>
 </root>

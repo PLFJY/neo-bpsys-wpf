@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Text.Json;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using neo_bpsys_wpf.Core.Abstractions.Services;
@@ -19,6 +20,12 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     private readonly Func<string, string, string> _localize;
     private CancellationTokenSource? _previewCancellation;
     private FrontedNodePortViewModel? _pendingPort;
+    private readonly Stack<string> _undoStack = new();
+    private readonly Stack<string> _redoStack = new();
+    private bool _isRestoring;
+    private bool _isDragging;
+    private const int UndoStackLimit = 50;
+    private readonly Action? _save;
 
     public FrontedNodeGraphEditorViewModel(
         FrontedNodeGraph graph,
@@ -28,7 +35,8 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         IFrontedAnimationRuntime? animationRuntime = null,
         Func<FrontedAnimationExecutionContext?>? createAnimationContext = null,
         Action? markDirty = null,
-        Func<string, string, string>? localize = null)
+        Func<string, string, string>? localize = null,
+        Action? save = null)
     {
         Graph = graph;
         _catalog = catalog ?? new FrontedNodeCatalog();
@@ -38,6 +46,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         _createAnimationContext = createAnimationContext;
         _markDirty = markDirty ?? (() => { });
         _localize = localize ?? ((_, fallback) => fallback);
+        _save = save ?? (() => { });
         Catalog = _catalog.Nodes
             .Where(IsAnimationEditorCatalogNode)
             .Select(descriptor => new FrontedNodeCatalogItemViewModel(descriptor, _localize))
@@ -48,6 +57,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
 
     public FrontedNodeGraph Graph { get; }
     public ObservableCollection<FrontedNodeEditorViewModel> Nodes { get; } = [];
+    public ObservableCollection<FrontedNodeEditorViewModel> SelectedNodes { get; } = [];
     public ObservableCollection<FrontedNodeConnectionViewModel> Connections { get; } = [];
     public ObservableCollection<FrontedNodeGraphValidationMessage> ValidationMessages { get; } = [];
     public ObservableCollection<FrontedGraphExecutionLogItem> ExecutionLog { get; } = [];
@@ -91,6 +101,11 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     public void AddNode(string? nodeType)
     {
         AddNodeAt(nodeType, 40 + Nodes.Count * 20, 40 + Nodes.Count * 20);
+        SelectedNodes.Clear();
+        if (Nodes.Count > 0)
+        {
+            SelectedNodes.Add(Nodes[^1]);
+        }
     }
 
     public void AddNodeAt(string? nodeType, double x, double y)
@@ -100,10 +115,15 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
             return;
         }
 
+        CreateSnapshot();
         var model = _catalog.CreateNode(nodeType, Math.Max(0, x), Math.Max(0, y));
         Graph.Nodes.Add(model);
         var viewModel = CreateNode(model);
         Nodes.Add(viewModel);
+        ClearIsSelected();
+        SelectedNodes.Clear();
+        SelectedNodes.Add(viewModel);
+        viewModel.IsSelected = true;
         SelectedNode = viewModel;
         UpdateCanvasSize();
         Changed();
@@ -117,6 +137,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
             return;
         }
 
+        CreateSnapshot();
         var start = _catalog.CreateNode("flow.start", 60, 100);
         var end = _catalog.CreateNode("flow.end", 360, 100);
         Graph.Nodes.AddRange([start, end]);
@@ -129,7 +150,38 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     [RelayCommand]
     public void DeleteSelectedNode()
     {
-        DeleteNode(SelectedNode);
+        if (SelectedNodes.Count > 0)
+        {
+            DeleteNodes([.. SelectedNodes]);
+        }
+        else
+        {
+            DeleteNode(SelectedNode);
+        }
+    }
+
+    /// <summary>删除多个节点</summary>
+    public void DeleteNodes(IReadOnlyList<FrontedNodeEditorViewModel> nodes)
+    {
+        if (nodes.Count == 0)
+        {
+            return;
+        }
+
+        CreateSnapshot();
+        foreach (var node in nodes)
+        {
+            if (Graph.RemoveNode(node.Model.NodeId))
+            {
+                Nodes.Remove(node);
+            }
+        }
+        ClearIsSelected();
+        SelectedNodes.Clear();
+        SelectedNode = null;
+        ReloadConnections();
+        UpdateCanvasSize();
+        Changed();
     }
 
     public void DeleteNode(FrontedNodeEditorViewModel? node)
@@ -140,6 +192,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         }
 
         Nodes.Remove(node);
+        SelectedNodes.Remove(node);
         if (SelectedNode == node)
         {
             SelectedNode = null;
@@ -152,41 +205,150 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     [RelayCommand]
     public void DuplicateSelectedNode()
     {
-        if (SelectedNode is null)
+        var nodesToClone = SelectedNodes.Count > 0
+            ? SelectedNodes.ToList()
+            : SelectedNode is not null ? [SelectedNode] : [];
+        if (nodesToClone.Count == 0)
         {
             return;
         }
 
-        var source = SelectedNode.Model;
-        var clone = new FrontedNode
+        CreateSnapshot();
+        var clones = new List<FrontedNodeEditorViewModel>();
+        foreach (var node in nodesToClone)
         {
-            NodeType = source.NodeType,
-            DisplayName = source.DisplayName,
-            X = source.X + 30,
-            Y = source.Y + 30,
-            Properties = source.Properties.ToDictionary(pair => pair.Key, pair => pair.Value.Clone(), StringComparer.Ordinal)
-        };
-        Graph.Nodes.Add(clone);
-        var viewModel = CreateNode(clone);
-        Nodes.Add(viewModel);
-        SelectedNode = viewModel;
+            var source = node.Model;
+            var clone = new FrontedNode
+            {
+                NodeType = source.NodeType,
+                DisplayName = source.DisplayName,
+                X = source.X + 30,
+                Y = source.Y + 30,
+                Properties = source.Properties.ToDictionary(pair => pair.Key, pair => pair.Value.Clone(), StringComparer.Ordinal)
+            };
+            Graph.Nodes.Add(clone);
+            var viewModel = CreateNode(clone);
+            Nodes.Add(viewModel);
+            clones.Add(viewModel);
+        }
+
+        ClearIsSelected();
+        SelectedNodes.Clear();
+        foreach (var clone in clones)
+        {
+            SelectedNodes.Add(clone);
+            clone.IsSelected = true;
+        }
+        SelectedNode = clones.FirstOrDefault();
         UpdateCanvasSize();
         Changed();
     }
 
     [RelayCommand]
-    public void SelectNode(FrontedNodeEditorViewModel? node) => SelectedNode = node;
+    public void SelectNode(FrontedNodeEditorViewModel? node)
+    {
+        SelectedNode = node;
+        if (node is not null && !SelectedNodes.Contains(node))
+        {
+            // 点击不在多选中的节点：清空多选，单选该节点
+            ClearIsSelected();
+            SelectedNodes.Clear();
+            SelectedNodes.Add(node);
+            node.IsSelected = true;
+        }
+        else if (node is null)
+        {
+            ClearIsSelected();
+            SelectedNodes.Clear();
+        }
+        // 如果 node 已在 SelectedNodes 中，保持多选（用于拖拽场景）
+    }
 
+    /// <summary>框选过程中实时预览选中效果（仅更新 IsSelected，不修改 SelectedNodes）</summary>
+    public void UpdateSelectionPreview(Rect selectionRect)
+    {
+        ClearIsSelected();
+        const double nodeHeight = 80;
+        foreach (var node in Nodes)
+        {
+            var nodeRect = new Rect(node.X, node.Y, FrontedNodeEditorViewModel.Width, nodeHeight);
+            if (selectionRect.IntersectsWith(nodeRect))
+            {
+                node.IsSelected = true;
+            }
+        }
+    }
+
+    /// <summary>框选矩形内的所有节点</summary>
+    /// <param name="selectionRect">选框（画布坐标系）</param>
+    public void SelectNodes(Rect selectionRect)
+    {
+        ClearIsSelected();
+        SelectedNodes.Clear();
+        const double nodeHeight = 80;
+        foreach (var node in Nodes)
+        {
+            var nodeRect = new Rect(node.X, node.Y, FrontedNodeEditorViewModel.Width, nodeHeight);
+            if (selectionRect.IntersectsWith(nodeRect))
+            {
+                SelectedNodes.Add(node);
+                node.IsSelected = true;
+            }
+        }
+        SelectedNode = SelectedNodes.FirstOrDefault();
+    }
+
+    /// <summary>清除多选</summary>
+    [RelayCommand]
+    public void DeselectAll()
+    {
+        ClearIsSelected();
+        SelectedNode = null;
+        SelectedNodes.Clear();
+    }
+
+    private void ClearIsSelected()
+    {
+        foreach (var node in Nodes)
+        {
+            node.IsSelected = false;
+        }
+    }
+
+    /// <summary>在拖拽开始前调用，创建一次快照（避免每次 DragDelta 都创建）</summary>
+    public void BeginMoveNodes()
+    {
+        CreateSnapshot();
+        _isDragging = true;
+    }
+
+    /// <summary>移动节点（支持多选同步移动）</summary>
     public void MoveNode(FrontedNodeEditorViewModel node, double x, double y)
     {
-        node.X = Math.Max(0, x);
-        node.Y = Math.Max(0, y);
-        foreach (var connection in Connections.Where(connection => connection.Source == node || connection.Target == node))
+        var dx = x - node.X;
+        var dy = y - node.Y;
+
+        var nodesToMove = SelectedNodes.Contains(node) && SelectedNodes.Count > 1
+            ? (IReadOnlyList<FrontedNodeEditorViewModel>)[.. SelectedNodes]
+            : [node];
+
+        foreach (var n in nodesToMove)
         {
-            connection.Refresh();
+            n.X = Math.Max(0, n.X + dx);
+            n.Y = Math.Max(0, n.Y + dy);
+            foreach (var connection in Connections.Where(connection => connection.Source == n || connection.Target == n))
+            {
+                connection.Refresh();
+            }
         }
         UpdateCanvasSize();
         Changed();
+    }
+
+    /// <summary>拖拽结束</summary>
+    public void EndMoveNodes()
+    {
+        _isDragging = false;
     }
 
     [RelayCommand]
@@ -225,6 +387,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
             return false;
         }
 
+        CreateSnapshot();
         var model = new FrontedNodeConnection
         {
             SourceNodeId = source.Node.Model.NodeId,
@@ -245,6 +408,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         {
             return;
         }
+        CreateSnapshot();
         Connections.Remove(connection);
         Changed();
     }
@@ -402,6 +566,84 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         CanvasHeight = Math.Max(1400, Nodes.Select(node => node.Y).DefaultIfEmpty(0).Max() + 360);
     }
 
+    /// <summary>创建当前图快照（用于撤销）</summary>
+    private void CreateSnapshot()
+    {
+        if (_isRestoring || _isDragging)
+        {
+            return;
+        }
+
+        if (_undoStack.Count >= UndoStackLimit)
+        {
+            // 限制撤销栈大小：移除最旧的条目
+            var items = _undoStack.ToArray();
+            _undoStack.Clear();
+            for (var i = items.Length - 1; i > 0; i--)
+            {
+                _undoStack.Push(items[i]);
+            }
+        }
+
+        _undoStack.Push(JsonSerializer.Serialize(Graph));
+        _redoStack.Clear();
+    }
+
+    /// <summary>撤销</summary>
+    [RelayCommand]
+    public void Undo()
+    {
+        if (_undoStack.Count == 0)
+        {
+            return;
+        }
+        _redoStack.Push(JsonSerializer.Serialize(Graph));
+        var snapshot = JsonSerializer.Deserialize<FrontedNodeGraph>(_undoStack.Pop());
+        _isRestoring = true;
+        RestoreGraph(snapshot);
+        _isRestoring = false;
+    }
+
+    /// <summary>重做</summary>
+    [RelayCommand]
+    public void Redo()
+    {
+        if (_redoStack.Count == 0)
+        {
+            return;
+        }
+        _undoStack.Push(JsonSerializer.Serialize(Graph));
+        var snapshot = JsonSerializer.Deserialize<FrontedNodeGraph>(_redoStack.Pop());
+        _isRestoring = true;
+        RestoreGraph(snapshot);
+        _isRestoring = false;
+    }
+
+    /// <summary>保存当前图</summary>
+    [RelayCommand]
+    public void Save()
+    {
+        _save();
+        _markDirty();
+    }
+
+    private void RestoreGraph(FrontedNodeGraph? snapshot)
+    {
+        if (snapshot is null)
+        {
+            return;
+        }
+        Graph.Nodes.Clear();
+        Graph.Nodes.AddRange(snapshot.Nodes);
+        Graph.Connections.Clear();
+        Graph.Connections.AddRange(snapshot.Connections);
+        Reload();
+        ClearIsSelected();
+        SelectedNodes.Clear();
+        SelectedNode = null;
+        Changed();
+    }
+
     private static bool IsAnimationEditorCatalogNode(FrontedNodeTypeDescriptor descriptor) =>
         descriptor.NodeType is not ("value.eventValue" or "value.selfTag");
 
@@ -457,6 +699,9 @@ public sealed partial class FrontedNodeEditorViewModel : ObservableObject
         get => Model.Y;
         set => SetProperty(Model.Y, value, Model, static (model, next) => model.Y = next);
     }
+
+    [ObservableProperty]
+    private bool _isSelected;
 
     private static string NodeFallback(string nodeType) => nodeType.Split('.').LastOrDefault() ?? nodeType;
 }

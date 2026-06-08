@@ -23,7 +23,7 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
         {
             AnimationTabs.MenuItems.Add(new NavigationViewItem(
                 viewModel.Stages[index].DisplayName,
-                SymbolRegular.TableEdit24,
+                SymbolRegular.EditSettings24,
                 views[index]));
         }
 

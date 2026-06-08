@@ -20,10 +20,12 @@ public sealed class FrontedBehaviorEventCatalog
 
     private static IReadOnlyList<FrontedBehaviorEventDescriptor> BuildEvents()
     {
-        return typeof(ISharedDataService)
-            .GetEvents(BindingFlags.Instance | BindingFlags.Public)
-            .Select(eventInfo => (Event: eventInfo, Metadata: eventInfo.GetCustomAttribute<FrontedBehaviorEventAttribute>()))
-            .Where(item => item.Metadata?.IsEnabled == true)
+        var sourceTypes = new[] { typeof(ISharedDataService), typeof(IGameGuidanceService), typeof(ICharacterSelectionService) };
+        return sourceTypes
+            .SelectMany(type =>
+                type.GetEvents(BindingFlags.Instance | BindingFlags.Public)
+                    .Select(eventInfo => (Event: eventInfo, Metadata: eventInfo.GetCustomAttribute<FrontedBehaviorEventAttribute>()))
+                    .Where(item => item.Metadata?.IsEnabled == true))
             .Select(item => new FrontedBehaviorEventDescriptor
             {
                 EventType = item.Metadata!.EventType,
