@@ -510,7 +510,8 @@ public class FrontedBehaviorRuntimeLoopTest
     }
 
     /// <summary>
-    /// StartGraph 执行期间收到 EndTrigger，StartGraph 被取消后仍执行 StopGraph。
+    /// StartGraph 执行期间收到 EndTrigger（RunStopGraph 模式），
+    /// StartGraph 被取消后仍执行 StopGraph。
     /// </summary>
     [Fact]
     public async Task Loop_EndTrigger_DuringStartGraph_StillExecutesStopGraph()
@@ -546,16 +547,69 @@ public class FrontedBehaviorRuntimeLoopTest
             RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
             await Task.Delay(100); // Let StartGraph start and block
 
-            // EndTrigger fires while StartGraph is still executing (LoopPhase = Starting)
+            // EndTrigger fires while StartGraph is still executing (LoopPhase = Starting).
+            // RunStopGraph mode cancels StartGraph via StartCts, then proceeds to StopGraph.
             RunEvent(host, new FrontedBehaviorEvent { EventType = "end" });
 
-            // Release the StartGate so StartGraph completes normally
-            runtime.StartGate.TrySetResult();
+            // StartCts cancellation unblocks StartGate → StartGraph returns Cancelled.
+            // The lifecycle swallows this and proceeds to StopGraph.
 
-            // The lifecycle should execute StopGraph after StartGraph completes
             await WaitForGraphAsync(runtime, behavior.StopGraph, TimeSpan.FromSeconds(5));
 
             Assert.Contains(behavior.StopGraph, runtime.ExecutedGraphs);
+        });
+    }
+
+    /// <summary>
+    /// StopMode=HoldCurrentState 时，收到 EndTrigger 后不取消 LoopCts，
+    /// 让当前 LoopGraph 迭代自然完成（或阻塞等待），不执行 StopGraph。
+    /// </summary>
+    [Fact]
+    public async Task Loop_HoldCurrentState_DoesNotCancelLoopGraph()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var runtime = new ControlledGraphRuntime
+            {
+                LoopGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously)
+            };
+            var behavior = new FrontedBehavior
+            {
+                Kind = FrontedBehaviorKind.Loop,
+                StartTrigger = new TriggerDescriptor { EventType = "start" },
+                EndTrigger = new TriggerDescriptor { EventType = "end" },
+                StartGraph = new FrontedNodeGraph(),
+                LoopGraph = new FrontedNodeGraph(),
+                StopGraph = new FrontedNodeGraph(),
+                LoopPolicy = new FrontedLoopPolicy
+                {
+                    RepeatCount = -1,
+                    StopMode = FrontedLoopStopMode.HoldCurrentState,
+                    ResetOnStop = false
+                }
+            };
+            var document = CreateDocument(behavior);
+
+            using var host = CreateHost(runtime);
+            await AttachHost(host, document);
+
+            RunEvent(host, new FrontedBehaviorEvent { EventType = "start" });
+            await runtime.WaitForStartGraphAsync(TimeSpan.FromSeconds(5));
+
+            // Fire EndTrigger while LoopGraph is blocked on LoopGate
+            RunEvent(host, new FrontedBehaviorEvent { EventType = "end" });
+
+            // HoldCurrentState should NOT cancel LoopCts → LoopGate should not be cancelled
+            await Task.Delay(200);
+            Assert.False(runtime.LoopGate.Task.IsCanceled,
+                "HoldCurrentState should not cancel LoopCts");
+
+            // Release the gate so the current iteration can complete
+            runtime.LoopGate.TrySetResult();
+            await Task.Delay(200);
+
+            // StopGraph should NOT be executed for HoldCurrentState
+            Assert.DoesNotContain(behavior.StopGraph, runtime.ExecutedGraphs);
         });
     }
 

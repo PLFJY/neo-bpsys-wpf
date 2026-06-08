@@ -487,6 +487,9 @@ public partial class FrontedNodeGraphEditorView : UserControl
 
         if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.S)
         {
+            // 强制焦点移走，触发 LostFocus 绑定将待编辑的文本值提交到 model，然后再保存
+            FocusManager.SetFocusedElement(FocusManager.GetFocusScope(this), null);
+            Keyboard.ClearFocus();
             editor.SaveCommand.Execute(null);
             e.Handled = true;
         }
