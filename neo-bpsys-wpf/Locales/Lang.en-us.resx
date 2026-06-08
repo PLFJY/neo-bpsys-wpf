@@ -4005,7 +4005,6 @@
   <data name="Designer.Behaviors.Event.GuidanceStepChanged.Description" xml:space="preserve"><value>Fires when the guidance step changes.</value></data>
   <data name="Designer.Behaviors.BehaviorTags" xml:space="preserve"><value>Behavior Tags</value></data>
   <data name="Designer.Behaviors.AddBehaviorTag" xml:space="preserve"><value>Add tag</value></data>
-  <data name="Designer.Behaviors.TestTrigger" xml:space="preserve"><value>Test trigger</value></data>
   <data name="Designer.Graph.Target.Self" xml:space="preserve"><value>Self</value></data>
   <data name="Designer.Behaviors.Event.CharacterSelected.Description" xml:space="preserve"><value>Fires when a character is selected (includes camp and player index).</value></data>
   <data name="Designer.Behaviors.Event.CharacterBanned.Description" xml:space="preserve"><value>Fires when a character is banned (includes camp and ban index).</value></data>

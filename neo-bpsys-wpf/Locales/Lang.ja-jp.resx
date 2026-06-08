@@ -4008,7 +4008,6 @@
   <data name="Designer.Behaviors.Event.GuidanceStepChanged.Description" xml:space="preserve"><value>ガイダンスステップが切り替わった時に発生します。</value></data>
   <data name="Designer.Behaviors.BehaviorTags" xml:space="preserve"><value>ビヘイビアタグ</value></data>
   <data name="Designer.Behaviors.AddBehaviorTag" xml:space="preserve"><value>タグを追加</value></data>
-  <data name="Designer.Behaviors.TestTrigger" xml:space="preserve"><value>テスト実行</value></data>
   <data name="Designer.Graph.Target.Self" xml:space="preserve"><value>自身</value></data>
   <data name="Designer.Behaviors.Event.CharacterSelected.Description" xml:space="preserve"><value>キャラクターが選択された時に発生します（陣営とプレイヤーインデックスを含む）。</value></data>
   <data name="Designer.Behaviors.Event.CharacterBanned.Description" xml:space="preserve"><value>キャラクターが禁止された時に発生します（陣営と禁止インデックスを含む）。</value></data>

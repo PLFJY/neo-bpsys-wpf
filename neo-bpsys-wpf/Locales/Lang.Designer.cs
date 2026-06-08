@@ -3031,15 +3031,6 @@ namespace neo_bpsys_wpf.Locales {
         }
         
         /// <summary>
-        ///   查找类似 测试触发 的本地化字符串。
-        /// </summary>
-        public static string Designer_Behaviors_TestTrigger {
-            get {
-                return ResourceManager.GetString("Designer.Behaviors.TestTrigger", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 触发器 的本地化字符串。
         /// </summary>
         public static string Designer_Behaviors_Trigger {

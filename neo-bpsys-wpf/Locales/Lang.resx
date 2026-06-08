@@ -4441,9 +4441,6 @@
   <data name="Designer.Behaviors.AddBehaviorTag" xml:space="preserve">
     <value>添加标签</value>
   </data>
-  <data name="Designer.Behaviors.TestTrigger" xml:space="preserve">
-    <value>测试触发</value>
-  </data>
   <data name="Designer.Graph.Target.Self" xml:space="preserve">
     <value>自身</value>
   </data>
