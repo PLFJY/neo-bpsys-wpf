@@ -210,7 +210,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                         _logger.LogDebug("OneShot {BehaviorId} ignored (already running).", behavior.BehaviorId);
                         return;
                     case FrontedReentryPolicy.InterruptPrevious:
-                        existing.CancellationTokenSource.Cancel();
+                        existing.LifecycleCts.Cancel();
                         _runningBehaviors.Remove(behavior.BehaviorId);
                         break;
                     case FrontedReentryPolicy.Queue:
@@ -299,7 +299,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
 
             if (shouldDispose)
             {
-                state.CancellationTokenSource.Dispose();
+                state.LifecycleCts.Dispose();
             }
         }
     }
@@ -343,7 +343,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                         _logger.LogDebug("Loop {BehaviorId} ignored (already running).", behavior.BehaviorId);
                         return;
                     case FrontedReentryPolicy.InterruptPrevious:
-                        state.CancellationTokenSource.Cancel();
+                        state.LifecycleCts.Cancel();
                         _runningBehaviors.Remove(behavior.BehaviorId);
                         var cts = new CancellationTokenSource();
                         var nextState = new RunningBehaviorState(cts, LoopPhase.Starting);
@@ -382,9 +382,12 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                 var stopMode = behavior.LoopPolicy?.StopMode ?? FrontedLoopStopMode.StopImmediately;
                 state.RequestedStopMode = stopMode;
 
+                // Cancel only the loop CTS — the lifecycle continues uninterrupted.
+                // CompleteCurrentIteration intentionally does not cancel so the current
+                // LoopGraph iteration finishes naturally before StopGraph.
                 if (stopMode != FrontedLoopStopMode.CompleteCurrentIteration)
                 {
-                    state.CancellationTokenSource.Cancel();
+                    state.LoopCts.Cancel();
                 }
             }
         }
@@ -398,7 +401,11 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     {
         try
         {
-            // ── Phase 1: StartGraph ──
+            // ═══════════════════════════════════════════════
+            // Phase 1: StartGraph
+            // Uses lifecycle token — only cancelled by Dispose/Detach/InterruptPrevious.
+            // EndTrigger does NOT cancel StartGraph.
+            // ═══════════════════════════════════════════════
             var startExecutor = CreateActionExecutor(set.BehaviorGuid, set.DisplayName);
             var startContext = new FrontedGraphExecutionContext
             {
@@ -408,73 +415,65 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                 ActionExecutor = startExecutor
             };
 
-            try
-            {
-                await _graphRuntime.ExecuteAsync(behavior.StartGraph, startContext, cancellationToken);
-            }
-            catch (OperationCanceledException) when (state.StopRequested)
-            {
-                // EndTrigger 在 StartGraph 执行期间到达，CTS 被取消
-                // 不抛异常，继续到 Phase 3 判断是否执行 StopGraph
-            }
+            await _graphRuntime.ExecuteAsync(behavior.StartGraph, startContext, cancellationToken);
 
-            // ── StartGraph 已完成，更新状态为 Looping ──
+            // ═══════════════════════════════════════════════
+            // Phase 2: LoopGraph (repeating)
+            // Uses LoopCts.Token — cancelled by EndTrigger for RunStopGraph/StopImmediately.
+            // CompleteCurrentIteration does NOT cancel, so the current iteration finishes.
+            // ═══════════════════════════════════════════════
             state.LoopPhase = LoopPhase.Looping;
 
-            // ── Phase 2: LoopGraph (如果未被要求停止) ──
             if (!state.StopRequested)
             {
-                try
-                {
-                    var repeatCount = behavior.LoopPolicy?.RepeatCount ?? -1;
-                    var intervalMs = Math.Max(0, behavior.LoopPolicy?.IntervalMs ?? 0);
-                    var iteration = 0;
+                var repeatCount = behavior.LoopPolicy?.RepeatCount ?? -1;
+                var intervalMs = Math.Max(0, behavior.LoopPolicy?.IntervalMs ?? 0);
+                var iteration = 0;
+                var loopCt = state.LoopCts.Token;
 
-                    while (repeatCount == -1 || iteration < repeatCount)
+                while (repeatCount == -1 || iteration < repeatCount)
+                {
+                    // EndTrigger (RunStopGraph/StopImmediately) cancels LoopCts → throw here
+                    loopCt.ThrowIfCancellationRequested();
+
+                    if (intervalMs > 0 && iteration > 0)
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        if (intervalMs > 0 && iteration > 0)
-                        {
-                            await Task.Delay(intervalMs, cancellationToken);
-                        }
-
-                        var loopExecutor = CreateActionExecutor(set.BehaviorGuid, set.DisplayName);
-                        var loopContext = new FrontedGraphExecutionContext
-                        {
-                            BehaviorGuid = behavior.BehaviorId,
-                            CurrentControlDisplayName = set.DisplayName ?? string.Empty,
-                            SelfTags = GetSelfTagsAsObjects(set),
-                            ActionExecutor = loopExecutor
-                        };
-
-                        await _graphRuntime.ExecuteAsync(behavior.LoopGraph, loopContext, cancellationToken);
-                        iteration++;
-
-                        if (state.StopRequested)
-                        {
-                            break;
-                        }
+                        await Task.Delay(intervalMs, loopCt);
                     }
-                }
-                catch (OperationCanceledException) when (state.StopRequested)
-                {
-                    // EndTrigger 在 LoopGraph 执行/等待期间到达，CTS 被取消
-                    // 不抛异常，继续到 Phase 3 判断是否执行 StopGraph
+
+                    var loopExecutor = CreateActionExecutor(set.BehaviorGuid, set.DisplayName);
+                    var loopContext = new FrontedGraphExecutionContext
+                    {
+                        BehaviorGuid = behavior.BehaviorId,
+                        CurrentControlDisplayName = set.DisplayName ?? string.Empty,
+                        SelfTags = GetSelfTagsAsObjects(set),
+                        ActionExecutor = loopExecutor
+                    };
+
+                    await _graphRuntime.ExecuteAsync(behavior.LoopGraph, loopContext, loopCt);
+                    iteration++;
+
+                    // CompleteCurrentIteration: check StopRequested after each iteration
+                    if (state.StopRequested)
+                    {
+                        break;
+                    }
                 }
             }
 
-            // ── 准备停止，更新状态为 Stopping ──
+            // ═══════════════════════════════════════════════
+            // Phase 3: StopGraph
+            // Runs only when StopRequested and mode requests it.
+            // Uses CancellationToken.None — never cancelled.
+            // ═══════════════════════════════════════════════
             state.LoopPhase = LoopPhase.Stopping;
 
-            // ── Phase 3: StopGraph ──
             if (state.StopRequested)
             {
                 switch (state.RequestedStopMode)
                 {
                     case FrontedLoopStopMode.RunStopGraph:
                     case FrontedLoopStopMode.CompleteCurrentIteration:
-                        // StopGraph 使用独立 token，不受 lifecycle CTS 影响
                         var stopExecutor = CreateActionExecutor(set.BehaviorGuid, set.DisplayName);
                         var stopContext = new FrontedGraphExecutionContext
                         {
@@ -484,21 +483,22 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                             ActionExecutor = stopExecutor
                         };
 
+                        // Independent token — StopGraph always plays to completion
                         await _graphRuntime.ExecuteAsync(behavior.StopGraph, stopContext, CancellationToken.None);
                         break;
                     case FrontedLoopStopMode.StopImmediately:
-                        // 不执行 StopGraph
-                        break;
                     case FrontedLoopStopMode.HoldCurrentState:
-                        // 不执行 StopGraph
+                        // No StopGraph in these modes
                         break;
                 }
             }
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (!state.StopRequested)
         {
-            // lifecycle CTS 被取消且 StopRequested 为 false（如 Dispose/Detach）→ 直接 clean up
+            // Lifecycle CTS cancelled (Dispose/Detach/InterruptPrevious) and this is
+            // NOT an EndTrigger stop → exit immediately, skip StopGraph and Reset.
             _logger.LogInformation("Loop {BehaviorId} lifecycle cancelled.", behavior.BehaviorId);
+            return;
         }
         catch (Exception ex)
         {
@@ -506,13 +506,17 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
         }
         finally
         {
-            // ── Reset (HoldCurrentState 模式不 Reset) ──
+            // ═══════════════════════════════════════════════
+            // Phase 4: Reset (unless HoldCurrentState)
+            // ═══════════════════════════════════════════════
             if (state.RequestedStopMode != FrontedLoopStopMode.HoldCurrentState)
             {
                 ResetIfNeeded(behavior, set);
             }
 
-            // ── Cleanup ──
+            // ═══════════════════════════════════════════════
+            // Phase 5: Cleanup (always, exactly once)
+            // ═══════════════════════════════════════════════
             CleanupLoop(behavior, state);
         }
     }
@@ -556,7 +560,8 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
 
         if (shouldDispose)
         {
-            state.CancellationTokenSource.Dispose();
+            state.LifecycleCts.Dispose();
+            state.LoopCts.Dispose();
         }
     }
 
@@ -576,8 +581,10 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
         {
             try
             {
-                state.CancellationTokenSource.Cancel();
-                state.CancellationTokenSource.Dispose();
+                state.LifecycleCts.Cancel();
+                state.LoopCts.Cancel();
+                state.LifecycleCts.Dispose();
+                state.LoopCts.Dispose();
             }
             catch (ObjectDisposedException)
             {
@@ -630,15 +637,26 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
 
     internal sealed class RunningBehaviorState
     {
-        public CancellationTokenSource CancellationTokenSource { get; }
+        /// <summary>
+        /// CTS for the entire lifecycle. Cancelled only by Dispose/Detach/InterruptPrevious.
+        /// Never cancelled by EndTrigger.
+        /// </summary>
+        public CancellationTokenSource LifecycleCts { get; }
+
+        /// <summary>
+        /// CTS for cancelling the LoopGraph iteration only.
+        /// Cancelled by EndTrigger for RunStopGraph/StopImmediately/HoldCurrentState.
+        /// </summary>
+        public CancellationTokenSource LoopCts { get; } = new();
+
         public LoopPhase LoopPhase { get; set; }
         public Task? RunningTask { get; set; }
         public bool StopRequested { get; set; }
         public FrontedLoopStopMode? RequestedStopMode { get; set; }
 
-        public RunningBehaviorState(CancellationTokenSource cancellationTokenSource, LoopPhase loopPhase = LoopPhase.Stopped)
+        public RunningBehaviorState(CancellationTokenSource lifecycleCts, LoopPhase loopPhase = LoopPhase.Stopped)
         {
-            CancellationTokenSource = cancellationTokenSource;
+            LifecycleCts = lifecycleCts;
             LoopPhase = loopPhase;
         }
     }

@@ -549,10 +549,10 @@ public class FrontedBehaviorRuntimeLoopTest
             // EndTrigger fires while StartGraph is still executing (LoopPhase = Starting)
             RunEvent(host, new FrontedBehaviorEvent { EventType = "end" });
 
-            // Release the StartGate so StartGraph completes (with cancellation)
+            // Release the StartGate so StartGraph completes normally
             runtime.StartGate.TrySetResult();
 
-            // The lifecycle should execute StopGraph even though StartGraph was cancelled
+            // The lifecycle should execute StopGraph after StartGraph completes
             await WaitForGraphAsync(runtime, behavior.StopGraph, TimeSpan.FromSeconds(5));
 
             Assert.Contains(behavior.StopGraph, runtime.ExecutedGraphs);
