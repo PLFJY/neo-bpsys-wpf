@@ -482,6 +482,21 @@ public sealed partial class FrontedNodeConnectionViewModel(
     public double Y1 => Source.Y + 54 + Math.Max(0, Source.OutputPorts.ToList().FindIndex(port => port.Name == Model.SourcePort)) * 24;
     public double X2 => Target.X;
     public double Y2 => Target.Y + 54 + Math.Max(0, Target.InputPorts.ToList().FindIndex(port => port.Name == Model.TargetPort)) * 24;
+
+    /// <summary>贝塞尔曲线控制点 1 X（从起点水平向右延伸）</summary>
+    public double CP1X => X1 + CurveOffset;
+    /// <summary>贝塞尔曲线控制点 1 Y</summary>
+    public double CP1Y => Y1;
+    /// <summary>贝塞尔曲线控制点 2 X（从终点水平向左延伸）</summary>
+    public double CP2X => X2 - CurveOffset;
+    /// <summary>贝塞尔曲线控制点 2 Y</summary>
+    public double CP2Y => Y2;
+
+    private double CurveOffset => Math.Max(60, Math.Abs(X2 - X1) * 0.45);
+
+    /// <summary>贝塞尔曲线 Path 数据（StreamGeometry 小语言格式）</summary>
+    public string PathData => $"M {X1:F1},{Y1:F1} C {CP1X:F1},{CP1Y:F1} {CP2X:F1},{CP2Y:F1} {X2:F1},{Y2:F1}";
+
     public double MidX => (X1 + X2) / 2D - 12D;
     public double MidY => (Y1 + Y2) / 2D - 12D;
 
@@ -491,6 +506,11 @@ public sealed partial class FrontedNodeConnectionViewModel(
         OnPropertyChanged(nameof(Y1));
         OnPropertyChanged(nameof(X2));
         OnPropertyChanged(nameof(Y2));
+        OnPropertyChanged(nameof(CP1X));
+        OnPropertyChanged(nameof(CP1Y));
+        OnPropertyChanged(nameof(CP2X));
+        OnPropertyChanged(nameof(CP2Y));
+        OnPropertyChanged(nameof(PathData));
         OnPropertyChanged(nameof(MidX));
         OnPropertyChanged(nameof(MidY));
     }

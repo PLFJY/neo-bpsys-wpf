@@ -3849,6 +3849,7 @@
   <data name="Designer.Graph.Validate" xml:space="preserve"><value>检查图</value></data>
   <data name="Designer.Graph.ClearLog" xml:space="preserve"><value>清空日志</value></data>
   <data name="Designer.Graph.ExecutionLog" xml:space="preserve"><value>执行日志</value></data>
+  <data name="Designer.Graph.PreviewTitle" xml:space="preserve"><value>预览</value></data>
   <data name="Designer.Graph.PreviewPlaceholder" xml:space="preserve"><value>动画预览视口
 从设计器中选择控件后在此预览动画效果</value></data>
   <data name="Designer.Graph.PreviewStart" xml:space="preserve"><value>预览开始</value></data>

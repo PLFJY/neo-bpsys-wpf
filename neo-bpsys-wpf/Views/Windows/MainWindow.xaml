@@ -14,7 +14,7 @@
     xmlns:vm="clr-namespace:neo_bpsys_wpf.ViewModels.Windows"
     Title="{lex:Loc Backend}"
     Width="980"
-    Height="760"
+    Height="800"
     d:DataContext="{d:DesignInstance Type=vm:MainWindowViewModel,
                                      IsDesignTimeCreatable=True}"
     lex:LocalizeDictionary.DesignCulture="zh"

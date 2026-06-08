@@ -3994,6 +3994,7 @@
   <data name="Designer.Graph.Validate" xml:space="preserve"><value>Check graph</value></data>
   <data name="Designer.Graph.ClearLog" xml:space="preserve"><value>Clear log</value></data>
   <data name="Designer.Graph.ExecutionLog" xml:space="preserve"><value>Execution log</value></data>
+  <data name="Designer.Graph.PreviewTitle" xml:space="preserve"><value>Preview</value></data>
   <data name="Designer.Graph.PreviewPlaceholder" xml:space="preserve"><value>Animation preview viewport
 Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Graph.PreviewStart" xml:space="preserve"><value>Preview start</value></data>

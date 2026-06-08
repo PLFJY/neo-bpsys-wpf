@@ -1,9 +1,11 @@
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner.GraphEditor;
 
 namespace neo_bpsys_wpf.Views.FrontedDesigner.GraphEditor;
@@ -12,18 +14,33 @@ public partial class FrontedNodeGraphEditorView : UserControl
 {
     private const string CatalogNodeDragFormat = "neo-bpsys-wpf.fronted-node-type";
     private const string CatalogNodeDragTokenFormat = "neo-bpsys-wpf.fronted-node-drag-token";
+    private const double ZoomMin = 0.2;
+    private const double ZoomMax = 1.5;
+    private const double ZoomStep = 0.1;
     private FrontedNodePortViewModel? _dragSourcePort;
+    private Point _dragStartPoint;
     private Point? _catalogDragStartPoint;
     private string? _activeCatalogDragToken;
     private bool _isPanning;
     private Point _panStartPoint;
     private double _panStartHorizontalOffset;
     private double _panStartVerticalOffset;
+    private double _zoomLevel = 1.0;
     private FrontedNodeGraphEditorViewModel? _subscribedViewModel;
+    private bool _isMinimapDragging;
+    private const double PreviewZoomMax = 3.0;
+    private const double PreviewZoomMin = 0.2;
+    private double _previewZoomLevel = 1.0;
+    private bool _previewIsPanning;
+    private Point _previewPanStartPoint;
+    private double _previewPanStartTranslateX;
+    private double _previewPanStartTranslateY;
 
     public FrontedNodeGraphEditorView()
     {
         InitializeComponent();
+        PopulateZoomCombo(EditorZoomCombo, ZoomMax);
+        PopulateZoomCombo(PreviewZoomCombo, PreviewZoomMax);
         DataContextChanged += OnDataContextChanged;
         Loaded += OnLoaded;
     }
@@ -42,6 +59,9 @@ public partial class FrontedNodeGraphEditorView : UserControl
             viewModel.PropertyChanged += ViewModel_OnPropertyChanged;
             UpdatePreviewVisual(viewModel.PreviewRoot);
         }
+
+        // 加载新节点后居中视野
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, (Action)CenterGraphView);
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
@@ -50,6 +70,16 @@ public partial class FrontedNodeGraphEditorView : UserControl
         {
             UpdatePreviewVisual(viewModel.PreviewRoot);
         }
+
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, (Action)CenterGraphView);
+    }
+
+    private void CenterGraphView()
+    {
+        var scrollableW = GraphScrollViewer.ScrollableWidth;
+        var scrollableH = GraphScrollViewer.ScrollableHeight;
+        GraphScrollViewer.ScrollToHorizontalOffset(Math.Max(0, scrollableW / 2));
+        GraphScrollViewer.ScrollToVerticalOffset(Math.Max(0, scrollableH / 2));
     }
 
     private void ViewModel_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -191,12 +221,9 @@ public partial class FrontedNodeGraphEditorView : UserControl
         }
 
         _dragSourcePort = port;
-        var start = GetPortPoint(sender, isOutput: true);
-        ConnectionPreviewLine.X1 = start.X;
-        ConnectionPreviewLine.Y1 = start.Y;
-        ConnectionPreviewLine.X2 = start.X;
-        ConnectionPreviewLine.Y2 = start.Y;
-        ConnectionPreviewLine.Visibility = Visibility.Visible;
+        _dragStartPoint = GetPortPoint(sender, isOutput: true);
+        ConnectionPreviewPath.Data = Geometry.Parse(CreateBezierPathData(_dragStartPoint, _dragStartPoint));
+        ConnectionPreviewPath.Visibility = Visibility.Visible;
         GraphCanvas.CaptureMouse();
         e.Handled = true;
     }
@@ -217,7 +244,7 @@ public partial class FrontedNodeGraphEditorView : UserControl
 
     private void GraphScrollViewer_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (_dragSourcePort is not null || !CanStartPan(e.OriginalSource))
+        if (_dragSourcePort is not null || !CanStartPan(e.OriginalSource) || IsWithinMinimap(e.OriginalSource))
         {
             return;
         }
@@ -232,6 +259,7 @@ public partial class FrontedNodeGraphEditorView : UserControl
         _panStartHorizontalOffset = GraphScrollViewer.HorizontalOffset;
         _panStartVerticalOffset = GraphScrollViewer.VerticalOffset;
         GraphScrollViewer.CaptureMouse();
+        GraphScrollViewer.Cursor = Cursors.Hand;
         Focus();
         e.Handled = true;
     }
@@ -259,9 +287,22 @@ public partial class FrontedNodeGraphEditorView : UserControl
         }
 
         var current = e.GetPosition(GraphCanvas);
-        ConnectionPreviewLine.X2 = current.X;
-        ConnectionPreviewLine.Y2 = current.Y;
+        ConnectionPreviewPath.Data = Geometry.Parse(CreateBezierPathData(_dragStartPoint, current));
         e.Handled = true;
+    }
+
+    private void GraphScrollViewer_OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+        {
+            e.Handled = true;
+            ApplyEditorZoom(_zoomLevel + (e.Delta > 0 ? ZoomStep : -ZoomStep));
+        }
+    }
+
+    private void GraphScrollViewer_OnScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        UpdateMinimapViewport();
     }
 
     private void GraphScrollViewer_OnPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -321,6 +362,7 @@ public partial class FrontedNodeGraphEditorView : UserControl
     private void EndPan()
     {
         _isPanning = false;
+        GraphScrollViewer.Cursor = null;
         if (GraphScrollViewer.IsMouseCaptured)
         {
             GraphScrollViewer.ReleaseMouseCapture();
@@ -330,11 +372,353 @@ public partial class FrontedNodeGraphEditorView : UserControl
     private void EndConnectionDrag()
     {
         _dragSourcePort = null;
-        ConnectionPreviewLine.Visibility = Visibility.Collapsed;
+        ConnectionPreviewPath.Data = null;
+        ConnectionPreviewPath.Visibility = Visibility.Collapsed;
         if (GraphCanvas.IsMouseCaptured)
         {
             GraphCanvas.ReleaseMouseCapture();
         }
+    }
+
+    private void DuplicateNodeMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is FrontedNodeGraphEditorViewModel editor)
+        {
+            editor.DuplicateSelectedNodeCommand.Execute(null);
+        }
+    }
+
+    private void ConnectionPath_OnMouseEnter(object sender, MouseEventArgs e)
+    {
+        if (sender is DependencyObject element)
+        {
+            ShowConnectionDeleteButton(element, true);
+        }
+    }
+
+    private void ConnectionPath_OnMouseLeave(object sender, MouseEventArgs e)
+    {
+        if (sender is DependencyObject element)
+        {
+            ShowConnectionDeleteButton(element, false);
+        }
+    }
+
+    private void ConnectionDeleteBtn_OnMouseEnter(object sender, MouseEventArgs e)
+    {
+        if (sender is DependencyObject element)
+        {
+            ShowConnectionDeleteButton(element, true);
+        }
+    }
+
+    private void ConnectionDeleteBtn_OnMouseLeave(object sender, MouseEventArgs e)
+    {
+        if (sender is DependencyObject element)
+        {
+            // 延迟隐藏，允许鼠标移回 Path
+            var dispatcherTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(80) };
+            dispatcherTimer.Tick += (_, _) =>
+            {
+                dispatcherTimer.Stop();
+                ShowConnectionDeleteButton(element, false);
+            };
+            dispatcherTimer.Start();
+        }
+    }
+
+    private static void ShowConnectionDeleteButton(DependencyObject element, bool show)
+    {
+        var parent = VisualTreeHelper.GetParent(element) as Panel;
+        var button = parent?.Children.OfType<ButtonBase>().FirstOrDefault();
+        if (button is not null)
+        {
+            button.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        }
+    }
+
+    private static bool IsWithinMinimap(object? originalSource)
+    {
+        var current = originalSource as DependencyObject;
+        while (current is not null)
+        {
+            if (current is Canvas canvas && canvas.Name is "Minimap")
+            {
+                return true;
+            }
+            current = VisualTreeHelper.GetParent(current);
+        }
+        return false;
+    }
+
+    private void PreviewContent_OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (!Keyboard.IsKeyDown(Key.LeftCtrl) && !Keyboard.IsKeyDown(Key.RightCtrl))
+        {
+            return;
+        }
+
+        e.Handled = true;
+        ApplyPreviewZoom(_previewZoomLevel + (e.Delta > 0 ? 0.1 : -0.1));
+    }
+
+    private void PreviewContent_OnMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        // 子元素（Button/ComboBox）已处理的事件不触发平移
+        if (e.Handled) return;
+
+        if (e.ChangedButton is not (MouseButton.Left or MouseButton.Right))
+        {
+            return;
+        }
+
+        _previewIsPanning = true;
+        _previewPanStartPoint = e.GetPosition(PreviewBorder);
+        _previewPanStartTranslateX = PreviewTranslateTransform.X;
+        _previewPanStartTranslateY = PreviewTranslateTransform.Y;
+        PreviewBorder.CaptureMouse();
+        PreviewBorder.Cursor = Cursors.Hand;
+        e.Handled = true;
+    }
+
+    private void PreviewContent_OnPreviewMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_previewIsPanning)
+        {
+            return;
+        }
+
+        if (e.LeftButton != MouseButtonState.Pressed && e.RightButton != MouseButtonState.Pressed)
+        {
+            EndPreviewPan();
+            return;
+        }
+
+        var pos = e.GetPosition(PreviewBorder);
+        PreviewTranslateTransform.X = _previewPanStartTranslateX + (pos.X - _previewPanStartPoint.X);
+        PreviewTranslateTransform.Y = _previewPanStartTranslateY + (pos.Y - _previewPanStartPoint.Y);
+        ClampPreviewPan();
+        e.Handled = true;
+    }
+
+    private void ClampPreviewPan()
+    {
+        var viewW = PreviewBorder.ActualWidth;
+        var viewH = PreviewBorder.ActualHeight;
+        var contentW = viewW * _previewZoomLevel;
+        var contentH = viewH * _previewZoomLevel;
+
+        var maxX = Math.Max(0, contentW - viewW);
+        var maxY = Math.Max(0, contentH - viewH);
+
+        PreviewTranslateTransform.X = Math.Clamp(PreviewTranslateTransform.X, -maxX, 0);
+        PreviewTranslateTransform.Y = Math.Clamp(PreviewTranslateTransform.Y, -maxY, 0);
+    }
+
+    private void PreviewContent_OnPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_previewIsPanning)
+        {
+            return;
+        }
+
+        EndPreviewPan();
+        e.Handled = true;
+    }
+
+    private void PreviewContent_OnPreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_previewIsPanning)
+        {
+            return;
+        }
+
+        EndPreviewPan();
+        e.Handled = true;
+    }
+
+    private void PreviewContent_OnMouseLeave(object sender, MouseEventArgs e)
+    {
+        if (_previewIsPanning && e.LeftButton != MouseButtonState.Pressed && e.RightButton != MouseButtonState.Pressed)
+        {
+            EndPreviewPan();
+        }
+    }
+
+    private void EndPreviewPan()
+    {
+        _previewIsPanning = false;
+        PreviewBorder.Cursor = null;
+        if (PreviewBorder.IsMouseCaptured)
+        {
+            PreviewBorder.ReleaseMouseCapture();
+        }
+    }
+
+    private static void PopulateZoomCombo(ComboBox combo, double max)
+    {
+        combo.Items.Clear();
+        combo.Items.Add(0.25);
+        combo.Items.Add(0.50);
+        combo.Items.Add(0.75);
+        combo.Items.Add(1.00);
+        if (max > 1.25) combo.Items.Add(1.25);
+        if (max > 1.50) combo.Items.Add(1.50);
+        if (max > 1.50) combo.Items.Add(2.00);
+        if (max > 2.50) combo.Items.Add(3.00);
+    }
+
+    private void ApplyEditorZoom(double zoom)
+    {
+        _zoomLevel = Math.Clamp(zoom, ZoomMin, ZoomMax);
+        ZoomContainer.LayoutTransform = new ScaleTransform(_zoomLevel, _zoomLevel);
+        UpdateEditorZoomCombo();
+        UpdateMinimapViewport();
+    }
+
+    private void UpdateEditorZoomCombo()
+    {
+        var items = EditorZoomCombo.Items.Cast<double>().ToList();
+        var nearest = items.OrderBy(v => Math.Abs(v - _zoomLevel)).First();
+        EditorZoomCombo.SelectedItem = nearest;
+    }
+
+    private void ApplyPreviewZoom(double zoom)
+    {
+        _previewZoomLevel = Math.Clamp(zoom, PreviewZoomMin, PreviewZoomMax);
+        PreviewScaleTransform.ScaleX = _previewZoomLevel;
+        PreviewScaleTransform.ScaleY = _previewZoomLevel;
+        UpdatePreviewZoomCombo();
+    }
+
+    private void UpdatePreviewZoomCombo()
+    {
+        var items = PreviewZoomCombo.Items.Cast<double>().ToList();
+        var nearest = items.OrderBy(v => Math.Abs(v - _previewZoomLevel)).First();
+        PreviewZoomCombo.SelectedItem = nearest;
+    }
+
+    private void EditorZoomIn_OnClick(object sender, RoutedEventArgs e)
+    {
+        ApplyEditorZoom(_zoomLevel + ZoomStep);
+    }
+
+    private void EditorZoomOut_OnClick(object sender, RoutedEventArgs e)
+    {
+        ApplyEditorZoom(_zoomLevel - ZoomStep);
+    }
+
+    private void EditorZoomReset_OnClick(object sender, RoutedEventArgs e)
+    {
+        ApplyEditorZoom(1.0);
+
+        // 重置缩放同时居中视野
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, (Action)CenterGraphView);
+    }
+
+    private void EditorZoomCombo_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is double zoom && Math.Abs(zoom - _zoomLevel) > 0.001)
+        {
+            ApplyEditorZoom(zoom);
+        }
+    }
+
+    private void PreviewZoomIn_OnClick(object sender, RoutedEventArgs e)
+    {
+        ApplyPreviewZoom(_previewZoomLevel + 0.1);
+    }
+
+    private void PreviewZoomOut_OnClick(object sender, RoutedEventArgs e)
+    {
+        ApplyPreviewZoom(_previewZoomLevel - 0.1);
+    }
+
+    private void PreviewZoomReset_OnClick(object sender, RoutedEventArgs e)
+    {
+        ApplyPreviewZoom(1.0);
+        PreviewTranslateTransform.X = 0;
+        PreviewTranslateTransform.Y = 0;
+    }
+
+    private void PreviewZoomCombo_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is double zoom && Math.Abs(zoom - _previewZoomLevel) > 0.001)
+        {
+            ApplyPreviewZoom(zoom);
+        }
+    }
+
+    private void Minimap_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        _isMinimapDragging = true;
+        Minimap.CaptureMouse();
+        ScrollToMinimapPosition(e.GetPosition(Minimap));
+        e.Handled = true;
+    }
+
+    private void Minimap_OnMouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_isMinimapDragging)
+        {
+            return;
+        }
+
+        ScrollToMinimapPosition(e.GetPosition(Minimap));
+        e.Handled = true;
+    }
+
+    private void Minimap_OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        _isMinimapDragging = false;
+        Minimap.ReleaseMouseCapture();
+        e.Handled = true;
+    }
+
+    /// <summary>根据总览图中的鼠标位置更新 ScrollViewer 视野</summary>
+    private void ScrollToMinimapPosition(Point minimapPos)
+    {
+        var canvasWidth = GraphCanvas.ActualWidth;
+        var canvasHeight = GraphCanvas.ActualHeight;
+        if (canvasWidth < 1 || canvasHeight < 1)
+        {
+            return;
+        }
+
+        var ratioX = minimapPos.X / Minimap.ActualWidth;
+        var ratioY = minimapPos.Y / Minimap.ActualHeight;
+        GraphScrollViewer.ScrollToHorizontalOffset(
+            Math.Max(0, ratioX * canvasWidth * _zoomLevel - GraphScrollViewer.ViewportWidth / 2D));
+        GraphScrollViewer.ScrollToVerticalOffset(
+            Math.Max(0, ratioY * canvasHeight * _zoomLevel - GraphScrollViewer.ViewportHeight / 2D));
+    }
+
+    /// <summary>更新总览图中的视野框位置和大小</summary>
+    private void UpdateMinimapViewport()
+    {
+        var canvasWidth = GraphCanvas.ActualWidth;
+        var canvasHeight = GraphCanvas.ActualHeight;
+        if (canvasWidth < 1 || canvasHeight < 1 || Minimap.ActualWidth < 1 || Minimap.ActualHeight < 1)
+        {
+            return;
+        }
+
+        var viewX = GraphScrollViewer.HorizontalOffset / _zoomLevel / canvasWidth * Minimap.ActualWidth;
+        var viewY = GraphScrollViewer.VerticalOffset / _zoomLevel / canvasHeight * Minimap.ActualHeight;
+        var viewW = Math.Min(GraphScrollViewer.ViewportWidth / _zoomLevel / canvasWidth * Minimap.ActualWidth, Minimap.ActualWidth - viewX);
+        var viewH = Math.Min(GraphScrollViewer.ViewportHeight / _zoomLevel / canvasHeight * Minimap.ActualHeight, Minimap.ActualHeight - viewY);
+
+        Canvas.SetLeft(MinimapViewport, viewX);
+        Canvas.SetTop(MinimapViewport, viewY);
+        MinimapViewport.Width = Math.Max(8, viewW);
+        MinimapViewport.Height = Math.Max(6, viewH);
+    }
+
+    /// <summary>生成从起点到终点的三次贝塞尔曲线 Path 数据（StreamGeometry 小语言格式）</summary>
+    private static string CreateBezierPathData(Point start, Point end)
+    {
+        var offset = Math.Max(60, Math.Abs(end.X - start.X) * 0.45);
+        return $"M {start.X:F1},{start.Y:F1} C {start.X + offset:F1},{start.Y:F1} {end.X - offset:F1},{end.Y:F1} {end.X:F1},{end.Y:F1}";
     }
 
     private Point GetPortPoint(object sender, bool isOutput)

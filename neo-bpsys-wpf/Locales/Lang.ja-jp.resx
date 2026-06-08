@@ -3997,6 +3997,7 @@
   <data name="Designer.Graph.Validate" xml:space="preserve"><value>グラフをチェック</value></data>
   <data name="Designer.Graph.ClearLog" xml:space="preserve"><value>ログをクリア</value></data>
   <data name="Designer.Graph.ExecutionLog" xml:space="preserve"><value>実行ログ</value></data>
+  <data name="Designer.Graph.PreviewTitle" xml:space="preserve"><value>プレビュー</value></data>
   <data name="Designer.Graph.PreviewPlaceholder" xml:space="preserve"><value>アニメーションプレビュー
 デザイナーでコントロールを選択するとここに表示されます</value></data>
   <data name="Designer.Graph.PreviewStart" xml:space="preserve"><value>開始をプレビュー</value></data>
