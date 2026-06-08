@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
@@ -208,6 +209,224 @@ public class FrontedAnimationRuntimeTest
     }
 
     [Fact]
+    public async Task AnimationRuntime_TextContentLayer_ChangesInnerTextBlock()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas();
+            var textBlock = new TextBlock { Foreground = Brushes.White, FontSize = 24 };
+            var element = Generated(new Border { Child = textBlock }, guid, "TextTarget");
+            root.Children.Add(element);
+
+            await new FrontedAnimationRuntime().ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.SetProperty,
+                Target = "Self",
+                TargetLayer = FrontedAnimationTargetLayer.Content,
+                PropertyName = "TextColor",
+                Values = new Dictionary<string, string?> { ["Value"] = "#FF010203" }
+            }, Context(root, guid));
+
+            await new FrontedAnimationRuntime().ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.SetProperty,
+                Target = "Self",
+                TargetLayer = FrontedAnimationTargetLayer.Content,
+                PropertyName = "FontSize",
+                Values = new Dictionary<string, string?> { ["Value"] = "32" }
+            }, Context(root, guid));
+
+            var brush = Assert.IsType<SolidColorBrush>(textBlock.Foreground);
+            Assert.Equal(Color.FromArgb(0xFF, 1, 2, 3), brush.Color);
+            Assert.Equal(32, textBlock.FontSize);
+            Assert.Equal(1, element.Opacity);
+        });
+    }
+
+    [Fact]
+    public async Task AnimationRuntime_TextOverlayLayer_CreatesRectangleAndAppliesStroke()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas();
+            var element = Generated(new Border
+            {
+                Width = 100,
+                Height = 40,
+                Child = new TextBlock { Text = "Timer" }
+            }, guid, "TextTarget");
+            Canvas.SetLeft(element, 10);
+            Canvas.SetTop(element, 20);
+            Panel.SetZIndex(element, 5);
+            root.Children.Add(element);
+
+            var runtime = new FrontedAnimationRuntime();
+            await runtime.ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.SetProperty,
+                Target = "Self",
+                TargetLayer = FrontedAnimationTargetLayer.OverlayAbove,
+                PropertyName = "StrokeColor",
+                Values = new Dictionary<string, string?> { ["Value"] = "#FFFF6700" }
+            }, Context(root, guid));
+            await runtime.ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.SetProperty,
+                Target = "Self",
+                TargetLayer = FrontedAnimationTargetLayer.OverlayAbove,
+                PropertyName = "StrokeThickness",
+                Values = new Dictionary<string, string?> { ["Value"] = "10" }
+            }, Context(root, guid));
+
+            var overlay = Assert.Single(root.Children.OfType<Rectangle>());
+            Assert.True(FrontedRendererProperties.GetIsAnimationAuxiliaryElement(overlay));
+            Assert.Equal(10, Canvas.GetLeft(overlay));
+            Assert.Equal(20, Canvas.GetTop(overlay));
+            Assert.Equal(100, overlay.Width);
+            Assert.Equal(40, overlay.Height);
+            Assert.Equal(6, Panel.GetZIndex(overlay));
+            Assert.Equal(10, overlay.StrokeThickness);
+            var brush = Assert.IsType<SolidColorBrush>(overlay.Stroke);
+            Assert.Equal(Color.FromArgb(0xFF, 0xFF, 0x67, 0), brush.Color);
+        });
+    }
+
+    [Fact]
+    public async Task AnimationRuntime_ControlLayerStroke_LogsUnsupportedAndDoesNotCreateOverlay()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas();
+            var element = Generated(new Border { Width = 100, Height = 40 }, guid, "TextTarget");
+            root.Children.Add(element);
+            var logger = new RecordingLogger();
+
+            await new FrontedAnimationRuntime().ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.SetProperty,
+                Target = "Self",
+                TargetLayer = FrontedAnimationTargetLayer.Control,
+                PropertyName = "StrokeColor",
+                Values = new Dictionary<string, string?> { ["Value"] = "#FFFFFFFF" }
+            }, Context(root, guid, logger));
+
+            Assert.Empty(root.Children.OfType<Rectangle>());
+            Assert.Contains(logger.Messages, message => message.Contains("target layer Control", StringComparison.OrdinalIgnoreCase));
+        });
+    }
+
+    [Fact]
+    public async Task AnimationRuntime_ShapeContentLayer_AppliesFillAndStroke()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas();
+            var shape = (Rectangle)Generated(new Rectangle(), guid, "ShapeTarget");
+            root.Children.Add(shape);
+
+            var runtime = new FrontedAnimationRuntime();
+            await runtime.ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.SetProperty,
+                Target = "Self",
+                TargetLayer = FrontedAnimationTargetLayer.Content,
+                PropertyName = "FillColor",
+                Values = new Dictionary<string, string?> { ["Value"] = "#FF112233" }
+            }, Context(root, guid));
+            await runtime.ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.SetProperty,
+                Target = "Self",
+                TargetLayer = FrontedAnimationTargetLayer.Content,
+                PropertyName = "StrokeColor",
+                Values = new Dictionary<string, string?> { ["Value"] = "#FF445566" }
+            }, Context(root, guid));
+
+            Assert.Equal(Color.FromArgb(0xFF, 0x11, 0x22, 0x33), Assert.IsType<SolidColorBrush>(shape.Fill).Color);
+            Assert.Equal(Color.FromArgb(0xFF, 0x44, 0x55, 0x66), Assert.IsType<SolidColorBrush>(shape.Stroke).Color);
+        });
+    }
+
+    [Fact]
+    public async Task AnimationRuntime_ImageContentLayer_ChangesMainImageOnly()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas();
+            var mainImage = new Image { Opacity = 1 };
+            var overlay = new Border { Opacity = 1 };
+            var imageRoot = (Grid)Generated(new Grid(), guid, "ImageTarget");
+            imageRoot.Children.Add(mainImage);
+            imageRoot.Children.Add(overlay);
+            root.Children.Add(imageRoot);
+
+            await new FrontedAnimationRuntime().ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.SetProperty,
+                Target = "Self",
+                TargetLayer = FrontedAnimationTargetLayer.Content,
+                PropertyName = "Opacity",
+                Values = new Dictionary<string, string?> { ["Value"] = "0.25" }
+            }, Context(root, guid));
+
+            Assert.Equal(0.25, mainImage.Opacity, 3);
+            Assert.Equal(1, imageRoot.Opacity);
+            Assert.Equal(1, overlay.Opacity);
+        });
+    }
+
+    [Fact]
+    public async Task AnimationRuntime_ResetAll_RestoresContentAndOverlayValues()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var guid = Guid.NewGuid();
+            var root = new Canvas();
+            var textBlock = new TextBlock { FontSize = 24 };
+            var element = Generated(new Border
+            {
+                Width = 100,
+                Height = 40,
+                Child = textBlock
+            }, guid, "TextTarget");
+            root.Children.Add(element);
+            var runtime = new FrontedAnimationRuntime();
+            var context = Context(root, guid);
+
+            await runtime.ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.SetProperty,
+                Target = "Self",
+                TargetLayer = FrontedAnimationTargetLayer.Content,
+                PropertyName = "FontSize",
+                Values = new Dictionary<string, string?> { ["Value"] = "42" }
+            }, context);
+            await runtime.ExecuteAsync(new FrontedGraphActionRequest
+            {
+                RequestType = FrontedGraphActionRequestType.SetProperty,
+                Target = "Self",
+                TargetLayer = FrontedAnimationTargetLayer.OverlayAbove,
+                PropertyName = "StrokeThickness",
+                Values = new Dictionary<string, string?> { ["Value"] = "8" }
+            }, context);
+
+            var overlay = Assert.Single(root.Children.OfType<Rectangle>());
+            Assert.Equal(42, textBlock.FontSize);
+            Assert.Equal(8, overlay.StrokeThickness);
+
+            runtime.ResetAll(context);
+
+            Assert.Equal(24, textBlock.FontSize);
+            Assert.Equal(0, overlay.StrokeThickness);
+        });
+    }
+
+    [Fact]
     public async Task SameProperty_NewAnimationCancelsOldButDoesNotRemoveNewConflict()
     {
         await RunOnStaThreadAsync(async () =>
@@ -375,13 +594,13 @@ public class FrontedAnimationRuntimeTest
         });
     }
 
-    private static FrontedAnimationExecutionContext Context(Canvas root, Guid selfGuid) =>
+    private static FrontedAnimationExecutionContext Context(Canvas root, Guid selfGuid, ILogger? logger = null) =>
         new()
         {
             Root = root,
             SelfBehaviorGuid = selfGuid,
             IsDesignerPreview = true,
-            Logger = NullLogger.Instance
+            Logger = logger ?? NullLogger.Instance
         };
 
     private static FrameworkElement Generated(FrameworkElement element, Guid guid, string name)
@@ -448,5 +667,24 @@ public class FrontedAnimationRuntimeTest
         thread.SetApartmentState(ApartmentState.STA);
         thread.Start();
         return tcs.Task;
+    }
+
+    private sealed class RecordingLogger : ILogger
+    {
+        public List<string> Messages { get; } = [];
+
+        public IDisposable BeginScope<TState>(TState state) => NullLogger.Instance.BeginScope(state);
+
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception exception,
+            Func<TState, Exception, string> formatter)
+        {
+            Messages.Add(formatter(state, exception));
+        }
     }
 }

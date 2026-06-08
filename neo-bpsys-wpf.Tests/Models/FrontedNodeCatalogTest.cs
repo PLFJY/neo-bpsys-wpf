@@ -8,7 +8,7 @@ namespace neo_bpsys_wpf.Tests.Models;
 public class FrontedNodeCatalogTest
 {
     [Fact]
-    public void NodeCatalog_ContainsRequiredPhase3Nodes()
+    public void NodeCatalog_ContainsFlowAndActionNodes()
     {
         var catalog = new FrontedNodeCatalog();
         var nodeTypes = catalog.Nodes.Select(node => node.NodeType).ToArray();
@@ -22,13 +22,6 @@ public class FrontedNodeCatalogTest
         Assert.Contains("action.setProperty", nodeTypes);
         Assert.Contains("action.resetProperty", nodeTypes);
         Assert.Contains("action.animateProperty", nodeTypes);
-        Assert.Contains("value.number", nodeTypes);
-        Assert.Contains("value.string", nodeTypes);
-        Assert.Contains("value.boolean", nodeTypes);
-        Assert.Contains("value.color", nodeTypes);
-        Assert.Contains("value.eventValue", nodeTypes);
-        Assert.Contains("value.selfTag", nodeTypes);
-        Assert.Contains("value.controlReference", nodeTypes);
     }
 
     [Fact]

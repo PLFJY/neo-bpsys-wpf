@@ -1,11 +1,14 @@
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Services.FrontedLayout;
+using neo_bpsys_wpf.Services.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner;
 using neo_bpsys_wpf.ViewModels.FrontedDesigner.GraphEditor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -61,6 +64,18 @@ public class FrontedNodeGraphEditorViewModelTest
 
         Assert.True(added);
         Assert.Single(editor.Graph.Connections);
+    }
+
+    [Fact]
+    public void GraphEditor_StartCompleteConnection_AddsConnection()
+    {
+        var editor = CreateEditorWithNodes("flow.start", "flow.end");
+
+        editor.StartConnection(editor.Nodes[0].OutputPorts[0]);
+        editor.CompleteConnection(editor.Nodes[1].InputPorts[0]);
+
+        Assert.Single(editor.Graph.Connections);
+        Assert.False(editor.IsConnecting);
     }
 
     [Fact]
@@ -167,6 +182,36 @@ public class FrontedNodeGraphEditorViewModelTest
     }
 
     [Fact]
+    public void ActionNodes_DefaultTargetLayerAuto()
+    {
+        foreach (var nodeType in new[] { "action.setProperty", "action.animateProperty", "action.resetProperty" })
+        {
+            var editor = CreateEditorWithNodes(nodeType);
+
+            Assert.Equal("Auto", editor.SelectedNode!.Model.Properties["TargetLayer"].GetString());
+        }
+    }
+
+    [Fact]
+    public void PropertyNameOptions_FollowTargetLayer()
+    {
+        var editor = CreateEditorWithNodes("action.animateProperty");
+        var layer = editor.SelectedNode!.Properties.Single(property => property.Descriptor.Name == "TargetLayer");
+        var propertyName = editor.SelectedNode.Properties.Single(property => property.Descriptor.Name == "PropertyName");
+
+        layer.EnumValue = FrontedAnimationTargetLayer.Control.ToString();
+        Assert.Contains(propertyName.DisplayedOptions, option => option.Value == "Opacity");
+        Assert.DoesNotContain(propertyName.DisplayedOptions, option => option.Value == "StrokeColor");
+
+        layer.EnumValue = FrontedAnimationTargetLayer.OverlayAbove.ToString();
+        Assert.Contains(propertyName.DisplayedOptions, option => option.Value == "StrokeColor");
+        Assert.DoesNotContain(propertyName.DisplayedOptions, option => option.Value == "TextColor");
+
+        layer.EnumValue = FrontedAnimationTargetLayer.Content.ToString();
+        Assert.Contains(propertyName.DisplayedOptions, option => option.Value == "TextColor");
+    }
+
+    [Fact]
     public void TargetEditor_StoresSelfOrGuidReference()
     {
         var targetGuid = Guid.NewGuid();
@@ -242,6 +287,170 @@ public class FrontedNodeGraphEditorViewModelTest
         Assert.Equal([behavior.StartGraph, behavior.LoopGraph, behavior.StopGraph], runtime.Graphs);
     }
 
+    [Fact]
+    public async Task LoopPreview_StartLoop_WithZeroInterval_CompletesWithUiFriendlyTick()
+    {
+        var runtime = new RecordingGraphRuntime();
+        var behavior = new FrontedBehavior
+        {
+            Kind = FrontedBehaviorKind.Loop,
+            StartGraph = new FrontedNodeGraph(),
+            LoopGraph = new FrontedNodeGraph(),
+            StopGraph = new FrontedNodeGraph(),
+            LoopPolicy = new FrontedLoopPolicy { RepeatCount = 3, IntervalMs = 0 }
+        };
+        var editor = new FrontedBehaviorAnimationEditorViewModel(
+            behavior,
+            (_, fallback) => fallback,
+            runtime: runtime);
+
+        await editor.StartLoopPreviewCommand.ExecuteAsync(null);
+
+        Assert.False(editor.IsLoopPreviewRunning);
+        Assert.Equal(1, runtime.Graphs.Count(graph => ReferenceEquals(graph, behavior.StartGraph)));
+        Assert.Equal(3, runtime.Graphs.Count(graph => ReferenceEquals(graph, behavior.LoopGraph)));
+    }
+
+    [Fact]
+    public async Task GraphEditor_SaveAsync_ClearsDirtyAfterAsyncSaveSucceeds()
+    {
+        var saveCalled = false;
+        var editor = new FrontedNodeGraphEditorViewModel(
+            new FrontedNodeGraph(),
+            saveAsync: async () =>
+            {
+                await Task.Yield();
+                saveCalled = true;
+                return true;
+            });
+        editor.IsDirty = true;
+
+        await editor.SaveAsync();
+
+        Assert.True(saveCalled);
+        Assert.False(editor.IsDirty);
+    }
+
+    [Fact]
+    public async Task GraphEditor_SaveAsync_KeepsDirtyWhenAsyncSaveFails()
+    {
+        var editor = new FrontedNodeGraphEditorViewModel(
+            new FrontedNodeGraph(),
+            saveAsync: () => Task.FromResult(false));
+        editor.IsDirty = true;
+
+        await editor.SaveAsync();
+
+        Assert.True(editor.IsDirty);
+    }
+
+    [Fact]
+    public async Task AnimationEditor_SaveAll_ClearsAllStageDirty()
+    {
+        var saveCalled = false;
+        var behavior = new FrontedBehavior
+        {
+            Kind = FrontedBehaviorKind.Loop,
+            StartGraph = new FrontedNodeGraph(),
+            LoopGraph = new FrontedNodeGraph(),
+            StopGraph = new FrontedNodeGraph(),
+            LoopPolicy = new FrontedLoopPolicy()
+        };
+        var editor = new FrontedBehaviorAnimationEditorViewModel(
+            behavior,
+            (_, fallback) => fallback,
+            saveAsync: () =>
+            {
+                saveCalled = true;
+                return Task.FromResult(true);
+            });
+
+        // Mark all stages as dirty
+        foreach (var stage in editor.Stages)
+        {
+            stage.GraphEditor.IsDirty = true;
+        }
+        Assert.True(editor.HasUnsavedChanges);
+
+        var result = await editor.SaveAllAsync();
+
+        Assert.True(result);
+        Assert.True(saveCalled);
+        Assert.False(editor.HasUnsavedChanges);
+        foreach (var stage in editor.Stages)
+        {
+            Assert.False(stage.GraphEditor.IsDirty);
+        }
+    }
+
+    [Fact]
+    public async Task AnimationEditor_SaveFailed_KeepsDirty()
+    {
+        var behavior = new FrontedBehavior
+        {
+            Kind = FrontedBehaviorKind.Loop,
+            StartGraph = new FrontedNodeGraph(),
+            LoopGraph = new FrontedNodeGraph(),
+            StopGraph = new FrontedNodeGraph(),
+            LoopPolicy = new FrontedLoopPolicy()
+        };
+        var editor = new FrontedBehaviorAnimationEditorViewModel(
+            behavior,
+            (_, fallback) => fallback,
+            saveAsync: () => Task.FromResult(false));
+
+        // Mark all stages as dirty
+        foreach (var stage in editor.Stages)
+        {
+            stage.GraphEditor.IsDirty = true;
+        }
+
+        var result = await editor.SaveAllAsync();
+
+        Assert.False(result);
+        // All stages should remain dirty since save failed
+        foreach (var stage in editor.Stages)
+        {
+            Assert.True(stage.GraphEditor.IsDirty);
+        }
+        Assert.True(editor.HasUnsavedChanges);
+    }
+
+    [Fact]
+    public async Task AnimationEditor_StopLoopPreview_RunStopGraph_DoesNotResetAfterStopGraphSucceeds()
+    {
+        await RunOnStaThreadAsync(async () =>
+        {
+            var graphRuntime = new RecordingGraphRuntime();
+            var animationRuntime = new RecordingAnimationRuntime();
+            var previewScope = new FrontedDesignerPreviewAnimationScope();
+            previewScope.Update(new Grid(), null, "Window", "Canvas", []);
+            var behavior = new FrontedBehavior
+            {
+                Kind = FrontedBehaviorKind.Loop,
+                StartGraph = new FrontedNodeGraph(),
+                LoopGraph = new FrontedNodeGraph(),
+                StopGraph = new FrontedNodeGraph(),
+                LoopPolicy = new FrontedLoopPolicy
+                {
+                    StopMode = FrontedLoopStopMode.RunStopGraph,
+                    ResetOnStop = true
+                }
+            };
+            var editor = new FrontedBehaviorAnimationEditorViewModel(
+                behavior,
+                (_, fallback) => fallback,
+                runtime: graphRuntime,
+                animationRuntime: animationRuntime,
+                previewAnimationScope: previewScope);
+
+            await editor.StopLoopPreviewCommand.ExecuteAsync(null);
+
+            Assert.Contains(behavior.StopGraph, graphRuntime.Graphs);
+            Assert.Equal(0, animationRuntime.ResetAllCount);
+        });
+    }
+
     private static FrontedNodeGraphEditorViewModel CreateEditorWithNodes(params string[] nodeTypes)
     {
         var catalog = new FrontedNodeCatalog();
@@ -263,5 +472,55 @@ public class FrontedNodeGraphEditorViewModelTest
             Graphs.Add(graph);
             return Task.FromResult(new FrontedGraphExecutionResult { Status = FrontedGraphExecutionStatus.Success });
         }
+    }
+
+    private sealed class RecordingAnimationRuntime : IFrontedAnimationRuntime
+    {
+        public int ResetAllCount { get; private set; }
+
+        public Task ExecuteAsync(
+            IReadOnlyList<FrontedGraphActionRequest> actions,
+            FrontedAnimationExecutionContext context,
+            CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
+
+        public Task ExecuteAsync(
+            FrontedGraphActionRequest action,
+            FrontedAnimationExecutionContext context,
+            CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
+
+        public void ResetTarget(Guid behaviorGuid, FrontedAnimationExecutionContext context)
+        {
+        }
+
+        public void ResetAll(FrontedAnimationExecutionContext context)
+        {
+            ResetAllCount++;
+        }
+
+        public void Release(FrameworkElement root)
+        {
+        }
+    }
+
+    private static Task RunOnStaThreadAsync(Func<Task> action)
+    {
+        var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                action().GetAwaiter().GetResult();
+                tcs.SetResult();
+            }
+            catch (Exception ex)
+            {
+                tcs.SetException(ex);
+            }
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        return tcs.Task;
     }
 }

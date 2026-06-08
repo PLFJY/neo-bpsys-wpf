@@ -147,6 +147,21 @@ public sealed class FrontedNodeGraphValidator(FrontedNodeCatalog? catalog = null
             messages.Add(Message(severity, "TargetRequired", "Target is required; Self will be used for legacy nodes.", node.NodeId, propertyName: "Target"));
         }
 
+        var targetLayer = GetString(node, "TargetLayer") ?? FrontedAnimationTargetLayer.Auto.ToString();
+        if (!Enum.TryParse<FrontedAnimationTargetLayer>(targetLayer, true, out var parsedLayer))
+        {
+            messages.Add(Message(FrontedNodeGraphValidationSeverity.Error, "InvalidTargetLayer", "TargetLayer is invalid.", node.NodeId, propertyName: "TargetLayer"));
+        }
+        else if (parsedLayer == FrontedAnimationTargetLayer.Auto)
+        {
+            messages.Add(Message(
+                FrontedNodeGraphValidationSeverity.Warning,
+                "TargetLayerAuto",
+                "TargetLayer is Auto; choose a specific layer when the visual result is unclear.",
+                node.NodeId,
+                propertyName: "TargetLayer"));
+        }
+
         var propertyName = GetString(node, "PropertyName");
         if (node.NodeType is "action.animateProperty" or "action.setProperty"
             && string.IsNullOrWhiteSpace(propertyName))

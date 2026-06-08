@@ -639,7 +639,7 @@
                                         <ComboBox
                                             DisplayMemberPath="DisplayName"
                                             IsEditable="True"
-                                            ItemsSource="{Binding LocalizedOptions}"
+                                            ItemsSource="{Binding DisplayedOptions}"
                                             SelectedValue="{Binding PropertyNameValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                             SelectedValuePath="Value"
                                             Text="{Binding PropertyNameText, UpdateSourceTrigger=PropertyChanged}"

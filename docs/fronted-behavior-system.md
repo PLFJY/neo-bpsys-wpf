@@ -55,6 +55,17 @@ Phase 4 已完成 Designer 预览侧的 WPF 动画与属性应用层：
 - Designer 动画编辑器的 Run Preview 会在可用时使用当前预览 Canvas、选中控件 `BehaviorGuid` 和选中控件名称创建 WPF 执行上下文。没有预览 scope 时会回退为 Phase 3 日志预览，并提示 “No preview target scope available.”。
 - Reset 当前目标 / Reset all preview 会把本次预览 session 捕获到的基础视觉值恢复到 WPF 控件上。基础值只存在于 runtime 内存中，不写回 layout JSON 或 behaviors JSON。
 
+动画动作现在包含 `Target`、`TargetLayer` 和 `PropertyName`。`Target` 先定位控件，`TargetLayer`
+再决定属性施加到控件本体、内部内容，还是运行时生成的矩形承接层：
+
+| TargetLayer | 含义 |
+| --- | --- |
+| `Auto` | 根据属性和控件结构选择默认层；编辑器会提示在效果不清晰时改为明确层。 |
+| `Control` | 控件外层/root，适合整体显隐、透明度、尺寸和 transform。 |
+| `Content` | 控件内部主内容；Text 类控件指向内部 `TextBlock`，Image / BorderedImage 指向主 `Image`，Shape 指向自身。 |
+| `OverlayAbove` | 在控件上方懒创建运行时 `Rectangle` 承接层，不写入 layout 或 behaviors JSON。 |
+| `OverlayBelow` | 在控件下方懒创建运行时 `Rectangle` 承接层，不写入 layout 或 behaviors JSON。 |
+
 当前内置支持的属性：
 
 | Adapter | 属性 |
@@ -66,7 +77,7 @@ Phase 4 已完成 Designer 预览侧的 WPF 动画与属性应用层：
 
 `AnimateProperty` 节点的 `WaitForCompletion` 属性默认为 `true`，执行将等待动画完成后才继续下一节点；设为 `false` 时动画启动后立即继续执行下一节点，不等待动画完成。
 
-`VisualOffsetX/Y`、`ScaleX/Y`、`Rotation` 使用 `RenderTransform`，不会修改 `Canvas.Left` / `Canvas.Top`，也不会污染布局配置。`FillColor`、`StrokeColor`、`TextColor` 使用 `SolidColorBrush`，颜色值支持 `#RRGGBB` / `#AARRGGBB`。不支持的属性会记录 warning 并跳过，不抛出异常。
+`VisualOffsetX/Y`、`ScaleX/Y`、`Rotation` 使用 `RenderTransform`，不会修改 `Canvas.Left` / `Canvas.Top`，也不会污染布局配置。`FillColor`、`StrokeColor`、`TextColor` 使用 `SolidColorBrush`，颜色值支持 `#RRGGBB` / `#AARRGGBB`。不支持的 `TargetLayer + PropertyName` 组合会记录 warning 并跳过，不抛出异常。
 
 Loop 行为编辑器现在提供 Designer-only 生命周期预览：Preview Start、Preview Loop Once、Start Loop Preview、Stop Loop Preview、Preview Stop、Reset。Start Loop Preview 会先执行 `StartGraph`，再按 `LoopPolicy.RepeatCount` 与 `IntervalMs` 重复执行 `LoopGraph`；重复启动默认按 `ReentryPolicy.IgnoreIfRunning` 忽略，`InterruptPrevious` 会取消旧循环。Stop Loop Preview 会根据 `StopMode` 停止当前循环：`StopImmediately` 立即取消，`RunStopGraph` 取消后执行 `StopGraph`，`CompleteCurrentIteration` 请求当前轮完成后退出，并按 `ResetOnStop` 调用 reset。`AutoReverse` 当前只是配置占位符，尚未实现任意图的反向执行，该功能将在后续版本中提供。
 

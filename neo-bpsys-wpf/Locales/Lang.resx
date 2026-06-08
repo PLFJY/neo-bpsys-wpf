@@ -4085,7 +4085,7 @@
     <value>重入策略</value>
   </data>
   <data name="Designer.Behaviors.GraphPlaceholder" xml:space="preserve">
-    <value>节点图编辑器将在后续版本中提供</value>
+    <value>节点图编辑器可从动画编辑器打开</value>
   </data>
   <data name="Designer.Behaviors.StartGraph" xml:space="preserve">
     <value>开始图</value>
@@ -4444,6 +4444,11 @@
   <data name="Designer.Graph.Target.Self" xml:space="preserve">
     <value>自身</value>
   </data>
+  <data name="Designer.Option.TargetLayer.Auto" xml:space="preserve"><value>自动</value></data>
+  <data name="Designer.Option.TargetLayer.Control" xml:space="preserve"><value>控件本体</value></data>
+  <data name="Designer.Option.TargetLayer.Content" xml:space="preserve"><value>内部内容</value></data>
+  <data name="Designer.Option.TargetLayer.OverlayAbove" xml:space="preserve"><value>上方矩形层</value></data>
+  <data name="Designer.Option.TargetLayer.OverlayBelow" xml:space="preserve"><value>下方矩形层</value></data>
   <data name="Designer.Behaviors.Event.CharacterSelected.Description" xml:space="preserve">
     <value>角色被选择时触发（包含阵营和玩家索引）。</value>
   </data>
@@ -4497,28 +4502,31 @@
 从设计器中选择控件后在此预览动画效果</value>
   </data>
   <data name="Designer.Graph.PreviewStart" xml:space="preserve">
-    <value>预览开始</value>
+    <value>预览开始动画</value>
   </data>
   <data name="Designer.Graph.PreviewLoopOnce" xml:space="preserve">
-    <value>预览循环一次</value>
+    <value>预览一次循环动画</value>
   </data>
   <data name="Designer.Graph.StartLoopPreview" xml:space="preserve">
-    <value>开始循环预览</value>
+    <value>开始循环动画预览</value>
   </data>
   <data name="Designer.Graph.StopLoopPreview" xml:space="preserve">
-    <value>停止循环预览</value>
+    <value>停止循环动画预览</value>
   </data>
   <data name="Designer.Graph.PreviewStop" xml:space="preserve">
-    <value>预览停止</value>
+    <value>预览停止动画</value>
   </data>
   <data name="Designer.Graph.ResetPreview" xml:space="preserve">
-    <value>重置</value>
+    <value>重置预览</value>
   </data>
   <data name="Designer.Graph.Connection.SelectInput" xml:space="preserve">
     <value>请选择输入端口。</value>
   </data>
   <data name="Designer.Graph.Preview.ValidationBlocked" xml:space="preserve">
     <value>图检查发现问题，预览已阻止。</value>
+  </data>
+  <data name="Designer.Graph.Preview.AutoReverseStoredOnly" xml:space="preserve">
+    <value>自动反向设置会被保存，但预览暂不模拟反向图播放。</value>
   </data>
   <data name="Designer.Graph.Category.Flow" xml:space="preserve">
     <value>流程</value>
@@ -4556,27 +4564,6 @@
   <data name="Designer.Graph.Node.ActionAnimateProperty" xml:space="preserve">
     <value>动画属性</value>
   </data>
-  <data name="Designer.Graph.Node.ValueNumber" xml:space="preserve">
-    <value>数字</value>
-  </data>
-  <data name="Designer.Graph.Node.ValueString" xml:space="preserve">
-    <value>文本</value>
-  </data>
-  <data name="Designer.Graph.Node.ValueBoolean" xml:space="preserve">
-    <value>布尔</value>
-  </data>
-  <data name="Designer.Graph.Node.ValueColor" xml:space="preserve">
-    <value>颜色</value>
-  </data>
-  <data name="Designer.Graph.Node.ValueEventValue" xml:space="preserve">
-    <value>事件值</value>
-  </data>
-  <data name="Designer.Graph.Node.ValueSelfTag" xml:space="preserve">
-    <value>自身标签</value>
-  </data>
-  <data name="Designer.Graph.Node.ValueControlReference" xml:space="preserve">
-    <value>控件引用</value>
-  </data>
   <data name="Designer.Graph.Node.FlowStart.Description" xml:space="preserve">
     <value>动画流程入口。每张图通常只放一个 Start，然后从 Out 连到第一个动作或流程节点。</value>
   </data>
@@ -4603,27 +4590,6 @@
   </data>
   <data name="Designer.Graph.Node.ActionAnimateProperty.Description" xml:space="preserve">
     <value>发出“动画改变属性”请求。填写目标、属性名、起止值、持续时间和缓动。</value>
-  </data>
-  <data name="Designer.Graph.Node.ValueNumber.Description" xml:space="preserve">
-    <value>数字常量，例如 0、1、300。可编辑和保存，可在属性面板中修改值。</value>
-  </data>
-  <data name="Designer.Graph.Node.ValueString.Description" xml:space="preserve">
-    <value>文本常量，例如 Visible、Collapsed 或任意字符串。</value>
-  </data>
-  <data name="Designer.Graph.Node.ValueBoolean.Description" xml:space="preserve">
-    <value>布尔常量，表示 true/false。</value>
-  </data>
-  <data name="Designer.Graph.Node.ValueColor.Description" xml:space="preserve">
-    <value>颜色常量，例如 #FFFFFFFF。</value>
-  </data>
-  <data name="Designer.Graph.Node.ValueEventValue.Description" xml:space="preserve">
-    <value>事件 payload 路径值。</value>
-  </data>
-  <data name="Designer.Graph.Node.ValueSelfTag.Description" xml:space="preserve">
-    <value>当前控件标签值。</value>
-  </data>
-  <data name="Designer.Graph.Node.ValueControlReference.Description" xml:space="preserve">
-    <value>控件引用常量。当前最常用 Self，表示行为所属的当前控件。</value>
   </data>
   <data name="Designer.Graph.Port.In" xml:space="preserve">
     <value>In</value>
@@ -4737,6 +4703,12 @@
   <data name="Designer.Graph.Property.Target.Description" xml:space="preserve">
     <value>动作作用的目标控件。Self 表示行为绑定的控件本身。</value>
   </data>
+  <data name="Designer.Graph.Property.TargetLayer" xml:space="preserve">
+    <value>作用层</value>
+  </data>
+  <data name="Designer.Graph.Property.TargetLayer.Description" xml:space="preserve">
+    <value>选择属性施加到控件本体、内部内容，还是运行时生成的上方/下方矩形承接层。</value>
+  </data>
   <data name="Designer.Graph.Property.PropertyName.Description" xml:space="preserve">
     <value>要设置、重置或动画化的属性名称。</value>
   </data>
@@ -4798,7 +4770,7 @@
     <value>循环预览</value>
   </data>
   <data name="Designer.Graph.Help.LoopPreview.Content" xml:space="preserve">
-    <value>循环（Loop）行为有三个阶段图：开始图、循环图、结束图。\n\n预览循环一次：先执行开始图 → 执行一次循环图 → 执行结束图。\n开始循环预览：反复执行循环图（受 RepeatCount 和 IntervalMs 控制），直到点击"停止循环预览"。\n预览停止：中断所有正在执行的预览。\n重置预览：恢复所有被预览修改过的控件属性。\n\nRepeatCount 控制循环次数，设为 0 表示无限循环直到手动停止。IntervalMs 控制两次循环之间的等待时间。</value>
+    <value>循环（Loop）行为有三个阶段图：开始图、循环图、结束图。\n\n预览一次循环动画：先执行开始图 → 执行一次循环图 → 执行结束图。\n开始循环动画预览：反复执行循环图（受 RepeatCount 和 IntervalMs 控制），直到点击“停止循环动画预览”。\n预览停止动画：只执行结束图，用于检查停止阶段效果。\n重置预览：恢复所有被预览修改过的控件属性。\n\nRepeatCount 控制循环次数，设为负数表示无限循环直到手动停止。IntervalMs 控制两次循环之间的等待时间；为 0 时预览仍会保留一个短暂节拍，避免界面卡住。</value>
   </data>
   <data name="Designer.Graph.Help.Troubleshooting.Title" xml:space="preserve">
     <value>常见问题</value>
@@ -4965,7 +4937,7 @@
 
 流程节点：Start 是入口点，通常每个流程图应包含一个。End 结束当前分支。Delay 等待指定毫秒数。Sequence 按顺序执行 Step1、Step2、Step3。Parallel 同时执行 Branch1、Branch2、Branch3，并等待所有分支完成。If 是一个高级文本分支，对于简单的属性动画通常不需要使用。
 
-操作节点：Log 仅写入预览文本。SetProperty 记录属性设置请求，例如 Target=Self, PropertyName=Opacity, Value=0.5。ResetProperty 记录重置请求；PropertyName 可以是特定属性或 All。AnimateProperty 记录动画请求，例如 Target=Self, PropertyName=Opacity, From=0, To=1, DurationMs=300, Easing=Linear。第 3 阶段仅预览日志和请求；它不会修改真实的 WPF 控件。
+操作节点：Log 写入预览日志。SetProperty 设置属性值，例如 Target=Self, PropertyName=Opacity, Value=0.5。ResetProperty 重置属性；PropertyName 可以是特定属性或 All。AnimateProperty 播放属性动画，例如 Target=Self, PropertyName=Opacity, From=0, To=1, DurationMs=300, Easing=Linear。预览存在目标范围时，这些动作会施加到设计器中的预览控件。
 
 值节点：Number/String/Boolean/Color 用于存储常量值，供后续值端口评估使用。ControlReference 用于存储目标引用；目前通常使用 Self 作为默认值。
 

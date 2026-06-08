@@ -3890,7 +3890,7 @@
   <data name="Designer.Behaviors.StopMode" xml:space="preserve"><value>停止モード</value></data>
   <data name="Designer.Behaviors.ResetOnStop" xml:space="preserve"><value>停止時にリセット</value></data>
   <data name="Designer.Behaviors.ReentryPolicy" xml:space="preserve"><value>再入ポリシー</value></data>
-  <data name="Designer.Behaviors.GraphPlaceholder" xml:space="preserve"><value>ノードグラフエディターは今後のバージョンで利用可能になります</value></data>
+  <data name="Designer.Behaviors.GraphPlaceholder" xml:space="preserve"><value>ノードグラフエディターはアニメーションエディターから開けます</value></data>
   <data name="Designer.Behaviors.StartGraph" xml:space="preserve"><value>開始グラフ</value></data>
   <data name="Designer.Behaviors.LoopGraph" xml:space="preserve"><value>ループグラフ</value></data>
   <data name="Designer.Behaviors.StopGraph" xml:space="preserve"><value>停止グラフ</value></data>
@@ -4009,6 +4009,11 @@
   <data name="Designer.Behaviors.BehaviorTags" xml:space="preserve"><value>ビヘイビアタグ</value></data>
   <data name="Designer.Behaviors.AddBehaviorTag" xml:space="preserve"><value>タグを追加</value></data>
   <data name="Designer.Graph.Target.Self" xml:space="preserve"><value>自身</value></data>
+  <data name="Designer.Option.TargetLayer.Auto" xml:space="preserve"><value>自動</value></data>
+  <data name="Designer.Option.TargetLayer.Control" xml:space="preserve"><value>コントロール本体</value></data>
+  <data name="Designer.Option.TargetLayer.Content" xml:space="preserve"><value>内部コンテンツ</value></data>
+  <data name="Designer.Option.TargetLayer.OverlayAbove" xml:space="preserve"><value>上側 Rectangle レイヤー</value></data>
+  <data name="Designer.Option.TargetLayer.OverlayBelow" xml:space="preserve"><value>下側 Rectangle レイヤー</value></data>
   <data name="Designer.Behaviors.Event.CharacterSelected.Description" xml:space="preserve"><value>キャラクターが選択された時に発生します（陣営とプレイヤーインデックスを含む）。</value></data>
   <data name="Designer.Behaviors.Event.CharacterBanned.Description" xml:space="preserve"><value>キャラクターが禁止された時に発生します（陣営と禁止インデックスを含む）。</value></data>
   <data name="Designer.Graph.NodeCatalog" xml:space="preserve"><value>ノードカタログ</value></data>
@@ -4027,14 +4032,15 @@
   <data name="Designer.Graph.PreviewTitle" xml:space="preserve"><value>プレビュー</value></data>
   <data name="Designer.Graph.PreviewPlaceholder" xml:space="preserve"><value>アニメーションプレビュー
 デザイナーでコントロールを選択するとここに表示されます</value></data>
-  <data name="Designer.Graph.PreviewStart" xml:space="preserve"><value>開始をプレビュー</value></data>
-  <data name="Designer.Graph.PreviewLoopOnce" xml:space="preserve"><value>ループを1回プレビュー</value></data>
-  <data name="Designer.Graph.StartLoopPreview" xml:space="preserve"><value>ループプレビュー開始</value></data>
-  <data name="Designer.Graph.StopLoopPreview" xml:space="preserve"><value>ループプレビュー停止</value></data>
-  <data name="Designer.Graph.PreviewStop" xml:space="preserve"><value>停止をプレビュー</value></data>
-  <data name="Designer.Graph.ResetPreview" xml:space="preserve"><value>リセット</value></data>
+  <data name="Designer.Graph.PreviewStart" xml:space="preserve"><value>開始アニメーションをプレビュー</value></data>
+  <data name="Designer.Graph.PreviewLoopOnce" xml:space="preserve"><value>ループアニメーションを1回プレビュー</value></data>
+  <data name="Designer.Graph.StartLoopPreview" xml:space="preserve"><value>ループアニメーションプレビュー開始</value></data>
+  <data name="Designer.Graph.StopLoopPreview" xml:space="preserve"><value>ループアニメーションプレビュー停止</value></data>
+  <data name="Designer.Graph.PreviewStop" xml:space="preserve"><value>停止アニメーションをプレビュー</value></data>
+  <data name="Designer.Graph.ResetPreview" xml:space="preserve"><value>プレビューをリセット</value></data>
   <data name="Designer.Graph.Connection.SelectInput" xml:space="preserve"><value>入力ポートを選択してください。</value></data>
   <data name="Designer.Graph.Preview.ValidationBlocked" xml:space="preserve"><value>グラフチェックで問題が見つかったため、プレビューを開始しませんでした。</value></data>
+  <data name="Designer.Graph.Preview.AutoReverseStoredOnly" xml:space="preserve"><value>自動反転設定は保存されますが、プレビューでは反転グラフ再生をシミュレートしません。</value></data>
   <data name="Designer.Graph.Category.Flow" xml:space="preserve"><value>フロー</value></data>
   <data name="Designer.Graph.Category.Action" xml:space="preserve"><value>アクション</value></data>
   <data name="Designer.Graph.Category.Value" xml:space="preserve"><value>値</value></data>
@@ -4047,29 +4053,15 @@
   <data name="Designer.Graph.Node.ActionSetProperty" xml:space="preserve"><value>SetProperty</value></data>
   <data name="Designer.Graph.Node.ActionResetProperty" xml:space="preserve"><value>ResetProperty</value></data>
   <data name="Designer.Graph.Node.ActionAnimateProperty" xml:space="preserve"><value>AnimateProperty</value></data>
-  <data name="Designer.Graph.Node.ValueNumber" xml:space="preserve"><value>Number</value></data>
-  <data name="Designer.Graph.Node.ValueString" xml:space="preserve"><value>String</value></data>
-  <data name="Designer.Graph.Node.ValueBoolean" xml:space="preserve"><value>Boolean</value></data>
-  <data name="Designer.Graph.Node.ValueColor" xml:space="preserve"><value>Color</value></data>
-  <data name="Designer.Graph.Node.ValueEventValue" xml:space="preserve"><value>EventValue</value></data>
-  <data name="Designer.Graph.Node.ValueSelfTag" xml:space="preserve"><value>SelfTag</value></data>
-  <data name="Designer.Graph.Node.ValueControlReference" xml:space="preserve"><value>ControlReference</value></data>
   <data name="Designer.Graph.Node.FlowStart.Description" xml:space="preserve"><value>アニメーションフローの入口です。通常は 1 つだけ置き、Out から最初のノードへ接続します。</value></data>
   <data name="Designer.Graph.Node.FlowEnd.Description" xml:space="preserve"><value>現在の分岐を終了します。最後のアクションの Out を End へ接続すると流れが明確になります。</value></data>
   <data name="Designer.Graph.Node.FlowDelay.Description" xml:space="preserve"><value>続行前に待機します。フェードアウト後にフェードインするような間隔づけに使います。</value></data>
   <data name="Designer.Graph.Node.FlowParallel.Description" xml:space="preserve"><value>接続されたすべてのブランチを同時に実行し、すべての完了後に Out に進みます。\nブランチは次の接続がない時点で完了とみなされます。</value></data>
   <data name="Designer.Graph.Node.FlowIf.Description" xml:space="preserve"><value>テキスト比較を使う高度な分岐です。単純なプロパティアニメーションでは通常不要です。</value></data>
   <data name="Designer.Graph.Node.ActionLog.Description" xml:space="preserve"><value>ここまで実行されたことを確認するため、プレビューログに 1 行出力します。</value></data>
-  <data name="Designer.Graph.Node.ActionSetProperty.Description" xml:space="preserve"><value>プロパティ設定要求を出します。Phase 3 ではプレビュー表示だけで、実際のコントロールは変更しません。</value></data>
+  <data name="Designer.Graph.Node.ActionSetProperty.Description" xml:space="preserve"><value>対象のプロパティ値を設定します。プレビューでは対象スコープがある場合、デザイナー上のプレビューコントロールへ適用されます。</value></data>
   <data name="Designer.Graph.Node.ActionResetProperty.Description" xml:space="preserve"><value>プロパティリセット要求を出します。PropertyName は具体的なプロパティ、または All を指定できます。</value></data>
   <data name="Designer.Graph.Node.ActionAnimateProperty.Description" xml:space="preserve"><value>プロパティアニメーション要求を出します。対象、プロパティ名、開始/終了値、時間、イージングを設定します。</value></data>
-  <data name="Designer.Graph.Node.ValueNumber.Description" xml:space="preserve"><value>0、1、300 などの数値定数です。現在は編集と保存ができ、値ポート計算は後続段階です。</value></data>
-  <data name="Designer.Graph.Node.ValueString.Description" xml:space="preserve"><value>Visible、Collapsed、任意文字列などのテキスト定数です。</value></data>
-  <data name="Designer.Graph.Node.ValueBoolean.Description" xml:space="preserve"><value>true/false の真偽値定数です。</value></data>
-  <data name="Designer.Graph.Node.ValueColor.Description" xml:space="preserve"><value>#FFFFFFFF などの色定数です。</value></data>
-  <data name="Designer.Graph.Node.ValueEventValue.Description" xml:space="preserve"><value>事件 payload 路径值。</value></data>
-  <data name="Designer.Graph.Node.ValueSelfTag.Description" xml:space="preserve"><value>当前控件标签值。</value></data>
-  <data name="Designer.Graph.Node.ValueControlReference.Description" xml:space="preserve"><value>コントロール参照定数です。Self はこの動作を持つ現在のコントロールを表します。</value></data>
   <data name="Designer.Graph.Port.In" xml:space="preserve"><value>In</value></data>
   <data name="Designer.Graph.Port.Out" xml:space="preserve"><value>Out</value></data>
   <data name="Designer.Graph.Port.True" xml:space="preserve"><value>True</value></data>
@@ -4118,6 +4110,8 @@
   <data name="Designer.Graph.Property.DurationMs.Description" xml:space="preserve"><value>待機またはアニメーションの時間です。単位はミリ秒です。</value></data>
   <data name="Designer.Graph.Property.Message.Description" xml:space="preserve"><value>プレビュー実行ログに出力するテキストです。</value></data>
   <data name="Designer.Graph.Property.Target.Description" xml:space="preserve"><value>アクションの対象です。Self はこのビヘイビアがバインドされているコントロール自身です。</value></data>
+  <data name="Designer.Graph.Property.TargetLayer" xml:space="preserve"><value>対象レイヤー</value></data>
+  <data name="Designer.Graph.Property.TargetLayer.Description" xml:space="preserve"><value>プロパティをコントロール本体、内部コンテンツ、またはコントロールの上/下に生成する実行時 Rectangle レイヤーへ適用するかを選択します。</value></data>
   <data name="Designer.Graph.Property.PropertyName.Description" xml:space="preserve"><value>設定、リセット、またはアニメーションするプロパティ名です。</value></data>
   <data name="Designer.Graph.Property.Value.Description" xml:space="preserve"><value>ノードの出力値、またはプロパティへ書き込む値です。</value></data>
   <data name="Designer.Graph.Property.From.Description" xml:space="preserve"><value>アニメーション開始値です。Opacity の場合、0 は完全に透明な状態を表します。</value></data>
@@ -4138,7 +4132,7 @@
   <data name="Designer.Graph.Help.Preview.Title" xml:space="preserve"><value>アニメーションのプレビュー</value></data>
   <data name="Designer.Graph.Help.Preview.Content" xml:space="preserve"><value>グラフに少なくとも 1 つの Start ノードと End ノードがあることを確認します。\nツールバーの「プレビュー実行」をクリックして現在のグラフを実行します。アニメーションはデザイナー内の実際のコントロールに適用され、左下のプレビュービューポートにリアルタイム表示されます。\n右下の実行ログには各ステップの結果が表示され、問題の特定に役立ちます。\n「プレビュー停止」で実行を中断します。「現在のターゲットをリセット」または「すべてのプレビューをリセット」で変更されたコントロールプロパティを復元します。\nプレビュービューポートはリアルタイムレンダリングを使用するため、アニメーション効果を直接確認できます。</value></data>
   <data name="Designer.Graph.Help.LoopPreview.Title" xml:space="preserve"><value>ループプレビュー</value></data>
-  <data name="Designer.Graph.Help.LoopPreview.Content" xml:space="preserve"><value>ループビヘイビアには 3 つのステージグラフがあります：開始グラフ、ループグラフ、終了グラフ。\n\nループを 1 回プレビュー：開始グラフを実行 → ループグラフを 1 回実行 → 終了グラフを実行。\nループプレビューを開始：「ループプレビュー停止」をクリックするまでループグラフを繰り返し実行します（RepeatCount と IntervalMs で制御）。\nプレビュー停止：実行中のすべてのプレビューを中断します。\nプレビューをリセット：プレビューで変更されたすべてのコントロールプロパティを復元します。\n\nRepeatCount はループ回数を制御します。0 に設定すると手動で停止するまで無限ループします。IntervalMs はループ間の待機時間を制御します。</value></data>
+  <data name="Designer.Graph.Help.LoopPreview.Content" xml:space="preserve"><value>ループビヘイビアには 3 つのステージグラフがあります：開始グラフ、ループグラフ、終了グラフ。\n\nループアニメーションを1回プレビュー：開始グラフを実行 → ループグラフを1回実行 → 終了グラフを実行します。\nループアニメーションプレビュー開始：「ループアニメーションプレビュー停止」をクリックするまでループグラフを繰り返し実行します（RepeatCount と IntervalMs で制御）。\n停止アニメーションをプレビュー：終了グラフだけを実行し、停止段階の効果を確認します。\nプレビューをリセット：プレビューで変更されたすべてのコントロールプロパティを復元します。\n\nRepeatCount はループ回数を制御します。負の値にすると手動で停止するまで無限ループします。IntervalMs はループ間の待機時間を制御します。0 の場合でも、エディターが固まらないよう短い間隔を保ちます。</value></data>
   <data name="Designer.Graph.Help.Troubleshooting.Title" xml:space="preserve"><value>よくある問題</value></data>
   <data name="Designer.Graph.Help.Troubleshooting.Content" xml:space="preserve"><value>プレビューが実行されない：Start ノードがあるか、すべてのノードが正しく接続されているか、検証エラーがないかを確認してください。\nアニメーション効果が期待と異なる：AnimateProperty の From/To 値と DurationMs を確認し、イージング関数が正しく選択されているか確認してください。\nノードを接続できない：出力ポートタイプ（Flow/Value）が入力ポートタイプと一致していることを確認してください。Flow ポートは Flow ポートにのみ、Value ポートは Value ポートにのみ接続できます。\nグラフの実行が停止する：Delay ノードの待機時間が長すぎないか、Parallel の全ブランチに End ノードがあるかを確認してください。\nコントロールアニメーションが効かない：Target が正しいか（通常は Self）、PropertyName の綴りが正しいか（例：Opacity、Width、Height）を確認してください。</value></data>
   <data name="Designer.Graph.Help.Shortcuts.Title" xml:space="preserve"><value>キーボードショートカット</value></data>
@@ -4153,9 +4147,9 @@
 
 フロー：Start は入口で、通常 1 つだけ置きます。End は現在の分岐を終了します。Delay は指定ミリ秒待機します。Sequence は Step1、Step2、Step3 を順番に実行します。Parallel は Branch1、Branch2、Branch3 を同時に実行し、すべての完了を待ちます。If はテキスト比較の高度な分岐で、単純なプロパティアニメーションでは通常不要です。
 
-アクション：Log はプレビューログだけに出力します。SetProperty はプロパティ設定要求を記録します。例：Target=Self、PropertyName=Opacity、Value=0.5。ResetProperty はリセット要求を記録します。PropertyName は具体的なプロパティまたは All です。AnimateProperty はアニメーション要求を記録します。例：Target=Self、PropertyName=Opacity、From=0、To=1、DurationMs=300、Easing=Linear。Phase 3 ではログと要求だけをプレビューし、実際の WPF コントロールは変更しません。
+アクション：Log はプレビューログに出力します。SetProperty はプロパティ値を設定します。例：Target=Self、PropertyName=Opacity、Value=0.5。ResetProperty はプロパティをリセットします。PropertyName は具体的なプロパティまたは All です。AnimateProperty はプロパティアニメーションを再生します。例：Target=Self、PropertyName=Opacity、From=0、To=1、DurationMs=300、Easing=Linear。プレビューでは対象スコープがある場合、これらのアクションがデザイナー上のプレビューコントロールへ適用されます。
 
-値ノード：Number/String/Boolean/Color は定数値を保存します。値ポートの計算は後続段階です。ControlReference は対象参照で、現在は Self が主な値です。</value></data>
+値ノード：Number/String/Boolean/Color は定数値を保存します。ControlReference は対象参照で、現在は Self が主な値です。</value></data>
   <data name="Designer.Graph.NodeCatalog.DragHint" xml:space="preserve"><value>このノードを中央のキャンバスへドラッグして追加します。</value></data>
   <data name="Designer.Graph.Undo" xml:space="preserve"><value>元に戻す</value></data>
   <data name="Designer.Graph.Redo" xml:space="preserve"><value>やり直す</value></data>

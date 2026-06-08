@@ -1,4 +1,5 @@
 using neo_bpsys_wpf.Core.Helpers;
+using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -31,6 +32,85 @@ public static class FrontedBehaviorPropertyMetadata
         "TintStrength",
         "TextureStrength"
     ];
+
+    /// <summary>
+    /// Property names that apply to the generated control root.
+    /// </summary>
+    public static IReadOnlyList<string> ControlLayerPropertyNames { get; } =
+    [
+        "Opacity",
+        "Visibility",
+        "VisualOffsetX",
+        "VisualOffsetY",
+        "ScaleX",
+        "ScaleY",
+        "Rotation",
+        "Width",
+        "Height",
+        "TintColor",
+        "TintStrength",
+        "TextureStrength"
+    ];
+
+    /// <summary>
+    /// Property names that usually apply to the target control's main content.
+    /// </summary>
+    public static IReadOnlyList<string> ContentLayerPropertyNames { get; } =
+    [
+        "Opacity",
+        "Visibility",
+        "VisualOffsetX",
+        "VisualOffsetY",
+        "ScaleX",
+        "ScaleY",
+        "Rotation",
+        "Width",
+        "Height",
+        "FillColor",
+        "StrokeColor",
+        "StrokeThickness",
+        "TextColor",
+        "Foreground",
+        "FontSize"
+    ];
+
+    /// <summary>
+    /// Property names that apply to runtime rectangle overlay layers.
+    /// </summary>
+    public static IReadOnlyList<string> OverlayLayerPropertyNames { get; } =
+    [
+        "Opacity",
+        "Visibility",
+        "VisualOffsetX",
+        "VisualOffsetY",
+        "ScaleX",
+        "ScaleY",
+        "Rotation",
+        "Width",
+        "Height",
+        "FillColor",
+        "StrokeColor",
+        "StrokeThickness"
+    ];
+
+    /// <summary>
+    /// Gets property names recommended for a target layer.
+    /// </summary>
+    /// <param name="targetLayer">The target layer.</param>
+    /// <param name="includeAll">Whether to include the reset-all sentinel value.</param>
+    /// <returns>The recommended property names for the layer.</returns>
+    public static IReadOnlyList<string> GetPropertyNamesForLayer(FrontedAnimationTargetLayer targetLayer, bool includeAll = false)
+    {
+        var properties = targetLayer switch
+        {
+            FrontedAnimationTargetLayer.Control => ControlLayerPropertyNames,
+            FrontedAnimationTargetLayer.Content => ContentLayerPropertyNames,
+            FrontedAnimationTargetLayer.OverlayAbove or FrontedAnimationTargetLayer.OverlayBelow => OverlayLayerPropertyNames,
+            _ => CommonPropertyNames
+        };
+
+        return includeAll ? ["All", .. properties] : properties;
+    }
 
     /// <summary>
     /// Visibility values supported by WPF behavior animation.

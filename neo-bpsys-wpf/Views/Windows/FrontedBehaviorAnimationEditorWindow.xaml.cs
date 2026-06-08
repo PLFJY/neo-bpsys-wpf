@@ -13,6 +13,8 @@ namespace neo_bpsys_wpf.Views.Windows;
 public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
 {
     private FrontedBehaviorAnimationHelpWindow? _helpWindow;
+    private bool _forceClose;
+    private bool _isClosePromptOpen;
 
     public FrontedBehaviorAnimationEditorWindow(FrontedBehaviorAnimationEditorViewModel viewModel)
     {
@@ -35,11 +37,23 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
     protected override void OnClosing(CancelEventArgs e)
     {
         base.OnClosing(e);
-        if (DataContext is not FrontedBehaviorAnimationEditorViewModel vm || !vm.HasUnsavedChanges)
+        if (_forceClose || DataContext is not FrontedBehaviorAnimationEditorViewModel vm || !vm.HasUnsavedChanges)
         {
             return;
         }
 
+        e.Cancel = true;
+        if (_isClosePromptOpen)
+        {
+            return;
+        }
+
+        _ = ConfirmCloseAsync(vm);
+    }
+
+    private async Task ConfirmCloseAsync(FrontedBehaviorAnimationEditorViewModel vm)
+    {
+        _isClosePromptOpen = true;
         var messageBox = new Wpf.Ui.Controls.MessageBox
         {
             Title = "动画编辑器",
@@ -53,17 +67,36 @@ public partial class FrontedBehaviorAnimationEditorWindow : FluentWindow
             Width = 500,
             MinWidth = 460
         };
-        var result = messageBox.ShowDialogAsync().GetAwaiter().GetResult();
+        var result = await messageBox.ShowDialogAsync();
 
         switch (result)
         {
             case MessageBoxResult.Primary:
-                vm.SaveAll();
+                await vm.SaveAllAsync();
+                if (vm.HasUnsavedChanges)
+                {
+                    var errorBox = new Wpf.Ui.Controls.MessageBox
+                    {
+                        Title = "保存失败",
+                        Content = "保存失败，请重试。",
+                        PrimaryButtonText = "确定",
+                        CloseButtonText = "取消",
+                        Width = 400,
+                        MinWidth = 360
+                    };
+                    await errorBox.ShowDialogAsync();
+                    _isClosePromptOpen = false;
+                    return;
+                }
                 break;
             case MessageBoxResult.None:
-                e.Cancel = true;
-                break;
+                _isClosePromptOpen = false;
+                return;
         }
+
+        _forceClose = true;
+        _isClosePromptOpen = false;
+        Close();
     }
 
     private void OpenHelp_OnClick(object sender, RoutedEventArgs e)

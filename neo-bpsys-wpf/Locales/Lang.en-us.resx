@@ -3887,7 +3887,7 @@
   <data name="Designer.Behaviors.StopMode" xml:space="preserve"><value>Stop mode</value></data>
   <data name="Designer.Behaviors.ResetOnStop" xml:space="preserve"><value>Reset on stop</value></data>
   <data name="Designer.Behaviors.ReentryPolicy" xml:space="preserve"><value>Reentry policy</value></data>
-  <data name="Designer.Behaviors.GraphPlaceholder" xml:space="preserve"><value>Node graph editor will be available in a future version</value></data>
+  <data name="Designer.Behaviors.GraphPlaceholder" xml:space="preserve"><value>Node graph editor is available from the animation editor</value></data>
   <data name="Designer.Behaviors.StartGraph" xml:space="preserve"><value>StartGraph</value></data>
   <data name="Designer.Behaviors.LoopGraph" xml:space="preserve"><value>LoopGraph</value></data>
   <data name="Designer.Behaviors.StopGraph" xml:space="preserve"><value>StopGraph</value></data>
@@ -4006,6 +4006,11 @@
   <data name="Designer.Behaviors.BehaviorTags" xml:space="preserve"><value>Behavior Tags</value></data>
   <data name="Designer.Behaviors.AddBehaviorTag" xml:space="preserve"><value>Add tag</value></data>
   <data name="Designer.Graph.Target.Self" xml:space="preserve"><value>Self</value></data>
+  <data name="Designer.Option.TargetLayer.Auto" xml:space="preserve"><value>Auto</value></data>
+  <data name="Designer.Option.TargetLayer.Control" xml:space="preserve"><value>Control Root</value></data>
+  <data name="Designer.Option.TargetLayer.Content" xml:space="preserve"><value>Inner Content</value></data>
+  <data name="Designer.Option.TargetLayer.OverlayAbove" xml:space="preserve"><value>Rectangle Above</value></data>
+  <data name="Designer.Option.TargetLayer.OverlayBelow" xml:space="preserve"><value>Rectangle Below</value></data>
   <data name="Designer.Behaviors.Event.CharacterSelected.Description" xml:space="preserve"><value>Fires when a character is selected (includes camp and player index).</value></data>
   <data name="Designer.Behaviors.Event.CharacterBanned.Description" xml:space="preserve"><value>Fires when a character is banned (includes camp and ban index).</value></data>
   <data name="Designer.Graph.NodeCatalog" xml:space="preserve"><value>Node catalog</value></data>
@@ -4024,14 +4029,15 @@
   <data name="Designer.Graph.PreviewTitle" xml:space="preserve"><value>Preview</value></data>
   <data name="Designer.Graph.PreviewPlaceholder" xml:space="preserve"><value>Animation preview viewport
 Select a control in the designer to preview animation here</value></data>
-  <data name="Designer.Graph.PreviewStart" xml:space="preserve"><value>Preview start</value></data>
-  <data name="Designer.Graph.PreviewLoopOnce" xml:space="preserve"><value>Preview loop once</value></data>
-  <data name="Designer.Graph.StartLoopPreview" xml:space="preserve"><value>Start loop preview</value></data>
-  <data name="Designer.Graph.StopLoopPreview" xml:space="preserve"><value>Stop loop preview</value></data>
-  <data name="Designer.Graph.PreviewStop" xml:space="preserve"><value>Preview stop</value></data>
-  <data name="Designer.Graph.ResetPreview" xml:space="preserve"><value>Reset</value></data>
+  <data name="Designer.Graph.PreviewStart" xml:space="preserve"><value>Preview start animation</value></data>
+  <data name="Designer.Graph.PreviewLoopOnce" xml:space="preserve"><value>Preview one loop animation</value></data>
+  <data name="Designer.Graph.StartLoopPreview" xml:space="preserve"><value>Start loop animation preview</value></data>
+  <data name="Designer.Graph.StopLoopPreview" xml:space="preserve"><value>Stop loop animation preview</value></data>
+  <data name="Designer.Graph.PreviewStop" xml:space="preserve"><value>Preview stop animation</value></data>
+  <data name="Designer.Graph.ResetPreview" xml:space="preserve"><value>Reset preview</value></data>
   <data name="Designer.Graph.Connection.SelectInput" xml:space="preserve"><value>Select an input port.</value></data>
   <data name="Designer.Graph.Preview.ValidationBlocked" xml:space="preserve"><value>Graph checks found issues, so preview was blocked.</value></data>
+  <data name="Designer.Graph.Preview.AutoReverseStoredOnly" xml:space="preserve"><value>Auto reverse is saved, but reverse graph playback is not simulated during preview.</value></data>
   <data name="Designer.Graph.Category.Flow" xml:space="preserve"><value>Flow</value></data>
   <data name="Designer.Graph.Category.Action" xml:space="preserve"><value>Action</value></data>
   <data name="Designer.Graph.Category.Value" xml:space="preserve"><value>Value</value></data>
@@ -4044,13 +4050,6 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Graph.Node.ActionSetProperty" xml:space="preserve"><value>SetProperty</value></data>
   <data name="Designer.Graph.Node.ActionResetProperty" xml:space="preserve"><value>ResetProperty</value></data>
   <data name="Designer.Graph.Node.ActionAnimateProperty" xml:space="preserve"><value>AnimateProperty</value></data>
-  <data name="Designer.Graph.Node.ValueNumber" xml:space="preserve"><value>Number</value></data>
-  <data name="Designer.Graph.Node.ValueString" xml:space="preserve"><value>String</value></data>
-  <data name="Designer.Graph.Node.ValueBoolean" xml:space="preserve"><value>Boolean</value></data>
-  <data name="Designer.Graph.Node.ValueColor" xml:space="preserve"><value>Color</value></data>
-  <data name="Designer.Graph.Node.ValueEventValue" xml:space="preserve"><value>EventValue</value></data>
-  <data name="Designer.Graph.Node.ValueSelfTag" xml:space="preserve"><value>SelfTag</value></data>
-  <data name="Designer.Graph.Node.ValueControlReference" xml:space="preserve"><value>ControlReference</value></data>
   <data name="Designer.Graph.Node.FlowStart.Description" xml:space="preserve"><value>Animation flow entry. A graph normally has one Start, connected from Out to the first flow or action node.</value></data>
   <data name="Designer.Graph.Node.FlowEnd.Description" xml:space="preserve"><value>Finishes the current branch. Connect the final action Out to End to make the graph explicit.</value></data>
   <data name="Designer.Graph.Node.FlowDelay.Description" xml:space="preserve"><value>Waits before continuing. Use it to space out property requests, such as fade out and then fade in.</value></data>
@@ -4060,13 +4059,6 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Graph.Node.ActionSetProperty.Description" xml:space="preserve"><value>Emits a set-property request that writes a value to the target control's property.</value></data>
   <data name="Designer.Graph.Node.ActionResetProperty.Description" xml:space="preserve"><value>Emits a reset-property request. PropertyName can be a specific property or All.</value></data>
   <data name="Designer.Graph.Node.ActionAnimateProperty.Description" xml:space="preserve"><value>Emits an animate-property request. Fill target, property, from/to values, duration, and easing.</value></data>
-  <data name="Designer.Graph.Node.ValueNumber.Description" xml:space="preserve"><value>Numeric constant such as 0, 1, or 300. Editable and saved now; value-port evaluation comes later.</value></data>
-  <data name="Designer.Graph.Node.ValueString.Description" xml:space="preserve"><value>Text constant such as Visible, Collapsed, or any custom string.</value></data>
-  <data name="Designer.Graph.Node.ValueBoolean.Description" xml:space="preserve"><value>Boolean constant: true or false.</value></data>
-  <data name="Designer.Graph.Node.ValueColor.Description" xml:space="preserve"><value>Color constant such as #FFFFFFFF.</value></data>
-  <data name="Designer.Graph.Node.ValueEventValue.Description" xml:space="preserve"><value>事件 payload 路径值。</value></data>
-  <data name="Designer.Graph.Node.ValueSelfTag.Description" xml:space="preserve"><value>当前控件标签值。</value></data>
-  <data name="Designer.Graph.Node.ValueControlReference.Description" xml:space="preserve"><value>Control reference constant. Self means the current control that owns this behavior.</value></data>
   <data name="Designer.Graph.Port.In" xml:space="preserve"><value>In</value></data>
   <data name="Designer.Graph.Port.Out" xml:space="preserve"><value>Out</value></data>
   <data name="Designer.Graph.Port.True" xml:space="preserve"><value>True</value></data>
@@ -4115,6 +4107,8 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Graph.Property.DurationMs.Description" xml:space="preserve"><value>Delay or animation duration in milliseconds.</value></data>
   <data name="Designer.Graph.Property.Message.Description" xml:space="preserve"><value>Text written to the preview execution log.</value></data>
   <data name="Designer.Graph.Property.Target.Description" xml:space="preserve"><value>Target control for the action. Self means the control this behavior is bound to.</value></data>
+  <data name="Designer.Graph.Property.TargetLayer" xml:space="preserve"><value>Target Layer</value></data>
+  <data name="Designer.Graph.Property.TargetLayer.Description" xml:space="preserve"><value>Choose whether the property applies to the control root, inner content, or a runtime rectangle layer above or below the control.</value></data>
   <data name="Designer.Graph.Property.PropertyName.Description" xml:space="preserve"><value>Name of the property to set, reset, or animate.</value></data>
   <data name="Designer.Graph.Property.Value.Description" xml:space="preserve"><value>Node output value or value to write to a property.</value></data>
   <data name="Designer.Graph.Property.From.Description" xml:space="preserve"><value>Animation start value. For example, use 0 for Opacity to start from fully transparent.</value></data>
@@ -4135,7 +4129,7 @@ Select a control in the designer to preview animation here</value></data>
   <data name="Designer.Graph.Help.Preview.Title" xml:space="preserve"><value>Previewing Animation</value></data>
   <data name="Designer.Graph.Help.Preview.Content" xml:space="preserve"><value>Make sure the graph has at least one Start node and one End node.\nClick Run Preview in the toolbar to execute the current graph. The animation runs on the real controls in the designer and is shown live in the preview viewport (bottom-left).\nThe execution log (bottom-right) shows the result of each step, helping you troubleshoot.\nClick Stop Preview to interrupt execution. Use Reset Current Target or Reset All Preview to restore modified control properties.\nThe preview viewport uses real-time rendering so you can see animation effects directly.</value></data>
   <data name="Designer.Graph.Help.LoopPreview.Title" xml:space="preserve"><value>Loop Preview</value></data>
-  <data name="Designer.Graph.Help.LoopPreview.Content" xml:space="preserve"><value>Loop behaviors have three stage graphs: Start Graph, Loop Graph, and End Graph.\n\nPreview Loop Once: runs Start Graph → runs Loop Graph once → runs End Graph.\nStart Loop Preview: runs the Loop Graph repeatedly (controlled by RepeatCount and IntervalMs) until you click Stop Loop Preview.\nPreview Stop: interrupts all running previews.\nReset Preview: restores all control properties modified by preview.\n\nRepeatCount controls the number of loops; set to 0 for infinite looping until manually stopped. IntervalMs controls the wait time between loops.</value></data>
+  <data name="Designer.Graph.Help.LoopPreview.Content" xml:space="preserve"><value>Loop behaviors have three stage graphs: Start Graph, Loop Graph, and End Graph.\n\nPreview one loop animation: runs Start Graph → runs Loop Graph once → runs End Graph.\nStart loop animation preview: runs the Loop Graph repeatedly (controlled by RepeatCount and IntervalMs) until you click Stop loop animation preview.\nPreview stop animation: runs only the End Graph so you can check the stop-stage effect.\nReset preview: restores all control properties modified by preview.\n\nRepeatCount controls the number of loops; use a negative value for infinite looping until manually stopped. IntervalMs controls the wait time between loops; when it is 0, preview still keeps a short UI-friendly tick to avoid freezing the editor.</value></data>
   <data name="Designer.Graph.Help.Troubleshooting.Title" xml:space="preserve"><value>Troubleshooting</value></data>
   <data name="Designer.Graph.Help.Troubleshooting.Content" xml:space="preserve"><value>Preview does not run: check for a Start node, verify all nodes are connected, and look for validation errors.\nAnimation effect is unexpected: check AnimateProperty's From/To values and DurationMs, and verify the easing function.\nCannot connect nodes: make sure output port type (Flow/Value) matches input port type. Flow ports only connect to Flow ports; Value ports only connect to Value ports.\nGraph execution hangs: check if a Delay node has an extremely large duration, or if all Parallel branches have End nodes.\nControl animation has no effect: check that Target is correct (commonly Self) and PropertyName is spelled correctly (e.g. Opacity, Width, Height).</value></data>
   <data name="Designer.Graph.Help.Shortcuts.Title" xml:space="preserve"><value>Keyboard Shortcuts</value></data>
@@ -4150,7 +4144,7 @@ Basics: drag nodes from the catalog onto the canvas; drag a node header to move 
 
 Flow nodes: Start is the entry point and a graph should normally have one. End finishes the current branch. Delay waits for a number of milliseconds. Sequence runs Step1, Step2, Step3 in order. Parallel runs Branch1, Branch2, Branch3 together and waits for all of them. If is an advanced text branch and is usually not needed for simple property animation.
 
-Action nodes: Log writes preview text only. SetProperty records a property set request, for example Target=Self, PropertyName=Opacity, Value=0.5. ResetProperty records a reset request; PropertyName can be a specific property or All. AnimateProperty records an animation request, for example Target=Self, PropertyName=Opacity, From=0, To=1, DurationMs=300, Easing=Linear. Phase 3 only previews logs and requests; it does not modify real WPF controls.
+Action nodes: Log writes preview text. SetProperty writes a property value, for example Target=Self, PropertyName=Opacity, Value=0.5. ResetProperty resets a property; PropertyName can be a specific property or All. AnimateProperty plays a property animation, for example Target=Self, PropertyName=Opacity, From=0, To=1, DurationMs=300, Easing=Linear. In preview, these actions are applied to the designer preview controls when a target scope is available.
 
 Value nodes: Number/String/Boolean/Color store constant values for later value-port evaluation. ControlReference stores a target reference; Self is the common value today.</value></data>
   <data name="Designer.Graph.NodeCatalog.DragHint" xml:space="preserve"><value>Drag this node onto the canvas to add it.</value></data>

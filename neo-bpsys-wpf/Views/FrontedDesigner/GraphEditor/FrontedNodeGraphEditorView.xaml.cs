@@ -241,6 +241,11 @@ public partial class FrontedNodeGraphEditorView : UserControl
         }
 
         _dragSourcePort = port;
+        if (DataContext is FrontedNodeGraphEditorViewModel editor)
+        {
+            editor.StartConnection(port);
+        }
+
         _dragStartPoint = GetPortPoint(sender, isOutput: true);
         ConnectionPreviewPath.Data = Geometry.Parse(CreateBezierPathData(_dragStartPoint, _dragStartPoint));
         ConnectionPreviewPath.Visibility = Visibility.Visible;

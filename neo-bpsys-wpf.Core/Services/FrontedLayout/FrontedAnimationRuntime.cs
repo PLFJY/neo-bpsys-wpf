@@ -2,6 +2,9 @@ using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Shapes;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
 
@@ -92,8 +95,17 @@ public sealed class FrontedAnimationRuntime(
                     }
                 }
 
+                foreach (var overlay in session.Overlays.Values.ToArray())
+                {
+                    if (overlay.Parent is Panel panel)
+                    {
+                        panel.Children.Remove(overlay);
+                    }
+                }
+
                 session.Conflicts.Clear();
                 session.BaseValues.Clear();
+                session.Overlays.Clear();
                 _sessions.Remove(root);
             }
         });
@@ -106,10 +118,21 @@ public sealed class FrontedAnimationRuntime(
     {
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(context.CancellationToken, cancellationToken);
         var effectiveContext = context.WithCancellationToken(linkedCts.Token);
-        var target = targetResolver.Resolve(FrontedAnimationTargetReference.Parse(action.Target), effectiveContext);
-        if (target is null)
+        var controlTarget = targetResolver.Resolve(FrontedAnimationTargetReference.Parse(action.Target), effectiveContext);
+        if (controlTarget is null)
         {
             effectiveContext.Logger?.LogWarning("Fronted animation action skipped because target {Target} was not resolved.", action.Target);
+            return;
+        }
+
+        var target = ResolveTargetLayer(controlTarget, action.TargetLayer, action.PropertyName, effectiveContext);
+        if (target is null)
+        {
+            effectiveContext.Logger?.LogWarning(
+                "Fronted animation property {PropertyName} is unsupported for target layer {TargetLayer} on target {Target}.",
+                action.PropertyName,
+                action.TargetLayer,
+                controlTarget.Name ?? controlTarget.BehaviorGuid.ToString());
             return;
         }
 
@@ -123,8 +146,9 @@ public sealed class FrontedAnimationRuntime(
         if (adapter is null)
         {
             effectiveContext.Logger?.LogWarning(
-                "Fronted animation property {PropertyName} is unsupported for target {Target}.",
+                "Fronted animation property {PropertyName} is unsupported for target layer {TargetLayer} on target {Target}.",
                 action.PropertyName,
+                target.TargetLayer,
                 target.Name ?? target.BehaviorGuid.ToString());
             return;
         }
@@ -193,6 +217,196 @@ public sealed class FrontedAnimationRuntime(
             entry.Adapter.ResetValue(entry.Target, entry.PropertyName, entry.BaseValue, context);
             session.BaseValues.Remove(new RuntimePropertyKey(entry.Target.Element, Normalize(entry.PropertyName)));
         }
+    }
+
+    private FrontedAnimationTarget? ResolveTargetLayer(
+        FrontedAnimationTarget controlTarget,
+        FrontedAnimationTargetLayer requestedLayer,
+        string propertyName,
+        FrontedAnimationExecutionContext context)
+    {
+        var layer = requestedLayer == FrontedAnimationTargetLayer.Auto
+            ? ResolveAutoLayer(controlTarget.Element, propertyName)
+            : requestedLayer;
+
+        var element = layer switch
+        {
+            FrontedAnimationTargetLayer.Control => controlTarget.Element,
+            FrontedAnimationTargetLayer.Content => ResolveContentElement(controlTarget.Element),
+            FrontedAnimationTargetLayer.OverlayAbove => EnsureOverlay(controlTarget, true, context),
+            FrontedAnimationTargetLayer.OverlayBelow => EnsureOverlay(controlTarget, false, context),
+            _ => controlTarget.Element
+        };
+
+        if (element is null)
+        {
+            return null;
+        }
+
+        return new FrontedAnimationTarget
+        {
+            Element = element,
+            BehaviorGuid = controlTarget.BehaviorGuid,
+            Name = controlTarget.Name,
+            DisplayName = controlTarget.DisplayName,
+            TargetLayer = layer,
+            ControlElement = controlTarget.Element
+        };
+    }
+
+    private static FrontedAnimationTargetLayer ResolveAutoLayer(FrameworkElement controlElement, string propertyName)
+    {
+        if (AnimationAdapterHelpers.Is(
+            propertyName,
+            "Opacity",
+            "Visibility",
+            "Width",
+            "Height",
+            "VisualOffsetX",
+            "VisualOffsetY",
+            "ScaleX",
+            "ScaleY",
+            "Rotation",
+            "TintColor",
+            "TintStrength",
+            "TextureStrength"))
+        {
+            return FrontedAnimationTargetLayer.Control;
+        }
+
+        if (AnimationAdapterHelpers.Is(propertyName, "TextColor", "Foreground", "FontSize"))
+        {
+            return ResolveContentElement(controlElement) is not null
+                ? FrontedAnimationTargetLayer.Content
+                : FrontedAnimationTargetLayer.Control;
+        }
+
+        if (AnimationAdapterHelpers.Is(propertyName, "FillColor", "StrokeColor", "StrokeThickness"))
+        {
+            return ResolveContentElement(controlElement) is Shape
+                ? FrontedAnimationTargetLayer.Content
+                : FrontedAnimationTargetLayer.OverlayAbove;
+        }
+
+        return FrontedAnimationTargetLayer.Control;
+    }
+
+    private static FrameworkElement? ResolveContentElement(FrameworkElement controlElement)
+    {
+        if (controlElement is Shape or BackgroundTintControlHost)
+        {
+            return controlElement;
+        }
+
+        if (controlElement is Border { Child: TextBlock textBlock })
+        {
+            return textBlock;
+        }
+
+        if (controlElement is Border { Child: Grid borderedImageContent })
+        {
+            return FindFirstDescendant<Image>(borderedImageContent);
+        }
+
+        if (controlElement is Grid grid)
+        {
+            return (FrameworkElement?)grid.Children.OfType<Image>().FirstOrDefault()
+                   ?? FindFirstDescendant<TextBlock>(grid);
+        }
+
+        return (FrameworkElement?)FindFirstDescendant<TextBlock>(controlElement)
+               ?? FindFirstDescendant<Image>(controlElement)
+               ?? (controlElement is Control ? controlElement : null);
+    }
+
+    private Rectangle? EnsureOverlay(
+        FrontedAnimationTarget controlTarget,
+        bool above,
+        FrontedAnimationExecutionContext context)
+    {
+        var canvas = FindAncestorOrSelf<Canvas>(controlTarget.Element);
+        if (canvas is null)
+        {
+            context.Logger?.LogWarning(
+                "Fronted animation overlay layer cannot be created because target {Target} is not on a Canvas.",
+                controlTarget.Name ?? controlTarget.BehaviorGuid.ToString());
+            return null;
+        }
+
+        var session = GetSession(context.Root);
+        var key = new RuntimeOverlayKey(controlTarget.Element, above);
+        if (!session.Overlays.TryGetValue(key, out var overlay))
+        {
+            overlay = new Rectangle
+            {
+                Fill = Brushes.Transparent,
+                Stroke = Brushes.Transparent,
+                StrokeThickness = 0D,
+                IsHitTestVisible = false
+            };
+            FrontedRendererProperties.SetIsAnimationAuxiliaryElement(overlay, true);
+            canvas.Children.Add(overlay);
+            session.Overlays[key] = overlay;
+        }
+
+        SyncOverlay(controlTarget.Element, overlay, above);
+        return overlay;
+    }
+
+    private static void SyncOverlay(FrameworkElement target, Rectangle overlay, bool above)
+    {
+        var left = Canvas.GetLeft(target);
+        var top = Canvas.GetTop(target);
+        Canvas.SetLeft(overlay, double.IsNaN(left) ? 0D : left);
+        Canvas.SetTop(overlay, double.IsNaN(top) ? 0D : top);
+        overlay.Width = ResolveSize(target.Width, target.ActualWidth);
+        overlay.Height = ResolveSize(target.Height, target.ActualHeight);
+        overlay.Visibility = target.Visibility;
+        Panel.SetZIndex(overlay, Panel.GetZIndex(target) + (above ? 1 : -1));
+    }
+
+    private static double ResolveSize(double configured, double actual) =>
+        configured > 0D && double.IsFinite(configured)
+            ? configured
+            : actual > 0D && double.IsFinite(actual) ? actual : 1D;
+
+    private static T? FindFirstDescendant<T>(DependencyObject root)
+        where T : FrameworkElement
+    {
+        var children = VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < children; i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            if (child is T match && !FrontedRendererProperties.GetIsAnimationAuxiliaryElement(match))
+            {
+                return match;
+            }
+
+            var descendant = FindFirstDescendant<T>(child);
+            if (descendant is not null)
+            {
+                return descendant;
+            }
+        }
+
+        return null;
+    }
+
+    private static T? FindAncestorOrSelf<T>(DependencyObject element)
+        where T : DependencyObject
+    {
+        var current = element;
+        while (current is not null)
+        {
+            if (current is T match)
+            {
+                return match;
+            }
+
+            current = VisualTreeHelper.GetParent(current);
+        }
+
+        return null;
     }
 
     private void CaptureBaseValue(
@@ -269,9 +483,12 @@ public sealed class FrontedAnimationRuntime(
     {
         public Dictionary<RuntimePropertyKey, RuntimeBaseValue> BaseValues { get; } = [];
         public Dictionary<RuntimePropertyKey, CancellationTokenSource> Conflicts { get; } = [];
+        public Dictionary<RuntimeOverlayKey, Rectangle> Overlays { get; } = [];
     }
 
     private sealed record RuntimePropertyKey(FrameworkElement Element, string PropertyName);
+
+    private sealed record RuntimeOverlayKey(FrameworkElement Element, bool Above);
 
     private sealed record RuntimeBaseValue(
         FrontedAnimationTarget Target,

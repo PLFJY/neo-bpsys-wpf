@@ -29,7 +29,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
     private bool _isRestoring;
     private bool _isDragging;
     private const int UndoStackLimit = 50;
-    private readonly Action? _save;
+    private Func<Task<bool>>? _saveAsync;
 
     public FrontedNodeGraphEditorViewModel(
         FrontedNodeGraph graph,
@@ -41,6 +41,7 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         Action? markDirty = null,
         Func<string, string, string>? localize = null,
         Action? save = null,
+        Func<Task<bool>>? saveAsync = null,
         IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions = null)
     {
         Graph = graph;
@@ -51,10 +52,15 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         _createAnimationContext = createAnimationContext;
         _markDirty = markDirty ?? (() => { });
         _localize = localize ?? ((_, fallback) => fallback);
-        _save = save ?? (() => { });
+        _saveAsync = saveAsync ?? (save is null
+            ? (() => Task.FromResult(true))
+            : (() =>
+            {
+                save();
+                return Task.FromResult(true);
+            }));
         _targetOptions = targetOptions ?? [new FrontedNodeTargetOptionViewModel("Self", _localize("Designer.Graph.Target.Self", "Self"))];
         Catalog = _catalog.Nodes
-            .Where(IsAnimationEditorCatalogNode)
             .Select(descriptor => new FrontedNodeCatalogItemViewModel(descriptor, _localize))
             .ToArray();
         Reload();
@@ -750,10 +756,28 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
 
     /// <summary>保存当前图</summary>
     [RelayCommand(CanExecute = nameof(CanSave))]
-    public void Save()
+    public async Task SaveAsync()
     {
-        _save();
-        IsDirty = false;
+        if (_saveAsync is null)
+        {
+            IsDirty = false;
+            return;
+        }
+
+        if (await _saveAsync())
+        {
+            IsDirty = false;
+        }
+    }
+
+    /// <summary>
+    /// Sets the save action to be invoked when <see cref="SaveAsync"/> is called.
+    /// This allows post-construction wiring of the save delegate (e.g. from an animation editor).
+    /// </summary>
+    /// <param name="saveAsync">The asynchronous save action to set.</param>
+    public void SetSaveAction(Func<Task<bool>>? saveAsync)
+    {
+        _saveAsync = saveAsync;
     }
 
     private bool CanSave() => IsDirty;
@@ -774,9 +798,6 @@ public sealed partial class FrontedNodeGraphEditorViewModel : ObservableObject
         SelectedNode = null;
         Changed();
     }
-
-    private static bool IsAnimationEditorCatalogNode(FrontedNodeTypeDescriptor descriptor) =>
-        descriptor.NodeType is not ("value.eventValue" or "value.selfTag");
 
     private sealed class AnimationRuntimeGraphActionExecutor(
         IFrontedAnimationRuntime animationRuntime,
@@ -1047,6 +1068,7 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
     public bool IsText => !IsBoolean && !IsEnum && !IsNumber && !IsColor && !IsControlReference && !IsPropertyName && !HasTextSuggestions && !IsVisibilityValue;
     public IReadOnlyList<string> Options => Descriptor.Options;
     public IReadOnlyList<FrontedNodePropertyOptionViewModel> LocalizedOptions => _localizedOptions;
+    public IReadOnlyList<FrontedNodePropertyOptionViewModel> DisplayedOptions => ResolveDisplayedOptions();
     public IReadOnlyList<FrontedNodePropertyOptionViewModel> VisibilityOptions => _visibilityOptions;
     public IReadOnlyList<FrontedNodeTargetOptionViewModel> TargetOptions => EnsureCurrentTargetOption();
     public string? Unit => IsRotation ? "°" : Descriptor.Unit;
@@ -1150,6 +1172,8 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         OnPropertyChanged(nameof(HasTextSuggestions));
         OnPropertyChanged(nameof(Unit));
         OnPropertyChanged(nameof(HasUnit));
+        OnPropertyChanged(nameof(DisplayedOptions));
+        OnPropertyChanged(nameof(PropertyNameText));
     }
 
     private JsonElement Read() => _node.Properties.TryGetValue(Descriptor.Name, out var value) ? value : Descriptor.DefaultValue;
@@ -1172,6 +1196,7 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
         OnPropertyChanged(nameof(PropertyNameText));
         OnPropertyChanged(nameof(SuggestionText));
         OnPropertyChanged(nameof(VisibilityValue));
+        OnPropertyChanged(nameof(DisplayedOptions));
         _refreshRelatedProperties?.Invoke();
     }
 
@@ -1244,22 +1269,46 @@ public sealed partial class FrontedNodePropertyEditorViewModel : ObservableObjec
     }
 
     private string DisplayForValue(string value) =>
-        _localizedOptions.FirstOrDefault(option => string.Equals(option.Value, value, StringComparison.Ordinal))?.DisplayName
+        DisplayedOptions.FirstOrDefault(option => string.Equals(option.Value, value, StringComparison.Ordinal))?.DisplayName
         ?? value;
 
     private string ValueForDisplay(string? display)
     {
         var value = display ?? string.Empty;
-        return _localizedOptions.FirstOrDefault(option =>
+        return DisplayedOptions.FirstOrDefault(option =>
                    string.Equals(option.DisplayName, value, StringComparison.Ordinal)
                    || string.Equals(option.Value, value, StringComparison.Ordinal))?.Value
                ?? value;
+    }
+
+    private IReadOnlyList<FrontedNodePropertyOptionViewModel> ResolveDisplayedOptions()
+    {
+        if (!IsPropertyName)
+        {
+            return _localizedOptions;
+        }
+
+        var names = FrontedBehaviorPropertyMetadata.GetPropertyNamesForLayer(
+            CurrentTargetLayer,
+            Descriptor.Options.Any(option => string.Equals(option, "All", StringComparison.OrdinalIgnoreCase)));
+        return names
+            .Select(option => new FrontedNodePropertyOptionViewModel(option, LocalizeOption(option)))
+            .ToArray();
     }
 
     private string? CurrentBehaviorPropertyName =>
         _node.Properties.TryGetValue("PropertyName", out var property)
             ? property.ValueKind == JsonValueKind.String ? property.GetString() : property.ToString()
             : null;
+
+    private FrontedAnimationTargetLayer CurrentTargetLayer =>
+        _node.Properties.TryGetValue("TargetLayer", out var value)
+        && Enum.TryParse<FrontedAnimationTargetLayer>(
+            value.ValueKind == JsonValueKind.String ? value.GetString() : value.ToString(),
+            true,
+            out var layer)
+            ? layer
+            : FrontedAnimationTargetLayer.Auto;
 
     private bool IsDynamicValue => Descriptor.Name is "Value" or "From" or "To";
     private bool IsColorDynamicValue => IsDynamicValue && FrontedBehaviorPropertyMetadata.IsColorProperty(CurrentBehaviorPropertyName);

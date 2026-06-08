@@ -119,7 +119,7 @@ public sealed class FrontedNodeGraphRuntime(
                 await ExecuteOutputAsync(node, "Out", state);
                 break;
             default:
-                Log(state.Logs, FrontedGraphExecutionLogLevel.Debug, $"Value node '{node.NodeType}' has no flow execution.", node.NodeId);
+                Log(state.Logs, FrontedGraphExecutionLogLevel.Debug, $"Node '{node.NodeType}' has no flow execution behavior.", node.NodeId);
                 break;
         }
     }
@@ -146,18 +146,27 @@ public sealed class FrontedNodeGraphRuntime(
         {
             RequestType = requestType,
             Target = GetString(node, "Target", "Self"),
+            TargetLayer = GetTargetLayer(node),
             PropertyName = GetString(node, "PropertyName"),
             Values = valueNames.ToDictionary(name => name, name => (string?)GetString(node, name)),
             DurationMs = durationMs,
             WaitForCompletion = waitForCompletion
         };
         state.Actions.Enqueue(request);
-        Log(state.Logs, FrontedGraphExecutionLogLevel.Information, $"{requestType}: {request.Target}.{request.PropertyName}", node.NodeId);
+        Log(state.Logs, FrontedGraphExecutionLogLevel.Information, $"{requestType}: {request.Target}[{request.TargetLayer}].{request.PropertyName}", node.NodeId);
         if (state.Context.ActionExecutor is not null)
         {
             await state.Context.ActionExecutor.ExecuteAsync(request, state.CancellationToken);
         }
     }
+
+    private static FrontedAnimationTargetLayer GetTargetLayer(FrontedNode node) =>
+        Enum.TryParse<FrontedAnimationTargetLayer>(
+            GetString(node, "TargetLayer", FrontedAnimationTargetLayer.Auto.ToString()),
+            true,
+            out var layer)
+            ? layer
+            : FrontedAnimationTargetLayer.Auto;
 
     private static object? ResolveText(string value, FrontedGraphExecutionContext context)
     {

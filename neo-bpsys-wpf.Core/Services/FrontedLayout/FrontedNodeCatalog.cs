@@ -34,8 +34,8 @@ public sealed class FrontedNodeCatalog
     {
         var flowIn = Port("In", FrontedNodePortKind.FlowIn);
         var flowOut = Port("Out", FrontedNodePortKind.FlowOut);
-        var objectOut = Port("Value", FrontedNodePortKind.ValueOut, FrontedNodePortValueType.Object);
         var propertyOptions = FrontedBehaviorPropertyMetadata.CommonPropertyNames;
+        var targetLayerOptions = Enum.GetNames<FrontedAnimationTargetLayer>();
         var easingOptions = new[] { "Linear", "SineInOut", "CubicOut", "CubicIn", "CubicInOut", "BackOut" };
         return
         [
@@ -50,26 +50,22 @@ public sealed class FrontedNodeCatalog
             Node("action.log", "Action", [flowIn], [flowOut], Prop("Message", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text)),
             Node("action.setProperty", "Action", [flowIn], [flowOut],
                 Prop("Target", FrontedNodePropertyType.String, "Self", FrontedNodePropertyEditorKind.ControlReference, true),
+                Prop("TargetLayer", FrontedNodePropertyType.Enum, FrontedAnimationTargetLayer.Auto.ToString(), FrontedNodePropertyEditorKind.Enum, true, targetLayerOptions),
                 Prop("PropertyName", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.PropertyName, true, propertyOptions),
                 Prop("Value", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text)),
             Node("action.resetProperty", "Action", [flowIn], [flowOut],
                 Prop("Target", FrontedNodePropertyType.String, "Self", FrontedNodePropertyEditorKind.ControlReference, true),
+                Prop("TargetLayer", FrontedNodePropertyType.Enum, FrontedAnimationTargetLayer.Auto.ToString(), FrontedNodePropertyEditorKind.Enum, true, targetLayerOptions),
                 Prop("PropertyName", FrontedNodePropertyType.String, "All", FrontedNodePropertyEditorKind.PropertyName, true, ["All", .. propertyOptions])),
             Node("action.animateProperty", "Action", [flowIn], [flowOut],
                 Prop("Target", FrontedNodePropertyType.String, "Self", FrontedNodePropertyEditorKind.ControlReference, true),
+                Prop("TargetLayer", FrontedNodePropertyType.Enum, FrontedAnimationTargetLayer.Auto.ToString(), FrontedNodePropertyEditorKind.Enum, true, targetLayerOptions),
                 Prop("PropertyName", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.PropertyName, true, propertyOptions),
                 Prop("From", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text),
                 Prop("To", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text),
                 Prop("DurationMs", FrontedNodePropertyType.Number, 300, FrontedNodePropertyEditorKind.Number, true, unit: "ms"),
                 Prop("Easing", FrontedNodePropertyType.String, "Linear", FrontedNodePropertyEditorKind.Text, false, easingOptions),
                 Prop("WaitForCompletion", FrontedNodePropertyType.Boolean, true, FrontedNodePropertyEditorKind.Boolean)),
-            Node("value.number", "Value", [], [Port("Value", FrontedNodePortKind.ValueOut, FrontedNodePortValueType.Number)], Prop("Value", FrontedNodePropertyType.Number, 0, FrontedNodePropertyEditorKind.Number)),
-            Node("value.string", "Value", [], [Port("Value", FrontedNodePortKind.ValueOut, FrontedNodePortValueType.String)], Prop("Value", FrontedNodePropertyType.String, "", FrontedNodePropertyEditorKind.Text)),
-            Node("value.boolean", "Value", [], [Port("Value", FrontedNodePortKind.ValueOut, FrontedNodePortValueType.Boolean)], Prop("Value", FrontedNodePropertyType.Boolean, false, FrontedNodePropertyEditorKind.Boolean)),
-            Node("value.color", "Value", [], [Port("Value", FrontedNodePortKind.ValueOut, FrontedNodePortValueType.Color)], Prop("Value", FrontedNodePropertyType.Color, "#FFFFFFFF", FrontedNodePropertyEditorKind.Color)),
-            Node("value.eventValue", "Value", [], [objectOut], Prop("Path", FrontedNodePropertyType.String, "Event.", FrontedNodePropertyEditorKind.EventPath, true)),
-            Node("value.selfTag", "Value", [], [objectOut], Prop("Path", FrontedNodePropertyType.String, "SelfTag.", FrontedNodePropertyEditorKind.Text, true)),
-            Node("value.controlReference", "Value", [], [Port("Value", FrontedNodePortKind.ValueOut, FrontedNodePortValueType.Control)], Prop("Value", FrontedNodePropertyType.String, "Self", FrontedNodePropertyEditorKind.ControlReference, true))
         ];
     }
 

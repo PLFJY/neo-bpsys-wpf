@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using neo_bpsys_wpf.Core.Abstractions.Services;
 using neo_bpsys_wpf.Core.Models.FrontedLayout.Behaviors;
+using System.Text.Json;
 using System.Windows.Controls;
 
 namespace neo_bpsys_wpf.Core.Services.FrontedLayout;
@@ -17,6 +18,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     private readonly IFrontedNodeGraphRuntime _graphRuntime;
     private readonly IFrontedAnimationRuntime _animationRuntime;
     private readonly FrontedBehaviorTriggerEvaluator _triggerEvaluator;
+    private readonly FrontedNodeGraphValidator _graphValidator;
     private readonly ILogger _logger;
     private readonly Dictionary<Guid, RunningBehaviorState> _runningBehaviors = [];
     private readonly Dictionary<Guid, IReadOnlyDictionary<string, string>> _selfTagsByBehaviorGuid = [];
@@ -41,6 +43,7 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
         _graphRuntime = graphRuntime;
         _animationRuntime = animationRuntime;
         _triggerEvaluator = triggerEvaluator;
+        _graphValidator = new FrontedNodeGraphValidator();
         _logger = context.Logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
     }
 
@@ -523,6 +526,46 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                             break;
                         }
 
+                        // Validate StopGraph before execution; if invalid, warn and suppress reset
+                        // to avoid silently snapping properties back to original values.
+                        var stopValidation = _graphValidator?.Validate(behavior.StopGraph) ?? [];
+                        var hasStopGraphError = stopValidation.Any(m => m.Severity == FrontedNodeGraphValidationSeverity.Error);
+                        var hasNoStartNode = !behavior.StopGraph.Nodes.Any(n => n.NodeType == "flow.start");
+                        if (hasStopGraphError || hasNoStartNode)
+                        {
+                            _logger.LogWarning(
+                                "Loop {BehaviorId} StopGraph validation has issues — suppressing reset to avoid masking. " +
+                                "Errors={ErrorCount}, HasStartNode={HasStartNode}",
+                                behavior.BehaviorId,
+                                stopValidation.Count(m => m.Severity == FrontedNodeGraphValidationSeverity.Error),
+                                !hasNoStartNode);
+
+                            if (hasNoStartNode)
+                            {
+                                _logger.LogWarning(
+                                    "Loop {BehaviorId} StopGraph has no Start node; insert a Start node to enable StopGraph execution.",
+                                    behavior.BehaviorId);
+                            }
+
+                            state.SuppressReset = true;
+                            // Fall through to fire-and-forget check and ExecuteAsync rather than skipping execution entirely,
+                            // because the graph runtime may still handle partial StopGraphs gracefully.
+                        }
+
+                        // Detect fire-and-forget animations in StopGraph and warn the user.
+                        var fireAndForgetNodes = behavior.StopGraph.Nodes
+                            .Where(n => n.NodeType == "action.animateProperty"
+                                        && GetBoolSafe(n, "WaitForCompletion") == false)
+                            .ToArray();
+                        if (fireAndForgetNodes.Length > 0)
+                        {
+                            _logger.LogWarning(
+                                "Loop {BehaviorId} StopGraph contains {Count} animateProperty node(s) with WaitForCompletion=false. " +
+                                "These fire-and-forget animations may be immediately overridden by ResetIfNeeded.",
+                                behavior.BehaviorId,
+                                fireAndForgetNodes.Length);
+                        }
+
                         var stopExecutor = CreateActionExecutor(set.BehaviorGuid, set.DisplayName);
                         var stopContext = new FrontedGraphExecutionContext
                         {
@@ -538,8 +581,14 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
                         if (stopResult.Status != FrontedGraphExecutionStatus.Success)
                         {
                             _logger.LogWarning(
-                                "Loop {BehaviorId} StopGraph did not complete successfully (Status={Status}).",
+                                "Loop {BehaviorId} StopGraph did not complete successfully (Status={Status}); suppressing reset.",
                                 behavior.BehaviorId, stopResult.Status);
+                            state.SuppressReset = true;
+                        }
+                        else
+                        {
+                            // StopGraph completed successfully — suppress reset so its visual result is not overridden.
+                            state.SuppressReset = true;
                         }
                         break;
                     case FrontedLoopStopMode.StopImmediately:
@@ -562,9 +611,12 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
         finally
         {
             // ═══════════════════════════════════════════════
-            // Phase 4: Reset (unless HoldCurrentState)
+            // Phase 4: Reset (unless HoldCurrentState or SuppressReset)
+            // SuppressReset is set when StopGraph executed successfully or failed validation,
+            // to prevent Reset from overriding the StopGraph visual result.
             // ═══════════════════════════════════════════════
-            if (state.RequestedStopMode != FrontedLoopStopMode.HoldCurrentState)
+            if (state.RequestedStopMode != FrontedLoopStopMode.HoldCurrentState
+                && !state.SuppressReset)
             {
                 ResetIfNeeded(behavior, set);
             }
@@ -668,6 +720,30 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
     private IReadOnlyDictionary<string, object?> GetSelfTagsAsObjects(ControlBehaviorSet set) =>
         GetSelfTags(set).ToDictionary(pair => pair.Key, pair => (object?)pair.Value, StringComparer.Ordinal);
 
+    /// <summary>
+    /// Reads a boolean property from a <see cref="FrontedNode"/>'s properties dict,
+    /// returning <paramref name="fallback"/> if the property is missing or not a valid boolean.
+    /// </summary>
+    private static bool GetBoolSafe(FrontedNode node, string name, bool fallback = true)
+    {
+        if (!node.Properties.TryGetValue(name, out var value))
+        {
+            return fallback;
+        }
+
+        if (value.ValueKind == JsonValueKind.True)
+        {
+            return true;
+        }
+
+        if (value.ValueKind == JsonValueKind.False)
+        {
+            return false;
+        }
+
+        return value.ValueKind == JsonValueKind.String && bool.TryParse(value.GetString(), out var result) ? result : fallback;
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
@@ -717,6 +793,12 @@ internal sealed class FrontedBehaviorRuntimeHost : IDisposable
         public Task? RunningTask { get; set; }
         public bool StopRequested { get; set; }
         public FrontedLoopStopMode? RequestedStopMode { get; set; }
+
+        /// <summary>
+        /// When true, Phase 4 Reset is skipped. Set when StopGraph executed successfully
+        /// or failed validation, to prevent Reset from overriding the StopGraph visual result.
+        /// </summary>
+        public bool SuppressReset { get; set; }
 
         public RunningBehaviorState(CancellationTokenSource lifecycleCts, LoopPhase loopPhase = LoopPhase.Stopped)
         {

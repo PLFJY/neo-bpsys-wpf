@@ -10,6 +10,7 @@ using neo_bpsys_wpf.ViewModels.FrontedDesigner.GraphEditor;
 using System.Collections.ObjectModel;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Windows;
 
 namespace neo_bpsys_wpf.ViewModels.FrontedDesigner;
 
@@ -31,6 +32,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
 
     private ControlBehaviorSet? _currentSet;
 
+    private readonly Func<Task<bool>>? _saveBehaviorAsync;
+
     public BehaviorPanelViewModel()
         : this(
             new FrontedDesignerLocalizationService(),
@@ -49,11 +52,13 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
         FrontedNodeGraphValidator? graphValidator = null,
         IFrontedNodeGraphRuntime? graphRuntime = null,
         IFrontedAnimationRuntime? animationRuntime = null,
-        FrontedDesignerPreviewAnimationScope? previewAnimationScope = null)
+        FrontedDesignerPreviewAnimationScope? previewAnimationScope = null,
+        Func<Task<bool>>? saveBehaviorAsync = null)
     {
         _localizationService = localizationService;
         _markLayoutDirty = markLayoutDirty;
         _markBehaviorsDirty = markBehaviorsDirty;
+        _saveBehaviorAsync = saveBehaviorAsync;
         _nodeCatalog = nodeCatalog ?? new FrontedNodeCatalog();
         _graphValidator = graphValidator ?? new FrontedNodeGraphValidator(_nodeCatalog);
         _graphRuntime = graphRuntime ?? new FrontedNodeGraphRuntime(_nodeCatalog, _graphValidator);
@@ -106,7 +111,7 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
 
     public string GraphPlaceholder => Localize(
         "Designer.Behaviors.GraphPlaceholder",
-        "Node graph editor will be available in Phase 3");
+        "Node graph editor is available from the animation editor.");
 
     public void SetDocument(FrontedBehaviorDocument document)
     {
@@ -331,7 +336,8 @@ public sealed partial class BehaviorPanelViewModel : ViewModelBase
             _animationRuntime,
             _previewAnimationScope,
             editor => AnimationEditorRequested?.Invoke(editor),
-            CreateTargetOptions());
+            CreateTargetOptions(),
+            saveBehaviorAsync: _saveBehaviorAsync);
     }
 
     private IReadOnlyList<FrontedNodeTargetOptionViewModel> CreateTargetOptions()
@@ -688,7 +694,8 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
         IFrontedAnimationRuntime? animationRuntime,
         FrontedDesignerPreviewAnimationScope? previewAnimationScope,
         Action<FrontedBehaviorAnimationEditorViewModel> openAnimationEditor,
-        IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions = null)
+        IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions = null,
+        Func<Task<bool>>? saveBehaviorAsync = null)
     {
         Model = model;
         _markDirty = markDirty;
@@ -720,7 +727,8 @@ public sealed partial class BehaviorEditorViewModel : ObservableObject
                 animationRuntime,
                 previewAnimationScope,
                 markDirty,
-                targetOptions)));
+                targetOptions,
+                saveAsync: saveBehaviorAsync)));
     }
 
     public FrontedBehavior Model { get; }
@@ -1029,11 +1037,14 @@ public sealed partial class TriggerFilterEditorViewModel : ObservableObject
 
 public sealed partial class FrontedBehaviorAnimationEditorViewModel : ObservableObject
 {
+    private const int MaxPreviewLogItems = 300;
+    private const int MinimumLoopPreviewIntervalMs = 16;
     private readonly FrontedBehavior _behavior;
     private readonly IFrontedNodeGraphRuntime _runtime;
     private readonly IFrontedAnimationRuntime? _animationRuntime;
     private readonly FrontedDesignerPreviewAnimationScope? _previewAnimationScope;
     private readonly Func<string, string, string> _localize;
+    private readonly Func<Task<bool>>? _saveAsync;
     private CancellationTokenSource? _loopPreviewCancellation;
 
     public FrontedBehaviorAnimationEditorViewModel(
@@ -1045,13 +1056,15 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         IFrontedAnimationRuntime? animationRuntime = null,
         FrontedDesignerPreviewAnimationScope? previewAnimationScope = null,
         Action? markDirty = null,
-        IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions = null)
+        IReadOnlyList<FrontedNodeTargetOptionViewModel>? targetOptions = null,
+        Func<Task<bool>>? saveAsync = null)
     {
         _behavior = behavior;
         _runtime = runtime ?? new FrontedNodeGraphRuntime(catalog, validator);
         _animationRuntime = animationRuntime;
         _previewAnimationScope = previewAnimationScope;
         _localize = localize;
+        _saveAsync = saveAsync;
         Title = behavior.Name;
         IsLoop = behavior.Kind == FrontedBehaviorKind.Loop;
         Stages = IsLoop
@@ -1062,6 +1075,13 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
                 Stage(localize("Designer.Behaviors.EndAnimation", "End animation"), behavior.StopGraph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions)
             ]
             : [Stage(localize("Designer.Behaviors.Animation", "Animation"), behavior.Graph, catalog, validator, _runtime, animationRuntime, previewAnimationScope, markDirty, localize, targetOptions)];
+
+        // Wire each stage's graph editor save action to trigger SaveAllAsync on this animation editor.
+        foreach (var stage in Stages)
+        {
+            var vm = this;
+            stage.GraphEditor.SetSaveAction(vm.SaveAllAsync);
+        }
 
         PreviewStartCommand = new AsyncRelayCommand(PreviewStartAsync, () => IsLoop && !IsLoopPreviewRunning);
         PreviewLoopOnceCommand = new AsyncRelayCommand(PreviewLoopOnceAsync, () => IsLoop && !IsLoopPreviewRunning);
@@ -1085,14 +1105,55 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
     public IAsyncRelayCommand PreviewStopCommand { get; }
     public IRelayCommand ResetCommand { get; }
 
-    /// <summary>保存所有 stage 的更改</summary>
-    public void SaveAll()
+    /// <summary>异步保存所有 stage 的更改到行为文档。</summary>
+    /// <returns>如果保存成功返回 <c>true</c>，否则返回 <c>false</c>。</returns>
+    public async Task<bool> SaveAllAsync()
+    {
+        if (_saveAsync is not null)
+        {
+            try
+            {
+                var saved = await _saveAsync().ConfigureAwait(false);
+                if (!saved)
+                {
+                    return false;
+                }
+            }
+            catch (Exception)
+            {
+                // Save failed — keep dirty state intact
+                return false;
+            }
+        }
+
+        // Clear all stages' dirty state after successful save.
+        // Must dispatch to the UI thread because setting IsDirty triggers RelayCommand.NotifyCanExecuteChanged.
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher is null)
+        {
+            ClearStageDirtyStates();
+            return true;
+        }
+
+        if (dispatcher.CheckAccess())
+        {
+            ClearStageDirtyStates();
+        }
+        else
+        {
+            await dispatcher.InvokeAsync(ClearStageDirtyStates);
+        }
+
+        return true;
+    }
+
+    private void ClearStageDirtyStates()
     {
         foreach (var stage in Stages)
         {
             if (stage.GraphEditor.IsDirty)
             {
-                stage.GraphEditor.SaveCommand.Execute(null);
+                stage.GraphEditor.IsDirty = false;
             }
         }
     }
@@ -1160,10 +1221,10 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
             var policy = _behavior.LoopPolicy ?? new FrontedLoopPolicy();
             if (policy.AutoReverse)
             {
-                Stages.FirstOrDefault()?.GraphEditor.ExecutionLog.Add(new FrontedGraphExecutionLogItem
+                AddExecutionLog(Stages.FirstOrDefault()?.GraphEditor, new FrontedGraphExecutionLogItem
                 {
                     Level = FrontedGraphExecutionLogLevel.Warning,
-                    Message = _localize("Designer.Graph.Preview.AutoReverseStoredOnly", "AutoReverse is stored; reverse graph semantics are not previewed in Phase 4.")
+                    Message = _localize("Designer.Graph.Preview.AutoReverseStoredOnly", "AutoReverse is saved, but reverse graph playback is not simulated during preview.")
                 });
             }
 
@@ -1173,9 +1234,9 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
             {
                 await ExecuteGraphAsync(_behavior.LoopGraph, token);
                 iteration++;
-                if (policy.IntervalMs > 0 && !token.IsCancellationRequested)
+                if (!token.IsCancellationRequested)
                 {
-                    await Task.Delay(policy.IntervalMs, token);
+                    await Task.Delay(Math.Max(policy.IntervalMs, MinimumLoopPreviewIntervalMs), token);
                 }
             }
         }
@@ -1194,12 +1255,14 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
     {
         _loopPreviewCancellation?.Cancel();
         var policy = _behavior.LoopPolicy ?? new FrontedLoopPolicy();
+        var suppressReset = policy.StopMode == FrontedLoopStopMode.HoldCurrentState;
         if (policy.StopMode == FrontedLoopStopMode.RunStopGraph)
         {
-            await ExecuteGraphAsync(_behavior.StopGraph, TestContextCancellationToken());
+            var stopResult = await ExecuteGraphAsync(_behavior.StopGraph, TestContextCancellationToken());
+            suppressReset = stopResult.Status == FrontedGraphExecutionStatus.Success;
         }
 
-        if (policy.ResetOnStop)
+        if (policy.ResetOnStop && !suppressReset)
         {
             Reset();
         }
@@ -1217,7 +1280,7 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         }
     }
 
-    private async Task ExecuteGraphAsync(FrontedNodeGraph graph, CancellationToken cancellationToken)
+    private async Task<FrontedGraphExecutionResult> ExecuteGraphAsync(FrontedNodeGraph graph, CancellationToken cancellationToken)
     {
         var animationContext = _previewAnimationScope?.CreateContext();
         var graphContext = new FrontedGraphExecutionContext
@@ -1232,12 +1295,12 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
         var stage = Stages.FirstOrDefault(item => ReferenceEquals(item.Graph, graph));
         if (stage is null)
         {
-            return;
+            return result;
         }
 
         if (_animationRuntime is not null && animationContext is null)
         {
-            stage.GraphEditor.ExecutionLog.Add(new FrontedGraphExecutionLogItem
+            AddExecutionLog(stage.GraphEditor, new FrontedGraphExecutionLogItem
             {
                 Level = FrontedGraphExecutionLogLevel.Warning,
                 Message = _localize("Designer.Graph.Preview.NoTargetScope", "No preview target scope available.")
@@ -1246,7 +1309,23 @@ public sealed partial class FrontedBehaviorAnimationEditorViewModel : Observable
 
         foreach (var item in result.LogItems)
         {
-            stage.GraphEditor.ExecutionLog.Add(item);
+            AddExecutionLog(stage.GraphEditor, item);
+        }
+
+        return result;
+    }
+
+    private static void AddExecutionLog(FrontedNodeGraphEditorViewModel? graphEditor, FrontedGraphExecutionLogItem item)
+    {
+        if (graphEditor is null)
+        {
+            return;
+        }
+
+        graphEditor.ExecutionLog.Add(item);
+        while (graphEditor.ExecutionLog.Count > MaxPreviewLogItems)
+        {
+            graphEditor.ExecutionLog.RemoveAt(0);
         }
     }
 

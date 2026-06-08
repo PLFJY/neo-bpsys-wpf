@@ -31,6 +31,7 @@ public sealed class FrontedAnimationTargetResolver : IFrontedAnimationTargetReso
 
             var element = EnumerateFrameworkElements(context.Root)
                 .FirstOrDefault(item => FrontedRendererProperties.GetIsGeneratedControl(item)
+                                        && !FrontedRendererProperties.GetIsAnimationAuxiliaryElement(item)
                                         && FrontedRendererProperties.GetBehaviorGuid(item) == guid);
             if (element is null)
             {
@@ -46,6 +47,7 @@ public sealed class FrontedAnimationTargetResolver : IFrontedAnimationTargetReso
         {
             var element = EnumerateFrameworkElements(context.Root)
                 .FirstOrDefault(item => FrontedRendererProperties.GetIsGeneratedControl(item)
+                                        && !FrontedRendererProperties.GetIsAnimationAuxiliaryElement(item)
                                         && string.Equals(
                                             FrontedRendererProperties.GetRegisteredName(item),
                                             effectiveReference.Name,
@@ -70,7 +72,9 @@ public sealed class FrontedAnimationTargetResolver : IFrontedAnimationTargetReso
             Element = element,
             BehaviorGuid = FrontedRendererProperties.GetBehaviorGuid(element),
             Name = string.IsNullOrWhiteSpace(registeredName) ? element.Name : registeredName,
-            DisplayName = displayName
+            DisplayName = displayName,
+            TargetLayer = FrontedAnimationTargetLayer.Control,
+            ControlElement = element
         };
     }
 

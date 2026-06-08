@@ -101,11 +101,15 @@ public class FrontedNodeGraphRuntimeTest
     public async Task Runtime_SetProperty_EmitsActionRequest()
     {
         var graph = Connect(_catalog.CreateNode("flow.start"), _catalog.CreateNode("action.setProperty"), _catalog.CreateNode("flow.end"));
-        graph.Nodes.Single(node => node.NodeType == "action.setProperty").Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
+        var node = graph.Nodes.Single(node => node.NodeType == "action.setProperty");
+        node.Properties["PropertyName"] = JsonSerializer.SerializeToElement("Opacity");
+        node.Properties["TargetLayer"] = JsonSerializer.SerializeToElement("Content");
 
         var result = await CreateRuntime().ExecuteAsync(graph, new FrontedGraphExecutionContext(), TestContext.Current.CancellationToken);
 
-        Assert.Equal(FrontedGraphActionRequestType.SetProperty, Assert.Single(result.ActionRequests).RequestType);
+        var request = Assert.Single(result.ActionRequests);
+        Assert.Equal(FrontedGraphActionRequestType.SetProperty, request.RequestType);
+        Assert.Equal(FrontedAnimationTargetLayer.Content, request.TargetLayer);
     }
 
     [Fact]

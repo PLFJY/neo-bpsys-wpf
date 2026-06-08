@@ -149,6 +149,10 @@ v3 内置控件类型如下：
 | 外层 `Border` | `Canvas.Left`、`Canvas.Top`、`Width`、`Height`、`Panel.ZIndex`。 |
 | 内层 `TextBlock` | 文本绑定、字体、字号、字重、颜色、水平/垂直对齐、`TextAlignment`、`TextWrapping`。 |
 
+行为动画中的 `TargetLayer=Control` 指向外层 `Border`；`TargetLayer=Content` 指向内层
+`TextBlock`；`TargetLayer=OverlayAbove/OverlayBelow` 会在该文本控件上方或下方生成运行时
+`Rectangle` 承接层，用于描边、填充等不属于文本本体的视觉效果。
+
 `TextBinding.Sources` 按顺序以 `ISharedDataService` 为 binding `Source`，运行时始终创建 `MultiBinding`：
 
 ```csharp
@@ -177,6 +181,10 @@ source 顺序对应 `{0}`、`{1}`、`{2}`。`StringFormat` 非空时使用当前
 | `Image` 根 `Grid` | `Canvas.Left`、`Canvas.Top`、`Width`、`Height`、`Panel.ZIndex` 和控件 `Name`。内部第一层是主 `Image`，后续子元素是 lock / picking border overlay。 |
 | `BorderedImage` 外层 `Border` | `Canvas.Left`、`Canvas.Top`、`Width`、`Height`、`Panel.ZIndex`，设计器默认 resize handles 作用于这一层。 |
 | `BorderedImage` 内层 `Image` | `Source` 绑定、`ImageWidth`、`ImageHeight`、`Stretch`、`HorizontalAlignment`、`VerticalAlignment` 等图片展示属性。 |
+
+行为动画中的 `TargetLayer=Control` 指向 `Image` 的根 `Grid` 或 `BorderedImage` 的外层
+`Border`；`TargetLayer=Content` 指向主 `Image`，不会影响 lock / picking border overlay；
+`TargetLayer=OverlayAbove/OverlayBelow` 会在图片控件上方或下方生成运行时 `Rectangle` 承接层。
 
 `BindingPath` 同样应以 `ISharedDataService` 为 binding `Source`。图片控件还支持 `ImagePath` 作为静态图片资源路径。`BindingPath` 与 `ImagePath` 同时存在时，`BindingPath` 优先。`ImagePath` 应使用 `Resources/foo.png`、`bpui://...` 等 v3 资源路径，不应长期保存任意绝对本地路径。
 

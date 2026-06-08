@@ -84,4 +84,30 @@ public static class FrontedRendererProperties
     {
         element.SetValue(BehaviorGuidProperty, value);
     }
+
+    /// <summary>
+    /// 标记元素是否为行为动画 runtime 生成的辅助视觉层。
+    /// </summary>
+    public static readonly DependencyProperty IsAnimationAuxiliaryElementProperty =
+        DependencyProperty.RegisterAttached(
+            "IsAnimationAuxiliaryElement",
+            typeof(bool),
+            typeof(FrontedRendererProperties),
+            new PropertyMetadata(false));
+
+    /// <summary>
+    /// 获取元素是否为行为动画 runtime 生成的辅助视觉层。
+    /// </summary>
+    public static bool GetIsAnimationAuxiliaryElement(DependencyObject element)
+    {
+        return (bool)element.GetValue(IsAnimationAuxiliaryElementProperty);
+    }
+
+    /// <summary>
+    /// 设置元素是否为行为动画 runtime 生成的辅助视觉层。
+    /// </summary>
+    public static void SetIsAnimationAuxiliaryElement(DependencyObject element, bool value)
+    {
+        element.SetValue(IsAnimationAuxiliaryElementProperty, value);
+    }
 }

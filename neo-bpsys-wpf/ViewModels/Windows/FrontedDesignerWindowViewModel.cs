@@ -3524,7 +3524,31 @@ public partial class FrontedDesignerWindowViewModel : ViewModelBase
             MarkLayoutDirtyFromBehaviorPanel,
             MarkBehaviorsDirty,
             animationRuntime: _animationRuntime,
-            previewAnimationScope: _previewAnimationScope);
+            previewAnimationScope: _previewAnimationScope,
+            saveBehaviorAsync: SaveBehaviorDocumentAsync);
+    }
+
+    /// <summary>
+    /// Persists the current behavior document and clears the outer dirty flag.
+    /// Called by the animation editor save flow.
+    /// </summary>
+    /// <returns><c>true</c> if the save succeeded; otherwise <c>false</c>.</returns>
+    private async Task<bool> SaveBehaviorDocumentAsync()
+    {
+        try
+        {
+            BehaviorPanel.CurrentDocument.WindowType = CurrentDocument?.WindowTypeName;
+            BehaviorPanel.CurrentDocument.CanvasName = CurrentDocument?.CanvasName;
+            await _behaviorService.SaveDocumentAsync(BehaviorPanel.CurrentDocument).ConfigureAwait(false);
+            AreBehaviorsDirty = false;
+            RefreshDirtyState();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save behavior document from animation editor.");
+            return false;
+        }
     }
 
     private void MarkLayoutDirtyFromBehaviorPanel()
